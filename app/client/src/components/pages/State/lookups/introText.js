@@ -767,24 +767,25 @@ export default {
   },
   OK: {
     region: 6,
-    intro: null,
+    intro:
+      'The Oklahoma Department of Environmental Quality (DEQ) partners with other state agencies to maintain water quality standards in Oklahoma’s lakes, rivers, and streams. DEQ works closely with other state, federal, and local agencies to compile water quality data and apply the appropriate water quality standards to determine the health of the surface waters of the state. The two major contributors of water quality data and assessments are the Oklahoma Water Resources Board (OWRB) and Oklahoma Conservation Commission (OCC). The Oklahoma Water Resources Board (OWRB) conducts routine monitoring throughout the state on selected lakes and non-wadeable streams. The Oklahoma Conservation Commission (OCC) monitors physical, chemical, and biological parameters of wadeable streams through the 319 Grant Program. The OWRB and OCC monitoring programs provide the majority of data used to develop the Integrated Report. The Integrated Report is prepared and submitted to EPA by DEQ. The main responsibility of DEQ is to regulate facilities that produce and distribute public drinking water and that treat, transport, store, and discharge wastewater. Total Maximum Daily Loads (TMDLs) are developed by DEQ for impaired waterbodies. DEQ is also responsible for municipal, industrial, and stormwater permitting, and has authority to issue water quality certifications (401) for federal discharge permits. In addition, DEQ oversees more than 1,300 active Public Water Supply systems.',
     url: 'https://www.deq.ok.gov/divisions/wqd/',
     metrics: [
-      // {
-      //   value: null,
-      //   label: null,
-      //   unit: null,
-      // },
-      // {
-      //   value: null,
-      //   label: null,
-      //   unit: null,
-      // },
-      // {
-      //   value: null,
-      //   label: null,
-      //   unit: null,
-      // },
+      {
+        value: '78,778',
+        label: 'Rivers and Streams',
+        unit: 'miles',
+      },
+      {
+        value: '1,041,884',
+        label: 'Lakes/Reservoirs/Playas/Ponds',
+        unit: 'acres',
+      },
+      {
+        value: '733,895',
+        label: 'Freshwater Wetlands',
+        unit: 'acres',
+      },
     ],
   },
   TX: {
@@ -859,23 +860,23 @@ export default {
   MO: {
     region: 7,
     intro:
-      '"Missouri is home to slightly more than 6 million people with approximately one-half of the state’s population residing in the metropolitan areas of Kansas City and St. Louis (US Census Bureau 2014). Beyond the Missouri and Mississippi rivers – two of the nation’s great rivers -  Missouri’s landscape contains a network of water resources that is a key component to the quality of life in the state. This network of streams, lakes, and wetlands helps support the energy needs of the state, sustains farming and industrial operations, serves as sources of safe drinking water, offers a variety of recreational opportunities, and provides habitat to wildlife. The state’s diverse stream systems are grouped into three aquatic subregions: the Central Plains, the Ozark Plateau, and the Mississippi Alluvial Basin. Natural lakes in Missouri are limited to oxbow lakes, sinkhole ponds in karst areas, and open water systems in the wetlands of southeastern Missouri. Man-made lakes and ponds are also common throughout the state. "',
+      'Missouri is home to slightly more than 6 million people with approximately one-half of the state’s population residing in the metropolitan areas of Kansas City and St. Louis (US Census Bureau 2014). Beyond the Missouri and Mississippi rivers – two of the nation’s great rivers - Missouri’s landscape contains a network of water resources that is a key component to the quality of life in the state. This network of streams, lakes, and wetlands helps support the energy needs of the state, sustains farming and industrial operations, serves as sources of safe drinking water, offers a variety of recreational opportunities, and provides habitat to wildlife. The state’s diverse stream systems are grouped into three aquatic subregions: the Central Plains, the Ozark Plateau, and the Mississippi Alluvial Basin. Natural lakes in Missouri are limited to oxbow lakes, sinkhole ponds in karst areas, and open water systems in the wetlands of southeastern Missouri. Man-made lakes and ponds are also common throughout the state.',
     url: 'https://dnr.mo.gov/env/wpp/',
     metrics: [
       {
-        value: '115,772',
-        label: 'Classified Stream',
+        value: '116,825',
+        label: 'State Rivers and Streams',
         unit: 'miles',
       },
       {
-        value: '45%',
-        label: 'Of Streams are Classified',
+        value: '426',
+        label: 'Lakes greater than 10 acres',
         unit: null,
       },
       {
-        value: '363,653',
-        label: 'Classified Lake',
-        unit: 'acres ',
+        value: '624,000',
+        label: 'Wetlands',
+        unit: 'acres',
       },
     ],
   },
