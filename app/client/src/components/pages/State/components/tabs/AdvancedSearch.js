@@ -4,12 +4,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { useWindowSize } from '@reach/window-size';
 import Select, { createFilter } from 'react-select';
-import {
-  AutoSizer,
-  CellMeasurer,
-  CellMeasurerCache,
-  List,
-} from 'react-virtualized';
+import { CellMeasurer, CellMeasurerCache, List } from 'react-virtualized';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -1072,35 +1067,39 @@ function MenuList({ ...props }) {
     return props.children;
   }
 
+  // get the width from the parent of the virtualized list
+  const elem = document.getElementById('virtualized-select-list');
+  let width = 0;
+  if (elem && elem.parentElement) {
+    width = elem.parentElement.getBoundingClientRect().width;
+  }
+
   return (
-    <AutoSizer style={{ height: '100%', width: '100%' }}>
-      {({ height, width }) => (
-        <List
-          ref={listRef}
-          deferredMeasurementCache={cache}
-          height={props.maxHeight}
-          width={width}
-          rowHeight={cache.rowHeight}
-          rowCount={props.children.length}
-          overscanRowCount={25}
-          style={{ paddingTop: '4px', paddingBottom: '4px' }}
-          rowRenderer={({ index, isScrolling, key, parent, style }) => {
-            return (
-              <CellMeasurer
-                cache={cache}
-                columnIndex={0}
-                rowCount={props.children.length}
-                parent={parent}
-                key={key}
-                rowIndex={index}
-              >
-                <div style={style}>{props.children[index]}</div>
-              </CellMeasurer>
-            );
-          }}
-        />
-      )}
-    </AutoSizer>
+    <List
+      id="virtualized-select-list"
+      ref={listRef}
+      deferredMeasurementCache={cache}
+      height={props.maxHeight}
+      width={width}
+      rowHeight={cache.rowHeight}
+      rowCount={props.children.length}
+      overscanRowCount={25}
+      style={{ paddingTop: '4px', paddingBottom: '4px' }}
+      rowRenderer={({ index, isScrolling, key, parent, style }) => {
+        return (
+          <CellMeasurer
+            cache={cache}
+            columnIndex={0}
+            rowCount={props.children.length}
+            parent={parent}
+            key={key}
+            rowIndex={index}
+          >
+            <div style={style}>{props.children[index]}</div>
+          </CellMeasurer>
+        );
+      }}
+    />
   );
 }
 export default function AdvancedSearchContainer({ ...props }: Props) {
