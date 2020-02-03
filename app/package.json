@@ -1,0 +1,39 @@
+{
+  "name": "mywaterway",
+  "version": "2.0.0",
+  "description": "A tool to learn about your water resources.",
+  "keywords": [
+    "MyWaterway",
+    "HMWv2",
+    "WATERS",
+    "RAD",
+    "ATTAINS",
+    "GRTS",
+    "STORET",
+    "WQP",
+    "WQX"
+  ],
+  "repository": "github:USEPA/mywaterway",
+  "homepage": "https://github.com/USEPA/mywaterway",
+  "bugs": "https://github.com/USEPA/mywaterway/issues",
+  "license": "CC0-1.0",
+  "author": "USEPA (https://www.epa.gov)",
+  "contributors": [
+    "Andrew VanNess <andrew.vanness@erg.com>",
+    "Brad Cooper <brad.cooper@erg.com>",
+    "Caleb Schwind <caleb.schwind@erg.com>",
+    "Courtney Myers <courtney.myers@erg.com>"
+  ],
+  "engines": {
+    "node": "12.x"
+  },
+  "scripts": {
+    "client": "cd client && npm start",
+    "server": "cd server && npm start",
+    "start": "concurrently --kill-others \"npm run server\" \"npm run client\"",
+    "setup": "echo \"Installing project dependencies...\" && npm ci && echo \"Installing client dependencies...\" && cd client && npm ci && echo \"Installing server dependencies...\" && cd .. && cd server && npm ci"
+  },
+  "devDependencies": {
+    "concurrently": "5.1.0"
+  }
+}

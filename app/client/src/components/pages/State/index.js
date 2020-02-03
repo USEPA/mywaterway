@@ -1,0 +1,325 @@
+// @flow
+
+import React from 'react';
+import type { Node } from 'react';
+import { navigate } from '@reach/router';
+import styled from 'styled-components';
+import Select from 'react-select';
+// components
+import type { RouteProps } from 'routes.js';
+import Page from 'components/shared/Page';
+import TabLinks from 'components/shared/TabLinks';
+import ShowLessMore from 'components/shared/ShowLessMore';
+import DisclaimerModal from 'components/shared/DisclaimerModal';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+// styled components
+import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { StyledIntroBox } from 'components/shared/IntroBox';
+import {
+  StyledMetrics,
+  StyledMetric,
+  StyledNumber,
+  StyledLabel,
+} from 'components/shared/KeyMetrics';
+// contexts
+import { StateTabsContext, StateTabsProvider } from 'contexts/StateTabs';
+// config
+import { attains } from 'config/webServiceConfig';
+// utilities
+import { fetchCheck } from 'utils/fetchUtils';
+// data
+import introText from 'components/pages/State/lookups/introText';
+// styles
+import { colors, fonts } from 'styles/index.js';
+// errors
+import { stateListError, stateNoDataError } from 'config/errorMessages';
+
+// --- styled components ---
+const Container = styled.div`
+  margin-top: 15px;
+  margin-bottom: 15px;
+
+  @media (max-width: 400px) {
+    padding-left: 0.2em !important;
+    padding-right: 0.2em !important;
+  }
+
+  [data-reach-tab-panel] {
+    padding: 1.5em !important;
+
+    p,
+    li {
+      line-height: 1.375;
+    }
+  }
+
+  .Select__single-value {
+    line-height: 1.25;
+  }
+`;
+
+const Prompt = styled.p`
+  padding-bottom: 0;
+`;
+
+const Form = styled.form`
+  display: flex;
+  margin-bottom: 1em;
+`;
+
+const SelectStyled = styled(Select)`
+  flex: 1;
+  margin-top: 1em;
+  margin-right: 0.5em;
+  font-size: 0.9375em;
+  z-index: 2;
+`;
+
+const Button = styled.button`
+  margin-top: 1em;
+  margin-bottom: 0;
+  font-size: 0.9375em;
+  font-weight: bold;
+  color: ${colors.white()};
+  background-color: ${colors.blue()};
+
+  &:hover,
+  &:focus {
+    color: ${colors.white()};
+    background-color: ${colors.purple()};
+  }
+`;
+
+const Content = styled.div`
+  h2 {
+    margin-top: 0.75rem;
+    font-size: 1.625em;
+
+    i {
+      margin-right: 0.3125em;
+      color: #2c72b5;
+    }
+  }
+
+  h3 {
+    font-size: 1.375em;
+  }
+
+  h4 {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0;
+    font-size: 1.125em;
+    color: #526571;
+  }
+
+  h2,
+  h3,
+  h4 {
+    font-family: ${fonts.primary};
+    font-weight: normal;
+  }
+`;
+
+const ErrorBox = styled(StyledErrorBox)`
+  margin-bottom: 1.5em;
+`;
+
+const IntroBox = styled(StyledIntroBox)`
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  padding: 1.5rem;
+  line-height: 1.375;
+
+  p {
+    padding-bottom: 0;
+  }
+`;
+
+const Disclaimer = styled(DisclaimerModal)`
+  margin-bottom: 1rem;
+`;
+
+// --- components ---
+type Props = {
+  ...RouteProps,
+  children: Node,
+};
+
+function State({ children, ...props }: Props) {
+  // query attains for the list of states
+  const [states, setStates] = React.useState({ status: 'fetching', data: [] });
+  React.useEffect(() => {
+    fetchCheck(`${attains.serviceUrl}states`)
+      .then((res) => setStates({ status: 'success', data: res.data }))
+      .catch((err) => setStates({ status: 'failure', data: [] }));
+  }, []);
+
+  const { activeState, setActiveState } = React.useContext(StateTabsContext);
+
+  // reset active state if on state intro page
+  React.useEffect(
+    () => {
+      if (props.location.pathname === '/state') {
+        setActiveState({ code: '', name: '' });
+      }
+    },
+    [props.location, setActiveState],
+  );
+
+  // selectedState used for the HTML select menu, so we don't immediately
+  // update activeState every time the user changes the selected state
+  const [selectedState, setSelectedState] = React.useState(activeState);
+
+  // update selectedState whenever activeState changes
+  // (e.g. when a user navigates directly to '/state/DC/advanced-search')
+  React.useEffect(
+    () => {
+      setSelectedState(activeState);
+    },
+    [activeState],
+  );
+
+  // get the state intro and metrics data
+  const stateIntro = introText[activeState.code];
+
+  return (
+    <Page>
+      <TabLinks />
+
+      <Container className="container" data-content="state">
+        {states.status === 'fetching' && <LoadingSpinner />}
+
+        {states.status === 'failure' && (
+          <ErrorBox>
+            <p>{stateListError}</p>
+          </ErrorBox>
+        )}
+
+        {states.status === 'success' && (
+          <>
+            <Prompt>
+              <strong>Let’s get started!</strong>&nbsp;&nbsp;
+              <em>
+                Select your state or territory from the drop down to begin
+                exploring water quality.
+              </em>
+            </Prompt>
+
+            <Form
+              onSubmit={(ev) => {
+                ev.preventDefault();
+                setActiveState(selectedState);
+                navigate(`/state/${selectedState.code}/water-quality-overview`);
+              }}
+            >
+              <SelectStyled
+                classNamePrefix="Select"
+                placeholder="Select a state..."
+                options={states.data.map((state) => {
+                  return { value: state.code, label: state.name };
+                })}
+                value={
+                  selectedState.code
+                    ? {
+                        value: selectedState.code,
+                        label: selectedState.name,
+                      }
+                    : null
+                }
+                onChange={(ev) =>
+                  setSelectedState({
+                    code: ev.value,
+                    name: ev.label,
+                  })
+                }
+              />
+
+              <Button type="submit" className="btn">
+                <i className="fas fa-angle-double-right" /> Go
+              </Button>
+            </Form>
+          </>
+        )}
+
+        <Content>
+          {activeState.code !== '' && (
+            <>
+              {!stateIntro ? (
+                <ErrorBox>
+                  <p>{stateNoDataError(activeState.name)}.</p>
+                </ErrorBox>
+              ) : (
+                <>
+                  {stateIntro.metrics.length > 0 && (
+                    <>
+                      <h2>
+                        <i className="fas fa-chart-line" />
+                        <strong>{activeState.name}</strong> by the Numbers
+                      </h2>
+
+                      <StyledMetrics>
+                        {stateIntro.metrics.map(
+                          (metric, index) =>
+                            metric &&
+                            metric.value &&
+                            metric.label && (
+                              <StyledMetric key={index}>
+                                <StyledNumber>{metric.value}</StyledNumber>
+                                <StyledLabel>
+                                  {metric.label}
+                                  <br />
+                                  <em>{metric.unit}</em>
+                                </StyledLabel>
+                              </StyledMetric>
+                            ),
+                        )}
+                      </StyledMetrics>
+                    </>
+                  )}
+
+                  {stateIntro.intro && (
+                    <IntroBox>
+                      <p>
+                        <ShowLessMore text={stateIntro.intro} charLimit={450} />
+                      </p>
+                    </IntroBox>
+                  )}
+
+                  <Disclaimer>
+                    <p>
+                      The condition of a waterbody is dynamic and can change at
+                      any time, and the information in How’s My Waterway should
+                      only be used for general reference. If available, refer to
+                      local or state real-time water quality reports.
+                    </p>
+                    <p>
+                      Furthermore, users of this application should not rely on
+                      information relating to environmental laws and regulations
+                      posted on this application. Application users are solely
+                      responsible for ensuring that they are in compliance with
+                      all relevant environmental laws and regulations. In
+                      addition, EPA cannot attest to the accuracy of data
+                      provided by organizations outside of the federal
+                      government.
+                    </p>
+                  </Disclaimer>
+                </>
+              )}
+            </>
+          )}
+
+          {/* children is either StateIntro or StateTabs */}
+          {children}
+        </Content>
+      </Container>
+    </Page>
+  );
+}
+
+export default function StateContainer({ ...props }: Props) {
+  return (
+    <StateTabsProvider>
+      <State {...props} />
+    </StateTabsProvider>
+  );
+}
