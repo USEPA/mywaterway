@@ -199,104 +199,101 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
   });
 
   // fetch waterbody name, location, types from attains 'assessmentUnits' web service
-  React.useEffect(
-    () => {
-      const url =
-        attains.serviceUrl +
-        `assessmentUnits?organizationId=${orgId}` +
-        `&assessmentUnitIdentifier=${auId}`;
+  React.useEffect(() => {
+    const url =
+      attains.serviceUrl +
+      `assessmentUnits?organizationId=${orgId}` +
+      `&assessmentUnitIdentifier=${auId}`;
 
-      fetchCheck(url).then(
-        (res) => {
-          if (res.items.length < 1) {
-            setNoWaterbodies(true);
-            return;
-          }
+    fetchCheck(url).then(
+      (res) => {
+        if (res.items.length < 1) {
+          setNoWaterbodies(true);
+          return;
+        }
 
-          const {
-            assessmentUnitName,
-            locationDescriptionText,
-            waterTypes,
-            monitoringStations,
-          } = res.items[0].assessmentUnits[0];
+        const {
+          assessmentUnitName,
+          locationDescriptionText,
+          waterTypes,
+          monitoringStations,
+        } = res.items[0].assessmentUnits[0];
 
-          setWaterbodyName(assessmentUnitName);
-          setWaterbodyLocation({
-            status: 'success',
-            text: locationDescriptionText,
-          });
+        setWaterbodyName(assessmentUnitName);
+        setWaterbodyLocation({
+          status: 'success',
+          text: locationDescriptionText,
+        });
 
-          const types = waterTypes.map((type) => ({
-            code: type.waterTypeCode,
-            size: type.waterSizeNumber,
-            units: type.unitsCode,
-          }));
+        const types = waterTypes.map((type) => ({
+          code: type.waterTypeCode,
+          size: type.waterSizeNumber,
+          units: type.unitsCode,
+        }));
 
-          setWaterbodyTypes({ status: 'success', data: types });
+        setWaterbodyTypes({ status: 'success', data: types });
 
-          // return early if no monitoring stations were returned
-          if (monitoringStations.length === 0) {
-            setMonitoringLocations({ status: 'success', data: [] });
-            return;
-          }
+        // return early if no monitoring stations were returned
+        if (monitoringStations.length === 0) {
+          setMonitoringLocations({ status: 'success', data: [] });
+          return;
+        }
 
-          // create easier to handle 'stations' array from 'monitoringStations'
-          const stations = monitoringStations.map((station) => ({
-            orgId: station.monitoringOrganizationIdentifier,
-            locId: station.monitoringLocationIdentifier,
-          }));
+        // create easier to handle 'stations' array from 'monitoringStations'
+        const stations = monitoringStations.map((station) => ({
+          orgId: station.monitoringOrganizationIdentifier,
+          locId: station.monitoringLocationIdentifier,
+        }));
 
-          const wqpUrl =
-            `${waterQualityPortal.stationSearch}siteid=` +
-            `${stations.map((s) => `${s.orgId}-${s.locId}`).join('&siteid=')}` +
-            `&mimeType=geojson`;
+        const wqpUrl =
+          `${waterQualityPortal.stationSearch}siteid=` +
+          `${stations.map((s) => `${s.orgId}-${s.locId}`).join('&siteid=')}` +
+          `&mimeType=geojson`;
 
-          // fetch monitoring locations from water quality portal 'station search' web service
-          fetchCheck(wqpUrl).then(
-            (geojson) => {
-              // match monitoring stations returned from the attains 'assessmentUnits' web service
-              // with features returned in the water quality portal 'station search' web service
-              // (NOTE: there won't always be a match for every monitoring station)
-              const locations = stations.map((station) => {
-                const { orgId, locId } = station;
+        // fetch monitoring locations from water quality portal 'station search' web service
+        fetchCheck(wqpUrl).then(
+          (geojson) => {
+            // match monitoring stations returned from the attains 'assessmentUnits' web service
+            // with features returned in the water quality portal 'station search' web service
+            // (NOTE: there won't always be a match for every monitoring station)
+            const locations = stations.map((station) => {
+              const { orgId, locId } = station;
 
-                // match via monitoring location identifier
-                const match = geojson.features.filter((feature) => {
-                  const { MonitoringLocationIdentifier } = feature.properties;
-                  return MonitoringLocationIdentifier === `${orgId}-${locId}`;
-                })[0];
+              // match via monitoring location identifier
+              const match = geojson.features.filter((feature) => {
+                const { MonitoringLocationIdentifier } = feature.properties;
+                return MonitoringLocationIdentifier === `${orgId}-${locId}`;
+              })[0];
 
-                const name = match
-                  ? match.properties['MonitoringLocationName']
-                  : '';
+              const name = match
+                ? match.properties['MonitoringLocationName']
+                : '';
 
-                const url = match
-                  ? `${waterQualityPortal.monitoringLocationDetails}` +
-                    `${match.properties['ProviderName']}/` +
-                    `${match.properties['OrganizationIdentifier']}/` +
-                    `${match.properties['MonitoringLocationIdentifier']}/`
-                  : '';
+              const url = match
+                ? `${waterQualityPortal.monitoringLocationDetails}` +
+                  `${match.properties['ProviderName']}/` +
+                  `${match.properties['OrganizationIdentifier']}/` +
+                  `${match.properties['MonitoringLocationIdentifier']}/`
+                : '';
 
-                return { orgId, locId, name, url };
-              });
+              return { orgId, locId, name, url };
+            });
 
-              setMonitoringLocations({ status: 'success', data: locations });
-            },
-            (err) => {
-              setMonitoringLocations({ status: 'failure', data: [] });
-              console.error(err);
-            },
-          );
-        },
-        (err) => {
-          console.error(err);
-          setWaterbodyTypes({ status: 'failure', data: [] });
-          setWaterbodyLocation({ status: 'failure', text: '' });
-        },
-      );
-    },
-    [auId, orgId],
-  );
+            setMonitoringLocations({ status: 'success', data: locations });
+          },
+          (err) => {
+            setMonitoringLocations({ status: 'failure', data: [] });
+            console.error(err);
+          },
+        );
+      },
+      (err) => {
+        console.error(err);
+        setWaterbodyTypes({ status: 'failure', data: [] });
+        setWaterbodyLocation({ status: 'failure', text: '' });
+      },
+    );
+  }, [auId, orgId]);
 
   const [reportingCycle, setReportingCycle] = React.useState({
     status: 'fetching',
@@ -326,227 +323,219 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
 
   // fetch reporting cycle, waterbody status, decision rational, uses,
   // and sources from attains 'assessments' web service
-  React.useEffect(
-    () => {
-      const url =
-        attains.serviceUrl +
-        `assessments?organizationId=${orgId}` +
-        `&assessmentUnitIdentifier=${auId}`;
+  React.useEffect(() => {
+    const url =
+      attains.serviceUrl +
+      `assessments?organizationId=${orgId}` +
+      `&assessmentUnitIdentifier=${auId}`;
 
-      fetchCheck(url).then(
-        (res) => {
-          if (res.items.length === 0) return;
+    fetchCheck(url).then(
+      (res) => {
+        if (res.items.length === 0) return;
 
-          const firstItem = res.items[0];
-          setReportingCycle({
-            status: 'success',
-            year: firstItem.reportingCycleText,
-          });
-          setOrganizationName({
-            status: 'success',
-            name: firstItem.organizationName,
-          });
+        const firstItem = res.items[0];
+        setReportingCycle({
+          status: 'success',
+          year: firstItem.reportingCycleText,
+        });
+        setOrganizationName({
+          status: 'success',
+          name: firstItem.organizationName,
+        });
 
-          const {
-            epaIRCategory,
-            rationaleText,
-            useAttainments,
-            parameters,
-            probableSources,
-          } = res.items[0].assessments[0];
+        const {
+          epaIRCategory,
+          rationaleText,
+          useAttainments,
+          parameters,
+          probableSources,
+        } = res.items[0].assessments[0];
 
-          setDecisionRationale(rationaleText);
+        setDecisionRationale(rationaleText);
 
-          const status = {
-            polluted:
-              ['4A', '4B', '4C', '5', '5A', '5M'].indexOf(epaIRCategory) !== -1,
-            planForRestoration:
-              ['4A', '4B', '5A'].indexOf(epaIRCategory) !== -1,
-            listed303d: ['5', '5A', '5M'].indexOf(epaIRCategory) !== -1,
-            good: ['1', '2'].indexOf(epaIRCategory) !== -1,
-            unknown: ['3'].indexOf(epaIRCategory) !== -1,
-          };
+        const status = {
+          polluted:
+            ['4A', '4B', '4C', '5', '5A', '5M'].indexOf(epaIRCategory) !== -1,
+          planForRestoration: ['4A', '4B', '5A'].indexOf(epaIRCategory) !== -1,
+          listed303d: ['5', '5A', '5M'].indexOf(epaIRCategory) !== -1,
+          good: ['1', '2'].indexOf(epaIRCategory) !== -1,
+          unknown: ['3'].indexOf(epaIRCategory) !== -1,
+        };
 
-          const condition = status.polluted
-            ? 'Impaired'
-            : status.good
-            ? 'Good'
-            : status.unknown
-            ? 'Condition Unknown'
-            : 'Condition Unknown'; // catch all
+        const condition = status.polluted
+          ? 'Impaired'
+          : status.good
+          ? 'Good'
+          : status.unknown
+          ? 'Condition Unknown'
+          : 'Condition Unknown'; // catch all
 
-          // Use the status above initially. When looping through the use attainments
-          // this will be set this to yes if any of the uses have a plan in place
-          let planForRestoration = status.planForRestoration ? 'Yes' : 'No';
+        // Use the status above initially. When looping through the use attainments
+        // this will be set this to yes if any of the uses have a plan in place
+        let planForRestoration = status.planForRestoration ? 'Yes' : 'No';
 
-          const listed303d = status.listed303d ? 'Yes' : 'No';
+        const listed303d = status.listed303d ? 'Yes' : 'No';
 
-          if (useAttainments.length === 0) {
-            setAllParameterActionIds({
-              status: 'success',
-              data: [],
-            });
-          }
-
-          const uses = useAttainments.map((use) => {
-            const status =
-              use.useAttainmentCode === 'X'
-                ? {
-                    textColor: colors.white(0.9375),
-                    bgColor: '#526571',
-                    text: 'Not Assessed',
-                  }
-                : use.useAttainmentCode === 'I'
-                ? {
-                    textColor: colors.white(0.9375),
-                    bgColor: '#a879d8',
-                    text: 'Insufficient Info',
-                  }
-                : use.useAttainmentCode === 'F'
-                ? {
-                    textColor: colors.black(0.9375),
-                    bgColor: '#8cc63f',
-                    text: 'Good',
-                  }
-                : use.useAttainmentCode === 'N'
-                ? {
-                    textColor: colors.white(0.9375),
-                    bgColor: '#f93b5b',
-                    text: 'Impaired',
-                  }
-                : {
-                    textColor: colors.white(0.9375),
-                    bgColor: '#a879d8',
-                    text: 'Unknown',
-                  };
-
-            // build up categories by matching each parameter's associated use name
-            // and examining its parameter attainment code
-            const categories = {
-              pollutants: [],
-              assessedGood: [],
-              insufficentInfo: [],
-              otherObserved: [],
-              ofConcern: [],
-            };
-
-            // object for mapping attainment code with categories
-            const attainmentCodeMapping = {
-              'Not meeting criteria': categories.pollutants,
-              'Meeting criteria': categories.assessedGood,
-              'Not enough information': categories.insufficentInfo,
-              'Not Applicable': categories.otherObserved,
-              Threatened: categories.ofConcern, // TODO: confirm 'Threatened' is the correct value
-            };
-
-            // allAssociatedActionIds will contain all parameters' associated action ids
-            const allAssociatedActionIds = [];
-
-            parameters.forEach((parameter) => {
-              // add all associated action ids to the allAssociatedActionIds array
-              const associatedActionIds = parameter.associatedActions.map(
-                (associatedAction) =>
-                  associatedAction.associatedActionIdentifier,
-              );
-              allAssociatedActionIds.push(...associatedActionIds);
-
-              // match on use names, and add parameter to its respective category
-              parameter.associatedUses
-                .filter(
-                  (assocUse) => assocUse.associatedUseName === use.useName,
-                )
-                .forEach((assocUse) => {
-                  const { parameterAttainmentCode } = assocUse;
-                  const parameterStatusName = parameter.parameterStatusName;
-                  // determine the category from parameter's attainment code
-                  let category;
-                  if (parameterStatusName === 'Observed effect') {
-                    // always put observed effect in with other observed
-                    category = attainmentCodeMapping['Not Applicable'];
-                  } else if (
-                    parameterStatusName === 'Meeting Criteria' &&
-                    parameterAttainmentCode === 'Not meeting criteria'
-                  ) {
-                    // Meeting criteria should never be a pollutant
-                    category = attainmentCodeMapping['Meeting criteria'];
-                  } else if (
-                    parameterStatusName === 'Insufficient Information' &&
-                    parameterAttainmentCode === 'Not meeting criteria'
-                  ) {
-                    // Insufficient information should never be a pollutant
-                    category = attainmentCodeMapping['Not enough information'];
-                  } else {
-                    // catch all - directly use the parameterAttainmentCode
-                    category = attainmentCodeMapping[parameterAttainmentCode];
-                  }
-
-                  if (category) {
-                    // add parameter to category only if it hasn't already been added
-                    const notYetAdded =
-                      category
-                        .map((item) => item.name)
-                        .indexOf(parameter.parameterName) === -1;
-
-                    if (notYetAdded) {
-                      // a plan is 'in place' if a parameter has at least one associated action
-                      const planInPlace =
-                        parameter.associatedActions.length > 0 ? true : false;
-
-                      if (planInPlace) planForRestoration = 'Yes';
-
-                      category.push({
-                        name: parameter.parameterName,
-                        planInPlace,
-                      });
-                    }
-                  }
-                });
-            });
-
-            setAllParameterActionIds({
-              status: 'success',
-              data: allAssociatedActionIds,
-            });
-
-            return { name: use.useName, status, categories };
-          });
-
-          setWaterbodyStatus({
-            status: 'success',
-            data: { condition, planForRestoration, listed303d },
-          });
-
-          setWaterbodyUses({ status: 'success', data: uses });
-
-          const sources = probableSources.map((source) => {
-            const name = source.sourceName;
-            const status =
-              source.sourceConfirmedIndicator === 'N' ? 'No' : 'Yes';
-
-            return { name, status };
-          });
-
-          setWaterbodySources({ status: 'success', data: sources });
-        },
-        (err) => {
-          console.error(err);
+        if (useAttainments.length === 0) {
           setAllParameterActionIds({
-            status: 'failure',
+            status: 'success',
             data: [],
           });
-          setReportingCycle({ status: 'failure', year: '' });
-          setWaterbodyStatus({ status: 'failure', data: [] });
-          setWaterbodyUses({ status: 'failure', data: [] });
-          setWaterbodySources({ status: 'failure', data: [] });
-          setOrganizationName({
-            status: 'failure',
-            name: '',
+        }
+
+        const uses = useAttainments.map((use) => {
+          const status =
+            use.useAttainmentCode === 'X'
+              ? {
+                  textColor: colors.white(0.9375),
+                  bgColor: '#526571',
+                  text: 'Not Assessed',
+                }
+              : use.useAttainmentCode === 'I'
+              ? {
+                  textColor: colors.white(0.9375),
+                  bgColor: '#a879d8',
+                  text: 'Insufficient Info',
+                }
+              : use.useAttainmentCode === 'F'
+              ? {
+                  textColor: colors.black(0.9375),
+                  bgColor: '#8cc63f',
+                  text: 'Good',
+                }
+              : use.useAttainmentCode === 'N'
+              ? {
+                  textColor: colors.white(0.9375),
+                  bgColor: '#f93b5b',
+                  text: 'Impaired',
+                }
+              : {
+                  textColor: colors.white(0.9375),
+                  bgColor: '#a879d8',
+                  text: 'Unknown',
+                };
+
+          // build up categories by matching each parameter's associated use name
+          // and examining its parameter attainment code
+          const categories = {
+            pollutants: [],
+            assessedGood: [],
+            insufficentInfo: [],
+            otherObserved: [],
+            ofConcern: [],
+          };
+
+          // object for mapping attainment code with categories
+          const attainmentCodeMapping = {
+            'Not meeting criteria': categories.pollutants,
+            'Meeting criteria': categories.assessedGood,
+            'Not enough information': categories.insufficentInfo,
+            'Not Applicable': categories.otherObserved,
+            Threatened: categories.ofConcern, // TODO: confirm 'Threatened' is the correct value
+          };
+
+          // allAssociatedActionIds will contain all parameters' associated action ids
+          const allAssociatedActionIds = [];
+
+          parameters.forEach((parameter) => {
+            // add all associated action ids to the allAssociatedActionIds array
+            const associatedActionIds = parameter.associatedActions.map(
+              (associatedAction) => associatedAction.associatedActionIdentifier,
+            );
+            allAssociatedActionIds.push(...associatedActionIds);
+
+            // match on use names, and add parameter to its respective category
+            parameter.associatedUses
+              .filter((assocUse) => assocUse.associatedUseName === use.useName)
+              .forEach((assocUse) => {
+                const { parameterAttainmentCode } = assocUse;
+                const parameterStatusName = parameter.parameterStatusName;
+                // determine the category from parameter's attainment code
+                let category;
+                if (parameterStatusName === 'Observed effect') {
+                  // always put observed effect in with other observed
+                  category = attainmentCodeMapping['Not Applicable'];
+                } else if (
+                  parameterStatusName === 'Meeting Criteria' &&
+                  parameterAttainmentCode === 'Not meeting criteria'
+                ) {
+                  // Meeting criteria should never be a pollutant
+                  category = attainmentCodeMapping['Meeting criteria'];
+                } else if (
+                  parameterStatusName === 'Insufficient Information' &&
+                  parameterAttainmentCode === 'Not meeting criteria'
+                ) {
+                  // Insufficient information should never be a pollutant
+                  category = attainmentCodeMapping['Not enough information'];
+                } else {
+                  // catch all - directly use the parameterAttainmentCode
+                  category = attainmentCodeMapping[parameterAttainmentCode];
+                }
+
+                if (category) {
+                  // add parameter to category only if it hasn't already been added
+                  const notYetAdded =
+                    category
+                      .map((item) => item.name)
+                      .indexOf(parameter.parameterName) === -1;
+
+                  if (notYetAdded) {
+                    // a plan is 'in place' if a parameter has at least one associated action
+                    const planInPlace =
+                      parameter.associatedActions.length > 0 ? true : false;
+
+                    if (planInPlace) planForRestoration = 'Yes';
+
+                    category.push({
+                      name: parameter.parameterName,
+                      planInPlace,
+                    });
+                  }
+                }
+              });
           });
-        },
-      );
-    },
-    [auId, orgId],
-  );
+
+          setAllParameterActionIds({
+            status: 'success',
+            data: allAssociatedActionIds,
+          });
+
+          return { name: use.useName, status, categories };
+        });
+
+        setWaterbodyStatus({
+          status: 'success',
+          data: { condition, planForRestoration, listed303d },
+        });
+
+        setWaterbodyUses({ status: 'success', data: uses });
+
+        const sources = probableSources.map((source) => {
+          const name = source.sourceName;
+          const status = source.sourceConfirmedIndicator === 'N' ? 'No' : 'Yes';
+
+          return { name, status };
+        });
+
+        setWaterbodySources({ status: 'success', data: sources });
+      },
+      (err) => {
+        console.error(err);
+        setAllParameterActionIds({
+          status: 'failure',
+          data: [],
+        });
+        setReportingCycle({ status: 'failure', year: '' });
+        setWaterbodyStatus({ status: 'failure', data: [] });
+        setWaterbodyUses({ status: 'failure', data: [] });
+        setWaterbodySources({ status: 'failure', data: [] });
+        setOrganizationName({
+          status: 'failure',
+          name: '',
+        });
+      },
+    );
+  }, [auId, orgId]);
 
   const [waterbodyActions, setWaterbodyActions] = React.useState({
     status: 'fetching',
@@ -555,54 +544,51 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
 
   // fetch waterbody actions from attains 'actions' web service, using the
   // 'organizationId' and 'assessmentUnitIdentifier' query string parameters
-  React.useEffect(
-    () => {
-      const url =
-        attains.serviceUrl +
-        `actions?organizationIdentifier=${orgId}` +
-        `&assessmentUnitIdentifier=${auId}`;
+  React.useEffect(() => {
+    const url =
+      attains.serviceUrl +
+      `actions?organizationIdentifier=${orgId}` +
+      `&assessmentUnitIdentifier=${auId}`;
 
-      fetchCheck(url).then(
-        (res) => {
-          if (res.items.length < 1) {
-            setWaterbodyActions({ status: 'pending', data: [] });
-            return;
-          }
+    fetchCheck(url).then(
+      (res) => {
+        if (res.items.length < 1) {
+          setWaterbodyActions({ status: 'pending', data: [] });
+          return;
+        }
 
-          // filter out any actions with org ids that don't match the one provided
-          const filteredActions = filterActions(res.items, orgId);
+        // filter out any actions with org ids that don't match the one provided
+        const filteredActions = filterActions(res.items, orgId);
 
-          const actions = filteredActions[0].actions.map((action) => {
-            // get water with matching assessment unit identifier
-            const matchingWater = action.associatedWaters.specificWaters.filter(
-              (water) => water.assessmentUnitIdentifier === auId,
-            )[0];
+        const actions = filteredActions[0].actions.map((action) => {
+          // get water with matching assessment unit identifier
+          const matchingWater = action.associatedWaters.specificWaters.filter(
+            (water) => water.assessmentUnitIdentifier === auId,
+          )[0];
 
-            const pollutants = matchingWater
-              ? matchingWater.parameters.map((p) =>
-                  titleCaseWithExceptions(p.parameterName),
-                )
-              : [];
+          const pollutants = matchingWater
+            ? matchingWater.parameters.map((p) =>
+                titleCaseWithExceptions(p.parameterName),
+              )
+            : [];
 
-            return {
-              id: action.actionIdentifier,
-              name: action.actionName,
-              pollutants,
-              type: action.actionTypeCode,
-              date: action.completionDate,
-            };
-          });
+          return {
+            id: action.actionIdentifier,
+            name: action.actionName,
+            pollutants,
+            type: action.actionTypeCode,
+            date: action.completionDate,
+          };
+        });
 
-          setWaterbodyActions({ status: 'pending', data: actions });
-        },
-        (err) => {
-          setWaterbodyActions({ status: 'failure', data: [] });
-          console.error(err);
-        },
-      );
-    },
-    [auId, orgId],
-  );
+        setWaterbodyActions({ status: 'pending', data: actions });
+      },
+      (err) => {
+        setWaterbodyActions({ status: 'failure', data: [] });
+        console.error(err);
+      },
+    );
+  }, [auId, orgId]);
 
   // call attains 'actions' web service again, this time using the
   // 'actionIdentifier' query string parameter – once for each action
@@ -610,93 +596,90 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
   // the 'assessmentUnitIdentifier' query string parameter was used)
   const [actionsFetchedAgain, setActionsFetchedAgain] = React.useState(false);
 
-  React.useEffect(
-    () => {
-      if (actionsFetchedAgain) return;
-      if (allParameterActionIds.status === 'fetching') return;
-      if (waterbodyActions.status === 'pending') {
-        // action ids from the initial attains 'actions' web service call
-        const initialIds = waterbodyActions.data.map((a) => a.id);
+  React.useEffect(() => {
+    if (actionsFetchedAgain) return;
+    if (allParameterActionIds.status === 'fetching') return;
+    if (waterbodyActions.status === 'pending') {
+      // action ids from the initial attains 'actions' web service call
+      const initialIds = waterbodyActions.data.map((a) => a.id);
 
-        // additional action ids from the parameters returned in the attains
-        // 'assessments' web service, that weren't returned in the initial
-        // attains 'actions' web service call
-        const additionalIds = allParameterActionIds.data.filter((id) => {
-          return initialIds.indexOf(id) === -1;
-        });
+      // additional action ids from the parameters returned in the attains
+      // 'assessments' web service, that weren't returned in the initial
+      // attains 'actions' web service call
+      const additionalIds = allParameterActionIds.data.filter((id) => {
+        return initialIds.indexOf(id) === -1;
+      });
 
-        // if there are no additional ids, use the data from initial attains
-        // 'actions' web service call
-        if (additionalIds.length === 0) {
-          setWaterbodyActions((actions) => ({
-            status: 'success',
-            data: actions.data,
-          }));
-          return;
-        }
+      // if there are no additional ids, use the data from initial attains
+      // 'actions' web service call
+      if (additionalIds.length === 0) {
+        setWaterbodyActions((actions) => ({
+          status: 'success',
+          data: actions.data,
+        }));
+        return;
+      }
 
-        const url =
-          attains.serviceUrl +
-          `actions?organizationIdentifier=${orgId}` +
-          `&actionIdentifier=${additionalIds.join(',')}`;
+      const url =
+        attains.serviceUrl +
+        `actions?organizationIdentifier=${orgId}` +
+        `&actionIdentifier=${additionalIds.join(',')}`;
 
-        setActionsFetchedAgain(true);
+      setActionsFetchedAgain(true);
 
-        fetchCheck(url)
-          .then((res) => {
-            if (res.items.length < 1) {
-              // if there are no new items (there should be), at least use the
-              // data from the initial attains 'actions' web service call
-              setWaterbodyActions((actions) => ({
-                status: 'success',
-                data: actions.data,
-              }));
-              return;
-            }
-
-            // filter out any actions with org ids that don't match the one provided
-            const filteredActions = filterActions(res.items, orgId);
-
-            // build up additionalActions from each action in each item in the response
-            const additionalActions = [];
-
-            filteredActions.forEach((item) => {
-              item.actions.forEach((action) => {
-                const { specificWaters } = action.associatedWaters;
-                const pollutants = specificWaters[0].parameters.map((p) => {
-                  return titleCaseWithExceptions(p.parameterName);
-                });
-
-                additionalActions.push({
-                  id: action.actionIdentifier,
-                  name: action.actionName,
-                  pollutants,
-                  type: action.actionTypeCode,
-                  date: action.completionDate,
-                });
-              });
-            });
-
-            // append additional actions to the data from the initial attains
-            // 'actions' web service call
-            setWaterbodyActions((actions) => ({
-              status: 'success',
-              data: actions.data.concat(...additionalActions),
-            }));
-          })
-          .catch((err) => {
-            console.error(err);
-            // if the request failed, at least use the data from the initial
-            // attains 'actions' web service call
+      fetchCheck(url)
+        .then((res) => {
+          if (res.items.length < 1) {
+            // if there are no new items (there should be), at least use the
+            // data from the initial attains 'actions' web service call
             setWaterbodyActions((actions) => ({
               status: 'success',
               data: actions.data,
             }));
+            return;
+          }
+
+          // filter out any actions with org ids that don't match the one provided
+          const filteredActions = filterActions(res.items, orgId);
+
+          // build up additionalActions from each action in each item in the response
+          const additionalActions = [];
+
+          filteredActions.forEach((item) => {
+            item.actions.forEach((action) => {
+              const { specificWaters } = action.associatedWaters;
+              const pollutants = specificWaters[0].parameters.map((p) => {
+                return titleCaseWithExceptions(p.parameterName);
+              });
+
+              additionalActions.push({
+                id: action.actionIdentifier,
+                name: action.actionName,
+                pollutants,
+                type: action.actionTypeCode,
+                date: action.completionDate,
+              });
+            });
           });
-      }
-    },
-    [actionsFetchedAgain, allParameterActionIds, orgId, waterbodyActions],
-  );
+
+          // append additional actions to the data from the initial attains
+          // 'actions' web service call
+          setWaterbodyActions((actions) => ({
+            status: 'success',
+            data: actions.data.concat(...additionalActions),
+          }));
+        })
+        .catch((err) => {
+          console.error(err);
+          // if the request failed, at least use the data from the initial
+          // attains 'actions' web service call
+          setWaterbodyActions((actions) => ({
+            status: 'success',
+            data: actions.data,
+          }));
+        });
+    }
+  }, [actionsFetchedAgain, allParameterActionIds, orgId, waterbodyActions]);
 
   // Builds the unitIds dictionary that is used for determining what
   // waters to display on the screen and what the content will be.
@@ -1065,9 +1048,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                                   <tr key={index}>
                                     <td>
                                       <a
-                                        href={`/plan-summary/${orgId}/${
-                                          action.id
-                                        }`}
+                                        href={`/plan-summary/${orgId}/${action.id}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                       >

@@ -43,37 +43,31 @@ function AccordionItem({
 
   // used for getting/setting the accordion item's highlight status
   const [status, setStatus] = React.useState(null);
-  const checkHighlight = React.useCallback(
-    () => {
-      // ensure the key exists prior to deciding to highlight
-      if (feature && feature.attributes && feature.attributes[idKey]) {
-        const id = feature.attributes[idKey];
+  const checkHighlight = React.useCallback(() => {
+    // ensure the key exists prior to deciding to highlight
+    if (feature && feature.attributes && feature.attributes[idKey]) {
+      const id = feature.attributes[idKey];
 
-        const isSelected =
-          selectedGraphic && selectedGraphic.attributes
-            ? selectedGraphic.attributes[idKey] === id
-            : false;
+      const isSelected =
+        selectedGraphic && selectedGraphic.attributes
+          ? selectedGraphic.attributes[idKey] === id
+          : false;
 
-        const isHighlighted =
-          highlightedGraphic && highlightedGraphic.attributes
-            ? highlightedGraphic.attributes[idKey] === id
-            : false;
+      const isHighlighted =
+        highlightedGraphic && highlightedGraphic.attributes
+          ? highlightedGraphic.attributes[idKey] === id
+          : false;
 
-        if (isSelected) setStatus('selected');
-        else if (isHighlighted && !isSelected) setStatus('highlighted');
-        else setStatus(null);
-      } else setStatus(null);
-    },
-    [feature, highlightedGraphic, idKey, selectedGraphic],
-  );
+      if (isSelected) setStatus('selected');
+      else if (isHighlighted && !isSelected) setStatus('highlighted');
+      else setStatus(null);
+    } else setStatus(null);
+  }, [feature, highlightedGraphic, idKey, selectedGraphic]);
 
   // used for checking the highlight status
-  React.useEffect(
-    () => {
-      checkHighlight();
-    },
-    [checkHighlight, feature, highlightedGraphic, selectedGraphic],
-  );
+  React.useEffect(() => {
+    checkHighlight();
+  }, [checkHighlight, feature, highlightedGraphic, selectedGraphic]);
 
   const addHighlight = () => {
     if (!feature || !mapView) return;

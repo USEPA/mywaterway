@@ -64,18 +64,15 @@ function WaterbodyList({
   // Triggers the loading spinner. When a search is complete the loading
   // spinner will be displayed for 250ms.
   const [loading, setLoading] = React.useState(true);
-  React.useEffect(
-    () => {
-      if (!waterbodies) {
-        setLoading(true);
-      } else {
-        setTimeout(() => {
-          setLoading(false);
-        }, 250);
-      }
-    },
-    [waterbodies],
-  );
+  React.useEffect(() => {
+    if (!waterbodies) {
+      setLoading(true);
+    } else {
+      setTimeout(() => {
+        setLoading(false);
+      }, 250);
+    }
+  }, [waterbodies]);
 
   // Sort the waterbodies
   const [sortBy, setSortBy] = React.useState('assessmentunitname');
@@ -140,32 +137,26 @@ function WaterbodyItems({ sortedWaterbodies, allExpanded, fieldName }) {
   const [expandedRows, setExpandedRows] = React.useState([]);
 
   // Updates the top position of the WindowScroll object, after the map loads.
-  React.useEffect(
-    () => {
-      if (!mapView || !windowScrollRef || !windowScrollRef.current) return;
-      windowScrollRef.current.updatePosition();
+  React.useEffect(() => {
+    if (!mapView || !windowScrollRef || !windowScrollRef.current) return;
+    windowScrollRef.current.updatePosition();
 
-      // Jostle the scroll position to get the first few accordion items to
-      // display. This is a workaround to what is likely a bug in the
-      // react-virtualization WindowScroller HOC.
-      const stateTabs = document.querySelector('[data-content="stateTabs"]');
-      const stateContent = document.querySelector('[data-content="state"]');
-      stateContent.scrollIntoView();
-      stateTabs.scrollIntoView();
-    },
-    [mapView, windowScrollRef],
-  );
+    // Jostle the scroll position to get the first few accordion items to
+    // display. This is a workaround to what is likely a bug in the
+    // react-virtualization WindowScroller HOC.
+    const stateTabs = document.querySelector('[data-content="stateTabs"]');
+    const stateContent = document.querySelector('[data-content="state"]');
+    stateContent.scrollIntoView();
+    stateTabs.scrollIntoView();
+  }, [mapView, windowScrollRef]);
 
   // Resizes the rows (accordion items) of the react-virtualized list.
   // This is done anytime an accordion item is expanded/collapsed
-  React.useEffect(
-    () => {
-      cache.clearAll();
-      listRef.current.recomputeRowHeights();
-      setExpandedRows([]);
-    },
-    [allExpanded, cache],
-  );
+  React.useEffect(() => {
+    cache.clearAll();
+    listRef.current.recomputeRowHeights();
+    setExpandedRows([]);
+  }, [allExpanded, cache]);
 
   function rowRenderer({ index, isScrolling, key, parent, style }) {
     let graphic = sortedWaterbodies[index];

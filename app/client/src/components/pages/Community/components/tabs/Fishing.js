@@ -67,18 +67,15 @@ function Fishing({ esriModules, infoToggleChecked }: Props) {
     setAttributeName, //
   ] = React.useState('fishconsumption_use');
 
-  React.useEffect(
-    () => {
-      // wait until waterbodies data is set from custom useWaterbodyFeatures() hook
-      if (!waterbodies) return;
+  React.useEffect(() => {
+    // wait until waterbodies data is set from custom useWaterbodyFeatures() hook
+    if (!waterbodies) return;
 
-      let attributeName;
-      if (currentTabIndex === 0) attributeName = 'fishconsumption_use';
-      if (currentTabIndex === 1) attributeName = 'ecological_use';
-      setAttributeName(attributeName);
-    },
-    [currentTabIndex, attributeName, waterbodies],
-  );
+    let attributeName;
+    if (currentTabIndex === 0) attributeName = 'fishconsumption_use';
+    if (currentTabIndex === 1) attributeName = 'ecological_use';
+    setAttributeName(attributeName);
+  }, [currentTabIndex, attributeName, waterbodies]);
 
   useWaterbodyOnMap(attributeName);
 

@@ -73,14 +73,11 @@ function SiteSpecific({
   const { currentReportingCycle } = React.useContext(StateTabsContext);
 
   const [waterTypeUnits, setWaterTypeUnits] = React.useState('');
-  React.useEffect(
-    () => {
-      const tempUnits =
-        waterTypeData && waterTypeData.length > 0 && waterTypeData[0].unitsCode;
-      if (tempUnits !== waterTypeUnits) setWaterTypeUnits(tempUnits);
-    },
-    [waterType, waterTypeData, waterTypeUnits],
-  );
+  React.useEffect(() => {
+    const tempUnits =
+      waterTypeData && waterTypeData.length > 0 && waterTypeData[0].unitsCode;
+    if (tempUnits !== waterTypeUnits) setWaterTypeUnits(tempUnits);
+  }, [waterType, waterTypeData, waterTypeUnits]);
 
   // adds up the total amount (miles, acres, square miles) of waters for each
   // support category (fully supporting, not supporting, etc.) accross
