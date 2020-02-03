@@ -6,7 +6,6 @@ How’s My Waterway is a responsive, map-centric, mobile ready web application t
       <img height="50%" width="50%" src="/docs/img/v2.0/Landing-Page.png">
 </p>
 
-
 ## Documentation
 - [Local Development Environment Setup](/docs/local_dev_setup.md), instructions for getting the application running on your device to support coding.
 - [How to contribute to the project](/docs/CONTRIBUTING.md), learn how to help improve the application. 
