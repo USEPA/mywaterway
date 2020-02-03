@@ -324,11 +324,11 @@ export default {
   VA: {
     region: 3,
     intro:
-      'The Department of Environmental Quality monitors water to answer key questions about waterbody health. The Probabilistic Monitoring Network is designed to answer the question: “What is the health of all of Virginia’s water bodies?”. This program includes a group of randomly sampled water bodies intended to be representative of all Virginia waters. The Watershed Monitoring Network is designed to sample waterbodies draining every small watershed on a rotating basis. These data can help answer the question:  “What is the health of my favorite water body?”. The Trend Monitoring Network includes sampling of a selection of water bodies over 20-year periods. This program can answer, “Has a particular Virginia water body gotten better or worse over the past 20 years?”.',
+      'The Department of Environmental Quality monitors water quality to answer key questions about water body health. The Probabilistic Monitoring Program is designed to answer the question: “What is the health of all of Virginia’s water bodies?” This program includes a set of randomly sampled water bodies that rotate on an annual basis intended to be representative of all Virginia waters. The Watershed Monitoring Program is designed to sample water bodies on a watershed scale in a 6-year assessment period. These data can help answer the question: “What is the health of my favorite water body?” The Trend Monitoring Program includes a network of sites on water bodies monitored over 20-year periods. This program can answer: “Has a particular Virginia water body shown an improving or degrading trend over the 20 year period?”',
     url: 'https://www.deq.virginia.gov/Programs/Water.aspx',
     metrics: [
       {
-        value: '100,974',
+        value: '100,959',
         label: 'Rivers and Streams',
         unit: 'miles',
       },
@@ -394,7 +394,7 @@ export default {
     region: 4,
     intro:
       "The Florida Department of Environmental Protection (DEP) works with many different programs and agencies throughout the state to address issues and problems affecting surface water and groundwater quality and quantity. These responsibilities are implemented through a variety of activities, including planning, regulation, watershed management, the assessment and application of water quality standards, nonpoint source pollution management, ambient water quality monitoring, groundwater protection, educational programs, and land management. Florida also relies upon a host of monitoring organizations—including water management districts, local governments, universities, and volunteer citizen scientists—to provide high quality water quality data. Taken together with the department's strategic and status monitoring programs, Florida has substantially more monitoring stations and water quality data than any other state in the nation. Annually, the department uses these data to evaluate waterbody health. These efforts allow us to understand the state's water conditions, make decisions that further enhance our waterways, and focus our efforts on addressing problems. We encourage all those interested in Florida's waterways to visit our webpage, gain a better understanding of Florida’s water quality conditions, and engage in local efforts to protect and restore water quality.",
-    url: 'https://floridadep.gov/water',
+    url: 'https://floridadep.gov/',
     metrics: [
       {
         value: '91%',
@@ -403,7 +403,7 @@ export default {
       },
       {
         value: '45%',
-        label: '2015-23 TMDL development plan ',
+        label: '2015-23 TMDL Development Plan',
         unit: 'draft and complete TMDLs',
       },
       {
@@ -439,7 +439,7 @@ export default {
   KY: {
     region: 4,
     intro:
-      "The responsibility for assessing the quality of water in the Commonwealth of Kentucky's waterbodies, such as streams, lakes, and wetlands, lies with the Kentucky Division of Water. The assessment process includes monitoring that is performed on a rotating basis in Kentucky’s watershed basins or in a targeted effort in priority areas. The data collected from these monitoring efforts is used to determine if a waterbody is supporting its designated uses, such as primary contact recreation (swimming) or aquatic life. The Integrated Report to Congress on the Condition of Water Resources summarizes the results of the assessment decisions and also aims to educate and inform citizens of water quality issues in Kentucky.The Commonwealth of Kentucky has diverse aquatic resources that support recreation, fishing, and an abundance of aquatic flora and fauna, which the Division of Water aims to enhance, protect, and restore through regulatory, voluntary, and educational programs. Learn more about Kentucky’s water quality by selecting a topic below. You can explore these topics using data from the statewide statistical survey, which gives a broad picture of state-wide water quality, or using data from site-specific assessments for information on specific waterbodies.",
+      "The responsibility for assessing the quality of water in the Commonwealth of Kentucky's waterbodies, such as streams, lakes, and wetlands, lies with the Kentucky Division of Water. The assessment process includes monitoring that is performed on a rotating basis in Kentucky’s watershed basins or in a targeted effort in priority areas. The data collected from these monitoring efforts is used to determine if a waterbody is supporting its designated uses, such as primary contact recreation (swimming) or aquatic life. The Integrated Report to Congress on the Condition of Water Resources summarizes the results of the assessment decisions and also aims to educate and inform citizens of water quality issues in Kentucky. The Commonwealth of Kentucky has diverse aquatic resources that support recreation, fishing, and an abundance of aquatic flora and fauna, which the Division of Water aims to enhance, protect, and restore through regulatory, voluntary, and educational programs. Learn more about Kentucky’s water quality by selecting a topic below. You can explore these topics using data from the statewide statistical survey, which gives a broad picture of state-wide water quality, or using data from site-specific assessments for information on specific waterbodies.",
     url: 'https://eec.ky.gov/Environmental-Protection/Water/Pages/default.aspx',
     metrics: [
       {
@@ -453,7 +453,7 @@ export default {
         unit: 'miles',
       },
       {
-        value: '180,366',
+        value: '219,547',
         label: 'Assessed Lake',
         unit: 'acres',
       },
@@ -697,24 +697,25 @@ export default {
   },
   AR: {
     region: 6,
-    intro: null,
+    intro:
+      'The Arkansas Department of Energy and Environment, Division of Environmental Quality (DEQ), Office of Water Quality (OWQ) implements the Federal Clean Water Act through its water quality standards, surface water monitoring, 303(d), 305(b), TMDL, NPDES, 401 Certification, storm water permitting, compliance, and enforcement programs. The Water Quality Planning Branch (Planning) oversees water quality standards, monitoring, assessments, listing, reporting, and TMDL development programs. With the aid of the Compliance Branch, Planning monitors surface waters across the state with its ambient water quality network, ambient lake sampling program, and special projects. These monitoring data make up the bulk of Arkansas’s assessment database. However, the State routinely receives additional data from other entities including Universities, watershed groups, and state and federal agencies. Arkansas’s nonpoint, 319, program is implemented by DEQ’s sister agency Arkansas Natural Resources Commission (ANRC). Planning “special projects” include, but are not limited to, criteria development, use attainability analyses, mining reclamation, focused impairment issues, karst geology, and harmful algal blooms (HABS.',
     url: 'http://www.adeq.state.ar.us/water/',
     metrics: [
-      // {
-      //   value: null,
-      //   label: null,
-      //   unit: null,
-      // },
-      // {
-      //   value: null,
-      //   label: null,
-      //   unit: null,
-      // },
-      // {
-      //   value: null,
-      //   label: null,
-      //   unit: null,
-      // },
+      {
+        value: '223,704',
+        label: 'Rivers, Streams, and Ditches',
+        unit: 'miles',
+      },
+      {
+        value: '1,000,609',
+        label: 'Lakes/Reservoirs/Playas/Ponds',
+        unit: 'acres',
+      },
+      {
+        value: '2,763,600',
+        label: 'Freshwater Wetlands',
+        unit: 'acres',
+      },
     ],
   },
   LA: {
@@ -835,7 +836,7 @@ export default {
   KS: {
     region: 7,
     intro:
-      'Kansas assesses and monitors ambient water quality to evaluate the attainment of water quality standards through targeted monitoring survey designs that focus on selected stream reaches, lakes, and wetlands. Assessments for streams are conducted on a watershed basis, where stream station assessments are associated with the stream reaches in the contributing watershed. The targeted stream chemistry monitoring network consists of 329 sampling stations and generates physical, chemical, radiological, and microbiological data useful in the characterization of pollutant loadings from more than 97 percent of the state’s contributing drainage area. Information derived from this network is applied in the development of total maximum daily loads (TMDLs) for water quality-limited streams and in the formulation of water quality-based permit limits for facilities discharging treated effluent to the waters of the state. Another targeted program, the stream biological monitoring program, evaluates the pollution-tolerance of benthic macroinvertebrat nassemblages at approximately 180 locations in Kansas. Information from this program enhances the department’s ability to detect water pollution problems, identify contaminants of concern, and develop defensible TMDLs and wastewater treatment plant permits. Kansas also routinely surveys 188 publicly owned (or publicly accessible) lakes and wetlands. Physicochemical and biological data generated by this program are applied in the development of TMDLs and water quality-based permit limits, the resolution of toxic algal blooms and algal-related taste and odor problems, the characterization of lake trophic condition, and the tracking and prediction of long-term trends in surface water quality.',
+      'Kansas Department of Health and Environment assesses and monitors ambient water quality to evaluate the attainment of water quality standards through two different approaches: the Probabilistic Monitoring Network and the Targeted Monitoring Network. The Probabilistic Monitoring Network is used to generate estimates for overall stream condition in Kansas. Each year, this program samples a new set of about 40 randomly selected stream and river reaches throughout the state, collecting data on water chemistry, macroinvertebrate assemblage, and fish tissue contaminants. These assessments are extrapolated to the state as a whole and represent a statistically unbiased snapshot of stream condition in a given time period. The targeted network includes several monitoring programs that focus on carefully selected, targeted sites on streams, rivers, lakes, and wetlands. These sites are in fixed locations that are sampled every year or every few years. Assessments for streams are conducted on a watershed basis, where stream station assessments are associated with the stream reaches in the contributing watershed. The targeted stream chemistry monitoring network consists of 329 sampling stations and generates physical, chemical, radiological, and microbiological data useful in the characterization of pollutant loadings from more than 97 percent of the state’s contributing drainage area. Information derived from this network is applied in the development of total maximum daily loads (TMDLs) for water quality-limited streams and in the formulation of water quality-based permit limits for facilities discharging treated effluent to the waters of the state. Another targeted program, the stream biological monitoring program, evaluates the pollution-tolerance of benthic macroinvertebrate assemblages at approximately 180 locations in Kansas. Information from this program enhances the department’s ability to detect water pollution problems, identify contaminants of concern, and develop defensible TMDLs and wastewater treatment plant permits. Kansas also routinely surveys 188 publicly owned (or publicly accessible) lakes and wetlands. Physicochemical and biological data generated by this program are applied in the development of TMDLs and water quality-based permit limits, the resolution of toxic algal blooms and algal-related taste and odor problems, the characterization of lake trophic condition, and the tracking and prediction of long-term trends in surface water quality.',
     url: 'http://www.kdheks.gov/water/index.html',
     metrics: [
       {
@@ -904,7 +905,7 @@ export default {
   CO: {
     region: 8,
     intro:
-      "In Colorado, there are nearly 93,000 miles of rivers and more than 270,000 acres of lakes. The majority of rivers originate in the pristine high alpine environment of the Rocky Mountains and flow downstream through the high desert or high plains regions before leaving the state.  Nearly half of the state is flat in contrast to Colorado’s rugged Rocky Mountains.  Numerous dams and reclamation projects on the rivers provide water for irrigation and municipal and industrial use, as well as supply hydroelectric power.  Colorado has divided the state into seven major river basins and employs a rotating basin strategy that targets a different basin each year. Colorado's water quality assessments also follow this rotating basin approach, which ensures that all basins in the state are assessed at least once every five years.   The major river basins of Colorado are the: Arkansas, Rio Grande, San Juan, Colorado, Green, South Platte, and Republican. The largest of these basins on a national level is the Colorado River Basin, which has its headwaters in Rocky Mountain National Park, flows from Colorado through Utah and the Grand Canyon in Arizona, and ultimately completes its journey at the Gulf of California.    Colorado assesses it surface waters to be protective of their uses.  Classified uses are assigned to waterbodies based upon the actual uses occurring in the waterbody. Water quality standards are in place to ensure that the waterbody is attaining the classified uses assigned.  These uses have been adopted as follows: aquatic life, water supply, recreation,  wetlands and agriculture.                 ",
+      "In Colorado, there are nearly 93,000 miles of rivers and more than 270,000 acres of lakes. The majority of rivers originate in the pristine high alpine environment of the Rocky Mountains and flow downstream through the high desert or high plains regions before leaving the state. Nearly half of the state is flat in contrast to Colorado’s rugged Rocky Mountains. Numerous dams and reclamation projects on the rivers provide water for irrigation and municipal and industrial use, as well as supply hydroelectric power. Colorado has divided the state into seven major river basins and employs a rotating basin strategy that targets a different basin each year. Colorado's water quality assessments also follow this rotating basin approach, which ensures that all basins in the state are assessed at least once every five years. The major river basins of Colorado are the: Arkansas, Rio Grande, San Juan, Colorado, Green, South Platte, and Republican. The largest of these basins on a national level is the Colorado River Basin, which has its headwaters in Rocky Mountain National Park, flows from Colorado through Utah and the Grand Canyon in Arizona, and ultimately completes its journey at the Gulf of California. Colorado assesses it surface waters to be protective of their uses. Classified uses are assigned to waterbodies based upon the actual uses occurring in the waterbody. Water quality standards are in place to ensure that the waterbody is attaining the classified uses assigned. These uses have been adopted as follows: aquatic life, water supply, recreation, wetlands and agriculture.",
     url: 'https://www.colorado.gov/cdphe/wqcc',
     metrics: [
       {
