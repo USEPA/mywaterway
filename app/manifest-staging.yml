@@ -1,0 +1,15 @@
+---
+ applications:
+   - name: mywaterway-staging
+     instances: 2
+     memory: 512M
+     disk_quota: 512MB
+     timeout: 180
+     buildpacks:
+      - nodejs_buildpack
+     command: node app/server.js
+     path: /
+     env:
+        NODE_ENV: staging
+        LOGGER_LEVEL: ERROR
+        OPTIMIZE_MEMORY: true

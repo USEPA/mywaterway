@@ -1,0 +1,6208 @@
+{
+  "stateNationalUses": [
+    {
+      "region": 10,
+      "state": "AK",
+      "name": "FRESH WATER / WATER SUPPLY / AGRICULTURE, INCLUDING IRRIGATION AND STOCK WATERING",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "AS",
+      "name": "AGRICULTURE",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "AS",
+      "name": "Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "AS",
+      "name": "CULT./CEREMONIAL",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "AS",
+      "name": "Fish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 9,
+      "state": "AS",
+      "name": "RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "AS",
+      "name": "Swimming",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "CN",
+      "name": "AESTHETIC, OTHERS",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CN",
+      "name": "AQUATIC LIFE",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CN",
+      "name": "AQUATIC LIFE USE",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CN",
+      "name": "FISH CONSUMPTION",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 9,
+      "state": "CN",
+      "name": "POTABLE WATER",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 9,
+      "state": "CN",
+      "name": "RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "CN",
+      "name": "RECREATIONAL USE",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "GU",
+      "name": "Aesthetic Enjoyment",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "GU",
+      "name": "Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "GU",
+      "name": "Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 9,
+      "state": "GU",
+      "name": "Drinking Water",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 9,
+      "state": "GU",
+      "name": "Drinking Water (With Treatment)",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 9,
+      "state": "GU",
+      "name": "Limited Body Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "GU",
+      "name": "OVERALL USE",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "GU",
+      "name": "Whole Body Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "OH",
+      "name": "Aquatic Life - Coldwater Habitat",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "OH",
+      "name": "Aquatic Life - Exceptional Warmwater Habitat",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "OH",
+      "name": "Aquatic Life - Exceptional Warmwater Habitat/Coldwater Habitat",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "OH",
+      "name": "Aquatic Life - Limited Resource Waters",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "OH",
+      "name": "Aquatic Life - Limited Warmwater Habitat",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "OH",
+      "name": "Aquatic Life - Modified Warmwater Habitat - Channel Modification",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "OH",
+      "name": "Aquatic Life - Modified Warmwater Habitat - Impounded",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "OH",
+      "name": "Aquatic Life - Modified Warmwater Habitat - Mine Affected",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "OH",
+      "name": "Aquatic Life - Seasonal Salmonid Habitat",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "OH",
+      "name": "Aquatic Life - Warmwater Habitat",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "OH",
+      "name": "Aquatic Life - Warmwater Habitat/Coldwater Habitat",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "OH",
+      "name": "Aquatic Life - Warmwater Habitat/Seasonal Salmonid Habitat",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "OH",
+      "name": "Human Health - Fish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 5,
+      "state": "OH",
+      "name": "Recreation - Bathing Waters",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "OH",
+      "name": "Recreation - Primary Contact",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "OH",
+      "name": "Recreation - Secondary Contact",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "OH",
+      "name": "Water Supply - Agricultural",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "OH",
+      "name": "Water Supply - Industrial",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "OH",
+      "name": "Water Supply - Public Drinking",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 2,
+      "state": "VI",
+      "name": "Aquatic Life Use",
+      "category": "Ecological"
+    },
+    {
+      "region": 2,
+      "state": "VI",
+      "name": "Primary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 1,
+      "state": "CT",
+      "name": "AESTHETICS",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "CT",
+      "name": "Agriculture",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "CT",
+      "name": "AQUATIC LIFE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 1,
+      "state": "CT",
+      "name": "Commercial Shellfish Harvesting Where Authorized",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "CT",
+      "name": "DRINKING WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 1,
+      "state": "CT",
+      "name": "Existing or proposed drinking water",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 1,
+      "state": "CT",
+      "name": "Fish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 1,
+      "state": "CT",
+      "name": "Habitat for Fish, Other Aquatic Life and Wildlife",
+      "category": "Ecological"
+    },
+    {
+      "region": 1,
+      "state": "CT",
+      "name": "Habitat for Marine Fish, Other Aquatic Life and Wildlife",
+      "category": "Ecological"
+    },
+    {
+      "region": 1,
+      "state": "CT",
+      "name": "HYDROPOWER",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "CT",
+      "name": "Industrial Supply",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "CT",
+      "name": "Navigation",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "CT",
+      "name": "NONDEGRADATION",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "CT",
+      "name": "Potential Drinking Water Supplies",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 1,
+      "state": "CT",
+      "name": "PRIMARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 1,
+      "state": "CT",
+      "name": "Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 1,
+      "state": "CT",
+      "name": "SECONDARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 1,
+      "state": "CT",
+      "name": "Shellfish Harvesting for Direct Consumption Where Authorized",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 1,
+      "state": "CT",
+      "name": "SHELLFISHING",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 1,
+      "state": "MA",
+      "name": "Aesthetic",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "MA",
+      "name": "AESTHETICS",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "MA",
+      "name": "Agriculture",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "MA",
+      "name": "ALUS",
+      "category": "Ecological"
+    },
+    {
+      "region": 1,
+      "state": "MA",
+      "name": "Fish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 1,
+      "state": "MA",
+      "name": "Fish, other Aquatic Life and Wildlife",
+      "category": "Ecological"
+    },
+    {
+      "region": 1,
+      "state": "MA",
+      "name": "Industrial Cooling",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "MA",
+      "name": "OVERALL USE",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "MA",
+      "name": "PRIMARY CONTACT",
+      "category": "Recreation"
+    },
+    {
+      "region": 1,
+      "state": "MA",
+      "name": "Primary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 1,
+      "state": "MA",
+      "name": "Public Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 1,
+      "state": "MA",
+      "name": "SECONDARY CONTACT",
+      "category": "Recreation"
+    },
+    {
+      "region": 1,
+      "state": "MA",
+      "name": "Secondary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 1,
+      "state": "MA",
+      "name": "Shellfish Harvesting",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 1,
+      "state": "MA",
+      "name": "SHELLFISHING (SA OR SB)",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 1,
+      "state": "ME",
+      "name": "Agricultural Supply",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "ME",
+      "name": "Aquaculture",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "ME",
+      "name": "CLASS A",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "ME",
+      "name": "CLASS AA",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "ME",
+      "name": "CLASS B",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "ME",
+      "name": "CLASS C",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "ME",
+      "name": "Drinking Water Supply After Disinfection",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 1,
+      "state": "ME",
+      "name": "Drinking Water Supply After Treatment",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 1,
+      "state": "ME",
+      "name": "Fish and Other Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 1,
+      "state": "ME",
+      "name": "Fish and Other Estuarine and Marine Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 1,
+      "state": "ME",
+      "name": "Fish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 1,
+      "state": "ME",
+      "name": "Fishing",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 1,
+      "state": "ME",
+      "name": "Hydroelectric Power Generation",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "ME",
+      "name": "Industrial Process and Cooling Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "ME",
+      "name": "Navigation",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "ME",
+      "name": "OVERALL USE SUPPORT",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "ME",
+      "name": "Primary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 1,
+      "state": "ME",
+      "name": "Propagation and Harvesting of Shellfish",
+      "category": "Ecological"
+    },
+    {
+      "region": 1,
+      "state": "ME",
+      "name": "Propagation and Restricted Harvesting of Shellfish",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 1,
+      "state": "ME",
+      "name": "Secondary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 1,
+      "state": "ME",
+      "name": "Wildlife",
+      "category": "Ecological"
+    },
+    {
+      "region": 1,
+      "state": "NH",
+      "name": "Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 1,
+      "state": "NH",
+      "name": "Cold Water Fishery",
+      "category": "Ecological"
+    },
+    {
+      "region": 1,
+      "state": "NH",
+      "name": "Designated Beach",
+      "category": "Recreation"
+    },
+    {
+      "region": 1,
+      "state": "NH",
+      "name": "DRINKING WATER AFTER ADEQUATE TREATMENT",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 1,
+      "state": "NH",
+      "name": "Drinking Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 1,
+      "state": "NH",
+      "name": "Fish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 1,
+      "state": "NH",
+      "name": "Primary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 1,
+      "state": "NH",
+      "name": "Secondary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 1,
+      "state": "NH",
+      "name": "Shellfish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 1,
+      "state": "NH",
+      "name": "SHELLFISHING",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 1,
+      "state": "NH",
+      "name": "Wildlife",
+      "category": "Ecological"
+    },
+    {
+      "region": 1,
+      "state": "RI",
+      "name": "AQUATIC LIFE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 1,
+      "state": "RI",
+      "name": "DRINKING WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 1,
+      "state": "RI",
+      "name": "Fish and Wildlife habitat",
+      "category": "Ecological"
+    },
+    {
+      "region": 1,
+      "state": "RI",
+      "name": "Fish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 1,
+      "state": "RI",
+      "name": "FISH, OTHER AQUATIC LIFE AND WILDLIFE.",
+      "category": "Ecological"
+    },
+    {
+      "region": 1,
+      "state": "RI",
+      "name": "Primary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 1,
+      "state": "RI",
+      "name": "PRIMARY RECREATION/SWIMMING",
+      "category": "Recreation"
+    },
+    {
+      "region": 1,
+      "state": "RI",
+      "name": "Public Drinking Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 1,
+      "state": "RI",
+      "name": "RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 1,
+      "state": "RI",
+      "name": "Secondary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 1,
+      "state": "RI",
+      "name": "Shellfish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 1,
+      "state": "RI",
+      "name": "Shellfish Controlled Relay and Depuration",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 1,
+      "state": "RI",
+      "name": "SHELLFISHING",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 1,
+      "state": "VT",
+      "name": "Aquatic biota and wildlife that may utilize or are present in the waters",
+      "category": "Ecological"
+    },
+    {
+      "region": 1,
+      "state": "VT",
+      "name": "Aquatic habitat to support aquatic biota, wildlife, or plant life",
+      "category": "Ecological"
+    },
+    {
+      "region": 1,
+      "state": "VT",
+      "name": "Fish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 1,
+      "state": "VT",
+      "name": "The use of the water for public water source",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 1,
+      "state": "VT",
+      "name": "The use of water for irrigation of crops and other agricultural uses",
+      "category": "Other"
+    },
+    {
+      "region": 1,
+      "state": "VT",
+      "name": "The use of waters for boating and related recreational uses",
+      "category": "Recreation"
+    },
+    {
+      "region": 1,
+      "state": "VT",
+      "name": "The use of waters for fishing and related recreational uses",
+      "category": "Recreation"
+    },
+    {
+      "region": 1,
+      "state": "VT",
+      "name": "The use of waters for swimming and other primary contact recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 1,
+      "state": "VT",
+      "name": "The use of waters for the enjoyment of aesthetic conditions",
+      "category": "Other"
+    },
+    {
+      "region": 2,
+      "state": "NJ",
+      "name": "Agricultural Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 2,
+      "state": "NJ",
+      "name": "Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 2,
+      "state": "NJ",
+      "name": "Aquatic Life - Trout",
+      "category": "Ecological"
+    },
+    {
+      "region": 2,
+      "state": "NJ",
+      "name": "BIOTA",
+      "category": "Ecological"
+    },
+    {
+      "region": 2,
+      "state": "NJ",
+      "name": "Drinking Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 2,
+      "state": "NJ",
+      "name": "Fish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 2,
+      "state": "NJ",
+      "name": "Industrial Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 2,
+      "state": "NJ",
+      "name": "OVERALL USE",
+      "category": "Other"
+    },
+    {
+      "region": 2,
+      "state": "NJ",
+      "name": "OVERALL WQS ATTAINMENT",
+      "category": "Other"
+    },
+    {
+      "region": 2,
+      "state": "NJ",
+      "name": "Primary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 2,
+      "state": "NJ",
+      "name": "PUBLIC WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 2,
+      "state": "NJ",
+      "name": "RECREATION (AESTHETICS)",
+      "category": "Recreation"
+    },
+    {
+      "region": 2,
+      "state": "NJ",
+      "name": "Secondary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 2,
+      "state": "NJ",
+      "name": "Shellfish Harvesting",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 2,
+      "state": "NJ",
+      "name": "TROUT MAINTENANCE",
+      "category": "Ecological"
+    },
+    {
+      "region": 2,
+      "state": "NY",
+      "name": "Enjoyment",
+      "category": "Recreation"
+    },
+    {
+      "region": 2,
+      "state": "NY",
+      "name": "Fishing",
+      "category": "Ecological"
+    },
+    {
+      "region": 2,
+      "state": "NY",
+      "name": "Primary contact recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 2,
+      "state": "NY",
+      "name": "Secondary contact recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 2,
+      "state": "NY",
+      "name": "Shellfish",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 2,
+      "state": "NY",
+      "name": "Source of water supply for drinking, culinary or food processing purpose",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 2,
+      "state": "PR",
+      "name": "Aesthetics",
+      "category": "Other"
+    },
+    {
+      "region": 2,
+      "state": "PR",
+      "name": "Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 2,
+      "state": "PR",
+      "name": "AQUATIC LIFE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 2,
+      "state": "PR",
+      "name": "DRINKING WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 2,
+      "state": "PR",
+      "name": "Estuarine, Coastal, surface waters, wetlands and waters of high quality and/or exceptional ecologica",
+      "category": "Other"
+    },
+    {
+      "region": 2,
+      "state": "PR",
+      "name": "Human Health",
+      "category": "Other"
+    },
+    {
+      "region": 2,
+      "state": "PR",
+      "name": "OVERALL USE SUPPORT",
+      "category": "Other"
+    },
+    {
+      "region": 2,
+      "state": "PR",
+      "name": "PRIMARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 2,
+      "state": "PR",
+      "name": "Primary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 2,
+      "state": "PR",
+      "name": "Propagation and Harvesting of Shellfish",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 2,
+      "state": "PR",
+      "name": "Propagation and Preservation of Desirable Species",
+      "category": "Ecological"
+    },
+    {
+      "region": 2,
+      "state": "PR",
+      "name": "Public Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 2,
+      "state": "PR",
+      "name": "SECONDARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 2,
+      "state": "PR",
+      "name": "Secondary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 3,
+      "state": "DC",
+      "name": "Navigation",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "DC",
+      "name": "Primary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 3,
+      "state": "DC",
+      "name": "Protection and Propagation of Fish, Shellfish and Wildlife",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "DC",
+      "name": "PROTECTION AND PROPAGATION OF FISH, SHELLFISH, AND WILDLIFE",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "DC",
+      "name": "Protection of Human Health related to Consumption of Fish and Shellfish",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 3,
+      "state": "DC",
+      "name": "Secondary Contact Recreation and Aesthetic Enjoyment",
+      "category": "Recreation"
+    },
+    {
+      "region": 3,
+      "state": "DE",
+      "name": "Agricultural Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "DE",
+      "name": "AGRICULTURE",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "DE",
+      "name": "AQUATIC LIFE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "DE",
+      "name": "Cold Water Fish",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "DE",
+      "name": "COLD WATER FISHERY",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "DE",
+      "name": "DRINKING WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 3,
+      "state": "DE",
+      "name": "ERES (EXC. REC.& ECO. SIG.)",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "DE",
+      "name": "Fish, Aquatic Life, and Wildlife",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "DE",
+      "name": "Harvestable Shellfish Waters",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 3,
+      "state": "DE",
+      "name": "INDUSTRIAL",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "DE",
+      "name": "Industrial Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "DE",
+      "name": "NONDEGRADATION",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "DE",
+      "name": "OVERALL USE SUPPORT",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 3,
+      "state": "DE",
+      "name": "PRIMARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 3,
+      "state": "DE",
+      "name": "Primary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 3,
+      "state": "DE",
+      "name": "Public Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 3,
+      "state": "DE",
+      "name": "SECONDARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 3,
+      "state": "DE",
+      "name": "Secondary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 3,
+      "state": "DE",
+      "name": "SHELLFISHING",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 3,
+      "state": "DE",
+      "name": "Waters of Exceptional Recreational or Ecological Significance",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "MD",
+      "name": "Agricultural Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "MD",
+      "name": "Aquatic Life and Wildlife",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "MD",
+      "name": "Fishing",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 3,
+      "state": "MD",
+      "name": "Industrial Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "MD",
+      "name": "Open-Water Fish and Shellfish Subcategory",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "MD",
+      "name": "OVERALL USE",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "MD",
+      "name": "Public Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 3,
+      "state": "MD",
+      "name": "Recreational Trout Waters",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "MD",
+      "name": "Seasonal Deep-Channel Refuge Use",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "MD",
+      "name": "Seasonal Deep-Water Fish and Shellfish Subcategory",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "MD",
+      "name": "Seasonal Migratory Fish Spawning and Nursery Subcategory",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "MD",
+      "name": "Seasonal Shallow-Water Submerged Aquatic Vegetation Subcategory",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "MD",
+      "name": "Shellfishing",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 3,
+      "state": "MD",
+      "name": "Trout Water",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "MD",
+      "name": "Water Contact Sports",
+      "category": "Recreation"
+    },
+    {
+      "region": 3,
+      "state": "PA",
+      "name": "Aesthetics",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "PA",
+      "name": "Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "PA",
+      "name": "Boating",
+      "category": "Recreation"
+    },
+    {
+      "region": 3,
+      "state": "PA",
+      "name": "Cold Water Fishes",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "PA",
+      "name": "Exceptional Value Waters",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "PA",
+      "name": "Fishing",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 3,
+      "state": "PA",
+      "name": "High Quality Cold Water Fishes",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "PA",
+      "name": "High Quality Trout Stocking",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "PA",
+      "name": "High Quality Warm Water Fishes",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "PA",
+      "name": "Industrial Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "PA",
+      "name": "Irrigation",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "PA",
+      "name": "Livestock Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "PA",
+      "name": "Migratory Fishes",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "PA",
+      "name": "Navigation",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "PA",
+      "name": "Potable Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 3,
+      "state": "PA",
+      "name": "Trout Stocking",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "PA",
+      "name": "Warm Water Fishes",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "PA",
+      "name": "Water Contact Sports",
+      "category": "Recreation"
+    },
+    {
+      "region": 3,
+      "state": "PA",
+      "name": "Wildlife Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "VA",
+      "name": "Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "VA",
+      "name": "AQUATIC LIFE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "VA",
+      "name": "Deep-Channel Seasonal Refuge",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "VA",
+      "name": "Deep-Water Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "VA",
+      "name": "DRINKING WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 3,
+      "state": "VA",
+      "name": "Fish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 3,
+      "state": "VA",
+      "name": "Migratory Fish Spawning and Nursery",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "VA",
+      "name": "Open-Water Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "VA",
+      "name": "PRIMARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 3,
+      "state": "VA",
+      "name": "Public Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 3,
+      "state": "VA",
+      "name": "Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 3,
+      "state": "VA",
+      "name": "Shallow-Water Submerged Aquatic Vegetation",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "VA",
+      "name": "Shellfishing",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 3,
+      "state": "VA",
+      "name": "Trout Waters",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "VA",
+      "name": "Wildlife",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "WV",
+      "name": "Agriculture and Wildlife",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "WV",
+      "name": "AQUATIC LIFE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "WV",
+      "name": "BAIT MINNOW FISHERY",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "WV",
+      "name": "COLD WATER FISHERY - TROUT",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "WV",
+      "name": "DRINKING WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 3,
+      "state": "WV",
+      "name": "FISH CONSUMPTION",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 3,
+      "state": "WV",
+      "name": "INDUSTRIAL USE",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "WV",
+      "name": "LIVESTOCK WATERING",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "WV",
+      "name": "OVERALL USE SUPPORT",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "WV",
+      "name": "PRIMARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 3,
+      "state": "WV",
+      "name": "Public Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 3,
+      "state": "WV",
+      "name": "SECONDARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 3,
+      "state": "WV",
+      "name": "Trout Waters",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "WV",
+      "name": "Warm Water Fishery",
+      "category": "Ecological"
+    },
+    {
+      "region": 3,
+      "state": "WV",
+      "name": "Water Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 3,
+      "state": "WV",
+      "name": "Water Supply Industrial, Water Transport, Cooling and Power",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "WV",
+      "name": "Wetlands",
+      "category": "Other"
+    },
+    {
+      "region": 3,
+      "state": "WV",
+      "name": "WILDLIFE",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "AL",
+      "name": "Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 4,
+      "state": "AL",
+      "name": "Drinking and Food Processing",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 4,
+      "state": "AL",
+      "name": "Fishing",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 4,
+      "state": "AL",
+      "name": "Industrial and Agriculture Uses",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "AL",
+      "name": "Outstanding Alabama Water",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "AL",
+      "name": "Propagation of Fish and Wildlife",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "AL",
+      "name": "Shellfishing",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 4,
+      "state": "FL",
+      "name": "AGRICULTURAL WATER SUPPLIES",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "FL",
+      "name": "Agriculture Water Supplies",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "FL",
+      "name": "Fish and Wildlife Propagation - Freshwater",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "FL",
+      "name": "Fish and Wildlife Propagation - Marine",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "FL",
+      "name": "Industry",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "FL",
+      "name": "Navigation",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "FL",
+      "name": "Potable Water Supplies",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 4,
+      "state": "FL",
+      "name": "Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 4,
+      "state": "FL",
+      "name": "RECREATION, PROPAGATION, AND MAINTENANCE OF HEALTHY, WELL-BALANCED POPULATION OF FISH AND WILDLIFE",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "FL",
+      "name": "Shellfish Harvesting",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 4,
+      "state": "FL",
+      "name": "Shellfish Propagation",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "FL",
+      "name": "SHELLFISH PROPAGATION OR HARVESTING",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 4,
+      "state": "FL",
+      "name": "Utility",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "GA",
+      "name": "Coastal Fishing",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "GA",
+      "name": "DRINKING WATER",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 4,
+      "state": "GA",
+      "name": "DRINKING WATER SUPPLIES",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 4,
+      "state": "GA",
+      "name": "Drinking Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 4,
+      "state": "GA",
+      "name": "FISH - Primary Trout Water",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "GA",
+      "name": "FISH - Secondary Trout Water",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "GA",
+      "name": "Fish - Water Generally Supporting Shellfish",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "GA",
+      "name": "Fishing",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "GA",
+      "name": "FISHING, PROPAGATION OF FISH, SHELLFISH, GAME AND OTHER AQUATIC LIFE",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "GA",
+      "name": "Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 4,
+      "state": "GA",
+      "name": "Scenic River",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "GA",
+      "name": "Wild River",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "GA",
+      "name": "WILD/SCENIC",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "KY",
+      "name": "AQUATIC LIFE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "KY",
+      "name": "Cold Water Aquatic Habitat",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "KY",
+      "name": "Domestic Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 4,
+      "state": "KY",
+      "name": "DRINKING WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 4,
+      "state": "KY",
+      "name": "Fish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 4,
+      "state": "KY",
+      "name": "Outstanding State Resource Water",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "KY",
+      "name": "OVERALL USE SUPPORT",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "KY",
+      "name": "PRIMARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 4,
+      "state": "KY",
+      "name": "Primary Contact Recreation Water",
+      "category": "Recreation"
+    },
+    {
+      "region": 4,
+      "state": "KY",
+      "name": "SECONDARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 4,
+      "state": "KY",
+      "name": "Secondary Contact Recreation Water",
+      "category": "Recreation"
+    },
+    {
+      "region": 4,
+      "state": "KY",
+      "name": "Warm Water Aquatic Habitat",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "MS",
+      "name": "AQUATIC LIFE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "MS",
+      "name": "AQUATIC LIFE USE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "MS",
+      "name": "CONTACT RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 4,
+      "state": "MS",
+      "name": "Ephemeral Stream",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "MS",
+      "name": "Fish and Wildlife",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "MS",
+      "name": "FISH CONSUMPTION",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 4,
+      "state": "MS",
+      "name": "PRIMARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 4,
+      "state": "MS",
+      "name": "Primary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 4,
+      "state": "MS",
+      "name": "Public Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 4,
+      "state": "MS",
+      "name": "Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 4,
+      "state": "MS",
+      "name": "SECONDARY CONTACT",
+      "category": "Recreation"
+    },
+    {
+      "region": 4,
+      "state": "MS",
+      "name": "Secondary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 4,
+      "state": "MS",
+      "name": "Shellfish Harvesting",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "NC",
+      "name": "Agriculture",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "NC",
+      "name": "AQUATIC LIFE",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "NC",
+      "name": "Aquatic Life Propagation and Survival",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "NC",
+      "name": "Critical Area",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "NC",
+      "name": "Drinking Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 4,
+      "state": "NC",
+      "name": "FISH CONSUMPTION",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 4,
+      "state": "NC",
+      "name": "Fishing",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 4,
+      "state": "NC",
+      "name": "Future Waters Supply",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "NC",
+      "name": "High Quality Waters",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "NC",
+      "name": "Nutrient Senstive Waters",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "NC",
+      "name": "Outstanding Resource Waters",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "NC",
+      "name": "OVERALL USE",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "NC",
+      "name": "OVERALL USE SUPPORT",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "NC",
+      "name": "Primary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 4,
+      "state": "NC",
+      "name": "RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 4,
+      "state": "NC",
+      "name": "Secondary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 4,
+      "state": "NC",
+      "name": "SHELLFISH HARVESTING",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 4,
+      "state": "NC",
+      "name": "Shellfishing for market purposes",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 4,
+      "state": "NC",
+      "name": "Swamp Waters",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "NC",
+      "name": "Trout Waters",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "NC",
+      "name": "WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 4,
+      "state": "NC",
+      "name": "Wildlife",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "SC",
+      "name": "Agriculture Uses",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "SC",
+      "name": "AQUATIC LIFE",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "SC",
+      "name": "Aquatic Life Support",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "SC",
+      "name": "Crabbing",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "SC",
+      "name": "DRINKING WATER",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 4,
+      "state": "SC",
+      "name": "Drinking Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 4,
+      "state": "SC",
+      "name": "Fish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 4,
+      "state": "SC",
+      "name": "Fishing",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 4,
+      "state": "SC",
+      "name": "Industrial Uses",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "SC",
+      "name": "Naturally Reproducing Trout Stream",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "SC",
+      "name": "Primary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 4,
+      "state": "SC",
+      "name": "RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 4,
+      "state": "SC",
+      "name": "Secondary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 4,
+      "state": "SC",
+      "name": "Shellfish Harvesting",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 4,
+      "state": "SC",
+      "name": "Stocked Trout Stream",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "TN",
+      "name": "AQUATIC LIFE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "TN",
+      "name": "Domestic Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 4,
+      "state": "TN",
+      "name": "DRINKING WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 4,
+      "state": "TN",
+      "name": "Fish and Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "TN",
+      "name": "Industrial Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "TN",
+      "name": "Irrigation",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "TN",
+      "name": "LIVESTOCK WATERING & WILDLIFE",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "TN",
+      "name": "Livestock Watering and Wildlife",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "TN",
+      "name": "Naturally Reproducing Trout Stream",
+      "category": "Ecological"
+    },
+    {
+      "region": 4,
+      "state": "TN",
+      "name": "Navigation",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "TN",
+      "name": "OVERALL USE SUPPORT",
+      "category": "Other"
+    },
+    {
+      "region": 4,
+      "state": "TN",
+      "name": "PRIMARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 4,
+      "state": "TN",
+      "name": "Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 4,
+      "state": "TN",
+      "name": "Trout Stream",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "IL",
+      "name": "Aesthetic Quality",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "IL",
+      "name": "Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "IL",
+      "name": "AQUATIC LIFE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "IL",
+      "name": "DRINKING WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 5,
+      "state": "IL",
+      "name": "Fish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 5,
+      "state": "IL",
+      "name": "Indigenous Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "IL",
+      "name": "PRIMARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "IL",
+      "name": "PRIMARY CONTACT (RECREATION)",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "IL",
+      "name": "Primary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "IL",
+      "name": "Public and Food Processing Water Supplies",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 5,
+      "state": "IL",
+      "name": "PUBLIC WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 5,
+      "state": "IL",
+      "name": "S.C. & INDIGENOUS AQUATIC LIFE",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "IL",
+      "name": "SECONDARY CONTACT",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "IL",
+      "name": "SECONDARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "IL",
+      "name": "SECONDARY CONTACT (RECREATION)",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "IL",
+      "name": "SECONDARY CONTACT AND INDIGENOUS AQUATIC LIFE WATERS",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "IL",
+      "name": "Secondary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "Agricultural Use",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "AQUATIC LIFE",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "AQUATIC LIFE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "DRINKING WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "Exceptional Use Waters",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "FISH CONSUMPTION",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "Full Body Contact",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "Great Lakes Agricultural Use",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "Great Lakes Full Body Contact",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "Great Lakes Human Health and Wildlife",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "Great Lakes Industrial Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "Great Lakes Limited Use",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "Great Lakes Public Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "Great Lakes Salmonid Waters",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "Great Lakes Warm Water Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "Human Health and Wildlife",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "Industrial Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "Limited Use",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "Outstanding State Resource Waters",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "OVERALL USE SUPPORT",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "PRIMARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "PRIMARY CONTACT RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "PUBLIC OR INDUSTRIAL WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "Public Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "Salmonid Waters",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "IN",
+      "name": "Warm Water Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "MI",
+      "name": "Agriculture",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MI",
+      "name": "Cold Water Fishery",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "MI",
+      "name": "Fish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 5,
+      "state": "MI",
+      "name": "FISH CONSUMPTION ADVISORY",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 5,
+      "state": "MI",
+      "name": "Industrial Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MI",
+      "name": "Navigation",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MI",
+      "name": "Other Indigenous Aquatic Life and Wildlife",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "MI",
+      "name": "OVERALL WATER QUALITY STANDARDS",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MI",
+      "name": "Partial Body Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "MI",
+      "name": "Public Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 5,
+      "state": "MI",
+      "name": "Total Body Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "MI",
+      "name": "Warm Water Fishery",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Aesthetic and Navigation",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Agricultural",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "AQUATIC LIFE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Aquatic Life: Cold Water Fisheries",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Aquatic Life: Subsistence Fishing (Netting)",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Aquatic Life: Warm Water Fisheries",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 1A",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 1A Drinking Water",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 1B",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 1B Drinking Water",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 1C",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 1C Drinking Water",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 1D",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 1D Drinking Water",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 2A",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 2A Aquatic Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 2A Cold Water Aquatic Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 2A Cold Water Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 2A Drinking Water",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 2B",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 2B Aquatic Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 2B Warm Water Aquatic Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 2B Warm Water Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 2Bd",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 2Bd Aquatic Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 2Bd Drinking Water",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 2Bd Warm Water Aquatic Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 2Bd Warm Water Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 2C",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 2C Aquatic Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 2C Warm Water Aquatic Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 2C Warm Water Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 2D",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 2D Aquatic Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 2D Wetland Aquatic Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 2D Wetland Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 3A",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 3A Industrial Consumption",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 3B",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 3B Industrial Consumption",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 3C",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 3C Industrial Consumption",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 3D",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 3D Industrial Consumption",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 4A",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 4A Irrigation",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 4B",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 4B Animal Use",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 4C",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 4C Animal Use",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 4C Flow Characteristics",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 4C Groundwater Recharge",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 4C Irrigation",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 5  Aesthetics",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 5  Navigation",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 6",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Class 7 Limited Resource Value Waters",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Commercial",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Cultural: Aesthetic Waters",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Cultural: Wild Rice Areas",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "General",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Limited Resource Value Waters",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Navigation",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Other Uses",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "PRIMARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Public Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Recreation: Primary Contact Recreational",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Recreation: Secondary Contact Recreational",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "MN",
+      "name": "Wildlife",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "OH",
+      "name": "Wetland",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "AQUATIC LIFE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "COLD I",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "COLD II",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "COLD III",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "Cold Water Communities",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "COLD WATER FISHERY -TROUT",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "ERW",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "Fish and Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "Fish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "GENERAL",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "Limited Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "Limited Forage Fish Communities",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "LIMITED FORAGE FISHERY",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "ORW",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "OVERALL USE SUPPORT",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "PRIMARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "PUBLIC DRINKING WATER",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "PUBLIC HEALTH AND WELFARE",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "Public Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "Recreation Use",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "SECONDARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "Trout Waters",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "WARM WATER FORAGE FISH",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "Warm Water Forage Fish Communities",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "WARM WATER SPORT FISH",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "Warm Water Sport Fish Communities",
+      "category": "Ecological"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "Wetland Use",
+      "category": "Other"
+    },
+    {
+      "region": 5,
+      "state": "WI",
+      "name": "Wildlife and Stock Watering",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "AR",
+      "name": "Agricultural Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "AR",
+      "name": "AGRICULTURE AND INDUSTRY",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "AR",
+      "name": "AQUATIC LIFE",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "AR",
+      "name": "AQUATIC LIFE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "AR",
+      "name": "Domestic Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 6,
+      "state": "AR",
+      "name": "DRINKING SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 6,
+      "state": "AR",
+      "name": "DRINKING WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 6,
+      "state": "AR",
+      "name": "Ecologically Sensitive Waterbody",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "AR",
+      "name": "Extraordinary Resource Waters",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "AR",
+      "name": "Fish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 6,
+      "state": "AR",
+      "name": "Fisheries",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 6,
+      "state": "AR",
+      "name": "Industrial Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "AR",
+      "name": "Natural and Scenic Waterways",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "AR",
+      "name": "Other Uses",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "AR",
+      "name": "PRIMARY CONTACT",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "AR",
+      "name": "PRIMARY CONTACT REC",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "AR",
+      "name": "Primary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "AR",
+      "name": "SECONDARY CONTACT",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "AR",
+      "name": "SECONDARY CONTACT REC",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "AR",
+      "name": "Secondary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "LA",
+      "name": "Agriculture",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "LA",
+      "name": "Drinking Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 6,
+      "state": "LA",
+      "name": "Fish and Wildlife Propagation",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "LA",
+      "name": "Limited Aquatic Life and Wildlife Use",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "LA",
+      "name": "Outstanding Natural Resource Waters",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "LA",
+      "name": "Oyster Propagation",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 6,
+      "state": "LA",
+      "name": "Primary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "LA",
+      "name": "Secondary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Aquatic Use: Coolwater",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Aquatic Use: Limited Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Aquatic Use: Marginal Coldwater",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Aquatic Use: Marginal Warmwater",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Aquatic Use: Warmwater",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Coldwater Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "COLDWATER FISHERY",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Coolwater Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "DOMESTIC AND MUNICIPAL WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Domestic Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "FISH CONSUMPTION",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Fish Culture",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "General",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Groundwater Recharge",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "High Quality Coldwater Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "HIGH QUALITY COLDWATER FISHERY",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Human Consumption of Aquatic Organisms",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Industrial Water  Storage",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Industrial Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Irrigation",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Irrigation Storage",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Limited Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "LIMITED WARMWATER FISHERY",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Livestock Watering",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Livestock Watering & Wildlife Habitat",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Marginal Cold water Fisheries",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Marginal Coldwater Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "MARGINAL COLDWATER FISHERY",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Marginal Warmwater Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "MUN & INDUSTRIAL WATER STORAGE",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "MUN & INDUSTRIAL WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Municipal Water Storage",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "MUNICIPAL WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Primary Contact",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Public Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Secondary Contact",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "SECONDARY RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Warmwater Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "WARMWATER FISHERY",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "NM",
+      "name": "Wildlife Habitat",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Aesthetic",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Aesthetics",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Agricultural Beneficial Use",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Agricultural Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Agriculture",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Agriculture: Livestock and Irrigation",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Agriculture-Class I Irrigation",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Agriculture-Class II Irrigation",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Agriculture-Class III Irrigation",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Aquatic and Wildlife",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "COOL WATER AQUATIC COMM.",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Cool Water Aquatic Community",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Domestic Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Emergency Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Fish and Wildlife Propagation-Cool Water Aquatic Community Subcategory",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Fish and Wildlife Propagation-Habitat Limited Aquatic Community Subcategory",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Fish and Wildlife Propagation-Trout Fishery (Put and Take) Subcategory",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Fish and Wildlife Propagation-Warm Water Aquatic Community Subcategory",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Fish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "General",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "HABITAT LIMITED AQ. COMM.",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "HQW-High Quality Water",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Hydropower",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "HYDROPOWER GENERATION",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Industrial and Municipal Process and Cooling Water",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "INDUSTRY",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Irrigation Agriculture",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Livestock Watering",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Navigation",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "ORW-Outstanding Resource",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Primary Body Contact",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Primary Body Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Primary Contact",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "PRIMARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Primary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Primary Human Contact",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Public and Private Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "PUBLIC/PRIVATE WATER SUP.",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Secondary Body Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "SECONDARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Secondary Human Contact",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "SWS-SENSITIVE WATER SUP.",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "SWS-Sensitive Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "TROUT FISHERY",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "WARM WATER AQUATIC COMM.",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "OK",
+      "name": "Warm Water Aquatic Community",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "TX",
+      "name": "Aquatic Life Use",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "TX",
+      "name": "CONTACT RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "TX",
+      "name": "CONTACT RECREATION USE",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "TX",
+      "name": "DOMESTIC WATER SUPPLY - PUBLIC WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 6,
+      "state": "TX",
+      "name": "FISH CONSUMPTION",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 6,
+      "state": "TX",
+      "name": "Fish Consumption Use",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 6,
+      "state": "TX",
+      "name": "General Use",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "TX",
+      "name": "INTERMEDIATE AQUATIC LIFE",
+      "category": "Ecological"
+    },
+    {
+      "region": 6,
+      "state": "TX",
+      "name": "NON-CONTACT RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "TX",
+      "name": "NONCONTACT RECREATION USE",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "TX",
+      "name": "OVERALL USE SUPPORT",
+      "category": "Other"
+    },
+    {
+      "region": 6,
+      "state": "TX",
+      "name": "OYSTER AQUATIC LIFE",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 6,
+      "state": "TX",
+      "name": "Oyster Waters Use",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 6,
+      "state": "TX",
+      "name": "PRIMARY RECREATION/SWIMMING",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "TX",
+      "name": "Public Water Supply Use",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 6,
+      "state": "TX",
+      "name": "Recreation Use",
+      "category": "Recreation"
+    },
+    {
+      "region": 6,
+      "state": "TX",
+      "name": "Recreational Beaches",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "IA",
+      "name": "AQUATIC LIFE",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "IA",
+      "name": "Aquatic Life - Coldwater",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "IA",
+      "name": "Aquatic Life - Lakes and Wetlands Warmwater",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "IA",
+      "name": "Aquatic Life - Limited Resource Warmwater",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "IA",
+      "name": "Aquatic Life - Significant Resource Warmwater",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "IA",
+      "name": "AQUATIC LIFE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "IA",
+      "name": "Drinking Water",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 7,
+      "state": "IA",
+      "name": "DRINKING WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 7,
+      "state": "IA",
+      "name": "FISH CONSUMPTION",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 7,
+      "state": "IA",
+      "name": "General Use",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "IA",
+      "name": "High Quality",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "IA",
+      "name": "High Quality Resource",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "IA",
+      "name": "HUMAN HEALTH",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "IA",
+      "name": "OVERALL USE SUPPORT",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "IA",
+      "name": "Primary Body Contact",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "IA",
+      "name": "PRIMARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "IA",
+      "name": "PRIMARY CONTACT RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "IA",
+      "name": "RECREATION - PRIMARY",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "IA",
+      "name": "SECONDARY CONTACT REC.",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "IA",
+      "name": "SECONDARY CONTACT RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "KS",
+      "name": "ACUTE AQUATIC LIFE",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "KS",
+      "name": "Agricultural Supply Use--Irrigation",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "KS",
+      "name": "Agricultural Supply Use--Livestock Watering",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "KS",
+      "name": "AQUATIC LIFE USE",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "KS",
+      "name": "CONTACT RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "KS",
+      "name": "Domestic Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 7,
+      "state": "KS",
+      "name": "Expected Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "KS",
+      "name": "Food Procurement",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 7,
+      "state": "KS",
+      "name": "FOOD PROCUREMENT/HUMAN HEALTH",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 7,
+      "state": "KS",
+      "name": "Ground Water Recharge",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "KS",
+      "name": "Industrial Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "KS",
+      "name": "IRRIGATION WATER USE",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "KS",
+      "name": "LIVESTOCK WATERING USE",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "KS",
+      "name": "NONCONTACT RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "KS",
+      "name": "Primary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "KS",
+      "name": "RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "KS",
+      "name": "Restricted Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "KS",
+      "name": "Secondary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "KS",
+      "name": "Special Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "AQUATIC LIFE",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "AQUATIC LIFE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "Boating and Canoeing",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "Cold Water Fishery",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "Cool Water Fishery",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "Drinking Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "FISH CONSUMPTION",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "GENERAL USE",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "Human Health Protection (Fish Consumption and Secondary Contact Recreation)",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "INDUSTRIAL",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "Industrial Process Water and Industrial Cooling Water",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "Irrigation",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "Livestock and Wildlife Watering",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "LIVESTOCK WATERING",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "OVERALL USE SUPPORT",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "Protection of Aquatic Life (General Warm-Water Fishery)",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "Protection of Aquatic Life (Limited Warm-Water Fishery)",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "Protection of Warm Water Aquatic Life and Human Health--Fish Consumption",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "SECONDARY CONTACT RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "SWIMMABLE",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "Unclassified with Other Protection",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "Whole Body Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "WHOLE BODY CONTACT RECREATION - A",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "MO",
+      "name": "WHOLE BODY CONTACT RECREATION - B",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "Aesthetics",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "Agricultural Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "AGRICULTURAL WATER SUPPLY-CLASS A",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "AGRICULTURAL WATER SUPPLY-CLASS B",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "AGRICULTURE",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "AGRICULTURE B",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "AL COLD WATER A",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "AL COLD WATER B",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "AL WARM WATER A",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "AL WARM WATER B",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "AQUATIC LIFE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "COLD WATER AQUATIC LIFE (CLASS A)",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "COLD WATER AQUATIC LIFE (CLASS B)",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "DRINKING WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "FISH CONSUMPTION",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "Industrial Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "NONDEGRADATION",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "OVERALL USE SUPPORT",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "PRIMARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "PRIMARY CONTACT RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "PROTECTION OF AQUATIC LIFE",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "Public Drinking Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "STATE RESOURCE WATERS (CLASS A)",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "STATE RESOURCE WATERS (CLASS B)",
+      "category": "Other"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "WARM WATER AQUATIC LIFE (CLASS A)",
+      "category": "Ecological"
+    },
+    {
+      "region": 7,
+      "state": "NE",
+      "name": "WARM WATER AQUATIC LIFE (CLASS B)",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "CO",
+      "name": "Agriculture",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "CO",
+      "name": "AQUATIC LIFE COLD 1",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "CO",
+      "name": "AQUATIC LIFE COLD 2",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "CO",
+      "name": "Aquatic Life Cold Water-Class 1",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "CO",
+      "name": "Aquatic Life Cold Water-Class 2",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "CO",
+      "name": "Aquatic Life Support",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "CO",
+      "name": "AQUATIC LIFE WARM 1",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "CO",
+      "name": "AQUATIC LIFE WARM 2",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "CO",
+      "name": "Aquatic Life Warm Water-Class 1",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "CO",
+      "name": "Aquatic Life Warm Water-Class 2",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "CO",
+      "name": "Domestic Water Source",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 8,
+      "state": "CO",
+      "name": "DRINKING WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 8,
+      "state": "CO",
+      "name": "FISH CONSUMPTION",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 8,
+      "state": "CO",
+      "name": "PRIMARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 8,
+      "state": "CO",
+      "name": "Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 8,
+      "state": "CO",
+      "name": "Recreation Primary Contact",
+      "category": "Recreation"
+    },
+    {
+      "region": 8,
+      "state": "CO",
+      "name": "Recreation Secondary Contact",
+      "category": "Recreation"
+    },
+    {
+      "region": 8,
+      "state": "CO",
+      "name": "SECONDARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 8,
+      "state": "CO",
+      "name": "Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 8,
+      "state": "MT",
+      "name": "Agricultural",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "MT",
+      "name": "AGRICULTURE",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "MT",
+      "name": "Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "MT",
+      "name": "AQUATIC LIFE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "MT",
+      "name": "COLD WATER FISHERY",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "MT",
+      "name": "COLD WATER FISHERY - TROUT",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "MT",
+      "name": "Cold Water Fishes",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "MT",
+      "name": "Drinking Water",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 8,
+      "state": "MT",
+      "name": "DRINKING WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 8,
+      "state": "MT",
+      "name": "Industrial",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "MT",
+      "name": "PRIMARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 8,
+      "state": "MT",
+      "name": "Primary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 8,
+      "state": "MT",
+      "name": "WARM WATER FISHERY",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "MT",
+      "name": "Warm Water Fishes",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "ND",
+      "name": "Agricultural",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "ND",
+      "name": "Cold Water Fishery",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "ND",
+      "name": "Cool Water Fishery",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "ND",
+      "name": "Fish and Other Aquatic Biota",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "ND",
+      "name": "Fish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 8,
+      "state": "ND",
+      "name": "Industrial",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "ND",
+      "name": "Marginal Fishery",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "ND",
+      "name": "Municipal and Domestic",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 8,
+      "state": "ND",
+      "name": "No Aquatic Life Support",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "ND",
+      "name": "Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 8,
+      "state": "ND",
+      "name": "Warm Water Fishery",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "ND",
+      "name": "Wildlife",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "AGRICULTURE",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "COLDWATER MARGINAL FISH",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "Coldwater Marginal Fish Life Propagation Waters",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "COLDWATER PERM FISH",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "Coldwater Permanent Fish Life Propagation Waters",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "COMMERCE AND INDUSTRY",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "Commerce and Industry Waters",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "Domestic Water Supply Waters",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "DRINKING WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "Fish and Wildlife Propagation, Recreation, and Stock Watering Waters",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "FISH/WLDLF PROP, REC, STOCK",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "IMMERSION REC",
+      "category": "Recreation"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "Immersion Recreation Waters",
+      "category": "Recreation"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "IRRIGATION",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "Irrigation Waters",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "LIMITED CONTACT REC",
+      "category": "Recreation"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "Limited Contact Recreation Waters",
+      "category": "Recreation"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "OVERALL USE SUPPORT",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "WARMWATER MARGINAL FISH",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "Warmwater Marginal Fish Life Propagation Waters",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "WARMWATER PERM FISH",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "Warmwater Permanent Fish Life Propagation Waters",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "WARMWATER SEMI FISH",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "SD",
+      "name": "Warmwater Semipermanent Fish Life Propagation Waters",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "UT",
+      "name": "Agricultural",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "UT",
+      "name": "AGRICULTURE",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "UT",
+      "name": "AQUATIC LIFE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "UT",
+      "name": "Cold Water Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "UT",
+      "name": "COLD WATER GAME FISH (3A)",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "UT",
+      "name": "Domestic Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 8,
+      "state": "UT",
+      "name": "DRINKING WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 8,
+      "state": "UT",
+      "name": "Fish consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 8,
+      "state": "UT",
+      "name": "Great Salt Lake",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "UT",
+      "name": "NONDEGRADATION",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "UT",
+      "name": "NONGAME FISH (3C)",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "UT",
+      "name": "Non-Game Fish and Other Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "UT",
+      "name": "PRIMARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 8,
+      "state": "UT",
+      "name": "Primary Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 8,
+      "state": "UT",
+      "name": "SECONDARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 8,
+      "state": "UT",
+      "name": "Secondary Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 8,
+      "state": "UT",
+      "name": "Warm Water Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "UT",
+      "name": "WARM WATER GAME FISH (3B)",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "UT",
+      "name": "WATERFOWL AND SHOREBIRDS (3D)",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "UT",
+      "name": "Wildlife Habitat",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "WY",
+      "name": "Agriculture",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "WY",
+      "name": "Aquatic Life other than Fish",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "WY",
+      "name": "AQUATIC LIFE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "WY",
+      "name": "COLD FISH",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "WY",
+      "name": "Cold Water Fishery",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "WY",
+      "name": "Drinking Water",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 8,
+      "state": "WY",
+      "name": "DRINKING WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 8,
+      "state": "WY",
+      "name": "Fish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 8,
+      "state": "WY",
+      "name": "FISHERIES",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "WY",
+      "name": "Industry",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "WY",
+      "name": "NON GAME FISH",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "WY",
+      "name": "Non-Game Fish",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "WY",
+      "name": "PRIMARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 8,
+      "state": "WY",
+      "name": "Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 8,
+      "state": "WY",
+      "name": "Scenic Value",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "WY",
+      "name": "WARM FISH",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "WY",
+      "name": "Warm Water Fishery",
+      "category": "Ecological"
+    },
+    {
+      "region": 8,
+      "state": "WY",
+      "name": "Wildlife",
+      "category": "Other"
+    },
+    {
+      "region": 8,
+      "state": "WY",
+      "name": "WILDLIFE WATERING",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "A&W - COLD WATER FISHERY",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "A&W - EPHEMERAL WASH",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "A&W - WARM WATER FISHERY",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "Agricultural Irrigation",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "Agricultural Livestock Watering",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "Agricultural Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "AGRICULTURE - IRRIGATION",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "AGRICULTURE - LIVESTOCK",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "Aquatic and Wildlife (acute)",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "Aquatic and Wildlife (chronic)",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "Aquatic and Wildlife (Coldwater Fishery)",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "Aquatic and Wildlife (Effluent Dependent Water)",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "Aquatic and Wildlife (Ephemeral)",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "Aquatic and Wildlife (Warmwater Fishery)",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "Domestic Water Source",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "Domestic Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "DRINKING WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "EFFLUENT DEPENDENT WATER",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "Fish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "Full Body Contact",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "General",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "Livestock Watering",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "Partial Body Contact",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "PRIMARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "Primary Human Contact",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "SECONDARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "Secondary Human Contact",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "AZ",
+      "name": "Tributary Rule",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Aesthetics",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Agricultural Supply",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "AGRICULTURE",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Aquaculture",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "AQUATIC LIFE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Cold Freshwater Habitat",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Cold Water - Freshwater Habitat",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Commercial",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Commercial and Sport Fishing",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "CULTURAL/CEREMONIAL",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Cultural/Traditional",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "CULTURAL/TRADITIONAL RIGHTS",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Drinking Water",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "DRINKING WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Environmental Water Quality",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Estuarine Habitat",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "FISH CONSUMPTION",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "FISH MIGRATION",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "FISH SPAWNING",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Flood Peak Attenuation/Flood Water Storage",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Freshwater Replenishment",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "General",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Ground Water Recharge",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "GROUNDWATER RECHARGE",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "HYDROELECTRIC POWER GENERATION",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Hydropower Generation",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Industrial Process Supply",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Industrial Service Supply",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Inland Saline Water Habitat",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "LIMITED WARM FRESHWATER HABITAT",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Marine Habitat",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Migration of Aquatic Organisms",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "MUNICIPAL & DOMESTIC",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Municipal and Domestic Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Navigation",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "NON-CONTACT RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Non-Contact Water Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "OVERALL USE SUPPORT",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "PRESERVATION OF BIO. HAB. OF SPEC. SIGNIF.",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Preservation of Biological Habitats",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Primary contact",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "RARE AND ENDANGERED SPECIES",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Rare, Threatened, or Endangered Species",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Recreational",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "SALINE WATER HABITAT",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Secondary contact",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "SECONDARY CONTACT RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Shellfish Harvesting",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "SHELLFISHING",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Spawning, Reproduction, and/or Early Development",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Subsistence consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "SWIMMABLE",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Warm Freshwater Habitat",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Warm Water - Freshwater Habitat",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Warm Water - Spawning",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Water Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "WATER QUALITY ENFORCEMENT",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "WETLAND HABITAT",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Wildlife",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "CA",
+      "name": "Wildlife Habitat",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "HI",
+      "name": "Aesthetics",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "HI",
+      "name": "Agricultural Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "HI",
+      "name": "AGRICULTURE",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "HI",
+      "name": "Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "HI",
+      "name": "AQUATIC LIFE SUPPORT",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "HI",
+      "name": "CULTURAL/CEREMONIAL",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "HI",
+      "name": "Drinking Water intakes",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 9,
+      "state": "HI",
+      "name": "DRINKING WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 9,
+      "state": "HI",
+      "name": "FISH CONSUMPTION",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 9,
+      "state": "HI",
+      "name": "Food Processing",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "HI",
+      "name": "Industrial Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "HI",
+      "name": "Natural Waters",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "HI",
+      "name": "Navagation and Shipping",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "HI",
+      "name": "NONDEGRADATION",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "HI",
+      "name": "None",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "HI",
+      "name": "OVERALL USE SUPPORT",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "HI",
+      "name": "PRIMARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "HI",
+      "name": "Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "HI",
+      "name": "SECONDARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "HI",
+      "name": "Shellfish",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 9,
+      "state": "HI",
+      "name": "SHELLFISHING",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 9,
+      "state": "HI",
+      "name": "Wildlife",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "NV",
+      "name": "Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "NV",
+      "name": "Enhancement of Water Quality",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "NV",
+      "name": "Enhancement of Water Quality and Irrigation",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "NV",
+      "name": "Fish Consumption",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 9,
+      "state": "NV",
+      "name": "Freshwater Marsh",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "NV",
+      "name": "Industrial Supply",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "NV",
+      "name": "Irrigation",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "NV",
+      "name": "Municipal or Domestic Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 9,
+      "state": "NV",
+      "name": "Propagation of Wildlife",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "NV",
+      "name": "Recreation Involving Contact with the Water",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "NV",
+      "name": "Recreation Not Involving Contact with the Water",
+      "category": "Recreation"
+    },
+    {
+      "region": 9,
+      "state": "NV",
+      "name": "Water and Organisms",
+      "category": "Ecological"
+    },
+    {
+      "region": 9,
+      "state": "NV",
+      "name": "Watering of Livestock",
+      "category": "Other"
+    },
+    {
+      "region": 9,
+      "state": "NV",
+      "name": "Waters of Extraordinary Ecological or Aesthetic Value",
+      "category": "Ecological"
+    },
+    {
+      "region": 10,
+      "state": "AK",
+      "name": "ACWA -- AT RISK WATER",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "AK",
+      "name": "ACWA -- HABITAT DEGRADATION",
+      "category": "Ecological"
+    },
+    {
+      "region": 10,
+      "state": "AK",
+      "name": "ACWA -- WATER QUALITY",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "AK",
+      "name": "FRESH WATER / GROWTH AND PROPAGATION OF FISH, SHELLFISH, OTHER AQUATIC LIFE AND WILDLIFE",
+      "category": "Ecological"
+    },
+    {
+      "region": 10,
+      "state": "AK",
+      "name": "FRESH WATER / WATER RECREATION / CONTACT RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 10,
+      "state": "AK",
+      "name": "FRESH WATER / WATER RECREATION / SECONDARY RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 10,
+      "state": "AK",
+      "name": "FRESH WATER / WATER SUPPLY / AQUACULTURE",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "AK",
+      "name": "FRESH WATER / WATER SUPPLY / DRINKING, CULINARY, AND FOOD PROCESSING",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 10,
+      "state": "AK",
+      "name": "FRESH WATER / WATER SUPPLY / INDUSTRIAL",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "AK",
+      "name": "HABITAT (DEGRADATION CONCERNS)",
+      "category": "Ecological"
+    },
+    {
+      "region": 10,
+      "state": "AK",
+      "name": "MARINE WATER / GROWTH AND PROPAGATION OF FISH, SHELLFISH, OTHER AQUATIC LIFE AND WILDLIFE",
+      "category": "Ecological"
+    },
+    {
+      "region": 10,
+      "state": "AK",
+      "name": "MARINE WATER / HARVESTING FOR CONSUMPTION OF RAW MOLLUSKS OR OTHER RAW AQUATIC LIFE",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 10,
+      "state": "AK",
+      "name": "MARINE WATER / WATER RECREATION / CONTACT RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 10,
+      "state": "AK",
+      "name": "MARINE WATER / WATER RECREATION / SECONDARY RECREATION",
+      "category": "Recreation"
+    },
+    {
+      "region": 10,
+      "state": "AK",
+      "name": "MARINE WATER / WATER SUPPLY / AQUACULTURE",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "AK",
+      "name": "MARINE WATER / WATER SUPPLY / INDUSTRIAL",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "AK",
+      "name": "MARINE WATER / WATER SUPPLY / SEAFOOD PROCESSING",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "AK",
+      "name": "NONDEGRADATION",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "AK",
+      "name": "OVERALL USE SUPPORT",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "Aesthetic",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "AETHESTICS",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "Agricultural Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "AGRICULTURE",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "AQUATIC LIFE USE -- COLD",
+      "category": "Ecological"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "AQUATIC LIFE USE -- SC",
+      "category": "Ecological"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "AQUATIC LIFE USE -- WARM",
+      "category": "Ecological"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "AQUATIC LIFE USE --SS",
+      "category": "Ecological"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "Cold Water Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "Domestic Water Supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "DRINKING WATER SUPPLY",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "Industrial Water Supply",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "Modified Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "PRIMARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "Primary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "Salmonid Spawning",
+      "category": "Ecological"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "Seasonal Cold Water Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "SECONDARY CONTACT (RECR)",
+      "category": "Recreation"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "Secondary Contact Recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "Undesignated Surface Waters",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "Warm Water Aquatic Life",
+      "category": "Ecological"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "Wildlife Habitat",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "ID",
+      "name": "WILDLIFE HABITATS",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "OR",
+      "name": "aesthetic quality",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "OR",
+      "name": "boating",
+      "category": "Recreation"
+    },
+    {
+      "region": 10,
+      "state": "OR",
+      "name": "commercial navigation and transportation",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "OR",
+      "name": "fish and aquatic life",
+      "category": "Ecological"
+    },
+    {
+      "region": 10,
+      "state": "OR",
+      "name": "fishing",
+      "category": "Fish and Shellfish Consumption"
+    },
+    {
+      "region": 10,
+      "state": "OR",
+      "name": "hydropower",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "OR",
+      "name": "industrial water supply",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "OR",
+      "name": "irrigation",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "OR",
+      "name": "livestock watering",
+      "category": "Other"
+    },
+    {
+      "region": 10,
+      "state": "OR",
+      "name": "Private domestic water supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 10,
+      "state": "OR",
+      "name": "Public domestic water supply",
+      "category": "Drinking Water"
+    },
+    {
+      "region": 10,
+      "state": "OR",
+      "name": "water contact recreation",
+      "category": "Recreation"
+    },
+    {
+      "region": 10,
+      "state": "OR",
+      "name": "wildlife and hunting",
+      "category": "Other"
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "name": "mywaterway-client",
+  "version": "2.0.0",
+  "description": "A tool to learn about your water resources.",
+  "keywords": [
+    "MyWaterway",
+    "HMWv2",
+    "WATERS",
+    "RAD",
+    "ATTAINS",
+    "GRTS",
+    "STORET",
+    "WQP",
+    "WQX"
+  ],
+  "repository": "github:USEPA/mywaterway",
+  "homepage": "https://github.com/USEPA/mywaterway",
+  "bugs": "https://github.com/USEPA/mywaterway/issues",
+  "license": "CC0-1.0",
+  "author": "USEPA (https://www.epa.gov)",
+  "contributors": [
+    "Andrew VanNess <andrew.vanness@erg.com>",
+    "Brad Cooper <brad.cooper@erg.com>",
+    "Caleb Schwind <caleb.schwind@erg.com>",
+    "Courtney Myers <courtney.myers@erg.com>"
+  ],
+  "engines": {
+    "node": "12.x"
+  },
+  "main": "src/index.js",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "flow": "flow",
+    "cypress": "cypress open"
+  },
+  "devDependencies": {
+    "@testing-library/cypress": "5.1.2",
+    "cypress": "3.8.3",
+    "eslint-plugin-cypress": "2.8.1"
+  },
+  "dependencies": {
+    "@esri/react-arcgis": "5.0.0",
+    "@gouch/to-title-case": "^2.2.1",
+    "@reach/dialog": "0.8.0",
+    "@reach/router": "1.2.1",
+    "@reach/tabs": "0.8.0",
+    "@reach/window-size": "0.8.0",
+    "esri-loader": "2.13.0",
+    "flow-bin": "0.117.0",
+    "glossary-panel": "github:Eastern-Research-Group/glossary",
+    "highcharts": "8.0.0",
+    "highcharts-react-official": "2.2.2",
+    "husky": "4.2.1",
+    "lint-staged": "10.0.7",
+    "prettier": "1.19.1",
+    "react": "16.12.0",
+    "react-app-polyfill": "1.0.6",
+    "react-dom": "16.12.0",
+    "react-scripts": "3.3.1",
+    "react-select": "3.0.4",
+    "react-sticky-box": "0.9.2",
+    "react-switch": "5.0.1",
+    "react-table": "6.11.5",
+    "react-virtualized": "9.21.2",
+    "styled-components": "5.0.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "src/**/*.{js,json,css,md}": "prettier --write"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "plugin:cypress/recommended"
+    ]
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
+}

@@ -1,0 +1,41 @@
+{
+"organization": "USEPA",
+"name": "How's My Waterway",
+"description": "How's My Waterway is a responsive, map-centric, mobile ready web application that pulls data from several different systems at EPA and beyond via web services to provide a user with an overall picture of water quality.",
+"permissions": {
+"licenses": [
+{
+"name": "Creative Commons Zero (CC0)",
+"URL": "https://github.com/USEPA/mywaterway/blob/develop/LICENSE"
+}
+],
+"usageType": "openSource",
+"exemptionText": null
+},
+"repositoryURL": "https://github.com/USEPA/mywaterway",
+"languages": [
+"React",
+"JavaScript",
+"Node.js",
+"ArcGIS API for JavaScript",
+"Highcharts"
+],
+"tags": [
+"EPA",
+"HMW",
+"HMWv2",
+"Mywaterway",
+"My Waterway",
+"Surf Your Watershed",
+"Can I Swim here",
+"Can I Eat the Fish",
+"Can I Drink the Water",
+"Your water",
+"water",
+"water quality"
+],
+"contact": {
+"name": "How's My Waterway Team",
+"email": "mywaterway@epa.gov"
+}
+}
