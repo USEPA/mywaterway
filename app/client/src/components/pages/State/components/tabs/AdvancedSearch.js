@@ -237,207 +237,192 @@ function AdvancedSearch({ ...props }: Props) {
   // Get the list of parameters available for this state.
   // This data comes from the usesStateSummary service response
   // which is called from WaterQualityOverview.
-  React.useEffect(
-    () => {
-      if (currentSummary.status === 'fetching') return;
-      if (currentSummary.status === 'failure') {
-        setParameterGroupOptions([]);
-        setServiceError(true);
-        return;
-      }
+  React.useEffect(() => {
+    if (currentSummary.status === 'fetching') return;
+    if (currentSummary.status === 'failure') {
+      setParameterGroupOptions([]);
+      setServiceError(true);
+      return;
+    }
 
-      // get a unique list of parameterGroups as they are in attains
-      const uniqueParameterGroups = [];
-      currentSummary.data.waterTypes.forEach((waterType) => {
-        waterType.useAttainments.forEach((useAttainment) => {
-          useAttainment.parameters.forEach((parameter) => {
-            const parameterGroup = parameter.parameterGroup;
-            if (!uniqueParameterGroups.includes(parameterGroup)) {
-              uniqueParameterGroups.push(parameterGroup.toUpperCase());
-            }
-          });
+    // get a unique list of parameterGroups as they are in attains
+    const uniqueParameterGroups = [];
+    currentSummary.data.waterTypes.forEach((waterType) => {
+      waterType.useAttainments.forEach((useAttainment) => {
+        useAttainment.parameters.forEach((parameter) => {
+          const parameterGroup = parameter.parameterGroup;
+          if (!uniqueParameterGroups.includes(parameterGroup)) {
+            uniqueParameterGroups.push(parameterGroup.toUpperCase());
+          }
         });
       });
+    });
 
-      // get the public friendly versions of the parameterGroups
-      let parameterGroupOptions = impairmentFields.filter((field) =>
-        uniqueParameterGroups.includes(field.parameterGroup.toUpperCase()),
-      );
+    // get the public friendly versions of the parameterGroups
+    let parameterGroupOptions = impairmentFields.filter((field) =>
+      uniqueParameterGroups.includes(field.parameterGroup.toUpperCase()),
+    );
 
-      // sort the options
-      parameterGroupOptions = parameterGroupOptions.sort((a, b) => {
-        return a.label.toUpperCase() > b.label.toUpperCase() ? 1 : -1;
-      });
+    // sort the options
+    parameterGroupOptions = parameterGroupOptions.sort((a, b) => {
+      return a.label.toUpperCase() > b.label.toUpperCase() ? 1 : -1;
+    });
 
-      setParameterGroupOptions(parameterGroupOptions);
-    },
-    [currentSummary],
-  );
+    setParameterGroupOptions(parameterGroupOptions);
+  }, [currentSummary]);
 
   // Get the maxRecordCount of the watersheds layer
   const [watershedMrcError, setWatershedMrcError] = React.useState(false);
-  React.useEffect(
-    () => {
-      if (watershedsLayerMaxRecordCount || watershedMrcError) return;
+  React.useEffect(() => {
+    if (watershedsLayerMaxRecordCount || watershedMrcError) return;
 
-      retrieveMaxRecordCount(wbd)
-        .then((maxRecordCount) => {
-          setWatershedsLayerMaxRecordCount(maxRecordCount);
-        })
-        .catch((err) => {
-          console.error(err);
-          setSearchLoading(false);
-          setServiceError(true);
-          setWatershedMrcError(true);
-        });
-    },
-    [
-      watershedsLayerMaxRecordCount,
-      setWatershedsLayerMaxRecordCount,
-      watershedMrcError,
-    ],
-  );
+    retrieveMaxRecordCount(wbd)
+      .then((maxRecordCount) => {
+        setWatershedsLayerMaxRecordCount(maxRecordCount);
+      })
+      .catch((err) => {
+        console.error(err);
+        setSearchLoading(false);
+        setServiceError(true);
+        setWatershedMrcError(true);
+      });
+  }, [
+    watershedsLayerMaxRecordCount,
+    setWatershedsLayerMaxRecordCount,
+    watershedMrcError,
+  ]);
 
   // get a list of watersheds and build the esri where clause
   const [watersheds, setWatersheds] = React.useState(null);
-  React.useEffect(
-    () => {
-      if (activeState.code === '' || !watershedsLayerMaxRecordCount) return;
+  React.useEffect(() => {
+    if (activeState.code === '' || !watershedsLayerMaxRecordCount) return;
 
-      const { Query, QueryTask } = esriHelper.modules;
-      const query = new Query({
-        where: `STATES LIKE '%${activeState.code}%'`,
-        outFields: ['huc12', 'name'],
-      });
+    const { Query, QueryTask } = esriHelper.modules;
+    const query = new Query({
+      where: `STATES LIKE '%${activeState.code}%'`,
+      outFields: ['huc12', 'name'],
+    });
 
-      retrieveFeatures({
-        QueryTask,
-        url: wbd,
-        query,
-        maxRecordCount: watershedsLayerMaxRecordCount,
-      })
-        .then((data) => {
-          // convert the watersheds response into an array for the dropdown
-          let hucs = [];
-          data.features.forEach((feature) => {
-            const { huc12, name } = feature.attributes;
-            hucs.push({
-              value: huc12,
-              label: `${name} (${huc12})`,
-            });
+    retrieveFeatures({
+      QueryTask,
+      url: wbd,
+      query,
+      maxRecordCount: watershedsLayerMaxRecordCount,
+    })
+      .then((data) => {
+        // convert the watersheds response into an array for the dropdown
+        let hucs = [];
+        data.features.forEach((feature) => {
+          const { huc12, name } = feature.attributes;
+          hucs.push({
+            value: huc12,
+            label: `${name} (${huc12})`,
           });
-          setWatersheds(hucs);
-        })
-        .catch((err) => {
-          console.error(err);
-          setSearchLoading(false);
-          setServiceError(true);
-          setWatersheds([]);
         });
-    },
-    [esriHelper, activeState, watershedsLayerMaxRecordCount],
-  );
+        setWatersheds(hucs);
+      })
+      .catch((err) => {
+        console.error(err);
+        setSearchLoading(false);
+        setServiceError(true);
+        setWatersheds([]);
+      });
+  }, [esriHelper, activeState, watershedsLayerMaxRecordCount]);
 
   // Get the maxRecordCount of the summary (waterbody) layer
   const [summaryMrcError, setSummaryMrcError] = React.useState(false);
-  React.useEffect(
-    () => {
-      if (summaryLayerMaxRecordCount || summaryMrcError) return;
+  React.useEffect(() => {
+    if (summaryLayerMaxRecordCount || summaryMrcError) return;
 
-      retrieveMaxRecordCount(waterbodyService.summary)
-        .then((maxRecordCount) => {
-          setSummaryLayerMaxRecordCount(maxRecordCount);
-        })
-        .catch((err) => {
-          console.error(err);
-          setSearchLoading(false);
-          setServiceError(true);
-          setSummaryMrcError(true);
-        });
-    },
-    [
-      summaryLayerMaxRecordCount,
-      setSummaryLayerMaxRecordCount,
-      summaryMrcError,
-    ],
-  );
+    retrieveMaxRecordCount(waterbodyService.summary)
+      .then((maxRecordCount) => {
+        setSummaryLayerMaxRecordCount(maxRecordCount);
+      })
+      .catch((err) => {
+        console.error(err);
+        setSearchLoading(false);
+        setServiceError(true);
+        setSummaryMrcError(true);
+      });
+  }, [
+    summaryLayerMaxRecordCount,
+    setSummaryLayerMaxRecordCount,
+    summaryMrcError,
+  ]);
 
   const [currentFilter, setCurrentFilter] = React.useState(null);
 
   // these lists just have the name and id for faster load time
   const [waterbodiesList, setWaterbodiesList] = React.useState(null);
   // Get the features on the waterbodies point layer
-  React.useEffect(
-    () => {
-      if (activeState.code === '' || !summaryLayerMaxRecordCount) return;
+  React.useEffect(() => {
+    if (activeState.code === '' || !summaryLayerMaxRecordCount) return;
 
-      const { Query, QueryTask } = esriHelper.modules;
+    const { Query, QueryTask } = esriHelper.modules;
 
-      // query for initial load
-      if (!currentFilter) {
-        const query = new Query({
-          returnGeometry: false,
-          where: `state = '${activeState.code}'`,
-          outFields: ['assessmentunitidentifier', 'assessmentunitname'],
-        });
+    // query for initial load
+    if (!currentFilter) {
+      const query = new Query({
+        returnGeometry: false,
+        where: `state = '${activeState.code}'`,
+        outFields: ['assessmentunitidentifier', 'assessmentunitname'],
+      });
 
-        retrieveFeatures({
-          QueryTask,
-          url: waterbodyService.summary,
-          query,
-          maxRecordCount: summaryLayerMaxRecordCount,
-        })
-          .then((data) => {
-            // build a full list of waterbodies for the state. Will have the full
-            // list prior to filters being visible on the screen.
-            let waterbodiesList = [];
-            data.features.forEach((waterbody) => {
-              const id = waterbody.attributes.assessmentunitidentifier;
-              const name = waterbody.attributes.assessmentunitname;
-              waterbodiesList.push({
-                value: id,
-                label: `${name} (${id})`,
-              });
+      retrieveFeatures({
+        QueryTask,
+        url: waterbodyService.summary,
+        query,
+        maxRecordCount: summaryLayerMaxRecordCount,
+      })
+        .then((data) => {
+          // build a full list of waterbodies for the state. Will have the full
+          // list prior to filters being visible on the screen.
+          let waterbodiesList = [];
+          data.features.forEach((waterbody) => {
+            const id = waterbody.attributes.assessmentunitidentifier;
+            const name = waterbody.attributes.assessmentunitname;
+            waterbodiesList.push({
+              value: id,
+              label: `${name} (${id})`,
             });
-
-            setWaterbodiesList(waterbodiesList);
-          })
-          .catch((err) => {
-            console.error(err);
-            setSearchLoading(false);
-            setServiceError(true);
-            setWaterbodiesList([]);
           });
-      } else {
-        const query = new Query({
-          returnGeometry: false,
-          where: currentFilter,
-          outFields: ['*'],
-        });
 
-        retrieveFeatures({
-          QueryTask,
-          url: waterbodyService.summary,
-          query,
-          maxRecordCount: summaryLayerMaxRecordCount,
+          setWaterbodiesList(waterbodiesList);
         })
-          .then((data) => setWaterbodyData(data))
-          .catch((err) => {
-            console.error(err);
-            setSearchLoading(false);
-            setServiceError(true);
-            setWaterbodyData({ features: [] });
-          });
-      }
-    },
-    [
-      esriHelper,
-      setWaterbodyData,
-      currentFilter,
-      activeState,
-      summaryLayerMaxRecordCount,
-    ],
-  );
+        .catch((err) => {
+          console.error(err);
+          setSearchLoading(false);
+          setServiceError(true);
+          setWaterbodiesList([]);
+        });
+    } else {
+      const query = new Query({
+        returnGeometry: false,
+        where: currentFilter,
+        outFields: ['*'],
+      });
+
+      retrieveFeatures({
+        QueryTask,
+        url: waterbodyService.summary,
+        query,
+        maxRecordCount: summaryLayerMaxRecordCount,
+      })
+        .then((data) => setWaterbodyData(data))
+        .catch((err) => {
+          console.error(err);
+          setSearchLoading(false);
+          setServiceError(true);
+          setWaterbodyData({ features: [] });
+        });
+    }
+  }, [
+    esriHelper,
+    setWaterbodyData,
+    currentFilter,
+    activeState,
+    summaryLayerMaxRecordCount,
+  ]);
 
   const [waterbodyFilter, setWaterbodyFilter] = React.useState([]);
   const [watershedFilter, setWatershedFilter] = React.useState([]);
@@ -487,36 +472,33 @@ function AdvancedSearch({ ...props }: Props) {
   const [numberOfRecords, setNumberOfRecords] = React.useState(null);
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [nextFilter, setNextFilter] = React.useState('');
-  React.useEffect(
-    () => {
-      if (!nextFilter && !serviceError) return;
+  React.useEffect(() => {
+    if (!nextFilter && !serviceError) return;
 
-      const { Query, QueryTask } = esriHelper.modules;
+    const { Query, QueryTask } = esriHelper.modules;
 
-      let query = new Query({
-        returnGeometry: false,
-        where: nextFilter,
-        outFields: ['*'],
+    let query = new Query({
+      returnGeometry: false,
+      where: nextFilter,
+      outFields: ['*'],
+    });
+
+    // query to get just the ids since there is a maxRecordCount
+    let queryTask = new QueryTask({ url: waterbodyService.summary });
+    queryTask
+      .executeForCount(query)
+      .then((res) => {
+        setNumberOfRecords(res ? res : 0);
+        setSearchLoading(false);
+        setConfirmOpen(true);
+      })
+      .catch((err) => {
+        console.error(err);
+        setSearchLoading(false);
+        setNextFilter('');
+        setServiceError(true);
       });
-
-      // query to get just the ids since there is a maxRecordCount
-      let queryTask = new QueryTask({ url: waterbodyService.summary });
-      queryTask
-        .executeForCount(query)
-        .then((res) => {
-          setNumberOfRecords(res ? res : 0);
-          setSearchLoading(false);
-          setConfirmOpen(true);
-        })
-        .catch((err) => {
-          console.error(err);
-          setSearchLoading(false);
-          setNextFilter('');
-          setServiceError(true);
-        });
-    },
-    [esriHelper, serviceError, nextFilter],
-  );
+  }, [esriHelper, serviceError, nextFilter]);
 
   const [
     newDisplayOptions,
@@ -531,38 +513,35 @@ function AdvancedSearch({ ...props }: Props) {
     setSelectedDisplayOption, //
   ] = React.useState(defaultDisplayOption);
   // Resets the filters when the user selects a different state
-  React.useEffect(
-    () => {
-      // Reset ui
-      setConfirmOpen(false);
-      setServiceError(false);
-      setSearchLoading(false);
-      setWatershedMrcError(false);
-      setSummaryMrcError(false);
+  React.useEffect(() => {
+    // Reset ui
+    setConfirmOpen(false);
+    setServiceError(false);
+    setSearchLoading(false);
+    setWatershedMrcError(false);
+    setSummaryMrcError(false);
 
-      // Reset data
-      setWaterbodyData(null);
-      setWaterbodiesList(null);
-      setNumberOfRecords(null);
+    // Reset data
+    setWaterbodyData(null);
+    setWaterbodiesList(null);
+    setNumberOfRecords(null);
 
-      // Reset the filters
-      setCurrentFilter(null);
-      setWaterbodyFilter([]);
-      setWatershedFilter([]);
-      setWatershedResults({});
-      setUseFilter([]);
-      setWaterTypeFilter('all');
-      setHasTmdlChecked(false);
-      setParameterFilter([]);
-      setNextFilter('');
+    // Reset the filters
+    setCurrentFilter(null);
+    setWaterbodyFilter([]);
+    setWatershedFilter([]);
+    setWatershedResults({});
+    setUseFilter([]);
+    setWaterTypeFilter('all');
+    setHasTmdlChecked(false);
+    setParameterFilter([]);
+    setNextFilter('');
 
-      // Reset display options
-      setNewDisplayOptions([defaultDisplayOption]);
-      setDisplayOptions([defaultDisplayOption]);
-      setSelectedDisplayOption(defaultDisplayOption);
-    },
-    [activeState, setWaterbodyData],
-  );
+    // Reset display options
+    setNewDisplayOptions([defaultDisplayOption]);
+    setDisplayOptions([defaultDisplayOption]);
+    setSelectedDisplayOption(defaultDisplayOption);
+  }, [activeState, setWaterbodyData]);
 
   const executeFilter = () => {
     setSearchLoading(true);
@@ -685,53 +664,42 @@ function AdvancedSearch({ ...props }: Props) {
   // Makes the view on map button work for the state page
   // (i.e. switches and scrolls to the map when the selected graphic changes)
   const { selectedGraphic } = React.useContext(MapHighlightContext);
-  React.useEffect(
-    () => {
-      if (!selectedGraphic) return;
+  React.useEffect(() => {
+    if (!selectedGraphic) return;
 
-      setShowMap(true);
-      scrollToMap();
-    },
-    [selectedGraphic],
-  );
+    setShowMap(true);
+    scrollToMap();
+  }, [selectedGraphic]);
 
   // Waits until the data is loaded and the map is visible before scrolling
   // to the map
-  React.useEffect(
-    () => {
-      if (!waterbodyData) return;
+  React.useEffect(() => {
+    if (!waterbodyData) return;
 
-      scrollToMap();
-    },
-    [waterbodyData],
-  );
+    scrollToMap();
+  }, [waterbodyData]);
 
   // Combines the parameter groups and use groups filters to make the
   // display options.
-  React.useEffect(
-    () => {
-      let newDisplayOptions = [defaultDisplayOption];
+  React.useEffect(() => {
+    let newDisplayOptions = [defaultDisplayOption];
 
-      // if the filter array exists add it to newDisplayOptions
-      if (useFilter) {
-        newDisplayOptions.push({
-          label: 'Use Groups',
-          options: useFilter.sort((a, b) => a.label.localeCompare(b.label)),
-        });
-      }
-      if (parameterFilter) {
-        newDisplayOptions.push({
-          label: 'Parameter Groups',
-          options: parameterFilter.sort((a, b) =>
-            a.label.localeCompare(b.label),
-          ),
-        });
-      }
+    // if the filter array exists add it to newDisplayOptions
+    if (useFilter) {
+      newDisplayOptions.push({
+        label: 'Use Groups',
+        options: useFilter.sort((a, b) => a.label.localeCompare(b.label)),
+      });
+    }
+    if (parameterFilter) {
+      newDisplayOptions.push({
+        label: 'Parameter Groups',
+        options: parameterFilter.sort((a, b) => a.label.localeCompare(b.label)),
+      });
+    }
 
-      setNewDisplayOptions(newDisplayOptions);
-    },
-    [parameterFilter, useFilter],
-  );
+    setNewDisplayOptions(newDisplayOptions);
+  }, [parameterFilter, useFilter]);
 
   useWaterbodyOnMap(selectedDisplayOption.value, 'unassessed');
 
@@ -968,20 +936,17 @@ function AdvancedSearch({ ...props }: Props) {
 
   const { width, height } = useWindowSize();
   const [mapShownInitialized, setMapShownInitialized] = React.useState(false);
-  React.useEffect(
-    () => {
-      if (mapShownInitialized || !width) return;
+  React.useEffect(() => {
+    if (mapShownInitialized || !width) return;
 
-      if (width > 960) {
-        setShowMap(true);
-      } else {
-        setShowMap(false);
-      }
+    if (width > 960) {
+      setShowMap(true);
+    } else {
+      setShowMap(false);
+    }
 
-      setMapShownInitialized(true);
-    },
-    [mapShownInitialized, width],
-  );
+    setMapShownInitialized(true);
+  }, [mapShownInitialized, width]);
 
   const mapContent = (
     <StateMap
@@ -1095,15 +1060,12 @@ function MenuList({ ...props }) {
 
   // Resize the options when the search changes
   const listRef = React.useRef(null);
-  React.useEffect(
-    () => {
-      if (!listRef || !listRef.current) return;
+  React.useEffect(() => {
+    if (!listRef || !listRef.current) return;
 
-      cache.clearAll();
-      listRef.current.recomputeRowHeights();
-    },
-    [props.children.length, cache],
-  );
+    cache.clearAll();
+    listRef.current.recomputeRowHeights();
+  }, [props.children.length, cache]);
 
   // use the default style dropdown if there is no data
   if (!props.children.length || props.children.length === 0) {
