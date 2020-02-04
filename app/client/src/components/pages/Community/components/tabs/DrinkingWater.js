@@ -313,7 +313,7 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
 
   // sort drinking water data into providers and withdrawers via presence of 'huc12' property
   const providers = [];
-  const withdrawers = [];
+  const displayedWithdrawers = [];
   let surfaceWaterCount = 0; // total surface water withdrawers
   let groundWaterCount = 0; // total groundwater withdrawers
   let totalWithdrawersCount = 0; // total withdrawers
@@ -325,12 +325,12 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
         // surface water withdrawer
         if (item.gw_sw.toLowerCase() === 'surface water') {
           surfaceWaterCount++;
-          if (surfaceWaterDisplayed) withdrawers.push(item);
+          if (surfaceWaterDisplayed) displayedWithdrawers.push(item);
         }
         // groundwater withdrawer
         else if (item.gw_sw.toLowerCase() === 'groundwater') {
           groundWaterCount++;
-          if (groundWaterDisplayed) withdrawers.push(item);
+          if (groundWaterDisplayed) displayedWithdrawers.push(item);
         }
       } else {
         providers.push(item);
@@ -652,14 +652,14 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
 
                           <AccordionList
                             // title={`Public water systems withdrawing water from the ${watershed} watershed.`}
-                            title={`Below are ${withdrawers.length} of ${totalWithdrawersCount} Public water systems withdrawing water from the ${watershed} watershed.`}
+                            title={`Below are ${displayedWithdrawers.length} of ${totalWithdrawersCount} Public water systems withdrawing water from the ${watershed} watershed.`}
                             onSortChange={(sortBy) =>
                               setWithdrawersSortBy(sortBy.value)
                             }
                             sortOptions={drinkingWaterSorts}
                           >
                             {sortWaterSystems(
-                              withdrawers,
+                              displayedWithdrawers,
                               withdrawersSortBy,
                             ).map((item) => createAccordionItem(item))}
                           </AccordionList>
