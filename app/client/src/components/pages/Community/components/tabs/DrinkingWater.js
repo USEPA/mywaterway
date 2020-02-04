@@ -651,7 +651,6 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
                           </Table>
 
                           <AccordionList
-                            // title={`Public water systems withdrawing water from the ${watershed} watershed.`}
                             title={`Below are ${displayedWithdrawers.length} of ${totalWithdrawersCount} Public water systems withdrawing water from the ${watershed} watershed.`}
                             onSortChange={(sortBy) =>
                               setWithdrawersSortBy(sortBy.value)
