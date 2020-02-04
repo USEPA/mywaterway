@@ -84,80 +84,71 @@ function Overview({ esriModules, infoToggleChecked }: Props) {
   useWaterbodyOnMap();
 
   // draw the monitoring stations on the map
-  React.useEffect(
-    () => {
-      // wait until monitoring stations data is set in context
-      if (!monitoringLocations.data.features) return;
+  React.useEffect(() => {
+    // wait until monitoring stations data is set in context
+    if (!monitoringLocations.data.features) return;
 
-      const stations = monitoringLocations.data.features.map((station) => {
-        return {
-          x: station.geometry.coordinates[0],
-          y: station.geometry.coordinates[1],
-          properties: station.properties,
-        };
-      });
+    const stations = monitoringLocations.data.features.map((station) => {
+      return {
+        x: station.geometry.coordinates[0],
+        y: station.geometry.coordinates[1],
+        properties: station.properties,
+      };
+    });
 
-      const { Graphic } = esriModules;
-      plotStations(Graphic, stations, '#c500ff', monitoringStationsLayer);
-    },
-    [monitoringLocations.data, esriModules, monitoringStationsLayer],
-  );
+    const { Graphic } = esriModules;
+    plotStations(Graphic, stations, '#c500ff', monitoringStationsLayer);
+  }, [monitoringLocations.data, esriModules, monitoringStationsLayer]);
 
   // draw the permitted dischargers on the map
-  React.useEffect(
-    () => {
-      // wait until permitted dischargers data is set in context
-      if (
-        permittedDischargers.data['Results'] &&
-        permittedDischargers.data['Results']['Facilities']
-      ) {
-        const { Graphic } = esriModules;
-        plotFacilities({
-          Graphic: Graphic,
-          facilities: permittedDischargers.data['Results']['Facilities'],
-          layer: dischargersLayer,
-        });
-      }
-    },
-    [permittedDischargers.data, esriModules, dischargersLayer],
-  );
+  React.useEffect(() => {
+    // wait until permitted dischargers data is set in context
+    if (
+      permittedDischargers.data['Results'] &&
+      permittedDischargers.data['Results']['Facilities']
+    ) {
+      const { Graphic } = esriModules;
+      plotFacilities({
+        Graphic: Graphic,
+        facilities: permittedDischargers.data['Results']['Facilities'],
+        layer: dischargersLayer,
+      });
+    }
+  }, [permittedDischargers.data, esriModules, dischargersLayer]);
 
   // Syncs the toggles with the visible layers on the map. Mainly
   // used for when the user toggles layers in full screen mode and then
   // exist full screen.
-  React.useEffect(
-    () => {
-      if (
-        !visibleLayers.hasOwnProperty('waterbodyLayer') ||
-        !visibleLayers.hasOwnProperty('monitoringStationsLayer') ||
-        !visibleLayers.hasOwnProperty('dischargersLayer')
-      ) {
-        return;
-      }
+  React.useEffect(() => {
+    if (
+      !visibleLayers.hasOwnProperty('waterbodyLayer') ||
+      !visibleLayers.hasOwnProperty('monitoringStationsLayer') ||
+      !visibleLayers.hasOwnProperty('dischargersLayer')
+    ) {
+      return;
+    }
 
-      const {
-        waterbodyLayer,
-        monitoringStationsLayer,
-        dischargersLayer,
-      } = visibleLayers;
+    const {
+      waterbodyLayer,
+      monitoringStationsLayer,
+      dischargersLayer,
+    } = visibleLayers;
 
-      if (typeof waterbodyLayer === 'boolean') {
-        setWaterbodiesFilterEnabled(waterbodyLayer);
-      }
-      if (typeof monitoringStationsLayer === 'boolean') {
-        setMonitoringLocationsFilterEnabled(monitoringStationsLayer);
-      }
-      if (typeof dischargersLayer === 'boolean') {
-        setDischargersFilterEnabled(dischargersLayer);
-      }
-    },
-    [
-      visibleLayers,
-      setDischargersFilterEnabled,
-      setMonitoringLocationsFilterEnabled,
-      setWaterbodiesFilterEnabled,
-    ],
-  );
+    if (typeof waterbodyLayer === 'boolean') {
+      setWaterbodiesFilterEnabled(waterbodyLayer);
+    }
+    if (typeof monitoringStationsLayer === 'boolean') {
+      setMonitoringLocationsFilterEnabled(monitoringStationsLayer);
+    }
+    if (typeof dischargersLayer === 'boolean') {
+      setDischargersFilterEnabled(dischargersLayer);
+    }
+  }, [
+    visibleLayers,
+    setDischargersFilterEnabled,
+    setMonitoringLocationsFilterEnabled,
+    setWaterbodiesFilterEnabled,
+  ]);
 
   const waterbodyCount = uniqueWaterbodies && uniqueWaterbodies.length;
   const monitoringLocationCount =

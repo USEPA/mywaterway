@@ -200,56 +200,44 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
 
   // redirect to overview tab if tabName param wasn't provided in the url
   // (e.g. '/community/20001' redirects to '/community/20001/overview')
-  React.useEffect(
-    () => {
-      if (urlSearch && !tabName) {
-        navigate(`/community/${urlSearch}/overview`);
-      }
-    },
-    [urlSearch, tabName],
-  );
+  React.useEffect(() => {
+    if (urlSearch && !tabName) {
+      navigate(`/community/${urlSearch}/overview`);
+    }
+  }, [urlSearch, tabName]);
 
   // redirect to '/community' if the url doesn't match a route in the tabs array
   // and conditionally set active tab index
-  React.useEffect(
-    () => {
-      const tabIndex = tabs
-        .map((tab) => encodeURI(tab.route.replace('{urlSearch}', urlSearch)))
-        .indexOf(window.location.pathname);
+  React.useEffect(() => {
+    const tabIndex = tabs
+      .map((tab) => encodeURI(tab.route.replace('{urlSearch}', urlSearch)))
+      .indexOf(window.location.pathname);
 
-      if (tabIndex === -1) {
-        navigate('/community');
-      }
+    if (tabIndex === -1) {
+      navigate('/community');
+    }
 
-      if (activeTabIndex !== tabIndex) {
-        setActiveTabIndex(tabIndex === -1 ? 0 : tabIndex);
-      }
-    },
-    [urlSearch, setActiveTabIndex, activeTabIndex],
-  );
+    if (activeTabIndex !== tabIndex) {
+      setActiveTabIndex(tabIndex === -1 ? 0 : tabIndex);
+    }
+  }, [urlSearch, setActiveTabIndex, activeTabIndex]);
 
   // conditionally set searchText from urlSearch
   // (e.g. when a user visits '/community/20001' directly)
-  React.useEffect(
-    () => {
-      if (urlSearch !== searchText) {
-        setSearchText(urlSearch);
-      }
-    },
-    [urlSearch, searchText, setSearchText],
-  );
+  React.useEffect(() => {
+    if (urlSearch !== searchText) {
+      setSearchText(urlSearch);
+    }
+  }, [urlSearch, searchText, setSearchText]);
 
   const tabListRef = React.useRef();
 
   // focus the active tab
-  React.useEffect(
-    () => {
-      if (tabListRef.current) {
-        tabListRef.current.children[activeTabIndex].focus();
-      }
-    },
-    [tabListRef, activeTabIndex],
-  );
+  React.useEffect(() => {
+    if (tabListRef.current) {
+      tabListRef.current.children[activeTabIndex].focus();
+    }
+  }, [tabListRef, activeTabIndex]);
 
   const resetTabSpecificData = () => {
     // monitoring panel

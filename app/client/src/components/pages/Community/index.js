@@ -112,27 +112,21 @@ function Community({ children, ...props }: Props) {
     setSearchText,
     setLastSearchText, //
   } = React.useContext(LocationSearchContext);
-  React.useEffect(
-    () => {
-      return function cleanup() {
-        resetData();
-        setSearchText('');
-        setLastSearchText('');
-      };
-    },
-    [resetData, setLastSearchText, setSearchText],
-  );
+  React.useEffect(() => {
+    return function cleanup() {
+      resetData();
+      setSearchText('');
+      setLastSearchText('');
+    };
+  }, [resetData, setLastSearchText, setSearchText]);
 
   const { setVisibleLayers } = React.useContext(LocationSearchContext);
-  React.useEffect(
-    () => {
-      // don't show any tab based layers if on community landing page
-      if (window.location.pathname === '/community') return;
+  React.useEffect(() => {
+    // don't show any tab based layers if on community landing page
+    if (window.location.pathname === '/community') return;
 
-      setVisibleLayers(tabs[activeTabIndex].layers);
-    },
-    [activeTabIndex, setVisibleLayers],
-  );
+    setVisibleLayers(tabs[activeTabIndex].layers);
+  }, [activeTabIndex, setVisibleLayers]);
 
   // jsx
   const activeTabRoute = tabs[activeTabIndex].route;

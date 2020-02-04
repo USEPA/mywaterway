@@ -159,15 +159,12 @@ function MapWidgets({
   const [mapEventHandlersSet, setMapEventHandlersSet] = React.useState(false);
 
   // add the layers to the map
-  React.useEffect(
-    () => {
-      if (!layers || !map) return;
+  React.useEffect(() => {
+    if (!layers || !map) return;
 
-      map.removeAll();
-      map.addMany(layers);
-    },
-    [layers, map],
-  );
+    map.removeAll();
+    map.addMany(layers);
+  }, [layers, map]);
 
   // put the home widget back on the ui after the window is resized
   React.useEffect(() => {
@@ -182,63 +179,54 @@ function MapWidgets({
   // Keeps the layer visiblity in sync with the layer list widget visibilities
   const [toggledLayer, setToggledLayer] = React.useState({});
   const [lastToggledLayer, setLastToggledLayer] = React.useState({});
-  React.useEffect(
-    () => {
-      // if the toggled layer didn't change exit early
-      if (shallowCompare(toggledLayer, lastToggledLayer)) return;
+  React.useEffect(() => {
+    // if the toggled layer didn't change exit early
+    if (shallowCompare(toggledLayer, lastToggledLayer)) return;
 
-      // update the last toggled layer
-      setLastToggledLayer(toggledLayer);
+    // update the last toggled layer
+    setLastToggledLayer(toggledLayer);
 
-      // exit early if the toggledLayer object is empty
-      if (Object.keys(toggledLayer) === 0) return;
+    // exit early if the toggledLayer object is empty
+    if (Object.keys(toggledLayer) === 0) return;
 
-      // make the update of the toggled layer if the visiblity changed
-      if (
-        visibleLayers.hasOwnProperty(toggledLayer.layerId) &&
-        visibleLayers[toggledLayer.layerId] !== toggledLayer.visible
-      ) {
-        // make a copy of the visibleLayers variable
-        const newVisibleLayers = { ...visibleLayers };
-        newVisibleLayers[toggledLayer.layerId] = toggledLayer.visible;
-        setVisibleLayers(newVisibleLayers);
-      }
-    },
-    [toggledLayer, lastToggledLayer, visibleLayers, setVisibleLayers],
-  );
+    // make the update of the toggled layer if the visiblity changed
+    if (
+      visibleLayers.hasOwnProperty(toggledLayer.layerId) &&
+      visibleLayers[toggledLayer.layerId] !== toggledLayer.visible
+    ) {
+      // make a copy of the visibleLayers variable
+      const newVisibleLayers = { ...visibleLayers };
+      newVisibleLayers[toggledLayer.layerId] = toggledLayer.visible;
+      setVisibleLayers(newVisibleLayers);
+    }
+  }, [toggledLayer, lastToggledLayer, visibleLayers, setVisibleLayers]);
 
   // Creates and adds the home widget to the map
-  React.useEffect(
-    () => {
-      if (!view || homeWidget) return;
+  React.useEffect(() => {
+    if (!view || homeWidget) return;
 
-      // create the home widget
-      const newHomeWidget = new Home({ view });
-      view.ui.add(newHomeWidget, { position: 'top-left', index: 1 });
-      view.ui.move('zoom', 'top-left');
-      // pass the home widget up to the consumer of this component,
-      // so it can modify it as needed (e.g. update the viewpoint)
-      onHomeWidgetRendered(newHomeWidget);
-      setHomeWidget(newHomeWidget);
-    },
-    [Home, onHomeWidgetRendered, setHomeWidget, view, homeWidget],
-  );
+    // create the home widget
+    const newHomeWidget = new Home({ view });
+    view.ui.add(newHomeWidget, { position: 'top-left', index: 1 });
+    view.ui.move('zoom', 'top-left');
+    // pass the home widget up to the consumer of this component,
+    // so it can modify it as needed (e.g. update the viewpoint)
+    onHomeWidgetRendered(newHomeWidget);
+    setHomeWidget(newHomeWidget);
+  }, [Home, onHomeWidgetRendered, setHomeWidget, view, homeWidget]);
 
   // Creates and adds the scale bar widget to the map
   const [scaleBar, setScaleBar] = React.useState(null);
-  React.useEffect(
-    () => {
-      if (!view || scaleBar) return;
+  React.useEffect(() => {
+    if (!view || scaleBar) return;
 
-      const newScaleBar = new ScaleBar({
-        view: view,
-        unit: 'dual',
-      });
-      view.ui.add(newScaleBar, 'bottom-left');
-      setScaleBar(newScaleBar);
-    },
-    [ScaleBar, view, scaleBar],
-  );
+    const newScaleBar = new ScaleBar({
+      view: view,
+      unit: 'dual',
+    });
+    view.ui.add(newScaleBar, 'bottom-left');
+    setScaleBar(newScaleBar);
+  }, [ScaleBar, view, scaleBar]);
 
   // manages which layers are visible in the legend
   const legendTemp = document.createElement('div');
@@ -247,180 +235,168 @@ function MapWidgets({
 
   // Creates and adds the legend widget to the map
   const [legend, setLegend] = React.useState(null);
-  React.useEffect(
-    () => {
-      if (!view || legend) return;
+  React.useEffect(() => {
+    if (!view || legend) return;
 
-      const newLegend = new Expand({
-        content: legendNode,
-        view,
-        expanded: false,
-        expandTooltip: 'Toggle Legend',
-        autoCollapse: true,
-        mode: 'floating',
-      });
-      view.ui.add(newLegend, 'bottom-left');
-      setLegend(newLegend);
-    },
-    [Expand, view, legend, legendNode],
-  );
+    const newLegend = new Expand({
+      content: legendNode,
+      view,
+      expanded: false,
+      expandTooltip: 'Toggle Legend',
+      autoCollapse: true,
+      mode: 'floating',
+    });
+    view.ui.add(newLegend, 'bottom-left');
+    setLegend(newLegend);
+  }, [Expand, view, legend, legendNode]);
 
   // Creates and adds the basemap/layer list widget to the map
   const [layerListWidget, setLayerListWidget] = React.useState(null);
-  React.useEffect(
-    () => {
-      if (!view || layerListWidget) return;
+  React.useEffect(() => {
+    if (!view || layerListWidget) return;
 
-      // create the basemap/layers widget
-      const basemapsSource = new PortalBasemapsSource({
-        filterFunction: function(basemap) {
-          return basemapNames.indexOf(basemap.portalItem.title) !== -1;
-        },
-        updateBasemapsCallback: function(originalBasemaps) {
-          // sort the basemaps based on the ordering of basemapNames
-          return originalBasemaps.sort(
-            (a, b) =>
-              basemapNames.indexOf(a.portalItem.title) -
-              basemapNames.indexOf(b.portalItem.title),
-          );
-        },
-      });
+    // create the basemap/layers widget
+    const basemapsSource = new PortalBasemapsSource({
+      filterFunction: function(basemap) {
+        return basemapNames.indexOf(basemap.portalItem.title) !== -1;
+      },
+      updateBasemapsCallback: function(originalBasemaps) {
+        // sort the basemaps based on the ordering of basemapNames
+        return originalBasemaps.sort(
+          (a, b) =>
+            basemapNames.indexOf(a.portalItem.title) -
+            basemapNames.indexOf(b.portalItem.title),
+        );
+      },
+    });
 
-      // basemaps
-      const basemapContainer = document.createElement('div');
-      basemapContainer.className = 'hmw-map-basemaps';
+    // basemaps
+    const basemapContainer = document.createElement('div');
+    basemapContainer.className = 'hmw-map-basemaps';
 
-      const basemapWidget = new BasemapGallery({
-        container: basemapContainer,
-        view: view,
-        source: basemapsSource,
-      });
+    const basemapWidget = new BasemapGallery({
+      container: basemapContainer,
+      view: view,
+      source: basemapsSource,
+    });
 
-      // layers
-      const layersContainer = document.createElement('div');
-      layersContainer.className = 'hmw-map-layers';
+    // layers
+    const layersContainer = document.createElement('div');
+    layersContainer.className = 'hmw-map-layers';
 
-      // Creates actions in the LayerList to monitor layer visibility
-      const uniqueParentItems = [];
-      function defineActions(event) {
-        const item = event.item;
-        if (!item.parent) {
-          //only add the item if it has not been added before
-          if (!uniqueParentItems.includes(item.title)) {
-            uniqueParentItems.push(item.title);
+    // Creates actions in the LayerList to monitor layer visibility
+    const uniqueParentItems = [];
+    function defineActions(event) {
+      const item = event.item;
+      if (!item.parent) {
+        //only add the item if it has not been added before
+        if (!uniqueParentItems.includes(item.title)) {
+          uniqueParentItems.push(item.title);
+          updateVisibleLayers(view, legendNode);
+
+          item.watch('visible', function(event) {
             updateVisibleLayers(view, legendNode);
-
-            item.watch('visible', function(event) {
-              updateVisibleLayers(view, legendNode);
-              const dict = {
-                layerId: item.layer.id,
-                visible: item.layer.visible,
-              };
-              setToggledLayer(dict);
-            });
-          }
+            const dict = {
+              layerId: item.layer.id,
+              visible: item.layer.visible,
+            };
+            setToggledLayer(dict);
+          });
         }
       }
+    }
 
-      const layerlist = new LayerList({
-        container: layersContainer,
-        view: view,
-        // executes for each ListItem in the LayerList
-        listItemCreatedFunction: defineActions,
-      });
+    const layerlist = new LayerList({
+      container: layersContainer,
+      view: view,
+      // executes for each ListItem in the LayerList
+      listItemCreatedFunction: defineActions,
+    });
 
-      // container
-      const container = document.createElement('div');
-      container.className = 'hmw-map-toggle';
+    // container
+    const container = document.createElement('div');
+    container.className = 'hmw-map-toggle';
 
-      const basemapHeader = document.createElement('h4');
-      basemapHeader.innerHTML = 'Basemaps:';
+    const basemapHeader = document.createElement('h4');
+    basemapHeader.innerHTML = 'Basemaps:';
 
-      const layerListHeader = document.createElement('h4');
-      layerListHeader.innerHTML = 'Layers:';
+    const layerListHeader = document.createElement('h4');
+    layerListHeader.innerHTML = 'Layers:';
 
-      container.appendChild(basemapHeader);
-      container.appendChild(basemapWidget.domNode);
-      container.appendChild(document.createElement('hr'));
-      container.appendChild(layerListHeader);
-      container.appendChild(layerlist.domNode);
+    container.appendChild(basemapHeader);
+    container.appendChild(basemapWidget.domNode);
+    container.appendChild(document.createElement('hr'));
+    container.appendChild(layerListHeader);
+    container.appendChild(layerlist.domNode);
 
-      const expandWidget = new Expand({
-        expandIconClass: 'esri-icon-layers',
-        view: view,
-        mode: 'floating',
-        autoCollapse: true,
-        content: container,
-      });
+    const expandWidget = new Expand({
+      expandIconClass: 'esri-icon-layers',
+      view: view,
+      mode: 'floating',
+      autoCollapse: true,
+      content: container,
+    });
 
-      view.ui.add(expandWidget, { position: 'top-right', index: 0 });
-      setLayerListWidget(layerlist);
-    },
-    [
-      BasemapGallery,
-      Expand,
-      LayerList,
-      PortalBasemapsSource,
-      legendNode,
-      view,
-      layerListWidget,
-    ],
-  );
+    view.ui.add(expandWidget, { position: 'top-right', index: 0 });
+    setLayerListWidget(layerlist);
+  }, [
+    BasemapGallery,
+    Expand,
+    LayerList,
+    PortalBasemapsSource,
+    legendNode,
+    view,
+    layerListWidget,
+  ]);
 
   // Sets up the zoom event handler that is used for determining if layers
   // should be visible at the current zoom level.
-  React.useEffect(
-    () => {
-      if (!view || mapEventHandlersSet) return;
+  React.useEffect(() => {
+    if (!view || mapEventHandlersSet) return;
 
-      // setup map event handlers
-      watchUtils.watch(view, 'zoom', (newVal, oldVal, propName, target) => {
-        handleMapZoomChange(newVal, target);
-      });
+    // setup map event handlers
+    watchUtils.watch(view, 'zoom', (newVal, oldVal, propName, target) => {
+      handleMapZoomChange(newVal, target);
+    });
 
-      setMapEventHandlersSet(true);
-    },
-    [watchUtils, view, mapEventHandlersSet],
-  );
+    setMapEventHandlersSet(true);
+  }, [watchUtils, view, mapEventHandlersSet]);
 
-  React.useEffect(
-    () => {
-      if (!layers || layers.length === 0) return;
+  React.useEffect(() => {
+    if (!layers || layers.length === 0) return;
 
-      //build a list of layers that we care about
-      const layerList = [
-        'dischargersLayer',
-        'monitoringStationsLayer',
-        'nonprofitsLayer',
-        'providersLayer',
-        'waterbodyLayer',
-        'issuesLayer',
-        'actionsLayer',
-      ];
+    //build a list of layers that we care about
+    const layerList = [
+      'dischargersLayer',
+      'monitoringStationsLayer',
+      'nonprofitsLayer',
+      'providersLayer',
+      'waterbodyLayer',
+      'issuesLayer',
+      'actionsLayer',
+    ];
 
-      // hide/show layers based on the provided list of layers to show
-      if (layers) {
-        layers.forEach((layer) => {
-          if (layerList.includes(layer.id)) {
-            if (visibleLayers.hasOwnProperty(layer.id)) {
-              layer.visible = visibleLayers[layer.id];
-              layer.listMode = layer.layers ? 'hide-children' : 'show';
-            } else {
-              layer.visible = false;
-              layer.listMode = 'hide';
-            }
-          } else if (layer.id === 'boundariesLayer') {
-            if (visibleLayers.hasOwnProperty('boundariesLayer')) {
-              layer.visible = visibleLayers['boundariesLayer'];
-            } else {
-              layer.visible = true;
-            }
+    // hide/show layers based on the provided list of layers to show
+    if (layers) {
+      layers.forEach((layer) => {
+        if (layerList.includes(layer.id)) {
+          if (visibleLayers.hasOwnProperty(layer.id)) {
+            layer.visible = visibleLayers[layer.id];
+            layer.listMode = layer.layers ? 'hide-children' : 'show';
+          } else {
+            layer.visible = false;
+            layer.listMode = 'hide';
           }
-        });
-      }
-    },
-    [layers, visibleLayers],
-  );
+        } else if (layer.id === 'boundariesLayer') {
+          if (visibleLayers.hasOwnProperty('boundariesLayer')) {
+            layer.visible = visibleLayers['boundariesLayer'];
+          } else {
+            layer.visible = true;
+          }
+        }
+      });
+    }
+  }, [layers, visibleLayers]);
 
   // This code removes any layers that still have a listMode of hide.
   // This is a workaround for an ESRI bug. The operational items are
@@ -428,51 +404,45 @@ function MapWidgets({
   // however ESRI always leaves one layer behind that has a listMode equal
   // to hide. The other part of this bug, is if you build a new collection
   // of operationalItems then the layer loading indicators no longer work.
-  React.useEffect(
-    () => {
-      if (!layerListWidget) return;
+  React.useEffect(() => {
+    if (!layerListWidget) return;
 
-      const numOperationalItems = layerListWidget.operationalItems.items.length;
-      for (let i = numOperationalItems - 1; i >= 0; i--) {
-        const item = layerListWidget.operationalItems.items[i];
-        if (item.layer.listMode === 'hide') {
-          layerListWidget.operationalItems.splice(i, 1);
-        }
+    const numOperationalItems = layerListWidget.operationalItems.items.length;
+    for (let i = numOperationalItems - 1; i >= 0; i--) {
+      const item = layerListWidget.operationalItems.items[i];
+      if (item.layer.listMode === 'hide') {
+        layerListWidget.operationalItems.splice(i, 1);
       }
-    },
-    [layerListWidget, visibleLayers],
-  );
+    }
+  }, [layerListWidget, visibleLayers]);
 
   // create the home widget, layers widget, and setup map zoom change listener
   const [
     fullScreenWidgetCreated,
     setFullScreenWidgetCreated, //
   ] = React.useState(false);
-  React.useEffect(
-    () => {
-      if (fullScreenWidgetCreated) return;
+  React.useEffect(() => {
+    if (fullScreenWidgetCreated) return;
 
-      // create the basemap/layers widget
-      const node = document.createElement('div');
-      view.ui.add(node, { position: 'bottom-right', index: 0 });
-      ReactDOM.render(
-        <ExpandCollapse
-          scrollToComponent={scrollToComponent}
-          fullscreenActive={getFullscreenActive}
-          setFullscreenActive={setFullscreenActive}
-        />,
-        node,
-      );
-      setFullScreenWidgetCreated(true);
-    },
-    [
-      getFullscreenActive,
-      setFullscreenActive,
-      scrollToComponent,
-      view,
-      fullScreenWidgetCreated,
-    ],
-  );
+    // create the basemap/layers widget
+    const node = document.createElement('div');
+    view.ui.add(node, { position: 'bottom-right', index: 0 });
+    ReactDOM.render(
+      <ExpandCollapse
+        scrollToComponent={scrollToComponent}
+        fullscreenActive={getFullscreenActive}
+        setFullscreenActive={setFullscreenActive}
+      />,
+      node,
+    );
+    setFullScreenWidgetCreated(true);
+  }, [
+    getFullscreenActive,
+    setFullscreenActive,
+    scrollToComponent,
+    view,
+    fullScreenWidgetCreated,
+  ]);
 
   return null;
 }

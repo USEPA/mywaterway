@@ -40,40 +40,37 @@ function OrgSelect({ actionId, ...props }: Props) {
   const [orgActions, setOrgActions] = React.useState([]);
 
   // fetch action data from the attains 'actions' web service
-  React.useEffect(
-    () => {
-      const url = attains.serviceUrl + `actions?ActionIdentifier=${actionId}`;
+  React.useEffect(() => {
+    const url = attains.serviceUrl + `actions?ActionIdentifier=${actionId}`;
 
-      fetchCheck(url)
-        .then((res) => {
-          // no actions, display error message
-          if (res.items.length < 1) {
-            setLoading(false);
-            setNoActions(true);
-            return;
-          }
-
-          // only 1 action reroute to actual actions page
-          if (res.items.length === 1) {
-            const orgId = res.items[0].organizationIdentifier;
-            navigate(`/plan-summary/${orgId}/${actionId}`);
-            return;
-          }
-
-          // multiple actions, give user the ability to choose from a list.
-          if (res.items.length > 1) {
-            setOrgActions(res.items);
-            setLoading(false);
-          }
-        })
-        .catch((err) => {
-          console.error(err);
+    fetchCheck(url)
+      .then((res) => {
+        // no actions, display error message
+        if (res.items.length < 1) {
           setLoading(false);
-          setError(true);
-        });
-    },
-    [actionId],
-  );
+          setNoActions(true);
+          return;
+        }
+
+        // only 1 action reroute to actual actions page
+        if (res.items.length === 1) {
+          const orgId = res.items[0].organizationIdentifier;
+          navigate(`/plan-summary/${orgId}/${actionId}`);
+          return;
+        }
+
+        // multiple actions, give user the ability to choose from a list.
+        if (res.items.length > 1) {
+          setOrgActions(res.items);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+        setError(true);
+      });
+  }, [actionId]);
 
   if (error) {
     return (
