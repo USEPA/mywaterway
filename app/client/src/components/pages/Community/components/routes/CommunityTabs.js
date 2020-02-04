@@ -53,18 +53,32 @@ const Watershed = styled.p`
 `;
 
 const StyledTabs = styled(Tabs)`
+  & ::-webkit-scrollbar {
+    height: 10px;
+  }
+
+  & ::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px ${colors.black(0.375)};
+  }
+
+  & ::-webkit-scrollbar-thumb {
+    border: 1px solid ${colors.white(0.75)};
+    border-radius: 10px;
+    background-color: ${colors.black(0.375)};
+  }
+
   > [data-reach-tab-list] {
-    flex-flow: row wrap;
+    overflow-x: scroll;
+    border-bottom: 1px solid ${colors.white(0.25)};
 
     [data-reach-tab] {
+      flex: 0 0 calc(2 / 9 * 100%);
       padding: 0.5em;
       border: none;
-      border-right: 1px solid white;
-      border-bottom: 1px solid white;
+      border-right: 1px solid ${colors.white()};
       border-radius: 0;
       min-height: 45px;
-      width: 50%;
-      font-size: 0.8125em;
+      font-size: 0.6875em;
       color: white;
       background-color: ${colors.blue()};
       /* fake border bottom so it doesn't interfere with right border */
@@ -78,32 +92,11 @@ const StyledTabs = styled(Tabs)`
         box-shadow: inset 0 -5px 0 ${colors.teal()};
       }
 
-      &:nth-of-type(even) {
+      &:last-of-type {
         border-right: none;
       }
 
-      @media (min-width: 320px) {
-        width: 25%;
-
-        &:nth-of-type(2),
-        &:nth-of-type(6) {
-          border-right: 1px solid white;
-        }
-      }
-
       @media (min-width: 600px) {
-        width: 12.5%;
-
-        &:nth-of-type(4) {
-          border-right: 1px solid white;
-        }
-      }
-
-      @media (min-width: 960px) {
-        font-size: 0.6875em;
-      }
-
-      @media (min-width: 1200px) {
         font-size: 0.75em;
       }
     }
