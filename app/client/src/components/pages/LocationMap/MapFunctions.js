@@ -394,9 +394,7 @@ export function getPopupTitle(attributes: Object) {
 
   // line, area, point for waterbody
   if (attributes && attributes.assessmentunitname) {
-    title = `${attributes.assessmentunitname} (${
-      attributes.assessmentunitidentifier
-    })`;
+    title = `${attributes.assessmentunitname} (${attributes.assessmentunitidentifier})`;
   }
 
   // discharger

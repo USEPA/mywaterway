@@ -157,14 +157,11 @@ function State({ children, ...props }: Props) {
   const { activeState, setActiveState } = React.useContext(StateTabsContext);
 
   // reset active state if on state intro page
-  React.useEffect(
-    () => {
-      if (props.location.pathname === '/state') {
-        setActiveState({ code: '', name: '' });
-      }
-    },
-    [props.location, setActiveState],
-  );
+  React.useEffect(() => {
+    if (props.location.pathname === '/state') {
+      setActiveState({ code: '', name: '' });
+    }
+  }, [props.location, setActiveState]);
 
   // selectedState used for the HTML select menu, so we don't immediately
   // update activeState every time the user changes the selected state
@@ -172,12 +169,9 @@ function State({ children, ...props }: Props) {
 
   // update selectedState whenever activeState changes
   // (e.g. when a user navigates directly to '/state/DC/advanced-search')
-  React.useEffect(
-    () => {
-      setSelectedState(activeState);
-    },
-    [activeState],
-  );
+  React.useEffect(() => {
+    setSelectedState(activeState);
+  }, [activeState]);
 
   // get the state intro and metrics data
   const stateIntro = introText[activeState.code];

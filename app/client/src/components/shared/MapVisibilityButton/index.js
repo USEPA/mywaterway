@@ -37,14 +37,11 @@ function MapVisibilityButton({ children }: Props) {
 
   // Show the map if the View on Map button is clicked (i.e. when the selected
   // graphic changes).
-  React.useEffect(
-    () => {
-      if (!selectedGraphic) return;
+  React.useEffect(() => {
+    if (!selectedGraphic) return;
 
-      setMapShown(true);
-    },
-    [selectedGraphic],
-  );
+    setMapShown(true);
+  }, [selectedGraphic]);
 
   return (
     <>

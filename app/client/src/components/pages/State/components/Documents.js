@@ -58,29 +58,23 @@ function Documents({
     setAssessmentDocumentsRanked,
   ] = React.useState([]);
 
-  React.useEffect(
-    () => {
-      const documentsRanked = getDocumentTypeOrder(
-        surveyDocuments,
-        surveysOrdering,
-      );
+  React.useEffect(() => {
+    const documentsRanked = getDocumentTypeOrder(
+      surveyDocuments,
+      surveysOrdering,
+    );
 
-      setSurveyDocumentsRanked(documentsRanked);
-    },
-    [surveyDocuments],
-  );
+    setSurveyDocumentsRanked(documentsRanked);
+  }, [surveyDocuments]);
 
-  React.useEffect(
-    () => {
-      const documentsRanked = getDocumentTypeOrder(
-        assessmentDocuments,
-        integratedReportOrdering,
-      );
+  React.useEffect(() => {
+    const documentsRanked = getDocumentTypeOrder(
+      assessmentDocuments,
+      integratedReportOrdering,
+    );
 
-      setAssessmentDocumentsRanked(documentsRanked);
-    },
-    [assessmentDocuments],
-  );
+    setAssessmentDocumentsRanked(documentsRanked);
+  }, [assessmentDocuments]);
 
   const getDocumentTypeOrder = (documents: Array<Object>, ranks: Object) => {
     let documentsRanked = [];

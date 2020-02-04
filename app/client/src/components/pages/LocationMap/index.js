@@ -158,125 +158,122 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   // Builds the layers that have no dependencies
   const [layersInitialized, setLayersInitialized] = React.useState(false);
-  React.useEffect(
-    () => {
-      if (layersInitialized) return;
+  React.useEffect(() => {
+    if (layersInitialized) return;
 
-      if (layers.length > 0) return;
+    if (layers.length > 0) return;
 
-      // create the layers for the map
-      const mappedWaterLayer = new MapImageLayer({
-        id: 'mappedWaterLayer',
-        url: mappedWater,
-        title: 'Mapped Water (all)',
-        sublayers: [{ id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
-        listMode: 'hide-children',
-        visible: false,
-      });
+    // create the layers for the map
+    const mappedWaterLayer = new MapImageLayer({
+      id: 'mappedWaterLayer',
+      url: mappedWater,
+      title: 'Mapped Water (all)',
+      sublayers: [{ id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
+      listMode: 'hide-children',
+      visible: false,
+    });
 
-      const countyLayer = new FeatureLayer({
-        id: 'countyLayer',
-        url: counties,
-        title: 'County',
-        listMode: 'show',
-        visible: false,
-      });
+    const countyLayer = new FeatureLayer({
+      id: 'countyLayer',
+      url: counties,
+      title: 'County',
+      listMode: 'show',
+      visible: false,
+    });
 
-      const watershedsLayer = new FeatureLayer({
-        id: 'watershedsLayer',
-        url: wbd,
-        title: 'Watersheds',
-        listMode: 'show',
-        visible: false,
-      });
+    const watershedsLayer = new FeatureLayer({
+      id: 'watershedsLayer',
+      url: wbd,
+      title: 'Watersheds',
+      listMode: 'show',
+      visible: false,
+    });
 
-      const providersLayer = new GraphicsLayer({
-        id: 'providersLayer',
-        title: 'Who provides the drinking water here?',
-        listMode: 'hide',
-      });
+    const providersLayer = new GraphicsLayer({
+      id: 'providersLayer',
+      title: 'Who provides the drinking water here?',
+      listMode: 'hide',
+    });
 
-      setProvidersLayer(providersLayer);
+    setProvidersLayer(providersLayer);
 
-      const boundariesLayer = new GraphicsLayer({
-        id: 'boundariesLayer',
-        title: 'Boundaries',
-        listMode: 'hide',
-      });
+    const boundariesLayer = new GraphicsLayer({
+      id: 'boundariesLayer',
+      title: 'Boundaries',
+      listMode: 'hide',
+    });
 
-      setBoundariesLayer(boundariesLayer);
+    setBoundariesLayer(boundariesLayer);
 
-      const searchIconLayer = new GraphicsLayer({
-        id: 'searchIconLayer',
-        title: 'Search Location',
-        listMode: 'hide',
-      });
+    const searchIconLayer = new GraphicsLayer({
+      id: 'searchIconLayer',
+      title: 'Search Location',
+      listMode: 'hide',
+    });
 
-      setSearchIconLayer(searchIconLayer);
+    setSearchIconLayer(searchIconLayer);
 
-      const monitoringStationsLayer = new GraphicsLayer({
-        id: 'monitoringStationsLayer',
-        title: 'Monitoring Stations',
-        listMode: 'hide',
-      });
+    const monitoringStationsLayer = new GraphicsLayer({
+      id: 'monitoringStationsLayer',
+      title: 'Monitoring Stations',
+      listMode: 'hide',
+    });
 
-      setMonitoringStationsLayer(monitoringStationsLayer);
+    setMonitoringStationsLayer(monitoringStationsLayer);
 
-      const issuesLayer = new GraphicsLayer({
-        id: 'issuesLayer',
-        title: 'Identified Issues',
-        listMode: 'hide',
-      });
+    const issuesLayer = new GraphicsLayer({
+      id: 'issuesLayer',
+      title: 'Identified Issues',
+      listMode: 'hide',
+    });
 
-      setIssuesLayer(issuesLayer);
+    setIssuesLayer(issuesLayer);
 
-      const dischargersLayer = new GraphicsLayer({
-        id: 'dischargersLayer',
-        title: 'Dischargers',
-        listMode: 'hide',
-      });
+    const dischargersLayer = new GraphicsLayer({
+      id: 'dischargersLayer',
+      title: 'Dischargers',
+      listMode: 'hide',
+    });
 
-      setDischargersLayer(dischargersLayer);
+    setDischargersLayer(dischargersLayer);
 
-      const nonprofitsLayer = new GraphicsLayer({
-        id: 'nonprofitsLayer',
-        title: 'Nonprofits',
-        listMode: 'hide',
-      });
+    const nonprofitsLayer = new GraphicsLayer({
+      id: 'nonprofitsLayer',
+      title: 'Nonprofits',
+      listMode: 'hide',
+    });
 
-      setNonprofitsLayer(nonprofitsLayer);
+    setNonprofitsLayer(nonprofitsLayer);
 
-      setLayers([
-        mappedWaterLayer,
-        countyLayer,
-        watershedsLayer,
-        providersLayer,
-        boundariesLayer,
-        monitoringStationsLayer,
-        issuesLayer,
-        dischargersLayer,
-        nonprofitsLayer,
-        searchIconLayer,
-      ]);
+    setLayers([
+      mappedWaterLayer,
+      countyLayer,
+      watershedsLayer,
+      providersLayer,
+      boundariesLayer,
+      monitoringStationsLayer,
+      issuesLayer,
+      dischargersLayer,
+      nonprofitsLayer,
+      searchIconLayer,
+    ]);
 
-      setLayersInitialized(true);
-    },
-    [
-      FeatureLayer,
-      GraphicsLayer,
-      MapImageLayer,
-      layers,
-      setBoundariesLayer,
-      setDischargersLayer,
-      setIssuesLayer,
-      setLayers,
-      setMonitoringStationsLayer,
-      setNonprofitsLayer,
-      setProvidersLayer,
-      setSearchIconLayer,
-      layersInitialized,
-    ],
-  );
+    setLayersInitialized(true);
+  }, [
+    FeatureLayer,
+    GraphicsLayer,
+    MapImageLayer,
+    layers,
+    setBoundariesLayer,
+    setDischargersLayer,
+    setIssuesLayer,
+    setLayers,
+    setMonitoringStationsLayer,
+    setNonprofitsLayer,
+    setProvidersLayer,
+    setSearchIconLayer,
+    layersInitialized,
+  ]);
 
   // popup template to be used for all waterbody sublayers
   const popupTemplate = {
@@ -473,60 +470,57 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     linesLayer === 'error' || areasLayer === 'error' || pointsLayer === 'error';
 
   // Builds the waterbody layer once data has been fetched for all sub layers
-  React.useEffect(
-    () => {
-      if (mapServiceFailure) {
-        setMapLoading(false);
-        setCipSummary({
-          data: [],
-          status: 'failure',
-        });
-        return;
-      }
-
-      if (
-        waterbodyLayer ||
-        layers.length === 0 ||
-        !areasLayer ||
-        !linesLayer ||
-        !pointsLayer
-      ) {
-        return;
-      }
-
-      // Make the waterbody layer into a single layer
-      const newWaterbodyLayer = new GroupLayer({
-        id: 'waterbodyLayer',
-        title: 'Waterbodies',
-        listMode: 'hide',
-        visible: false,
+  React.useEffect(() => {
+    if (mapServiceFailure) {
+      setMapLoading(false);
+      setCipSummary({
+        data: [],
+        status: 'failure',
       });
-      newWaterbodyLayer.addMany([areasLayer, linesLayer, pointsLayer]);
-      setWaterbodyLayer(newWaterbodyLayer);
+      return;
+    }
 
-      // Build the new set of layers with the waterbody layer at the correct position
-      const newLayers = [];
-      layers.forEach((layer) => {
-        newLayers.push(layer);
-        if (layer.id === 'boundariesLayer') {
-          newLayers.push(newWaterbodyLayer);
-        }
-      });
-      setLayers(newLayers);
-    },
-    [
-      layers,
-      waterbodyLayer,
-      areasLayer,
-      linesLayer,
-      pointsLayer,
-      mapServiceFailure,
-      GroupLayer,
-      setWaterbodyLayer,
-      setLayers,
-      setCipSummary,
-    ],
-  );
+    if (
+      waterbodyLayer ||
+      layers.length === 0 ||
+      !areasLayer ||
+      !linesLayer ||
+      !pointsLayer
+    ) {
+      return;
+    }
+
+    // Make the waterbody layer into a single layer
+    const newWaterbodyLayer = new GroupLayer({
+      id: 'waterbodyLayer',
+      title: 'Waterbodies',
+      listMode: 'hide',
+      visible: false,
+    });
+    newWaterbodyLayer.addMany([areasLayer, linesLayer, pointsLayer]);
+    setWaterbodyLayer(newWaterbodyLayer);
+
+    // Build the new set of layers with the waterbody layer at the correct position
+    const newLayers = [];
+    layers.forEach((layer) => {
+      newLayers.push(layer);
+      if (layer.id === 'boundariesLayer') {
+        newLayers.push(newWaterbodyLayer);
+      }
+    });
+    setLayers(newLayers);
+  }, [
+    layers,
+    waterbodyLayer,
+    areasLayer,
+    linesLayer,
+    pointsLayer,
+    mapServiceFailure,
+    GroupLayer,
+    setWaterbodyLayer,
+    setLayers,
+    setCipSummary,
+  ]);
 
   // query geocode server for every new search
   const [mapLoading, setMapLoading] = React.useState(true);
@@ -583,9 +577,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
 
           const url =
-            `${
-              echoNPDES.getFacilities
-            }?output=JSON&tablelist=Y&p_wbd=${huc12}` +
+            `${echoNPDES.getFacilities}?output=JSON&tablelist=Y&p_wbd=${huc12}` +
             `&p_act=Y&p_ptype=NPD&responseset=5000` +
             `&qcolumns=${columnIds.join(',')}`;
 
@@ -754,12 +746,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [setAttainsPlans],
   );
 
-  React.useEffect(
-    () => {
-      if (mapServiceFailure) setMapLoading(false);
-    },
-    [mapServiceFailure],
-  );
+  React.useEffect(() => {
+    if (mapServiceFailure) setMapLoading(false);
+  }, [mapServiceFailure]);
 
   const [hucResponse, setHucResponse] = React.useState(null);
   const handleHUC12 = React.useCallback(
@@ -1029,35 +1018,29 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [Query, QueryTask, processGeocodeServerResults, setNoDataAvailable],
   );
 
-  React.useEffect(
-    () => {
-      if (layers.length === 0 || searchText === lastSearchText) return;
+  React.useEffect(() => {
+    if (layers.length === 0 || searchText === lastSearchText) return;
 
-      resetData();
-      setErrorMessage('');
-      setLastSearchText(searchText);
-      queryGeocodeServer(searchText);
-    },
-    [
-      searchText,
-      lastSearchText,
-      layers,
-      resetData,
-      setLastSearchText,
-      queryGeocodeServer,
-    ],
-  );
+    resetData();
+    setErrorMessage('');
+    setLastSearchText(searchText);
+    queryGeocodeServer(searchText);
+  }, [
+    searchText,
+    lastSearchText,
+    layers,
+    resetData,
+    setLastSearchText,
+    queryGeocodeServer,
+  ]);
 
   // reset map when searchText is cleared (when navigating away from '/community')
-  React.useEffect(
-    () => {
-      if (!searchText) {
-        setHuc12('');
-        setMapLoading(false);
-      }
-    },
-    [searchText, setHuc12],
-  );
+  React.useEffect(() => {
+    if (!searchText) {
+      setHuc12('');
+      setMapLoading(false);
+    }
+  }, [searchText, setHuc12]);
 
   const getFishingLinkData = React.useCallback(
     (states) => {
@@ -1147,151 +1130,142 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // processBoundariesData was being called before while the huc12 state value
   // was still set to the default of ''. This was because the setHuc12
   // useState setter is async.
-  React.useEffect(
-    () => {
-      if (huc12 === '' || huc12 === lastHuc12) return;
+  React.useEffect(() => {
+    if (huc12 === '' || huc12 === lastHuc12) return;
 
-      setLastHuc12(huc12);
-      setMapLoading(true);
+    setLastHuc12(huc12);
+    setMapLoading(true);
 
-      const query = new Query({
-        returnGeometry: true,
-        where: "HUC12 = '" + huc12 + "'",
-        outFields: ['*'],
+    const query = new Query({
+      returnGeometry: true,
+      where: "HUC12 = '" + huc12 + "'",
+      outFields: ['*'],
+    });
+
+    new QueryTask({ url: wbd })
+      .execute(query)
+      .then((boundaries) => {
+        // flag no data if no response
+        if (boundaries.features.length === 0) {
+          setNoDataAvailable();
+        }
+        // process results
+        else {
+          processBoundariesData(boundaries);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setErrorMessage(geocodeError);
+        setNoDataAvailable();
       });
+  }, [
+    Query,
+    QueryTask,
+    huc12,
+    lastHuc12,
+    processBoundariesData,
+    setLastHuc12,
+    setNoDataAvailable,
+  ]);
 
-      new QueryTask({ url: wbd })
-        .execute(query)
-        .then((boundaries) => {
-          // flag no data if no response
-          if (boundaries.features.length === 0) {
-            setNoDataAvailable();
-          }
-          // process results
-          else {
-            processBoundariesData(boundaries);
-          }
+  React.useEffect(() => {
+    if (
+      !view ||
+      !hucBoundaries ||
+      !hucBoundaries.features ||
+      !hucBoundaries.features[0]
+    ) {
+      return;
+    }
+
+    const graphic = new Graphic({
+      geometry: {
+        type: 'polygon',
+        spatialReference: hucBoundaries.spatialReference,
+        rings: hucBoundaries.features[0].geometry.rings,
+      },
+      symbol: {
+        type: 'simple-fill', // autocasts as new SimpleFillSymbol()
+        color: [204, 255, 255, 0.2],
+        outline: {
+          color: [102, 102, 102],
+          width: 2,
+          style: 'dash',
+        },
+      },
+      attributes: { name: 'boundaries' },
+    });
+
+    // clear previously set graphic (from a previous search), and add graphic
+    boundariesLayer.graphics.removeAll();
+    boundariesLayer.graphics.add(graphic);
+
+    const currentViewpoint = new Viewpoint({
+      targetGeometry: graphic.geometry.extent,
+    });
+
+    // store the current viewpoint in context
+    setCurrentExtent(currentViewpoint);
+
+    homeWidget.viewpoint = currentViewpoint;
+    view.popup.close();
+
+    // zoom to the graphic, and update the home widget, and close any popups
+    view.goTo(graphic).then(function() {
+      setAtHucBoundaries(true);
+    });
+  }, [
+    view,
+    hucBoundaries,
+    Graphic,
+    boundariesLayer.graphics,
+    Viewpoint,
+    setCurrentExtent,
+    setAtHucBoundaries,
+    homeWidget,
+  ]);
+
+  const [location, setLocation] = React.useState(null);
+  React.useEffect(() => {
+    if (!countyBoundaries || !hucResponse || !location) return;
+
+    if (
+      countyBoundaries.features.length === 0 ||
+      hucResponse.features.length === 0
+    ) {
+      setDrinkingWater({
+        data: [],
+        status: 'success',
+      });
+    } else {
+      // make sure that territories are using the correct value for
+      // the state/region parameter
+      let region = location.attributes.Region;
+      if (region === 'US Virgin Islands') region = 'Virgin Islands';
+
+      const drinkingWaterUrl =
+        `${dwmaps.getPWSHUC12}` +
+        `${hucResponse.features[0].attributes.huc12}/` +
+        `${countyBoundaries.features[0].attributes.COUNTY}/` +
+        `${region}`;
+
+      fetchCheck(drinkingWaterUrl)
+        .then((drinkingWaterRes) => {
+          setDrinkingWater({
+            data: drinkingWaterRes.items.slice(0),
+            status: 'success',
+          });
         })
         .catch((err) => {
           console.error(err);
-          setErrorMessage(geocodeError);
-          setNoDataAvailable();
-        });
-    },
-    [
-      Query,
-      QueryTask,
-      huc12,
-      lastHuc12,
-      processBoundariesData,
-      setLastHuc12,
-      setNoDataAvailable,
-    ],
-  );
-
-  React.useEffect(
-    () => {
-      if (
-        !view ||
-        !hucBoundaries ||
-        !hucBoundaries.features ||
-        !hucBoundaries.features[0]
-      ) {
-        return;
-      }
-
-      const graphic = new Graphic({
-        geometry: {
-          type: 'polygon',
-          spatialReference: hucBoundaries.spatialReference,
-          rings: hucBoundaries.features[0].geometry.rings,
-        },
-        symbol: {
-          type: 'simple-fill', // autocasts as new SimpleFillSymbol()
-          color: [204, 255, 255, 0.2],
-          outline: {
-            color: [102, 102, 102],
-            width: 2,
-            style: 'dash',
-          },
-        },
-        attributes: { name: 'boundaries' },
-      });
-
-      // clear previously set graphic (from a previous search), and add graphic
-      boundariesLayer.graphics.removeAll();
-      boundariesLayer.graphics.add(graphic);
-
-      const currentViewpoint = new Viewpoint({
-        targetGeometry: graphic.geometry.extent,
-      });
-
-      // store the current viewpoint in context
-      setCurrentExtent(currentViewpoint);
-
-      homeWidget.viewpoint = currentViewpoint;
-      view.popup.close();
-
-      // zoom to the graphic, and update the home widget, and close any popups
-      view.goTo(graphic).then(function() {
-        setAtHucBoundaries(true);
-      });
-    },
-    [
-      view,
-      hucBoundaries,
-      Graphic,
-      boundariesLayer.graphics,
-      Viewpoint,
-      setCurrentExtent,
-      setAtHucBoundaries,
-      homeWidget,
-    ],
-  );
-
-  const [location, setLocation] = React.useState(null);
-  React.useEffect(
-    () => {
-      if (!countyBoundaries || !hucResponse || !location) return;
-
-      if (
-        countyBoundaries.features.length === 0 ||
-        hucResponse.features.length === 0
-      ) {
-        setDrinkingWater({
-          data: [],
-          status: 'success',
-        });
-      } else {
-        // make sure that territories are using the correct value for
-        // the state/region parameter
-        let region = location.attributes.Region;
-        if (region === 'US Virgin Islands') region = 'Virgin Islands';
-
-        const drinkingWaterUrl =
-          `${dwmaps.getPWSHUC12}` +
-          `${hucResponse.features[0].attributes.huc12}/` +
-          `${countyBoundaries.features[0].attributes.COUNTY}/` +
-          `${region}`;
-
-        fetchCheck(drinkingWaterUrl)
-          .then((drinkingWaterRes) => {
-            setDrinkingWater({
-              data: drinkingWaterRes.items.slice(0),
-              status: 'success',
-            });
-          })
-          .catch((err) => {
-            console.error(err);
-            setDrinkingWater({
-              data: [],
-              status: 'failure',
-            });
+          setDrinkingWater({
+            data: [],
+            status: 'failure',
           });
-      }
-    },
-    [countyBoundaries, hucResponse, location, setDrinkingWater],
-  );
+        });
+    }
+  }, [countyBoundaries, hucResponse, location, setDrinkingWater]);
 
   // const queryNonprofits = (boundaries) => {
   //   if (
@@ -1331,23 +1305,20 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   //     });
   // };
 
-  React.useEffect(
-    () => {
-      if (layout !== 'fullscreen') return;
+  React.useEffect(() => {
+    if (layout !== 'fullscreen') return;
 
-      // scroll community content into view
-      // get community content DOM node to scroll page when form is submitted
-      const content = document.querySelector(`[data-content="locationmap"]`);
-      if (content) {
-        let pos = content.getBoundingClientRect();
-        window.scrollTo(
-          pos.left + window.pageXOffset,
-          pos.top + window.pageYOffset,
-        );
-      }
-    },
-    [layout, windowHeight],
-  );
+    // scroll community content into view
+    // get community content DOM node to scroll page when form is submitted
+    const content = document.querySelector(`[data-content="locationmap"]`);
+    if (content) {
+      let pos = content.getBoundingClientRect();
+      window.scrollTo(
+        pos.left + window.pageXOffset,
+        pos.top + window.pageYOffset,
+      );
+    }
+  }, [layout, windowHeight]);
 
   // calculate height of div holding searchText
   const [searchTextHeight, setSearchTextHeight] = React.useState(0);
