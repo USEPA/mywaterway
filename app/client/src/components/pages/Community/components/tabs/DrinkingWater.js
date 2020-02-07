@@ -13,12 +13,33 @@ import AssessmentSummary from 'components/shared/AssessmentSummary';
 import WaterbodyList from 'components/shared/WaterbodyList';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
+import Switch from 'components/shared/Switch';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
 // errors
 import { countyError } from 'config/errorMessages';
+
+const Table = styled.table`
+  thead {
+    background-color: #f0f6f9;
+  }
+
+  th:last-of-type,
+  td:last-of-type {
+    text-align: right;
+  }
+`;
+
+const Toggle = styled.div`
+  display: flex;
+  align-items: center;
+
+  span {
+    margin-left: 0.5rem;
+  }
+`;
 
 // sort alphabetically by name
 function comparePwsName(objA, objB) {
@@ -284,13 +305,33 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
     };
   }, [mapView, mapZoomRef]);
 
+  // toggles for surface/ground water withdrawers
+  const [groundWaterDisplayed, setGroundWaterDisplayed] = React.useState(true);
+  const [surfaceWaterDisplayed, setSurfaceWaterDisplayed] = React.useState(
+    true,
+  );
+
   // sort drinking water data into providers and withdrawers via presence of 'huc12' property
   const providers = [];
-  const withdrawers = [];
+  const displayedWithdrawers = [];
+  let surfaceWaterCount = 0; // total surface water withdrawers
+  let groundWaterCount = 0; // total groundwater withdrawers
+  let totalWithdrawersCount = 0; // total withdrawers
   if (drinkingWater.data) {
     drinkingWater.data.forEach((item) => {
       if (item.hasOwnProperty('huc12')) {
-        withdrawers.push(item);
+        totalWithdrawersCount++;
+
+        // surface water withdrawer
+        if (item.gw_sw.toLowerCase() === 'surface water') {
+          surfaceWaterCount++;
+          if (surfaceWaterDisplayed) displayedWithdrawers.push(item);
+        }
+        // groundwater withdrawer
+        else if (item.gw_sw.toLowerCase() === 'groundwater') {
+          groundWaterCount++;
+          if (groundWaterDisplayed) displayedWithdrawers.push(item);
+        }
       } else {
         providers.push(item);
       }
@@ -527,6 +568,7 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
                   </p>
                 </>
               )}
+
               {drinkingWater.status === 'fetching' && <LoadingSpinner />}
 
               {drinkingWater.status === 'failure' && (
@@ -546,26 +588,81 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
 
                   {drinkingWater.data.length > 0 && (
                     <>
-                      {withdrawers.length === 0 && (
+                      {totalWithdrawersCount === 0 && (
                         <Text>
                           There are no public water systems drawing water from
                           the {watershed} watershed.
                         </Text>
                       )}
 
-                      {withdrawers.length > 0 && (
-                        <AccordionList
-                          title={`Public water systems withdrawing water from the ${watershed} watershed.`}
-                          onSortChange={(sortBy) =>
-                            setWithdrawersSortBy(sortBy.value)
-                          }
-                          sortOptions={drinkingWaterSorts}
-                        >
-                          {sortWaterSystems(
-                            withdrawers,
-                            withdrawersSortBy,
-                          ).map((item) => createAccordionItem(item))}
-                        </AccordionList>
+                      {totalWithdrawersCount > 0 && (
+                        <>
+                          <Table className="table">
+                            <thead>
+                              <tr>
+                                <th>
+                                  <span>Drinking Water Source</span>
+                                </th>
+                                <th>Count</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td>
+                                  <Toggle>
+                                    <Switch
+                                      disabled={!surfaceWaterCount}
+                                      checked={
+                                        surfaceWaterDisplayed &&
+                                        surfaceWaterCount > 0
+                                      }
+                                      onChange={(ev) =>
+                                        setSurfaceWaterDisplayed(
+                                          !surfaceWaterDisplayed,
+                                        )
+                                      }
+                                    />
+                                    <span>Surface Water</span>
+                                  </Toggle>
+                                </td>
+                                <td>{surfaceWaterCount}</td>
+                              </tr>
+                              <tr>
+                                <td>
+                                  <Toggle>
+                                    <Switch
+                                      disabled={!groundWaterCount}
+                                      checked={
+                                        groundWaterDisplayed &&
+                                        groundWaterCount > 0
+                                      }
+                                      onChange={(ev) =>
+                                        setGroundWaterDisplayed(
+                                          !groundWaterDisplayed,
+                                        )
+                                      }
+                                    />
+                                    <span>Ground Water</span>
+                                  </Toggle>
+                                </td>
+                                <td>{groundWaterCount}</td>
+                              </tr>
+                            </tbody>
+                          </Table>
+
+                          <AccordionList
+                            title={`Below are ${displayedWithdrawers.length} of ${totalWithdrawersCount} Public water systems withdrawing water from the ${watershed} watershed.`}
+                            onSortChange={(sortBy) =>
+                              setWithdrawersSortBy(sortBy.value)
+                            }
+                            sortOptions={drinkingWaterSorts}
+                          >
+                            {sortWaterSystems(
+                              displayedWithdrawers,
+                              withdrawersSortBy,
+                            ).map((item) => createAccordionItem(item))}
+                          </AccordionList>
+                        </>
                       )}
                     </>
                   )}
