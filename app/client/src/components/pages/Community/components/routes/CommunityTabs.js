@@ -2,7 +2,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { navigate } from '@reach/router';
+import { Link, navigate } from '@reach/router';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 // components
 import type { RouteProps } from 'routes.js';
@@ -18,6 +18,8 @@ import { colors, fonts } from 'styles/index.js';
 import '@reach/tabs/styles.css';
 
 // --- styled components ---
+const lightBlue = '#f0f6f9';
+
 const Location = styled.div`
   display: flex;
   align-items: center;
@@ -54,22 +56,22 @@ const Watershed = styled.p`
 
 const StyledTabs = styled(Tabs)`
   & ::-webkit-scrollbar {
-    height: 10px;
+    height: 12px;
   }
 
   & ::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 6px ${colors.black(0.375)};
+    background-color: ${lightBlue};
   }
 
   & ::-webkit-scrollbar-thumb {
-    border: 1px solid ${colors.white(0.75)};
-    border-radius: 10px;
-    background-color: ${colors.black(0.375)};
+    border: 1px solid ${colors.black(0.25)};
+    border-radius: 12px;
+    background-color: ${colors.white()};
   }
 
   > [data-reach-tab-list] {
     overflow-x: scroll;
-    border-bottom: 1px solid ${colors.white(0.25)};
+    padding-bottom: 0.5em;
 
     [data-reach-tab] {
       flex: 0 0 calc(2 / 9 * 100%);
@@ -127,12 +129,43 @@ const StyledTabs = styled(Tabs)`
   }
 `;
 
+const TabDots = styled.ul`
+  padding: 0.25em 0 0;
+  height: 22px;
+  text-align: center;
+  list-style: none;
+  background-color: ${lightBlue};
+
+  li {
+    display: inline-block;
+    height: 22px;
+  }
+`;
+
+const TabDot = styled(Link)`
+  display: inline-block;
+  margin: 4px;
+  border: 1px solid ${colors.black(0.25)};
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  background-color: ${colors.white()};
+
+  &[data-selected='true'],
+  &:hover,
+  &:focus {
+    outline: none;
+    border-color: ${colors.blue(0.75)};
+    box-shadow: 0 0 0 1px ${colors.blue(0.75)};
+  }
+`;
+
 const TabHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0.5em;
-  background-color: #f0f6f9;
+  background-color: ${lightBlue};
 
   div {
     display: flex;
@@ -287,6 +320,19 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
             <Tab key={tab.title}>{tab.title}</Tab>
           ))}
         </TabList>
+
+        <TabDots>
+          {tabs.map((tab, index) => (
+            <li key={index}>
+              <TabDot
+                to={tab.route.replace('{urlSearch}', urlSearch)}
+                title={tab.title}
+                data-selected={index === activeTabIndex}
+                onClick={(ev) => setActiveTabIndex(index)}
+              />
+            </li>
+          ))}
+        </TabDots>
 
         <TabHeader>
           <div>
