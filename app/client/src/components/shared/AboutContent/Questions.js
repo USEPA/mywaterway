@@ -4,46 +4,12 @@ import React from 'react';
 import styled from 'styled-components';
 
 // --- styled components ---
-const Container = styled.div`
-  padding: 1rem;
-
-  h3 {
-    margin-bottom: 0rem;
-    padding-bottom: 0;
-  }
-  h5 {
-    margin-bottom: 0.5;
-    padding-bottom: 0;
-  }
-  hr {
-    margin-top: 0.25rem;
-    margin-bottom: 1rem;
-  }
-  p {
-    padding-bottom: 2em;
-    line-height: 1.375;
-  }
-
-  a {
-    display: block;
-    margin-bottom: 0.25rem;
-    font-size: 1.25em;
-    line-height: 1.125;
-  }
-
-  @media (min-width: 30em) {
-    padding: 2rem;
-
-    a {
-      font-size: 1.375em;
-    }
-  }
-`;
+const Container = styled.div``;
 
 // --- components ---
 type Props = {};
 
-function AboutContent({ ...props }: Props) {
+function AboutQuestions({ ...props }: Props) {
   return (
     <Container className="container">
       <h3>Questions and Answers about How’s My Waterway </h3>
@@ -121,4 +87,4 @@ function AboutContent({ ...props }: Props) {
   );
 }
 
-export default AboutContent;
+export default AboutQuestions;

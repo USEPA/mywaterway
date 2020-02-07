@@ -5,7 +5,7 @@ import styled from 'styled-components';
 // components
 import { LargeTab } from 'components/shared/ContentTabs/LargeTab.js';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import About from './About';
+import Info from './Info';
 import Questions from './Questions';
 
 import { ContentTabs } from 'components/shared/ContentTabs';
@@ -15,38 +15,6 @@ import { fonts } from 'styles/index.js';
 // --- styled components ---
 const Container = styled.div`
   padding: 1rem;
-
-  h3 {
-    margin-bottom: 0rem;
-    padding-bottom: 0;
-  }
-  h5 {
-    margin-bottom: 0.5;
-    padding-bottom: 0;
-  }
-  hr {
-    margin-top: 0.25rem;
-    margin-bottom: 1rem;
-  }
-  p {
-    padding-bottom: 2em;
-    line-height: 1.375;
-  }
-
-  a {
-    display: block;
-    margin-bottom: 0.25rem;
-    font-size: 1.25em;
-    line-height: 1.125;
-  }
-
-  @media (min-width: 30em) {
-    padding: 2rem;
-
-    a {
-      font-size: 1.375em;
-    }
-  }
 `;
 
 const StyledTabs = styled(Tabs)`
@@ -59,12 +27,17 @@ const StyledTabs = styled(Tabs)`
 
     p {
       margin-top: 1rem;
-      padding-bottom: 0;
+      padding-bottom: 0.5rem;
       line-height: 1.375;
 
       :first-of-type {
         margin-top: 0;
       }
+    }
+
+    hr {
+      margin-top: 0;
+      margin-bottom: 0.75rem;
     }
 
     ul {
@@ -76,17 +49,17 @@ const StyledTabs = styled(Tabs)`
     }
 
     h3 {
-      margin: 1.5rem 0 0.625rem;
+      margin: 2rem 0 0.25rem;
       padding-bottom: 0;
       font-family: ${fonts.primary};
-      font-size: 1.75em;
+      font-size: 1.8em;
 
       & + p {
         margin-top: 0;
       }
     }
     h5 {
-      margin: 1.5rem 0 0.625rem;
+      margin: 1rem 0 0.25rem;
       padding-bottom: 0;
       font-family: ${fonts.primary};
       font-size: 1.375em;
@@ -136,16 +109,12 @@ function AboutContent({ ...props }: Props) {
       <ContentTabs>
         <StyledTabs>
           <TabList>
-            <LargeTab>
-              About How's My Waterway <i class="fas fa-info-circle" />
-            </LargeTab>
-            <LargeTab>
-              Questions and Answers <i class="fas fa-question-circle" />
-            </LargeTab>
+            <LargeTab>About How's My Waterway</LargeTab>
+            <LargeTab>Questions and Answers</LargeTab>
           </TabList>
           <TabPanels>
             <TabPanel>
-              <About />
+              <Info />
             </TabPanel>
             <TabPanel>
               <Questions />
