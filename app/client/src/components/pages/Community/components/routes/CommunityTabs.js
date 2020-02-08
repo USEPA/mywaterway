@@ -55,6 +55,7 @@ const Watershed = styled.p`
 `;
 
 const StyledTabs = styled(Tabs)`
+  /* TODO: cross browser testing (e.g firefox, edge, ie, etc.) */
   & ::-webkit-scrollbar {
     height: 12px;
   }
@@ -74,7 +75,7 @@ const StyledTabs = styled(Tabs)`
     padding-bottom: 0.5em;
 
     [data-reach-tab] {
-      flex: 0 0 calc(2 / 9 * 100%);
+      flex: 0 0 calc(2 / 9 * 100%); /* 4.5 tabs before overflow */
       padding: 0.5em;
       border: none;
       border-right: 1px solid ${colors.white()};
@@ -98,8 +99,28 @@ const StyledTabs = styled(Tabs)`
         border-right: none;
       }
 
-      @media (min-width: 600px) {
+      @media (min-width: 640px) {
         font-size: 0.75em;
+      }
+
+      @media (min-width: 800px) {
+        flex-basis: calc(2 / 11 * 100%); /* 5.5 tabs before overflow */
+      }
+
+      @media (min-width: 960px) {
+        flex-basis: calc(2 / 9 * 100%); /* 4.5 tabs before overlow */
+      }
+
+      @media (min-width: 1280px) {
+        flex-basis: calc(2 / 11 * 100%); /* 5.5 tabs before overflow */
+      }
+
+      @media (min-width: 1600px) {
+        flex-basis: calc(2 / 9 * 100%); /* 4.5 tabs before overflow */
+      }
+
+      @media (min-width: 1920px) {
+        flex-basis: calc(2 / 11 * 100%); /* 5.5 tabs before overflow */
       }
     }
   }
