@@ -55,7 +55,6 @@ const Watershed = styled.p`
 `;
 
 const StyledTabs = styled(Tabs)`
-  /* TODO: cross browser testing (e.g firefox, edge, ie, etc.) */
   & ::-webkit-scrollbar {
     height: 12px;
   }
