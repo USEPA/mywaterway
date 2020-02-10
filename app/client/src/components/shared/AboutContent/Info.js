@@ -2,6 +2,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 
 // --- styled components ---
 const Container = styled.div``;
@@ -11,17 +12,17 @@ type Props = {};
 
 function AboutInfo({ ...props }: Props) {
   return (
-    <Container>
+    <Container className="container">
       <h3>About How’s My Waterway </h3>
       <hr />
       <p>
-        How's My Waterway was designed to provide the general public with
-        information about the condition of their local waters based on data that
-        states, federal, tribal, local agencies and others have provided to EPA.
-        Water quality information is displayed on 3 scales in How’s My Waterway;
-        community, state and national. More recent or more detailed water
-        information may exist that is not yet available through EPA databases or
-        other sources.{' '}
+        <strong>How's My Waterway</strong> was designed to provide the general
+        public with information about the condition of their local waters based
+        on data that states, federal, tribal, local agencies and others have
+        provided to EPA. Water quality information is displayed on 3 scales in
+        How’s My Waterway; community, state and national. More recent or more
+        detailed water information may exist that is not yet available through
+        EPA databases or other sources.{' '}
       </p>
 
       <h3> How’s My Waterway Glossary </h3>
@@ -37,9 +38,21 @@ function AboutInfo({ ...props }: Props) {
       <h3>How’s My Waterway Data </h3>
       <hr />
       <p>
-        How’s My Waterway provides a data page which lists the sources of data
-        displayed as well as where this data shows up throughout the tool. The
-        data page can be found at the top of any page in How’s My Waterway.
+        How’s My Waterway provides a{' '}
+        <a
+          // onClick={(ev) => {
+          //   if (window.location.pathname !== '/data') {
+          //     setAboutDisplayed(false);
+          //     setDataDisplayed(true);
+          //   }
+          // }}
+          href="/data"
+        >
+          data page
+        </a>{' '}
+        which lists the sources of data displayed as well as where this data
+        shows up throughout the tool. The data page can be found at the top of
+        any page in How’s My Waterway.
       </p>
 
       <h3>Community Page </h3>
@@ -49,12 +62,18 @@ function AboutInfo({ ...props }: Props) {
         The Clean Water Act requires States, Territories and authorized tribes
         (states for brevity) to monitor water impairments and report to EPA
         every two years on the waters they have evaluated. This process is
-        called assessment. Part of this process is deciding which waters do not
-        meet water quality standards. These waters are called impaired (impaired
-        enough to require action) and are placed on a State list for future
-        actions to reduce pollution.  The local information displayed in How's
-        My Waterway includes whether and when a waterway was assessed, which
-        impairments may exist, and what has been done to improve conditions.
+        called <GlossaryTerm term="assessment">assessment</GlossaryTerm>. Part
+        of this process is deciding which waters do not meet{' '}
+        <GlossaryTerm term="water quality standards">
+          water quality standards
+        </GlossaryTerm>
+        . These waters are called{' '}
+        <GlossaryTerm term="impaired">impaired</GlossaryTerm> (impaired enough
+        to require action) and are placed on a State list for future actions to
+        reduce pollution.  The local information displayed in{' '}
+        <strong>How's My Waterway </strong>
+        includes whether and when a waterway was assessed, which impairments may
+        exist, and what has been done to improve conditions.
       </p>
 
       <h5>About water quality information </h5>
@@ -79,10 +98,11 @@ function AboutInfo({ ...props }: Props) {
         category "Metals" may include lead, cadmium, zinc, or copper as water
         pollutants. A filtering tool for these impairments can be found on the
         data page; which will allow you to find out the subcategories for the
-        impairment. How's My Waterway provides simple descriptions of each major
-        category, where the impairment comes from, its effect on the environment
-        and on beneficial waterway uses, what citizens can do to help, and where
-        to find more information. This information can be found in the glossary.
+        impairment. <strong>How's My Waterway provides</strong> simple
+        descriptions of each major category, where the impairment comes from,
+        its effect on the environment and on beneficial waterway uses, what
+        citizens can do to help, and where to find more information. This
+        information can be found in the glossary.
       </p>
 
       <h5>About what's being done </h5>
@@ -96,9 +116,9 @@ function AboutInfo({ ...props }: Props) {
         for a variety of different restoration activities, including watershed
         restoration plans. EPA provides funds to States to help control nonpoint
         source pollution, which generally originate from landscape runoff rather
-        than a single discharge pipe.  How's My Waterway identifies whether an
-        impaired waterway has a TMDL restoration plan or a nonpoint source
-        pollution project.
+        than a single discharge pipe.  <strong>How's My Waterway</strong>
+         identifies whether an impaired waterway has a TMDL restoration plan or
+        a nonpoint source pollution project.
       </p>
 
       <h3>State Page </h3>

@@ -37,7 +37,7 @@ const StyledTabs = styled(Tabs)`
 
     hr {
       margin-top: 0;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.5rem;
     }
 
     ul {
