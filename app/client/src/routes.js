@@ -16,7 +16,8 @@ import StateTabs from 'components/pages/State/components/routes/StateTabs';
 import National from 'components/pages/National';
 import DrinkingWater from 'components/pages/DrinkingWater';
 import Swimming from 'components/pages/Swimming';
-import Fishing from 'components/pages/Fishing';
+import EatingFish from 'components/pages/EatingFish';
+import AquaticLife from 'components/pages/AquaticLife';
 import OrgSelect from 'components/pages/Actions/OrgSelect';
 import Actions from 'components/pages/Actions';
 import WaterbodyReport from 'components/pages/WaterbodyReport';
@@ -56,7 +57,8 @@ function Routes() {
       <National path="/national" />
       <DrinkingWater path="/drinking-water" />
       <Swimming path="/swimming" />
-      <Fishing path="/eating-fish" />
+      <EatingFish path="/eating-fish" />
+      <AquaticLife path="/aquatic-life" />
       {/* TODO: Remove this route once orgId is added to the response of the
           ATTAINS plans web service */}
       <OrgSelect path="/plan-summary/:actionId" />

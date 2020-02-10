@@ -93,7 +93,7 @@ function CommunityIntro({ ...props }: Props) {
 
         <Topic>
           <TopicIcon>
-            <img src={fishingIcon} alt="Fishing" />
+            <img src={fishingIcon} alt="Eating Fish" />
           </TopicIcon>
           <TopicText>
             <strong>Fish Consumption and Aquatic Life:</strong> &nbsp; EPA,
