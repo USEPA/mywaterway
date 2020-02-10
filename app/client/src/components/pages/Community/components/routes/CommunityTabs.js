@@ -72,6 +72,7 @@ const StyledTabs = styled(Tabs)`
   > [data-reach-tab-list] {
     overflow-x: scroll;
     padding-bottom: 0.5em;
+    background-color: ${lightBlue};
 
     [data-reach-tab] {
       flex: 0 0 calc(2 / 9 * 100%); /* 4.5 tabs before overflow */
