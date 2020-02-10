@@ -70,7 +70,7 @@ function DrinkingWater({ ...props }: Props) {
             <SwimmingIcon />
             Swimming
           </TopicButtonLink>
-          <TopicButtonLink to="/fishing">
+          <TopicButtonLink to="/eating-fish">
             <FishingIcon />
             Fishing
           </TopicButtonLink>

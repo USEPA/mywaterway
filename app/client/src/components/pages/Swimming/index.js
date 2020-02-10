@@ -86,7 +86,7 @@ function Swimming({ ...props }: Props) {
         <h2>Other Topics</h2>
 
         <StyledButtons>
-          <TopicButtonLink to="/fishing">
+          <TopicButtonLink to="/eating-fish">
             <FishingIcon />
             Fishing
           </TopicButtonLink>

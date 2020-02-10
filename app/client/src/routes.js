@@ -56,7 +56,7 @@ function Routes() {
       <National path="/national" />
       <DrinkingWater path="/drinking-water" />
       <Swimming path="/swimming" />
-      <Fishing path="/fishing" />
+      <Fishing path="/eating-fish" />
       {/* TODO: Remove this route once orgId is added to the response of the
           ATTAINS plans web service */}
       <OrgSelect path="/plan-summary/:actionId" />

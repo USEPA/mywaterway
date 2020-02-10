@@ -8,6 +8,7 @@ import Overview from './components/tabs/Overview';
 import DrinkingWater from './components/tabs/DrinkingWater';
 import Swimming from './components/tabs/Swimming';
 import Fishing from './components/tabs/Fishing';
+import AquaticLife from './components/tabs/AquaticLife';
 import Monitoring from './components/tabs/Monitoring';
 import IdentifiedIssues from './components/tabs/IdentifiedIssues';
 import Restore from './components/tabs/Restore';
@@ -133,7 +134,36 @@ const fishingUpper = (
 
 const aquaticUpper = (
   <>
-    <p>(Aquatic Life placeholder...)</p>
+    <p>
+      EPA, states, and tribes monitor and assess water quality to determine the
+      impact of impairments on plants and animals living in the water. They also
+      monitor and assess if fish and shellfish are safe to eat.
+    </p>
+    <p>
+      Plants and animals depend on clean water. Impairments can affect the
+      quality of water, which can have adverse effects on plants and animals
+      living in the water.
+      <ShowLessMore
+        charLimit={0}
+        text={`
+                The condition of a waterbody is dynamic and can change at
+                any time, and the information in How’s My Waterway should
+                only be used for general reference. If available, refer to
+                local or state real-time water quality reports.
+              `}
+      />
+    </p>
+
+    <Disclaimer>
+      <p>
+        Users of this application should not rely on information relating to
+        environmental laws and regulations posted on this application.
+        Application users are solely responsible for ensuring that they are in
+        compliance with all relevant environmental laws and regulations. In
+        addition, EPA cannot attest to the accuracy of data provided by
+        organizations outside of the federal government.
+      </p>
+    </Disclaimer>
   </>
 );
 
@@ -222,7 +252,7 @@ const tabs = [
   },
   {
     title: 'Eating Fish',
-    route: '/community/{urlSearch}/fishing',
+    route: '/community/{urlSearch}/eating-fish',
     icon: fishingIcon,
     upper: fishingUpper,
     lower: <Fishing />,
@@ -230,10 +260,10 @@ const tabs = [
   },
   {
     title: 'Aquatic Life',
-    route: '/community/{urlSearch}/aquatic',
+    route: '/community/{urlSearch}/aquatic-life',
     icon: fishingIcon, // TODO: replace once icon is created
     upper: aquaticUpper,
-    lower: <Fishing />, // TODO: replace once tab content is defined
+    lower: <AquaticLife />, // TODO: replace once tab content is defined
     layers: { waterbodyLayer: true },
   },
   {

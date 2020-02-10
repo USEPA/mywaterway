@@ -53,7 +53,7 @@ function Fishing({ ...props }: Props) {
           <em>Find out more about your fish and other aquatic life.</em>
         </Prompt>
 
-        <LocationSearch route="/community/{urlSearch}/fishing" />
+        <LocationSearch route="/community/{urlSearch}/eating-fish" />
 
         <br />
 
