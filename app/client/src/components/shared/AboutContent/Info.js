@@ -16,43 +16,32 @@ function AboutInfo({ ...props }: Props) {
       <h3>About How’s My Waterway </h3>
       <hr />
       <p>
-        <strong>How's My Waterway</strong> was designed to provide the general
-        public with information about the condition of their local waters based
-        on data that states, federal, tribal, local agencies and others have
-        provided to EPA. Water quality information is displayed on 3 scales in
-        How’s My Waterway; community, state and national. More recent or more
-        detailed water information may exist that is not yet available through
-        EPA databases or other sources.{' '}
+        <em>How's My Waterway</em>  was designed to provide the general public
+        with information about the condition of their local waters based on data
+        that states, federal, tribal, local agencies and others have provided to
+        EPA. Water quality information is displayed on 3 scales in{' '}
+        <em>How’s My Waterway</em>; community, state and national. More recent
+        or more detailed water information may exist that is not yet available
+        through EPA databases or other sources.{' '}
       </p>
 
       <h3> How’s My Waterway Glossary </h3>
       <hr />
       <p>
-        How’s My Waterway provides an easily accessible plain-English glossary
-        where you can search through definitions of terms used on the site.
-        Various words are also hyperlinked throughout the site and will provide
-        a definition pop up when clicked on. The full glossary can be found at
-        the top of any page in How’s My Waterway.
+        <em>How’s My Waterway</em> provides an easily accessible plain-English
+        glossary where you can search through definitions of terms used on the
+        site. Various words are also hyperlinked throughout the site and will
+        provide a definition pop up when clicked on. The full glossary can be
+        found at the top of any page in <em>How’s My Waterway</em>.
       </p>
 
       <h3>How’s My Waterway Data </h3>
       <hr />
       <p>
-        How’s My Waterway provides a{' '}
-        <a
-          // onClick={(ev) => {
-          //   if (window.location.pathname !== '/data') {
-          //     setAboutDisplayed(false);
-          //     setDataDisplayed(true);
-          //   }
-          // }}
-          href="/data"
-        >
-          data page
-        </a>{' '}
+        <em>How’s My Waterway </em>provides a <a href="/data">data page</a>{' '}
         which lists the sources of data displayed as well as where this data
         shows up throughout the tool. The data page can be found at the top of
-        any page in How’s My Waterway.
+        any page in <em>How’s My Waterway</em>.
       </p>
 
       <h3>Community Page </h3>
@@ -71,7 +60,7 @@ function AboutInfo({ ...props }: Props) {
         <GlossaryTerm term="impaired">impaired</GlossaryTerm> (impaired enough
         to require action) and are placed on a State list for future actions to
         reduce pollution.  The local information displayed in{' '}
-        <strong>How's My Waterway </strong>
+        <em>How's My Waterway </em>
         includes whether and when a waterway was assessed, which impairments may
         exist, and what has been done to improve conditions.
       </p>
@@ -82,11 +71,12 @@ function AboutInfo({ ...props }: Props) {
         information about reported water quality problems and efforts to fix
         them. Other information not directly accessible in this tool exists in
         federal, State, local, and private sources. Some of these sources appear
-        on the data page. Many waters in the US have not been assessed and
-        sometimes there is little or no information reported about their
-        condition. A waterway that has not been assessed may or may not be
-        impaired, and an impaired waterway may have more impairments than those
-        that were measured and reported.
+        on the <a href="/data">data page</a>. Many waters in the US have not
+        been assessed and sometimes there is little or no information reported
+        about their condition. A waterway that has not been assessed may or may
+        not be <GlossaryTerm term="impaired">impaired</GlossaryTerm>, and an
+        impaired waterway may have more impairments than those that were
+        measured and reported.
       </p>
 
       <h5>About impairment categories </h5>
@@ -97,11 +87,11 @@ function AboutInfo({ ...props }: Props) {
         more detailed subcategories within each of these. For example, the
         category "Metals" may include lead, cadmium, zinc, or copper as water
         pollutants. A filtering tool for these impairments can be found on the
-        data page; which will allow you to find out the subcategories for the
-        impairment. <strong>How's My Waterway provides</strong> simple
-        descriptions of each major category, where the impairment comes from,
-        its effect on the environment and on beneficial waterway uses, what
-        citizens can do to help, and where to find more information. This
+        <a href="/data">data page</a>; which will allow you to find out the
+        subcategories for the impairment. <em>How's My Waterway </em> provides
+        simple descriptions of each major category, where the impairment comes
+        from, its effect on the environment and on beneficial waterway uses,
+        what citizens can do to help, and where to find more information. This
         information can be found in the glossary.
       </p>
 
@@ -109,14 +99,21 @@ function AboutInfo({ ...props }: Props) {
       <p>
         Identifying and reporting water impairments leads to action for
         improvement. Two major types of action taken under the Clean Water Act
-        are Total Maximum Daily Load (TMDL) restoration plans and nonpoint
-        source pollution projects. Tens of thousands of impaired waters now have
-        a TMDL restoration plan, which is a 'reduced pollution diet' designed to
-        help waters become healthy again. The TMDL serves as a basic game plan
-        for a variety of different restoration activities, including watershed
+        are{' '}
+        <GlossaryTerm term="tmdl">
+          Total Maximum Daily Load (TMDL) 
+        </GlossaryTerm>{' '}
+        restoration plans and{' '}
+        <GlossaryTerm term="nonpoint source pollution">
+          nonpoint source pollution
+        </GlossaryTerm>{' '}
+        projects. Tens of thousands of impaired waters now have a TMDL
+        restoration plan, which is a 'reduced pollution diet' designed to help
+        waters become healthy again. The TMDL serves as a basic game plan for a
+        variety of different restoration activities, including watershed
         restoration plans. EPA provides funds to States to help control nonpoint
         source pollution, which generally originate from landscape runoff rather
-        than a single discharge pipe.  <strong>How's My Waterway</strong>
+        than a single discharge pipe. <em>How's My Waterway</em>
          identifies whether an impaired waterway has a TMDL restoration plan or
         a nonpoint source pollution project.
       </p>

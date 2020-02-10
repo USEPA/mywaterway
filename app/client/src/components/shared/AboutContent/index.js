@@ -4,7 +4,7 @@ import React from 'react';
 import styled from 'styled-components';
 // components
 import { LargeTab } from 'components/shared/ContentTabs/LargeTab.js';
-import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
+import { Tabs, TabList, TabPanels, TabPanel } from '@reach/tabs';
 import Info from './Info';
 import Questions from './Questions';
 
