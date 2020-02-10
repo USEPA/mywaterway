@@ -122,11 +122,19 @@ const swimmingUpper = (
 );
 
 const fishingUpper = (
-  <p>
-    EPA, states, and tribes monitor and assess water quality to determine the
-    impact of impairments on plants and animals living in the water. They also
-    monitor and assess if fish and shellfish are safe to eat.
-  </p>
+  <>
+    <p>
+      EPA, states, and tribes monitor and assess water quality to determine the
+      impact of impairments on plants and animals living in the water. They also
+      monitor and assess if fish and shellfish are safe to eat.
+    </p>
+  </>
+);
+
+const aquaticUpper = (
+  <>
+    <p>(Aquatic Life placeholder...)</p>
+  </>
 );
 
 const monitoringUpper = (
@@ -213,11 +221,19 @@ const tabs = [
     layers: { waterbodyLayer: true },
   },
   {
-    title: 'Fishing',
+    title: 'Eating Fish',
     route: '/community/{urlSearch}/fishing',
     icon: fishingIcon,
     upper: fishingUpper,
     lower: <Fishing />,
+    layers: { waterbodyLayer: true },
+  },
+  {
+    title: 'Aquatic Life',
+    route: '/community/{urlSearch}/aquatic',
+    icon: fishingIcon, // TODO: replace once icon is created
+    upper: aquaticUpper,
+    lower: <Fishing />, // TODO: replace once tab content is defined
     layers: { waterbodyLayer: true },
   },
   {
