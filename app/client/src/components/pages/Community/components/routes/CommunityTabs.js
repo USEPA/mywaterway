@@ -2,7 +2,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { Link, navigate } from '@reach/router';
+import { navigate } from '@reach/router';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 // components
 import type { RouteProps } from 'routes.js';
@@ -163,7 +163,7 @@ const TabDots = styled.ul`
   }
 `;
 
-const TabDot = styled(Link)`
+const TabDot = styled.a`
   display: inline-block;
   margin: 4px;
   border: 1px solid ${colors.black(0.25)};
@@ -343,16 +343,23 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
         </TabList>
 
         <TabDots>
-          {tabs.map((tab, index) => (
-            <li key={index}>
-              <TabDot
-                to={tab.route.replace('{urlSearch}', urlSearch)}
-                title={tab.title}
-                data-selected={index === activeTabIndex}
-                onClick={(ev) => setActiveTabIndex(index)}
-              />
-            </li>
-          ))}
+          {tabs.map((tab, index) => {
+            const url = tab.route.replace('{urlSearch}', urlSearch);
+            return (
+              <li key={index}>
+                <TabDot
+                  href={url}
+                  title={tab.title}
+                  data-selected={index === activeTabIndex}
+                  onClick={(ev) => {
+                    ev.preventDefault();
+                    setActiveTabIndex(index);
+                    navigate(url);
+                  }}
+                />
+              </li>
+            );
+          })}
         </TabDots>
 
         <TabHeader>
