@@ -86,7 +86,7 @@ function AboutInfo({ ...props }: Props) {
         major categories of water impairments in its national summary. There are
         more detailed subcategories within each of these. For example, the
         category "Metals" may include lead, cadmium, zinc, or copper as water
-        pollutants. A filtering tool for these impairments can be found on the
+        pollutants. A filtering tool for these impairments can be found on the{' '}
         <a href="/data">data page</a>; which will allow you to find out the
         subcategories for the impairment. <em>How's My Waterway </em> provides
         simple descriptions of each major category, where the impairment comes

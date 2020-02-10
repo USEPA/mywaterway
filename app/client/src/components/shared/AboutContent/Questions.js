@@ -43,9 +43,10 @@ function AboutQuestions({ ...props }: Props) {
         most recent state reporting under the Clean Water Act. Selecting a
         specific waterway from the list or map shows the impairment reported,
         existing restoration plans, and nonpoint source projects in the area.
-        Information on permitted dischargers, water monitoring locations and
-        drinking water systems can also be found within a small watershed area
-        after entering a location.
+        Information on permitted{' '}
+        <GlossaryTerm term="dischargers">dischargers</GlossaryTerm>, water
+        monitoring locations and drinking water systems can also be found within
+        a small watershed area after entering a location.
       </p>
 
       <p>
@@ -70,7 +71,8 @@ function AboutQuestions({ ...props }: Props) {
         they matter, and what’s being done to improve conditions. Faced with a
         baffling array of scientific information and complex technical
         databases, an average citizen might say, “All I really want to know is,
-        how’s MY waterway? And please tell me in words I understand.”
+        how’s <strong>MY</strong> waterway? And please tell me in words I
+        understand.”
       </p>
 
       <p>
