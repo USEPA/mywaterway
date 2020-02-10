@@ -5,7 +5,6 @@ import styled from 'styled-components';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 
 // --- styled components ---
-const Container = styled.div``;
 const Question = styled.strong`
   font-size: 1.2em;
 `;
@@ -15,7 +14,7 @@ type Props = {};
 
 function AboutQuestions({ ...props }: Props) {
   return (
-    <Container className="container">
+    <div className="container">
       <h3>Questions and Answers about How’s My Waterway </h3>
       <hr />
       <p>
@@ -106,7 +105,7 @@ function AboutQuestions({ ...props }: Props) {
           </a>
         </Question>
       </p>
-    </Container>
+    </div>
   );
 }
 

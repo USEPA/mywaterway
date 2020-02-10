@@ -1,18 +1,14 @@
 // @flow
 
 import React from 'react';
-import styled from 'styled-components';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-
-// --- styled components ---
-const Container = styled.div``;
 
 // --- components ---
 type Props = {};
 
 function AboutInfo({ ...props }: Props) {
   return (
-    <Container className="container">
+    <div className="container">
       <h3>About How’s My Waterway </h3>
       <hr />
       <p>
@@ -158,7 +154,7 @@ function AboutInfo({ ...props }: Props) {
         national drinking water and how to find out if your water is safe, the
         number of national systems in compliance and total population served.
       </p>
-    </Container>
+    </div>
   );
 }
 
