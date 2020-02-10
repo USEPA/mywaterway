@@ -344,17 +344,16 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
 
         <TabDots>
           {tabs.map((tab, index) => {
-            const url = tab.route.replace('{urlSearch}', urlSearch);
             return (
               <li key={index}>
                 <TabDot
-                  href={url}
+                  href={tab.route.replace('{urlSearch}', urlSearch)}
                   title={tab.title}
                   data-selected={index === activeTabIndex}
                   onClick={(ev) => {
                     ev.preventDefault();
-                    setActiveTabIndex(index);
-                    navigate(url);
+                    const tabList = tabListRef.current;
+                    if (tabList) tabList.children[index].click();
                   }}
                 />
               </li>
