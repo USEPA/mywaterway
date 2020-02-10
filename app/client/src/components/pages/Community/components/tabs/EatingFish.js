@@ -48,7 +48,7 @@ type Props = {
   infoToggleChecked: boolean,
 };
 
-function Fishing({ esriModules, infoToggleChecked }: Props) {
+function EatingFish({ esriModules, infoToggleChecked }: Props) {
   const {
     watershed,
     fishingInfo,
@@ -105,7 +105,6 @@ function Fishing({ esriModules, infoToggleChecked }: Props) {
                       `}
             />
           </p>
-
           <Disclaimer>
             <p>
               Users of this application should not rely on information relating
@@ -135,10 +134,10 @@ function Fishing({ esriModules, infoToggleChecked }: Props) {
   );
 }
 
-export default function FishingContainer({ ...props }: Props) {
+export default function EatingFishContainer({ ...props }: Props) {
   return (
-    <TabErrorBoundary tabName="Fishing">
-      <Fishing {...props} />
+    <TabErrorBoundary tabName="Eating Fish">
+      <EatingFish {...props} />
     </TabErrorBoundary>
   );
 }

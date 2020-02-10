@@ -7,7 +7,7 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import Overview from './components/tabs/Overview';
 import DrinkingWater from './components/tabs/DrinkingWater';
 import Swimming from './components/tabs/Swimming';
-import Fishing from './components/tabs/Fishing';
+import EatingFish from './components/tabs/EatingFish';
 import AquaticLife from './components/tabs/AquaticLife';
 import Monitoring from './components/tabs/Monitoring';
 import IdentifiedIssues from './components/tabs/IdentifiedIssues';
@@ -255,7 +255,7 @@ const tabs = [
     route: '/community/{urlSearch}/eating-fish',
     icon: fishingIcon,
     upper: fishingUpper,
-    lower: <Fishing />,
+    lower: <EatingFish />,
     layers: { waterbodyLayer: true },
   },
   {
