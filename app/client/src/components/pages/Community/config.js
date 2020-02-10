@@ -125,9 +125,8 @@ const swimmingUpper = (
 const fishingUpper = (
   <>
     <p>
-      EPA, states, and tribes monitor and assess water quality to determine the
-      impact of impairments on plants and animals living in the water. They also
-      monitor and assess if fish and shellfish are safe to eat.
+      EPA, states, and tribes monitor and assess water quality to determine if
+      fish and shellfish are safe to eat.
     </p>
   </>
 );
@@ -136,8 +135,7 @@ const aquaticUpper = (
   <>
     <p>
       EPA, states, and tribes monitor and assess water quality to determine the
-      impact of impairments on plants and animals living in the water. They also
-      monitor and assess if fish and shellfish are safe to eat.
+      impact of impairments on plants and animals living in the water.
     </p>
     <p>
       Plants and animals depend on clean water. Impairments can affect the
