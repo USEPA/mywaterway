@@ -177,9 +177,9 @@ function Community({ children, ...props }: Props) {
             // narrow screens
             return (
               <Columns data-content="community">
-                <LeftColumn>
+                <LeftColumn data-column="left">
                   {searchMarkup}
-                  <RightColumn>
+                  <RightColumn data-column="right">
                     {/* children is either CommunityIntro or CommunityTabs (upper tabs) */}
                     {children}
                   </RightColumn>
@@ -206,12 +206,12 @@ function Community({ children, ...props }: Props) {
             // wide screens
             return (
               <Columns data-content="community">
-                <LeftColumn>
+                <LeftColumn data-column="left">
                   <LocationMap windowHeight={height} layout="wide">
                     {searchMarkup}
                   </LocationMap>
                 </LeftColumn>
-                <RightColumn>
+                <RightColumn data-column="right">
                   {/* children is either CommunityIntro or CommunityTabs (upper tabs) */}
                   {children}
                   {!atCommunityIntroRoute && lowerTabs}
