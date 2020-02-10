@@ -13,13 +13,14 @@ import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
 
 // --- styled components ---
 const Container = styled.div`
-  padding: 1em;
+  padding: 0 1em 1em;
 `;
 
 // --- components ---
 type Props = {
   // props passed implicitly in Community component
   esriModules: Object,
+  infoToggleChecked: boolean,
 };
 
 function AquaticLife({ esriModules, infoToggleChecked }: Props) {

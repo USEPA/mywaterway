@@ -34,7 +34,7 @@ function addSerialComma(index: number, arrayLength: number) {
 
 // --- styled components ---
 const Container = styled.div`
-  padding: 0 1em 1em 1em;
+  padding: 0 1em 1em;
 `;
 
 const Disclaimer = styled(DisclaimerModal)`
