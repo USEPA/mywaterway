@@ -263,7 +263,7 @@ const tabs = [
     route: '/community/{urlSearch}/aquatic-life',
     icon: fishingIcon, // TODO: replace once icon is created
     upper: aquaticUpper,
-    lower: <AquaticLife />, // TODO: replace once tab content is defined
+    lower: <AquaticLife />,
     layers: { waterbodyLayer: true },
   },
   {
