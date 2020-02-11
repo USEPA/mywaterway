@@ -64,6 +64,7 @@
     "react-switch": "5.0.1",
     "react-table": "6.11.5",
     "react-virtualized": "9.21.2",
+    "smoothscroll-polyfill": "0.4.4",
     "styled-components": "5.0.0"
   },
   "husky": {

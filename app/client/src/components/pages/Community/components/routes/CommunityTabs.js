@@ -279,10 +279,21 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
 
   const tabListRef = React.useRef();
 
-  // focus the active tab
+  // focus and scroll (horizontally) to the active tab
   React.useEffect(() => {
     if (tabListRef.current) {
-      tabListRef.current.children[activeTabIndex].focus();
+      const tabList = tabListRef.current;
+      const activeTab = tabList.children[activeTabIndex];
+      activeTab.focus();
+
+      const column = document.querySelector('[data-column="right"]');
+      if (!column) return;
+
+      const columnCenter = column.offsetLeft + column.offsetWidth / 2;
+      const tabCenter = activeTab.offsetLeft + activeTab.offsetWidth / 2;
+      const distance = tabCenter - columnCenter - tabList.scrollLeft;
+
+      tabList.scrollBy({ top: 0, left: distance, behavior: 'smooth' });
     }
   }, [tabListRef, activeTabIndex]);
 
