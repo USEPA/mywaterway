@@ -2,11 +2,11 @@
 
 import React from 'react';
 import styled from 'styled-components';
-// components
-import { LargeTab } from 'components/shared/ContentTabs/LargeTab.js';
 import { Tabs, TabList, TabPanels, TabPanel } from '@reach/tabs';
-import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+// components
 import { ContentTabs } from 'components/shared/ContentTabs';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import { LargeTab } from 'components/shared/ContentTabs/LargeTab.js';
 // styles
 import { fonts } from 'styles/index.js';
 
