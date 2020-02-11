@@ -56,7 +56,7 @@ function useWaterbodyFeatures() {
       areasLayer === 'error' ||
       pointsLayer === 'error'
     ) {
-      setFeatures([]);
+      if (!features || features.length !== 0) setFeatures([]);
       return;
     }
     if (huc12 === lastHuc12) return;
