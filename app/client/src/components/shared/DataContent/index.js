@@ -123,8 +123,8 @@ function Data({ ...props }: Props) {
           <GlossaryTerm term="overall waterbody condition">
             waterbody condition
           </GlossaryTerm>{' '}
-          list and map), Swimming, Fish Consumption and Aquatic Life, Identified
-          Issues ( <GlossaryTerm term="impairment">impairments</GlossaryTerm> ),
+          list and map), Swimming, Eating Fish, Aquatic Life, Identified Issues
+          ( <GlossaryTerm term="impairment">impairments</GlossaryTerm> ),
           Restore (
           <GlossaryTerm term="restoration plan">restoration plans</GlossaryTerm>{' '}
           ), Drinking Water (Which waters have been assessed for drinking water
