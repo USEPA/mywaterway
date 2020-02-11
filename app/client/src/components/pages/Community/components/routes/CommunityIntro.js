@@ -96,9 +96,9 @@ function CommunityIntro({ ...props }: Props) {
             <img src={fishingIcon} alt="Eating Fish" />
           </TopicIcon>
           <TopicText>
-            <strong>Fish Consumption:</strong> &nbsp; EPA, states, and tribes
-            monitor and assess water quality to determine if fish and shellfish
-            are safe to eat.
+            <strong>Eating Fish:</strong> &nbsp; EPA, states, and tribes monitor
+            and assess water quality to determine if fish and shellfish are safe
+            to eat.
           </TopicText>
         </Topic>
 
