@@ -2,33 +2,75 @@
 
 import React from 'react';
 import styled from 'styled-components';
+// components
+import { LargeTab } from 'components/shared/ContentTabs/LargeTab.js';
+import { Tabs, TabList, TabPanels, TabPanel } from '@reach/tabs';
+import Info from './Info';
+import Questions from './Questions';
+
+import { ContentTabs } from 'components/shared/ContentTabs';
+// styles
+import { fonts } from 'styles/index.js';
 
 // --- styled components ---
 const Container = styled.div`
   padding: 1rem;
+`;
 
-  p {
-    padding-bottom: 0;
-    line-height: 1.375;
+const StyledTabs = styled(Tabs)`
+  [data-reach-tab] {
+    padding: 0.875em;
   }
 
-  a {
-    display: block;
-    margin-bottom: 0.25rem;
-    font-size: 1.25em;
-    line-height: 1.125;
-  }
+  [data-reach-tab-panel] {
+    p {
+      margin-top: 1rem;
+      padding-bottom: 0.5rem;
+      line-height: 1.375;
 
-  @media (min-width: 30em) {
-    padding: 2rem;
-
-    a {
-      font-size: 1.375em;
+      :first-of-type {
+        margin-top: 0;
+      }
     }
 
     hr {
-      margin-top: 2rem;
+      margin-top: 0;
+      margin-bottom: 0.5rem;
     }
+
+    ul {
+      padding-bottom: 0;
+    }
+
+    li {
+      line-height: 1.375;
+    }
+
+    h3 {
+      margin: 2rem 0 0.25rem;
+      padding-bottom: 0;
+      font-family: ${fonts.primary};
+      font-size: 1.8em;
+
+      & + p {
+        margin-top: 0;
+      }
+    }
+    h5 {
+      margin: 1rem 0 0.25rem;
+      padding-bottom: 0;
+      font-family: ${fonts.primary};
+      font-size: 1.375em;
+
+      & + p {
+        margin-top: 0;
+      }
+    }
+  }
+
+  /* sub tabs */
+  [data-reach-tabs] {
+    margin-bottom: 0.5rem;
   }
 `;
 
@@ -62,7 +104,22 @@ function AboutContent({ ...props }: Props) {
 
   return (
     <Container className="container">
-      <p>Welcome to the How's My Waterway About page.</p>
+      <ContentTabs>
+        <StyledTabs>
+          <TabList>
+            <LargeTab>About How's My Waterway</LargeTab>
+            <LargeTab>Questions and Answers</LargeTab>
+          </TabList>
+          <TabPanels>
+            <TabPanel>
+              <Info />
+            </TabPanel>
+            <TabPanel>
+              <Questions />
+            </TabPanel>
+          </TabPanels>
+        </StyledTabs>
+      </ContentTabs>
     </Container>
   );
 }
