@@ -704,7 +704,7 @@ function WaterQualityOverview({ ...props }: Props) {
     },
     {
       id: 'fishing',
-      title: 'Fishing',
+      title: 'Eating Fish',
       icon: <FishingIcon height="2.5em" />,
     },
     {

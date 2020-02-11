@@ -93,13 +93,23 @@ function CommunityIntro({ ...props }: Props) {
 
         <Topic>
           <TopicIcon>
-            <img src={fishingIcon} alt="Fishing" />
+            <img src={fishingIcon} alt="Eating Fish" />
           </TopicIcon>
           <TopicText>
-            <strong>Fish Consumption and Aquatic Life:</strong> &nbsp; EPA,
-            states, and tribes monitor and assess water quality to determine the
-            impact of impairments on plants and animals living in the water.
-            They also monitor and assess if fish and shellfish are safe to eat.
+            <strong>Eating Fish:</strong> &nbsp; EPA, states, and tribes monitor
+            and assess water quality to determine if fish and shellfish are safe
+            to eat.
+          </TopicText>
+        </Topic>
+
+        <Topic>
+          <TopicIcon>
+            <img src={fishingIcon} alt="Aquatic Life" />
+          </TopicIcon>
+          <TopicText>
+            <strong>Aquatic Life:</strong> &nbsp; EPA, states, and tribes
+            monitor and assess water quality to determine the impact of
+            impairments on plants and animals living in the water.
           </TopicText>
         </Topic>
 

@@ -17,7 +17,7 @@ import { StyledText, StyledTopic } from 'components/shared/Topics';
 import {
   StyledButtons,
   StyledTopicButtonLink,
-  StyledTwoButtonLinks,
+  StyledThreeButtonLinks,
 } from 'components/shared/ButtonLinks';
 
 // --- styled components ---
@@ -30,7 +30,7 @@ const Prompt = styled.p`
 `;
 
 const TopicButtonLink = styled(StyledTopicButtonLink)`
-  ${StyledTwoButtonLinks}
+  ${StyledThreeButtonLinks}
 `;
 
 // --- components ---
@@ -38,22 +38,25 @@ type Props = {
   ...RouteProps,
 };
 
-function Fishing({ ...props }: Props) {
+function EatingFish({ ...props }: Props) {
   return (
     <Page>
       <NavBar title="Explore Topics" />
 
       <StyledTopic>
         <FishingIcon />
-        <p>Fishing</p>
+        <p>Eating Fish</p>
       </StyledTopic>
 
       <StyledText className="container">
         <Prompt>
-          <em>Find out more about your fish and other aquatic life.</em>
+          <em>
+            Learn whether fish caught in your local waters are deemed safe to
+            eat.
+          </em>
         </Prompt>
 
-        <LocationSearch route="/community/{urlSearch}/fishing" />
+        <LocationSearch route="/community/{urlSearch}/eating-fish" />
 
         <br />
 
@@ -91,6 +94,10 @@ function Fishing({ ...props }: Props) {
             <SwimmingIcon />
             Swimming
           </TopicButtonLink>
+          <TopicButtonLink to="/aquatic-life">
+            <FishingIcon />
+            Aquatic Life
+          </TopicButtonLink>
           <TopicButtonLink to="/drinking-water">
             <DrinkingWaterIcon />
             Drinking Water
@@ -101,4 +108,4 @@ function Fishing({ ...props }: Props) {
   );
 }
 
-export default Fishing;
+export default EatingFish;

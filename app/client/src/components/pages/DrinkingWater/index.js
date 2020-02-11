@@ -15,7 +15,7 @@ import { StyledText, StyledTopic } from 'components/shared/Topics';
 import {
   StyledButtons,
   StyledTopicButtonLink,
-  StyledTwoButtonLinks,
+  StyledThreeButtonLinks,
 } from 'components/shared/ButtonLinks';
 
 // --- styled components ---
@@ -24,7 +24,7 @@ const Prompt = styled.p`
 `;
 
 const TopicButtonLink = styled(StyledTopicButtonLink)`
-  ${StyledTwoButtonLinks}
+  ${StyledThreeButtonLinks}
 `;
 
 // --- components ---
@@ -70,9 +70,13 @@ function DrinkingWater({ ...props }: Props) {
             <SwimmingIcon />
             Swimming
           </TopicButtonLink>
-          <TopicButtonLink to="/fishing">
+          <TopicButtonLink to="/aquatic-life">
             <FishingIcon />
-            Fishing
+            Aquatic Life
+          </TopicButtonLink>
+          <TopicButtonLink to="/eating-fish">
+            <FishingIcon />
+            Eating Fish
           </TopicButtonLink>
         </StyledButtons>
       </StyledText>

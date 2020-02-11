@@ -38,34 +38,38 @@ type Props = {
   ...RouteProps,
 };
 
-function Swimming({ ...props }: Props) {
+function AquaticLife({ ...props }: Props) {
   return (
     <Page>
       <NavBar title="Explore Topics" />
 
       <StyledTopic>
-        <SwimmingIcon />
-        <p>Swimming</p>
+        <FishingIcon />
+        <p>Aquatic Life</p>
       </StyledTopic>
 
       <StyledText className="container">
         <Prompt>
-          <em>Find out more about water you may potentially swim in.</em>
+          <em>
+            Find out about the overall status of aquatic life and what
+            impairments exist in your local waterbodies.
+          </em>
         </Prompt>
 
-        <LocationSearch route="/community/{urlSearch}/swimming" />
+        <LocationSearch route="/community/{urlSearch}/aquatic-life" />
 
         <br />
 
         <p>
-          Learn whether your local waters have been deemed safe for swimming and
-          other recreational activities. Find out about what impairments exist
-          in your local waterbodies.
+          Learn whether fish caught in your local waters are deemed safe to eat.
+          Find out more about the overall status of aquatic life and what
+          impairments exist in your local waterbodies.
           <ShowLessMore
             text={`
-            Water quality can change on very short notice. When deciding if it is
-            safe to swim in a water body, refer to any local or state advisories.
-            If available, refer to local or state real-time water quality reports.`}
+            The information in How’s My Waterway about the safety of eating
+            fish caught recreationally should only be considered as general
+            reference. Please consult with your state for local or state-wide
+            fish advisories.`}
             charLimit={0}
           />
         </p>
@@ -86,13 +90,13 @@ function Swimming({ ...props }: Props) {
         <h2>Other Topics</h2>
 
         <StyledButtons>
+          <TopicButtonLink to="/swimming">
+            <SwimmingIcon />
+            Swimming
+          </TopicButtonLink>
           <TopicButtonLink to="/eating-fish">
             <FishingIcon />
             Eating Fish
-          </TopicButtonLink>
-          <TopicButtonLink to="/aquatic-life">
-            <FishingIcon />
-            Aquatic Life
           </TopicButtonLink>
           <TopicButtonLink to="/drinking-water">
             <DrinkingWaterIcon />
@@ -104,4 +108,4 @@ function Swimming({ ...props }: Props) {
   );
 }
 
-export default Swimming;
+export default AquaticLife;
