@@ -4,9 +4,16 @@ import { mapServiceMapping } from 'config/mapServiceConfig';
 import { webServiceMapping } from 'config/webServiceConfig';
 
 export function fetchCheck(apiUrl: string) {
-  logCallToGoogleAnalytics(apiUrl);
-
-  return fetch(apiUrl).then(checkResponse);
+  const startTime = performance.now();
+  return fetch(apiUrl)
+    .then((response) => {
+      logCallToGoogleAnalytics(apiUrl, response.status, startTime);
+      return checkResponse(response);
+    })
+    .catch((err) => {
+      console.error(err);
+      logCallToGoogleAnalytics(apiUrl, err, startTime);
+    });
 }
 
 export function proxyFetch(apiUrl: string) {
@@ -15,9 +22,16 @@ export function proxyFetch(apiUrl: string) {
   const proxyUrl = REACT_APP_PROXY_URL || `${window.location.origin}/proxy`;
   const url = `${proxyUrl}?url=${apiUrl}`;
 
-  logCallToGoogleAnalytics(url);
-
-  return fetch(url).then(checkResponse);
+  const startTime = performance.now();
+  return fetch(url)
+    .then((response) => {
+      logCallToGoogleAnalytics(url, response.status, startTime);
+      return checkResponse(response);
+    })
+    .catch((err) => {
+      console.error(err);
+      logCallToGoogleAnalytics(url, err, startTime);
+    });
 }
 
 export function checkResponse(response) {
@@ -30,8 +44,14 @@ export function checkResponse(response) {
   });
 }
 
-export function logCallToGoogleAnalytics(url: string) {
+export function logCallToGoogleAnalytics(
+  url: string,
+  status: number,
+  startTime: number,
+) {
   if (!window.isIdSet) return;
+
+  const duration = performance.now() - startTime;
 
   // combine the web service and map service mappings
   let combinedMapping = webServiceMapping.concat(mapServiceMapping);
@@ -43,9 +63,12 @@ export function logCallToGoogleAnalytics(url: string) {
       eventAction = item.name;
     }
   });
+  eventAction = `omw-hmw2-${eventAction}`;
+
+  const eventLabel = `${url} | status:${status} | time:${duration}`;
 
   // log to google analytics if it has been setup
-  window.ga('send', 'event', 'Web-service', eventAction, url);
+  window.ga('send', 'event', 'Web-service', eventAction, eventLabel);
 }
 
 function wildcardIncludes(str, rule) {
