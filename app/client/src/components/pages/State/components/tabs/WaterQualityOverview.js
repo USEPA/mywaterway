@@ -40,6 +40,7 @@ import {
   stateGeneralError,
   stateNoDataError,
 } from 'config/errorMessages';
+import AquaticLifeIcon from 'components/shared/Icons/AquaticLifeIcon';
 
 function relabelWaterType(oldLabel) {
   let newLabel = 'Other Types';
@@ -723,7 +724,7 @@ function WaterQualityOverview({ ...props }: Props) {
     {
       id: 'ecological',
       title: 'Aquatic Life',
-      icon: <FishingIcon height="2.5em" />,
+      icon: <AquaticLifeIcon height="2.5em" />,
     },
     {
       id: 'drinking',
