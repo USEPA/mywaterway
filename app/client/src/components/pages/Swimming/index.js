@@ -7,9 +7,10 @@ import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
 import NavBar from 'components/shared/NavBar';
 import LocationSearch from 'components/shared/LocationSearch';
-import DrinkingWaterIcon from 'components/shared/Icons/DrinkingWaterIcon';
 import SwimmingIcon from 'components/shared/Icons/SwimmingIcon';
-import FishingIcon from 'components/shared/Icons/FishingIcon';
+import EatingFishIcon from 'components/shared/Icons/EatingFishIcon';
+import AquaticLifeIcon from 'components/shared/Icons/AquaticLifeIcon';
+import DrinkingWaterIcon from 'components/shared/Icons/DrinkingWaterIcon';
 import DisclaimerModal from 'components/shared/DisclaimerModal';
 import ShowLessMore from 'components/shared/ShowLessMore';
 // styled components
@@ -87,11 +88,11 @@ function Swimming({ ...props }: Props) {
 
         <StyledButtons>
           <TopicButtonLink to="/eating-fish">
-            <FishingIcon />
+            <EatingFishIcon />
             Eating Fish
           </TopicButtonLink>
           <TopicButtonLink to="/aquatic-life">
-            <FishingIcon />
+            <AquaticLifeIcon />
             Aquatic Life
           </TopicButtonLink>
           <TopicButtonLink to="/drinking-water">

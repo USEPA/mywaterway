@@ -10,7 +10,7 @@ import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import DrinkingWaterIcon from 'components/shared/Icons/DrinkingWaterIcon';
 import SwimmingIcon from 'components/shared/Icons/SwimmingIcon';
-import FishingIcon from 'components/shared/Icons/FishingIcon';
+import EatingFishIcon from 'components/shared/Icons/EatingFishIcon';
 import OtherIcon from 'components/shared/Icons/OtherIcon';
 import WaterSystemSummary from 'components/shared/WaterSystemSummary';
 import SurveyResults from 'components/pages/State/components/SurveyResults';
@@ -718,7 +718,7 @@ function WaterQualityOverview({ ...props }: Props) {
     {
       id: 'fishing',
       title: 'Eating Fish',
-      icon: <FishingIcon height="2.5em" />,
+      icon: <EatingFishIcon height="2.5em" />,
     },
     {
       id: 'ecological',
