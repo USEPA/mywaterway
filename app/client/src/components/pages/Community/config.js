@@ -19,7 +19,8 @@ import ShowLessMore from 'components/shared/ShowLessMore';
 import overviewIcon from './images/overview.png';
 import drinkingWaterIcon from './images/drinking-water.png';
 import swimmingIcon from './images/swimming.png';
-import fishingIcon from './images/fishing.png';
+import eatingfishIcon from './images/eating-fish.png';
+import aquaticLifeIcon from './images/aquatic-life.png';
 import monitoringIcon from './images/monitoring.png';
 import identifiedIssuesIcon from './images/identified-issues.png';
 import restoreIcon from './images/restore.png';
@@ -251,7 +252,7 @@ const tabs = [
   {
     title: 'Eating Fish',
     route: '/community/{urlSearch}/eating-fish',
-    icon: fishingIcon,
+    icon: eatingfishIcon,
     upper: fishingUpper,
     lower: <EatingFish />,
     layers: { waterbodyLayer: true },
@@ -259,7 +260,7 @@ const tabs = [
   {
     title: 'Aquatic Life',
     route: '/community/{urlSearch}/aquatic-life',
-    icon: fishingIcon, // TODO: replace once icon is created
+    icon: aquaticLifeIcon,
     upper: aquaticUpper,
     lower: <AquaticLife />,
     layers: { waterbodyLayer: true },
