@@ -50,10 +50,7 @@ function AquaticLife({ ...props }: Props) {
 
       <StyledText className="container">
         <Prompt>
-          <em>
-            Find out about the overall status of aquatic life and what
-            impairments exist in your local waterbodies.
-          </em>
+          <em>Find out more about your aquatic life.</em>
         </Prompt>
 
         <LocationSearch route="/community/{urlSearch}/aquatic-life" />
@@ -61,7 +58,6 @@ function AquaticLife({ ...props }: Props) {
         <br />
 
         <p>
-          Learn whether fish caught in your local waters are deemed safe to eat.
           Find out more about the overall status of aquatic life and what
           impairments exist in your local waterbodies.
           <ShowLessMore
