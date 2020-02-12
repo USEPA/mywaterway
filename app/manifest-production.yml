@@ -1,8 +1,8 @@
 ---
  applications:
    - name: mywaterway-prod
-     instances: 2
-     memory: 512M
+     instances: 4
+     memory: 128M
      disk_quota: 512MB
      timeout: 180
      buildpacks:
