@@ -62,10 +62,10 @@ function AquaticLife({ ...props }: Props) {
           impairments exist in your local waterbodies.
           <ShowLessMore
             text={`
-            The information in How’s My Waterway about the safety of eating
-            fish caught recreationally should only be considered as general
-            reference. Please consult with your state for local or state-wide
-            fish advisories.`}
+            The condition of a waterbody is dynamic and can change at any time, 
+            and the information in How’s My Waterway should only be used for 
+            general reference. If available, refer to local or state real-time water
+             quality reports.`}
             charLimit={0}
           />
         </p>
