@@ -50,10 +50,7 @@ function EatingFish({ ...props }: Props) {
 
       <StyledText className="container">
         <Prompt>
-          <em>
-            Learn whether fish caught in your local waters are deemed safe to
-            eat.
-          </em>
+          <em>Find out more about your fish.</em>
         </Prompt>
 
         <LocationSearch route="/community/{urlSearch}/eating-fish" />
@@ -62,8 +59,6 @@ function EatingFish({ ...props }: Props) {
 
         <p>
           Learn whether fish caught in your local waters are deemed safe to eat.
-          Find out more about the overall status of aquatic life and what
-          impairments exist in your local waterbodies.
           <ShowLessMore
             text={`
             The information in How’s My Waterway about the safety of eating
