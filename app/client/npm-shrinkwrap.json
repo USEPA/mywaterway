@@ -1571,18 +1571,6 @@
         "@emotion/unitless": "0.7.5",
         "@emotion/utils": "0.11.3",
         "csstype": "^2.5.7"
-      },
-      "dependencies": {
-        "@emotion/memoize": {
-          "version": "0.7.4",
-          "resolved": "https://registry.npmjs.org/@emotion/memoize/-/memoize-0.7.4.tgz",
-          "integrity": "sha512-Ja/Vfqe3HpuzRsG1oBtWTHk2PGZ7GR+2Vz5iYGelAw8dx32K0y7PjVuxK6z1nMpZOqAFsRUPCkK1YjJ56qJlgw=="
-        },
-        "@emotion/unitless": {
-          "version": "0.7.5",
-          "resolved": "https://registry.npmjs.org/@emotion/unitless/-/unitless-0.7.5.tgz",
-          "integrity": "sha512-OWORNpfjMsSSUBVrRBVGECkhWcULOAJz9ZW8uK9qgxD+87M7jHRcvh/A96XXNhXTLmKcoYSQtBEX7lHMO7YRwg=="
-        }
       }
     },
     "@emotion/sheet": {
@@ -3159,13 +3147,6 @@
         "escape-string-regexp": "^1.0.5",
         "find-root": "^1.1.0",
         "source-map": "^0.5.7"
-      },
-      "dependencies": {
-        "@emotion/memoize": {
-          "version": "0.7.4",
-          "resolved": "https://registry.npmjs.org/@emotion/memoize/-/memoize-0.7.4.tgz",
-          "integrity": "sha512-Ja/Vfqe3HpuzRsG1oBtWTHk2PGZ7GR+2Vz5iYGelAw8dx32K0y7PjVuxK6z1nMpZOqAFsRUPCkK1YjJ56qJlgw=="
-        }
       }
     },
     "babel-plugin-istanbul": {
@@ -10379,6 +10360,11 @@
         }
       }
     },
+    "memoize-one": {
+      "version": "5.1.1",
+      "resolved": "https://registry.npmjs.org/memoize-one/-/memoize-one-5.1.1.tgz",
+      "integrity": "sha512-HKeeBpWvqiVJD57ZUAsJNm71eHTykffzcLZVYWiVfQeI1rJtuEaS7hQiEpWfVVk18donPwJEcFKIkCmPJNOhHA=="
+    },
     "memory-fs": {
       "version": "0.4.1",
       "resolved": "https://registry.npmjs.org/memory-fs/-/memory-fs-0.4.1.tgz",
@@ -12936,19 +12922,17 @@
       }
     },
     "react-select": {
-      "version": "3.0.4",
-      "resolved": "https://registry.npmjs.org/react-select/-/react-select-3.0.4.tgz",
-      "integrity": "sha512-fbVISKa/lSUlLsltuatfUiKcWCNvdLXxFFyrzVQCBUsjxJZH/m7UMPdw/ywmRixAmwXAP++MdbNNZypOsiDEfA==",
+      "version": "3.0.8",
+      "resolved": "https://registry.npmjs.org/react-select/-/react-select-3.0.8.tgz",
+      "integrity": "sha512-v9LpOhckLlRmXN5A6/mGGEft4FMrfaBFTGAnuPHcUgVId7Je42kTq9y0Z+Ye5z8/j0XDT3zUqza8gaRaI1PZIg==",
       "requires": {
         "@babel/runtime": "^7.4.4",
         "@emotion/cache": "^10.0.9",
         "@emotion/core": "^10.0.9",
         "@emotion/css": "^10.0.9",
-        "classnames": "^2.2.5",
         "memoize-one": "^5.0.0",
         "prop-types": "^15.6.0",
-        "raf": "^3.4.0",
-        "react-input-autosize": "^2.2.1",
+        "react-input-autosize": "^2.2.2",
         "react-transition-group": "^2.2.1"
       },
       "dependencies": {
@@ -12959,11 +12943,6 @@
           "requires": {
             "regenerator-runtime": "^0.13.2"
           }
-        },
-        "memoize-one": {
-          "version": "5.1.1",
-          "resolved": "https://registry.npmjs.org/memoize-one/-/memoize-one-5.1.1.tgz",
-          "integrity": "sha512-HKeeBpWvqiVJD57ZUAsJNm71eHTykffzcLZVYWiVfQeI1rJtuEaS7hQiEpWfVVk18donPwJEcFKIkCmPJNOhHA=="
         },
         "regenerator-runtime": {
           "version": "0.13.3",
@@ -13993,6 +13972,11 @@
         "astral-regex": "^1.0.0",
         "is-fullwidth-code-point": "^2.0.0"
       }
+    },
+    "smoothscroll-polyfill": {
+      "version": "0.4.4",
+      "resolved": "https://registry.npmjs.org/smoothscroll-polyfill/-/smoothscroll-polyfill-0.4.4.tgz",
+      "integrity": "sha512-TK5ZA9U5RqCwMpfoMq/l1mrH0JAR7y7KRvOBx0n2869aLxch+gT9GhN3yUfjiw+d/DiF1mKo14+hd62JyMmoBg=="
     },
     "snapdragon": {
       "version": "0.8.2",

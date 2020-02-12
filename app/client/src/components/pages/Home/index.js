@@ -16,6 +16,7 @@ import {
   StyledButtonLink,
   StyledTopicButtonLink,
   StyledThreeButtonLinks,
+  StyledFourButtonLinks,
 } from 'components/shared/ButtonLinks';
 // styles
 import { colors } from 'styles/index.js';
@@ -42,7 +43,7 @@ const Paragraph = styled.p`
 `;
 
 const TopicButtonLink = styled(StyledTopicButtonLink)`
-  ${StyledThreeButtonLinks}
+  ${StyledFourButtonLinks}
 `;
 
 const PlaceButtonLink = styled(StyledButtonLink)`
@@ -106,9 +107,13 @@ function Home({ ...props }: Props) {
             <SwimmingIcon />
             Swimming
           </TopicButtonLink>
-          <TopicButtonLink to="/fishing">
+          <TopicButtonLink to="/eating-fish">
             <FishingIcon />
-            Fishing
+            Eating Fish
+          </TopicButtonLink>
+          <TopicButtonLink to="/aquatic-life">
+            <FishingIcon />
+            Aquatic Life
           </TopicButtonLink>
           <TopicButtonLink to="/drinking-water">
             <DrinkingWaterIcon />

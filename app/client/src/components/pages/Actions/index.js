@@ -231,193 +231,173 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
   const [documents, setDocuments] = React.useState([]);
   const [pollutants, setPollutants] = React.useState([]);
   const [waters, setWaters] = React.useState([]);
-  React.useEffect(
-    () => {
-      const url =
-        attains.serviceUrl +
-        `actions?ActionIdentifier=${actionId}` +
-        `&organizationIdentifier=${orgId}`;
+  React.useEffect(() => {
+    const url =
+      attains.serviceUrl +
+      `actions?ActionIdentifier=${actionId}` +
+      `&organizationIdentifier=${orgId}`;
 
-      fetchCheck(url)
-        .then((res) => {
-          if (res.items.length < 1) {
-            setLoading(false);
-            setNoActions(true);
-            return;
-          }
-
-          setOrganizationName(res.items[0].organizationName);
-          if (res.items.length >= 1 && res.items[0].actions.length >= 1) {
-            const action = res.items[0].actions[0];
-
-            getAssessmentUnitNames(action)
-              .then((data) => {
-                // process assessment unit data and get key action data
-                const {
-                  actionName,
-                  completionDate,
-                  actionTypeCode,
-                  actionStatusCode,
-                  documents,
-                } = processAssessmentUnitData(data, action);
-
-                // Get a sorted list of pollutants and waters
-                const {
-                  pollutants,
-                  waters, //
-                } = getPollutantsWaters(action, orgId);
-
-                // set the state variables
-                setLoading(false);
-                setActionName(actionName);
-                setCompletionDate(completionDate);
-                setActionTypeCode(actionTypeCode);
-                setActionStatusCode(actionStatusCode);
-                setDocuments(
-                  documents.sort((a, b) =>
-                    a.documentName.localeCompare(b.documentName),
-                  ),
-                );
-                setPollutants(pollutants);
-                setWaters(waters);
-              })
-              .catch((err) => {
-                setLoading(false);
-                setError(true);
-                console.error(err);
-              });
-          }
-        })
-        .catch((err) => {
+    fetchCheck(url)
+      .then((res) => {
+        if (res.items.length < 1) {
           setLoading(false);
-          setError(true);
-          console.error(err);
-        });
-    },
-    [actionId, orgId],
-  );
+          setNoActions(true);
+          return;
+        }
+
+        setOrganizationName(res.items[0].organizationName);
+        if (res.items.length >= 1 && res.items[0].actions.length >= 1) {
+          const action = res.items[0].actions[0];
+
+          getAssessmentUnitNames(action)
+            .then((data) => {
+              // process assessment unit data and get key action data
+              const {
+                actionName,
+                completionDate,
+                actionTypeCode,
+                actionStatusCode,
+                documents,
+              } = processAssessmentUnitData(data, action);
+
+              // Get a sorted list of pollutants and waters
+              const {
+                pollutants,
+                waters, //
+              } = getPollutantsWaters(action, orgId);
+
+              // set the state variables
+              setLoading(false);
+              setActionName(actionName);
+              setCompletionDate(completionDate);
+              setActionTypeCode(actionTypeCode);
+              setActionStatusCode(actionStatusCode);
+              setDocuments(
+                documents.sort((a, b) =>
+                  a.documentName.localeCompare(b.documentName),
+                ),
+              );
+              setPollutants(pollutants);
+              setWaters(waters);
+            })
+            .catch((err) => {
+              setLoading(false);
+              setError(true);
+              console.error(err);
+            });
+        }
+      })
+      .catch((err) => {
+        setLoading(false);
+        setError(true);
+        console.error(err);
+      });
+  }, [actionId, orgId]);
 
   // Builds the unitIds dictionary that is used for determining what
   // waters to display on the screen and what the content will be.
   const [unitIds, setUnitIds] = React.useState({});
-  React.useEffect(
-    () => {
-      if (waters.length === 0) return;
+  React.useEffect(() => {
+    if (waters.length === 0) return;
 
-      const unitIds = {};
+    const unitIds = {};
 
-      waters.forEach((water) => {
-        const {
-          assessmentUnitIdentifier,
-          associatedPollutants,
-          assessmentUrl,
-          parameters,
-        } = water;
+    waters.forEach((water) => {
+      const {
+        assessmentUnitIdentifier,
+        associatedPollutants,
+        assessmentUrl,
+        parameters,
+      } = water;
 
-        let content = <></>;
-        if (actionTypeCode === 'TMDL' && associatedPollutants.length > 0) {
-          content = (
-            <>
-              <strong>Associated Impairments: </strong>
-              <ul>
-                {associatedPollutants
-                  .sort((a, b) =>
-                    a.pollutantName.localeCompare(b.pollutantName),
-                  )
-                  .map((pollutant) => {
-                    const permits = pollutant.permits
-                      .filter((permit) => {
-                        return permit.NPDESIdentifier;
-                      })
-                      .sort((a, b) => {
-                        return a.NPDESIdentifier.localeCompare(
-                          b.NPDESIdentifier,
-                        );
-                      });
+      let content = <></>;
+      if (actionTypeCode === 'TMDL' && associatedPollutants.length > 0) {
+        content = (
+          <>
+            <strong>Associated Impairments: </strong>
+            <ul>
+              {associatedPollutants
+                .sort((a, b) => a.pollutantName.localeCompare(b.pollutantName))
+                .map((pollutant) => {
+                  const permits = pollutant.permits
+                    .filter((permit) => {
+                      return permit.NPDESIdentifier;
+                    })
+                    .sort((a, b) => {
+                      return a.NPDESIdentifier.localeCompare(b.NPDESIdentifier);
+                    });
 
-                    return (
-                      <li key={pollutant.pollutantName}>
-                        <strong>{pollutant.pollutantName}</strong>
-                        <br />
-                        <em>TMDL End Point: </em>
-                        <ShowLessMore
-                          text={pollutant.TMDLEndPointText}
-                          charLimit={150}
-                        />
-                        <br />
-                        <em>Permits: </em>
-                        {permits.length === 0 ? (
-                          <>No permits found.</>
-                        ) : (
-                          permits.map((permit, index) => (
-                            <React.Fragment key={index}>
-                              <a
-                                href={echoUrl + permit.NPDESIdentifier}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                {permit.NPDESIdentifier}
-                              </a>
-                              {index === permits.length - 1 ? '' : ', '}
-                            </React.Fragment>
-                          ))
-                        )}
-                      </li>
-                    );
-                  })}
-              </ul>
+                  return (
+                    <li key={pollutant.pollutantName}>
+                      <strong>{pollutant.pollutantName}</strong>
+                      <br />
+                      <em>TMDL End Point: </em>
+                      <ShowLessMore
+                        text={pollutant.TMDLEndPointText}
+                        charLimit={150}
+                      />
+                      <br />
+                      <em>Permits: </em>
+                      {permits.length === 0 ? (
+                        <>No permits found.</>
+                      ) : (
+                        permits.map((permit, index) => (
+                          <React.Fragment key={index}>
+                            <a
+                              href={echoUrl + permit.NPDESIdentifier}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {permit.NPDESIdentifier}
+                            </a>
+                            {index === permits.length - 1 ? '' : ', '}
+                          </React.Fragment>
+                        ))
+                      )}
+                    </li>
+                  );
+                })}
+            </ul>
 
-              <p>
-                <a
-                  href={assessmentUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Icon className="fas fa-file-alt" aria-hidden="true" />
-                  View Waterbody Report
-                </a>
-              </p>
-            </>
-          );
-        } else {
-          content = (
-            <>
-              <strong>Parameters Addressed: </strong>
-              <ul>
-                {parameters
-                  .sort((a, b) =>
-                    a.parameterName.localeCompare(b.parameterName),
-                  )
-                  .map((parameter) => {
-                    return (
-                      <li key={parameter.parameterName}>
-                        <strong>{parameter.parameterName}</strong>
-                      </li>
-                    );
-                  })}
-              </ul>
+            <p>
+              <a href={assessmentUrl} target="_blank" rel="noopener noreferrer">
+                <Icon className="fas fa-file-alt" aria-hidden="true" />
+                View Waterbody Report
+              </a>
+            </p>
+          </>
+        );
+      } else {
+        content = (
+          <>
+            <strong>Parameters Addressed: </strong>
+            <ul>
+              {parameters
+                .sort((a, b) => a.parameterName.localeCompare(b.parameterName))
+                .map((parameter) => {
+                  return (
+                    <li key={parameter.parameterName}>
+                      <strong>{parameter.parameterName}</strong>
+                    </li>
+                  );
+                })}
+            </ul>
 
-              <p>
-                <a
-                  href={assessmentUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Icon className="fas fa-file-alt" aria-hidden="true" />
-                  View Waterbody Report
-                </a>
-              </p>
-            </>
-          );
-        }
+            <p>
+              <a href={assessmentUrl} target="_blank" rel="noopener noreferrer">
+                <Icon className="fas fa-file-alt" aria-hidden="true" />
+                View Waterbody Report
+              </a>
+            </p>
+          </>
+        );
+      }
 
-        unitIds[assessmentUnitIdentifier] = content;
-      });
+      unitIds[assessmentUnitIdentifier] = content;
+    });
 
-      setUnitIds(unitIds);
-    },
-    [waters, actionTypeCode],
-  );
+    setUnitIds(unitIds);
+  }, [waters, actionTypeCode]);
 
   const [mapLayer, setMapLayer] = React.useState(null);
 

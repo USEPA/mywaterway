@@ -92,34 +92,31 @@ function SurveyResults({
   const [selectedSurveyGroup, setSelectedSurveyGroup] = React.useState(null);
 
   // Handles user and auto subPopulation selection
-  React.useEffect(
-    () => {
-      if (subPopulationCodes && subPopulationCodes.length > 0) {
-        // set to the user's selection if it is availble
-        if (
-          subPopulationCodes.some(
-            (e) => e.subPopulationCode === userSelectedSubPop,
-          )
-        ) {
-          setSelectedSubPop(userSelectedSubPop);
-          setSelectedSurveyGroup(
-            subPopulationCodes.find(
-              (item) => item.subPopulationCode === userSelectedSubPop,
-            ),
-          );
-        }
-
-        // set to first item if the user's select cannot be found
-        else {
-          setSelectedSubPop(subPopulationCodes[0].subPopulationCode);
-          setSelectedSurveyGroup(subPopulationCodes[0]);
-        }
-      } else {
-        setSelectedSubPop(''); // no data available
+  React.useEffect(() => {
+    if (subPopulationCodes && subPopulationCodes.length > 0) {
+      // set to the user's selection if it is availble
+      if (
+        subPopulationCodes.some(
+          (e) => e.subPopulationCode === userSelectedSubPop,
+        )
+      ) {
+        setSelectedSubPop(userSelectedSubPop);
+        setSelectedSurveyGroup(
+          subPopulationCodes.find(
+            (item) => item.subPopulationCode === userSelectedSubPop,
+          ),
+        );
       }
-    },
-    [waterType, useSelected, subPopulationCodes, userSelectedSubPop],
-  );
+
+      // set to first item if the user's select cannot be found
+      else {
+        setSelectedSubPop(subPopulationCodes[0].subPopulationCode);
+        setSelectedSurveyGroup(subPopulationCodes[0]);
+      }
+    } else {
+      setSelectedSubPop(''); // no data available
+    }
+  }, [waterType, useSelected, subPopulationCodes, userSelectedSubPop]);
 
   // gets the color, label and order of a particular stressor
   const getStressorColorCoding = (mapping, stressor, surveyCategoryCode) => {

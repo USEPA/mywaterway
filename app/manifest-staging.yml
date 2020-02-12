@@ -2,7 +2,7 @@
  applications:
    - name: mywaterway-staging
      instances: 2
-     memory: 512M
+     memory: 128M
      disk_quota: 512MB
      timeout: 180
      buildpacks:

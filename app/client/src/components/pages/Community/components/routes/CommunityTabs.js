@@ -18,6 +18,8 @@ import { colors, fonts } from 'styles/index.js';
 import '@reach/tabs/styles.css';
 
 // --- styled components ---
+const lightBlue = '#f0f6f9';
+
 const Location = styled.div`
   display: flex;
   align-items: center;
@@ -53,18 +55,33 @@ const Watershed = styled.p`
 `;
 
 const StyledTabs = styled(Tabs)`
+  & ::-webkit-scrollbar {
+    height: 12px;
+  }
+
+  & ::-webkit-scrollbar-track {
+    background-color: ${lightBlue};
+  }
+
+  & ::-webkit-scrollbar-thumb {
+    border: 1px solid ${colors.black(0.25)};
+    border-radius: 12px;
+    background-color: ${colors.white()};
+  }
+
   > [data-reach-tab-list] {
-    flex-flow: row wrap;
+    overflow-x: scroll;
+    padding-bottom: 0.5em;
+    background-color: ${lightBlue};
 
     [data-reach-tab] {
+      flex: 0 0 calc(2 / 9 * 100%); /* 4.5 tabs before overflow */
       padding: 0.5em;
       border: none;
-      border-right: 1px solid white;
-      border-bottom: 1px solid white;
+      border-right: 1px solid ${colors.white()};
       border-radius: 0;
       min-height: 45px;
-      width: 50%;
-      font-size: 0.8125em;
+      font-size: 0.6875em;
       color: white;
       background-color: ${colors.blue()};
       /* fake border bottom so it doesn't interfere with right border */
@@ -78,33 +95,32 @@ const StyledTabs = styled(Tabs)`
         box-shadow: inset 0 -5px 0 ${colors.teal()};
       }
 
-      &:nth-of-type(even) {
+      &:last-of-type {
         border-right: none;
       }
 
-      @media (min-width: 320px) {
-        width: 25%;
-
-        &:nth-of-type(2),
-        &:nth-of-type(6) {
-          border-right: 1px solid white;
-        }
+      @media (min-width: 640px) {
+        font-size: 0.75em;
       }
 
-      @media (min-width: 600px) {
-        width: 12.5%;
-
-        &:nth-of-type(4) {
-          border-right: 1px solid white;
-        }
+      @media (min-width: 800px) {
+        flex-basis: calc(2 / 11 * 100%); /* 5.5 tabs before overflow */
       }
 
       @media (min-width: 960px) {
-        font-size: 0.6875em;
+        flex-basis: calc(2 / 9 * 100%); /* 4.5 tabs before overlow */
       }
 
-      @media (min-width: 1200px) {
-        font-size: 0.75em;
+      @media (min-width: 1280px) {
+        flex-basis: calc(2 / 11 * 100%); /* 5.5 tabs before overflow */
+      }
+
+      @media (min-width: 1600px) {
+        flex-basis: calc(2 / 9 * 100%); /* 4.5 tabs before overflow */
+      }
+
+      @media (min-width: 1920px) {
+        flex-basis: calc(2 / 11 * 100%); /* 5.5 tabs before overflow */
       }
     }
   }
@@ -134,12 +150,43 @@ const StyledTabs = styled(Tabs)`
   }
 `;
 
+const TabDots = styled.ul`
+  padding: 0.25em 0 0;
+  height: 22px;
+  text-align: center;
+  list-style: none;
+  background-color: ${lightBlue};
+
+  li {
+    display: inline-block;
+    height: 22px;
+  }
+`;
+
+const TabDot = styled.a`
+  display: inline-block;
+  margin: 4px;
+  border: 1px solid ${colors.black(0.25)};
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  background-color: ${colors.white()};
+
+  &[data-selected='true'],
+  &:hover,
+  &:focus {
+    outline: none;
+    border-color: ${colors.blue(0.75)};
+    box-shadow: 0 0 0 1px ${colors.blue(0.75)};
+  }
+`;
+
 const TabHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0.5em;
-  background-color: #f0f6f9;
+  background-color: ${lightBlue};
 
   div {
     display: flex;
@@ -200,56 +247,55 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
 
   // redirect to overview tab if tabName param wasn't provided in the url
   // (e.g. '/community/20001' redirects to '/community/20001/overview')
-  React.useEffect(
-    () => {
-      if (urlSearch && !tabName) {
-        navigate(`/community/${urlSearch}/overview`);
-      }
-    },
-    [urlSearch, tabName],
-  );
+  React.useEffect(() => {
+    if (urlSearch && !tabName) {
+      navigate(`/community/${urlSearch}/overview`);
+    }
+  }, [urlSearch, tabName]);
 
   // redirect to '/community' if the url doesn't match a route in the tabs array
   // and conditionally set active tab index
-  React.useEffect(
-    () => {
-      const tabIndex = tabs
-        .map((tab) => encodeURI(tab.route.replace('{urlSearch}', urlSearch)))
-        .indexOf(window.location.pathname);
+  React.useEffect(() => {
+    const tabIndex = tabs
+      .map((tab) => encodeURI(tab.route.replace('{urlSearch}', urlSearch)))
+      .indexOf(window.location.pathname);
 
-      if (tabIndex === -1) {
-        navigate('/community');
-      }
+    if (tabIndex === -1) {
+      navigate('/community');
+    }
 
-      if (activeTabIndex !== tabIndex) {
-        setActiveTabIndex(tabIndex === -1 ? 0 : tabIndex);
-      }
-    },
-    [urlSearch, setActiveTabIndex, activeTabIndex],
-  );
+    if (activeTabIndex !== tabIndex) {
+      setActiveTabIndex(tabIndex === -1 ? 0 : tabIndex);
+    }
+  }, [urlSearch, setActiveTabIndex, activeTabIndex]);
 
   // conditionally set searchText from urlSearch
   // (e.g. when a user visits '/community/20001' directly)
-  React.useEffect(
-    () => {
-      if (urlSearch !== searchText) {
-        setSearchText(urlSearch);
-      }
-    },
-    [urlSearch, searchText, setSearchText],
-  );
+  React.useEffect(() => {
+    if (urlSearch !== searchText) {
+      setSearchText(urlSearch);
+    }
+  }, [urlSearch, searchText, setSearchText]);
 
   const tabListRef = React.useRef();
 
-  // focus the active tab
-  React.useEffect(
-    () => {
-      if (tabListRef.current) {
-        tabListRef.current.children[activeTabIndex].focus();
-      }
-    },
-    [tabListRef, activeTabIndex],
-  );
+  // focus and scroll (horizontally) to the active tab
+  React.useEffect(() => {
+    if (tabListRef.current) {
+      const tabList = tabListRef.current;
+      const activeTab = tabList.children[activeTabIndex];
+      activeTab.focus();
+
+      const column = document.querySelector('[data-column="right"]');
+      if (!column) return;
+
+      const columnCenter = column.offsetLeft + column.offsetWidth / 2;
+      const tabCenter = activeTab.offsetLeft + activeTab.offsetWidth / 2;
+      const distance = tabCenter - columnCenter - tabList.scrollLeft;
+
+      tabList.scrollBy({ top: 0, left: distance, behavior: 'smooth' });
+    }
+  }, [tabListRef, activeTabIndex]);
 
   const resetTabSpecificData = () => {
     // monitoring panel
@@ -306,6 +352,25 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
             <Tab key={tab.title}>{tab.title}</Tab>
           ))}
         </TabList>
+
+        <TabDots>
+          {tabs.map((tab, index) => {
+            return (
+              <li key={index}>
+                <TabDot
+                  href={tab.route.replace('{urlSearch}', urlSearch)}
+                  title={tab.title}
+                  data-selected={index === activeTabIndex}
+                  onClick={(ev) => {
+                    ev.preventDefault();
+                    const tabList = tabListRef.current;
+                    if (tabList) tabList.children[index].click();
+                  }}
+                />
+              </li>
+            );
+          })}
+        </TabDots>
 
         <TabHeader>
           <div>
