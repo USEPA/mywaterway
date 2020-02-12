@@ -8,7 +8,8 @@ import Page from 'components/shared/Page';
 import LocationSearch from 'components/shared/LocationSearch';
 import DrinkingWaterIcon from 'components/shared/Icons/DrinkingWaterIcon';
 import SwimmingIcon from 'components/shared/Icons/SwimmingIcon';
-import FishingIcon from 'components/shared/Icons/FishingIcon';
+import EatingFishIcon from 'components/shared/Icons/EatingFishIcon';
+import AquaticLifeIcon from 'components/shared/Icons/AquaticLifeIcon';
 import DisclaimerModal from 'components/shared/DisclaimerModal';
 // styled components
 import {
@@ -108,11 +109,11 @@ function Home({ ...props }: Props) {
             Swimming
           </TopicButtonLink>
           <TopicButtonLink to="/eating-fish">
-            <FishingIcon />
+            <EatingFishIcon />
             Eating Fish
           </TopicButtonLink>
           <TopicButtonLink to="/aquatic-life">
-            <FishingIcon />
+            <AquaticLifeIcon />
             Aquatic Life
           </TopicButtonLink>
           <TopicButtonLink to="/drinking-water">
