@@ -80,7 +80,7 @@ function LocationSearch({ route }: Props) {
         if (inputText) {
           setGeolocationError(false);
           // only navigate if search box contains text
-          navigate(encodeURI(route.replace('{urlSearch}', inputText)));
+          navigate(encodeURI(route.replace('{urlSearch}', inputText.trim())));
         }
       }}
     >
