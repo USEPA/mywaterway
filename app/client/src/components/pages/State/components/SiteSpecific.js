@@ -7,6 +7,7 @@ import HighchartsReact from 'highcharts-react-official';
 // components
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
 // contexts
 import { StateTabsContext } from 'contexts/StateTabs';
 // utilities
@@ -33,9 +34,16 @@ const AccordionContent = styled.div`
 `;
 
 const ChartFooter = styled.p`
+  display: flex;
+  align-items: center;
   margin-bottom: 1.5em;
   font-size: 0.75rem;
   padding-bottom: 0;
+
+  svg {
+    margin: 0 -0.875rem;
+    height: 0.6875rem;
+  }
 `;
 
 const Percent = styled.span`
@@ -70,7 +78,7 @@ function SiteSpecific({
   completeUseList,
   useSelected,
 }: Props) {
-  const { currentReportingCycle } = React.useContext(StateTabsContext);
+  const { currentSummary } = React.useContext(StateTabsContext);
 
   const [waterTypeUnits, setWaterTypeUnits] = React.useState('');
   React.useEffect(() => {
@@ -299,7 +307,11 @@ function SiteSpecific({
             />
           </HighchartsContainer>
           <ChartFooter>
-            <strong>Year Last Reported:</strong> {currentReportingCycle}
+            <strong>Year Last Reported:</strong>
+            {currentSummary.status === 'success' && (
+              <>&nbsp;{currentSummary.data.reportingCycle}</>
+            )}
+            {currentSummary.status === 'fetching' && <LoadingSpinner />}
           </ChartFooter>
         </>
       )}
