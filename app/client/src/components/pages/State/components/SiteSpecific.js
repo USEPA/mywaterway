@@ -248,7 +248,6 @@ function SiteSpecific({
                 },
                 plotOptions: {
                   series: {
-                    cursor: 'pointer',
                     pointPadding: 0.05,
                     groupPadding: 0,
                     inside: true,
@@ -272,7 +271,6 @@ function SiteSpecific({
 
                 series: [
                   {
-                    allowPointSelect: true,
                     name: waterTypeUnits,
                     colorByPoint: true,
                     data: [
