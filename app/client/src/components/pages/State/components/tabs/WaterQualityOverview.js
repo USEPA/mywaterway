@@ -11,6 +11,7 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import DrinkingWaterIcon from 'components/shared/Icons/DrinkingWaterIcon';
 import SwimmingIcon from 'components/shared/Icons/SwimmingIcon';
 import EatingFishIcon from 'components/shared/Icons/EatingFishIcon';
+import AquaticLifeIcon from 'components/shared/Icons/AquaticLifeIcon';
 import OtherIcon from 'components/shared/Icons/OtherIcon';
 import WaterSystemSummary from 'components/shared/WaterSystemSummary';
 import SurveyResults from 'components/pages/State/components/SurveyResults';
@@ -40,7 +41,6 @@ import {
   stateGeneralError,
   stateNoDataError,
 } from 'config/errorMessages';
-import AquaticLifeIcon from 'components/shared/Icons/AquaticLifeIcon';
 
 function relabelWaterType(oldLabel) {
   let newLabel = 'Other Types';
