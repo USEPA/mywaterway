@@ -12,7 +12,10 @@ export function fetchCheck(apiUrl: string) {
     })
     .catch((err) => {
       console.error(err);
-      logCallToGoogleAnalytics(apiUrl, err, startTime);
+
+      let status = err;
+      if (err && err.status) status = err.status;
+      logCallToGoogleAnalytics(apiUrl, status, startTime);
     });
 }
 
@@ -22,16 +25,7 @@ export function proxyFetch(apiUrl: string) {
   const proxyUrl = REACT_APP_PROXY_URL || `${window.location.origin}/proxy`;
   const url = `${proxyUrl}?url=${apiUrl}`;
 
-  const startTime = performance.now();
-  return fetch(url)
-    .then((response) => {
-      logCallToGoogleAnalytics(url, response.status, startTime);
-      return checkResponse(response);
-    })
-    .catch((err) => {
-      console.error(err);
-      logCallToGoogleAnalytics(url, err, startTime);
-    });
+  return fetchCheck(url);
 }
 
 export function checkResponse(response) {
