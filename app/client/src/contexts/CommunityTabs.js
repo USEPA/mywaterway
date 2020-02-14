@@ -20,7 +20,7 @@ type State = {
 
 export class CommunityTabsProvider extends React.Component<Props, State> {
   state: State = {
-    activeTabIndex: 0,
+    activeTabIndex: -1,
     infoToggleChecked: true,
     setActiveTabIndex: (activeTabIndex: number) => {
       this.setState({ activeTabIndex });

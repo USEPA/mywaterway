@@ -310,6 +310,8 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
     setDrinkingWaterTabIndex(0);
   };
 
+  if (activeTabIndex === -1) return null;
+
   return (
     <>
       <Location>
