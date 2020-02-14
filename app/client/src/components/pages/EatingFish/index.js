@@ -71,8 +71,11 @@ function EatingFish({ ...props }: Props) {
             organizations outside of the federal government.
           </p>
         </Disclaimer>
+
         <hr />
+
         <h2>Other Topics</h2>
+
         <StyledButtons>
           <TopicButtonLink to="/swimming">
             <SwimmingIcon />
