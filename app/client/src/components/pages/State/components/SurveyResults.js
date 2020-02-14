@@ -445,7 +445,6 @@ function SurveyResults({
                 plotOptions: {
                   pie: {
                     ...chartOptions.plotOptions.all,
-                    cursor: 'pointer',
                     showInLegend: true,
                     dataLabels: {
                       ...chartOptions.plotOptions.all.dataLabels,
@@ -461,7 +460,6 @@ function SurveyResults({
                 },
                 series: [
                   {
-                    allowPointSelect: true,
                     colorByPoint: true,
                     data: summaryItems,
                   },
