@@ -43,6 +43,10 @@ const Button = styled.button`
     color: ${colors.white()};
     background-color: ${colors.purple()};
   }
+
+  &:disabled {
+    cursor: default;
+  }
 `;
 
 const Text = styled.p`
@@ -93,7 +97,7 @@ function LocationSearch({ route }: Props) {
         onChange={(ev) => setInputText(ev.target.value)}
       />
 
-      <Button className="btn" type="submit">
+      <Button className="btn" type="submit" disabled={inputText === searchText}>
         <i className="fas fa-angle-double-right" /> Go
       </Button>
 
