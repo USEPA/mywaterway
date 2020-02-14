@@ -28,6 +28,23 @@ export function proxyFetch(apiUrl: string) {
   return fetchCheck(url);
 }
 
+export function fetchPost(apiUrl: string, data: object, headers: object) {
+  const startTime = performance.now();
+  return fetch(apiUrl, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(data),
+  })
+    .then((response) => {
+      logCallToGoogleAnalytics(apiUrl, response.status, startTime);
+      return checkResponse(response);
+    })
+    .catch((err) => {
+      console.error(err);
+      logCallToGoogleAnalytics(apiUrl, err, startTime);
+    });
+}
+
 export function checkResponse(response) {
   return new Promise((resolve, reject) => {
     if (response.status === 200) {
