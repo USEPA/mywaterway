@@ -56,8 +56,6 @@ function EatingFish({ ...props }: Props) {
         <br />
         <p>
           Learn whether fish caught in your local waters are deemed safe to eat.
-        </p>
-        <p>
           The information in How’s My Waterway about the safety of eating fish
           caught recreationally should only be considered as general reference.
           Please consult with your state for local or state-wide fish
