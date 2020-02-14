@@ -366,8 +366,6 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
           ? 'Impaired'
           : status.good
           ? 'Good'
-          : status.unknown
-          ? 'Condition Unknown'
           : 'Condition Unknown'; // catch all
 
         // Use the status above initially. When looping through the use attainments
