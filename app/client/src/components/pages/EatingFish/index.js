@@ -12,7 +12,6 @@ import EatingFishIcon from 'components/shared/Icons/EatingFishIcon';
 import AquaticLifeIcon from 'components/shared/Icons/AquaticLifeIcon';
 import DrinkingWaterIcon from 'components/shared/Icons/DrinkingWaterIcon';
 import DisclaimerModal from 'components/shared/DisclaimerModal';
-import ShowLessMore from 'components/shared/ShowLessMore';
 // styled components
 import { StyledText, StyledTopic } from 'components/shared/Topics';
 import {
@@ -53,23 +52,15 @@ function EatingFish({ ...props }: Props) {
         <Prompt>
           <em>Find out more about your fish.</em>
         </Prompt>
-
         <LocationSearch route="/community/{urlSearch}/eating-fish" />
-
         <br />
-
         <p>
           Learn whether fish caught in your local waters are deemed safe to eat.
-          <ShowLessMore
-            text={`
-            The information in How’s My Waterway about the safety of eating
-            fish caught recreationally should only be considered as general
-            reference. Please consult with your state for local or state-wide
-            fish advisories.`}
-            charLimit={0}
-          />
+          The information in How’s My Waterway about the safety of eating fish
+          caught recreationally should only be considered as general reference.
+          Please consult with your state for local or state-wide fish
+          advisories.
         </p>
-
         <Disclaimer>
           <p>
             Users of this application should not rely on information relating to

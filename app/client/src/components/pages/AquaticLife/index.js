@@ -12,7 +12,6 @@ import EatingFishIcon from 'components/shared/Icons/EatingFishIcon';
 import AquaticLifeIcon from 'components/shared/Icons/AquaticLifeIcon';
 import DrinkingWaterIcon from 'components/shared/Icons/DrinkingWaterIcon';
 import DisclaimerModal from 'components/shared/DisclaimerModal';
-import ShowLessMore from 'components/shared/ShowLessMore';
 // styled components
 import { StyledText, StyledTopic } from 'components/shared/Topics';
 import {
@@ -60,15 +59,10 @@ function AquaticLife({ ...props }: Props) {
 
         <p>
           Find out more about the overall status of aquatic life and what
-          impairments exist in your local waterbodies.
-          <ShowLessMore
-            text={`
-            The condition of a waterbody is dynamic and can change at any time, 
-            and the information in How’s My Waterway should only be used for 
-            general reference. If available, refer to local or state real-time water
-             quality reports.`}
-            charLimit={0}
-          />
+          impairments exist in your local waterbodies. The condition of a
+          waterbody is dynamic and can change at any time, and the information
+          in How’s My Waterway should only be used for general reference. If
+          available, refer to local or state real-time water quality reports.
         </p>
 
         <Disclaimer>
