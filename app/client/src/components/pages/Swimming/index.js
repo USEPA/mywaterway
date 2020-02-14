@@ -12,7 +12,6 @@ import EatingFishIcon from 'components/shared/Icons/EatingFishIcon';
 import AquaticLifeIcon from 'components/shared/Icons/AquaticLifeIcon';
 import DrinkingWaterIcon from 'components/shared/Icons/DrinkingWaterIcon';
 import DisclaimerModal from 'components/shared/DisclaimerModal';
-import ShowLessMore from 'components/shared/ShowLessMore';
 // styled components
 import { StyledText, StyledTopic } from 'components/shared/Topics';
 import {
