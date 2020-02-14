@@ -11,6 +11,7 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import DrinkingWaterIcon from 'components/shared/Icons/DrinkingWaterIcon';
 import SwimmingIcon from 'components/shared/Icons/SwimmingIcon';
 import EatingFishIcon from 'components/shared/Icons/EatingFishIcon';
+import AquaticLifeIcon from 'components/shared/Icons/AquaticLifeIcon';
 import OtherIcon from 'components/shared/Icons/OtherIcon';
 import WaterSystemSummary from 'components/shared/WaterSystemSummary';
 import SurveyResults from 'components/pages/State/components/SurveyResults';
@@ -56,6 +57,7 @@ function formatTopic(topic) {
   if (topic === 'drinking') return 'Drinking Water';
   if (topic === 'swimming') return 'Recreation';
   if (topic === 'fishing') return 'Fish and Shellfish Consumption';
+  if (topic === 'ecological') return 'Ecological Life';
   if (topic === 'other') return 'Other';
 }
 
@@ -99,6 +101,22 @@ const TopicTabs = styled(ContentTabs)`
 
   [data-reach-tab-panel] {
     padding-bottom: 0 !important;
+  }
+`;
+
+const TabContainer = styled(TabList)`
+  background-color: #0774ba;
+  @media (max-width: 450px) {
+    flex-wrap: wrap;
+  }
+`;
+
+const TopicTab = styled(Tab)`
+  @media (max-width: 450px) {
+    border-top: 1px solid black;
+    &:first-child {
+      border-top: 0;
+    }
   }
 `;
 
@@ -483,14 +501,10 @@ function WaterQualityOverview({ ...props }: Props) {
 
     let category = formatTopic(currentTopic);
 
-    //get the list of possible uses. Lump ecological in with fishing.
+    //get the list of possible uses
     let possibleUses = {};
     stateNationalUses.forEach((item) => {
-      if (
-        item.state === activeState.code &&
-        (item.category === category ||
-          (item.category === 'Ecological Life' && currentTopic === 'fishing'))
-      ) {
+      if (item.state === activeState.code && item.category === category) {
         // make sure to use upper case to prevent duplicate uses
         possibleUses[item.name.toUpperCase()] = item;
       }
@@ -708,6 +722,11 @@ function WaterQualityOverview({ ...props }: Props) {
       icon: <EatingFishIcon height="2.5em" />,
     },
     {
+      id: 'ecological',
+      title: 'Aquatic Life',
+      icon: <AquaticLifeIcon height="2.5em" />,
+    },
+    {
       id: 'drinking',
       title: 'Drinking Water',
       icon: <DrinkingWaterIcon height="2.5em" />,
@@ -761,14 +780,14 @@ function WaterQualityOverview({ ...props }: Props) {
             setCurrentTopic(tabs[index].id);
           }}
         >
-          <TabList>
+          <TabContainer>
             {tabs.map((tab) => (
-              <Tab key={tab.id}>
+              <TopicTab key={tab.id}>
                 <TopicIcon>{tab.icon}</TopicIcon>
                 {tab.title}
-              </Tab>
+              </TopicTab>
             ))}
-          </TabList>
+          </TabContainer>
 
           <TabPanels>
             {tabs.map((tab) => (
