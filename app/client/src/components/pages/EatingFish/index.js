@@ -53,23 +53,17 @@ function EatingFish({ ...props }: Props) {
         <Prompt>
           <em>Find out more about your fish.</em>
         </Prompt>
-
         <LocationSearch route="/community/{urlSearch}/eating-fish" />
-
         <br />
-
         <p>
           Learn whether fish caught in your local waters are deemed safe to eat.
-          <ShowLessMore
-            text={`
-            The information in How’s My Waterway about the safety of eating
-            fish caught recreationally should only be considered as general
-            reference. Please consult with your state for local or state-wide
-            fish advisories.`}
-            charLimit={0}
-          />
         </p>
-
+        <p>
+          The information in How’s My Waterway about the safety of eating fish
+          caught recreationally should only be considered as general reference.
+          Please consult with your state for local or state-wide fish
+          advisories.
+        </p>
         <Disclaimer>
           <p>
             Users of this application should not rely on information relating to
@@ -80,11 +74,8 @@ function EatingFish({ ...props }: Props) {
             organizations outside of the federal government.
           </p>
         </Disclaimer>
-
         <hr />
-
         <h2>Other Topics</h2>
-
         <StyledButtons>
           <TopicButtonLink to="/swimming">
             <SwimmingIcon />
