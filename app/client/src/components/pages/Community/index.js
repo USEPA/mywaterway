@@ -123,13 +123,15 @@ function Community({ children, ...props }: Props) {
   const { setVisibleLayers } = React.useContext(LocationSearchContext);
   React.useEffect(() => {
     // don't show any tab based layers if on community landing page
-    if (window.location.pathname === '/community') return;
+    if (window.location.pathname === '/community' || activeTabIndex === -1) {
+      return;
+    }
 
     setVisibleLayers(tabs[activeTabIndex].layers);
   }, [activeTabIndex, setVisibleLayers]);
 
   // jsx
-  const activeTabRoute = tabs[activeTabIndex].route;
+  const activeTabRoute = tabs[activeTabIndex === -1 ? 0 : activeTabIndex].route;
   const searchMarkup = (
     <>
       <Prompt>
@@ -147,10 +149,13 @@ function Community({ children, ...props }: Props) {
         // implicitly pass esriModules and infoToggleChecked props to 'lower' tab components
         // (normally we'd get these via useContext, but lower tab components are all class-based
         // components, and this is easier than using render props to use multiple React Contexts)
-        return React.cloneElement(tabs[activeTabIndex].lower, {
-          esriModules,
-          infoToggleChecked,
-        });
+        return React.cloneElement(
+          tabs[activeTabIndex === -1 ? 0 : activeTabIndex].lower,
+          {
+            esriModules,
+            infoToggleChecked,
+          },
+        );
       }}
     </EsriModulesContext.Consumer>
   );

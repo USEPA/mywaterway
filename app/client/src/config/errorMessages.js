@@ -102,7 +102,7 @@ export const stateGeneralError =
 
 // if an invalid state is entered
 export const stateNoDataError = (stateName) =>
-  `No data available ${stateName && 'for'} ${stateName && stateName}.`; // conditionals in case state name is undefined or an empty string
+  `No data available ${stateName && 'for ' + stateName}.`; // conditionals in case state name is undefined or an empty string
 
 // Waterbody Report errors //
 export const waterbodyReportError = (type) =>

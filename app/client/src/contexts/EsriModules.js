@@ -124,6 +124,7 @@ export class EsriModulesProvider extends React.Component<Props, State> {
             ScaleBar,
           });
 
+          var callId = 0;
           var callDurations = {};
 
           // intercept esri calls to gispub
@@ -148,43 +149,42 @@ export class EsriModulesProvider extends React.Component<Props, State> {
                 params.requestOptions.query[envString] = 1;
               }
 
+              // add the callId to the query so we can tie the response back
+              params.requestOptions.query['callId'] = callId;
+
               // add the call's start time to the dictionary
-              callDurations[JSON.stringify(params)] = performance.now();
+              callDurations[callId] = performance.now();
+
+              // increment the callId
+              callId = callId + 1;
             },
 
             // Log esri api calls to Google Analytics
             after: function(response) {
               // get the execution time for the call
-              const key = JSON.stringify({
-                url: response.url,
-                requestOptions: response.requestOptions,
-              });
-              const startTime = callDurations[key];
+              const callId = response.requestOptions.query.callId;
+              const startTime = callDurations[callId];
 
               logCallToGoogleAnalytics(response.url, 200, startTime);
 
               // delete the execution time from the dictionary
-              delete callDurations[key];
+              delete callDurations[callId];
             },
 
             error: function(error) {
-              const details = error.details;
-
               // get the execution time for the call
-              const key = JSON.stringify({
-                url: details.url,
-                requestOptions: details.requestOptions,
-              });
-              const startTime = callDurations[key];
+              const details = error.details;
+              const callId = details.requestOptions.query.callId;
+              const startTime = callDurations[callId];
 
               logCallToGoogleAnalytics(
                 details.url,
-                details.httpStatus,
+                details.httpStatus ? details.httpStatus : error.message,
                 startTime,
               );
 
               // delete the execution time from the dictionary
-              delete callDurations[key];
+              delete callDurations[callId];
             },
           });
         },
