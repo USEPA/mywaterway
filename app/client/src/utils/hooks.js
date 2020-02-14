@@ -45,6 +45,11 @@ function useWaterbodyFeatures() {
 
   const [lastHuc12, setLastHuc12] = React.useState(null);
   React.useEffect(() => {
+    // Ensure the lastHuc12 is reset when huc12 is reset.
+    // This is to prevent issues of searching for the same huc
+    // causing the waterbodies data to never load in.
+    if (huc12 === '' && lastHuc12 !== '') setLastHuc12(huc12);
+
     // wait until waterbodies data is set in context
     if (!linesData || !areasData || !pointsData) {
       if (features) setFeatures(null);
