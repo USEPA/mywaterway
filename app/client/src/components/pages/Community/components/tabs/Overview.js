@@ -48,6 +48,7 @@ const ErrorBoxWithMargin = styled(StyledErrorBox)`
 
 const InfoBoxWithMargin = styled(StyledInfoBox)`
   margin: 1em;
+  text-align: center;
 `;
 
 // --- components ---
