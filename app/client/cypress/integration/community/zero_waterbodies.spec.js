@@ -8,6 +8,7 @@ describe('Zero waterbody message', () => {
     cy.findByPlaceholderText('Search by address', { exact: false }).type(
       location,
     );
+    cy.findByText('Go').click();
     cy.findByText('There are no waterbodies assessed in the').should('exist');
   });
 });
