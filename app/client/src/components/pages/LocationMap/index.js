@@ -995,7 +995,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           .then((response) => {
             if (response.features.length === 0) {
               // flag no data available for no response
-              setErrorMessage(noDataAvailableError);
               setNoDataAvailable();
             }
 
@@ -1009,7 +1008,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           })
           .catch((err) => {
             console.error(err);
-            setErrorMessage(noDataAvailableError);
             setNoDataAvailable();
           });
       } else {
