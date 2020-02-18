@@ -1131,9 +1131,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // was still set to the default of ''. This was because the setHuc12
   // useState setter is async.
   React.useEffect(() => {
-    if (huc12 === '' || huc12 === lastHuc12) return;
+    if (huc12 === lastHuc12) return;
 
     setLastHuc12(huc12);
+
+    if (huc12 === '') return;
+
     setMapLoading(true);
 
     const query = new Query({
