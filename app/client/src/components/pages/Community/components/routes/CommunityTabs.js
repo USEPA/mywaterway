@@ -267,7 +267,14 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
     if (activeTabIndex !== tabIndex) {
       setActiveTabIndex(tabIndex === -1 ? 0 : tabIndex);
     }
-  }, [urlSearch, setActiveTabIndex, activeTabIndex]);
+
+    // set the tab index back to -1 if going to community home page
+    // this is to make sure that when the user does another search
+    // the waterbodies will be shown on the screen
+    return function cleanup() {
+      if (window.location.pathname === '/community') setActiveTabIndex(-1);
+    };
+  }, [urlSearch, activeTabIndex, setActiveTabIndex]);
 
   // conditionally set searchText from urlSearch
   // (e.g. when a user visits '/community/20001' directly)

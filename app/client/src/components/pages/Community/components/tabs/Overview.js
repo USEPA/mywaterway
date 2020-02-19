@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Switch from 'components/shared/Switch';
 import WaterbodyList from 'components/shared/WaterbodyList';
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 // styled components
 import {
@@ -30,6 +30,7 @@ import {
   echoError,
   monitoringError,
   huc12SummaryError,
+  zeroAssessedWaterbodies,
 } from 'config/errorMessages';
 
 // --- styled components ---
@@ -43,6 +44,11 @@ const SwitchContainer = styled.div`
 
 const ErrorBoxWithMargin = styled(StyledErrorBox)`
   margin: 1em;
+`;
+
+const InfoBoxWithMargin = styled(StyledInfoBox)`
+  margin: 1em;
+  text-align: center;
 `;
 
 // --- components ---
@@ -158,6 +164,7 @@ function Overview({ esriModules, infoToggleChecked }: Props) {
     permittedDischargers.data.Results &&
     permittedDischargers.data.Results.Facilities &&
     permittedDischargers.data.Results.Facilities.length;
+
   return (
     <Container>
       {cipSummary.status === 'failure' && (
@@ -296,6 +303,13 @@ function Overview({ esriModules, infoToggleChecked }: Props) {
           )}
         </StyledMetric>
       </StyledMetrics>
+      {cipSummary.status === 'success' &&
+        waterbodies !== null &&
+        waterbodyCount === 0 && (
+          <InfoBoxWithMargin>
+            {zeroAssessedWaterbodies(watershed)}
+          </InfoBoxWithMargin>
+        )}
       {cipSummary.status !== 'failure' && (
         <WaterbodyList
           waterbodies={waterbodies}
