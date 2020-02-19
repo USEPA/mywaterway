@@ -11,4 +11,5 @@ describe('Zero waterbody message', () => {
     cy.findByText('Go').click();
     cy.findByText('There are no waterbodies assessed in the').should('exist');
   });
+  
 });
