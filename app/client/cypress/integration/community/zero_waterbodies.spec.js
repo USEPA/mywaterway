@@ -4,12 +4,13 @@ describe('Zero waterbody message', () => {
   });
 
   it('properly displays a message for locations with 0 waterbodies', () => {
-    const location = 'Dallas, Texas';
     cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      location,
+      'Dallas, Texas',
     );
     cy.findByText('Go').click();
-    cy.findByText('There are no waterbodies assessed in the').should('exist');
+    cy.findByText('There are no waterbodies assessed in the', {
+      exact: false,
+      timeout: 20000,
+    }).should('exist');
   });
-  
 });
