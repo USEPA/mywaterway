@@ -371,7 +371,6 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
                   title={tab.title}
                   data-selected={index === activeTabIndex}
                   onClick={(ev) => {
-                    ev.preventDefault();
                     const tabList = tabListRef.current;
                     if (tabList) tabList.children[index].click();
                   }}
