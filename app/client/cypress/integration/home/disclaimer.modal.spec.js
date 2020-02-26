@@ -5,7 +5,6 @@ describe('Homepage', () => {
   it(`Disclaimer button opens modal`, () => {
     cy.findByText('Disclaimer').click();
   });
-
   it(`Disclaimer close button closes modal`, () => {
     cy.get('body').then(($body) => {
       if ($body.find('button[title="Close disclaimer"]').length > 0) {
