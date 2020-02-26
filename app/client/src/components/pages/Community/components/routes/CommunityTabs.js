@@ -368,6 +368,7 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
             return (
               <li key={index}>
                 <TabDot
+                  tabIndex="0"
                   title={tab.title}
                   data-selected={index === activeTabIndex}
                   onClick={(ev) => {
