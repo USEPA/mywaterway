@@ -410,7 +410,12 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
 
   const infoBox = (
     <StyledBox ref={measuredRef}>
-      <StyledBoxHeading>Plans Information</StyledBoxHeading>
+      <StyledBoxHeading>
+        Plans Information <br />
+        <small>
+          <strong>Plan ID:</strong> {actionId}
+        </small>
+      </StyledBoxHeading>
 
       <StyledBoxSection>
         <Intro>
