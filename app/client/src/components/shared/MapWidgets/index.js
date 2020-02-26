@@ -187,7 +187,7 @@ function MapWidgets({
     setLastToggledLayer(toggledLayer);
 
     // exit early if the toggledLayer object is empty
-    if (Object.keys(toggledLayer) === 0) return;
+    if (Object.keys(toggledLayer).length === 0) return;
 
     // make the update of the toggled layer if the visiblity changed
     if (

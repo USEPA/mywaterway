@@ -31,7 +31,7 @@ import { MapHighlightProvider } from 'contexts/MapHighlight';
 // config
 import { attains, waterQualityPortal } from 'config/webServiceConfig';
 // utilities
-import { fetchCheck } from 'utils/fetchUtils';
+import { fetchCheck, fetchPost } from 'utils/fetchUtils';
 import { titleCaseWithExceptions } from 'utils/utils';
 // styles
 import { colors } from 'styles/index.js';
@@ -245,13 +245,17 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
           locId: station.monitoringLocationIdentifier,
         }));
 
-        const wqpUrl =
-          `${waterQualityPortal.stationSearch}siteid=` +
-          `${stations.map((s) => `${s.orgId}-${s.locId}`).join('&siteid=')}` +
-          `&mimeType=geojson`;
+        // build the post reqest
+        const wqpUrl = `${waterQualityPortal.stationSearch}mimeType=geojson`;
+        const headers = { 'content-type': 'application/json' };
+        const data = {
+          siteid: stations.map((s) => {
+            return `${s.orgId.trim()}-${s.locId.trim()}`;
+          }),
+        };
 
         // fetch monitoring locations from water quality portal 'station search' web service
-        fetchCheck(wqpUrl).then(
+        fetchPost(wqpUrl, data, headers).then(
           (geojson) => {
             // match monitoring stations returned from the attains 'assessmentUnits' web service
             // with features returned in the water quality portal 'station search' web service
@@ -366,8 +370,6 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
           ? 'Impaired'
           : status.good
           ? 'Good'
-          : status.unknown
-          ? 'Condition Unknown'
           : 'Condition Unknown'; // catch all
 
         // Use the status above initially. When looping through the use attainments

@@ -178,7 +178,6 @@ function WaterSystemSummary({ state }: Props) {
               },
               plotOptions: {
                 pie: {
-                  cursor: 'pointer',
                   showInLegend: true,
                   dataLabels: {
                     enabled: true,
@@ -192,7 +191,6 @@ function WaterSystemSummary({ state }: Props) {
               },
               series: [
                 {
-                  allowPointSelect: true,
                   name: `${state.name} Drinking Water Systems By Type`,
                   innerSize: '50%',
                   colorByPoint: true,

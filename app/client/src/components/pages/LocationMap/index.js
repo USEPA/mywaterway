@@ -995,6 +995,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           .then((response) => {
             if (response.features.length === 0) {
               // flag no data available for no response
+              setErrorMessage(noDataAvailableError);
               setNoDataAvailable();
             }
 
@@ -1008,6 +1009,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           })
           .catch((err) => {
             console.error(err);
+            setErrorMessage(noDataAvailableError);
             setNoDataAvailable();
           });
       } else {
@@ -1131,9 +1133,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // was still set to the default of ''. This was because the setHuc12
   // useState setter is async.
   React.useEffect(() => {
-    if (huc12 === '' || huc12 === lastHuc12) return;
+    if (huc12 === lastHuc12) return;
 
     setLastHuc12(huc12);
+
+    if (huc12 === '') return;
+
     setMapLoading(true);
 
     const query = new Query({

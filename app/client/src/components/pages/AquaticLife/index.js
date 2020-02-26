@@ -7,11 +7,11 @@ import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
 import NavBar from 'components/shared/NavBar';
 import LocationSearch from 'components/shared/LocationSearch';
-import DrinkingWaterIcon from 'components/shared/Icons/DrinkingWaterIcon';
 import SwimmingIcon from 'components/shared/Icons/SwimmingIcon';
-import FishingIcon from 'components/shared/Icons/FishingIcon';
+import EatingFishIcon from 'components/shared/Icons/EatingFishIcon';
+import AquaticLifeIcon from 'components/shared/Icons/AquaticLifeIcon';
+import DrinkingWaterIcon from 'components/shared/Icons/DrinkingWaterIcon';
 import DisclaimerModal from 'components/shared/DisclaimerModal';
-import ShowLessMore from 'components/shared/ShowLessMore';
 // styled components
 import { StyledText, StyledTopic } from 'components/shared/Topics';
 import {
@@ -44,16 +44,13 @@ function AquaticLife({ ...props }: Props) {
       <NavBar title="Explore Topics" />
 
       <StyledTopic>
-        <FishingIcon />
+        <AquaticLifeIcon />
         <p>Aquatic Life</p>
       </StyledTopic>
 
       <StyledText className="container">
         <Prompt>
-          <em>
-            Find out about the overall status of aquatic life and what
-            impairments exist in your local waterbodies.
-          </em>
+          <em>Find out more about your aquatic life.</em>
         </Prompt>
 
         <LocationSearch route="/community/{urlSearch}/aquatic-life" />
@@ -61,17 +58,11 @@ function AquaticLife({ ...props }: Props) {
         <br />
 
         <p>
-          Learn whether fish caught in your local waters are deemed safe to eat.
           Find out more about the overall status of aquatic life and what
-          impairments exist in your local waterbodies.
-          <ShowLessMore
-            text={`
-            The information in How’s My Waterway about the safety of eating
-            fish caught recreationally should only be considered as general
-            reference. Please consult with your state for local or state-wide
-            fish advisories.`}
-            charLimit={0}
-          />
+          impairments exist in your local waterbodies. The condition of a
+          waterbody is dynamic and can change at any time, and the information
+          in How’s My Waterway should only be used for general reference. If
+          available, refer to local or state real-time water quality reports.
         </p>
 
         <Disclaimer>
@@ -95,7 +86,7 @@ function AquaticLife({ ...props }: Props) {
             Swimming
           </TopicButtonLink>
           <TopicButtonLink to="/eating-fish">
-            <FishingIcon />
+            <EatingFishIcon />
             Eating Fish
           </TopicButtonLink>
           <TopicButtonLink to="/drinking-water">

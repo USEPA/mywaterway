@@ -7,11 +7,11 @@ import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
 import NavBar from 'components/shared/NavBar';
 import LocationSearch from 'components/shared/LocationSearch';
-import DrinkingWaterIcon from 'components/shared/Icons/DrinkingWaterIcon';
 import SwimmingIcon from 'components/shared/Icons/SwimmingIcon';
-import FishingIcon from 'components/shared/Icons/FishingIcon';
+import EatingFishIcon from 'components/shared/Icons/EatingFishIcon';
+import AquaticLifeIcon from 'components/shared/Icons/AquaticLifeIcon';
+import DrinkingWaterIcon from 'components/shared/Icons/DrinkingWaterIcon';
 import DisclaimerModal from 'components/shared/DisclaimerModal';
-import ShowLessMore from 'components/shared/ShowLessMore';
 // styled components
 import { StyledText, StyledTopic } from 'components/shared/Topics';
 import {
@@ -44,36 +44,23 @@ function EatingFish({ ...props }: Props) {
       <NavBar title="Explore Topics" />
 
       <StyledTopic>
-        <FishingIcon />
+        <EatingFishIcon />
         <p>Eating Fish</p>
       </StyledTopic>
 
       <StyledText className="container">
         <Prompt>
-          <em>
-            Learn whether fish caught in your local waters are deemed safe to
-            eat.
-          </em>
+          <em>Find out more about your fish.</em>
         </Prompt>
-
         <LocationSearch route="/community/{urlSearch}/eating-fish" />
-
         <br />
-
         <p>
           Learn whether fish caught in your local waters are deemed safe to eat.
-          Find out more about the overall status of aquatic life and what
-          impairments exist in your local waterbodies.
-          <ShowLessMore
-            text={`
-            The information in How’s My Waterway about the safety of eating
-            fish caught recreationally should only be considered as general
-            reference. Please consult with your state for local or state-wide
-            fish advisories.`}
-            charLimit={0}
-          />
+          The information in How’s My Waterway about the safety of eating fish
+          caught recreationally should only be considered as general reference.
+          Please consult with your state for local or state-wide fish
+          advisories.
         </p>
-
         <Disclaimer>
           <p>
             Users of this application should not rely on information relating to
@@ -95,7 +82,7 @@ function EatingFish({ ...props }: Props) {
             Swimming
           </TopicButtonLink>
           <TopicButtonLink to="/aquatic-life">
-            <FishingIcon />
+            <AquaticLifeIcon />
             Aquatic Life
           </TopicButtonLink>
           <TopicButtonLink to="/drinking-water">

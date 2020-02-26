@@ -12,7 +12,10 @@ export function fetchCheck(apiUrl: string) {
     })
     .catch((err) => {
       console.error(err);
-      logCallToGoogleAnalytics(apiUrl, err, startTime);
+
+      let status = err;
+      if (err && err.status) status = err.status;
+      logCallToGoogleAnalytics(apiUrl, status, startTime);
     });
 }
 
@@ -22,15 +25,23 @@ export function proxyFetch(apiUrl: string) {
   const proxyUrl = REACT_APP_PROXY_URL || `${window.location.origin}/proxy`;
   const url = `${proxyUrl}?url=${apiUrl}`;
 
+  return fetchCheck(url);
+}
+
+export function fetchPost(apiUrl: string, data: object, headers: object) {
   const startTime = performance.now();
-  return fetch(url)
+  return fetch(apiUrl, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(data),
+  })
     .then((response) => {
-      logCallToGoogleAnalytics(url, response.status, startTime);
+      logCallToGoogleAnalytics(apiUrl, response.status, startTime);
       return checkResponse(response);
     })
     .catch((err) => {
       console.error(err);
-      logCallToGoogleAnalytics(url, err, startTime);
+      logCallToGoogleAnalytics(apiUrl, err, startTime);
     });
 }
 

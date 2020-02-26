@@ -14,6 +14,10 @@ export const monitoringError =
 export const huc12SummaryError =
   'Waterbody information is temporarily unavailable, please try again later.';
 
+// message show on the Community page when number of assessed waterbodies is 0
+export const zeroAssessedWaterbodies = (watershed) =>
+  `There are no waterbodies assessed in the ${watershed} watershed.`;
+
 // geocode.arcgis.com - Geolocation Service
 export const geocodeError =
   'Location information is temporarily unavailable, please try again later. ';
@@ -102,7 +106,7 @@ export const stateGeneralError =
 
 // if an invalid state is entered
 export const stateNoDataError = (stateName) =>
-  `No data available ${stateName && 'for'} ${stateName && stateName}.`; // conditionals in case state name is undefined or an empty string
+  `No data available ${stateName && 'for ' + stateName}.`; // conditionals in case state name is undefined or an empty string
 
 // Waterbody Report errors //
 export const waterbodyReportError = (type) =>
