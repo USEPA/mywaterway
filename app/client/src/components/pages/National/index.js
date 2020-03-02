@@ -275,7 +275,7 @@ function WaterConditionsPanel() {
         </StyledIntroText>
       </IntroBox>
 
-      <h3>Take Note: Nutrient pollution is widespread and worsening</h3>
+      <h3>Nutrient pollution continues to be an issue</h3>
 
       <Article>
         <p>
@@ -286,11 +286,11 @@ function WaterConditionsPanel() {
           >
             Nutrient Pollution
           </a>{' '}
-          is one of America’s most widespread, costly and challenging
-          environmental problems. While nutrients are important, too much of a
-          good thing can become a bad thing. Nutrient pollution can lead to
-          excessive algae growth, which can use up oxygen that aquatic organisms
-          need to survive. Too much algae growth can cause fish to die.{' '}
+          is one of America’s most widespread, water quality issues. While
+          nutrients are important, too much of a good thing can become a bad
+          thing. Nutrient pollution can lead to excessive algae growth, which
+          can use up oxygen that aquatic organisms need to survive. Too much
+          algae growth can cause fish to die.{' '}
           <a
             href="https://www.epa.gov/nutrient-policy-data/what-epa-doing-reduce-nutrient-pollution"
             target="_blank"
@@ -332,7 +332,7 @@ function WaterConditionsPanel() {
                 <AccordionItem
                   title={
                     <>
-                      <Percent>44%</Percent> of our rivers and streams are not
+                      <Percent>30%</Percent> of our rivers and streams are
                       healthy based on biological communities
                     </>
                   }
@@ -344,11 +344,6 @@ function WaterConditionsPanel() {
                       insects, crayfish, snails, and worms – that are sensitive
                       to changes in their environment. Their presence or absence
                       gives us an idea of how healthy or impaired waters are.
-                    </p>
-                    <p>
-                      Poor biological condition can lead to a loss of fishing
-                      and recreational opportunities and indicate a loss of
-                      ecosystem function.
                     </p>
                   </AccordionContent>
                 </AccordionItem>
@@ -373,16 +368,13 @@ function WaterConditionsPanel() {
                       opportunities. Nutrient pollution also threatens drinking
                       water.
                     </p>
-                    <p>
-                      Phosphorus pollution is getting worse across the country.
-                    </p>
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem
                   title={
                     <>
-                      <Percent>24%</Percent> of our rivers and streams have
-                      unhealthy riverside vegetation
+                      <Percent>58%</Percent> of our rivers and streams have
+                      healthy riverside vegetation
                     </>
                   }
                 >
@@ -393,12 +385,6 @@ function WaterConditionsPanel() {
                       slow stormwater, and filter runoff. Many actions, such as
                       mowing, paving, farming, and construction can damage
                       riverside vegetation.
-                    </p>
-                    <p>
-                      Loss of plants along the water’s edge can increase the
-                      amount of sediment, nutrients, and other impairments
-                      entering our waters. Loss of plants can also lead to
-                      increased flooding and erosion.
                     </p>
                   </AccordionContent>
                 </AccordionItem>
@@ -412,8 +398,8 @@ function WaterConditionsPanel() {
                 <AccordionItem
                   title={
                     <>
-                      <Percent>21%</Percent> of lakes are not healthy due to
-                      excess algal growth
+                      <Percent>45%</Percent> of lakes do not have excess algal
+                      growth
                     </>
                   }
                 >
@@ -486,8 +472,8 @@ function WaterConditionsPanel() {
                 <AccordionItem
                   title={
                     <>
-                      <Percent>18%</Percent> of our coasts are not healthy based
-                      on biological communities
+                      <Percent>56%</Percent> of our coasts are healthy based on
+                      biological communities
                     </>
                   }
                 >
@@ -498,11 +484,6 @@ function WaterConditionsPanel() {
                       worms, snails, and clams – that are sensitive to changes
                       in their environment. Their presence or absence gives us
                       an idea of how healthy or impaired our waters are.
-                    </p>
-                    <p>
-                      Poor biological condition can lead to a loss of fishing
-                      and recreational opportunities and indicate a loss of
-                      ecosystem function.
                     </p>
                   </AccordionContent>
                 </AccordionItem>
@@ -532,16 +513,16 @@ function WaterConditionsPanel() {
                 <AccordionItem
                   title={
                     <>
-                      <Percent>13%</Percent> of our coasts have highly
-                      contaminated sediments
+                      <Percent>55%</Percent> of our coasts have good quality
+                      sediments
                     </>
                   }
                 >
                   <AccordionContent>
                     <p>
-                      Many contaminants can accumulate in bottom sediments.
-                      These impairments can negatively impact organisms living
-                      in those sediments. As other creatures eat them, the
+                      Many contaminants can accumulate in bottom sediments. When
+                      present they can negatively impact organisms living in
+                      those sediments. As other creatures eat them, the
                       contaminants can become concentrated throughout the food
                       web, potentially affecting fish, marine mammals, and
                       humans who consume contaminated fish and shellfish.
@@ -558,7 +539,7 @@ function WaterConditionsPanel() {
                 <AccordionItem
                   title={
                     <>
-                      <Percent>32%</Percent> of our national wetland area is not
+                      <Percent>48%</Percent> of our national wetland area is
                       healthy based on biological communities
                     </>
                   }
@@ -571,27 +552,21 @@ function WaterConditionsPanel() {
                       their environment, their presence or absence gives us an
                       idea of how healthy or degraded our wetlands are.
                     </p>
-                    <p>
-                      Poor biological condition can impact fish and wildlife
-                      species, reduce recreational opportunities, and lead to
-                      poor water quality and floodwater storage.
-                    </p>
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem
                   title={
                     <>
-                      <Percent>27%</Percent> of our national wetland area has
-                      experienced plant loss
+                      <Percent>73%</Percent> of our national wetland area has
+                      experienced low or moderate levels of plant loss
                     </>
                   }
                 >
                   <AccordionContent>
                     <p>
-                      Sampling shows that plant loss, removal, and damage causes
-                      physical stress to our wetlands. Removal or loss of plants
-                      can come from activities like grazing, mowing, and forest
-                      clearing.
+                      Plant loss, removal, and damage causes physical stress to
+                      our wetlands. Removal or loss of plants can come from
+                      activities like grazing, mowing, and forest clearing.
                     </p>
                     <p>
                       Wetlands with high levels of plant loss may experience
@@ -603,20 +578,17 @@ function WaterConditionsPanel() {
                 <AccordionItem
                   title={
                     <>
-                      <Percent>27%</Percent> of our national wetland area has
-                      experienced high rates of surface hardening
+                      <Percent>73%</Percent> of our national wetland area has
+                      experienced low or moderate rates of surface hardening
                     </>
                   }
                 >
                   <AccordionContent>
                     <p>
-                      Sampling shows that surface hardening (e.g., pavement,
-                      soil compaction) damages our wetlands.
-                    </p>
-                    <p>
-                      Wetlands with high levels of surface hardening are
-                      vulnerable to flooding and erosion, and are twice as
-                      likely to have poor biological condition.
+                      Wetlands with high levels of surface hardening (e.g.,
+                      pavement, soil compaction) are vulnerable to flooding and
+                      erosion, and are twice as likely to have poor biological
+                      condition.
                     </p>
                   </AccordionContent>
                 </AccordionItem>
