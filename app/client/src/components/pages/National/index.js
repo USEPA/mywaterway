@@ -286,7 +286,7 @@ function WaterConditionsPanel() {
           >
             Nutrient Pollution
           </a>{' '}
-          is one of America’s most widespread, water quality issues. While
+          is one of America’s most widespread water quality issues. While
           nutrients are important, too much of a good thing can become a bad
           thing. Nutrient pollution can lead to excessive algae growth, which
           can use up oxygen that aquatic organisms need to survive. Too much
