@@ -163,7 +163,8 @@ const TabDots = styled.ul`
   }
 `;
 
-const TabDot = styled.a`
+const TabDot = styled.div`
+  cursor: pointer;
   display: inline-block;
   margin: 4px;
   border: 1px solid ${colors.black(0.25)};
@@ -367,11 +368,10 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
             return (
               <li key={index}>
                 <TabDot
-                  href={tab.route.replace('{urlSearch}', urlSearch)}
+                  tabIndex="0"
                   title={tab.title}
                   data-selected={index === activeTabIndex}
                   onClick={(ev) => {
-                    ev.preventDefault();
                     const tabList = tabListRef.current;
                     if (tabList) tabList.children[index].click();
                   }}
