@@ -210,13 +210,10 @@ function GlossaryPanel({ path }) {
   });
 
   // Reset initialized flag to re-initialize the Glossary
-  React.useEffect(
-    () => {
-      // set the initialized flag to false if there are no glossary terms on the DOM
-      if (!termsInDOM()) setInitialized(false);
-    },
-    [path, setInitialized],
-  );
+  React.useEffect(() => {
+    // set the initialized flag to false if there are no glossary terms on the DOM
+    if (!termsInDOM()) setInitialized(false);
+  }, [path, setInitialized]);
 
   return (
     <>

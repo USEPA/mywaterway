@@ -11,6 +11,7 @@ import SwimmingIcon from 'components/shared/Icons/SwimmingIcon';
 import EatingFishIcon from 'components/shared/Icons/EatingFishIcon';
 import AquaticLifeIcon from 'components/shared/Icons/AquaticLifeIcon';
 import DrinkingWaterIcon from 'components/shared/Icons/DrinkingWaterIcon';
+import DisclaimerModal from 'components/shared/DisclaimerModal';
 // styled components
 import { StyledText, StyledTopic } from 'components/shared/Topics';
 import {
@@ -20,6 +21,10 @@ import {
 } from 'components/shared/ButtonLinks';
 
 // --- styled components ---
+const Disclaimer = styled(DisclaimerModal)`
+  bottom: 1.25rem;
+`;
+
 const Prompt = styled.p`
   padding-bottom: 0 !important;
 `;
@@ -33,34 +38,39 @@ type Props = {
   ...RouteProps,
 };
 
-function DrinkingWater({ ...props }: Props) {
+function EatingFish({ ...props }: Props) {
   return (
     <Page>
       <NavBar title="Explore Topics" />
 
       <StyledTopic>
-        <DrinkingWaterIcon />
-        <p>Drinking Water</p>
+        <EatingFishIcon />
+        <p>Eating Fish</p>
       </StyledTopic>
 
       <StyledText className="container">
         <Prompt>
-          <em>Find out about your Drinking Water.</em>
+          <em>Find out more about your fish.</em>
         </Prompt>
-
-        <LocationSearch route="/community/{urlSearch}/drinking-water" />
-
+        <LocationSearch route="/community/{urlSearch}/eating-fish" />
         <br />
-
-        <p>Learn about:</p>
-
-        <ul>
-          <li>Who provides drinking water in your community? </li>
-          <li>Find out about the compliance of drinking water systems. </li>
-          <li>
-            Which public drinking water providers are located in your watershed?
-          </li>
-        </ul>
+        <p>
+          Learn whether fish caught in your local waters are deemed safe to eat.
+          The information in How’s My Waterway about the safety of eating fish
+          caught recreationally should only be considered as general reference.
+          Please consult with your state for local or state-wide fish
+          advisories.
+        </p>
+        <Disclaimer>
+          <p>
+            Users of this application should not rely on information relating to
+            environmental laws and regulations posted on this application.
+            Application users are solely responsible for ensuring that they are
+            in compliance with all relevant environmental laws and regulations.
+            In addition, EPA cannot attest to the accuracy of data provided by
+            organizations outside of the federal government.
+          </p>
+        </Disclaimer>
 
         <hr />
 
@@ -75,9 +85,9 @@ function DrinkingWater({ ...props }: Props) {
             <AquaticLifeIcon />
             Aquatic Life
           </TopicButtonLink>
-          <TopicButtonLink to="/eating-fish">
-            <EatingFishIcon />
-            Eating Fish
+          <TopicButtonLink to="/drinking-water">
+            <DrinkingWaterIcon />
+            Drinking Water
           </TopicButtonLink>
         </StyledButtons>
       </StyledText>
@@ -85,4 +95,4 @@ function DrinkingWater({ ...props }: Props) {
   );
 }
 
-export default DrinkingWater;
+export default EatingFish;

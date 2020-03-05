@@ -215,14 +215,11 @@ function AccordionItem({
   const [backgroundColor, setBackgroundColor] = React.useState(
     colorMap.default,
   );
-  React.useEffect(
-    () => {
-      if (status === 'selected') setBackgroundColor(colorMap.selected);
-      if (status === 'highlighted') setBackgroundColor(colorMap.highlighted);
-      if (!status) setBackgroundColor(colorMap.default);
-    },
-    [status],
-  );
+  React.useEffect(() => {
+    if (status === 'selected') setBackgroundColor(colorMap.selected);
+    if (status === 'highlighted') setBackgroundColor(colorMap.highlighted);
+    if (!status) setBackgroundColor(colorMap.default);
+  }, [status]);
 
   const addHighlight = () => {
     if (!status) setBackgroundColor(colorMap.highlighted);

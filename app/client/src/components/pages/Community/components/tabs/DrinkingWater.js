@@ -13,12 +13,33 @@ import AssessmentSummary from 'components/shared/AssessmentSummary';
 import WaterbodyList from 'components/shared/WaterbodyList';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
+import Switch from 'components/shared/Switch';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
 // errors
 import { countyError } from 'config/errorMessages';
+
+const Table = styled.table`
+  thead {
+    background-color: #f0f6f9;
+  }
+
+  th:last-of-type,
+  td:last-of-type {
+    text-align: right;
+  }
+`;
+
+const Toggle = styled.div`
+  display: flex;
+  align-items: center;
+
+  span {
+    margin-left: 0.5rem;
+  }
+`;
 
 // sort alphabetically by name
 function comparePwsName(objA, objB) {
@@ -166,146 +187,151 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
 
   // draw the drinking water providers (county) on the map
   const [countyGraphic, setCountyGraphic] = React.useState(null);
-  React.useEffect(
-    () => {
-      if (
-        !countyBoundaries ||
-        !countyBoundaries.features ||
-        countyBoundaries.features.length === 0
-      ) {
-        setCountyGraphic(null); // set to null if new search results in no boundaries
-        return;
-      }
+  React.useEffect(() => {
+    if (
+      !countyBoundaries ||
+      !countyBoundaries.features ||
+      countyBoundaries.features.length === 0
+    ) {
+      setCountyGraphic(null); // set to null if new search results in no boundaries
+      return;
+    }
 
-      const { Graphic, Polygon, SimpleFillSymbol } = esriModules;
-      const graphic = new Graphic({
-        attributes: { name: 'providers' },
-        geometry: new Polygon({
-          spatialReference: countyBoundaries.spatialReference,
-          rings: countyBoundaries.features[0].geometry.rings,
-        }),
-        symbol: new SimpleFillSymbol({
-          color: [0, 0, 0, 0.15],
-          outline: {
-            color: [255, 255, 0],
-            width: 3,
-            style: 'solid',
-          },
-        }),
-      });
+    const { Graphic, Polygon, SimpleFillSymbol } = esriModules;
+    const graphic = new Graphic({
+      attributes: { name: 'providers' },
+      geometry: new Polygon({
+        spatialReference: countyBoundaries.spatialReference,
+        rings: countyBoundaries.features[0].geometry.rings,
+      }),
+      symbol: new SimpleFillSymbol({
+        color: [0, 0, 0, 0.15],
+        outline: {
+          color: [255, 255, 0],
+          width: 3,
+          style: 'solid',
+        },
+      }),
+    });
 
-      setCountyGraphic(graphic);
-      providersLayer.graphics.removeAll();
-      providersLayer.graphics.add(graphic);
-    },
-    [providersLayer, countyBoundaries, esriModules],
-  );
+    setCountyGraphic(graphic);
+    providersLayer.graphics.removeAll();
+    providersLayer.graphics.add(graphic);
+  }, [providersLayer, countyBoundaries, esriModules]);
 
   // toggle map layers' visibility when a tab changes
-  React.useEffect(
-    () => {
-      if (!boundariesLayer || !waterbodyLayer || !providersLayer) return;
+  React.useEffect(() => {
+    if (!boundariesLayer || !waterbodyLayer || !providersLayer) return;
 
-      if (drinkingWaterTabIndex === 0) {
-        setVisibleLayers({
-          boundariesLayer: false,
-          waterbodyLayer: false,
-          providersLayer: true,
-        });
-      }
+    if (drinkingWaterTabIndex === 0) {
+      setVisibleLayers({
+        boundariesLayer: false,
+        waterbodyLayer: false,
+        providersLayer: true,
+      });
+    }
 
-      if (drinkingWaterTabIndex === 1) {
-        setVisibleLayers({
-          boundariesLayer: true,
-          waterbodyLayer: false,
-          providersLayer: false,
-        });
-      }
+    if (drinkingWaterTabIndex === 1) {
+      setVisibleLayers({
+        boundariesLayer: true,
+        waterbodyLayer: false,
+        providersLayer: false,
+      });
+    }
 
-      if (drinkingWaterTabIndex === 2) {
-        setVisibleLayers({
-          boundariesLayer: true,
-          waterbodyLayer: true,
-          providersLayer: false,
-        });
-      }
-    },
-    [
-      drinkingWaterTabIndex,
-      boundariesLayer,
-      waterbodyLayer,
-      providersLayer,
-      setVisibleLayers,
-    ],
-  );
+    if (drinkingWaterTabIndex === 2) {
+      setVisibleLayers({
+        boundariesLayer: true,
+        waterbodyLayer: true,
+        providersLayer: false,
+      });
+    }
+  }, [
+    drinkingWaterTabIndex,
+    boundariesLayer,
+    waterbodyLayer,
+    providersLayer,
+    setVisibleLayers,
+  ]);
 
   // set map zoom when switching to or from providers subtab
   // (as zoom is different for that subtab)
   const [previousTabIndex, setPreviousTabIndex] = React.useState(null);
   const [mapZoom, setMapZoom] = React.useState(null);
-  React.useEffect(
-    () => {
-      if (!mapView || !countyGraphic || !atHucBoundaries) {
-        setMapZoom(null); // reset the mapZoom if there is no countyGraphic
-        return;
-      }
+  React.useEffect(() => {
+    if (!mapView || !countyGraphic || !atHucBoundaries) {
+      setMapZoom(null); // reset the mapZoom if there is no countyGraphic
+      return;
+    }
 
-      const providersTabIndex = 0;
+    const providersTabIndex = 0;
 
-      // if currently on the providers subtab, save the zoom level prior to
-      // zooming, so it can be reset when switching away from the subtab
-      if (drinkingWaterTabIndex === providersTabIndex) {
-        setMapZoom(currentExtent);
-        mapView.goTo(countyGraphic);
-      }
+    // if currently on the providers subtab, save the zoom level prior to
+    // zooming, so it can be reset when switching away from the subtab
+    if (drinkingWaterTabIndex === providersTabIndex) {
+      setMapZoom(currentExtent);
+      mapView.goTo(countyGraphic);
+    }
 
-      // reset the zoom level when switching away from the providers subtab
-      if (previousTabIndex === providersTabIndex && mapZoom) {
-        mapView.goTo(currentExtent);
-      }
-    },
-    [
-      drinkingWaterTabIndex,
-      countyGraphic,
-      esriModules,
-      mapView,
-      atHucBoundaries,
-      previousTabIndex,
-      mapZoom,
-      currentExtent,
-    ],
-  );
+    // reset the zoom level when switching away from the providers subtab
+    if (previousTabIndex === providersTabIndex && mapZoom) {
+      mapView.goTo(currentExtent);
+    }
+  }, [
+    drinkingWaterTabIndex,
+    countyGraphic,
+    esriModules,
+    mapView,
+    atHucBoundaries,
+    previousTabIndex,
+    mapZoom,
+    currentExtent,
+  ]);
 
   // create mapZoomRef, and keep it in sync with mapZoom state,
   // so it can be used in resetMapZoom() cleanup function below
   const mapZoomRef = React.useRef();
-  React.useEffect(
-    () => {
-      mapZoomRef.current = mapZoom;
-    },
-    [mapZoom],
-  );
+  React.useEffect(() => {
+    mapZoomRef.current = mapZoom;
+  }, [mapZoom]);
 
   // conditionally reset the zoom level when this component unmounts
   // (i.e. changing to another Community tab, like Swimming, Overview, etc.)
-  React.useEffect(
-    () => {
-      if (!mapView || !mapZoomRef) return;
+  React.useEffect(() => {
+    if (!mapView || !mapZoomRef) return;
 
-      return function resetMapZoom() {
-        if (mapZoomRef.current) mapView.goTo(mapZoomRef.current);
-      };
-    },
-    [mapView, mapZoomRef],
+    return function resetMapZoom() {
+      if (mapZoomRef.current) mapView.goTo(mapZoomRef.current);
+    };
+  }, [mapView, mapZoomRef]);
+
+  // toggles for surface/ground water withdrawers
+  const [groundWaterDisplayed, setGroundWaterDisplayed] = React.useState(true);
+  const [surfaceWaterDisplayed, setSurfaceWaterDisplayed] = React.useState(
+    true,
   );
 
   // sort drinking water data into providers and withdrawers via presence of 'huc12' property
   const providers = [];
-  const withdrawers = [];
+  const displayedWithdrawers = [];
+  let surfaceWaterCount = 0; // total surface water withdrawers
+  let groundWaterCount = 0; // total groundwater withdrawers
+  let totalWithdrawersCount = 0; // total withdrawers
   if (drinkingWater.data) {
     drinkingWater.data.forEach((item) => {
       if (item.hasOwnProperty('huc12')) {
-        withdrawers.push(item);
+        totalWithdrawersCount++;
+
+        // surface water withdrawer
+        if (item.gw_sw.toLowerCase() === 'surface water') {
+          surfaceWaterCount++;
+          if (surfaceWaterDisplayed) displayedWithdrawers.push(item);
+        }
+        // groundwater withdrawer
+        else if (item.gw_sw.toLowerCase() === 'groundwater') {
+          groundWaterCount++;
+          if (groundWaterDisplayed) displayedWithdrawers.push(item);
+        }
       } else {
         providers.push(item);
       }
@@ -327,13 +353,10 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
   );
 
   // on new search, reset the sortBy option. fixes issue where useState sort order did not match Accordion sort
-  React.useEffect(
-    () => {
-      setProvidersSortBy('population');
-      setWithdrawersSortBy('population');
-    },
-    [atHucBoundaries],
-  );
+  React.useEffect(() => {
+    setProvidersSortBy('population');
+    setWithdrawersSortBy('population');
+  }, [atHucBoundaries]);
 
   const sortWaterSystems = (systems, sortBy) => {
     if (!systems) return [];
@@ -490,9 +513,10 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
                           }
                           sortOptions={drinkingWaterSorts}
                         >
-                          {sortWaterSystems(providers, providersSortBy).map(
-                            (item) => createAccordionItem(item),
-                          )}
+                          {sortWaterSystems(
+                            providers,
+                            providersSortBy,
+                          ).map((item) => createAccordionItem(item))}
                         </AccordionList>
                       )}
                     </>
@@ -544,6 +568,7 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
                   </p>
                 </>
               )}
+
               {drinkingWater.status === 'fetching' && <LoadingSpinner />}
 
               {drinkingWater.status === 'failure' && (
@@ -563,25 +588,81 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
 
                   {drinkingWater.data.length > 0 && (
                     <>
-                      {withdrawers.length === 0 && (
+                      {totalWithdrawersCount === 0 && (
                         <Text>
                           There are no public water systems drawing water from
                           the {watershed} watershed.
                         </Text>
                       )}
 
-                      {withdrawers.length > 0 && (
-                        <AccordionList
-                          title={`Public water systems withdrawing water from the ${watershed} watershed.`}
-                          onSortChange={(sortBy) =>
-                            setWithdrawersSortBy(sortBy.value)
-                          }
-                          sortOptions={drinkingWaterSorts}
-                        >
-                          {sortWaterSystems(withdrawers, withdrawersSortBy).map(
-                            (item) => createAccordionItem(item),
-                          )}
-                        </AccordionList>
+                      {totalWithdrawersCount > 0 && (
+                        <>
+                          <Table className="table">
+                            <thead>
+                              <tr>
+                                <th>
+                                  <span>Drinking Water Source</span>
+                                </th>
+                                <th>Count</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td>
+                                  <Toggle>
+                                    <Switch
+                                      disabled={!surfaceWaterCount}
+                                      checked={
+                                        surfaceWaterDisplayed &&
+                                        surfaceWaterCount > 0
+                                      }
+                                      onChange={(ev) =>
+                                        setSurfaceWaterDisplayed(
+                                          !surfaceWaterDisplayed,
+                                        )
+                                      }
+                                    />
+                                    <span>Surface Water</span>
+                                  </Toggle>
+                                </td>
+                                <td>{surfaceWaterCount}</td>
+                              </tr>
+                              <tr>
+                                <td>
+                                  <Toggle>
+                                    <Switch
+                                      disabled={!groundWaterCount}
+                                      checked={
+                                        groundWaterDisplayed &&
+                                        groundWaterCount > 0
+                                      }
+                                      onChange={(ev) =>
+                                        setGroundWaterDisplayed(
+                                          !groundWaterDisplayed,
+                                        )
+                                      }
+                                    />
+                                    <span>Ground Water</span>
+                                  </Toggle>
+                                </td>
+                                <td>{groundWaterCount}</td>
+                              </tr>
+                            </tbody>
+                          </Table>
+
+                          <AccordionList
+                            title={`Below are ${displayedWithdrawers.length} of ${totalWithdrawersCount} Public water systems withdrawing water from the ${watershed} watershed.`}
+                            onSortChange={(sortBy) =>
+                              setWithdrawersSortBy(sortBy.value)
+                            }
+                            sortOptions={drinkingWaterSorts}
+                          >
+                            {sortWaterSystems(
+                              displayedWithdrawers,
+                              withdrawersSortBy,
+                            ).map((item) => createAccordionItem(item))}
+                          </AccordionList>
+                        </>
                       )}
                     </>
                   )}

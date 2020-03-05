@@ -42,73 +42,61 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
 
   // redirect to overview tab if tabName param wasn't provided in the url
   // (e.g. '/state/al' redirects to '/state/AL/water-quality-overview')
-  React.useEffect(
-    () => {
-      if (stateCode && !tabName) {
-        navigate(`/state/${stateCode.toUpperCase()}/water-quality-overview`);
-      }
-    },
-    [stateCode, tabName],
-  );
+  React.useEffect(() => {
+    if (stateCode && !tabName) {
+      navigate(`/state/${stateCode.toUpperCase()}/water-quality-overview`);
+    }
+  }, [stateCode, tabName]);
 
   // redirect to '/state' if the url doesn't match a valid route
   // and conditionally set active tab index
-  React.useEffect(
-    () => {
-      const validRoutes = [
-        `/state/${stateCode.toUpperCase()}/water-quality-overview`,
-        `/state/${stateCode.toUpperCase()}/advanced-search`,
-      ];
+  React.useEffect(() => {
+    const validRoutes = [
+      `/state/${stateCode.toUpperCase()}/water-quality-overview`,
+      `/state/${stateCode.toUpperCase()}/advanced-search`,
+    ];
 
-      const tabIndex = validRoutes.indexOf(window.location.pathname);
+    const tabIndex = validRoutes.indexOf(window.location.pathname);
 
-      if (tabIndex === -1) {
-        navigate('/state');
-      }
+    if (tabIndex === -1) {
+      navigate('/state');
+    }
 
-      if (activeTabIndex !== tabIndex) {
-        setActiveTabIndex(tabIndex === -1 ? 0 : tabIndex);
-      }
-    },
-    [activeTabIndex, setActiveTabIndex, stateCode],
-  );
+    if (activeTabIndex !== tabIndex) {
+      setActiveTabIndex(tabIndex === -1 ? 0 : tabIndex);
+    }
+  }, [activeTabIndex, setActiveTabIndex, stateCode]);
 
   // if user navigation directly to the url, activeState.code will be an empty
   // string, so we'll need to query the attains states service for the states
-  React.useEffect(
-    () => {
-      if (activeState.code === '') {
-        fetchCheck(`${attains.serviceUrl}states`)
-          .then((res) => {
-            // get matched state from web service response
-            const match = res.data.filter(
-              (state) => state.code === stateCode.toUpperCase(),
-            )[0];
+  React.useEffect(() => {
+    if (activeState.code === '') {
+      fetchCheck(`${attains.serviceUrl}states`)
+        .then((res) => {
+          // get matched state from web service response
+          const match = res.data.filter(
+            (state) => state.code === stateCode.toUpperCase(),
+          )[0];
 
-            // redirect to /state if no state was found
-            if (!match) navigate('/state');
+          // redirect to /state if no state was found
+          if (!match) navigate('/state');
 
-            setActiveState({ code: match.code, name: match.name });
-          })
-          .catch((err) => {
-            navigate('/state');
-          });
-      }
-    },
-    [activeState, setActiveState, stateCode],
-  );
+          setActiveState({ code: match.code, name: match.name });
+        })
+        .catch((err) => {
+          navigate('/state');
+        });
+    }
+  }, [activeState, setActiveState, stateCode]);
 
   const tabListRef = React.useRef();
 
   // focus the active tab
-  React.useEffect(
-    () => {
-      if (tabListRef.current) {
-        tabListRef.current.children[activeTabIndex].focus();
-      }
-    },
-    [tabListRef, activeTabIndex],
-  );
+  React.useEffect(() => {
+    if (tabListRef.current) {
+      tabListRef.current.children[activeTabIndex].focus();
+    }
+  }, [tabListRef, activeTabIndex]);
 
   return (
     <>

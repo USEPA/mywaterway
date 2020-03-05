@@ -8,7 +8,8 @@ import Page from 'components/shared/Page';
 import LocationSearch from 'components/shared/LocationSearch';
 import DrinkingWaterIcon from 'components/shared/Icons/DrinkingWaterIcon';
 import SwimmingIcon from 'components/shared/Icons/SwimmingIcon';
-import FishingIcon from 'components/shared/Icons/FishingIcon';
+import EatingFishIcon from 'components/shared/Icons/EatingFishIcon';
+import AquaticLifeIcon from 'components/shared/Icons/AquaticLifeIcon';
 import DisclaimerModal from 'components/shared/DisclaimerModal';
 // styled components
 import {
@@ -16,6 +17,7 @@ import {
   StyledButtonLink,
   StyledTopicButtonLink,
   StyledThreeButtonLinks,
+  StyledFourButtonLinks,
 } from 'components/shared/ButtonLinks';
 // styles
 import { colors } from 'styles/index.js';
@@ -42,7 +44,7 @@ const Paragraph = styled.p`
 `;
 
 const TopicButtonLink = styled(StyledTopicButtonLink)`
-  ${StyledThreeButtonLinks}
+  ${StyledFourButtonLinks}
 `;
 
 const PlaceButtonLink = styled(StyledButtonLink)`
@@ -106,9 +108,13 @@ function Home({ ...props }: Props) {
             <SwimmingIcon />
             Swimming
           </TopicButtonLink>
-          <TopicButtonLink to="/fishing">
-            <FishingIcon />
-            Fishing
+          <TopicButtonLink to="/eating-fish">
+            <EatingFishIcon />
+            Eating Fish
+          </TopicButtonLink>
+          <TopicButtonLink to="/aquatic-life">
+            <AquaticLifeIcon />
+            Aquatic Life
           </TopicButtonLink>
           <TopicButtonLink to="/drinking-water">
             <DrinkingWaterIcon />

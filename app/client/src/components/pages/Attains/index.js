@@ -91,23 +91,20 @@ function Attains({ ...props }: Props) {
       });
   }, []);
 
-  React.useEffect(
-    () => {
-      // array of arrays - each containing 3 values: the HMW mapping, the ATTAINS context, and the ATTAINS name
-      // i.e. ["Excess Algae", "ALGAL GROWTH", "EXCESS ALGAL GROWTH"]
-      setMatchedMappings(
-        attainsData &&
-          attainsData.map((obj) => {
-            return {
-              hmwMapping: getMatchingLabel(obj.context),
-              attainsParameterGroup: obj.context,
-              attainsParameterName: obj.name,
-            };
-          }),
-      );
-    },
-    [attainsData],
-  );
+  React.useEffect(() => {
+    // array of arrays - each containing 3 values: the HMW mapping, the ATTAINS context, and the ATTAINS name
+    // i.e. ["Excess Algae", "ALGAL GROWTH", "EXCESS ALGAL GROWTH"]
+    setMatchedMappings(
+      attainsData &&
+        attainsData.map((obj) => {
+          return {
+            hmwMapping: getMatchingLabel(obj.context),
+            attainsParameterGroup: obj.context,
+            attainsParameterName: obj.name,
+          };
+        }),
+    );
+  }, [attainsData]);
 
   if (serviceError) {
     return (

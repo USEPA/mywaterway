@@ -456,6 +456,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
             status: 'success',
             data: [],
           },
+          visibleLayers: {},
         },
         () => navigate('/community'),
       );

@@ -200,69 +200,66 @@ function MapMouseEvents({ map, view }: Props) {
 
   // Sets up the map mouse events when the component initializes
   const [initialized, setInitialized] = React.useState(false);
-  React.useEffect(
-    () => {
-      if (initialized) return;
+  React.useEffect(() => {
+    if (initialized) return;
 
-      // These global scoped variables are used to prevent flickering that is caused
-      // by the hitTest async events occurring out of order. The global scoped variables
-      // are needed because the esri hit test event won't be able to read react state
-      // variables.
-      var lastFeature = null;
-      var lastEventId = -1;
+    // These global scoped variables are used to prevent flickering that is caused
+    // by the hitTest async events occurring out of order. The global scoped variables
+    // are needed because the esri hit test event won't be able to read react state
+    // variables.
+    var lastFeature = null;
+    var lastEventId = -1;
 
-      const handleMapMouseOver = (event, view) => {
-        view
-          .hitTest(event)
-          .then((res) => {
-            // only use the latest event id to perform the highligh
-            if (event.eventId < lastEventId) return;
-            lastEventId = event.eventId;
+    const handleMapMouseOver = (event, view) => {
+      view
+        .hitTest(event)
+        .then((res) => {
+          // only use the latest event id to perform the highligh
+          if (event.eventId < lastEventId) return;
+          lastEventId = event.eventId;
 
-            // get the graphic from the hittest
-            let feature = getGraphicFromResponse(res);
+          // get the graphic from the hittest
+          let feature = getGraphicFromResponse(res);
 
-            // ensure the graphic actually changed prior to setting the context variable
-            const equal = graphicComparison(feature, lastFeature);
-            if (!equal) {
-              setHighlightedGraphic(feature);
-              lastFeature = feature;
-            }
-          })
-          .catch((err) => console.error(err));
-      };
+          // ensure the graphic actually changed prior to setting the context variable
+          const equal = graphicComparison(feature, lastFeature);
+          if (!equal) {
+            setHighlightedGraphic(feature);
+            lastFeature = feature;
+          }
+        })
+        .catch((err) => console.error(err));
+    };
 
-      // setup the mouse click and mouse over events
-      view.on('click', (event) => {
-        handleMapClick(event, view);
-      });
+    // setup the mouse click and mouse over events
+    view.on('click', (event) => {
+      handleMapClick(event, view);
+    });
 
-      view.on('pointer-move', (event) => {
-        handleMapMouseOver(event, view);
-      });
+    view.on('pointer-move', (event) => {
+      handleMapMouseOver(event, view);
+    });
 
-      view.popup.watch('selectedFeature', (graphic) => {
-        // check if monitoring station is clicked, load the popup and call the waterqualitydata service
-        if (
-          graphic &&
-          graphic.layer &&
-          graphic.layer.id === 'monitoringStationsLayer' &&
-          graphic.attributes &&
-          graphic.attributes.fullPopup === false
-        ) {
-          loadMonitoringLocation(graphic);
-        }
-      });
+    view.popup.watch('selectedFeature', (graphic) => {
+      // check if monitoring station is clicked, load the popup and call the waterqualitydata service
+      if (
+        graphic &&
+        graphic.layer &&
+        graphic.layer.id === 'monitoringStationsLayer' &&
+        graphic.attributes &&
+        graphic.attributes.fullPopup === false
+      ) {
+        loadMonitoringLocation(graphic);
+      }
+    });
 
-      // auto expands the popup when it is first opened
-      view.popup.watch('visible', (graphic) => {
-        if (view.popup.visible) view.popup.collapsed = false;
-      });
+    // auto expands the popup when it is first opened
+    view.popup.watch('visible', (graphic) => {
+      if (view.popup.visible) view.popup.collapsed = false;
+    });
 
-      setInitialized(true);
-    },
-    [view, handleMapClick, setHighlightedGraphic, initialized],
-  );
+    setInitialized(true);
+  }, [view, handleMapClick, setHighlightedGraphic, initialized]);
 
   function getGraphicFromResponse(res: Object) {
     if (!res.results || res.results.length === 0) return null;
