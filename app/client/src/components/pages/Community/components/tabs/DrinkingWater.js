@@ -11,7 +11,7 @@ import { ContentTabs } from 'components/shared/ContentTabs';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import AssessmentSummary from 'components/shared/AssessmentSummary';
 import WaterbodyList from 'components/shared/WaterbodyList';
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { StyledErrorBox, StyledNoteBox } from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Switch from 'components/shared/Switch';
 // contexts
@@ -39,6 +39,10 @@ const Toggle = styled.div`
   span {
     margin-left: 0.5rem;
   }
+`;
+
+const NoteBoxContainer = styled(StyledNoteBox)`
+  margin-bottom: 0.625em;
 `;
 
 // sort alphabetically by name
@@ -562,10 +566,13 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
                     </a>
                     .
                   </p>
-                  <p>
-                    <strong>Mapping Note:</strong> The map does not display the
-                    actual locations of public water system facility intakes.
-                  </p>
+                  <NoteBoxContainer>
+                    <p>
+                      <strong>Mapping Note:</strong> The map does not display
+                      the actual locations of public water system facility
+                      intakes.
+                    </p>
+                  </NoteBoxContainer>
                 </>
               )}
 
