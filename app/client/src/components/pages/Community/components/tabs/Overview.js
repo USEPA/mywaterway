@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Switch from 'components/shared/Switch';
 import WaterbodyList from 'components/shared/WaterbodyList';
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 // styled components
 import {
@@ -30,6 +30,7 @@ import {
   echoError,
   monitoringError,
   huc12SummaryError,
+  zeroAssessedWaterbodies,
 } from 'config/errorMessages';
 
 // --- styled components ---
@@ -43,6 +44,11 @@ const SwitchContainer = styled.div`
 
 const ErrorBoxWithMargin = styled(StyledErrorBox)`
   margin: 1em;
+`;
+
+const InfoBoxWithMargin = styled(StyledInfoBox)`
+  margin: 1em;
+  text-align: center;
 `;
 
 // --- components ---
@@ -84,80 +90,71 @@ function Overview({ esriModules, infoToggleChecked }: Props) {
   useWaterbodyOnMap();
 
   // draw the monitoring stations on the map
-  React.useEffect(
-    () => {
-      // wait until monitoring stations data is set in context
-      if (!monitoringLocations.data.features) return;
+  React.useEffect(() => {
+    // wait until monitoring stations data is set in context
+    if (!monitoringLocations.data.features) return;
 
-      const stations = monitoringLocations.data.features.map((station) => {
-        return {
-          x: station.geometry.coordinates[0],
-          y: station.geometry.coordinates[1],
-          properties: station.properties,
-        };
-      });
+    const stations = monitoringLocations.data.features.map((station) => {
+      return {
+        x: station.geometry.coordinates[0],
+        y: station.geometry.coordinates[1],
+        properties: station.properties,
+      };
+    });
 
-      const { Graphic } = esriModules;
-      plotStations(Graphic, stations, '#c500ff', monitoringStationsLayer);
-    },
-    [monitoringLocations.data, esriModules, monitoringStationsLayer],
-  );
+    const { Graphic } = esriModules;
+    plotStations(Graphic, stations, '#c500ff', monitoringStationsLayer);
+  }, [monitoringLocations.data, esriModules, monitoringStationsLayer]);
 
   // draw the permitted dischargers on the map
-  React.useEffect(
-    () => {
-      // wait until permitted dischargers data is set in context
-      if (
-        permittedDischargers.data['Results'] &&
-        permittedDischargers.data['Results']['Facilities']
-      ) {
-        const { Graphic } = esriModules;
-        plotFacilities({
-          Graphic: Graphic,
-          facilities: permittedDischargers.data['Results']['Facilities'],
-          layer: dischargersLayer,
-        });
-      }
-    },
-    [permittedDischargers.data, esriModules, dischargersLayer],
-  );
+  React.useEffect(() => {
+    // wait until permitted dischargers data is set in context
+    if (
+      permittedDischargers.data['Results'] &&
+      permittedDischargers.data['Results']['Facilities']
+    ) {
+      const { Graphic } = esriModules;
+      plotFacilities({
+        Graphic: Graphic,
+        facilities: permittedDischargers.data['Results']['Facilities'],
+        layer: dischargersLayer,
+      });
+    }
+  }, [permittedDischargers.data, esriModules, dischargersLayer]);
 
   // Syncs the toggles with the visible layers on the map. Mainly
   // used for when the user toggles layers in full screen mode and then
   // exist full screen.
-  React.useEffect(
-    () => {
-      if (
-        !visibleLayers.hasOwnProperty('waterbodyLayer') ||
-        !visibleLayers.hasOwnProperty('monitoringStationsLayer') ||
-        !visibleLayers.hasOwnProperty('dischargersLayer')
-      ) {
-        return;
-      }
+  React.useEffect(() => {
+    if (
+      !visibleLayers.hasOwnProperty('waterbodyLayer') ||
+      !visibleLayers.hasOwnProperty('monitoringStationsLayer') ||
+      !visibleLayers.hasOwnProperty('dischargersLayer')
+    ) {
+      return;
+    }
 
-      const {
-        waterbodyLayer,
-        monitoringStationsLayer,
-        dischargersLayer,
-      } = visibleLayers;
+    const {
+      waterbodyLayer,
+      monitoringStationsLayer,
+      dischargersLayer,
+    } = visibleLayers;
 
-      if (typeof waterbodyLayer === 'boolean') {
-        setWaterbodiesFilterEnabled(waterbodyLayer);
-      }
-      if (typeof monitoringStationsLayer === 'boolean') {
-        setMonitoringLocationsFilterEnabled(monitoringStationsLayer);
-      }
-      if (typeof dischargersLayer === 'boolean') {
-        setDischargersFilterEnabled(dischargersLayer);
-      }
-    },
-    [
-      visibleLayers,
-      setDischargersFilterEnabled,
-      setMonitoringLocationsFilterEnabled,
-      setWaterbodiesFilterEnabled,
-    ],
-  );
+    if (typeof waterbodyLayer === 'boolean') {
+      setWaterbodiesFilterEnabled(waterbodyLayer);
+    }
+    if (typeof monitoringStationsLayer === 'boolean') {
+      setMonitoringLocationsFilterEnabled(monitoringStationsLayer);
+    }
+    if (typeof dischargersLayer === 'boolean') {
+      setDischargersFilterEnabled(dischargersLayer);
+    }
+  }, [
+    visibleLayers,
+    setDischargersFilterEnabled,
+    setMonitoringLocationsFilterEnabled,
+    setWaterbodiesFilterEnabled,
+  ]);
 
   const waterbodyCount = uniqueWaterbodies && uniqueWaterbodies.length;
   const monitoringLocationCount =
@@ -167,6 +164,7 @@ function Overview({ esriModules, infoToggleChecked }: Props) {
     permittedDischargers.data.Results &&
     permittedDischargers.data.Results.Facilities &&
     permittedDischargers.data.Results.Facilities.length;
+
   return (
     <Container>
       {cipSummary.status === 'failure' && (
@@ -305,6 +303,13 @@ function Overview({ esriModules, infoToggleChecked }: Props) {
           )}
         </StyledMetric>
       </StyledMetrics>
+      {cipSummary.status === 'success' &&
+        waterbodies !== null &&
+        waterbodyCount === 0 && (
+          <InfoBoxWithMargin>
+            {zeroAssessedWaterbodies(watershed)}
+          </InfoBoxWithMargin>
+        )}
       {cipSummary.status !== 'failure' && (
         <WaterbodyList
           waterbodies={waterbodies}

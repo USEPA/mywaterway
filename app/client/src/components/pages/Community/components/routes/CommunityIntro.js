@@ -10,7 +10,8 @@ import { fonts } from 'styles/index.js';
 import overviewIcon from 'components/pages/Community/images/overview.png';
 import drinkingWaterIcon from 'components/pages/Community/images/drinking-water.png';
 import swimmingIcon from 'components/pages/Community/images/swimming.png';
-import fishingIcon from 'components/pages/Community/images/fishing.png';
+import eatingFishIcon from 'components/pages/Community/images/eating-fish.png';
+import aquaticLifeIcon from 'components/pages/Community/images/aquatic-life.png';
 import monitoringIcon from 'components/pages/Community/images/monitoring.png';
 import identifiedIssuesIcon from 'components/pages/Community/images/identified-issues.png';
 import restoreIcon from 'components/pages/Community/images/restore.png';
@@ -93,13 +94,23 @@ function CommunityIntro({ ...props }: Props) {
 
         <Topic>
           <TopicIcon>
-            <img src={fishingIcon} alt="Fishing" />
+            <img src={eatingFishIcon} alt="Eating Fish" />
           </TopicIcon>
           <TopicText>
-            <strong>Fish Consumption and Aquatic Life:</strong> &nbsp; EPA,
-            states, and tribes monitor and assess water quality to determine the
-            impact of impairments on plants and animals living in the water.
-            They also monitor and assess if fish and shellfish are safe to eat.
+            <strong>Eating Fish:</strong> &nbsp; EPA, states, and tribes monitor
+            and assess water quality to determine if fish and shellfish are safe
+            to eat.
+          </TopicText>
+        </Topic>
+
+        <Topic>
+          <TopicIcon>
+            <img src={aquaticLifeIcon} alt="Aquatic Life" />
+          </TopicIcon>
+          <TopicText>
+            <strong>Aquatic Life:</strong> &nbsp; EPA, states, and tribes
+            monitor and assess water quality to determine the impact of
+            impairments on plants and animals living in the water.
           </TopicText>
         </Topic>
 

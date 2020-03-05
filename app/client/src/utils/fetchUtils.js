@@ -4,9 +4,19 @@ import { mapServiceMapping } from 'config/mapServiceConfig';
 import { webServiceMapping } from 'config/webServiceConfig';
 
 export function fetchCheck(apiUrl: string) {
-  logCallToGoogleAnalytics(apiUrl);
+  const startTime = performance.now();
+  return fetch(apiUrl)
+    .then((response) => {
+      logCallToGoogleAnalytics(apiUrl, response.status, startTime);
+      return checkResponse(response);
+    })
+    .catch((err) => {
+      console.error(err);
 
-  return fetch(apiUrl).then(checkResponse);
+      let status = err;
+      if (err && err.status) status = err.status;
+      logCallToGoogleAnalytics(apiUrl, status, startTime);
+    });
 }
 
 export function proxyFetch(apiUrl: string) {
@@ -15,9 +25,24 @@ export function proxyFetch(apiUrl: string) {
   const proxyUrl = REACT_APP_PROXY_URL || `${window.location.origin}/proxy`;
   const url = `${proxyUrl}?url=${apiUrl}`;
 
-  logCallToGoogleAnalytics(url);
+  return fetchCheck(url);
+}
 
-  return fetch(url).then(checkResponse);
+export function fetchPost(apiUrl: string, data: object, headers: object) {
+  const startTime = performance.now();
+  return fetch(apiUrl, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(data),
+  })
+    .then((response) => {
+      logCallToGoogleAnalytics(apiUrl, response.status, startTime);
+      return checkResponse(response);
+    })
+    .catch((err) => {
+      console.error(err);
+      logCallToGoogleAnalytics(apiUrl, err, startTime);
+    });
 }
 
 export function checkResponse(response) {
@@ -30,8 +55,14 @@ export function checkResponse(response) {
   });
 }
 
-export function logCallToGoogleAnalytics(url: string) {
+export function logCallToGoogleAnalytics(
+  url: string,
+  status: number,
+  startTime: number,
+) {
   if (!window.isIdSet) return;
+
+  const duration = performance.now() - startTime;
 
   // combine the web service and map service mappings
   let combinedMapping = webServiceMapping.concat(mapServiceMapping);
@@ -43,9 +74,12 @@ export function logCallToGoogleAnalytics(url: string) {
       eventAction = item.name;
     }
   });
+  eventAction = `omw-hmw2-${eventAction}`;
+
+  const eventLabel = `${url} | status:${status} | time:${duration}`;
 
   // log to google analytics if it has been setup
-  window.ga('send', 'event', 'Web-service', eventAction, url);
+  window.ga('send', 'event', 'Web-service', eventAction, eventLabel);
 }
 
 function wildcardIncludes(str, rule) {

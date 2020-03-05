@@ -7,7 +7,8 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import Overview from './components/tabs/Overview';
 import DrinkingWater from './components/tabs/DrinkingWater';
 import Swimming from './components/tabs/Swimming';
-import Fishing from './components/tabs/Fishing';
+import EatingFish from './components/tabs/EatingFish';
+import AquaticLife from './components/tabs/AquaticLife';
 import Monitoring from './components/tabs/Monitoring';
 import IdentifiedIssues from './components/tabs/IdentifiedIssues';
 import Restore from './components/tabs/Restore';
@@ -18,7 +19,8 @@ import ShowLessMore from 'components/shared/ShowLessMore';
 import overviewIcon from './images/overview.png';
 import drinkingWaterIcon from './images/drinking-water.png';
 import swimmingIcon from './images/swimming.png';
-import fishingIcon from './images/fishing.png';
+import eatingfishIcon from './images/eating-fish.png';
+import aquaticLifeIcon from './images/aquatic-life.png';
 import monitoringIcon from './images/monitoring.png';
 import identifiedIssuesIcon from './images/identified-issues.png';
 import restoreIcon from './images/restore.png';
@@ -122,11 +124,46 @@ const swimmingUpper = (
 );
 
 const fishingUpper = (
-  <p>
-    EPA, states, and tribes monitor and assess water quality to determine the
-    impact of impairments on plants and animals living in the water. They also
-    monitor and assess if fish and shellfish are safe to eat.
-  </p>
+  <>
+    <p>
+      EPA, states, and tribes monitor and assess water quality to determine if
+      fish and shellfish are safe to eat.
+    </p>
+  </>
+);
+
+const aquaticUpper = (
+  <>
+    <p>
+      EPA, states, and tribes monitor and assess water quality to determine the
+      impact of impairments on plants and animals living in the water.
+    </p>
+    <p>
+      Plants and animals depend on clean water. Impairments can affect the
+      quality of water, which can have adverse effects on plants and animals
+      living in the water.
+      <ShowLessMore
+        charLimit={0}
+        text={`
+                The condition of a waterbody is dynamic and can change at
+                any time, and the information in How’s My Waterway should
+                only be used for general reference. If available, refer to
+                local or state real-time water quality reports.
+              `}
+      />
+    </p>
+
+    <Disclaimer>
+      <p>
+        Users of this application should not rely on information relating to
+        environmental laws and regulations posted on this application.
+        Application users are solely responsible for ensuring that they are in
+        compliance with all relevant environmental laws and regulations. In
+        addition, EPA cannot attest to the accuracy of data provided by
+        organizations outside of the federal government.
+      </p>
+    </Disclaimer>
+  </>
 );
 
 const monitoringUpper = (
@@ -213,11 +250,19 @@ const tabs = [
     layers: { waterbodyLayer: true },
   },
   {
-    title: 'Fishing',
-    route: '/community/{urlSearch}/fishing',
-    icon: fishingIcon,
+    title: 'Eating Fish',
+    route: '/community/{urlSearch}/eating-fish',
+    icon: eatingfishIcon,
     upper: fishingUpper,
-    lower: <Fishing />,
+    lower: <EatingFish />,
+    layers: { waterbodyLayer: true },
+  },
+  {
+    title: 'Aquatic Life',
+    route: '/community/{urlSearch}/aquatic-life',
+    icon: aquaticLifeIcon,
+    upper: aquaticUpper,
+    lower: <AquaticLife />,
     layers: { waterbodyLayer: true },
   },
   {

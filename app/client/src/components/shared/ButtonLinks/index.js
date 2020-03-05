@@ -49,6 +49,16 @@ const StyledTopicButtonLink = styled(StyledButtonLink)`
   }
 `;
 
+const StyledFourButtonLinks = css`
+  @media (min-width: 35em) {
+    width: calc(25% - 0.75em);
+  }
+
+  @media (min-width: 45em) {
+    width: calc(25% - 1.25em);
+  }
+`;
+
 const StyledThreeButtonLinks = css`
   @media (min-width: 35em) {
     width: calc((100% / 3) - 0.75em);
@@ -73,6 +83,7 @@ export {
   StyledButtons,
   StyledButtonLink,
   StyledTopicButtonLink,
+  StyledFourButtonLinks,
   StyledThreeButtonLinks,
   StyledTwoButtonLinks,
 };

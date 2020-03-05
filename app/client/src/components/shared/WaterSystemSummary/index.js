@@ -91,33 +91,30 @@ function WaterSystemSummary({ state }: Props) {
   const [cwsCount, setCwsCount] = React.useState(0);
   const [ntncwsCount, setNtncwsCount] = React.useState(0);
   const [tncwsCount, setTncwsCount] = React.useState(0);
-  React.useEffect(
-    () => {
-      setLoading(true);
+  React.useEffect(() => {
+    setLoading(true);
 
-      fetchCheck(`${dwmaps.getGPRASystemCountsByType}${state.code}`)
-        .then((res) => {
-          if (!res || !res.items || res.items.length === 0) return;
+    fetchCheck(`${dwmaps.getGPRASystemCountsByType}${state.code}`)
+      .then((res) => {
+        if (!res || !res.items || res.items.length === 0) return;
 
-          res.items.forEach((item) => {
-            if (item.primacy_agency_code !== state.code) return;
+        res.items.forEach((item) => {
+          if (item.primacy_agency_code !== state.code) return;
 
-            const { pws_type_code, number_of_systems } = item;
-            if (pws_type_code === 'CWS') setCwsCount(number_of_systems);
-            if (pws_type_code === 'NTNCWS') setNtncwsCount(number_of_systems);
-            if (pws_type_code === 'TNCWS') setTncwsCount(number_of_systems);
-          });
-
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.error(err);
-          setLoading(false);
-          setChartServiceError(true);
+          const { pws_type_code, number_of_systems } = item;
+          if (pws_type_code === 'CWS') setCwsCount(number_of_systems);
+          if (pws_type_code === 'NTNCWS') setNtncwsCount(number_of_systems);
+          if (pws_type_code === 'TNCWS') setTncwsCount(number_of_systems);
         });
-    },
-    [state],
-  );
+
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+        setChartServiceError(true);
+      });
+  }, [state]);
 
   // fetch GPRA data
   const [gpraData, setGpraData] = React.useState({
@@ -125,15 +122,12 @@ function WaterSystemSummary({ state }: Props) {
     data: {},
   });
 
-  React.useEffect(
-    () => {
-      fetchCheck(`${dwmaps.getGPRASummary}${state.code}`).then(
-        (res) => setGpraData({ status: 'success', data: res.items[0] }),
-        (err) => setGpraData({ status: 'error', data: {} }),
-      );
-    },
-    [state],
-  );
+  React.useEffect(() => {
+    fetchCheck(`${dwmaps.getGPRASummary}${state.code}`).then(
+      (res) => setGpraData({ status: 'success', data: res.items[0] }),
+      (err) => setGpraData({ status: 'error', data: {} }),
+    );
+  }, [state]);
 
   return (
     <>
@@ -184,7 +178,6 @@ function WaterSystemSummary({ state }: Props) {
               },
               plotOptions: {
                 pie: {
-                  cursor: 'pointer',
                   showInLegend: true,
                   dataLabels: {
                     enabled: true,
@@ -198,7 +191,6 @@ function WaterSystemSummary({ state }: Props) {
               },
               series: [
                 {
-                  allowPointSelect: true,
                   name: `${state.name} Drinking Water Systems By Type`,
                   innerSize: '50%',
                   colorByPoint: true,

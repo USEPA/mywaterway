@@ -334,51 +334,48 @@ function WaterbodyInfo({
     status: 'fetching',
     data: [],
   });
-  React.useEffect(
-    () => {
-      if (type !== 'Monitoring Location') return;
+  React.useEffect(() => {
+    if (type !== 'Monitoring Location') return;
 
-      const wqpUrl =
-        `${waterQualityPortal.monitoringLocation}` +
-        `search?mimeType=geojson&zip=no&siteid=` +
-        `${attributes.MonitoringLocationIdentifier}`;
+    const wqpUrl =
+      `${waterQualityPortal.monitoringLocation}` +
+      `search?mimeType=geojson&zip=no&siteid=` +
+      `${attributes.MonitoringLocationIdentifier}`;
 
-      fetchCheck(wqpUrl)
-        .then((res) => {
-          const fieldName = 'characteristicGroupResultCount';
+    fetchCheck(wqpUrl)
+      .then((res) => {
+        const fieldName = 'characteristicGroupResultCount';
 
-          // get the feature where the provider matches this stations provider
-          // default to the first feature
-          let groups = res.features[0].properties[fieldName];
-          res.features.forEach((feature) => {
-            if (feature.properties.ProviderName === attributes.ProviderName) {
-              groups = feature.properties[fieldName];
-            }
-          });
-
-          // build the table data
-          const data = [];
-          for (const groupName in groups) {
-            data.push({
-              characteristicGroup: groupName,
-              resultCount: groups[groupName],
-            });
+        // get the feature where the provider matches this stations provider
+        // default to the first feature
+        let groups = res.features[0].properties[fieldName];
+        res.features.forEach((feature) => {
+          if (feature.properties.ProviderName === attributes.ProviderName) {
+            groups = feature.properties[fieldName];
           }
-          setMonitoringLocation({
-            status: 'success',
-            data,
-          });
-        })
-        .catch((err) => {
-          console.error(err);
-          setMonitoringLocation({
-            status: 'failure',
-            data: [],
-          });
         });
-    },
-    [attributes.MonitoringLocationIdentifier, attributes.ProviderName, type],
-  );
+
+        // build the table data
+        const data = [];
+        for (const groupName in groups) {
+          data.push({
+            characteristicGroup: groupName,
+            resultCount: groups[groupName],
+          });
+        }
+        setMonitoringLocation({
+          status: 'success',
+          data,
+        });
+      })
+      .catch((err) => {
+        console.error(err);
+        setMonitoringLocation({
+          status: 'failure',
+          data: [],
+        });
+      });
+  }, [attributes.MonitoringLocationIdentifier, attributes.ProviderName, type]);
 
   const [charGroupFilters, setCharGroupFilters] = React.useState('');
   const [selected, setSelected] = React.useState({});

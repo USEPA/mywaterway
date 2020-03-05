@@ -61,59 +61,56 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
 
   // Initially sets up the layers
   const [layersInitialized, setLayersInitialized] = React.useState(false);
-  React.useEffect(
-    () => {
-      if (layersInitialized) return;
+  React.useEffect(() => {
+    if (layersInitialized) return;
 
-      const { GraphicsLayer, MapImageLayer, FeatureLayer } = esriModules;
+    const { GraphicsLayer, MapImageLayer, FeatureLayer } = esriModules;
 
-      const mappedWaterLayer = new MapImageLayer({
-        id: 'mappedWaterLayer',
-        url: mappedWater,
-        title: 'Mapped Water (all)',
-        sublayers: [{ id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
-        listMode: 'hide-children',
-        visible: false,
+    const mappedWaterLayer = new MapImageLayer({
+      id: 'mappedWaterLayer',
+      url: mappedWater,
+      title: 'Mapped Water (all)',
+      sublayers: [{ id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
+      listMode: 'hide-children',
+      visible: false,
+    });
+
+    const countyLayer = new FeatureLayer({
+      id: 'countyLayer',
+      url: counties,
+      title: 'County',
+      listMode: 'show',
+      visible: false,
+    });
+
+    const watershedsLayer = new FeatureLayer({
+      id: 'watershedsLayer',
+      url: wbd,
+      title: 'Watersheds',
+      listMode: 'show',
+      visible: false,
+    });
+
+    let localActionsLayer = actionsLayer;
+    if (!actionsLayer) {
+      localActionsLayer = new GraphicsLayer({
+        id: 'actionsWaterbodies',
+        title: 'Waterbodies',
+        listMode: 'hide',
+        visible: true,
       });
+      setActionsLayer(localActionsLayer);
+    }
 
-      const countyLayer = new FeatureLayer({
-        id: 'countyLayer',
-        url: counties,
-        title: 'County',
-        listMode: 'show',
-        visible: false,
-      });
+    setLayers([
+      mappedWaterLayer,
+      countyLayer,
+      watershedsLayer,
+      localActionsLayer,
+    ]);
 
-      const watershedsLayer = new FeatureLayer({
-        id: 'watershedsLayer',
-        url: wbd,
-        title: 'Watersheds',
-        listMode: 'show',
-        visible: false,
-      });
-
-      let localActionsLayer = actionsLayer;
-      if (!actionsLayer) {
-        localActionsLayer = new GraphicsLayer({
-          id: 'actionsWaterbodies',
-          title: 'Waterbodies',
-          listMode: 'hide',
-          visible: true,
-        });
-        setActionsLayer(localActionsLayer);
-      }
-
-      setLayers([
-        mappedWaterLayer,
-        countyLayer,
-        watershedsLayer,
-        localActionsLayer,
-      ]);
-
-      setLayersInitialized(true);
-    },
-    [esriModules, actionsLayer, setActionsLayer, layersInitialized],
-  );
+    setLayersInitialized(true);
+  }, [esriModules, actionsLayer, setActionsLayer, layersInitialized]);
 
   const [fetchStatus, setFetchStatus] = React.useState('');
 
@@ -121,196 +118,187 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
   const [noMapData, setNoMapData] = React.useState(null);
 
   // Plots the assessments. Also re-plots if the layout changes
-  React.useEffect(
-    () => {
-      if (!unitIds || !actionsLayer) return;
-      if (fetchStatus) return; // only do a fetch if there is no status
+  React.useEffect(() => {
+    if (!unitIds || !actionsLayer) return;
+    if (fetchStatus) return; // only do a fetch if there is no status
 
-      function plotAssessments(unitIds: Array<string>) {
-        const {
-          QueryTask,
-          Query,
-          SimpleLineSymbol,
-          SimpleFillSymbol,
-          SimpleMarkerSymbol,
-          Graphic,
-        } = esriModules;
+    function plotAssessments(unitIds: Array<string>) {
+      const {
+        QueryTask,
+        Query,
+        SimpleLineSymbol,
+        SimpleFillSymbol,
+        SimpleMarkerSymbol,
+        Graphic,
+      } = esriModules;
 
-        setFetchStatus('fetching');
-        actionsLayer.graphics.removeAll();
+      setFetchStatus('fetching');
+      actionsLayer.graphics.removeAll();
 
-        // set up ESRI Queries for ATTAINS lines, area, and points web services
-        const lineQuery = new Query();
-        const areaQuery = new Query();
-        const pointQuery = new Query();
+      // set up ESRI Queries for ATTAINS lines, area, and points web services
+      const lineQuery = new Query();
+      const areaQuery = new Query();
+      const pointQuery = new Query();
 
-        [lineQuery, areaQuery, pointQuery].forEach((query) => {
-          const auIds = Object.keys(unitIds).join("','");
-          query.returnGeometry = true;
-          query.outFields = ['*'];
-          query.where = `assessmentunitidentifier in ('${auIds}')`;
-        });
+      [lineQuery, areaQuery, pointQuery].forEach((query) => {
+        const auIds = Object.keys(unitIds).join("','");
+        query.returnGeometry = true;
+        query.outFields = ['*'];
+        query.where = `assessmentunitidentifier in ('${auIds}')`;
+      });
 
-        const lineQueryTask = new QueryTask({ url: waterbodyService.lines });
-        const areaQueryTask = new QueryTask({ url: waterbodyService.areas });
-        const pointQueryTask = new QueryTask({ url: waterbodyService.points });
+      const lineQueryTask = new QueryTask({ url: waterbodyService.lines });
+      const areaQueryTask = new QueryTask({ url: waterbodyService.areas });
+      const pointQueryTask = new QueryTask({ url: waterbodyService.points });
 
-        const linePromise = lineQueryTask.execute(lineQuery);
-        const areaPromise = areaQueryTask.execute(areaQuery);
-        const pointPromise = pointQueryTask.execute(pointQuery);
+      const linePromise = lineQueryTask.execute(lineQuery);
+      const areaPromise = areaQueryTask.execute(areaQuery);
+      const pointPromise = pointQueryTask.execute(pointQuery);
 
-        Promise.all([linePromise, areaPromise, pointPromise])
-          .then(([lineResponse, areaResponse, pointResponse]) => {
-            if (!lineResponse.hasOwnProperty('features')) {
-              console.error('ATTAINS line query failed.');
+      Promise.all([linePromise, areaPromise, pointPromise])
+        .then(([lineResponse, areaResponse, pointResponse]) => {
+          if (!lineResponse.hasOwnProperty('features')) {
+            console.error('ATTAINS line query failed.');
+          }
+          if (!areaResponse.hasOwnProperty('features')) {
+            console.error('ATTAINS area query failed.');
+          }
+          if (!pointResponse.hasOwnProperty('features')) {
+            console.error('ATTAINS point query failed.');
+          }
+
+          // handle when queries return no features for the map
+          if (
+            lineResponse.features.length === 0 &&
+            areaResponse.features.length === 0 &&
+            pointResponse.features.length === 0
+          ) {
+            setFetchStatus('success');
+            setNoMapData(true);
+            return;
+          }
+
+          function createGraphic(feature: Object, type: string) {
+            let symbol;
+            if (type === 'point') {
+              symbol = new SimpleMarkerSymbol({
+                color: '#007bff',
+                style: 'circle',
+              });
             }
-            if (!areaResponse.hasOwnProperty('features')) {
-              console.error('ATTAINS area query failed.');
+            if (type === 'line') {
+              symbol = new SimpleLineSymbol({
+                color: '#007bff',
+                style: 'solid',
+                width: '2',
+              });
             }
-            if (!pointResponse.hasOwnProperty('features')) {
-              console.error('ATTAINS point query failed.');
-            }
-
-            // handle when queries return no features for the map
-            if (
-              lineResponse.features.length === 0 &&
-              areaResponse.features.length === 0 &&
-              pointResponse.features.length === 0
-            ) {
-              setFetchStatus('success');
-              setNoMapData(true);
-              return;
-            }
-
-            function createGraphic(feature: Object, type: string) {
-              let symbol;
-              if (type === 'point') {
-                symbol = new SimpleMarkerSymbol({
-                  color: '#007bff',
-                  style: 'circle',
-                });
-              }
-              if (type === 'line') {
-                symbol = new SimpleLineSymbol({
-                  color: '#007bff',
-                  style: 'solid',
-                  width: '2',
-                });
-              }
-              if (type === 'area') {
-                symbol = new SimpleFillSymbol({
-                  color: '#007bff',
-                  style: 'solid',
-                });
-              }
-
-              const auId = feature.attributes.assessmentunitidentifier;
-              let content;
-
-              // add additional attributes
-              if (unitIds[auId]) {
-                feature.attributes = {
-                  ...feature.attributes,
-                  layerType: 'actions',
-                };
-
-                content = getPopupContent({
-                  feature,
-                  extraContent: unitIds[auId],
-                });
-              } else {
-                // when no content is provided just display the normal community
-                // waterbody content
-                content = getPopupContent({ feature });
-              }
-
-              return new Graphic({
-                geometry: feature.geometry,
-                symbol,
-                attributes: feature.attributes,
-                popupTemplate: {
-                  title: getPopupTitle(feature.attributes),
-                  content,
-                },
+            if (type === 'area') {
+              symbol = new SimpleFillSymbol({
+                color: '#007bff',
+                style: 'solid',
               });
             }
 
-            // add graphics to graphicsLayer based on feature type
-            areaResponse.features.forEach((feature) => {
-              actionsLayer.graphics.add(createGraphic(feature, 'area'));
+            const auId = feature.attributes.assessmentunitidentifier;
+            let content;
+
+            // add additional attributes
+            if (unitIds[auId]) {
+              feature.attributes = {
+                ...feature.attributes,
+                layerType: 'actions',
+              };
+
+              content = getPopupContent({
+                feature,
+                extraContent: unitIds[auId],
+              });
+            } else {
+              // when no content is provided just display the normal community
+              // waterbody content
+              content = getPopupContent({ feature });
+            }
+
+            return new Graphic({
+              geometry: feature.geometry,
+              symbol,
+              attributes: feature.attributes,
+              popupTemplate: {
+                title: getPopupTitle(feature.attributes),
+                content,
+              },
             });
+          }
 
-            lineResponse.features.forEach((feature) => {
-              actionsLayer.graphics.add(createGraphic(feature, 'line'));
-            });
-
-            pointResponse.features.forEach((feature) => {
-              actionsLayer.graphics.add(createGraphic(feature, 'point'));
-            });
-
-            setFetchStatus('success');
-
-            // pass the layer back up to the parent
-            if (typeof onLoad === 'function') onLoad(actionsLayer);
-          })
-          .catch((err) => {
-            console.error(err);
-            setFetchStatus('failure');
+          // add graphics to graphicsLayer based on feature type
+          areaResponse.features.forEach((feature) => {
+            actionsLayer.graphics.add(createGraphic(feature, 'area'));
           });
-      }
 
-      if (Object.keys(unitIds).length > 0) plotAssessments(unitIds);
-    },
-    [unitIds, actionsLayer, fetchStatus, esriModules, onLoad],
-  );
+          lineResponse.features.forEach((feature) => {
+            actionsLayer.graphics.add(createGraphic(feature, 'line'));
+          });
+
+          pointResponse.features.forEach((feature) => {
+            actionsLayer.graphics.add(createGraphic(feature, 'point'));
+          });
+
+          setFetchStatus('success');
+
+          // pass the layer back up to the parent
+          if (typeof onLoad === 'function') onLoad(actionsLayer);
+        })
+        .catch((err) => {
+          console.error(err);
+          setFetchStatus('failure');
+        });
+    }
+
+    if (Object.keys(unitIds).length > 0) plotAssessments(unitIds);
+  }, [unitIds, actionsLayer, fetchStatus, esriModules, onLoad]);
 
   // Scrolls to the map when switching layouts
-  React.useEffect(
-    () => {
-      // scroll container or actions map content into view
-      // get container or actions map content DOM node to scroll page
-      // the layout changes
-      const itemName = layout === 'fullscreen' ? 'actionsmap' : 'container';
-      const content = document.querySelector(`[data-content="${itemName}"]`);
-      if (content) {
-        let pos = content.getBoundingClientRect();
+  React.useEffect(() => {
+    // scroll container or actions map content into view
+    // get container or actions map content DOM node to scroll page
+    // the layout changes
+    const itemName = layout === 'fullscreen' ? 'actionsmap' : 'container';
+    const content = document.querySelector(`[data-content="${itemName}"]`);
+    if (content) {
+      let pos = content.getBoundingClientRect();
 
-        window.scrollTo(
-          pos.left + window.pageXOffset,
-          pos.top + window.pageYOffset,
-        );
-      }
-    },
-    [layout],
-  );
+      window.scrollTo(
+        pos.left + window.pageXOffset,
+        pos.top + window.pageYOffset,
+      );
+    }
+  }, [layout]);
 
   // Zooms to the waterbodies after they are drawn on the map
   const [mapLoading, setMapLoading] = React.useState(true);
-  React.useEffect(
-    () => {
-      if (
-        !fetchStatus ||
-        !mapView ||
-        !actionsLayer ||
-        fetchStatus === 'fetching'
-      ) {
-        return;
-      }
+  React.useEffect(() => {
+    if (
+      !fetchStatus ||
+      !mapView ||
+      !actionsLayer ||
+      fetchStatus === 'fetching'
+    ) {
+      return;
+    }
 
-      const { Viewpoint } = esriModules;
+    const { Viewpoint } = esriModules;
 
-      mapView.goTo(actionsLayer.graphics).then(() => {
-        // set map zoom and home widget's viewpoint
-        mapView.zoom = mapView.zoom - 1;
-        homeWidget.viewpoint = new Viewpoint({
-          targetGeometry: mapView.extent,
-        });
+    mapView.goTo(actionsLayer.graphics).then(() => {
+      // set map zoom and home widget's viewpoint
+      mapView.zoom = mapView.zoom - 1;
+      homeWidget.viewpoint = new Viewpoint({
+        targetGeometry: mapView.extent,
       });
+    });
 
-      setMapLoading(false);
-    },
-    [fetchStatus, mapView, actionsLayer, esriModules, homeWidget],
-  );
+    setMapLoading(false);
+  }, [fetchStatus, mapView, actionsLayer, esriModules, homeWidget]);
 
   return (
     <>

@@ -10,7 +10,8 @@ import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import DrinkingWaterIcon from 'components/shared/Icons/DrinkingWaterIcon';
 import SwimmingIcon from 'components/shared/Icons/SwimmingIcon';
-import FishingIcon from 'components/shared/Icons/FishingIcon';
+import EatingFishIcon from 'components/shared/Icons/EatingFishIcon';
+import AquaticLifeIcon from 'components/shared/Icons/AquaticLifeIcon';
 import OtherIcon from 'components/shared/Icons/OtherIcon';
 import WaterSystemSummary from 'components/shared/WaterSystemSummary';
 import SurveyResults from 'components/pages/State/components/SurveyResults';
@@ -56,6 +57,7 @@ function formatTopic(topic) {
   if (topic === 'drinking') return 'Drinking Water';
   if (topic === 'swimming') return 'Recreation';
   if (topic === 'fishing') return 'Fish and Shellfish Consumption';
+  if (topic === 'ecological') return 'Ecological Life';
   if (topic === 'other') return 'Other';
 }
 
@@ -99,6 +101,22 @@ const TopicTabs = styled(ContentTabs)`
 
   [data-reach-tab-panel] {
     padding-bottom: 0 !important;
+  }
+`;
+
+const TabContainer = styled(TabList)`
+  background-color: #0774ba;
+  @media (max-width: 450px) {
+    flex-wrap: wrap;
+  }
+`;
+
+const TopicTab = styled(Tab)`
+  @media (max-width: 450px) {
+    border-top: 1px solid black;
+    &:first-child {
+      border-top: 0;
+    }
   }
 `;
 
@@ -261,9 +279,7 @@ function WaterQualityOverview({ ...props }: Props) {
     (orgID, year) => {
       // use the excludeAsssessments flag to improve performance, since we only
       // need the documents and reportStatusCode
-      const url = `${
-        attains.serviceUrl
-      }assessments?organizationId=${orgID}&reportingCycle=${year}&excludeAssessments=Y`;
+      const url = `${attains.serviceUrl}assessments?organizationId=${orgID}&reportingCycle=${year}&excludeAssessments=Y`;
       fetchCheck(url)
         .then((res) => {
           setAssessmentsLoading(false);
@@ -375,50 +391,47 @@ function WaterQualityOverview({ ...props }: Props) {
   );
 
   // If the user changes the search
-  React.useEffect(
-    () => {
-      if (activeState.code === '') return;
+  React.useEffect(() => {
+    if (activeState.code === '') return;
 
-      if (currentState !== activeState.code) {
-        setCurrentStateData({});
-        setLoading(true);
-        setSurveyLoading(true);
-        setSurveyDocuments([]);
-        setYearSelected('');
-        setWaterType('');
-        setUseSelected('');
-        setServiceError(false);
-        setDocumentServiceError(false);
-        setSurveyServiceError(false);
-        setNoDataError(false);
-        setSurveyData(null);
-        setAssessmentsLoading(true);
-        setAssessmentDocuments([]);
-        setSubPopulationCodes([]);
-        setCurrentReportStatus('');
+    if (currentState !== activeState.code) {
+      setCurrentStateData({});
+      setLoading(true);
+      setSurveyLoading(true);
+      setSurveyDocuments([]);
+      setYearSelected('');
+      setWaterType('');
+      setUseSelected('');
+      setServiceError(false);
+      setDocumentServiceError(false);
+      setSurveyServiceError(false);
+      setNoDataError(false);
+      setSurveyData(null);
+      setAssessmentsLoading(true);
+      setAssessmentDocuments([]);
+      setSubPopulationCodes([]);
+      setCurrentReportStatus('');
 
-        setCurrentState(activeState.code);
-        fetchStateOrgId(activeState.code);
+      setCurrentState(activeState.code);
+      fetchStateOrgId(activeState.code);
 
-        setCurrentSummary({
-          status: 'fetching',
-          data: {},
-        });
-        setStories({
-          status: 'fetching',
-          data: [],
-          nextUrl: `${grts.getSSByState}${activeState.code}`,
-        });
-      }
-    },
-    [
-      currentState,
-      activeState,
-      setCurrentReportStatus,
-      setCurrentSummary,
-      fetchStateOrgId,
-    ],
-  );
+      setCurrentSummary({
+        status: 'fetching',
+        data: {},
+      });
+      setStories({
+        status: 'fetching',
+        data: [],
+        nextUrl: `${grts.getSSByState}${activeState.code}`,
+      });
+    }
+  }, [
+    currentState,
+    activeState,
+    setCurrentReportStatus,
+    setCurrentSummary,
+    fetchStateOrgId,
+  ]);
 
   // Get the survey data and survey documents
   const fetchSurveyData = (orgID) => {
@@ -457,275 +470,244 @@ function WaterQualityOverview({ ...props }: Props) {
   // fetch the stories from the provided url. This also saves the next stories
   // url to nextStoriesUrl, if the web service provided it, and the useEffect
   // will execute the fetch again.
-  React.useEffect(
-    () => {
-      if (!stories.nextUrl) return;
+  React.useEffect(() => {
+    if (!stories.nextUrl) return;
 
-      fetchCheck(stories.nextUrl)
-        .then((res) => {
-          // filter stories that have no description text or url
-          const filteredItems = res.items.filter(
-            (story) => story.ss_overview && story.web_link,
-          );
-          setStories({
-            data: [...stories.data, ...filteredItems],
-            status: res.next ? 'fetching' : 'success',
-            nextUrl: res.next ? res.next.$ref : '',
-          });
-        })
-        .catch((err) => {
-          console.error(err);
-          setStories({
-            status: 'failure',
-            data: [],
-            nextUrl: '',
-          });
+    fetchCheck(stories.nextUrl)
+      .then((res) => {
+        // filter stories that have no description text or url
+        const filteredItems = res.items.filter(
+          (story) => story.ss_overview && story.web_link,
+        );
+        setStories({
+          data: [...stories.data, ...filteredItems],
+          status: res.next ? 'fetching' : 'success',
+          nextUrl: res.next ? res.next.$ref : '',
         });
-    },
-    [stories],
-  );
+      })
+      .catch((err) => {
+        console.error(err);
+        setStories({
+          status: 'failure',
+          data: [],
+          nextUrl: '',
+        });
+      });
+  }, [stories]);
 
   // Gets a list of uses that pertain to the current topic
-  React.useEffect(
-    () => {
-      if (activeState.code === '') return;
+  React.useEffect(() => {
+    if (activeState.code === '') return;
 
-      let category = formatTopic(currentTopic);
+    let category = formatTopic(currentTopic);
 
-      //get the list of possible uses. Lump ecological in with fishing.
-      let possibleUses = {};
-      stateNationalUses.forEach((item) => {
-        if (
-          item.state === activeState.code &&
-          (item.category === category ||
-            (item.category === 'Ecological Life' && currentTopic === 'fishing'))
-        ) {
-          // make sure to use upper case to prevent duplicate uses
-          possibleUses[item.name.toUpperCase()] = item;
-        }
-      });
+    //get the list of possible uses
+    let possibleUses = {};
+    stateNationalUses.forEach((item) => {
+      if (item.state === activeState.code && item.category === category) {
+        // make sure to use upper case to prevent duplicate uses
+        possibleUses[item.name.toUpperCase()] = item;
+      }
+    });
 
-      setTopicUses(possibleUses);
-    },
-    [currentTopic, activeState, waterTypeData],
-  );
+    setTopicUses(possibleUses);
+  }, [currentTopic, activeState, waterTypeData]);
 
   // Gets a unique list of water types that have data that is relevant to
   // the current topic
-  React.useEffect(
-    () => {
-      if (!waterTypes) {
-        setDisplayWaterTypes([]);
-        return;
-      }
+  React.useEffect(() => {
+    if (!waterTypes) {
+      setDisplayWaterTypes([]);
+      return;
+    }
 
-      const displayWaterTypes = [
-        // get a list of unique water type codes
-        ...new Set(
-          waterTypes
-            .filter((item) => {
-              // add the item if it has a use relevant to
-              // the selected tab
-              let hasUse = false;
-              item.useAttainments.forEach((use) => {
-                if (
-                  topicUses.hasOwnProperty(use.useName.toUpperCase()) &&
-                  hasUseValues(use)
-                ) {
-                  hasUse = true;
-                }
-              });
+    const displayWaterTypes = [
+      // get a list of unique water type codes
+      ...new Set(
+        waterTypes
+          .filter((item) => {
+            // add the item if it has a use relevant to
+            // the selected tab
+            let hasUse = false;
+            item.useAttainments.forEach((use) => {
+              if (
+                topicUses.hasOwnProperty(use.useName.toUpperCase()) &&
+                hasUseValues(use)
+              ) {
+                hasUse = true;
+              }
+            });
 
-              if (hasUse) {
-                return relabelWaterType(item.waterTypeCode);
-              } else return null;
-            })
-            .map((item) => relabelWaterType(item.waterTypeCode)),
-        ),
-      ].sort();
+            if (hasUse) {
+              return relabelWaterType(item.waterTypeCode);
+            } else return null;
+          })
+          .map((item) => relabelWaterType(item.waterTypeCode)),
+      ),
+    ].sort();
 
-      setDisplayWaterTypes(displayWaterTypes);
-    },
-    [waterTypes, topicUses],
-  );
+    setDisplayWaterTypes(displayWaterTypes);
+  }, [waterTypes, topicUses]);
 
   // Builds use lists that will be used for displaying in dropdowns and
   // building graphs with aggregrate data.
-  React.useEffect(
-    () => {
-      // fill in the use list dropdown
-      let addedUses = [];
-      let useList = []; //used for dropdown (excludes duplicate names)
-      let completeUseList = []; //used for aggregrate data (includes duplicate names)
-      if (waterTypeData) {
-        waterTypeData.forEach((waterTypeItem) => {
-          waterTypeItem['useAttainments'].forEach((use) => {
-            let useName = use.useName.toUpperCase();
-            if (topicUses.hasOwnProperty(useName) && hasUseValues(use)) {
-              if (!addedUses.includes(useName)) {
-                addedUses.push(useName);
-                useList.push(use);
-              }
-
-              if (titleCase(useName) === useSelected) {
-                completeUseList.push(use);
-              }
+  React.useEffect(() => {
+    // fill in the use list dropdown
+    let addedUses = [];
+    let useList = []; //used for dropdown (excludes duplicate names)
+    let completeUseList = []; //used for aggregrate data (includes duplicate names)
+    if (waterTypeData) {
+      waterTypeData.forEach((waterTypeItem) => {
+        waterTypeItem['useAttainments'].forEach((use) => {
+          let useName = use.useName.toUpperCase();
+          if (topicUses.hasOwnProperty(useName) && hasUseValues(use)) {
+            if (!addedUses.includes(useName)) {
+              addedUses.push(useName);
+              useList.push(use);
             }
-          });
-        });
-      }
 
-      setUseList(useList);
-      setCompleteUseList(completeUseList);
-      const displayUses = useList
-        .filter((use) => topicUses.hasOwnProperty(use.useName.toUpperCase()))
-        .map((use) => titleCase(use.useName))
-        .sort();
-      setDisplayUses(displayUses);
-    },
-    [topicUses, waterTypeData, useSelected],
-  );
+            if (titleCase(useName) === useSelected) {
+              completeUseList.push(use);
+            }
+          }
+        });
+      });
+    }
+
+    setUseList(useList);
+    setCompleteUseList(completeUseList);
+    const displayUses = useList
+      .filter((use) => topicUses.hasOwnProperty(use.useName.toUpperCase()))
+      .map((use) => titleCase(use.useName))
+      .sort();
+    setDisplayUses(displayUses);
+  }, [topicUses, waterTypeData, useSelected]);
 
   // Handles user year changes and gets data associated with the selected year.
-  React.useEffect(
-    () => {
-      let yearData =
-        yearSelected &&
-        currentStateData.reportingCycles &&
-        currentStateData.reportingCycles.find(
-          (x) => x['reportingCycle'] === yearSelected,
-        );
+  React.useEffect(() => {
+    let yearData =
+      yearSelected &&
+      currentStateData.reportingCycles &&
+      currentStateData.reportingCycles.find(
+        (x) => x['reportingCycle'] === yearSelected,
+      );
 
-      if (yearData) {
-        // Build a list of water types that includes the simple water type attribute.
-        const waterTypes = [];
-        yearData['waterTypes'].forEach((waterType) => {
-          // Get the simple water type name (i.e. one of the types in the dropdown)
-          // from the detailed water type
-          let simpleWaterType = 'Other Types'; // if it's not found use "Other Types"
-          Object.entries(waterTypeOptions).forEach((option) => {
-            const [key, value] = option;
-            if (value.includes(waterType.waterTypeCode)) simpleWaterType = key;
-          });
-
-          waterTypes.push({
-            ...waterType,
-            simpleWaterType: simpleWaterType,
-          });
+    if (yearData) {
+      // Build a list of water types that includes the simple water type attribute.
+      const waterTypes = [];
+      yearData['waterTypes'].forEach((waterType) => {
+        // Get the simple water type name (i.e. one of the types in the dropdown)
+        // from the detailed water type
+        let simpleWaterType = 'Other Types'; // if it's not found use "Other Types"
+        Object.entries(waterTypeOptions).forEach((option) => {
+          const [key, value] = option;
+          if (value.includes(waterType.waterTypeCode)) simpleWaterType = key;
         });
 
-        setWaterTypes(waterTypes);
-      } else setWaterTypes(null);
-    },
-    [currentTopic, yearSelected, currentStateData],
-  );
-
-  // Handles user and auto water type selection
-  React.useEffect(
-    () => {
-      if (displayWaterTypes && displayWaterTypes.length > 0) {
-        // set to the user's selection if it is availble
-        if (displayWaterTypes.includes(userSelectedWaterType)) {
-          setWaterType(userSelectedWaterType);
-        }
-
-        // set to first item if the user's select cannot be found
-        else {
-          setWaterType(displayWaterTypes[0]);
-        }
-      } else {
-        setWaterType(''); // no data available
-      }
-    },
-    [displayWaterTypes, userSelectedWaterType],
-  );
-
-  // Gets data that is associated with the selected water type
-  React.useEffect(
-    () => {
-      if (!waterType || !waterTypes) return;
-
-      const waterTypeData =
-        waterType &&
-        waterTypes &&
-        waterTypes.filter((x) => waterType === x['simpleWaterType']);
-      setWaterTypeData(waterTypeData);
-    },
-    [waterTypes, waterType],
-  );
-
-  // Handles user and auto use selection
-  React.useEffect(
-    () => {
-      if (useList && useList.length > 0) {
-        // set to the user's selection if it is availble
-        if (useList.some((e) => e.useName.toUpperCase() === userSelectedUse)) {
-          setUseSelected(titleCase(userSelectedUse));
-        }
-
-        // set to first item if the user's select cannot be found
-        else {
-          setUseSelected(titleCase(useList[0].useName));
-        }
-      } else {
-        setUseSelected(''); // no data available
-      }
-    },
-    [useList, userSelectedUse],
-  );
-
-  // Handles changes in the selected use
-  React.useEffect(
-    () => {
-      if (
-        !useSelected ||
-        !surveyData ||
-        !waterType ||
-        !topicUses.hasOwnProperty(useSelected.toUpperCase())
-      ) {
-        if (surveyData) setSubPopulationCodes([]);
-        return;
-      }
-
-      // build a list of subpopulation codes
-      let subPopulationCodes = [];
-      surveyData.surveyWaterGroups
-        .filter((x) =>
-          waterTypeOptions[waterType].includes(x['waterTypeGroupCode']),
-        )
-        .forEach((waterGroup) => {
-          // ensure the waterGroup has a use that matches the selected use
-          let hasUse = false;
-          let surveyUseCodeUpper = '';
-          let useSelectedUpper = '';
-          let topicSurveyUseCode = '';
-          waterGroup.surveyWaterGroupUseParameters.forEach((param) => {
-            surveyUseCodeUpper = param.surveyUseCode.toUpperCase();
-            useSelectedUpper = useSelected.toUpperCase();
-            topicSurveyUseCode = topicUses[
-              useSelectedUpper
-            ].surveyuseCode.toUpperCase();
-            if (
-              surveyUseCodeUpper === useSelectedUpper ||
-              surveyUseCodeUpper === topicSurveyUseCode
-            ) {
-              hasUse = true;
-            }
-          });
-
-          // add the watergroup if it matches the filter criteria
-          if (hasUse) subPopulationCodes.push(waterGroup);
+        waterTypes.push({
+          ...waterType,
+          simpleWaterType: simpleWaterType,
         });
-
-      // sort the subpopulation codes
-      subPopulationCodes.sort((a, b) => {
-        return a.subPopulationCode.localeCompare(b.subPopulationCode);
       });
 
-      setSubPopulationCodes(subPopulationCodes);
-    },
-    [useSelected, surveyData, waterType, topicUses],
-  );
+      setWaterTypes(waterTypes);
+    } else setWaterTypes(null);
+  }, [currentTopic, yearSelected, currentStateData]);
+
+  // Handles user and auto water type selection
+  React.useEffect(() => {
+    if (displayWaterTypes && displayWaterTypes.length > 0) {
+      // set to the user's selection if it is availble
+      if (displayWaterTypes.includes(userSelectedWaterType)) {
+        setWaterType(userSelectedWaterType);
+      }
+
+      // set to first item if the user's select cannot be found
+      else {
+        setWaterType(displayWaterTypes[0]);
+      }
+    } else {
+      setWaterType(''); // no data available
+    }
+  }, [displayWaterTypes, userSelectedWaterType]);
+
+  // Gets data that is associated with the selected water type
+  React.useEffect(() => {
+    if (!waterType || !waterTypes) return;
+
+    const waterTypeData =
+      waterType &&
+      waterTypes &&
+      waterTypes.filter((x) => waterType === x['simpleWaterType']);
+    setWaterTypeData(waterTypeData);
+  }, [waterTypes, waterType]);
+
+  // Handles user and auto use selection
+  React.useEffect(() => {
+    if (useList && useList.length > 0) {
+      // set to the user's selection if it is availble
+      if (useList.some((e) => e.useName.toUpperCase() === userSelectedUse)) {
+        setUseSelected(titleCase(userSelectedUse));
+      }
+
+      // set to first item if the user's select cannot be found
+      else {
+        setUseSelected(titleCase(useList[0].useName));
+      }
+    } else {
+      setUseSelected(''); // no data available
+    }
+  }, [useList, userSelectedUse]);
+
+  // Handles changes in the selected use
+  React.useEffect(() => {
+    if (
+      !useSelected ||
+      !surveyData ||
+      !waterType ||
+      !topicUses.hasOwnProperty(useSelected.toUpperCase())
+    ) {
+      if (surveyData) setSubPopulationCodes([]);
+      return;
+    }
+
+    // build a list of subpopulation codes
+    let subPopulationCodes = [];
+    surveyData.surveyWaterGroups
+      .filter((x) =>
+        waterTypeOptions[waterType].includes(x['waterTypeGroupCode']),
+      )
+      .forEach((waterGroup) => {
+        // ensure the waterGroup has a use that matches the selected use
+        let hasUse = false;
+        let surveyUseCodeUpper = '';
+        let useSelectedUpper = '';
+        let topicSurveyUseCode = '';
+        waterGroup.surveyWaterGroupUseParameters.forEach((param) => {
+          surveyUseCodeUpper = param.surveyUseCode.toUpperCase();
+          useSelectedUpper = useSelected.toUpperCase();
+          topicSurveyUseCode = topicUses[
+            useSelectedUpper
+          ].surveyuseCode.toUpperCase();
+          if (
+            surveyUseCodeUpper === useSelectedUpper ||
+            surveyUseCodeUpper === topicSurveyUseCode
+          ) {
+            hasUse = true;
+          }
+        });
+
+        // add the watergroup if it matches the filter criteria
+        if (hasUse) subPopulationCodes.push(waterGroup);
+      });
+
+    // sort the subpopulation codes
+    subPopulationCodes.sort((a, b) => {
+      return a.subPopulationCode.localeCompare(b.subPopulationCode);
+    });
+
+    setSubPopulationCodes(subPopulationCodes);
+  }, [useSelected, surveyData, waterType, topicUses]);
 
   // setup order of the tabs
   const tabs = [
@@ -736,8 +718,13 @@ function WaterQualityOverview({ ...props }: Props) {
     },
     {
       id: 'fishing',
-      title: 'Fishing',
-      icon: <FishingIcon height="2.5em" />,
+      title: 'Eating Fish',
+      icon: <EatingFishIcon height="2.5em" />,
+    },
+    {
+      id: 'ecological',
+      title: 'Aquatic Life',
+      icon: <AquaticLifeIcon height="2.5em" />,
     },
     {
       id: 'drinking',
@@ -793,14 +780,14 @@ function WaterQualityOverview({ ...props }: Props) {
             setCurrentTopic(tabs[index].id);
           }}
         >
-          <TabList>
+          <TabContainer>
             {tabs.map((tab) => (
-              <Tab key={tab.id}>
+              <TopicTab key={tab.id}>
                 <TopicIcon>{tab.icon}</TopicIcon>
                 {tab.title}
-              </Tab>
+              </TopicTab>
             ))}
-          </TabList>
+          </TabContainer>
 
           <TabPanels>
             {tabs.map((tab) => (

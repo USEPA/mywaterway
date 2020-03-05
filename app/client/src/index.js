@@ -2,6 +2,7 @@
 
 import 'react-app-polyfill/ie11';
 import 'react-app-polyfill/stable';
+import smoothscroll from 'smoothscroll-polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { createGlobalStyle } from 'styled-components';
@@ -15,6 +16,8 @@ import { LocationSearchProvider } from 'contexts/locationSearch';
 import { GlossaryProvider } from 'contexts/Glossary';
 // errors
 import { defaultErrorBoundaryMessage } from 'config/errorMessages';
+
+smoothscroll.polyfill();
 
 // --- styled components ---
 export const GlobalStyle = createGlobalStyle`

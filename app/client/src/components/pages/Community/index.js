@@ -112,30 +112,26 @@ function Community({ children, ...props }: Props) {
     setSearchText,
     setLastSearchText, //
   } = React.useContext(LocationSearchContext);
-  React.useEffect(
-    () => {
-      return function cleanup() {
-        resetData();
-        setSearchText('');
-        setLastSearchText('');
-      };
-    },
-    [resetData, setLastSearchText, setSearchText],
-  );
+  React.useEffect(() => {
+    return function cleanup() {
+      resetData();
+      setSearchText('');
+      setLastSearchText('');
+    };
+  }, [resetData, setLastSearchText, setSearchText]);
 
   const { setVisibleLayers } = React.useContext(LocationSearchContext);
-  React.useEffect(
-    () => {
-      // don't show any tab based layers if on community landing page
-      if (window.location.pathname === '/community') return;
+  React.useEffect(() => {
+    // don't show any tab based layers if on community landing page
+    if (window.location.pathname === '/community' || activeTabIndex === -1) {
+      return;
+    }
 
-      setVisibleLayers(tabs[activeTabIndex].layers);
-    },
-    [activeTabIndex, setVisibleLayers],
-  );
+    setVisibleLayers(tabs[activeTabIndex].layers);
+  }, [activeTabIndex, setVisibleLayers]);
 
   // jsx
-  const activeTabRoute = tabs[activeTabIndex].route;
+  const activeTabRoute = tabs[activeTabIndex === -1 ? 0 : activeTabIndex].route;
   const searchMarkup = (
     <>
       <Prompt>
@@ -153,10 +149,13 @@ function Community({ children, ...props }: Props) {
         // implicitly pass esriModules and infoToggleChecked props to 'lower' tab components
         // (normally we'd get these via useContext, but lower tab components are all class-based
         // components, and this is easier than using render props to use multiple React Contexts)
-        return React.cloneElement(tabs[activeTabIndex].lower, {
-          esriModules,
-          infoToggleChecked,
-        });
+        return React.cloneElement(
+          tabs[activeTabIndex === -1 ? 0 : activeTabIndex].lower,
+          {
+            esriModules,
+            infoToggleChecked,
+          },
+        );
       }}
     </EsriModulesContext.Consumer>
   );
@@ -183,9 +182,9 @@ function Community({ children, ...props }: Props) {
             // narrow screens
             return (
               <Columns data-content="community">
-                <LeftColumn>
+                <LeftColumn data-column="left">
                   {searchMarkup}
-                  <RightColumn>
+                  <RightColumn data-column="right">
                     {/* children is either CommunityIntro or CommunityTabs (upper tabs) */}
                     {children}
                   </RightColumn>
@@ -212,12 +211,12 @@ function Community({ children, ...props }: Props) {
             // wide screens
             return (
               <Columns data-content="community">
-                <LeftColumn>
+                <LeftColumn data-column="left">
                   <LocationMap windowHeight={height} layout="wide">
                     {searchMarkup}
                   </LocationMap>
                 </LeftColumn>
-                <RightColumn>
+                <RightColumn data-column="right">
                   {/* children is either CommunityIntro or CommunityTabs (upper tabs) */}
                   {children}
                   {!atCommunityIntroRoute && lowerTabs}

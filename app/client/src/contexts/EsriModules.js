@@ -124,6 +124,9 @@ export class EsriModulesProvider extends React.Component<Props, State> {
             ScaleBar,
           });
 
+          var callId = 0;
+          var callDurations = {};
+
           // intercept esri calls to gispub
           const urls = [
             waterbodyService.points,
@@ -145,11 +148,43 @@ export class EsriModulesProvider extends React.Component<Props, State> {
               if (envString) {
                 params.requestOptions.query[envString] = 1;
               }
+
+              // add the callId to the query so we can tie the response back
+              params.requestOptions.query['callId'] = callId;
+
+              // add the call's start time to the dictionary
+              callDurations[callId] = performance.now();
+
+              // increment the callId
+              callId = callId + 1;
             },
 
             // Log esri api calls to Google Analytics
             after: function(response) {
-              logCallToGoogleAnalytics(response.url);
+              // get the execution time for the call
+              const callId = response.requestOptions.query.callId;
+              const startTime = callDurations[callId];
+
+              logCallToGoogleAnalytics(response.url, 200, startTime);
+
+              // delete the execution time from the dictionary
+              delete callDurations[callId];
+            },
+
+            error: function(error) {
+              // get the execution time for the call
+              const details = error.details;
+              const callId = details.requestOptions.query.callId;
+              const startTime = callDurations[callId];
+
+              logCallToGoogleAnalytics(
+                details.url,
+                details.httpStatus ? details.httpStatus : error.message,
+                startTime,
+              );
+
+              // delete the execution time from the dictionary
+              delete callDurations[callId];
             },
           });
         },

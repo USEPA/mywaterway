@@ -7,17 +7,17 @@ import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
 import NavBar from 'components/shared/NavBar';
 import LocationSearch from 'components/shared/LocationSearch';
-import DrinkingWaterIcon from 'components/shared/Icons/DrinkingWaterIcon';
 import SwimmingIcon from 'components/shared/Icons/SwimmingIcon';
-import FishingIcon from 'components/shared/Icons/FishingIcon';
+import EatingFishIcon from 'components/shared/Icons/EatingFishIcon';
+import AquaticLifeIcon from 'components/shared/Icons/AquaticLifeIcon';
+import DrinkingWaterIcon from 'components/shared/Icons/DrinkingWaterIcon';
 import DisclaimerModal from 'components/shared/DisclaimerModal';
-import ShowLessMore from 'components/shared/ShowLessMore';
 // styled components
 import { StyledText, StyledTopic } from 'components/shared/Topics';
 import {
   StyledButtons,
   StyledTopicButtonLink,
-  StyledTwoButtonLinks,
+  StyledThreeButtonLinks,
 } from 'components/shared/ButtonLinks';
 
 // --- styled components ---
@@ -30,7 +30,7 @@ const Prompt = styled.p`
 `;
 
 const TopicButtonLink = styled(StyledTopicButtonLink)`
-  ${StyledTwoButtonLinks}
+  ${StyledThreeButtonLinks}
 `;
 
 // --- components ---
@@ -60,14 +60,10 @@ function Swimming({ ...props }: Props) {
         <p>
           Learn whether your local waters have been deemed safe for swimming and
           other recreational activities. Find out about what impairments exist
-          in your local waterbodies.
-          <ShowLessMore
-            text={`
-            Water quality can change on very short notice. When deciding if it is
-            safe to swim in a water body, refer to any local or state advisories.
-            If available, refer to local or state real-time water quality reports.`}
-            charLimit={0}
-          />
+          in your local waterbodies. Water quality can change on very short
+          notice. When deciding if it is safe to swim in a water body, refer to
+          any local or state advisories. If available, refer to local or state
+          real-time water quality reports.
         </p>
 
         <Disclaimer>
@@ -86,9 +82,13 @@ function Swimming({ ...props }: Props) {
         <h2>Other Topics</h2>
 
         <StyledButtons>
-          <TopicButtonLink to="/fishing">
-            <FishingIcon />
-            Fishing
+          <TopicButtonLink to="/eating-fish">
+            <EatingFishIcon />
+            Eating Fish
+          </TopicButtonLink>
+          <TopicButtonLink to="/aquatic-life">
+            <AquaticLifeIcon />
+            Aquatic Life
           </TopicButtonLink>
           <TopicButtonLink to="/drinking-water">
             <DrinkingWaterIcon />
