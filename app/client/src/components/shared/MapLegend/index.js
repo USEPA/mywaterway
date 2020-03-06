@@ -3,6 +3,7 @@
 import React from 'react';
 import styled from 'styled-components';
 // components
+import PinIcon from 'components/shared/Icons/PinIcon';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 
 // --- styled components ---
@@ -206,20 +207,28 @@ function MapLegendContent({ layer }: CardProps) {
 
   // jsx
   const boundariesLegend = (
-    <LI>
-      <ImageContainer>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="26"
-          height="26"
-          viewBox="0 0 26 26"
-        >
-          <rect x="0" y="12" width="10" height="3" fill="#666666" />
-          <rect x="16" y="12" width="10" height="3" fill="#666666" />
-        </svg>
-      </ImageContainer>
-      <LegendLabel>HUC12 Boundaries</LegendLabel>
-    </LI>
+    <>
+      <LI>
+        <ImageContainer>
+          <PinIcon />
+        </ImageContainer>
+        <LegendLabel>Searched Location</LegendLabel>
+      </LI>
+      <LI>
+        <ImageContainer>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="26"
+            height="26"
+            viewBox="0 0 26 26"
+          >
+            <rect x="0" y="12" width="10" height="3" fill="#666666" />
+            <rect x="16" y="12" width="10" height="3" fill="#666666" />
+          </svg>
+        </ImageContainer>
+        <LegendLabel>HUC12 Boundaries</LegendLabel>
+      </LI>
+    </>
   );
 
   // jsx
