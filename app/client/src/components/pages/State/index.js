@@ -139,6 +139,10 @@ const Disclaimer = styled(DisclaimerModal)`
   margin-bottom: 1rem;
 `;
 
+const ByTheNumbersExplanation = styled.p`
+  font-style: italic;
+`;
+
 // --- components ---
 type Props = {
   ...RouteProps,
@@ -268,6 +272,9 @@ function State({ children, ...props }: Props) {
                             ),
                         )}
                       </StyledMetrics>
+                      <ByTheNumbersExplanation>
+                        Waters not assessed do not show up in summaries below.
+                      </ByTheNumbersExplanation>
                     </>
                   )}
 
