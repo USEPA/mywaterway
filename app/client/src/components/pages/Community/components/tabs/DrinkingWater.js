@@ -472,14 +472,15 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
                     </a>
                     .
                   </p>
-
-                  <p>
-                    <strong>Mapping Note: </strong>The map does not display the
-                    actual locations of public water system facility intakes.
-                    Sources of drinking water are often located outside the
-                    mapped area shown, and may include a combination of
-                    different sources.
-                  </p>
+                  <NoteBoxContainer>
+                    <p>
+                      <strong>Mapping Note: </strong>The map does not display
+                      the actual locations of public water system facility
+                      intakes. Sources of drinking water are often located
+                      outside the mapped area shown, and may include a
+                      combination of different sources.
+                    </p>
+                  </NoteBoxContainer>
                 </>
               )}
 
