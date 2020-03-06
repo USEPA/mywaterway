@@ -539,7 +539,8 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
                         public water systems
                       </GlossaryTerm>{' '}
                       listed below draw source water from the watershed outlined
-                      on the map.
+                      on the map. This is the immediate drainage area, not the
+                      entire watershed.
                     </strong>
                   </p>
                   <p>
