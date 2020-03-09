@@ -17,4 +17,12 @@ describe('Homepage', () => {
     cy.findByText('National').click();
     cy.url().should('include', '/national');
   });
+  it(`"Data" button links to the data page`, () => {
+    cy.findByText('Data').click();
+    cy.url().should('include', '/data');
+  });
+  it(`"About" button links to the about page`, () => {
+    cy.findByText('About').click();
+    cy.url().should('include', '/about');
+  });
 });
