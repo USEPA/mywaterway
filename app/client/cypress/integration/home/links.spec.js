@@ -25,4 +25,16 @@ describe('Homepage', () => {
     cy.findByText('About').click();
     cy.url().should('include', '/about');
   });
+  it(`"Contact Us" button links to the contact us page in a new window`, () => {
+    // Cypress does not have multi-tab support, verify the href and target and don't click through
+    cy.findByText('Contact Us')
+      .should('have.attr', 'href')
+      .and(
+        'equal',
+        'https://www.epa.gov/waterdata/forms/contact-us-about-hows-my-waterway',
+      );
+    cy.findByText('Contact Us')
+      .should('have.attr', 'target')
+      .and('equal', '_blank');
+  });
 });
