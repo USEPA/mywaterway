@@ -3,7 +3,6 @@ describe('Homepage', () => {
     cy.visit('/');
   });
   it(`Glossary button toggles slide content`, () => {
-    //.findByText('Glossary')
     cy.get('button[title="Glossary"]').click();
   });
   it(`Glossary close button closes slide content`, () => {
