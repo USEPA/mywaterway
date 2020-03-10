@@ -767,6 +767,7 @@ class IdentifiedIssues extends React.Component<Props, State> {
                                     {item['CWPName'] || 'Unknown'}
                                   </strong>
                                 }
+                                subTitle={`NPDES ID: ${item['SourceID']}`}
                                 feature={feature}
                                 idKey={'CWPName'}
                               >
