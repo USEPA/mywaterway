@@ -311,6 +311,12 @@ function WaterbodyInfo({
             </td>
             <td>{bool(attributes.CWPFormalEaCnt)}</td>
           </tr>
+          <tr>
+            <td>
+              <em>NPDES ID:</em>
+            </td>
+            <td>{attributes.SourceID}</td>
+          </tr>
         </tbody>
       </table>
       <p>
