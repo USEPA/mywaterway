@@ -193,16 +193,24 @@ function MapLegendContent({ layer }: CardProps) {
 
   // jsx
   const providersLegend = (
-    <LI>
-      <ImageContainer>
-        {squareIcon({
-          color: '#CBCBCB',
-          strokeWidth: 3,
-          stroke: '#ffff00',
-        })}
-      </ImageContainer>
-      <LegendLabel>Providers</LegendLabel>
-    </LI>
+    <>
+      <LI>
+        <ImageContainer>
+          <PinIcon />
+        </ImageContainer>
+        <LegendLabel>Searched Location</LegendLabel>
+      </LI>
+      <LI>
+        <ImageContainer>
+          {squareIcon({
+            color: '#CBCBCB',
+            strokeWidth: 3,
+            stroke: '#ffff00',
+          })}
+        </ImageContainer>
+        <LegendLabel>Providers</LegendLabel>
+      </LI>
+    </>
   );
 
   // jsx
