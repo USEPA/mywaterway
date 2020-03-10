@@ -928,6 +928,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     if (layers.length === 0 || searchText === lastSearchText) return;
 
     resetData();
+    setHucResponse(null);
     setErrorMessage('');
     setLastSearchText(searchText);
     queryGeocodeServer(searchText);
