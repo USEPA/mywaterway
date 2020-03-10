@@ -37,4 +37,9 @@ describe('Homepage', () => {
       .should('have.attr', 'target')
       .and('equal', '_blank');
   });
+  it(`"How’s My Waterway?" header text links to home page`, () => {
+    //Note: About and Data pages do not always actually link back to home page, have to use Back button
+    cy.findByText('How’s My Waterway?').click();
+    cy.url().should('equal', 'http://localhost:3000/'); //set variable for?
+  });
 });
