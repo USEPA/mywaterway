@@ -54,6 +54,60 @@ const Watershed = styled.p`
   }
 `;
 
+const TabsOverlay = styled.div`
+  position: relative;
+  width: 100%;
+
+  ::before,
+  ::after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0;
+    width: calc(100% / 9); /* .5 tab width */
+    height: 45px;
+    pointer-events: none;
+
+    @media (min-width: 800px) {
+      width: calc(100% / 11); /* .5 tab width */
+    }
+
+    @media (min-width: 960px) {
+      width: calc(100% / 9); /* .5 tab width */
+    }
+
+    @media (min-width: 1280px) {
+      width: calc(100% / 11); /* .5 tab width */
+    }
+
+    @media (min-width: 1600px) {
+      width: calc(100% / 9); /* .5 tab width */
+    }
+
+    @media (min-width: 1920px) {
+      width: calc(100% / 11); /* .5 tab width */
+    }
+  }
+
+  ::before {
+    left: 0;
+    background-image: linear-gradient(
+      to right,
+      rgba(0, 0, 0, 0.5),
+      rgba(0, 0, 0, 0)
+    );
+  }
+
+  ::after {
+    right: 0;
+    background-image: linear-gradient(
+      to left,
+      rgba(0, 0, 0, 0.5),
+      rgba(0, 0, 0, 0)
+    );
+  }
+`;
+
 const StyledTabs = styled(Tabs)`
   & ::-webkit-scrollbar {
     height: 12px;
@@ -90,7 +144,7 @@ const StyledTabs = styled(Tabs)`
       &[data-selected],
       &:hover,
       &:focus {
-        z-index: 1;
+        z-index: 1
         background-color: ${colors.purple()};
         box-shadow: inset 0 -5px 0 ${colors.teal()};
       }
@@ -108,7 +162,7 @@ const StyledTabs = styled(Tabs)`
       }
 
       @media (min-width: 960px) {
-        flex-basis: calc(2 / 9 * 100%); /* 4.5 tabs before overlow */
+        flex-basis: calc(2 / 9 * 100%); /* 4.5 tabs before overflow */
       }
 
       @media (min-width: 1280px) {
@@ -335,6 +389,8 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
           )}
         </Text>
       </Location>
+
+      <TabsOverlay />
 
       <StyledTabs
         index={activeTabIndex}
