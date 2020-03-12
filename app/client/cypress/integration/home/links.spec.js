@@ -26,7 +26,7 @@ describe('Homepage', () => {
     cy.url().should('include', '/about');
   });
   it(`"Contact Us" button links to the contact us page in a new window`, () => {
-    // Cypress does not have multi-tab support, verify the href and target and don't click through
+    // Cypress does not have multi-tab support, verify the href and target, don't click
     cy.findByText('Contact Us')
       .should('have.attr', 'href')
       .and(
@@ -38,8 +38,7 @@ describe('Homepage', () => {
       .and('equal', '_blank');
   });
   it(`"How’s My Waterway?" header text links to home page`, () => {
-    //Note: About and Data pages do not always actually link back to home page, have to use Back button
     cy.findByText('How’s My Waterway?').click();
-    cy.url().should('equal', 'http://localhost:3000/'); //set variable for?
+    cy.url().should('equal', `${document.location.origin}/`);
   });
 });
