@@ -1,6 +1,6 @@
-describe('Fishing', () => {
+describe('Eating Fish', () => {
   beforeEach(() => {
-    cy.visit('/fishing');
+    cy.visit('/eating-fish');
   });
 
   it(`"Swimming" button links to the swimming page`, () => {
