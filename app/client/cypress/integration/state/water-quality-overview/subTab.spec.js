@@ -36,8 +36,10 @@ describe('Water Quality Overview Sub Tabs', () => {
     cy.findByText('Water Quality', { timeout: 20000 }).should('exist');
     cy.get('button:contains(Aquatic Life)[role=tab]').click();
 
-    // wait for the surveys service to finish
-    cy.wait(20000);
+    // wait for the all web services to finish (surveys is usually slow here)
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 20000 }).should(
+      'not.exist',
+    );
 
     // Florida > Aquatic Life > Coastal Waters
     // verify the pie chart is not there and the bar chart is
@@ -76,8 +78,10 @@ describe('Water Quality Overview Sub Tabs', () => {
     cy.findByText('Water Quality', { timeout: 20000 }).should('exist');
     cy.get('button:contains(Aquatic Life)[role=tab]').click();
 
-    // wait for the surveys service to finish
-    cy.wait(15000);
+    // wait for the all web services to finish (surveys is usually slow here)
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 20000 }).should(
+      'not.exist',
+    );
 
     // select a dropdown item that has the pie chart
     cy.get('.Select__control:contains(Coastal Waters)')
