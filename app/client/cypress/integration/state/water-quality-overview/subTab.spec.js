@@ -20,7 +20,7 @@ describe('Water Quality Overview Sub Tabs', () => {
       .contains('No Available Uses');
 
     // verify a tab with data
-    cy.findByText('Eating Fish').click();
+    cy.findByTestId('hmw-fishing-tab-button').click();
     cy.get('.Select__control')
       .filter(':visible')
       .contains('No Available Water Types')
@@ -43,12 +43,10 @@ describe('Water Quality Overview Sub Tabs', () => {
 
     // Florida > Aquatic Life > Coastal Waters
     // verify the pie chart is not there and the bar chart is
-    cy.get('p')
-      .filter(':visible')
+    cy.findByTestId('hmw-ecological-tab-panel')
       .contains('State statistical surveys provide an overall picture')
       .should('not.exist');
-    cy.get('p')
-      .filter(':visible')
+    cy.findByTestId('hmw-ecological-tab-panel')
       .contains('Targeted monitoring provides information')
       .should('exist');
 
@@ -59,16 +57,11 @@ describe('Water Quality Overview Sub Tabs', () => {
       .click();
     cy.findByText('Rivers and Streams').click();
 
-    // allow enough time for the surveys section to be visible
-    cy.wait(1000);
-
     // verify the pie chart is not there and the bar chart is
-    cy.get('p')
-      .filter(':visible')
+    cy.findByTestId('hmw-ecological-tab-panel')
       .contains('State statistical surveys provide an overall picture')
       .should('exist');
-    cy.get('p')
-      .filter(':visible')
+    cy.findByTestId('hmw-ecological-tab-panel')
       .contains('Targeted monitoring provides information')
       .should('exist');
   });

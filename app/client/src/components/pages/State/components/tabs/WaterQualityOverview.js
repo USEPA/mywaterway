@@ -782,7 +782,7 @@ function WaterQualityOverview({ ...props }: Props) {
         >
           <TabContainer>
             {tabs.map((tab) => (
-              <TopicTab key={tab.id}>
+              <TopicTab key={tab.id} data-testid={`hmw-${tab.id}-tab-button`}>
                 <TopicIcon>{tab.icon}</TopicIcon>
                 {tab.title}
               </TopicTab>
@@ -791,7 +791,7 @@ function WaterQualityOverview({ ...props }: Props) {
 
           <TabPanels>
             {tabs.map((tab) => (
-              <TabPanel key={tab.id}>
+              <TabPanel key={tab.id} data-testid={`hmw-${tab.id}-tab-panel`}>
                 <FiltersSection>
                   <h4>Pick your Water Type and Use:</h4>
 
