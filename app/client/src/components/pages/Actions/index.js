@@ -42,7 +42,7 @@ import { actionsError, noActionsAvailableCombo } from 'config/errorMessages';
 
 const echoUrl = 'https://echo.epa.gov/detailed-facility-report?fid=';
 
-function getAssessmentUnitNames(action: Object) {
+function getAssessmentUnitNames(orgId: string, action: Object) {
   return new Promise((resolve, reject) => {
     const unitIds = action.associatedWaters.specificWaters.map((water) => {
       return water.assessmentUnitIdentifier;
@@ -57,7 +57,8 @@ function getAssessmentUnitNames(action: Object) {
     chunkedUnitIds.forEach((chunk: Array<string>) => {
       const url =
         `${attains.serviceUrl}` +
-        `assessmentUnits?assessmentUnitIdentifier=${chunk.join(',')}`;
+        `assessmentUnits?organizationId=${orgId}` +
+        `&assessmentUnitIdentifier=${chunk.join(',')}`;
       const request = fetchCheck(url);
       requests.push(request);
     });
@@ -249,7 +250,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
         if (res.items.length >= 1 && res.items[0].actions.length >= 1) {
           const action = res.items[0].actions[0];
 
-          getAssessmentUnitNames(action)
+          getAssessmentUnitNames(orgId, action)
             .then((data) => {
               // process assessment unit data and get key action data
               const {
