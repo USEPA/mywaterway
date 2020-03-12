@@ -627,113 +627,17 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [setGrts],
   );
 
-  // Runs a query to get the plans for the selected huc. Since action ids are
-  // not unique across ATTAINS (i.e. the same action id could be used across multiple
-  // states), we need to bump up against the assessmentUnits service to get the
-  // organization id for each action.
-  // Note: The actions page will also attempt to look up the organization id, this
-  //       additional logic allows for faster loading of the action page, if the organization
-  //       id is available.
-  // TODO: This additional logic for looking up the org id needs to be removed
-  //       after attains adds the organization id to the plans web service.
+  // Runs a query to get the plans for the selected huc.
+  // Note: The actions page will attempt to look up the organization id.
   const queryAttainsPlans = React.useCallback(
     (huc12) => {
       // get the plans for the selected huc
       fetchCheck(`${attains.serviceUrl}plans?huc=${huc12}`)
         .then((res) => {
-          // get the first assessment unit id for each plan, this will later be
-          // used to get the org id for each plan.
-          const firstAuIds = [];
-          res.items.forEach((plan) => {
-            let firstAuId;
-            if (
-              plan &&
-              plan.associatedWaters &&
-              plan.associatedWaters.specificWaters &&
-              plan.associatedWaters.specificWaters.length > 0
-            ) {
-              firstAuId =
-                plan.associatedWaters.specificWaters[0]
-                  .assessmentUnitIdentifier;
-            }
-
-            firstAuIds.push(firstAuId);
+          setAttainsPlans({
+            data: res,
+            status: 'success',
           });
-
-          // if there are no plans skip retrieval of orgIds
-          if (firstAuIds.length === 0) {
-            setAttainsPlans({
-              data: [],
-              status: 'success',
-            });
-            return;
-          }
-
-          // call the assessment units service to get the org ids.
-          fetchCheck(
-            `${
-              attains.serviceUrl
-            }assessmentUnits?assessmentUnitIdentifier=${firstAuIds.join(',')}`,
-          )
-            .then((auRes) => {
-              // add the org id to the response of the plans service by matching
-              // the first assessment unit id of the plan with the assessment unit id
-              // of the assessment units service.
-              const items = [];
-              res.items.forEach((plan) => {
-                // get the first assessment unit id
-                let firstAuId;
-                if (
-                  plan &&
-                  plan.associatedWaters &&
-                  plan.associatedWaters.specificWaters &&
-                  plan.associatedWaters.specificWaters.length > 0
-                ) {
-                  firstAuId =
-                    plan.associatedWaters.specificWaters[0]
-                      .assessmentUnitIdentifier;
-                }
-
-                // find the first assessment unit id from assessmentUnits response
-                let orgId;
-                // loop through orgs
-                for (let i = 0; i < auRes.items.length; i++) {
-                  const org = auRes.items[i];
-
-                  // loop through assessment units
-                  for (let j = 0; j < org.assessmentUnits.length; j++) {
-                    const assessmentUnit = org.assessmentUnits[j];
-
-                    if (assessmentUnit.assessmentUnitIdentifier === firstAuId) {
-                      orgId = org.organizationIdentifier;
-                      break;
-                    }
-                  }
-
-                  // org id found no more looping necessary
-                  if (orgId) break;
-                }
-
-                plan['organizationIdentifier'] = orgId;
-                items.push(plan);
-              });
-
-              const data = {
-                items,
-                count: items.length,
-              };
-              setAttainsPlans({
-                data,
-                status: 'success',
-              });
-            })
-            .catch((err) => {
-              console.error(err);
-              setAttainsPlans({
-                data: [],
-                status: 'failure',
-              });
-            });
         })
         .catch((err) => {
           console.error(err);
@@ -1024,6 +928,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     if (layers.length === 0 || searchText === lastSearchText) return;
 
     resetData();
+    setHucResponse(null);
     setErrorMessage('');
     setLastSearchText(searchText);
     queryGeocodeServer(searchText);
