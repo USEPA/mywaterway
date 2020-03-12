@@ -2,7 +2,9 @@ describe('State Routes', () => {
   it('Select a state and click “Go” routes to the state water quality overview page for the state abbreviation', () => {
     cy.visit('/state');
 
-    cy.get('#hmw-state-select').click();
+    // NOTE: had to use {force: true} since the input is covered by the
+    //  value text.
+    cy.get('#hmw-state-select').click({ force: true });
     cy.findByText('Florida').click();
     cy.findByText('Go').click();
 
