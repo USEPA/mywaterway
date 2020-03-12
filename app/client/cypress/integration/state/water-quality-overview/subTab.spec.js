@@ -1,9 +1,5 @@
 describe('Water Quality Overview Sub Tabs', () => {
   beforeEach(() => {
-    cy.server();
-    cy.route('https://attains.epa.gov/attains-public/api/surveys?*').as(
-      'surveys',
-    );
     cy.visit('/state/FL/water-quality-overview');
   });
 
