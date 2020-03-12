@@ -99,8 +99,6 @@ describe('State Links', () => {
     // so we are just going to verify the anchor props
     cy.get('a[href*="https://www.epa.gov/nutrientpollution"]').should('exist');
 
-    console.log(cy.get('a[href*="https://www.epa.gov/nutrientpollution"]'));
-
     cy.get('a[href*="https://www.epa.gov/nutrientpollution"]')
       .invoke('attr', 'rel')
       // had an issue where Cypress was only parsing the first part of 'noopener noreferrer' so I switched this to 'contains'
