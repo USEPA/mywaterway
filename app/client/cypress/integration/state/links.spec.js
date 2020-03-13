@@ -36,15 +36,13 @@ describe('State Links', () => {
 
     // since Cypress doesn't support multiple tabs, we'll do the next best thing
     // (https://docs.cypress.io/guides/references/trade-offs.html#Multiple-tabs)
-    cy.findByText(linkText)
-      .invoke('attr', 'href')
-      .should('equal', 'https://floridadep.gov/');
-    cy.findByText(linkText)
-      .invoke('attr', 'target')
-      .should('equal', '_blank');
-    cy.findByText(linkText)
-      .invoke('attr', 'rel')
-      .should('equal', 'noopener noreferrer');
+    cy.findByText(linkText).should(
+      'have.attr',
+      'href',
+      'https://floridadep.gov/',
+    );
+    cy.findByText(linkText).should('have.attr', 'target', '_blank');
+    cy.findByText(linkText).should('have.attr', 'rel', 'noopener noreferrer');
   });
 
   it('Clicking the “EXIT” link opens a new tab with https://www.epa.gov/home/exit-epa', () => {
