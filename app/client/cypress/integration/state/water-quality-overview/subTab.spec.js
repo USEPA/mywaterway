@@ -12,20 +12,21 @@ describe('Water Quality Overview Sub Tabs', () => {
       'not.exist',
     );
 
+    const noWaterTypes = 'No Available Water Types';
+    const noUses = 'No Available Uses';
+
     // verify a tab without data
     cy.findByTestId('hmw-swimming-tab-button').click();
-    cy.findByTestId('hmw-swimming-tab-panel').contains(
-      'No Available Water Types',
-    );
-    cy.findByTestId('hmw-swimming-tab-panel').contains('No Available Uses');
+    cy.findByTestId('hmw-swimming-tab-panel').contains(noWaterTypes);
+    cy.findByTestId('hmw-swimming-tab-panel').contains(noUses);
 
     // verify a tab with data
     cy.findByTestId('hmw-fishing-tab-button').click();
     cy.findByTestId('hmw-fishing-tab-panel')
-      .contains('No Available Water Types')
+      .contains(noWaterTypes)
       .should('not.exist');
     cy.findByTestId('hmw-fishing-tab-panel')
-      .contains('No Available Uses')
+      .contains(noUses)
       .should('not.exist');
   });
 
