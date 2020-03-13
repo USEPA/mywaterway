@@ -20,17 +20,15 @@ describe('State Links', () => {
   });
 
   it('Clicking the “DISCLAIMER” button displays the disclaimer popup', () => {
+    const text = /^The condition of a waterbody is dynamic and can change/;
+
     // verify opening the disclaimer
     cy.findByText('Disclaimer').click();
-    cy.findByText('The condition of a waterbody is dynamic and can change', {
-      exact: false,
-    }).should('exist');
+    cy.findByText(text).should('exist');
 
     // verify closing the disclaimer
     cy.findByTitle('Close disclaimer').click();
-    cy.findByText('The condition of a waterbody is dynamic and can change', {
-      exact: false,
-    }).should('not.exist');
+    cy.findByText(text).should('not.exist');
   });
 
   it('Clicking the “More Information for <state name>” link opens a new tab for the state', () => {
