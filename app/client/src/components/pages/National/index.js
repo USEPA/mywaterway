@@ -728,8 +728,12 @@ function National({ ...props }: Props) {
         <ContentTabs>
           <StyledTabs>
             <TabList>
-              <LargeTab>National Water Conditions</LargeTab>
-              <LargeTab>National Drinking Water</LargeTab>
+              <LargeTab data-testid="hmw-national-water-conditions-tab">
+                National Water Conditions
+              </LargeTab>
+              <LargeTab data-testid="hmw-national-drinking-water-tab">
+                National Drinking Water
+              </LargeTab>
             </TabList>
             <TabPanels>
               <TabPanel>

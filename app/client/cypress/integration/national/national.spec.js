@@ -19,11 +19,12 @@ describe('State Links', () => {
 
   it('Clicking the "National Drinking Water" tab changes the tab and does not update the Url', () => {
     // verify tab changed correctly
-    cy.findByText('National Drinking Water').click();
-    cy.get('h2')
-      .filter(':visible')
-      .contains('Explore National Drinking Water Information')
-      .should('exist');
+    cy.findByTestId('hmw-national-drinking-water-tab').click();
+
+    // verify National Drinking Water tab title is displayed
+    cy.findByTestId('hmw-national-drinking-water-tab')
+      .findByText('Explore National Drinking Water Information')
+      .should('be.visible');
 
     // verify Url stayed the same
     cy.url().should('equal', `${document.location.origin}/national`);
@@ -31,45 +32,45 @@ describe('State Links', () => {
 
   it('Switching the sub-tabs updates the content within the container', () => {
     // verify switching to coasts tab changes the content
-    cy.get('#tabs--1--tab--2').click();
-    cy.get('span')
-      .filter(':visible')
-      .contains(' of our coasts are healthy based on biological communities')
+    cy.findByTestId('hmw-national-drinking-water-tab').click();
+
+    cy.findByTestId('hmw-national-drinking-water-tab')
+      .findByText('of our coasts are healthy based on biological communities')
       .should('exist');
 
     // verify first tab contents are hidden
-    cy.get('span')
-      .filter(':visible')
-      .contains(
+    cy.findByTestId('hmw-national-water-conditions-tab')
+      .findByText(
         'of our rivers and streams are healthy based on biological communities',
       )
-      .should('not.exist');
+      .should('not.be.visible');
   });
 
   it('From one of the sub-tabs, clicking “Expand All/Collapse All” expands/collapses the content', () => {
     // verify that only "Expand All" is visible
-    cy.get('button')
+    cy.findAllByTestId('hmw-expand-collapse')
       .filter(':visible')
       .contains('Collapse All')
       .should('not.exist');
-    cy.get('button')
+    cy.findAllByTestId('hmw-expand-collapse')
       .filter(':visible')
       .contains('Expand All')
       .should('exist');
 
     // Click "Expand All" and verify that "Collapse All" is now visible
-    cy.get('button')
+    cy.findAllByTestId('hmw-expand-collapse')
       .filter(':visible')
       .contains('Expand All')
       .click();
-    cy.get('button')
+    cy.findAllByTestId('hmw-expand-collapse')
       .filter(':visible')
       .contains('Collapse All')
       .should('exist');
-    cy.get('button')
+    cy.findAllByTestId('hmw-expand-collapse')
       .filter(':visible')
       .contains('Expand All')
       .should('not.exist');
+
     cy.findByText('Biological condition tells us how healthy a waterbody is.', {
       exact: false,
     })
@@ -77,15 +78,15 @@ describe('State Links', () => {
       .should('exist');
 
     // Click "Collapse All" and verify that "Expand All" is now visible and accordion text is hidden
-    cy.get('button')
+    cy.findAllByTestId('hmw-expand-collapse')
       .filter(':visible')
       .contains('Collapse All')
       .click();
-    cy.get('button')
+    cy.findAllByTestId('hmw-expand-collapse')
       .filter(':visible')
       .contains('Collapse All')
       .should('not.exist');
-    cy.get('button')
+    cy.findAllByTestId('hmw-expand-collapse')
       .filter(':visible')
       .contains('Expand All')
       .should('exist');
@@ -164,13 +165,13 @@ describe('State Links', () => {
   });
 
   it('The US Drinking Water Systems By Type pie chart is displayed', () => {
-    cy.findByText('National Drinking Water').click();
+    cy.findByTestId('hmw-national-drinking-water-tab').click();
     cy.get('.highcharts-background').should('be.visible');
   });
 
   it('The National Drinking Water table is displayed', () => {
-    cy.findByText('National Drinking Water').click();
-    cy.get('#tabs--2--panel--1 > div > table')
+    cy.findByTestId('hmw-national-drinking-water-tab').click();
+    cy.findByTestId('hmw-national-drinking-water-table', { timeout: 20000 })
       .should('exist')
       .and('be.visible');
     cy.findByText('Submission Year Quarter')
@@ -179,7 +180,7 @@ describe('State Links', () => {
   });
 
   it('Clicking a Glossary Term opens the Glossary panel', () => {
-    cy.findByText('National Drinking Water').click();
+    cy.findByTestId('hmw-national-drinking-water-tab').click();
     cy.get('span[data-term="Drinking Water Health-based Violations"]').click();
     cy.get('#glossary')
       .should('exist')

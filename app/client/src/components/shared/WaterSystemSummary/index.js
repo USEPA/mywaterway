@@ -273,7 +273,10 @@ function WaterSystemSummary({ state }: Props) {
               } else {
                 // wide screens
                 return (
-                  <Table className="table">
+                  <Table
+                    data-testid="hmw-national-drinking-water-table"
+                    className="table"
+                  >
                     <thead>
                       <tr>
                         {labels.map((item, index) => (
