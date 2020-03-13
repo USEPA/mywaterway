@@ -32,13 +32,17 @@ describe('Water Quality Overview Sub Tabs', () => {
   });
 
   it('Navigating to a sub-tab selection shows correct charts', () => {
+    const surveyResultsText =
+      'State statistical surveys provide an overall picture';
+    const siteSpecificText = 'Targeted monitoring provides information';
+
     // Florida > Aquatic Life > Coastal Waters
     // verify the pie chart is not there and the bar chart is
     cy.findByTestId('hmw-ecological-tab-panel')
-      .contains('State statistical surveys provide an overall picture')
+      .contains(surveyResultsText)
       .should('not.exist');
     cy.findByTestId('hmw-ecological-tab-panel')
-      .contains('Targeted monitoring provides information')
+      .contains(siteSpecificText)
       .should('exist');
 
     // Florida > Aquatic Life > Rivers and Streams
@@ -50,10 +54,10 @@ describe('Water Quality Overview Sub Tabs', () => {
 
     // verify the pie chart is not there and the bar chart is
     cy.findByTestId('hmw-ecological-tab-panel')
-      .contains('State statistical surveys provide an overall picture')
+      .contains(surveyResultsText)
       .should('exist');
     cy.findByTestId('hmw-ecological-tab-panel')
-      .contains('Targeted monitoring provides information')
+      .contains(siteSpecificText)
       .should('exist');
   });
 });
