@@ -36,8 +36,8 @@ describe('State Links', () => {
   it('Clicking the “More Information for <state name>” link opens a new tab for the state', () => {
     const linkText = 'More Information for Florida';
 
-    // cypress does not allow opening links for an external domain
-    // so we are just going to verify the anchor props
+    // since Cypress doesn't support multiple tabs, we'll do the next best thing
+    // (https://docs.cypress.io/guides/references/trade-offs.html#Multiple-tabs)
     cy.findByText(linkText)
       .invoke('attr', 'href')
       .should('equal', 'https://floridadep.gov/');
