@@ -797,11 +797,12 @@ function WaterQualityOverview({ ...props }: Props) {
 
                   <Inputs>
                     <Input>
-                      <label htmlFor={`water-type-${tab.id}`}>
+                      <label htmlFor={`water-type-input-${tab.id}`}>
                         Water Type:
                       </label>
                       <SelectStyled
-                        inputId={`water-type-${tab.id}`}
+                        id={`water-type-${tab.id}`}
+                        inputId={`water-type-input-${tab.id}`}
                         classNamePrefix="Select"
                         options={displayWaterTypes.map((waterType) => {
                           return { value: waterType, label: waterType };
@@ -822,9 +823,10 @@ function WaterQualityOverview({ ...props }: Props) {
                     </Input>
 
                     <Input>
-                      <label htmlFor={`water-use-${tab.id}`}>Use:</label>
+                      <label htmlFor={`water-use-input-${tab.id}`}>Use:</label>
                       <SelectStyled
-                        inputId={`water-use-${tab.id}`}
+                        id={`water-use-${tab.id}`}
+                        inputId={`water-use-input-${tab.id}`}
                         classNamePrefix="Select"
                         options={displayUses.map((use) => {
                           return { value: use, label: use };

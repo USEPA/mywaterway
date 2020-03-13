@@ -211,7 +211,7 @@ function State({ children, ...props }: Props) {
               }}
             >
               <SelectStyled
-                inputId="hmw-state-select"
+                id="hmw-state-select"
                 classNamePrefix="Select"
                 placeholder="Select a state..."
                 options={states.data.map((state) => {

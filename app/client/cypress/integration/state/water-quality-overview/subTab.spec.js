@@ -47,9 +47,7 @@ describe('Water Quality Overview Sub Tabs', () => {
 
     // Florida > Aquatic Life > Rivers and Streams
     // select a dropdown item that has the pie chart
-    // NOTE: had to use {force: true} since the input is covered by the
-    //  value text.
-    cy.get('#water-type-ecological').click({ force: true });
+    cy.get('#water-type-ecological').click();
     cy.findByText('Rivers and Streams').click();
 
     // verify the pie chart is not there and the bar chart is
