@@ -1,17 +1,18 @@
 describe('Water Quality Overview Sub Tabs', () => {
   beforeEach(() => {
     cy.visit('/state/FL/water-quality-overview');
-  });
 
-  it('Navigating to a sub-tab selection that has no data results in “Water Type” dropdown saying “No Available Water Types” and the “Use” dropdown saying “No Available Uses”', () => {
     // verify the water quality overview content loaded prior to other tests
     cy.findByText('Water Quality', { timeout: 20000 }).should('exist');
+    cy.findByTestId('hmw-ecological-tab-button').click();
 
     // wait for the all web services to finish (surveys is usually slow here)
     cy.findAllByTestId('hmw-loading-spinner', { timeout: 20000 }).should(
       'not.exist',
     );
+  });
 
+  it('Navigating to a sub-tab selection that has no data results in “Water Type” dropdown saying “No Available Water Types” and the “Use” dropdown saying “No Available Uses”', () => {
     const noWaterTypes = 'No Available Water Types';
     const noUses = 'No Available Uses';
 
@@ -31,15 +32,6 @@ describe('Water Quality Overview Sub Tabs', () => {
   });
 
   it('Navigating to a sub-tab selection shows correct charts', () => {
-    // verify the water quality overview content loaded prior to other tests
-    cy.findByText('Water Quality', { timeout: 20000 }).should('exist');
-    cy.findByTestId('hmw-ecological-tab-button').click();
-
-    // wait for the all web services to finish (surveys is usually slow here)
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 20000 }).should(
-      'not.exist',
-    );
-
     // Florida > Aquatic Life > Coastal Waters
     // verify the pie chart is not there and the bar chart is
     cy.findByTestId('hmw-ecological-tab-panel')
