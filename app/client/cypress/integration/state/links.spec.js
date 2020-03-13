@@ -48,16 +48,14 @@ describe('State Links', () => {
   it('Clicking the “EXIT” link opens a new tab with https://www.epa.gov/home/exit-epa', () => {
     const linkText = 'EXIT';
 
-    // cypress does not allow opening links for an external domain
-    // so we are just going to verify the anchor props
-    cy.findByText(linkText)
-      .invoke('attr', 'href')
-      .should('equal', 'https://www.epa.gov/home/exit-epa');
-    cy.findByText(linkText)
-      .invoke('attr', 'target')
-      .should('equal', '_blank');
-    cy.findByText(linkText)
-      .invoke('attr', 'rel')
-      .should('equal', 'noopener noreferrer');
+    // since Cypress doesn't support multiple tabs, we'll do the next best thing
+    // (https://docs.cypress.io/guides/references/trade-offs.html#Multiple-tabs)
+    cy.findByText(linkText).should(
+      'have.attr',
+      'href',
+      'https://www.epa.gov/home/exit-epa',
+    );
+    cy.findByText(linkText).should('have.attr', 'target', '_blank');
+    cy.findByText(linkText).should('have.attr', 'rel', 'noopener noreferrer');
   });
 });
