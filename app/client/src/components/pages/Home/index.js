@@ -34,6 +34,7 @@ const SearchBox = styled.div`
 const Prompt = styled.p`
   margin-top: 0.25em;
   padding-bottom: 0;
+  font-size: 1.1875em;
 `;
 
 const Paragraph = styled.p`
