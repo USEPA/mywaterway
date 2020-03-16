@@ -64,6 +64,9 @@ describe('National Water Conditions tab', () => {
 
   it('From one of the sub-tabs, clicking “Expand All/Collapse All” expands/collapses the content', () => {
     // verify that only "Expand All" is visible
+
+    const text = /^Biological condition tells us how healthy a waterbody is/;
+
     cy.findAllByTestId('hmw-expand-collapse')
       .filter(':visible')
       .contains('Collapse All')
@@ -87,9 +90,7 @@ describe('National Water Conditions tab', () => {
       .contains('Expand All')
       .should('not.exist');
 
-    cy.findByText('Biological condition tells us how healthy a waterbody is.', {
-      exact: false,
-    })
+    cy.findByText(text)
       .filter(':visible')
       .should('exist');
 
@@ -106,9 +107,7 @@ describe('National Water Conditions tab', () => {
       .filter(':visible')
       .contains('Expand All')
       .should('exist');
-    cy.findByText('Biological condition tells us how healthy a waterbody is', {
-      exact: false,
-    }).should('not.exist');
+    cy.findByText(text).should('not.exist');
   });
 
   it('Clicking the Nutrient Pollution link opens a new tab', () => {
