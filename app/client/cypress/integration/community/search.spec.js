@@ -43,9 +43,7 @@ describe('Community search', () => {
 
   it('Clicking the “Use My Location” button, with geolocation disabled, displays an error and does not route', () => {
     cy.mockGeolocation(true);
-
     cy.findByText('Use My Location').click();
-
     cy.url().should('equal', `${window.location.origin}/community`);
     cy.findByText('Error Getting Location').should('exist');
   });
