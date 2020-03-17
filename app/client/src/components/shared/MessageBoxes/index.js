@@ -43,4 +43,16 @@ const StyledErrorBox = styled(Box)`
   background-color: #f8d7da;
 `;
 
-export { StyledTextBox, StyledInfoBox, StyledSuccessBox, StyledErrorBox };
+const StyledNoteBox = styled(Box)`
+  border-color: #d8dfe2;
+  color: #444;
+  background-color: #f0f6f9;
+`;
+
+export {
+  StyledTextBox,
+  StyledInfoBox,
+  StyledSuccessBox,
+  StyledErrorBox,
+  StyledNoteBox,
+};
