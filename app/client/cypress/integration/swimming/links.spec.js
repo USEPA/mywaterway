@@ -3,9 +3,9 @@ describe('Swimming', () => {
     cy.visit('/swimming');
   });
 
-  it(`"Fishing" button links to the fishing page`, () => {
-    cy.findByText('Fishing').click();
-    cy.url().should('include', '/fishing');
+  it(`"Eating Fish" button links to the eating fish page`, () => {
+    cy.findByText('Eating Fish').click();
+    cy.url().should('include', '/eating-fish');
   });
 
   it(`"Drinking Water" button links to the drinking water page`, () => {
