@@ -320,10 +320,12 @@ function WaterConditionsPanel() {
       <ContentTabs>
         <Tabs>
           <TabList>
-            <Tab>Rivers and Streams</Tab>
-            <Tab>Lakes</Tab>
-            <Tab>Coasts</Tab>
-            <Tab>Wetlands</Tab>
+            <Tab data-testid="hmw-national-rivers-and-streams-tab">
+              Rivers and Streams
+            </Tab>
+            <Tab data-testid="hmw-national-lakes-tab">Lakes</Tab>
+            <Tab data-testid="hmw-national-coasts-tab">Coasts</Tab>
+            <Tab data-testid="hmw-national-wetlands-tab">Wetlands</Tab>
           </TabList>
 
           <TabPanels>

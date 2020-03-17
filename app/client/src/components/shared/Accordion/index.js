@@ -108,10 +108,7 @@ function AccordionList({
         )}
 
         {!expandDisabled && (
-          <ExpandButton
-            data-testid="hmw-expand-collapse"
-            onClick={(ev) => setAllExpanded(!allExpanded)}
-          >
+          <ExpandButton onClick={(ev) => setAllExpanded(!allExpanded)}>
             {buttonText}&nbsp;&nbsp;
             <i className={iconClass} />
           </ExpandButton>
