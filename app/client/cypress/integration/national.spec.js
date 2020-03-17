@@ -31,9 +31,8 @@ describe('National Water Conditions tab', () => {
   });
 
   it('From one of the sub-tabs, clicking “Expand All/Collapse All” expands/collapses the content', () => {
-    // verify that only "Expand All" is visible
-
     const text = /^Biological condition tells us how healthy a waterbody is/;
+
     // verify that accordion is initially collapsed
     cy.findAllByText('Expand All').filter(':visible');
     cy.findByText(text).should('not.exist');
@@ -51,7 +50,6 @@ describe('National Water Conditions tab', () => {
   it('Clicking the Nutrient Pollution link opens a new tab', () => {
     // since Cypress doesn't support multiple tabs, we'll do the next best thing
     // (https://docs.cypress.io/guides/references/trade-offs.html#Multiple-tabs)
-
     cy.findByText(/Nutrient Pollution/)
       .should('have.attr', 'href', 'https://www.epa.gov/nutrientpollution')
       .should('have.attr', 'target', '_blank')
@@ -61,7 +59,6 @@ describe('National Water Conditions tab', () => {
   it('Clicking the “Learn more about what EPA is doing to reduce nutrient pollution” link opens a new tab.', () => {
     // since Cypress doesn't support multiple tabs, we'll do the next best thing
     // (https://docs.cypress.io/guides/references/trade-offs.html#Multiple-tabs)
-
     cy.findByText(
       /Learn more about what EPA is doing to reduce nutrient pollution/,
     )
@@ -77,7 +74,6 @@ describe('National Water Conditions tab', () => {
   it('Clicking on of the images in the “Learn more about water types” section opens a new tab.', () => {
     // since Cypress doesn't support multiple tabs, we'll do the next best thing
     // (https://docs.cypress.io/guides/references/trade-offs.html#Multiple-tabs)
-
     cy.findByAltText(/Learn more about Rivers & Streams/)
       .parent()
       .parent()
@@ -129,8 +125,8 @@ describe('National Drinking Water tab', () => {
 
   it('Clicking a Glossary Term opens the Glossary panel', () => {
     cy.findByText(/Drinking Water Health Based Violations/).click();
-    cy.get('#glossary')
-      .should('exist')
-      .and('be.visible');
+    cy.findByText(/Violations of maximum contaminant levels/).should(
+      'be.visible',
+    );
   });
 });
