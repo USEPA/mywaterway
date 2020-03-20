@@ -187,9 +187,12 @@ const List = styled.ul`
 
 // --- components ---
 function GlossaryPanel({ path }) {
-  const { initialized, setInitialized } = React.useContext(GlossaryContext);
-
-  const [status, setStatus] = React.useState('fetching');
+  const {
+    initialized,
+    setInitialized,
+    glossaryStatus,
+    setGlossaryStatus,
+  } = React.useContext(GlossaryContext);
 
   // initialize Glossary panel
   React.useEffect(() => {
@@ -203,7 +206,7 @@ function GlossaryPanel({ path }) {
 
       // initialize the glossary
       window.fetchGlossaryTerms.then((terms) => {
-        setStatus(terms.status);
+        setGlossaryStatus(terms.status);
         new Glossary(terms.data);
       });
     }
@@ -232,12 +235,12 @@ function GlossaryPanel({ path }) {
         </Header>
 
         <Content>
-          {status === 'failure' && (
+          {glossaryStatus === 'failure' && (
             <StyledErrorBox>
               <p>{glossaryError}</p>
             </StyledErrorBox>
           )}
-          {status === 'success' && (
+          {glossaryStatus === 'success' && (
             <Input
               className="js-glossary-search form-control"
               type="search"
