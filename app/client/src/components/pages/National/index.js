@@ -320,10 +320,12 @@ function WaterConditionsPanel() {
       <ContentTabs>
         <Tabs>
           <TabList>
-            <Tab>Rivers and Streams</Tab>
-            <Tab>Lakes</Tab>
-            <Tab>Coasts</Tab>
-            <Tab>Wetlands</Tab>
+            <Tab data-testid="hmw-national-rivers-and-streams-tab">
+              Rivers and Streams
+            </Tab>
+            <Tab data-testid="hmw-national-lakes-tab">Lakes</Tab>
+            <Tab data-testid="hmw-national-coasts-tab">Coasts</Tab>
+            <Tab data-testid="hmw-national-wetlands-tab">Wetlands</Tab>
           </TabList>
 
           <TabPanels>
@@ -728,8 +730,12 @@ function National({ ...props }: Props) {
         <ContentTabs>
           <StyledTabs>
             <TabList>
-              <LargeTab>National Water Conditions</LargeTab>
-              <LargeTab>National Drinking Water</LargeTab>
+              <LargeTab data-testid="hmw-national-water-conditions-tab">
+                National Water Conditions
+              </LargeTab>
+              <LargeTab data-testid="hmw-national-drinking-water-tab">
+                National Drinking Water
+              </LargeTab>
             </TabList>
             <TabPanels>
               <TabPanel>

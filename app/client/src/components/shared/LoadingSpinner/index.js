@@ -90,14 +90,26 @@ function LoadingSpinner({ ...props }: Props) {
   // we display a more simple loading spinner
   if (isIE()) {
     return (
-      <IeSvg width="50" height="50" viewBox="0 0 50 50" {...props}>
+      <IeSvg
+        data-testid="hmw-loading-spinner"
+        width="50"
+        height="50"
+        viewBox="0 0 50 50"
+        {...props}
+      >
         <IeCircle cx="25" cy="25" r="20" />
       </IeSvg>
     );
   }
 
   return (
-    <Svg width="50" height="50" viewBox="0 0 50 50" {...props}>
+    <Svg
+      data-testid="hmw-loading-spinner"
+      width="50"
+      height="50"
+      viewBox="0 0 50 50"
+      {...props}
+    >
       <Circle cx="25" cy="25" r="20" />
     </Svg>
   );
