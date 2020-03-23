@@ -153,7 +153,7 @@ type Props = {
 
 function Page({ children }: Props) {
   const { modulesLoaded } = React.useContext(EsriModulesContext);
-  const { initialized } = React.useContext(GlossaryContext);
+  const { initialized, glossaryStatus } = React.useContext(GlossaryContext);
 
   // handles hiding of the data page when the user clicks the browser's back button
   const [dataDisplayed, setDataDisplayed] = React.useState(false);
@@ -185,7 +185,7 @@ function Page({ children }: Props) {
               title="Glossary"
               as="button"
               className="js-glossary-toggle"
-              data-disabled={!initialized}
+              data-disabled={!initialized || glossaryStatus === 'fetching'}
             >
               <i className="fas fa-book" aria-hidden="true" />
               Glossary
