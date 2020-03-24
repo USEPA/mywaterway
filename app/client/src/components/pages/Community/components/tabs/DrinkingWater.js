@@ -19,7 +19,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
 // errors
-import { countyError } from 'config/errorMessages';
+import { countyError, withdrawerError } from 'config/errorMessages';
 
 const Table = styled.table`
   thead {
@@ -488,7 +488,7 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
 
               {drinkingWater.status === 'failure' && (
                 <StyledErrorBox>
-                  <p>{countyError('County')}</p>
+                  <p>{countyError}</p>
                 </StyledErrorBox>
               )}
 
@@ -582,7 +582,7 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
 
               {drinkingWater.status === 'failure' && (
                 <StyledErrorBox>
-                  <p>{countyError('Watershed')}</p>
+                  <p>{withdrawerError}</p>
                 </StyledErrorBox>
               )}
 
