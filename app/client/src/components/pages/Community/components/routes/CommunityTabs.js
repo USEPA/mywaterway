@@ -69,6 +69,7 @@ const TabsOverlay = styled.div`
   width: 100%;
   height: 45px;
   margin-bottom: -45px;
+  pointer-events: none;
 
   ::before,
   ::after {
@@ -78,7 +79,6 @@ const TabsOverlay = styled.div`
     top: 0;
     width: calc(100% / 9); /* .5 tab width */
     height: inherit;
-    pointer-events: none;
 
     @media (min-width: 800px) {
       width: calc(100% / 11); /* .5 tab width */
