@@ -54,9 +54,21 @@ const Watershed = styled.p`
   }
 `;
 
+/*
+  - TabsOverlay's height is set to match each tab's initial min-height value
+    (see StyledTabs [data-react-tab] styles below).
+  - TabsOverlays' margin-bottom matches its height, so the overlay visually
+    appears on top of the tabs, which are below the overlay in the DOM.
+  - Though initially set to 45px, these two values (height and margin-bottom)
+    are re-assigned with the actual rendered height of the tabs in case the
+    tab's text contents makes its height greater than 45px
+    (see measuredTabRef and tabsOverlayRef below).
+*/
 const TabsOverlay = styled.div`
   position: relative;
   width: 100%;
+  height: 45px;
+  margin-bottom: -45px;
 
   ::before,
   ::after {
@@ -65,7 +77,7 @@ const TabsOverlay = styled.div`
     position: absolute;
     top: 0;
     width: calc(100% / 9); /* .5 tab width */
-    height: 45px;
+    height: inherit;
     pointer-events: none;
 
     @media (min-width: 800px) {
@@ -359,6 +371,21 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
     }
   }, [tabListRef, activeTabIndex]);
 
+  // keep the tab overlay height in sync with the height of a tab in the tablist
+  const [tabHeight, setTabHeight] = React.useState(45);
+  const measuredTabRef = React.useCallback((node) => {
+    if (!node) return;
+    setTabHeight(node.getBoundingClientRect().height);
+  }, []);
+
+  const tabsOverlayRef = React.useRef();
+  React.useEffect(() => {
+    if (tabsOverlayRef.current) {
+      tabsOverlayRef.current.style.height = `${tabHeight}px`;
+      tabsOverlayRef.current.style.marginBottom = `-${tabHeight}px`;
+    }
+  }, [tabsOverlayRef, tabHeight]);
+
   const resetTabSpecificData = () => {
     // monitoring panel
     setShowAllMonitoring(true);
@@ -390,7 +417,7 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
         </Text>
       </Location>
 
-      <TabsOverlay />
+      <TabsOverlay ref={tabsOverlayRef} />
 
       <StyledTabs
         index={activeTabIndex}
@@ -415,7 +442,9 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
       >
         <TabList ref={tabListRef}>
           {tabs.map((tab) => (
-            <Tab key={tab.title}>{tab.title}</Tab>
+            <Tab key={tab.title} ref={measuredTabRef}>
+              {tab.title}
+            </Tab>
           ))}
         </TabList>
 
