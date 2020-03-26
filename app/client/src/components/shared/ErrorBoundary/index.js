@@ -33,6 +33,14 @@ class ErrorBoundary extends React.Component<Props, State> {
 
   componentDidCatch(error: Error) {
     console.warn(error);
+
+    // log to google analytics
+    if (window.isIdSet) {
+      window.ga('send', 'exception', {
+        exDescription: error,
+        exFatal: true,
+      });
+    }
   }
 
   render() {
