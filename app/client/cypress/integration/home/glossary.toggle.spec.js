@@ -5,20 +5,16 @@ describe('Homepage', () => {
 
   it(`Glossary button toggles slide content`, () => {
     cy.findAllByText('Glossary')
-      .filter(':visible')
-      .scrollIntoView()
+      .filter('[data-disabled="false"]')
       .click();
     cy.findByPlaceholderText('Search for a term...').should('be.visible');
   });
 
   it(`Glossary close button closes slide content`, () => {
     cy.findAllByText('Glossary')
-      .filter(':visible')
-      .scrollIntoView()
+      .filter('[data-disabled="false"]')
       .click();
-    cy.findByText('×')
-      .scrollIntoView()
-      .click();
+    cy.findByText('×').click();
     cy.findByPlaceholderText('Search for a term...').should('not.be.visible');
   });
 });
