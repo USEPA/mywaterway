@@ -36,6 +36,7 @@ export const waterTypeOptions = {
     'LAKE, PLAYA',
     'LAKE/RESERVOIR/POND',
     'LAKE, SALINE',
+    'LAKE, NATURAL',
   ],
   'Coastal Waters': [
     'BAY/ESTUARY',
