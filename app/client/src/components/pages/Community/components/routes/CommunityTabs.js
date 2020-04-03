@@ -156,7 +156,7 @@ const StyledTabs = styled(Tabs)`
       &[data-selected],
       &:hover,
       &:focus {
-        z-index: 1
+        z-index: 1;
         background-color: ${colors.purple()};
         box-shadow: inset 0 -5px 0 ${colors.teal()};
       }
