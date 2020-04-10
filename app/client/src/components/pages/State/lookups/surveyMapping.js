@@ -1067,7 +1067,7 @@ export const surveyMapping = [
   {
     "state": "KS",
     "organizationIdentifier": "21KAN001",
-    "year": "2018",
+    "year": "2020",
     "subPopulationCode": "Statewide",
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "AQUATIC LIFE",
@@ -1109,6 +1109,20 @@ export const surveyMapping = [
       },
       {
         "stressor": "BENTHIC MACROINVERTEBRATES BIOASSESSMENTS",
+        "surveyCategoryCode": "PASS",
+        "categoryCode_label": "PASS",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#8cc63f",
+      },
+      {
+        "stressor": "CHLORIDE",
+        "surveyCategoryCode": "FAIL",
+        "categoryCode_label": "FAIL",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#f93b5b",
+      },
+      {
+        "stressor": "CHLORIDE",
         "surveyCategoryCode": "PASS",
         "categoryCode_label": "PASS",
         "categoryCode_order": "1",
@@ -1175,7 +1189,7 @@ export const surveyMapping = [
   {
     "state": "KS",
     "organizationIdentifier": "21KAN001",
-    "year": "2018",
+    "year": "2020",
     "subPopulationCode": "Statewide",
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "CONTACT RECREATION",
@@ -1213,7 +1227,7 @@ export const surveyMapping = [
 {
     "state": "KS",
     "organizationIdentifier": "21KAN001",
-    "year": "2018",
+    "year": "2020",
     "subPopulationCode": "Stream/Creek/River with Harvestable Fish",
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "FOOD PROCUREMENT",
