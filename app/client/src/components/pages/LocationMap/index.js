@@ -712,7 +712,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   const processGeocodeServerResults = React.useCallback(
-    (searchText) => {
+    (searchText, hucRes = null) => {
       const renderMapAndZoomTo = (longitude, latitude, callback) => {
         const location = {
           type: 'point',
@@ -816,26 +816,34 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           setAddress(location.address);
           setLocation(location);
 
-          const hucQuery = new Query({
-            geometry: location.location,
-            outFields: ['*'],
-          });
-
-          new QueryTask({ url: wbd })
-            .execute(hucQuery)
-            .then((hucRes) => {
-              renderMapAndZoomTo(
-                location.location.longitude,
-                location.location.latitude,
-                () => handleHUC12(hucRes),
-              );
-            })
-            .catch((err) => {
-              console.error(err);
-              setAddress(searchText); // preserve the user's search so it is displayed
-              setNoDataAvailable();
-              setErrorMessage(watersgeoError);
+          if (hucRes) {
+            renderMapAndZoomTo(
+              location.location.longitude,
+              location.location.latitude,
+              () => handleHUC12(hucRes),
+            );
+          } else {
+            const hucQuery = new Query({
+              geometry: location.location,
+              outFields: ['*'],
             });
+
+            new QueryTask({ url: wbd })
+              .execute(hucQuery)
+              .then((hucRes) => {
+                renderMapAndZoomTo(
+                  location.location.longitude,
+                  location.location.latitude,
+                  () => handleHUC12(hucRes),
+                );
+              })
+              .catch((err) => {
+                console.error(err);
+                setAddress(searchText); // preserve the user's search so it is displayed
+                setNoDataAvailable();
+                setErrorMessage(watersgeoError);
+              });
+          }
 
           const countiesQuery = new Query({
             returnGeometry: true,
@@ -908,6 +916,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               const { centroid } = response.features[0].geometry;
               processGeocodeServerResults(
                 `${centroid.longitude}, ${centroid.latitude}`,
+                response,
               );
             }
           })
