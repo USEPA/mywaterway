@@ -14,7 +14,6 @@ type State = {
   searchText: string,
   lastSearchText: String,
   huc12: string,
-  lastHuc12: string,
   watershed: string,
   address: string,
   assessmentUnitId: string,
@@ -79,7 +78,6 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     searchText: '',
     lastSearchText: '',
     huc12: '',
-    lastHuc12: '',
     watershed: '',
     address: '',
     fishingInfo: { status: 'fetching', data: [] },
@@ -182,9 +180,6 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     },
     setHuc12: (huc12) => {
       this.setState({ huc12 });
-    },
-    setLastHuc12: (lastHuc12) => {
-      this.setState({ lastHuc12 });
     },
     setWatershed: (watershed) => {
       this.setState({ watershed });

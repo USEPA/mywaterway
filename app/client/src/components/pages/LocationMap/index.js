@@ -107,10 +107,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     countyBoundaries,
     statesData,
     homeWidget,
-    huc12,
     setHuc12,
-    lastHuc12,
-    setLastHuc12,
     hucBoundaries,
     setAreasData,
     setLinesData,
@@ -654,37 +651,45 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     if (mapServiceFailure) setMapLoading(false);
   }, [mapServiceFailure]);
 
-  const [hucResponse, setHucResponse] = React.useState(null);
-  const handleHUC12 = React.useCallback(
-    (response) => {
-      setHucResponse(response);
+  const getFishingLinkData = React.useCallback(
+    (states) => {
+      setFishingInfo({ status: 'fetching', data: [] });
 
-      if (response.features.length > 0) {
-        try {
-          let huc12Result = response.features[0].attributes.huc12;
-          setHuc12(huc12Result);
-          queryMonitoringLocationService(huc12Result);
-          queryPermittedDischargersService(huc12Result);
-          queryGrtsHuc12(huc12Result);
-          queryAttainsPlans(huc12Result);
-        } catch (err) {
+      // Turn the returned string "VA,MA,AL" into an array [VA, MA, AL]
+      const statesList = states.split(',');
+
+      // Map the array to a format for querying and join it as a string 'VA','MA','AL'
+      // Service returns lowercase state codes for some locations so .toUpperCase() them
+      const stateQueryString = statesList
+        .map((stateCode) => `'${stateCode.toUpperCase()}'`)
+        .join();
+
+      const url =
+        fishingInformationService.serviceUrl +
+        fishingInformationService.queryStringFirstPart +
+        stateQueryString +
+        fishingInformationService.queryStringSecondPart;
+
+      fetchCheck(url)
+        .then((res) => {
+          if (!res || !res.features || res.features.length <= 0) {
+            setFishingInfo({ status: 'success', data: [] });
+            return;
+          }
+
+          const fishingInfo = res.features.map((feature) => ({
+            url: feature.attributes.STATEURL,
+            stateCode: feature.attributes.STATE,
+          }));
+
+          setFishingInfo({ status: 'success', data: fishingInfo });
+        })
+        .catch((err) => {
           console.error(err);
-          setNoDataAvailable();
-          setErrorMessage(noDataAvailableError);
-        }
-      } else {
-        setNoDataAvailable();
-        setErrorMessage(noDataAvailableError);
-      }
+          setFishingInfo({ status: 'failure', data: [] });
+        });
     },
-    [
-      queryAttainsPlans,
-      queryGrtsHuc12,
-      queryMonitoringLocationService,
-      queryPermittedDischargersService,
-      setHuc12,
-      setNoDataAvailable,
-    ],
+    [setFishingInfo],
   );
 
   const handleMapServices = React.useCallback(
@@ -709,6 +714,85 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       retrieveAreas(filter);
     },
     [retrieveAreas, retrieveLines, retrievePoints, setCipSummary],
+  );
+
+  const processBoundariesData = React.useCallback(
+    (boundaries) => {
+      let huc12 = boundaries.features[0].attributes.huc12;
+
+      setHucBoundaries(boundaries);
+      // queryNonprofits(boundaries); // re-add when EPA approves RiverNetwork service for HMW
+
+      // boundaries data, also has attributes for watershed
+      setWatershed(boundaries.features[0].attributes.name);
+
+      // pass all of the states that the HUC12 is in
+      getFishingLinkData(boundaries.features[0].attributes.states);
+
+      // call states service for converting statecodes to state names
+      // don't re-fetch the states service if it's already populated, it doesn't vary by location
+      if (statesData.status !== 'success') {
+        setStatesData({ status: 'fetching', data: [] });
+
+        fetchCheck(`${attains.serviceUrl}states`)
+          .then((res) => {
+            setStatesData({ status: 'success', data: res.data });
+          })
+          .catch((err) => {
+            console.error(err);
+            setStatesData({ status: 'failure', data: [] });
+          });
+      }
+
+      fetchCheck(`${attains.serviceUrl}huc12summary?huc=${huc12}`).then(
+        handleMapServices,
+        handleMapServiceError,
+      );
+    },
+    [
+      getFishingLinkData,
+      handleMapServiceError,
+      handleMapServices,
+      setHucBoundaries,
+      setStatesData,
+      setWatershed,
+      statesData.status,
+    ],
+  );
+
+  const [hucResponse, setHucResponse] = React.useState(null);
+  const handleHUC12 = React.useCallback(
+    (response) => {
+      setHucResponse(response);
+
+      if (response.features.length > 0) {
+        try {
+          let huc12Result = response.features[0].attributes.huc12;
+          setHuc12(huc12Result);
+          processBoundariesData(response);
+          queryMonitoringLocationService(huc12Result);
+          queryPermittedDischargersService(huc12Result);
+          queryGrtsHuc12(huc12Result);
+          queryAttainsPlans(huc12Result);
+        } catch (err) {
+          console.error(err);
+          setNoDataAvailable();
+          setErrorMessage(noDataAvailableError);
+        }
+      } else {
+        setNoDataAvailable();
+        setErrorMessage(noDataAvailableError);
+      }
+    },
+    [
+      processBoundariesData,
+      queryAttainsPlans,
+      queryGrtsHuc12,
+      queryMonitoringLocationService,
+      queryPermittedDischargersService,
+      setHuc12,
+      setNoDataAvailable,
+    ],
   );
 
   const processGeocodeServerResults = React.useCallback(
@@ -824,6 +908,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             );
           } else {
             const hucQuery = new Query({
+              returnGeometry: true,
               geometry: location.location,
               outFields: ['*'],
             });
@@ -913,9 +998,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
             // process the results
             else {
-              const { centroid } = response.features[0].geometry;
+              const {
+                centermass_x,
+                centermass_y,
+              } = response.features[0].attributes;
+
               processGeocodeServerResults(
-                `${centroid.longitude}, ${centroid.latitude}`,
+                `${centermass_x}, ${centermass_y}`,
                 response,
               );
             }
@@ -937,6 +1026,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     if (layers.length === 0 || searchText === lastSearchText) return;
 
     resetData();
+    setMapLoading(true);
     setHucResponse(null);
     setErrorMessage('');
     setLastSearchText(searchText);
@@ -957,136 +1047,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       setMapLoading(false);
     }
   }, [searchText, setHuc12]);
-
-  const getFishingLinkData = React.useCallback(
-    (states) => {
-      setFishingInfo({ status: 'fetching', data: [] });
-
-      // Turn the returned string "VA,MA,AL" into an array [VA, MA, AL]
-      const statesList = states.split(',');
-
-      // Map the array to a format for querying and join it as a string 'VA','MA','AL'
-      // Service returns lowercase state codes for some locations so .toUpperCase() them
-      const stateQueryString = statesList
-        .map((stateCode) => `'${stateCode.toUpperCase()}'`)
-        .join();
-
-      const url =
-        fishingInformationService.serviceUrl +
-        fishingInformationService.queryStringFirstPart +
-        stateQueryString +
-        fishingInformationService.queryStringSecondPart;
-
-      fetchCheck(url)
-        .then((res) => {
-          if (!res || !res.features || res.features.length <= 0) {
-            setFishingInfo({ status: 'success', data: [] });
-            return;
-          }
-
-          const fishingInfo = res.features.map((feature) => ({
-            url: feature.attributes.STATEURL,
-            stateCode: feature.attributes.STATE,
-          }));
-
-          setFishingInfo({ status: 'success', data: fishingInfo });
-        })
-        .catch((err) => {
-          console.error(err);
-          setFishingInfo({ status: 'failure', data: [] });
-        });
-    },
-    [setFishingInfo],
-  );
-
-  const processBoundariesData = React.useCallback(
-    (boundaries) => {
-      setHucBoundaries(boundaries);
-      // queryNonprofits(boundaries); // re-add when EPA approves RiverNetwork service for HMW
-
-      // boundaries data, also has attributes for watershed
-      setWatershed(boundaries.features[0].attributes.name);
-
-      // pass all of the states that the HUC12 is in
-      getFishingLinkData(boundaries.features[0].attributes.states);
-
-      // call states service for converting statecodes to state names
-      // don't re-fetch the states service if it's already populated, it doesn't vary by location
-      if (statesData.status !== 'success') {
-        setStatesData({ status: 'fetching', data: [] });
-
-        fetchCheck(`${attains.serviceUrl}states`)
-          .then((res) => {
-            setStatesData({ status: 'success', data: res.data });
-          })
-          .catch((err) => {
-            console.error(err);
-            setStatesData({ status: 'failure', data: [] });
-          });
-      }
-
-      fetchCheck(`${attains.serviceUrl}huc12summary?huc=${huc12}`).then(
-        handleMapServices,
-        handleMapServiceError,
-      );
-    },
-    [
-      getFishingLinkData,
-      handleMapServiceError,
-      handleMapServices,
-      huc12,
-      setHucBoundaries,
-      setStatesData,
-      setWatershed,
-      statesData.status,
-    ],
-  );
-
-  // Used to be in the handleHUC12 function. This was moved to a useEffect call because,
-  // processBoundariesData was being called before while the huc12 state value
-  // was still set to the default of ''. This was because the setHuc12
-  // useState setter is async.
-  React.useEffect(() => {
-    if (huc12 === lastHuc12) return;
-
-    setLastHuc12(huc12);
-
-    if (huc12 === '') return;
-
-    setMapLoading(true);
-
-    const query = new Query({
-      returnGeometry: true,
-      where: "HUC12 = '" + huc12 + "'",
-      outFields: ['*'],
-    });
-
-    new QueryTask({ url: wbd })
-      .execute(query)
-      .then((boundaries) => {
-        // flag no data if no response
-        if (boundaries.features.length === 0) {
-          setNoDataAvailable();
-        }
-        // process results
-        else {
-          processBoundariesData(boundaries);
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-        setErrorMessage(geocodeError);
-        setNoDataAvailable();
-      });
-  }, [
-    Query,
-    QueryTask,
-    huc12,
-    lastHuc12,
-    processBoundariesData,
-    setLastHuc12,
-    setNoDataAvailable,
-  ]);
 
   React.useEffect(() => {
     if (
