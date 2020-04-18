@@ -67,6 +67,11 @@ const Container = styled(StyledContainer)`
   }
 `;
 
+const PageErrorBox = styled(StyledErrorBox)`
+  margin: 1rem;
+  text-align: center;
+`;
+
 const ErrorBox = styled(StyledErrorBox)`
   text-align: center;
 `;
@@ -335,7 +340,30 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
 
     fetchCheck(url).then(
       (res) => {
-        if (res.items.length === 0) return;
+        if (res.items.length === 0) {
+          setWaterbodyStatus({
+            status: 'no-data',
+            data: { condition: '', planForRestoration: '', listed303d: '' },
+          });
+          setReportingCycle({
+            status: 'success',
+            year: '',
+          });
+          setWaterbodyUses({
+            status: 'success',
+            data: [],
+          });
+          setOrganizationName({
+            status: 'success',
+            name: '',
+          });
+          setAllParameterActionIds({
+            status: 'success',
+            data: [],
+          });
+          setWaterbodySources({ status: 'success', data: [] });
+          return;
+        }
 
         const firstItem = res.items[0];
         setReportingCycle({
@@ -839,13 +867,33 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
         <NavBar title={<>Plan Summary</>} />
 
         <Container>
-          <ErrorBox>
+          <PageErrorBox>
             <p>
               No waterbodies available for the provided Organization ID:{' '}
               <strong>{orgId}</strong> and Assessment Unit ID:{' '}
               <strong>{auId}</strong>.
             </p>
-          </ErrorBox>
+          </PageErrorBox>
+        </Container>
+      </Page>
+    );
+  }
+
+  if (waterbodyStatus.status === 'no-data') {
+    return (
+      <Page>
+        <NavBar title={<>Plan Summary</>} />
+
+        <Container>
+          <PageErrorBox>
+            <p>
+              Assessment{' '}
+              <strong>
+                {waterbodyName} ({auId})
+              </strong>{' '}
+              has no data available.
+            </p>
+          </PageErrorBox>
         </Container>
       </Page>
     );

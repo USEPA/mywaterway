@@ -86,33 +86,60 @@ type Props = {
 };
 
 function WaterSystemSummary({ state }: Props) {
-  const [loading, setLoading] = React.useState(false);
-  const [chartServiceError, setChartServiceError] = React.useState(false);
-  const [cwsCount, setCwsCount] = React.useState(0);
-  const [ntncwsCount, setNtncwsCount] = React.useState(0);
-  const [tncwsCount, setTncwsCount] = React.useState(0);
+  const [systemTypeRes, setSystemTypeRes] = React.useState({
+    status: 'fetching',
+    data: {
+      cwsCount: 0,
+      ntncwsCount: 0,
+      tncwsCount: 0,
+    },
+  });
   React.useEffect(() => {
-    setLoading(true);
-
     fetchCheck(`${dwmaps.getGPRASystemCountsByType}${state.code}`)
       .then((res) => {
-        if (!res || !res.items || res.items.length === 0) return;
+        if (!res || !res.items || res.items.length === 0) {
+          setSystemTypeRes({
+            status: 'failure',
+            data: {
+              cwsCount: 0,
+              ntncwsCount: 0,
+              tncwsCount: 0,
+            },
+          });
+          return;
+        }
 
+        let cwsCount = 0;
+        let ntncwsCount = 0;
+        let tncwsCount = 0;
         res.items.forEach((item) => {
           if (item.primacy_agency_code !== state.code) return;
 
           const { pws_type_code, number_of_systems } = item;
-          if (pws_type_code === 'CWS') setCwsCount(number_of_systems);
-          if (pws_type_code === 'NTNCWS') setNtncwsCount(number_of_systems);
-          if (pws_type_code === 'TNCWS') setTncwsCount(number_of_systems);
+          if (pws_type_code === 'CWS') cwsCount = number_of_systems;
+          if (pws_type_code === 'NTNCWS') ntncwsCount = number_of_systems;
+          if (pws_type_code === 'TNCWS') tncwsCount = number_of_systems;
         });
 
-        setLoading(false);
+        setSystemTypeRes({
+          status: 'success',
+          data: {
+            cwsCount,
+            ntncwsCount,
+            tncwsCount,
+          },
+        });
       })
       .catch((err) => {
         console.error(err);
-        setLoading(false);
-        setChartServiceError(true);
+        setSystemTypeRes({
+          status: 'failure',
+          data: {
+            cwsCount: 0,
+            ntncwsCount: 0,
+            tncwsCount: 0,
+          },
+        });
       });
   }, [state]);
 
@@ -123,10 +150,9 @@ function WaterSystemSummary({ state }: Props) {
   });
 
   React.useEffect(() => {
-    fetchCheck(`${dwmaps.getGPRASummary}${state.code}`).then(
-      (res) => setGpraData({ status: 'success', data: res.items[0] }),
-      (err) => setGpraData({ status: 'error', data: {} }),
-    );
+    fetchCheck(`${dwmaps.getGPRASummary}${state.code}`)
+      .then((res) => setGpraData({ status: 'success', data: res.items[0] }))
+      .catch((err) => setGpraData({ status: 'failure', data: {} }));
   }, [state]);
 
   return (
@@ -150,15 +176,17 @@ function WaterSystemSummary({ state }: Props) {
         time.
       </p>
 
-      {loading ? (
+      {systemTypeRes.status === 'fetching' && (
         <LoadingContainer className="container">
           <LoadingSpinner />
         </LoadingContainer>
-      ) : chartServiceError ? (
+      )}
+      {systemTypeRes.status === 'failure' && (
         <ErrorBox>
           <p>{grpaError}</p>
         </ErrorBox>
-      ) : (
+      )}
+      {systemTypeRes.status === 'success' && (
         <Container>
           <HighchartsReact
             highcharts={Highcharts}
@@ -195,9 +223,21 @@ function WaterSystemSummary({ state }: Props) {
                   innerSize: '50%',
                   colorByPoint: true,
                   data: [
-                    { name: 'CWS', y: cwsCount, color: '#9bc2e5' },
-                    { name: 'NTNCWS', y: ntncwsCount, color: '#febe01' },
-                    { name: 'TNCWS', y: tncwsCount, color: '#a9cf8f' },
+                    {
+                      name: 'CWS',
+                      y: systemTypeRes.data.cwsCount,
+                      color: '#9bc2e5',
+                    },
+                    {
+                      name: 'NTNCWS',
+                      y: systemTypeRes.data.ntncwsCount,
+                      color: '#febe01',
+                    },
+                    {
+                      name: 'TNCWS',
+                      y: systemTypeRes.data.tncwsCount,
+                      color: '#a9cf8f',
+                    },
                   ],
                 },
               ],
@@ -228,7 +268,7 @@ function WaterSystemSummary({ state }: Props) {
 
       <Container>
         {gpraData.status === 'fetching' && <LoadingSpinner />}
-        {gpraData.status === 'error' && (
+        {gpraData.status === 'failure' && (
           <ErrorBox>
             <p>{grpaError}</p>
           </ErrorBox>

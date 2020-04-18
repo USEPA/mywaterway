@@ -16,7 +16,7 @@ import { getUrlFromMarkup, getTitleFromMarkup } from 'components/shared/Regex';
 // styles
 import { fonts } from 'styles/index.js';
 // errors
-import { nonpointSourceError } from 'config/errorMessages';
+import { protectNonpointSourceError } from 'config/errorMessages';
 
 // --- styled components ---
 const Container = styled.div`
@@ -171,7 +171,7 @@ function Protect({ esriModules, infoToggleChecked }: Props) {
 
                 {grts.status === 'failure' && (
                   <StyledErrorBox>
-                    <p>{nonpointSourceError}</p>
+                    <p>{protectNonpointSourceError}</p>
                   </StyledErrorBox>
                 )}
 

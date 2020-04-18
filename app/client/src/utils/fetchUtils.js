@@ -16,6 +16,7 @@ export function fetchCheck(apiUrl: string) {
       let status = err;
       if (err && err.status) status = err.status;
       logCallToGoogleAnalytics(apiUrl, status, startTime);
+      return checkResponse(err);
     });
 }
 
@@ -42,6 +43,7 @@ export function fetchPost(apiUrl: string, data: object, headers: object) {
     .catch((err) => {
       console.error(err);
       logCallToGoogleAnalytics(apiUrl, err, startTime);
+      return checkResponse(err);
     });
 }
 

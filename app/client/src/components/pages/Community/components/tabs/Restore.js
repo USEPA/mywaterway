@@ -23,7 +23,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { getUrlFromMarkup, getTitleFromMarkup } from 'components/shared/Regex';
 // errors
 import {
-  nonpointSourceError,
+  restoreNonpointSourceError,
   restorationPlanError,
 } from 'config/errorMessages';
 
@@ -123,7 +123,7 @@ class Restore extends React.Component<Props, {}> {
 
                   {grts.status === 'failure' && (
                     <StyledErrorBox>
-                      <p>{nonpointSourceError}</p>
+                      <p>{restoreNonpointSourceError}</p>
                     </StyledErrorBox>
                   )}
 
