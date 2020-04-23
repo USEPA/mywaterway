@@ -486,6 +486,13 @@ class IdentifiedIssues extends React.Component<Props, State> {
         cipSummary.data.items[0].containImpairedWatersCatchmentAreaPercent,
       );
 
+    const nullPollutedWaterbodies =
+      cipServiceReady &&
+      cipSummary.data.items[0].containImpairedWatersCatchmentAreaPercent ===
+        null
+        ? true
+        : false;
+
     let toggleIssuesChecked;
 
     if (zeroPollutedWaterbodies) {
@@ -527,6 +534,8 @@ class IdentifiedIssues extends React.Component<Props, State> {
                   <StyledNumber>
                     {cipSummary.status === 'failure'
                       ? 'N/A'
+                      : nullPollutedWaterbodies
+                      ? 'N/A %'
                       : `${pollutedPercent}%` || 0 + '%'}
                   </StyledNumber>
                   <StyledLabel>of Assessed Waters are impaired</StyledLabel>
@@ -704,7 +713,11 @@ class IdentifiedIssues extends React.Component<Props, State> {
                                                 {mappedParameterName}
                                               </FlexDiv>
                                             </td>
-                                            <td>{percent}%</td>
+                                            <td>
+                                              {nullPollutedWaterbodies === true
+                                                ? 'N/A'
+                                                : percent + '%'}
+                                            </td>
                                           </tr>
                                         );
                                       },
