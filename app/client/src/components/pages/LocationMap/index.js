@@ -958,11 +958,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             return;
           }
 
+          // Note: that since the geocoder failed, the lat/long will be displayed
+          //   where the address would normally be.
+          // Go ahead and zoom to the center of the huc
           const { centermass_x, centermass_y } = hucRes.features[0].attributes;
           renderMapAndZoomTo(centermass_x, centermass_y, () =>
             handleHUC12(hucRes),
           );
 
+          // set drinkingWater to an empty array, since we don't have
+          // the necessary parameters for the GetPWSWMHUC12 call
           setDrinkingWater({
             data: [],
             status: 'success',
