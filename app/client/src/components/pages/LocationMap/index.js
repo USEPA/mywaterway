@@ -952,8 +952,21 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         .catch((err) => {
           console.error(err);
           setAddress(searchText); // preserve the user's search so it is displayed
-          setNoDataAvailable();
-          setErrorMessage(geocodeError);
+          if (!hucRes) {
+            setNoDataAvailable();
+            setErrorMessage(geocodeError);
+            return;
+          }
+
+          const { centermass_x, centermass_y } = hucRes.features[0].attributes;
+          renderMapAndZoomTo(centermass_x, centermass_y, () =>
+            handleHUC12(hucRes),
+          );
+
+          setDrinkingWater({
+            data: [],
+            status: 'success',
+          });
         });
     },
     [
