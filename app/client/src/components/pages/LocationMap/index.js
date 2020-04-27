@@ -950,8 +950,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             });
         })
         .catch((err) => {
-          console.error(err);
           if (!hucRes) {
+            console.error(err);
             setAddress(searchText); // preserve the user's search so it is displayed
             setNoDataAvailable();
             setErrorMessage(geocodeError);
