@@ -951,12 +951,21 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         })
         .catch((err) => {
           console.error(err);
-          setAddress(searchText); // preserve the user's search so it is displayed
           if (!hucRes) {
+            setAddress(searchText); // preserve the user's search so it is displayed
             setNoDataAvailable();
             setErrorMessage(geocodeError);
             return;
           }
+
+          // get the coordinates, round them and display as search text
+          const coords = searchText.split(', ');
+          const digits = 6;
+          setAddress(
+            parseFloat(coords[0]).toFixed(digits) +
+              ', ' +
+              parseFloat(coords[1]).toFixed(digits),
+          );
 
           // Note: that since the geocoder failed, the lat/long will be displayed
           //   where the address would normally be.
