@@ -184,8 +184,6 @@ function State({ children, ...props }: Props) {
   // (e.g. when a user navigates directly to '/state/DC/advanced-search')
   React.useEffect(() => {
     setUsesStateSummaryServiceError(false);
-    console.log('activestate', activeState);
-    // console.log('selcted state', selectedState);
     setSelectedState(activeState);
   }, [activeState, setUsesStateSummaryServiceError]);
 
