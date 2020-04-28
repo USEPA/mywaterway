@@ -708,7 +708,7 @@ function DrinkingWaterPanel() {
           water system (PWS) meets state and EPA drinking water standards. In
           addition, the search results in this tool on the community page under
           the Drinking Water tab pull data from the Safe Drinking Water
-          Information System (SDWIS) Federal Reporting Services.{' '}
+          Information System (SDWIS) Federal Reporting Services.
         </p>
       </AltBox>
 
