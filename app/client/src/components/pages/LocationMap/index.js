@@ -950,10 +950,37 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             });
         })
         .catch((err) => {
-          console.error(err);
-          setAddress(searchText); // preserve the user's search so it is displayed
-          setNoDataAvailable();
-          setErrorMessage(geocodeError);
+          if (!hucRes) {
+            console.error(err);
+            setAddress(searchText); // preserve the user's search so it is displayed
+            setNoDataAvailable();
+            setErrorMessage(geocodeError);
+            return;
+          }
+
+          // get the coordinates, round them and display as search text
+          const coords = searchText.split(', ');
+          const digits = 6;
+          setAddress(
+            parseFloat(coords[0]).toFixed(digits) +
+              ', ' +
+              parseFloat(coords[1]).toFixed(digits),
+          );
+
+          // Note: that since the geocoder failed, the lat/long will be displayed
+          //   where the address would normally be.
+          // Go ahead and zoom to the center of the huc
+          const { centermass_x, centermass_y } = hucRes.features[0].attributes;
+          renderMapAndZoomTo(centermass_x, centermass_y, () =>
+            handleHUC12(hucRes),
+          );
+
+          // set drinkingWater to an empty array, since we don't have
+          // the necessary parameters for the GetPWSWMHUC12 call
+          setDrinkingWater({
+            data: [],
+            status: 'success',
+          });
         });
     },
     [
