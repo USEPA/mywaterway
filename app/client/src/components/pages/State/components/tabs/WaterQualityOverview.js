@@ -231,6 +231,7 @@ function WaterQualityOverview({ ...props }: Props) {
     activeState,
     setCurrentReportStatus,
     setCurrentSummary,
+    setUsesStateSummaryServiceError,
   } = React.useContext(StateTabsContext);
 
   const [loading, setLoading] = React.useState(true);
@@ -314,6 +315,16 @@ function WaterQualityOverview({ ...props }: Props) {
 
       fetchCheck(url)
         .then((res) => {
+          // for states like Alaska that have no reporting cycles
+          if (
+            !res.data ||
+            !res.data.reportingCycles ||
+            res.data.reportingCycles.length === 0
+          ) {
+            setUsesStateSummaryServiceError(true);
+            return;
+          }
+
           setCurrentStateData(res.data);
 
           // get the latest reporting cycle
@@ -338,6 +349,13 @@ function WaterQualityOverview({ ...props }: Props) {
         })
         .catch((err) => {
           console.error('Error with attains summary web service: ', err);
+
+          // for states like Arkansas that cause internal server errors in ATTAINS when queried
+          if (err.status === 500) {
+            setUsesStateSummaryServiceError(true);
+            return;
+          }
+
           setServiceError(true);
           setLoading(false);
           setCurrentSummary({
@@ -346,7 +364,7 @@ function WaterQualityOverview({ ...props }: Props) {
           });
         });
     },
-    [fetchAssessments, setCurrentSummary],
+    [fetchAssessments, setCurrentSummary, setUsesStateSummaryServiceError],
   );
 
   // get state organization ID for summary service
@@ -588,6 +606,7 @@ function WaterQualityOverview({ ...props }: Props) {
     let yearData =
       yearSelected &&
       currentStateData.reportingCycles &&
+      currentStateData.reportingCycles.length > 0 &&
       currentStateData.reportingCycles.find(
         (x) => x['reportingCycle'] === yearSelected,
       );

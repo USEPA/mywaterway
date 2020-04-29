@@ -693,10 +693,9 @@ function DrinkingWaterPanel() {
         <h3>How do I know my water is safe?</h3>
 
         <p>
-          America’s drinking water is among the safest in the world. In addition
-          to the search results in this tool which pull results from the SDWIS
-          Federal Reporting Services. If you have questions about your drinking
-          water, customers can contact their local water supplier to get a{' '}
+          America’s drinking water is among the safest in the world. If
+          customers have questions about their drinking water, they can contact
+          their local water supplier to request a{' '}
           <a
             href="https://www.epa.gov/ccr"
             target="_blank"
@@ -705,8 +704,11 @@ function DrinkingWaterPanel() {
             Consumer Confidence Report (CCR)
           </a>
           . The CCR lists the levels of contaminants that have been detected in
-          the water, including those identified by EPA, and whether the PWS
-          meets state and EPA drinking water standards.
+          the water, including those identified by EPA, and whether the public
+          water system (PWS) meets state and EPA drinking water standards. In
+          addition, the search results in this tool on the community page under
+          the Drinking Water tab pull data from the Safe Drinking Water
+          Information System (SDWIS) Federal Reporting Services.
         </p>
       </AltBox>
 
