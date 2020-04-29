@@ -50,8 +50,7 @@ type State = {
   areasLayer: Object,
   summaryLayerMaxRecordCount: ?number,
   watershedsLayerMaxRecordCount: ?number,
-  stateCodeFIPS: string,
-  countyCodeFIPS: string,
+  FIPS: Object,
 
   // monitoring panel
   showAllMonitoring: boolean,
