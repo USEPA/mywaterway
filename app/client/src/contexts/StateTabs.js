@@ -29,6 +29,8 @@ export class StateTabsProvider extends React.Component<Props, State> {
       data: {},
     },
     activeState: { code: '', name: '' },
+    // in case ATTAINS usesStateSummary service returns invalid data or an internal error
+    usesStateSummaryServiceError: false,
     setActiveTabIndex: (activeTabIndex: number) => {
       this.setState({ activeTabIndex });
     },
@@ -40,6 +42,11 @@ export class StateTabsProvider extends React.Component<Props, State> {
     },
     setActiveState: (activeState: { code: string, name: string }) => {
       this.setState({ activeState });
+    },
+    setUsesStateSummaryServiceError: (
+      usesStateSummaryServiceError: boolean,
+    ) => {
+      this.setState({ usesStateSummaryServiceError });
     },
   };
 
