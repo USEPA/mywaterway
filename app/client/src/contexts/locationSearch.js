@@ -302,9 +302,6 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     setDrinkingWaterTabIndex: (drinkingWaterTabIndex) => {
       this.setState({ drinkingWaterTabIndex });
     },
-    setStateCodeFIPS: (stateCodeFIPS) => {
-      this.setState({ stateCodeFIPS });
-    },
     setFIPS: (FIPS) => {
       this.setState({ FIPS });
     },

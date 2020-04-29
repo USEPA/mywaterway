@@ -105,7 +105,9 @@ function createAccordionItem(item: Object, isWithdrawer: boolean) {
   return (
     <AccordionItem
       key={
-        item.water_type_calc ? item.pwsid + item.water_type_calc : item.pwsid
+        item.water_type_calc
+          ? item.pwsid + item.water_type_calc + item.water_type_code
+          : item.pwsid
       }
       title={<strong>{item.pws_name || 'Unknown'}</strong>}
       subTitle={
@@ -113,8 +115,10 @@ function createAccordionItem(item: Object, isWithdrawer: boolean) {
           Drinking Water Population Served:{' '}
           {Number(item['population_served_count']).toLocaleString()}
           <br />
-          Drinking Water Facility Source:{' '}
-          {isWithdrawer ? item['water_type_calc'] : item['gw_sw']}
+          Drinking Water System Source:{' '}
+          {isWithdrawer
+            ? item.water_type_calc
+            : item.gw_sw.replace('Groundwater', 'Ground water')}
         </>
       }
     >
@@ -155,9 +159,13 @@ function createAccordionItem(item: Object, isWithdrawer: boolean) {
           </tr>
           <tr>
             <td>
-              <em>Drinking Water Facility Source:</em>
+              <em>Drinking Water System Source:</em>
             </td>
-            <td>{isWithdrawer ? item.water_type_calc : item.gw_sw}</td>
+            <td>
+              {isWithdrawer
+                ? item.water_type_calc
+                : item.gw_sw.replace('Groundwater', 'Ground water')}
+            </td>
           </tr>
           <tr>
             <td>
@@ -642,7 +650,7 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
                             <thead>
                               <tr>
                                 <th>
-                                  <span>Drinking Water Source</span>
+                                  <span>Drinking Water Facility Source</span>
                                 </th>
                                 <th>Count</th>
                               </tr>
