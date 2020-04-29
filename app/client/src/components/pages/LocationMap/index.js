@@ -947,6 +947,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           new QueryTask({ url: `${counties}/query` })
             .execute(countiesQuery)
             .then((countiesRes) => {
+              // not all locations have a State and County code, check for it
               if (
                 countiesRes.features &&
                 countiesRes.features.length > 0 &&
@@ -1183,6 +1184,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         status: 'success',
       });
     } else {
+      // if FIPS codes do not exist we cannot query the drinking water service
       if (
         FIPS.status === 'failure' ||
         FIPS.stateCode === '' ||
