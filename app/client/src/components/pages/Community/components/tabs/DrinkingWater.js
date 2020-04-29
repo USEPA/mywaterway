@@ -691,11 +691,11 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
                   (streams, rivers, and lakes) or{' '}
                   <GlossaryTerm term="Groundwater">ground water</GlossaryTerm>{' '}
                   (aquifers) can serve as sources of drinking water, referred to
-                  as a source water. EPA, states, and tribes may monitor and
+                  as source water. EPA, states, and tribes may monitor and
                   conduct an{' '}
                   <GlossaryTerm term="Assessed Waters">assessment</GlossaryTerm>{' '}
                   of the surface water quality to help ensure the safety of the
-                  sources for drinking water.
+                  drinking water sources.
                   <ShowLessMore
                     text={
                       <>
