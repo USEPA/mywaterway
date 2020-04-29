@@ -104,7 +104,9 @@ function createAccordionItem(item: Object, isWithdrawer: boolean) {
     `${item.pwsid}`;
   return (
     <AccordionItem
-      key={item.pwsid}
+      key={
+        item.water_type_calc ? item.pwsid + item.water_type_calc : item.pwsid
+      }
       title={<strong>{item.pws_name || 'Unknown'}</strong>}
       subTitle={
         <>
