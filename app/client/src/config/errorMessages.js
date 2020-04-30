@@ -4,7 +4,7 @@ import React from 'react';
 
 // ofmpub.epa.gov - Permitted Discharger Service
 export const echoError =
-  'Permitted Discharger information is temporarily unavailable, please try again later.';
+  'The permitted discharger information is temporarily unavailable, please try again later.';
 
 // waterqualitydata.us- Monitoring Location Service
 export const monitoringError =
@@ -30,17 +30,25 @@ export const noDataAvailableError =
 export const glossaryError =
   'The glossary is temporarily unavailable, please try again later.';
 
-// ofmpub.epa.gov - County Service. where type is either County (providers) or Watershed (withdrawers)
-export const countyError = (type) =>
-  `${type} information is temporarily unavailable, please try again later.`;
+// ofmpub.epa.gov - County Service - County (providers)
+export const countyError =
+  'The county drinking water provider information is temporarily unavailable, please try again later.';
 
-// ofmpub.epa.gov - GRTS Service
-export const nonpointSourceError =
-  'Nonpoint Source Pollution grants information is temporarily unavailable, please try again later.';
+// ofmpub.epa.gov - County Service - Watershed (withdrawers)
+export const withdrawerError =
+  'The drinking water withdrawer information for this watershed is temporarily unavailable, please try again later.';
+
+// ofmpub.epa.gov - GRTS Service for protect tab
+export const protectNonpointSourceError =
+  'The protection projects are temporarily unavailable, please try again later.';
+
+// ofmpub.epa.gov - GRTS Service for restore tab
+export const restoreNonpointSourceError =
+  'The clean water act section 319 projects are temporarily unavailable, please try again later.';
 
 // attains.epa.gov - Plans Service
 export const restorationPlanError =
-  'Restoration plan information is temporarily unavailable, please try again later.';
+  'The restoration plans are temporarily unavailable, please try again later.';
 
 // watersgeo.epa.gov - HUC12 Boundary Service
 export const watersgeoError =
@@ -76,9 +84,14 @@ export const noActionsAvailable = (actionId) =>
 
 // ofmpub.epa.gov GRPA service
 export const grpaError =
-  'GPRA information is temporarily unavailable, please try again later.'; // also used on state page
+  'The EPA Drinking Water Performance and Results information is temporarily unavailable, please try again later.'; // also used on state page
 
 // State errors //
+
+// for where ATTAINS usesStateSummaryService response is an internal error or missing data for a state
+export const usesStateSummaryServiceInvalidResponse = (stateName) =>
+  `There is no State-level assessment data available${stateName &&
+    ' for ' + stateName}.`; // add conditional check for stateName as it is sometimes undefined
 
 // attains state document service
 export const stateDocumentError = (stateName) =>
@@ -98,7 +111,7 @@ export const stateListError =
 
 // ofmpub.epa.gov stories service
 export const stateStoriesError =
-  'State stories are temporaliy unavailable, please try again later.';
+  'State water stories are temporarily unavailable, please try again later.';
 
 // if one of the main State services goes down and there is no data to display
 export const stateGeneralError =

@@ -19,7 +19,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
 // errors
-import { countyError } from 'config/errorMessages';
+import { countyError, withdrawerError } from 'config/errorMessages';
 
 const Table = styled.table`
   thead {
@@ -488,7 +488,7 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
 
               {drinkingWater.status === 'failure' && (
                 <StyledErrorBox>
-                  <p>{countyError('County')}</p>
+                  <p>{countyError}</p>
                 </StyledErrorBox>
               )}
 
@@ -541,7 +541,10 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
                       </GlossaryTerm>{' '}
                       listed below draw source water from the watershed outlined
                       on the map. This is the immediate drainage area, not the
-                      entire watershed.
+                      entire watershed. Public water systems may receive
+                      drinking water diverted from watershed areas and
+                      groundwater sources located outside the area that is
+                      outlined on the map.
                     </strong>
                   </p>
                   <p>
@@ -582,7 +585,7 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
 
               {drinkingWater.status === 'failure' && (
                 <StyledErrorBox>
-                  <p>{countyError('Watershed')}</p>
+                  <p>{withdrawerError}</p>
                 </StyledErrorBox>
               )}
 
@@ -682,28 +685,27 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
             <TabPanel>
               {infoToggleChecked && (
                 <p>
-                  EPA, states, and tribes monitor and assess water quality to
-                  help keep your sources of drinking water safe. Public water
-                  systems evaluate and, as necessary, treat water used for
-                  public drinking water supplies.
+                  <GlossaryTerm term="Surface Water">
+                    Surface water
+                  </GlossaryTerm>{' '}
+                  (streams, rivers, and lakes) or{' '}
+                  <GlossaryTerm term="Groundwater">ground water</GlossaryTerm>{' '}
+                  (aquifers) can serve as sources of drinking water, referred to
+                  as source water. EPA, states, and tribes may monitor and
+                  conduct an{' '}
+                  <GlossaryTerm term="Assessed Waters">assessment</GlossaryTerm>{' '}
+                  of the surface water quality to help ensure the safety of the
+                  drinking water sources.
                   <ShowLessMore
                     text={
                       <>
                         {' '}
-                        <GlossaryTerm term="Surface Water">
-                          Surface water
-                        </GlossaryTerm>{' '}
-                        (streams, rivers, and lakes) or{' '}
-                        <GlossaryTerm term="Groundwater">
-                          ground water
-                        </GlossaryTerm>{' '}
-                        (aquifers) can serve as sources of drinking water,
-                        referred to as source water. Public utilities treat
-                        source water that is used for public drinking water
-                        supplies. The map shows the condition of source water
-                        prior to treatment. Protecting source water from
-                        contamination protects public health and can reduce
-                        treatment costs.
+                        The map shows the assessment status of the surface
+                        source water, not the quality of the treated drinking
+                        water. Public water systems also evaluate the source
+                        water quality and treat the source water that is used
+                        for public drinking water to be in compliance with the
+                        Safe Drinking Water Act.
                       </>
                     }
                   />

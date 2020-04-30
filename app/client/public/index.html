@@ -65,7 +65,10 @@
         ga('send', 'pageview');
         isIdSet = true;
       }
-      else if (document.location.hostname === 'mywaterway-dev.app.cloud.gov') {
+      else if (
+        document.location.hostname === 'mywaterway-dev.app.cloud.gov' || 
+        document.location.hostname === 'localhost'
+      ) {
         ga('create', 'UA-37504877-3', 'auto');  //Dev
         ga('send', 'pageview');
         isIdSet = true;
