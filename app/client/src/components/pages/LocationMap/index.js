@@ -137,6 +137,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setWatershed,
     resetData,
     setNoDataAvailable,
+    FIPS,
+    setFIPS,
 
     layers,
     setLayers,
@@ -933,11 +935,42 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           const countiesQuery = new Query({
             returnGeometry: true,
             geometry: location.location.clone(),
+            outFields: ['*'],
+          });
+
+          setFIPS({
+            stateCode: '',
+            countyCode: '',
+            status: 'fetching',
           });
 
           new QueryTask({ url: `${counties}/query` })
             .execute(countiesQuery)
             .then((countiesRes) => {
+              // not all locations have a State and County code, check for it
+              if (
+                countiesRes.features &&
+                countiesRes.features.length > 0 &&
+                countiesRes.features[0].attributes
+              ) {
+                const stateCode = countiesRes.features[0].attributes.STFIPS;
+                const countyCode = countiesRes.features[0].attributes.CTFIPS.substring(
+                  2,
+                  5,
+                );
+                setFIPS({
+                  stateCode: stateCode,
+                  countyCode: countyCode,
+                  status: 'success',
+                });
+              } else {
+                setFIPS({
+                  stateCode: '',
+                  countyCode: '',
+                  status: 'failure',
+                });
+              }
+
               setCountyBoundaries(countiesRes);
             })
             .catch((err) => {
@@ -945,6 +978,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               setCountyBoundaries(null);
               setDrinkingWater({
                 data: [],
+                status: 'failure',
+              });
+              setFIPS({
+                stateCode: '',
+                countyCode: '',
                 status: 'failure',
               });
             });
@@ -996,6 +1034,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       setAddress,
       setCountyBoundaries,
       setDrinkingWater,
+      setFIPS,
       setNoDataAvailable,
     ],
   );
@@ -1145,21 +1184,29 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         status: 'success',
       });
     } else {
-      // make sure that territories are using the correct value for
-      // the state/region parameter
-      let region = location.attributes.Region;
-      if (region === 'US Virgin Islands') region = 'Virgin Islands';
+      // if FIPS codes do not exist we cannot query the drinking water service
+      if (
+        FIPS.status === 'failure' ||
+        FIPS.stateCode === '' ||
+        FIPS.countyCode === ''
+      ) {
+        setDrinkingWater({
+          data: [],
+          status: 'failure',
+        });
+        return;
+      }
 
       const drinkingWaterUrl =
-        `${dwmaps.getPWSHUC12}` +
+        `${dwmaps.GetPWSWMHUC12FIPS}` +
         `${hucResponse.features[0].attributes.huc12}/` +
-        `${countyBoundaries.features[0].attributes.COUNTY}/` +
-        `${region}`;
+        `${FIPS.stateCode}/` +
+        `${FIPS.countyCode}`;
 
       fetchCheck(drinkingWaterUrl)
         .then((drinkingWaterRes) => {
           setDrinkingWater({
-            data: drinkingWaterRes.items.slice(0),
+            data: drinkingWaterRes.items,
             status: 'success',
           });
         })
@@ -1171,7 +1218,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
         });
     }
-  }, [countyBoundaries, hucResponse, location, setDrinkingWater]);
+  }, [FIPS, countyBoundaries, hucResponse, location, setDrinkingWater]);
 
   // const queryNonprofits = (boundaries) => {
   //   if (

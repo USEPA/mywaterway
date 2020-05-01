@@ -50,6 +50,7 @@ type State = {
   areasLayer: Object,
   summaryLayerMaxRecordCount: ?number,
   watershedsLayerMaxRecordCount: ?number,
+  FIPS: Object,
 
   // monitoring panel
   showAllMonitoring: boolean,
@@ -133,6 +134,11 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     areasData: null,
     pointsData: null,
     esriHelper: new EsriHelper(),
+    FIPS: {
+      stateCode: '',
+      countyCode: '',
+      status: 'fetching',
+    },
 
     pointsLayer: '',
     linesLayer: '',
@@ -295,6 +301,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     },
     setDrinkingWaterTabIndex: (drinkingWaterTabIndex) => {
       this.setState({ drinkingWaterTabIndex });
+    },
+    setFIPS: (FIPS) => {
+      this.setState({ FIPS });
     },
 
     /////// Functions that do more than just set a single state ////////

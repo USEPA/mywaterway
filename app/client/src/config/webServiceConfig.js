@@ -19,6 +19,7 @@ export const echoNPDES = {
 
 export const dwmaps = {
   getPWSHUC12: `${ofmpubURL}apex/sfdw_rest/GetPWSWMHUC12/`,
+  GetPWSWMHUC12FIPS: `${ofmpubURL}apex/sfdw_rest/GetPWSWMHUC12FIPS/`,
   getGPRASummary: `${ofmpubURL}apex/sfdw_rest/GetGPRASummary/`,
   getGPRASystemCountsByType: `${ofmpubURL}apex/sfdw_rest/GetGPRASystemCountsByType/`,
 };
