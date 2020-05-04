@@ -49,11 +49,11 @@ function AquaticLife({ ...props }: Props) {
       </StyledTopic>
 
       <StyledText className="container">
-        <Prompt>
-          <em>Find out more about your aquatic life.</em>
-        </Prompt>
-
-        <LocationSearch route="/community/{urlSearch}/aquatic-life" />
+        <LocationSearch route="/community/{urlSearch}/aquatic-life">
+          <Prompt>
+            <em>Find out more about your aquatic life.</em>
+          </Prompt>
+        </LocationSearch>
 
         <br />
 

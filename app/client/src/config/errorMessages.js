@@ -26,6 +26,9 @@ export const geocodeError =
 export const noDataAvailableError =
   'Data is not available for this location. Please try a new search.';
 
+// invalid search
+export const invalidSearchError = 'Invalid search. Please try a new search.';
+
 // Glossary component fails to load
 export const glossaryError =
   'The glossary is temporarily unavailable, please try again later.';

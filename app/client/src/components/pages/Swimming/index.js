@@ -49,11 +49,11 @@ function Swimming({ ...props }: Props) {
       </StyledTopic>
 
       <StyledText className="container">
-        <Prompt>
-          <em>Find out more about water you may potentially swim in.</em>
-        </Prompt>
-
-        <LocationSearch route="/community/{urlSearch}/swimming" />
+        <LocationSearch route="/community/{urlSearch}/swimming">
+          <Prompt>
+            <em>Find out more about water you may potentially swim in.</em>
+          </Prompt>
+        </LocationSearch>
 
         <br />
 
