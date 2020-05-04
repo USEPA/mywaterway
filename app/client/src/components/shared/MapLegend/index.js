@@ -243,7 +243,7 @@ function MapLegendContent({ layer }: CardProps) {
   const actionsWaterbodiesLegend = (
     <LI>
       <ImageContainer>
-        {squareIcon({ color: '#007BFF', strokeWidth: 0 })}
+        {squareIcon({ color: '#1e72cb', strokeWidth: 0 })}
       </ImageContainer>
       <LegendLabel>Waterbody</LegendLabel>
     </LI>
