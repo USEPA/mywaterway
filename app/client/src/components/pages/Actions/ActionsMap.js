@@ -195,7 +195,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
             }
             if (type === 'area') {
               symbol = new SimpleFillSymbol({
-                color: '#007bff',
+                color: '#1e72cbd1',
                 style: 'solid',
               });
             }
