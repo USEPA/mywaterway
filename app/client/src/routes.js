@@ -18,7 +18,6 @@ import DrinkingWater from 'components/pages/DrinkingWater';
 import Swimming from 'components/pages/Swimming';
 import EatingFish from 'components/pages/EatingFish';
 import AquaticLife from 'components/pages/AquaticLife';
-import OrgSelect from 'components/pages/Actions/OrgSelect';
 import Actions from 'components/pages/Actions';
 import WaterbodyReport from 'components/pages/WaterbodyReport';
 import ErrorPage from 'components/pages/404';
@@ -59,9 +58,6 @@ function Routes() {
       <Swimming path="/swimming" />
       <EatingFish path="/eating-fish" />
       <AquaticLife path="/aquatic-life" />
-      {/* TODO: Remove this route once orgId is added to the response of the
-          ATTAINS plans web service */}
-      <OrgSelect path="/plan-summary/:actionId" />
       {/* $FlowFixMe (orgId and actionId props are passed from the path) */}
       <Actions path="/plan-summary/:orgId/:actionId" />
       {/* $FlowFixMe (orgId and auId props are passed from the path) */}
