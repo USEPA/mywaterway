@@ -112,6 +112,7 @@ function LocationSearch({ route, children }: Props) {
           }
 
           if (inputText) {
+            setErrorMessage('');
             setGeolocationError(false);
             // only navigate if search box contains text
             navigate(encodeURI(route.replace('{urlSearch}', inputText.trim())));
