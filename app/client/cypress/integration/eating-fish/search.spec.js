@@ -9,4 +9,13 @@ describe('Eating Fish', () => {
     cy.findByText('Go').click();
     cy.url().should('include', `/community/${zip}/eating-fish`);
   });
+
+  it('searching with a <script> tag displays an error', () => {
+    const search = '<script>var j = 1;</script>';
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      search,
+    );
+    cy.findByText('Go').click();
+    cy.findByText('Invalid search. Please try a new search.').should('exist');
+  });
 });
