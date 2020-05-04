@@ -10,6 +10,21 @@ function chunkArray(array: any, chunkLength: number): Array<Array<any>> {
   return chunks;
 }
 
+function containsScriptTag(string: string) {
+  string = string
+    .toLowerCase()
+    .replace('%20', '')
+    .replace('%3c', '<')
+    .replace('%3e', '>')
+    .trim();
+  console.log('string: ', string);
+  return (
+    string.includes('<script>') ||
+    string.includes('</script>') ||
+    string.includes('<script/>')
+  );
+}
+
 function formatNumber(number: number, digits: number = 0) {
   if (!number) return '0';
 
@@ -50,4 +65,10 @@ function titleCaseWithExceptions(string: string) {
   }
 }
 
-export { chunkArray, formatNumber, titleCase, titleCaseWithExceptions };
+export {
+  chunkArray,
+  containsScriptTag,
+  formatNumber,
+  titleCase,
+  titleCaseWithExceptions,
+};
