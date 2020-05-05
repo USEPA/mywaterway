@@ -182,20 +182,20 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
             let symbol;
             if (type === 'point') {
               symbol = new SimpleMarkerSymbol({
-                color: '#1e72cb',
+                color: [0, 123, 255],
                 style: 'circle',
               });
             }
             if (type === 'line') {
               symbol = new SimpleLineSymbol({
-                color: '#1e72cb',
+                color: [0, 123, 255],
                 style: 'solid',
                 width: '2',
               });
             }
             if (type === 'area') {
               symbol = new SimpleFillSymbol({
-                color: '#1e72cbd1',
+                color: [0, 123, 255, 0.5],
                 style: 'solid',
               });
             }
