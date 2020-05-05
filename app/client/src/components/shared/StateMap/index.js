@@ -50,6 +50,7 @@ type Props = {
   windowWidth: number,
   filter: string,
   activeState: Object,
+  numberOfRecords: number,
   children?: Node,
 };
 
@@ -59,6 +60,7 @@ function StateMap({
   windowWidth,
   filter,
   activeState,
+  numberOfRecords,
   children,
 }: Props) {
   const [view, setView] = React.useState(null);
@@ -241,7 +243,8 @@ function StateMap({
       pointsLayer &&
       linesLayer &&
       areasLayer &&
-      homeWidget
+      homeWidget &&
+      numberOfRecords
     ) {
       setLastFilter(filter);
 
@@ -278,8 +281,18 @@ function StateMap({
 
             // if there is an extent then zoom to it and set the home widget
             if (fullExtent) {
+              let zoomParams = fullExtent;
+              let homeParams = { targetGeometry: fullExtent };
               if (!selectedGraphic) {
-                view.goTo(fullExtent).then(() => {
+                if (numberOfRecords === 1 && pointsExtent.count === 1) {
+                  zoomParams = { target: fullExtent, zoom: 15 };
+                  homeParams = {
+                    targetGeometry: fullExtent,
+                    scale: 18056, // same as zoom 15, viewpoint only takes scale
+                  };
+                }
+
+                view.goTo(zoomParams).then(() => {
                   // only show the waterbody layer after everything has loaded to
                   // cut down on unnecessary service calls
                   waterbodyLayer.listMode = 'hide-children';
@@ -292,9 +305,7 @@ function StateMap({
 
               // only set the home widget if the user selects a different state
               if (!homeWidgetSet) {
-                homeWidget.viewpoint = new Viewpoint({
-                  targetGeometry: fullExtent,
-                });
+                homeWidget.viewpoint = new Viewpoint(homeParams);
                 setHomeWidgetSet(true);
               }
             }
@@ -314,6 +325,7 @@ function StateMap({
     homeWidgetSet,
     selectedGraphic,
     waterbodyLayer,
+    numberOfRecords,
   ]);
 
   // Used to tell if the homewidget has been set to the selected state.
