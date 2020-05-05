@@ -112,10 +112,10 @@ function createAccordionItem(item: Object, isWithdrawer: boolean) {
       title={<strong>{item.pws_name || 'Unknown'}</strong>}
       subTitle={
         <>
-          Drinking Water Population Served:{' '}
+          Public Water System Population Served:{' '}
           {Number(item['population_served_count']).toLocaleString()}
           <br />
-          Drinking Water System Source:{' '}
+          Drinking Water Facility Source:{' '}
           {isWithdrawer
             ? item.water_type_calc
             : item.gw_sw.replace('Groundwater', 'Ground water')}
@@ -138,7 +138,7 @@ function createAccordionItem(item: Object, isWithdrawer: boolean) {
           </tr>
           <tr>
             <td>
-              <em>Drinking Water Population Served:</em>
+              <em>Public Water System Population Served:</em>
             </td>
             <td>
               {item.population_served_count &&
@@ -159,7 +159,7 @@ function createAccordionItem(item: Object, isWithdrawer: boolean) {
           </tr>
           <tr>
             <td>
-              <em>Drinking Water System Source:</em>
+              <em>Drinking Water Facility Source:</em>
             </td>
             <td>
               {isWithdrawer
@@ -346,6 +346,7 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
   const [surfaceWaterDisplayed, setSurfaceWaterDisplayed] = React.useState(
     true,
   );
+  const [bothDisplayed, setBothDisplayed] = React.useState(true);
 
   // sort drinking water data into providers and withdrawers via presence of 'huc12' property
   const providers = [];
@@ -353,23 +354,79 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
   let surfaceWaterCount = 0; // total surface water withdrawers
   let groundWaterCount = 0; // total groundwater withdrawers
   let totalWithdrawersCount = 0; // total withdrawers
+  let bothCount = 0;
   if (drinkingWater.data) {
-    drinkingWater.data.forEach((item) => {
-      if (item.hasOwnProperty('huc12')) {
-        totalWithdrawersCount++;
+    // handle providers separately
+    const allProviders = drinkingWater.data.filter(
+      (system) => !system.hasOwnProperty('huc12'),
+    );
+    allProviders.forEach((provider) => providers.push(provider));
 
-        // surface water withdrawer
-        if (item.water_type_calc.toLowerCase() === 'surface water') {
-          surfaceWaterCount++;
-          if (surfaceWaterDisplayed) displayedWithdrawers.push(item);
+    // find all withdrawers
+    const allWithdrawers = drinkingWater.data.filter((system) =>
+      system.hasOwnProperty('huc12'),
+    );
+
+    // find duplicate withdrawers based on pwsid
+    const lookup = allWithdrawers.reduce((a, e) => {
+      a[e.pwsid] = ++a[e.pwsid] || 0;
+      return a;
+    }, {});
+
+    const duplicates = allWithdrawers.filter((e) => lookup[e.pwsid]);
+
+    // get array of duplicate PWSIDs
+    const duplicatePWSIDs = [];
+    duplicates.forEach((dup) => {
+      if (!duplicatePWSIDs.includes(dup.pwsid)) {
+        duplicatePWSIDs.push(dup.pwsid);
+      }
+    });
+
+    // count each duplicate once
+    duplicatePWSIDs.forEach((duplicate) => bothCount++);
+
+    // track which system duplicates have been handled
+    const alreadyDuplicatedPWSIDs = [];
+
+    allWithdrawers.forEach((item) => {
+      const checkForDuplicates = displayedWithdrawers.filter(
+        (withdrawer) => withdrawer.pwsid === item.pwsid,
+      );
+
+      // check if system is has been duplicated already
+      if (alreadyDuplicatedPWSIDs.includes(item.pwsid)) {
+        // we've already handled this system and merged it, pass
+      }
+
+      // if system is a duplicate merge them together
+      else if (duplicatePWSIDs.includes(item.pwsid)) {
+        totalWithdrawersCount++;
+        const index = duplicatePWSIDs.indexOf(item.pwsid);
+        duplicatePWSIDs.splice(index, 1);
+        alreadyDuplicatedPWSIDs.push(item.pwsid);
+
+        if (checkForDuplicates.length === 0) {
+          // deepclone item to prevent changing the underlying service data
+          const mergedItem = Object.assign({}, item);
+          mergedItem.water_type_calc = 'Ground Water & Surface Water';
+          if (bothDisplayed) {
+            displayedWithdrawers.push(mergedItem);
+          }
         }
-        // ground water withdrawer
-        else if (item.water_type_calc.toLowerCase() === 'ground water') {
-          groundWaterCount++;
-          if (groundWaterDisplayed) displayedWithdrawers.push(item);
-        }
-      } else {
-        providers.push(item);
+      }
+
+      // surface water withdrawer
+      else if (item.water_type_calc.toLowerCase() === 'surface water') {
+        totalWithdrawersCount++;
+        surfaceWaterCount++;
+        if (surfaceWaterDisplayed) displayedWithdrawers.push(item);
+      }
+      // ground water withdrawer
+      else if (item.water_type_calc.toLowerCase() === 'ground water') {
+        totalWithdrawersCount++;
+        groundWaterCount++;
+        if (groundWaterDisplayed) displayedWithdrawers.push(item);
       }
     });
   }
@@ -422,7 +479,7 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
   const drinkingWaterSorts = [
     {
       value: 'population',
-      label: 'Drinking Water Population Served',
+      label: 'Public Water System Population Served',
     },
     {
       value: 'source',
@@ -696,6 +753,25 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
                                 </td>
                                 <td>{groundWaterCount}</td>
                               </tr>
+                              {bothCount > 0 && (
+                                <tr>
+                                  <td>
+                                    <Toggle>
+                                      <Switch
+                                        disabled={!bothCount}
+                                        checked={bothDisplayed && bothCount > 0}
+                                        onChange={(ev) =>
+                                          setBothDisplayed(!bothDisplayed)
+                                        }
+                                      />
+                                      <span>
+                                        Ground water &amp; Surface water
+                                      </span>
+                                    </Toggle>
+                                  </td>
+                                  <td>{bothCount}</td>
+                                </tr>
+                              )}
                             </tbody>
                           </Table>
 
