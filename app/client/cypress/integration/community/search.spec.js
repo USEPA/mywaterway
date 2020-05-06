@@ -23,6 +23,15 @@ describe('Community search', () => {
     }).should('exist');
   });
 
+  it('searching with a <script> tag displays an error', () => {
+    const search = '<script>var j = 1;</script>';
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      search,
+    );
+    cy.findByText('Go').click();
+    cy.findByText('Invalid search. Please try a new search.').should('exist');
+  });
+
   it('searching for a valid huc properly routes to the community overview page', () => {
     const search = '020700100103';
     cy.findByPlaceholderText('Search by address', { exact: false }).type(

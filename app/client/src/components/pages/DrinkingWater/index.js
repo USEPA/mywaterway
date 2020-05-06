@@ -44,11 +44,11 @@ function DrinkingWater({ ...props }: Props) {
       </StyledTopic>
 
       <StyledText className="container">
-        <Prompt>
-          <em>Find out about your Drinking Water.</em>
-        </Prompt>
-
-        <LocationSearch route="/community/{urlSearch}/drinking-water" />
+        <LocationSearch route="/community/{urlSearch}/drinking-water">
+          <Prompt>
+            <em>Find out about your Drinking Water.</em>
+          </Prompt>
+        </LocationSearch>
 
         <br />
 

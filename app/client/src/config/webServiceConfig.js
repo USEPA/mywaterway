@@ -3,7 +3,7 @@ const ofmpubURL = 'https://ofmpub.epa.gov/';
 
 export const glossaryURL =
   `https://etss.epa.gov/synaptica_rest_services/api/vocabs/name/` +
-  `How's%20My%20Waterway%20Glossary/terms/full`;
+  `HMW%20Glossary/terms/full`;
 
 export const waterQualityPortal = {
   stationSearch: `${wqpURL}data/Station/search?`,

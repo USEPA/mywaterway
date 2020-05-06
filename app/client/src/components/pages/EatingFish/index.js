@@ -49,10 +49,11 @@ function EatingFish({ ...props }: Props) {
       </StyledTopic>
 
       <StyledText className="container">
-        <Prompt>
-          <em>Find out more about your fish.</em>
-        </Prompt>
-        <LocationSearch route="/community/{urlSearch}/eating-fish" />
+        <LocationSearch route="/community/{urlSearch}/eating-fish">
+          <Prompt>
+            <em>Find out more about your fish.</em>
+          </Prompt>
+        </LocationSearch>
         <br />
         <p>
           Learn whether fish caught in your local waters are deemed safe to eat.
