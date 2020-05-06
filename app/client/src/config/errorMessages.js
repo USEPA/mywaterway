@@ -79,10 +79,6 @@ export const actionMapNoData = 'No map data is available.';
 export const noActionsAvailableCombo = (orgId, actionId) =>
   `No plans available for the provided Organization / Plan Identifier combination: ${orgId} / ${actionId}.`;
 
-// No actions found for given ActionID
-export const noActionsAvailable = (actionId) =>
-  `No plans available for the provided Plan Identifier: ${actionId}.`;
-
 // National errors //
 
 // ofmpub.epa.gov GRPA service
