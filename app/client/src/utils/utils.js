@@ -17,7 +17,7 @@ function containsScriptTag(string: string) {
     .replace('%3c', '<')
     .replace('%3e', '>')
     .trim();
-  console.log('string: ', string);
+
   return (
     string.includes('<script>') ||
     string.includes('</script>') ||
