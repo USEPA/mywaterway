@@ -950,6 +950,7 @@ function AdvancedSearch({ ...props }: Props) {
       layout={fullscreenActive ? 'fullscreen' : 'narrow'}
       filter={currentFilter}
       activeState={activeState}
+      numberOfRecords={numberOfRecords}
     >
       <MapFooter style={{ width: fullscreenActive ? width : '100%' }}>
         <strong>303(d) List Status / Year Last Reported:</strong>
