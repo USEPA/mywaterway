@@ -88,9 +88,11 @@ function LocationSearch({ route }: Props) {
         }
       }}
     >
-      <label className="sr-only">Location</label>
-
+      <label htmlFor="hmw-search-input" className="sr-only">
+        Location
+      </label>
       <Input
+        id="hmw-search-input"
         className="form-control"
         placeholder="Search by address, zip code, or place..."
         value={inputText}
