@@ -182,20 +182,20 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
             let symbol;
             if (type === 'point') {
               symbol = new SimpleMarkerSymbol({
-                color: '#007bff',
+                color: [0, 123, 255],
                 style: 'circle',
               });
             }
             if (type === 'line') {
               symbol = new SimpleLineSymbol({
-                color: '#007bff',
+                color: [0, 123, 255],
                 style: 'solid',
                 width: '2',
               });
             }
             if (type === 'area') {
               symbol = new SimpleFillSymbol({
-                color: '#007bff',
+                color: [0, 123, 255, 0.5],
                 style: 'solid',
               });
             }
@@ -289,7 +289,20 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
 
     const { Viewpoint } = esriModules;
 
-    mapView.goTo(actionsLayer.graphics).then(() => {
+    let zoomParams = actionsLayer.graphics;
+    if (
+      actionsLayer.graphics.length === 1 &&
+      (actionsLayer.graphics.items[0].geometry.type === 'point' ||
+        actionsLayer.graphics.items[0].geometry.type === 'multipoint')
+    ) {
+      // handle zooming to a single point graphic
+      zoomParams = {
+        target: actionsLayer.graphics,
+        zoom: 16, // set zoom 1 higher since it gets decremented later
+      };
+    }
+
+    mapView.goTo(zoomParams).then(() => {
       // set map zoom and home widget's viewpoint
       mapView.zoom = mapView.zoom - 1;
       homeWidget.viewpoint = new Viewpoint({

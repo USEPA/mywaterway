@@ -355,11 +355,7 @@ class Restore extends React.Component<Props, {}> {
                                           </td>
                                           <td>
                                             <a
-                                              href={
-                                                !item['organizationIdentifier']
-                                                  ? `/plan-summary/${item['actionIdentifier']}`
-                                                  : `/plan-summary/${item['organizationIdentifier']}/${item['actionIdentifier']}`
-                                              }
+                                              href={`/plan-summary/${item['organizationId']}/${item['actionIdentifier']}`}
                                               target="_blank"
                                               rel="noopener noreferrer"
                                             >

@@ -26,6 +26,9 @@ export const geocodeError =
 export const noDataAvailableError =
   'Data is not available for this location. Please try a new search.';
 
+// invalid search
+export const invalidSearchError = 'Invalid search. Please try a new search.';
+
 // Glossary component fails to load
 export const glossaryError =
   'The glossary is temporarily unavailable, please try again later.';
@@ -75,10 +78,6 @@ export const actionMapNoData = 'No map data is available.';
 // No actions found for given OrgID/ActionID
 export const noActionsAvailableCombo = (orgId, actionId) =>
   `No plans available for the provided Organization / Plan Identifier combination: ${orgId} / ${actionId}.`;
-
-// No actions found for given ActionID
-export const noActionsAvailable = (actionId) =>
-  `No plans available for the provided Plan Identifier: ${actionId}.`;
 
 // National errors //
 
