@@ -1,13 +1,13 @@
-describe('Swimming', () => {
+describe('Home page search tests', () => {
   beforeEach(() => {
-    cy.visit('/swimming');
+    cy.visit('/');
   });
 
-  it(`Searching for a zip code correctly routes to the community swimming page for the zip code.`, () => {
+  it(`Searching for a zip code correctly routes to the community overview page for the zip code.`, () => {
     const zip = '22201';
     cy.findByPlaceholderText('Search by address', { exact: false }).type(zip);
     cy.findByText('Go').click();
-    cy.url().should('include', `/community/${zip}/swimming`);
+    cy.url().should('include', `/community/${zip}/overview`);
   });
 
   it('searching with a <script> tag displays an error', () => {

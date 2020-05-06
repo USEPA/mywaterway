@@ -87,11 +87,11 @@ function Home({ ...props }: Props) {
     <Page>
       <Container className="container">
         <SearchBox>
-          <Prompt>
-            <strong>Let’s get started!</strong>
-          </Prompt>
-
-          <LocationSearch route="/community/{urlSearch}/overview" />
+          <LocationSearch route="/community/{urlSearch}/overview">
+            <Prompt>
+              <strong>Let’s get started!</strong>
+            </Prompt>
+          </LocationSearch>
         </SearchBox>
 
         <Paragraph>Choose a place to learn about your waters:</Paragraph>

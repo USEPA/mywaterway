@@ -134,11 +134,11 @@ function Community({ children, ...props }: Props) {
   const activeTabRoute = tabs[activeTabIndex === -1 ? 0 : activeTabIndex].route;
   const searchMarkup = (
     <>
-      <Prompt>
-        <strong>Let’s get started!</strong>
-      </Prompt>
-
-      <LocationSearch route={activeTabRoute} />
+      <LocationSearch route={activeTabRoute}>
+        <Prompt>
+          <strong>Let’s get started!</strong>
+        </Prompt>
+      </LocationSearch>
     </>
   );
 
