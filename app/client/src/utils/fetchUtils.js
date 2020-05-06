@@ -3,9 +3,11 @@
 import { mapServiceMapping } from 'config/mapServiceConfig';
 import { webServiceMapping } from 'config/webServiceConfig';
 
-export function fetchCheck(apiUrl: string) {
+const defaultTimeout = 60000;
+
+export function fetchCheck(apiUrl: string, timeout: number = defaultTimeout) {
   const startTime = performance.now();
-  return fetch(apiUrl)
+  return timeoutPromise(timeout, fetch(apiUrl))
     .then((response) => {
       logCallToGoogleAnalytics(apiUrl, response.status, startTime);
       return checkResponse(response);
@@ -20,22 +22,30 @@ export function fetchCheck(apiUrl: string) {
     });
 }
 
-export function proxyFetch(apiUrl: string) {
+export function proxyFetch(apiUrl: string, timeout: number = defaultTimeout) {
   const { REACT_APP_PROXY_URL } = process.env;
   // if environment variable is not set, default to use the current site origin
   const proxyUrl = REACT_APP_PROXY_URL || `${window.location.origin}/proxy`;
   const url = `${proxyUrl}?url=${apiUrl}`;
 
-  return fetchCheck(url);
+  return fetchCheck(url, timeout);
 }
 
-export function fetchPost(apiUrl: string, data: object, headers: object) {
+export function fetchPost(
+  apiUrl: string,
+  data: object,
+  headers: object,
+  timeout: number = defaultTimeout,
+) {
   const startTime = performance.now();
-  return fetch(apiUrl, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(data),
-  })
+  return timeoutPromise(
+    timeout,
+    fetch(apiUrl, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data),
+    }),
+  )
     .then((response) => {
       logCallToGoogleAnalytics(apiUrl, response.status, startTime);
       return checkResponse(response);
@@ -45,6 +55,28 @@ export function fetchPost(apiUrl: string, data: object, headers: object) {
       logCallToGoogleAnalytics(apiUrl, err, startTime);
       return checkResponse(err);
     });
+}
+
+function timeoutPromise(timeout, promise) {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(
+        new Error(
+          `PROMISE_TIMED_OUT: The promise took more than ${timeout}ms.`,
+        ),
+      );
+    }, timeout);
+
+    promise
+      .then((res) => {
+        clearTimeout(timeoutId);
+        resolve(res);
+      })
+      .catch((err) => {
+        clearTimeout(timeoutId);
+        reject(err);
+      });
+  });
 }
 
 export function checkResponse(response) {
