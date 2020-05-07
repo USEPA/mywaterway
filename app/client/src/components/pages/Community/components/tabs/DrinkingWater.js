@@ -492,7 +492,7 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
   };
 
   // options for the selects on the Providers and Withdrawers tabs
-  const drinkingWaterSorts = [
+  const withdrawerSorts = [
     {
       value: 'population',
       label: 'Public Water System Population Served',
@@ -500,6 +500,21 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
     {
       value: 'source',
       label: 'Drinking Water Facility Source',
+    },
+    {
+      value: 'alphabetical',
+      label: 'Name',
+    },
+  ];
+
+  const providerSorts = [
+    {
+      value: 'population',
+      label: 'Public Water System Population Served',
+    },
+    {
+      value: 'source',
+      label: 'Drinking Water System Source',
     },
     {
       value: 'alphabetical',
@@ -625,7 +640,7 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
                           onSortChange={(sortBy) =>
                             setProvidersSortBy(sortBy.value)
                           }
-                          sortOptions={drinkingWaterSorts}
+                          sortOptions={providerSorts}
                         >
                           {sortWaterSystems(
                             providers,
@@ -796,7 +811,7 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
                             onSortChange={(sortBy) =>
                               setWithdrawersSortBy(sortBy.value)
                             }
-                            sortOptions={drinkingWaterSorts}
+                            sortOptions={withdrawerSorts}
                           >
                             {sortWaterSystems(
                               displayedWithdrawers,
