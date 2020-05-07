@@ -55,6 +55,14 @@ function sortByPopulation(objA, objB) {
   return objB.population_served_count - objA.population_served_count;
 }
 
+// correct capitalization and spacing inconsistencies with ATTAINS Drinking Water service
+function fixCapitalization(type) {
+  return type
+    .replace('Groundwater', 'Ground Water')
+    .replace('Ground water', 'Ground Water')
+    .replace('Surface water', 'Surface Water');
+}
+
 // group by drinking water source and alphabetize the groups
 function groupProvidersBySource(systems) {
   const groundWaterSystems = systems
@@ -115,10 +123,11 @@ function createAccordionItem(item: Object, isWithdrawer: boolean) {
           Public Water System Population Served:{' '}
           {Number(item['population_served_count']).toLocaleString()}
           <br />
-          Drinking Water Facility Source:{' '}
           {isWithdrawer
-            ? item.water_type_calc
-            : item.gw_sw.replace('Groundwater', 'Ground water')}
+            ? `Drinking Water Facility Source: ${fixCapitalization(
+                item.water_type_calc,
+              )}`
+            : `Drinking Water System Source: ${fixCapitalization(item.gw_sw)}`}
         </>
       }
     >
@@ -158,14 +167,21 @@ function createAccordionItem(item: Object, isWithdrawer: boolean) {
             <td>{item.violations === 'Y' ? 'Yes' : 'No'}</td>
           </tr>
           <tr>
-            <td>
-              <em>Drinking Water Facility Source:</em>
-            </td>
-            <td>
-              {isWithdrawer
-                ? item.water_type_calc
-                : item.gw_sw.replace('Groundwater', 'Ground water')}
-            </td>
+            {isWithdrawer ? (
+              <>
+                <td>
+                  <em>Drinking Water Facility Source:</em>
+                </td>
+                <td>{fixCapitalization(item.water_type_calc)}</td>
+              </>
+            ) : (
+              <>
+                <td>
+                  <em>Drinking Water System Source:</em>
+                </td>
+                <td>{fixCapitalization(item.gw_sw)}</td>
+              </>
+            )}
           </tr>
           <tr>
             <td>
@@ -765,7 +781,7 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
                                         }
                                       />
                                       <span>
-                                        Ground water &amp; Surface water
+                                        Ground Water &amp; Surface Water
                                       </span>
                                     </Toggle>
                                   </td>
