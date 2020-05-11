@@ -113,8 +113,8 @@
           if (event.target.onclick && event.target.textContent){
             //Log to Google Analytics
             const action = event.target.title ? 
-              event.target.textContent + ' - ' + event.target.title : 
-              event.target.textContent;
+              'ow-hmw2-' + event.target.textContent + ' - ' + event.target.title : 
+              'ow-hmw2-' + event.target.textContent;
             ga('send', 'event', 'buttonClick', action, window.location.pathname);
           }
 
@@ -136,7 +136,7 @@
             }
 
             //Log to Google Analytics
-            ga('send', 'event', category, event.target.text, href);
+            ga('send', 'event', category, 'ow-hmw2-' + event.target.text, href);
           }
         });
       }
