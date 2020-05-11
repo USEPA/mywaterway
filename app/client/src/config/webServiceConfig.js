@@ -114,6 +114,14 @@ export const webServiceMapping = [
     name: 'ofmpub - drinking water providers',
   },
   {
+    wildcardUrl: `${dwmaps.GetPWSWMHUC12FIPS}*/ZCzc/ZCzc`,
+    name: 'ofmpub - drinking water withdrawers',
+  },
+  {
+    wildcardUrl: `${dwmaps.GetPWSWMHUC12FIPS}*`,
+    name: 'ofmpub - drinking water providers',
+  },
+  {
     wildcardUrl: `${echoNPDES.getFacilities}*`,
     name: 'ofmpub - echo get facilities',
   },
