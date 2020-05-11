@@ -326,7 +326,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
         </StyledInfoBox>
       )}
       {fetchStatus === 'success' && !noMapData && (
-        <Container>
+        <Container data-testid="hmw-actions-map">
           <Map
             style={{ position: 'absolute' }}
             loaderOptions={{ url: esriApiUrl }}
