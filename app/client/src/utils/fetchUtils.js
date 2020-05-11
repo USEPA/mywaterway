@@ -108,7 +108,7 @@ export function logCallToGoogleAnalytics(
       eventAction = item.name;
     }
   });
-  eventAction = `omw-hmw2-${eventAction}`;
+  eventAction = `ow-hmw2-${eventAction}`;
 
   const eventLabel = `${url} | status:${status} | time:${duration}`;
 
