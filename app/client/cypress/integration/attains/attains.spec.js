@@ -13,6 +13,10 @@ describe('ATTAINS Page Test', () => {
 
   it('ATTAINS Page Displays a Table', () => {
     cy.visit('/attains');
+    // wait for the all web services to finish (surveys is usually slow here)
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 20000 }).should(
+      'not.exist',
+    );
     cy.findByText("How's My Waterway Impairment Category").should('exist');
   });
 });

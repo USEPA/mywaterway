@@ -1,15 +1,24 @@
 describe('Data Page Tests', () => {
   it('Data Page Back Button Works', () => {
-    cy.visit('/');
-    cy.findByText('Let’s get started!').should('exist');
-    cy.url().should('equal', `${document.location.origin}/`);
+    cy.visit('/community');
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      'San Antonio, TX',
+    );
+    cy.findByText('Go').click();
+
+    // wait for the all web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 20000 }).should(
+      'not.exist',
+    );
 
     cy.findByText('Data').click();
     cy.findByText('About the Data').should('exist');
     cy.url().should('equal', `${document.location.origin}/data`);
 
+    // verify that community search data is still there after clicking the Back button
     cy.findByText('Back').click();
-    cy.findByText('Let’s get started!').should('exist');
-    cy.url().should('equal', `${document.location.origin}/`);
+    cy.findByText(
+      'Overall condition of waterbodies in the San Pedro Creek watershed.',
+    ).should('exist');
   });
 });
