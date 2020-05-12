@@ -86,8 +86,12 @@ const Banner = styled.div`
   position: relative;
   z-index: 10;
   height: 10em;
-  background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
-    url(${water});
+  background-image: ${`linear-gradient(
+      ${colors.black(0.875)} 25%,
+      ${colors.black(0.625)} 50%,
+      ${colors.black(0.375)} 75%
+    ),
+    url(${water})`};
   background-size: cover;
   background-position: center;
 
