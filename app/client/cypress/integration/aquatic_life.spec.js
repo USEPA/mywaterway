@@ -1,4 +1,4 @@
-describe('Aquatic Life', () => {
+describe('Aquatic Life page', () => {
   beforeEach(() => {
     cy.visit('/aquatic-life');
   });
