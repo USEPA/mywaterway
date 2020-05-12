@@ -8,6 +8,13 @@ describe('Drinking Water page', () => {
     cy.url().should('include', '/swimming');
   });
 
+  it(`"Aquatic Life" button links to the aquatic life page`, () => {
+    cy.findAllByText('Aquatic Life')
+      .filter(':visible')
+      .click();
+    cy.url().should('include', '/aquatic-life');
+  });
+
   it(`"Eating Fish" button links to the eating fish page`, () => {
     cy.findByText('Eating Fish').click();
     cy.url().should('include', '/eating-fish');
