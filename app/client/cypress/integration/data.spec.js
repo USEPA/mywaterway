@@ -1,5 +1,5 @@
-describe('Data Page Tests', () => {
-  it('Data Page Back Button Works', () => {
+describe('Data page', () => {
+  it('Back button works', () => {
     cy.visit('/community');
     cy.findByPlaceholderText('Search by address', { exact: false }).type(
       'San Antonio, TX',

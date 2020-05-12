@@ -1,5 +1,5 @@
-describe('About Page Tests', () => {
-  it('About Page Back Button Works', () => {
+describe('About page', () => {
+  it('Back button works', () => {
     cy.visit('/community');
     cy.findByPlaceholderText('Search by address', { exact: false }).type(
       'San Antonio, TX',
