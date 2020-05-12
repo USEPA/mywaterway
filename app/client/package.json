@@ -36,9 +36,6 @@
     "cypress": "cypress open"
   },
   "devDependencies": {
-    "@testing-library/cypress": "5.1.2",
-    "cypress": "3.8.3",
-    "eslint-plugin-cypress": "2.8.1",
     "flow-bin": "0.117.0",
     "husky": "4.2.1",
     "lint-staged": "10.0.7",
@@ -76,10 +73,7 @@
     "src/**/*.{js,json,css,md}": "prettier --write"
   },
   "eslintConfig": {
-    "extends": [
-      "react-app",
-      "plugin:cypress/recommended"
-    ]
+    "extends": ["react-app"]
   },
   "browserslist": [
     ">0.2%",

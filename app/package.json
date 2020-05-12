@@ -31,7 +31,7 @@
     "server": "cd server && npm start",
     "start": "concurrently --kill-others \"npm run server\" \"npm run client\"",
     "setup": "echo \"Installing project dependencies...\" && npm ci && echo \"Installing client dependencies...\" && cd client && npm ci && echo \"Installing server dependencies...\" && cd .. && cd server && npm ci",
-    "cypress": "concurrently --kill-others \"npm run start\" \"cypress open\""
+    "cypress": "concurrently --kill-others \"npm run server\" \"npm run client\" \"cypress open\""
   },
   "devDependencies": {
     "@testing-library/cypress": "6.0.0",
@@ -40,8 +40,6 @@
     "eslint-plugin-cypress": "2.10.3"
   },
   "eslintConfig": {
-    "extends": [
-      "plugin:cypress/recommended"
-    ]
+    "extends": ["plugin:cypress/recommended"]
   }
 }
