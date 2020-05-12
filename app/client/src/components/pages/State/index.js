@@ -220,8 +220,12 @@ function State({ children, ...props }: Props) {
                 navigate(`/state/${selectedState.code}/water-quality-overview`);
               }}
             >
+              <label htmlFor="hmw-state-select-input" className="sr-only">
+                State
+              </label>
               <SelectStyled
                 id="hmw-state-select"
+                inputId="hmw-state-select-input"
                 classNamePrefix="Select"
                 placeholder="Select a state..."
                 options={states.data.map((state) => {
@@ -241,6 +245,14 @@ function State({ children, ...props }: Props) {
                     name: ev.label,
                   })
                 }
+                styles={{
+                  placeholder: (defaultStyles) => {
+                    return {
+                      ...defaultStyles,
+                      color: '#495057',
+                    };
+                  },
+                }}
               />
 
               <Button type="submit" className="btn">
