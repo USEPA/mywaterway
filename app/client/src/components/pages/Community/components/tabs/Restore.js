@@ -44,17 +44,9 @@ type Props = {
 };
 
 function Restore({ esriModules, infoToggleChecked }: Props) {
-  const { waterbodyLayer, attainsPlans, grts, watershed } = React.useContext(
+  const { attainsPlans, grts, watershed } = React.useContext(
     LocationSearchContext,
   );
-
-  const [waterbodyLayerHidden, setWaterbodyLayerHidden] = React.useState(false);
-
-  if (waterbodyLayer && !waterbodyLayerHidden) {
-    // prevent waterbody layer from showing when deeplinking to Restore page
-    waterbodyLayer.visible = false;
-    setWaterbodyLayerHidden(true);
-  }
 
   const sortedGrtsData =
     grts.data.items && grts.data.items.length > 0
