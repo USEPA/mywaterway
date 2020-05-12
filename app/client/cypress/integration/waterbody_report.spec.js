@@ -1,4 +1,4 @@
-describe('Waterbody report page tests', () => {
+describe('Waterbody Report page', () => {
   it('small screen displays "Show Map" button and button functions', () => {
     const mapId = 'hmw-actions-map';
     const showMap = 'Show Map';

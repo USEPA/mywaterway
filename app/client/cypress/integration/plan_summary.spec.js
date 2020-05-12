@@ -1,4 +1,4 @@
-describe('Plan Summary (actions) page tests', () => {
+describe('Plan Summary (Actions) page', () => {
   it('small screen displays "Show Map" button and button functions', () => {
     const mapId = 'hmw-actions-map';
     const showMap = 'Show Map';
