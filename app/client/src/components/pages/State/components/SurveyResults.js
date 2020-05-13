@@ -15,7 +15,7 @@ import { formatNumber, titleCase, titleCaseWithExceptions } from 'utils/utils';
 import { surveyMapping } from 'components/pages/State/lookups/surveyMapping';
 import { waterTypeOptions } from 'components/pages/State/lookups/waterTypeOptions';
 // styles
-import { fonts, colors } from 'styles/index.js';
+import { fonts, colors, reactSelectStyles } from 'styles/index.js';
 
 // --- styled components ---
 const ChartFooter = styled.p`
@@ -410,6 +410,7 @@ function SurveyResults({
               })}
               value={{ value: selectedSubPop, label: selectedSubPop }}
               onChange={(ev) => setUserSelectedSubPop(ev.value)}
+              styles={reactSelectStyles}
             />
             {populationDistance && <small>({populationDistance})</small>}
           </Input>

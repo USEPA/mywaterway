@@ -35,6 +35,8 @@ import { reportStatusOptions } from 'components/pages/State/lookups/reportStatus
 import { attains, grts } from 'config/webServiceConfig';
 // images
 import drinkingWaterIcon from 'components/pages/Community/images/drinking-water.png';
+// styles
+import { reactSelectStyles } from 'styles/index.js';
 // errors
 import {
   stateSurveySectionError,
@@ -838,6 +840,7 @@ function WaterQualityOverview({ ...props }: Props) {
                             ? 'No Available Water Types'
                             : 'Select...'
                         }
+                        styles={reactSelectStyles}
                       />
                     </Input>
 
@@ -864,6 +867,7 @@ function WaterQualityOverview({ ...props }: Props) {
                             ? 'No Available Uses'
                             : 'Select...'
                         }
+                        styles={reactSelectStyles}
                       />
                     </Input>
                   </Inputs>
