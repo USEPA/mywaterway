@@ -1,6 +1,23 @@
-describe('Drinking Water', () => {
+describe('Drinking Water page', () => {
   beforeEach(() => {
     cy.visit('/drinking-water');
+  });
+
+  it(`"Swimming" button links to the swimming page`, () => {
+    cy.findByText('Swimming').click();
+    cy.url().should('include', '/swimming');
+  });
+
+  it(`"Aquatic Life" button links to the aquatic life page`, () => {
+    cy.findAllByText('Aquatic Life')
+      .filter(':visible')
+      .click();
+    cy.url().should('include', '/aquatic-life');
+  });
+
+  it(`"Eating Fish" button links to the eating fish page`, () => {
+    cy.findByText('Eating Fish').click();
+    cy.url().should('include', '/eating-fish');
   });
 
   it(`Searching for a zip code correctly routes to the community drinking water page for the zip code.`, () => {

@@ -1,11 +1,11 @@
-describe('Waterbody report page tests', () => {
+describe('Plan Summary (Actions) page', () => {
   it('small screen displays "Show Map" button and button functions', () => {
     const mapId = 'hmw-actions-map';
     const showMap = 'Show Map';
     const hideMap = 'Hide Map';
 
     cy.viewport(850, 900);
-    cy.visit('/waterbody-report/21AWIC/AL03150110-0202-200');
+    cy.visit('/plan-summary/21AWIC/40958');
 
     cy.findByText(showMap).should('exist');
     cy.findByText(hideMap).should('not.exist');
@@ -22,32 +22,31 @@ describe('Waterbody report page tests', () => {
     cy.findByTestId(mapId).should('not.be.visible');
   });
 
-  it('entering an invalid waterbody repot url displays "No waterbodies" message', () => {
+  it('entering an invalid plan-summary (actions) url displays "No plans" message', () => {
     const orgId = 'InvalidOrgID';
-    const auId = 'InvalidAssessmentUnitID';
+    const actionId = 'InvalidActionID';
 
-    cy.visit(`/waterbody-report/${orgId}/${auId}`);
+    cy.visit(`/plan-summary/${orgId}/${actionId}`);
 
     cy.findByText(
-      'No waterbodies available for the provided Organization ID:',
-      { exact: false },
+      `No plans available for the provided Organization / Plan Identifier combination: ${orgId} / ${actionId}.`,
     );
   });
 
-  it('For waterbodies without GIS data, display the "has no data available" message', () => {
+  it('For plans without GIS data, display the "No map data is available" message', () => {
     const orgId = '21GAEPD';
-    const auId = 'GAR_A-33_5_00';
+    const actionId = '1';
 
-    cy.visit(`/waterbody-report/${orgId}/${auId}`);
+    cy.visit(`/plan-summary/${orgId}/${actionId}`);
 
-    cy.findByText('has no data available.', { exact: false });
+    cy.findByText('No map data is available.');
   });
 
   it('The "View Waterbody Report" link should navigate to a waterbody report page', () => {
     const orgId = '21AWIC';
-    const auId = 'AL03150110-0202-200';
+    const actionId = '40958';
 
-    cy.visit(`/waterbody-report/${orgId}/${auId}`);
+    cy.visit(`/plan-summary/${orgId}/${actionId}`);
 
     // wait for the web services to finish (attains/plans is sometimes slow)
     // the timeout chosen is the same timeout used for the attains/plans fetch
@@ -55,14 +54,16 @@ describe('Waterbody report page tests', () => {
       'not.exist',
     );
 
-    // test the plan summary link
-    const linkText =
-      'Development for Pathogens (E. Coli) Tmdl, Parkerson Mill Creek';
-    const actionId = '40958';
+    // test the waterbody report link
+    const linkText = 'View Waterbody Report';
+    const auId = 'AL03150110-0202-200';
+    cy.findByText(`ID: ${auId}`)
+      .first()
+      .click();
     cy.findByText(linkText).should(
       'have.attr',
       'href',
-      `/plan-summary/${orgId}/${actionId}`,
+      `/waterbody-report/${orgId}/${auId}`,
     );
     cy.findByText(linkText).should('have.attr', 'target', '_blank');
     cy.findByText(linkText).should('have.attr', 'rel', 'noopener noreferrer');
