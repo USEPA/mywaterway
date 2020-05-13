@@ -30,6 +30,8 @@ import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
 // config
 import { waterbodyService, wbd } from 'config/mapServiceConfig';
 import { attains } from 'config/webServiceConfig';
+// styles
+import { reactSelectStyles } from 'styles/index.js';
 // errors
 import { stateGeneralError } from 'config/errorMessages';
 
@@ -720,6 +722,7 @@ function AdvancedSearch({ ...props }: Props) {
             options={parameterGroupOptions ? parameterGroupOptions : []}
             value={parameterFilter}
             onChange={(ev) => setParameterFilter(ev)}
+            styles={reactSelectStyles}
           />
         </Input>
 
@@ -733,6 +736,7 @@ function AdvancedSearch({ ...props }: Props) {
             options={useFields}
             value={useFilter}
             onChange={(ev) => setUseFilter(ev)}
+            styles={reactSelectStyles}
           />
         </Input>
       </Inputs>
@@ -761,6 +765,7 @@ function AdvancedSearch({ ...props }: Props) {
             }
             value={watershedFilter}
             onChange={(ev) => setWatershedFilter(ev)}
+            styles={reactSelectStyles}
           />
         </Input>
 
@@ -780,6 +785,7 @@ function AdvancedSearch({ ...props }: Props) {
             }
             value={waterbodyFilter}
             onChange={(ev) => setWaterbodyFilter(ev)}
+            styles={reactSelectStyles}
           />
         </Input>
       </Inputs>
@@ -902,6 +908,7 @@ function AdvancedSearch({ ...props }: Props) {
             options={displayOptions}
             value={selectedDisplayOption}
             onChange={(ev) => setSelectedDisplayOption(ev)}
+            styles={reactSelectStyles}
           />
         </ResultsInput>
 

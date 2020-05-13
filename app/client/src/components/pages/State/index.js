@@ -30,7 +30,7 @@ import { fetchCheck } from 'utils/fetchUtils';
 // data
 import introText from 'components/pages/State/lookups/introText';
 // styles
-import { colors, fonts } from 'styles/index.js';
+import { colors, fonts, reactSelectStyles } from 'styles/index.js';
 // errors
 import {
   stateListError,
@@ -245,14 +245,7 @@ function State({ children, ...props }: Props) {
                     name: ev.label,
                   })
                 }
-                styles={{
-                  placeholder: (defaultStyles) => {
-                    return {
-                      ...defaultStyles,
-                      color: '#495057',
-                    };
-                  },
-                }}
+                styles={reactSelectStyles}
               />
 
               <Button type="submit" className="btn">
