@@ -423,7 +423,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                 }
               : use.useAttainmentCode === 'I'
               ? {
-                  textColor: colors.black(0.9375),
+                  textColor: colors.white(0.9375),
                   bgColor: '#a879d8',
                   text: 'Insufficient Info',
                 }
@@ -435,12 +435,12 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                 }
               : use.useAttainmentCode === 'N'
               ? {
-                  textColor: colors.black(0.9375),
+                  textColor: colors.white(0.9375),
                   bgColor: '#f93b5b',
                   text: 'Impaired',
                 }
               : {
-                  textColor: colors.black(0.9375),
+                  textColor: colors.white(0.9375),
                   bgColor: '#a879d8',
                   text: 'Unknown',
                 };
