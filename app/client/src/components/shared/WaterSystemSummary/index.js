@@ -4,6 +4,7 @@ import React from 'react';
 import styled from 'styled-components';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
+import highchartsAccessibility from 'highcharts/modules/accessibility';
 import WindowSize from '@reach/window-size';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -16,6 +17,9 @@ import { formatNumber } from 'utils/utils';
 import { dwmaps } from 'config/webServiceConfig';
 // errors
 import { grpaError } from 'config/errorMessages';
+
+// add accessibility features to highcharts
+highchartsAccessibility(Highcharts);
 
 function formatValue(value: ?string) {
   return value ? formatNumber(value) : '';
@@ -200,7 +204,7 @@ function WaterSystemSummary({ state }: Props) {
                 type: 'pie',
               },
               tooltip: {
-                formatter: function() {
+                formatter: function () {
                   return `${this.key}<br/><b>${formatNumber(this.y)}</b>`;
                 },
               },
@@ -209,7 +213,7 @@ function WaterSystemSummary({ state }: Props) {
                   showInLegend: true,
                   dataLabels: {
                     enabled: true,
-                    formatter: function() {
+                    formatter: function () {
                       return formatNumber(this.y);
                     },
                   },

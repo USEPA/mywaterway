@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import WindowSize from '@reach/window-size';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
+import highchartsAccessibility from 'highcharts/modules/accessibility';
 import Select from 'react-select';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -16,6 +17,9 @@ import { surveyMapping } from 'components/pages/State/lookups/surveyMapping';
 import { waterTypeOptions } from 'components/pages/State/lookups/waterTypeOptions';
 // styles
 import { fonts, colors, reactSelectStyles } from 'styles/index.js';
+
+// add accessibility features to highcharts
+highchartsAccessibility(Highcharts);
 
 // --- styled components ---
 const ChartFooter = styled.p`
@@ -438,7 +442,7 @@ function SurveyResults({
                   plotShadow: false,
                 },
                 tooltip: {
-                  formatter: function() {
+                  formatter: function () {
                     const value = formatNumber(this.y, 1);
                     return `${this.key}<br/><b>${value}%</b>`;
                   },
@@ -449,7 +453,7 @@ function SurveyResults({
                     showInLegend: true,
                     dataLabels: {
                       ...chartOptions.plotOptions.all.dataLabels,
-                      formatter: function() {
+                      formatter: function () {
                         if (!this.point.isConfidenceLevel) {
                           return formatNumber(this.y, 1) + '%';
                         } else {
@@ -470,7 +474,7 @@ function SurveyResults({
                   layout: width >= 992 ? 'vertical' : 'horizontal',
                   align: width >= 992 ? 'right' : 'center',
                   useHTML: true, // display the +/- symbol (&#177;)
-                  labelFormatter: function() {
+                  labelFormatter: function () {
                     if (this.isConfidenceLevel) {
                       // confidence level is not actually a legend item, just text
                       return this.name;
@@ -513,7 +517,7 @@ function SurveyResults({
                       height: xAxisLabels.length * 30 + 90,
                     },
                     tooltip: {
-                      formatter: function() {
+                      formatter: function () {
                         const value = formatNumber(this.y, 1);
                         return `${this.key}<br/>
                     ${this.series.name}: <b>${value}%</b>`;
@@ -527,7 +531,7 @@ function SurveyResults({
                         groupPadding: 0,
                         dataLabels: {
                           ...chartOptions.plotOptions.all.dataLabels,
-                          formatter: function() {
+                          formatter: function () {
                             const value = formatNumber(this.y, 1);
                             return value !== '0' ? `${value}%` : '';
                           },
