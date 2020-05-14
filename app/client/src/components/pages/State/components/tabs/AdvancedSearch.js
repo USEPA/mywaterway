@@ -899,19 +899,18 @@ function AdvancedSearch({ ...props }: Props) {
 
       <ResultsInputs data-content="stateinputs">
         <ResultsInput>
-          <label>
+          <ScreenLabel>
             Results:{' '}
             <ResultsItems>
               {waterbodies ? waterbodies.length.toLocaleString() : 0} items
             </ResultsItems>
-          </label>
+          </ScreenLabel>
         </ResultsInput>
 
         <ResultsInput>
           <label htmlFor="display-by">Display Waterbodies by:</label>
           <Select
             inputId="display-by"
-            classNamePrefix="Select"
             options={displayOptions}
             value={selectedDisplayOption}
             onChange={(ev) => setSelectedDisplayOption(ev)}
