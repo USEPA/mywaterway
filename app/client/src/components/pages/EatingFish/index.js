@@ -25,6 +25,10 @@ const Disclaimer = styled(DisclaimerModal)`
   bottom: 1.25rem;
 `;
 
+const Prompt = styled.p`
+  padding-bottom: 0 !important;
+`;
+
 const TopicButtonLink = styled(StyledTopicButtonLink)`
   ${StyledThreeButtonLinks}
 `;
@@ -45,10 +49,11 @@ function EatingFish({ ...props }: Props) {
       </StyledTopic>
 
       <StyledText className="container">
-        <LocationSearch
-          route="/community/{urlSearch}/eating-fish"
-          label={<em>Find out more about your fish.</em>}
-        />
+        <LocationSearch route="/community/{urlSearch}/eating-fish">
+          <Prompt>
+            <em>Find out more about your fish.</em>
+          </Prompt>
+        </LocationSearch>
         <br />
         <p>
           Learn whether fish caught in your local waters are deemed safe to eat.

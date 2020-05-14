@@ -27,12 +27,6 @@ const ErrorBox = styled(StyledErrorBox)`
   }
 `;
 
-const Label = styled.label`
-  margin-top: 0.25em;
-  margin-bottom: 0;
-  padding-bottom: 0;
-`;
-
 const Form = styled.form`
   display: flex;
   flex-flow: row wrap;
@@ -79,10 +73,10 @@ const Text = styled.p`
 // --- components ---
 type Props = {
   route: string,
-  label: Node,
+  children?: Node,
 };
 
-function LocationSearch({ route, label }: Props) {
+function LocationSearch({ route, children }: Props) {
   const { Locator, Point } = React.useContext(EsriModulesContext);
   const { searchText } = React.useContext(LocationSearchContext);
 
@@ -107,7 +101,7 @@ function LocationSearch({ route, label }: Props) {
           <p>{errorMessage}</p>
         </ErrorBox>
       )}
-      <Label htmlFor="hmw-search-input">{label}</Label>
+      {children}
       <Form
         onSubmit={(ev) => {
           ev.preventDefault();
@@ -125,6 +119,10 @@ function LocationSearch({ route, label }: Props) {
           }
         }}
       >
+        <label htmlFor="hmw-search-input" className="sr-only">
+          Location
+        </label>
+
         <Input
           id="hmw-search-input"
           className="form-control"
