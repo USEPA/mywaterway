@@ -62,7 +62,8 @@ const Container = styled.div`
   }
 `;
 
-const Prompt = styled.p`
+const Prompt = styled.label`
+  margin: 0;
   padding-bottom: 0;
 `;
 
@@ -205,7 +206,7 @@ function State({ children, ...props }: Props) {
 
         {states.status === 'success' && (
           <>
-            <Prompt>
+            <Prompt htmlFor="hmw-state-select-input">
               <strong>Let’s get started!</strong>&nbsp;&nbsp;
               <em>
                 Select your state or territory from the drop down to begin
@@ -220,9 +221,6 @@ function State({ children, ...props }: Props) {
                 navigate(`/state/${selectedState.code}/water-quality-overview`);
               }}
             >
-              <label htmlFor="hmw-state-select-input" className="sr-only">
-                State
-              </label>
               <SelectStyled
                 id="hmw-state-select"
                 inputId="hmw-state-select-input"
