@@ -197,6 +197,13 @@ const MapFooter = styled.div`
   }
 `;
 
+const ScreenLabel = styled.span`
+  display: inline-block;
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: bold;
+`;
+
 // --- components ---
 type Props = {};
 
@@ -711,12 +718,12 @@ function AdvancedSearch({ ...props }: Props) {
 
       <Inputs>
         <Input>
-          <label>
+          <ScreenLabel>
             <GlossaryTerm term="Parameter Group">Parameter Groups</GlossaryTerm>
             :
-          </label>
+          </ScreenLabel>
           <Select
-            inputId="parameter-groups"
+            aria-label="Parameter Groups"
             isMulti
             isLoading={!parameterGroupOptions}
             options={parameterGroupOptions ? parameterGroupOptions : []}
@@ -727,11 +734,11 @@ function AdvancedSearch({ ...props }: Props) {
         </Input>
 
         <Input>
-          <label>
+          <ScreenLabel>
             <GlossaryTerm term="Use Group">Use Groups</GlossaryTerm>:
-          </label>
+          </ScreenLabel>
           <Select
-            inputId="use-groups"
+            aria-label="Use Groups"
             isMulti
             options={useFields}
             value={useFilter}
@@ -743,14 +750,14 @@ function AdvancedSearch({ ...props }: Props) {
 
       <Inputs>
         <Input>
-          <label>
+          <ScreenLabel>
             <GlossaryTerm term="Watershed Names (HUC 12)">
               Watershed Names (HUC12)
             </GlossaryTerm>
             :
-          </label>
+          </ScreenLabel>
           <Select
-            inputId="watersheds"
+            aria-label="Watershed Names (HUC12)"
             isMulti
             isLoading={!watersheds}
             disabled={!watersheds}
@@ -792,12 +799,12 @@ function AdvancedSearch({ ...props }: Props) {
 
       <Inputs>
         <Input>
-          <label>
+          <ScreenLabel>
             <GlossaryTerm term="Integrated Reporting (IR) Category">
               Integrated Reporting (IR) Category
             </GlossaryTerm>
             :
-          </label>
+          </ScreenLabel>
           <InputGroup>
             <div>
               <input
@@ -808,55 +815,55 @@ function AdvancedSearch({ ...props }: Props) {
                 checked={waterTypeFilter === 'all'}
                 onChange={(ev) => setWaterTypeFilter(ev.target.value)}
               />
-              <label>All Waters</label>
+              <label htmlFor="ir-category-all">All Waters</label>
             </div>
 
             <div>
               <input
-                id="ir-category-303d"
+                aria-label="303(d) Listed Impaired Waters (Category 5)"
                 type="radio"
                 name="ir-category"
                 value="303d"
                 checked={waterTypeFilter === '303d'}
                 onChange={(ev) => setWaterTypeFilter(ev.target.value)}
               />
-              <label>
+              <ScreenLabel>
                 <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
                   303(d) Listed Impaired Waters (Category 5)
                 </GlossaryTerm>
-              </label>
+              </ScreenLabel>
             </div>
 
             <div>
               <input
-                id="ir-category-impaired"
+                aria-label="Impaired (Category 4 and 5)"
                 type="radio"
                 name="ir-category"
                 value="impaired"
                 checked={waterTypeFilter === 'impaired'}
                 onChange={(ev) => setWaterTypeFilter(ev.target.value)}
               />
-              <label>
+              <ScreenLabel>
                 <GlossaryTerm term="Impaired (Category 4 and 5)">
                   Impaired (Category 4 and 5)
                 </GlossaryTerm>
-              </label>
+              </ScreenLabel>
             </div>
           </InputGroup>
         </Input>
 
         <Input>
-          <label>Additional Filters:</label>
+          <ScreenLabel>Additional Filters:</ScreenLabel>
           <InputGroup>
             <input
-              id="has-tmdl"
+              aria-label="Has TMDL"
               type="checkbox"
               checked={hasTmdlChecked}
               onChange={(ev) => setHasTmdlChecked(!hasTmdlChecked)}
             />
-            <label>
+            <ScreenLabel>
               <GlossaryTerm term="TMDL">Has TMDL</GlossaryTerm>
-            </label>
+            </ScreenLabel>
           </InputGroup>
         </Input>
       </Inputs>
