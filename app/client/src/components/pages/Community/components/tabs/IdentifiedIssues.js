@@ -250,7 +250,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
     waterbodyLayer,
   ]);
 
-  // poor mans componentdidmount
+  // componentdidmount
   const [componentMounted, setComponentMounted] = React.useState(false);
   React.useEffect(() => {
     if (componentMounted) return;
@@ -281,14 +281,12 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
     setPollutionParameters,
   ]);
 
-  // poor man's componentdidupdate
+  // componentdidupdate
   const mounted = React.useRef();
   React.useEffect(() => {
     if (!mounted.current) {
       mounted.current = true;
     } else {
-      // do componentDidUpate logic
-
       checkWaterbodiesToDisplay();
       checkDischargersToDisplay();
 
