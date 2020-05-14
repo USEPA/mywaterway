@@ -257,10 +257,10 @@ function MapWidgets({
 
     // create the basemap/layers widget
     const basemapsSource = new PortalBasemapsSource({
-      filterFunction: function(basemap) {
+      filterFunction: function (basemap) {
         return basemapNames.indexOf(basemap.portalItem.title) !== -1;
       },
-      updateBasemapsCallback: function(originalBasemaps) {
+      updateBasemapsCallback: function (originalBasemaps) {
         // sort the basemaps based on the ordering of basemapNames
         return originalBasemaps.sort(
           (a, b) =>
@@ -294,7 +294,7 @@ function MapWidgets({
           uniqueParentItems.push(item.title);
           updateVisibleLayers(view, legendNode);
 
-          item.watch('visible', function(event) {
+          item.watch('visible', function (event) {
             updateVisibleLayers(view, legendNode);
             const dict = {
               layerId: item.layer.id,
@@ -317,10 +317,10 @@ function MapWidgets({
     const container = document.createElement('div');
     container.className = 'hmw-map-toggle';
 
-    const basemapHeader = document.createElement('h4');
+    const basemapHeader = document.createElement('h1');
     basemapHeader.innerHTML = 'Basemaps:';
 
-    const layerListHeader = document.createElement('h4');
+    const layerListHeader = document.createElement('h1');
     layerListHeader.innerHTML = 'Layers:';
 
     container.appendChild(basemapHeader);

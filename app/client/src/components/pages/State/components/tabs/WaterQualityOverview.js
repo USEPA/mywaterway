@@ -791,7 +791,7 @@ function WaterQualityOverview({ ...props }: Props) {
         <strong>{activeState.name}</strong> Water Quality
       </Heading>
 
-      <h4>Choose a Topic:</h4>
+      <h3>Choose a Topic:</h3>
 
       <TopicTabs>
         <Tabs
