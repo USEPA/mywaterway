@@ -91,6 +91,15 @@ type Props = {
   infoToggleChecked: boolean,
 };
 
+type MonitoringLocationData = {
+  type: 'FeatureCollection',
+  features: Array<{
+    type: 'Feature',
+    geometry: Object,
+    properties: Object,
+  }>,
+};
+
 type Station = {
   properties: Object,
   x: number,
@@ -121,7 +130,7 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
   const [
     prevMonitoringLocationData,
     setPrevMonitoringLocationData,
-  ] = React.useState({});
+  ] = React.useState<MonitoringLocationData>({});
 
   const [
     monitoringLocationToggles,
