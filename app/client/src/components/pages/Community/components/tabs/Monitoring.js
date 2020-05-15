@@ -91,15 +91,6 @@ type Props = {
   infoToggleChecked: boolean,
 };
 
-// type MonitoringLocationData = {
-//   type: 'FeatureCollection',
-//   features: Array<{
-//     type: 'Feature',
-//     geometry: Object,
-//     properties: Object,
-//   }>,
-// };
-
 type Station = {
   properties: Object,
   x: number,
@@ -148,18 +139,12 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
     setDisplayedMonitoringStations,
   ] = React.useState([]);
 
-  const [
-    prevDisplayedMonitoringStations,
-    setPrevDisplayedMonitoringStations,
-  ] = React.useState([]);
-
   const [allToggled, setAllToggled] = React.useState(true);
 
   const [sortBy, setSortBy] = React.useState('MonitoringLocationName');
 
   const storeMonitoringStations = React.useCallback(() => {
     if (!monitoringLocations.data.features) {
-      // this.setState({ allMonitoringStations: [] });
       setAllMonitoringStations([]);
       return;
     }
@@ -233,16 +218,6 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
     setMonitoringStationGroups(monitoringStationGroups);
     setAllToggled(showAllMonitoring);
 
-    // this.setState({
-    //   // monitoringLocationToggles: monitoringGroups
-    //   //   ? monitoringGroups
-    //   //   : monitoringLocationToggles,
-    //   // allMonitoringStations,
-    //   // displayedMonitoringStations: allMonitoringStations,
-    //   // monitoringStationGroups,
-    //   // allToggled: showAllMonitoring,
-    // });
-
     if (!monitoringGroups) setMonitoringGroups(monitoringLocationToggles);
   }, [
     monitoringGroups,
@@ -252,10 +227,9 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
   ]);
 
   const drawMap = React.useCallback(() => {
-    const { Graphic } = esriModules;
-
     if (allMonitoringStations.length === 0) return;
 
+    const { Graphic } = esriModules;
     const addedStationUids = [];
     let tempDisplayedMonitoringStations = [];
 
@@ -285,11 +259,6 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
       monitoringStationsLayer,
     );
 
-    console.log(
-      'tempDisplayedMonitoringStations',
-      tempDisplayedMonitoringStations,
-    );
-
     if (tempDisplayedMonitoringStations.length === 0) {
       setDisplayedMonitoringStations([]);
       return;
@@ -299,11 +268,10 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
       displayedMonitoringStations.length ===
       tempDisplayedMonitoringStations.length
     ) {
-      console.log('returning, no changes');
       return;
     }
+
     setDisplayedMonitoringStations(tempDisplayedMonitoringStations);
-    // this.setState({ displayedMonitoringStations });
   }, [
     displayedMonitoringStations,
     allMonitoringStations,
@@ -316,7 +284,6 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
 
   const toggleSwitch = React.useCallback(
     (groupLabel: string) => {
-      console.log('in toggle switch');
       const toggleGroups = monitoringLocationToggles;
 
       if (groupLabel === 'All') {
@@ -327,15 +294,9 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
             toggleGroups[toggle] = true;
           }
 
-          // this.setState({ allToggled: true }, () => {
-          //   for (var key in toggleGroups) {
-          //     toggleGroups[key] = true;
-          //   }
-          // });
           setShowAllMonitoring(true);
           monitoringStationsLayer.visible = true;
         } else {
-          console.log('turning off everything');
           // toggle everything off
           setAllToggled(false);
           for (var key in toggleGroups) {
@@ -360,7 +321,6 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
         });
 
         setAllToggled(allOthersToggled);
-        // this.setState({ allToggled: allOthersToggled });
         setShowAllMonitoring(allOthersToggled);
       }
 
@@ -368,10 +328,6 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
       setMonitoringLocationToggles(toggleGroups);
 
       drawMap();
-      // this.setState(
-      //   { monitoringLocationToggles: toggleGroups },
-      //   () => drawMap(), //
-      // );
     },
     [
       monitoringStationsLayer,
@@ -383,11 +339,7 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
     ],
   );
 
-  // componentDidMount() {
-  //   this.storeMonitoringStations();
-  // }
-
-  // componentdidmount
+  // emulate componentdidmount
   const [componentMounted, setComponentMounted] = React.useState(false);
   React.useEffect(() => {
     if (componentMounted) return;
@@ -395,7 +347,7 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
     setComponentMounted(true);
   }, [componentMounted, storeMonitoringStations]);
 
-  // componentdidupdate
+  // emulate componentdidupdate
   const mounted = React.useRef();
   React.useEffect(() => {
     if (!mounted.current) {
@@ -410,42 +362,11 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
       // return early if displayedMonitoringStations hasn't yet been set
       if (displayedMonitoringStations.length === 0) return;
 
-      // redraw the map if the number of monitoring stations to display has changed
-      // (e.g. a toggle has been clicked)
-      // if (
-      //   prevState.displayedMonitoringStations.length !==
-      //   displayedMonitoringStations.length
-      // ) {
-      //   drawMap();
-      // }
-
       drawMap();
-      return;
-
-      if (
-        prevDisplayedMonitoringStations.length ===
-        displayedMonitoringStations.length
-      )
-        return;
-
-      if (
-        prevDisplayedMonitoringStations.length !==
-        displayedMonitoringStations.length
-      ) {
-        console.log('drawing map in didupdate');
-        setPrevDisplayedMonitoringStations(displayedMonitoringStations);
-        console.log(
-          'did update displayedMonitoringStations: ',
-          displayedMonitoringStations,
-        );
-        console.log('drawing map...');
-        drawMap();
-      }
     }
   }, [
     monitoringLocations,
     prevMonitoringLocationData,
-    prevDisplayedMonitoringStations,
     displayedMonitoringStations,
     drawMap,
     storeMonitoringStations,

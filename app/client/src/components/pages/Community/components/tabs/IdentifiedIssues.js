@@ -250,7 +250,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
     waterbodyLayer,
   ]);
 
-  // componentdidmount
+  // emulate componentdidmount
   const [componentMounted, setComponentMounted] = React.useState(false);
   React.useEffect(() => {
     if (componentMounted) return;
@@ -281,7 +281,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
     setPollutionParameters,
   ]);
 
-  // componentdidupdate
+  // emulate componentdidupdate
   const mounted = React.useRef();
   React.useEffect(() => {
     if (!mounted.current) {
@@ -299,14 +299,6 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
         checkDischargersToDisplay();
         dischargersLayer.graphics.removeAll();
       }
-
-      // if (
-      //   showIssuesLayer !== visibleLayers['issuesLayer'] ||
-      //   showDischargersLayer !== visibleLayers['dischargersLayer']
-      // ) {
-      //   setShowIssuesLayer(visibleLayers['issuesLayer']);
-      //   setShowDischargersLayer(visibleLayers['dischargersLayer']);
-      // }
     }
   }, [
     checkWaterbodiesToDisplay,
