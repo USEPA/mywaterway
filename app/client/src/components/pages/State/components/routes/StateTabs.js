@@ -72,10 +72,10 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
   React.useEffect(() => {
     if (activeState.code === '') {
       fetchCheck(`${attains.serviceUrl}states`)
-        .then((res) => {
+        .then(res => {
           // get matched state from web service response
           const match = res.data.filter(
-            (state) => state.code === stateCode.toUpperCase(),
+            state => state.code === stateCode.toUpperCase(),
           )[0];
 
           // redirect to /state if no state was found
@@ -83,7 +83,7 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
 
           setActiveState({ code: match.code, name: match.name });
         })
-        .catch((err) => {
+        .catch(err => {
           navigate('/state');
         });
     }
@@ -104,7 +104,7 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
         <Tabs
           data-content="stateTabs"
           index={activeTabIndex}
-          onChange={(index) => {
+          onChange={index => {
             setActiveTabIndex(index);
             // navigate to the tab’s route so Google Analytics captures a pageview
             const route =

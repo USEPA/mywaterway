@@ -40,7 +40,7 @@ class Table extends React.Component<Props, State> {
 
   componentDidMount() {
     if (this.props.apiUrl) {
-      fetchCheck(this.props.apiUrl).then(this.handleResponse, (error) => {
+      fetchCheck(this.props.apiUrl).then(this.handleResponse, error => {
         console.error(error);
       });
     } else {
@@ -101,7 +101,7 @@ class Table extends React.Component<Props, State> {
     if (displayData) {
       const newValue = selectAll === 0 ? true : false;
 
-      displayData.forEach((x) => {
+      displayData.forEach(x => {
         newSelected[x[this.props.dataIdColumn]] = newValue;
       });
     }
@@ -145,13 +145,13 @@ class Table extends React.Component<Props, State> {
               </div>
             );
           },
-          Header: (x) => {
+          Header: x => {
             return (
               <input
                 type="checkbox"
                 className="checkbox"
                 checked={selectAll === 1}
-                ref={(input) => {
+                ref={input => {
                   if (input) {
                     input.indeterminate = selectAll === 2;
                   }
