@@ -140,7 +140,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
       const areaQuery = new Query();
       const pointQuery = new Query();
 
-      [lineQuery, areaQuery, pointQuery].forEach((query) => {
+      [lineQuery, areaQuery, pointQuery].forEach(query => {
         const auIds = Object.keys(unitIds).join("','");
         query.returnGeometry = true;
         query.outFields = ['*'];
@@ -232,15 +232,15 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
           }
 
           // add graphics to graphicsLayer based on feature type
-          areaResponse.features.forEach((feature) => {
+          areaResponse.features.forEach(feature => {
             actionsLayer.graphics.add(createGraphic(feature, 'area'));
           });
 
-          lineResponse.features.forEach((feature) => {
+          lineResponse.features.forEach(feature => {
             actionsLayer.graphics.add(createGraphic(feature, 'line'));
           });
 
-          pointResponse.features.forEach((feature) => {
+          pointResponse.features.forEach(feature => {
             actionsLayer.graphics.add(createGraphic(feature, 'point'));
           });
 
@@ -249,7 +249,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
           // pass the layer back up to the parent
           if (typeof onLoad === 'function') onLoad(actionsLayer);
         })
-        .catch((err) => {
+        .catch(err => {
           console.error(err);
           setFetchStatus('failure');
         });
@@ -344,7 +344,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
               map={null}
               view={null}
               layers={layers}
-              onHomeWidgetRendered={(homeWidget) => {}}
+              onHomeWidgetRendered={homeWidget => {}}
             />
 
             {/* manually passing map and view props to Map component's         */}
@@ -363,7 +363,7 @@ export default function ActionsMapContainer({ ...props }: Props) {
   return (
     <MapErrorBoundary>
       <EsriModulesContext.Consumer>
-        {(esriModules) => <ActionsMap esriModules={esriModules} {...props} />}
+        {esriModules => <ActionsMap esriModules={esriModules} {...props} />}
       </EsriModulesContext.Consumer>
     </MapErrorBoundary>
   );

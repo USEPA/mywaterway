@@ -49,7 +49,13 @@ function Root() {
 
 const rootElement: ?HTMLElement = document.getElementById('root');
 
-if (rootElement) ReactDOM.render(<Root />, rootElement);
+if (rootElement)
+  ReactDOM.render(
+    <React.StrictMode>
+      <Root />
+    </React.StrictMode>,
+    rootElement,
+  );
 
 // http://bit.ly/CRA-PWA
 serviceWorker.unregister();

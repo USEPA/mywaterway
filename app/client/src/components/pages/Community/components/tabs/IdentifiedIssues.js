@@ -426,10 +426,9 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
         toggleOff();
       } else if (showAllParameters === true && showIssuesLayer === true) {
         toggleOff();
-      } 
-      else if (showAllParameters === true && showIssuesLayer === false) {
+      } else if (showAllParameters === true && showIssuesLayer === false) {
         toggleOn();
-      } 
+      }
     }
     // if switch under number of Dischargers in violation is switched
     else if (checkedSwitch === 'Toggle Dischargers Layer') {

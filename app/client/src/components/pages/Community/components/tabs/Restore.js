@@ -166,8 +166,9 @@ function Restore({ esriModules, infoToggleChecked }: Props) {
                                     {item['prj_title'] || 'Unknown'}
                                   </strong>
                                 }
-                                subTitle={`ID:  ${item['prj_seq'] ||
-                                  'Unknown ID'}`}
+                                subTitle={`ID:  ${
+                                  item['prj_seq'] || 'Unknown ID'
+                                }`}
                               >
                                 <table className="table">
                                   <tbody>

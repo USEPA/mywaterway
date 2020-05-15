@@ -189,7 +189,7 @@ export class EsriModulesProvider extends React.Component<Props, State> {
           });
         },
       )
-      .catch((err) => {
+      .catch(err => {
         console.error(err);
       });
   }
