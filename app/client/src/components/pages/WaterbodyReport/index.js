@@ -40,7 +40,7 @@ import { waterbodyReportError } from 'config/errorMessages';
 
 function filterActions(actions, orgId) {
   // filter out any actions with org ids that don't match the one provided
-  return actions.filter((item) => item.organizationIdentifier === orgId);
+  return actions.filter(item => item.organizationIdentifier === orgId);
 }
 
 // --- styled components ---
@@ -211,7 +211,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
       `&assessmentUnitIdentifier=${auId}`;
 
     fetchCheck(url).then(
-      (res) => {
+      res => {
         if (res.items.length < 1) {
           setNoWaterbodies(true);
           return;
@@ -230,7 +230,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
           text: locationDescriptionText,
         });
 
-        const types = waterTypes.map((type) => ({
+        const types = waterTypes.map(type => ({
           code: type.waterTypeCode,
           size: type.waterSizeNumber,
           units: type.unitsCode,
@@ -245,7 +245,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
         }
 
         // create easier to handle 'stations' array from 'monitoringStations'
-        const stations = monitoringStations.map((station) => ({
+        const stations = monitoringStations.map(station => ({
           orgId: station.monitoringOrganizationIdentifier,
           locId: station.monitoringLocationIdentifier,
         }));
@@ -254,22 +254,22 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
         const wqpUrl = `${waterQualityPortal.stationSearch}mimeType=geojson`;
         const headers = { 'content-type': 'application/json' };
         const data = {
-          siteid: stations.map((s) => {
+          siteid: stations.map(s => {
             return `${s.orgId.trim()}-${s.locId.trim()}`;
           }),
         };
 
         // fetch monitoring locations from water quality portal 'station search' web service
         fetchPost(wqpUrl, data, headers).then(
-          (geojson) => {
+          geojson => {
             // match monitoring stations returned from the attains 'assessmentUnits' web service
             // with features returned in the water quality portal 'station search' web service
             // (NOTE: there won't always be a match for every monitoring station)
-            const locations = stations.map((station) => {
+            const locations = stations.map(station => {
               const { orgId, locId } = station;
 
               // match via monitoring location identifier
-              const match = geojson.features.filter((feature) => {
+              const match = geojson.features.filter(feature => {
                 const { MonitoringLocationIdentifier } = feature.properties;
                 return MonitoringLocationIdentifier === `${orgId}-${locId}`;
               })[0];
@@ -290,13 +290,13 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
 
             setMonitoringLocations({ status: 'success', data: locations });
           },
-          (err) => {
+          err => {
             setMonitoringLocations({ status: 'failure', data: [] });
             console.error(err);
           },
         );
       },
-      (err) => {
+      err => {
         console.error(err);
         setWaterbodyTypes({ status: 'failure', data: [] });
         setWaterbodyLocation({ status: 'failure', text: '' });
@@ -339,7 +339,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
       `&assessmentUnitIdentifier=${auId}`;
 
     fetchCheck(url).then(
-      (res) => {
+      res => {
         if (res.items.length === 0) {
           setWaterbodyStatus({
             status: 'no-data',
@@ -413,7 +413,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
           });
         }
 
-        const uses = useAttainments.map((use) => {
+        const uses = useAttainments.map(use => {
           const status =
             use.useAttainmentCode === 'X'
               ? {
@@ -467,17 +467,17 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
           // allAssociatedActionIds will contain all parameters' associated action ids
           const allAssociatedActionIds = [];
 
-          parameters.forEach((parameter) => {
+          parameters.forEach(parameter => {
             // add all associated action ids to the allAssociatedActionIds array
             const associatedActionIds = parameter.associatedActions.map(
-              (associatedAction) => associatedAction.associatedActionIdentifier,
+              associatedAction => associatedAction.associatedActionIdentifier,
             );
             allAssociatedActionIds.push(...associatedActionIds);
 
             // match on use names, and add parameter to its respective category
             parameter.associatedUses
-              .filter((assocUse) => assocUse.associatedUseName === use.useName)
-              .forEach((assocUse) => {
+              .filter(assocUse => assocUse.associatedUseName === use.useName)
+              .forEach(assocUse => {
                 const { parameterAttainmentCode } = assocUse;
                 const parameterStatusName = parameter.parameterStatusName;
                 // determine the category from parameter's attainment code
@@ -506,7 +506,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                   // add parameter to category only if it hasn't already been added
                   const notYetAdded =
                     category
-                      .map((item) => item.name)
+                      .map(item => item.name)
                       .indexOf(parameter.parameterName) === -1;
 
                   if (notYetAdded) {
@@ -540,7 +540,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
 
         setWaterbodyUses({ status: 'success', data: uses });
 
-        const sources = probableSources.map((source) => {
+        const sources = probableSources.map(source => {
           const name = source.sourceName;
           const status = source.sourceConfirmedIndicator === 'N' ? 'No' : 'Yes';
 
@@ -549,7 +549,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
 
         setWaterbodySources({ status: 'success', data: sources });
       },
-      (err) => {
+      err => {
         console.error(err);
         setAllParameterActionIds({
           status: 'failure',
@@ -581,7 +581,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
       `&assessmentUnitIdentifier=${auId}`;
 
     fetchCheck(url).then(
-      (res) => {
+      res => {
         if (res.items.length < 1) {
           setWaterbodyActions({ status: 'pending', data: [] });
           return;
@@ -590,14 +590,14 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
         // filter out any actions with org ids that don't match the one provided
         const filteredActions = filterActions(res.items, orgId);
 
-        const actions = filteredActions[0].actions.map((action) => {
+        const actions = filteredActions[0].actions.map(action => {
           // get water with matching assessment unit identifier
           const matchingWater = action.associatedWaters.specificWaters.filter(
-            (water) => water.assessmentUnitIdentifier === auId,
+            water => water.assessmentUnitIdentifier === auId,
           )[0];
 
           const pollutants = matchingWater
-            ? matchingWater.parameters.map((p) =>
+            ? matchingWater.parameters.map(p =>
                 titleCaseWithExceptions(p.parameterName),
               )
             : [];
@@ -613,7 +613,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
 
         setWaterbodyActions({ status: 'pending', data: actions });
       },
-      (err) => {
+      err => {
         setWaterbodyActions({ status: 'failure', data: [] });
         console.error(err);
       },
@@ -631,19 +631,19 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
     if (allParameterActionIds.status === 'fetching') return;
     if (waterbodyActions.status === 'pending') {
       // action ids from the initial attains 'actions' web service call
-      const initialIds = waterbodyActions.data.map((a) => a.id);
+      const initialIds = waterbodyActions.data.map(a => a.id);
 
       // additional action ids from the parameters returned in the attains
       // 'assessments' web service, that weren't returned in the initial
       // attains 'actions' web service call
-      const additionalIds = allParameterActionIds.data.filter((id) => {
+      const additionalIds = allParameterActionIds.data.filter(id => {
         return initialIds.indexOf(id) === -1;
       });
 
       // if there are no additional ids, use the data from initial attains
       // 'actions' web service call
       if (additionalIds.length === 0) {
-        setWaterbodyActions((actions) => ({
+        setWaterbodyActions(actions => ({
           status: 'success',
           data: actions.data,
         }));
@@ -658,11 +658,11 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
       setActionsFetchedAgain(true);
 
       fetchCheck(url)
-        .then((res) => {
+        .then(res => {
           if (res.items.length < 1) {
             // if there are no new items (there should be), at least use the
             // data from the initial attains 'actions' web service call
-            setWaterbodyActions((actions) => ({
+            setWaterbodyActions(actions => ({
               status: 'success',
               data: actions.data,
             }));
@@ -675,10 +675,10 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
           // build up additionalActions from each action in each item in the response
           const additionalActions = [];
 
-          filteredActions.forEach((item) => {
-            item.actions.forEach((action) => {
+          filteredActions.forEach(item => {
+            item.actions.forEach(action => {
               const { specificWaters } = action.associatedWaters;
-              const pollutants = specificWaters[0].parameters.map((p) => {
+              const pollutants = specificWaters[0].parameters.map(p => {
                 return titleCaseWithExceptions(p.parameterName);
               });
 
@@ -694,16 +694,16 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
 
           // append additional actions to the data from the initial attains
           // 'actions' web service call
-          setWaterbodyActions((actions) => ({
+          setWaterbodyActions(actions => ({
             status: 'success',
             data: actions.data.concat(...additionalActions),
           }));
         })
-        .catch((err) => {
+        .catch(err => {
           console.error(err);
           // if the request failed, at least use the data from the initial
           // attains 'actions' web service call
-          setWaterbodyActions((actions) => ({
+          setWaterbodyActions(actions => ({
             status: 'success',
             data: actions.data,
           }));
@@ -720,7 +720,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
 
   // calculate height of div holding waterbody info
   const [infoHeight, setInfoHeight] = React.useState(0);
-  const measuredRef = React.useCallback((node) => {
+  const measuredRef = React.useCallback(node => {
     if (!node) return;
     setInfoHeight(node.getBoundingClientRect().height);
   }, []);
@@ -834,7 +834,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
             {waterbodyTypes.data.length === 0 && <p>Waterbody type unknown.</p>}
 
             {waterbodyTypes.data.length > 0 &&
-              waterbodyTypes.data.map((type) => (
+              waterbodyTypes.data.map(type => (
                 <p key={type.code}>
                   {titleCaseWithExceptions(type.code)} ({type.size} {type.units}
                   )
@@ -927,7 +927,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                     <>
                       {infoBox}
                       <MapVisibilityButton>
-                        {(mapShown) => (
+                        {mapShown => (
                           <div
                             style={{
                               display: mapShown ? 'block' : 'none',
@@ -985,7 +985,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                             </p>
                           ) : (
                             <Accordions>
-                              {waterbodyUses.data.map((use) => (
+                              {waterbodyUses.data.map(use => (
                                 <AccordionItem
                                   key={use.name}
                                   title={
@@ -1044,7 +1044,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                                 </tr>
                               </thead>
                               <tbody>
-                                {waterbodySources.data.map((source) => (
+                                {waterbodySources.data.map(source => (
                                   <tr key={source.name}>
                                     <td>
                                       {titleCaseWithExceptions(source.name)}
@@ -1151,7 +1151,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                         )}
                         {monitoringLocations.status === 'success' && (
                           <Locations>
-                            {monitoringLocations.data.map((location) => {
+                            {monitoringLocations.data.map(location => {
                               const { orgId, locId, name, url } = location;
                               return (
                                 <li key={locId}>
@@ -1230,7 +1230,7 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
             </tr>
           </thead>
           <tbody>
-            {pollutants.map((pollutant) => (
+            {pollutants.map(pollutant => (
               <tr key={pollutant.name}>
                 <td>{titleCaseWithExceptions(pollutant.name)}</td>
                 <td>{pollutant.planInPlace ? 'Yes' : 'No'}</td>
@@ -1245,13 +1245,13 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
       {noParameterData ? (
         <p>No other parameters evaluated for this use.</p>
       ) : (
-        Object.keys(parameters).map((category) => (
+        Object.keys(parameters).map(category => (
           <React.Fragment key={category}>
             {parameters[category].length > 0 && (
               <>
                 <ParameterCategory>{category}</ParameterCategory>
                 <ul>
-                  {parameters[category].map((parameter) => (
+                  {parameters[category].map(parameter => (
                     <Parameter key={parameter.name}>
                       {titleCaseWithExceptions(parameter.name)}
                     </Parameter>
@@ -1271,9 +1271,7 @@ export default function WaterbodyReportContainer({ ...props }: Props) {
     <MapHighlightProvider>
       <FullscreenProvider>
         <FullscreenContext.Consumer>
-          {(fullscreen) => (
-            <WaterbodyReport fullscreen={fullscreen} {...props} />
-          )}
+          {fullscreen => <WaterbodyReport fullscreen={fullscreen} {...props} />}
         </FullscreenContext.Consumer>
       </FullscreenProvider>
     </MapHighlightProvider>

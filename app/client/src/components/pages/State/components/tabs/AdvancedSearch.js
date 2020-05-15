@@ -50,10 +50,10 @@ function retrieveMaxRecordCount(url) {
 
     // get the max record count and then get the data
     fetchCheck(`${url}?f=json${envParam}`)
-      .then((res) => {
+      .then(res => {
         resolve(res.maxRecordCount);
       })
-      .catch((err) => reject(err));
+      .catch(err => reject(err));
   });
 }
 
@@ -75,7 +75,7 @@ function retrieveFeatures({
     const queryTask = new QueryTask({ url: url });
     queryTask
       .executeForIds(query)
-      .then((objectIds) => {
+      .then(objectIds => {
         // set the features value of the data to an empty array if no objectIds
         // were returned.
         if (!objectIds) {
@@ -98,7 +98,7 @@ function retrieveFeatures({
 
         // parse the requests
         Promise.all(requests)
-          .then((responses) => {
+          .then(responses => {
             // save the first response to get the metadata
             let combinedObject = responses[0];
 
@@ -113,9 +113,9 @@ function retrieveFeatures({
             // resolve the promise
             resolve(combinedObject);
           })
-          .catch((err) => reject(err));
+          .catch(err => reject(err));
       })
-      .catch((err) => reject(err));
+      .catch(err => reject(err));
   });
 }
 
@@ -251,9 +251,9 @@ function AdvancedSearch({ ...props }: Props) {
 
     // get a unique list of parameterGroups as they are in attains
     const uniqueParameterGroups = [];
-    currentSummary.data.waterTypes.forEach((waterType) => {
-      waterType.useAttainments.forEach((useAttainment) => {
-        useAttainment.parameters.forEach((parameter) => {
+    currentSummary.data.waterTypes.forEach(waterType => {
+      waterType.useAttainments.forEach(useAttainment => {
+        useAttainment.parameters.forEach(parameter => {
           const parameterGroup = parameter.parameterGroup;
           if (!uniqueParameterGroups.includes(parameterGroup)) {
             uniqueParameterGroups.push(parameterGroup.toUpperCase());
@@ -263,7 +263,7 @@ function AdvancedSearch({ ...props }: Props) {
     });
 
     // get the public friendly versions of the parameterGroups
-    let parameterGroupOptions = impairmentFields.filter((field) =>
+    let parameterGroupOptions = impairmentFields.filter(field =>
       uniqueParameterGroups.includes(field.parameterGroup.toUpperCase()),
     );
 
@@ -281,10 +281,10 @@ function AdvancedSearch({ ...props }: Props) {
     if (watershedsLayerMaxRecordCount || watershedMrcError) return;
 
     retrieveMaxRecordCount(wbd)
-      .then((maxRecordCount) => {
+      .then(maxRecordCount => {
         setWatershedsLayerMaxRecordCount(maxRecordCount);
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(err);
         setSearchLoading(false);
         setServiceError(true);
@@ -313,10 +313,10 @@ function AdvancedSearch({ ...props }: Props) {
       query,
       maxRecordCount: watershedsLayerMaxRecordCount,
     })
-      .then((data) => {
+      .then(data => {
         // convert the watersheds response into an array for the dropdown
         let hucs = [];
-        data.features.forEach((feature) => {
+        data.features.forEach(feature => {
           const { huc12, name } = feature.attributes;
           hucs.push({
             value: huc12,
@@ -325,7 +325,7 @@ function AdvancedSearch({ ...props }: Props) {
         });
         setWatersheds(hucs);
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(err);
         setSearchLoading(false);
         setServiceError(true);
@@ -339,10 +339,10 @@ function AdvancedSearch({ ...props }: Props) {
     if (summaryLayerMaxRecordCount || summaryMrcError) return;
 
     retrieveMaxRecordCount(waterbodyService.summary)
-      .then((maxRecordCount) => {
+      .then(maxRecordCount => {
         setSummaryLayerMaxRecordCount(maxRecordCount);
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(err);
         setSearchLoading(false);
         setServiceError(true);
@@ -378,11 +378,11 @@ function AdvancedSearch({ ...props }: Props) {
         query,
         maxRecordCount: summaryLayerMaxRecordCount,
       })
-        .then((data) => {
+        .then(data => {
           // build a full list of waterbodies for the state. Will have the full
           // list prior to filters being visible on the screen.
           let waterbodiesList = [];
-          data.features.forEach((waterbody) => {
+          data.features.forEach(waterbody => {
             const id = waterbody.attributes.assessmentunitidentifier;
             const name = waterbody.attributes.assessmentunitname;
             waterbodiesList.push({
@@ -393,7 +393,7 @@ function AdvancedSearch({ ...props }: Props) {
 
           setWaterbodiesList(waterbodiesList);
         })
-        .catch((err) => {
+        .catch(err => {
           console.error(err);
           setSearchLoading(false);
           setServiceError(true);
@@ -412,8 +412,8 @@ function AdvancedSearch({ ...props }: Props) {
         query,
         maxRecordCount: summaryLayerMaxRecordCount,
       })
-        .then((data) => setWaterbodyData(data))
-        .catch((err) => {
+        .then(data => setWaterbodyData(data))
+        .catch(err => {
           console.error(err);
           setSearchLoading(false);
           setServiceError(true);
@@ -444,7 +444,7 @@ function AdvancedSearch({ ...props }: Props) {
 
     // add assessment unit ids from the waterbody filter
     if (waterbodyFilter && waterbodyFilter.length > 0) {
-      waterbodyFilter.forEach((waterbody) => {
+      waterbodyFilter.forEach(waterbody => {
         if (!unitIdList.includes(waterbody.value))
           unitIdList.push(waterbody.value);
       });
@@ -452,12 +452,12 @@ function AdvancedSearch({ ...props }: Props) {
 
     // add assessment unit ids from the watershed filter
     if (watershedFilter && watershedFilter.length > 0) {
-      watershedFilter.forEach((watershed) => {
+      watershedFilter.forEach(watershed => {
         // get the watebodies using the huc12 of the watershed
         const watershedData = watershedResults[watershed.value];
         if (watershedData && watershedData.length > 0) {
           // add the waterbodies to the filter
-          watershedData.forEach((waterbody) => {
+          watershedData.forEach(waterbody => {
             if (!unitIdList.includes(waterbody.assessmentUnitId)) {
               unitIdList.push(waterbody.assessmentUnitId);
             }
@@ -491,12 +491,12 @@ function AdvancedSearch({ ...props }: Props) {
     let queryTask = new QueryTask({ url: waterbodyService.summary });
     queryTask
       .executeForCount(query)
-      .then((res) => {
+      .then(res => {
         setNumberOfRecords(res ? res : 0);
         setSearchLoading(false);
         setConfirmOpen(true);
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(err);
         setSearchLoading(false);
         setNextFilter('');
@@ -552,7 +552,7 @@ function AdvancedSearch({ ...props }: Props) {
 
     // waterbody and watershed filter
     const requests = [];
-    watershedFilter.forEach((watershed) => {
+    watershedFilter.forEach(watershed => {
       // Fire off requests for any watersheds that we don't already have data for
       if (!watershedResults.hasOwnProperty(watershed.value)) {
         // run a fetch to get the assessments in the huc
@@ -569,13 +569,13 @@ function AdvancedSearch({ ...props }: Props) {
       executeFilterWrapped(watershedResults);
     } else {
       Promise.all(requests)
-        .then((responses) => {
+        .then(responses => {
           // get and store new results
           let newWatershedResults = { ...watershedResults };
-          responses.forEach((results) => {
+          responses.forEach(results => {
             let waterbodies = [];
             let watershed = results.items[0];
-            watershed.assessmentUnits.forEach((id) => {
+            watershed.assessmentUnits.forEach(id => {
               waterbodies.push(id);
             });
 
@@ -586,7 +586,7 @@ function AdvancedSearch({ ...props }: Props) {
           setWatershedResults(newWatershedResults);
           executeFilterWrapped(newWatershedResults);
         })
-        .catch((err) => {
+        .catch(err => {
           console.error(err);
           setSearchLoading(false);
           setServiceError(true);
@@ -614,7 +614,7 @@ function AdvancedSearch({ ...props }: Props) {
 
     // parameter group filter
     if (parameterFilter && parameterFilter.length > 0) {
-      parameterFilter.forEach((param) => {
+      parameterFilter.forEach(param => {
         newFilter = `${newFilter} And ${param.value} IS NOT NULL `;
         newFilter = `${newFilter} And ${param.value} <> 'Observed effect' `;
       });
@@ -622,7 +622,7 @@ function AdvancedSearch({ ...props }: Props) {
 
     // use group filter
     if (useFilter && useFilter.length > 0) {
-      useFilter.forEach((use) => {
+      useFilter.forEach(use => {
         newFilter = `${newFilter} And ${use.value} IS NOT NULL `;
       });
     }
@@ -728,7 +728,7 @@ function AdvancedSearch({ ...props }: Props) {
             isLoading={!parameterGroupOptions}
             options={parameterGroupOptions ? parameterGroupOptions : []}
             value={parameterFilter}
-            onChange={(ev) => setParameterFilter(ev)}
+            onChange={ev => setParameterFilter(ev)}
             styles={reactSelectStyles}
           />
         </Input>
@@ -742,7 +742,7 @@ function AdvancedSearch({ ...props }: Props) {
             isMulti
             options={useFields}
             value={useFilter}
-            onChange={(ev) => setUseFilter(ev)}
+            onChange={ev => setUseFilter(ev)}
             styles={reactSelectStyles}
           />
         </Input>
@@ -766,12 +766,12 @@ function AdvancedSearch({ ...props }: Props) {
             options={
               watersheds
                 ? watersheds
-                    .filter((watershed) => watershed.label) // filter out nulls
+                    .filter(watershed => watershed.label) // filter out nulls
                     .sort((a, b) => a.label.localeCompare(b.label))
                 : []
             }
             value={watershedFilter}
-            onChange={(ev) => setWatershedFilter(ev)}
+            onChange={ev => setWatershedFilter(ev)}
             styles={reactSelectStyles}
           />
         </Input>
@@ -791,7 +791,7 @@ function AdvancedSearch({ ...props }: Props) {
                 : []
             }
             value={waterbodyFilter}
-            onChange={(ev) => setWaterbodyFilter(ev)}
+            onChange={ev => setWaterbodyFilter(ev)}
             styles={reactSelectStyles}
           />
         </Input>
@@ -813,7 +813,7 @@ function AdvancedSearch({ ...props }: Props) {
                 name="ir-category"
                 value="all"
                 checked={waterTypeFilter === 'all'}
-                onChange={(ev) => setWaterTypeFilter(ev.target.value)}
+                onChange={ev => setWaterTypeFilter(ev.target.value)}
               />
               <label htmlFor="ir-category-all">All Waters</label>
             </div>
@@ -825,7 +825,7 @@ function AdvancedSearch({ ...props }: Props) {
                 name="ir-category"
                 value="303d"
                 checked={waterTypeFilter === '303d'}
-                onChange={(ev) => setWaterTypeFilter(ev.target.value)}
+                onChange={ev => setWaterTypeFilter(ev.target.value)}
               />
               <ScreenLabel>
                 <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
@@ -841,7 +841,7 @@ function AdvancedSearch({ ...props }: Props) {
                 name="ir-category"
                 value="impaired"
                 checked={waterTypeFilter === 'impaired'}
-                onChange={(ev) => setWaterTypeFilter(ev.target.value)}
+                onChange={ev => setWaterTypeFilter(ev.target.value)}
               />
               <ScreenLabel>
                 <GlossaryTerm term="Impaired (Category 4 and 5)">
@@ -859,7 +859,7 @@ function AdvancedSearch({ ...props }: Props) {
               aria-label="Has TMDL"
               type="checkbox"
               checked={hasTmdlChecked}
-              onChange={(ev) => setHasTmdlChecked(!hasTmdlChecked)}
+              onChange={ev => setHasTmdlChecked(!hasTmdlChecked)}
             />
             <ScreenLabel>
               <GlossaryTerm term="TMDL">Has TMDL</GlossaryTerm>
@@ -871,7 +871,7 @@ function AdvancedSearch({ ...props }: Props) {
       <Search>
         <Button
           disabled={searchLoading}
-          onClick={(ev) => {
+          onClick={ev => {
             if (mapView && mapView.popup) mapView.popup.close();
             executeFilter();
           }}
@@ -913,7 +913,7 @@ function AdvancedSearch({ ...props }: Props) {
             inputId="display-by"
             options={displayOptions}
             value={selectedDisplayOption}
-            onChange={(ev) => setSelectedDisplayOption(ev)}
+            onChange={ev => setSelectedDisplayOption(ev)}
             styles={reactSelectStyles}
           />
         </ResultsInput>
@@ -923,7 +923,7 @@ function AdvancedSearch({ ...props }: Props) {
             <Button
               type="button"
               className={`btn btn-secondary${showMap ? ' active' : ''}`}
-              onClick={(ev) => setShowMap(true)}
+              onClick={ev => setShowMap(true)}
             >
               <i className="fas fa-map-marked-alt" />
               &nbsp;&nbsp;Map
@@ -931,7 +931,7 @@ function AdvancedSearch({ ...props }: Props) {
             <Button
               type="button"
               className={`btn btn-secondary${!showMap ? ' active' : ''}`}
-              onClick={(ev) => setShowMap(false)}
+              onClick={ev => setShowMap(false)}
             >
               <i className="fas fa-list" />
               &nbsp;&nbsp;List
@@ -990,7 +990,7 @@ function AdvancedSearch({ ...props }: Props) {
         label="Warning about potentially slow search"
         isOpen={confirmOpen}
         confirmEnabled={numberOfRecords > 0}
-        onConfirm={(ev) => {
+        onConfirm={ev => {
           setConfirmOpen(false);
           setCurrentFilter(nextFilter);
           setWaterbodyData(null);
@@ -998,7 +998,7 @@ function AdvancedSearch({ ...props }: Props) {
           // update the possible display options
           setDisplayOptions(newDisplayOptions);
           // figure out if the selected display option is available
-          const indexOfDisplay = newDisplayOptions.findIndex((item) => {
+          const indexOfDisplay = newDisplayOptions.findIndex(item => {
             return item.value === selectedDisplayOption.value;
           });
           // set the display back to the default option
@@ -1006,7 +1006,7 @@ function AdvancedSearch({ ...props }: Props) {
             setSelectedDisplayOption(defaultDisplayOption);
           }
         }}
-        onCancel={(ev) => {
+        onCancel={ev => {
           setConfirmOpen(false);
         }}
       >

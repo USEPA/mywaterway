@@ -99,7 +99,7 @@ function AccordionList({
               inputId={`sort-by-${uniqueID}`}
               options={sortOptions}
               value={sortBy}
-              onChange={(ev) => {
+              onChange={ev => {
                 setSortBy(ev);
                 onSortChange(ev);
               }}
@@ -109,7 +109,7 @@ function AccordionList({
         )}
 
         {!expandDisabled && (
-          <ExpandButton onClick={(ev) => setAllExpanded(!allExpanded)}>
+          <ExpandButton onClick={ev => setAllExpanded(!allExpanded)}>
             {buttonText}&nbsp;&nbsp;
             <i className={iconClass} />
           </ExpandButton>
@@ -119,7 +119,7 @@ function AccordionList({
       {title && <Title>{title}</Title>}
 
       {/* implicitly pass 'allExpanded' prop down to children (AccordionItem's) */}
-      {React.Children.map(children, (childElement) => {
+      {React.Children.map(children, childElement => {
         return React.cloneElement(childElement, { allExpanded });
       })}
     </AccordionListContainer>
@@ -235,20 +235,20 @@ function AccordionItem({
   return (
     <AccordionItemContainer
       className={`hmw-accordion ${className}`}
-      onMouseEnter={(ev) => addHighlight()}
-      onMouseLeave={(ev) => removeHighlight()}
-      onFocus={(ev) => addHighlight()}
-      onBlur={(ev) => removeHighlight()}
+      onMouseEnter={ev => addHighlight()}
+      onMouseLeave={ev => removeHighlight()}
+      onFocus={ev => addHighlight()}
+      onBlur={ev => removeHighlight()}
     >
       <Header
         className="hmw-accordion-header"
         tabIndex="0"
         style={{ backgroundColor }}
-        onClick={(ev) => {
+        onClick={ev => {
           setIsOpen(!isOpen);
           onChange();
         }}
-        onKeyUp={(ev) => {
+        onKeyUp={ev => {
           if (ev.key === 'Enter') {
             setIsOpen(!isOpen);
             onChange();

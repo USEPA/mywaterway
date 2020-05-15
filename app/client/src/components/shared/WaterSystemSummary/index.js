@@ -100,7 +100,7 @@ function WaterSystemSummary({ state }: Props) {
   });
   React.useEffect(() => {
     fetchCheck(`${dwmaps.getGPRASystemCountsByType}${state.code}`)
-      .then((res) => {
+      .then(res => {
         if (!res || !res.items || res.items.length === 0) {
           setSystemTypeRes({
             status: 'failure',
@@ -116,7 +116,7 @@ function WaterSystemSummary({ state }: Props) {
         let cwsCount = 0;
         let ntncwsCount = 0;
         let tncwsCount = 0;
-        res.items.forEach((item) => {
+        res.items.forEach(item => {
           if (item.primacy_agency_code !== state.code) return;
 
           const { pws_type_code, number_of_systems } = item;
@@ -134,7 +134,7 @@ function WaterSystemSummary({ state }: Props) {
           },
         });
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(err);
         setSystemTypeRes({
           status: 'failure',
@@ -155,8 +155,8 @@ function WaterSystemSummary({ state }: Props) {
 
   React.useEffect(() => {
     fetchCheck(`${dwmaps.getGPRASummary}${state.code}`)
-      .then((res) => setGpraData({ status: 'success', data: res.items[0] }))
-      .catch((err) => setGpraData({ status: 'failure', data: {} }));
+      .then(res => setGpraData({ status: 'success', data: res.items[0] }))
+      .catch(err => setGpraData({ status: 'failure', data: {} }));
   }, [state]);
 
   return (

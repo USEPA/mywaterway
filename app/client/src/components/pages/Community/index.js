@@ -145,7 +145,7 @@ function Community({ children, ...props }: Props) {
   // jsx
   const lowerTabs = (
     <EsriModulesContext.Consumer>
-      {(esriModules) => {
+      {esriModules => {
         // implicitly pass esriModules and infoToggleChecked props to 'lower' tab components
         // (normally we'd get these via useContext, but lower tab components are all class-based
         // components, and this is easier than using render props to use multiple React Contexts)
@@ -191,7 +191,7 @@ function Community({ children, ...props }: Props) {
                   {!atCommunityIntroRoute && (
                     <>
                       <MapVisibilityButton>
-                        {(mapShown) => (
+                        {mapShown => (
                           <div style={{ display: mapShown ? 'block' : 'none' }}>
                             <LocationMap
                               windowHeight={height}
