@@ -34,12 +34,12 @@ function GlossaryProvider({ children }: Props) {
       // 1 second delay between each retry.
       const fetchTerms = (retryCount: number = 0) => {
         proxyFetch(glossaryURL)
-          .then((res) => {
+          .then(res => {
             const data = res
-              .filter((item) => item['ActiveStatus'] !== 'Deleted')
-              .map((item) => {
+              .filter(item => item['ActiveStatus'] !== 'Deleted')
+              .map(item => {
                 const term = item['Name'];
-                const definition = item['Attributes'].filter((attr) => {
+                const definition = item['Attributes'].filter(attr => {
                   return attr['Name'] === 'Editorial Note';
                 })[0]['Value'];
                 return { term, definition };
@@ -47,7 +47,7 @@ function GlossaryProvider({ children }: Props) {
 
             resolve({ status: 'success', data });
           })
-          .catch((err) => {
+          .catch(err => {
             console.error(err);
 
             // resolve the request when the max retry count of 3 is hit

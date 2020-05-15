@@ -103,7 +103,7 @@ function LocationSearch({ route, children }: Props) {
       )}
       {children}
       <Form
-        onSubmit={(ev) => {
+        onSubmit={ev => {
           ev.preventDefault();
 
           if (containsScriptTag(inputText)) {
@@ -128,7 +128,7 @@ function LocationSearch({ route, children }: Props) {
           className="form-control"
           placeholder="Search by address, zip code, or place..."
           value={inputText}
-          onChange={(ev) => setInputText(ev.target.value)}
+          onChange={ev => setInputText(ev.target.value)}
         />
 
         <Button
@@ -152,12 +152,12 @@ function LocationSearch({ route, children }: Props) {
               <Button
                 className="btn"
                 type="button"
-                onClick={(ev) => {
+                onClick={ev => {
                   setGeolocating(true);
 
                   navigator.geolocation.getCurrentPosition(
                     // success function called when geolocation succeeds
-                    (position) => {
+                    position => {
                       const locatorTask = new Locator({ url: locatorUrl });
                       const params = {
                         location: new Point({
@@ -166,19 +166,17 @@ function LocationSearch({ route, children }: Props) {
                         }),
                       };
 
-                      locatorTask
-                        .locationToAddress(params)
-                        .then((candidate) => {
-                          setGeolocating(false);
-                          navigate(
-                            encodeURI(
-                              route.replace('{urlSearch}', candidate.address),
-                            ),
-                          );
-                        });
+                      locatorTask.locationToAddress(params).then(candidate => {
+                        setGeolocating(false);
+                        navigate(
+                          encodeURI(
+                            route.replace('{urlSearch}', candidate.address),
+                          ),
+                        );
+                      });
                     },
                     // failure function called when geolocation fails
-                    (err) => {
+                    err => {
                       console.error(err);
                       setGeolocating(false);
                       setGeolocationError(true);

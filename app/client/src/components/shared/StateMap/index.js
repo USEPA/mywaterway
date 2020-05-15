@@ -128,8 +128,8 @@ function StateMap({
 
     const popupTemplate = {
       outFields: ['*'],
-      title: (feature) => getPopupTitle(feature.graphic.attributes),
-      content: (feature) => getPopupContent({ feature: feature.graphic }),
+      title: feature => getPopupTitle(feature.graphic.attributes),
+      content: feature => getPopupContent({ feature: feature.graphic }),
     };
 
     // Build the feature layers that will make up the waterbody layer
@@ -259,12 +259,12 @@ function StateMap({
       // zoom and set the home widget viewpoint
       let fullExtent = null;
       // get the points layer extent
-      pointsLayer.queryExtent().then((pointsExtent) => {
+      pointsLayer.queryExtent().then(pointsExtent => {
         // set the extent if 1 or more features
         if (pointsExtent.count > 0) fullExtent = pointsExtent.extent;
 
         // get the lines layer extent
-        linesLayer.queryExtent().then((linesExtent) => {
+        linesLayer.queryExtent().then(linesExtent => {
           // set the extent or union the extent if 1 or more features
           if (linesExtent.count > 0) {
             if (fullExtent) fullExtent.union(linesExtent.extent);
@@ -272,7 +272,7 @@ function StateMap({
           }
 
           // get the areas layer extent
-          areasLayer.queryExtent().then((areasExtent) => {
+          areasLayer.queryExtent().then(areasExtent => {
             // set the extent or union the extent if 1 or more features
             if (areasExtent.count > 0) {
               if (fullExtent) fullExtent.union(areasExtent.extent);
@@ -363,7 +363,7 @@ function StateMap({
 
   // calculate height of div holding the footer content
   const [footerHeight, setFooterHeight] = React.useState(0);
-  const measuredRef = React.useCallback((node) => {
+  const measuredRef = React.useCallback(node => {
     if (!node) return;
     setFooterHeight(node.getBoundingClientRect().height);
   }, []);
@@ -418,11 +418,11 @@ function StateMap({
             setMapView(view);
 
             // display a loading spinner until the initial map completes
-            view.watch('rendering', (rendering) => {
+            view.watch('rendering', rendering => {
               if (!view.interacting) setMapLoading(rendering); // turn off loading spinner
             });
           }}
-          onFail={(err) => {
+          onFail={err => {
             console.error(err);
             setView(null);
             setMapView(null);
@@ -436,7 +436,7 @@ function StateMap({
             view={null}
             layers={layers}
             scrollToComponent="statemap"
-            onHomeWidgetRendered={(homeWidget) => {}}
+            onHomeWidgetRendered={homeWidget => {}}
           />
 
           {/* manually passing map and view props to Map component's         */}
@@ -468,7 +468,7 @@ export default function StateMapContainer({ ...props }: Props) {
   return (
     <MapErrorBoundary>
       <EsriModulesContext.Consumer>
-        {(esriModules) => <StateMap esriModules={esriModules} {...props} />}
+        {esriModules => <StateMap esriModules={esriModules} {...props} />}
       </EsriModulesContext.Consumer>
     </MapErrorBoundary>
   );

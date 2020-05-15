@@ -158,8 +158,8 @@ function State({ children, ...props }: Props) {
   const [states, setStates] = React.useState({ status: 'fetching', data: [] });
   React.useEffect(() => {
     fetchCheck(`${attains.serviceUrl}states`)
-      .then((res) => setStates({ status: 'success', data: res.data }))
-      .catch((err) => setStates({ status: 'failure', data: [] }));
+      .then(res => setStates({ status: 'success', data: res.data }))
+      .catch(err => setStates({ status: 'failure', data: [] }));
   }, []);
 
   const {
@@ -214,7 +214,7 @@ function State({ children, ...props }: Props) {
             </Prompt>
 
             <Form
-              onSubmit={(ev) => {
+              onSubmit={ev => {
                 ev.preventDefault();
                 setActiveState(selectedState);
                 navigate(`/state/${selectedState.code}/water-quality-overview`);
@@ -228,7 +228,7 @@ function State({ children, ...props }: Props) {
                 inputId="hmw-state-select-input"
                 classNamePrefix="Select"
                 placeholder="Select a state..."
-                options={states.data.map((state) => {
+                options={states.data.map(state => {
                   return { value: state.code, label: state.name };
                 })}
                 value={
@@ -239,14 +239,14 @@ function State({ children, ...props }: Props) {
                       }
                     : null
                 }
-                onChange={(ev) =>
+                onChange={ev =>
                   setSelectedState({
                     code: ev.value,
                     name: ev.label,
                   })
                 }
                 styles={{
-                  placeholder: (defaultStyles) => {
+                  placeholder: defaultStyles => {
                     return {
                       ...defaultStyles,
                       color: '#495057',
