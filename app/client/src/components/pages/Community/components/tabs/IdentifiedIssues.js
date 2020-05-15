@@ -299,6 +299,14 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
         checkDischargersToDisplay();
         dischargersLayer.graphics.removeAll();
       }
+
+      if (
+        showIssuesLayer !== visibleLayers['issuesLayer'] ||
+        showDischargersLayer !== visibleLayers['dischargersLayer']
+      ) {
+        setShowIssuesLayer(visibleLayers['issuesLayer']);
+        setShowDischargersLayer(visibleLayers['dischargersLayer']);
+      }
     }
   }, [
     checkWaterbodiesToDisplay,
