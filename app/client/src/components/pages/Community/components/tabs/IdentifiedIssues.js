@@ -254,7 +254,8 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
   const [componentMounted, setComponentMounted] = React.useState(false);
   React.useEffect(() => {
     if (componentMounted) return;
-
+    setComponentMounted(true);
+    setShowAllParameters(showAllPolluted);
     // use the pollution toggle object from context if available
     if (pollutionParameters) {
       setParameterToggleObject(pollutionParameters);
@@ -268,9 +269,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
     });
 
     setParameterToggleObject(parameterToggles);
-    setShowAllParameters(showAllPolluted);
     setPollutionParameters(parameterToggles);
-    setComponentMounted(true);
   }, [
     showAllPolluted,
     pollutionParameters,
@@ -425,9 +424,12 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
         toggleOn();
       } else if (showAllParameters === false && showIssuesLayer === true) {
         toggleOff();
-      } else if (showAllParameters === true) {
+      } else if (showAllParameters === true && showIssuesLayer === true) {
         toggleOff();
-      }
+      } 
+      else if (showAllParameters === true && showIssuesLayer === false) {
+        toggleOn();
+      } 
     }
     // if switch under number of Dischargers in violation is switched
     else if (checkedSwitch === 'Toggle Dischargers Layer') {
@@ -451,7 +453,6 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
     // update the object holding the toggle states and check if any waterbodies need to be hidden or shown
     setPollutionParameters(tempParameterToggleObject);
     setParameterToggleObject(tempParameterToggleObject);
-    checkWaterbodiesToDisplay();
   };
 
   const cipServiceReady =
