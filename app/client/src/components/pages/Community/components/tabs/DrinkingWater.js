@@ -758,6 +758,7 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
                                           !surfaceWaterDisplayed,
                                         )
                                       }
+                                      ariaLabel="Surface Water"
                                     />
                                     <span>Surface Water</span>
                                   </Toggle>
@@ -778,6 +779,7 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
                                           !groundWaterDisplayed,
                                         )
                                       }
+                                      ariaLabel="Ground Water"
                                     />
                                     <span>Ground Water</span>
                                   </Toggle>
@@ -794,6 +796,7 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
                                         onChange={(ev) =>
                                           setBothDisplayed(!bothDisplayed)
                                         }
+                                        ariaLabel="Ground Water and Surface Water"
                                       />
                                       <span>
                                         Ground Water &amp; Surface Water

@@ -317,10 +317,10 @@ function MapWidgets({
     const container = document.createElement('div');
     container.className = 'hmw-map-toggle';
 
-    const basemapHeader = document.createElement('p');
+    const basemapHeader = document.createElement('h4');
     basemapHeader.innerHTML = 'Basemaps:';
 
-    const layerListHeader = document.createElement('p');
+    const layerListHeader = document.createElement('h4');
     layerListHeader.innerHTML = 'Layers:';
 
     container.appendChild(basemapHeader);
