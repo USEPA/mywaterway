@@ -255,7 +255,7 @@ export function plotStations(
   layer.graphics.removeAll();
 
   // put graphics on the layer
-  stations.forEach((station) => {
+  stations.forEach(station => {
     station.properties.fullPopup = false;
     layer.graphics.add(
       new Graphic({
@@ -288,7 +288,7 @@ export function plotIssues(Graphic: any, features: Array<Object>, layer: any) {
   // clear the layer
   layer.graphics.removeAll();
   // put graphics on the layer
-  features.forEach((waterbody) => {
+  features.forEach(waterbody => {
     const geometryType = waterbody.geometry.type;
     layer.graphics.add(
       new Graphic({
@@ -330,7 +330,7 @@ export function plotFacilities({
   layer.graphics.removeAll();
 
   // put graphics on the layer
-  facilities.forEach((facility) => {
+  facilities.forEach(facility => {
     layer.graphics.add(
       new Graphic({
         geometry: {
@@ -486,7 +486,7 @@ export function getUniqueWaterbodies(waterbodies: Array<Object>) {
   if (!waterbodies) return null;
 
   const flags = {};
-  return waterbodies.filter((waterbody) => {
+  return waterbodies.filter(waterbody => {
     const orgid = waterbody.attributes.organizationidentifier;
     const auid = waterbody.attributes.assessmentunitidentifier;
     const key = `${orgid}${auid}`;
@@ -503,7 +503,7 @@ export function shallowCompare(obj1, obj2) {
   return (
     Object.keys(obj1).length === Object.keys(obj2).length &&
     Object.keys(obj1).every(
-      (key) =>
+      key =>
         obj2.hasOwnProperty(key) &&
         typeof obj1[key] === typeof obj2[key] &&
         (typeof obj1[key] === 'object' || obj1[key] === obj2[key]),

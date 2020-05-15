@@ -67,7 +67,7 @@ function ViewOnMapButton({ feature, fieldName, layers }: Props) {
         params.outFields = ['*'];
         layer
           .queryFeatures(params)
-          .then((res) => {
+          .then(res => {
             // if the feature was found, execute the call back and return
             if (res.features.length > 0) {
               callback(res.features[0]);
@@ -78,7 +78,7 @@ function ViewOnMapButton({ feature, fieldName, layers }: Props) {
               queryLayers(index + 1); // recursive call
             }
           })
-          .catch((err) => console.error(err));
+          .catch(err => console.error(err));
       } else if (layer.type === 'graphics') {
         const { organizationid } = feature.attributes;
 
@@ -106,12 +106,12 @@ function ViewOnMapButton({ feature, fieldName, layers }: Props) {
 
   return (
     <Button
-      onClick={(ev) => {
+      onClick={ev => {
         if (!feature) return;
         if (feature.geometry) {
           viewClick(feature);
         } else {
-          getGeometry((feature) => viewClick(feature));
+          getGeometry(feature => viewClick(feature));
         }
       }}
     >
