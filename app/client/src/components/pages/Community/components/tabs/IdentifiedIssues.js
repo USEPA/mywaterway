@@ -126,7 +126,7 @@ class IdentifiedIssues extends React.Component<Props, State> {
 
   setViolatingFacilities = (data: Object) => {
     if (!data || !data['Results'] || !data['Results']['Facilities']) return;
-    const violatingFacilities = data['Results']['Facilities'].filter((fac) => {
+    const violatingFacilities = data['Results']['Facilities'].filter(fac => {
       return (
         fac['CWPSNCStatus'] &&
         fac['CWPSNCStatus'].toLowerCase().indexOf('effluent') !== -1
@@ -180,7 +180,7 @@ class IdentifiedIssues extends React.Component<Props, State> {
   // translate scientific parameter names
   getMappedParameterName = (parameterFields: Object, parameter: String) => {
     const filteredFields = parameterFields.filter(
-      (field) => parameter === field.parameterGroup,
+      field => parameter === field.parameterGroup,
     )[0];
     if (!filteredFields) {
       return null;
@@ -203,15 +203,15 @@ class IdentifiedIssues extends React.Component<Props, State> {
     issuesLayer.graphics.removeAll();
 
     if (features && features.length !== 0) {
-      features.forEach((feature) => {
+      features.forEach(feature => {
         if (
           feature &&
           feature.attributes &&
           impairmentFields.findIndex(
-            (field) => feature.attributes[field.value] === 'Cause',
+            field => feature.attributes[field.value] === 'Cause',
           ) !== -1
         ) {
-          impairmentFields.forEach((field) => {
+          impairmentFields.forEach(field => {
             // if impairment is not a cause, ignore it. overview waterbody listview only displays impairments that are causes
             if (feature.attributes[field.value] !== 'Cause') return null;
             else if (parameterToggleObject[field.label] || showAllParameters) {
@@ -239,7 +239,7 @@ class IdentifiedIssues extends React.Component<Props, State> {
 
     // generate an object with all possible parameters to store which ones are displayed
     const parameterToggles = {};
-    impairmentFields.forEach((param) => {
+    impairmentFields.forEach(param => {
       parameterToggles[param.label] = true;
     });
 
@@ -285,7 +285,7 @@ class IdentifiedIssues extends React.Component<Props, State> {
     const { issuesLayer, dischargersLayer, setVisibleLayers } = this.context;
 
     // get a list of all parameters displayed in table and push them to array
-    cipSummaryData.items[0].summaryByParameterImpairments.forEach((param) => {
+    cipSummaryData.items[0].summaryByParameterImpairments.forEach(param => {
       const mappedParameterName = this.getMappedParameterName(
         impairmentFields,
         param['parameterGroupName'],
@@ -297,11 +297,11 @@ class IdentifiedIssues extends React.Component<Props, State> {
     });
 
     // return true if toggle for a parameter is not checked
-    const checkNotCheckedParameters = (param) => {
+    const checkNotCheckedParameters = param => {
       return !tempParameterToggleObject[param];
     };
 
-    const checkAnyCheckedParameters = (param) => {
+    const checkAnyCheckedParameters = param => {
       return tempParameterToggleObject[param];
     };
 
@@ -410,7 +410,7 @@ class IdentifiedIssues extends React.Component<Props, State> {
     }
     // if switch under number of Dischargers in violation is switched
     else if (checkedSwitch === 'Toggle Dischargers Layer') {
-      this.setState((prevState) => ({
+      this.setState(prevState => ({
         showDischargersLayer: !prevState.showDischargersLayer,
       }));
       this.checkDischargersToDisplay();
@@ -674,7 +674,7 @@ class IdentifiedIssues extends React.Component<Props, State> {
                                   </THead>
                                   <tbody>
                                     {cipSummary.data.items[0].summaryByParameterImpairments.map(
-                                      (param) => {
+                                      param => {
                                         const percent = formatNumber(
                                           Math.min(
                                             100,

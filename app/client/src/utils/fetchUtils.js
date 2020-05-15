@@ -8,11 +8,11 @@ const defaultTimeout = 60000;
 export function fetchCheck(apiUrl: string, timeout: number = defaultTimeout) {
   const startTime = performance.now();
   return timeoutPromise(timeout, fetch(apiUrl))
-    .then((response) => {
+    .then(response => {
       logCallToGoogleAnalytics(apiUrl, response.status, startTime);
       return checkResponse(response);
     })
-    .catch((err) => {
+    .catch(err => {
       console.error(err);
 
       let status = err;
@@ -46,11 +46,11 @@ export function fetchPost(
       body: JSON.stringify(data),
     }),
   )
-    .then((response) => {
+    .then(response => {
       logCallToGoogleAnalytics(apiUrl, response.status, startTime);
       return checkResponse(response);
     })
-    .catch((err) => {
+    .catch(err => {
       console.error(err);
       logCallToGoogleAnalytics(apiUrl, err, startTime);
       return checkResponse(err);
@@ -68,11 +68,11 @@ function timeoutPromise(timeout, promise) {
     }, timeout);
 
     promise
-      .then((res) => {
+      .then(res => {
         clearTimeout(timeoutId);
         resolve(res);
       })
-      .catch((err) => {
+      .catch(err => {
         clearTimeout(timeoutId);
         reject(err);
       });
@@ -82,7 +82,7 @@ function timeoutPromise(timeout, promise) {
 export function checkResponse(response) {
   return new Promise((resolve, reject) => {
     if (response.status === 200) {
-      response.json().then((json) => resolve(json));
+      response.json().then(json => resolve(json));
     } else {
       reject(response);
     }
@@ -103,7 +103,7 @@ export function logCallToGoogleAnalytics(
 
   // get the short name from the url
   let eventAction = 'UNKNOWN';
-  combinedMapping.forEach((item) => {
+  combinedMapping.forEach(item => {
     if (eventAction === 'UNKNOWN' && wildcardIncludes(url, item.wildcardUrl)) {
       eventAction = item.name;
     }
@@ -117,7 +117,7 @@ export function logCallToGoogleAnalytics(
 }
 
 function wildcardIncludes(str, rule) {
-  var escapeRegex = (str) => str.replace(/([.*+?^=!:${}()|\]\\])/g, '\\$1');
+  var escapeRegex = str => str.replace(/([.*+?^=!:${}()|\]\\])/g, '\\$1');
   return new RegExp(
     '^' +
       rule

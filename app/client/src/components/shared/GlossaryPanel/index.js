@@ -205,7 +205,7 @@ function GlossaryPanel({ path }) {
       if (termsInDOM()) return;
 
       // initialize the glossary
-      window.fetchGlossaryTerms.then((terms) => {
+      window.fetchGlossaryTerms.then(terms => {
         setGlossaryStatus(terms.status);
         new Glossary(terms.data);
       });
@@ -265,7 +265,7 @@ type Props = {
 function GlossaryTerm({ term, children }: Props) {
   const [status, setStatus] = React.useState('fetching');
 
-  window.fetchGlossaryTerms.then((terms) => setStatus(terms.status));
+  window.fetchGlossaryTerms.then(terms => setStatus(terms.status));
 
   const iconClassName =
     status === 'fetching' ? 'fas fa-spinner fa-pulse' : 'fas fa-book';

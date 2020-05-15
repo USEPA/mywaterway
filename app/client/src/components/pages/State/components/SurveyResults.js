@@ -96,14 +96,12 @@ function SurveyResults({
     if (subPopulationCodes && subPopulationCodes.length > 0) {
       // set to the user's selection if it is availble
       if (
-        subPopulationCodes.some(
-          (e) => e.subPopulationCode === userSelectedSubPop,
-        )
+        subPopulationCodes.some(e => e.subPopulationCode === userSelectedSubPop)
       ) {
         setSelectedSubPop(userSelectedSubPop);
         setSelectedSurveyGroup(
           subPopulationCodes.find(
-            (item) => item.subPopulationCode === userSelectedSubPop,
+            item => item.subPopulationCode === userSelectedSubPop,
           ),
         );
       }
@@ -163,13 +161,13 @@ function SurveyResults({
     let stressorItems = [];
     let locConfidenceLevel = '';
     surveyData.surveyWaterGroups
-      .filter((x) => {
+      .filter(x => {
         return (
           waterTypeOptions[waterType].includes(x['waterTypeGroupCode']) &&
           selectedSubPop === x['subPopulationCode']
         );
       })
-      .forEach((waterGroup) => {
+      .forEach(waterGroup => {
         // get the categoryCodeMapping and stressorMapping for the current selections
         let categoryMapping = null;
         let stressorMapping = null;
@@ -210,7 +208,7 @@ function SurveyResults({
         }
 
         let confidenceLvlSet = false;
-        waterGroup.surveyWaterGroupUseParameters.forEach((param) => {
+        waterGroup.surveyWaterGroupUseParameters.forEach(param => {
           let useSelectedUpper = useSelected.toUpperCase();
           let topicUseSelected = topicUses[useSelectedUpper];
           let paramSurveyUseCode = param.surveyUseCode.toUpperCase();
@@ -304,11 +302,11 @@ function SurveyResults({
     // Build the stressor chart data array by looping through all category codes
     // and stressor names for the current selection to ensure that missing
     // category codes (i.e. good, bad, etc.) get filled in with 0s.
-    Object.values(allCategoryCodes).forEach((categoryCode) => {
+    Object.values(allCategoryCodes).forEach(categoryCode => {
       const data = [];
 
       // loop through all stressor names for the current selection
-      allStressorNames.forEach((stressor) => {
+      allStressorNames.forEach(stressor => {
         // build the x axis labels list
         const stressorLabel = titleCaseWithExceptions(stressor);
         if (!xAxisLabels.includes(stressorLabel)) {
@@ -318,7 +316,7 @@ function SurveyResults({
         // get the stressor objects for the stressor and survey category code
         // currently being processed
         const filteredStressorItems = stressorItems.filter(
-          (item) =>
+          item =>
             item.stressor === stressor &&
             item.surveyCategoryCode === categoryCode.surveyCategoryCode,
         );
@@ -404,12 +402,12 @@ function SurveyResults({
             <Select
               inputId={`population-${populationId}`}
               classNamePrefix="Select"
-              options={subPopulationCodes.map((item) => {
+              options={subPopulationCodes.map(item => {
                 const value = item.subPopulationCode;
                 return { value, label: value };
               })}
               value={{ value: selectedSubPop, label: selectedSubPop }}
-              onChange={(ev) => setUserSelectedSubPop(ev.value)}
+              onChange={ev => setUserSelectedSubPop(ev.value)}
             />
             {populationDistance && <small>({populationDistance})</small>}
           </Input>

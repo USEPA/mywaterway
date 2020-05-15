@@ -159,7 +159,7 @@ class Monitoring extends React.Component<Props, State> {
       Other: { label: 'Other', groupName: '', stations: [], toggled: true },
     };
 
-    monitoringLocations.data.features.forEach((feature) => {
+    monitoringLocations.data.features.forEach(feature => {
       const { geometry, properties } = feature;
 
       const {
@@ -182,7 +182,7 @@ class Monitoring extends React.Component<Props, State> {
 
       // build up the monitoringLocationToggles and monitoringStationGroups
       let groupAdded = false;
-      switches.forEach((s) => {
+      switches.forEach(s => {
         monitoringLocationToggles[s.label] = true;
 
         for (const group in properties.characteristicGroupResultCount) {
@@ -248,7 +248,7 @@ class Monitoring extends React.Component<Props, State> {
         const group = monitoringStationGroups[key];
         // if the location is toggled
         if (monitoringLocationToggles[group.label]) {
-          group.stations.forEach((station) => {
+          group.stations.forEach(station => {
             // add the station to the display, if it has not already been added
             if (!addedStationUids.includes(station.uid)) {
               addedStationUids.push(station.uid);
@@ -301,7 +301,7 @@ class Monitoring extends React.Component<Props, State> {
       const groups = { ...toggleGroups };
       delete groups['All'];
 
-      const allOthersToggled = Object.keys(groups).every((group) => {
+      const allOthersToggled = Object.keys(groups).every(group => {
         return groups[group];
       });
 
@@ -406,7 +406,7 @@ class Monitoring extends React.Component<Props, State> {
                         <Toggle>
                           <Switch
                             checked={allToggled}
-                            onChange={(ev) => this.toggleSwitch('All')}
+                            onChange={ev => this.toggleSwitch('All')}
                           />
                           <span>All Monitoring Locations</span>
                         </Toggle>
@@ -416,7 +416,7 @@ class Monitoring extends React.Component<Props, State> {
                   </thead>
                   <tbody>
                     {Object.values(monitoringStationGroups)
-                      .map((group) => {
+                      .map(group => {
                         const { label, stations } = group;
                         return (
                           <tr key={label}>
@@ -424,7 +424,7 @@ class Monitoring extends React.Component<Props, State> {
                               <Toggle>
                                 <Switch
                                   checked={monitoringLocationToggles[label]}
-                                  onChange={(ev) => this.toggleSwitch(label)}
+                                  onChange={ev => this.toggleSwitch(label)}
                                 />
                                 <span>{label}</span>
                               </Toggle>
@@ -451,7 +451,7 @@ class Monitoring extends React.Component<Props, State> {
                 <AccordionList
                   expandDisabled={true}
                   title={`Displaying ${displayLocations} of ${totalLocations} Water Monitoring Locations in the ${watershed} watershed.`}
-                  onSortChange={(sortBy) =>
+                  onSortChange={sortBy =>
                     this.setState({ sortBy: sortBy.value })
                   }
                   sortOptions={[
