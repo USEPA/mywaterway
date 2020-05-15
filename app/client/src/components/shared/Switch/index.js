@@ -7,12 +7,14 @@ type Props = {
   checked: boolean,
   onChange: (checked: boolean) => void,
   disabled: boolean,
+  ariaLabel: string,
 };
 
 function Switch({
   checked = false,
   onChange = () => {},
   disabled = false,
+  ariaLabel = '',
 }: Props) {
   return (
     <ReactSwitch
@@ -28,6 +30,8 @@ function Switch({
       width={32}
       height={12}
       disabled={disabled}
+      aria-label={ariaLabel}
+      aria-checked={checked}
     />
   );
 }
