@@ -621,7 +621,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
   }, [auId, orgId]);
 
   // call attains 'actions' web service again, this time using the
-  // 'actionIdentifier' query string parameter –once for each action
+  // 'actionIdentifier' query string parameter – once for each action
   // id that wasn't returned in the previous web service call (when
   // the 'assessmentUnitIdentifier' query string parameter was used)
   const [actionsFetchedAgain, setActionsFetchedAgain] = React.useState(false);
