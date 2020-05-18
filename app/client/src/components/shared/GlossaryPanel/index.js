@@ -245,6 +245,7 @@ function GlossaryPanel({ path }) {
               className="js-glossary-search form-control"
               type="search"
               placeholder="Search for a term..."
+              aria-label="Search for a glossary term..."
             />
           )}
           <List className="js-glossary-list" />
