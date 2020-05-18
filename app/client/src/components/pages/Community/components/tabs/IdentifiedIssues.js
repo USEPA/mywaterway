@@ -138,14 +138,12 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
   const setViolatingFacilities = React.useCallback(
     (data: Object) => {
       if (!data || !data['Results'] || !data['Results']['Facilities']) return;
-      const violatingFacilities = data['Results']['Facilities'].filter(
-        (fac) => {
-          return (
-            fac['CWPSNCStatus'] &&
-            fac['CWPSNCStatus'].toLowerCase().indexOf('effluent') !== -1
-          );
-        },
-      );
+      const violatingFacilities = data['Results']['Facilities'].filter(fac => {
+        return (
+          fac['CWPSNCStatus'] &&
+          fac['CWPSNCStatus'].toLowerCase().indexOf('effluent') !== -1
+        );
+      });
 
       // if the permitter discharger data has changed from a new search
       if (permittedDischargersData !== permittedDischargers.data) {
@@ -200,7 +198,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
     parameter: String,
   ) => {
     const filteredFields = parameterFields.filter(
-      (field) => parameter === field.parameterGroup,
+      field => parameter === field.parameterGroup,
     )[0];
     if (!filteredFields) {
       return null;
@@ -221,15 +219,15 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
     issuesLayer.graphics.removeAll();
 
     if (features && features.length !== 0) {
-      features.forEach((feature) => {
+      features.forEach(feature => {
         if (
           feature &&
           feature.attributes &&
           impairmentFields.findIndex(
-            (field) => feature.attributes[field.value] === 'Cause',
+            field => feature.attributes[field.value] === 'Cause',
           ) !== -1
         ) {
-          impairmentFields.forEach((field) => {
+          impairmentFields.forEach(field => {
             // if impairment is not a cause, ignore it. overview waterbody listview only displays impairments that are causes
             if (feature.attributes[field.value] !== 'Cause') return null;
             else if (parameterToggleObject[field.label] || showAllParameters) {
@@ -264,7 +262,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
 
     // generate an object with all possible parameters to store which ones are displayed
     const parameterToggles = {};
-    impairmentFields.forEach((param) => {
+    impairmentFields.forEach(param => {
       parameterToggles[param.label] = true;
     });
 
@@ -320,6 +318,48 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
     setViolatingFacilities,
   ]);
 
+  // check the data quality and log a non-fatal exception to Google Analytics
+  // if necessary
+  const [nullPollutedWaterbodies, setNullPollutedWaterbodies] = React.useState(
+    false,
+  );
+  React.useEffect(() => {
+    if (!window.isIdSet || cipSummary.status !== 'success') return;
+
+    const {
+      assessedCatchmentAreaSqMi,
+      containImpairedWatersCatchmentAreaPercent,
+      containImpairedWatersCatchmentAreaSqMi,
+      summaryByParameterImpairments,
+    } = cipSummary.data.items[0];
+
+    // check for empty summaryByParameterImpairments array
+    let pollutedPercent = formatNumber(
+      Math.min(
+        100,
+        (containImpairedWatersCatchmentAreaSqMi / assessedCatchmentAreaSqMi) *
+          100,
+      ),
+    );
+    if (pollutedPercent > 0 && summaryByParameterImpairments.length === 0) {
+      window.ga('send', 'exception', {
+        exDescription: `The summaryByParameterImpairments[] array is empty, even though ${pollutedPercent}% of assessed waters are impaired `,
+        exFatal: false,
+      });
+    }
+
+    // check for null percent of assess waters impaired
+    const nullPollutedWaterbodies =
+      containImpairedWatersCatchmentAreaPercent === null ? true : false;
+    setNullPollutedWaterbodies(nullPollutedWaterbodies);
+    if (nullPollutedWaterbodies) {
+      window.ga('send', 'exception', {
+        exDescription: `The "% of assessed waters are impaired" value is 0, even though there are ${summaryByParameterImpairments.length} items in the summaryByParameterImpairments[] array.`,
+        exFatal: false,
+      });
+    }
+  }, [cipSummary]);
+
   const checkIfAllSwitchesToggled = (
     cipSummaryData: Object,
     tempParameterToggleObject: Object,
@@ -327,7 +367,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
     const parameters = [];
 
     // get a list of all parameters displayed in table and push them to array
-    cipSummaryData.items[0].summaryByParameterImpairments.forEach((param) => {
+    cipSummaryData.items[0].summaryByParameterImpairments.forEach(param => {
       const mappedParameterName = getMappedParameterName(
         impairmentFields,
         param['parameterGroupName'],
@@ -339,11 +379,11 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
     });
 
     // return true if toggle for a parameter is not checked
-    const checkNotCheckedParameters = (param) => {
+    const checkNotCheckedParameters = param => {
       return !tempParameterToggleObject[param];
     };
 
-    const checkAnyCheckedParameters = (param) => {
+    const checkAnyCheckedParameters = param => {
       return tempParameterToggleObject[param];
     };
 
@@ -483,12 +523,6 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
     !Boolean(
       cipSummary.data.items[0].containImpairedWatersCatchmentAreaPercent,
     );
-
-  const nullPollutedWaterbodies =
-    cipServiceReady &&
-    cipSummary.data.items[0].containImpairedWatersCatchmentAreaPercent === null
-      ? true
-      : false;
 
   let toggleIssuesChecked;
 
@@ -666,7 +700,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
                               </THead>
                               <tbody>
                                 {cipSummary.data.items[0].summaryByParameterImpairments.map(
-                                  (param) => {
+                                  param => {
                                     const percent = formatNumber(
                                       Math.min(
                                         100,
