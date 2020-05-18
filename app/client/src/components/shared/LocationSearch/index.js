@@ -27,12 +27,6 @@ const ErrorBox = styled(StyledErrorBox)`
   }
 `;
 
-const Label = styled.label`
-  margin-top: 0.25em;
-  margin-bottom: 0;
-  padding-bottom: 0;
-`;
-
 const Form = styled.form`
   display: flex;
   flex-flow: row wrap;
@@ -79,10 +73,10 @@ const Text = styled.p`
 // --- components ---
 type Props = {
   route: string,
-  label: Node,
+  children?: Node,
 };
 
-function LocationSearch({ route, label }: Props) {
+function LocationSearch({ route, children }: Props) {
   const { Locator, Point } = React.useContext(EsriModulesContext);
   const { searchText } = React.useContext(LocationSearchContext);
 
@@ -107,9 +101,9 @@ function LocationSearch({ route, label }: Props) {
           <p>{errorMessage}</p>
         </ErrorBox>
       )}
-      <Label htmlFor="hmw-search-input">{label}</Label>
+      {children}
       <Form
-        onSubmit={(ev) => {
+        onSubmit={ev => {
           ev.preventDefault();
 
           if (containsScriptTag(inputText)) {
@@ -125,12 +119,16 @@ function LocationSearch({ route, label }: Props) {
           }
         }}
       >
+        <label htmlFor="hmw-search-input" className="sr-only">
+          Location
+        </label>
+
         <Input
           id="hmw-search-input"
           className="form-control"
           placeholder="Search by address, zip code, or place..."
           value={inputText}
-          onChange={(ev) => setInputText(ev.target.value)}
+          onChange={ev => setInputText(ev.target.value)}
         />
 
         <Button
@@ -154,12 +152,12 @@ function LocationSearch({ route, label }: Props) {
               <Button
                 className="btn"
                 type="button"
-                onClick={(ev) => {
+                onClick={ev => {
                   setGeolocating(true);
 
                   navigator.geolocation.getCurrentPosition(
                     // success function called when geolocation succeeds
-                    (position) => {
+                    position => {
                       const locatorTask = new Locator({ url: locatorUrl });
                       const params = {
                         location: new Point({
@@ -168,19 +166,17 @@ function LocationSearch({ route, label }: Props) {
                         }),
                       };
 
-                      locatorTask
-                        .locationToAddress(params)
-                        .then((candidate) => {
-                          setGeolocating(false);
-                          navigate(
-                            encodeURI(
-                              route.replace('{urlSearch}', candidate.address),
-                            ),
-                          );
-                        });
+                      locatorTask.locationToAddress(params).then(candidate => {
+                        setGeolocating(false);
+                        navigate(
+                          encodeURI(
+                            route.replace('{urlSearch}', candidate.address),
+                          ),
+                        );
+                      });
                     },
                     // failure function called when geolocation fails
-                    (err) => {
+                    err => {
                       console.error(err);
                       setGeolocating(false);
                       setGeolocationError(true);

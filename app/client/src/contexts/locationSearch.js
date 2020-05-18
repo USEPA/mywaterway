@@ -157,152 +157,152 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     // current drinking water subtab (0, 1, or 2)
     drinkingWaterTabIndex: 0,
 
-    setSearchText: (searchText) => {
+    setSearchText: searchText => {
       this.setState({ searchText });
     },
-    setLastSearchText: (lastSearchText) => {
+    setLastSearchText: lastSearchText => {
       this.setState({ lastSearchText });
     },
-    setMonitoringLocations: (monitoringLocations) => {
+    setMonitoringLocations: monitoringLocations => {
       this.setState({ monitoringLocations });
     },
-    setPermittedDischargers: (permittedDischargers) => {
+    setPermittedDischargers: permittedDischargers => {
       this.setState({ permittedDischargers });
     },
-    setNonprofits: (nonprofits) => {
+    setNonprofits: nonprofits => {
       this.setState({ nonprofits });
     },
-    setHucBoundaries: (hucBoundaries) => {
+    setHucBoundaries: hucBoundaries => {
       this.setState({ hucBoundaries });
     },
-    setCurrentExtent: (currentExtent) => {
+    setCurrentExtent: currentExtent => {
       this.setState({ currentExtent });
     },
-    setAtHucBoundaries: (atHucBoundaries) => {
+    setAtHucBoundaries: atHucBoundaries => {
       this.setState({ atHucBoundaries });
     },
-    setCountyBoundaries: (countyBoundaries) => {
+    setCountyBoundaries: countyBoundaries => {
       this.setState({ countyBoundaries });
     },
-    setHuc12: (huc12) => {
+    setHuc12: huc12 => {
       this.setState({ huc12 });
     },
-    setWatershed: (watershed) => {
+    setWatershed: watershed => {
       this.setState({ watershed });
     },
-    setFishingInfo: (fishingInfo) => {
+    setFishingInfo: fishingInfo => {
       this.setState({ fishingInfo });
     },
-    setStatesData: (statesData) => {
+    setStatesData: statesData => {
       this.setState({ statesData });
     },
 
-    setAddress: (address) => {
+    setAddress: address => {
       this.setState({ address });
     },
-    setAssessmentUnitId: (assessmentUnitId) => {
+    setAssessmentUnitId: assessmentUnitId => {
       this.setState({ assessmentUnitId });
     },
-    setMapView: (mapView) => {
+    setMapView: mapView => {
       this.setState({ mapView });
     },
-    setLayers: (layers) => {
+    setLayers: layers => {
       this.setState({ layers });
     },
-    setWaterbodyLayer: (waterbodyLayer) => {
+    setWaterbodyLayer: waterbodyLayer => {
       this.setState({ waterbodyLayer });
     },
-    setIssuesLayer: (issuesLayer) => {
+    setIssuesLayer: issuesLayer => {
       this.setState({ issuesLayer });
     },
-    setMonitoringStationsLayer: (monitoringStationsLayer) => {
+    setMonitoringStationsLayer: monitoringStationsLayer => {
       this.setState({ monitoringStationsLayer });
     },
-    setDischargersLayer: (dischargersLayer) => {
+    setDischargersLayer: dischargersLayer => {
       this.setState({ dischargersLayer });
     },
-    setNonprofitsLayer: (nonprofitsLayer) => {
+    setNonprofitsLayer: nonprofitsLayer => {
       this.setState({ nonprofitsLayer });
     },
-    setProvidersLayer: (providersLayer) => {
+    setProvidersLayer: providersLayer => {
       this.setState({ providersLayer });
     },
-    setBoundariesLayer: (boundariesLayer) => {
+    setBoundariesLayer: boundariesLayer => {
       this.setState({ boundariesLayer });
     },
-    setSearchIconLayer: (searchIconLayer) => {
+    setSearchIconLayer: searchIconLayer => {
       this.setState({ searchIconLayer });
     },
-    setActionsLayer: (actionsLayer) => {
+    setActionsLayer: actionsLayer => {
       this.setState({ actionsLayer });
     },
-    setSelWaterbodyLayer: (selWaterbodyLayer) => {
+    setSelWaterbodyLayer: selWaterbodyLayer => {
       this.setState({ selWaterbodyLayer });
     },
-    setPointsLayer: (pointsLayer) => {
+    setPointsLayer: pointsLayer => {
       this.setState({ pointsLayer });
     },
-    setLinesLayer: (linesLayer) => {
+    setLinesLayer: linesLayer => {
       this.setState({ linesLayer });
     },
-    setAreasLayer: (areasLayer) => {
+    setAreasLayer: areasLayer => {
       this.setState({ areasLayer });
     },
-    setSummaryLayerMaxRecordCount: (summaryLayerMaxRecordCount) => {
+    setSummaryLayerMaxRecordCount: summaryLayerMaxRecordCount => {
       this.setState({ summaryLayerMaxRecordCount });
     },
-    setWatershedsLayerMaxRecordCount: (watershedsLayerMaxRecordCount) => {
+    setWatershedsLayerMaxRecordCount: watershedsLayerMaxRecordCount => {
       this.setState({ watershedsLayerMaxRecordCount });
     },
-    setHomeWidget: (homeWidget) => {
+    setHomeWidget: homeWidget => {
       this.setState({ homeWidget });
     },
-    setVisibleLayers: (visibleLayers) => {
+    setVisibleLayers: visibleLayers => {
       this.setState({ visibleLayers });
     },
-    setWaterbodyData: (waterbodyData) => {
+    setWaterbodyData: waterbodyData => {
       this.setState({ waterbodyData });
     },
-    setLinesData: (linesData) => {
+    setLinesData: linesData => {
       this.setState({ linesData });
     },
-    setAreasData: (areasData) => {
+    setAreasData: areasData => {
       this.setState({ areasData });
     },
-    setPointsData: (pointsData) => {
+    setPointsData: pointsData => {
       this.setState({ pointsData });
     },
-    setGrts: (grts) => {
+    setGrts: grts => {
       this.setState({ grts });
     },
-    setAttainsPlans: (attainsPlans) => {
+    setAttainsPlans: attainsPlans => {
       this.setState({ attainsPlans });
     },
-    setDrinkingWater: (drinkingWater) => {
+    setDrinkingWater: drinkingWater => {
       this.setState({ drinkingWater });
     },
-    setCipSummary: (cipSummary) => {
+    setCipSummary: cipSummary => {
       this.setState({ cipSummary });
     },
-    setCipSummaryStatus: (cipSummaryStatus) => {
+    setCipSummaryStatus: cipSummaryStatus => {
       this.setState({ cipSummaryStatus });
     },
-    setShowAllMonitoring: (showAllMonitoring) => {
+    setShowAllMonitoring: showAllMonitoring => {
       this.setState({ showAllMonitoring });
     },
-    setMonitoringGroups: (monitoringGroups) => {
+    setMonitoringGroups: monitoringGroups => {
       this.setState({ monitoringGroups });
     },
-    setShowAllPolluted: (showAllPolluted) => {
+    setShowAllPolluted: showAllPolluted => {
       this.setState({ showAllPolluted });
     },
-    setPollutionParameters: (pollutionParameters) => {
+    setPollutionParameters: pollutionParameters => {
       this.setState({ pollutionParameters });
     },
-    setDrinkingWaterTabIndex: (drinkingWaterTabIndex) => {
+    setDrinkingWaterTabIndex: drinkingWaterTabIndex => {
       this.setState({ drinkingWaterTabIndex });
     },
-    setFIPS: (FIPS) => {
+    setFIPS: FIPS => {
       this.setState({ FIPS });
     },
 

@@ -25,6 +25,10 @@ const Disclaimer = styled(DisclaimerModal)`
   bottom: 1.25rem;
 `;
 
+const Prompt = styled.p`
+  padding-bottom: 0 !important;
+`;
+
 const TopicButtonLink = styled(StyledTopicButtonLink)`
   ${StyledThreeButtonLinks}
 `;
@@ -45,12 +49,11 @@ function Swimming({ ...props }: Props) {
       </StyledTopic>
 
       <StyledText className="container">
-        <LocationSearch
-          route="/community/{urlSearch}/swimming"
-          label={
+        <LocationSearch route="/community/{urlSearch}/swimming">
+          <Prompt>
             <em>Find out more about water you may potentially swim in.</em>
-          }
-        />
+          </Prompt>
+        </LocationSearch>
 
         <br />
 

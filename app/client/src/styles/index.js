@@ -23,4 +23,13 @@ const fonts = {
   secondary: `'Roboto Slab', serif`,
 };
 
-export { colors, fonts };
+const reactSelectStyles = {
+  placeholder: (defaultStyles) => {
+    return {
+      ...defaultStyles,
+      color: '#495057',
+    };
+  },
+};
+
+export { colors, fonts, reactSelectStyles };

@@ -14,7 +14,8 @@ export const StyledMetric = styled.div`
   text-align: center;
 `;
 
-export const StyledNumber = styled.p`
+export const StyledNumber = styled.span`
+  display: block;
   padding-bottom: 0.25rem;
   font-size: 1.875em;
   font-weight: bold;
