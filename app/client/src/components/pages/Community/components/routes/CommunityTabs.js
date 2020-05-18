@@ -478,6 +478,7 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
               <Switch
                 checked={infoToggleChecked}
                 onChange={checked => setInfoToggleChecked(checked)}
+                ariaLabel="Show Text"
               />
             </label>
           </div>
