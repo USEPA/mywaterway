@@ -42,7 +42,7 @@ Cypress.Commands.add(
         $window.navigator.geolocation,
         "getCurrentPosition",
         (resolve, reject) => {
-          if (shouldFail) reject(Error({ code: 1 })); // 1: rejected, 2: unable, 3: timeout
+          if (shouldFail) return reject(Error({ code: 1 })); // 1: rejected, 2: unable, 3: timeout
           return resolve({ coords: { latitude, longitude } });
         }
       );
