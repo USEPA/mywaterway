@@ -49,14 +49,17 @@ const Container = styled(StyledContainer)`
     margin-top: 0.75rem;
     margin-bottom: 0.75rem;
   }
+
   th,
   td {
     font-size: 0.875rem;
     line-height: 1.25;
+
     &:last-child {
       text-align: right;
     }
   }
+
   hr {
     margin-top: 0.125rem;
     margin-bottom: 0.875rem;
@@ -76,15 +79,18 @@ const ErrorBox = styled(StyledErrorBox)`
 const InfoBoxHeading = styled(StyledBoxHeading)`
   display: flex;
   align-items: center;
+
   small {
     display: block;
     margin-top: 0.125rem;
   }
+
   /* loading icon */
   svg {
     margin: 0 -0.375rem 0 -0.875rem;
     height: 1.5rem;
   }
+
   /* status icon */
   span svg {
     margin-left: -0.25rem;
@@ -99,6 +105,7 @@ const InlineBoxSection = styled(StyledBoxSection)`
     margin: -0.5rem;
     height: 1.25rem;
   }
+
   h3,
   p {
     display: inline-block;
@@ -155,6 +162,7 @@ const ParameterCategory = styled.p`
 
 const Parameter = styled.li`
   border-bottom: 1px dotted #eee;
+
   &:last-of-type {
     border-bottom: none;
   }
