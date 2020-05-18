@@ -5,7 +5,7 @@ import type { Node } from 'react';
 import styled from 'styled-components';
 import Select from 'react-select';
 // styles
-import { colors } from 'styles/index.js';
+import { colors, reactSelectStyles } from 'styles/index.js';
 
 // --- styled components (AccordionList) ---
 const AccordionListContainer = styled.div`
@@ -103,6 +103,7 @@ function AccordionList({
                 setSortBy(ev);
                 onSortChange(ev);
               }}
+              styles={reactSelectStyles}
             />
           </SelectContainer>
         )}

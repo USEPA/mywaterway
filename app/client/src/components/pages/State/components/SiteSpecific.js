@@ -4,6 +4,7 @@ import React from 'react';
 import styled from 'styled-components';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
+import highchartsAccessibility from 'highcharts/modules/accessibility';
 // components
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -16,6 +17,9 @@ import { formatNumber } from 'utils/utils';
 import { impairmentFields } from 'config/attainsToHmwMapping';
 // styles
 import { fonts } from 'styles/index.js';
+
+// add accessibility features to highcharts
+highchartsAccessibility(Highcharts);
 
 // --- styled components ---
 const Text = styled.p`
@@ -239,7 +243,7 @@ function SiteSpecific({
                   plotShadow: false,
                 },
                 tooltip: {
-                  formatter: function() {
+                  formatter: function () {
                     return `${this.key}<br/>
                     ${this.series.name}: <b>${formatNumber(this.y)}</b>`;
                   },
@@ -268,7 +272,7 @@ function SiteSpecific({
                         fontSize: responsiveBarChartFontSize,
                         textOutline: false,
                       },
-                      formatter: function() {
+                      formatter: function () {
                         if (!waterTypeUnits) return formatNumber(this.y);
                         const units = waterTypeUnits.toLowerCase();
                         return `${formatNumber(this.y)} ${units}`;
