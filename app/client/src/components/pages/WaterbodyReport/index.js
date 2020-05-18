@@ -1146,9 +1146,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                         )}
                         {monitoringLocations.status === 'failure' && (
                           <ErrorBox>
-                            <p>
-                              {waterbodyReportError('Monitoring location')}
-                            </p>
+                            <p>{waterbodyReportError('Monitoring location')}</p>
                           </ErrorBox>
                         )}
                         {monitoringLocations.status === 'success' && (
