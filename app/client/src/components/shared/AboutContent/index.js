@@ -48,7 +48,7 @@ const StyledTabs = styled(Tabs)`
       line-height: 1.375;
     }
 
-    h3 {
+    h1 {
       margin: 2rem 0 0.25rem;
       padding-bottom: 0;
       font-family: ${fonts.primary};
@@ -58,7 +58,7 @@ const StyledTabs = styled(Tabs)`
         margin-top: 0;
       }
     }
-    h5 {
+    .title {
       margin: 1rem 0 0.25rem;
       padding-bottom: 0;
       font-family: ${fonts.primary};
@@ -115,7 +115,7 @@ function AboutContent({ ...props }: Props) {
           <TabPanels>
             <TabPanel>
               <div className="container">
-                <h3>About How’s My Waterway </h3>
+                <h1>About How’s My Waterway </h1>
                 <hr />
                 <p>
                   <em>How's My Waterway</em>  was designed to provide the
@@ -128,7 +128,7 @@ function AboutContent({ ...props }: Props) {
                   is not yet available through EPA databases or other sources.{' '}
                 </p>
 
-                <h3> How’s My Waterway Glossary </h3>
+                <h1> How’s My Waterway Glossary </h1>
                 <hr />
                 <p>
                   <em>How’s My Waterway</em> provides an easily accessible
@@ -139,7 +139,7 @@ function AboutContent({ ...props }: Props) {
                   top of any page in <em>How’s My Waterway</em>.
                 </p>
 
-                <h3>How’s My Waterway Data </h3>
+                <h1>How’s My Waterway Data </h1>
                 <hr />
                 <p>
                   <em>How’s My Waterway </em>provides a{' '}
@@ -149,9 +149,9 @@ function AboutContent({ ...props }: Props) {
                   <em>How’s My Waterway</em>.
                 </p>
 
-                <h3>Community Page </h3>
+                <h1>Community Page </h1>
                 <hr />
-                <h5>About impairment reporting </h5>
+                <div className="subtitle">About impairment reporting </div>
                 <p>
                   The Clean Water Act requires States, Territories and
                   authorized tribes (states for brevity) to monitor water
@@ -172,7 +172,7 @@ function AboutContent({ ...props }: Props) {
                   conditions.
                 </p>
 
-                <h5>About water quality information </h5>
+                <div className="subtitle">About water quality information </div>
                 <p>
                   EPA's water databases are the largest single, national source
                   of information about reported water quality problems and
@@ -188,7 +188,7 @@ function AboutContent({ ...props }: Props) {
                   were measured and reported.
                 </p>
 
-                <h5>About impairment categories </h5>
+                <div className="subtitle">About impairment categories </div>
                 <p>
                   A single waterway can have one or more types of impairments.
                   When States report impaired waters, they put them in different
@@ -206,7 +206,7 @@ function AboutContent({ ...props }: Props) {
                   information. This information can be found in the glossary.
                 </p>
 
-                <h5>About what's being done </h5>
+                <div className="subtitle">About what's being done </div>
                 <p>
                   Identifying and reporting water impairments leads to action
                   for improvement. Two major types of action taken under the
@@ -231,9 +231,9 @@ function AboutContent({ ...props }: Props) {
                   restoration plan or a nonpoint source pollution project.
                 </p>
 
-                <h3>State Page </h3>
+                <h1>State Page </h1>
                 <hr />
-                <h5>State Water Quality Overview </h5>
+                <div className="subtitle">State Water Quality Overview </div>
 
                 <p>
                   You will find basic facts about a state’s waters (by the
@@ -250,7 +250,7 @@ function AboutContent({ ...props }: Props) {
                   stories are also found on this page by state (if applicable).
                 </p>
 
-                <h5>Advanced Search</h5>
+                <div className="subtitle">Advanced Search</div>
 
                 <p>
                   On this page you will be able to find the condition of
@@ -264,7 +264,7 @@ function AboutContent({ ...props }: Props) {
                   list.
                 </p>
 
-                <h3>National Page </h3>
+                <h1>National Page </h1>
                 <hr />
                 <p>
                   You will find information on the condition of water resources
@@ -279,7 +279,7 @@ function AboutContent({ ...props }: Props) {
             </TabPanel>
             <TabPanel>
               <div className="container">
-                <h3>Questions and Answers about How’s My Waterway </h3>
+                <h1>Questions and Answers about How’s My Waterway </h1>
                 <hr />
                 <p>
                   <Question>What is “How’s My Waterway?”</Question>{' '}

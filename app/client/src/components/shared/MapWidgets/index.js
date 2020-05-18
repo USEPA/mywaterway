@@ -46,7 +46,7 @@ function handleMapZoomChange(newVal: number, target: any) {
   if (newVal % 1 !== 0) return;
   // set listMode for each layer, when zoom changes (practically, this shows/
   // hides 'County' or 'Mapped Water (all)' layers, depending on zoom level)
-  target.map.layers.items.forEach((layer) => {
+  target.map.layers.items.forEach(layer => {
     if (zoomDependentLayers.includes(layer.id)) {
       if (isInScale(layer, target.scale)) {
         layer.listMode = layer.sublayers ? 'hide-children' : 'show';
@@ -97,9 +97,9 @@ function updateVisibleLayers(view: any, legendNode: Node) {
 
   // build an array of layers that are visible based on the ordering above
   const visibleLayers = [];
-  orderedLayers.forEach((layerId) => {
+  orderedLayers.forEach(layerId => {
     // get the esri layer from the map view
-    let layer = view.map.layers.items.find((layer) => layer.id === layerId);
+    let layer = view.map.layers.items.find(layer => layer.id === layerId);
     if (!layer) return;
 
     // add the layer if it is visible on the map. Boundaries and actions
@@ -257,10 +257,10 @@ function MapWidgets({
 
     // create the basemap/layers widget
     const basemapsSource = new PortalBasemapsSource({
-      filterFunction: function(basemap) {
+      filterFunction: function (basemap) {
         return basemapNames.indexOf(basemap.portalItem.title) !== -1;
       },
-      updateBasemapsCallback: function(originalBasemaps) {
+      updateBasemapsCallback: function (originalBasemaps) {
         // sort the basemaps based on the ordering of basemapNames
         return originalBasemaps.sort(
           (a, b) =>
@@ -294,7 +294,7 @@ function MapWidgets({
           uniqueParentItems.push(item.title);
           updateVisibleLayers(view, legendNode);
 
-          item.watch('visible', function(event) {
+          item.watch('visible', function (event) {
             updateVisibleLayers(view, legendNode);
             const dict = {
               layerId: item.layer.id,
@@ -317,10 +317,10 @@ function MapWidgets({
     const container = document.createElement('div');
     container.className = 'hmw-map-toggle';
 
-    const basemapHeader = document.createElement('h4');
+    const basemapHeader = document.createElement('h1');
     basemapHeader.innerHTML = 'Basemaps:';
 
-    const layerListHeader = document.createElement('h4');
+    const layerListHeader = document.createElement('h1');
     layerListHeader.innerHTML = 'Layers:';
 
     container.appendChild(basemapHeader);
@@ -378,7 +378,7 @@ function MapWidgets({
 
     // hide/show layers based on the provided list of layers to show
     if (layers) {
-      layers.forEach((layer) => {
+      layers.forEach(layer => {
         if (layerList.includes(layer.id)) {
           if (visibleLayers.hasOwnProperty(layer.id)) {
             layer.visible = visibleLayers[layer.id];
@@ -500,7 +500,7 @@ function ExpandCollapse({
       style={hover ? divHoverStyle : divStyle}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
-      onClick={(ev) => {
+      onClick={ev => {
         // Toggle scroll bars
         if (fullscreenActive()) {
           // Display the scroll bars

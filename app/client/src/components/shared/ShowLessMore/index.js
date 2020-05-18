@@ -39,7 +39,7 @@ function ShowLessMore({ text, charLimit }: Props) {
     return (
       <>
         {truncated ? `${text.substring(0, charLimit)}...` : text}
-        <LinkButton onClick={(ev) => setTruncated(!truncated)}>
+        <LinkButton onClick={ev => setTruncated(!truncated)}>
           Show {truncated ? 'more' : 'less'}
         </LinkButton>
       </>
@@ -50,7 +50,7 @@ function ShowLessMore({ text, charLimit }: Props) {
     return (
       <>
         {truncated ? '...' : text}
-        <LinkButton onClick={(ev) => setTruncated(!truncated)}>
+        <LinkButton onClick={ev => setTruncated(!truncated)}>
           Show {truncated ? 'more' : 'less'}
         </LinkButton>
       </>

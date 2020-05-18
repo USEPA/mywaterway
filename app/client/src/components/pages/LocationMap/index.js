@@ -277,12 +277,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // popup template to be used for all waterbody sublayers
   const popupTemplate = {
     outFields: ['*'],
-    title: (feature) => getPopupTitle(feature.graphic.attributes),
-    content: (feature) => getPopupContent({ feature: feature.graphic }),
+    title: feature => getPopupTitle(feature.graphic.attributes),
+    content: feature => getPopupContent({ feature: feature.graphic }),
   };
 
   const handleMapServiceError = React.useCallback(
-    (err) => {
+    err => {
       console.error(err);
       setCipSummary({
         data: [],
@@ -294,7 +294,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   // Gets the lines data and builds the associated feature layer
   const retrieveLines = React.useCallback(
-    (filter) => {
+    filter => {
       const query = new Query({
         returnGeometry: true,
         where: filter,
@@ -303,7 +303,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       new QueryTask({ url: waterbodyService.lines })
         .execute(query)
-        .then((res) => {
+        .then(res => {
           setLinesData(res);
 
           const linesRenderer = {
@@ -332,7 +332,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           setLinesLayer(newLinesLayer);
           setMapLoading(true);
         })
-        .catch((err) => {
+        .catch(err => {
           handleMapServiceError(err);
           setLinesLayer('error');
           setLinesData({ features: [] });
@@ -351,7 +351,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   // Gets the areas data and builds the associated feature layer
   const retrieveAreas = React.useCallback(
-    (filter) => {
+    filter => {
       const query = new Query({
         returnGeometry: true,
         where: filter,
@@ -360,7 +360,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       new QueryTask({ url: waterbodyService.areas })
         .execute(query)
-        .then((res) => {
+        .then(res => {
           setAreasData(res);
 
           const areasRenderer = {
@@ -389,7 +389,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           setAreasLayer(newAreasLayer);
           setMapLoading(true);
         })
-        .catch((err) => {
+        .catch(err => {
           handleMapServiceError(err);
           setAreasLayer('error');
           setAreasData({ features: [] });
@@ -408,7 +408,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   // Gets the points data and builds the associated feature layer
   const retrievePoints = React.useCallback(
-    (filter) => {
+    filter => {
       const query = new Query({
         returnGeometry: true,
         where: filter,
@@ -417,7 +417,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       new QueryTask({ url: waterbodyService.points })
         .execute(query)
-        .then((res) => {
+        .then(res => {
           setPointsData(res);
 
           const pointsRenderer = {
@@ -447,7 +447,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           setPointsLayer(newPointsLayer);
           setMapLoading(true);
         })
-        .catch((err) => {
+        .catch(err => {
           handleMapServiceError(err);
           setPointsLayer('error');
           setPointsData({ features: [] });
@@ -501,7 +501,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     // Build the new set of layers with the waterbody layer at the correct position
     const newLayers = [];
-    layers.forEach((layer) => {
+    layers.forEach(layer => {
       newLayers.push(layer);
       if (layer.id === 'boundariesLayer') {
         newLayers.push(newWaterbodyLayer);
@@ -525,19 +525,19 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const [mapLoading, setMapLoading] = React.useState(true);
 
   const queryMonitoringLocationService = React.useCallback(
-    (huc12) => {
+    huc12 => {
       const url =
         `${waterQualityPortal.monitoringLocation}` +
         `search?mimeType=geojson&zip=no&huc=${huc12}`;
 
       fetchCheck(url)
-        .then((res) => {
+        .then(res => {
           setMonitoringLocations({
             data: res,
             status: 'success',
           });
         })
-        .catch((err) => {
+        .catch(err => {
           console.error(err);
           setMonitoringLocations({
             data: [],
@@ -549,9 +549,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   const queryPermittedDischargersService = React.useCallback(
-    (huc12) => {
+    huc12 => {
       fetchCheck(echoNPDES.metadata)
-        .then((res) => {
+        .then(res => {
           // Columns to return from Echo
           const facilityColumns = [
             'CWPName',
@@ -569,7 +569,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
           // Loop through the metadata and find the ids of the columns we want
           const columnIds = [];
-          res.Results.ResultColumns.forEach((column) => {
+          res.Results.ResultColumns.forEach(column => {
             if (facilityColumns.indexOf(column.ObjectName) !== -1) {
               columnIds.push(column.ColumnID);
             }
@@ -581,13 +581,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             `&qcolumns=${columnIds.join(',')}`;
 
           fetchCheck(url)
-            .then((res) => {
+            .then(res => {
               setPermittedDischargers({
                 data: res,
                 status: 'success',
               });
             })
-            .catch((err) => {
+            .catch(err => {
               console.error(err);
               setPermittedDischargers({
                 data: [],
@@ -595,7 +595,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               });
             });
         })
-        .catch((err) => {
+        .catch(err => {
           console.error(err);
           setPermittedDischargers({
             data: [],
@@ -607,15 +607,15 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   const queryGrtsHuc12 = React.useCallback(
-    (huc12) => {
+    huc12 => {
       fetchCheck(`${grts.getGRTSHUC12}${huc12}`)
-        .then((res) => {
+        .then(res => {
           setGrts({
             data: res,
             status: 'success',
           });
         })
-        .catch((err) => {
+        .catch(err => {
           console.error(err);
           setGrts({
             data: [],
@@ -629,16 +629,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // Runs a query to get the plans for the selected huc.
   // Note: The actions page will attempt to look up the organization id.
   const queryAttainsPlans = React.useCallback(
-    (huc12) => {
+    huc12 => {
       // get the plans for the selected huc
       fetchCheck(`${attains.serviceUrl}plans?huc=${huc12}`, 120000)
-        .then((res) => {
+        .then(res => {
           setAttainsPlans({
             data: res,
             status: 'success',
           });
         })
-        .catch((err) => {
+        .catch(err => {
           console.error(err);
           setAttainsPlans({
             data: [],
@@ -654,7 +654,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   }, [mapServiceFailure]);
 
   const getFishingLinkData = React.useCallback(
-    (states) => {
+    states => {
       setFishingInfo({ status: 'fetching', data: [] });
 
       // Turn the returned string "VA,MA,AL" into an array [VA, MA, AL]
@@ -663,7 +663,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       // Map the array to a format for querying and join it as a string 'VA','MA','AL'
       // Service returns lowercase state codes for some locations so .toUpperCase() them
       const stateQueryString = statesList
-        .map((stateCode) => `'${stateCode.toUpperCase()}'`)
+        .map(stateCode => `'${stateCode.toUpperCase()}'`)
         .join();
 
       const url =
@@ -673,20 +673,20 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         fishingInformationService.queryStringSecondPart;
 
       fetchCheck(url)
-        .then((res) => {
+        .then(res => {
           if (!res || !res.features || res.features.length <= 0) {
             setFishingInfo({ status: 'success', data: [] });
             return;
           }
 
-          const fishingInfo = res.features.map((feature) => ({
+          const fishingInfo = res.features.map(feature => ({
             url: feature.attributes.STATEURL,
             stateCode: feature.attributes.STATE,
           }));
 
           setFishingInfo({ status: 'success', data: fishingInfo });
         })
-        .catch((err) => {
+        .catch(err => {
           console.error(err);
           setFishingInfo({ status: 'failure', data: [] });
         });
@@ -695,7 +695,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   const handleMapServices = React.useCallback(
-    (results) => {
+    results => {
       // sort the parameters by highest percent to lowest
       results.items[0].summaryByParameterImpairments = results.items[0].summaryByParameterImpairments.sort(
         (a, b) => (a.catchmentSizePercent < b.catchmentSizePercent ? 1 : -1),
@@ -705,7 +705,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         data: results,
       });
 
-      const ids = results.items[0].assessmentUnits.map((item) => {
+      const ids = results.items[0].assessmentUnits.map(item => {
         return item.assessmentUnitId;
       });
 
@@ -719,7 +719,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   const processBoundariesData = React.useCallback(
-    (boundaries) => {
+    boundaries => {
       let huc12 = boundaries.features[0].attributes.huc12;
 
       setHucBoundaries(boundaries);
@@ -737,10 +737,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         setStatesData({ status: 'fetching', data: [] });
 
         fetchCheck(`${attains.serviceUrl}states`)
-          .then((res) => {
+          .then(res => {
             setStatesData({ status: 'success', data: res.data });
           })
-          .catch((err) => {
+          .catch(err => {
             console.error(err);
             setStatesData({ status: 'failure', data: [] });
           });
@@ -764,7 +764,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const [hucResponse, setHucResponse] = React.useState(null);
   const handleHUC12 = React.useCallback(
-    (response) => {
+    response => {
       setHucResponse(response);
 
       if (response.features.length > 0) {
@@ -864,7 +864,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       }
 
       getCandidates
-        .then((candidates) => {
+        .then(candidates => {
           candidates = Array.isArray(candidates) ? candidates : [candidates];
 
           let location;
@@ -917,14 +917,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
             new QueryTask({ url: wbd })
               .execute(hucQuery)
-              .then((hucRes) => {
+              .then(hucRes => {
                 renderMapAndZoomTo(
                   location.location.longitude,
                   location.location.latitude,
                   () => handleHUC12(hucRes),
                 );
               })
-              .catch((err) => {
+              .catch(err => {
                 console.error(err);
                 setAddress(searchText); // preserve the user's search so it is displayed
                 setNoDataAvailable();
@@ -946,7 +946,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
           new QueryTask({ url: `${counties}/query` })
             .execute(countiesQuery)
-            .then((countiesRes) => {
+            .then(countiesRes => {
               // not all locations have a State and County code, check for it
               if (
                 countiesRes.features &&
@@ -973,7 +973,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
               setCountyBoundaries(countiesRes);
             })
-            .catch((err) => {
+            .catch(err => {
               console.error(err);
               setCountyBoundaries(null);
               setDrinkingWater({
@@ -987,7 +987,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               });
             });
         })
-        .catch((err) => {
+        .catch(err => {
           if (!hucRes) {
             console.error(err);
             setAddress(searchText); // preserve the user's search so it is displayed
@@ -1040,7 +1040,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   const queryGeocodeServer = React.useCallback(
-    (searchText) => {
+    searchText => {
       searchText = searchText.trim();
 
       // Get whether HUC 12
@@ -1055,7 +1055,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
         new QueryTask({ url: wbd })
           .execute(query)
-          .then((response) => {
+          .then(response => {
             if (response.features.length === 0) {
               // flag no data available for no response
               setErrorMessage(noDataAvailableError);
@@ -1075,7 +1075,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               );
             }
           })
-          .catch((err) => {
+          .catch(err => {
             console.error(err);
             setErrorMessage(noDataAvailableError);
             setNoDataAvailable();
@@ -1204,13 +1204,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         `${FIPS.countyCode}`;
 
       fetchCheck(drinkingWaterUrl)
-        .then((drinkingWaterRes) => {
+        .then(drinkingWaterRes => {
           setDrinkingWater({
             data: drinkingWaterRes.items,
             status: 'success',
           });
         })
-        .catch((err) => {
+        .catch(err => {
           console.error(err);
           setDrinkingWater({
             data: [],
@@ -1275,7 +1275,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   // calculate height of div holding searchText
   const [searchTextHeight, setSearchTextHeight] = React.useState(0);
-  const measuredRef = React.useCallback((node) => {
+  const measuredRef = React.useCallback(node => {
     if (!node) return;
     setSearchTextHeight(node.getBoundingClientRect().height);
   }, []);
@@ -1317,11 +1317,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             setMapView(view);
 
             // display a loading spinner until the initial map completes
-            view.watch('updating', (updating) => {
+            view.watch('updating', updating => {
               if (!updating) setMapLoading(false); // turn off loading spinner
             });
           }}
-          onFail={(err) => {
+          onFail={err => {
             console.error(err);
             setView(null);
             setMapView(null);
@@ -1335,7 +1335,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             view={null}
             layers={layers}
             scrollToComponent="locationmap"
-            onHomeWidgetRendered={(homeWidget) => {}}
+            onHomeWidgetRendered={homeWidget => {}}
           />
 
           {/* manually passing map and view props to Map component's         */}
@@ -1364,7 +1364,7 @@ export default function LocationMapContainer({ ...props }: Props) {
   return (
     <MapErrorBoundary>
       <EsriModulesContext.Consumer>
-        {(esriModules) => <LocationMap esriModules={esriModules} {...props} />}
+        {esriModules => <LocationMap esriModules={esriModules} {...props} />}
       </EsriModulesContext.Consumer>
     </MapErrorBoundary>
   );

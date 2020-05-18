@@ -4,6 +4,7 @@ import React from 'react';
 import styled from 'styled-components';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
+import highchartsAccessibility from 'highcharts/modules/accessibility';
 import WindowSize from '@reach/window-size';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -16,6 +17,9 @@ import { formatNumber } from 'utils/utils';
 import { dwmaps } from 'config/webServiceConfig';
 // errors
 import { grpaError } from 'config/errorMessages';
+
+// add accessibility features to highcharts
+highchartsAccessibility(Highcharts);
 
 function formatValue(value: ?string) {
   return value ? formatNumber(value) : '';
@@ -96,7 +100,7 @@ function WaterSystemSummary({ state }: Props) {
   });
   React.useEffect(() => {
     fetchCheck(`${dwmaps.getGPRASystemCountsByType}${state.code}`)
-      .then((res) => {
+      .then(res => {
         if (!res || !res.items || res.items.length === 0) {
           setSystemTypeRes({
             status: 'failure',
@@ -112,7 +116,7 @@ function WaterSystemSummary({ state }: Props) {
         let cwsCount = 0;
         let ntncwsCount = 0;
         let tncwsCount = 0;
-        res.items.forEach((item) => {
+        res.items.forEach(item => {
           if (item.primacy_agency_code !== state.code) return;
 
           const { pws_type_code, number_of_systems } = item;
@@ -130,7 +134,7 @@ function WaterSystemSummary({ state }: Props) {
           },
         });
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(err);
         setSystemTypeRes({
           status: 'failure',
@@ -151,8 +155,8 @@ function WaterSystemSummary({ state }: Props) {
 
   React.useEffect(() => {
     fetchCheck(`${dwmaps.getGPRASummary}${state.code}`)
-      .then((res) => setGpraData({ status: 'success', data: res.items[0] }))
-      .catch((err) => setGpraData({ status: 'failure', data: {} }));
+      .then(res => setGpraData({ status: 'success', data: res.items[0] }))
+      .catch(err => setGpraData({ status: 'failure', data: {} }));
   }, [state]);
 
   return (
@@ -200,7 +204,7 @@ function WaterSystemSummary({ state }: Props) {
                 type: 'pie',
               },
               tooltip: {
-                formatter: function() {
+                formatter: function () {
                   return `${this.key}<br/><b>${formatNumber(this.y)}</b>`;
                 },
               },
@@ -209,7 +213,7 @@ function WaterSystemSummary({ state }: Props) {
                   showInLegend: true,
                   dataLabels: {
                     enabled: true,
-                    formatter: function() {
+                    formatter: function () {
                       return formatNumber(this.y);
                     },
                   },

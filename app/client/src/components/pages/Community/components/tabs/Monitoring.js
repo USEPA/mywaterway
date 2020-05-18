@@ -116,39 +116,45 @@ type StationGroups = {
   },
 };
 
-type State = {
-  prevMonitoringLocationData: MonitoringLocationData,
-  monitoringLocationToggles: { [label: string]: boolean },
-  monitoringStationGroups: StationGroups,
-  allMonitoringStations: Array<Station>,
-  displayedMonitoringStations: Array<Station>,
-  allToggled: boolean,
-  sortBy: string,
-};
+function Monitoring({ esriModules, infoToggleChecked }: Props) {
+  const {
+    monitoringLocations,
+    monitoringGroups,
+    showAllMonitoring,
+    setMonitoringGroups,
+    monitoringStationsLayer,
+    setShowAllMonitoring,
+    watershed,
+  } = React.useContext(LocationSearchContext);
 
-class Monitoring extends React.Component<Props, State> {
-  static contextType = LocationSearchContext;
+  const [
+    prevMonitoringLocationData,
+    setPrevMonitoringLocationData,
+  ] = React.useState<MonitoringLocationData>({});
 
-  state: State = {
-    prevMonitoringLocationData: {},
-    monitoringLocationToggles: {},
-    monitoringStationGroups: {},
-    allMonitoringStations: [],
-    displayedMonitoringStations: [],
-    allToggled: true,
-    sortBy: 'MonitoringLocationName',
-  };
+  const [
+    monitoringLocationToggles,
+    setMonitoringLocationToggles,
+  ] = React.useState({});
 
-  storeMonitoringStations() {
-    const {
-      monitoringLocations,
-      monitoringGroups,
-      setMonitoringGroups,
-      showAllMonitoring,
-    } = this.context;
+  const [monitoringStationGroups, setMonitoringStationGroups] = React.useState(
+    {},
+  );
 
+  const [allMonitoringStations, setAllMonitoringStations] = React.useState([]);
+
+  const [
+    displayedMonitoringStations,
+    setDisplayedMonitoringStations,
+  ] = React.useState([]);
+
+  const [allToggled, setAllToggled] = React.useState(true);
+
+  const [sortBy, setSortBy] = React.useState('MonitoringLocationName');
+
+  const storeMonitoringStations = React.useCallback(() => {
     if (!monitoringLocations.data.features) {
-      this.setState({ allMonitoringStations: [] });
+      setAllMonitoringStations([]);
       return;
     }
 
@@ -210,38 +216,34 @@ class Monitoring extends React.Component<Props, State> {
       if (!groupAdded) monitoringStationGroups['Other'].stations.push(station);
     });
 
-    this.setState({
-      monitoringLocationToggles: monitoringGroups
-        ? monitoringGroups
-        : monitoringLocationToggles,
-      allMonitoringStations,
-      displayedMonitoringStations: allMonitoringStations,
-      monitoringStationGroups,
-      allToggled: showAllMonitoring,
-    });
+    if (monitoringGroups) {
+      setMonitoringLocationToggles(monitoringGroups);
+    } else {
+      setMonitoringLocationToggles(monitoringLocationToggles);
+    }
+
+    setAllMonitoringStations(allMonitoringStations);
+    setDisplayedMonitoringStations(allMonitoringStations);
+    setMonitoringStationGroups(monitoringStationGroups);
+    setAllToggled(showAllMonitoring);
 
     if (!monitoringGroups) setMonitoringGroups(monitoringLocationToggles);
-  }
+  }, [
+    monitoringGroups,
+    monitoringLocations,
+    setMonitoringGroups,
+    showAllMonitoring,
+  ]);
 
-  drawMap = () => {
-    const { Graphic } = this.props.esriModules;
-
-    const {
-      monitoringLocationToggles,
-      monitoringStationGroups,
-      allMonitoringStations,
-      allToggled,
-    } = this.state;
-
-    const { monitoringStationsLayer } = this.context;
-
+  const drawMap = React.useCallback(() => {
     if (allMonitoringStations.length === 0) return;
 
+    const { Graphic } = esriModules;
     const addedStationUids = [];
-    let displayedMonitoringStations = [];
+    let tempDisplayedMonitoringStations = [];
 
     if (allToggled) {
-      displayedMonitoringStations = allMonitoringStations;
+      tempDisplayedMonitoringStations = allMonitoringStations;
     } else {
       // var use intentional for IE support
       for (var key in monitoringStationGroups) {
@@ -252,7 +254,7 @@ class Monitoring extends React.Component<Props, State> {
             // add the station to the display, if it has not already been added
             if (!addedStationUids.includes(station.uid)) {
               addedStationUids.push(station.uid);
-              displayedMonitoringStations.push(station);
+              tempDisplayedMonitoringStations.push(station);
             }
           });
         }
@@ -261,274 +263,294 @@ class Monitoring extends React.Component<Props, State> {
 
     plotStations(
       Graphic,
-      displayedMonitoringStations,
+      tempDisplayedMonitoringStations,
       '#c500ff',
       monitoringStationsLayer,
     );
 
-    this.setState({ displayedMonitoringStations });
-  };
+    if (tempDisplayedMonitoringStations.length === 0) {
+      setDisplayedMonitoringStations([]);
+      return;
+    }
 
-  toggleSwitch = (groupLabel: string) => {
-    const { monitoringLocationToggles, allToggled } = this.state;
+    if (
+      displayedMonitoringStations.length ===
+      tempDisplayedMonitoringStations.length
+    ) {
+      return;
+    }
 
-    const toggleGroups = { ...monitoringLocationToggles };
+    setDisplayedMonitoringStations(tempDisplayedMonitoringStations);
+  }, [
+    displayedMonitoringStations,
+    allMonitoringStations,
+    allToggled,
+    esriModules,
+    monitoringLocationToggles,
+    monitoringStationGroups,
+    monitoringStationsLayer,
+  ]);
 
-    if (groupLabel === 'All') {
-      if (!allToggled) {
-        // toggle everything on
-        this.setState({ allToggled: true }, () => {
-          for (var key in toggleGroups) {
-            toggleGroups[key] = true;
+  const toggleSwitch = React.useCallback(
+    (groupLabel: string) => {
+      const toggleGroups = monitoringLocationToggles;
+
+      if (groupLabel === 'All') {
+        if (!allToggled) {
+          // toggle everything on
+          setAllToggled(true);
+          for (var toggle in toggleGroups) {
+            toggleGroups[toggle] = true;
           }
-        });
-        this.context.setShowAllMonitoring(true);
-      } else {
-        // toggle everything off
-        this.setState({ allToggled: false }, () => {
+
+          setShowAllMonitoring(true);
+          monitoringStationsLayer.visible = true;
+        } else {
+          // toggle everything off
+          setAllToggled(false);
           for (var key in toggleGroups) {
             toggleGroups[key] = false;
           }
-        });
-        this.context.setShowAllMonitoring(false);
+
+          setShowAllMonitoring(false);
+          monitoringStationsLayer.visible = false;
+        }
       }
-    }
-    // just one of the categories was changed
-    else {
-      toggleGroups[groupLabel] = !monitoringLocationToggles[groupLabel];
+      // just one of the categories was changed
+      else {
+        monitoringStationsLayer.visible = true;
+        toggleGroups[groupLabel] = !monitoringLocationToggles[groupLabel];
 
-      // if all other switches are toggled on, toggle the 'All' switch on
-      const groups = { ...toggleGroups };
-      delete groups['All'];
+        // if all other switches are toggled on, toggle the 'All' switch on
+        const groups = toggleGroups;
+        delete groups['All'];
 
-      const allOthersToggled = Object.keys(groups).every((group) => {
-        return groups[group];
-      });
+        const allOthersToggled = Object.keys(groups).every((group) => {
+          return groups[group];
+        });
 
-      this.setState({ allToggled: allOthersToggled });
-      this.context.setShowAllMonitoring(allOthersToggled);
-    }
+        setAllToggled(allOthersToggled);
+        setShowAllMonitoring(allOthersToggled);
+      }
 
-    this.context.setMonitoringGroups(toggleGroups);
-    this.setState(
-      { monitoringLocationToggles: toggleGroups },
-      () => this.drawMap(), //
-    );
-  };
+      setMonitoringGroups(toggleGroups);
+      setMonitoringLocationToggles(toggleGroups);
 
-  componentDidMount() {
-    this.storeMonitoringStations();
-  }
-
-  componentDidUpdate(prevProps: Props, prevState: State) {
-    const { monitoringLocations } = this.context;
-
-    // re-store monitoring stations if the data changes
-    if (monitoringLocations.data !== this.state.prevMonitoringLocationData) {
-      this.setState(
-        { prevMonitoringLocationData: monitoringLocations.data },
-        this.storeMonitoringStations(),
-      );
-    }
-
-    // return early if displayedMonitoringStations hasn't yet been set
-    if (this.state.displayedMonitoringStations.length === 0) return;
-
-    // redraw the map if the number of monitoring stations to display has changed
-    // (e.g. a toggle has been clicked)
-    if (
-      prevState.displayedMonitoringStations.length !==
-      this.state.displayedMonitoringStations.length
-    ) {
-      this.drawMap();
-    }
-  }
-
-  render() {
-    const { monitoringLocations, watershed } = this.context;
-
-    const {
-      monitoringLocationToggles,
-      monitoringStationGroups,
-      allMonitoringStations,
-      displayedMonitoringStations,
-      sortBy,
+      drawMap();
+    },
+    [
+      monitoringStationsLayer,
       allToggled,
-    } = this.state;
+      drawMap,
+      monitoringLocationToggles,
+      setMonitoringGroups,
+      setShowAllMonitoring,
+    ],
+  );
 
-    const sortedMonitoringStations = displayedMonitoringStations
-      ? displayedMonitoringStations.sort((objA, objB) => {
-          // sort resultCount (measurements) in descending order
-          if (sortBy === 'resultCount') {
-            return objB['properties'][sortBy] - objA['properties'][sortBy];
-          }
+  // emulate componentdidmount
+  const [componentMounted, setComponentMounted] = React.useState(false);
+  React.useEffect(() => {
+    if (componentMounted) return;
+    storeMonitoringStations();
+    setComponentMounted(true);
+  }, [componentMounted, storeMonitoringStations]);
 
-          if (sortBy === 'MonitoringLocationIdentifier') {
-            const idA = objA['properties'][sortBy].split('-')[1];
-            const idB = objB['properties'][sortBy].split('-')[1];
-            return idA.localeCompare(idB);
-          }
+  // emulate componentdidupdate
+  const mounted = React.useRef();
+  React.useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+    } else {
+      // re-store monitoring stations if the data changes
+      if (monitoringLocations.data !== prevMonitoringLocationData) {
+        setPrevMonitoringLocationData(monitoringLocations.data);
+        storeMonitoringStations();
+      }
 
-          return objA['properties'][sortBy].localeCompare(
-            objB['properties'][sortBy],
-          );
-        })
-      : [];
+      // return early if displayedMonitoringStations hasn't yet been set
+      if (displayedMonitoringStations.length === 0) return;
 
-    const totalLocations = allMonitoringStations.length.toLocaleString();
-    const displayLocations = sortedMonitoringStations.length.toLocaleString();
+      drawMap();
+    }
+  }, [
+    monitoringLocations,
+    prevMonitoringLocationData,
+    displayedMonitoringStations,
+    drawMap,
+    storeMonitoringStations,
+  ]);
 
-    return (
-      <Container>
-        {monitoringLocations.status === 'fetching' && <LoadingSpinner />}
+  const sortedMonitoringStations = displayedMonitoringStations
+    ? displayedMonitoringStations.sort((objA, objB) => {
+        // sort resultCount (measurements) in descending order
+        if (sortBy === 'resultCount') {
+          return objB['properties'][sortBy] - objA['properties'][sortBy];
+        }
 
-        {monitoringLocations.status === 'failure' && (
-          <StyledErrorBox>
-            <p>{monitoringError}</p>
-          </StyledErrorBox>
-        )}
+        if (sortBy === 'MonitoringLocationIdentifier') {
+          const idA = objA['properties'][sortBy].split('-')[1];
+          const idB = objB['properties'][sortBy].split('-')[1];
+          return idA.localeCompare(idB);
+        }
 
-        {monitoringLocations.status === 'success' && (
-          <>
-            {allMonitoringStations.length === 0 && (
-              <Text>
-                There are no Water Monitoring Locations in the {watershed}{' '}
-                watershed.
-              </Text>
-            )}
+        return objA['properties'][sortBy].localeCompare(
+          objB['properties'][sortBy],
+        );
+      })
+    : [];
 
-            {allMonitoringStations.length > 0 && (
-              <>
-                <Table className="table">
-                  <thead>
-                    <tr>
-                      <th>
-                        <Toggle>
-                          <Switch
-                            checked={allToggled}
-                            onChange={(ev) => this.toggleSwitch('All')}
-                          />
-                          <span>All Monitoring Locations</span>
-                        </Toggle>
-                      </th>
-                      <th>Count</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.values(monitoringStationGroups)
-                      .map((group) => {
-                        const { label, stations } = group;
-                        return (
-                          <tr key={label}>
-                            <td>
-                              <Toggle>
-                                <Switch
-                                  checked={monitoringLocationToggles[label]}
-                                  onChange={(ev) => this.toggleSwitch(label)}
-                                />
-                                <span>{label}</span>
-                              </Toggle>
-                            </td>
-                            <td>{stations.length.toLocaleString()}</td>
-                          </tr>
-                        );
-                      })
-                      .sort((a, b) => {
-                        // sort the switches with Other at the end
-                        if (a.key === 'Other') return 1;
-                        if (b.key === 'Other') return -1;
-                        return a.key > b.key ? 1 : -1;
-                      })}
-                  </tbody>
-                </Table>
+  const totalLocations = allMonitoringStations.length.toLocaleString();
+  const displayLocations = sortedMonitoringStations.length.toLocaleString();
 
-                {/* 
+  return (
+    <Container>
+      {monitoringLocations.status === 'fetching' && <LoadingSpinner />}
+
+      {monitoringLocations.status === 'failure' && (
+        <StyledErrorBox>
+          <p>{monitoringError}</p>
+        </StyledErrorBox>
+      )}
+
+      {monitoringLocations.status === 'success' && (
+        <>
+          {allMonitoringStations.length === 0 && (
+            <Text>
+              There are no Water Monitoring Locations in the {watershed}{' '}
+              watershed.
+            </Text>
+          )}
+
+          {allMonitoringStations.length > 0 && (
+            <>
+              <Table className="table">
+                <thead>
+                  <tr>
+                    <th>
+                      <Toggle>
+                        <Switch
+                          checked={allToggled}
+                          onChange={(ev) => toggleSwitch('All')}
+                        />
+                        <span>All Monitoring Locations</span>
+                      </Toggle>
+                    </th>
+                    <th>Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.values(monitoringStationGroups)
+                    .map((group) => {
+                      const { label, stations } = group;
+                      return (
+                        <tr key={label}>
+                          <td>
+                            <Toggle>
+                              <Switch
+                                checked={monitoringLocationToggles[label]}
+                                onChange={(ev) => toggleSwitch(label)}
+                              />
+                              <span>{label}</span>
+                            </Toggle>
+                          </td>
+                          <td>{stations.length.toLocaleString()}</td>
+                        </tr>
+                      );
+                    })
+                    .sort((a, b) => {
+                      // sort the switches with Other at the end
+                      if (a.key === 'Other') return 1;
+                      if (b.key === 'Other') return -1;
+                      return a.key > b.key ? 1 : -1;
+                    })}
+                </tbody>
+              </Table>
+
+              {/* 
                   The expand and collapse buttons are disabled for this 
                   accordion to avoid a large number of web service calls.
                   Each accordion item performs a web service call to fill
                   in the data for a table. 
                 */}
-                <AccordionList
-                  expandDisabled={true}
-                  title={`Displaying ${displayLocations} of ${totalLocations} Water Monitoring Locations in the ${watershed} watershed.`}
-                  onSortChange={(sortBy) =>
-                    this.setState({ sortBy: sortBy.value })
-                  }
-                  sortOptions={[
-                    {
-                      value: 'MonitoringLocationName',
-                      label: 'Monitoring Location Name',
-                    },
-                    {
-                      value: 'OrganizationIdentifier',
-                      label: 'Organization ID',
-                    },
-                    {
-                      value: 'MonitoringLocationIdentifier',
-                      label: 'Monitoring Site ID',
-                    },
-                    {
-                      value: 'resultCount',
-                      label: 'Monitoring Measurements',
-                    },
-                  ]}
-                >
-                  {sortedMonitoringStations.map((item, index) => {
-                    const { properties: prop } = item;
+              <AccordionList
+                expandDisabled={true}
+                title={`Displaying ${displayLocations} of ${totalLocations} Water Monitoring Locations in the ${watershed} watershed.`}
+                onSortChange={(sortBy) => setSortBy(sortBy.value)}
+                sortOptions={[
+                  {
+                    value: 'MonitoringLocationName',
+                    label: 'Monitoring Location Name',
+                  },
+                  {
+                    value: 'OrganizationIdentifier',
+                    label: 'Organization ID',
+                  },
+                  {
+                    value: 'MonitoringLocationIdentifier',
+                    label: 'Monitoring Site ID',
+                  },
+                  {
+                    value: 'resultCount',
+                    label: 'Monitoring Measurements',
+                  },
+                ]}
+              >
+                {sortedMonitoringStations.map((item, index) => {
+                  const { properties: prop } = item;
 
-                    const feature = {
-                      geometry: {
-                        type: 'point', // autocasts as new Point()
-                        longitude: item.x,
-                        latitude: item.y,
-                      },
-                      symbol: {
-                        type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
-                        style: 'square',
-                      },
-                      attributes: prop,
-                    };
+                  const feature = {
+                    geometry: {
+                      type: 'point', // autocasts as new Point()
+                      longitude: item.x,
+                      latitude: item.y,
+                    },
+                    symbol: {
+                      type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
+                      style: 'square',
+                    },
+                    attributes: prop,
+                  };
 
-                    return (
-                      <AccordionItem
-                        key={index}
-                        title={
-                          <strong>
-                            {prop['MonitoringLocationName'] || 'Unknown'}
-                          </strong>
-                        }
-                        subTitle={
-                          <>
-                            Organization ID: {prop['OrganizationIdentifier']}
-                            <br />
-                            Monitoring Site ID:{' '}
-                            {prop['MonitoringLocationIdentifier'].split('-')[1]}
-                            <br />
-                            Monitoring Measurements:{' '}
-                            {Number(prop['resultCount']).toLocaleString()}
-                          </>
-                        }
-                        feature={feature}
-                        idKey={'MonitoringLocationIdentifier'}
-                      >
-                        <AccordionContent>
-                          <WaterbodyInfo
-                            type={'Monitoring Location'}
-                            feature={feature}
-                          />
-                          <ViewOnMapButton feature={feature} />
-                        </AccordionContent>
-                      </AccordionItem>
-                    );
-                  })}
-                </AccordionList>
-              </>
-            )}
-          </>
-        )}
-      </Container>
-    );
-  }
+                  return (
+                    <AccordionItem
+                      key={index}
+                      title={
+                        <strong>
+                          {prop['MonitoringLocationName'] || 'Unknown'}
+                        </strong>
+                      }
+                      subTitle={
+                        <>
+                          Organization ID: {prop['OrganizationIdentifier']}
+                          <br />
+                          Monitoring Site ID:{' '}
+                          {prop['MonitoringLocationIdentifier'].split('-')[1]}
+                          <br />
+                          Monitoring Measurements:{' '}
+                          {Number(prop['resultCount']).toLocaleString()}
+                        </>
+                      }
+                      feature={feature}
+                      idKey={'MonitoringLocationIdentifier'}
+                    >
+                      <AccordionContent>
+                        <WaterbodyInfo
+                          type={'Monitoring Location'}
+                          feature={feature}
+                        />
+                        <ViewOnMapButton feature={feature} />
+                      </AccordionContent>
+                    </AccordionItem>
+                  );
+                })}
+              </AccordionList>
+            </>
+          )}
+        </>
+      )}
+    </Container>
+  );
 }
 
 export default function MonitoringContainer({ ...props }: Props) {
