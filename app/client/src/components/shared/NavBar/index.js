@@ -24,10 +24,13 @@ const BackButton = styled.button`
   background-color: transparent;
 `;
 
-const Text = styled.p`
+const Text = styled.h1`
   margin: auto;
   padding-bottom: 0;
   font-size: 1.5em;
+  font-family: inherit;
+  font-weight: inherit;
+  line-height: inherit;
 `;
 
 // --- components ---
