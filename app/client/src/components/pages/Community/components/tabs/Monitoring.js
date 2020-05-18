@@ -407,6 +407,7 @@ class Monitoring extends React.Component<Props, State> {
                           <Switch
                             checked={allToggled}
                             onChange={ev => this.toggleSwitch('All')}
+                            ariaLabel="All"
                           />
                           <span>All Monitoring Locations</span>
                         </Toggle>
@@ -425,6 +426,7 @@ class Monitoring extends React.Component<Props, State> {
                                 <Switch
                                   checked={monitoringLocationToggles[label]}
                                   onChange={ev => this.toggleSwitch(label)}
+                                  ariaLabel={label}
                                 />
                                 <span>{label}</span>
                               </Toggle>

@@ -214,6 +214,7 @@ function Overview({ esriModules, infoToggleChecked }: Props) {
                     });
                   }}
                   disabled={!Boolean(waterbodyCount)}
+                  ariaLabel="Waterbodies"
                 />
               </SwitchContainer>
             </>
@@ -257,6 +258,7 @@ function Overview({ esriModules, infoToggleChecked }: Props) {
                     });
                   }}
                   disabled={!Boolean(monitoringLocationCount)}
+                  ariaLabel="Monitoring Locations"
                 />
               </SwitchContainer>
             </>
@@ -297,6 +299,7 @@ function Overview({ esriModules, infoToggleChecked }: Props) {
                     });
                   }}
                   disabled={!Boolean(permittedDischargerCount)}
+                  ariaLabel="Permitted Dischargers"
                 />
               </SwitchContainer>
             </>

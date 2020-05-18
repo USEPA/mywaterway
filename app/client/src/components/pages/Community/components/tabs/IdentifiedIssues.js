@@ -549,6 +549,7 @@ class IdentifiedIssues extends React.Component<Props, State> {
                         zeroPollutedWaterbodies ||
                         cipSummary.status === 'failure'
                       }
+                      ariaLabel="Toggle Display of Impaired Waters"
                     />
                   </SwitchContainer>
                 </>
@@ -574,6 +575,7 @@ class IdentifiedIssues extends React.Component<Props, State> {
                         this.toggleSwitch('Toggle Dischargers Layer')
                       }
                       disabled={zeroDischargers}
+                      ariaLabel="Toggle Display of Dischargers"
                     />
                   </SwitchContainer>
                 </>
@@ -664,6 +666,7 @@ class IdentifiedIssues extends React.Component<Props, State> {
                                               onChange={() =>
                                                 this.toggleSwitch('Toggle All')
                                               }
+                                              ariaLabel="Toggle all categories"
                                             />
                                           </TableSwitch>
                                           Impairment Category
@@ -707,6 +710,9 @@ class IdentifiedIssues extends React.Component<Props, State> {
                                                       this.toggleSwitch(
                                                         mappedParameterName,
                                                       )
+                                                    }
+                                                    ariaLabel={
+                                                      mappedParameterName
                                                     }
                                                   />
                                                 </TableSwitch>
