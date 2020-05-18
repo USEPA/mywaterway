@@ -320,6 +320,10 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
 
   // check the data quality and log a non-fatal exception to Google Analytics
   // if necessary
+  const [
+    emptyCategoriesWithPercent,
+    setEmptyCategoriesWithPercent,
+  ] = React.useState(false);
   const [nullPollutedWaterbodies, setNullPollutedWaterbodies] = React.useState(
     false,
   );
@@ -334,6 +338,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
     } = cipSummary.data.items[0];
 
     // check for empty summaryByParameterImpairments array
+    let emptyCategoriesWithPercent = false;
     let pollutedPercent = formatNumber(
       Math.min(
         100,
@@ -342,6 +347,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
       ),
     );
     if (pollutedPercent > 0 && summaryByParameterImpairments.length === 0) {
+      emptyCategoriesWithPercent = true;
       window.ga('send', 'exception', {
         exDescription: `The summaryByParameterImpairments[] array is empty, even though ${pollutedPercent}% of assessed waters are impaired `,
         exFatal: false,
@@ -351,13 +357,15 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
     // check for null percent of assess waters impaired
     const nullPollutedWaterbodies =
       containImpairedWatersCatchmentAreaPercent === null ? true : false;
-    setNullPollutedWaterbodies(nullPollutedWaterbodies);
     if (nullPollutedWaterbodies) {
       window.ga('send', 'exception', {
         exDescription: `The "% of assessed waters are impaired" value is 0, even though there are ${summaryByParameterImpairments.length} items in the summaryByParameterImpairments[] array.`,
         exFatal: false,
       });
     }
+
+    setEmptyCategoriesWithPercent(emptyCategoriesWithPercent);
+    setNullPollutedWaterbodies(nullPollutedWaterbodies);
   }, [cipSummary]);
 
   const checkIfAllSwitchesToggled = (
@@ -673,100 +681,101 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
                           </Disclaimer>
                         </IntroDiv>
 
-                        {nullPollutedWaterbodies && (
+                        {emptyCategoriesWithPercent && (
                           <Text>
-                            Impairment Summary information is not available for
-                            the {watershed} watershed. Please see the Overview
-                            tab for specific impairment information on these
-                            waters.
+                            Impairment Summary information is temporarily
+                            unavailable for the {watershed} watershed. Please
+                            see the Overview tab for specific impairment
+                            information on these waters.
                           </Text>
                         )}
-                        {!nullPollutedWaterbodies &&
+                        {!emptyCategoriesWithPercent &&
                           zeroPollutedWaterbodies && (
                             <Text>
                               There are no impairment categories in the{' '}
                               {watershed} watershed.
                             </Text>
                           )}
-                        {!nullPollutedWaterbodies && !zeroPollutedWaterbodies && (
-                          <>
-                            <Title>
-                              Impairment categories in the {watershed}{' '}
-                              watershed.
-                            </Title>
-                            <Table className="table">
-                              <THead>
-                                <tr>
-                                  <th>
-                                    <FlexDiv>
-                                      <TableSwitch>
-                                        <Switch
-                                          checked={showAllParameters}
-                                          onChange={() =>
-                                            toggleSwitch('Toggle All')
-                                          }
-                                        />
-                                      </TableSwitch>
-                                      Impairment Category
-                                    </FlexDiv>
-                                  </th>
-                                  <th>% of Assessed Area</th>
-                                </tr>
-                              </THead>
-                              <tbody>
-                                {cipSummary.data.items[0].summaryByParameterImpairments.map(
-                                  param => {
-                                    const percent = formatNumber(
-                                      Math.min(
-                                        100,
-                                        (param['catchmentSizeSqMi'] /
-                                          cipSummary.data.items[0]
-                                            .assessedCatchmentAreaSqMi) *
+                        {!emptyCategoriesWithPercent &&
+                          !zeroPollutedWaterbodies && (
+                            <>
+                              <Title>
+                                Impairment categories in the {watershed}{' '}
+                                watershed.
+                              </Title>
+                              <Table className="table">
+                                <THead>
+                                  <tr>
+                                    <th>
+                                      <FlexDiv>
+                                        <TableSwitch>
+                                          <Switch
+                                            checked={showAllParameters}
+                                            onChange={() =>
+                                              toggleSwitch('Toggle All')
+                                            }
+                                          />
+                                        </TableSwitch>
+                                        Impairment Category
+                                      </FlexDiv>
+                                    </th>
+                                    <th>% of Assessed Area</th>
+                                  </tr>
+                                </THead>
+                                <tbody>
+                                  {cipSummary.data.items[0].summaryByParameterImpairments.map(
+                                    param => {
+                                      const percent = formatNumber(
+                                        Math.min(
                                           100,
-                                      ),
-                                    );
+                                          (param['catchmentSizeSqMi'] /
+                                            cipSummary.data.items[0]
+                                              .assessedCatchmentAreaSqMi) *
+                                            100,
+                                        ),
+                                      );
 
-                                    const mappedParameterName = getMappedParameterName(
-                                      impairmentFields,
-                                      param['parameterGroupName'],
-                                    );
-                                    // if service contains a parameter we have no mapping for
-                                    if (!mappedParameterName) return false;
+                                      const mappedParameterName = getMappedParameterName(
+                                        impairmentFields,
+                                        param['parameterGroupName'],
+                                      );
+                                      // if service contains a parameter we have no mapping for
+                                      if (!mappedParameterName) return false;
 
-                                    return (
-                                      <tr key={mappedParameterName}>
-                                        <td>
-                                          <FlexDiv>
-                                            <TableSwitch>
-                                              <Switch
-                                                checked={
-                                                  parameterToggleObject[
-                                                    mappedParameterName
-                                                  ]
-                                                }
-                                                onChange={() =>
-                                                  toggleSwitch(
-                                                    mappedParameterName,
-                                                  )
-                                                }
-                                              />
-                                            </TableSwitch>
-                                            {mappedParameterName}
-                                          </FlexDiv>
-                                        </td>
-                                        <td>
-                                          {nullPollutedWaterbodies === true
-                                            ? 'N/A'
-                                            : percent + '%'}
-                                        </td>
-                                      </tr>
-                                    );
-                                  },
-                                )}
-                              </tbody>
-                            </Table>
-                          </>
-                        )}
+                                      return (
+                                        <tr key={mappedParameterName}>
+                                          <td>
+                                            <FlexDiv>
+                                              <TableSwitch>
+                                                <Switch
+                                                  checked={
+                                                    parameterToggleObject[
+                                                      mappedParameterName
+                                                    ]
+                                                  }
+                                                  onChange={() =>
+                                                    toggleSwitch(
+                                                      mappedParameterName,
+                                                    )
+                                                  }
+                                                />
+                                              </TableSwitch>
+                                              {mappedParameterName}
+                                            </FlexDiv>
+                                          </td>
+                                          <td>
+                                            {nullPollutedWaterbodies === true
+                                              ? 'N/A'
+                                              : percent + '%'}
+                                          </td>
+                                        </tr>
+                                      );
+                                    },
+                                  )}
+                                </tbody>
+                              </Table>
+                            </>
+                          )}
                       </>
                     )}
                   </>
