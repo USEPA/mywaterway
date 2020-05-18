@@ -673,7 +673,22 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
                           </Disclaimer>
                         </IntroDiv>
 
-                        {!zeroPollutedWaterbodies ? (
+                        {nullPollutedWaterbodies && (
+                          <Text>
+                            Impairment Summary information is not available for
+                            the {watershed} watershed. Please see the Overview
+                            tab for specific impairment information on these
+                            waters.
+                          </Text>
+                        )}
+                        {!nullPollutedWaterbodies &&
+                          zeroPollutedWaterbodies && (
+                            <Text>
+                              There are no impairment categories in the{' '}
+                              {watershed} watershed.
+                            </Text>
+                          )}
+                        {!nullPollutedWaterbodies && !zeroPollutedWaterbodies && (
                           <>
                             <Title>
                               Impairment categories in the {watershed}{' '}
@@ -751,11 +766,6 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
                               </tbody>
                             </Table>
                           </>
-                        ) : (
-                          <Text>
-                            There are no impairment categories in the{' '}
-                            {watershed} watershed.
-                          </Text>
                         )}
                       </>
                     )}
