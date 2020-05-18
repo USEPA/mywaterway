@@ -30,9 +30,13 @@ import { fetchCheck } from 'utils/fetchUtils';
 // data
 import introText from 'components/pages/State/lookups/introText';
 // styles
-import { colors, fonts } from 'styles/index.js';
+import { colors, fonts, reactSelectStyles } from 'styles/index.js';
 // errors
-import { stateListError, stateNoDataError } from 'config/errorMessages';
+import {
+  stateListError,
+  stateNoDataError,
+  usesStateSummaryServiceInvalidResponse,
+} from 'config/errorMessages';
 
 // --- styled components ---
 const Container = styled.div`
@@ -58,7 +62,8 @@ const Container = styled.div`
   }
 `;
 
-const Prompt = styled.p`
+const Prompt = styled.label`
+  margin: 0;
   padding-bottom: 0;
 `;
 
@@ -154,11 +159,16 @@ function State({ children, ...props }: Props) {
   const [states, setStates] = React.useState({ status: 'fetching', data: [] });
   React.useEffect(() => {
     fetchCheck(`${attains.serviceUrl}states`)
-      .then((res) => setStates({ status: 'success', data: res.data }))
-      .catch((err) => setStates({ status: 'failure', data: [] }));
+      .then(res => setStates({ status: 'success', data: res.data }))
+      .catch(err => setStates({ status: 'failure', data: [] }));
   }, []);
 
-  const { activeState, setActiveState } = React.useContext(StateTabsContext);
+  const {
+    activeState,
+    setActiveState,
+    usesStateSummaryServiceError,
+    setUsesStateSummaryServiceError,
+  } = React.useContext(StateTabsContext);
 
   // reset active state if on state intro page
   React.useEffect(() => {
@@ -174,8 +184,9 @@ function State({ children, ...props }: Props) {
   // update selectedState whenever activeState changes
   // (e.g. when a user navigates directly to '/state/DC/advanced-search')
   React.useEffect(() => {
+    setUsesStateSummaryServiceError(false);
     setSelectedState(activeState);
-  }, [activeState]);
+  }, [activeState, setUsesStateSummaryServiceError]);
 
   // get the state intro and metrics data
   const stateIntro = introText[activeState.code];
@@ -195,7 +206,7 @@ function State({ children, ...props }: Props) {
 
         {states.status === 'success' && (
           <>
-            <Prompt>
+            <Prompt htmlFor="hmw-state-select-input">
               <strong>Let’s get started!</strong>&nbsp;&nbsp;
               <em>
                 Select your state or territory from the drop down to begin
@@ -204,7 +215,7 @@ function State({ children, ...props }: Props) {
             </Prompt>
 
             <Form
-              onSubmit={(ev) => {
+              onSubmit={ev => {
                 ev.preventDefault();
                 setActiveState(selectedState);
                 navigate(`/state/${selectedState.code}/water-quality-overview`);
@@ -212,9 +223,10 @@ function State({ children, ...props }: Props) {
             >
               <SelectStyled
                 id="hmw-state-select"
+                inputId="hmw-state-select-input"
                 classNamePrefix="Select"
                 placeholder="Select a state..."
-                options={states.data.map((state) => {
+                options={states.data.map(state => {
                   return { value: state.code, label: state.name };
                 })}
                 value={
@@ -225,12 +237,13 @@ function State({ children, ...props }: Props) {
                       }
                     : null
                 }
-                onChange={(ev) =>
+                onChange={ev =>
                   setSelectedState({
                     code: ev.value,
                     name: ev.label,
                   })
                 }
+                styles={reactSelectStyles}
               />
 
               <Button type="submit" className="btn">
@@ -240,79 +253,88 @@ function State({ children, ...props }: Props) {
           </>
         )}
 
-        <Content>
-          {activeState.code !== '' && (
-            <>
-              {!stateIntro ? (
-                <ErrorBox>
-                  <p>{stateNoDataError(activeState.name)}.</p>
-                </ErrorBox>
-              ) : (
-                <>
-                  {stateIntro.metrics.length > 0 && (
-                    <>
-                      <h2>
-                        <i className="fas fa-chart-line" />
-                        <strong>{activeState.name}</strong> by the Numbers
-                      </h2>
+        {usesStateSummaryServiceError ? (
+          <ErrorBox>
+            {usesStateSummaryServiceInvalidResponse(activeState.name)}
+          </ErrorBox>
+        ) : (
+          <Content>
+            {activeState.code !== '' && (
+              <>
+                {!stateIntro ? (
+                  <ErrorBox>
+                    <p>{stateNoDataError(activeState.name)}.</p>
+                  </ErrorBox>
+                ) : (
+                  <>
+                    {stateIntro.metrics.length > 0 && (
+                      <>
+                        <h2>
+                          <i className="fas fa-chart-line" />
+                          <strong>{activeState.name}</strong> by the Numbers
+                        </h2>
 
-                      <StyledMetrics>
-                        {stateIntro.metrics.map(
-                          (metric, index) =>
-                            metric &&
-                            metric.value &&
-                            metric.label && (
-                              <StyledMetric key={index}>
-                                <StyledNumber>{metric.value}</StyledNumber>
-                                <StyledLabel>
-                                  {metric.label}
-                                  <br />
-                                  <em>{metric.unit}</em>
-                                </StyledLabel>
-                              </StyledMetric>
-                            ),
-                        )}
-                      </StyledMetrics>
-                      <ByTheNumbersExplanation>
-                        Waters not assessed do not show up in summaries below.
-                      </ByTheNumbersExplanation>
-                    </>
-                  )}
+                        <StyledMetrics>
+                          {stateIntro.metrics.map(
+                            (metric, index) =>
+                              metric &&
+                              metric.value &&
+                              metric.label && (
+                                <StyledMetric key={index}>
+                                  <StyledNumber>{metric.value}</StyledNumber>
+                                  <StyledLabel>
+                                    {metric.label}
+                                    <br />
+                                    <em>{metric.unit}</em>
+                                  </StyledLabel>
+                                </StyledMetric>
+                              ),
+                          )}
+                        </StyledMetrics>
+                        <ByTheNumbersExplanation>
+                          Waters not assessed do not show up in summaries below.
+                        </ByTheNumbersExplanation>
+                      </>
+                    )}
 
-                  {stateIntro.intro && (
-                    <IntroBox>
+                    {stateIntro.intro && (
+                      <IntroBox>
+                        <p>
+                          <ShowLessMore
+                            text={stateIntro.intro}
+                            charLimit={450}
+                          />
+                        </p>
+                      </IntroBox>
+                    )}
+
+                    <Disclaimer>
                       <p>
-                        <ShowLessMore text={stateIntro.intro} charLimit={450} />
+                        The condition of a waterbody is dynamic and can change
+                        at any time, and the information in How’s My Waterway
+                        should only be used for general reference. If available,
+                        refer to local or state real-time water quality reports.
                       </p>
-                    </IntroBox>
-                  )}
+                      <p>
+                        Furthermore, users of this application should not rely
+                        on information relating to environmental laws and
+                        regulations posted on this application. Application
+                        users are solely responsible for ensuring that they are
+                        in compliance with all relevant environmental laws and
+                        regulations. In addition, EPA cannot attest to the
+                        accuracy of data provided by organizations outside of
+                        the federal government.
+                      </p>
+                    </Disclaimer>
+                  </>
+                )}
+              </>
+            )}
 
-                  <Disclaimer>
-                    <p>
-                      The condition of a waterbody is dynamic and can change at
-                      any time, and the information in How’s My Waterway should
-                      only be used for general reference. If available, refer to
-                      local or state real-time water quality reports.
-                    </p>
-                    <p>
-                      Furthermore, users of this application should not rely on
-                      information relating to environmental laws and regulations
-                      posted on this application. Application users are solely
-                      responsible for ensuring that they are in compliance with
-                      all relevant environmental laws and regulations. In
-                      addition, EPA cannot attest to the accuracy of data
-                      provided by organizations outside of the federal
-                      government.
-                    </p>
-                  </Disclaimer>
-                </>
-              )}
-            </>
-          )}
-
-          {/* children is either StateIntro or StateTabs */}
-          {children}
-        </Content>
+            {/* children is either StateIntro or StateTabs */}
+            {children}
+          </Content>
+        )}
       </Container>
     </Page>
   );

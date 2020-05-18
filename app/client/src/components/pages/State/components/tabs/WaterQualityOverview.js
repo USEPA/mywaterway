@@ -35,6 +35,8 @@ import { reportStatusOptions } from 'components/pages/State/lookups/reportStatus
 import { attains, grts } from 'config/webServiceConfig';
 // images
 import drinkingWaterIcon from 'components/pages/Community/images/drinking-water.png';
+// styles
+import { reactSelectStyles } from 'styles/index.js';
 // errors
 import {
   stateSurveySectionError,
@@ -44,7 +46,7 @@ import {
 
 function relabelWaterType(oldLabel) {
   let newLabel = 'Other Types';
-  Object.entries(waterTypeOptions).forEach((waterTypeOption) => {
+  Object.entries(waterTypeOptions).forEach(waterTypeOption => {
     const [waterType, aliases] = waterTypeOption;
     if (aliases.includes(oldLabel)) newLabel = waterType;
   });
@@ -231,6 +233,7 @@ function WaterQualityOverview({ ...props }: Props) {
     activeState,
     setCurrentReportStatus,
     setCurrentSummary,
+    setUsesStateSummaryServiceError,
   } = React.useContext(StateTabsContext);
 
   const [loading, setLoading] = React.useState(true);
@@ -281,7 +284,7 @@ function WaterQualityOverview({ ...props }: Props) {
       // need the documents and reportStatusCode
       const url = `${attains.serviceUrl}assessments?organizationId=${orgID}&reportingCycle=${year}&excludeAssessments=Y`;
       fetchCheck(url)
-        .then((res) => {
+        .then(res => {
           setAssessmentsLoading(false);
 
           if (!res || !res.items || res.items.length === 0) {
@@ -298,7 +301,7 @@ function WaterQualityOverview({ ...props }: Props) {
             : orgData.reportStatusCode;
           setCurrentReportStatus(reportStatus);
         })
-        .catch((err) => {
+        .catch(err => {
           console.error(err);
           setDocumentServiceError(true);
           setAssessmentsLoading(false);
@@ -309,11 +312,21 @@ function WaterQualityOverview({ ...props }: Props) {
 
   // summary service has the different years of data for recreation/eco/fish/water/other
   const fetchStateSummary = React.useCallback(
-    (orgID) => {
+    orgID => {
       let url = `${attains.serviceUrl}usesStateSummary?organizationId=${orgID}`;
 
       fetchCheck(url)
-        .then((res) => {
+        .then(res => {
+          // for states like Alaska that have no reporting cycles
+          if (
+            !res.data ||
+            !res.data.reportingCycles ||
+            res.data.reportingCycles.length === 0
+          ) {
+            setUsesStateSummaryServiceError(true);
+            return;
+          }
+
           setCurrentStateData(res.data);
 
           // get the latest reporting cycle
@@ -336,8 +349,15 @@ function WaterQualityOverview({ ...props }: Props) {
 
           fetchAssessments(orgID, currentReportingCycle);
         })
-        .catch((err) => {
+        .catch(err => {
           console.error('Error with attains summary web service: ', err);
+
+          // for states like Arkansas that cause internal server errors in ATTAINS when queried
+          if (err.status === 500) {
+            setUsesStateSummaryServiceError(true);
+            return;
+          }
+
           setServiceError(true);
           setLoading(false);
           setCurrentSummary({
@@ -346,7 +366,7 @@ function WaterQualityOverview({ ...props }: Props) {
           });
         });
     },
-    [fetchAssessments, setCurrentSummary],
+    [fetchAssessments, setCurrentSummary, setUsesStateSummaryServiceError],
   );
 
   // get state organization ID for summary service
@@ -355,12 +375,12 @@ function WaterQualityOverview({ ...props }: Props) {
     (stateID: string) => {
       const url = `${attains.serviceUrl}states/${stateID}/organizations`;
       fetchCheck(url)
-        .then((res) => {
+        .then(res => {
           let orgID;
 
           // look for an org id that is of type state
           if (res && res.data) {
-            res.data.forEach((org) => {
+            res.data.forEach(org => {
               if (org.type === 'State') orgID = org.id;
             });
           }
@@ -381,7 +401,7 @@ function WaterQualityOverview({ ...props }: Props) {
             return;
           }
         })
-        .catch((err) => {
+        .catch(err => {
           console.error('Error with attains org ID web service: ', err);
           setServiceError(true);
           setLoading(false);
@@ -434,10 +454,10 @@ function WaterQualityOverview({ ...props }: Props) {
   ]);
 
   // Get the survey data and survey documents
-  const fetchSurveyData = (orgID) => {
+  const fetchSurveyData = orgID => {
     const url = `${attains.serviceUrl}surveys?organizationId=${orgID}`;
     fetchCheck(url)
-      .then((res) => {
+      .then(res => {
         setSurveyLoading(false);
 
         if (
@@ -460,7 +480,7 @@ function WaterQualityOverview({ ...props }: Props) {
         setSurveyData(surveys[0]);
         setSurveyDocuments(surveys[0].documents);
       })
-      .catch((err) => {
+      .catch(err => {
         console.error('Error with surveys org ID web service: ', err);
         setSurveyServiceError(true);
         setSurveyLoading(false);
@@ -474,10 +494,10 @@ function WaterQualityOverview({ ...props }: Props) {
     if (!stories.nextUrl) return;
 
     fetchCheck(stories.nextUrl)
-      .then((res) => {
+      .then(res => {
         // filter stories that have no description text or url
         const filteredItems = res.items.filter(
-          (story) => story.ss_overview && story.web_link,
+          story => story.ss_overview && story.web_link,
         );
         setStories({
           data: [...stories.data, ...filteredItems],
@@ -485,7 +505,7 @@ function WaterQualityOverview({ ...props }: Props) {
           nextUrl: res.next ? res.next.$ref : '',
         });
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(err);
         setStories({
           status: 'failure',
@@ -503,7 +523,7 @@ function WaterQualityOverview({ ...props }: Props) {
 
     //get the list of possible uses
     let possibleUses = {};
-    stateNationalUses.forEach((item) => {
+    stateNationalUses.forEach(item => {
       if (item.state === activeState.code && item.category === category) {
         // make sure to use upper case to prevent duplicate uses
         possibleUses[item.name.toUpperCase()] = item;
@@ -525,11 +545,11 @@ function WaterQualityOverview({ ...props }: Props) {
       // get a list of unique water type codes
       ...new Set(
         waterTypes
-          .filter((item) => {
+          .filter(item => {
             // add the item if it has a use relevant to
             // the selected tab
             let hasUse = false;
-            item.useAttainments.forEach((use) => {
+            item.useAttainments.forEach(use => {
               if (
                 topicUses.hasOwnProperty(use.useName.toUpperCase()) &&
                 hasUseValues(use)
@@ -542,7 +562,7 @@ function WaterQualityOverview({ ...props }: Props) {
               return relabelWaterType(item.waterTypeCode);
             } else return null;
           })
-          .map((item) => relabelWaterType(item.waterTypeCode)),
+          .map(item => relabelWaterType(item.waterTypeCode)),
       ),
     ].sort();
 
@@ -557,8 +577,8 @@ function WaterQualityOverview({ ...props }: Props) {
     let useList = []; //used for dropdown (excludes duplicate names)
     let completeUseList = []; //used for aggregrate data (includes duplicate names)
     if (waterTypeData) {
-      waterTypeData.forEach((waterTypeItem) => {
-        waterTypeItem['useAttainments'].forEach((use) => {
+      waterTypeData.forEach(waterTypeItem => {
+        waterTypeItem['useAttainments'].forEach(use => {
           let useName = use.useName.toUpperCase();
           if (topicUses.hasOwnProperty(useName) && hasUseValues(use)) {
             if (!addedUses.includes(useName)) {
@@ -577,8 +597,8 @@ function WaterQualityOverview({ ...props }: Props) {
     setUseList(useList);
     setCompleteUseList(completeUseList);
     const displayUses = useList
-      .filter((use) => topicUses.hasOwnProperty(use.useName.toUpperCase()))
-      .map((use) => titleCase(use.useName))
+      .filter(use => topicUses.hasOwnProperty(use.useName.toUpperCase()))
+      .map(use => titleCase(use.useName))
       .sort();
     setDisplayUses(displayUses);
   }, [topicUses, waterTypeData, useSelected]);
@@ -588,18 +608,19 @@ function WaterQualityOverview({ ...props }: Props) {
     let yearData =
       yearSelected &&
       currentStateData.reportingCycles &&
+      currentStateData.reportingCycles.length > 0 &&
       currentStateData.reportingCycles.find(
-        (x) => x['reportingCycle'] === yearSelected,
+        x => x['reportingCycle'] === yearSelected,
       );
 
     if (yearData) {
       // Build a list of water types that includes the simple water type attribute.
       const waterTypes = [];
-      yearData['waterTypes'].forEach((waterType) => {
+      yearData['waterTypes'].forEach(waterType => {
         // Get the simple water type name (i.e. one of the types in the dropdown)
         // from the detailed water type
         let simpleWaterType = 'Other Types'; // if it's not found use "Other Types"
-        Object.entries(waterTypeOptions).forEach((option) => {
+        Object.entries(waterTypeOptions).forEach(option => {
           const [key, value] = option;
           if (value.includes(waterType.waterTypeCode)) simpleWaterType = key;
         });
@@ -638,7 +659,7 @@ function WaterQualityOverview({ ...props }: Props) {
     const waterTypeData =
       waterType &&
       waterTypes &&
-      waterTypes.filter((x) => waterType === x['simpleWaterType']);
+      waterTypes.filter(x => waterType === x['simpleWaterType']);
     setWaterTypeData(waterTypeData);
   }, [waterTypes, waterType]);
 
@@ -646,7 +667,7 @@ function WaterQualityOverview({ ...props }: Props) {
   React.useEffect(() => {
     if (useList && useList.length > 0) {
       // set to the user's selection if it is availble
-      if (useList.some((e) => e.useName.toUpperCase() === userSelectedUse)) {
+      if (useList.some(e => e.useName.toUpperCase() === userSelectedUse)) {
         setUseSelected(titleCase(userSelectedUse));
       }
 
@@ -674,16 +695,16 @@ function WaterQualityOverview({ ...props }: Props) {
     // build a list of subpopulation codes
     let subPopulationCodes = [];
     surveyData.surveyWaterGroups
-      .filter((x) =>
+      .filter(x =>
         waterTypeOptions[waterType].includes(x['waterTypeGroupCode']),
       )
-      .forEach((waterGroup) => {
+      .forEach(waterGroup => {
         // ensure the waterGroup has a use that matches the selected use
         let hasUse = false;
         let surveyUseCodeUpper = '';
         let useSelectedUpper = '';
         let topicSurveyUseCode = '';
-        waterGroup.surveyWaterGroupUseParameters.forEach((param) => {
+        waterGroup.surveyWaterGroupUseParameters.forEach(param => {
           surveyUseCodeUpper = param.surveyUseCode.toUpperCase();
           useSelectedUpper = useSelected.toUpperCase();
           topicSurveyUseCode = topicUses[
@@ -739,7 +760,7 @@ function WaterQualityOverview({ ...props }: Props) {
   ];
 
   // get index of initial current topic (initialized to 'drinking' above)
-  const initialTabIndex = tabs.map((tab) => tab.id).indexOf(currentTopic);
+  const initialTabIndex = tabs.map(tab => tab.id).indexOf(currentTopic);
 
   // we need change the currentTopic whenever a tab changes, which means we
   // unfortunately  need to manage the activeTabIndex (an implementation detail)
@@ -770,18 +791,18 @@ function WaterQualityOverview({ ...props }: Props) {
         <strong>{activeState.name}</strong> Water Quality
       </Heading>
 
-      <h4>Choose a Topic:</h4>
+      <h3>Choose a Topic:</h3>
 
       <TopicTabs>
         <Tabs
           index={activeTabIndex}
-          onChange={(index) => {
+          onChange={index => {
             setActiveTabIndex(index);
             setCurrentTopic(tabs[index].id);
           }}
         >
           <TabContainer>
-            {tabs.map((tab) => (
+            {tabs.map(tab => (
               <TopicTab key={tab.id} data-testid={`hmw-${tab.id}-tab-button`}>
                 <TopicIcon>{tab.icon}</TopicIcon>
                 {tab.title}
@@ -790,7 +811,7 @@ function WaterQualityOverview({ ...props }: Props) {
           </TabContainer>
 
           <TabPanels>
-            {tabs.map((tab) => (
+            {tabs.map(tab => (
               <TabPanel key={tab.id} data-testid={`hmw-${tab.id}-tab-panel`}>
                 <FiltersSection>
                   <h4>Pick your Water Type and Use:</h4>
@@ -804,7 +825,7 @@ function WaterQualityOverview({ ...props }: Props) {
                         id={`water-type-${tab.id}`}
                         inputId={`water-type-input-${tab.id}`}
                         classNamePrefix="Select"
-                        options={displayWaterTypes.map((waterType) => {
+                        options={displayWaterTypes.map(waterType => {
                           return { value: waterType, label: waterType };
                         })}
                         value={
@@ -812,13 +833,14 @@ function WaterQualityOverview({ ...props }: Props) {
                             ? { value: waterType, label: waterType }
                             : null
                         }
-                        onChange={(ev) => setUserSelectedWaterType(ev.value)}
+                        onChange={ev => setUserSelectedWaterType(ev.value)}
                         isDisabled={displayWaterTypes.length <= 0}
                         placeholder={
                           displayWaterTypes.length <= 0
                             ? 'No Available Water Types'
                             : 'Select...'
                         }
+                        styles={reactSelectStyles}
                       />
                     </Input>
 
@@ -828,7 +850,7 @@ function WaterQualityOverview({ ...props }: Props) {
                         id={`water-use-${tab.id}`}
                         inputId={`water-use-input-${tab.id}`}
                         classNamePrefix="Select"
-                        options={displayUses.map((use) => {
+                        options={displayUses.map(use => {
                           return { value: use, label: use };
                         })}
                         value={
@@ -836,7 +858,7 @@ function WaterQualityOverview({ ...props }: Props) {
                             ? { value: useSelected, label: useSelected }
                             : null
                         }
-                        onChange={(ev) =>
+                        onChange={ev =>
                           setUserSelectedUse(ev.value.toUpperCase())
                         }
                         isDisabled={displayUses.length <= 0}
@@ -845,6 +867,7 @@ function WaterQualityOverview({ ...props }: Props) {
                             ? 'No Available Uses'
                             : 'Select...'
                         }
+                        styles={reactSelectStyles}
                       />
                     </Input>
                   </Inputs>

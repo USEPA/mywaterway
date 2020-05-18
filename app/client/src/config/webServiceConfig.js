@@ -3,7 +3,7 @@ const ofmpubURL = 'https://ofmpub.epa.gov/';
 
 export const glossaryURL =
   `https://etss.epa.gov/synaptica_rest_services/api/vocabs/name/` +
-  `How's%20My%20Waterway%20Glossary/terms/full`;
+  `HMW%20Glossary/terms/full`;
 
 export const waterQualityPortal = {
   stationSearch: `${wqpURL}data/Station/search?`,
@@ -19,6 +19,7 @@ export const echoNPDES = {
 
 export const dwmaps = {
   getPWSHUC12: `${ofmpubURL}apex/sfdw_rest/GetPWSWMHUC12/`,
+  GetPWSWMHUC12FIPS: `${ofmpubURL}apex/sfdw_rest/GetPWSWMHUC12FIPS/`,
   getGPRASummary: `${ofmpubURL}apex/sfdw_rest/GetGPRASummary/`,
   getGPRASystemCountsByType: `${ofmpubURL}apex/sfdw_rest/GetGPRASystemCountsByType/`,
 };
@@ -110,6 +111,14 @@ export const webServiceMapping = [
   },
   {
     wildcardUrl: `${dwmaps.getPWSHUC12}*`,
+    name: 'ofmpub - drinking water providers',
+  },
+  {
+    wildcardUrl: `${dwmaps.GetPWSWMHUC12FIPS}*/ZCzc/ZCzc`,
+    name: 'ofmpub - drinking water withdrawers',
+  },
+  {
+    wildcardUrl: `${dwmaps.GetPWSWMHUC12FIPS}*`,
     name: 'ofmpub - drinking water providers',
   },
   {

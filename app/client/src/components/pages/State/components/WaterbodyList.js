@@ -108,7 +108,7 @@ function WaterbodyList({
           { value: 'assessmentunitname', label: 'Waterbody Name' },
           { value: 'assessmentunitidentifier', label: 'Assessment Unit Id' },
         ]}
-        onSortChange={(sortBy) => setSortBy(sortBy.value)}
+        onSortChange={sortBy => setSortBy(sortBy.value)}
       >
         <WaterbodyItems
           sortedWaterbodies={sortedWaterbodies}
@@ -239,7 +239,7 @@ function WaterbodyItems({ sortedWaterbodies, allExpanded, fieldName }) {
               // add the item to the expandedRows array so the accordion item
               // will stay expanded when the user scrolls or highlights map items
               if (expandedRows.includes(index)) {
-                setExpandedRows(expandedRows.filter((item) => item !== index));
+                setExpandedRows(expandedRows.filter(item => item !== index));
               } else setExpandedRows(expandedRows.concat(index));
             }}
           >

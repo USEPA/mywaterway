@@ -28,11 +28,25 @@
   },
   "scripts": {
     "client": "cd client && npm start",
+    "coverage_client": "cd client && npm run coverage",
     "server": "cd server && npm start",
     "start": "concurrently --kill-others \"npm run server\" \"npm run client\"",
-    "setup": "echo \"Installing project dependencies...\" && npm ci && echo \"Installing client dependencies...\" && cd client && npm ci && echo \"Installing server dependencies...\" && cd .. && cd server && npm ci"
+    "setup": "echo \"Installing project dependencies...\" && npm ci && echo \"Installing client dependencies...\" && cd client && npm ci && echo \"Installing server dependencies...\" && cd .. && cd server && npm ci",
+    "cypress": "concurrently --kill-others \"npm run server\" \"npm run client\" \"cypress open\"",
+    "coverage": "concurrently --kill-others \"npm run server\" \"npm run coverage_client\" \"cypress open\""
   },
   "devDependencies": {
-    "concurrently": "5.1.0"
+    "@cypress/code-coverage": "^3.7.4",
+    "@testing-library/cypress": "6.0.0",
+    "concurrently": "5.2.0",
+    "cypress": "4.5.0",
+    "eslint-plugin-cypress": "2.10.3",
+    "istanbul-lib-coverage": "^3.0.0",
+    "nyc": "^15.0.1"
+  },
+  "eslintConfig": {
+    "extends": [
+      "plugin:cypress/recommended"
+    ]
   }
 }

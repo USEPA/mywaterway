@@ -123,7 +123,7 @@ function WaterbodyInfo({
 
   const waterbodyPollutionCategories = (label: string) => {
     const pollutionCategories = impairmentFields
-      .filter((field) => attributes[field.value] === 'Cause')
+      .filter(field => attributes[field.value] === 'Cause')
       .sort((a, b) =>
         a.label.toUpperCase().localeCompare(b.label.toUpperCase()),
       )
@@ -171,12 +171,12 @@ function WaterbodyInfo({
     const useBasedCondition = getWaterbodyCondition(attributes, field);
 
     // create applicable fields to check against when displaying the table
-    const waterbodyConditions = useFields.map((field) => {
+    const waterbodyConditions = useFields.map(field => {
       return getWaterbodyCondition(attributes, field.value).label;
     });
 
     const applicableFields =
-      waterbodyConditions.filter((value) => {
+      waterbodyConditions.filter(value => {
         return value !== 'Not Applicable';
       }) || [];
 
@@ -349,13 +349,13 @@ function WaterbodyInfo({
       `${attributes.MonitoringLocationIdentifier}`;
 
     fetchCheck(wqpUrl)
-      .then((res) => {
+      .then(res => {
         const fieldName = 'characteristicGroupResultCount';
 
         // get the feature where the provider matches this stations provider
         // default to the first feature
         let groups = res.features[0].properties[fieldName];
-        res.features.forEach((feature) => {
+        res.features.forEach(feature => {
           if (feature.properties.ProviderName === attributes.ProviderName) {
             groups = feature.properties[fieldName];
           }
@@ -374,7 +374,7 @@ function WaterbodyInfo({
           data,
         });
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(err);
         setMonitoringLocation({
           status: 'failure',
@@ -387,7 +387,7 @@ function WaterbodyInfo({
   const [selected, setSelected] = React.useState({});
   const [selectAll, setSelectAll] = React.useState(1);
   const monitoringContent = () => {
-    const buildFilter = (selected) => {
+    const buildFilter = selected => {
       // build up filter text for the given table
       let filter = '';
       for (const name in selected) {
@@ -414,7 +414,7 @@ function WaterbodyInfo({
       if (monitoringLocation.data.length > 0) {
         const newValue = selectAll === 0 ? true : false;
 
-        monitoringLocation.data.forEach((x) => {
+        monitoringLocation.data.forEach(x => {
           newSelected[x.characteristicGroup] = newValue;
         });
       }
@@ -513,7 +513,7 @@ function WaterbodyInfo({
                           type="checkbox"
                           className="checkbox"
                           checked={selectAll === 1}
-                          ref={(input) => {
+                          ref={input => {
                             if (input) {
                               input.indeterminate = selectAll === 2;
                             }

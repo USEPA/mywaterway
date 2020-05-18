@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import WindowSize from '@reach/window-size';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
+import highchartsAccessibility from 'highcharts/modules/accessibility';
 import Select from 'react-select';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -15,7 +16,10 @@ import { formatNumber, titleCase, titleCaseWithExceptions } from 'utils/utils';
 import { surveyMapping } from 'components/pages/State/lookups/surveyMapping';
 import { waterTypeOptions } from 'components/pages/State/lookups/waterTypeOptions';
 // styles
-import { fonts, colors } from 'styles/index.js';
+import { fonts, colors, reactSelectStyles } from 'styles/index.js';
+
+// add accessibility features to highcharts
+highchartsAccessibility(Highcharts);
 
 // --- styled components ---
 const ChartFooter = styled.p`
@@ -96,14 +100,12 @@ function SurveyResults({
     if (subPopulationCodes && subPopulationCodes.length > 0) {
       // set to the user's selection if it is availble
       if (
-        subPopulationCodes.some(
-          (e) => e.subPopulationCode === userSelectedSubPop,
-        )
+        subPopulationCodes.some(e => e.subPopulationCode === userSelectedSubPop)
       ) {
         setSelectedSubPop(userSelectedSubPop);
         setSelectedSurveyGroup(
           subPopulationCodes.find(
-            (item) => item.subPopulationCode === userSelectedSubPop,
+            item => item.subPopulationCode === userSelectedSubPop,
           ),
         );
       }
@@ -163,13 +165,13 @@ function SurveyResults({
     let stressorItems = [];
     let locConfidenceLevel = '';
     surveyData.surveyWaterGroups
-      .filter((x) => {
+      .filter(x => {
         return (
           waterTypeOptions[waterType].includes(x['waterTypeGroupCode']) &&
           selectedSubPop === x['subPopulationCode']
         );
       })
-      .forEach((waterGroup) => {
+      .forEach(waterGroup => {
         // get the categoryCodeMapping and stressorMapping for the current selections
         let categoryMapping = null;
         let stressorMapping = null;
@@ -210,7 +212,7 @@ function SurveyResults({
         }
 
         let confidenceLvlSet = false;
-        waterGroup.surveyWaterGroupUseParameters.forEach((param) => {
+        waterGroup.surveyWaterGroupUseParameters.forEach(param => {
           let useSelectedUpper = useSelected.toUpperCase();
           let topicUseSelected = topicUses[useSelectedUpper];
           let paramSurveyUseCode = param.surveyUseCode.toUpperCase();
@@ -304,11 +306,11 @@ function SurveyResults({
     // Build the stressor chart data array by looping through all category codes
     // and stressor names for the current selection to ensure that missing
     // category codes (i.e. good, bad, etc.) get filled in with 0s.
-    Object.values(allCategoryCodes).forEach((categoryCode) => {
+    Object.values(allCategoryCodes).forEach(categoryCode => {
       const data = [];
 
       // loop through all stressor names for the current selection
-      allStressorNames.forEach((stressor) => {
+      allStressorNames.forEach(stressor => {
         // build the x axis labels list
         const stressorLabel = titleCaseWithExceptions(stressor);
         if (!xAxisLabels.includes(stressorLabel)) {
@@ -318,7 +320,7 @@ function SurveyResults({
         // get the stressor objects for the stressor and survey category code
         // currently being processed
         const filteredStressorItems = stressorItems.filter(
-          (item) =>
+          item =>
             item.stressor === stressor &&
             item.surveyCategoryCode === categoryCode.surveyCategoryCode,
         );
@@ -404,12 +406,13 @@ function SurveyResults({
             <Select
               inputId={`population-${populationId}`}
               classNamePrefix="Select"
-              options={subPopulationCodes.map((item) => {
+              options={subPopulationCodes.map(item => {
                 const value = item.subPopulationCode;
                 return { value, label: value };
               })}
               value={{ value: selectedSubPop, label: selectedSubPop }}
-              onChange={(ev) => setUserSelectedSubPop(ev.value)}
+              onChange={ev => setUserSelectedSubPop(ev.value)}
+              styles={reactSelectStyles}
             />
             {populationDistance && <small>({populationDistance})</small>}
           </Input>
@@ -437,7 +440,7 @@ function SurveyResults({
                   plotShadow: false,
                 },
                 tooltip: {
-                  formatter: function() {
+                  formatter: function () {
                     const value = formatNumber(this.y, 1);
                     return `${this.key}<br/><b>${value}%</b>`;
                   },
@@ -448,7 +451,7 @@ function SurveyResults({
                     showInLegend: true,
                     dataLabels: {
                       ...chartOptions.plotOptions.all.dataLabels,
-                      formatter: function() {
+                      formatter: function () {
                         if (!this.point.isConfidenceLevel) {
                           return formatNumber(this.y, 1) + '%';
                         } else {
@@ -469,7 +472,7 @@ function SurveyResults({
                   layout: width >= 992 ? 'vertical' : 'horizontal',
                   align: width >= 992 ? 'right' : 'center',
                   useHTML: true, // display the +/- symbol (&#177;)
-                  labelFormatter: function() {
+                  labelFormatter: function () {
                     if (this.isConfidenceLevel) {
                       // confidence level is not actually a legend item, just text
                       return this.name;
@@ -512,7 +515,7 @@ function SurveyResults({
                       height: xAxisLabels.length * 30 + 90,
                     },
                     tooltip: {
-                      formatter: function() {
+                      formatter: function () {
                         const value = formatNumber(this.y, 1);
                         return `${this.key}<br/>
                     ${this.series.name}: <b>${value}%</b>`;
@@ -526,7 +529,7 @@ function SurveyResults({
                         groupPadding: 0,
                         dataLabels: {
                           ...chartOptions.plotOptions.all.dataLabels,
-                          formatter: function() {
+                          formatter: function () {
                             const value = formatNumber(this.y, 1);
                             return value !== '0' ? `${value}%` : '';
                           },

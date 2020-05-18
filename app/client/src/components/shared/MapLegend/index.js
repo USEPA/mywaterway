@@ -60,7 +60,7 @@ type Props = {
 
 function MapLegend({ visibleLayers }: Props) {
   const filteredVisibleLayers = visibleLayers.filter(
-    (layer) => !ignoreLayers.includes(layer.id),
+    layer => !ignoreLayers.includes(layer.id),
   );
 
   // no legend data
@@ -243,7 +243,7 @@ function MapLegendContent({ layer }: CardProps) {
   const actionsWaterbodiesLegend = (
     <LI>
       <ImageContainer>
-        {squareIcon({ color: '#007BFF', strokeWidth: 0 })}
+        {squareIcon({ color: 'rgb(0, 123, 255)', strokeWidth: 0 })}
       </ImageContainer>
       <LegendLabel>Waterbody</LegendLabel>
     </LI>
