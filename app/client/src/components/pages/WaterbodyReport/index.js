@@ -423,7 +423,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                 }
               : use.useAttainmentCode === 'I'
               ? {
-                  textColor: colors.white(0.9375),
+                  textColor: colors.black(0.9375),
                   bgColor: '#a879d8',
                   text: 'Insufficient Info',
                 }
@@ -435,12 +435,12 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                 }
               : use.useAttainmentCode === 'N'
               ? {
-                  textColor: colors.white(0.9375),
+                  textColor: colors.black(0.9375),
                   bgColor: '#f93b5b',
                   text: 'Impaired',
                 }
               : {
-                  textColor: colors.white(0.9375),
+                  textColor: colors.black(0.9375),
                   bgColor: '#a879d8',
                   text: 'Unknown',
                 };
@@ -1132,50 +1132,54 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                       monitoringLocations.data.length > 0)) && (
                   */}
 
-                  {// NOTE: Water Monitoring section not ready as of 11/21/19
-                  // TODO: replace `false & (` with commented out conditions above
-                  // whenever Water Monitoring section is ready to be displayed
-                  false && (
-                    <StyledBox>
-                      <StyledBoxHeading>Water Monitoring</StyledBoxHeading>
+                  {
+                    // NOTE: Water Monitoring section not ready as of 11/21/19
+                    // TODO: replace `false & (` with commented out conditions above
+                    // whenever Water Monitoring section is ready to be displayed
+                    false && (
+                      <StyledBox>
+                        <StyledBoxHeading>Water Monitoring</StyledBoxHeading>
 
-                      <StyledBoxSection>
-                        <h3>Does this water have monitoring locations?</h3>
-                        {monitoringLocations.status === 'fetching' && (
-                          <LoadingSpinner />
-                        )}
-                        {monitoringLocations.status === 'failure' && (
-                          <ErrorBox>
-                            <p>{waterbodyReportError('Monitoring location')}</p>
-                          </ErrorBox>
-                        )}
-                        {monitoringLocations.status === 'success' && (
-                          <Locations>
-                            {monitoringLocations.data.map(location => {
-                              const { orgId, locId, name, url } = location;
-                              return (
-                                <li key={locId}>
-                                  {name ? (
-                                    <a
-                                      href={url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                    >
-                                      {name} (ID: {orgId}-{locId})
-                                    </a>
-                                  ) : (
-                                    <>
-                                      Unknown name (ID: {orgId}-{locId})
-                                    </>
-                                  )}
-                                </li>
-                              );
-                            })}
-                          </Locations>
-                        )}
-                      </StyledBoxSection>
-                    </StyledBox>
-                  )}
+                        <StyledBoxSection>
+                          <h3>Does this water have monitoring locations?</h3>
+                          {monitoringLocations.status === 'fetching' && (
+                            <LoadingSpinner />
+                          )}
+                          {monitoringLocations.status === 'failure' && (
+                            <ErrorBox>
+                              <p>
+                                {waterbodyReportError('Monitoring location')}
+                              </p>
+                            </ErrorBox>
+                          )}
+                          {monitoringLocations.status === 'success' && (
+                            <Locations>
+                              {monitoringLocations.data.map(location => {
+                                const { orgId, locId, name, url } = location;
+                                return (
+                                  <li key={locId}>
+                                    {name ? (
+                                      <a
+                                        href={url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                      >
+                                        {name} (ID: {orgId}-{locId})
+                                      </a>
+                                    ) : (
+                                      <>
+                                        Unknown name (ID: {orgId}-{locId})
+                                      </>
+                                    )}
+                                  </li>
+                                );
+                              })}
+                            </Locations>
+                          )}
+                        </StyledBoxSection>
+                      </StyledBox>
+                    )
+                  }
                 </StyledColumn>
               </StyledColumns>
             );
