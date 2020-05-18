@@ -423,7 +423,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                 }
               : use.useAttainmentCode === 'I'
               ? {
-                  textColor: colors.white(0.9375),
+                  textColor: colors.black(0.9375),
                   bgColor: '#a879d8',
                   text: 'Insufficient Info',
                 }
@@ -435,12 +435,12 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                 }
               : use.useAttainmentCode === 'N'
               ? {
-                  textColor: colors.white(0.9375),
+                  textColor: colors.black(0.9375),
                   bgColor: '#f93b5b',
                   text: 'Impaired',
                 }
               : {
-                  textColor: colors.white(0.9375),
+                  textColor: colors.black(0.9375),
                   bgColor: '#a879d8',
                   text: 'Unknown',
                 };
@@ -621,7 +621,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
   }, [auId, orgId]);
 
   // call attains 'actions' web service again, this time using the
-  // 'actionIdentifier' query string parameter – once for each action
+  // 'actionIdentifier' query string parameter – once for each action
   // id that wasn't returned in the previous web service call (when
   // the 'assessmentUnitIdentifier' query string parameter was used)
   const [actionsFetchedAgain, setActionsFetchedAgain] = React.useState(false);
