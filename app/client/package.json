@@ -33,9 +33,10 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "flow": "flow",
-    "cypress": "cypress open"
+    "coverage": "react-scripts -r @cypress/instrument-cra start"
   },
   "devDependencies": {
+    "@cypress/instrument-cra": "^1.1.1",
     "flow-bin": "0.124.0",
     "husky": "4.2.5",
     "lint-staged": "10.2.2",
