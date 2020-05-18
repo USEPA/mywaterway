@@ -104,7 +104,7 @@ describe("National Drinking Water tab", () => {
   });
 
   it("The US Drinking Water Systems By Type pie chart is displayed", () => {
-    cy.findByText(/US Drinking Water Systems By Type/).should("be.visible");
+    cy.findAllByText(/US Drinking Water Systems By Type/).should("be.visible");
   });
 
   it("The National Drinking Water table is displayed", () => {
