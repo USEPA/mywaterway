@@ -55,8 +55,7 @@ function Protect({ esriModules, infoToggleChecked }: Props) {
             return objA['prj_title'].localeCompare(objB['prj_title']);
           })
           .filter(
-            (project) =>
-              project.ws_protect_ind && project.ws_protect_ind === 'Y',
+            project => project.ws_protect_ind && project.ws_protect_ind === 'Y',
           )
       : [];
 
@@ -192,7 +191,7 @@ function Protect({ esriModules, infoToggleChecked }: Props) {
                           const protectionPlans =
                             item['watershed_plans'] &&
                             // break string into pieces separated by commas and map over them
-                            item['watershed_plans'].split(',').map((plan) => {
+                            item['watershed_plans'].split(',').map(plan => {
                               const markup = plan.split('</a>')[0] + '</a>';
                               const title = getTitleFromMarkup(markup);
                               const planUrl = getUrlFromMarkup(markup);
@@ -203,7 +202,7 @@ function Protect({ esriModules, infoToggleChecked }: Props) {
                           const filteredProtectionPlans =
                             protectionPlans &&
                             protectionPlans.filter(
-                              (plan) => plan && plan.url && plan.title,
+                              plan => plan && plan.url && plan.title,
                             );
                           return (
                             <AccordionItem

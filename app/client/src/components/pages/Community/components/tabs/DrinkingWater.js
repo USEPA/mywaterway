@@ -55,20 +55,28 @@ function sortByPopulation(objA, objB) {
   return objB.population_served_count - objA.population_served_count;
 }
 
+// correct capitalization and spacing inconsistencies with ATTAINS Drinking Water service
+function fixCapitalization(type) {
+  return type
+    .replace('Groundwater', 'Ground Water')
+    .replace('Ground water', 'Ground Water')
+    .replace('Surface water', 'Surface Water');
+}
+
 // group by drinking water source and alphabetize the groups
-function groupBySource(systems) {
+function groupProvidersBySource(systems) {
   const groundWaterSystems = systems
-    .filter((system) => system.gw_sw === 'Groundwater')
+    .filter(system => system.gw_sw === 'Groundwater')
     .sort(comparePwsName);
 
   const surfaceWaterSystems = systems
-    .filter((system) => system.gw_sw === 'Surface water')
+    .filter(system => system.gw_sw === 'Surface water')
     .sort(comparePwsName);
 
   // GU systems, or "Ground water under the influence of surface water"
   const GUSystems = systems
     .filter(
-      (system) =>
+      system =>
         system.gw_sw !== 'Surface water' && system.gw_sw !== 'Groundwater',
     )
     .sort(comparePwsName);
@@ -76,21 +84,50 @@ function groupBySource(systems) {
   return groundWaterSystems.concat(surfaceWaterSystems, GUSystems);
 }
 
+function groupWithdrawersBySource(systems) {
+  const groundWaterSystems = systems
+    .filter(system => system.water_type_calc === 'Ground water')
+    .sort(comparePwsName);
+
+  const surfaceWaterSystems = systems
+    .filter(system => system.water_type_calc === 'Surface water')
+    .sort(comparePwsName);
+
+  // GU systems, or "Ground water under the influence of surface water"
+  const GUSystems = systems
+    .filter(
+      system =>
+        system.water_type_calc !== 'Surface water' &&
+        system.water_type_calc !== 'Ground water',
+    )
+    .sort(comparePwsName);
+
+  return groundWaterSystems.concat(surfaceWaterSystems, GUSystems);
+}
+
 // uses passed item's fields and, returns JSX for rendering an AccordionItem
-function createAccordionItem(item: Object) {
+function createAccordionItem(item: Object, isWithdrawer: boolean) {
   const url =
     `https://ofmpub.epa.gov/apex/sfdw/f?p=SDWIS_FED_REPORTS_PUBLIC:PWS_SEARCH:::::PWSID:` +
     `${item.pwsid}`;
   return (
     <AccordionItem
-      key={item.pwsid}
+      key={
+        item.water_type_calc
+          ? item.pwsid + item.water_type_calc + item.water_type_code
+          : item.pwsid
+      }
       title={<strong>{item.pws_name || 'Unknown'}</strong>}
       subTitle={
         <>
-          Drinking Water Population Served:{' '}
+          Public Water System Population Served:{' '}
           {Number(item['population_served_count']).toLocaleString()}
           <br />
-          Drinking Water Source: {item['gw_sw']}
+          {isWithdrawer
+            ? `Drinking Water Facility Source: ${fixCapitalization(
+                item.water_type_calc,
+              )}`
+            : `Drinking Water System Source: ${fixCapitalization(item.gw_sw)}`}
         </>
       }
     >
@@ -110,7 +147,7 @@ function createAccordionItem(item: Object) {
           </tr>
           <tr>
             <td>
-              <em>Drinking Water Population Served:</em>
+              <em>Public Water System Population Served:</em>
             </td>
             <td>
               {item.population_served_count &&
@@ -130,10 +167,21 @@ function createAccordionItem(item: Object) {
             <td>{item.violations === 'Y' ? 'Yes' : 'No'}</td>
           </tr>
           <tr>
-            <td>
-              <em>Drinking Water Source:</em>
-            </td>
-            <td>{item.gw_sw}</td>
+            {isWithdrawer ? (
+              <>
+                <td>
+                  <em>Drinking Water Facility Source:</em>
+                </td>
+                <td>{fixCapitalization(item.water_type_calc)}</td>
+              </>
+            ) : (
+              <>
+                <td>
+                  <em>Drinking Water System Source:</em>
+                </td>
+                <td>{fixCapitalization(item.gw_sw)}</td>
+              </>
+            )}
           </tr>
           <tr>
             <td>
@@ -314,6 +362,7 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
   const [surfaceWaterDisplayed, setSurfaceWaterDisplayed] = React.useState(
     true,
   );
+  const [bothDisplayed, setBothDisplayed] = React.useState(true);
 
   // sort drinking water data into providers and withdrawers via presence of 'huc12' property
   const providers = [];
@@ -321,23 +370,79 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
   let surfaceWaterCount = 0; // total surface water withdrawers
   let groundWaterCount = 0; // total groundwater withdrawers
   let totalWithdrawersCount = 0; // total withdrawers
+  let bothCount = 0;
   if (drinkingWater.data) {
-    drinkingWater.data.forEach((item) => {
-      if (item.hasOwnProperty('huc12')) {
-        totalWithdrawersCount++;
+    // handle providers separately
+    const allProviders = drinkingWater.data.filter(
+      system => !system.hasOwnProperty('huc12'),
+    );
+    allProviders.forEach(provider => providers.push(provider));
 
-        // surface water withdrawer
-        if (item.gw_sw.toLowerCase() === 'surface water') {
-          surfaceWaterCount++;
-          if (surfaceWaterDisplayed) displayedWithdrawers.push(item);
+    // find all withdrawers
+    const allWithdrawers = drinkingWater.data.filter(system =>
+      system.hasOwnProperty('huc12'),
+    );
+
+    // find duplicate withdrawers based on pwsid
+    const lookup = allWithdrawers.reduce((a, e) => {
+      a[e.pwsid] = ++a[e.pwsid] || 0;
+      return a;
+    }, {});
+
+    const duplicates = allWithdrawers.filter(e => lookup[e.pwsid]);
+
+    // get array of duplicate PWSIDs
+    const duplicatePWSIDs = [];
+    duplicates.forEach(dup => {
+      if (!duplicatePWSIDs.includes(dup.pwsid)) {
+        duplicatePWSIDs.push(dup.pwsid);
+      }
+    });
+
+    // count each duplicate once
+    duplicatePWSIDs.forEach(duplicate => bothCount++);
+
+    // track which system duplicates have been handled
+    const alreadyDuplicatedPWSIDs = [];
+
+    allWithdrawers.forEach(item => {
+      const checkForDuplicates = displayedWithdrawers.filter(
+        withdrawer => withdrawer.pwsid === item.pwsid,
+      );
+
+      // check if system is has been duplicated already
+      if (alreadyDuplicatedPWSIDs.includes(item.pwsid)) {
+        // we've already handled this system and merged it, pass
+      }
+
+      // if system is a duplicate merge them together
+      else if (duplicatePWSIDs.includes(item.pwsid)) {
+        totalWithdrawersCount++;
+        const index = duplicatePWSIDs.indexOf(item.pwsid);
+        duplicatePWSIDs.splice(index, 1);
+        alreadyDuplicatedPWSIDs.push(item.pwsid);
+
+        if (checkForDuplicates.length === 0) {
+          // deepclone item to prevent changing the underlying service data
+          const mergedItem = Object.assign({}, item);
+          mergedItem.water_type_calc = 'Ground Water & Surface Water';
+          if (bothDisplayed) {
+            displayedWithdrawers.push(mergedItem);
+          }
         }
-        // groundwater withdrawer
-        else if (item.gw_sw.toLowerCase() === 'groundwater') {
-          groundWaterCount++;
-          if (groundWaterDisplayed) displayedWithdrawers.push(item);
-        }
-      } else {
-        providers.push(item);
+      }
+
+      // surface water withdrawer
+      else if (item.water_type_calc.toLowerCase() === 'surface water') {
+        totalWithdrawersCount++;
+        surfaceWaterCount++;
+        if (surfaceWaterDisplayed) displayedWithdrawers.push(item);
+      }
+      // ground water withdrawer
+      else if (item.water_type_calc.toLowerCase() === 'ground water') {
+        totalWithdrawersCount++;
+        groundWaterCount++;
+        if (groundWaterDisplayed) displayedWithdrawers.push(item);
       }
     });
   }
@@ -362,7 +467,7 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
     setWithdrawersSortBy('population');
   }, [atHucBoundaries]);
 
-  const sortWaterSystems = (systems, sortBy) => {
+  const sortWaterSystems = (systems, sortBy, isWithdrawers) => {
     if (!systems) return [];
     switch (sortBy) {
       // sort systems by descending population count
@@ -375,7 +480,11 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
 
       // group systems by drinking water source
       case 'source':
-        return groupBySource(systems);
+        if (isWithdrawers) {
+          return groupWithdrawersBySource(systems);
+        } else {
+          return groupProvidersBySource(systems);
+        }
 
       default:
         return [];
@@ -383,14 +492,29 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
   };
 
   // options for the selects on the Providers and Withdrawers tabs
-  const drinkingWaterSorts = [
+  const withdrawerSorts = [
     {
       value: 'population',
-      label: 'Drinking Water Population Served',
+      label: 'Public Water System Population Served',
     },
     {
       value: 'source',
-      label: 'Drinking Water Source',
+      label: 'Drinking Water Facility Source',
+    },
+    {
+      value: 'alphabetical',
+      label: 'Name',
+    },
+  ];
+
+  const providerSorts = [
+    {
+      value: 'population',
+      label: 'Public Water System Population Served',
+    },
+    {
+      value: 'source',
+      label: 'Drinking Water System Source',
     },
     {
       value: 'alphabetical',
@@ -402,7 +526,7 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
     <Container>
       <ContentTabs>
         <Tabs
-          onChange={(index) => {
+          onChange={index => {
             setPreviousTabIndex(drinkingWaterTabIndex);
             setDrinkingWaterTabIndex(index);
           }}
@@ -513,15 +637,16 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
                       {providers.length > 0 && (
                         <AccordionList
                           title={`Public water systems serving ${county} County.`}
-                          onSortChange={(sortBy) =>
+                          onSortChange={sortBy =>
                             setProvidersSortBy(sortBy.value)
                           }
-                          sortOptions={drinkingWaterSorts}
+                          sortOptions={providerSorts}
                         >
                           {sortWaterSystems(
                             providers,
                             providersSortBy,
-                          ).map((item) => createAccordionItem(item))}
+                            false,
+                          ).map(item => createAccordionItem(item))}
                         </AccordionList>
                       )}
                     </>
@@ -613,7 +738,7 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
                             <thead>
                               <tr>
                                 <th>
-                                  <span>Drinking Water Source</span>
+                                  <span>Drinking Water Facility Source</span>
                                 </th>
                                 <th>Count</th>
                               </tr>
@@ -628,11 +753,12 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
                                         surfaceWaterDisplayed &&
                                         surfaceWaterCount > 0
                                       }
-                                      onChange={(ev) =>
+                                      onChange={ev =>
                                         setSurfaceWaterDisplayed(
                                           !surfaceWaterDisplayed,
                                         )
                                       }
+                                      ariaLabel="Surface Water"
                                     />
                                     <span>Surface Water</span>
                                   </Toggle>
@@ -648,31 +774,53 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
                                         groundWaterDisplayed &&
                                         groundWaterCount > 0
                                       }
-                                      onChange={(ev) =>
+                                      onChange={ev =>
                                         setGroundWaterDisplayed(
                                           !groundWaterDisplayed,
                                         )
                                       }
+                                      ariaLabel="Ground Water"
                                     />
                                     <span>Ground Water</span>
                                   </Toggle>
                                 </td>
                                 <td>{groundWaterCount}</td>
                               </tr>
+                              {bothCount > 0 && (
+                                <tr>
+                                  <td>
+                                    <Toggle>
+                                      <Switch
+                                        disabled={!bothCount}
+                                        checked={bothDisplayed && bothCount > 0}
+                                        onChange={ev =>
+                                          setBothDisplayed(!bothDisplayed)
+                                        }
+                                        ariaLabel="Ground Water and Surface Water"
+                                      />
+                                      <span>
+                                        Ground Water &amp; Surface Water
+                                      </span>
+                                    </Toggle>
+                                  </td>
+                                  <td>{bothCount}</td>
+                                </tr>
+                              )}
                             </tbody>
                           </Table>
 
                           <AccordionList
                             title={`Below are ${displayedWithdrawers.length} of ${totalWithdrawersCount} Public water systems withdrawing water from the ${watershed} watershed.`}
-                            onSortChange={(sortBy) =>
+                            onSortChange={sortBy =>
                               setWithdrawersSortBy(sortBy.value)
                             }
-                            sortOptions={drinkingWaterSorts}
+                            sortOptions={withdrawerSorts}
                           >
                             {sortWaterSystems(
                               displayedWithdrawers,
                               withdrawersSortBy,
-                            ).map((item) => createAccordionItem(item))}
+                              true,
+                            ).map(item => createAccordionItem(item, true))}
                           </AccordionList>
                         </>
                       )}

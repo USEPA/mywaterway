@@ -140,7 +140,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
       const areaQuery = new Query();
       const pointQuery = new Query();
 
-      [lineQuery, areaQuery, pointQuery].forEach((query) => {
+      [lineQuery, areaQuery, pointQuery].forEach(query => {
         const auIds = Object.keys(unitIds).join("','");
         query.returnGeometry = true;
         query.outFields = ['*'];
@@ -182,20 +182,20 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
             let symbol;
             if (type === 'point') {
               symbol = new SimpleMarkerSymbol({
-                color: '#007bff',
+                color: [0, 123, 255],
                 style: 'circle',
               });
             }
             if (type === 'line') {
               symbol = new SimpleLineSymbol({
-                color: '#007bff',
+                color: [0, 123, 255],
                 style: 'solid',
                 width: '2',
               });
             }
             if (type === 'area') {
               symbol = new SimpleFillSymbol({
-                color: '#007bff',
+                color: [0, 123, 255, 0.5],
                 style: 'solid',
               });
             }
@@ -232,15 +232,15 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
           }
 
           // add graphics to graphicsLayer based on feature type
-          areaResponse.features.forEach((feature) => {
+          areaResponse.features.forEach(feature => {
             actionsLayer.graphics.add(createGraphic(feature, 'area'));
           });
 
-          lineResponse.features.forEach((feature) => {
+          lineResponse.features.forEach(feature => {
             actionsLayer.graphics.add(createGraphic(feature, 'line'));
           });
 
-          pointResponse.features.forEach((feature) => {
+          pointResponse.features.forEach(feature => {
             actionsLayer.graphics.add(createGraphic(feature, 'point'));
           });
 
@@ -249,7 +249,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
           // pass the layer back up to the parent
           if (typeof onLoad === 'function') onLoad(actionsLayer);
         })
-        .catch((err) => {
+        .catch(err => {
           console.error(err);
           setFetchStatus('failure');
         });
@@ -289,7 +289,20 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
 
     const { Viewpoint } = esriModules;
 
-    mapView.goTo(actionsLayer.graphics).then(() => {
+    let zoomParams = actionsLayer.graphics;
+    if (
+      actionsLayer.graphics.length === 1 &&
+      (actionsLayer.graphics.items[0].geometry.type === 'point' ||
+        actionsLayer.graphics.items[0].geometry.type === 'multipoint')
+    ) {
+      // handle zooming to a single point graphic
+      zoomParams = {
+        target: actionsLayer.graphics,
+        zoom: 16, // set zoom 1 higher since it gets decremented later
+      };
+    }
+
+    mapView.goTo(zoomParams).then(() => {
       // set map zoom and home widget's viewpoint
       mapView.zoom = mapView.zoom - 1;
       homeWidget.viewpoint = new Viewpoint({
@@ -313,7 +326,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
         </StyledInfoBox>
       )}
       {fetchStatus === 'success' && !noMapData && (
-        <Container>
+        <Container data-testid="hmw-actions-map">
           <Map
             style={{ position: 'absolute' }}
             loaderOptions={{ url: esriApiUrl }}
@@ -331,7 +344,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
               map={null}
               view={null}
               layers={layers}
-              onHomeWidgetRendered={(homeWidget) => {}}
+              onHomeWidgetRendered={homeWidget => {}}
             />
 
             {/* manually passing map and view props to Map component's         */}
@@ -350,7 +363,7 @@ export default function ActionsMapContainer({ ...props }: Props) {
   return (
     <MapErrorBoundary>
       <EsriModulesContext.Consumer>
-        {(esriModules) => <ActionsMap esriModules={esriModules} {...props} />}
+        {esriModules => <ActionsMap esriModules={esriModules} {...props} />}
       </EsriModulesContext.Consumer>
     </MapErrorBoundary>
   );

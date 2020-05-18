@@ -30,7 +30,7 @@ import { fetchCheck } from 'utils/fetchUtils';
 // data
 import introText from 'components/pages/State/lookups/introText';
 // styles
-import { colors, fonts } from 'styles/index.js';
+import { colors, fonts, reactSelectStyles } from 'styles/index.js';
 // errors
 import {
   stateListError,
@@ -62,7 +62,8 @@ const Container = styled.div`
   }
 `;
 
-const Prompt = styled.p`
+const Prompt = styled.label`
+  margin: 0;
   padding-bottom: 0;
 `;
 
@@ -158,8 +159,8 @@ function State({ children, ...props }: Props) {
   const [states, setStates] = React.useState({ status: 'fetching', data: [] });
   React.useEffect(() => {
     fetchCheck(`${attains.serviceUrl}states`)
-      .then((res) => setStates({ status: 'success', data: res.data }))
-      .catch((err) => setStates({ status: 'failure', data: [] }));
+      .then(res => setStates({ status: 'success', data: res.data }))
+      .catch(err => setStates({ status: 'failure', data: [] }));
   }, []);
 
   const {
@@ -205,7 +206,7 @@ function State({ children, ...props }: Props) {
 
         {states.status === 'success' && (
           <>
-            <Prompt>
+            <Prompt htmlFor="hmw-state-select-input">
               <strong>Let’s get started!</strong>&nbsp;&nbsp;
               <em>
                 Select your state or territory from the drop down to begin
@@ -214,7 +215,7 @@ function State({ children, ...props }: Props) {
             </Prompt>
 
             <Form
-              onSubmit={(ev) => {
+              onSubmit={ev => {
                 ev.preventDefault();
                 setActiveState(selectedState);
                 navigate(`/state/${selectedState.code}/water-quality-overview`);
@@ -222,9 +223,10 @@ function State({ children, ...props }: Props) {
             >
               <SelectStyled
                 id="hmw-state-select"
+                inputId="hmw-state-select-input"
                 classNamePrefix="Select"
                 placeholder="Select a state..."
-                options={states.data.map((state) => {
+                options={states.data.map(state => {
                   return { value: state.code, label: state.name };
                 })}
                 value={
@@ -235,12 +237,13 @@ function State({ children, ...props }: Props) {
                       }
                     : null
                 }
-                onChange={(ev) =>
+                onChange={ev =>
                   setSelectedState({
                     code: ev.value,
                     name: ev.label,
                   })
                 }
+                styles={reactSelectStyles}
               />
 
               <Button type="submit" className="btn">

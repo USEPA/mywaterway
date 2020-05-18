@@ -50,6 +50,7 @@ type Props = {
   windowWidth: number,
   filter: string,
   activeState: Object,
+  numberOfRecords: number,
   children?: Node,
 };
 
@@ -59,6 +60,7 @@ function StateMap({
   windowWidth,
   filter,
   activeState,
+  numberOfRecords,
   children,
 }: Props) {
   const [view, setView] = React.useState(null);
@@ -126,8 +128,8 @@ function StateMap({
 
     const popupTemplate = {
       outFields: ['*'],
-      title: (feature) => getPopupTitle(feature.graphic.attributes),
-      content: (feature) => getPopupContent({ feature: feature.graphic }),
+      title: feature => getPopupTitle(feature.graphic.attributes),
+      content: feature => getPopupContent({ feature: feature.graphic }),
     };
 
     // Build the feature layers that will make up the waterbody layer
@@ -241,7 +243,8 @@ function StateMap({
       pointsLayer &&
       linesLayer &&
       areasLayer &&
-      homeWidget
+      homeWidget &&
+      numberOfRecords
     ) {
       setLastFilter(filter);
 
@@ -256,12 +259,12 @@ function StateMap({
       // zoom and set the home widget viewpoint
       let fullExtent = null;
       // get the points layer extent
-      pointsLayer.queryExtent().then((pointsExtent) => {
+      pointsLayer.queryExtent().then(pointsExtent => {
         // set the extent if 1 or more features
         if (pointsExtent.count > 0) fullExtent = pointsExtent.extent;
 
         // get the lines layer extent
-        linesLayer.queryExtent().then((linesExtent) => {
+        linesLayer.queryExtent().then(linesExtent => {
           // set the extent or union the extent if 1 or more features
           if (linesExtent.count > 0) {
             if (fullExtent) fullExtent.union(linesExtent.extent);
@@ -269,7 +272,7 @@ function StateMap({
           }
 
           // get the areas layer extent
-          areasLayer.queryExtent().then((areasExtent) => {
+          areasLayer.queryExtent().then(areasExtent => {
             // set the extent or union the extent if 1 or more features
             if (areasExtent.count > 0) {
               if (fullExtent) fullExtent.union(areasExtent.extent);
@@ -278,8 +281,18 @@ function StateMap({
 
             // if there is an extent then zoom to it and set the home widget
             if (fullExtent) {
+              let zoomParams = fullExtent;
+              let homeParams = { targetGeometry: fullExtent };
               if (!selectedGraphic) {
-                view.goTo(fullExtent).then(() => {
+                if (numberOfRecords === 1 && pointsExtent.count === 1) {
+                  zoomParams = { target: fullExtent, zoom: 15 };
+                  homeParams = {
+                    targetGeometry: fullExtent,
+                    scale: 18056, // same as zoom 15, viewpoint only takes scale
+                  };
+                }
+
+                view.goTo(zoomParams).then(() => {
                   // only show the waterbody layer after everything has loaded to
                   // cut down on unnecessary service calls
                   waterbodyLayer.listMode = 'hide-children';
@@ -292,9 +305,7 @@ function StateMap({
 
               // only set the home widget if the user selects a different state
               if (!homeWidgetSet) {
-                homeWidget.viewpoint = new Viewpoint({
-                  targetGeometry: fullExtent,
-                });
+                homeWidget.viewpoint = new Viewpoint(homeParams);
                 setHomeWidgetSet(true);
               }
             }
@@ -314,6 +325,7 @@ function StateMap({
     homeWidgetSet,
     selectedGraphic,
     waterbodyLayer,
+    numberOfRecords,
   ]);
 
   // Used to tell if the homewidget has been set to the selected state.
@@ -351,7 +363,7 @@ function StateMap({
 
   // calculate height of div holding the footer content
   const [footerHeight, setFooterHeight] = React.useState(0);
-  const measuredRef = React.useCallback((node) => {
+  const measuredRef = React.useCallback(node => {
     if (!node) return;
     setFooterHeight(node.getBoundingClientRect().height);
   }, []);
@@ -406,11 +418,11 @@ function StateMap({
             setMapView(view);
 
             // display a loading spinner until the initial map completes
-            view.watch('rendering', (rendering) => {
+            view.watch('rendering', rendering => {
               if (!view.interacting) setMapLoading(rendering); // turn off loading spinner
             });
           }}
-          onFail={(err) => {
+          onFail={err => {
             console.error(err);
             setView(null);
             setMapView(null);
@@ -424,7 +436,7 @@ function StateMap({
             view={null}
             layers={layers}
             scrollToComponent="statemap"
-            onHomeWidgetRendered={(homeWidget) => {}}
+            onHomeWidgetRendered={homeWidget => {}}
           />
 
           {/* manually passing map and view props to Map component's         */}
@@ -456,7 +468,7 @@ export default function StateMapContainer({ ...props }: Props) {
   return (
     <MapErrorBoundary>
       <EsriModulesContext.Consumer>
-        {(esriModules) => <StateMap esriModules={esriModules} {...props} />}
+        {esriModules => <StateMap esriModules={esriModules} {...props} />}
       </EsriModulesContext.Consumer>
     </MapErrorBoundary>
   );
