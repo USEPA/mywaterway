@@ -31,9 +31,7 @@ const SearchBox = styled.div`
   margin-top: 2em;
 `;
 
-const Prompt = styled.p`
-  margin-top: 0.25em;
-  padding-bottom: 0;
+const SearchLabel = styled.strong`
   font-size: 1.1875em;
 `;
 
@@ -87,11 +85,10 @@ function Home({ ...props }: Props) {
     <Page>
       <Container className="container">
         <SearchBox>
-          <LocationSearch route="/community/{urlSearch}/overview">
-            <Prompt>
-              <strong>Let’s get started!</strong>
-            </Prompt>
-          </LocationSearch>
+          <LocationSearch
+            route="/community/{urlSearch}/overview"
+            label={<SearchLabel>Let’s get started!</SearchLabel>}
+          />
         </SearchBox>
 
         <Paragraph>Choose a place to learn about your waters:</Paragraph>

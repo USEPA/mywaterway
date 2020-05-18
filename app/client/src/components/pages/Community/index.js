@@ -61,11 +61,6 @@ const RightColumn = styled.div`
   }
 `;
 
-const Prompt = styled.p`
-  margin-top: 0.25em;
-  padding-bottom: 0;
-`;
-
 // --- components ---
 type Props = {
   children: Node,
@@ -134,11 +129,10 @@ function Community({ children, ...props }: Props) {
   const activeTabRoute = tabs[activeTabIndex === -1 ? 0 : activeTabIndex].route;
   const searchMarkup = (
     <>
-      <LocationSearch route={activeTabRoute}>
-        <Prompt>
-          <strong>Let’s get started!</strong>
-        </Prompt>
-      </LocationSearch>
+      <LocationSearch
+        route={activeTabRoute}
+        label={<strong>Let’s get started!</strong>}
+      />
     </>
   );
 

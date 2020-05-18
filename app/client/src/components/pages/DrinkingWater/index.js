@@ -20,10 +20,6 @@ import {
 } from 'components/shared/ButtonLinks';
 
 // --- styled components ---
-const Prompt = styled.p`
-  padding-bottom: 0 !important;
-`;
-
 const TopicButtonLink = styled(StyledTopicButtonLink)`
   ${StyledThreeButtonLinks}
 `;
@@ -44,11 +40,10 @@ function DrinkingWater({ ...props }: Props) {
       </StyledTopic>
 
       <StyledText className="container">
-        <LocationSearch route="/community/{urlSearch}/drinking-water">
-          <Prompt>
-            <em>Find out about your Drinking Water.</em>
-          </Prompt>
-        </LocationSearch>
+        <LocationSearch
+          route="/community/{urlSearch}/drinking-water"
+          label={<em>Find out about your Drinking Water.</em>}
+        />
 
         <br />
 
