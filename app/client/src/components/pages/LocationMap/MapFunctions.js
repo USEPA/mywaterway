@@ -16,6 +16,18 @@ const waterbodyStatuses = {
   notApplicable: { condition: 'hidden', label: 'Not Applicable' },
 };
 
+// Gets the type of symbol using the shape's attributes.
+export function getTypeFromAttributes(graphic) {
+  let type = 'point';
+  if (graphic.attributes.Shape_Length && graphic.attributes.Shape_Area) {
+    type = 'polygon';
+  } else if (graphic.attributes.Shape_Length) {
+    type = 'polyline';
+  }
+
+  return type;
+}
+
 export function getWaterbodyCondition(
   attributes: Object,
   fieldName: string,
@@ -167,7 +179,7 @@ export function createWaterbodySymbol({
   selected,
   geometryType = 'point',
 }: {
-  condition: 'good' | 'polluted' | 'unassessed' | 'impaired' | 'hidden',
+  condition: 'good' | 'polluted' | 'unassessed' | 'hidden',
   selected: boolean,
   geometryType: string,
 }) {
@@ -180,11 +192,6 @@ export function createWaterbodySymbol({
     color = selected ? { r: 70, g: 227, b: 159 } : { r: 32, g: 128, b: 12 };
   }
   if (condition === 'polluted') {
-    // from colors.highlightedRed() and colors.red()
-    color = selected ? { r: 124, g: 157, b: 173 } : { r: 203, g: 34, b: 62 };
-  }
-  // handle the identified issues panel
-  if (condition === 'impaired' || condition === 'hidden') {
     // from colors.highlightedRed() and colors.red()
     color = selected ? { r: 124, g: 157, b: 173 } : { r: 203, g: 34, b: 62 };
   }
@@ -295,13 +302,13 @@ export function plotIssues(Graphic: any, features: Array<Object>, layer: any) {
   layer.graphics.removeAll();
   // put graphics on the layer
   features.forEach(waterbody => {
-    const geometryType = waterbody.geometry.type;
+    const geometryType = getTypeFromAttributes(waterbody);
     layer.graphics.add(
       new Graphic({
         geometry: waterbody.geometry,
 
         symbol: createWaterbodySymbol({
-          condition: 'impaired',
+          condition: 'polluted',
           selected: false,
           geometryType,
         }),
