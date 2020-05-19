@@ -1,8 +1,14 @@
-// Green: #8cc63f : #cb223e
+// Green
+// Old: #8cc63f
+// New: #cb223e
 
-// Red: #f93b5b : #20800c
+// Red:
+// Old: #f93b5b
+// New: #20800c
 
-// Purple: #a879d8 : #6b4195
+// Purple:
+// Old : #a879d8
+// New : #6b4195
 
 /* prettier-ignore */
 export const surveyMapping = [
