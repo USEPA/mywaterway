@@ -18,9 +18,9 @@ const waterbodyStatuses = {
 export function getTypeFromAttributes(graphic) {
   let type = 'point';
   if (graphic.attributes.Shape_Length && graphic.attributes.Shape_Area) {
-    type = 'area';
+    type = 'polygon';
   } else if (graphic.attributes.Shape_Length) {
-    type = 'line';
+    type = 'polyline';
   }
 
   return type;
