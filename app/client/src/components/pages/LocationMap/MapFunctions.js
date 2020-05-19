@@ -6,6 +6,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 // components
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import MapPopup from 'components/shared/MapPopup';
+// styles
+import { colors } from 'styles/index.js';
 
 const waterbodyStatuses = {
   good: { condition: 'good', label: 'Good' },
@@ -171,16 +173,20 @@ export function createWaterbodySymbol({
 }) {
   const outline = selected ? { color: [0, 255, 255, 0.5], width: 1 } : null;
 
-  let color = selected ? { r: 84, g: 188, b: 236 } : { r: 168, g: 121, b: 216 };
+  // from colors.highlightedPurple() and colors.purple()
+  let color = selected ? { r: 84, g: 188, b: 236 } : { r: 107, g: 65, b: 149 };
   if (condition === 'good') {
-    color = selected ? { r: 70, g: 227, b: 159 } : { r: 140, g: 198, b: 63 };
+    // from colors.highlightedGreen() and colors.green()
+    color = selected ? { r: 70, g: 227, b: 159 } : { r: 32, g: 128, b: 12 };
   }
   if (condition === 'polluted') {
-    color = selected ? { r: 124, g: 157, b: 173 } : { r: 249, g: 59, b: 91 };
+    // from colors.highlightedRed() and colors.red()
+    color = selected ? { r: 124, g: 157, b: 173 } : { r: 203, g: 34, b: 62 };
   }
   // handle the identified issues panel
   if (condition === 'impaired' || condition === 'hidden') {
-    color = selected ? { r: 124, g: 157, b: 173 } : { r: 249, g: 59, b: 91 };
+    // from colors.highlightedRed() and colors.red()
+    color = selected ? { r: 124, g: 157, b: 173 } : { r: 203, g: 34, b: 62 };
   }
 
   // for polygons, add transparency to the color so that lines can be seen
@@ -340,8 +346,9 @@ export function plotFacilities({
         },
         symbol: {
           type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
-          color: '#246007',
+          color: colors.gray9,
           style: 'diamond',
+          size: 15,
         },
         attributes: facility,
         popupTemplate: {

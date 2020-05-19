@@ -205,7 +205,7 @@ const AccordionContent = styled.div`
 
     &:hover,
     &:focus {
-      background-color: ${colors.purple()};
+      background-color: ${colors.navyBlue()};
     }
   }
 `;

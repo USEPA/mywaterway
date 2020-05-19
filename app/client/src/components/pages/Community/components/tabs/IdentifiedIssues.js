@@ -34,7 +34,7 @@ import {
   plotIssues,
 } from 'components/pages/LocationMap/MapFunctions';
 // styles
-import { fonts } from 'styles/index.js';
+import { fonts, colors } from 'styles/index.js';
 // errors
 import { echoError, huc12SummaryError } from 'config/errorMessages';
 
@@ -166,7 +166,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
         },
         symbol: {
           type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
-          color: '#246007',
+          color: colors.green(),
           style: 'diamond',
         },
         attributes: facility,

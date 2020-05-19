@@ -12,7 +12,7 @@ import { colors } from 'styles/index.js';
 const Button = styled.button`
   &:hover,
   &:focus {
-    background-color: ${colors.purple()};
+    background-color: ${colors.navyBlue()};
   }
 `;
 

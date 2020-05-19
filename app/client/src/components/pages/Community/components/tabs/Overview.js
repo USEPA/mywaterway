@@ -25,6 +25,8 @@ import {
   plotStations,
   getUniqueWaterbodies,
 } from 'components/pages/LocationMap/MapFunctions';
+// styles
+import { colors } from 'styles/index.js';
 // errors
 import {
   echoError,
@@ -103,7 +105,12 @@ function Overview({ esriModules, infoToggleChecked }: Props) {
     });
 
     const { Graphic } = esriModules;
-    plotStations(Graphic, stations, '#c500ff', monitoringStationsLayer);
+    plotStations(
+      Graphic,
+      stations,
+      colors.lightPurple(),
+      monitoringStationsLayer,
+    );
   }, [monitoringLocations.data, esriModules, monitoringStationsLayer]);
 
   // draw the permitted dischargers on the map
