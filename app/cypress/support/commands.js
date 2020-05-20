@@ -37,7 +37,7 @@ import "@testing-library/cypress/add-commands";
 Cypress.Commands.add(
   "mockGeolocation",
   (shouldFail = false, latitude = 38.9072, longitude = -77.0369) => {
-    cy.window().then($window => {
+    cy.window().then(($window) => {
       cy.stub(
         $window.navigator.geolocation,
         "getCurrentPosition",
