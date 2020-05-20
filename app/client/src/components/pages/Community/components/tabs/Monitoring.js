@@ -17,8 +17,6 @@ import {
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { plotStations } from 'components/pages/LocationMap/MapFunctions';
-// styles
-import { colors } from 'styles/index.js';
 // errors
 import { monitoringError } from 'config/errorMessages';
 
@@ -266,7 +264,6 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
     plotStations(
       Graphic,
       tempDisplayedMonitoringStations,
-      colors.lightPurple(),
       monitoringStationsLayer,
     );
 

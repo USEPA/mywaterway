@@ -259,7 +259,6 @@ export function isIE() {
 export function plotStations(
   Graphic: any,
   stations: Array<Object>,
-  color: string,
   layer: any,
 ) {
   if (!stations || !layer) return;
@@ -280,7 +279,7 @@ export function plotStations(
         symbol: {
           type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
           style: 'square',
-          color,
+          color: colors.lightPurple(),
         },
         attributes: station.properties,
         popupTemplate: {

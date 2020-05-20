@@ -1,10 +1,10 @@
 // Green
 // Old: #8cc63f
-// New: #cb223e
+// New: #20800c
 
 // Red:
 // Old: #f93b5b
-// New: #20800c
+// New: #cb223e
 
 // Purple:
 // Old : #a879d8
