@@ -392,7 +392,10 @@ function WaterConditionsPanel() {
                 </AccordionItem>
               </AccordionList>
 
-              <FooterText>Metrics are only for the conterminous US.</FooterText>
+              <FooterText>
+                This data is pulled from the National Aquatic Resource Surveys
+                (NARS) and the metrics are only for the conterminous US.
+              </FooterText>
             </TabPanel>
 
             <TabPanel>
