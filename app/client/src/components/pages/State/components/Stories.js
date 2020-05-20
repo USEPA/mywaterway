@@ -42,7 +42,7 @@ const Button = styled.button`
   &:hover,
   &:focus {
     color: ${colors.white()};
-    background-color: ${colors.purple()};
+    background-color: ${colors.navyBlue()};
   }
 `;
 

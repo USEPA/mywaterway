@@ -103,7 +103,7 @@ function Overview({ esriModules, infoToggleChecked }: Props) {
     });
 
     const { Graphic } = esriModules;
-    plotStations(Graphic, stations, '#c500ff', monitoringStationsLayer);
+    plotStations(Graphic, stations, monitoringStationsLayer);
   }, [monitoringLocations.data, esriModules, monitoringStationsLayer]);
 
   // draw the permitted dischargers on the map
