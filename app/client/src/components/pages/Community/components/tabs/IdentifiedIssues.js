@@ -164,10 +164,6 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
           longitude: facility['FacLong'],
           latitude: facility['FacLat'],
         },
-        symbol: {
-          type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
-          style: 'diamond',
-        },
         attributes: facility,
       });
     },
