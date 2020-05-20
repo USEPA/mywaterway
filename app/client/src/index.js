@@ -2,10 +2,6 @@
 
 import 'react-app-polyfill/ie11';
 import 'react-app-polyfill/stable';
-import 'core-js/features/array/find';
-import 'core-js/features/array/find-index';
-import 'core-js/features/object/entries';
-import findIndex from 'array.prototype.findindex';
 import smoothscroll from 'smoothscroll-polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -21,7 +17,6 @@ import { GlossaryProvider } from 'contexts/Glossary';
 // errors
 import { defaultErrorBoundaryMessage } from 'config/errorMessages';
 
-findIndex.shim();
 smoothscroll.polyfill();
 
 // --- styled components ---
