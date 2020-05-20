@@ -27,6 +27,7 @@ const colors = {
   grayc: '#ccc',
   grayd: '#ddd',
   graye: '#eee',
+  orange: '#ffa500',
   yellow: '#ffff00',
 };
 

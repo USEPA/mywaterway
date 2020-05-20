@@ -182,7 +182,7 @@ function MapLegendContent({ layer }: CardProps) {
   // jsx
   const dischargersLegend = (
     <LI>
-      <ImageContainer>{diamondIcon({ color: colors.gray9 })}</ImageContainer>
+      <ImageContainer>{diamondIcon({ color: colors.orange })}</ImageContainer>
       <LegendLabel>Permitted Discharger</LegendLabel>
     </LI>
   );
