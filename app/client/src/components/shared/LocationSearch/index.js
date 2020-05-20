@@ -61,7 +61,7 @@ const Button = styled.button`
   &:not(.btn-danger):hover,
   &:not(.btn-danger):focus {
     color: ${colors.white()};
-    background-color: ${colors.purple()};
+    background-color: ${colors.navyBlue()};
   }
 
   &:disabled {

@@ -16,7 +16,7 @@ import { formatNumber } from 'utils/utils';
 // data
 import { impairmentFields } from 'config/attainsToHmwMapping';
 // styles
-import { fonts } from 'styles/index.js';
+import { fonts, colors } from 'styles/index.js';
 
 // add accessibility features to highcharts
 highchartsAccessibility(Highcharts);
@@ -289,17 +289,17 @@ function SiteSpecific({
                       {
                         name: 'Good',
                         y: calculatedSupport.supporting || 0,
-                        color: '#8cc63f',
+                        color: colors.green(0.75),
                       },
                       {
                         name: 'Impaired',
                         y: calculatedSupport.notSupporting || 0,
-                        color: '#f93b5b',
+                        color: colors.red(),
                       },
                       {
                         name: 'Insufficient Info',
                         y: calculatedSupport.insufficent || 0,
-                        color: '#a879d8',
+                        color: colors.purple(),
                       },
                     ],
                   },

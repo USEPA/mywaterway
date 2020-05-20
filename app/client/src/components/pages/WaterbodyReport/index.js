@@ -417,31 +417,31 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
           const status =
             use.useAttainmentCode === 'X'
               ? {
-                  textColor: colors.white(0.9375),
-                  bgColor: '#526571',
+                  textColor: colors.white(),
+                  bgColor: colors.steel(),
                   text: 'Not Assessed',
                 }
               : use.useAttainmentCode === 'I'
               ? {
-                  textColor: colors.black(0.9375),
-                  bgColor: '#a879d8',
+                  textColor: colors.white(),
+                  bgColor: colors.purple(),
                   text: 'Insufficient Info',
                 }
               : use.useAttainmentCode === 'F'
               ? {
-                  textColor: colors.black(0.9375),
-                  bgColor: '#8cc63f',
+                  textColor: colors.white(),
+                  bgColor: colors.green(),
                   text: 'Good',
                 }
               : use.useAttainmentCode === 'N'
               ? {
-                  textColor: colors.black(0.9375),
-                  bgColor: '#f93b5b',
+                  textColor: colors.white(),
+                  bgColor: colors.red(),
                   text: 'Impaired',
                 }
               : {
-                  textColor: colors.black(0.9375),
-                  bgColor: '#a879d8',
+                  textColor: colors.white(),
+                  bgColor: colors.purple(),
                   text: 'Unknown',
                 };
 
@@ -1132,50 +1132,54 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                       monitoringLocations.data.length > 0)) && (
                   */}
 
-                  {// NOTE: Water Monitoring section not ready as of 11/21/19
-                  // TODO: replace `false & (` with commented out conditions above
-                  // whenever Water Monitoring section is ready to be displayed
-                  false && (
-                    <StyledBox>
-                      <StyledBoxHeading>Water Monitoring</StyledBoxHeading>
+                  {
+                    // NOTE: Water Monitoring section not ready as of 11/21/19
+                    // TODO: replace `false & (` with commented out conditions above
+                    // whenever Water Monitoring section is ready to be displayed
+                    false && (
+                      <StyledBox>
+                        <StyledBoxHeading>Water Monitoring</StyledBoxHeading>
 
-                      <StyledBoxSection>
-                        <h3>Does this water have monitoring locations?</h3>
-                        {monitoringLocations.status === 'fetching' && (
-                          <LoadingSpinner />
-                        )}
-                        {monitoringLocations.status === 'failure' && (
-                          <ErrorBox>
-                            <p>{waterbodyReportError('Monitoring location')}</p>
-                          </ErrorBox>
-                        )}
-                        {monitoringLocations.status === 'success' && (
-                          <Locations>
-                            {monitoringLocations.data.map(location => {
-                              const { orgId, locId, name, url } = location;
-                              return (
-                                <li key={locId}>
-                                  {name ? (
-                                    <a
-                                      href={url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                    >
-                                      {name} (ID: {orgId}-{locId})
-                                    </a>
-                                  ) : (
-                                    <>
-                                      Unknown name (ID: {orgId}-{locId})
-                                    </>
-                                  )}
-                                </li>
-                              );
-                            })}
-                          </Locations>
-                        )}
-                      </StyledBoxSection>
-                    </StyledBox>
-                  )}
+                        <StyledBoxSection>
+                          <h3>Does this water have monitoring locations?</h3>
+                          {monitoringLocations.status === 'fetching' && (
+                            <LoadingSpinner />
+                          )}
+                          {monitoringLocations.status === 'failure' && (
+                            <ErrorBox>
+                              <p>
+                                {waterbodyReportError('Monitoring location')}
+                              </p>
+                            </ErrorBox>
+                          )}
+                          {monitoringLocations.status === 'success' && (
+                            <Locations>
+                              {monitoringLocations.data.map(location => {
+                                const { orgId, locId, name, url } = location;
+                                return (
+                                  <li key={locId}>
+                                    {name ? (
+                                      <a
+                                        href={url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                      >
+                                        {name} (ID: {orgId}-{locId})
+                                      </a>
+                                    ) : (
+                                      <>
+                                        Unknown name (ID: {orgId}-{locId})
+                                      </>
+                                    )}
+                                  </li>
+                                );
+                              })}
+                            </Locations>
+                          )}
+                        </StyledBoxSection>
+                      </StyledBox>
+                    )
+                  }
                 </StyledColumn>
               </StyledColumns>
             );
