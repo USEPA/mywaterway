@@ -352,7 +352,7 @@ export function plotFacilities({
         },
         symbol: {
           type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
-          color: colors.gray9,
+          color: colors.orange,
           style: 'diamond',
           size: 15,
         },
