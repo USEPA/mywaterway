@@ -94,7 +94,7 @@ function Overview({ esriModules, infoToggleChecked }: Props) {
     // wait until monitoring stations data is set in context
     if (!monitoringLocations.data.features) return;
 
-    const stations = monitoringLocations.data.features.map(station => {
+    const stations = monitoringLocations.data.features.map((station) => {
       return {
         x: station.geometry.coordinates[0],
         y: station.geometry.coordinates[1],
@@ -199,7 +199,7 @@ function Overview({ esriModules, infoToggleChecked }: Props) {
               <SwitchContainer>
                 <Switch
                   checked={Boolean(waterbodyCount) && waterbodiesFilterEnabled}
-                  onChange={checked => {
+                  onChange={(checked) => {
                     setWaterbodiesFilterEnabled(!waterbodiesFilterEnabled);
 
                     // first check if layer exists and is not falsy
@@ -241,7 +241,7 @@ function Overview({ esriModules, infoToggleChecked }: Props) {
                     Boolean(monitoringLocationCount) &&
                     monitoringLocationsFilterEnabled
                   }
-                  onChange={checked => {
+                  onChange={(checked) => {
                     setMonitoringLocationsFilterEnabled(
                       !monitoringLocationsFilterEnabled,
                     );
@@ -284,7 +284,7 @@ function Overview({ esriModules, infoToggleChecked }: Props) {
                     Boolean(permittedDischargerCount) &&
                     dischargersFilterEnabled
                   }
-                  onChange={checked => {
+                  onChange={(checked) => {
                     setDischargersFilterEnabled(!dischargersFilterEnabled);
 
                     // first check if layer exists and is not falsy

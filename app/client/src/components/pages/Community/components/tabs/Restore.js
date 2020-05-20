@@ -55,7 +55,7 @@ function Restore({ esriModules, infoToggleChecked }: Props) {
             return objA['prj_title'].localeCompare(objB['prj_title']);
           })
           .filter(
-            project =>
+            (project) =>
               !project.ws_protect_ind || project.ws_protect_ind === 'N',
           )
       : [];
@@ -144,7 +144,7 @@ function Restore({ esriModules, infoToggleChecked }: Props) {
                             const documents =
                               item['watershed_plans'] &&
                               // break string into pieces separated by commas and map over them
-                              item['watershed_plans'].split(',').map(plan => {
+                              item['watershed_plans'].split(',').map((plan) => {
                                 const markup = plan.split('</a>')[0] + '</a>';
                                 const title = getTitleFromMarkup(markup);
                                 const planUrl = getUrlFromMarkup(markup);
@@ -155,7 +155,7 @@ function Restore({ esriModules, infoToggleChecked }: Props) {
                             const filteredDocuments =
                               documents &&
                               documents.filter(
-                                document =>
+                                (document) =>
                                   document && document.url && document.title,
                               );
                             return (
@@ -166,8 +166,9 @@ function Restore({ esriModules, infoToggleChecked }: Props) {
                                     {item['prj_title'] || 'Unknown'}
                                   </strong>
                                 }
-                                subTitle={`ID:  ${item['prj_seq'] ||
-                                  'Unknown ID'}`}
+                                subTitle={`ID:  ${
+                                  item['prj_seq'] || 'Unknown ID'
+                                }`}
                               >
                                 <table className="table">
                                   <tbody>

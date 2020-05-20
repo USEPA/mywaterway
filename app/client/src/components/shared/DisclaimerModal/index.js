@@ -87,7 +87,7 @@ function DisclaimerModal({ children, ...props }: Props) {
   return (
     <>
       <DisclaimerButton
-        onClick={ev => setDialogShown(!dialogShown)}
+        onClick={(ev) => setDialogShown(!dialogShown)}
         // spread props so button’s styles (e.g. position) can be further set when used
         {...props}
       >
@@ -99,7 +99,7 @@ function DisclaimerModal({ children, ...props }: Props) {
           {children}
           <CloseButton
             title="Close disclaimer"
-            onClick={ev => setDialogShown(false)}
+            onClick={(ev) => setDialogShown(false)}
           >
             ×
           </CloseButton>

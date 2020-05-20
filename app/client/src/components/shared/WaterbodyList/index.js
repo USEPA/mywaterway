@@ -80,7 +80,7 @@ function WaterbodyList({
 
   const sortedWaterbodies = getUniqueWaterbodies(waterbodies)
     .filter(
-      waterbody =>
+      (waterbody) =>
         getWaterbodyCondition(waterbody.attributes, fieldName).condition !==
         'hidden',
     )

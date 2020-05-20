@@ -44,7 +44,7 @@ const echoUrl = 'https://echo.epa.gov/detailed-facility-report?fid=';
 
 function getAssessmentUnitNames(orgId: string, action: Object) {
   return new Promise((resolve, reject) => {
-    const unitIds = action.associatedWaters.specificWaters.map(water => {
+    const unitIds = action.associatedWaters.specificWaters.map((water) => {
       return water.assessmentUnitIdentifier;
     });
 
@@ -64,12 +64,12 @@ function getAssessmentUnitNames(orgId: string, action: Object) {
     });
 
     Promise.all(requests)
-      .then(responses => {
+      .then((responses) => {
         // the attains assessmentUnits web service returns an object with an
         // 'items' array containing a single object. so we’ll create an array
         // constructed from the first (and only) item in the 'items' array of
         // each web service response
-        const itemsFromEachResponse = responses.map(res => res.items[0]);
+        const itemsFromEachResponse = responses.map((res) => res.items[0]);
         // we’ll then combine the array of objects from each response into
         // a single object, concatinating the assessment units data arrays
         // (every other field contains the same data each web service response)
@@ -83,7 +83,7 @@ function getAssessmentUnitNames(orgId: string, action: Object) {
         // pass combined data from all responses to be processed
         resolve(data);
       })
-      .catch(err => reject(err));
+      .catch((err) => reject(err));
   });
 }
 
@@ -93,12 +93,12 @@ function processAssessmentUnitData(data: Object, action: Object) {
 
     // create a temporary names object for mapping assessment unit ids and names
     const names = {};
-    assessmentUnits.forEach(unit => {
+    assessmentUnits.forEach((unit) => {
       names[unit.assessmentUnitIdentifier] = unit.assessmentUnitName;
     });
 
     // update each specific waters’ name from the mapping names object
-    action.associatedWaters.specificWaters.forEach(water => {
+    action.associatedWaters.specificWaters.forEach((water) => {
       water.assessmentUnitName = names[water.assessmentUnitIdentifier];
     });
   }
@@ -112,7 +112,7 @@ function getPollutantsWaters(action: Object, orgId: string) {
   const pollutants = [];
   const waters = [];
 
-  action.associatedWaters.specificWaters.forEach(water => {
+  action.associatedWaters.specificWaters.forEach((water) => {
     const {
       assessmentUnitIdentifier,
       assessmentUnitName,
@@ -121,7 +121,7 @@ function getPollutantsWaters(action: Object, orgId: string) {
     } = water;
 
     // build up unique list of pollutants
-    associatedPollutants.forEach(pollutant => {
+    associatedPollutants.forEach((pollutant) => {
       if (pollutants.indexOf(pollutant.pollutantName) === -1) {
         pollutants.push(pollutant.pollutantName);
       }
@@ -239,7 +239,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
       `&organizationIdentifier=${orgId}`;
 
     fetchCheck(url)
-      .then(res => {
+      .then((res) => {
         if (res.items.length < 1) {
           setLoading(false);
           setNoActions(true);
@@ -251,7 +251,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
           const action = res.items[0].actions[0];
 
           getAssessmentUnitNames(orgId, action)
-            .then(data => {
+            .then((data) => {
               // process assessment unit data and get key action data
               const {
                 actionName,
@@ -281,14 +281,14 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
               setPollutants(pollutants);
               setWaters(waters);
             })
-            .catch(err => {
+            .catch((err) => {
               setLoading(false);
               setError(true);
               console.error(err);
             });
         }
       })
-      .catch(err => {
+      .catch((err) => {
         setLoading(false);
         setError(true);
         console.error(err);
@@ -303,7 +303,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
 
     const unitIds = {};
 
-    waters.forEach(water => {
+    waters.forEach((water) => {
       const {
         assessmentUnitIdentifier,
         associatedPollutants,
@@ -319,9 +319,9 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
             <ul>
               {associatedPollutants
                 .sort((a, b) => a.pollutantName.localeCompare(b.pollutantName))
-                .map(pollutant => {
+                .map((pollutant) => {
                   const permits = pollutant.permits
-                    .filter(permit => {
+                    .filter((permit) => {
                       return permit.NPDESIdentifier;
                     })
                     .sort((a, b) => {
@@ -375,7 +375,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
             <ul>
               {parameters
                 .sort((a, b) => a.parameterName.localeCompare(b.parameterName))
-                .map(parameter => {
+                .map((parameter) => {
                   return (
                     <li key={parameter.parameterName}>
                       <strong>{parameter.parameterName}</strong>
@@ -404,7 +404,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
 
   // calculate height of div holding actions info
   const [infoHeight, setInfoHeight] = React.useState(0);
-  const measuredRef = React.useCallback(node => {
+  const measuredRef = React.useCallback((node) => {
     if (!node) return;
     setInfoHeight(node.getBoundingClientRect().height);
   }, []);
@@ -530,7 +530,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                     <>
                       {infoBox}
                       <MapVisibilityButton>
-                        {mapShown => (
+                        {(mapShown) => (
                           <div
                             style={{
                               display: mapShown ? 'block' : 'none',
@@ -571,7 +571,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                         )}
 
                         {documents.length > 0 &&
-                          documents.map(document => (
+                          documents.map((document) => (
                             <li key={document.documentName}>
                               <a
                                 href={document.documentURL}
@@ -597,7 +597,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                           )}
 
                           {pollutants.length > 0 &&
-                            pollutants.map(pollutant => (
+                            pollutants.map((pollutant) => (
                               <li key={pollutant}>{pollutant}</li>
                             ))}
                         </ul>
@@ -611,7 +611,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                     <StyledBoxSection>
                       {waters.length > 0 && (
                         <Accordions>
-                          {waters.map(water => {
+                          {waters.map((water) => {
                             const {
                               assessmentUnitIdentifier,
                               assessmentUnitName,
@@ -620,7 +620,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                             const graphics = mapLayer && mapLayer.graphics;
                             const hasWaterbody = !graphics
                               ? false
-                              : graphics.items.findIndex(graphic => {
+                              : graphics.items.findIndex((graphic) => {
                                   const graphicOrgId =
                                     graphic.attributes.organizationid;
                                   const graphicAuId =
@@ -681,7 +681,7 @@ export default function ActionsContainer({ ...props }: Props) {
     <MapHighlightProvider>
       <FullscreenProvider>
         <FullscreenContext.Consumer>
-          {fullscreen => <Actions fullscreen={fullscreen} {...props} />}
+          {(fullscreen) => <Actions fullscreen={fullscreen} {...props} />}
         </FullscreenContext.Consumer>
       </FullscreenProvider>
     </MapHighlightProvider>

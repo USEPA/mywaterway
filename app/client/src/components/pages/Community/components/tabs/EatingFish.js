@@ -17,7 +17,7 @@ import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
 // returns the full name of the state
 function convertStateCode(stateCode: string, stateData: Array<Object>) {
   if (stateData.length === 0) return stateCode;
-  const matchingState = stateData.filter(s => s.code === stateCode)[0];
+  const matchingState = stateData.filter((s) => s.code === stateCode)[0];
   return matchingState ? matchingState.name : stateCode;
 }
 

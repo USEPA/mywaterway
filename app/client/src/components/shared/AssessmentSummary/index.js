@@ -31,7 +31,7 @@ function summarizeAssessments(waterbodies: Array<Object>, fieldName: string) {
   // to ensure we don't count a unique waterbody more than once
   const ids = [];
 
-  waterbodies.forEach(graphic => {
+  waterbodies.forEach((graphic) => {
     const field = graphic.attributes[fieldName];
     const { assessmentunitidentifier: id } = graphic.attributes;
 

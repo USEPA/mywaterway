@@ -92,7 +92,7 @@ function Stories({ stories }: Props) {
                     <Button
                       type="button"
                       className="btn btn-primary"
-                      onClick={ev => setStoriesToLoad(3)}
+                      onClick={(ev) => setStoriesToLoad(3)}
                     >
                       View Less Stories
                     </Button>
@@ -103,7 +103,7 @@ function Stories({ stories }: Props) {
                     <Button
                       type="button"
                       className="btn"
-                      onClick={ev => setStoriesToLoad(storiesToLoad + 3)}
+                      onClick={(ev) => setStoriesToLoad(storiesToLoad + 3)}
                     >
                       View More Stories
                     </Button>
