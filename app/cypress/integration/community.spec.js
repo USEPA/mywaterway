@@ -289,6 +289,7 @@ describe('Protect Tab', () => {
       'not.exist',
     );
 
+    // check that the Protection Projects in the Protect tab contains a project
     cy.findByText('Protect').click();
     cy.findByText('Protection Projects').click();
     cy.findByText('Cypress Creek WPP Imp - Years 1-3');
@@ -313,29 +314,4 @@ describe('Protect Tab', () => {
       exact: false,
     });
   });
-});
-
-describe('Protect Tab', () => {
-  beforeEach(() => {
-    cy.visit('/community');
-  });
-
-  it('Check that Protection Projects are displayed', () => {
-    // navigate to Protect tab of Community page
-    cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      '121002030202',
-    );
-    cy.findByText('Go').click();
-
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
-
-    // check that the Protection Projects in the Protect tab contains a project
-    cy.findByText('Protect').click();
-    cy.findByText('Protection Projects').click();
-    cy.findByText('Cypress Creek WPP Imp - Years 1-3');
-  });
-
 });
