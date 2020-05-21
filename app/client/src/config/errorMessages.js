@@ -15,7 +15,7 @@ export const huc12SummaryError =
   'Waterbody information is temporarily unavailable, please try again later.';
 
 // message show on the Community page when number of assessed waterbodies is 0
-export const zeroAssessedWaterbodies = watershed =>
+export const zeroAssessedWaterbodies = (watershed) =>
   `There are no waterbodies assessed in the ${watershed} watershed.`;
 
 // geocode.arcgis.com - Geolocation Service
@@ -88,12 +88,13 @@ export const grpaError =
 // State errors //
 
 // for where ATTAINS usesStateSummaryService response is an internal error or missing data for a state
-export const usesStateSummaryServiceInvalidResponse = stateName =>
-  `There is no State-level assessment data available${stateName &&
-    ' for ' + stateName}.`; // add conditional check for stateName as it is sometimes undefined
+export const usesStateSummaryServiceInvalidResponse = (stateName) =>
+  `There is no State-level assessment data available${
+    stateName && ' for ' + stateName
+  }.`; // add conditional check for stateName as it is sometimes undefined
 
 // attains state document service
-export const stateDocumentError = stateName =>
+export const stateDocumentError = (stateName) =>
   `${stateName} integrated report documents are temporarily unavailable, please try again later.`;
 
 // this message is displayed in the State Survey Use section when the Survey service is down
@@ -101,7 +102,7 @@ export const stateSurveySectionError =
   'State survey information is temporarily unavailable, please try again later.';
 
 // this message is displayed in the State Documents accordion when the Survey service is down
-export const stateSurveyError = stateName =>
+export const stateSurveyError = (stateName) =>
   `${stateName} survey documents are temporarily unavailable, please try again later.`;
 
 // attains state list service
@@ -117,11 +118,11 @@ export const stateGeneralError =
   'State information is temporarily unavailable, please try again later.';
 
 // if an invalid state is entered
-export const stateNoDataError = stateName =>
+export const stateNoDataError = (stateName) =>
   `No data available ${stateName && 'for ' + stateName}.`; // conditionals in case state name is undefined or an empty string
 
 // Waterbody Report errors //
-export const waterbodyReportError = type =>
+export const waterbodyReportError = (type) =>
   `${type} information is temporarily unavailable, please try again later.`; // where type is 'Assessment unit', 'Assessment', or 'Plans'
 
 // Attains Parameter Mapping Errors
@@ -146,7 +147,7 @@ export const mapErrorBoundaryMessage = (
 );
 
 // message displayed for individual tab error boundaries
-export const tabErrorBoundaryMessage = tabName => (
+export const tabErrorBoundaryMessage = (tabName) => (
   <p>
     The {tabName} tab data is unavailable at this time. Please{' '}
     <a

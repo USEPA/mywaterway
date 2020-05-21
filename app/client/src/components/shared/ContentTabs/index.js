@@ -8,7 +8,7 @@ import { colors } from 'styles/index.js';
 // tab borders (via box shadows)
 const left = `inset 1px 0 0 ${colors.black(0.375)}`;
 const right = `inset -1px 0 0 ${colors.white(0.0625)}`;
-const bottom = color => `inset 0 -3px 0 ${color}`;
+const bottom = (color) => `inset 0 -3px 0 ${color}`;
 
 const ContentTabs = styled.div`
   [data-reach-tabs] {

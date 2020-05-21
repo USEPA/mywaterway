@@ -62,7 +62,7 @@ type Props = {
 
 function MapLegend({ visibleLayers }: Props) {
   const filteredVisibleLayers = visibleLayers.filter(
-    layer => !ignoreLayers.includes(layer.id),
+    (layer) => !ignoreLayers.includes(layer.id),
   );
 
   // no legend data

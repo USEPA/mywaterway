@@ -200,7 +200,7 @@ function Page({ children }: Props) {
             <TopLink
               title="Data"
               as="button"
-              onClick={ev => {
+              onClick={(ev) => {
                 if (window.location.pathname !== '/data') {
                   setAboutDisplayed(false);
                   setDataDisplayed(true);
@@ -216,7 +216,7 @@ function Page({ children }: Props) {
             <TopLink
               title="About"
               as="button"
-              onClick={ev => {
+              onClick={(ev) => {
                 if (window.location.pathname !== '/about') {
                   setDataDisplayed(false);
                   setAboutDisplayed(true);
@@ -257,7 +257,7 @@ function Page({ children }: Props) {
             <>
               <NavBar
                 title="About"
-                onBackClick={ev => setAboutDisplayed(false)}
+                onBackClick={(ev) => setAboutDisplayed(false)}
               />
               <AboutContent />
             </>
@@ -267,7 +267,7 @@ function Page({ children }: Props) {
             <>
               <NavBar
                 title="About the Data"
-                onBackClick={ev => setDataDisplayed(false)}
+                onBackClick={(ev) => setDataDisplayed(false)}
               />
               <DataContent />
             </>

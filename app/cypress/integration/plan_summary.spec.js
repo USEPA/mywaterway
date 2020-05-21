@@ -57,9 +57,7 @@ describe("Plan Summary (Actions) page", () => {
     // test the waterbody report link
     const linkText = "View Waterbody Report";
     const auId = "AL03150110-0202-200";
-    cy.findByText(`ID: ${auId}`)
-      .first()
-      .click();
+    cy.findByText(`ID: ${auId}`).first().click();
     cy.findByText(linkText).should(
       "have.attr",
       "href",

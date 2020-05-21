@@ -259,7 +259,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     // Remove any previous highlights
     if (highlight && highlight.length > 0) {
-      highlight.forEach(item => {
+      highlight.forEach((item) => {
         item.remove();
       });
     }
@@ -368,7 +368,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         }
       }
 
-      mapView.whenLayerView(layer).then(layerView => {
+      mapView.whenLayerView(layer).then((layerView) => {
         const highlightObject = layerView.highlight(graphicToHighlight);
         highlight = [highlightObject];
         currentHighlight = graphic;
@@ -389,8 +389,8 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
       if (cachedHighlights[key]) {
         const highlights = [];
-        cachedHighlights[key].forEach(feature => {
-          mapView.whenLayerView(feature.layer).then(layerView => {
+        cachedHighlights[key].forEach((feature) => {
+          mapView.whenLayerView(feature.layer).then((layerView) => {
             highlights.push(layerView.highlight(feature));
           });
         });
@@ -417,15 +417,15 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
           requests.push(linesLayer.queryFeatures(query));
         pointsLayer !== 'error' &&
           requests.push(pointsLayer.queryFeatures(query));
-        Promise.all(requests).then(responses => {
+        Promise.all(requests).then((responses) => {
           const highlights = [];
           const featuresToCache = [];
-          responses.forEach(response => {
+          responses.forEach((response) => {
             if (!response || !response.features) return;
 
-            response.features.forEach(feature => {
+            response.features.forEach((feature) => {
               featuresToCache.push(feature);
-              mapView.whenLayerView(feature.layer).then(layerView => {
+              mapView.whenLayerView(feature.layer).then((layerView) => {
                 highlights.push(layerView.highlight(feature));
               });
             });
@@ -447,7 +447,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         });
       }
     } else {
-      mapView.whenLayerView(layer).then(layerView => {
+      mapView.whenLayerView(layer).then((layerView) => {
         const highlightObject = layerView.highlight(graphicToHighlight);
         highlight = [highlightObject];
         currentHighlight = graphic;

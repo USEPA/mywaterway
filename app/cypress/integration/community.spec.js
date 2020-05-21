@@ -20,9 +20,7 @@ describe("Community page links", () => {
 
     // test the plan summary link
     const linkText = "Open Plan Summary";
-    cy.findAllByText("Upper San Antonio River WPP")
-      .first()
-      .click();
+    cy.findAllByText("Upper San Antonio River WPP").first().click();
     cy.findByText(linkText).should(
       "have.attr",
       "href",
@@ -64,7 +62,7 @@ describe("Community page search", () => {
     cy.findByText("Go").click();
     cy.url().should("equal", `${window.location.origin}/community`);
     cy.findByText("Data is not available for this location.", {
-      exact: false
+      exact: false,
     }).should("exist");
   });
 
@@ -115,7 +113,7 @@ describe("Community page zero waterbodies message", () => {
     cy.findByText("Go").click();
     cy.findByText("There are no waterbodies assessed in the", {
       exact: false,
-      timeout: 20000
+      timeout: 20000,
     }).should("exist");
   });
 });
