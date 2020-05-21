@@ -162,7 +162,7 @@ function Community({ children, ...props }: Props) {
                   {!atCommunityIntroRoute && (
                     <>
                       <MapVisibilityButton>
-                        {mapShown => (
+                        {(mapShown) => (
                           <div style={{ display: mapShown ? 'block' : 'none' }}>
                             <LocationMap
                               windowHeight={height}

@@ -85,7 +85,7 @@ if (isDevelopment || isStaging) {
 Enable CORS for local environment proxy use
 ****************************************************************/
 if (isLocal) {
-  app.use(function(req, res, next) {
+  app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
     res.header(
       'Access-Control-Allow-Headers',
@@ -110,7 +110,7 @@ app.use(express.static(__dirname + '/public'));
 require('./server/routes')(app);
 
 // setup client routes (built React app)
-app.get('*', function(req, res) {
+app.get('*', function (req, res) {
   res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
@@ -120,7 +120,7 @@ app.use(favicon(path.join(__dirname, 'public_other_pages/favicon.ico')));
 // different port usage to confuse testers/developers
 if (port === 9090 && !isLocal) port = browserSyncPort;
 
-app.listen(port, function() {
+app.listen(port, function () {
   if (isLocal) {
     const browserSync = require('browser-sync');
 
@@ -144,10 +144,10 @@ app.listen(port, function() {
  ****************************************************************/
 /* Note, the React app should be handling 404 at this point 
    but we're leaving the below 404 check in for now */
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   res.sendFile(path.join(__dirname, 'public_other_pages', '400.html'));
 });
 
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   res.sendFile(path.join(__dirname, 'public_other_pages', '500.html'));
 });
