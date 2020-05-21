@@ -585,6 +585,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
                     disabled={
                       zeroPollutedWaterbodies || cipSummary.status === 'failure'
                     }
+                    ariaLabel="Toggle Issues Layer"
                   />
                 </SwitchContainer>
               </>
@@ -608,6 +609,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
                     checked={toggleDischargersChecked}
                     onChange={() => toggleSwitch('Toggle Dischargers Layer')}
                     disabled={zeroDischargers}
+                    ariaLabel="Toggle Dischargers Layer"
                   />
                 </SwitchContainer>
               </>
@@ -619,7 +621,9 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
           <Tabs>
             <TabList>
               <Tab>Impaired Assessed Waters</Tab>
-              <Tab>Dischargers with Significant Violations</Tab>
+              <Tab data-testid="hmw-dischargers">
+                Dischargers with Significant Violations
+              </Tab>
             </TabList>
 
             <TabPanels>
@@ -711,6 +715,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
                                             onChange={() =>
                                               toggleSwitch('Toggle All')
                                             }
+                                            ariaLabel="Toggle all impairment categories"
                                           />
                                         </TableSwitch>
                                         Impairment Category
