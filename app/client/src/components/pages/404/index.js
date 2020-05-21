@@ -1,36 +1,22 @@
 // @flow
 
 import React from 'react';
-import { Link } from '@reach/router';
-import styled from 'styled-components';
-
-// --- styled components ---
-const Container = styled.div`
-  margin: 2rem 0;
-  text-align: center;
-`;
-
-const Header = styled.h1`
-  margin-bottom: 0;
-  font-size: 1.75rem;
-`;
-
-const Paragraph = styled.p`
-  padding-bottom: 0;
-`;
+import { navigate } from '@reach/router';
 
 // --- components ---
 function PageNotFound() {
-  return (
-    <div className="container">
-      <Container>
-        <Header>Sorry, but this web page does not exist.</Header>
-        <Paragraph>
-          Return to the <Link to="/">homepage</Link>.
-        </Paragraph>
-      </Container>
-    </div>
-  );
+  // redirect to the server side 400.html page
+  React.useEffect(() => {
+    const location = window.location;
+
+    let url = `${location.origin}/404.html`;
+    if (location.hostname === 'localhost') {
+      url = `${location.protocol}//${location.hostname}:9090/404.html`;
+    }
+    navigate(url);
+  }, []);
+
+  return null;
 }
 
 export default PageNotFound;
