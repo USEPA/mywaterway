@@ -209,6 +209,7 @@ describe('Identified Issues Tab', () => {
       'not.exist',
     );
 
+    // switch to Dischargers tab of Identified Issues tab and check that the discharger accordion item exists and expands when clicked
     cy.findByText('Identified Issues').click();
     cy.findByTestId('hmw-dischargers').click();
     cy.findByText('RED LINE PUMPING STATIONS').click();
@@ -331,6 +332,7 @@ describe('Protect Tab', () => {
       'not.exist',
     );
 
+    // check that the Protection Projects in the Protect tab contains a project
     cy.findByText('Protect').click();
     cy.findByText('Protection Projects').click();
     cy.findByText('Cypress Creek WPP Imp - Years 1-3');
