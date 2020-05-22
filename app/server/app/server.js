@@ -114,7 +114,7 @@ app.get('*', function (req, res) {
   res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
-app.use(favicon(path.join(__dirname, 'public_other_pages/favicon.ico')));
+app.use(favicon(path.join(__dirname, 'public/favicon.ico')));
 
 // for local testing of the production flow, use the same port as browersync to avoid
 // different port usage to confuse testers/developers
@@ -145,9 +145,9 @@ app.listen(port, function () {
 /* Note, the React app should be handling 404 at this point 
    but we're leaving the below 404 check in for now */
 app.use(function (req, res, next) {
-  res.sendFile(path.join(__dirname, 'public_other_pages', '400.html'));
+  res.sendFile(path.join(__dirname, 'public', '400.html'));
 });
 
 app.use(function (err, req, res, next) {
-  res.sendFile(path.join(__dirname, 'public_other_pages', '500.html'));
+  res.sendFile(path.join(__dirname, 'public', '500.html'));
 });
