@@ -39,13 +39,7 @@ const Heading = styled.h3`
 `;
 
 // --- components ---
-type Props = {
-  // props passed implicitly in Community component
-  esriModules: Object,
-  infoToggleChecked: boolean,
-};
-
-function Protect({ esriModules, infoToggleChecked }: Props) {
+function Protect() {
   const { grts, watershed } = React.useContext(LocationSearchContext);
 
   const sortedGrtsData =

@@ -16,17 +16,11 @@ import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
 import { huc12SummaryError } from 'config/errorMessages';
 
 // --- components ---
-type Props = {
-  // props passed implicitly in Community component
-  esriModules: Object,
-  infoToggleChecked: boolean,
-};
-
 const ErrorBox = styled(StyledErrorBox)`
   margin: 1rem;
 `;
 
-function Swimming({ esriModules, infoToggleChecked }: Props) {
+function Swimming() {
   const { watershed, cipSummary } = React.useContext(LocationSearchContext);
 
   // set the waterbody features

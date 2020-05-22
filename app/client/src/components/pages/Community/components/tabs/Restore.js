@@ -37,13 +37,7 @@ const Text = styled.p`
 `;
 
 // --- components ---
-type Props = {
-  // props passed implicitly in Community component
-  esriModules: Object,
-  infoToggleChecked: boolean,
-};
-
-function Restore({ esriModules, infoToggleChecked }: Props) {
+function Restore() {
   const { attainsPlans, grts, watershed } = React.useContext(
     LocationSearchContext,
   );
