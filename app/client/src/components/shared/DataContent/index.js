@@ -3,6 +3,8 @@
 import React from 'react';
 import styled from 'styled-components';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+// styles
+import { fonts } from 'styles/index.js';
 
 // --- styled components ---
 const Container = styled.div`
@@ -13,8 +15,7 @@ const Container = styled.div`
     line-height: 1.375;
   }
 
-  a,
-  strong {
+  a {
     display: block;
     margin-bottom: 0.25rem;
     font-size: 1.25em;
@@ -27,14 +28,21 @@ const Container = styled.div`
     a {
       font-size: 1.375em;
     }
-    strong {
-      font-size: 1.125em;
-    }
 
     hr {
       margin-top: 2rem;
     }
   }
+`;
+
+const Question = styled.h2`
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 1.125em;
+  line-height: 1.125;
+  font-family: ${fonts.primary};
+  font-weight: bold;
+  padding-bottom: 0;
 `;
 
 const Item = styled.div`
@@ -116,8 +124,8 @@ function Data({ ...props }: Props) {
           by states under Clean Water Act sections 303(d) and 305(b).
         </p>
         <br />
+        <Question>Where do I find ATTAINS data in How’s My Waterway?</Question>
         <p>
-          <strong>Where do I find ATTAINS data in How’s My Waterway?</strong>{' '}
           Information from this database can be found on the Community page on
           the following tabs; Overview ({' '}
           <GlossaryTerm term="overall waterbody condition">
@@ -132,7 +140,7 @@ function Data({ ...props }: Props) {
           Quality Overview and Advanced Search tabs.
         </p>
         <SubLink>
-          <strong>Impairment Category Filtering Tool: </strong>{' '}
+          <Question>Impairment Category Filtering Tool:</Question>{' '}
           <a href="attains" target="_blank" rel="noopener noreferrer">
             How ATTAINS data are grouped in How’s My Waterway
           </a>
@@ -155,13 +163,11 @@ function Data({ ...props }: Props) {
           assess their compliance with environmental regulations.
         </p>
         <br />
+        <Question>Where do I find ECHO data in How’s My Waterway?</Question>
         <p>
-          <strong>Where do I find ECHO data in How’s My Waterway? </strong>
           Information from this database can be found on the Community page on
           the following tabs; Overview ({' '}
-          <GlossaryTerm term="dischargers">
-            permitted dischargers
-          </GlossaryTerm>{' '}
+          <GlossaryTerm term="dischargers">permitted dischargers</GlossaryTerm>{' '}
           ) and Identified Issues ({' '}
           <GlossaryTerm term="significant violations">
             dischargers with significant effluent violations
@@ -188,8 +194,8 @@ function Data({ ...props }: Props) {
           management programs.
         </p>
         <br />
+        <Question>Where do I find GRTS data in How’s My Waterway?</Question>
         <p>
-          <strong>Where do I find GRTS data in How’s My Waterway? </strong>
           Information from this database can be found on the Community page on
           the following tabs; Restore ({' '}
           <GlossaryTerm term="Clean Water Act Section 319 Projects">
@@ -218,8 +224,8 @@ function Data({ ...props }: Props) {
           the Safe Drinking Water Act (SDWA).
         </p>
         <br />
+        <Question>Where do I find SDWIS data in How’s My Waterway?</Question>
         <p>
-          <strong>Where do I find SDWIS data in How’s My Waterway? </strong>
           Information from this database can be found on the Community page on
           the following tabs; Drinking Water (Who provides the drinking water
           here?, Who withdraws water for drinking here?). On the State page
@@ -245,8 +251,8 @@ function Data({ ...props }: Props) {
           the quality of the nation's surface water.
         </p>
         <br />
+        <Question>Where do I find WATERS data in How’s My Waterway?</Question>
         <p>
-          <strong>Where do I find WATERS data in How’s My Waterway? </strong>
           Information from WATERS supports the display of Watershed boundaries
           on the map display.
         </p>
@@ -271,8 +277,8 @@ function Data({ ...props }: Props) {
           monitoring data.
         </p>
         <br />
+        <Question>Where do I find WQP data in How’s My Waterway? </Question>
         <p>
-          <strong>Where do I find WQP data in How’s My Waterway? </strong>
           Information from this database can be found on the Community page on
           the following tabs; Overview (monitoring locations), Monitoring.
         </p>
