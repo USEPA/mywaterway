@@ -15,8 +15,12 @@ const Container = styled.div`
   padding: 1rem;
 `;
 
-const Question = styled.strong`
-  font-size: 1.2em;
+const Subheading = styled.h2`
+  font-size: 1.1rem;
+  margin: 1rem 0 0;
+  font-weight: bold;
+  font-family: ${fonts.primary};
+  padding: 0;
 `;
 
 const StyledTabs = styled(Tabs)`
@@ -26,13 +30,9 @@ const StyledTabs = styled(Tabs)`
 
   [data-reach-tab-panel] {
     p {
-      margin-top: 1rem;
+      margin-top: 0.5rem;
       padding-bottom: 0.5rem;
       line-height: 1.375;
-
-      :first-of-type {
-        margin-top: 0;
-      }
     }
 
     hr {
@@ -48,21 +48,19 @@ const StyledTabs = styled(Tabs)`
       line-height: 1.375;
     }
 
+    h2 {
+      font-size: 1.2em;
+      font-family: ${fonts.primary};
+      font-weight: bold;
+      padding: 0;
+      margin: 20px 0 0 0;
+    }
+
     h1 {
       margin: 2rem 0 0.25rem;
       padding-bottom: 0;
       font-family: ${fonts.primary};
       font-size: 1.8em;
-
-      & + p {
-        margin-top: 0;
-      }
-    }
-    .title {
-      margin: 1rem 0 0.25rem;
-      padding-bottom: 0;
-      font-family: ${fonts.primary};
-      font-size: 1.375em;
 
       & + p {
         margin-top: 0;
@@ -151,7 +149,7 @@ function AboutContent({ ...props }: Props) {
 
                 <h1>Community Page </h1>
                 <hr />
-                <div className="subtitle">About impairment reporting </div>
+                <Subheading>About impairment reporting</Subheading>
                 <p>
                   The Clean Water Act requires States, Territories and
                   authorized tribes (states for brevity) to monitor water
@@ -172,7 +170,7 @@ function AboutContent({ ...props }: Props) {
                   conditions.
                 </p>
 
-                <div className="subtitle">About water quality information </div>
+                <Subheading>About water quality information</Subheading>
                 <p>
                   EPA's water databases are the largest single, national source
                   of information about reported water quality problems and
@@ -188,7 +186,7 @@ function AboutContent({ ...props }: Props) {
                   were measured and reported.
                 </p>
 
-                <div className="subtitle">About impairment categories </div>
+                <Subheading>About impairment categories</Subheading>
                 <p>
                   A single waterway can have one or more types of impairments.
                   When States report impaired waters, they put them in different
@@ -206,7 +204,7 @@ function AboutContent({ ...props }: Props) {
                   information. This information can be found in the glossary.
                 </p>
 
-                <div className="subtitle">About what's being done </div>
+                <Subheading>About what's being done</Subheading>
                 <p>
                   Identifying and reporting water impairments leads to action
                   for improvement. Two major types of action taken under the
@@ -233,7 +231,7 @@ function AboutContent({ ...props }: Props) {
 
                 <h1>State Page </h1>
                 <hr />
-                <div className="subtitle">State Water Quality Overview </div>
+                <Subheading>State Water Quality Overview</Subheading>
 
                 <p>
                   You will find basic facts about a state’s waters (by the
@@ -250,7 +248,7 @@ function AboutContent({ ...props }: Props) {
                   stories are also found on this page by state (if applicable).
                 </p>
 
-                <div className="subtitle">Advanced Search</div>
+                <Subheading>Advanced Search</Subheading>
 
                 <p>
                   On this page you will be able to find the condition of
@@ -281,8 +279,9 @@ function AboutContent({ ...props }: Props) {
               <div className="container">
                 <h1>Questions and Answers about How’s My Waterway </h1>
                 <hr />
+
+                <h2>What is “How’s My Waterway?”</h2>
                 <p>
-                  <Question>What is “How’s My Waterway?”</Question>{' '}
                   <em>How’s My Waterway</em> is an EPA tool that helps users
                   find information on the condition of their waters quickly
                   using a smart phone, tablet, or desktop computer. This
@@ -295,13 +294,13 @@ function AboutContent({ ...props }: Props) {
                   <a href="/data">data page</a>).
                 </p>
 
+                <h2>How can I use How’s My Waterway?</h2>
                 <p>
-                  <Question>How can I use How’s My Waterway?</Question> Users
-                  can retrieve information on assessments and reported condition
-                  of local waters for anywhere in the nation by searching based
-                  on address, zipcode or place name (e.g. Mount Rushmore).
-                  Results include a list and map of the waters within a small
-                  watershed ({' '}
+                  Users can retrieve information on assessments and reported
+                  condition of local waters for anywhere in the nation by
+                  searching based on address, zipcode or place name (e.g. Mount
+                  Rushmore). Results include a list and map of the waters within
+                  a small watershed ({' '}
                   <GlossaryTerm term="Watershed Names (HUC 12)">
                     HUC 12 watershed
                   </GlossaryTerm>
@@ -316,8 +315,8 @@ function AboutContent({ ...props }: Props) {
                   location.
                 </p>
 
+                <h2>Why was How’s My Waterway developed?</h2>
                 <p>
-                  <Question>Why was How’s My Waterway developed?</Question>{' '}
                   <em>How’s My Waterway</em> was developed to help users find
                   basic information about the condition of their waterways and
                   provides easy access to EPA’s comprehensive public water
@@ -346,16 +345,16 @@ function AboutContent({ ...props }: Props) {
                   understand.”
                 </p>
 
+                <h2>What are the system requirements?</h2>
                 <p>
-                  <Question>What are the system requirements?</Question>{' '}
                   <em>How’s My Waterway</em> is fully functional when accessed
                   through browsers such as Firefox, Google Chrome, Internet
                   Explorer and Safari using your desktop computer, tablet, or
                   smart phone. It is platform-independent.
                 </p>
 
+                <h2>Is How’s My Waterway a smart phone app?</h2>
                 <p>
-                  <Question>Is How’s My Waterway a smart phone app?</Question>{' '}
                   Actually it is a mobile-friendly tool -- a smart phone or
                   tablet user can consult <em>How’s My Waterway</em> outdoors at
                   the water’s edge, and retrieve information for that specific
@@ -366,17 +365,15 @@ function AboutContent({ ...props }: Props) {
                   there is no app available through common app stores.
                 </p>
 
+                <h2>More Questions?</h2>
                 <p>
-                  <Question>
-                    More Questions?{' '}
-                    <a
-                      href="https://www.epa.gov/waterdata/forms/contact-us-about-hows-my-waterway"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Contact us
-                    </a>
-                  </Question>
+                  <a
+                    href="https://www.epa.gov/waterdata/forms/contact-us-about-hows-my-waterway"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Contact us
+                  </a>
                 </p>
               </div>
             </TabPanel>
