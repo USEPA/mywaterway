@@ -33,10 +33,6 @@ const StyledTabs = styled(Tabs)`
       margin-top: 0.5rem;
       padding-bottom: 0.5rem;
       line-height: 1.375;
-
-      :first-of-type {
-        margin-top: 0;
-      }
     }
 
     hr {
@@ -52,21 +48,19 @@ const StyledTabs = styled(Tabs)`
       line-height: 1.375;
     }
 
+    h2 {
+      font-size: 1.2em;
+      font-family: ${fonts.primary};
+      font-weight: bold;
+      padding: 0;
+      margin: 20px 0 0 0;
+    }
+
     h1 {
       margin: 2rem 0 0.25rem;
       padding-bottom: 0;
       font-family: ${fonts.primary};
       font-size: 1.8em;
-
-      & + p {
-        margin-top: 0;
-      }
-    }
-    .title {
-      margin: 1rem 0 0.25rem;
-      padding-bottom: 0;
-      font-family: ${fonts.primary};
-      font-size: 1.375em;
 
       & + p {
         margin-top: 0;
@@ -286,8 +280,7 @@ function AboutContent({ ...props }: Props) {
                 <h1>Questions and Answers about How’s My Waterway </h1>
                 <hr />
 
-                <h1>What is “How’s My Waterway?”</h1>
-                <hr />
+                <h2>What is “How’s My Waterway?”</h2>
                 <p>
                   <em>How’s My Waterway</em> is an EPA tool that helps users
                   find information on the condition of their waters quickly
@@ -301,8 +294,7 @@ function AboutContent({ ...props }: Props) {
                   <a href="/data">data page</a>).
                 </p>
 
-                <h1>How can I use How’s My Waterway?</h1>
-                <hr />
+                <h2>How can I use How’s My Waterway?</h2>
                 <p>
                   Users can retrieve information on assessments and reported
                   condition of local waters for anywhere in the nation by
@@ -323,8 +315,7 @@ function AboutContent({ ...props }: Props) {
                   location.
                 </p>
 
-                <h1>Why was How’s My Waterway developed?</h1>
-                <hr />
+                <h2>Why was How’s My Waterway developed?</h2>
                 <p>
                   <em>How’s My Waterway</em> was developed to help users find
                   basic information about the condition of their waterways and
@@ -354,8 +345,7 @@ function AboutContent({ ...props }: Props) {
                   understand.”
                 </p>
 
-                <h1>What are the system requirements?</h1>
-                <hr />
+                <h2>What are the system requirements?</h2>
                 <p>
                   <em>How’s My Waterway</em> is fully functional when accessed
                   through browsers such as Firefox, Google Chrome, Internet
@@ -363,8 +353,7 @@ function AboutContent({ ...props }: Props) {
                   smart phone. It is platform-independent.
                 </p>
 
-                <h1>Is How’s My Waterway a smart phone app?</h1>
-                <hr />
+                <h2>Is How’s My Waterway a smart phone app?</h2>
                 <p>
                   Actually it is a mobile-friendly tool -- a smart phone or
                   tablet user can consult <em>How’s My Waterway</em> outdoors at
@@ -376,9 +365,7 @@ function AboutContent({ ...props }: Props) {
                   there is no app available through common app stores.
                 </p>
 
-                <h1>
-                  More Questions? <hr />
-                </h1>
+                <h2>More Questions?</h2>
                 <p>
                   <a
                     href="https://www.epa.gov/waterdata/forms/contact-us-about-hows-my-waterway"
