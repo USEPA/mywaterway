@@ -426,6 +426,7 @@ function Monitoring() {
                         <Switch
                           checked={allToggled}
                           onChange={(ev) => toggleSwitch('All')}
+                          ariaLabel="Toggle all monitoring locations"
                         />
                         <span>All Monitoring Locations</span>
                       </Toggle>
@@ -444,6 +445,7 @@ function Monitoring() {
                               <Switch
                                 checked={monitoringLocationToggles[label]}
                                 onChange={(ev) => toggleSwitch(label)}
+                                ariaLabel={`Toggle ${label}`}
                               />
                               <span>{label}</span>
                             </Toggle>

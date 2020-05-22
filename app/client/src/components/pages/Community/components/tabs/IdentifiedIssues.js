@@ -575,6 +575,7 @@ function IdentifiedIssues() {
                     disabled={
                       zeroPollutedWaterbodies || cipSummary.status === 'failure'
                     }
+                    ariaLabel="Toggle Issues Layer"
                   />
                 </SwitchContainer>
               </>
@@ -598,6 +599,7 @@ function IdentifiedIssues() {
                     checked={toggleDischargersChecked}
                     onChange={() => toggleSwitch('Toggle Dischargers Layer')}
                     disabled={zeroDischargers}
+                    ariaLabel="Toggle Dischargers Layer"
                   />
                 </SwitchContainer>
               </>
@@ -609,7 +611,9 @@ function IdentifiedIssues() {
           <Tabs>
             <TabList>
               <Tab>Impaired Assessed Waters</Tab>
-              <Tab>Dischargers with Significant Violations</Tab>
+              <Tab data-testid="hmw-dischargers">
+                Dischargers with Significant Violations
+              </Tab>
             </TabList>
 
             <TabPanels>
@@ -701,6 +705,7 @@ function IdentifiedIssues() {
                                             onChange={() =>
                                               toggleSwitch('Toggle All')
                                             }
+                                            ariaLabel="Toggle all impairment categories"
                                           />
                                         </TableSwitch>
                                         Impairment Category
