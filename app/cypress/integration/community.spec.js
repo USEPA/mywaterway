@@ -141,176 +141,176 @@ describe("Community page (small screen)", () => {
   });
 });
 
-describe('Identified Issues Tab', () => {
+describe("Identified Issues Tab", () => {
   beforeEach(() => {
-    cy.visit('/community');
+    cy.visit("/community");
   });
 
-  it('Toggling off the % Assessed Waters switch toggles all of the impairment category switches off', () => {
+  it("Toggling off the % Assessed Waters switch toggles all of the impairment category switches off", () => {
     // navigate to Identified Issues tab of Community page
-    cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      '020700100102',
+    cy.findByPlaceholderText("Search by address", { exact: false }).type(
+      "020700100102"
     );
-    cy.findByText('Go').click();
+    cy.findByText("Go").click();
 
     // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
+    cy.findAllByTestId("hmw-loading-spinner", { timeout: 120000 }).should(
+      "not.exist"
     );
 
-    cy.findByText('Identified Issues').click();
+    cy.findByText("Identified Issues").click();
 
-    cy.findByLabelText('Toggle Issues Layer').click({ force: true });
-    cy.findByLabelText('Toggle Issues Layer').should(
-      'have.attr',
-      'aria-checked',
-      'false',
+    cy.findByLabelText("Toggle Issues Layer").click({ force: true });
+    cy.findByLabelText("Toggle Issues Layer").should(
+      "have.attr",
+      "aria-checked",
+      "false"
     );
 
     // check that all switches are turned off
-    cy.findByLabelText('Toggle all impairment categories').should(
-      'have.attr',
-      'aria-checked',
-      'false',
+    cy.findByLabelText("Toggle all impairment categories").should(
+      "have.attr",
+      "aria-checked",
+      "false"
     );
   });
 
-  it('Clicking the Dischargers switch toggles the switch off', () => {
+  it("Clicking the Dischargers switch toggles the switch off", () => {
     // navigate to Identified Issues tab of Community page
-    cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      '020700100102',
+    cy.findByPlaceholderText("Search by address", { exact: false }).type(
+      "020700100102"
     );
-    cy.findByText('Go').click();
+    cy.findByText("Go").click();
 
     // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
+    cy.findAllByTestId("hmw-loading-spinner", { timeout: 120000 }).should(
+      "not.exist"
     );
 
-    cy.findByText('Identified Issues').click();
+    cy.findByText("Identified Issues").click();
 
-    cy.findByLabelText('Toggle Dischargers Layer').click({ force: true });
-    cy.findByLabelText('Toggle Dischargers Layer').should(
-      'have.attr',
-      'aria-checked',
-      'false',
+    cy.findByLabelText("Toggle Dischargers Layer").click({ force: true });
+    cy.findByLabelText("Toggle Dischargers Layer").should(
+      "have.attr",
+      "aria-checked",
+      "false"
     );
   });
 
-  it('Clicking a Discharger accordion item expands it', () => {
+  it("Clicking a Discharger accordion item expands it", () => {
     // navigate to Identified Issues tab of Community page
-    cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      '020700100102',
+    cy.findByPlaceholderText("Search by address", { exact: false }).type(
+      "020700100102"
     );
-    cy.findByText('Go').click();
+    cy.findByText("Go").click();
 
     // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
+    cy.findAllByTestId("hmw-loading-spinner", { timeout: 120000 }).should(
+      "not.exist"
     );
 
     // switch to Dischargers tab of Identified Issues tab and check that the discharger accordion item exists and expands when clicked
-    cy.findByText('Identified Issues').click();
-    cy.findByTestId('hmw-dischargers').click();
-    cy.findByText('RED LINE PUMPING STATIONS').click();
-    cy.findByText('Compliance Status:');
+    cy.findByText("Identified Issues").click();
+    cy.findByTestId("hmw-dischargers").click();
+    cy.findByText("RED LINE PUMPING STATIONS").click();
+    cy.findByText("Compliance Status:");
   });
 });
 
-describe('Monitoring Tab', () => {
+describe("Monitoring Tab", () => {
   beforeEach(() => {
-    cy.visit('/community');
+    cy.visit("/community");
   });
 
-  it('Clicking the All Monitoring Locations switch toggles it off and displays 0 locations in the accordion', () => {
+  it("Clicking the All Monitoring Locations switch toggles it off and displays 0 locations in the accordion", () => {
     // navigate to Monitoring tab of Community page
-    cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      'San Antonio, TX',
+    cy.findByPlaceholderText("Search by address", { exact: false }).type(
+      "San Antonio, TX"
     );
-    cy.findByText('Go').click();
+    cy.findByText("Go").click();
 
     // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
+    cy.findAllByTestId("hmw-loading-spinner", { timeout: 120000 }).should(
+      "not.exist"
     );
 
-    cy.findByText('Monitoring').click();
+    cy.findByText("Monitoring").click();
 
     // click Toggle All Monitoring Locations switch and check that all switches are toggled off
-    cy.findByLabelText('Toggle all monitoring locations').click({
+    cy.findByLabelText("Toggle all monitoring locations").click({
       force: true,
     });
 
-    cy.findByLabelText('Toggle all monitoring locations').should(
-      'have.attr',
-      'aria-checked',
-      'false',
+    cy.findByLabelText("Toggle all monitoring locations").should(
+      "have.attr",
+      "aria-checked",
+      "false"
     );
-    cy.findByLabelText('Toggle Metals').should(
-      'have.attr',
-      'aria-checked',
-      'false',
+    cy.findByLabelText("Toggle Metals").should(
+      "have.attr",
+      "aria-checked",
+      "false"
     );
 
     // check that there are no items displayed in accordion
-    cy.findByText('Displaying 0', { exact: false });
+    cy.findByText("Displaying 0", { exact: false });
 
     // check that clicking the Toggle All switch again toggles all switches back on
-    cy.findByLabelText('Toggle all monitoring locations').click({
+    cy.findByLabelText("Toggle all monitoring locations").click({
       force: true,
     });
-    cy.findByLabelText('Toggle all monitoring locations').should(
-      'have.attr',
-      'aria-checked',
-      'true',
+    cy.findByLabelText("Toggle all monitoring locations").should(
+      "have.attr",
+      "aria-checked",
+      "true"
     );
-    cy.findByLabelText('Toggle Metals').should(
-      'have.attr',
-      'aria-checked',
-      'true',
+    cy.findByLabelText("Toggle Metals").should(
+      "have.attr",
+      "aria-checked",
+      "true"
     );
   });
 });
 
-describe('Protect Tab', () => {
+describe("Protect Tab", () => {
   beforeEach(() => {
-    cy.visit('/community');
+    cy.visit("/community");
   });
 
-  it('Check that Protection Projects are displayed', () => {
+  it("Check that Protection Projects are displayed", () => {
     // navigate to Protect tab of Community page
-    cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      '121002030202',
+    cy.findByPlaceholderText("Search by address", { exact: false }).type(
+      "121002030202"
     );
-    cy.findByText('Go').click();
+    cy.findByText("Go").click();
 
     // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
+    cy.findAllByTestId("hmw-loading-spinner", { timeout: 120000 }).should(
+      "not.exist"
     );
 
     // check that the Protection Projects in the Protect tab contains a project
-    cy.findByText('Protect').click();
-    cy.findByText('Protection Projects').click();
-    cy.findByText('Cypress Creek WPP Imp - Years 1-3');
+    cy.findByText("Protect").click();
+    cy.findByText("Protection Projects").click();
+    cy.findByText("Cypress Creek WPP Imp - Years 1-3");
   });
 
-  it('Check that a message is displayed for a location with no Protection Projects', () => {
+  it("Check that a message is displayed for a location with no Protection Projects", () => {
     // navigate to Protect tab of Community page
-    cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      'San Antonio, TX',
+    cy.findByPlaceholderText("Search by address", { exact: false }).type(
+      "San Antonio, TX"
     );
-    cy.findByText('Go').click();
+    cy.findByText("Go").click();
 
     // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
+    cy.findAllByTestId("hmw-loading-spinner", { timeout: 120000 }).should(
+      "not.exist"
     );
 
-    cy.findByText('Protect').click();
-    cy.findByText('Get quick tips for reducing water impairment in your:');
-    cy.findByText('Protection Projects').click();
-    cy.findByText('There are no EPA funded protection projects in the', {
+    cy.findByText("Protect").click();
+    cy.findByText("Get quick tips for reducing water impairment in your:");
+    cy.findByText("Protection Projects").click();
+    cy.findByText("There are no EPA funded protection projects in the", {
       exact: false,
     });
   });
