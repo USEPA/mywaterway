@@ -4,7 +4,9 @@ describe("About page", () => {
     cy.findByPlaceholderText("Search by address", { exact: false }).type(
       "San Antonio, TX"
     );
-    cy.findByText("Go").click();
+    cy.findByText('Go').click();
+
+
 
     // wait for the web services to finish
     cy.findAllByTestId("hmw-loading-spinner", { timeout: 120000 }).should(
