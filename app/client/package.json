@@ -72,8 +72,7 @@
     }
   },
   "lint-staged": {
-    "src/**/*.{js,json,css,md}": "prettier --write",
-    "../cypress/**/*.js": "prettier --write"
+    "src/**/*.{js,json,css,md}": "prettier --write"
   },
   "eslintConfig": {
     "extends": [

@@ -24,7 +24,7 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
 
-import "@testing-library/cypress/add-commands";
+import '@testing-library/cypress/add-commands';
 
 /**
  * This enables mocking the geolocation api. The default coordinates are
@@ -35,17 +35,17 @@ import "@testing-library/cypress/add-commands";
  * @param longitude (optional) - The longitude to be returned by the mocked location call
  */
 Cypress.Commands.add(
-  "mockGeolocation",
+  'mockGeolocation',
   (shouldFail = false, latitude = 38.9072, longitude = -77.0369) => {
     cy.window().then(($window) => {
       cy.stub(
         $window.navigator.geolocation,
-        "getCurrentPosition",
+        'getCurrentPosition',
         (resolve, reject) => {
           if (shouldFail) return reject(Error({ code: 1 })); // 1: rejected, 2: unable, 3: timeout
           return resolve({ coords: { latitude, longitude } });
-        }
+        },
       );
     });
-  }
+  },
 );
