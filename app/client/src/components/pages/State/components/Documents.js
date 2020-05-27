@@ -5,6 +5,8 @@ import styled from 'styled-components';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Table from 'components/shared/Table';
+// utilities
+import { getExtensionFromPath } from 'utils/utils';
 // styled components
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // data
@@ -128,7 +130,12 @@ function Documents({
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                {props.value}
+                {props.value} (
+                {getExtensionFromPath(
+                  props.original.documentFileName,
+                  props.original.documentURL,
+                )}
+                )
               </a>
             ),
           },

@@ -5,6 +5,8 @@ import styled from 'styled-components';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import ShowLessMore from 'components/shared/ShowLessMore';
+// utilities
+import { getExtensionFromPath } from 'utils/utils';
 // styled components
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // styles
@@ -76,7 +78,7 @@ function Stories({ stories }: Props) {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    {story.ss_title}
+                    {story.ss_title} ({getExtensionFromPath(story.web_link)})
                   </a>
                   <p>
                     <ShowLessMore
