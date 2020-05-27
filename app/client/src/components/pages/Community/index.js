@@ -12,7 +12,6 @@ import LocationSearch from 'components/shared/LocationSearch';
 import LocationMap from 'components/pages/LocationMap';
 import MapVisibilityButton from 'components/shared/MapVisibilityButton';
 // contexts
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   CommunityTabsContext,
@@ -84,10 +83,7 @@ type Props = {
 */
 
 function Community({ children, ...props }: Props) {
-  const {
-    activeTabIndex,
-    infoToggleChecked, //
-  } = React.useContext(CommunityTabsContext);
+  const { activeTabIndex } = React.useContext(CommunityTabsContext);
 
   const { fullscreenActive } = React.useContext(FullscreenContext);
 
@@ -136,23 +132,7 @@ function Community({ children, ...props }: Props) {
     </>
   );
 
-  // jsx
-  const lowerTabs = (
-    <EsriModulesContext.Consumer>
-      {esriModules => {
-        // implicitly pass esriModules and infoToggleChecked props to 'lower' tab components
-        // (normally we'd get these via useContext, but lower tab components are all class-based
-        // components, and this is easier than using render props to use multiple React Contexts)
-        return React.cloneElement(
-          tabs[activeTabIndex === -1 ? 0 : activeTabIndex].lower,
-          {
-            esriModules,
-            infoToggleChecked,
-          },
-        );
-      }}
-    </EsriModulesContext.Consumer>
-  );
+  const lowerTab = tabs[activeTabIndex === -1 ? 0 : activeTabIndex].lower;
 
   return (
     <Page>
@@ -164,10 +144,7 @@ function Community({ children, ...props }: Props) {
               <>
                 <LocationMap windowHeight={height} layout="fullscreen" />
 
-                {/* Loads the lower tab but does not display it. This is used
-                    for drawing layers that filter out data 
-                    (i.e. Identified Issues panel) */}
-                <div style={{ display: 'none' }}>{lowerTabs}</div>
+                <div style={{ display: 'none' }}>{lowerTab}</div>
               </>
             );
           }
@@ -185,7 +162,7 @@ function Community({ children, ...props }: Props) {
                   {!atCommunityIntroRoute && (
                     <>
                       <MapVisibilityButton>
-                        {mapShown => (
+                        {(mapShown) => (
                           <div style={{ display: mapShown ? 'block' : 'none' }}>
                             <LocationMap
                               windowHeight={height}
@@ -195,7 +172,7 @@ function Community({ children, ...props }: Props) {
                         )}
                       </MapVisibilityButton>
 
-                      {lowerTabs}
+                      {lowerTab}
                     </>
                   )}
                 </LeftColumn>
@@ -213,7 +190,7 @@ function Community({ children, ...props }: Props) {
                 <RightColumn data-column="right">
                   {/* children is either CommunityIntro or CommunityTabs (upper tabs) */}
                   {children}
-                  {!atCommunityIntroRoute && lowerTabs}
+                  {!atCommunityIntroRoute && lowerTab}
                 </RightColumn>
               </Columns>
             );

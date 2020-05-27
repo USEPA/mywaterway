@@ -5,6 +5,8 @@ import styled from 'styled-components';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Table from 'components/shared/Table';
+// utilities
+import { getExtensionFromPath } from 'utils/utils';
 // styled components
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // data
@@ -78,7 +80,7 @@ function Documents({
 
   const getDocumentTypeOrder = (documents: Array<Object>, ranks: Object) => {
     let documentsRanked = [];
-    documents.forEach(document => {
+    documents.forEach((document) => {
       // get document ordering
       let order = 999; // large initial order
       if (document.documentTypes.length === 0) {
@@ -89,7 +91,7 @@ function Documents({
         };
         documentsRanked.push(documentRanked);
       } else {
-        document.documentTypes.forEach(documentType => {
+        document.documentTypes.forEach((documentType) => {
           const documentRanked = {
             ...document,
             order: ranks[documentType.documentTypeCode],
@@ -116,19 +118,24 @@ function Documents({
             accessor: 'documentTypeLabel',
             Header: 'Document Types',
             style: { textAlign: 'center' },
-            Cell: props => props.value,
+            Cell: (props) => props.value,
           },
           {
             accessor: 'documentName',
             Header: 'Document',
             style: { textAlign: 'center' },
-            Cell: props => (
+            Cell: (props) => (
               <a
                 href={props.original.documentURL}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                {props.value}
+                {props.value} (
+                {getExtensionFromPath(
+                  props.original.documentFileName,
+                  props.original.documentURL,
+                )}
+                )
               </a>
             ),
           },
@@ -137,7 +144,7 @@ function Documents({
             Header: 'Agency Code',
             style: { textAlign: 'center' },
             minWidth: 50,
-            Cell: props =>
+            Cell: (props) =>
               props.value === 'S'
                 ? 'State'
                 : props.value === 'E'

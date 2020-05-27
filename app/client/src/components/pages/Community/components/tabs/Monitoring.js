@@ -14,6 +14,7 @@ import {
   AccordionItem,
 } from 'components/shared/Accordion/MapHighlight';
 // contexts
+import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { plotStations } from 'components/pages/LocationMap/MapFunctions';
@@ -85,12 +86,6 @@ const AccordionContent = styled.div`
 `;
 
 // --- components ---
-type Props = {
-  // props passed implicitly in Community component
-  esriModules: Object,
-  infoToggleChecked: boolean,
-};
-
 type MonitoringLocationData = {
   type: 'FeatureCollection',
   features: Array<{
@@ -116,7 +111,9 @@ type StationGroups = {
   },
 };
 
-function Monitoring({ esriModules, infoToggleChecked }: Props) {
+function Monitoring() {
+  const { Graphic } = React.useContext(EsriModulesContext);
+
   const {
     monitoringLocations,
     monitoringGroups,
@@ -165,7 +162,7 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
       Other: { label: 'Other', groupName: '', stations: [], toggled: true },
     };
 
-    monitoringLocations.data.features.forEach(feature => {
+    monitoringLocations.data.features.forEach((feature) => {
       const { geometry, properties } = feature;
 
       const {
@@ -188,7 +185,7 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
 
       // build up the monitoringLocationToggles and monitoringStationGroups
       let groupAdded = false;
-      switches.forEach(s => {
+      switches.forEach((s) => {
         monitoringLocationToggles[s.label] = true;
 
         for (const group in properties.characteristicGroupResultCount) {
@@ -237,8 +234,6 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
 
   const drawMap = React.useCallback(() => {
     if (allMonitoringStations.length === 0) return;
-
-    const { Graphic } = esriModules;
     const addedStationUids = [];
     let tempDisplayedMonitoringStations = [];
 
@@ -250,7 +245,7 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
         const group = monitoringStationGroups[key];
         // if the location is toggled
         if (monitoringLocationToggles[group.label]) {
-          group.stations.forEach(station => {
+          group.stations.forEach((station) => {
             // add the station to the display, if it has not already been added
             if (!addedStationUids.includes(station.uid)) {
               addedStationUids.push(station.uid);
@@ -284,7 +279,7 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
     displayedMonitoringStations,
     allMonitoringStations,
     allToggled,
-    esriModules,
+    Graphic,
     monitoringLocationToggles,
     monitoringStationGroups,
     monitoringStationsLayer,
@@ -324,7 +319,7 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
         const groups = toggleGroups;
         delete groups['All'];
 
-        const allOthersToggled = Object.keys(groups).every(group => {
+        const allOthersToggled = Object.keys(groups).every((group) => {
           return groups[group];
         });
 
@@ -430,7 +425,8 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
                       <Toggle>
                         <Switch
                           checked={allToggled}
-                          onChange={ev => toggleSwitch('All')}
+                          onChange={(ev) => toggleSwitch('All')}
+                          ariaLabel="Toggle all monitoring locations"
                         />
                         <span>All Monitoring Locations</span>
                       </Toggle>
@@ -440,7 +436,7 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
                 </thead>
                 <tbody>
                   {Object.values(monitoringStationGroups)
-                    .map(group => {
+                    .map((group) => {
                       const { label, stations } = group;
                       return (
                         <tr key={label}>
@@ -448,7 +444,8 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
                             <Toggle>
                               <Switch
                                 checked={monitoringLocationToggles[label]}
-                                onChange={ev => toggleSwitch(label)}
+                                onChange={(ev) => toggleSwitch(label)}
+                                ariaLabel={`Toggle ${label}`}
                               />
                               <span>{label}</span>
                             </Toggle>
@@ -475,7 +472,7 @@ function Monitoring({ esriModules, infoToggleChecked }: Props) {
               <AccordionList
                 expandDisabled={true}
                 title={`Displaying ${displayLocations} of ${totalLocations} Water Monitoring Locations in the ${watershed} watershed.`}
-                onSortChange={sortBy => setSortBy(sortBy.value)}
+                onSortChange={(sortBy) => setSortBy(sortBy.value)}
                 sortOptions={[
                   {
                     value: 'MonitoringLocationName',

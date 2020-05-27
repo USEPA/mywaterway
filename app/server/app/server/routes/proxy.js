@@ -6,10 +6,10 @@ const config = require('../config/proxyConfig.json');
 const logger = require('../utilities/logger');
 const log = logger.logger;
 
-module.exports = function(app) {
+module.exports = function (app) {
   const router = express.Router();
 
-  router.get('/', function(req, res, next) {
+  router.get('/', function (req, res, next) {
     let authoriztedURL = false;
     let parsedUrl;
     let metadataObj = logger.populateMetdataObjFromRequest(req);
@@ -57,7 +57,7 @@ module.exports = function(app) {
         uri: parsedUrl,
         timeout: 30000,
       },
-      function(err, request_res, body) {
+      function (err, request_res, body) {
         if (err) {
           log.error(
             logger.formatLogMsg(
@@ -73,7 +73,7 @@ module.exports = function(app) {
         }
       },
     )
-      .on('response', function(response) {
+      .on('response', function (response) {
         if (response.statusCode !== 200) {
           log.error(
             logger.formatLogMsg(

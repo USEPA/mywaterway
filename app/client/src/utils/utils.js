@@ -36,6 +36,30 @@ function formatNumber(number: number, digits: number = 0) {
   });
 }
 
+// Gets the file extension from a url or path. The backup parameter was added
+// because the state page documents section sometimes has the file extension
+// on the documentFileName and other times its on the documentURL attribute.
+function getExtensionFromPath(primary: string, backup: string = '') {
+  // Gets the file extension from a url or path
+  function getExtension(path: string) {
+    if (!path) return null;
+
+    const filename = path.split('/').pop();
+    const parts = filename.split('.');
+
+    if (parts.length === 1) {
+      return null;
+    }
+    return parts.pop().toUpperCase();
+  }
+
+  let extension = getExtension(primary);
+  if (!extension) extension = getExtension(backup);
+
+  if (!extension) return 'UNKNOWN';
+  return extension;
+}
+
 require('@gouch/to-title-case');
 
 function titleCase(string: string) {
@@ -69,6 +93,7 @@ export {
   chunkArray,
   containsScriptTag,
   formatNumber,
+  getExtensionFromPath,
   titleCase,
   titleCaseWithExceptions,
 };

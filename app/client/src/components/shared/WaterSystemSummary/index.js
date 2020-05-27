@@ -26,6 +26,14 @@ function formatValue(value: ?string) {
 }
 
 // --- styled components ---
+const SubHeader = styled.h4`
+  margin: 0;
+  padding: 0;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: bold;
+`;
+
 const LoadingContainer = styled.div`
   display: flex;
   align-items: center;
@@ -100,7 +108,7 @@ function WaterSystemSummary({ state }: Props) {
   });
   React.useEffect(() => {
     fetchCheck(`${dwmaps.getGPRASystemCountsByType}${state.code}`)
-      .then(res => {
+      .then((res) => {
         if (!res || !res.items || res.items.length === 0) {
           setSystemTypeRes({
             status: 'failure',
@@ -116,7 +124,7 @@ function WaterSystemSummary({ state }: Props) {
         let cwsCount = 0;
         let ntncwsCount = 0;
         let tncwsCount = 0;
-        res.items.forEach(item => {
+        res.items.forEach((item) => {
           if (item.primacy_agency_code !== state.code) return;
 
           const { pws_type_code, number_of_systems } = item;
@@ -134,7 +142,7 @@ function WaterSystemSummary({ state }: Props) {
           },
         });
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         setSystemTypeRes({
           status: 'failure',
@@ -155,29 +163,30 @@ function WaterSystemSummary({ state }: Props) {
 
   React.useEffect(() => {
     fetchCheck(`${dwmaps.getGPRASummary}${state.code}`)
-      .then(res => setGpraData({ status: 'success', data: res.items[0] }))
-      .catch(err => setGpraData({ status: 'failure', data: {} }));
+      .then((res) => setGpraData({ status: 'success', data: res.items[0] }))
+      .catch((err) => setGpraData({ status: 'failure', data: {} }));
   }, [state]);
 
   return (
     <>
       <p>
-        <strong>Community Water System (CWS):</strong>
-        <br />A public water system that supplies water to the same population
-        year-round (e.g., residences).
+        <SubHeader>Community Water System (CWS):</SubHeader>A public water
+        system that supplies water to the same population year-round (e.g.,
+        residences).
       </p>
       <p>
-        <strong>Non-Transient Non-Community Water System (NTNCWS):</strong>
-        <br />A public water system that regularly supplies water to at least 25
-        of the same people at least six months per year. Some examples are
-        schools, factories, office buildings, and hospitals which have their own
-        water systems.
+        <SubHeader>
+          Non-Transient Non-Community Water System (NTNCWS):
+        </SubHeader>
+        A public water system that regularly supplies water to at least 25 of
+        the same people at least six months per year. Some examples are schools,
+        factories, office buildings, and hospitals which have their own water
+        systems.
       </p>
       <p>
-        <strong>Transient Non-Community Water System (TNCWS):</strong>
-        <br />A public water system that provides water in a place such as a gas
-        station or campground where people do not remain for long periods of
-        time.
+        <SubHeader>Transient Non-Community Water System (TNCWS):</SubHeader>A
+        public water system that provides water in a place such as a gas station
+        or campground where people do not remain for long periods of time.
       </p>
 
       {systemTypeRes.status === 'fetching' && (

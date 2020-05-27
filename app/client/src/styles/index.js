@@ -37,7 +37,7 @@ const fonts = {
 };
 
 const reactSelectStyles = {
-  placeholder: defaultStyles => {
+  placeholder: (defaultStyles) => {
     return {
       ...defaultStyles,
       color: '#495057',

@@ -17,13 +17,7 @@ const Container = styled.div`
 `;
 
 // --- components ---
-type Props = {
-  // props passed implicitly in Community component
-  esriModules: Object,
-  infoToggleChecked: boolean,
-};
-
-function AquaticLife({ esriModules, infoToggleChecked }: Props) {
+function AquaticLife() {
   const { watershed } = React.useContext(LocationSearchContext);
 
   const waterbodies = useWaterbodyFeatures();
