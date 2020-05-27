@@ -331,6 +331,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     resetMap: (useDefaultZoom = false) => {
       const {
         initialExtent,
+        layers,
         pointsLayer,
         linesLayer,
         areasLayer,
@@ -346,24 +347,32 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       } = this.state;
 
       // Clear waterbody layers from state
-      let clear = {};
-      if (pointsLayer) clear['pointsLayer'] = null;
-      if (linesLayer) clear['linesLayer'] = null;
-      if (areasLayer) clear['areasLayer'] = null;
-      if (waterbodyLayer) {
-        clear['waterbodyLayer'] = null;
+      let newState = {};
+      if (pointsLayer) newState['pointsLayer'] = null;
+      if (linesLayer) newState['linesLayer'] = null;
+      if (areasLayer) newState['areasLayer'] = null;
+      if (waterbodyLayer) newState['waterbodyLayer'] = null;
 
-        // Remove the waterbody layer from the map
-        if (mapView) {
-          for (let i = mapView.map.layers.items.length - 1; i >= 0; i--) {
-            const item = mapView.map.layers.items[i];
-            if (item.id === 'waterbodyLayer') {
-              mapView.map.layers.items.splice(i, 1);
-            }
-          }
+      const layersToRemove = [
+        'pointsLayer',
+        'linesLayer',
+        'areasLayer',
+        'waterbodyLayer',
+      ];
+
+      // remove the layers from state layers list
+      let removedLayers = false;
+      for (let i = layers.length - 1; i >= 0; i--) {
+        const item = layers[i];
+        const itemId = item.id;
+        if (layersToRemove.includes(itemId)) {
+          layers.splice(i, 1);
+          removedLayers = true;
         }
       }
-      this.setState(clear);
+      if (removedLayers) newState['layers'] = layers;
+
+      this.setState(newState);
 
       // remove all map content defined in this file
       if (providersLayer) providersLayer.graphics.removeAll();
