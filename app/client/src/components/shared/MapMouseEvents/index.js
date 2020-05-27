@@ -62,19 +62,12 @@ function MapMouseEvents({ map, view }: Props) {
       popupContent.innerHTML = renderToStaticMarkup(
         <>
           <br />
-          <div className="row">
-            <div className="col-xs-6 col-sm-6">
-              <p>
-                <strong>Watershed Name:</strong>
-                <br /> {attributes.name}
-              </p>
-            </div>
-            <div className="col-xs-6 col-sm-6">
-              <p>
-                <strong>HUC 12:</strong>
-                <br /> {clickedHuc12}
-              </p>
-            </div>
+          <div>
+            <p>
+              <strong style={{ fontSize: '0.875em' }}>WATERSHED:</strong>
+              <br />
+              {attributes.name} ({clickedHuc12})
+            </p>
           </div>
         </>,
       );
