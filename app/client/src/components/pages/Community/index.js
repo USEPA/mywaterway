@@ -144,7 +144,10 @@ function Community({ children, ...props }: Props) {
               <>
                 <LocationMap windowHeight={height} layout="fullscreen" />
 
-                <div style={{ display: 'none' }}>{lowerTab}</div>
+                <div style={{ display: 'none' }}>{children}</div>
+                {!atCommunityIntroRoute && (
+                  <div style={{ display: 'none' }}>{lowerTab}</div>
+                )}
               </>
             );
           }
