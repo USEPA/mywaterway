@@ -34,10 +34,14 @@
 .cell-checkbox {
   padding: 2px;
   display: flex;
+  align-items: center;
+  justify-content: center;
   height: 100%;
   width: 100%;
 }
 
 .rt-resizable-header-content {
   text-align: left;
+  align-items: normal;
+  justify-content: normal;
 }
