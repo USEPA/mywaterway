@@ -787,7 +787,7 @@ function WaterQualityOverview({ ...props }: Props) {
   return (
     <Container>
       <Heading>
-        <i className="fas fa-tint" />
+        <i className="fas fa-tint" aria-hidden="true" />
         <strong>{activeState.name}</strong> Water Quality
       </Heading>
 
@@ -935,7 +935,9 @@ function WaterQualityOverview({ ...props }: Props) {
 
       <Accordions>
         <AccordionItem
-          icon={<AccordionIcon className="fas fa-file-alt" />}
+          icon={
+            <AccordionIcon className="fas fa-file-alt" aria-hidden="true" />
+          }
           title={
             <Heading>
               <strong>{activeState.name}</strong> Documents
@@ -955,7 +957,9 @@ function WaterQualityOverview({ ...props }: Props) {
           </AccordionContent>
         </AccordionItem>
         <AccordionItem
-          icon={<AccordionIcon className="fas fa-newspaper" />}
+          icon={
+            <AccordionIcon className="fas fa-newspaper" aria-hidden="true" />
+          }
           title={
             <Heading>
               <strong>{activeState.name}</strong> Water Stories

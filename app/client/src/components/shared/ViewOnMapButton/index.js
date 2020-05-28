@@ -115,7 +115,7 @@ function ViewOnMapButton({ feature, fieldName, layers }: Props) {
         }
       }}
     >
-      <i className="fas fa-map-marker-alt" />
+      <i className="fas fa-map-marker-alt" aria-hidden="true" />
       &nbsp;&nbsp;View on Map
     </Button>
   );
