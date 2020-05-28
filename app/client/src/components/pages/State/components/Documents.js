@@ -118,6 +118,7 @@ function Documents({
             accessor: 'documentTypeLabel',
             Header: 'Document Types',
             style: { textAlign: 'center' },
+            maxWidth: 300,
             Cell: (props) => props.value,
           },
           {
@@ -143,18 +144,13 @@ function Documents({
             accessor: 'agencyCode',
             Header: 'Agency Code',
             style: { textAlign: 'center' },
-            minWidth: 50,
+            maxWidth: 125,
             Cell: (props) =>
               props.value === 'S'
                 ? 'State'
                 : props.value === 'E'
                 ? 'EPA'
                 : props.value,
-          },
-          {
-            accessor: 'documentDescription',
-            Header: 'Document Description',
-            style: { textAlign: 'center' },
           },
         ]}
       />
