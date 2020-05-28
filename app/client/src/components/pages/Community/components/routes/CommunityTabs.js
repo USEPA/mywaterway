@@ -446,12 +446,11 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
           ))}
         </TabList>
 
-        <TabDots>
+        <TabDots aria-hidden="true">
           {tabs.map((tab, index) => {
             return (
               <li key={index}>
                 <TabDot
-                  aria-hidden="true"
                   tabIndex="-1"
                   title={tab.title}
                   data-selected={index === activeTabIndex}
