@@ -279,8 +279,9 @@ function Data({ ...props }: Props) {
         <br />
         <Question>Where do I find WQP data in How’s My Waterway? </Question>
         <p>
-          Information from this database can be found on the Community page on
-          the following tabs; Overview (monitoring locations), Monitoring.
+          Information from this database can be found on the Community page
+          under the Overview tab (monitoring locations) and under the Monitoring
+          tab after performing a search.
         </p>
       </Item>
     </Container>
