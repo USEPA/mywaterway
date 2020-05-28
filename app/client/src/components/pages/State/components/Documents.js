@@ -117,14 +117,12 @@ function Documents({
           {
             accessor: 'documentTypeLabel',
             Header: 'Document Types',
-            style: { textAlign: 'center' },
             maxWidth: 300,
             Cell: (props) => props.value,
           },
           {
             accessor: 'documentName',
             Header: 'Document',
-            style: { textAlign: 'center' },
             Cell: (props) => (
               <a
                 href={props.original.documentURL}
@@ -143,7 +141,6 @@ function Documents({
           {
             accessor: 'agencyCode',
             Header: 'Agency Code',
-            style: { textAlign: 'center' },
             maxWidth: 125,
             Cell: (props) =>
               props.value === 'S'
