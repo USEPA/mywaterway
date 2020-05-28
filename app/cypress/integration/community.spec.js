@@ -194,7 +194,7 @@ describe("Community page Show Additional Text", () => {
 
 describe("Community page Glossary", () => {
   it("Clicking a Glossary term opens Glossary Panel", () => {
-    cy.visit("http://localhost:3000/community/Boston/drinking-water");
+    cy.visit("/community/Boston/drinking-water");
 
     cy.findByText("Community water systems").click();
     cy.findByText("Non-Transient Non-Community Water System (NTNCWS):");
