@@ -29,6 +29,17 @@ describe("Community page links", () => {
     cy.findByText(linkText).should("have.attr", "target", "_blank");
     cy.findByText(linkText).should("have.attr", "rel", "noopener noreferrer");
   });
+
+  it("Switching Community page tabs updates route", () => {
+    cy.findByText("State").click();
+    cy.url().should("include", `${document.location.origin}/state`);
+
+    cy.findByText("National").click();
+    cy.url().should("include", `${document.location.origin}/national`);
+
+    cy.findByText("Community").click();
+    cy.url().should("include", `${document.location.origin}/community`);
+  });
 });
 
 describe("Community page routes", () => {
@@ -138,5 +149,54 @@ describe("Community page (small screen)", () => {
     cy.findByText("Show Map").should("exist");
     cy.findByText("Hide Map").should("not.exist");
     cy.findByTestId("hmw-community-map").should("not.be.visible");
+  });
+});
+
+describe("Community page Show Additional Text", () => {
+  beforeEach(() => {
+    cy.visit("/community/San%20Antonio,%20TX/overview");
+  });
+
+  it("Clicking Show Text switch toggles intro text", () => {
+    cy.findByText("Your Waters: What We Know");
+    cy.findByLabelText("Show Text").click({ force: true });
+    cy.findByText("Your Waters: What We Know").should("not.exist");
+  });
+
+  it("Clicking Show More/Show Less toggles more or less text", () => {
+    const less = "Show less",
+      more = "Show more";
+    //findAllByText is needed due to multiple show more on DOM, but only 1 visbile.
+    cy.findByText(less).should("not.exist");
+    cy.findAllByText(more).filter(":visible").click();
+
+    cy.findByText(less).should("exist");
+    cy.findAllByText(more).filter(":visible").should("not.exist");
+
+    cy.findByText(less).click();
+    cy.findByText(less).should("not.exist");
+    cy.findAllByText(more).filter(":visible").should("exist");
+  });
+
+  it(`Clicking "Expand All/Collapse All" expands/collapses the waterbody list`, () => {
+    const text = "Year Last Reported:";
+
+    cy.findAllByText("Expand All").filter(":visible");
+    cy.findByText(text).should("not.exist");
+
+    cy.findByText("Expand All").click();
+    cy.findAllByText(text).should("be.visible");
+
+    cy.findByText("Collapse All").click();
+    cy.findByText(text).should("not.exist");
+  });
+});
+
+describe("Community page Glossary", () => {
+  it("Clicking a Glossary term opens Glossary Panel", () => {
+    cy.visit("http://localhost:3000/community/Boston/drinking-water");
+
+    cy.findByText("Community water systems").click();
+    cy.findByText("Non-Transient Non-Community Water System (NTNCWS):");
   });
 });
