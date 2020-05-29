@@ -878,12 +878,12 @@ function AdvancedSearch({ ...props }: Props) {
         >
           {searchLoading ? (
             <>
-              <i className="fas fa-spinner fa-pulse" />
+              <i className="fas fa-spinner fa-pulse" aria-hidden="true" />
               &nbsp;&nbsp;Loading...
             </>
           ) : (
             <>
-              <i className="fas fa-search" />
+              <i className="fas fa-search" aria-hidden="true" />
               &nbsp;&nbsp;Search
             </>
           )}
@@ -925,7 +925,7 @@ function AdvancedSearch({ ...props }: Props) {
               className={`btn btn-secondary${showMap ? ' active' : ''}`}
               onClick={(ev) => setShowMap(true)}
             >
-              <i className="fas fa-map-marked-alt" />
+              <i className="fas fa-map-marked-alt" aria-hidden="true" />
               &nbsp;&nbsp;Map
             </Button>
             <Button
@@ -933,7 +933,7 @@ function AdvancedSearch({ ...props }: Props) {
               className={`btn btn-secondary${!showMap ? ' active' : ''}`}
               onClick={(ev) => setShowMap(false)}
             >
-              <i className="fas fa-list" />
+              <i className="fas fa-list" aria-hidden="true" />
               &nbsp;&nbsp;List
             </Button>
           </ButtonGroup>
