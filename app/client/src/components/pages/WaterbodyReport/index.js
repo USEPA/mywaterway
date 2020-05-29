@@ -681,7 +681,6 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
               const pollutants = specificWaters[0].parameters.map((p) => {
                 return titleCaseWithExceptions(p.parameterName);
               });
-
               additionalActions.push({
                 id: action.actionIdentifier,
                 name: action.actionName,
@@ -834,12 +833,14 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
             {waterbodyTypes.data.length === 0 && <p>Waterbody type unknown.</p>}
 
             {waterbodyTypes.data.length > 0 &&
-              waterbodyTypes.data.map((type) => (
-                <p key={type.code}>
-                  {titleCaseWithExceptions(type.code)} ({type.size} {type.units}
-                  )
-                </p>
-              ))}
+              waterbodyTypes.data
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map((type) => (
+                  <p key={type.code}>
+                    {titleCaseWithExceptions(type.code)} ({type.size}{' '}
+                    {type.units})
+                  </p>
+                ))}
           </>
         )}
       </StyledBoxSection>
@@ -985,26 +986,28 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                             </p>
                           ) : (
                             <Accordions>
-                              {waterbodyUses.data.map((use) => (
-                                <AccordionItem
-                                  key={use.name}
-                                  title={
-                                    <UseName>
-                                      <strong>
-                                        {titleCaseWithExceptions(use.name)}
-                                      </strong>
-                                      <UseStatus
-                                        textColor={use.status.textColor}
-                                        bgColor={use.status.bgColor}
-                                      >
-                                        {use.status.text}
-                                      </UseStatus>
-                                    </UseName>
-                                  }
-                                >
-                                  <WaterbodyUse categories={use.categories} />
-                                </AccordionItem>
-                              ))}
+                              {waterbodyUses.data
+                                .sort((a, b) => a.name.localeCompare(b.name))
+                                .map((use) => (
+                                  <AccordionItem
+                                    key={use.name}
+                                    title={
+                                      <UseName>
+                                        <strong>
+                                          {titleCaseWithExceptions(use.name)}
+                                        </strong>
+                                        <UseStatus
+                                          textColor={use.status.textColor}
+                                          bgColor={use.status.bgColor}
+                                        >
+                                          {use.status.text}
+                                        </UseStatus>
+                                      </UseName>
+                                    }
+                                  >
+                                    <WaterbodyUse categories={use.categories} />
+                                  </AccordionItem>
+                                ))}
                             </Accordions>
                           )}
                         </>
@@ -1044,14 +1047,16 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                                 </tr>
                               </thead>
                               <tbody>
-                                {waterbodySources.data.map((source) => (
-                                  <tr key={source.name}>
-                                    <td>
-                                      {titleCaseWithExceptions(source.name)}
-                                    </td>
-                                    <td>{source.status}</td>
-                                  </tr>
-                                ))}
+                                {waterbodySources.data
+                                  .sort((a, b) => a.name.localeCompare(b.name))
+                                  .map((source) => (
+                                    <tr key={source.name}>
+                                      <td>
+                                        {titleCaseWithExceptions(source.name)}
+                                      </td>
+                                      <td>{source.status}</td>
+                                    </tr>
+                                  ))}
                               </tbody>
                             </table>
                           )}
@@ -1094,29 +1099,37 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                                 </tr>
                               </thead>
                               <tbody>
-                                {waterbodyActions.data.map((action, index) => (
-                                  <tr key={index}>
-                                    <td>
-                                      <a
-                                        href={`/plan-summary/${orgId}/${action.id}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                      >
-                                        {titleCaseWithExceptions(action.name)}
-                                      </a>
-                                    </td>
-                                    <td>
-                                      {action.pollutants.length === 0 && (
-                                        <>No impairments found.</>
-                                      )}
-                                      {action.pollutants.length > 0 && (
-                                        <>{action.pollutants.join(', ')}</>
-                                      )}
-                                    </td>
-                                    <td>{action.type}</td>
-                                    <DateCell>{action.date}</DateCell>
-                                  </tr>
-                                ))}
+                                {waterbodyActions.data
+                                  .sort((a, b) => a.name.localeCompare(b.name))
+                                  .map((action, index) => (
+                                    <tr key={index}>
+                                      <td>
+                                        <a
+                                          href={`/plan-summary/${orgId}/${action.id}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                        >
+                                          {titleCaseWithExceptions(action.name)}
+                                        </a>
+                                      </td>
+                                      <td>
+                                        {action.pollutants.length === 0 && (
+                                          <>No impairments found.</>
+                                        )}
+                                        {action.pollutants.length > 0 && (
+                                          <>
+                                            {action.pollutants
+                                              .sort((a, b) =>
+                                                a.localeCompare(b),
+                                              )
+                                              .join(', ')}
+                                          </>
+                                        )}
+                                      </td>
+                                      <td>{action.type}</td>
+                                      <DateCell>{action.date}</DateCell>
+                                    </tr>
+                                  ))}
                               </tbody>
                             </table>
                           )}
@@ -1234,12 +1247,14 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
             </tr>
           </thead>
           <tbody>
-            {pollutants.map((pollutant) => (
-              <tr key={pollutant.name}>
-                <td>{titleCaseWithExceptions(pollutant.name)}</td>
-                <td>{pollutant.planInPlace ? 'Yes' : 'No'}</td>
-              </tr>
-            ))}
+            {pollutants
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((pollutant) => (
+                <tr key={pollutant.name}>
+                  <td>{titleCaseWithExceptions(pollutant.name)}</td>
+                  <td>{pollutant.planInPlace ? 'Yes' : 'No'}</td>
+                </tr>
+              ))}
           </tbody>
         </table>
       )}
@@ -1255,11 +1270,13 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
               <>
                 <ParameterCategory>{category}</ParameterCategory>
                 <ul>
-                  {parameters[category].map((parameter) => (
-                    <Parameter key={parameter.name}>
-                      {titleCaseWithExceptions(parameter.name)}
-                    </Parameter>
-                  ))}
+                  {parameters[category]
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((parameter) => (
+                      <Parameter key={parameter.name}>
+                        {titleCaseWithExceptions(parameter.name)}
+                      </Parameter>
+                    ))}
                 </ul>
               </>
             )}
