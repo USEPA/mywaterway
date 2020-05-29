@@ -138,7 +138,7 @@ function LocationSearch({ route, label }: Props) {
           type="submit"
           disabled={inputText === searchText}
         >
-          <i className="fas fa-angle-double-right" /> Go
+          <i className="fas fa-angle-double-right" aria-hidden="true" /> Go
         </Button>
 
         {navigator.geolocation && (
@@ -147,7 +147,7 @@ function LocationSearch({ route, label }: Props) {
 
             {geolocationError ? (
               <Button className="btn btn-danger" type="button" disabled>
-                <i className="fas fa-exclamation-triangle" />
+                <i className="fas fa-exclamation-triangle" aria-hidden="true" />
                 &nbsp;&nbsp;Error Getting Location
               </Button>
             ) : (
@@ -191,12 +191,12 @@ function LocationSearch({ route, label }: Props) {
                 {/* don't display the loading indicator in IE11 */}
                 {!geolocating || isIE() ? (
                   <>
-                    <i className="fas fa-crosshairs" />
+                    <i className="fas fa-crosshairs" aria-hidden="true" />
                     &nbsp;&nbsp;Use My Location
                   </>
                 ) : (
                   <>
-                    <i className="fas fa-spinner fa-pulse" />
+                    <i className="fas fa-spinner fa-pulse" aria-hidden="true" />
                     &nbsp;&nbsp;Getting Location...
                   </>
                 )}

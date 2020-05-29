@@ -26,6 +26,8 @@ import {
   StyledLabel,
 } from 'components/shared/KeyMetrics';
 // contexts
+import { EsriModulesContext } from 'contexts/EsriModules';
+import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { formatNumber } from 'utils/utils';
@@ -97,13 +99,11 @@ const IntroDiv = styled.div`
 `;
 
 // --- components ---
-type Props = {
-  // props passed implicitly in Community component
-  esriModules: Object,
-  infoToggleChecked: boolean,
-};
+function IdentifiedIssues() {
+  const { Graphic } = React.useContext(EsriModulesContext);
 
-function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
+  const { infoToggleChecked } = React.useContext(CommunityTabsContext);
+
   const {
     permittedDischargers,
     dischargersLayer,
@@ -158,8 +158,6 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
 
   const convertFacilityToGraphic = React.useCallback(
     (facility: Object) => {
-      const { Graphic } = esriModules;
-
       return new Graphic({
         geometry: {
           type: 'point', // autocasts as new Point()
@@ -169,12 +167,10 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
         attributes: facility,
       });
     },
-    [esriModules],
+    [Graphic],
   );
 
   const checkDischargersToDisplay = React.useCallback(() => {
-    const { Graphic } = esriModules;
-
     if (!dischargersLayer || !showDischargersLayer) return;
 
     plotFacilities({
@@ -182,12 +178,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
       facilities: violatingFacilities,
       layer: dischargersLayer,
     });
-  }, [
-    dischargersLayer,
-    esriModules,
-    showDischargersLayer,
-    violatingFacilities,
-  ]);
+  }, [dischargersLayer, Graphic, showDischargersLayer, violatingFacilities]);
 
   // translate scientific parameter names
   const getMappedParameterName = (
@@ -206,7 +197,6 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
 
   const checkWaterbodiesToDisplay = React.useCallback(() => {
     const waterbodiesToShow = new Set(); // set to prevent duplicates
-    const { Graphic } = esriModules;
     const features = getAllFeatures();
 
     if (!issuesLayer || !waterbodyLayer) return;
@@ -237,7 +227,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
       plotIssues(Graphic, Array.from(waterbodiesToShow), issuesLayer);
     }
   }, [
-    esriModules,
+    Graphic,
     getAllFeatures,
     issuesLayer,
     parameterToggleObject,
@@ -585,6 +575,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
                     disabled={
                       zeroPollutedWaterbodies || cipSummary.status === 'failure'
                     }
+                    ariaLabel="Toggle Issues Layer"
                   />
                 </SwitchContainer>
               </>
@@ -608,6 +599,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
                     checked={toggleDischargersChecked}
                     onChange={() => toggleSwitch('Toggle Dischargers Layer')}
                     disabled={zeroDischargers}
+                    ariaLabel="Toggle Dischargers Layer"
                   />
                 </SwitchContainer>
               </>
@@ -619,7 +611,9 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
           <Tabs>
             <TabList>
               <Tab>Impaired Assessed Waters</Tab>
-              <Tab>Dischargers with Significant Violations</Tab>
+              <Tab data-testid="hmw-dischargers">
+                Dischargers with Significant Violations
+              </Tab>
             </TabList>
 
             <TabPanels>
@@ -711,6 +705,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
                                             onChange={() =>
                                               toggleSwitch('Toggle All')
                                             }
+                                            ariaLabel="Toggle all impairment categories"
                                           />
                                         </TableSwitch>
                                         Impairment Category

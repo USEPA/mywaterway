@@ -45,7 +45,7 @@ function NavBar({ title, onBackClick = null }: Props) {
       <Group>
         {onBackClick && (
           <BackButton onClick={(ev) => onBackClick(ev)}>
-            <i className="fas fa-chevron-left" />
+            <i className="fas fa-chevron-left" aria-hidden="true" />
             &nbsp; Back
           </BackButton>
         )}

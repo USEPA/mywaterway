@@ -31,15 +31,22 @@ const SearchBox = styled.div`
   margin-top: 2em;
 `;
 
-const SearchLabel = styled.strong`
-  font-size: 1.1875em;
-`;
-
-const Paragraph = styled.p`
-  margin-top: 2em;
-  padding-bottom: 0;
+const BaseHeaderStyles = `
+  margin: 0;
+  padding: 0;
+  font-family: inherit;
   font-size: 1.1875em;
   font-weight: bold;
+  line-height: 19px;
+`;
+
+const SearchLabel = styled.h1`
+  ${BaseHeaderStyles}
+`;
+
+const Header = styled.h1`
+  ${BaseHeaderStyles}
+  margin-top: 2em;
 `;
 
 const TopicButtonLink = styled(StyledTopicButtonLink)`
@@ -91,7 +98,7 @@ function Home({ ...props }: Props) {
           />
         </SearchBox>
 
-        <Paragraph>Choose a place to learn about your waters:</Paragraph>
+        <Header>Choose a place to learn about your waters:</Header>
 
         <StyledButtons>
           <PlaceButtonLink to="/community">Community</PlaceButtonLink>
@@ -99,7 +106,7 @@ function Home({ ...props }: Props) {
           <PlaceButtonLink to="/national">National</PlaceButtonLink>
         </StyledButtons>
 
-        <Paragraph>Explore Topics:</Paragraph>
+        <Header>Explore Topics:</Header>
 
         <StyledButtons>
           <TopicButtonLink to="/swimming">

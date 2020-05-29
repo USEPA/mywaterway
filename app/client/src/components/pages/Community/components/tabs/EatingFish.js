@@ -9,6 +9,7 @@ import WaterbodyList from 'components/shared/WaterbodyList';
 import DisclaimerModal from 'components/shared/DisclaimerModal';
 import ShowLessMore from 'components/shared/ShowLessMore';
 // contexts
+import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
@@ -42,13 +43,9 @@ const Disclaimer = styled(DisclaimerModal)`
 `;
 
 // --- components ---
-type Props = {
-  // props passed implicitly in Community component
-  esriModules: Object,
-  infoToggleChecked: boolean,
-};
+function EatingFish() {
+  const { infoToggleChecked } = React.useContext(CommunityTabsContext);
 
-function EatingFish({ esriModules, infoToggleChecked }: Props) {
   const {
     watershed,
     fishingInfo,

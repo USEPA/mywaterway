@@ -278,7 +278,8 @@ function GlossaryTerm({ term, children }: Props) {
       title="Click to define"
       tabIndex="0"
     >
-      <TermIcon className={iconClassName} status={status} /> {children}
+      <TermIcon className={iconClassName} status={status} aria-hidden="true" />{' '}
+      {children}
     </span>
   );
 }

@@ -468,7 +468,10 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
 
         <TabHeader>
           <div>
-            <img src={tabs[activeTabIndex].icon} alt="" />
+            <img
+              src={tabs[activeTabIndex].icon}
+              alt={tabs[activeTabIndex].title}
+            />
             <p>{tabs[activeTabIndex].title}</p>
           </div>
 

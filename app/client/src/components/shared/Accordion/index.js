@@ -111,7 +111,7 @@ function AccordionList({
         {!expandDisabled && (
           <ExpandButton onClick={(ev) => setAllExpanded(!allExpanded)}>
             {buttonText}&nbsp;&nbsp;
-            <i className={iconClass} />
+            <i className={iconClass} aria-hidden="true" />
           </ExpandButton>
         )}
       </Columns>
@@ -267,7 +267,10 @@ function AccordionItem({
           )}
         </Text>
 
-        <Arrow className={`fa fa-angle-${isOpen ? 'down' : 'right'}`} />
+        <Arrow
+          className={`fa fa-angle-${isOpen ? 'down' : 'right'}`}
+          aria-hidden="true"
+        />
       </Header>
 
       {isOpen && children}

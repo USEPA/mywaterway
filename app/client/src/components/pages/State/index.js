@@ -247,7 +247,8 @@ function State({ children, ...props }: Props) {
               />
 
               <Button type="submit" className="btn">
-                <i className="fas fa-angle-double-right" /> Go
+                <i className="fas fa-angle-double-right" aria-hidden="true" />{' '}
+                Go
               </Button>
             </Form>
           </>
@@ -270,7 +271,7 @@ function State({ children, ...props }: Props) {
                     {stateIntro.metrics.length > 0 && (
                       <>
                         <h2>
-                          <i className="fas fa-chart-line" />
+                          <i className="fas fa-chart-line" aria-hidden="true" />
                           <strong>{activeState.name}</strong> by the Numbers
                         </h2>
 

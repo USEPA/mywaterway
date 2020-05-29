@@ -5,6 +5,8 @@ import styled from 'styled-components';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Table from 'components/shared/Table';
+// utilities
+import { getExtensionFromPath } from 'utils/utils';
 // styled components
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // data
@@ -115,39 +117,37 @@ function Documents({
           {
             accessor: 'documentTypeLabel',
             Header: 'Document Types',
-            style: { textAlign: 'center' },
+            maxWidth: 300,
             Cell: (props) => props.value,
           },
           {
             accessor: 'documentName',
             Header: 'Document',
-            style: { textAlign: 'center' },
             Cell: (props) => (
               <a
                 href={props.original.documentURL}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                {props.value}
+                {props.value} (
+                {getExtensionFromPath(
+                  props.original.documentFileName,
+                  props.original.documentURL,
+                )}
+                )
               </a>
             ),
           },
           {
             accessor: 'agencyCode',
             Header: 'Agency Code',
-            style: { textAlign: 'center' },
-            minWidth: 50,
+            maxWidth: 125,
             Cell: (props) =>
               props.value === 'S'
                 ? 'State'
                 : props.value === 'E'
                 ? 'EPA'
                 : props.value,
-          },
-          {
-            accessor: 'documentDescription',
-            Header: 'Document Description',
-            style: { textAlign: 'center' },
           },
         ]}
       />

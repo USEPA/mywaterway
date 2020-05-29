@@ -15,6 +15,8 @@ import { StyledErrorBox, StyledNoteBox } from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Switch from 'components/shared/Switch';
 // contexts
+import { EsriModulesContext } from 'contexts/EsriModules';
+import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
@@ -210,13 +212,13 @@ const Text = styled.p`
 `;
 
 // --- components ---
-type Props = {
-  // props passed implicitly in Community component
-  esriModules: Object,
-  infoToggleChecked: boolean,
-};
+function DrinkingWater() {
+  const { Graphic, Polygon, SimpleFillSymbol } = React.useContext(
+    EsriModulesContext,
+  );
 
-function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
+  const { infoToggleChecked } = React.useContext(CommunityTabsContext);
+
   const {
     waterbodyLayer,
     providersLayer,
@@ -250,7 +252,6 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
       return;
     }
 
-    const { Graphic, Polygon, SimpleFillSymbol } = esriModules;
     const graphic = new Graphic({
       attributes: { name: 'providers' },
       geometry: new Polygon({
@@ -270,7 +271,7 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
     setCountyGraphic(graphic);
     providersLayer.graphics.removeAll();
     providersLayer.graphics.add(graphic);
-  }, [providersLayer, countyBoundaries, esriModules]);
+  }, [providersLayer, countyBoundaries, Graphic, Polygon, SimpleFillSymbol]);
 
   // toggle map layers' visibility when a tab changes
   React.useEffect(() => {
@@ -333,7 +334,6 @@ function DrinkingWater({ esriModules, infoToggleChecked }: Props) {
   }, [
     drinkingWaterTabIndex,
     countyGraphic,
-    esriModules,
     mapView,
     atHucBoundaries,
     previousTabIndex,
