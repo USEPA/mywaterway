@@ -681,6 +681,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
               const pollutants = specificWaters[0].parameters.map((p) => {
                 return titleCaseWithExceptions(p.parameterName);
               });
+
               additionalActions.push({
                 id: action.actionIdentifier,
                 name: action.actionName,
@@ -834,7 +835,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
 
             {waterbodyTypes.data.length > 0 &&
               waterbodyTypes.data
-                .sort((a, b) => a.name.localeCompare(b.name))
+                .sort((a, b) => a.code.localeCompare(b.code))
                 .map((type) => (
                   <p key={type.code}>
                     {titleCaseWithExceptions(type.code)} ({type.size}{' '}
