@@ -204,6 +204,10 @@ const ScreenLabel = styled.span`
   font-weight: bold;
 `;
 
+const ScreenLabelWithPadding = styled(ScreenLabel)`
+  padding-left: 0.375rem;
+`;
+
 // --- components ---
 type Props = {};
 
@@ -827,11 +831,11 @@ function AdvancedSearch({ ...props }: Props) {
                 checked={waterTypeFilter === '303d'}
                 onChange={(ev) => setWaterTypeFilter(ev.target.value)}
               />
-              <ScreenLabel>
+              <ScreenLabelWithPadding>
                 <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
                   303(d) Listed Impaired Waters (Category 5)
                 </GlossaryTerm>
-              </ScreenLabel>
+              </ScreenLabelWithPadding>
             </div>
 
             <div>
@@ -843,11 +847,11 @@ function AdvancedSearch({ ...props }: Props) {
                 checked={waterTypeFilter === 'impaired'}
                 onChange={(ev) => setWaterTypeFilter(ev.target.value)}
               />
-              <ScreenLabel>
+              <ScreenLabelWithPadding>
                 <GlossaryTerm term="Impaired (Category 4 and 5)">
                   Impaired (Category 4 and 5)
                 </GlossaryTerm>
-              </ScreenLabel>
+              </ScreenLabelWithPadding>
             </div>
           </InputGroup>
         </Input>
@@ -861,9 +865,9 @@ function AdvancedSearch({ ...props }: Props) {
               checked={hasTmdlChecked}
               onChange={(ev) => setHasTmdlChecked(!hasTmdlChecked)}
             />
-            <ScreenLabel>
+            <ScreenLabelWithPadding>
               <GlossaryTerm term="TMDL">Has TMDL</GlossaryTerm>
-            </ScreenLabel>
+            </ScreenLabelWithPadding>
           </InputGroup>
         </Input>
       </Inputs>
