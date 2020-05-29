@@ -30,15 +30,15 @@ describe('Community page links', () => {
     cy.findByText(linkText).should('have.attr', 'rel', 'noopener noreferrer');
   });
 
-  it("Switching Community page tabs updates route", () => {
-    cy.findByText("State").click();
-    cy.url().should("include", `${document.location.origin}/state`);
+  it('Switching Community page tabs updates route', () => {
+    cy.findByText('State').click();
+    cy.url().should('include', `${document.location.origin}/state`);
 
-    cy.findByText("National").click();
-    cy.url().should("include", `${document.location.origin}/national`);
+    cy.findByText('National').click();
+    cy.url().should('include', `${document.location.origin}/national`);
 
-    cy.findByText("Community").click();
-    cy.url().should("include", `${document.location.origin}/community`);
+    cy.findByText('Community').click();
+    cy.url().should('include', `${document.location.origin}/community`);
   });
 });
 
@@ -152,226 +152,51 @@ describe('Community page (small screen)', () => {
   });
 });
 
-describe('Identified Issues Tab', () => {
+describe('Community page Show Additional Text', () => {
   beforeEach(() => {
-    cy.visit('/community');
+    cy.visit('/community/San%20Antonio,%20TX/overview');
   });
 
-  it('Toggling off the % Assessed Waters switch toggles all of the impairment category switches off', () => {
-    // navigate to Identified Issues tab of Community page
-    cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      '020700100102',
-    );
-    cy.findByText('Go').click();
-
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
-
-    cy.findByText('Identified Issues').click();
-
-    cy.findByLabelText('Toggle Issues Layer').click({ force: true });
-    cy.findByLabelText('Toggle Issues Layer').should(
-      'have.attr',
-      'aria-checked',
-      'false',
-    );
-
-    // check that all switches are turned off
-    cy.findByLabelText('Toggle all impairment categories').should(
-      'have.attr',
-      'aria-checked',
-      'false',
-    );
+  it('Clicking Show Text switch toggles intro text', () => {
+    cy.findByText('Your Waters: What We Know');
+    cy.findByLabelText('Show Text').click({ force: true });
+    cy.findByText('Your Waters: What We Know').should('not.exist');
   });
 
-  it('Clicking the Dischargers switch toggles the switch off', () => {
-    // navigate to Identified Issues tab of Community page
-    cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      '020700100102',
-    );
-    cy.findByText('Go').click();
-
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
-
-    cy.findByText('Identified Issues').click();
-
-    cy.findByLabelText('Toggle Dischargers Layer').click({ force: true });
-    cy.findByLabelText('Toggle Dischargers Layer').should(
-      'have.attr',
-      'aria-checked',
-      'false',
-    );
-  });
-
-  it('Clicking a Discharger accordion item expands it', () => {
-    // navigate to Identified Issues tab of Community page
-    cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      '020700100102',
-    );
-    cy.findByText('Go').click();
-
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
-
-    // switch to Dischargers tab of Identified Issues tab and check that the discharger accordion item exists and expands when clicked
-    cy.findByText('Identified Issues').click();
-    cy.findByTestId('hmw-dischargers').click();
-    cy.findByText('RED LINE PUMPING STATIONS').click();
-    cy.findByText('Compliance Status:');
-  });
-});
-
-describe('Monitoring Tab', () => {
-  beforeEach(() => {
-    cy.visit('/community');
-  });
-
-  it('Clicking the All Monitoring Locations switch toggles it off and displays 0 locations in the accordion', () => {
-    // navigate to Monitoring tab of Community page
-    cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      'San Antonio, TX',
-    );
-    cy.findByText('Go').click();
-
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
-
-    cy.findByText('Monitoring').click();
-
-    // click Toggle All Monitoring Locations switch and check that all switches are toggled off
-    cy.findByLabelText('Toggle all monitoring locations').click({
-      force: true,
-    });
-
-    cy.findByLabelText('Toggle all monitoring locations').should(
-      'have.attr',
-      'aria-checked',
-      'false',
-    );
-    cy.findByLabelText('Toggle Metals').should(
-      'have.attr',
-      'aria-checked',
-      'false',
-    );
-
-    // check that there are no items displayed in accordion
-    cy.findByText('Displaying 0', { exact: false });
-
-    // check that clicking the Toggle All switch again toggles all switches back on
-    cy.findByLabelText('Toggle all monitoring locations').click({
-      force: true,
-    });
-    cy.findByLabelText('Toggle all monitoring locations').should(
-      'have.attr',
-      'aria-checked',
-      'true',
-    );
-    cy.findByLabelText('Toggle Metals').should(
-      'have.attr',
-      'aria-checked',
-      'true',
-    );
-  });
-});
-
-describe('Protect Tab', () => {
-  beforeEach(() => {
-    cy.visit('/community');
-  });
-
-  it('Check that Protection Projects are displayed', () => {
-    // navigate to Protect tab of Community page
-    cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      '121002030202',
-    );
-    cy.findByText('Go').click();
-
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
-
-    // check that the Protection Projects in the Protect tab contains a project
-    cy.findByText('Protect').click();
-    cy.findByText('Protection Projects').click();
-    cy.findByText('Cypress Creek WPP Imp - Years 1-3');
-  });
-
-  it('Check that a message is displayed for a location with no Protection Projects', () => {
-    // navigate to Protect tab of Community page
-    cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      'San Antonio, TX',
-    );
-    cy.findByText('Go').click();
-
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
-
-    cy.findByText('Protect').click();
-    cy.findByText('Get quick tips for reducing water impairment in your:');
-    cy.findByText('Protection Projects').click();
-    cy.findByText('There are no EPA funded protection projects in the', {
-      exact: false,
-    });
-  });
-});
-
-describe("Community page Show Additional Text", () => {
-  beforeEach(() => {
-    cy.visit("/community/San%20Antonio,%20TX/overview");
-  });
-
-  it("Clicking Show Text switch toggles intro text", () => {
-    cy.findByText("Your Waters: What We Know");
-    cy.findByLabelText("Show Text").click({ force: true });
-    cy.findByText("Your Waters: What We Know").should("not.exist");
-  });
-
-  it("Clicking Show More/Show Less toggles more or less text", () => {
-    const less = "Show less",
-      more = "Show more";
+  it('Clicking Show More/Show Less toggles more or less text', () => {
+    const less = 'Show less',
+      more = 'Show more';
     //findAllByText is needed due to multiple show more on DOM, but only 1 visbile.
-    cy.findByText(less).should("not.exist");
-    cy.findAllByText(more).filter(":visible").click();
+    cy.findByText(less).should('not.exist');
+    cy.findAllByText(more).filter(':visible').as('showMore').click();
 
-    cy.findByText(less).should("exist");
-    cy.findAllByText(more).filter(":visible").should("not.exist");
+    cy.findByText(less).as('showLess');
+    cy.findAllByText(more).filter(':visible').should('not.exist');
 
-    cy.findByText(less).click();
-    cy.findByText(less).should("not.exist");
-    cy.findAllByText(more).filter(":visible").should("exist");
+    cy.get('@showLess').click();
+    cy.findByText(less).should('not.exist');
+    cy.findAllByText(more).filter(':visible').should('exist');
   });
 
   it(`Clicking "Expand All/Collapse All" expands/collapses the waterbody list`, () => {
-    const text = "Year Last Reported:";
+    const text = 'Year Last Reported:';
 
-    cy.findAllByText("Expand All").filter(":visible");
-    cy.findByText(text).should("not.exist");
+    cy.findAllByText('Expand All').filter(':visible');
+    cy.findByText(text).should('not.exist');
 
-    cy.findByText("Expand All").click();
-    cy.findAllByText(text).should("be.visible");
+    cy.findByText('Expand All').click();
+    cy.findAllByText(text).should('be.visible');
 
-    cy.findByText("Collapse All").click();
-    cy.findByText(text).should("not.exist");
+    cy.findByText('Collapse All').click();
+    cy.findByText(text).should('not.exist');
   });
 });
 
-describe("Community page Glossary", () => {
-  it("Clicking a Glossary term opens Glossary Panel", () => {
-    cy.visit("/community/Boston/drinking-water");
+describe('Community page Glossary', () => {
+  it('Clicking a Glossary term opens Glossary Panel', () => {
+    cy.visit('/community/Boston/drinking-water');
 
-    cy.findByText("Community water systems").click();
-    cy.findByText("Non-Transient Non-Community Water System (NTNCWS):");
+    cy.findByText('Community water systems').click();
+    cy.findByText('Non-Transient Non-Community Water System (NTNCWS):');
   });
 });
