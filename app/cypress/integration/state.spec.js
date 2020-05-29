@@ -160,66 +160,66 @@ describe('State page Water Quality Overview sub tabs', () => {
   });
 });
 
-describe("State page Water Overview tab", () => {
+describe('State page Water Overview tab', () => {
   beforeEach(() => {
-    cy.visit("/state/AK/water-quality-overview");
+    cy.visit('/state/AK/water-quality-overview');
   });
 
   it(`Display "Drinking Water Information" when water sub-tab clicked on`, () => {
-    cy.findByText("Drinking Water").click();
+    cy.findByText('Drinking Water').click();
     cy.findAllByText(/Drinking Water Information for/)
-      .filter(":visible")
-      .should("exist");
+      .filter(':visible')
+      .should('exist');
   });
 
   it(`Clicking "Expand All/Collapse All" expands/collapses the state documents and state water stories menu`, () => {
-    const documentsText = "Documents Related to Integrated Report";
+    const documentsText = 'Documents Related to Integrated Report';
     const waterText =
-      "Upgrading Boat Motors Reduces Hydrocarbon Pollution in Kenai River";
+      'Upgrading Boat Motors Reduces Hydrocarbon Pollution in Kenai River (PDF)';
 
-    cy.findAllByText("Expand All").filter(":visible");
-    cy.findByText(documentsText).should("not.exist");
-    cy.findByText(waterText).should("not.exist");
+    cy.findAllByText('Expand All').filter(':visible');
+    cy.findByText(documentsText).should('not.exist');
+    cy.findByText(waterText).should('not.exist');
 
-    cy.findByText("Expand All").click();
-    cy.findAllByText(documentsText).should("be.visible");
-    cy.findAllByText(waterText).should("be.visible");
+    cy.findByText('Expand All').click();
+    cy.findAllByText(documentsText).should('be.visible');
+    cy.findAllByText(waterText).should('be.visible');
 
-    cy.findByText("Collapse All").click();
-    cy.findByText(documentsText).should("not.exist");
-    cy.findByText(waterText).should("not.exist");
+    cy.findByText('Collapse All').click();
+    cy.findByText(documentsText).should('not.exist');
+    cy.findByText(waterText).should('not.exist');
   });
 
   it(`Clicking "<state name> Documents" opens the documents content`, () => {
-    const title = "Alaska Documents";
-    const text = "Documents Related to Integrated Report";
+    const title = 'Alaska Documents';
+    const text = 'Documents Related to Integrated Report';
 
     // verify text is not visible
-    cy.findByText(text).should("not.be.visible");
+    cy.findByText(text).should('not.be.visible');
 
     // open accordion and check text is visible
-    cy.get(".hmw-accordion").contains(title).click();
-    cy.findByText(text).should("be.visible");
+    cy.get('.hmw-accordion').contains(title).click();
+    cy.findByText(text).should('be.visible');
 
     // close accordion and verify text is not visible
-    cy.get(".hmw-accordion").contains(title).click();
-    cy.findByText(text).should("not.be.visible");
+    cy.get('.hmw-accordion').contains(title).click();
+    cy.findByText(text).should('not.be.visible');
   });
 
   it(`Clicking "<state name> Water Stories" opens the water stories content.`, () => {
-    const title = "Alaska Water Stories";
+    const title = 'Alaska Water Stories';
     const text =
-      "Upgrading Boat Motors Reduces Hydrocarbon Pollution in Kenai River";
+      'Upgrading Boat Motors Reduces Hydrocarbon Pollution in Kenai River (PDF)';
 
     // verify text is not visible
-    cy.findByText(text).should("not.be.visible");
+    cy.findByText(text).should('not.be.visible');
 
     // open accordion and check text is visible
-    cy.get(".hmw-accordion").contains(title).click();
-    cy.findByText(text).should("be.visible");
+    cy.get('.hmw-accordion').contains(title).click();
+    cy.findByText(text).should('be.visible');
 
     // close accordion and verify text is not visible
-    cy.get(".hmw-accordion").contains(title).click();
-    cy.findByText(text).should("not.be.visible");
+    cy.get('.hmw-accordion').contains(title).click();
+    cy.findByText(text).should('not.be.visible');
   });
 });
