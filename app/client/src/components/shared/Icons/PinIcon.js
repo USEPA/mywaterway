@@ -12,6 +12,7 @@ function PinIcon({ ...props }: Props) {
       y="0"
       viewBox="0 0 40 40"
       {...props}
+      aria-hidden="true"
     >
       <path
         fill="#2D72B5"

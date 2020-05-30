@@ -39,3 +39,9 @@
   height: 100%;
   width: 100%;
 }
+
+.rt-resizable-header-content {
+  text-align: left;
+  align-items: normal;
+  justify-content: normal;
+}

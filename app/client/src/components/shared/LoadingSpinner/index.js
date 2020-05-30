@@ -96,6 +96,7 @@ function LoadingSpinner({ ...props }: Props) {
         height="50"
         viewBox="0 0 50 50"
         {...props}
+        aria-hidden="true"
       >
         <IeCircle cx="25" cy="25" r="20" />
       </IeSvg>
@@ -108,6 +109,7 @@ function LoadingSpinner({ ...props }: Props) {
       width="50"
       height="50"
       viewBox="0 0 50 50"
+      aria-hidden="true"
       {...props}
     >
       <Circle cx="25" cy="25" r="20" />

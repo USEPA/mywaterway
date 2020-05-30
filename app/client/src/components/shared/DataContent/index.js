@@ -109,7 +109,7 @@ function Data({ ...props }: Props) {
       <hr />
 
       <Item>
-        <i className="fas fa-database" />{' '}
+        <i className="fas fa-database" aria-hidden="true" />{' '}
         <a
           href="https://www.epa.gov/waterdata/attains"
           target="_blank"
@@ -150,7 +150,7 @@ function Data({ ...props }: Props) {
       <hr />
 
       <Item>
-        <i className="fas fa-database" />{' '}
+        <i className="fas fa-database" aria-hidden="true" />{' '}
         <a
           href="https://echo.epa.gov/"
           target="_blank"
@@ -179,7 +179,7 @@ function Data({ ...props }: Props) {
       <hr />
 
       <Item>
-        <i className="fas fa-database" />{' '}
+        <i className="fas fa-database" aria-hidden="true" />{' '}
         <a
           href="https://iaspub.epa.gov/apex/grts/f?p=grts:95"
           target="_blank"
@@ -209,7 +209,7 @@ function Data({ ...props }: Props) {
       <hr />
 
       <Item>
-        <i className="fas fa-database" />{' '}
+        <i className="fas fa-database" aria-hidden="true" />{' '}
         <a
           href="https://www.epa.gov/ground-water-and-drinking-water/safe-drinking-water-information-system-sdwis-federal-reporting"
           target="_blank"
@@ -237,7 +237,7 @@ function Data({ ...props }: Props) {
       <hr />
 
       <Item>
-        <i className="fas fa-database" />{' '}
+        <i className="fas fa-database" aria-hidden="true" />{' '}
         <a
           href="https://www.epa.gov/waterdata/waters-watershed-assessment-tracking-environmental-results-system"
           target="_blank"
@@ -261,7 +261,7 @@ function Data({ ...props }: Props) {
       <hr />
 
       <Item>
-        <i className="fas fa-database" />{' '}
+        <i className="fas fa-database" aria-hidden="true" />{' '}
         <a
           href="https://www.waterqualitydata.us/"
           target="_blank"

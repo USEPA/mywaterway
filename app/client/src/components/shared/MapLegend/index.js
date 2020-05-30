@@ -96,6 +96,7 @@ function MapLegendContent({ layer }: CardProps) {
         width={boxSize}
         height={boxSize}
         viewBox={`0 0 ${boxSize} ${boxSize}`}
+        aria-hidden="true"
       >
         <rect
           x={(boxSize - iconSize) / 2}
@@ -118,6 +119,7 @@ function MapLegendContent({ layer }: CardProps) {
         width={boxSize}
         height={boxSize}
         viewBox={`0 0 ${boxSize} ${boxSize}`}
+        aria-hidden="true"
       >
         <rect
           x={(boxSize - diamondSize) / 2}
@@ -233,6 +235,7 @@ function MapLegendContent({ layer }: CardProps) {
             width="26"
             height="26"
             viewBox="0 0 26 26"
+            aria-hidden="true"
           >
             <rect x="0" y="12" width="10" height="3" fill="#666666" />
             <rect x="16" y="12" width="10" height="3" fill="#666666" />
