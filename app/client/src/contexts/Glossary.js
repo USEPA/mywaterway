@@ -35,7 +35,7 @@ function GlossaryProvider({ children }: Props) {
       const fetchTerms = (retryCount: number = 0) => {
         proxyFetch(glossaryURL)
           .then((res) => {
-            const data = res
+            let data = res
               .filter((item) => item['ActiveStatus'] !== 'Deleted')
               .map((item) => {
                 const term = item['Name'];
@@ -44,6 +44,12 @@ function GlossaryProvider({ children }: Props) {
                 })[0]['Value'];
                 return { term, definition };
               });
+
+            // filter out duplicate terms from the web service
+            data = data.filter(
+              (item, index) =>
+                data.findIndex((term) => term.term === item.term) === index,
+            );
 
             resolve({ status: 'success', data });
           })
