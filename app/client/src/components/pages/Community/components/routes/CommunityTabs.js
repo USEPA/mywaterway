@@ -229,10 +229,9 @@ const TabDots = styled.ul`
   }
 `;
 
-const TabDot = styled.div`
-  cursor: pointer;
-  display: inline-block;
+const TabDot = styled.button`
   margin: 4px;
+  padding: 0;
   border: 1px solid ${colors.black(0.25)};
   border-radius: 50%;
   width: 14px;
@@ -242,7 +241,6 @@ const TabDot = styled.div`
   &[data-selected='true'],
   &:hover,
   &:focus {
-    outline: none;
     border-color: ${colors.blue(0.75)};
     box-shadow: 0 0 0 1px ${colors.blue(0.75)};
   }
@@ -358,7 +356,7 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
     if (tabListRef.current) {
       const tabList = tabListRef.current;
       const activeTab = tabList.children[activeTabIndex];
-      activeTab.focus();
+      setTimeout(() => activeTab.focus(), 0);
 
       const column = document.querySelector('[data-column="right"]');
       if (!column) return;
@@ -448,12 +446,12 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
           ))}
         </TabList>
 
-        <TabDots>
+        <TabDots aria-hidden="true">
           {tabs.map((tab, index) => {
             return (
               <li key={index}>
                 <TabDot
-                  tabIndex="0"
+                  tabIndex="-1"
                   title={tab.title}
                   data-selected={index === activeTabIndex}
                   onClick={(ev) => {
