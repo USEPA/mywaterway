@@ -158,24 +158,23 @@ describe('Community page Show Additional Text', () => {
   });
 
   it('Clicking Show Text switch toggles intro text', () => {
-    cy.findByText('Your Waters: What We Know');
+    const heading = 'Your Waters: What We Know';
+    cy.findByText(heading);
     cy.findByLabelText('Show Text').click({ force: true });
-    cy.findByText('Your Waters: What We Know').should('not.exist');
+    cy.findByText(heading).should('not.exist');
   });
 
   it('Clicking Show More/Show Less toggles more or less text', () => {
-    const less = 'Show less',
-      more = 'Show more';
-    //findAllByText is needed due to multiple show more on DOM, but only 1 visbile.
-    cy.findByText(less).should('not.exist');
-    cy.findAllByText(more).filter(':visible').as('showMore').click();
+    const less = 'Show less';
+    const more = 'Show more';
 
-    cy.findByText(less).as('showLess');
+    cy.findAllByText(more).filter(':visible').click();
+    cy.findByText(less);
     cy.findAllByText(more).filter(':visible').should('not.exist');
 
-    cy.get('@showLess').click();
+    cy.findByText(less).click();
+    cy.findAllByText(more).filter(':visible');
     cy.findByText(less).should('not.exist');
-    cy.findAllByText(more).filter(':visible').should('exist');
   });
 
   it(`Clicking "Expand All/Collapse All" expands/collapses the waterbody list`, () => {
