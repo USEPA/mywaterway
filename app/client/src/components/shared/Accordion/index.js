@@ -116,12 +116,7 @@ function AccordionList({
         )}
       </Columns>
 
-      {title && (
-        <Title>
-          {title}
-          {subTitle && <SubTitle>{subTitle}</SubTitle>}
-        </Title>
-      )}
+      {title && <Title>{title}</Title>}
 
       {/* implicitly pass 'allExpanded' prop down to children (AccordionItem's) */}
       {React.Children.map(children, (childElement) => {
@@ -191,7 +186,7 @@ type AccordionItemProps = {
   className: string,
   icon: ?Object,
   title: Node,
-  subTitle: ?Node,
+
   status: ?string,
   onAddHighlight: Function,
   onRemoveHighlight: Function,
@@ -205,7 +200,6 @@ function AccordionItem({
   className = '',
   icon,
   title,
-  subTitle,
   status,
   onAddHighlight = () => {},
   onRemoveHighlight = () => {},
