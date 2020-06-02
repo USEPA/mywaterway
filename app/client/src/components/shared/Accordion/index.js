@@ -56,18 +56,11 @@ const Title = styled.div`
   background-color: #f0f6f9;
 `;
 
-const SubTitle = styled.div`
-  font-size: 0.875em;
-  font-style: italic;
-  margin-top: 0.125em;
-`;
-
 // --- components (AccordionList) ---
 type AccordionListProps = {
   children: Node,
   className: string,
   title: string,
-  subTitle: string,
   expandDisabled: boolean,
   sortOptions: Array<{ value: string, label: string }>,
   onSortChange: Function,
@@ -77,7 +70,6 @@ function AccordionList({
   children,
   className = '',
   title = null,
-  subTitle = null,
   expandDisabled = false,
   sortOptions = [],
   onSortChange = () => {},
@@ -270,15 +262,7 @@ function AccordionItem({
       >
         {icon && <Icon>{icon}</Icon>}
 
-        <Text>
-          {title}
-          {subTitle && (
-            <>
-              <br />
-              {subTitle}
-            </>
-          )}
-        </Text>
+        {title && <Text>{title}</Text>}
 
         <Arrow
           className={`fa fa-angle-${isOpen ? 'down' : 'right'}`}
