@@ -81,6 +81,7 @@ const TextBottomPadding = styled.p`
 
 const NewTabDisclaimer = styled.div`
   display: inline-block;
+  padding-bottom: 1.5em;
 `;
 
 // --- components ---
@@ -244,7 +245,7 @@ function WaterbodyInfo({
           : ''}
 
         {!onWaterbodyReportPage && (
-          <p>
+          <div>
             <a
               rel="noopener noreferrer"
               target="_blank"
@@ -259,7 +260,7 @@ function WaterbodyInfo({
             </a>
             &nbsp;&nbsp;
             <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
-          </p>
+          </div>
         )}
       </>
     );
@@ -325,7 +326,7 @@ function WaterbodyInfo({
           </tr>
         </tbody>
       </table>
-      <p>
+      <div>
         <a
           href={
             `https://echo.epa.gov/detailed-facility-report` +
@@ -339,7 +340,7 @@ function WaterbodyInfo({
         </a>
         &nbsp;&nbsp;
         <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
-      </p>
+      </div>
     </>
   );
 
@@ -589,7 +590,7 @@ function WaterbodyInfo({
             </a>
           </p>
         </DownloadLinks>
-        <p>
+        <div>
           <a
             rel="noopener noreferrer"
             target="_blank"
@@ -619,7 +620,7 @@ function WaterbodyInfo({
           </a>
           &nbsp;&nbsp;
           <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
-        </p>
+        </div>
       </>
     );
   };
