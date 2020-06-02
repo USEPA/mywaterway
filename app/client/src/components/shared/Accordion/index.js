@@ -186,7 +186,6 @@ type AccordionItemProps = {
   className: string,
   icon: ?Object,
   title: Node,
-
   status: ?string,
   onAddHighlight: Function,
   onRemoveHighlight: Function,
