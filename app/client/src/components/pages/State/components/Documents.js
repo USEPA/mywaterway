@@ -26,6 +26,15 @@ const Container = styled.div`
   .ReactTable {
     margin-bottom: 1.25rem;
   }
+
+  em {
+    display: block;
+    margin-bottom: 1.25rem;
+  }
+
+  h3 {
+    margin-bottom: 0px;
+  }
 `;
 
 const ErrorBox = styled(StyledErrorBox)`
@@ -179,7 +188,7 @@ function Documents({
   return (
     <Container>
       <h3>Documents Related to Integrated Report</h3>
-
+      <em>Select a document below to download a copy of the report.</em>
       {assessmentsLoading ? (
         <LoadingSpinner />
       ) : documentServiceError ? (

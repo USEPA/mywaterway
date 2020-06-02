@@ -472,6 +472,7 @@ function Monitoring() {
               <AccordionList
                 expandDisabled={true}
                 title={`Displaying ${displayLocations} of ${totalLocations} Water Monitoring Locations in the ${watershed} watershed.`}
+                subTitle="All links below open a new browser tab."
                 onSortChange={(sortBy) => setSortBy(sortBy.value)}
                 sortOptions={[
                   {

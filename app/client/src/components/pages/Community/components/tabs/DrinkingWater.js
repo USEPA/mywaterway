@@ -638,6 +638,7 @@ function DrinkingWater() {
                       {providers.length > 0 && (
                         <AccordionList
                           title={`Public water systems serving ${county} County.`}
+                          subTitle="All links below open a new browser tab."
                           onSortChange={(sortBy) =>
                             setProvidersSortBy(sortBy.value)
                           }
@@ -812,6 +813,7 @@ function DrinkingWater() {
 
                           <AccordionList
                             title={`Below are ${displayedWithdrawers.length} of ${totalWithdrawersCount} Public water systems withdrawing water from the ${watershed} watershed.`}
+                            subTitle="All links below open a new browser tab."
                             onSortChange={(sortBy) =>
                               setWithdrawersSortBy(sortBy.value)
                             }
@@ -871,6 +873,7 @@ function DrinkingWater() {
                   fieldName="drinkingwater_use"
                   usageName="Drinking Water Use"
                   title={`Waterbodies assessed as potential future sources of drinking water in the ${watershed} watershed.`}
+                  subTitle="All links below open a new browser tab."
                 />
               </>
             </TabPanel>

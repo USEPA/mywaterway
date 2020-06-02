@@ -180,6 +180,7 @@ function Protect() {
                     {sortedGrtsData.length > 0 && (
                       <AccordionList
                         title={`EPA funded protection projects in the ${watershed} watershed.`}
+                        subTitle="All links below open a new browser tab."
                       >
                         {sortedGrtsData.map((item, index) => {
                           const url = getUrlFromMarkup(item['project_link']);

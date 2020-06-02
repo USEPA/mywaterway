@@ -132,6 +132,7 @@ function Restore() {
                               watershed.
                             </>
                           }
+                          subTitle="All links below open a new browser tab."
                         >
                           {sortedGrtsData.map((item, index) => {
                             const url = getUrlFromMarkup(item['project_link']);
@@ -286,6 +287,7 @@ function Restore() {
                               in the {watershed} watershed.
                             </>
                           }
+                          subTitle="All links below open a new browser tab."
                         >
                           {sortedAttainsPlanData.map((item, index) => {
                             return (

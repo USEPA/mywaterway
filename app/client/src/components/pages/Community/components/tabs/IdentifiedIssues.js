@@ -805,6 +805,7 @@ function IdentifiedIssues() {
                             violations in the {watershed} watershed.
                           </>
                         }
+                        subTitle="All links below open a new browser tab."
                       >
                         {violatingFacilities.map((item, index) => {
                           const feature = convertFacilityToGraphic(item);

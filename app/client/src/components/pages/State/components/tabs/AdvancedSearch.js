@@ -1056,6 +1056,7 @@ function AdvancedSearch({ ...props }: Props) {
             waterbodies={waterbodies}
             type={'Waterbody State Overview'}
             fieldName={selectedDisplayOption.value}
+            subTitle="All links below open a new browser tab."
           />
         </>
       )}

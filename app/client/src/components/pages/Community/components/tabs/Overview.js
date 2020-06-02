@@ -314,6 +314,7 @@ function Overview() {
           waterbodies={waterbodies}
           fieldName={null}
           title={`Overall condition of waterbodies in the ${watershed} watershed.`}
+          subTitle="All links below open a new browser tab."
         />
       )}
     </Container>

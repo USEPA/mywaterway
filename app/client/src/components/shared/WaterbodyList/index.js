@@ -54,6 +54,7 @@ const WaterbodyContent = styled.div`
 type Props = {
   waterbodies: Array<Object>,
   title: string,
+  subTitle: string,
   fieldName: ?string,
   type: string,
   sortBy: string,
@@ -62,6 +63,7 @@ type Props = {
 function WaterbodyList({
   waterbodies,
   title,
+  subTitle = null,
   fieldName,
   type = 'Waterbody',
   sortBy = 'assessmentunitname',
@@ -111,7 +113,7 @@ function WaterbodyList({
         </span>
       </Legend>
 
-      <AccordionList title={title}>
+      <AccordionList title={title} subTitle={subTitle}>
         {sortedWaterbodies.map((graphic, index) => {
           /* prettier-ignore */
           const condition = getWaterbodyCondition(graphic.attributes, fieldName).condition;

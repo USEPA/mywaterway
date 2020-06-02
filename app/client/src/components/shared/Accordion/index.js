@@ -48,7 +48,7 @@ const ExpandButton = styled.button`
   white-space: nowrap;
 `;
 
-const Title = styled.p`
+const Title = styled.div`
   padding: 0.625em 0.875em;
   border-top: 1px solid #d8dfe2;
   border-bottom: 1px solid #d8dfe2;
@@ -56,11 +56,18 @@ const Title = styled.p`
   background-color: #f0f6f9;
 `;
 
+const SubTitle = styled.div`
+  font-size: 0.875em;
+  font-style: italic;
+  margin-top: 0.125em;
+`;
+
 // --- components (AccordionList) ---
 type AccordionListProps = {
   children: Node,
   className: string,
   title: string,
+  subTitle: string,
   expandDisabled: boolean,
   sortOptions: Array<{ value: string, label: string }>,
   onSortChange: Function,
@@ -70,6 +77,7 @@ function AccordionList({
   children,
   className = '',
   title = null,
+  subTitle = null,
   expandDisabled = false,
   sortOptions = [],
   onSortChange = () => {},
@@ -116,7 +124,12 @@ function AccordionList({
         )}
       </Columns>
 
-      {title && <Title>{title}</Title>}
+      {title && (
+        <Title>
+          {title}
+          {subTitle && <SubTitle>{subTitle}</SubTitle>}
+        </Title>
+      )}
 
       {/* implicitly pass 'allExpanded' prop down to children (AccordionItem's) */}
       {React.Children.map(children, (childElement) => {

@@ -50,6 +50,7 @@ function Swimming() {
         fieldName="recreation_use"
         usageName="Swimming and Boating"
         title={`Waterbodies assessed for swimming and boating in the ${watershed} watershed.`}
+        subTitle="All links below open a new browser tab."
       />
     </>
   );

@@ -86,6 +86,11 @@ const Container = styled.div`
   .hmw-accordion-header h3 {
     padding-bottom: 0;
   }
+
+  em {
+    display: block;
+    margin-bottom: 1.25rem;
+  }
 `;
 
 const TopicTabs = styled(ContentTabs)`
@@ -967,6 +972,7 @@ function WaterQualityOverview({ ...props }: Props) {
           }
         >
           <AccordionContent>
+            <em>Select a document below to download a copy of the report.</em>
             <Stories stories={stories} />
           </AccordionContent>
         </AccordionItem>
