@@ -48,7 +48,7 @@ const ExpandButton = styled.button`
   white-space: nowrap;
 `;
 
-const Title = styled.div`
+const Title = styled.p`
   padding: 0.625em 0.875em;
   border-top: 1px solid #d8dfe2;
   border-bottom: 1px solid #d8dfe2;
