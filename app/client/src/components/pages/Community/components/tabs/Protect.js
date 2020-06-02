@@ -38,6 +38,10 @@ const Heading = styled.h3`
   font-size: 1.375em;
 `;
 
+const NewTabDisclaimer = styled.div`
+  display: inline-block;
+`;
+
 // --- components ---
 function Protect() {
   const { grts, watershed } = React.useContext(LocationSearchContext);
@@ -180,7 +184,6 @@ function Protect() {
                     {sortedGrtsData.length > 0 && (
                       <AccordionList
                         title={`EPA funded protection projects in the ${watershed} watershed.`}
-                        subTitle="All links below open a new browser tab."
                       >
                         {sortedGrtsData.map((item, index) => {
                           const url = getUrlFromMarkup(item['project_link']);
@@ -252,6 +255,10 @@ function Protect() {
                                       >
                                         Open Project Summary
                                       </a>
+                                      &nbsp;&nbsp;
+                                      <NewTabDisclaimer>
+                                        (opens new browser tab)
+                                      </NewTabDisclaimer>
                                     </td>
                                   </tr>
 

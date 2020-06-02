@@ -972,7 +972,7 @@ function WaterQualityOverview({ ...props }: Props) {
           }
         >
           <AccordionContent>
-            <em>Select a document below to download a copy of the report.</em>
+            <em>Stories below open in a new browser tab.</em>
             <Stories stories={stories} />
           </AccordionContent>
         </AccordionItem>

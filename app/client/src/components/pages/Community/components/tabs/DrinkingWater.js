@@ -48,6 +48,10 @@ const NoteBoxContainer = styled(StyledNoteBox)`
   margin-bottom: 0.625em;
 `;
 
+const NewTabDisclaimer = styled.div`
+  display: inline-block;
+`;
+
 // sort alphabetically by name
 function comparePwsName(objA, objB) {
   return objA['pws_name'].localeCompare(objB['pws_name']);
@@ -194,6 +198,8 @@ function createAccordionItem(item: Object, isWithdrawer: boolean) {
               <a href={url} target="_blank" rel="noopener noreferrer">
                 More Details
               </a>
+              &nbsp;&nbsp;
+              <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
             </td>
           </tr>
         </tbody>
@@ -638,7 +644,6 @@ function DrinkingWater() {
                       {providers.length > 0 && (
                         <AccordionList
                           title={`Public water systems serving ${county} County.`}
-                          subTitle="All links below open a new browser tab."
                           onSortChange={(sortBy) =>
                             setProvidersSortBy(sortBy.value)
                           }
@@ -813,7 +818,6 @@ function DrinkingWater() {
 
                           <AccordionList
                             title={`Below are ${displayedWithdrawers.length} of ${totalWithdrawersCount} Public water systems withdrawing water from the ${watershed} watershed.`}
-                            subTitle="All links below open a new browser tab."
                             onSortChange={(sortBy) =>
                               setWithdrawersSortBy(sortBy.value)
                             }
@@ -873,7 +877,6 @@ function DrinkingWater() {
                   fieldName="drinkingwater_use"
                   usageName="Drinking Water Use"
                   title={`Waterbodies assessed as potential future sources of drinking water in the ${watershed} watershed.`}
-                  subTitle="All links below open a new browser tab."
                 />
               </>
             </TabPanel>

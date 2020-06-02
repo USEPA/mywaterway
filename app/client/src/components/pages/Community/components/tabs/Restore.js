@@ -36,6 +36,10 @@ const Text = styled.p`
   text-align: center;
 `;
 
+const NewTabDisclaimer = styled.div`
+  display: inline-block;
+`;
+
 // --- components ---
 function Restore() {
   const { attainsPlans, grts, watershed } = React.useContext(
@@ -132,7 +136,6 @@ function Restore() {
                               watershed.
                             </>
                           }
-                          subTitle="All links below open a new browser tab."
                         >
                           {sortedGrtsData.map((item, index) => {
                             const url = getUrlFromMarkup(item['project_link']);
@@ -205,6 +208,10 @@ function Restore() {
                                         >
                                           Open Project Summary
                                         </a>
+                                        &nbsp;&nbsp;
+                                        <NewTabDisclaimer>
+                                          (opens new browser tab)
+                                        </NewTabDisclaimer>
                                       </td>
                                     </tr>
                                     <tr>
@@ -287,7 +294,6 @@ function Restore() {
                               in the {watershed} watershed.
                             </>
                           }
-                          subTitle="All links below open a new browser tab."
                         >
                           {sortedAttainsPlanData.map((item, index) => {
                             return (
@@ -340,6 +346,10 @@ function Restore() {
                                           >
                                             Open Plan Summary
                                           </a>
+                                          &nbsp;&nbsp;
+                                          <NewTabDisclaimer>
+                                            (opens new browser tab)
+                                          </NewTabDisclaimer>
                                         </td>
                                       </tr>
                                     )}

@@ -126,7 +126,6 @@ function EatingFish() {
         fieldName="fishconsumption_use"
         usageName="Fish and Shellfish Consumption"
         title={`Waterbodies assessed for fish and shellfish consumption in the ${watershed} watershed.`}
-        subTitle="All links below open a new browser tab."
       />
     </Container>
   );

@@ -79,6 +79,10 @@ const TextBottomPadding = styled.p`
   padding-bottom: 0.5em;
 `;
 
+const NewTabDisclaimer = styled.div`
+  display: inline-block;
+`;
+
 // --- components ---
 type Props = {
   type: string,
@@ -253,6 +257,8 @@ function WaterbodyInfo({
               <Icon className="fas fa-file-alt" aria-hidden="true" />
               View Waterbody Report
             </a>
+            &nbsp;&nbsp;
+            <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
           </p>
         )}
       </>
@@ -331,6 +337,8 @@ function WaterbodyInfo({
           <Icon className="fas fa-file-alt" aria-hidden="true" />
           <span>Facility Report</span>
         </a>
+        &nbsp;&nbsp;
+        <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
       </p>
     </>
   );
@@ -598,6 +606,8 @@ function WaterbodyInfo({
             <Icon className="fas fa-info-circle" aria-hidden="true" />
             More Information
           </a>
+          &nbsp;&nbsp;
+          <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
           <br />
           <a
             rel="noopener noreferrer"
@@ -607,6 +617,8 @@ function WaterbodyInfo({
             <Icon className="fas fa-book-open" aria-hidden="true" />
             Water Quality Portal User Guide
           </a>
+          &nbsp;&nbsp;
+          <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
         </p>
       </>
     );
