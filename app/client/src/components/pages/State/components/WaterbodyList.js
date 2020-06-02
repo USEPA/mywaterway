@@ -52,25 +52,16 @@ const WaterbodyContent = styled.div`
   }
 `;
 
-const SubTitle = styled.div`
-  font-size: 0.875em;
-  font-style: italic;
-  margin-top: 0.125em;
-  margin-bottom: 0.875em;
-`;
-
 // --- components ---
 type Props = {
   waterbodies: Array<Object>,
   type: string,
-  subTitle: string,
   fieldName: string,
 };
 
 function WaterbodyList({
   waterbodies,
   type = 'Waterbody',
-  subTitle = null,
   fieldName = '',
 }: Props) {
   // Triggers the loading spinner. When a search is complete the loading
@@ -115,7 +106,6 @@ function WaterbodyList({
           &nbsp;Condition Unknown
         </span>
       </Legend>
-      {subTitle && <SubTitle>{subTitle}</SubTitle>}
       <AccordionList
         sortOptions={[
           { value: 'assessmentunitname', label: 'Waterbody Name' },

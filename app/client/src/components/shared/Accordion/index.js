@@ -186,6 +186,7 @@ type AccordionItemProps = {
   className: string,
   icon: ?Object,
   title: Node,
+  subTitle: ?Node,
   status: ?string,
   onAddHighlight: Function,
   onRemoveHighlight: Function,
@@ -199,6 +200,7 @@ function AccordionItem({
   className = '',
   icon,
   title,
+  subTitle,
   status,
   onAddHighlight = () => {},
   onRemoveHighlight = () => {},
@@ -255,7 +257,15 @@ function AccordionItem({
       >
         {icon && <Icon>{icon}</Icon>}
 
-        {title && <Text>{title}</Text>}
+        <Text>
+          {title}
+          {subTitle && (
+            <>
+              <br />
+              {subTitle}
+            </>
+          )}
+        </Text>
 
         <Arrow
           className={`fa fa-angle-${isOpen ? 'down' : 'right'}`}
