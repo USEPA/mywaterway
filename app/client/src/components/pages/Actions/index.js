@@ -346,7 +346,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                         charLimit={150}
                       />
                       <br />
-                      {documents.length > 0 && (
+                      {permits.length > 0 && (
                         <em>Links below open in a new browser tab.</em>
                       )}
                       <br />
