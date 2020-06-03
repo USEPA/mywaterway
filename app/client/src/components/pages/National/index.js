@@ -275,6 +275,9 @@ function WaterConditionsPanel() {
         </StyledIntroText>
       </IntroBox>
 
+      <p>
+        <em>Links on this page open in a new browser tab.</em>
+      </p>
       <h3>Nutrient pollution continues to be an issue</h3>
 
       <Article>
@@ -668,7 +671,9 @@ function DrinkingWaterPanel() {
           states to report drinking water information periodically to EPA.
         </StyledIntroText>
       </IntroBox>
-
+      <p>
+        <em>Links on this page open in a new browser tab.</em>
+      </p>
       <Highlights>
         <h3>
           <Icon src={drinkingWaterIcon} alt="Drinking Water" />
