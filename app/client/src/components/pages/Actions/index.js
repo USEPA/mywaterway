@@ -210,6 +210,14 @@ const AccordionContent = styled.div`
   }
 `;
 
+const NewTabDisclaimerItalic = styled.em`
+  padding: 0.4375rem 0.875rem;
+`;
+
+const NewTabDisclaimerDiv = styled.div`
+  display: inline-block;
+`;
+
 // --- components ---
 type Props = {
   ...RouteProps,
@@ -338,7 +346,12 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                         charLimit={150}
                       />
                       <br />
+                      {documents.length > 0 && (
+                        <em>Links below open in a new browser tab.</em>
+                      )}
+                      <br />
                       <em>Permits: </em>
+
                       {permits.length === 0 ? (
                         <>No permits found.</>
                       ) : (
@@ -360,12 +373,14 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                 })}
             </ul>
 
-            <p>
+            <div>
               <a href={assessmentUrl} target="_blank" rel="noopener noreferrer">
                 <Icon className="fas fa-file-alt" aria-hidden="true" />
                 View Waterbody Report
               </a>
-            </p>
+              &nbsp;&nbsp;
+              <NewTabDisclaimerDiv>(opens new browser tab)</NewTabDisclaimerDiv>
+            </div>
           </>
         );
       } else {
@@ -384,12 +399,14 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                 })}
             </ul>
 
-            <p>
+            <div>
               <a href={assessmentUrl} target="_blank" rel="noopener noreferrer">
                 <Icon className="fas fa-file-alt" aria-hidden="true" />
                 View Waterbody Report
               </a>
-            </p>
+              &nbsp;&nbsp;
+              <NewTabDisclaimerDiv>(opens new browser tab)</NewTabDisclaimerDiv>
+            </div>
           </>
         );
       }
@@ -563,7 +580,11 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                 <StyledColumn>
                   <StyledBox>
                     <StyledBoxHeading>Associated Documents</StyledBoxHeading>
-
+                    {documents.length > 0 && (
+                      <NewTabDisclaimerItalic>
+                        Links below open in a new browser tab.
+                      </NewTabDisclaimerItalic>
+                    )}
                     <StyledBoxSection>
                       <ul>
                         {documents.length === 0 && (

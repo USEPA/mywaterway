@@ -560,6 +560,9 @@ function DrinkingWater() {
                     </strong>
                   </p>
                   <p>
+                    <em>Links below open in a new browser tab.</em>
+                  </p>
+                  <p>
                     Information about public water systems can be found online
                     at{' '}
                     <a
@@ -700,8 +703,8 @@ function DrinkingWater() {
                       rel="noopener noreferrer"
                     >
                       protecting source water
-                    </a>
-                    .
+                    </a>{' '}
+                    (opens new browser tab).
                   </p>
                   <NoteBoxContainer>
                     <p>

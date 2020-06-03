@@ -68,6 +68,9 @@ function Protect() {
           </TabList>
           <TabPanels>
             <TabPanel>
+              <p>
+                <em>Links below open in a new browser tab.</em>
+              </p>
               <p>Get quick tips for reducing water impairment in your:</p>
 
               <Heading>Community</Heading>

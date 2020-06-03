@@ -105,6 +105,8 @@ function Data({ ...props }: Props) {
         other federal agencies through web services. Below is a summary of data
         included in <em>How’s My Waterway</em>.
       </p>
+      <br />
+      <em>Links below open in a new browser tab.</em>
 
       <hr />
 

@@ -74,6 +74,10 @@ const StyledTabs = styled(Tabs)`
   }
 `;
 
+const NewTabDisclaimer = styled.div`
+  display: inline-block;
+`;
+
 // --- components ---
 type Props = {};
 
@@ -366,7 +370,7 @@ function AboutContent({ ...props }: Props) {
                 </p>
 
                 <h2>More Questions?</h2>
-                <p>
+                <div>
                   <a
                     href="https://www.epa.gov/waterdata/forms/contact-us-about-hows-my-waterway"
                     target="_blank"
@@ -374,7 +378,9 @@ function AboutContent({ ...props }: Props) {
                   >
                     Contact us
                   </a>
-                </p>
+                  &nbsp;&nbsp;
+                  <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
+                </div>
               </div>
             </TabPanel>
           </TabPanels>
