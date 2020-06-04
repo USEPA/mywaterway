@@ -1090,49 +1090,56 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                           {waterbodyActions.data.length === 0 ? (
                             <p>No plans for this waterbody.</p>
                           ) : (
-                            <table className="table">
-                              <thead>
-                                <tr>
-                                  <th>Plan</th>
-                                  <th>Impairments</th>
-                                  <th>Type</th>
-                                  <th>Date</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {waterbodyActions.data
-                                  .sort((a, b) => a.name.localeCompare(b.name))
-                                  .map((action, index) => (
-                                    <tr key={index}>
-                                      <td>
-                                        <a
-                                          href={`/plan-summary/${orgId}/${action.id}`}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                        >
-                                          {titleCaseWithExceptions(action.name)}
-                                        </a>
-                                      </td>
-                                      <td>
-                                        {action.pollutants.length === 0 && (
-                                          <>No impairments found.</>
-                                        )}
-                                        {action.pollutants.length > 0 && (
-                                          <>
-                                            {action.pollutants
-                                              .sort((a, b) =>
-                                                a.localeCompare(b),
-                                              )
-                                              .join(', ')}
-                                          </>
-                                        )}
-                                      </td>
-                                      <td>{action.type}</td>
-                                      <DateCell>{action.date}</DateCell>
-                                    </tr>
-                                  ))}
-                              </tbody>
-                            </table>
+                            <>
+                              <em>Links below open in a new browser tab.</em>
+                              <table className="table">
+                                <thead>
+                                  <tr>
+                                    <th>Plan</th>
+                                    <th>Impairments</th>
+                                    <th>Type</th>
+                                    <th>Date</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {waterbodyActions.data
+                                    .sort((a, b) =>
+                                      a.name.localeCompare(b.name),
+                                    )
+                                    .map((action, index) => (
+                                      <tr key={index}>
+                                        <td>
+                                          <a
+                                            href={`/plan-summary/${orgId}/${action.id}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                          >
+                                            {titleCaseWithExceptions(
+                                              action.name,
+                                            )}
+                                          </a>
+                                        </td>
+                                        <td>
+                                          {action.pollutants.length === 0 && (
+                                            <>No impairments found.</>
+                                          )}
+                                          {action.pollutants.length > 0 && (
+                                            <>
+                                              {action.pollutants
+                                                .sort((a, b) =>
+                                                  a.localeCompare(b),
+                                                )
+                                                .join(', ')}
+                                            </>
+                                          )}
+                                        </td>
+                                        <td>{action.type}</td>
+                                        <DateCell>{action.date}</DateCell>
+                                      </tr>
+                                    ))}
+                                </tbody>
+                              </table>
+                            </>
                           )}
                         </>
                       )}

@@ -48,6 +48,10 @@ const NoteBoxContainer = styled(StyledNoteBox)`
   margin-bottom: 0.625em;
 `;
 
+const NewTabDisclaimer = styled.div`
+  display: inline-block;
+`;
+
 // sort alphabetically by name
 function comparePwsName(objA, objB) {
   return objA['pws_name'].localeCompare(objB['pws_name']);
@@ -194,6 +198,8 @@ function createAccordionItem(item: Object, isWithdrawer: boolean) {
               <a href={url} target="_blank" rel="noopener noreferrer">
                 More Details
               </a>
+              &nbsp;&nbsp;
+              <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
             </td>
           </tr>
         </tbody>
@@ -554,6 +560,9 @@ function DrinkingWater() {
                     </strong>
                   </p>
                   <p>
+                    <em>Links below open in a new browser tab.</em>
+                  </p>
+                  <p>
                     Information about public water systems can be found online
                     at{' '}
                     <a
@@ -694,8 +703,8 @@ function DrinkingWater() {
                       rel="noopener noreferrer"
                     >
                       protecting source water
-                    </a>
-                    .
+                    </a>{' '}
+                    (opens new browser tab).
                   </p>
                   <NoteBoxContainer>
                     <p>

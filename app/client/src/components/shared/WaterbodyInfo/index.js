@@ -79,6 +79,11 @@ const TextBottomPadding = styled.p`
   padding-bottom: 0.5em;
 `;
 
+const NewTabDisclaimer = styled.div`
+  display: inline-block;
+  padding-bottom: 1.5em;
+`;
+
 // --- components ---
 type Props = {
   type: string,
@@ -240,7 +245,7 @@ function WaterbodyInfo({
           : ''}
 
         {!onWaterbodyReportPage && (
-          <p>
+          <div>
             <a
               rel="noopener noreferrer"
               target="_blank"
@@ -253,7 +258,9 @@ function WaterbodyInfo({
               <Icon className="fas fa-file-alt" aria-hidden="true" />
               View Waterbody Report
             </a>
-          </p>
+            &nbsp;&nbsp;
+            <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
+          </div>
         )}
       </>
     );
@@ -319,7 +326,7 @@ function WaterbodyInfo({
           </tr>
         </tbody>
       </table>
-      <p>
+      <div>
         <a
           href={
             `https://echo.epa.gov/detailed-facility-report` +
@@ -331,7 +338,9 @@ function WaterbodyInfo({
           <Icon className="fas fa-file-alt" aria-hidden="true" />
           <span>Facility Report</span>
         </a>
-      </p>
+        &nbsp;&nbsp;
+        <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
+      </div>
     </>
   );
 
@@ -581,7 +590,7 @@ function WaterbodyInfo({
             </a>
           </p>
         </DownloadLinks>
-        <p>
+        <div>
           <a
             rel="noopener noreferrer"
             target="_blank"
@@ -598,6 +607,8 @@ function WaterbodyInfo({
             <Icon className="fas fa-info-circle" aria-hidden="true" />
             More Information
           </a>
+          &nbsp;&nbsp;
+          <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
           <br />
           <a
             rel="noopener noreferrer"
@@ -607,7 +618,9 @@ function WaterbodyInfo({
             <Icon className="fas fa-book-open" aria-hidden="true" />
             Water Quality Portal User Guide
           </a>
-        </p>
+          &nbsp;&nbsp;
+          <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
+        </div>
       </>
     );
   };
