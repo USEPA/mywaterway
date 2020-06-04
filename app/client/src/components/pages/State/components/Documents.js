@@ -188,7 +188,7 @@ function Documents({
   return (
     <Container>
       <h3>Documents Related to Integrated Report</h3>
-      <em>Select a document below to download a copy.</em>
+      <em>Select a document below to download a copy of the report.</em>
       {assessmentsLoading ? (
         <LoadingSpinner />
       ) : documentServiceError ? (

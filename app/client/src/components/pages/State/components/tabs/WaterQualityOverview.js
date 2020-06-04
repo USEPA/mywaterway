@@ -912,7 +912,7 @@ function WaterQualityOverview({ ...props }: Props) {
                     Drinking Water Information for{' '}
                     <strong>{activeState.name}</strong>
                   </h3>
-
+                  <em>Links on this page open in a new browser tab.</em>
                   <h4>EPA has defined three types of public water systems:</h4>
 
                   {tab.id === 'drinking' && (
