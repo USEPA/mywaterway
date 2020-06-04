@@ -86,11 +86,11 @@ const Container = styled.div`
   .hmw-accordion-header h3 {
     padding-bottom: 0;
   }
+`;
 
-  em {
-    display: block;
-    margin-bottom: 1.25rem;
-  }
+const NewTabDisclaimer = styled.em`
+  display: block;
+  margin-bottom: 1.25rem;
 `;
 
 const TopicTabs = styled(ContentTabs)`
@@ -912,7 +912,9 @@ function WaterQualityOverview({ ...props }: Props) {
                     Drinking Water Information for{' '}
                     <strong>{activeState.name}</strong>
                   </h3>
-                  <em>Links on this page open in a new browser tab.</em>
+                  <NewTabDisclaimer>
+                    Links on this page open in a new browser tab.
+                  </NewTabDisclaimer>
                   <h4>EPA has defined three types of public water systems:</h4>
 
                   {tab.id === 'drinking' && (
@@ -972,7 +974,9 @@ function WaterQualityOverview({ ...props }: Props) {
           }
         >
           <AccordionContent>
-            <em>Stories below open in a new browser tab.</em>
+            <NewTabDisclaimer>
+              Stories below open in a new browser tab.
+            </NewTabDisclaimer>
             <Stories stories={stories} />
           </AccordionContent>
         </AccordionItem>
