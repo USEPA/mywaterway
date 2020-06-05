@@ -258,6 +258,11 @@ const Highlights = styled.div`
   }
 `;
 
+const NewTabDisclaimer = styled.p`
+  margin-bottom: 0.5em;
+  font-style: italic;
+`;
+
 // --- components ---
 function WaterConditionsPanel() {
   const narsUrl = 'https://www.epa.gov/national-aquatic-resource-surveys';
@@ -275,9 +280,6 @@ function WaterConditionsPanel() {
         </StyledIntroText>
       </IntroBox>
 
-      <p>
-        <em>Links on this page open in a new browser tab.</em>
-      </p>
       <h3>Nutrient pollution continues to be an issue</h3>
 
       <Article>
@@ -289,19 +291,19 @@ function WaterConditionsPanel() {
           >
             Nutrient Pollution
           </a>{' '}
-          is one of America’s most widespread water quality issues. While
-          nutrients are important, too much of a good thing can become a bad
-          thing. Nutrient pollution can lead to excessive algae growth, which
-          can use up oxygen that aquatic organisms need to survive. Too much
-          algae growth can cause fish to die.{' '}
+          (opens new browser tab) is one of America’s most widespread water
+          quality issues. While nutrients are important, too much of a good
+          thing can become a bad thing. Nutrient pollution can lead to excessive
+          algae growth, which can use up oxygen that aquatic organisms need to
+          survive. Too much algae growth can cause fish to die.{' '}
           <a
             href="https://www.epa.gov/nutrient-policy-data/what-epa-doing-reduce-nutrient-pollution"
             target="_blank"
             rel="noopener noreferrer"
           >
             Learn more about what EPA is doing to reduce nutrient pollution
-          </a>
-          .
+          </a>{' '}
+          (opens new browser tab) .
         </p>
 
         <a
@@ -610,6 +612,10 @@ function WaterConditionsPanel() {
 
       <h3>Learn more about waterbody types</h3>
 
+      <NewTabDisclaimer>
+        Links below open in a new browser tab.
+      </NewTabDisclaimer>
+
       <Links>
         <a
           href={`${narsUrl}/national-rivers-and-streams-assessment-2008-2009-results`}
@@ -671,9 +677,7 @@ function DrinkingWaterPanel() {
           states to report drinking water information periodically to EPA.
         </StyledIntroText>
       </IntroBox>
-      <p>
-        <em>Links on this page open in a new browser tab.</em>
-      </p>
+
       <Highlights>
         <h3>
           <Icon src={drinkingWaterIcon} alt="Drinking Water" />
@@ -710,13 +714,14 @@ function DrinkingWaterPanel() {
             rel="noopener noreferrer"
           >
             Consumer Confidence Report (CCR)
-          </a>
-          . The CCR lists the levels of contaminants that have been detected in
-          the water, including those identified by EPA, and whether the public
-          water system (PWS) meets state and EPA drinking water standards. In
-          addition, the search results in this tool on the community page under
-          the Drinking Water tab pull data from the Safe Drinking Water
-          Information System (SDWIS) Federal Reporting Services.
+          </a>{' '}
+          (opens new browser tab) . The CCR lists the levels of contaminants
+          that have been detected in the water, including those identified by
+          EPA, and whether the public water system (PWS) meets state and EPA
+          drinking water standards. In addition, the search results in this tool
+          on the community page under the Drinking Water tab pull data from the
+          Safe Drinking Water Information System (SDWIS) Federal Reporting
+          Services.
         </p>
       </AltBox>
 

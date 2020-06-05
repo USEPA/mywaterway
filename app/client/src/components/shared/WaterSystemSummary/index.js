@@ -270,8 +270,9 @@ function WaterSystemSummary({ state }: Props) {
           rel="noopener noreferrer"
         >
           EPA’s Drinking Water Performance and Results (GPRA) Report
-        </a>
-        . GPRA results are for <strong>Community Water Systems</strong> for{' '}
+        </a>{' '}
+        (opens new browser tab). GPRA results are for{' '}
+        <strong>Community Water Systems</strong> for{' '}
         <GlossaryTerm term="Drinking Water Health-based Violations">
           Drinking Water Health Based Violations
         </GlossaryTerm>{' '}
