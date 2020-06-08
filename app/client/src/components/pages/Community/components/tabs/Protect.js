@@ -38,6 +38,10 @@ const Heading = styled.h3`
   font-size: 1.375em;
 `;
 
+const NewTabDisclaimer = styled.div`
+  display: inline-block;
+`;
+
 // --- components ---
 function Protect() {
   const { grts, watershed } = React.useContext(LocationSearchContext);
@@ -64,6 +68,9 @@ function Protect() {
           </TabList>
           <TabPanels>
             <TabPanel>
+              <p>
+                <em>Links below open in a new browser tab.</em>
+              </p>
               <p>Get quick tips for reducing water impairment in your:</p>
 
               <Heading>Community</Heading>
@@ -251,6 +258,10 @@ function Protect() {
                                       >
                                         Open Project Summary
                                       </a>
+                                      &nbsp;&nbsp;
+                                      <NewTabDisclaimer>
+                                        (opens new browser tab)
+                                      </NewTabDisclaimer>
                                     </td>
                                   </tr>
 

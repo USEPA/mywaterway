@@ -36,6 +36,10 @@ const Text = styled.p`
   text-align: center;
 `;
 
+const NewTabDisclaimer = styled.div`
+  display: inline-block;
+`;
+
 // --- components ---
 function Restore() {
   const { attainsPlans, grts, watershed } = React.useContext(
@@ -204,6 +208,10 @@ function Restore() {
                                         >
                                           Open Project Summary
                                         </a>
+                                        &nbsp;&nbsp;
+                                        <NewTabDisclaimer>
+                                          (opens new browser tab)
+                                        </NewTabDisclaimer>
                                       </td>
                                     </tr>
                                     <tr>
@@ -338,6 +346,10 @@ function Restore() {
                                           >
                                             Open Plan Summary
                                           </a>
+                                          &nbsp;&nbsp;
+                                          <NewTabDisclaimer>
+                                            (opens new browser tab)
+                                          </NewTabDisclaimer>
                                         </td>
                                       </tr>
                                     )}

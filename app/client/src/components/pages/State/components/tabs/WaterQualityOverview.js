@@ -88,6 +88,11 @@ const Container = styled.div`
   }
 `;
 
+const NewTabDisclaimer = styled.em`
+  display: block;
+  margin-bottom: 1.25rem;
+`;
+
 const TopicTabs = styled(ContentTabs)`
   [data-reach-tab] {
     padding: 0.625em 0.625em 0.875em;
@@ -924,7 +929,8 @@ function WaterQualityOverview({ ...props }: Props) {
                       rel="noopener noreferrer"
                     >
                       View detailed drinking water data for {activeState.name}.
-                    </a>
+                    </a>{' '}
+                    (opens new browser tab)
                   </DrinkingWaterText>
                 </DrinkingWaterSection>
               </TabPanel>
@@ -967,6 +973,9 @@ function WaterQualityOverview({ ...props }: Props) {
           }
         >
           <AccordionContent>
+            <NewTabDisclaimer>
+              Stories below open in a new browser tab.
+            </NewTabDisclaimer>
             <Stories stories={stories} />
           </AccordionContent>
         </AccordionItem>

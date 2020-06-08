@@ -108,6 +108,8 @@ function Data({ ...props }: Props) {
 
       <hr />
 
+      <em>Links below open in a new browser tab.</em>
+
       <Item>
         <i className="fas fa-database" aria-hidden="true" />{' '}
         <a

@@ -94,7 +94,7 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
   // focus the active tab
   React.useEffect(() => {
     if (tabListRef.current) {
-      tabListRef.current.children[activeTabIndex].focus();
+      setTimeout(() => tabListRef.current.children[activeTabIndex].focus(), 0);
     }
   }, [tabListRef, activeTabIndex]);
 
