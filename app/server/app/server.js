@@ -11,12 +11,25 @@ const browserSyncPort = 9091;
 let port = process.env.PORT || 9090;
 
 app.use(helmet());
-app.use(helmet.noCache());
 app.use(
   helmet.hsts({
     maxAge: 31536000,
   }),
 );
+
+/****************************************************************
+ Instruct web browsers to disable caching
+ ****************************************************************/
+app.use(function (req, res, next) {
+  res.setHeader('Surrogate-Control', 'no-store');
+  res.setHeader(
+    'Cache-Control',
+    'no-store, no-cache, must-revalidate, proxy-revalidate',
+  );
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
 
 /****************************************************************
  Is Glossary/Terminology Services authorization variable set?
