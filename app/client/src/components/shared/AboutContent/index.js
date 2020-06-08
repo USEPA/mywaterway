@@ -269,10 +269,9 @@ function AboutContent({ ...props }: Props) {
                 <h1>National Page </h1>
                 <hr />
                 <p>
-                  You will find information on the condition of water resources
-                  across the nation (lakes, rivers and streams, wetlands, and
-                  coastal areas), how these conditions have changed over time,
-                  and the main challenges to water resources nationwide. You
+                  Learn about the condition of water resources across the nation
+                  (lakes, rivers and streams, wetlands, and coastal areas) and
+                  the main challenges to our water resources nationwide. You
                   will also find information about national drinking water
                   quality and national drinking water metrics.
                 </p>
