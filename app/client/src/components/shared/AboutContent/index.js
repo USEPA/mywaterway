@@ -273,9 +273,8 @@ function AboutContent({ ...props }: Props) {
                   across the nation (lakes, rivers and streams, wetlands, and
                   coastal areas), how these conditions have changed over time,
                   and the main challenges to water resources nationwide. You
-                  will also find information about national drinking water and
-                  how to find out if your water is safe, the number of national
-                  systems in compliance and total population served.
+                  will also find information about national drinking water
+                  quality and national drinking water metrics.
                 </p>
               </div>
             </TabPanel>
