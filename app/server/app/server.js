@@ -32,6 +32,20 @@ app.use(function (req, res, next) {
 });
 
 /****************************************************************
+ Revoke unneeded and potentially harmful HTTP methods
+ ****************************************************************/
+app.use(function (req, res, next) {
+  var whiteList = ['TRACE', 'OPTIONS', 'TRACK'];
+  if (whiteList.indexOf(req.method) != -1) next();
+  else {
+    res.sendStatus(401);
+    let msg =
+      'Attempted use of unsupported HTTP method. HTTP method = ' + req.method;
+    log.error(msg);
+  }
+});
+
+/****************************************************************
  Is Glossary/Terminology Services authorization variable set?
 ****************************************************************/
 if (process.env.GLOSSARY_AUTH) {
