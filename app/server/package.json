@@ -35,14 +35,14 @@
     "express": "4.17.1",
     "express-basic-auth": "1.2.0",
     "helmet": "3.22.0",
-    "log4js": "6.2.1",
+    "log4js": "6.3.0",
     "request": "2.88.2",
     "serve-favicon": "2.5.0"
   },
   "devDependencies": {
     "browser-sync": "2.26.7",
     "husky": "4.2.5",
-    "lint-staged": "10.2.2",
+    "lint-staged": "10.2.9",
     "nodemon": "2.0.4",
     "prettier": "2.0.5"
   },
