@@ -2,6 +2,8 @@
  applications:
    - name: mywaterway-prod
      instances: 4
+     routes:
+      - route: mywaterway.epa.gov
      memory: 128M
      disk_quota: 512MB
      timeout: 180
