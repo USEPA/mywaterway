@@ -71,7 +71,10 @@ describe('Community page search', () => {
       search,
     );
     cy.findByText('Go').click();
-    cy.url().should('equal', `${window.location.origin}/community`);
+    cy.url({ timeout: 20000 }).should(
+      'equal',
+      `${window.location.origin}/community`,
+    );
     cy.findByText('Data is not available for this location.', {
       exact: false,
     }).should('exist');
