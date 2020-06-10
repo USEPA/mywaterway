@@ -36,13 +36,13 @@
     "coverage": "react-scripts -r @cypress/instrument-cra start"
   },
   "devDependencies": {
+    "@cypress/instrument-cra": "1.1.1",
     "flow-bin": "0.124.0",
     "husky": "4.2.5",
     "lint-staged": "10.2.9",
     "prettier": "2.0.5"
   },
   "dependencies": {
-    "@cypress/instrument-cra": "1.1.1",
     "@esri/react-arcgis": "5.0.0",
     "@gouch/to-title-case": "2.2.1",
     "@reach/dialog": "0.10.3",
