@@ -74,6 +74,15 @@ module.exports = function (app) {
       },
     )
       .on('response', function (response) {
+        /* The EPA Terminology Services (TS) exposes sensitive 
+        information about its underlying technology. While we 
+        notified the TS Team about this, they have not had time 
+        to address it with the product vendor. Based on this,
+        we're going to programmatically remove them. */
+        delete response.headers['x-powered-by'];
+        delete response.headers['server'];
+        delete response.headers['x-aspnet-version'];
+        // end of EPA TS work around.
         if (response.statusCode !== 200) {
           log.error(
             logger.formatLogMsg(
