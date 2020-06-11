@@ -340,7 +340,7 @@ function WaterConditionsPanel() {
                     <>
                       <Percent>28%</Percent> of our rivers and streams are
                       healthy based on their biological communities when
-                      compared to the best 75% of the least disturbed river and
+                      compared to the best 75% of the least-disturbed river and
                       stream reference sites in the same region
                     </>
                   }
