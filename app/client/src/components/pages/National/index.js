@@ -273,7 +273,7 @@ function WaterConditionsPanel() {
         <StyledIntroHeading>Explore National Water Quality</StyledIntroHeading>
         <StyledIntroText>
           EPA, states, and tribes survey a representative sample of our nation's
-          waters to provide an accurate snapshot of water conditions, and track
+          waters to provide an accurate snapshot of water quality, and track
           changes over time.
         </StyledIntroText>
       </IntroBox>
@@ -422,11 +422,6 @@ function WaterConditionsPanel() {
                       lead to excessive plant growth, nuisance algae, murky
                       water, odor, fish kills, and lower levels of dissolved
                       oxygen.
-                    </p>
-                    <p>
-                      Poor lake health can lead to a loss of fishing and
-                      recreational opportunities and indicate a loss of
-                      ecosystem function.
                     </p>
                   </AccordionContent>
                 </AccordionItem>
