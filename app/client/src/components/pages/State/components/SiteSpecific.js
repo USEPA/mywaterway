@@ -16,7 +16,7 @@ import { formatNumber } from 'utils/utils';
 // data
 import { impairmentFields } from 'config/attainsToHmwMapping';
 // styles
-import { fonts } from 'styles/index.js';
+import { fonts, colors } from 'styles/index.js';
 
 // add accessibility features to highcharts
 highchartsAccessibility(Highcharts);
@@ -106,10 +106,10 @@ function SiteSpecific({
     if (!waterTypeData || waterTypeData.length === 0) return support;
 
     // loop through the use categories in the watertypes and add up each support item
-    waterTypeData.forEach(waterTypeOption => {
+    waterTypeData.forEach((waterTypeOption) => {
       waterTypeOption['useAttainments']
-        .filter(x => x['useName'].toUpperCase() === useSelected.toUpperCase())
-        .forEach(use => {
+        .filter((x) => x['useName'].toUpperCase() === useSelected.toUpperCase())
+        .forEach((use) => {
           support.supporting =
             support.supporting + (use['Fully Supporting'] || 0);
           support.notSupporting =
@@ -135,8 +135,8 @@ function SiteSpecific({
   const calculatedSupport = calculateSupport();
 
   let parameterCalc = {};
-  completeUseList.forEach(use => {
-    use.parameters.forEach(param => {
+  completeUseList.forEach((use) => {
+    use.parameters.forEach((param) => {
       if (param.Cause) {
         let groupName = param.parameterGroup;
         let currentValue = parameterCalc[groupName] || 0;
@@ -165,7 +165,7 @@ function SiteSpecific({
         const units = waterTypeUnits ? waterTypeUnits.toLowerCase() : '';
 
         // match the param with an item in the attainsToHmwMapping file
-        const match = impairmentFields.filter(field => {
+        const match = impairmentFields.filter((field) => {
           return field.parameterGroup === param;
         })[0];
 
@@ -289,17 +289,17 @@ function SiteSpecific({
                       {
                         name: 'Good',
                         y: calculatedSupport.supporting || 0,
-                        color: '#8cc63f',
+                        color: colors.green(0.75),
                       },
                       {
                         name: 'Impaired',
                         y: calculatedSupport.notSupporting || 0,
-                        color: '#f93b5b',
+                        color: colors.red(),
                       },
                       {
                         name: 'Insufficient Info',
                         y: calculatedSupport.insufficent || 0,
-                        color: '#a879d8',
+                        color: colors.purple(),
                       },
                     ],
                   },

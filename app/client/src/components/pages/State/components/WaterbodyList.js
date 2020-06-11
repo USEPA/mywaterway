@@ -17,7 +17,10 @@ import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 // utilities
-import { getWaterbodyCondition } from 'components/pages/LocationMap/MapFunctions';
+import {
+  getTypeFromAttributes,
+  getWaterbodyCondition,
+} from 'components/pages/LocationMap/MapFunctions';
 // contexts
 import { MapHighlightContext } from 'contexts/MapHighlight';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -108,7 +111,7 @@ function WaterbodyList({
           { value: 'assessmentunitname', label: 'Waterbody Name' },
           { value: 'assessmentunitidentifier', label: 'Assessment Unit Id' },
         ]}
-        onSortChange={sortBy => setSortBy(sortBy.value)}
+        onSortChange={(sortBy) => setSortBy(sortBy.value)}
       >
         <WaterbodyItems
           sortedWaterbodies={sortedWaterbodies}
@@ -189,12 +192,7 @@ function WaterbodyItems({ sortedWaterbodies, allExpanded, fieldName }) {
     // get the type of symbol for creating a unique key, since it is currently
     // possible for the assessmentunitid and objectid to be duplicated across
     // layers.
-    let type = 'point';
-    if (graphic.attributes.Shape_Length && graphic.attributes.Shape_Area) {
-      type = 'area';
-    } else if (graphic.attributes.Shape_Length) {
-      type = 'line';
-    }
+    const type = getTypeFromAttributes(graphic);
 
     function resizeCell() {
       if (!listRef || !listRef.current) return;
@@ -239,7 +237,7 @@ function WaterbodyItems({ sortedWaterbodies, allExpanded, fieldName }) {
               // add the item to the expandedRows array so the accordion item
               // will stay expanded when the user scrolls or highlights map items
               if (expandedRows.includes(index)) {
-                setExpandedRows(expandedRows.filter(item => item !== index));
+                setExpandedRows(expandedRows.filter((item) => item !== index));
               } else setExpandedRows(expandedRows.concat(index));
             }}
           >

@@ -14,6 +14,7 @@ function EatingFishIcon({ height = '5rem' }: Props) {
       y="0"
       viewBox="0 0 54 54"
       style={{ height }}
+      aria-hidden="true"
     >
       <path
         fill="#fff"

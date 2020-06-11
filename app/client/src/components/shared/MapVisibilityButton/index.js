@@ -46,9 +46,9 @@ function MapVisibilityButton({ children }: Props) {
   return (
     <>
       <MapButton style={{ opacity }}>
-        <button onClick={ev => setMapShown(!mapShown)}>
+        <button onClick={(ev) => setMapShown(!mapShown)}>
           {buttonText}&nbsp;&nbsp;
-          <i className={iconClass} />
+          <i className={iconClass} aria-hidden="true" />
         </button>
       </MapButton>
 

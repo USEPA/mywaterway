@@ -38,14 +38,12 @@ const Heading = styled.h3`
   font-size: 1.375em;
 `;
 
-// --- components ---
-type Props = {
-  // props passed implicitly in Community component
-  esriModules: Object,
-  infoToggleChecked: boolean,
-};
+const NewTabDisclaimer = styled.div`
+  display: inline-block;
+`;
 
-function Protect({ esriModules, infoToggleChecked }: Props) {
+// --- components ---
+function Protect() {
   const { grts, watershed } = React.useContext(LocationSearchContext);
 
   const sortedGrtsData =
@@ -55,7 +53,8 @@ function Protect({ esriModules, infoToggleChecked }: Props) {
             return objA['prj_title'].localeCompare(objB['prj_title']);
           })
           .filter(
-            project => project.ws_protect_ind && project.ws_protect_ind === 'Y',
+            (project) =>
+              project.ws_protect_ind && project.ws_protect_ind === 'Y',
           )
       : [];
 
@@ -69,6 +68,9 @@ function Protect({ esriModules, infoToggleChecked }: Props) {
           </TabList>
           <TabPanels>
             <TabPanel>
+              <p>
+                <em>Links below open in a new browser tab.</em>
+              </p>
               <p>Get quick tips for reducing water impairment in your:</p>
 
               <Heading>Community</Heading>
@@ -191,7 +193,7 @@ function Protect({ esriModules, infoToggleChecked }: Props) {
                           const protectionPlans =
                             item['watershed_plans'] &&
                             // break string into pieces separated by commas and map over them
-                            item['watershed_plans'].split(',').map(plan => {
+                            item['watershed_plans'].split(',').map((plan) => {
                               const markup = plan.split('</a>')[0] + '</a>';
                               const title = getTitleFromMarkup(markup);
                               const planUrl = getUrlFromMarkup(markup);
@@ -202,7 +204,7 @@ function Protect({ esriModules, infoToggleChecked }: Props) {
                           const filteredProtectionPlans =
                             protectionPlans &&
                             protectionPlans.filter(
-                              plan => plan && plan.url && plan.title,
+                              (plan) => plan && plan.url && plan.title,
                             );
                           return (
                             <AccordionItem
@@ -212,8 +214,9 @@ function Protect({ esriModules, infoToggleChecked }: Props) {
                                   {item['prj_title'] || 'Unknown'}
                                 </strong>
                               }
-                              subTitle={`ID: ${item['prj_seq'] ||
-                                'Unknown ID'}`}
+                              subTitle={`ID: ${
+                                item['prj_seq'] || 'Unknown ID'
+                              }`}
                             >
                               <table className="table">
                                 <tbody>
@@ -255,6 +258,10 @@ function Protect({ esriModules, infoToggleChecked }: Props) {
                                       >
                                         Open Project Summary
                                       </a>
+                                      &nbsp;&nbsp;
+                                      <NewTabDisclaimer>
+                                        (opens new browser tab)
+                                      </NewTabDisclaimer>
                                     </td>
                                   </tr>
 

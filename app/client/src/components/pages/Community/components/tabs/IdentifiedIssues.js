@@ -26,6 +26,8 @@ import {
   StyledLabel,
 } from 'components/shared/KeyMetrics';
 // contexts
+import { EsriModulesContext } from 'contexts/EsriModules';
+import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { formatNumber } from 'utils/utils';
@@ -97,13 +99,11 @@ const IntroDiv = styled.div`
 `;
 
 // --- components ---
-type Props = {
-  // props passed implicitly in Community component
-  esriModules: Object,
-  infoToggleChecked: boolean,
-};
+function IdentifiedIssues() {
+  const { Graphic } = React.useContext(EsriModulesContext);
 
-function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
+  const { infoToggleChecked } = React.useContext(CommunityTabsContext);
+
   const {
     permittedDischargers,
     dischargersLayer,
@@ -138,12 +138,14 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
   const setViolatingFacilities = React.useCallback(
     (data: Object) => {
       if (!data || !data['Results'] || !data['Results']['Facilities']) return;
-      const violatingFacilities = data['Results']['Facilities'].filter(fac => {
-        return (
-          fac['CWPSNCStatus'] &&
-          fac['CWPSNCStatus'].toLowerCase().indexOf('effluent') !== -1
-        );
-      });
+      const violatingFacilities = data['Results']['Facilities'].filter(
+        (fac) => {
+          return (
+            fac['CWPSNCStatus'] &&
+            fac['CWPSNCStatus'].toLowerCase().indexOf('effluent') !== -1
+          );
+        },
+      );
 
       // if the permitter discharger data has changed from a new search
       if (permittedDischargersData !== permittedDischargers.data) {
@@ -156,28 +158,19 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
 
   const convertFacilityToGraphic = React.useCallback(
     (facility: Object) => {
-      const { Graphic } = esriModules;
-
       return new Graphic({
         geometry: {
           type: 'point', // autocasts as new Point()
           longitude: facility['FacLong'],
           latitude: facility['FacLat'],
         },
-        symbol: {
-          type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
-          color: '#246007',
-          style: 'diamond',
-        },
         attributes: facility,
       });
     },
-    [esriModules],
+    [Graphic],
   );
 
   const checkDischargersToDisplay = React.useCallback(() => {
-    const { Graphic } = esriModules;
-
     if (!dischargersLayer || !showDischargersLayer) return;
 
     plotFacilities({
@@ -185,12 +178,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
       facilities: violatingFacilities,
       layer: dischargersLayer,
     });
-  }, [
-    dischargersLayer,
-    esriModules,
-    showDischargersLayer,
-    violatingFacilities,
-  ]);
+  }, [dischargersLayer, Graphic, showDischargersLayer, violatingFacilities]);
 
   // translate scientific parameter names
   const getMappedParameterName = (
@@ -198,7 +186,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
     parameter: String,
   ) => {
     const filteredFields = parameterFields.filter(
-      field => parameter === field.parameterGroup,
+      (field) => parameter === field.parameterGroup,
     )[0];
     if (!filteredFields) {
       return null;
@@ -209,7 +197,6 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
 
   const checkWaterbodiesToDisplay = React.useCallback(() => {
     const waterbodiesToShow = new Set(); // set to prevent duplicates
-    const { Graphic } = esriModules;
     const features = getAllFeatures();
 
     if (!issuesLayer || !waterbodyLayer) return;
@@ -219,15 +206,15 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
     issuesLayer.graphics.removeAll();
 
     if (features && features.length !== 0) {
-      features.forEach(feature => {
+      features.forEach((feature) => {
         if (
           feature &&
           feature.attributes &&
           impairmentFields.findIndex(
-            field => feature.attributes[field.value] === 'Cause',
+            (field) => feature.attributes[field.value] === 'Cause',
           ) !== -1
         ) {
-          impairmentFields.forEach(field => {
+          impairmentFields.forEach((field) => {
             // if impairment is not a cause, ignore it. overview waterbody listview only displays impairments that are causes
             if (feature.attributes[field.value] !== 'Cause') return null;
             else if (parameterToggleObject[field.label] || showAllParameters) {
@@ -240,7 +227,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
       plotIssues(Graphic, Array.from(waterbodiesToShow), issuesLayer);
     }
   }, [
-    esriModules,
+    Graphic,
     getAllFeatures,
     issuesLayer,
     parameterToggleObject,
@@ -262,7 +249,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
 
     // generate an object with all possible parameters to store which ones are displayed
     const parameterToggles = {};
-    impairmentFields.forEach(param => {
+    impairmentFields.forEach((param) => {
       parameterToggles[param.label] = true;
     });
 
@@ -375,7 +362,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
     const parameters = [];
 
     // get a list of all parameters displayed in table and push them to array
-    cipSummaryData.items[0].summaryByParameterImpairments.forEach(param => {
+    cipSummaryData.items[0].summaryByParameterImpairments.forEach((param) => {
       const mappedParameterName = getMappedParameterName(
         impairmentFields,
         param['parameterGroupName'],
@@ -387,11 +374,11 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
     });
 
     // return true if toggle for a parameter is not checked
-    const checkNotCheckedParameters = param => {
+    const checkNotCheckedParameters = (param) => {
       return !tempParameterToggleObject[param];
     };
 
-    const checkAnyCheckedParameters = param => {
+    const checkAnyCheckedParameters = (param) => {
       return tempParameterToggleObject[param];
     };
 
@@ -588,6 +575,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
                     disabled={
                       zeroPollutedWaterbodies || cipSummary.status === 'failure'
                     }
+                    ariaLabel="Toggle Issues Layer"
                   />
                 </SwitchContainer>
               </>
@@ -611,6 +599,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
                     checked={toggleDischargersChecked}
                     onChange={() => toggleSwitch('Toggle Dischargers Layer')}
                     disabled={zeroDischargers}
+                    ariaLabel="Toggle Dischargers Layer"
                   />
                 </SwitchContainer>
               </>
@@ -622,7 +611,9 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
           <Tabs>
             <TabList>
               <Tab>Impaired Assessed Waters</Tab>
-              <Tab>Dischargers with Significant Violations</Tab>
+              <Tab data-testid="hmw-dischargers">
+                Dischargers with Significant Violations
+              </Tab>
             </TabList>
 
             <TabPanels>
@@ -714,6 +705,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
                                             onChange={() =>
                                               toggleSwitch('Toggle All')
                                             }
+                                            ariaLabel="Toggle all impairment categories"
                                           />
                                         </TableSwitch>
                                         Impairment Category
@@ -724,7 +716,7 @@ function IdentifiedIssues({ esriModules, infoToggleChecked }: Props) {
                                 </THead>
                                 <tbody>
                                   {cipSummary.data.items[0].summaryByParameterImpairments.map(
-                                    param => {
+                                    (param) => {
                                       const percent = formatNumber(
                                         Math.min(
                                           100,

@@ -16,6 +16,7 @@ import {
   StyledLabel,
 } from 'components/shared/KeyMetrics';
 // contexts
+import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { OverviewFiltersContext } from 'contexts/OverviewFilters';
 // utilities
@@ -52,13 +53,9 @@ const InfoBoxWithMargin = styled(StyledInfoBox)`
 `;
 
 // --- components ---
-type Props = {
-  // props passed implicitly in Community component
-  esriModules: Object,
-  infoToggleChecked: boolean,
-};
+function Overview() {
+  const { Graphic } = React.useContext(EsriModulesContext);
 
-function Overview({ esriModules, infoToggleChecked }: Props) {
   const {
     monitoringLocations,
     permittedDischargers,
@@ -70,6 +67,7 @@ function Overview({ esriModules, infoToggleChecked }: Props) {
     visibleLayers,
     setVisibleLayers,
   } = React.useContext(LocationSearchContext);
+
   const {
     waterbodiesFilterEnabled,
     monitoringLocationsFilterEnabled,
@@ -94,7 +92,7 @@ function Overview({ esriModules, infoToggleChecked }: Props) {
     // wait until monitoring stations data is set in context
     if (!monitoringLocations.data.features) return;
 
-    const stations = monitoringLocations.data.features.map(station => {
+    const stations = monitoringLocations.data.features.map((station) => {
       return {
         x: station.geometry.coordinates[0],
         y: station.geometry.coordinates[1],
@@ -102,9 +100,8 @@ function Overview({ esriModules, infoToggleChecked }: Props) {
       };
     });
 
-    const { Graphic } = esriModules;
-    plotStations(Graphic, stations, '#c500ff', monitoringStationsLayer);
-  }, [monitoringLocations.data, esriModules, monitoringStationsLayer]);
+    plotStations(Graphic, stations, monitoringStationsLayer);
+  }, [monitoringLocations.data, Graphic, monitoringStationsLayer]);
 
   // draw the permitted dischargers on the map
   React.useEffect(() => {
@@ -113,14 +110,13 @@ function Overview({ esriModules, infoToggleChecked }: Props) {
       permittedDischargers.data['Results'] &&
       permittedDischargers.data['Results']['Facilities']
     ) {
-      const { Graphic } = esriModules;
       plotFacilities({
         Graphic: Graphic,
         facilities: permittedDischargers.data['Results']['Facilities'],
         layer: dischargersLayer,
       });
     }
-  }, [permittedDischargers.data, esriModules, dischargersLayer]);
+  }, [permittedDischargers.data, Graphic, dischargersLayer]);
 
   // Syncs the toggles with the visible layers on the map. Mainly
   // used for when the user toggles layers in full screen mode and then
@@ -199,7 +195,7 @@ function Overview({ esriModules, infoToggleChecked }: Props) {
               <SwitchContainer>
                 <Switch
                   checked={Boolean(waterbodyCount) && waterbodiesFilterEnabled}
-                  onChange={checked => {
+                  onChange={(checked) => {
                     setWaterbodiesFilterEnabled(!waterbodiesFilterEnabled);
 
                     // first check if layer exists and is not falsy
@@ -241,7 +237,7 @@ function Overview({ esriModules, infoToggleChecked }: Props) {
                     Boolean(monitoringLocationCount) &&
                     monitoringLocationsFilterEnabled
                   }
-                  onChange={checked => {
+                  onChange={(checked) => {
                     setMonitoringLocationsFilterEnabled(
                       !monitoringLocationsFilterEnabled,
                     );
@@ -284,7 +280,7 @@ function Overview({ esriModules, infoToggleChecked }: Props) {
                     Boolean(permittedDischargerCount) &&
                     dischargersFilterEnabled
                   }
-                  onChange={checked => {
+                  onChange={(checked) => {
                     setDischargersFilterEnabled(!dischargersFilterEnabled);
 
                     // first check if layer exists and is not falsy

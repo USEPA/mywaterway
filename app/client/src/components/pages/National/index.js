@@ -258,6 +258,11 @@ const Highlights = styled.div`
   }
 `;
 
+const NewTabDisclaimer = styled.p`
+  margin-bottom: 0.5em;
+  font-style: italic;
+`;
+
 // --- components ---
 function WaterConditionsPanel() {
   const narsUrl = 'https://www.epa.gov/national-aquatic-resource-surveys';
@@ -265,17 +270,15 @@ function WaterConditionsPanel() {
   return (
     <>
       <IntroBox>
-        <StyledIntroHeading>
-          Explore National Water Conditions
-        </StyledIntroHeading>
+        <StyledIntroHeading>Explore National Water Quality</StyledIntroHeading>
         <StyledIntroText>
           EPA, states, and tribes survey a representative sample of our nation's
-          waters to provide an accurate snapshot of water conditions, and track
+          waters to provide an accurate snapshot of water quality, and track
           changes over time.
         </StyledIntroText>
       </IntroBox>
 
-      <h3>Nutrient pollution continues to be an issue</h3>
+      <h3>Excess nutrients in waterways continue to be an issue</h3>
 
       <Article>
         <p>
@@ -284,21 +287,22 @@ function WaterConditionsPanel() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Nutrient Pollution
+            Excess Nutrients in Waterways
           </a>{' '}
-          is one of America’s most widespread water quality issues. While
-          nutrients are important, too much of a good thing can become a bad
-          thing. Nutrient pollution can lead to excessive algae growth, which
-          can use up oxygen that aquatic organisms need to survive. Too much
-          algae growth can cause fish to die.{' '}
+          (opens new browser tab) is one of America’s most widespread water
+          quality issues. While nutrients are important, too much of a good
+          thing can become a bad thing. Excess nutrients can lead to excessive
+          algae growth, which can use up oxygen that aquatic organisms need to
+          survive. Too much algae growth can cause fish to die.{' '}
           <a
             href="https://www.epa.gov/nutrient-policy-data/what-epa-doing-reduce-nutrient-pollution"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Learn more about what EPA is doing to reduce nutrient pollution
-          </a>
-          .
+            Learn more about what EPA is doing to reduce excess nutrients in
+            waterways
+          </a>{' '}
+          (opens new browser tab).
         </p>
 
         <a
@@ -309,7 +313,7 @@ function WaterConditionsPanel() {
           <Figure>
             <img
               src={nutrientPollutionPhoto}
-              alt="Map of nutrient pollution across the United States"
+              alt="Map of excess nutrients across the United States"
             />
           </Figure>
         </a>
@@ -334,8 +338,10 @@ function WaterConditionsPanel() {
                 <AccordionItem
                   title={
                     <>
-                      <Percent>30%</Percent> of our rivers and streams are
-                      healthy based on biological communities
+                      <Percent>28%</Percent> of our rivers and streams are
+                      healthy based on their biological communities when
+                      compared to the best 75% of the least-disturbed river and
+                      stream reference sites in the same region
                     </>
                   }
                 >
@@ -352,31 +358,32 @@ function WaterConditionsPanel() {
                 <AccordionItem
                   title={
                     <>
-                      <Percent>58%</Percent> of our rivers and streams have
-                      excess nutrients
+                      <Percent>46%</Percent> of our rivers and streams have
+                      excess nutrients when compared to the worst 5% of the
+                      least-disturbed river and stream reference sites
                     </>
                   }
                 >
                   <AccordionContent>
                     <p>
                       Nutrients like nitrogen and phosphorus are important, but
-                      too much of a good thing can become a bad thing. Nutrient
-                      pollution can come from fertilizer, wastewater treatment,
+                      too much of a good thing can become a bad thing. Excess
+                      nutrients can come from fertilizer, wastewater treatment,
                       atmospheric deposition, animal manure, and urban runoff.
                     </p>
                     <p>
-                      Nutrient pollution can lead to algal blooms and fish
-                      kills, causing a loss of fishing and recreational
-                      opportunities. Nutrient pollution also threatens drinking
-                      water.
+                      Excess nutrients can lead to algal blooms and fish kills,
+                      causing a loss of fishing and recreational opportunities.
+                      High levels of nutrients can also threaten drinking water.
                     </p>
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem
                   title={
                     <>
-                      <Percent>58%</Percent> of our rivers and streams have
-                      healthy riverside vegetation
+                      <Percent>56%</Percent> of our rivers and streams have
+                      healthy riverside vegetation when compared to the best 75%
+                      of the least-disturbed river and stream reference sites
                     </>
                   }
                 >
@@ -392,7 +399,10 @@ function WaterConditionsPanel() {
                 </AccordionItem>
               </AccordionList>
 
-              <FooterText>Metrics are only for the conterminous US.</FooterText>
+              <FooterText>
+                This data is pulled from the National Aquatic Resource Surveys
+                (NARS) and the metrics are only for the conterminous US.
+              </FooterText>
             </TabPanel>
 
             <TabPanel>
@@ -400,7 +410,7 @@ function WaterConditionsPanel() {
                 <AccordionItem
                   title={
                     <>
-                      <Percent>45%</Percent> of lakes do not have excess algal
+                      <Percent>21%</Percent> of lakes have high levels of algal
                       growth
                     </>
                   }
@@ -413,27 +423,23 @@ function WaterConditionsPanel() {
                       water, odor, fish kills, and lower levels of dissolved
                       oxygen.
                     </p>
-                    <p>
-                      Poor lake health can lead to a loss of fishing and
-                      recreational opportunities and indicate a loss of
-                      ecosystem function.
-                    </p>
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem
                   title={
                     <>
                       <Percent>40%</Percent> of our nation's lakes have excess
-                      nutrients
+                      nutrients when compared to the worst 5% of the
+                      least-disturbed lake reference sites in the same region
                     </>
                   }
                 >
                   <AccordionContent>
                     <p>
-                      Sampling shows that nutrient pollution is a widespread
+                      Sampling shows that excess nutrients is a widespread
                       problem in America’s lakes. While nutrients are important,
-                      too much of a good thing can cause problems. Nutrient
-                      pollution can lead to excessive algae growth, which can
+                      too much of a good thing can cause problems. Excess
+                      nutrients can lead to excessive algae growth, which can
                       use up oxygen that aquatic organisms need to survive.
                     </p>
                     <p>
@@ -466,7 +472,10 @@ function WaterConditionsPanel() {
                 </AccordionItem>
               </AccordionList>
 
-              <FooterText>Metrics are only for the conterminous US.</FooterText>
+              <FooterText>
+                This data is pulled from the National Aquatic Resource Surveys
+                (NARS) and the metrics are only for the conterminous US.
+              </FooterText>
             </TabPanel>
 
             <TabPanel>
@@ -475,7 +484,7 @@ function WaterConditionsPanel() {
                   title={
                     <>
                       <Percent>56%</Percent> of our coasts are healthy based on
-                      biological communities
+                      their biological communities
                     </>
                   }
                 >
@@ -492,23 +501,22 @@ function WaterConditionsPanel() {
                 <AccordionItem
                   title={
                     <>
-                      <Percent>21%</Percent> of our coasts have nutrient
-                      pollution
+                      <Percent>21%</Percent> of our coasts have excess nutrients
                     </>
                   }
                 >
                   <AccordionContent>
                     <p>
                       While nutrients are important, having too many nutrients
-                      is bad. Nutrient pollution comes from farm fertilizer,
+                      is bad. Excess nutrients come from farm fertilizer,
                       wastewater treatment, atmospheric deposition, animal
-                      manure, and urban runoff, and causes problems for water
+                      manure, and urban runoff, and cause problems for water
                       quality.
                     </p>
                     <p>
-                      Nutrient pollution can lead to algal blooms and fish
-                      kills, leading to a loss of fishing, recreational, and
-                      tourism opportunities.
+                      Excess nutrients can lead to algal blooms and fish kills,
+                      leading to a loss of fishing, recreational, and tourism
+                      opportunities.
                     </p>
                   </AccordionContent>
                 </AccordionItem>
@@ -533,7 +541,10 @@ function WaterConditionsPanel() {
                 </AccordionItem>
               </AccordionList>
 
-              <FooterText>Metrics are only for the conterminous US.</FooterText>
+              <FooterText>
+                This data is pulled from the National Aquatic Resource Surveys
+                (NARS) and the metrics are only for the conterminous US.
+              </FooterText>
             </TabPanel>
 
             <TabPanel>
@@ -542,7 +553,9 @@ function WaterConditionsPanel() {
                   title={
                     <>
                       <Percent>48%</Percent> of our national wetland area is
-                      healthy based on biological communities
+                      healthy based on their biological communities when
+                      compared to the best 75% of the least-disturbed reference
+                      sites in wetlands in the same region
                     </>
                   }
                 >
@@ -560,7 +573,9 @@ function WaterConditionsPanel() {
                   title={
                     <>
                       <Percent>73%</Percent> of our national wetland area has
-                      experienced low or moderate levels of plant loss
+                      experienced low or moderate levels of plant loss when
+                      compared to the best 75% of the least-disturbed reference
+                      sites
                     </>
                   }
                 >
@@ -582,6 +597,8 @@ function WaterConditionsPanel() {
                     <>
                       <Percent>73%</Percent> of our national wetland area has
                       experienced low or moderate rates of surface hardening
+                      when compared to the best 75% of the least-disturbed
+                      reference sites
                     </>
                   }
                 >
@@ -596,13 +613,20 @@ function WaterConditionsPanel() {
                 </AccordionItem>
               </AccordionList>
 
-              <FooterText>Metrics are only for the conterminous US.</FooterText>
+              <FooterText>
+                This data is pulled from the National Aquatic Resource Surveys
+                (NARS) and the metrics are only for the conterminous US.
+              </FooterText>
             </TabPanel>
           </TabPanels>
         </Tabs>
       </ContentTabs>
 
       <h3>Learn more about waterbody types</h3>
+
+      <NewTabDisclaimer>
+        Links below open in a new browser tab.
+      </NewTabDisclaimer>
 
       <Links>
         <a
@@ -702,13 +726,13 @@ function DrinkingWaterPanel() {
             rel="noopener noreferrer"
           >
             Consumer Confidence Report (CCR)
-          </a>
-          . The CCR lists the levels of contaminants that have been detected in
-          the water, including those identified by EPA, and whether the public
-          water system (PWS) meets state and EPA drinking water standards. In
-          addition, the search results in this tool on the community page under
-          the Drinking Water tab pull data from the Safe Drinking Water
-          Information System (SDWIS) Federal Reporting Services.
+          </a>{' '}
+          (opens new browser tab). The CCR lists the levels of contaminants that
+          have been detected in the water, including those identified by EPA,
+          and whether the public water system (PWS) meets state and EPA drinking
+          water standards. In addition, the search results in this tool on the
+          community page under the Drinking Water tab pull data from the Safe
+          Drinking Water Information System (SDWIS) Federal Reporting Services.
         </p>
       </AltBox>
 
@@ -733,7 +757,7 @@ function National({ ...props }: Props) {
           <StyledTabs>
             <TabList>
               <LargeTab data-testid="hmw-national-water-conditions-tab">
-                National Water Conditions
+                National Water Quality
               </LargeTab>
               <LargeTab data-testid="hmw-national-drinking-water-tab">
                 National Drinking Water

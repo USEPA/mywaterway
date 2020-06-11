@@ -30,13 +30,13 @@ else logger.level = 'INFO'; //default level
 
 logger.info('LOGGER_LEVEL = ' + logger.level);
 
-var getLogger = function() {
+var getLogger = function () {
   return logger;
 };
 
 //We use this function to format most of the error messages to
 //work well (support the review) with Cloud.gov (Kibana)
-exports.formatLogMsg = function(app_metadata, app_message, app_otherinfo) {
+exports.formatLogMsg = function (app_metadata, app_message, app_otherinfo) {
   let rtn_obj = { app_metadata: null, app_message: null, app_otherinfo: null };
 
   if (app_metadata != null) rtn_obj.app_metadata = app_metadata;
@@ -48,7 +48,7 @@ exports.formatLogMsg = function(app_metadata, app_message, app_otherinfo) {
 
 //We use this function to pull out important HTTP infromation from the
 //request for logging/auditing purposes.
-exports.populateMetdataObjFromRequest = function(request) {
+exports.populateMetdataObjFromRequest = function (request) {
   let metadata = {};
 
   metadata.b3 =

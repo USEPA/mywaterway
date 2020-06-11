@@ -205,7 +205,7 @@ function GlossaryPanel({ path }) {
       if (termsInDOM()) return;
 
       // initialize the glossary
-      window.fetchGlossaryTerms.then(terms => {
+      window.fetchGlossaryTerms.then((terms) => {
         setGlossaryStatus(terms.status);
         new Glossary(terms.data);
       });
@@ -266,7 +266,7 @@ type Props = {
 function GlossaryTerm({ term, children }: Props) {
   const [status, setStatus] = React.useState('fetching');
 
-  window.fetchGlossaryTerms.then(terms => setStatus(terms.status));
+  window.fetchGlossaryTerms.then((terms) => setStatus(terms.status));
 
   const iconClassName =
     status === 'fetching' ? 'fas fa-spinner fa-pulse' : 'fas fa-book';
@@ -278,7 +278,8 @@ function GlossaryTerm({ term, children }: Props) {
       title="Click to define"
       tabIndex="0"
     >
-      <TermIcon className={iconClassName} status={status} /> {children}
+      <TermIcon className={iconClassName} status={status} aria-hidden="true" />{' '}
+      {children}
     </span>
   );
 }
