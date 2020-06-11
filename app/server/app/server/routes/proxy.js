@@ -6,10 +6,10 @@ const config = require('../config/proxyConfig.json');
 const logger = require('../utilities/logger');
 const log = logger.logger;
 
-module.exports = function(app) {
+module.exports = function (app) {
   const router = express.Router();
 
-  router.get('/', function(req, res, next) {
+  router.get('/', function (req, res, next) {
     let authoriztedURL = false;
     let parsedUrl;
     let metadataObj = logger.populateMetdataObjFromRequest(req);
@@ -57,7 +57,7 @@ module.exports = function(app) {
         uri: parsedUrl,
         timeout: 30000,
       },
-      function(err, request_res, body) {
+      function (err, request_res, body) {
         if (err) {
           log.error(
             logger.formatLogMsg(
@@ -73,7 +73,16 @@ module.exports = function(app) {
         }
       },
     )
-      .on('response', function(response) {
+      .on('response', function (response) {
+        /* The EPA Terminology Services (TS) exposes sensitive 
+        information about its underlying technology. While we 
+        notified the TS Team about this, they have not had time 
+        to address it with the product vendor. Based on this,
+        we're going to programmatically remove them. */
+        delete response.headers['x-powered-by'];
+        delete response.headers['server'];
+        delete response.headers['x-aspnet-version'];
+        // end of EPA TS work around.
         if (response.statusCode !== 200) {
           log.error(
             logger.formatLogMsg(

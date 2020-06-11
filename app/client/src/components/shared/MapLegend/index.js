@@ -5,6 +5,8 @@ import styled from 'styled-components';
 // components
 import PinIcon from 'components/shared/Icons/PinIcon';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
+// styles
+import { colors } from 'styles/index.js';
 
 // --- styled components ---
 const Container = styled.div`
@@ -60,7 +62,7 @@ type Props = {
 
 function MapLegend({ visibleLayers }: Props) {
   const filteredVisibleLayers = visibleLayers.filter(
-    layer => !ignoreLayers.includes(layer.id),
+    (layer) => !ignoreLayers.includes(layer.id),
   );
 
   // no legend data
@@ -94,6 +96,7 @@ function MapLegendContent({ layer }: CardProps) {
         width={boxSize}
         height={boxSize}
         viewBox={`0 0 ${boxSize} ${boxSize}`}
+        aria-hidden="true"
       >
         <rect
           x={(boxSize - iconSize) / 2}
@@ -116,6 +119,7 @@ function MapLegendContent({ layer }: CardProps) {
         width={boxSize}
         height={boxSize}
         viewBox={`0 0 ${boxSize} ${boxSize}`}
+        aria-hidden="true"
       >
         <rect
           x={(boxSize - diamondSize) / 2}
@@ -170,7 +174,9 @@ function MapLegendContent({ layer }: CardProps) {
   // jsx
   const monitoringStationsLegend = (
     <LI>
-      <ImageContainer>{squareIcon({ color: '#c500ff' })}</ImageContainer>
+      <ImageContainer>
+        {squareIcon({ color: colors.lightPurple() })}
+      </ImageContainer>
       <LegendLabel>Monitoring Station</LegendLabel>
     </LI>
   );
@@ -178,7 +184,7 @@ function MapLegendContent({ layer }: CardProps) {
   // jsx
   const dischargersLegend = (
     <LI>
-      <ImageContainer>{diamondIcon({ color: '#246007' })}</ImageContainer>
+      <ImageContainer>{diamondIcon({ color: colors.orange })}</ImageContainer>
       <LegendLabel>Permitted Discharger</LegendLabel>
     </LI>
   );
@@ -229,6 +235,7 @@ function MapLegendContent({ layer }: CardProps) {
             width="26"
             height="26"
             viewBox="0 0 26 26"
+            aria-hidden="true"
           >
             <rect x="0" y="12" width="10" height="3" fill="#666666" />
             <rect x="16" y="12" width="10" height="3" fill="#666666" />

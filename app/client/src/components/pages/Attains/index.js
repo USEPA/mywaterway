@@ -27,7 +27,7 @@ function compareContextName(objA, objB) {
 }
 
 function getMatchingLabel(ATTAINSContext) {
-  return impairmentFields.filter(field => {
+  return impairmentFields.filter((field) => {
     return field.parameterGroup === ATTAINSContext;
   })[0].label;
 }
@@ -80,11 +80,11 @@ function Attains({ ...props }: Props) {
     const url = attains.serviceUrl + 'domains?domainName=ParameterName';
 
     fetchCheck(url)
-      .then(res => {
+      .then((res) => {
         setLoading(false);
         setAttainsData(res.sort(compareContextName)); // sorted alphabetically by ATTAINS context
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         setLoading(false);
         setServiceError(true);
@@ -96,7 +96,7 @@ function Attains({ ...props }: Props) {
     // i.e. ["Excess Algae", "ALGAL GROWTH", "EXCESS ALGAL GROWTH"]
     setMatchedMappings(
       attainsData &&
-        attainsData.map(obj => {
+        attainsData.map((obj) => {
           return {
             hmwMapping: getMatchingLabel(obj.context),
             attainsParameterGroup: obj.context,
@@ -133,7 +133,7 @@ function Attains({ ...props }: Props) {
       placeholder="Filter column..."
       style={{ width: '100%' }}
       value={filter ? filter.value : ''}
-      onChange={event => onChange(event.target.value)}
+      onChange={(event) => onChange(event.target.value)}
       aria-label="Filter column..."
     />
   );

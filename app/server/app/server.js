@@ -11,12 +11,39 @@ const browserSyncPort = 9091;
 let port = process.env.PORT || 9090;
 
 app.use(helmet());
-app.use(helmet.noCache());
 app.use(
   helmet.hsts({
     maxAge: 31536000,
   }),
 );
+
+/****************************************************************
+ Instruct web browsers to disable caching
+ ****************************************************************/
+app.use(function (req, res, next) {
+  res.setHeader('Surrogate-Control', 'no-store');
+  res.setHeader(
+    'Cache-Control',
+    'no-store, no-cache, must-revalidate, proxy-revalidate',
+  );
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
+/****************************************************************
+ Revoke unneeded and potentially harmful HTTP methods
+ ****************************************************************/
+app.use(function (req, res, next) {
+  var whiteList = ['GET', 'POST'];
+  if (whiteList.indexOf(req.method) != -1) next();
+  else {
+    res.sendStatus(401);
+    let msg =
+      'Attempted use of unsupported HTTP method. HTTP method = ' + req.method;
+    log.error(msg);
+  }
+});
 
 /****************************************************************
  Is Glossary/Terminology Services authorization variable set?
@@ -85,7 +112,7 @@ if (isDevelopment || isStaging) {
 Enable CORS for local environment proxy use
 ****************************************************************/
 if (isLocal) {
-  app.use(function(req, res, next) {
+  app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
     res.header(
       'Access-Control-Allow-Headers',
@@ -110,17 +137,17 @@ app.use(express.static(__dirname + '/public'));
 require('./server/routes')(app);
 
 // setup client routes (built React app)
-app.get('*', function(req, res) {
+app.get('*', function (req, res) {
   res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
-app.use(favicon(path.join(__dirname, 'public_other_pages/favicon.ico')));
+app.use(favicon(path.join(__dirname, 'public/favicon.ico')));
 
 // for local testing of the production flow, use the same port as browersync to avoid
 // different port usage to confuse testers/developers
 if (port === 9090 && !isLocal) port = browserSyncPort;
 
-app.listen(port, function() {
+app.listen(port, function () {
   if (isLocal) {
     const browserSync = require('browser-sync');
 
@@ -144,10 +171,10 @@ app.listen(port, function() {
  ****************************************************************/
 /* Note, the React app should be handling 404 at this point 
    but we're leaving the below 404 check in for now */
-app.use(function(req, res, next) {
-  res.sendFile(path.join(__dirname, 'public_other_pages', '400.html'));
+app.use(function (req, res, next) {
+  res.sendFile(path.join(__dirname, 'public', '400.html'));
 });
 
-app.use(function(err, req, res, next) {
-  res.sendFile(path.join(__dirname, 'public_other_pages', '500.html'));
+app.use(function (err, req, res, next) {
+  res.sendFile(path.join(__dirname, 'public', '500.html'));
 });

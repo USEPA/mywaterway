@@ -41,7 +41,7 @@ function MapMouseEvents({ map, view }: Props) {
   } = React.useContext(EsriModulesContext);
 
   const processBoundariesData = React.useCallback(
-    boundaries => {
+    (boundaries) => {
       // exit early if the user clicked where there are no huc boundaries
       if (
         !boundaries ||
@@ -62,19 +62,12 @@ function MapMouseEvents({ map, view }: Props) {
       popupContent.innerHTML = renderToStaticMarkup(
         <>
           <br />
-          <div className="row">
-            <div className="col-xs-6 col-sm-6">
-              <p>
-                <strong>Watershed Name:</strong>
-                <br /> {attributes.name}
-              </p>
-            </div>
-            <div className="col-xs-6 col-sm-6">
-              <p>
-                <strong>HUC 12:</strong>
-                <br /> {clickedHuc12}
-              </p>
-            </div>
+          <div>
+            <p>
+              <strong style={{ fontSize: '0.875em' }}>WATERSHED:</strong>
+              <br />
+              {attributes.name} ({clickedHuc12})
+            </p>
           </div>
         </>,
       );
@@ -88,7 +81,7 @@ function MapMouseEvents({ map, view }: Props) {
       noButton.style.marginRight = '15px';
       noButton.style.fontSize = '0.9375em';
       noButton.style.backgroundColor = 'lightgray';
-      noButton.onclick = function(ev) {
+      noButton.onclick = function (ev) {
         view.popup.close();
       };
 
@@ -99,7 +92,7 @@ function MapMouseEvents({ map, view }: Props) {
       yesButton.style.fontSize = '0.9375em';
       yesButton.style.color = colors.white();
       yesButton.style.backgroundColor = colors.blue();
-      yesButton.onclick = function(ev) {
+      yesButton.onclick = function (ev) {
         // Clear all data before navigating.
         // The main reason for this is better performance
         // when doing a huc search by clicking on the state map. The app
@@ -148,7 +141,7 @@ function MapMouseEvents({ map, view }: Props) {
       // perform a hittest on the click location
       view
         .hitTest(event)
-        .then(res => {
+        .then((res) => {
           // get and update the selected graphic
           const graphic = getGraphicFromResponse(res);
           if (graphic && graphic.attributes) {
@@ -176,15 +169,15 @@ function MapMouseEvents({ map, view }: Props) {
 
             new QueryTask({ url: wbd })
               .execute(query)
-              .then(boundaries => {
+              .then((boundaries) => {
                 if (boundaries.features.length === 0) return;
 
                 processBoundariesData(boundaries);
               })
-              .catch(err => console.error(err));
+              .catch((err) => console.error(err));
           }
         })
-        .catch(err => console.error(err));
+        .catch((err) => console.error(err));
     },
     [
       Point,
@@ -213,7 +206,7 @@ function MapMouseEvents({ map, view }: Props) {
     const handleMapMouseOver = (event, view) => {
       view
         .hitTest(event)
-        .then(res => {
+        .then((res) => {
           // only use the latest event id to perform the highligh
           if (event.eventId < lastEventId) return;
           lastEventId = event.eventId;
@@ -228,19 +221,19 @@ function MapMouseEvents({ map, view }: Props) {
             lastFeature = feature;
           }
         })
-        .catch(err => console.error(err));
+        .catch((err) => console.error(err));
     };
 
     // setup the mouse click and mouse over events
-    view.on('click', event => {
+    view.on('click', (event) => {
       handleMapClick(event, view);
     });
 
-    view.on('pointer-move', event => {
+    view.on('pointer-move', (event) => {
       handleMapMouseOver(event, view);
     });
 
-    view.popup.watch('selectedFeature', graphic => {
+    view.popup.watch('selectedFeature', (graphic) => {
       // check if monitoring station is clicked, load the popup and call the waterqualitydata service
       if (
         graphic &&
@@ -254,7 +247,7 @@ function MapMouseEvents({ map, view }: Props) {
     });
 
     // auto expands the popup when it is first opened
-    view.popup.watch('visible', graphic => {
+    view.popup.watch('visible', (graphic) => {
       if (view.popup.visible) view.popup.collapsed = false;
     });
 
@@ -264,7 +257,7 @@ function MapMouseEvents({ map, view }: Props) {
   function getGraphicFromResponse(res: Object) {
     if (!res.results || res.results.length === 0) return null;
 
-    const match = res.results.filter(result => {
+    const match = res.results.filter((result) => {
       const { attributes: attr } = result.graphic;
       // ignore huc 12 boundaries, map-marker, highlight and provider graphics
       const excludedLayers = [
@@ -288,7 +281,7 @@ function MapMouseEvents({ map, view }: Props) {
     return match[0] ? match[0].graphic : null;
   }
 
-  const loadMonitoringLocation = graphic => {
+  const loadMonitoringLocation = (graphic) => {
     // tell the getPopupContent function to use the full popup version that includes the service call
     graphic.attributes.fullPopup = true;
     graphic.popupTemplate = {

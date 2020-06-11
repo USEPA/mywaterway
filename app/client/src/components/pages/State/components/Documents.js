@@ -5,6 +5,8 @@ import styled from 'styled-components';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Table from 'components/shared/Table';
+// utilities
+import { getExtensionFromPath } from 'utils/utils';
 // styled components
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // data
@@ -23,6 +25,15 @@ const Container = styled.div`
 
   .ReactTable {
     margin-bottom: 1.25rem;
+  }
+
+  em {
+    display: block;
+    margin-bottom: 1.25rem;
+  }
+
+  h3 {
+    margin-bottom: 0px;
   }
 `;
 
@@ -78,7 +89,7 @@ function Documents({
 
   const getDocumentTypeOrder = (documents: Array<Object>, ranks: Object) => {
     let documentsRanked = [];
-    documents.forEach(document => {
+    documents.forEach((document) => {
       // get document ordering
       let order = 999; // large initial order
       if (document.documentTypes.length === 0) {
@@ -89,7 +100,7 @@ function Documents({
         };
         documentsRanked.push(documentRanked);
       } else {
-        document.documentTypes.forEach(documentType => {
+        document.documentTypes.forEach((documentType) => {
           const documentRanked = {
             ...document,
             order: ranks[documentType.documentTypeCode],
@@ -115,39 +126,37 @@ function Documents({
           {
             accessor: 'documentTypeLabel',
             Header: 'Document Types',
-            style: { textAlign: 'center' },
-            Cell: props => props.value,
+            maxWidth: 300,
+            Cell: (props) => props.value,
           },
           {
             accessor: 'documentName',
             Header: 'Document',
-            style: { textAlign: 'center' },
-            Cell: props => (
+            Cell: (props) => (
               <a
                 href={props.original.documentURL}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                {props.value}
+                {props.value} (
+                {getExtensionFromPath(
+                  props.original.documentFileName,
+                  props.original.documentURL,
+                )}
+                )
               </a>
             ),
           },
           {
             accessor: 'agencyCode',
             Header: 'Agency Code',
-            style: { textAlign: 'center' },
-            minWidth: 50,
-            Cell: props =>
+            maxWidth: 125,
+            Cell: (props) =>
               props.value === 'S'
                 ? 'State'
                 : props.value === 'E'
                 ? 'EPA'
                 : props.value,
-          },
-          {
-            accessor: 'documentDescription',
-            Header: 'Document Description',
-            style: { textAlign: 'center' },
           },
         ]}
       />
@@ -179,7 +188,7 @@ function Documents({
   return (
     <Container>
       <h3>Documents Related to Integrated Report</h3>
-
+      <em>Select a document below to download a copy of the report.</em>
       {assessmentsLoading ? (
         <LoadingSpinner />
       ) : documentServiceError ? (

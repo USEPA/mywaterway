@@ -43,7 +43,7 @@ function StateIntro({ ...props }: Props) {
     <>
       <StyledIntroBox>
         <Header>
-          <i className="fas fa-tint" />
+          <i className="fas fa-tint" aria-hidden="true" />
           <StyledIntroHeading>
             States Play a Primary Role in Protecting Water Quality
           </StyledIntroHeading>

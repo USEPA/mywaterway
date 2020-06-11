@@ -91,7 +91,7 @@ const Button = styled.button`
   &:hover,
   &:focus {
     color: ${colors.white()};
-    background-color: ${colors.purple()};
+    background-color: ${colors.navyBlue()};
   }
 `;
 
@@ -159,8 +159,8 @@ function State({ children, ...props }: Props) {
   const [states, setStates] = React.useState({ status: 'fetching', data: [] });
   React.useEffect(() => {
     fetchCheck(`${attains.serviceUrl}states`)
-      .then(res => setStates({ status: 'success', data: res.data }))
-      .catch(err => setStates({ status: 'failure', data: [] }));
+      .then((res) => setStates({ status: 'success', data: res.data }))
+      .catch((err) => setStates({ status: 'failure', data: [] }));
   }, []);
 
   const {
@@ -215,7 +215,7 @@ function State({ children, ...props }: Props) {
             </Prompt>
 
             <Form
-              onSubmit={ev => {
+              onSubmit={(ev) => {
                 ev.preventDefault();
                 setActiveState(selectedState);
                 navigate(`/state/${selectedState.code}/water-quality-overview`);
@@ -226,7 +226,7 @@ function State({ children, ...props }: Props) {
                 inputId="hmw-state-select-input"
                 classNamePrefix="Select"
                 placeholder="Select a state..."
-                options={states.data.map(state => {
+                options={states.data.map((state) => {
                   return { value: state.code, label: state.name };
                 })}
                 value={
@@ -237,7 +237,7 @@ function State({ children, ...props }: Props) {
                       }
                     : null
                 }
-                onChange={ev =>
+                onChange={(ev) =>
                   setSelectedState({
                     code: ev.value,
                     name: ev.label,
@@ -247,7 +247,8 @@ function State({ children, ...props }: Props) {
               />
 
               <Button type="submit" className="btn">
-                <i className="fas fa-angle-double-right" /> Go
+                <i className="fas fa-angle-double-right" aria-hidden="true" />{' '}
+                Go
               </Button>
             </Form>
           </>
@@ -270,7 +271,7 @@ function State({ children, ...props }: Props) {
                     {stateIntro.metrics.length > 0 && (
                       <>
                         <h2>
-                          <i className="fas fa-chart-line" />
+                          <i className="fas fa-chart-line" aria-hidden="true" />
                           <strong>{activeState.name}</strong> by the Numbers
                         </h2>
 

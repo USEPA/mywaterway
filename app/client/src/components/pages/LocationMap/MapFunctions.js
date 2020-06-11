@@ -6,6 +6,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 // components
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import MapPopup from 'components/shared/MapPopup';
+// styles
+import { colors } from 'styles/index.js';
 
 const waterbodyStatuses = {
   good: { condition: 'good', label: 'Good' },
@@ -13,6 +15,18 @@ const waterbodyStatuses = {
   unassessed: { condition: 'unassessed', label: 'Condition Unknown' },
   notApplicable: { condition: 'hidden', label: 'Not Applicable' },
 };
+
+// Gets the type of symbol using the shape's attributes.
+export function getTypeFromAttributes(graphic) {
+  let type = 'point';
+  if (graphic.attributes.Shape_Length && graphic.attributes.Shape_Area) {
+    type = 'polygon';
+  } else if (graphic.attributes.Shape_Length) {
+    type = 'polyline';
+  }
+
+  return type;
+}
 
 export function getWaterbodyCondition(
   attributes: Object,
@@ -165,22 +179,21 @@ export function createWaterbodySymbol({
   selected,
   geometryType = 'point',
 }: {
-  condition: 'good' | 'polluted' | 'unassessed' | 'impaired' | 'hidden',
+  condition: 'good' | 'polluted' | 'unassessed' | 'hidden',
   selected: boolean,
   geometryType: string,
 }) {
   const outline = selected ? { color: [0, 255, 255, 0.5], width: 1 } : null;
 
-  let color = selected ? { r: 84, g: 188, b: 236 } : { r: 168, g: 121, b: 216 };
+  // from colors.highlightedPurple() and colors.purple()
+  let color = selected ? { r: 84, g: 188, b: 236 } : { r: 107, g: 65, b: 149 };
   if (condition === 'good') {
-    color = selected ? { r: 70, g: 227, b: 159 } : { r: 140, g: 198, b: 63 };
+    // from colors.highlightedGreen() and colors.green()
+    color = selected ? { r: 70, g: 227, b: 159 } : { r: 32, g: 128, b: 12 };
   }
   if (condition === 'polluted') {
-    color = selected ? { r: 124, g: 157, b: 173 } : { r: 249, g: 59, b: 91 };
-  }
-  // handle the identified issues panel
-  if (condition === 'impaired' || condition === 'hidden') {
-    color = selected ? { r: 124, g: 157, b: 173 } : { r: 249, g: 59, b: 91 };
+    // from colors.highlightedRed() and colors.red()
+    color = selected ? { r: 124, g: 157, b: 173 } : { r: 203, g: 34, b: 62 };
   }
 
   // for polygons, add transparency to the color so that lines can be seen
@@ -246,7 +259,6 @@ export function isIE() {
 export function plotStations(
   Graphic: any,
   stations: Array<Object>,
-  color: string,
   layer: any,
 ) {
   if (!stations || !layer) return;
@@ -255,7 +267,7 @@ export function plotStations(
   layer.graphics.removeAll();
 
   // put graphics on the layer
-  stations.forEach(station => {
+  stations.forEach((station) => {
     station.properties.fullPopup = false;
     layer.graphics.add(
       new Graphic({
@@ -267,7 +279,7 @@ export function plotStations(
         symbol: {
           type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
           style: 'square',
-          color,
+          color: colors.lightPurple(),
         },
         attributes: station.properties,
         popupTemplate: {
@@ -288,14 +300,14 @@ export function plotIssues(Graphic: any, features: Array<Object>, layer: any) {
   // clear the layer
   layer.graphics.removeAll();
   // put graphics on the layer
-  features.forEach(waterbody => {
-    const geometryType = waterbody.geometry.type;
+  features.forEach((waterbody) => {
+    const geometryType = getTypeFromAttributes(waterbody);
     layer.graphics.add(
       new Graphic({
         geometry: waterbody.geometry,
 
         symbol: createWaterbodySymbol({
-          condition: 'impaired',
+          condition: 'polluted',
           selected: false,
           geometryType,
         }),
@@ -330,7 +342,7 @@ export function plotFacilities({
   layer.graphics.removeAll();
 
   // put graphics on the layer
-  facilities.forEach(facility => {
+  facilities.forEach((facility) => {
     layer.graphics.add(
       new Graphic({
         geometry: {
@@ -340,8 +352,9 @@ export function plotFacilities({
         },
         symbol: {
           type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
-          color: '#246007',
+          color: colors.orange,
           style: 'diamond',
+          size: 15,
         },
         attributes: facility,
         popupTemplate: {
@@ -486,7 +499,7 @@ export function getUniqueWaterbodies(waterbodies: Array<Object>) {
   if (!waterbodies) return null;
 
   const flags = {};
-  return waterbodies.filter(waterbody => {
+  return waterbodies.filter((waterbody) => {
     const orgid = waterbody.attributes.organizationidentifier;
     const auid = waterbody.attributes.assessmentunitidentifier;
     const key = `${orgid}${auid}`;
@@ -503,7 +516,7 @@ export function shallowCompare(obj1, obj2) {
   return (
     Object.keys(obj1).length === Object.keys(obj2).length &&
     Object.keys(obj1).every(
-      key =>
+      (key) =>
         obj2.hasOwnProperty(key) &&
         typeof obj1[key] === typeof obj2[key] &&
         (typeof obj1[key] === 'object' || obj1[key] === obj2[key]),

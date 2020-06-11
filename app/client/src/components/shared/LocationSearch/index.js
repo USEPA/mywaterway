@@ -61,7 +61,7 @@ const Button = styled.button`
   &:not(.btn-danger):hover,
   &:not(.btn-danger):focus {
     color: ${colors.white()};
-    background-color: ${colors.purple()};
+    background-color: ${colors.navyBlue()};
   }
 
   &:disabled {
@@ -109,7 +109,7 @@ function LocationSearch({ route, label }: Props) {
       )}
       <Label htmlFor="hmw-search-input">{label}</Label>
       <Form
-        onSubmit={ev => {
+        onSubmit={(ev) => {
           ev.preventDefault();
 
           if (containsScriptTag(inputText)) {
@@ -130,7 +130,7 @@ function LocationSearch({ route, label }: Props) {
           className="form-control"
           placeholder="Search by address, zip code, or place..."
           value={inputText}
-          onChange={ev => setInputText(ev.target.value)}
+          onChange={(ev) => setInputText(ev.target.value)}
         />
 
         <Button
@@ -138,7 +138,7 @@ function LocationSearch({ route, label }: Props) {
           type="submit"
           disabled={inputText === searchText}
         >
-          <i className="fas fa-angle-double-right" /> Go
+          <i className="fas fa-angle-double-right" aria-hidden="true" /> Go
         </Button>
 
         {navigator.geolocation && (
@@ -147,19 +147,19 @@ function LocationSearch({ route, label }: Props) {
 
             {geolocationError ? (
               <Button className="btn btn-danger" type="button" disabled>
-                <i className="fas fa-exclamation-triangle" />
+                <i className="fas fa-exclamation-triangle" aria-hidden="true" />
                 &nbsp;&nbsp;Error Getting Location
               </Button>
             ) : (
               <Button
                 className="btn"
                 type="button"
-                onClick={ev => {
+                onClick={(ev) => {
                   setGeolocating(true);
 
                   navigator.geolocation.getCurrentPosition(
                     // success function called when geolocation succeeds
-                    position => {
+                    (position) => {
                       const locatorTask = new Locator({ url: locatorUrl });
                       const params = {
                         location: new Point({
@@ -168,17 +168,19 @@ function LocationSearch({ route, label }: Props) {
                         }),
                       };
 
-                      locatorTask.locationToAddress(params).then(candidate => {
-                        setGeolocating(false);
-                        navigate(
-                          encodeURI(
-                            route.replace('{urlSearch}', candidate.address),
-                          ),
-                        );
-                      });
+                      locatorTask
+                        .locationToAddress(params)
+                        .then((candidate) => {
+                          setGeolocating(false);
+                          navigate(
+                            encodeURI(
+                              route.replace('{urlSearch}', candidate.address),
+                            ),
+                          );
+                        });
                     },
                     // failure function called when geolocation fails
-                    err => {
+                    (err) => {
                       console.error(err);
                       setGeolocating(false);
                       setGeolocationError(true);
@@ -189,12 +191,12 @@ function LocationSearch({ route, label }: Props) {
                 {/* don't display the loading indicator in IE11 */}
                 {!geolocating || isIE() ? (
                   <>
-                    <i className="fas fa-crosshairs" />
+                    <i className="fas fa-crosshairs" aria-hidden="true" />
                     &nbsp;&nbsp;Use My Location
                   </>
                 ) : (
                   <>
-                    <i className="fas fa-spinner fa-pulse" />
+                    <i className="fas fa-spinner fa-pulse" aria-hidden="true" />
                     &nbsp;&nbsp;Getting Location...
                   </>
                 )}

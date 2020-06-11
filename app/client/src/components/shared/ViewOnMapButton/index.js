@@ -12,7 +12,7 @@ import { colors } from 'styles/index.js';
 const Button = styled.button`
   &:hover,
   &:focus {
-    background-color: ${colors.purple()};
+    background-color: ${colors.navyBlue()};
   }
 `;
 
@@ -67,7 +67,7 @@ function ViewOnMapButton({ feature, fieldName, layers }: Props) {
         params.outFields = ['*'];
         layer
           .queryFeatures(params)
-          .then(res => {
+          .then((res) => {
             // if the feature was found, execute the call back and return
             if (res.features.length > 0) {
               callback(res.features[0]);
@@ -78,7 +78,7 @@ function ViewOnMapButton({ feature, fieldName, layers }: Props) {
               queryLayers(index + 1); // recursive call
             }
           })
-          .catch(err => console.error(err));
+          .catch((err) => console.error(err));
       } else if (layer.type === 'graphics') {
         const { organizationid } = feature.attributes;
 
@@ -106,16 +106,16 @@ function ViewOnMapButton({ feature, fieldName, layers }: Props) {
 
   return (
     <Button
-      onClick={ev => {
+      onClick={(ev) => {
         if (!feature) return;
         if (feature.geometry) {
           viewClick(feature);
         } else {
-          getGeometry(feature => viewClick(feature));
+          getGeometry((feature) => viewClick(feature));
         }
       }}
     >
-      <i className="fas fa-map-marker-alt" />
+      <i className="fas fa-map-marker-alt" aria-hidden="true" />
       &nbsp;&nbsp;View on Map
     </Button>
   );

@@ -45,7 +45,7 @@ const StyledTopicButtonLink = styled(StyledButtonLink)`
 
   &:hover,
   &:focus {
-    background-color: ${colors.purple()};
+    background-color: ${colors.navyBlue()};
   }
 `;
 

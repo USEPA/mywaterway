@@ -1,6 +1,8 @@
 // @flow
 
 import React from 'react';
+// styles
+import { colors } from 'styles/index.js';
 
 // --- components ---
 type Props = {
@@ -13,7 +15,7 @@ function WaterbodyIcon({ condition, selected = false }: Props) {
   let shape = (
     <>
       <polygon
-        fill={selected ? '#54BCEC' : '#a879d8'}
+        fill={selected ? colors.highlightedPurple() : colors.purple()}
         points="13 4.34 3 21.66 23 21.66 13 4.34"
       />
       {selected && (
@@ -30,7 +32,7 @@ function WaterbodyIcon({ condition, selected = false }: Props) {
     shape = (
       <>
         <circle
-          fill={selected ? '#46E39F' : '#8cc63f'}
+          fill={selected ? colors.highlightedGreen() : colors.green()}
           cx="13"
           cy="13"
           r="10"
@@ -50,7 +52,7 @@ function WaterbodyIcon({ condition, selected = false }: Props) {
     shape = (
       <>
         <polygon
-          fill={selected ? '#7C9DAD' : '#f93b5b'}
+          fill={selected ? colors.highlightedRed() : colors.red()}
           points="17.14 3 8.86 3 3 8.86 3 17.14 8.86 23 17.14 23 23 17.14 23 8.86 17.14 3"
         />
         {selected && (
@@ -70,6 +72,7 @@ function WaterbodyIcon({ condition, selected = false }: Props) {
       width="26"
       height="26"
       viewBox="0 0 26 26"
+      aria-hidden="true"
     >
       {shape}
     </svg>

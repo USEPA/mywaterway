@@ -157,7 +157,7 @@ const StyledTabs = styled(Tabs)`
       &:hover,
       &:focus {
         z-index: 1;
-        background-color: ${colors.purple()};
+        background-color: ${colors.navyBlue()};
         box-shadow: inset 0 -5px 0 ${colors.teal()};
       }
 
@@ -193,7 +193,7 @@ const StyledTabs = styled(Tabs)`
 
   > [data-reach-tab-panels] {
     [data-reach-tab-panel] {
-      padding: ${props => {
+      padding: ${(props) => {
         return props['info-toggle-checked'] === 'true' ? '1em' : '0';
       }};
 
@@ -229,10 +229,9 @@ const TabDots = styled.ul`
   }
 `;
 
-const TabDot = styled.div`
-  cursor: pointer;
-  display: inline-block;
+const TabDot = styled.button`
   margin: 4px;
+  padding: 0;
   border: 1px solid ${colors.black(0.25)};
   border-radius: 50%;
   width: 14px;
@@ -242,7 +241,6 @@ const TabDot = styled.div`
   &[data-selected='true'],
   &:hover,
   &:focus {
-    outline: none;
     border-color: ${colors.blue(0.75)};
     box-shadow: 0 0 0 1px ${colors.blue(0.75)};
   }
@@ -324,7 +322,7 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
   // and conditionally set active tab index
   React.useEffect(() => {
     const tabIndex = tabs
-      .map(tab => encodeURI(tab.route.replace('{urlSearch}', urlSearch)))
+      .map((tab) => encodeURI(tab.route.replace('{urlSearch}', urlSearch)))
       .indexOf(window.location.pathname);
 
     if (tabIndex === -1) {
@@ -358,7 +356,7 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
     if (tabListRef.current) {
       const tabList = tabListRef.current;
       const activeTab = tabList.children[activeTabIndex];
-      activeTab.focus();
+      setTimeout(() => activeTab.focus(), 0);
 
       const column = document.querySelector('[data-column="right"]');
       if (!column) return;
@@ -373,7 +371,7 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
 
   // keep the tab overlay height in sync with the height of a tab in the tablist
   const [tabHeight, setTabHeight] = React.useState(45);
-  const measuredTabRef = React.useCallback(node => {
+  const measuredTabRef = React.useCallback((node) => {
     if (!node) return;
     setTabHeight(node.getBoundingClientRect().height);
   }, []);
@@ -421,7 +419,7 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
 
       <StyledTabs
         index={activeTabIndex}
-        onChange={index => {
+        onChange={(index) => {
           // used for reseting tab specific toggles. This is needed so the
           // toggles will go back to the default settings when the user
           // changes panels, but the toggles will be remembered when the user
@@ -441,22 +439,22 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
         }
       >
         <TabList ref={tabListRef}>
-          {tabs.map(tab => (
+          {tabs.map((tab) => (
             <Tab key={tab.title} ref={measuredTabRef}>
               {tab.title}
             </Tab>
           ))}
         </TabList>
 
-        <TabDots>
+        <TabDots aria-hidden="true">
           {tabs.map((tab, index) => {
             return (
               <li key={index}>
                 <TabDot
-                  tabIndex="0"
+                  tabIndex="-1"
                   title={tab.title}
                   data-selected={index === activeTabIndex}
-                  onClick={ev => {
+                  onClick={(ev) => {
                     const tabList = tabListRef.current;
                     if (tabList) tabList.children[index].click();
                   }}
@@ -468,7 +466,10 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
 
         <TabHeader>
           <div>
-            <img src={tabs[activeTabIndex].icon} alt="" />
+            <img
+              src={tabs[activeTabIndex].icon}
+              alt={tabs[activeTabIndex].title}
+            />
             <p>{tabs[activeTabIndex].title}</p>
           </div>
 
@@ -477,7 +478,7 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
               <span>Show Text</span>
               <Switch
                 checked={infoToggleChecked}
-                onChange={checked => setInfoToggleChecked(checked)}
+                onChange={(checked) => setInfoToggleChecked(checked)}
                 ariaLabel="Show Text"
               />
             </label>
@@ -485,7 +486,7 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
         </TabHeader>
 
         <TabPanels>
-          {tabs.map(tab => (
+          {tabs.map((tab) => (
             <TabPanel key={tab.title}>
               {/* only display upper tab content if info toggle is checked */}
               {infoToggleChecked && tab.upper}
