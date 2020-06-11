@@ -1,0 +1,12 @@
+{
+  "_comment": "values should be lowercase",
+  "urls": [
+    "ofmpub.epa.gov",
+    "54.209.48.156",
+    "attains.epa.gov",
+    "gispub.epa.gov",
+    "www.waterqualitydata.us",
+    "inlandwaters.geoplatform.gov",
+    "etss.epa.gov"
+  ]
+}
