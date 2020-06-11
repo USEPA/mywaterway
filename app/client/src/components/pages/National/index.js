@@ -338,10 +338,10 @@ function WaterConditionsPanel() {
                 <AccordionItem
                   title={
                     <>
-                      <Percent>30%</Percent> of our rivers and streams are
+                      <Percent>28%</Percent> of our rivers and streams are
                       healthy based on their biological communities when
-                      compared to the best available reference sites in rivers
-                      and streams in the same region
+                      compared to the best 75% of the least disturbed river and
+                      stream reference sites in the same region
                     </>
                   }
                 >
@@ -358,9 +358,9 @@ function WaterConditionsPanel() {
                 <AccordionItem
                   title={
                     <>
-                      <Percent>58%</Percent> of our rivers and streams have
-                      excess nutrients when compared to best available reference
-                      sites
+                      <Percent>46%</Percent> of our rivers and streams have
+                      excess nutrients when compared to the worst 5% of the
+                      least-disturbed river and stream reference sites
                     </>
                   }
                 >
@@ -381,9 +381,9 @@ function WaterConditionsPanel() {
                 <AccordionItem
                   title={
                     <>
-                      <Percent>58%</Percent> of our rivers and streams have
-                      healthy riverside vegetation when compared to best
-                      available reference sites
+                      <Percent>56%</Percent> of our rivers and streams have
+                      healthy riverside vegetation when compared to the best 75%
+                      of the least-disturbed river and stream reference sites
                     </>
                   }
                 >
@@ -410,9 +410,8 @@ function WaterConditionsPanel() {
                 <AccordionItem
                   title={
                     <>
-                      <Percent>45%</Percent> of lakes do not have excess algal
-                      growth when compared to best available reference sites in
-                      lakes in the same region
+                      <Percent>21%</Percent> of lakes have high levels of algal
+                      growth
                     </>
                   }
                 >
@@ -435,7 +434,8 @@ function WaterConditionsPanel() {
                   title={
                     <>
                       <Percent>40%</Percent> of our nation's lakes have excess
-                      nutrients when compared to best available reference sites
+                      nutrients when compared to the worst 5% of the
+                      least-disturbed lake reference sites in the same region
                     </>
                   }
                 >
@@ -477,7 +477,10 @@ function WaterConditionsPanel() {
                 </AccordionItem>
               </AccordionList>
 
-              <FooterText>Metrics are only for the conterminous US.</FooterText>
+              <FooterText>
+                This data is pulled from the National Aquatic Resource Surveys
+                (NARS) and the metrics are only for the conterminous US.
+              </FooterText>
             </TabPanel>
 
             <TabPanel>
@@ -543,7 +546,10 @@ function WaterConditionsPanel() {
                 </AccordionItem>
               </AccordionList>
 
-              <FooterText>Metrics are only for the conterminous US.</FooterText>
+              <FooterText>
+                This data is pulled from the National Aquatic Resource Surveys
+                (NARS) and the metrics are only for the conterminous US.
+              </FooterText>
             </TabPanel>
 
             <TabPanel>
@@ -553,8 +559,8 @@ function WaterConditionsPanel() {
                     <>
                       <Percent>48%</Percent> of our national wetland area is
                       healthy based on their biological communities when
-                      compared to the best available reference sites in wetlands
-                      in the same region
+                      compared to the best 75% of the least-disturbed available
+                      reference sites in wetlands in the same region
                     </>
                   }
                 >
@@ -573,7 +579,8 @@ function WaterConditionsPanel() {
                     <>
                       <Percent>73%</Percent> of our national wetland area has
                       experienced low or moderate levels of plant loss when
-                      compared to best available reference sites
+                      compared to best 75% of the least-disturbed reference
+                      sites
                     </>
                   }
                 >
@@ -595,7 +602,8 @@ function WaterConditionsPanel() {
                     <>
                       <Percent>73%</Percent> of our national wetland area has
                       experienced low or moderate rates of surface hardening
-                      when compared to best available reference sites
+                      when compared to best 75% of the least-disturbed reference
+                      sites
                     </>
                   }
                 >
@@ -610,7 +618,10 @@ function WaterConditionsPanel() {
                 </AccordionItem>
               </AccordionList>
 
-              <FooterText>Metrics are only for the conterminous US.</FooterText>
+              <FooterText>
+                This data is pulled from the National Aquatic Resource Surveys
+                (NARS) and the metrics are only for the conterminous US.
+              </FooterText>
             </TabPanel>
           </TabPanels>
         </Tabs>
