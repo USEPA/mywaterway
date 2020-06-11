@@ -579,7 +579,7 @@ function WaterConditionsPanel() {
                     <>
                       <Percent>73%</Percent> of our national wetland area has
                       experienced low or moderate levels of plant loss when
-                      compared to best 75% of the least-disturbed reference
+                      compared to the best 75% of the least-disturbed reference
                       sites
                     </>
                   }
@@ -602,8 +602,8 @@ function WaterConditionsPanel() {
                     <>
                       <Percent>73%</Percent> of our national wetland area has
                       experienced low or moderate rates of surface hardening
-                      when compared to best 75% of the least-disturbed reference
-                      sites
+                      when compared to the best 75% of the least-disturbed
+                      reference sites
                     </>
                   }
                 >
