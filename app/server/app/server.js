@@ -11,12 +11,39 @@ const browserSyncPort = 9091;
 let port = process.env.PORT || 9090;
 
 app.use(helmet());
-app.use(helmet.noCache());
 app.use(
   helmet.hsts({
     maxAge: 31536000,
   }),
 );
+
+/****************************************************************
+ Instruct web browsers to disable caching
+ ****************************************************************/
+app.use(function (req, res, next) {
+  res.setHeader('Surrogate-Control', 'no-store');
+  res.setHeader(
+    'Cache-Control',
+    'no-store, no-cache, must-revalidate, proxy-revalidate',
+  );
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
+/****************************************************************
+ Revoke unneeded and potentially harmful HTTP methods
+ ****************************************************************/
+app.use(function (req, res, next) {
+  var whiteList = ['GET', 'POST'];
+  if (whiteList.indexOf(req.method) != -1) next();
+  else {
+    res.sendStatus(401);
+    let msg =
+      'Attempted use of unsupported HTTP method. HTTP method = ' + req.method;
+    log.error(msg);
+  }
+});
 
 /****************************************************************
  Is Glossary/Terminology Services authorization variable set?

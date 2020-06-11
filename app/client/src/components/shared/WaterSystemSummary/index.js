@@ -34,6 +34,11 @@ const SubHeader = styled.h4`
   font-weight: bold;
 `;
 
+const Section = styled.div`
+  padding-bottom: 1.5em;
+  line-height: 1.375;
+`;
+
 const LoadingContainer = styled.div`
   display: flex;
   align-items: center;
@@ -169,12 +174,12 @@ function WaterSystemSummary({ state }: Props) {
 
   return (
     <>
-      <p>
+      <Section>
         <SubHeader>Community Water System (CWS):</SubHeader>A public water
         system that supplies water to the same population year-round (e.g.,
         residences).
-      </p>
-      <p>
+      </Section>
+      <Section>
         <SubHeader>
           Non-Transient Non-Community Water System (NTNCWS):
         </SubHeader>
@@ -182,12 +187,12 @@ function WaterSystemSummary({ state }: Props) {
         the same people at least six months per year. Some examples are schools,
         factories, office buildings, and hospitals which have their own water
         systems.
-      </p>
-      <p>
+      </Section>
+      <Section>
         <SubHeader>Transient Non-Community Water System (TNCWS):</SubHeader>A
         public water system that provides water in a place such as a gas station
         or campground where people do not remain for long periods of time.
-      </p>
+      </Section>
 
       {systemTypeRes.status === 'fetching' && (
         <LoadingContainer className="container">
