@@ -1,11 +1,11 @@
-describe('National Water Conditions tab', () => {
+describe('National Water Quality tab', () => {
   beforeEach(() => {
     cy.visit('/national');
   });
 
   it('Switching the sub-tabs updates the content within the container', () => {
-    const riversAndStreamsText = /of our rivers and streams are healthy based on biological communities/;
-    const coastsText = /of our coasts are healthy based on biological communities/;
+    const riversAndStreamsText = /of our rivers and streams are healthy based on their biological communities/;
+    const coastsText = /of our coasts are healthy based on their biological communities/;
 
     // verify Rivers and Streams tab content is displayed and Coasts tab content is hidden
     cy.findByText(riversAndStreamsText).should('be.visible');
@@ -47,20 +47,20 @@ describe('National Water Conditions tab', () => {
     cy.findByText(text).should('not.exist');
   });
 
-  it('Clicking the Nutrient Pollution link opens a new tab', () => {
+  it('Clicking the "Excess Nutrients in Waterways" link opens a new tab', () => {
     // since Cypress doesn't support multiple tabs, we'll do the next best thing
     // (https://docs.cypress.io/guides/references/trade-offs.html#Multiple-tabs)
-    cy.findByText(/Nutrient Pollution/)
+    cy.findByText(/Excess Nutrients in Waterways/)
       .should('have.attr', 'href', 'https://www.epa.gov/nutrientpollution')
       .should('have.attr', 'target', '_blank')
       .should('have.attr', 'rel', 'noopener noreferrer');
   });
 
-  it('Clicking the “Learn more about what EPA is doing to reduce nutrient pollution” link opens a new tab.', () => {
+  it('Clicking the “Learn more about what EPA is doing to reduce excess nutrients in waterways” link opens a new tab.', () => {
     // since Cypress doesn't support multiple tabs, we'll do the next best thing
     // (https://docs.cypress.io/guides/references/trade-offs.html#Multiple-tabs)
     cy.findByText(
-      /Learn more about what EPA is doing to reduce nutrient pollution/,
+      /Learn more about what EPA is doing to reduce excess nutrients in waterways/,
     )
       .should(
         'have.attr',
