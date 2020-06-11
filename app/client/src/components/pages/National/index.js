@@ -559,8 +559,8 @@ function WaterConditionsPanel() {
                     <>
                       <Percent>48%</Percent> of our national wetland area is
                       healthy based on their biological communities when
-                      compared to the best 75% of the least-disturbed available
-                      reference sites in wetlands in the same region
+                      compared to the best 75% of the least-disturbed reference
+                      sites in wetlands in the same region
                     </>
                   }
                 >
