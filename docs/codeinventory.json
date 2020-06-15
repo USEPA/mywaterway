@@ -1,0 +1,64 @@
+{
+"organization": "USEPA",
+"name": "How's My Waterway",
+"version": "2.0.0",
+"status": "Pre-release",
+"description": "How's My Waterway is a responsive, map-centric, mobile ready web application that pulls data from several different systems at EPA and beyond via web services to provide a user with an overall picture of water quality.",
+"permissions": {
+"licenses": [
+{
+"name": "Creative Commons Zero (CC0)",
+"URL": "https://github.com/USEPA/mywaterway/blob/develop/LICENSE"
+}
+],
+"usageType": "openSource",
+"exemptionText": "The custom code contained in this repoistory is freely available to be used in other projects."
+},
+"repositoryURL": "https://github.com/USEPA/mywaterway",
+"vcs" : "git",
+"homepageURL" : "https://mywaterway.epa.gov",
+"downloadURL" : "https://github.com/USEPA/mywaterway",
+"disclaimerURL" : "https://github.com/USEPA/mywaterway/blob/develop/readme.md",
+"disclaimerText" : "This United States Environmental Protection Agency (EPA) GitHub project code is provided on an 'as is' basis and the user assumes responsibility for its use. EPA has relinquished control of the information and no longer has responsibility to protect the integrity, confidentiality, or availability of the information.",
+"languages": [
+"React",
+"JavaScript",
+"Node.js",
+"ArcGIS API for JavaScript",
+"Highcharts"
+],
+"tags": [
+"EPA",
+"HMW",
+"HMWv2",
+"Mywaterway",
+"My Waterway",
+"Surf Your Watershed",
+"Can I Swim here",
+"Can I Eat the Fish",
+"Can I Drink the Water",
+"Your water",
+"water",
+"water quality"
+],
+"contact": {
+"name": "How's My Waterway Team",
+"email": "mywaterway@epa.gov",
+"URL": "https://www.epa.gov/waterdata/forms/contact-us-about-hows-my-waterway"
+},
+"reusedCode": [
+{
+"name": "Cloud.gov",
+"URL": "Cloud.gov"
+},
+{
+"name": "GSA Glossary Panel Component",
+"URL": "https://github.com/18F/glossary"
+}
+],
+"date": {
+"created": "2020-05-01",
+"lastModified": "2020-05-01",
+"metadataLastUpdated": "2020-05-01"
+}
+}

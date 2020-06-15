@@ -1,0 +1,47 @@
+.ReactTable input.checkbox {
+  -webkit-appearance: checkbox;
+  appearance: checkbox;
+  -webkit-transform: scale(1.7);
+}
+
+.ReactTable .rt-thead.-header {
+  box-shadow: 0 0 0 0 rgba(0, 0, 0, 0) !important;
+}
+
+.ReactTable .rt-th {
+  white-space: normal;
+}
+
+.ReactTable .rt-tr-group {
+  flex: 0 0 auto;
+  flex-direction: row;
+}
+
+.ReactTable .rt-td {
+  white-space: normal;
+}
+
+.rt-td {
+  padding: 15px 5px;
+}
+
+.rt-th {
+  background-color: #f1f1f1;
+  font-weight: 700;
+}
+
+.rt-resizable-header-content,
+.cell-checkbox {
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+}
+
+.rt-resizable-header-content {
+  text-align: left;
+  align-items: normal;
+  justify-content: normal;
+}

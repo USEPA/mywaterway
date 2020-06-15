@@ -1,0 +1,57 @@
+{
+  "name": "mywaterway-server",
+  "version": "2.0.0",
+  "description": "A tool to learn about your water resources.",
+  "keywords": [
+    "MyWaterway",
+    "HMWv2",
+    "WATERS",
+    "RAD",
+    "ATTAINS",
+    "GRTS",
+    "STORET",
+    "WQP",
+    "WQX"
+  ],
+  "repository": "github:USEPA/mywaterway",
+  "bugs": "https://github.com/USEPA/mywaterway/issues",
+  "license": "CC0-1.0",
+  "author": "USEPA (https://www.epa.gov)",
+  "contributors": [
+    "Andrew VanNess <andrew.vanness@erg.com>",
+    "Brad Cooper <brad.cooper@erg.com>",
+    "Caleb Schwind <caleb.schwind@erg.com>",
+    "Courtney Myers <courtney.myers@erg.com>"
+  ],
+  "engines": {
+    "node": "12.x"
+  },
+  "main": "app/server.js",
+  "scripts": {
+    "start": "nodemon -r dotenv/config --inspect app/server.js dotenv_config_path=./.env.local"
+  },
+  "dependencies": {
+    "dotenv": "8.2.0",
+    "express": "4.17.1",
+    "express-basic-auth": "1.2.0",
+    "helmet": "3.22.0",
+    "log4js": "6.3.0",
+    "request": "2.88.2",
+    "serve-favicon": "2.5.0"
+  },
+  "devDependencies": {
+    "browser-sync": "2.26.7",
+    "husky": "4.2.5",
+    "lint-staged": "10.2.9",
+    "nodemon": "2.0.4",
+    "prettier": "2.0.5"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "app/**/*.{js,json,css,md}": "prettier --write"
+  }
+}
