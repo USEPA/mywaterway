@@ -52,7 +52,7 @@
     "eslint-config-react-app": "5.2.1",
     "esri-loader": "2.14.0",
     "glossary-panel": "github:Eastern-Research-Group/glossary",
-    "highcharts": "8.1.0",
+    "highcharts": "8.1.2",
     "highcharts-react-official": "3.0.0",
     "react": "16.13.1",
     "react-app-polyfill": "1.0.6",
