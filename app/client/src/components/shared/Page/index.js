@@ -2,7 +2,7 @@
 
 import React from 'react';
 import type { Node } from 'react';
-import { Link } from '@reach/router';
+import { navigate } from '@reach/router';
 import styled from 'styled-components';
 // components
 import NavBar from 'components/shared/NavBar';
@@ -115,7 +115,7 @@ const Container = styled.div`
   user-select: none;
 `;
 
-const Title = styled(Link)`
+const Title = styled.span`
   padding: 0.375em;
   font-family: ${fonts.secondary};
   font-size: 1.5em;
@@ -244,7 +244,15 @@ function Page({ children }: Props) {
 
       <Banner>
         <Container>
-          <Title to="/">How’s My Waterway?</Title>
+          <Title
+            onClick={() => {
+              if (dataDisplayed) setDataDisplayed(false);
+              if (aboutDisplayed) setAboutDisplayed(false);
+              navigate('/');
+            }}
+          >
+            How’s My Waterway?
+          </Title>
           <Subtitle>Informing the conversation about your waters.</Subtitle>
         </Container>
       </Banner>
