@@ -24,8 +24,6 @@ import { fetchCheck } from 'utils/fetchUtils';
 import { attains } from 'config/webServiceConfig';
 // data
 import { impairmentFields } from 'config/attainsToHmwMapping';
-// // styles
-// import 'styles/react-table.css';
 // errors
 import { attainsParameterServiceError } from 'config/errorMessages';
 
@@ -225,9 +223,6 @@ function Attains({ ...props }: Props) {
     );
   }
 
-  // const createCustomFilter = (filter, row, id) =>
-  //   row._original[id].toLowerCase().includes(filter.value.toLowerCase());
-
   return (
     <Page>
       <NavBar title="ATTAINS Information" />
@@ -324,49 +319,6 @@ function Attains({ ...props }: Props) {
             </div>
           </div>
         </div>
-
-        {/* {matchedMappings && (
-          <ReactTable
-            data={matchedMappings}
-            columns={[
-              {
-                Header: '',
-                columns: [
-                  {
-                    Header: "How's My Waterway Impairment Category",
-                    accessor: 'hmwMapping',
-                    filterMethod: (filter, row) =>
-                      createCustomFilter(filter, row, 'hmwMapping'),
-                    Filter: ({ filter, onChange }) =>
-                      generateFilterInput(filter, onChange),
-                  },
-                  {
-                    id: 'parameterGroups',
-                    Header: 'ATTAINS Parameter Group',
-                    accessor: 'attainsParameterGroup',
-                    filterMethod: (filter, row) =>
-                      createCustomFilter(filter, row, 'attainsParameterGroup'),
-                    Filter: ({ filter, onChange }) =>
-                      generateFilterInput(filter, onChange),
-                  },
-                  {
-                    Header: 'ATTAINS Parameter Name',
-                    accessor: 'attainsParameterName',
-                    filterMethod: (filter, row) =>
-                      createCustomFilter(filter, row, 'attainsParameterName'),
-                    Filter: ({ filter, onChange }) =>
-                      generateFilterInput(filter, onChange),
-                  },
-                ],
-              },
-            ]}
-            filterable={true}
-            defaultPageSize={matchedMappings.length} // set number of displayed entries to number of entries
-            minRows={0} // hide empty rows that appear once filters have been applied
-            showPagination={false}
-            className="-striped -highlight"
-          />
-        )} */}
       </Container>
     </Page>
   );
