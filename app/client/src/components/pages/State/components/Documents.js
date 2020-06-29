@@ -16,8 +16,6 @@ import {
 } from 'components/pages/State/lookups/documentOrder';
 // errors
 import { stateDocumentError, stateSurveyError } from 'config/errorMessages';
-// styles
-import 'styles/react-table.css';
 
 // --- styled components ---
 const Container = styled.div`
@@ -239,101 +237,6 @@ function DocumentsTable({ documents, type }: DocumentsTableProps) {
       }}
     />
   );
-
-  // return (
-  //   <div className="ReactTable" ref={measuredTableRef}>
-  //     <div className="rt-table" role="grid" {...getTableProps()}>
-  //       <div className="rt-thead">
-  //         {headerGroups.map((headerGroup) => (
-  //           <div
-  //             className="rt-tr"
-  //             role="row"
-  //             {...headerGroup.getHeaderGroupProps()}
-  //           >
-  //             {headerGroup.headers.map((column) => (
-  //               <div
-  //                 className="rt-th"
-  //                 role="columnheader"
-  //                 {...column.getHeaderProps(column.getSortByToggleProps())}
-  //               >
-  //                 <div>
-  //                   <div className="rt-col-title">
-  //                     {column.render('Header')}
-  //                     <span>
-  //                       {column.isSorted ? (
-  //                         column.isSortedDesc ? (
-  //                           <i className="fas fa-arrow-down" />
-  //                         ) : (
-  //                           <i className="fas fa-arrow-up" />
-  //                         )
-  //                       ) : (
-  //                         ''
-  //                       )}
-  //                     </span>
-  //                   </div>
-  //                 </div>
-  //                 {column.canResize && (
-  //                   <div
-  //                     {...column.getResizerProps()}
-  //                     className={`rt-resizer ${
-  //                       column.isResizing ? 'isResizing' : ''
-  //                     }`}
-  //                   />
-  //                 )}
-  //               </div>
-  //             ))}
-  //           </div>
-  //         ))}
-  //       </div>
-  //       <div className="rt-tbody" {...getTableBodyProps()}>
-  //         {rows.map((row, i) => {
-  //           prepareRow(row);
-  //           return (
-  //             <div className="rt-tr" role="row" {...row.getRowProps()}>
-  //               {row.cells.map((cell) => {
-  //                 let content = cell.value;
-  //                 if (cell.column.id === 'documentName') {
-  //                   content = (
-  //                     <a
-  //                       href={row.original.documentURL}
-  //                       target="_blank"
-  //                       rel="noopener noreferrer"
-  //                     >
-  //                       {cell.value} (
-  //                       {getExtensionFromPath(
-  //                         row.original.documentFileName,
-  //                         row.original.documentURL,
-  //                       )}
-  //                       )
-  //                     </a>
-  //                   );
-  //                 }
-  //                 if (cell.column.id === 'agencyCode') {
-  //                   content =
-  //                     cell.value === 'S'
-  //                       ? 'State'
-  //                       : cell.value === 'E'
-  //                       ? 'EPA'
-  //                       : cell.value;
-  //                 }
-
-  //                 return (
-  //                   <div
-  //                     className="rt-td"
-  //                     role="gridcell"
-  //                     {...cell.getCellProps()}
-  //                   >
-  //                     {content}
-  //                   </div>
-  //                 );
-  //               })}
-  //             </div>
-  //           );
-  //         })}
-  //       </div>
-  //     </div>
-  //   </div>
-  // );
 }
 
 export default Documents;

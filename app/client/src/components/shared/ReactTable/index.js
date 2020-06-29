@@ -128,7 +128,7 @@ const Styles = styled.div`
 type Props = {
   data: Array<Object>,
   getColumns: Function,
-  striped: boolean,
+  striped: ?boolean,
 };
 
 function ReactTable({ data, getColumns, striped = false }: Props) {
