@@ -39,13 +39,99 @@ function generateFilterInput({
   );
 }
 
+// --- styles ---
+const Styles = styled.div`
+  /*These styles are suggested for the table fill all available space in its containing element*/
+  display: block;
+  /* These styles are required for a horizontaly scrollable table overflow */
+  overflow: auto;
+
+  .rt-table {
+    border-spacing: 0;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+
+    .rt-thead {
+      background-color: #f1f1f1;
+
+      .rt-tr {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      }
+    }
+
+    .rt-tbody {
+      .rt-tr {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.02);
+      }
+
+      .rt-tr.rt-striped.-odd {
+        background-color: rgba(0, 0, 0, 0.03);
+      }
+    }
+
+    .rt-tr:last-child .rt-td {
+      border-bottom: 0;
+    }
+
+    .rt-th,
+    .rt-td {
+      margin: 0;
+      overflow: hidden;
+
+      /* This is required for the absolutely positioned resizer */
+      position: relative;
+
+      :last-child {
+        border-right: 0;
+      }
+    }
+
+    .rt-th {
+      padding: 5px;
+      font-weight: 700;
+      border-right: 1px solid rgba(0, 0, 0, 0.05);
+
+      span {
+        float: right;
+      }
+    }
+
+    .rt-td {
+      padding: 7px 5px;
+      border-right: 1px solid rgba(0, 0, 0, 0.02);
+    }
+
+    .rt-resizer {
+      right: 0;
+      width: 10px;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      z-index: 1;
+      cursor: col-resize !important;
+      /* prevents from scrolling while dragging on touch devices */
+      touch-action: none;
+      /* prevents highlighting text while resizing */
+      user-select: none;
+    }
+
+    .rt-col-title {
+      padding: 2px;
+    }
+
+    .rt-filter {
+      padding-top: 10px;
+    }
+  }
+`;
+
 // --- components ---
 type Props = {
   data: Array<Object>,
   getColumns: Function,
+  striped: boolean,
 };
 
-function ReactTable({ data, getColumns }: Props) {
+function ReactTable({ data, getColumns, striped = false }: Props) {
   // Initializes the column widths based on the table width
   const [tableWidth, setTableWidth] = React.useState(0);
   const columns = React.useMemo(() => {
@@ -90,7 +176,7 @@ function ReactTable({ data, getColumns }: Props) {
   }, []);
 
   return (
-    <div className="ReactTable" ref={measuredTableRef}>
+    <Styles ref={measuredTableRef}>
       <div className="rt-table" role="grid" {...getTableProps()}>
         <div className="rt-thead">
           {headerGroups.map((headerGroup) => (
@@ -143,7 +229,9 @@ function ReactTable({ data, getColumns }: Props) {
             prepareRow(row);
             return (
               <div
-                className={`rt-tr ${isEven ? '-odd' : '-even'}`}
+                className={`rt-tr ${striped ? 'rt-striped' : ''} ${
+                  isEven ? '-odd' : '-even'
+                }`}
                 role="row"
                 {...row.getRowProps()}
               >
@@ -164,7 +252,7 @@ function ReactTable({ data, getColumns }: Props) {
           })}
         </div>
       </div>
-    </div>
+    </Styles>
   );
 }
 

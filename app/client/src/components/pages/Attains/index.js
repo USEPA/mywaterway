@@ -151,6 +151,7 @@ function Attains({ ...props }: Props) {
 
         <ReactTable
           data={matchedMappings}
+          striped={true}
           getColumns={(tableWidth) => {
             const columnWidth = tableWidth / 3;
 
