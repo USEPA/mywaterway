@@ -2,9 +2,15 @@
 
 import React from 'react';
 import styled from 'styled-components';
+import {
+  useTable,
+  useSortBy,
+  useResizeColumns,
+  useBlockLayout,
+  useFlexLayout,
+} from 'react-table';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
-import Table from 'components/shared/Table';
 // utilities
 import { getExtensionFromPath } from 'utils/utils';
 // styled components
@@ -16,6 +22,8 @@ import {
 } from 'components/pages/State/lookups/documentOrder';
 // errors
 import { stateDocumentError, stateSurveyError } from 'config/errorMessages';
+// styles
+import 'styles/react-table.css';
 
 // --- styled components ---
 const Container = styled.div`
@@ -44,7 +52,7 @@ const ErrorBox = styled(StyledErrorBox)`
   margin-bottom: 1.25rem;
 `;
 
-// --- components ---
+// --- components (Documents) ---
 type Props = {
   activeState: { code: string, name: string },
   surveyLoading: boolean,
@@ -114,55 +122,6 @@ function Documents({
     return documentsRanked;
   };
 
-  function DocumentsTable({ documents, type }) {
-    if (documents.length === 0)
-      return <p>No {type} documents available for this state.</p>;
-
-    return (
-      <Table
-        dataIdColumn="documentURL"
-        data={documents}
-        header={[
-          {
-            accessor: 'documentTypeLabel',
-            Header: 'Document Types',
-            maxWidth: 300,
-            Cell: (props) => props.value,
-          },
-          {
-            accessor: 'documentName',
-            Header: 'Document',
-            Cell: (props) => (
-              <a
-                href={props.original.documentURL}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {props.value} (
-                {getExtensionFromPath(
-                  props.original.documentFileName,
-                  props.original.documentURL,
-                )}
-                )
-              </a>
-            ),
-          },
-          {
-            accessor: 'agencyCode',
-            Header: 'Agency Code',
-            maxWidth: 125,
-            Cell: (props) =>
-              props.value === 'S'
-                ? 'State'
-                : props.value === 'E'
-                ? 'EPA'
-                : props.value,
-          },
-        ]}
-      />
-    );
-  }
-
   const assessmentDocumentsSorted = assessmentDocumentsRanked.sort((a, b) => {
     // sort by document type
     if (a.order !== b.order) {
@@ -217,6 +176,178 @@ function Documents({
         />
       )}
     </Container>
+  );
+}
+
+// --- components (DocumentsTable) ---
+type DocumentsTableProps = {
+  documents: Array<Object>,
+  type: string,
+};
+
+function DocumentsTable({ documents, type }: DocumentsTableProps) {
+  // Initializes the column widths based on the table width
+  const [tableWidth, setTableWidth] = React.useState(0);
+  const columns = React.useMemo(() => {
+    let docNameWidth = 0;
+
+    // make the document name column take up the remaining widht of the table
+    // table width - document type width - agency code width - border
+    if (tableWidth > 425) docNameWidth = tableWidth - 300 - 125 - 3;
+
+    // ensure the document name column is atleast 372px wide
+    if (docNameWidth < 372) docNameWidth = 372;
+
+    return [
+      {
+        accessor: 'documentTypeLabel',
+        Header: 'Document Types',
+        width: 300,
+      },
+      {
+        accessor: 'documentName',
+        Header: 'Document',
+        width: docNameWidth,
+      },
+      {
+        accessor: 'agencyCode',
+        Header: 'Agency Code',
+        width: 125,
+      },
+    ];
+  }, [tableWidth]);
+
+  // default column settings
+  const defaultColumn = React.useMemo(
+    () => ({
+      // When using the useFlexLayout:
+      minWidth: 50, // minWidth is only used as a limit for resizing
+      width: 150, // width is used for both the flex-basis and flex-grow
+      maxWidth: 1000, // maxWidth is only used as a limit for resizing
+    }),
+    [],
+  );
+
+  const {
+    getTableProps,
+    getTableBodyProps,
+    headerGroups,
+    rows,
+    prepareRow,
+  } = useTable(
+    {
+      columns,
+      data: documents,
+      defaultColumn,
+    },
+    useResizeColumns,
+    useBlockLayout,
+    useFlexLayout,
+    useSortBy,
+  );
+
+  // measures the table width
+  const measuredTableRef = React.useCallback((node) => {
+    if (!node) return;
+    setTableWidth(node.getBoundingClientRect().width);
+  }, []);
+
+  if (documents.length === 0)
+    return <p>No {type} documents available for this state.</p>;
+
+  return (
+    <div className="ReactTable" ref={measuredTableRef}>
+      <div className="rt-table" role="grid" {...getTableProps()}>
+        <div className="rt-thead">
+          {headerGroups.map((headerGroup) => (
+            <div
+              className="rt-tr"
+              role="row"
+              {...headerGroup.getHeaderGroupProps()}
+            >
+              {headerGroup.headers.map((column) => (
+                <div
+                  className="rt-th"
+                  role="columnheader"
+                  {...column.getHeaderProps(column.getSortByToggleProps())}
+                >
+                  <div>
+                    <div className="rt-col-title">
+                      {column.render('Header')}
+                      <span>
+                        {column.isSorted ? (
+                          column.isSortedDesc ? (
+                            <i className="fas fa-arrow-down" />
+                          ) : (
+                            <i className="fas fa-arrow-up" />
+                          )
+                        ) : (
+                          ''
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                  {column.canResize && (
+                    <div
+                      {...column.getResizerProps()}
+                      className={`rt-resizer ${
+                        column.isResizing ? 'isResizing' : ''
+                      }`}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+        <div className="rt-tbody" {...getTableBodyProps()}>
+          {rows.map((row, i) => {
+            prepareRow(row);
+            return (
+              <div className="rt-tr" role="row" {...row.getRowProps()}>
+                {row.cells.map((cell) => {
+                  let content = cell.value;
+                  if (cell.column.id === 'documentName') {
+                    content = (
+                      <a
+                        href={row.original.documentURL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {cell.value} (
+                        {getExtensionFromPath(
+                          row.original.documentFileName,
+                          row.original.documentURL,
+                        )}
+                        )
+                      </a>
+                    );
+                  }
+                  if (cell.column.id === 'agencyCode') {
+                    content =
+                      cell.value === 'S'
+                        ? 'State'
+                        : cell.value === 'E'
+                        ? 'EPA'
+                        : cell.value;
+                  }
+
+                  return (
+                    <div
+                      className="rt-td"
+                      role="gridcell"
+                      {...cell.getCellProps()}
+                    >
+                      {content}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 }
 
