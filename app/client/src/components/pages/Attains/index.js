@@ -2,14 +2,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import {
-  useTable,
-  useSortBy,
-  useResizeColumns,
-  useBlockLayout,
-  useFlexLayout,
-  useFilters,
-} from 'react-table';
+import ReactTable from 'components/shared/ReactTable';
 // components
 import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
@@ -35,34 +28,6 @@ function getMatchingLabel(ATTAINSContext) {
   return impairmentFields.filter((field) => {
     return field.parameterGroup === ATTAINSContext;
   })[0].label;
-}
-
-const Input = styled.input`
-  width: 100%;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  background: #fff;
-  padding: 5px 7px;
-  font-size: inherit;
-  border-radius: 3px;
-  font-weight: 400;
-  outline-width: 0;
-`;
-
-function generateFilterInput({
-  column: { filterValue, preFilteredRows, setFilter },
-}) {
-  return (
-    <Input
-      type="text"
-      placeholder="Filter column..."
-      value={filterValue ? filterValue : ''}
-      onClick={(event) => event.stopPropagation()}
-      onChange={
-        (event) => setFilter(event.target.value || undefined) // Set undefined to remove the filter entirely
-      }
-      aria-label="Filter column..."
-    />
-  );
 }
 
 // --- styled components ---
@@ -141,67 +106,6 @@ function Attains({ ...props }: Props) {
     setMatchedMappings(data);
   }, [attainsData]);
 
-  // Initializes the column widths based on the table width
-  const [tableWidth, setTableWidth] = React.useState(0);
-  const columns = React.useMemo(() => {
-    const columnWidth = tableWidth / 3;
-    return [
-      {
-        Header: "How's My Waterway Impairment Category",
-        accessor: 'hmwMapping',
-        width: columnWidth,
-      },
-      {
-        id: 'parameterGroups',
-        Header: 'ATTAINS Parameter Group',
-        accessor: 'attainsParameterGroup',
-        width: columnWidth,
-      },
-      {
-        Header: 'ATTAINS Parameter Name',
-        accessor: 'attainsParameterName',
-        width: columnWidth,
-      },
-    ];
-  }, [tableWidth]);
-
-  // default column settings
-  const defaultColumn = React.useMemo(
-    () => ({
-      // When using the useFlexLayout:
-      minWidth: 100, // minWidth is only used as a limit for resizing
-      width: 150, // width is used for both the flex-basis and flex-grow
-      maxWidth: 1000, // maxWidth is only used as a limit for resizing
-      Filter: generateFilterInput,
-    }),
-    [],
-  );
-
-  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    rows,
-    prepareRow,
-  } = useTable(
-    {
-      columns,
-      data: matchedMappings,
-      defaultColumn,
-    },
-    useResizeColumns,
-    useBlockLayout,
-    useFlexLayout,
-    useFilters,
-    useSortBy,
-  );
-
-  // measures the table width
-  const measuredTableRef = React.useCallback((node) => {
-    if (!node) return;
-    setTableWidth(node.getBoundingClientRect().width);
-  }, []);
-
   if (serviceError) {
     return (
       <Page>
@@ -245,80 +149,34 @@ function Attains({ ...props }: Props) {
         </p>
         <br />
 
-        <div className="ReactTable" ref={measuredTableRef}>
-          <div className="rt-table" role="grid" {...getTableProps()}>
-            <div className="rt-thead">
-              {headerGroups.map((headerGroup) => (
-                <div
-                  className="rt-tr"
-                  role="row"
-                  {...headerGroup.getHeaderGroupProps()}
-                >
-                  {headerGroup.headers.map((column) => (
-                    <div
-                      className="rt-th"
-                      role="columnheader"
-                      {...column.getHeaderProps(column.getSortByToggleProps())}
-                    >
-                      <div>
-                        <div className="rt-col-title">
-                          {column.render('Header')}
-                          <span>
-                            {column.isSorted ? (
-                              column.isSortedDesc ? (
-                                <i className="fas fa-arrow-down" />
-                              ) : (
-                                <i className="fas fa-arrow-up" />
-                              )
-                            ) : (
-                              ''
-                            )}
-                          </span>
-                        </div>
-                        <div className="rt-filter">
-                          {column.render('Filter')}
-                        </div>
-                      </div>
-                      {column.canResize && (
-                        <div
-                          {...column.getResizerProps()}
-                          className={`rt-resizer ${
-                            column.isResizing ? 'isResizing' : ''
-                          }`}
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-            <div className="rt-tbody" {...getTableBodyProps()}>
-              {rows.map((row, i) => {
-                const isEven = i % 2 === 0;
-                prepareRow(row);
-                return (
-                  <div
-                    className={`rt-tr ${isEven ? '-odd' : '-even'}`}
-                    role="row"
-                    {...row.getRowProps()}
-                  >
-                    {row.cells.map((cell) => {
-                      return (
-                        <div
-                          className="rt-td"
-                          role="gridcell"
-                          {...cell.getCellProps()}
-                        >
-                          {cell.value}
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+        <ReactTable
+          data={matchedMappings}
+          getColumns={(tableWidth) => {
+            const columnWidth = tableWidth / 3;
+
+            return [
+              {
+                Header: "How's My Waterway Impairment Category",
+                accessor: 'hmwMapping',
+                width: columnWidth,
+                filterable: true,
+              },
+              {
+                id: 'parameterGroups',
+                Header: 'ATTAINS Parameter Group',
+                accessor: 'attainsParameterGroup',
+                width: columnWidth,
+                filterable: true,
+              },
+              {
+                Header: 'ATTAINS Parameter Name',
+                accessor: 'attainsParameterName',
+                width: columnWidth,
+                filterable: true,
+              },
+            ];
+          }}
+        />
       </Container>
     </Page>
   );
