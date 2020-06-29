@@ -2,13 +2,13 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import ReactTable from 'components/shared/ReactTable';
 // components
 import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import NavBar from 'components/shared/NavBar';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
+import ReactTable from 'components/shared/ReactTable';
 // styled components
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // utilities
