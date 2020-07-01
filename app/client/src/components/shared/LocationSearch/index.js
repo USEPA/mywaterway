@@ -10,7 +10,7 @@ import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // helpers
-import { containsScriptTag } from 'utils/utils';
+import { containsScriptTag, isHuc12 } from 'utils/utils';
 // config
 import { locatorUrl } from 'config/mapServiceConfig';
 // styles
@@ -84,7 +84,9 @@ type Props = {
 
 function LocationSearch({ route, label }: Props) {
   const { Locator, Point } = React.useContext(EsriModulesContext);
-  const { searchText } = React.useContext(LocationSearchContext);
+  const { searchText, watershed, huc12 } = React.useContext(
+    LocationSearchContext,
+  );
 
   // geolocating state for updating the 'Use My Location' button
   const [geolocating, setGeolocating] = React.useState(false);
@@ -129,7 +131,11 @@ function LocationSearch({ route, label }: Props) {
           id="hmw-search-input"
           className="form-control"
           placeholder="Search by address, zip code, or place..."
-          value={inputText}
+          value={
+            inputText === searchText && isHuc12(inputText) && watershed && huc12
+              ? `WATERSHED: ${watershed} (${huc12})`
+              : inputText
+          }
           onChange={(ev) => setInputText(ev.target.value)}
         />
 
