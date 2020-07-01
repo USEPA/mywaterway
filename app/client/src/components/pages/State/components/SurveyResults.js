@@ -428,66 +428,73 @@ function SurveyResults({
         </Inputs>
 
         <WindowSize>
-          {({ width }) => (
-            <HighchartsReact
-              highcharts={Highcharts}
-              options={{
-                ...chartOptions,
-                chart: {
-                  type: 'pie',
-                  style: chartOptions.chart.style,
-                  height: 300,
-                  plotBackgroundColor: null,
-                  plotBorderWidth: null,
-                  plotShadow: false,
-                },
-                tooltip: {
-                  formatter: function () {
-                    const value = formatNumber(this.y, 1);
-                    return `${this.key}<br/><b>${value}%</b>`;
+          {({ width }) => {
+            if (summaryItems.length === 0) return null;
+
+            return (
+              <HighchartsReact
+                highcharts={Highcharts}
+                options={{
+                  ...chartOptions,
+                  chart: {
+                    type: 'pie',
+                    style: chartOptions.chart.style,
+                    height: 300,
+                    plotBackgroundColor: null,
+                    plotBorderWidth: null,
+                    plotShadow: false,
                   },
-                },
-                plotOptions: {
-                  pie: {
-                    ...chartOptions.plotOptions.all,
-                    showInLegend: true,
-                    dataLabels: {
-                      ...chartOptions.plotOptions.all.dataLabels,
-                      formatter: function () {
-                        if (!this.point.isConfidenceLevel) {
-                          return formatNumber(this.y, 1) + '%';
-                        } else {
-                          return '';
-                        }
+                  tooltip: {
+                    formatter: function () {
+                      const value = formatNumber(this.y, 1);
+                      return `${this.key}<br/><b>${value}%</b>`;
+                    },
+                  },
+                  plotOptions: {
+                    pie: {
+                      ...chartOptions.plotOptions.all,
+                      showInLegend: true,
+                      dataLabels: {
+                        ...chartOptions.plotOptions.all.dataLabels,
+                        formatter: function () {
+                          if (!this.point.isConfidenceLevel) {
+                            return formatNumber(this.y, 1) + '%';
+                          } else {
+                            return '';
+                          }
+                        },
                       },
                     },
                   },
-                },
-                series: [
-                  {
-                    colorByPoint: true,
-                    data: summaryItems,
+                  series: [
+                    {
+                      colorByPoint: true,
+                      data: summaryItems,
+                    },
+                  ],
+                  legend: {
+                    ...chartOptions.legend,
+                    layout: width >= 992 ? 'vertical' : 'horizontal',
+                    align: width >= 992 ? 'right' : 'center',
+                    useHTML: true, // display the +/- symbol (&#177;)
+                    labelFormatter: function () {
+                      if (this.isConfidenceLevel) {
+                        // confidence level is not actually a legend item, just text
+                        return this.name;
+                      } else {
+                        const value = formatNumber(this.y, 1);
+                        const marginOfError = formatNumber(
+                          this.marginOfError,
+                          1,
+                        );
+                        return `${this.name}: ${value}% &#177; ${marginOfError}%`;
+                      }
+                    },
                   },
-                ],
-                legend: {
-                  ...chartOptions.legend,
-                  layout: width >= 992 ? 'vertical' : 'horizontal',
-                  align: width >= 992 ? 'right' : 'center',
-                  useHTML: true, // display the +/- symbol (&#177;)
-                  labelFormatter: function () {
-                    if (this.isConfidenceLevel) {
-                      // confidence level is not actually a legend item, just text
-                      return this.name;
-                    } else {
-                      const value = formatNumber(this.y, 1);
-                      const marginOfError = formatNumber(this.marginOfError, 1);
-                      return `${this.name}: ${value}% &#177; ${marginOfError}%`;
-                    }
-                  },
-                },
-              }}
-            />
-          )}
+                }}
+              />
+            );
+          }}
         </WindowSize>
         <ChartFooter>
           <strong>Year Last Reported:</strong> {surveyData.year}

@@ -52,7 +52,7 @@
     "eslint-config-react-app": "5.2.1",
     "esri-loader": "2.14.0",
     "glossary-panel": "github:Eastern-Research-Group/glossary",
-    "highcharts": "8.1.0",
+    "highcharts": "8.1.2",
     "highcharts-react-official": "3.0.0",
     "react": "16.13.1",
     "react-app-polyfill": "1.0.6",
@@ -61,7 +61,7 @@
     "react-select": "3.1.0",
     "react-sticky-box": "0.9.3",
     "react-switch": "5.0.1",
-    "react-table": "6.11.5",
+    "react-table": "7.2.1",
     "react-virtualized": "9.21.2",
     "smoothscroll-polyfill": "0.4.4",
     "styled-components": "5.1.1"
