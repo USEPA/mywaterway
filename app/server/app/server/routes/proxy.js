@@ -23,7 +23,7 @@ module.exports = function (app) {
       } else {
         let msg = 'Missing proxy request';
         log.warn(logger.formatLogMsg(metadataObj, msg));
-        res.status(403).send(msg);
+        res.status(403).json({ message: msg });
         return;
       }
 
@@ -32,7 +32,7 @@ module.exports = function (app) {
         log.error(
           logger.formatLogMsg(metadataObj, `${msg}. parsedUrl = ${parsedUrl}`),
         );
-        res.status(403).send(msg);
+        res.status(403).json({ message: msg });
         return;
       }
     } catch (err) {
@@ -40,13 +40,12 @@ module.exports = function (app) {
       log.error(
         logger.formatLogMsg(metadataObj, `${msg}. parsedUrl = ${parsedUrl}`),
       );
-      res.status(403).send(msg);
+      res.status(403).json({ message: msg });
       return;
     }
 
     let request_headers = {};
     if (parsedUrl.includes('etss.epa.gov')) {
-      //if its a terminology request
       request_headers.authorization = 'basic ' + process.env.GLOSSARY_AUTH;
     }
 
@@ -65,11 +64,10 @@ module.exports = function (app) {
               `Unsuccessful request. parsedUrl = ${parsedUrl}. Detailed error: ${err}`,
             ),
           );
-          res
-            .status(403)
-            .send(
-              `Unsuccessful request. parsedUrl = ${parsedUrl}. Detailed error: ${err}`,
-            );
+          res.status(403).json({
+            message: 'Unsuccessful request. parsedUrl ' + parsedUrl,
+            'Detailed error': err,
+          });
         }
       },
     )
