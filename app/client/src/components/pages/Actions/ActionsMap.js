@@ -215,6 +215,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
               feature.attributes = {
                 ...feature.attributes,
                 layerType: 'actions',
+                fieldName: 'hmw-extra-content',
               };
 
               content = getPopupContent({

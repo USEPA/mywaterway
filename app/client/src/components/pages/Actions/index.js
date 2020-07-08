@@ -716,9 +716,11 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                                           attributes: {
                                             assessmentunitidentifier: assessmentUnitIdentifier,
                                             organizationid: orgId,
+                                            fieldName: 'hmw-extra-content',
                                           },
                                         }}
                                         layers={[mapLayer.layer]}
+                                        fieldName="hmw-extra-content"
                                       />
                                     )}
                                   </p>
