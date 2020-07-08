@@ -175,6 +175,12 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
           ) {
             setFetchStatus('success');
             setNoMapData(true);
+
+            // pass the layer back up to the parent
+            if (typeof onLoad === 'function') {
+              onLoad({ status: 'no-data', layer: actionsLayer });
+            }
+
             return;
           }
 
@@ -201,6 +207,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
             }
 
             const auId = feature.attributes.assessmentunitidentifier;
+            const reportingCycle = feature.attributes.reportingcycle;
             let content;
 
             // add additional attributes
@@ -212,7 +219,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
 
               content = getPopupContent({
                 feature,
-                extraContent: unitIds[auId],
+                extraContent: unitIds[auId](reportingCycle, true),
               });
             } else {
               // when no content is provided just display the normal community
@@ -247,11 +254,18 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
           setFetchStatus('success');
 
           // pass the layer back up to the parent
-          if (typeof onLoad === 'function') onLoad(actionsLayer);
+          if (typeof onLoad === 'function') {
+            onLoad({ status: 'success', layer: actionsLayer });
+          }
         })
         .catch((err) => {
           console.error(err);
           setFetchStatus('failure');
+
+          // pass the layer back up to the parent
+          if (typeof onLoad === 'function') {
+            onLoad({ status: 'failure', layer: actionsLayer });
+          }
         });
     }
 

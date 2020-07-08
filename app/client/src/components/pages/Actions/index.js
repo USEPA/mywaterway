@@ -132,7 +132,6 @@ function getPollutantsWaters(action: Object, orgId: string) {
       assessmentUnitName,
       associatedPollutants,
       parameters,
-      assessmentUrl: `/waterbody-report/${orgId}/${assessmentUnitIdentifier}`,
     });
   });
 
@@ -150,6 +149,24 @@ function getPollutantsWaters(action: Object, orgId: string) {
     pollutants: pollutants.sort((a, b) => a.localeCompare(b)),
     waters: sortedWaters,
   };
+}
+
+function hasWaterbodyData(
+  mapLayer: Object,
+  orgId: string,
+  assessmentUnitIdentifier: string,
+) {
+  const graphics = mapLayer.status === 'success' && mapLayer.layer?.graphics;
+  return !graphics
+    ? false
+    : graphics.items.findIndex((graphic) => {
+        const graphicOrgId = graphic.attributes.organizationid;
+        const graphicAuId = graphic.attributes.assessmentunitidentifier;
+
+        return (
+          graphicOrgId === orgId && graphicAuId === assessmentUnitIdentifier
+        );
+      }) !== -1;
 }
 
 // --- styled components ---
@@ -230,6 +247,10 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
   const [loading, setLoading] = React.useState(true);
   const [noActions, setNoActions] = React.useState(false);
   const [error, setError] = React.useState(false);
+  const [mapLayer, setMapLayer] = React.useState({
+    status: 'fetching',
+    layer: null,
+  });
 
   // fetch action data from the attains 'actions' web service
   const [organizationName, setOrganizationName] = React.useState('');
@@ -303,6 +324,21 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
       });
   }, [actionId, orgId]);
 
+  // Get the reporting cycle from the GIS service
+  const [reportingCycle, setReportingCycle] = React.useState(null);
+  React.useEffect(() => {
+    if (mapLayer.status === 'fetching') return;
+
+    // find the first reporting cycle from the gis service
+    let reportingCycle = null;
+    if (mapLayer.status === 'success' && mapLayer.layer.graphics.length > 0) {
+      reportingCycle =
+        mapLayer.layer.graphics.items[0].attributes.reportingcycle;
+    }
+
+    setReportingCycle(reportingCycle);
+  }, [mapLayer]);
+
   // Builds the unitIds dictionary that is used for determining what
   // waters to display on the screen and what the content will be.
   const [unitIds, setUnitIds] = React.useState({});
@@ -315,109 +351,121 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
       const {
         assessmentUnitIdentifier,
         associatedPollutants,
-        assessmentUrl,
         parameters,
       } = water;
 
-      let content = <></>;
-      if (actionTypeCode === 'TMDL' && associatedPollutants.length > 0) {
-        content = (
+      const content = (reportingCycle, hasWaterbody) => {
+        const assessmentUrl =
+          reportingCycle && hasWaterbody
+            ? `/waterbody-report/${orgId}/${assessmentUnitIdentifier}/${reportingCycle}`
+            : null;
+
+        const hasTmdlData =
+          actionTypeCode === 'TMDL' && associatedPollutants.length > 0;
+
+        return (
           <>
-            <strong>Associated Impairments: </strong>
-            <ul>
-              {associatedPollutants
-                .sort((a, b) => a.pollutantName.localeCompare(b.pollutantName))
-                .map((pollutant) => {
-                  const permits = pollutant.permits
-                    .filter((permit) => {
-                      return permit.NPDESIdentifier;
-                    })
-                    .sort((a, b) => {
-                      return a.NPDESIdentifier.localeCompare(b.NPDESIdentifier);
-                    });
+            {hasTmdlData && (
+              <>
+                <strong>Associated Impairments: </strong>
+                <ul>
+                  {associatedPollutants
+                    .sort((a, b) =>
+                      a.pollutantName.localeCompare(b.pollutantName),
+                    )
+                    .map((pollutant) => {
+                      const permits = pollutant.permits
+                        .filter((permit) => {
+                          return permit.NPDESIdentifier;
+                        })
+                        .sort((a, b) => {
+                          return a.NPDESIdentifier.localeCompare(
+                            b.NPDESIdentifier,
+                          );
+                        });
 
-                  return (
-                    <li key={pollutant.pollutantName}>
-                      <strong>{pollutant.pollutantName}</strong>
-                      <br />
-                      <em>TMDL End Point: </em>
-                      <ShowLessMore
-                        text={pollutant.TMDLEndPointText}
-                        charLimit={150}
-                      />
-                      <br />
-                      {permits.length > 0 && (
-                        <em>Links below open in a new browser tab.</em>
-                      )}
-                      <br />
-                      <em>Permits: </em>
+                      return (
+                        <li key={pollutant.pollutantName}>
+                          <strong>{pollutant.pollutantName}</strong>
+                          <br />
+                          <em>TMDL End Point: </em>
+                          <ShowLessMore
+                            text={pollutant.TMDLEndPointText}
+                            charLimit={150}
+                          />
+                          <br />
+                          {permits.length > 0 && (
+                            <em>Links below open in a new browser tab.</em>
+                          )}
+                          <br />
+                          <em>Permits: </em>
 
-                      {permits.length === 0 ? (
-                        <>No permits found.</>
-                      ) : (
-                        permits.map((permit, index) => (
-                          <React.Fragment key={index}>
-                            <a
-                              href={echoUrl + permit.NPDESIdentifier}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              {permit.NPDESIdentifier}
-                            </a>
-                            {index === permits.length - 1 ? '' : ', '}
-                          </React.Fragment>
-                        ))
-                      )}
-                    </li>
-                  );
-                })}
-            </ul>
+                          {permits.length === 0 ? (
+                            <>No permits found.</>
+                          ) : (
+                            permits.map((permit, index) => (
+                              <React.Fragment key={index}>
+                                <a
+                                  href={echoUrl + permit.NPDESIdentifier}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  {permit.NPDESIdentifier}
+                                </a>
+                                {index === permits.length - 1 ? '' : ', '}
+                              </React.Fragment>
+                            ))
+                          )}
+                        </li>
+                      );
+                    })}
+                </ul>
+              </>
+            )}
+            {!hasTmdlData && (
+              <>
+                <strong>Parameters Addressed: </strong>
+                <ul>
+                  {parameters
+                    .sort((a, b) =>
+                      a.parameterName.localeCompare(b.parameterName),
+                    )
+                    .map((parameter) => {
+                      return (
+                        <li key={parameter.parameterName}>
+                          <strong>{parameter.parameterName}</strong>
+                        </li>
+                      );
+                    })}
+                </ul>
+              </>
+            )}
 
-            <div>
-              <a href={assessmentUrl} target="_blank" rel="noopener noreferrer">
-                <Icon className="fas fa-file-alt" aria-hidden="true" />
-                View Waterbody Report
-              </a>
-              &nbsp;&nbsp;
-              <NewTabDisclaimerDiv>(opens new browser tab)</NewTabDisclaimerDiv>
-            </div>
+            {assessmentUrl && (
+              <div>
+                <a
+                  href={assessmentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Icon className="fas fa-file-alt" aria-hidden="true" />
+                  View Waterbody Report
+                </a>
+                &nbsp;&nbsp;
+                <NewTabDisclaimerDiv>
+                  (opens new browser tab)
+                </NewTabDisclaimerDiv>
+              </div>
+            )}
           </>
         );
-      } else {
-        content = (
-          <>
-            <strong>Parameters Addressed: </strong>
-            <ul>
-              {parameters
-                .sort((a, b) => a.parameterName.localeCompare(b.parameterName))
-                .map((parameter) => {
-                  return (
-                    <li key={parameter.parameterName}>
-                      <strong>{parameter.parameterName}</strong>
-                    </li>
-                  );
-                })}
-            </ul>
-
-            <div>
-              <a href={assessmentUrl} target="_blank" rel="noopener noreferrer">
-                <Icon className="fas fa-file-alt" aria-hidden="true" />
-                View Waterbody Report
-              </a>
-              &nbsp;&nbsp;
-              <NewTabDisclaimerDiv>(opens new browser tab)</NewTabDisclaimerDiv>
-            </div>
-          </>
-        );
-      }
+      };
 
       unitIds[assessmentUnitIdentifier] = content;
     });
 
     setUnitIds(unitIds);
-  }, [waters, actionTypeCode]);
-
-  const [mapLayer, setMapLayer] = React.useState(null);
+  }, [waters, actionTypeCode, orgId]);
 
   // calculate height of div holding actions info
   const [infoHeight, setInfoHeight] = React.useState(0);
@@ -638,20 +686,11 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                               assessmentUnitName,
                             } = water;
 
-                            const graphics = mapLayer && mapLayer.graphics;
-                            const hasWaterbody = !graphics
-                              ? false
-                              : graphics.items.findIndex((graphic) => {
-                                  const graphicOrgId =
-                                    graphic.attributes.organizationid;
-                                  const graphicAuId =
-                                    graphic.attributes.assessmentunitidentifier;
-
-                                  return (
-                                    graphicOrgId === orgId &&
-                                    graphicAuId === assessmentUnitIdentifier
-                                  );
-                                }) !== -1;
+                            const hasWaterbody = hasWaterbodyData(
+                              mapLayer,
+                              orgId,
+                              assessmentUnitIdentifier,
+                            );
 
                             return (
                               <AccordionItem
@@ -664,7 +703,11 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                                 subTitle={`ID: ${assessmentUnitIdentifier}`}
                               >
                                 <AccordionContent>
-                                  {unitIds[assessmentUnitIdentifier]}
+                                  {unitIds[assessmentUnitIdentifier] &&
+                                    unitIds[assessmentUnitIdentifier](
+                                      reportingCycle,
+                                      hasWaterbody,
+                                    )}
 
                                   <p>
                                     {hasWaterbody && (
@@ -675,7 +718,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                                             organizationid: orgId,
                                           },
                                         }}
-                                        layers={[mapLayer]}
+                                        layers={[mapLayer.layer]}
                                       />
                                     )}
                                   </p>
