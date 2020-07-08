@@ -215,7 +215,9 @@ function AdvancedSearch({ ...props }: Props) {
   const {
     currentReportStatus,
     currentSummary,
-    activeState, //
+    currentReportingCycle,
+    setCurrentReportingCycle,
+    activeState,
   } = React.useContext(StateTabsContext);
 
   const { fullscreenActive } = React.useContext(FullscreenContext);
@@ -373,7 +375,11 @@ function AdvancedSearch({ ...props }: Props) {
       const query = new Query({
         returnGeometry: false,
         where: `state = '${activeState.code}'`,
-        outFields: ['assessmentunitidentifier', 'assessmentunitname'],
+        outFields: [
+          'assessmentunitidentifier',
+          'assessmentunitname',
+          'reportingcycle',
+        ],
       });
 
       retrieveFeatures({
@@ -386,7 +392,12 @@ function AdvancedSearch({ ...props }: Props) {
           // build a full list of waterbodies for the state. Will have the full
           // list prior to filters being visible on the screen.
           let waterbodiesList = [];
-          data.features.forEach((waterbody) => {
+          let reportingCycle = '';
+          data.features.forEach((waterbody, index) => {
+            if (index === 0) {
+              reportingCycle = waterbody.attributes.reportingcycle;
+            }
+
             const id = waterbody.attributes.assessmentunitidentifier;
             const name = waterbody.attributes.assessmentunitname;
             waterbodiesList.push({
@@ -396,12 +407,20 @@ function AdvancedSearch({ ...props }: Props) {
           });
 
           setWaterbodiesList(waterbodiesList);
+          setCurrentReportingCycle({
+            status: 'success',
+            reportingCycle,
+          });
         })
         .catch((err) => {
           console.error(err);
           setSearchLoading(false);
           setServiceError(true);
           setWaterbodiesList([]);
+          setCurrentReportingCycle({
+            status: 'failure',
+            reportingCycle: '',
+          });
         });
     } else {
       const query = new Query({
@@ -430,6 +449,7 @@ function AdvancedSearch({ ...props }: Props) {
     currentFilter,
     activeState,
     summaryLayerMaxRecordCount,
+    setCurrentReportingCycle,
   ]);
 
   const [waterbodyFilter, setWaterbodyFilter] = React.useState([]);
@@ -481,7 +501,7 @@ function AdvancedSearch({ ...props }: Props) {
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [nextFilter, setNextFilter] = React.useState('');
   React.useEffect(() => {
-    if (!nextFilter && !serviceError) return;
+    if (!nextFilter || serviceError) return;
 
     const { Query, QueryTask } = esriHelper.modules;
 
@@ -533,6 +553,10 @@ function AdvancedSearch({ ...props }: Props) {
     setWaterbodyData(null);
     setWaterbodiesList(null);
     setNumberOfRecords(null);
+    setCurrentReportingCycle({
+      status: 'fetching',
+      reportingCycle: '',
+    });
 
     // Reset the filters
     setCurrentFilter(null);
@@ -549,7 +573,7 @@ function AdvancedSearch({ ...props }: Props) {
     setNewDisplayOptions([defaultDisplayOption]);
     setDisplayOptions([defaultDisplayOption]);
     setSelectedDisplayOption(defaultDisplayOption);
-  }, [activeState, setWaterbodyData]);
+  }, [activeState, setWaterbodyData, setCurrentReportingCycle]);
 
   const executeFilter = () => {
     setSearchLoading(true);
@@ -974,10 +998,10 @@ function AdvancedSearch({ ...props }: Props) {
         &nbsp;&nbsp;
         {currentReportStatus ? <>{currentReportStatus}</> : <LoadingSpinner />}
         <> / </>
-        {currentSummary.status === 'success' && (
-          <>{currentSummary.data.reportingCycle}</>
+        {currentReportingCycle.status === 'success' && (
+          <>{currentReportingCycle.reportingCycle}</>
         )}
-        {currentSummary.status === 'fetching' && <LoadingSpinner />}
+        {currentReportingCycle.status === 'fetching' && <LoadingSpinner />}
       </MapFooter>
     </StateMap>
   );

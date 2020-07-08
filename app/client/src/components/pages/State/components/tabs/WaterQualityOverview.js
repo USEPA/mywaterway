@@ -236,6 +236,8 @@ type Props = {};
 function WaterQualityOverview({ ...props }: Props) {
   const {
     activeState,
+    currentReportingCycle,
+    setCurrentReportingCycle,
     setCurrentReportStatus,
     setCurrentSummary,
     setUsesStateSummaryServiceError,
@@ -256,6 +258,7 @@ function WaterQualityOverview({ ...props }: Props) {
   const [currentTopic, setCurrentTopic] = React.useState('swimming');
   const [waterTypes, setWaterTypes] = React.useState(null);
   const [waterTypeData, setWaterTypeData] = React.useState(null);
+  const [organizationId, setOrganizationId] = React.useState('');
 
   const [surveyData, setSurveyData] = React.useState(null);
   const [assessmentDocuments, setAssessmentDocuments] = React.useState(null);
@@ -316,104 +319,142 @@ function WaterQualityOverview({ ...props }: Props) {
   );
 
   // summary service has the different years of data for recreation/eco/fish/water/other
-  const fetchStateSummary = React.useCallback(
-    (orgID) => {
-      let url = `${attains.serviceUrl}usesStateSummary?organizationId=${orgID}`;
-
-      fetchCheck(url)
-        .then((res) => {
-          // for states like Alaska that have no reporting cycles
-          if (
-            !res.data ||
-            !res.data.reportingCycles ||
-            res.data.reportingCycles.length === 0
-          ) {
-            setUsesStateSummaryServiceError(true);
-            return;
-          }
-
-          setCurrentStateData(res.data);
-
-          // get the latest reporting cycle
-          let currentReportingCycle = '';
-          let currentSummary;
-          if (res.data.reportingCycles && res.data.reportingCycles.length > 0) {
-            currentSummary = res.data.reportingCycles.sort(
-              (a, b) =>
-                parseFloat(b.reportingCycle) - parseFloat(a.reportingCycle),
-            )[0];
-            currentReportingCycle = currentSummary.reportingCycle;
-          }
-
-          setYearSelected(currentReportingCycle);
-          setCurrentSummary({
-            status: 'success',
-            data: currentSummary,
-          });
-          setLoading(false);
-
-          fetchAssessments(orgID, currentReportingCycle);
-        })
-        .catch((err) => {
-          console.error('Error with attains summary web service: ', err);
-
-          // for states like Arkansas that cause internal server errors in ATTAINS when queried
-          if (err.status === 500) {
-            setUsesStateSummaryServiceError(true);
-            return;
-          }
-
-          setServiceError(true);
-          setLoading(false);
-          setCurrentSummary({
-            status: 'failure',
-            data: {},
-          });
-        });
-    },
-    [fetchAssessments, setCurrentSummary, setUsesStateSummaryServiceError],
+  const [usesStateSummaryCalled, setUsesStateSummaryCalled] = React.useState(
+    false,
   );
+  React.useEffect(() => {
+    if (
+      !organizationId ||
+      currentReportingCycle.status === 'fetching' ||
+      usesStateSummaryCalled
+    ) {
+      return;
+    }
+
+    if (currentReportingCycle.status === 'failure') {
+      setUsesStateSummaryCalled(true);
+      setServiceError(true);
+      setLoading(false);
+      setCurrentSummary({
+        status: 'failure',
+        data: {},
+      });
+      return;
+    }
+
+    const reportingCycleParam = currentReportingCycle.reportingCycle
+      ? `&reportingCycle=${currentReportingCycle.reportingCycle}`
+      : '';
+
+    const url =
+      `${attains.serviceUrl}usesStateSummary` +
+      `?organizationId=${organizationId}` +
+      reportingCycleParam;
+
+    fetchCheck(url)
+      .then((res) => {
+        // for states like Alaska that have no reporting cycles
+        if (
+          !res.data ||
+          !res.data.reportingCycles ||
+          res.data.reportingCycles.length === 0
+        ) {
+          setUsesStateSummaryServiceError(true);
+          setLoading(false);
+          return;
+        }
+
+        setCurrentStateData(res.data);
+
+        // get the latest reporting cycle
+        let latestReportingCycle = '';
+        let currentSummary;
+        if (res.data.reportingCycles && res.data.reportingCycles.length > 0) {
+          currentSummary = res.data.reportingCycles.sort(
+            (a, b) =>
+              parseFloat(b.reportingCycle) - parseFloat(a.reportingCycle),
+          )[0];
+          latestReportingCycle = currentSummary.reportingCycle;
+        }
+
+        setYearSelected(latestReportingCycle);
+        setCurrentSummary({
+          status: 'success',
+          data: currentSummary,
+        });
+        if (!reportingCycleParam) {
+          setCurrentReportingCycle({
+            status: 'success',
+            reportingCycle: latestReportingCycle,
+          });
+        }
+        setLoading(false);
+
+        fetchAssessments(organizationId, latestReportingCycle);
+      })
+      .catch((err) => {
+        console.error('Error with attains summary web service: ', err);
+
+        // for states like Arkansas that cause internal server errors in ATTAINS when queried
+        if (err.status === 500) {
+          setUsesStateSummaryServiceError(true);
+          return;
+        }
+
+        setServiceError(true);
+        setLoading(false);
+        setCurrentSummary({
+          status: 'failure',
+          data: {},
+        });
+      });
+
+    setUsesStateSummaryCalled(true);
+  }, [
+    fetchAssessments,
+    setCurrentSummary,
+    setUsesStateSummaryServiceError,
+    organizationId,
+    currentReportingCycle,
+    setCurrentReportingCycle,
+    usesStateSummaryCalled,
+  ]);
 
   // get state organization ID for summary service
-  const [organizationId, setOrganizationId] = React.useState('');
-  const fetchStateOrgId = React.useCallback(
-    (stateID: string) => {
-      const url = `${attains.serviceUrl}states/${stateID}/organizations`;
-      fetchCheck(url)
-        .then((res) => {
-          let orgID;
+  const fetchStateOrgId = React.useCallback((stateID: string) => {
+    const url = `${attains.serviceUrl}states/${stateID}/organizations`;
+    fetchCheck(url)
+      .then((res) => {
+        let orgID;
 
-          // look for an org id that is of type state
-          if (res && res.data) {
-            res.data.forEach((org) => {
-              if (org.type === 'State') orgID = org.id;
-            });
-          }
+        // look for an org id that is of type state
+        if (res && res.data) {
+          res.data.forEach((org) => {
+            if (org.type === 'State') orgID = org.id;
+          });
+        }
 
-          // go to the next step if an org id was found, otherwise flag an error
-          if (orgID) {
-            fetchStateSummary(orgID);
-            setOrganizationId(orgID);
-            fetchSurveyData(orgID);
-          } else {
-            console.log(
-              'Attains did not return any organization info for ',
-              stateID,
-            );
-            setNoDataError(true);
-            setLoading(false);
-            setSurveyLoading(false);
-            return;
-          }
-        })
-        .catch((err) => {
-          console.error('Error with attains org ID web service: ', err);
-          setServiceError(true);
+        // go to the next step if an org id was found, otherwise flag an error
+        if (orgID) {
+          setOrganizationId(orgID);
+          fetchSurveyData(orgID);
+        } else {
+          console.log(
+            'Attains did not return any organization info for ',
+            stateID,
+          );
+          setNoDataError(true);
           setLoading(false);
-        });
-    },
-    [fetchStateSummary],
-  );
+          setSurveyLoading(false);
+          return;
+        }
+      })
+      .catch((err) => {
+        console.error('Error with attains org ID web service: ', err);
+        setServiceError(true);
+        setLoading(false);
+      });
+  }, []);
 
   // If the user changes the search
   React.useEffect(() => {
@@ -436,6 +477,7 @@ function WaterQualityOverview({ ...props }: Props) {
       setAssessmentDocuments([]);
       setSubPopulationCodes([]);
       setCurrentReportStatus('');
+      setUsesStateSummaryCalled(false);
 
       setCurrentState(activeState.code);
       fetchStateOrgId(activeState.code);
