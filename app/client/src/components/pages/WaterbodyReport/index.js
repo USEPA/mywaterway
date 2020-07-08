@@ -184,9 +184,10 @@ type Props = {
   // url params defined in routes.js
   orgId: string, // (organization id)
   auId: string, // (assessment unit id)
+  reportingCycle: number, // (reporting cycle year)
 };
 
-function WaterbodyReport({ fullscreen, orgId, auId }) {
+function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
   const [noWaterbodies, setNoWaterbodies] = React.useState(false);
 
   const [waterbodyName, setWaterbodyName] = React.useState('');
@@ -304,7 +305,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
     );
   }, [auId, orgId]);
 
-  const [reportingCycle, setReportingCycle] = React.useState({
+  const [reportingCycleFetch, setReportingCycleFetch] = React.useState({
     status: 'fetching',
     year: '',
   });
@@ -336,7 +337,8 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
     const url =
       attains.serviceUrl +
       `assessments?organizationId=${orgId}` +
-      `&assessmentUnitIdentifier=${auId}`;
+      `&assessmentUnitIdentifier=${auId}` +
+      `&reportingCycle=${reportingCycle}`;
 
     fetchCheck(url).then(
       (res) => {
@@ -345,7 +347,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
             status: 'no-data',
             data: { condition: '', planForRestoration: '', listed303d: '' },
           });
-          setReportingCycle({
+          setReportingCycleFetch({
             status: 'success',
             year: '',
           });
@@ -366,7 +368,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
         }
 
         const firstItem = res.items[0];
-        setReportingCycle({
+        setReportingCycleFetch({
           status: 'success',
           year: firstItem.reportingCycleText,
         });
@@ -555,7 +557,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
           status: 'failure',
           data: [],
         });
-        setReportingCycle({ status: 'failure', year: '' });
+        setReportingCycleFetch({ status: 'failure', year: '' });
         setWaterbodyStatus({ status: 'failure', data: [] });
         setWaterbodyUses({ status: 'failure', data: [] });
         setWaterbodySources({ status: 'failure', data: [] });
@@ -565,7 +567,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
         });
       },
     );
-  }, [auId, orgId]);
+  }, [auId, orgId, reportingCycle]);
 
   const [waterbodyActions, setWaterbodyActions] = React.useState({
     status: 'fetching',
@@ -794,26 +796,26 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
 
       <InlineBoxSection>
         <h3>Year Last Reported:</h3>
-        {reportingCycle.status === 'fetching' && <LoadingSpinner />}
-        {reportingCycle.status === 'failure' && (
+        {reportingCycleFetch.status === 'fetching' && <LoadingSpinner />}
+        {reportingCycleFetch.status === 'failure' && (
           <ErrorBox>
             <p>{waterbodyReportError('Assessment')}</p>
           </ErrorBox>
         )}
-        {reportingCycle.status === 'success' && (
-          <p>&nbsp; {reportingCycle.year}</p>
+        {reportingCycleFetch.status === 'success' && (
+          <p>&nbsp; {reportingCycleFetch.year}</p>
         )}
       </InlineBoxSection>
 
       <InlineBoxSection>
         <h3>Organization Name (ID):&nbsp;</h3>
-        {reportingCycle.status === 'fetching' && <LoadingSpinner />}
-        {reportingCycle.status === 'failure' && (
+        {reportingCycleFetch.status === 'fetching' && <LoadingSpinner />}
+        {reportingCycleFetch.status === 'failure' && (
           <ErrorBox>
             <p>{waterbodyReportError('Assessment')}</p>
           </ErrorBox>
         )}
-        {reportingCycle.status === 'success' && (
+        {reportingCycleFetch.status === 'success' && (
           <p>
             {organizationName.name} ({orgId})
           </p>
@@ -964,8 +966,8 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                   <StyledBox>
                     <StyledBoxHeading>
                       Assessment Information{' '}
-                      {reportingCycle.status === 'success' && (
-                        <>from {reportingCycle.year}</>
+                      {reportingCycleFetch.status === 'success' && (
+                        <>from {reportingCycleFetch.year}</>
                       )}
                     </StyledBoxHeading>
 
@@ -1020,8 +1022,8 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                     <StyledBoxSection>
                       <h3>
                         Probable sources contributing to impairment
-                        {reportingCycle.status === 'success' &&
-                          ` from ${reportingCycle.year}`}
+                        {reportingCycleFetch.status === 'success' &&
+                          ` from ${reportingCycleFetch.year}`}
                         :
                       </h3>
                       {waterbodySources.status === 'fetching' && (

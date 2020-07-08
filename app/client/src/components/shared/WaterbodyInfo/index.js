@@ -252,7 +252,8 @@ function WaterbodyInfo({
               href={
                 `/waterbody-report/` +
                 `${attributes.organizationid}/` +
-                `${attributes.assessmentunitidentifier}`
+                `${attributes.assessmentunitidentifier}/` +
+                `${attributes.reportingcycle}`
               }
             >
               <Icon className="fas fa-file-alt" aria-hidden="true" />
