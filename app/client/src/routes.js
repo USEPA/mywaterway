@@ -75,6 +75,7 @@ function Routes() {
             {/* $FlowFixMe (orgId and actionId props are passed from the path) */}
             <Actions path="/plan-summary/:orgId/:actionId" />
             {/* $FlowFixMe (orgId and auId props are passed from the path) */}
+            <WaterbodyReport path="/waterbody-report/:orgId/:auId" />
             <WaterbodyReport path="/waterbody-report/:orgId/:auId/:reportingCycle" />
             <InvalidUrl path="/invalid-url" />
             <ErrorPage default />

@@ -203,6 +203,10 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
     status: 'fetching',
     data: [],
   });
+  const [mapLayer, setMapLayer] = React.useState({
+    status: 'fetching',
+    layer: null,
+  });
 
   // fetch waterbody name, location, types from attains 'assessmentUnits' web service
   React.useEffect(() => {
@@ -333,12 +337,40 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
 
   // fetch reporting cycle, waterbody status, decision rational, uses,
   // and sources from attains 'assessments' web service
+  const [assessmentsCalled, setAssessmentsCalled] = React.useState(false);
   React.useEffect(() => {
+    if (assessmentsCalled) return;
+    if (!reportingCycle && mapLayer.status === 'fetching') return;
+
+    let reportingCycleParam = reportingCycle;
+    if (!reportingCycle) {
+      if (mapLayer.status === 'success' && mapLayer.layer.graphics.length > 0) {
+        reportingCycleParam =
+          mapLayer.layer.graphics.items[0].attributes.reportingcycle;
+      } else {
+        setAllParameterActionIds({
+          status: 'failure',
+          data: [],
+        });
+        setReportingCycleFetch({ status: 'failure', year: '' });
+        setWaterbodyStatus({ status: 'failure', data: [] });
+        setWaterbodyUses({ status: 'failure', data: [] });
+        setWaterbodySources({ status: 'failure', data: [] });
+        setOrganizationName({
+          status: 'failure',
+          name: '',
+        });
+        return;
+      }
+    }
+
+    setAssessmentsCalled(true);
+
     const url =
       attains.serviceUrl +
       `assessments?organizationId=${orgId}` +
       `&assessmentUnitIdentifier=${auId}` +
-      `&reportingCycle=${reportingCycle}`;
+      `&reportingCycle=${reportingCycleParam}`;
 
     fetchCheck(url).then(
       (res) => {
@@ -567,7 +599,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         });
       },
     );
-  }, [auId, orgId, reportingCycle]);
+  }, [auId, orgId, reportingCycle, mapLayer, assessmentsCalled]);
 
   const [waterbodyActions, setWaterbodyActions] = React.useState({
     status: 'fetching',
@@ -909,7 +941,11 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         {({ width, height }) => {
           return (
             <div data-content="actionsmap" style={{ height, width }}>
-              <ActionsMap layout="fullscreen" unitIds={unitIds} />
+              <ActionsMap
+                layout="fullscreen"
+                unitIds={unitIds}
+                onLoad={setMapLayer}
+              />
             </div>
           );
         }}
@@ -938,7 +974,11 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                               height: height - 40,
                             }}
                           >
-                            <ActionsMap layout="narrow" unitIds={unitIds} />
+                            <ActionsMap
+                              layout="narrow"
+                              unitIds={unitIds}
+                              onLoad={setMapLayer}
+                            />
                           </div>
                         )}
                       </MapVisibilityButton>
@@ -947,7 +987,11 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                     <StickyBox offsetTop={20} offsetBottom={20}>
                       {infoBox}
                       <div style={{ height: height - infoHeight - 70 }}>
-                        <ActionsMap layout="wide" unitIds={unitIds} />
+                        <ActionsMap
+                          layout="wide"
+                          unitIds={unitIds}
+                          onLoad={setMapLayer}
+                        />
                       </div>
                     </StickyBox>
                   )}
