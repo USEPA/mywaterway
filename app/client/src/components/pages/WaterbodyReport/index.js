@@ -940,8 +940,8 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
               <strong>
                 {waterbodyName} ({auId})
               </strong>{' '}
-              has no data available{' '}
-              {reportingCycle ? `for ${reportingCycle}` : ''}.
+              has no data available
+              {reportingCycle ? ` for ${reportingCycle}` : ''}.
             </p>
           </PageErrorBox>
         </Container>
