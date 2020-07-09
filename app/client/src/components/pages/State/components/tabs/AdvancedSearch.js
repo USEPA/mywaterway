@@ -394,7 +394,7 @@ function AdvancedSearch({ ...props }: Props) {
           let waterbodiesList = [];
           let reportingCycle = '';
           data.features.forEach((waterbody, index) => {
-            if (index === 0) {
+            if (waterbody.attributes.reportingcycle > reportingCycle) {
               reportingCycle = waterbody.attributes.reportingcycle;
             }
 
