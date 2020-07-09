@@ -358,7 +358,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
         const assessmentUrl =
           reportingCycle && hasWaterbody
             ? `/waterbody-report/${orgId}/${assessmentUnitIdentifier}/${reportingCycle}`
-            : null;
+            : `/waterbody-report/${orgId}/${assessmentUnitIdentifier}`;
 
         const hasTmdlData =
           actionTypeCode === 'TMDL' && associatedPollutants.length > 0;

@@ -342,25 +342,13 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
     if (assessmentsCalled) return;
     if (!reportingCycle && mapLayer.status === 'fetching') return;
 
-    let reportingCycleParam = reportingCycle;
-    if (!reportingCycle) {
+    let reportingCycleParam = '';
+    if (reportingCycle) {
+      reportingCycleParam = reportingCycle;
+    } else {
       if (mapLayer.status === 'success' && mapLayer.layer.graphics.length > 0) {
         reportingCycleParam =
           mapLayer.layer.graphics.items[0].attributes.reportingcycle;
-      } else {
-        setAllParameterActionIds({
-          status: 'failure',
-          data: [],
-        });
-        setReportingCycleFetch({ status: 'failure', year: '' });
-        setWaterbodyStatus({ status: 'failure', data: [] });
-        setWaterbodyUses({ status: 'failure', data: [] });
-        setWaterbodySources({ status: 'failure', data: [] });
-        setOrganizationName({
-          status: 'failure',
-          name: '',
-        });
-        return;
       }
     }
 
@@ -370,7 +358,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
       attains.serviceUrl +
       `assessments?organizationId=${orgId}` +
       `&assessmentUnitIdentifier=${auId}` +
-      `&reportingCycle=${reportingCycleParam}`;
+      (reportingCycleParam ? `&reportingCycle=${reportingCycleParam}` : '');
 
     fetchCheck(url).then(
       (res) => {
