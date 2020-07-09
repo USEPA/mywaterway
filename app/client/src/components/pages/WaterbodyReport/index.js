@@ -840,7 +840,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
       </InlineBoxSection>
 
       <InlineBoxSection>
-        <h3>Year Last Reported:</h3>
+        <h3>Year Reported:</h3>
         {reportingCycleFetch.status === 'fetching' && <LoadingSpinner />}
         {reportingCycleFetch.status === 'failure' && (
           <ErrorBox>
@@ -975,8 +975,8 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         {mapReportingCycle > reportingCycle && (
           <InfoBoxContainer>
             <StyledInfoBox>
-              There is a newer data available for this waterbody. Please use the
-              following link to view the latest information:{' '}
+              There is more recent data available for this waterbody. Please use
+              the following link to view the latest information:{' '}
               <a
                 href={`/waterbody-report/${orgId}/${auId}/${mapReportingCycle}`}
                 target="_blank"
