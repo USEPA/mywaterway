@@ -14,7 +14,7 @@ import ActionsMap from 'components/pages/Actions/ActionsMap';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import MapVisibilityButton from 'components/shared/MapVisibilityButton';
 // styled components
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes';
 import {
   StyledContainer,
   StyledColumns,
@@ -65,6 +65,11 @@ const Container = styled(StyledContainer)`
     margin-bottom: 0.875rem;
     border-top-color: #aebac3;
   }
+`;
+
+const InfoBoxContainer = styled.div`
+  padding: 1.5em;
+  padding-bottom: 0;
 `;
 
 const PageErrorBox = styled(StyledErrorBox)`
@@ -174,6 +179,14 @@ const DateCell = styled.td`
 
 const Locations = styled.ul`
   padding-bottom: 0;
+`;
+
+const Icon = styled.i`
+  margin-right: 5px;
+`;
+
+const NewTabDisclaimer = styled.div`
+  display: inline-block;
 `;
 
 // --- components ---
@@ -589,6 +602,18 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
     );
   }, [auId, orgId, reportingCycle, mapLayer, assessmentsCalled]);
 
+  // Get the reporting cycle from the map
+  const [mapReportingCycle, setMapReportingCycle] = React.useState('');
+  React.useEffect(() => {
+    let reportingCycle = '';
+    if (mapLayer.status === 'success' && mapLayer.layer.graphics.length > 0) {
+      reportingCycle =
+        mapLayer.layer.graphics.items[0].attributes.reportingcycle;
+    }
+
+    setMapReportingCycle(reportingCycle);
+  }, [mapLayer]);
+
   const [waterbodyActions, setWaterbodyActions] = React.useState({
     status: 'fetching',
     data: [],
@@ -915,7 +940,8 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
               <strong>
                 {waterbodyName} ({auId})
               </strong>{' '}
-              has no data available.
+              has no data available{' '}
+              {reportingCycle ? `for ${reportingCycle}` : ''}.
             </p>
           </PageErrorBox>
         </Container>
@@ -946,6 +972,24 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
       <NavBar title={'Waterbody Report'} />
 
       <Container data-content="container">
+        {mapReportingCycle > reportingCycle && (
+          <InfoBoxContainer>
+            <StyledInfoBox>
+              There is a newer data available for this waterbody. Please use the
+              following link to view the latest information:{' '}
+              <a
+                href={`/waterbody-report/${orgId}/${auId}/${mapReportingCycle}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Icon className="fas fa-file-alt" aria-hidden="true" />
+                View Waterbody Report for 2018
+              </a>
+              &nbsp;&nbsp;
+              <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
+            </StyledInfoBox>
+          </InfoBoxContainer>
+        )}
         <WindowSize>
           {({ width, height }) => {
             return (
