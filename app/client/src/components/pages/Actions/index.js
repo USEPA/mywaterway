@@ -151,22 +151,22 @@ function getPollutantsWaters(action: Object, orgId: string) {
   };
 }
 
-function hasWaterbodyData(
+function getWaterbodyData(
   mapLayer: Object,
   orgId: string,
   assessmentUnitIdentifier: string,
 ) {
   const graphics = mapLayer.status === 'success' && mapLayer.layer?.graphics;
-  return !graphics
-    ? false
-    : graphics.items.findIndex((graphic) => {
-        const graphicOrgId = graphic.attributes.organizationid;
-        const graphicAuId = graphic.attributes.assessmentunitidentifier;
+  if (!graphics) return null;
 
-        return (
-          graphicOrgId === orgId && graphicAuId === assessmentUnitIdentifier
-        );
-      }) !== -1;
+  const assessmentIndex = graphics.items.findIndex((graphic) => {
+    const graphicOrgId = graphic.attributes.organizationid;
+    const graphicAuId = graphic.attributes.assessmentunitidentifier;
+
+    return graphicOrgId === orgId && graphicAuId === assessmentUnitIdentifier;
+  });
+
+  return assessmentIndex === -1 ? null : graphics.items[assessmentIndex];
 }
 
 // --- styled components ---
@@ -323,21 +323,6 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
         console.error(err);
       });
   }, [actionId, orgId]);
-
-  // Get the reporting cycle from the GIS service
-  const [reportingCycle, setReportingCycle] = React.useState(null);
-  React.useEffect(() => {
-    if (mapLayer.status === 'fetching') return;
-
-    // find the first reporting cycle from the gis service
-    let reportingCycle = null;
-    if (mapLayer.status === 'success' && mapLayer.layer.graphics.length > 0) {
-      reportingCycle =
-        mapLayer.layer.graphics.items[0].attributes.reportingcycle;
-    }
-
-    setReportingCycle(reportingCycle);
-  }, [mapLayer]);
 
   // Builds the unitIds dictionary that is used for determining what
   // waters to display on the screen and what the content will be.
@@ -686,11 +671,14 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                               assessmentUnitName,
                             } = water;
 
-                            const hasWaterbody = hasWaterbodyData(
+                            const waterbodyData = getWaterbodyData(
                               mapLayer,
                               orgId,
                               assessmentUnitIdentifier,
                             );
+                            const waterbodyReportingCycle = waterbodyData
+                              ? waterbodyData.attributes.reportingcycle
+                              : null;
 
                             return (
                               <AccordionItem
@@ -705,12 +693,12 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                                 <AccordionContent>
                                   {unitIds[assessmentUnitIdentifier] &&
                                     unitIds[assessmentUnitIdentifier](
-                                      reportingCycle,
-                                      hasWaterbody,
+                                      waterbodyReportingCycle,
+                                      waterbodyData ? true : false,
                                     )}
 
                                   <p>
-                                    {hasWaterbody && (
+                                    {waterbodyData && (
                                       <ViewOnMapButton
                                         feature={{
                                           attributes: {
