@@ -59,7 +59,7 @@ module.exports = function (app) {
       ) {
         //change out the URL for the internal s3 bucket that support this instance of the application in Cloud.gov
         var jsonFileName = parsedUrl.split('/data/').pop();
-        parsedUrl = app.get('s3_bucket_url') + '/' + jsonFileName;
+        parsedUrl = app.get('s3_bucket_url') + '/data/' + jsonFileName;
       }
     }
 
