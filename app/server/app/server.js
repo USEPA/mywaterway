@@ -133,7 +133,7 @@ function getUnauthorizedResponse(req) {
 /****************************************************************
 For Cloud.gov enviroments, get s3 endpoint location
 ****************************************************************/
-if (!isLocal) {
+if (isLocal) {
   if (process.env.VCAP_SERVICES) {
     log.info('VCAP_SERVICES environmental variable found, continuing.');
   } else {
