@@ -12,7 +12,7 @@ module.exports = function (app) {
 
   router.get('/', function (req, res, next) {
     let authoriztedURL = false;
-    let parsedUrl;
+    var parsedUrl;
     let metadataObj = logger.populateMetdataObjFromRequest(req);
 
     try {
@@ -28,7 +28,15 @@ module.exports = function (app) {
         return;
       }
 
-      if (!authoriztedURL && !app.enabled('isLocal')) {
+      if (
+        !authoriztedURL &&
+        !app.enabled('isLocal') &&
+        !parsedUrl
+          .toLowerCase()
+          .startsWith(
+            req.protocol.toLowerCase() + '://' + req.hostname.toLowerCase(),
+          )
+      ) {
         let msg = 'Invalid proxy request';
         log.error(
           logger.formatLogMsg(metadataObj, `${msg}. parsedUrl = ${parsedUrl}`),
@@ -44,10 +52,6 @@ module.exports = function (app) {
       res.status(403).json({ message: msg });
       return;
     }
-
-    console.info(
-      req.protocol.toLowerCase() + '://' + req.hostname.toLowerCase(),
-    );
 
     let request_headers = {};
     if (parsedUrl.toLowerCase().includes('etss.epa.gov')) {
@@ -65,7 +69,6 @@ module.exports = function (app) {
         //change out the URL for the internal s3 bucket that support this instance of the application in Cloud.gov
         var jsonFileName = parsedUrl.split('/data/').pop();
         parsedUrl = app.get('s3_bucket_url') + '/' + jsonFileName;
-        console.log('new url = ' + parsedUrl);
       }
     }
 
