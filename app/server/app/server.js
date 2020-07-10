@@ -39,9 +39,13 @@ app.use(function (req, res, next) {
   if (whiteList.indexOf(req.method) != -1) next();
   else {
     res.sendStatus(401);
-    let msg =
-      'Attempted use of unsupported HTTP method. HTTP method = ' + req.method;
-    log.error(msg);
+    var metadataObj = logger.populateMetdataObjFromRequest(req);
+    log.error(
+      logger.formatLogMsg(
+        metadataObj,
+        `Attempted use of unsupported HTTP method. HTTP method = ${req.method}`,
+      ),
+    );
   }
 });
 
