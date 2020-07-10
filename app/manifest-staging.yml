@@ -13,3 +13,6 @@
         NODE_ENV: staging
         LOGGER_LEVEL: ERROR
         OPTIMIZE_MEMORY: true
+        S3_PUB_BIND_NAME: s3-pub-mywaterway-stage
+     services:
+      - s3-pub-mywaterway-stage

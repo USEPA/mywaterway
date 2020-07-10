@@ -4,6 +4,7 @@ const request = require('request');
 const querystring = require('querystring');
 const config = require('../config/proxyConfig.json');
 const logger = require('../utilities/logger');
+const { Console } = require('console');
 const log = logger.logger;
 
 module.exports = function (app) {
@@ -27,7 +28,7 @@ module.exports = function (app) {
         return;
       }
 
-      if (!authoriztedURL) {
+      if (!authoriztedURL && !app.enabled('isLocal')) {
         let msg = 'Invalid proxy request';
         log.error(
           logger.formatLogMsg(metadataObj, `${msg}. parsedUrl = ${parsedUrl}`),
@@ -45,8 +46,23 @@ module.exports = function (app) {
     }
 
     let request_headers = {};
-    if (parsedUrl.includes('etss.epa.gov')) {
+    if (parsedUrl.toLowerCase().includes('etss.epa.gov')) {
       request_headers.authorization = 'basic ' + process.env.GLOSSARY_AUTH;
+    } else {
+      if (
+        !app.enabled('isLocal') &&
+        parsedUrl
+          .toLowerCase()
+          .startsWith(
+            req.protocol.toLowerCase() + '://' + req.hostname.toLowerCase(),
+          ) &&
+        parsedUrl.toLowerCase().includes('/data/')
+      ) {
+        //change out the URL for the internal s3 bucket that support this instance of the application in Cloud.gov
+        var jsonFileName = parsedUrl.split('/data/').pop();
+        parsedUrl = app.get('s3_bucket_url') + '/' + jsonFileName;
+        console.log('new url = ' + parsedUrl);
+      }
     }
 
     request(
