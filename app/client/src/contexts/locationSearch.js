@@ -1,6 +1,7 @@
 import React from 'react';
 import EsriHelper from 'utils/EsriHelper';
 import { navigate } from '@reach/router';
+import { resetCanonicalLink, removeJsonLD } from 'utils/utils';
 
 export const LocationSearchContext = React.createContext();
 
@@ -433,6 +434,12 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     },
 
     setNoDataAvailable: () => {
+      // reset canonical geoconnex PID link
+      resetCanonicalLink();
+
+      // remove JSON LD context script
+      removeJsonLD();
+
       this.setState(
         {
           huc12: '',

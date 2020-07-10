@@ -95,6 +95,50 @@ function isHuc12(string: string) {
   return /^[0-9]{12}$/.test(string);
 }
 
+function createSchema(huc12, watershed) {
+  return {
+    '@context': ['https://schema.org'],
+    '@id': `https://geoconnex.us/epa/hmw/${huc12}`,
+    '@type': 'WebPage',
+    name: `${watershed} (${huc12})`,
+    provider: 'https://epa.gov',
+    description:
+      "EPA How's My Waterway Community as Twelve-Digit Hydrologic Unit",
+    about: `https://geoconnex.us/nhdplusv2/huc12/${huc12}`,
+  };
+}
+
+function createJsonLD(huc12, watershed) {
+  // try removing any existing JSON-LDs
+  removeJsonLD();
+
+  // create a JSON-LD schema and append it to document head
+  const head = document.getElementsByTagName('head')[0];
+  const script = document.createElement('script');
+  script.type = 'application/ld+json';
+  script.id = 'jsonLD';
+  script.innerHTML = JSON.stringify(createSchema(huc12, watershed));
+  head.appendChild(script);
+}
+
+function removeJsonLD() {
+  if (document.getElementById('jsonLD')) {
+    document.getElementById('jsonLD').remove();
+  }
+}
+
+function updateCanonicalLink(huc12) {
+  const canonicalLink = document.querySelector('[rel="canonical"]');
+  if (canonicalLink) {
+    canonicalLink.href = `https://geoconnex.us/epa/hmw/${huc12}`;
+  }
+}
+
+function resetCanonicalLink() {
+  const canonicalLink = document.querySelector('[rel="canonical"]');
+  if (canonicalLink) canonicalLink.href = '';
+}
+
 export {
   chunkArray,
   containsScriptTag,
@@ -103,4 +147,8 @@ export {
   isHuc12,
   titleCase,
   titleCaseWithExceptions,
+  createJsonLD,
+  updateCanonicalLink,
+  resetCanonicalLink,
+  removeJsonLD,
 };
