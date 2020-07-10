@@ -28,30 +28,9 @@ module.exports = function (app) {
         return;
       }
 
-      console.info(
-        'DOMAIN INFO = ' +
-          parsedUrl
-            .toLowerCase()
-            .startsWith(
-              req.protocol.toLowerCase() + '://' + req.hostname.toLowerCase(),
-            ),
-      );
-
-      console.info('DOMAIN toLowerCase = ' + parsedUrl.toLowerCase());
-      console.info(
-        'DOMAIN INFO2 = ' +
-          req.protocol.toLowerCase() +
-          '://' +
-          req.hostname.toLowerCase(),
-      );
-
       if (
         !authoriztedURL &&
-        !parsedUrl
-          .toLowerCase()
-          .startsWith(
-            req.protocol.toLowerCase() + '://' + req.hostname.toLowerCase(),
-          )
+        !parsedUrl.toLowerCase().includes('://' + req.hostname.toLowerCase())
       ) {
         let msg = 'Invalid proxy request';
         log.error(
@@ -75,11 +54,7 @@ module.exports = function (app) {
     } else {
       if (
         !app.enabled('isLocal') &&
-        parsedUrl
-          .toLowerCase()
-          .startsWith(
-            req.protocol.toLowerCase() + '://' + req.hostname.toLowerCase(),
-          ) &&
+        parsedUrl.toLowerCase().includes('://' + req.hostname.toLowerCase()) &&
         parsedUrl.toLowerCase().includes('/data/')
       ) {
         //change out the URL for the internal s3 bucket that support this instance of the application in Cloud.gov
