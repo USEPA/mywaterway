@@ -28,6 +28,23 @@ module.exports = function (app) {
         return;
       }
 
+      console.info(
+        'DOMAIN INFO = ' +
+          parsedUrl
+            .toLowerCase()
+            .startsWith(
+              req.protocol.toLowerCase() + '://' + req.hostname.toLowerCase(),
+            ),
+      );
+
+      console.info('DOMAIN toLowerCase = ' + parsedUrl.toLowerCase());
+      console.info(
+        'DOMAIN INFO2 = ' +
+          req.protocol.toLowerCase() +
+          '://' +
+          req.hostname.toLowerCase(),
+      );
+
       if (
         !authoriztedURL &&
         !parsedUrl
