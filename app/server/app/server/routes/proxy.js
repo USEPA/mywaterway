@@ -30,7 +30,6 @@ module.exports = function (app) {
 
       if (
         !authoriztedURL &&
-        !app.enabled('isLocal') &&
         !parsedUrl
           .toLowerCase()
           .startsWith(
