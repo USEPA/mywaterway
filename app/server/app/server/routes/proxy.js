@@ -45,6 +45,10 @@ module.exports = function (app) {
       return;
     }
 
+    console.info(
+      req.protocol.toLowerCase() + '://' + req.hostname.toLowerCase(),
+    );
+
     let request_headers = {};
     if (parsedUrl.toLowerCase().includes('etss.epa.gov')) {
       request_headers.authorization = 'basic ' + process.env.GLOSSARY_AUTH;
