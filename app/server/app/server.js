@@ -151,7 +151,7 @@ if (!isLocal) {
     process.exit();
   }
 
-  let vcap_services = process.env.VCAP_SERVICES;
+  let vcap_services = JSON.parse(process.env.VCAP_SERVICES);
   let S3_PUB_BIND_NAME = process.env.S3_PUB_BIND_NAME;
 
   let s3_object = null;
