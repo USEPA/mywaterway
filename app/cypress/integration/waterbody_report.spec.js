@@ -43,6 +43,19 @@ describe('Waterbody Report page', () => {
     cy.findByText('has no data available.', { exact: false });
   });
 
+  it('Viewing waterbody report for an older year', () => {
+    const orgId = 'MDNR';
+    const auId = 'MO_1707.02';
+    const year = '2016';
+
+    cy.visit(`/waterbody-report/${orgId}/${auId}/${year}`);
+
+    cy.findByText(
+      'Please use the following link to view the latest information',
+      { exact: false },
+    );
+  });
+
   it('The "View Waterbody Report" link should navigate to a waterbody report page', () => {
     const orgId = '21AWIC';
     const auId = 'AL03150110-0202-200';
