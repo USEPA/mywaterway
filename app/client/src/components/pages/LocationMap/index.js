@@ -42,6 +42,7 @@ import {
 // helpers
 import { useWaterbodyHighlight } from 'utils/hooks';
 import { fetchCheck } from 'utils/fetchUtils';
+import { isHuc12, updateCanonicalLink, createJsonLD } from 'utils/utils';
 // styles
 import './mapStyles.css';
 // errors
@@ -776,6 +777,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           queryPermittedDischargersService(huc12Result);
           queryGrtsHuc12(huc12Result);
           queryAttainsPlans(huc12Result);
+
+          // create canonical link and JSON LD
+          updateCanonicalLink(huc12Result);
+          createJsonLD(huc12Result, response.features[0].attributes.name);
         } catch (err) {
           console.error(err);
           setNoDataAvailable();
@@ -1044,9 +1049,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       searchText = searchText.trim();
 
       // Get whether HUC 12
-      const isHuc12 = /^[0-9]{12}$/.test(searchText);
-
-      if (isHuc12) {
+      if (isHuc12(searchText)) {
         const query = new Query({
           returnGeometry: true,
           where: "HUC12 = '" + searchText + "'",

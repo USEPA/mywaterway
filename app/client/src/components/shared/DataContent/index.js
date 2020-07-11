@@ -94,7 +94,11 @@ function Data({ ...props }: Props) {
 
     // when the user hits the back button change the url back to the original
     return function cleanup() {
-      if (pathname !== 'data') window.history.pushState(null, null, href);
+      // exit early, if user clicked the banner link or the original path
+      // is the data page.
+      if (window.location.pathname === '/' || pathname === 'data') return;
+
+      window.history.pushState(null, null, href);
     };
   }, []);
 

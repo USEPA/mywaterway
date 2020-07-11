@@ -39,9 +39,13 @@ app.use(function (req, res, next) {
   if (whiteList.indexOf(req.method) != -1) next();
   else {
     res.sendStatus(401);
-    let msg =
-      'Attempted use of unsupported HTTP method. HTTP method = ' + req.method;
-    log.error(msg);
+    var metadataObj = logger.populateMetdataObjFromRequest(req);
+    log.error(
+      logger.formatLogMsg(
+        metadataObj,
+        `Attempted use of unsupported HTTP method. HTTP method = ${req.method}`,
+      ),
+    );
   }
 });
 
@@ -70,14 +74,17 @@ if (process.env.NODE_ENV) {
   isStaging = 'staging' === process.env.NODE_ENV.toLowerCase();
 }
 
-if (isLocal) log.info('Environment = local');
+if (isLocal) {
+  log.info('Environment = local');
+  app.enable('isLocal');
+}
 if (isDevelopment) log.info('Environment = development');
 if (isStaging) log.info('Environment = staging');
 if (!isLocal && !isDevelopment && !isStaging)
   log.info('Environment = staging or production');
 
 /****************************************************************
- Setup basic auth for non-staging and non-production
+ Setup basic auth for non-production environments
 ****************************************************************/
 if (isDevelopment || isStaging) {
   if (process.env.HMW_BASIC_USER_NAME) {
@@ -125,6 +132,64 @@ if (isLocal) {
 
 function getUnauthorizedResponse(req) {
   return req.auth ? 'Invalid credentials' : 'No credentials provided';
+}
+
+/****************************************************************
+For Cloud.gov enviroments, get s3 endpoint location
+****************************************************************/
+if (!isLocal) {
+  if (process.env.VCAP_SERVICES) {
+    log.info('VCAP_SERVICES environmental variable found, continuing.');
+  } else {
+    let msg = 'VCAP_SERVICES environmental variable NOT set, exiting system.';
+    log.error(msg);
+    process.exit();
+  }
+
+  if (process.env.S3_PUB_BIND_NAME) {
+    log.info('S3_PUB_BIND_NAME environmental variable found, continuing.');
+  } else {
+    let msg =
+      'S3_PUB_BIND_NAME environmental variable NOT set, exiting system.';
+    log.error(msg);
+    process.exit();
+  }
+
+  let vcap_services = JSON.parse(process.env.VCAP_SERVICES);
+  let S3_PUB_BIND_NAME = process.env.S3_PUB_BIND_NAME;
+
+  let s3_object = null;
+  if (!vcap_services.hasOwnProperty('s3')) {
+    let msg =
+      'VCAP_SERVICES environmental variable does not include bind to s3, exiting system.';
+    log.error(msg);
+    process.exit();
+  } else {
+    s3_object = vcap_services.s3.find(
+      (obj) => obj.instance_name == S3_PUB_BIND_NAME,
+    );
+  }
+
+  if (
+    s3_object == null ||
+    !s3_object.hasOwnProperty('credentials') ||
+    !s3_object.credentials.hasOwnProperty('bucket') ||
+    !s3_object.credentials.hasOwnProperty('region')
+  ) {
+    let msg =
+      'VCAP_SERVICES environmental variable does not include the proper s3 information, exiting system.';
+    log.error(msg);
+    process.exit();
+  }
+
+  var s3_bucket_url =
+    'https://' +
+    s3_object.credentials.bucket +
+    '.s3-' +
+    s3_object.credentials.region +
+    '.amazonaws.com';
+  log.info('Calculated s3 bucket URL = ' + s3_bucket_url);
+  app.set('s3_bucket_url', s3_bucket_url);
 }
 
 /****************************************************************

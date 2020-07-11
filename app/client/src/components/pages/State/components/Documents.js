@@ -4,7 +4,7 @@ import React from 'react';
 import styled from 'styled-components';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
-import Table from 'components/shared/Table';
+import ReactTable from 'components/shared/ReactTable';
 // utilities
 import { getExtensionFromPath } from 'utils/utils';
 // styled components
@@ -44,7 +44,7 @@ const ErrorBox = styled(StyledErrorBox)`
   margin-bottom: 1.25rem;
 `;
 
-// --- components ---
+// --- components (Documents) ---
 type Props = {
   activeState: { code: string, name: string },
   surveyLoading: boolean,
@@ -114,55 +114,6 @@ function Documents({
     return documentsRanked;
   };
 
-  function DocumentsTable({ documents, type }) {
-    if (documents.length === 0)
-      return <p>No {type} documents available for this state.</p>;
-
-    return (
-      <Table
-        dataIdColumn="documentURL"
-        data={documents}
-        header={[
-          {
-            accessor: 'documentTypeLabel',
-            Header: 'Document Types',
-            maxWidth: 300,
-            Cell: (props) => props.value,
-          },
-          {
-            accessor: 'documentName',
-            Header: 'Document',
-            Cell: (props) => (
-              <a
-                href={props.original.documentURL}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {props.value} (
-                {getExtensionFromPath(
-                  props.original.documentFileName,
-                  props.original.documentURL,
-                )}
-                )
-              </a>
-            ),
-          },
-          {
-            accessor: 'agencyCode',
-            Header: 'Agency Code',
-            maxWidth: 125,
-            Cell: (props) =>
-              props.value === 'S'
-                ? 'State'
-                : props.value === 'E'
-                ? 'EPA'
-                : props.value,
-          },
-        ]}
-      />
-    );
-  }
-
   const assessmentDocumentsSorted = assessmentDocumentsRanked.sort((a, b) => {
     // sort by document type
     if (a.order !== b.order) {
@@ -217,6 +168,74 @@ function Documents({
         />
       )}
     </Container>
+  );
+}
+
+// --- components (DocumentsTable) ---
+type DocumentsTableProps = {
+  documents: Array<Object>,
+  type: string,
+};
+
+function DocumentsTable({ documents, type }: DocumentsTableProps) {
+  if (documents.length === 0)
+    return <p>No {type} documents available for this state.</p>;
+
+  return (
+    <ReactTable
+      data={documents}
+      getColumns={(tableWidth) => {
+        let docNameWidth = 0;
+
+        // make the document name column take up the remaining widht of the table
+        // table width - document type width - agency code width - border
+        if (tableWidth > 425) docNameWidth = tableWidth - 300 - 125 - 3;
+
+        // ensure the document name column is atleast 372px wide
+        if (docNameWidth < 372) docNameWidth = 372;
+
+        return [
+          {
+            accessor: 'documentTypeLabel',
+            Header: 'Document Types',
+            width: 300,
+          },
+          {
+            accessor: 'documentName',
+            Header: 'Document',
+            width: docNameWidth,
+            Render: (cell) => {
+              return (
+                <a
+                  href={cell.row.original.documentURL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {cell.value} (
+                  {getExtensionFromPath(
+                    cell.row.original.documentFileName,
+                    cell.row.original.documentURL,
+                  )}
+                  )
+                </a>
+              );
+            },
+          },
+          {
+            accessor: 'agencyCode',
+            Header: 'Agency Code',
+            width: 125,
+            Render: (cell) => {
+              return cell.value === 'S'
+                ? 'State'
+                : cell.value === 'E'
+                ? 'EPA'
+                : cell.value;
+            },
+          },
+        ];
+      }}
+    />
   );
 }
 
