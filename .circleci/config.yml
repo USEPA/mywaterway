@@ -61,7 +61,7 @@ jobs:
             cf start $APP_NAME-green
             cf unmap-route $APP_NAME-green $APP_DOMAIN -n $APP_NAME-green
             cf delete-route app.cloud.gov -n $APP_NAME-green -f
-      - aws-s3/copy:
+      - aws-s3/sync:
           arguments: |
             --acl public-read \
             --cache-control "max-age=86400"
