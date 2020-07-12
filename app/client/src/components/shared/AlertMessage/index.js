@@ -2,37 +2,87 @@
 
 import React from 'react';
 import styled from 'styled-components';
+import { globalHistory } from '@reach/router';
+// data
 import data from './data';
+// styles
+import { colors } from 'styles/index.js';
 
 // --- components ---
 type Props = {};
 
+// --- styled components ---
+const Banner = styled.div`
+  background-color: ${(props) => props.backgroundColor};
+  color: ${(props) => props.color};
+  width: 100%;
+  margin: 0 auto;
+  padding: 10px 5px;
+  text-align: center;
+
+  p {
+    padding: 0;
+    margin: 0;
+  }
+`;
+
+const Separator = styled.hr`
+  margin: 0;
+  background-color: ${colors.gray9};
+`;
+
 function AlertMessage({ ...props }: Props) {
-  React.useEffect(() => {
-    console.log('mounted');
-    console.log(data);
+  const [pathname, setPathname] = React.useState('');
+
+  if (pathname !== window.location.pathname) {
+    setPathname(window.location.pathname);
+  }
+
+  // watch for history changes that wouldn't trigger a re-render of this component
+  globalHistory.listen(() => {
+    if (pathname !== window.location.pathname) {
+      setPathname(window.location.pathname);
+    }
   });
 
+  function getPageFromPathname(pathname) {
+    return pathname.split('/')[1];
+  }
+
+  function createMarkup(message) {
+    return { __html: message };
+  }
+
+  // create a banner that applies to all pages
+  const allPagesBanner = data && data['all'] && (
+    <Banner
+      color={data['all'].color}
+      backgroundColor={data['all'].backgroundColor}
+      dangerouslySetInnerHTML={createMarkup(data['all'].message)}
+    ></Banner>
+  );
+
+  const page = getPageFromPathname(pathname);
+
+  const specificPageBanner = data && Object.keys(data).includes(page) && (
+    <Banner
+      color={data[page].color}
+      backgroundColor={data[page].backgroundColor}
+      dangerouslySetInnerHTML={createMarkup(data[page].message)}
+    ></Banner>
+  );
+
+  if (!data || Object.keys(data).length === 0) return null;
+
   return (
-    <div>
-      {/* on mount, check if localhost. if localhost, use the local public/data.json. */}
-      {/* if not localhost, fetch from S3 */}
+    <>
+      {allPagesBanner}
 
-      {/* put this component at of of app index. Page component? and
- check Amazon extension banner for how to static append to top of page */}
+      {/* if both banners have content render a HR element between them. */}
+      {allPagesBanner && specificPageBanner && <Separator />}
 
-      {/* class=data.json className */}
-      {/* data.json.forEach() */}
-      {/* if window.location.path === data.json, show message on that page.... */}
-
-      {/* if data.json is empty or {}, then return null in this component */}
-
-      {/* To create a fixed top menu, use position:fixed and top:0. 
- Note that the fixed menu will overlay your other content. 
- To fix this, add a margin-top (to the content) that is equal or larger than the height of your menu. */}
-
-      <p>TEST CONTENT</p>
-    </div>
+      {specificPageBanner}
+    </>
   );
 }
 
