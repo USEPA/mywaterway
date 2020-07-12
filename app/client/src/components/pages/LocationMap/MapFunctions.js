@@ -375,7 +375,10 @@ export const openPopup = (view: Object, feature: Object) => {
   const fieldName = feature.attributes && feature.attributes.fieldName;
 
   // set the popup template
-  if (!feature.popupTemplate || fieldName) {
+  if (
+    !feature.popupTemplate ||
+    (fieldName && fieldName !== 'hmw-extra-content')
+  ) {
     feature.popupTemplate = {
       title: getPopupTitle(feature.attributes),
       content: getPopupContent({ feature, fieldName }),

@@ -82,7 +82,7 @@ function SiteSpecific({
   completeUseList,
   useSelected,
 }: Props) {
-  const { currentSummary } = React.useContext(StateTabsContext);
+  const { currentReportingCycle } = React.useContext(StateTabsContext);
 
   const [waterTypeUnits, setWaterTypeUnits] = React.useState('');
   React.useEffect(() => {
@@ -310,10 +310,10 @@ function SiteSpecific({
           </HighchartsContainer>
           <ChartFooter>
             <strong>Year Last Reported:</strong>
-            {currentSummary.status === 'success' && (
-              <>&nbsp;{currentSummary.data.reportingCycle}</>
+            {currentReportingCycle.status === 'success' && (
+              <>&nbsp;{currentReportingCycle.reportingCycle}</>
             )}
-            {currentSummary.status === 'fetching' && <LoadingSpinner />}
+            {currentReportingCycle.status === 'fetching' && <LoadingSpinner />}
           </ChartFooter>
         </>
       )}
