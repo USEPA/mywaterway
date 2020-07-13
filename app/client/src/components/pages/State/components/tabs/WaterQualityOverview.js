@@ -781,7 +781,7 @@ function WaterQualityOverview({ ...props }: Props) {
     });
 
     setSubPopulationCodes(subPopulationCodes);
-  }, [useSelected, surveyData, waterType, topicUses]);
+  }, [useSelected, surveyData, waterType, topicUses, waterTypeOptions]);
 
   // setup order of the tabs
   const tabs = [
