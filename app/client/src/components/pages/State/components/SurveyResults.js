@@ -10,6 +10,8 @@ import Select from 'react-select';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
+// styled components
+import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // contexts
 import { useSurveyMappingContext } from 'contexts/LookupFiles';
 // utilities
@@ -18,6 +20,8 @@ import { formatNumber, titleCase, titleCaseWithExceptions } from 'utils/utils';
 import { waterTypeOptions } from 'components/pages/State/lookups/waterTypeOptions';
 // styles
 import { fonts, colors, reactSelectStyles } from 'styles/index.js';
+// errors
+import { stateSurveySectionError } from 'config/errorMessages';
 
 // add accessibility features to highcharts
 highchartsAccessibility(Highcharts);
@@ -383,6 +387,14 @@ function SurveyResults({
   const populationTitle = selectedSurveyGroup
     ? `${populationDistance} ${selectedSurveyGroup.surveyWaterGroupCommentText}`
     : '';
+
+  if (surveyMapping.status === 'failure') {
+    return (
+      <StyledErrorBox>
+        <p>{stateSurveySectionError}</p>
+      </StyledErrorBox>
+    );
+  }
 
   if (loading || surveyMapping.status === 'fetching') return <LoadingSpinner />;
 
