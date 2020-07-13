@@ -13,11 +13,12 @@ import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 // styled components
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // contexts
-import { useSurveyMappingContext } from 'contexts/LookupFiles';
+import {
+  useSurveyMappingContext,
+  useWaterTypeOptionsContext,
+} from 'contexts/LookupFiles';
 // utilities
 import { formatNumber, titleCase, titleCaseWithExceptions } from 'utils/utils';
-// data
-import { waterTypeOptions } from 'components/pages/State/lookups/waterTypeOptions';
 // styles
 import { fonts, colors, reactSelectStyles } from 'styles/index.js';
 // errors
@@ -97,6 +98,7 @@ function SurveyResults({
   useSelected,
 }: Props) {
   const surveyMapping = useSurveyMappingContext();
+  const waterTypeOptions = useWaterTypeOptionsContext();
 
   const [userSelectedSubPop, setUserSelectedSubPop] = React.useState('');
   const [selectedSubPop, setSelectedSubPop] = React.useState('');
@@ -173,6 +175,7 @@ function SurveyResults({
     surveyData &&
     surveyData.surveyWaterGroups &&
     waterType &&
+    waterTypeOptions.status === 'success' &&
     surveyMapping.status === 'success'
   ) {
     // build arrays of summary and stressors
@@ -181,7 +184,7 @@ function SurveyResults({
     surveyData.surveyWaterGroups
       .filter((x) => {
         return (
-          waterTypeOptions[waterType].includes(x['waterTypeGroupCode']) &&
+          waterTypeOptions.data[waterType].includes(x['waterTypeGroupCode']) &&
           selectedSubPop === x['subPopulationCode']
         );
       })
@@ -209,10 +212,10 @@ function SurveyResults({
             mapOrgId &&
             mapSubPop &&
             mapSurveyUse &&
-            waterTypeOptions[waterType] &&
+            waterTypeOptions.data[waterType] &&
             mapOrgId.toUpperCase() === organizationId.toUpperCase() &&
             mapSubPop.toUpperCase() === selectedSubPop.toUpperCase() &&
-            waterTypeOptions[waterType].includes(mapWaterGroup) &&
+            waterTypeOptions.data[waterType].includes(mapWaterGroup) &&
             (mapSurveyUse.toUpperCase() === useSelected.toUpperCase() ||
               (topicUseSelected &&
                 topicUseSelected.surveyuseCode &&
@@ -388,7 +391,10 @@ function SurveyResults({
     ? `${populationDistance} ${selectedSurveyGroup.surveyWaterGroupCommentText}`
     : '';
 
-  if (surveyMapping.status === 'failure') {
+  if (
+    surveyMapping.status === 'failure' ||
+    waterTypeOptions.status === 'failure'
+  ) {
     return (
       <StyledErrorBox>
         <p>{stateSurveySectionError}</p>

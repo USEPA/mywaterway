@@ -29,11 +29,15 @@ type LookupFile = {
 type LookupFiles = {
   surveyMapping: LookupFile,
   setSurveyMapping: Function,
+  waterTypeOptions: LookupFile,
+  setWaterTypeOptions: Function,
 };
 
 const LookupFilesContext: Object = React.createContext<LookupFiles>({
   surveyMapping: { status: 'none', data: null },
   setSurveyMapping: () => {},
+  waterTypeOptions: { status: 'none', data: null },
+  setWaterTypeOptions: () => {},
 });
 
 type Props = {
@@ -45,12 +49,18 @@ function LookupFilesProvider({ children }: Props) {
     status: 'none',
     data: [],
   });
+  const [waterTypeOptions, setWaterTypeOptions] = React.useState({
+    status: 'none',
+    data: [],
+  });
 
   return (
     <LookupFilesContext.Provider
       value={{
         surveyMapping,
         setSurveyMapping,
+        waterTypeOptions,
+        setWaterTypeOptions,
       }}
     >
       {children}
@@ -74,4 +84,24 @@ function useSurveyMappingContext() {
   return surveyMapping;
 }
 
-export { LookupFilesProvider, useSurveyMappingContext };
+// Custom hook for the waterTypeOptions.json lookup file.
+let waterTypeOptionsInitialized = false; // global var for ensuring fetch only happens once
+function useWaterTypeOptionsContext() {
+  const { waterTypeOptions, setWaterTypeOptions } = React.useContext(
+    LookupFilesContext,
+  );
+
+  // fetch the lookup file if necessary
+  if (!waterTypeOptionsInitialized) {
+    waterTypeOptionsInitialized = true;
+    getLookupFile('waterTypeOptions.json', setWaterTypeOptions);
+  }
+
+  return waterTypeOptions;
+}
+
+export {
+  LookupFilesProvider,
+  useSurveyMappingContext,
+  useWaterTypeOptionsContext,
+};
