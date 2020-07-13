@@ -10,10 +10,11 @@ import Select from 'react-select';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
+// contexts
+import { useSurveyMappingContext } from 'contexts/LookupFiles';
 // utilities
 import { formatNumber, titleCase, titleCaseWithExceptions } from 'utils/utils';
 // data
-import { surveyMapping } from 'components/pages/State/lookups/surveyMapping';
 import { waterTypeOptions } from 'components/pages/State/lookups/waterTypeOptions';
 // styles
 import { fonts, colors, reactSelectStyles } from 'styles/index.js';
@@ -91,6 +92,8 @@ function SurveyResults({
   organizationId,
   useSelected,
 }: Props) {
+  const surveyMapping = useSurveyMappingContext();
+
   const [userSelectedSubPop, setUserSelectedSubPop] = React.useState('');
   const [selectedSubPop, setSelectedSubPop] = React.useState('');
   const [selectedSurveyGroup, setSelectedSurveyGroup] = React.useState(null);
@@ -162,7 +165,12 @@ function SurveyResults({
   let surveyUseSelected = '';
   let allCategoryCodes = {};
   let allStressorNames = [];
-  if (surveyData && surveyData.surveyWaterGroups && waterType) {
+  if (
+    surveyData &&
+    surveyData.surveyWaterGroups &&
+    waterType &&
+    surveyMapping.status === 'success'
+  ) {
     // build arrays of summary and stressors
     let stressorItems = [];
     let locConfidenceLevel = '';
@@ -177,8 +185,8 @@ function SurveyResults({
         // get the categoryCodeMapping and stressorMapping for the current selections
         let categoryMapping = null;
         let stressorMapping = null;
-        for (let i = 0; i < surveyMapping.length; i++) {
-          let mapping = surveyMapping[i];
+        for (let i = 0; i < surveyMapping.data.length; i++) {
+          let mapping = surveyMapping.data[i];
           let useSelectedUpper = useSelected.toUpperCase();
           let topicUseSelected = topicUses[useSelectedUpper];
           surveyUseSelected =
@@ -376,7 +384,7 @@ function SurveyResults({
     ? `${populationDistance} ${selectedSurveyGroup.surveyWaterGroupCommentText}`
     : '';
 
-  if (loading) return <LoadingSpinner />;
+  if (loading || surveyMapping.status === 'fetching') return <LoadingSpinner />;
 
   // Generate a random number for making a unique connection between the
   // population dropdown and label
