@@ -14,6 +14,7 @@ import ErrorBoundary from 'components/shared/ErrorBoundary';
 import { EsriModulesProvider } from 'contexts/EsriModules';
 import { LocationSearchProvider } from 'contexts/locationSearch';
 import { GlossaryProvider } from 'contexts/Glossary';
+import { LookupFilesProvider } from 'contexts/LookupFiles';
 // errors
 import { defaultErrorBoundaryMessage } from 'config/errorMessages';
 
@@ -35,14 +36,16 @@ export const GlobalStyle = createGlobalStyle`
 function Root() {
   return (
     <EsriModulesProvider>
-      <LocationSearchProvider>
-        <GlossaryProvider>
-          <GlobalStyle />
-          <ErrorBoundary message={defaultErrorBoundaryMessage}>
-            <Routes />
-          </ErrorBoundary>
-        </GlossaryProvider>
-      </LocationSearchProvider>
+      <LookupFilesProvider>
+        <LocationSearchProvider>
+          <GlossaryProvider>
+            <GlobalStyle />
+            <ErrorBoundary message={defaultErrorBoundaryMessage}>
+              <Routes />
+            </ErrorBoundary>
+          </GlossaryProvider>
+        </LocationSearchProvider>
+      </LookupFilesProvider>
     </EsriModulesProvider>
   );
 }
