@@ -16,12 +16,17 @@ export default {
   state: {
     color: '#721c24',
     backgroundColor: '#f8d7da',
-    message: '<p>This is a message for the state page.</p>',
+    message: '<p>State page message.</p>',
   },
 
   'plan-summary': {
-    color: 'teal',
-    backgroundColor: 'pink',
+    color: '#721c24',
+    backgroundColor: '#f8d7da',
     message: 'Plan summary message.',
+  },
+  'waterbody-report': {
+    color: '#721c24',
+    backgroundColor: '#f8d7da',
+    message: 'Waterbody Report message.',
   },
 };
