@@ -15,6 +15,7 @@ import AlertMessage from 'components/shared/AlertMessage';
 import { EsriModulesProvider } from 'contexts/EsriModules';
 import { LocationSearchProvider } from 'contexts/locationSearch';
 import { GlossaryProvider } from 'contexts/Glossary';
+import { LookupFilesProvider } from 'contexts/LookupFiles';
 // errors
 import { defaultErrorBoundaryMessage } from 'config/errorMessages';
 
@@ -36,15 +37,17 @@ export const GlobalStyle = createGlobalStyle`
 function Root() {
   return (
     <EsriModulesProvider>
-      <LocationSearchProvider>
-        <GlossaryProvider>
-          <GlobalStyle />
-          <ErrorBoundary message={defaultErrorBoundaryMessage}>
-            <AlertMessage />
-            <Routes />
-          </ErrorBoundary>
-        </GlossaryProvider>
-      </LocationSearchProvider>
+      <LookupFilesProvider>
+        <LocationSearchProvider>
+          <GlossaryProvider>
+            <GlobalStyle />
+            <ErrorBoundary message={defaultErrorBoundaryMessage}>
+              <AlertMessage />
+              <Routes />
+            </ErrorBoundary>
+          </GlossaryProvider>
+        </LocationSearchProvider>
+      </LookupFilesProvider>
     </EsriModulesProvider>
   );
 }
