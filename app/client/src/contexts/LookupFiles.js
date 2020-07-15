@@ -27,6 +27,8 @@ type LookupFile = {
 };
 
 type LookupFiles = {
+  stateNationalUses: LookupFile,
+  setStateNationalUses: Function,
   surveyMapping: LookupFile,
   setSurveyMapping: Function,
   waterTypeOptions: LookupFile,
@@ -34,6 +36,8 @@ type LookupFiles = {
 };
 
 const LookupFilesContext: Object = React.createContext<LookupFiles>({
+  stateNationalUses: { status: 'none', data: null },
+  setStateNationalUses: () => {},
   surveyMapping: { status: 'none', data: null },
   setSurveyMapping: () => {},
   waterTypeOptions: { status: 'none', data: null },
@@ -45,6 +49,10 @@ type Props = {
 };
 
 function LookupFilesProvider({ children }: Props) {
+  const [stateNationalUses, setStateNationalUses] = React.useState({
+    status: 'none',
+    data: [],
+  });
   const [surveyMapping, setSurveyMapping] = React.useState({
     status: 'none',
     data: [],
@@ -57,6 +65,8 @@ function LookupFilesProvider({ children }: Props) {
   return (
     <LookupFilesContext.Provider
       value={{
+        stateNationalUses,
+        setStateNationalUses,
         surveyMapping,
         setSurveyMapping,
         waterTypeOptions,
@@ -66,6 +76,22 @@ function LookupFilesProvider({ children }: Props) {
       {children}
     </LookupFilesContext.Provider>
   );
+}
+
+// Custom hook for the surveyMapping.json lookup file.
+let stateNationalUsesInitialized = false; // global var for ensuring fetch only happens once
+function useStateNationalUsesContext() {
+  const { stateNationalUses, setStateNationalUses } = React.useContext(
+    LookupFilesContext,
+  );
+
+  // fetch the lookup file if necessary
+  if (!stateNationalUsesInitialized) {
+    stateNationalUsesInitialized = true;
+    getLookupFile('state/stateNationalUses.json', setStateNationalUses);
+  }
+
+  return stateNationalUses;
 }
 
 // Custom hook for the surveyMapping.json lookup file.
@@ -102,6 +128,7 @@ function useWaterTypeOptionsContext() {
 
 export {
   LookupFilesProvider,
+  useStateNationalUsesContext,
   useSurveyMappingContext,
   useWaterTypeOptionsContext,
 };
