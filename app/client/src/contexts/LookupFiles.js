@@ -78,7 +78,7 @@ function useSurveyMappingContext() {
   // fetch the lookup file if necessary
   if (!surveyMappingInitialized) {
     surveyMappingInitialized = true;
-    getLookupFile('surveyMapping.json', setSurveyMapping);
+    getLookupFile('state/surveyMapping.json', setSurveyMapping);
   }
 
   return surveyMapping;
@@ -94,7 +94,7 @@ function useWaterTypeOptionsContext() {
   // fetch the lookup file if necessary
   if (!waterTypeOptionsInitialized) {
     waterTypeOptionsInitialized = true;
-    getLookupFile('waterTypeOptions.json', setWaterTypeOptions);
+    getLookupFile('state/waterTypeOptions.json', setWaterTypeOptions);
   }
 
   return waterTypeOptions;

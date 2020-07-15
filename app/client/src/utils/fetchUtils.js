@@ -31,13 +31,10 @@ export function proxyFetch(apiUrl: string, timeout: number = defaultTimeout) {
   return fetchCheck(url, timeout);
 }
 
-export function lookupFetch(
-  filename: string,
-  timeout: number = defaultTimeout,
-) {
+export function lookupFetch(path: string, timeout: number = defaultTimeout) {
   const { REACT_APP_SERVER_URL } = process.env;
   const baseUrl = REACT_APP_SERVER_URL || window.location.origin;
-  const url = `${baseUrl}/data/${filename}`;
+  const url = `${baseUrl}/data/${path}`;
 
   return new Promise<Object>((resolve, reject) => {
     // Function that fetches the lookup file.
@@ -57,9 +54,7 @@ export function lookupFetch(
           } else {
             // recursive retry (1 second between retries)
             console.log(
-              `Failed to fetch ${filename}. Retrying (${
-                retryCount + 1
-              } of 3)...`,
+              `Failed to fetch ${path}. Retrying (${retryCount + 1} of 3)...`,
             );
             setTimeout(() => fetchLookup(retryCount + 1), 1000);
           }
