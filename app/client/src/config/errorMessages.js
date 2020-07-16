@@ -97,6 +97,9 @@ export const usesStateSummaryServiceInvalidResponse = (stateName) =>
 export const stateDocumentError = (stateName) =>
   `${stateName} integrated report documents are temporarily unavailable, please try again later.`;
 
+export const stateDocumentSortingError =
+  'There was an issue sorting the below documents. Because of this, the documents have been sorted alphabetically on document type.';
+
 // this message is displayed in the State Survey Use section when the Survey service is down
 export const stateSurveySectionError =
   'State survey information is temporarily unavailable, please try again later.';

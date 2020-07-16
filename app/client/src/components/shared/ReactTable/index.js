@@ -176,7 +176,7 @@ function ReactTable({ data, getColumns, striped = false }: Props) {
   }, []);
 
   return (
-    <Styles ref={measuredTableRef}>
+    <Styles ref={measuredTableRef} className="ReactTable">
       <div className="rt-table" role="grid" {...getTableProps()}>
         <div className="rt-thead">
           {headerGroups.map((headerGroup) => (
