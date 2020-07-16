@@ -27,6 +27,8 @@ type LookupFile = {
 };
 
 type LookupFiles = {
+  introText: LookupFile,
+  setIntroText: Function,
   stateNationalUses: LookupFile,
   setStateNationalUses: Function,
   surveyMapping: LookupFile,
@@ -36,6 +38,8 @@ type LookupFiles = {
 };
 
 const LookupFilesContext: Object = React.createContext<LookupFiles>({
+  introText: { status: 'none', data: null },
+  setIntroText: () => {},
   stateNationalUses: { status: 'none', data: null },
   setStateNationalUses: () => {},
   surveyMapping: { status: 'none', data: null },
@@ -49,6 +53,10 @@ type Props = {
 };
 
 function LookupFilesProvider({ children }: Props) {
+  const [introText, setIntroText] = React.useState({
+    status: 'none',
+    data: {},
+  });
   const [stateNationalUses, setStateNationalUses] = React.useState({
     status: 'none',
     data: [],
@@ -59,12 +67,14 @@ function LookupFilesProvider({ children }: Props) {
   });
   const [waterTypeOptions, setWaterTypeOptions] = React.useState({
     status: 'none',
-    data: [],
+    data: {},
   });
 
   return (
     <LookupFilesContext.Provider
       value={{
+        introText,
+        setIntroText,
         stateNationalUses,
         setStateNationalUses,
         surveyMapping,
@@ -76,6 +86,20 @@ function LookupFilesProvider({ children }: Props) {
       {children}
     </LookupFilesContext.Provider>
   );
+}
+
+// Custom hook for the introText.json lookup file.
+let introTextInitialized = false; // global var for ensuring fetch only happens once
+function useIntroTextContext() {
+  const { introText, setIntroText } = React.useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!introTextInitialized) {
+    introTextInitialized = true;
+    getLookupFile('state/introText.json', setIntroText);
+  }
+
+  return introText;
 }
 
 // Custom hook for the stateNationalUses.json lookup file.
@@ -128,6 +152,7 @@ function useWaterTypeOptionsContext() {
 
 export {
   LookupFilesProvider,
+  useIntroTextContext,
   useStateNationalUsesContext,
   useSurveyMappingContext,
   useWaterTypeOptionsContext,
