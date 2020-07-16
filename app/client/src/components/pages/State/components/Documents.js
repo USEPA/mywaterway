@@ -5,17 +5,40 @@ import styled from 'styled-components';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import ReactTable from 'components/shared/ReactTable';
+// contexts
+import { useDocumentOrderContext } from 'contexts/LookupFiles';
 // utilities
 import { getExtensionFromPath } from 'utils/utils';
 // styled components
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
-// data
-import {
-  integratedReportOrdering,
-  surveysOrdering,
-} from 'components/pages/State/lookups/documentOrder';
+import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes';
 // errors
-import { stateDocumentError, stateSurveyError } from 'config/errorMessages';
+import {
+  stateDocumentError,
+  stateDocumentSortingError,
+  stateSurveyError,
+} from 'config/errorMessages';
+
+// Sorts the documents differently depending on the status provided.
+// If the status is success, the documents will be sorted using the ordering in the
+//  document order lookup file and then alphabetically on the document name column.
+// If the status is failure, the documents will be sorted alphabetically on the
+//  document types column and then and then alphabetically on the document name column.
+function sortDocuments(documents, status) {
+  return documents.sort((a, b) => {
+    // sort document type order numerically if the documentOrder lookup was successful
+    if (status === 'success' && a.order !== b.order) {
+      return a.order - b.order;
+    }
+
+    // sort document type alphabetically if the documentOrder lookup failed
+    if (status === 'failure' && a.documentTypeLabel !== b.documentTypeLabel) {
+      return a.documentTypeLabel.localeCompare(b.documentTypeLabel);
+    }
+
+    // then by document name
+    else return a.documentName.localeCompare(b.documentName);
+  });
+}
 
 // --- styled components ---
 const Container = styled.div`
@@ -29,12 +52,16 @@ const Container = styled.div`
 
   em {
     display: block;
-    margin-bottom: 1.25rem;
+    margin-bottom: 0.5em;
   }
 
   h3 {
     margin-bottom: 0px;
   }
+`;
+
+const InfoBox = styled(StyledInfoBox)`
+  margin-bottom: 0.5em;
 `;
 
 const ErrorBox = styled(StyledErrorBox)`
@@ -69,23 +96,31 @@ function Documents({
     setAssessmentDocumentsRanked,
   ] = React.useState([]);
 
+  const documentOrder = useDocumentOrderContext();
+
   React.useEffect(() => {
-    const documentsRanked = getDocumentTypeOrder(
-      surveyDocuments,
-      surveysOrdering,
-    );
+    if (documentOrder.status === 'fetching') return;
+
+    const rankings =
+      documentOrder.status === 'success'
+        ? documentOrder.data.surveysOrdering
+        : {};
+    const documentsRanked = getDocumentTypeOrder(surveyDocuments, rankings);
 
     setSurveyDocumentsRanked(documentsRanked);
-  }, [surveyDocuments]);
+  }, [surveyDocuments, documentOrder]);
 
   React.useEffect(() => {
-    const documentsRanked = getDocumentTypeOrder(
-      assessmentDocuments,
-      integratedReportOrdering,
-    );
+    if (documentOrder.status === 'fetching') return;
+
+    const rankings =
+      documentOrder.status === 'success'
+        ? documentOrder.data.integratedReportOrdering
+        : {};
+    const documentsRanked = getDocumentTypeOrder(assessmentDocuments, rankings);
 
     setAssessmentDocumentsRanked(documentsRanked);
-  }, [assessmentDocuments]);
+  }, [assessmentDocuments, documentOrder]);
 
   const getDocumentTypeOrder = (documents: Array<Object>, ranks: Object) => {
     let documentsRanked = [];
@@ -114,25 +149,15 @@ function Documents({
     return documentsRanked;
   };
 
-  const assessmentDocumentsSorted = assessmentDocumentsRanked.sort((a, b) => {
-    // sort by document type
-    if (a.order !== b.order) {
-      return a.order - b.order;
-    }
+  const assessmentDocumentsSorted = sortDocuments(
+    assessmentDocumentsRanked,
+    documentOrder.status,
+  );
 
-    // then by document name
-    else return a.documentName.localeCompare(b.documentName);
-  });
-
-  const surveyDocumentsSorted = surveyDocumentsRanked.sort((a, b) => {
-    // sort by document type
-    if (a.order !== b.order) {
-      return a.order - b.order;
-    }
-
-    // then by document name
-    else return a.documentName.localeCompare(b.documentName);
-  });
+  const surveyDocumentsSorted = sortDocuments(
+    surveyDocumentsRanked,
+    documentOrder.status,
+  );
 
   if (activeState.code === '') return null;
 
@@ -140,32 +165,42 @@ function Documents({
     <Container>
       <h3>Documents Related to Integrated Report</h3>
       <em>Select a document below to download a copy of the report.</em>
-      {assessmentsLoading ? (
+      {assessmentsLoading || documentOrder.status === 'fetching' ? (
         <LoadingSpinner />
       ) : documentServiceError ? (
         <ErrorBox>
           <p>{stateDocumentError(activeState.name)}</p>
         </ErrorBox>
       ) : (
-        <DocumentsTable
-          documents={assessmentDocumentsSorted}
-          type="integrated report"
-        />
+        <>
+          {documentOrder.status === 'failure' && (
+            <InfoBox>{stateDocumentSortingError}</InfoBox>
+          )}
+          <DocumentsTable
+            documents={assessmentDocumentsSorted}
+            type="integrated report"
+          />
+        </>
       )}
 
       <h3>Documents Related to Statewide Statistical Surveys</h3>
 
-      {surveyLoading ? (
+      {surveyLoading || documentOrder.status === 'fetching' ? (
         <LoadingSpinner />
       ) : surveyServiceError ? (
         <ErrorBox>
           <p>{stateSurveyError(activeState.name)}</p>
         </ErrorBox>
       ) : (
-        <DocumentsTable
-          documents={surveyDocumentsSorted}
-          type="statewide statistical survey"
-        />
+        <>
+          {documentOrder.status === 'failure' && (
+            <InfoBox>{stateDocumentSortingError}</InfoBox>
+          )}
+          <DocumentsTable
+            documents={surveyDocumentsSorted}
+            type="statewide statistical survey"
+          />
+        </>
       )}
     </Container>
   );

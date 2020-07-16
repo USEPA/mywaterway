@@ -10,13 +10,19 @@ import Select from 'react-select';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
+// styled components
+import { StyledErrorBox } from 'components/shared/MessageBoxes';
+// contexts
+import {
+  useSurveyMappingContext,
+  useWaterTypeOptionsContext,
+} from 'contexts/LookupFiles';
 // utilities
 import { formatNumber, titleCase, titleCaseWithExceptions } from 'utils/utils';
-// data
-import { surveyMapping } from 'components/pages/State/lookups/surveyMapping';
-import { waterTypeOptions } from 'components/pages/State/lookups/waterTypeOptions';
 // styles
 import { fonts, colors, reactSelectStyles } from 'styles/index.js';
+// errors
+import { stateSurveySectionError } from 'config/errorMessages';
 
 // add accessibility features to highcharts
 highchartsAccessibility(Highcharts);
@@ -91,6 +97,9 @@ function SurveyResults({
   organizationId,
   useSelected,
 }: Props) {
+  const surveyMapping = useSurveyMappingContext();
+  const waterTypeOptions = useWaterTypeOptionsContext();
+
   const [userSelectedSubPop, setUserSelectedSubPop] = React.useState('');
   const [selectedSubPop, setSelectedSubPop] = React.useState('');
   const [selectedSurveyGroup, setSelectedSurveyGroup] = React.useState(null);
@@ -162,14 +171,20 @@ function SurveyResults({
   let surveyUseSelected = '';
   let allCategoryCodes = {};
   let allStressorNames = [];
-  if (surveyData && surveyData.surveyWaterGroups && waterType) {
+  if (
+    surveyData &&
+    surveyData.surveyWaterGroups &&
+    waterType &&
+    waterTypeOptions.status === 'success' &&
+    surveyMapping.status === 'success'
+  ) {
     // build arrays of summary and stressors
     let stressorItems = [];
     let locConfidenceLevel = '';
     surveyData.surveyWaterGroups
       .filter((x) => {
         return (
-          waterTypeOptions[waterType].includes(x['waterTypeGroupCode']) &&
+          waterTypeOptions.data[waterType].includes(x['waterTypeGroupCode']) &&
           selectedSubPop === x['subPopulationCode']
         );
       })
@@ -177,8 +192,8 @@ function SurveyResults({
         // get the categoryCodeMapping and stressorMapping for the current selections
         let categoryMapping = null;
         let stressorMapping = null;
-        for (let i = 0; i < surveyMapping.length; i++) {
-          let mapping = surveyMapping[i];
+        for (let i = 0; i < surveyMapping.data.length; i++) {
+          let mapping = surveyMapping.data[i];
           let useSelectedUpper = useSelected.toUpperCase();
           let topicUseSelected = topicUses[useSelectedUpper];
           surveyUseSelected =
@@ -197,10 +212,10 @@ function SurveyResults({
             mapOrgId &&
             mapSubPop &&
             mapSurveyUse &&
-            waterTypeOptions[waterType] &&
+            waterTypeOptions.data[waterType] &&
             mapOrgId.toUpperCase() === organizationId.toUpperCase() &&
             mapSubPop.toUpperCase() === selectedSubPop.toUpperCase() &&
-            waterTypeOptions[waterType].includes(mapWaterGroup) &&
+            waterTypeOptions.data[waterType].includes(mapWaterGroup) &&
             (mapSurveyUse.toUpperCase() === useSelected.toUpperCase() ||
               (topicUseSelected &&
                 topicUseSelected.surveyuseCode &&
@@ -376,7 +391,18 @@ function SurveyResults({
     ? `${populationDistance} ${selectedSurveyGroup.surveyWaterGroupCommentText}`
     : '';
 
-  if (loading) return <LoadingSpinner />;
+  if (
+    surveyMapping.status === 'failure' ||
+    waterTypeOptions.status === 'failure'
+  ) {
+    return (
+      <StyledErrorBox>
+        <p>{stateSurveySectionError}</p>
+      </StyledErrorBox>
+    );
+  }
+
+  if (loading || surveyMapping.status === 'fetching') return <LoadingSpinner />;
 
   // Generate a random number for making a unique connection between the
   // population dropdown and label
