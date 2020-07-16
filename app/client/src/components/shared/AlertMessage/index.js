@@ -7,6 +7,8 @@ import { globalHistory } from '@reach/router';
 import { colors } from 'styles/index.js';
 // contexts
 import { useNotificationsContext } from 'contexts/LookupFiles';
+// utilities
+import { createMarkup } from 'utils/utils';
 
 // --- components ---
 type Props = {};
@@ -64,14 +66,6 @@ function AlertMessage({ ...props }: Props) {
       }
     });
 
-    function getPageFromPathname(pathname) {
-      return pathname.split('/')[1];
-    }
-
-    function createMarkup(message) {
-      return { __html: message };
-    }
-
     // create a banner that applies to all pages
     const allPagesBanner = data && data['all'] && (
       <Banner
@@ -81,7 +75,9 @@ function AlertMessage({ ...props }: Props) {
       ></Banner>
     );
 
-    const page = getPageFromPathname(pathname);
+    // parse page name out of url:
+    // localhost:3000/community/dc/overview would be 'community'
+    const page = pathname.split('/')[1];
 
     const specificPageBanner = data && Object.keys(data).includes(page) && (
       <Banner
