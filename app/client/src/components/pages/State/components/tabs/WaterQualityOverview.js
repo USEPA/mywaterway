@@ -24,13 +24,13 @@ import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import { colors } from 'styles/index.js';
 // contexts
 import { StateTabsContext } from 'contexts/StateTabs';
-import { useWaterTypeOptionsContext } from 'contexts/LookupFiles';
+import {
+  useStateNationalUsesContext,
+  useWaterTypeOptionsContext,
+} from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 import { titleCase } from 'utils/utils';
-// data
-import { stateNationalUses } from 'components/pages/State/lookups/stateNationalUses';
-import { reportStatusOptions } from 'components/pages/State/lookups/reportStatusMapping';
 // config
 import { attains, grts } from 'config/webServiceConfig';
 // images
@@ -234,6 +234,7 @@ const ImageIcon = styled.img`
 type Props = {};
 
 function WaterQualityOverview({ ...props }: Props) {
+  const stateNationalUses = useStateNationalUsesContext();
   const waterTypeOptions = useWaterTypeOptionsContext();
   const {
     activeState,
@@ -303,17 +304,13 @@ function WaterQualityOverview({ ...props }: Props) {
           const orgData = res.items[0];
           setAssessmentDocuments(orgData.documents);
 
-          const reportStatus = reportStatusOptions.hasOwnProperty(
-            orgData.reportStatusCode,
-          )
-            ? reportStatusOptions[orgData.reportStatusCode]
-            : orgData.reportStatusCode;
-          setCurrentReportStatus(reportStatus);
+          setCurrentReportStatus(orgData.reportStatusCode);
         })
         .catch((err) => {
           console.error(err);
           setDocumentServiceError(true);
           setAssessmentsLoading(false);
+          setCurrentReportStatus('Error getting 303(d) List Status');
         });
     },
     [setCurrentReportStatus],
@@ -565,13 +562,15 @@ function WaterQualityOverview({ ...props }: Props) {
 
   // Gets a list of uses that pertain to the current topic
   React.useEffect(() => {
-    if (activeState.code === '') return;
+    if (activeState.code === '' || stateNationalUses.status !== 'success') {
+      return;
+    }
 
     let category = formatTopic(currentTopic);
 
     //get the list of possible uses
     let possibleUses = {};
-    stateNationalUses.forEach((item) => {
+    stateNationalUses.data.forEach((item) => {
       if (item.state === activeState.code && item.category === category) {
         // make sure to use upper case to prevent duplicate uses
         possibleUses[item.name.toUpperCase()] = item;
@@ -579,7 +578,7 @@ function WaterQualityOverview({ ...props }: Props) {
     });
 
     setTopicUses(possibleUses);
-  }, [currentTopic, activeState, waterTypeData]);
+  }, [currentTopic, activeState, waterTypeData, stateNationalUses]);
 
   // Gets a unique list of water types that have data that is relevant to
   // the current topic
@@ -819,7 +818,11 @@ function WaterQualityOverview({ ...props }: Props) {
   // unfortunately  need to manage the activeTabIndex (an implementation detail)
   const [activeTabIndex, setActiveTabIndex] = React.useState(initialTabIndex);
 
-  if (serviceError || waterTypeOptions.status === 'failure') {
+  if (
+    serviceError ||
+    waterTypeOptions.status === 'failure' ||
+    stateNationalUses.status === 'failure'
+  ) {
     return (
       <StyledErrorBox>
         <p>{stateGeneralError}</p>
