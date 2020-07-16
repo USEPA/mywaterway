@@ -37,6 +37,8 @@ type LookupFiles = {
   setSurveyMapping: Function,
   waterTypeOptions: LookupFile,
   setWaterTypeOptions: Function,
+  nars: LookupFile,
+  setNars: Function,
 };
 
 const LookupFilesContext: Object = React.createContext<LookupFiles>({
@@ -52,6 +54,8 @@ const LookupFilesContext: Object = React.createContext<LookupFiles>({
   setSurveyMapping: () => {},
   waterTypeOptions: { status: 'fetching', data: null },
   setWaterTypeOptions: () => {},
+  nars: { status: 'fetching', data: null },
+  setNars: () => {},
 });
 
 type Props = {
@@ -83,6 +87,10 @@ function LookupFilesProvider({ children }: Props) {
     status: 'fetching',
     data: {},
   });
+  const [nars, setNars] = React.useState({
+    status: 'fetching',
+    data: {},
+  });
 
   return (
     <LookupFilesContext.Provider
@@ -99,6 +107,8 @@ function LookupFilesProvider({ children }: Props) {
         setSurveyMapping,
         waterTypeOptions,
         setWaterTypeOptions,
+        nars,
+        setNars,
       }}
     >
       {children}
@@ -200,6 +210,20 @@ function useWaterTypeOptionsContext() {
   return waterTypeOptions;
 }
 
+// Custom hook for the waterTypeOptions.json lookup file.
+let narsInitialized = false; // global var for ensuring fetch only happens once
+function useNarsContext() {
+  const { nars, setNars } = React.useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!narsInitialized) {
+    narsInitialized = true;
+    getLookupFile('national/NARS.json', setNars);
+  }
+
+  return nars;
+}
+
 export {
   LookupFilesProvider,
   useDocumentOrderContext,
@@ -208,4 +232,5 @@ export {
   useStateNationalUsesContext,
   useSurveyMappingContext,
   useWaterTypeOptionsContext,
+  useNarsContext,
 };
