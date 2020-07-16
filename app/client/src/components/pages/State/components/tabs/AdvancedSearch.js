@@ -21,6 +21,7 @@ import {
   MapHighlightProvider,
 } from 'contexts/MapHighlight';
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
+import { useReportStatusMappingContext } from 'contexts/LookupFiles';
 // utilities
 import { getEnvironmentString, fetchCheck } from 'utils/fetchUtils';
 import { chunkArray } from 'utils/utils';
@@ -984,6 +985,7 @@ function AdvancedSearch({ ...props }: Props) {
     setMapShownInitialized(true);
   }, [mapShownInitialized, width]);
 
+  const reportStatusMapping = useReportStatusMappingContext();
   const mapContent = (
     <StateMap
       windowHeight={height}
@@ -996,7 +998,23 @@ function AdvancedSearch({ ...props }: Props) {
       <MapFooter style={{ width: fullscreenActive ? width : '100%' }}>
         <strong>303(d) List Status / Year Last Reported:</strong>
         &nbsp;&nbsp;
-        {currentReportStatus ? <>{currentReportStatus}</> : <LoadingSpinner />}
+        {!currentReportStatus ? (
+          <LoadingSpinner />
+        ) : (
+          <>
+            {reportStatusMapping.status === 'fetching' && <LoadingSpinner />}
+            {reportStatusMapping.status === 'failure' && (
+              <>{currentReportStatus}</>
+            )}
+            {reportStatusMapping.status === 'success' && (
+              <>
+                {reportStatusMapping.data.hasOwnProperty(currentReportStatus)
+                  ? reportStatusMapping.data[currentReportStatus]
+                  : currentReportStatus}
+              </>
+            )}
+          </>
+        )}
         <> / </>
         {currentReportingCycle.status === 'success' && (
           <>{currentReportingCycle.reportingCycle}</>

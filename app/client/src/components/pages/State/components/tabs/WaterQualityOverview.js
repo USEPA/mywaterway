@@ -31,7 +31,6 @@ import {
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 import { titleCase } from 'utils/utils';
-import { reportStatusOptions } from 'components/pages/State/lookups/reportStatusMapping';
 // config
 import { attains, grts } from 'config/webServiceConfig';
 // images
@@ -305,12 +304,7 @@ function WaterQualityOverview({ ...props }: Props) {
           const orgData = res.items[0];
           setAssessmentDocuments(orgData.documents);
 
-          const reportStatus = reportStatusOptions.hasOwnProperty(
-            orgData.reportStatusCode,
-          )
-            ? reportStatusOptions[orgData.reportStatusCode]
-            : orgData.reportStatusCode;
-          setCurrentReportStatus(reportStatus);
+          setCurrentReportStatus(orgData.reportStatusCode);
         })
         .catch((err) => {
           console.error(err);

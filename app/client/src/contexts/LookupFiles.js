@@ -31,6 +31,8 @@ type LookupFiles = {
   setDocumentOrder: Function,
   introText: LookupFile,
   setIntroText: Function,
+  reportStatusMapping: LookupFile,
+  setReportStatusMapping: Function,
   stateNationalUses: LookupFile,
   setStateNationalUses: Function,
   surveyMapping: LookupFile,
@@ -44,6 +46,8 @@ const LookupFilesContext: Object = React.createContext<LookupFiles>({
   setDocumentOrder: () => {},
   introText: { status: 'none', data: null },
   setIntroText: () => {},
+  reportStatusMapping: { status: 'none', data: null },
+  setReportStatusMapping: () => {},
   stateNationalUses: { status: 'none', data: null },
   setStateNationalUses: () => {},
   surveyMapping: { status: 'none', data: null },
@@ -62,6 +66,10 @@ function LookupFilesProvider({ children }: Props) {
     data: {},
   });
   const [introText, setIntroText] = React.useState({
+    status: 'none',
+    data: {},
+  });
+  const [reportStatusMapping, setReportStatusMapping] = React.useState({
     status: 'none',
     data: {},
   });
@@ -85,6 +93,8 @@ function LookupFilesProvider({ children }: Props) {
         setDocumentOrder,
         introText,
         setIntroText,
+        reportStatusMapping,
+        setReportStatusMapping,
         stateNationalUses,
         setStateNationalUses,
         surveyMapping,
@@ -126,6 +136,22 @@ function useIntroTextContext() {
   }
 
   return introText;
+}
+
+// Custom hook for the reportStatusMapping.json lookup file.
+let reportStatusMappingInitialized = false; // global var for ensuring fetch only happens once
+function useReportStatusMappingContext() {
+  const { reportStatusMapping, setReportStatusMapping } = React.useContext(
+    LookupFilesContext,
+  );
+
+  // fetch the lookup file if necessary
+  if (!reportStatusMappingInitialized) {
+    reportStatusMappingInitialized = true;
+    getLookupFile('state/reportStatusMapping.json', setReportStatusMapping);
+  }
+
+  return reportStatusMapping;
 }
 
 // Custom hook for the stateNationalUses.json lookup file.
@@ -180,6 +206,7 @@ export {
   LookupFilesProvider,
   useDocumentOrderContext,
   useIntroTextContext,
+  useReportStatusMappingContext,
   useStateNationalUsesContext,
   useSurveyMappingContext,
   useWaterTypeOptionsContext,
