@@ -124,6 +124,9 @@ export const stateGeneralError =
 export const stateNoDataError = (stateName) =>
   `No data available ${stateName && 'for ' + stateName}.`; // conditionals in case state name is undefined or an empty string
 
+export const state303dStatusError =
+  'There was an issue looking up the 303(d) List Status code. Because of this, the status code may not look familiar.';
+
 // Waterbody Report errors //
 export const waterbodyReportError = (type) =>
   `${type} information is temporarily unavailable, please try again later.`; // where type is 'Assessment unit', 'Assessment', or 'Plans'

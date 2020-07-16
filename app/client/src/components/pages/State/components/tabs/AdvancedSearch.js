@@ -34,7 +34,7 @@ import { attains } from 'config/webServiceConfig';
 // styles
 import { reactSelectStyles } from 'styles/index.js';
 // errors
-import { stateGeneralError } from 'config/errorMessages';
+import { stateGeneralError, state303dStatusError } from 'config/errorMessages';
 
 const defaultDisplayOption = {
   label: 'Overall Waterbody Condition',
@@ -182,8 +182,6 @@ const Button = styled.button`
 `;
 
 const MapFooter = styled.div`
-  display: flex;
-  align-items: center;
   width: 100%;
   /* match ESRI map footer text */
   padding: 3px 5px;
@@ -191,6 +189,15 @@ const MapFooter = styled.div`
   border-top: none;
   font-size: 0.75em;
   background-color: whitesmoke;
+`;
+
+const MapFooterMessage = styled.div`
+  margin-bottom: 5px;
+`;
+
+const MapFooterStatus = styled.div`
+  display: flex;
+  align-items: center;
 
   svg {
     margin: 0 -0.875rem;
@@ -996,30 +1003,35 @@ function AdvancedSearch({ ...props }: Props) {
       numberOfRecords={numberOfRecords}
     >
       <MapFooter style={{ width: fullscreenActive ? width : '100%' }}>
-        <strong>303(d) List Status / Year Last Reported:</strong>
-        &nbsp;&nbsp;
-        {!currentReportStatus ? (
-          <LoadingSpinner />
-        ) : (
-          <>
-            {reportStatusMapping.status === 'fetching' && <LoadingSpinner />}
-            {reportStatusMapping.status === 'failure' && (
-              <>{currentReportStatus}</>
-            )}
-            {reportStatusMapping.status === 'success' && (
-              <>
-                {reportStatusMapping.data.hasOwnProperty(currentReportStatus)
-                  ? reportStatusMapping.data[currentReportStatus]
-                  : currentReportStatus}
-              </>
-            )}
-          </>
+        {reportStatusMapping.status === 'failure' && (
+          <MapFooterMessage>{state303dStatusError}</MapFooterMessage>
         )}
-        <> / </>
-        {currentReportingCycle.status === 'success' && (
-          <>{currentReportingCycle.reportingCycle}</>
-        )}
-        {currentReportingCycle.status === 'fetching' && <LoadingSpinner />}
+        <MapFooterStatus>
+          <strong>303(d) List Status / Year Last Reported:</strong>
+          &nbsp;&nbsp;
+          {!currentReportStatus ? (
+            <LoadingSpinner />
+          ) : (
+            <>
+              {reportStatusMapping.status === 'fetching' && <LoadingSpinner />}
+              {reportStatusMapping.status === 'failure' && (
+                <>{currentReportStatus}</>
+              )}
+              {reportStatusMapping.status === 'success' && (
+                <>
+                  {reportStatusMapping.data.hasOwnProperty(currentReportStatus)
+                    ? reportStatusMapping.data[currentReportStatus]
+                    : currentReportStatus}
+                </>
+              )}
+            </>
+          )}
+          <> / </>
+          {currentReportingCycle.status === 'success' && (
+            <>{currentReportingCycle.reportingCycle}</>
+          )}
+          {currentReportingCycle.status === 'fetching' && <LoadingSpinner />}
+        </MapFooterStatus>
       </MapFooter>
     </StateMap>
   );
