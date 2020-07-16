@@ -139,6 +139,10 @@ function resetCanonicalLink() {
   if (canonicalLink) canonicalLink.href = '';
 }
 
+function createMarkup(message) {
+  return { __html: message };
+}
+
 export {
   chunkArray,
   containsScriptTag,
@@ -151,4 +155,5 @@ export {
   updateCanonicalLink,
   resetCanonicalLink,
   removeJsonLD,
+  createMarkup,
 };
