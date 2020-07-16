@@ -69,12 +69,7 @@ function Documents({
   const documentOrder = useDocumentOrderContext();
 
   React.useEffect(() => {
-    if (
-      documentOrder.status === 'none' ||
-      documentOrder.status === 'fetching'
-    ) {
-      return;
-    }
+    if (documentOrder.status === 'fetching') return;
 
     const rankings =
       documentOrder.status === 'success'
@@ -86,12 +81,7 @@ function Documents({
   }, [surveyDocuments, documentOrder]);
 
   React.useEffect(() => {
-    if (
-      documentOrder.status === 'none' ||
-      documentOrder.status === 'fetching'
-    ) {
-      return;
-    }
+    if (documentOrder.status === 'fetching') return;
 
     const rankings =
       documentOrder.status === 'success'

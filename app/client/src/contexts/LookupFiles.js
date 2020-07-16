@@ -7,8 +7,6 @@ import { lookupFetch } from 'utils/fetchUtils';
 
 // Common function for setting the context/state of lookup files.
 function getLookupFile(filename: string, setVariable: Function) {
-  setVariable({ status: 'fetching', data: null });
-
   // fetch the lookup file
   lookupFetch(filename)
     .then((data) => {
@@ -22,7 +20,7 @@ function getLookupFile(filename: string, setVariable: Function) {
 
 // --- components ---
 type LookupFile = {
-  status: 'none' | 'fetching' | 'success' | 'failure',
+  status: 'fetching' | 'success' | 'failure',
   data: Object,
 };
 
@@ -42,17 +40,17 @@ type LookupFiles = {
 };
 
 const LookupFilesContext: Object = React.createContext<LookupFiles>({
-  documentOrder: { status: 'none', data: null },
+  documentOrder: { status: 'fetching', data: null },
   setDocumentOrder: () => {},
-  introText: { status: 'none', data: null },
+  introText: { status: 'fetching', data: null },
   setIntroText: () => {},
-  reportStatusMapping: { status: 'none', data: null },
+  reportStatusMapping: { status: 'fetching', data: null },
   setReportStatusMapping: () => {},
-  stateNationalUses: { status: 'none', data: null },
+  stateNationalUses: { status: 'fetching', data: null },
   setStateNationalUses: () => {},
-  surveyMapping: { status: 'none', data: null },
+  surveyMapping: { status: 'fetching', data: null },
   setSurveyMapping: () => {},
-  waterTypeOptions: { status: 'none', data: null },
+  waterTypeOptions: { status: 'fetching', data: null },
   setWaterTypeOptions: () => {},
 });
 
@@ -62,27 +60,27 @@ type Props = {
 
 function LookupFilesProvider({ children }: Props) {
   const [documentOrder, setDocumentOrder] = React.useState({
-    status: 'none',
+    status: 'fetching',
     data: {},
   });
   const [introText, setIntroText] = React.useState({
-    status: 'none',
+    status: 'fetching',
     data: {},
   });
   const [reportStatusMapping, setReportStatusMapping] = React.useState({
-    status: 'none',
+    status: 'fetching',
     data: {},
   });
   const [stateNationalUses, setStateNationalUses] = React.useState({
-    status: 'none',
+    status: 'fetching',
     data: [],
   });
   const [surveyMapping, setSurveyMapping] = React.useState({
-    status: 'none',
+    status: 'fetching',
     data: [],
   });
   const [waterTypeOptions, setWaterTypeOptions] = React.useState({
-    status: 'none',
+    status: 'fetching',
     data: {},
   });
 
