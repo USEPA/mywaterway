@@ -78,7 +78,7 @@ function LookupFilesProvider({ children }: Props) {
   );
 }
 
-// Custom hook for the surveyMapping.json lookup file.
+// Custom hook for the stateNationalUses.json lookup file.
 let stateNationalUsesInitialized = false; // global var for ensuring fetch only happens once
 function useStateNationalUsesContext() {
   const { stateNationalUses, setStateNationalUses } = React.useContext(
