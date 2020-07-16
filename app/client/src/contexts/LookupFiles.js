@@ -31,6 +31,8 @@ type LookupFiles = {
   setSurveyMapping: Function,
   waterTypeOptions: LookupFile,
   setWaterTypeOptions: Function,
+  notifications: LookupFile,
+  setNotifications: Function,
 };
 
 const LookupFilesContext: Object = React.createContext<LookupFiles>({
@@ -38,6 +40,8 @@ const LookupFilesContext: Object = React.createContext<LookupFiles>({
   setSurveyMapping: () => {},
   waterTypeOptions: { status: 'none', data: null },
   setWaterTypeOptions: () => {},
+  notifications: { status: 'fetching', data: null },
+  setNotifications: () => {},
 });
 
 type Props = {
@@ -53,6 +57,10 @@ function LookupFilesProvider({ children }: Props) {
     status: 'none',
     data: [],
   });
+  const [notifications, setNotifications] = React.useState({
+    status: 'fetching',
+    data: [],
+  });
 
   return (
     <LookupFilesContext.Provider
@@ -61,6 +69,8 @@ function LookupFilesProvider({ children }: Props) {
         setSurveyMapping,
         waterTypeOptions,
         setWaterTypeOptions,
+        notifications,
+        setNotifications,
       }}
     >
       {children}
@@ -100,8 +110,25 @@ function useWaterTypeOptionsContext() {
   return waterTypeOptions;
 }
 
+// Custom hook for the messages.json file.
+let notificationsInitialized = false; // global var for ensuring fetch only happens once
+function useNotificationsContext() {
+  const { notifications, setNotifications } = React.useContext(
+    LookupFilesContext,
+  );
+
+  // fetch the lookup file if necessary
+  if (!notificationsInitialized) {
+    notificationsInitialized = true;
+    getLookupFile('notifications/messages.json', setNotifications);
+  }
+
+  return notifications;
+}
+
 export {
   LookupFilesProvider,
   useSurveyMappingContext,
   useWaterTypeOptionsContext,
+  useNotificationsContext,
 };

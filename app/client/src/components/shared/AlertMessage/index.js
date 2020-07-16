@@ -3,10 +3,10 @@
 import React from 'react';
 import styled from 'styled-components';
 import { globalHistory } from '@reach/router';
-// data
-import data from './data';
 // styles
 import { colors } from 'styles/index.js';
+// contexts
+import { useNotificationsContext } from 'contexts/LookupFiles';
 
 // --- components ---
 type Props = {};
@@ -32,58 +32,76 @@ const Separator = styled.hr`
 `;
 
 function AlertMessage({ ...props }: Props) {
+  const notifications = useNotificationsContext();
+
   const [pathname, setPathname] = React.useState('');
 
-  if (pathname !== window.location.pathname) {
-    setPathname(window.location.pathname);
+  if (notifications.status === 'failure') return null;
+
+  if (notifications.status === 'fetching') return null;
+
+  if (
+    notifications.status === 'success' &&
+    (!notifications.data || Object.keys(notifications.data).length === 0)
+  ) {
+    return null;
   }
 
-  // watch for history changes that wouldn't trigger a re-render of this component
-  globalHistory.listen(() => {
+  if (
+    notifications.status === 'success' &&
+    Object.keys(notifications.data).length > 0
+  ) {
+    const data = notifications.data;
+
     if (pathname !== window.location.pathname) {
       setPathname(window.location.pathname);
     }
-  });
 
-  function getPageFromPathname(pathname) {
-    return pathname.split('/')[1];
+    // watch for history changes that wouldn't trigger a re-render of this component
+    globalHistory.listen(() => {
+      if (pathname !== window.location.pathname) {
+        setPathname(window.location.pathname);
+      }
+    });
+
+    function getPageFromPathname(pathname) {
+      return pathname.split('/')[1];
+    }
+
+    function createMarkup(message) {
+      return { __html: message };
+    }
+
+    // create a banner that applies to all pages
+    const allPagesBanner = data && data['all'] && (
+      <Banner
+        color={data['all'].color}
+        backgroundColor={data['all'].backgroundColor}
+        dangerouslySetInnerHTML={createMarkup(data['all'].message)}
+      ></Banner>
+    );
+
+    const page = getPageFromPathname(pathname);
+
+    const specificPageBanner = data && Object.keys(data).includes(page) && (
+      <Banner
+        color={data[page].color}
+        backgroundColor={data[page].backgroundColor}
+        dangerouslySetInnerHTML={createMarkup(data[page].message)}
+      ></Banner>
+    );
+
+    return (
+      <>
+        {allPagesBanner}
+
+        {/* if both banners have content render a HR element between them. */}
+        {allPagesBanner && specificPageBanner && <Separator />}
+
+        {specificPageBanner}
+      </>
+    );
   }
-
-  function createMarkup(message) {
-    return { __html: message };
-  }
-
-  // create a banner that applies to all pages
-  const allPagesBanner = data && data['all'] && (
-    <Banner
-      color={data['all'].color}
-      backgroundColor={data['all'].backgroundColor}
-      dangerouslySetInnerHTML={createMarkup(data['all'].message)}
-    ></Banner>
-  );
-
-  const page = getPageFromPathname(pathname);
-
-  const specificPageBanner = data && Object.keys(data).includes(page) && (
-    <Banner
-      color={data[page].color}
-      backgroundColor={data[page].backgroundColor}
-      dangerouslySetInnerHTML={createMarkup(data[page].message)}
-    ></Banner>
-  );
-
-  if (!data || Object.keys(data).length === 0) return null;
-
-  return (
-    <>
-      {allPagesBanner}
-
-      {/* if both banners have content render a HR element between them. */}
-      {allPagesBanner && specificPageBanner && <Separator />}
-
-      {specificPageBanner}
-    </>
-  );
 }
 
 export default AlertMessage;
