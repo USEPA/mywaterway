@@ -27,6 +27,8 @@ type LookupFile = {
 };
 
 type LookupFiles = {
+  documentOrder: LookupFile,
+  setDocumentOrder: Function,
   introText: LookupFile,
   setIntroText: Function,
   stateNationalUses: LookupFile,
@@ -38,6 +40,8 @@ type LookupFiles = {
 };
 
 const LookupFilesContext: Object = React.createContext<LookupFiles>({
+  documentOrder: { status: 'none', data: null },
+  setDocumentOrder: () => {},
   introText: { status: 'none', data: null },
   setIntroText: () => {},
   stateNationalUses: { status: 'none', data: null },
@@ -53,6 +57,10 @@ type Props = {
 };
 
 function LookupFilesProvider({ children }: Props) {
+  const [documentOrder, setDocumentOrder] = React.useState({
+    status: 'none',
+    data: {},
+  });
   const [introText, setIntroText] = React.useState({
     status: 'none',
     data: {},
@@ -73,6 +81,8 @@ function LookupFilesProvider({ children }: Props) {
   return (
     <LookupFilesContext.Provider
       value={{
+        documentOrder,
+        setDocumentOrder,
         introText,
         setIntroText,
         stateNationalUses,
@@ -86,6 +96,22 @@ function LookupFilesProvider({ children }: Props) {
       {children}
     </LookupFilesContext.Provider>
   );
+}
+
+// Custom hook for the documentOrder.json lookup file.
+let documentOrderInitialized = false; // global var for ensuring fetch only happens once
+function useDocumentOrderContext() {
+  const { documentOrder, setDocumentOrder } = React.useContext(
+    LookupFilesContext,
+  );
+
+  // fetch the lookup file if necessary
+  if (!documentOrderInitialized) {
+    documentOrderInitialized = true;
+    getLookupFile('state/documentOrder.json', setDocumentOrder);
+  }
+
+  return documentOrder;
 }
 
 // Custom hook for the introText.json lookup file.
@@ -152,6 +178,7 @@ function useWaterTypeOptionsContext() {
 
 export {
   LookupFilesProvider,
+  useDocumentOrderContext,
   useIntroTextContext,
   useStateNationalUsesContext,
   useSurveyMappingContext,

@@ -5,15 +5,12 @@ import styled from 'styled-components';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import ReactTable from 'components/shared/ReactTable';
+// contexts
+import { useDocumentOrderContext } from 'contexts/LookupFiles';
 // utilities
 import { getExtensionFromPath } from 'utils/utils';
 // styled components
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
-// data
-import {
-  integratedReportOrdering,
-  surveysOrdering,
-} from 'components/pages/State/lookups/documentOrder';
 // errors
 import { stateDocumentError, stateSurveyError } from 'config/errorMessages';
 
@@ -69,23 +66,41 @@ function Documents({
     setAssessmentDocumentsRanked,
   ] = React.useState([]);
 
+  const documentOrder = useDocumentOrderContext();
+
   React.useEffect(() => {
-    const documentsRanked = getDocumentTypeOrder(
-      surveyDocuments,
-      surveysOrdering,
-    );
+    if (
+      documentOrder.status === 'none' ||
+      documentOrder.status === 'fetching'
+    ) {
+      return;
+    }
+
+    const rankings =
+      documentOrder.status === 'success'
+        ? documentOrder.data.surveysOrdering
+        : {};
+    const documentsRanked = getDocumentTypeOrder(surveyDocuments, rankings);
 
     setSurveyDocumentsRanked(documentsRanked);
-  }, [surveyDocuments]);
+  }, [surveyDocuments, documentOrder]);
 
   React.useEffect(() => {
-    const documentsRanked = getDocumentTypeOrder(
-      assessmentDocuments,
-      integratedReportOrdering,
-    );
+    if (
+      documentOrder.status === 'none' ||
+      documentOrder.status === 'fetching'
+    ) {
+      return;
+    }
+
+    const rankings =
+      documentOrder.status === 'success'
+        ? documentOrder.data.integratedReportOrdering
+        : {};
+    const documentsRanked = getDocumentTypeOrder(assessmentDocuments, rankings);
 
     setAssessmentDocumentsRanked(documentsRanked);
-  }, [assessmentDocuments]);
+  }, [assessmentDocuments, documentOrder]);
 
   const getDocumentTypeOrder = (documents: Array<Object>, ranks: Object) => {
     let documentsRanked = [];
@@ -140,7 +155,7 @@ function Documents({
     <Container>
       <h3>Documents Related to Integrated Report</h3>
       <em>Select a document below to download a copy of the report.</em>
-      {assessmentsLoading ? (
+      {assessmentsLoading || documentOrder.status === 'fetching' ? (
         <LoadingSpinner />
       ) : documentServiceError ? (
         <ErrorBox>
@@ -155,7 +170,7 @@ function Documents({
 
       <h3>Documents Related to Statewide Statistical Surveys</h3>
 
-      {surveyLoading ? (
+      {surveyLoading || documentOrder.status === 'fetching' ? (
         <LoadingSpinner />
       ) : surveyServiceError ? (
         <ErrorBox>
