@@ -42,17 +42,11 @@ function AlertMessage({ ...props }: Props) {
 
   if (notifications.status === 'fetching') return null;
 
-  if (
-    notifications.status === 'success' &&
-    (!notifications.data || Object.keys(notifications.data).length === 0)
-  ) {
-    return null;
-  }
+  if (notifications.status === 'success') {
+    if (!notifications.data || Object.keys(notifications.data).length === 0) {
+      return null;
+    }
 
-  if (
-    notifications.status === 'success' &&
-    Object.keys(notifications.data).length > 0
-  ) {
     const data = notifications.data;
 
     if (pathname !== window.location.pathname) {
