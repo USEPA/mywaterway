@@ -310,6 +310,7 @@ function WaterQualityOverview({ ...props }: Props) {
           console.error(err);
           setDocumentServiceError(true);
           setAssessmentsLoading(false);
+          setCurrentReportStatus('Error getting 303(d) List Status');
         });
     },
     [setCurrentReportStatus],
