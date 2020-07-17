@@ -121,12 +121,6 @@ function createJsonLD(huc12, watershed) {
   head.appendChild(script);
 }
 
-function removeJsonLD() {
-  if (document.getElementById('jsonLD')) {
-    document.getElementById('jsonLD').remove();
-  }
-}
-
 function updateCanonicalLink(huc12) {
   const canonicalLink = document.querySelector('[rel="canonical"]');
   if (canonicalLink) {
@@ -137,6 +131,12 @@ function updateCanonicalLink(huc12) {
 function resetCanonicalLink() {
   const canonicalLink = document.querySelector('[rel="canonical"]');
   if (canonicalLink) canonicalLink.href = '';
+}
+
+function removeJsonLD() {
+  if (document.getElementById('jsonLD')) {
+    document.getElementById('jsonLD').remove();
+  }
 }
 
 function createMarkup(message) {
