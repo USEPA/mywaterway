@@ -81,6 +81,10 @@ export const noActionsAvailableCombo = (orgId, actionId) =>
 
 // National errors //
 
+// NARS JSON file
+export const narsError =
+  'The National Aquatic Resource Surveys (NARS) data is currently unavailable, please try again later.';
+
 // ofmpub.epa.gov GRPA service
 export const grpaError =
   'The EPA Drinking Water Performance and Results information is temporarily unavailable, please try again later.'; // also used on state page
