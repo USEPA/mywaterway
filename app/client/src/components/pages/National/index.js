@@ -33,6 +33,8 @@ import lakesPhoto from './images/learn-more-lakes.jpg';
 import coastsPhoto from './images/learn-more-coasts.jpg';
 import wetlandsPhoto from './images/learn-more-wetlands.jpg';
 import drinkingWaterIcon from 'components/pages/Community/images/drinking-water.png';
+// errors
+import { narsError } from 'config/errorMessages';
 
 // --- styled components ---
 const Container = styled.div`
@@ -339,11 +341,11 @@ function WaterConditionsPanel() {
       {NARS.status === 'fetching' && <LoadingSpinner />}
 
       {NARS.status === 'failure' && (
-        <StyledErrorBox>Error fetching NARS data.</StyledErrorBox>
+        <StyledErrorBox>{narsError}</StyledErrorBox>
       )}
 
       {NARS.status === 'success' && Object.keys(NARS.data).length === 0 && (
-        <StyledErrorBox>Error fetching NARS data.</StyledErrorBox>
+        <StyledErrorBox>{narsError}</StyledErrorBox>
       )}
 
       {NARS.status === 'success' && Object.keys(NARS.data).length > 0 && (
