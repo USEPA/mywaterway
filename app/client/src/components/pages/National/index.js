@@ -11,6 +11,9 @@ import { ContentTabs } from 'components/shared/ContentTabs';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import WaterSystemSummary from 'components/shared/WaterSystemSummary';
 import DisclaimerModal from 'components/shared/DisclaimerModal';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+// contexts
+import { useNarsContext } from 'contexts/LookupFiles';
 // styled components
 import {
   StyledIntroBox,
@@ -18,6 +21,9 @@ import {
   StyledIntroText,
 } from 'components/shared/IntroBox';
 import { LargeTab } from 'components/shared/ContentTabs/LargeTab.js';
+import { StyledErrorBox } from 'components/shared/MessageBoxes';
+// utilities
+import { createMarkup } from 'utils/utils';
 // styles
 import { colors, fonts } from 'styles/index.js';
 // images
@@ -27,6 +33,8 @@ import lakesPhoto from './images/learn-more-lakes.jpg';
 import coastsPhoto from './images/learn-more-coasts.jpg';
 import wetlandsPhoto from './images/learn-more-wetlands.jpg';
 import drinkingWaterIcon from 'components/pages/Community/images/drinking-water.png';
+// errors
+import { narsError } from 'config/errorMessages';
 
 // --- styled components ---
 const Container = styled.div`
@@ -267,6 +275,15 @@ const NewTabDisclaimer = styled.p`
 function WaterConditionsPanel() {
   const narsUrl = 'https://www.epa.gov/national-aquatic-resource-surveys';
 
+  const NARS = useNarsContext();
+
+  const narsFooter = (
+    <FooterText>
+      This data is pulled from the National Aquatic Resource Surveys (NARS) and
+      the metrics are only for the conterminous US.
+    </FooterText>
+  );
+
   return (
     <>
       <IntroBox>
@@ -321,306 +338,136 @@ function WaterConditionsPanel() {
 
       <h3>Learn about the health of our waters</h3>
 
-      <ContentTabs>
-        <Tabs>
-          <TabList>
-            <Tab data-testid="hmw-national-rivers-and-streams-tab">
-              Rivers and Streams
-            </Tab>
-            <Tab data-testid="hmw-national-lakes-tab">Lakes</Tab>
-            <Tab data-testid="hmw-national-coasts-tab">Coasts</Tab>
-            <Tab data-testid="hmw-national-wetlands-tab">Wetlands</Tab>
-          </TabList>
+      {NARS.status === 'fetching' && <LoadingSpinner />}
 
-          <TabPanels>
-            <TabPanel>
-              <AccordionList>
-                <AccordionItem
-                  title={
-                    <>
-                      <Percent>28%</Percent> of our rivers and streams are
-                      healthy based on their biological communities when
-                      compared to the best 75% of the least-disturbed river and
-                      stream reference sites in the same region
-                    </>
-                  }
-                >
-                  <AccordionContent>
-                    <p>
-                      Biological condition tells us how healthy a waterbody is.
-                      A healthy waterbody supports aquatic communities – such as
-                      insects, crayfish, snails, and worms – that are sensitive
-                      to changes in their environment. Their presence or absence
-                      gives us an idea of how healthy or impaired waters are.
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem
-                  title={
-                    <>
-                      <Percent>46%</Percent> of our rivers and streams have
-                      excess nutrients when compared to the worst 5% of the
-                      least-disturbed river and stream reference sites
-                    </>
-                  }
-                >
-                  <AccordionContent>
-                    <p>
-                      Nutrients like nitrogen and phosphorus are important, but
-                      too much of a good thing can become a bad thing. Excess
-                      nutrients can come from fertilizer, wastewater treatment,
-                      atmospheric deposition, animal manure, and urban runoff.
-                    </p>
-                    <p>
-                      Excess nutrients can lead to algal blooms and fish kills,
-                      causing a loss of fishing and recreational opportunities.
-                      High levels of nutrients can also threaten drinking water.
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem
-                  title={
-                    <>
-                      <Percent>56%</Percent> of our rivers and streams have
-                      healthy riverside vegetation when compared to the best 75%
-                      of the least-disturbed river and stream reference sites
-                    </>
-                  }
-                >
-                  <AccordionContent>
-                    <p>
-                      Healthy rivers and streams have surrounding plants –
-                      grasses, shrubs, and trees – that help to absorb rainfall,
-                      slow stormwater, and filter runoff. Many actions, such as
-                      mowing, paving, farming, and construction can damage
-                      riverside vegetation.
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
-              </AccordionList>
+      {NARS.status === 'failure' && (
+        <StyledErrorBox>{narsError}</StyledErrorBox>
+      )}
 
-              <FooterText>
-                This data is pulled from the National Aquatic Resource Surveys
-                (NARS) and the metrics are only for the conterminous US.
-              </FooterText>
-            </TabPanel>
+      {NARS.status === 'success' && Object.keys(NARS.data).length === 0 && (
+        <StyledErrorBox>{narsError}</StyledErrorBox>
+      )}
 
-            <TabPanel>
-              <AccordionList>
-                <AccordionItem
-                  title={
-                    <>
-                      <Percent>21%</Percent> of lakes have high levels of algal
-                      growth
-                    </>
-                  }
-                >
-                  <AccordionContent>
-                    <p>
-                      Algae and plant productivity can tell us about the health
-                      of lakes. Some lakes have too many nutrients, which can
-                      lead to excessive plant growth, nuisance algae, murky
-                      water, odor, fish kills, and lower levels of dissolved
-                      oxygen.
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem
-                  title={
-                    <>
-                      <Percent>40%</Percent> of our nation's lakes have excess
-                      nutrients when compared to the worst 5% of the
-                      least-disturbed lake reference sites in the same region
-                    </>
-                  }
-                >
-                  <AccordionContent>
-                    <p>
-                      Sampling shows that excess nutrients is a widespread
-                      problem in America’s lakes. While nutrients are important,
-                      too much of a good thing can cause problems. Excess
-                      nutrients can lead to excessive algae growth, which can
-                      use up oxygen that aquatic organisms need to survive.
-                    </p>
-                    <p>
-                      Too much algae growth can cause fish to die, causing a
-                      loss of fishing and recreational opportunities.
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem
-                  title={
-                    <>
-                      <Percent>39%</Percent> of our nation's lakes have
-                      measurable levels of a cyanotoxin
-                    </>
-                  }
-                >
-                  <AccordionContent>
-                    <p>
-                      Microcystin is a cyanotoxin that is produced by
-                      naturally-occurring bacteria in surface waters. While
-                      detected at more than 1 in 3 lakes, less than 1 in 100 had
-                      levels that could pose risks to people swimming or playing
-                      in the water.
-                    </p>
-                    <p>
-                      At high levels, cyanotoxins can present a risk to public
-                      drinking water systems and to people, pets, and livestock.
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
-              </AccordionList>
+      {NARS.status === 'success' && Object.keys(NARS.data).length > 0 && (
+        <ContentTabs>
+          <Tabs>
+            <TabList>
+              <Tab data-testid="hmw-national-rivers-and-streams-tab">
+                Rivers and Streams
+              </Tab>
+              <Tab data-testid="hmw-national-lakes-tab">Lakes</Tab>
+              <Tab data-testid="hmw-national-coasts-tab">Coasts</Tab>
+              <Tab data-testid="hmw-national-wetlands-tab">Wetlands</Tab>
+            </TabList>
 
-              <FooterText>
-                This data is pulled from the National Aquatic Resource Surveys
-                (NARS) and the metrics are only for the conterminous US.
-              </FooterText>
-            </TabPanel>
+            <TabPanels>
+              <TabPanel>
+                <AccordionList>
+                  {NARS.data.riversAndStreams.map((category, index) => (
+                    <AccordionItem
+                      key={index}
+                      title={
+                        <>
+                          <Percent>{category.metric}</Percent>{' '}
+                          <span
+                            dangerouslySetInnerHTML={createMarkup(
+                              category.title,
+                            )}
+                          />
+                        </>
+                      }
+                    >
+                      <AccordionContent
+                        dangerouslySetInnerHTML={createMarkup(category.content)}
+                      />
+                    </AccordionItem>
+                  ))}
+                </AccordionList>
 
-            <TabPanel>
-              <AccordionList>
-                <AccordionItem
-                  title={
-                    <>
-                      <Percent>56%</Percent> of our coasts are healthy based on
-                      their biological communities
-                    </>
-                  }
-                >
-                  <AccordionContent>
-                    <p>
-                      Biological condition tells us how healthy a waterbody is.
-                      A healthy waterbody supports aquatic communities – such as
-                      worms, snails, and clams – that are sensitive to changes
-                      in their environment. Their presence or absence gives us
-                      an idea of how healthy or impaired our waters are.
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem
-                  title={
-                    <>
-                      <Percent>21%</Percent> of our coasts have excess nutrients
-                    </>
-                  }
-                >
-                  <AccordionContent>
-                    <p>
-                      While nutrients are important, having too many nutrients
-                      is bad. Excess nutrients come from farm fertilizer,
-                      wastewater treatment, atmospheric deposition, animal
-                      manure, and urban runoff, and cause problems for water
-                      quality.
-                    </p>
-                    <p>
-                      Excess nutrients can lead to algal blooms and fish kills,
-                      leading to a loss of fishing, recreational, and tourism
-                      opportunities.
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem
-                  title={
-                    <>
-                      <Percent>55%</Percent> of our coasts have good quality
-                      sediments
-                    </>
-                  }
-                >
-                  <AccordionContent>
-                    <p>
-                      Many contaminants can accumulate in bottom sediments. When
-                      present they can negatively impact organisms living in
-                      those sediments. As other creatures eat them, the
-                      contaminants can become concentrated throughout the food
-                      web, potentially affecting fish, marine mammals, and
-                      humans who consume contaminated fish and shellfish.
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
-              </AccordionList>
+                {narsFooter}
+              </TabPanel>
 
-              <FooterText>
-                This data is pulled from the National Aquatic Resource Surveys
-                (NARS) and the metrics are only for the conterminous US.
-              </FooterText>
-            </TabPanel>
+              <TabPanel>
+                <AccordionList>
+                  {NARS.data.lakes.map((category, index) => (
+                    <AccordionItem
+                      key={index}
+                      title={
+                        <>
+                          <Percent>{category.metric}</Percent>{' '}
+                          <span
+                            dangerouslySetInnerHTML={createMarkup(
+                              category.title,
+                            )}
+                          />
+                        </>
+                      }
+                    >
+                      <AccordionContent
+                        dangerouslySetInnerHTML={createMarkup(category.content)}
+                      />
+                    </AccordionItem>
+                  ))}
+                </AccordionList>
 
-            <TabPanel>
-              <AccordionList>
-                <AccordionItem
-                  title={
-                    <>
-                      <Percent>48%</Percent> of our national wetland area is
-                      healthy based on their biological communities when
-                      compared to the best 75% of the least-disturbed reference
-                      sites in wetlands in the same region
-                    </>
-                  }
-                >
-                  <AccordionContent>
-                    <p>
-                      Plants are a major component of wetlands – they provide
-                      important habitat and food sources for birds, fish, and
-                      other wildlife. Because plants are sensitive to changes in
-                      their environment, their presence or absence gives us an
-                      idea of how healthy or degraded our wetlands are.
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem
-                  title={
-                    <>
-                      <Percent>73%</Percent> of our national wetland area has
-                      experienced low or moderate levels of plant loss when
-                      compared to the best 75% of the least-disturbed reference
-                      sites
-                    </>
-                  }
-                >
-                  <AccordionContent>
-                    <p>
-                      Plant loss, removal, and damage causes physical stress to
-                      our wetlands. Removal or loss of plants can come from
-                      activities like grazing, mowing, and forest clearing.
-                    </p>
-                    <p>
-                      Wetlands with high levels of plant loss may experience
-                      increased amounts of sediment, nutrients, and impairments
-                      entering and staying in them.
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem
-                  title={
-                    <>
-                      <Percent>73%</Percent> of our national wetland area has
-                      experienced low or moderate rates of surface hardening
-                      when compared to the best 75% of the least-disturbed
-                      reference sites
-                    </>
-                  }
-                >
-                  <AccordionContent>
-                    <p>
-                      Wetlands with high levels of surface hardening (e.g.,
-                      pavement, soil compaction) are vulnerable to flooding and
-                      erosion, and are twice as likely to have poor biological
-                      condition.
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
-              </AccordionList>
+                {narsFooter}
+              </TabPanel>
 
-              <FooterText>
-                This data is pulled from the National Aquatic Resource Surveys
-                (NARS) and the metrics are only for the conterminous US.
-              </FooterText>
-            </TabPanel>
-          </TabPanels>
-        </Tabs>
-      </ContentTabs>
+              <TabPanel>
+                <AccordionList>
+                  {NARS.data.coasts.map((category, index) => (
+                    <AccordionItem
+                      key={index}
+                      title={
+                        <>
+                          <Percent>{category.metric}</Percent>{' '}
+                          <span
+                            dangerouslySetInnerHTML={createMarkup(
+                              category.title,
+                            )}
+                          />
+                        </>
+                      }
+                    >
+                      <AccordionContent
+                        dangerouslySetInnerHTML={createMarkup(category.content)}
+                      />
+                    </AccordionItem>
+                  ))}
+                </AccordionList>
+
+                {narsFooter}
+              </TabPanel>
+
+              <TabPanel>
+                <AccordionList>
+                  {NARS.data.wetlands.map((category, index) => (
+                    <AccordionItem
+                      key={index}
+                      title={
+                        <>
+                          <Percent>{category.metric}</Percent>{' '}
+                          <span
+                            dangerouslySetInnerHTML={createMarkup(
+                              category.title,
+                            )}
+                          />
+                        </>
+                      }
+                    >
+                      <AccordionContent
+                        dangerouslySetInnerHTML={createMarkup(category.content)}
+                      />
+                    </AccordionItem>
+                  ))}
+                </AccordionList>
+
+                {narsFooter}
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
+        </ContentTabs>
+      )}
 
       <h3>Learn more about waterbody types</h3>
 

@@ -24,13 +24,13 @@ import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import { colors } from 'styles/index.js';
 // contexts
 import { StateTabsContext } from 'contexts/StateTabs';
+import {
+  useStateNationalUsesContext,
+  useWaterTypeOptionsContext,
+} from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 import { titleCase } from 'utils/utils';
-// data
-import { stateNationalUses } from 'components/pages/State/lookups/stateNationalUses';
-import { waterTypeOptions } from 'components/pages/State/lookups/waterTypeOptions';
-import { reportStatusOptions } from 'components/pages/State/lookups/reportStatusMapping';
 // config
 import { attains, grts } from 'config/webServiceConfig';
 // images
@@ -44,9 +44,9 @@ import {
   stateNoDataError,
 } from 'config/errorMessages';
 
-function relabelWaterType(oldLabel) {
+function relabelWaterType(oldLabel, waterTypeOptions) {
   let newLabel = 'Other Types';
-  Object.entries(waterTypeOptions).forEach((waterTypeOption) => {
+  Object.entries(waterTypeOptions.data).forEach((waterTypeOption) => {
     const [waterType, aliases] = waterTypeOption;
     if (aliases.includes(oldLabel)) newLabel = waterType;
   });
@@ -234,6 +234,8 @@ const ImageIcon = styled.img`
 type Props = {};
 
 function WaterQualityOverview({ ...props }: Props) {
+  const stateNationalUses = useStateNationalUsesContext();
+  const waterTypeOptions = useWaterTypeOptionsContext();
   const {
     activeState,
     currentReportingCycle,
@@ -302,17 +304,13 @@ function WaterQualityOverview({ ...props }: Props) {
           const orgData = res.items[0];
           setAssessmentDocuments(orgData.documents);
 
-          const reportStatus = reportStatusOptions.hasOwnProperty(
-            orgData.reportStatusCode,
-          )
-            ? reportStatusOptions[orgData.reportStatusCode]
-            : orgData.reportStatusCode;
-          setCurrentReportStatus(reportStatus);
+          setCurrentReportStatus(orgData.reportStatusCode);
         })
         .catch((err) => {
           console.error(err);
           setDocumentServiceError(true);
           setAssessmentsLoading(false);
+          setCurrentReportStatus('Error getting 303(d) List Status');
         });
     },
     [setCurrentReportStatus],
@@ -564,13 +562,15 @@ function WaterQualityOverview({ ...props }: Props) {
 
   // Gets a list of uses that pertain to the current topic
   React.useEffect(() => {
-    if (activeState.code === '') return;
+    if (activeState.code === '' || stateNationalUses.status !== 'success') {
+      return;
+    }
 
     let category = formatTopic(currentTopic);
 
     //get the list of possible uses
     let possibleUses = {};
-    stateNationalUses.forEach((item) => {
+    stateNationalUses.data.forEach((item) => {
       if (item.state === activeState.code && item.category === category) {
         // make sure to use upper case to prevent duplicate uses
         possibleUses[item.name.toUpperCase()] = item;
@@ -578,11 +578,12 @@ function WaterQualityOverview({ ...props }: Props) {
     });
 
     setTopicUses(possibleUses);
-  }, [currentTopic, activeState, waterTypeData]);
+  }, [currentTopic, activeState, waterTypeData, stateNationalUses]);
 
   // Gets a unique list of water types that have data that is relevant to
   // the current topic
   React.useEffect(() => {
+    if (waterTypeOptions.status !== 'success');
     if (!waterTypes) {
       setDisplayWaterTypes([]);
       return;
@@ -606,15 +607,17 @@ function WaterQualityOverview({ ...props }: Props) {
             });
 
             if (hasUse) {
-              return relabelWaterType(item.waterTypeCode);
+              return relabelWaterType(item.waterTypeCode, waterTypeOptions);
             } else return null;
           })
-          .map((item) => relabelWaterType(item.waterTypeCode)),
+          .map((item) =>
+            relabelWaterType(item.waterTypeCode, waterTypeOptions),
+          ),
       ),
     ].sort();
 
     setDisplayWaterTypes(displayWaterTypes);
-  }, [waterTypes, topicUses]);
+  }, [waterTypes, topicUses, waterTypeOptions]);
 
   // Builds use lists that will be used for displaying in dropdowns and
   // building graphs with aggregrate data.
@@ -652,6 +655,7 @@ function WaterQualityOverview({ ...props }: Props) {
 
   // Handles user year changes and gets data associated with the selected year.
   React.useEffect(() => {
+    if (waterTypeOptions.status !== 'success') return;
     let yearData =
       yearSelected &&
       currentStateData.reportingCycles &&
@@ -667,7 +671,7 @@ function WaterQualityOverview({ ...props }: Props) {
         // Get the simple water type name (i.e. one of the types in the dropdown)
         // from the detailed water type
         let simpleWaterType = 'Other Types'; // if it's not found use "Other Types"
-        Object.entries(waterTypeOptions).forEach((option) => {
+        Object.entries(waterTypeOptions.data).forEach((option) => {
           const [key, value] = option;
           if (value.includes(waterType.waterTypeCode)) simpleWaterType = key;
         });
@@ -680,7 +684,7 @@ function WaterQualityOverview({ ...props }: Props) {
 
       setWaterTypes(waterTypes);
     } else setWaterTypes(null);
-  }, [currentTopic, yearSelected, currentStateData]);
+  }, [currentTopic, yearSelected, currentStateData, waterTypeOptions]);
 
   // Handles user and auto water type selection
   React.useEffect(() => {
@@ -733,7 +737,8 @@ function WaterQualityOverview({ ...props }: Props) {
       !useSelected ||
       !surveyData ||
       !waterType ||
-      !topicUses.hasOwnProperty(useSelected.toUpperCase())
+      !topicUses.hasOwnProperty(useSelected.toUpperCase()) ||
+      waterTypeOptions.status !== 'success'
     ) {
       if (surveyData) setSubPopulationCodes([]);
       return;
@@ -743,7 +748,7 @@ function WaterQualityOverview({ ...props }: Props) {
     let subPopulationCodes = [];
     surveyData.surveyWaterGroups
       .filter((x) =>
-        waterTypeOptions[waterType].includes(x['waterTypeGroupCode']),
+        waterTypeOptions.data[waterType].includes(x['waterTypeGroupCode']),
       )
       .forEach((waterGroup) => {
         // ensure the waterGroup has a use that matches the selected use
@@ -775,7 +780,7 @@ function WaterQualityOverview({ ...props }: Props) {
     });
 
     setSubPopulationCodes(subPopulationCodes);
-  }, [useSelected, surveyData, waterType, topicUses]);
+  }, [useSelected, surveyData, waterType, topicUses, waterTypeOptions]);
 
   // setup order of the tabs
   const tabs = [
@@ -813,7 +818,11 @@ function WaterQualityOverview({ ...props }: Props) {
   // unfortunately  need to manage the activeTabIndex (an implementation detail)
   const [activeTabIndex, setActiveTabIndex] = React.useState(initialTabIndex);
 
-  if (serviceError) {
+  if (
+    serviceError ||
+    waterTypeOptions.status === 'failure' ||
+    stateNationalUses.status === 'failure'
+  ) {
     return (
       <StyledErrorBox>
         <p>{stateGeneralError}</p>
@@ -829,7 +838,13 @@ function WaterQualityOverview({ ...props }: Props) {
     );
   }
 
-  if (loading || currentState !== activeState.code) return <LoadingSpinner />;
+  if (
+    loading ||
+    currentState !== activeState.code ||
+    waterTypeOptions.status === 'fetching'
+  ) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <Container>
