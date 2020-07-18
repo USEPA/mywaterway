@@ -6,7 +6,7 @@
 ### Changed
 - Relocated a few mapping and data files (i.e. .json) to s3 to allow real-time updates.
 - Added metadata to the Community page to support [geoconnex.us](https://github.com/internetofwater/geoconnex.us) integration.
-- Updated location geocoding to handle confidence results less than 70%.
+- Updated the location results handler to accommodate confidence scores less than 70%.
 - Updated app to use ATTAINS reporting cycle info from the ATTAINS GIS service. This helps ensure the proper reporting cycle is used to retrieve ATTAINS organization-level information. 
  
 ## 2.0.0 (Released 06-18-2020)
