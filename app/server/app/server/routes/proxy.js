@@ -68,7 +68,7 @@ module.exports = function (app) {
         method: req.query.method,
         headers: request_headers,
         uri: parsedUrl,
-        timeout: 30000,
+        timeout: 10000,
       },
       function (err, request_res, body) {
         if (err) {
@@ -78,10 +78,20 @@ module.exports = function (app) {
               `Unsuccessful request. parsedUrl = ${parsedUrl}. Detailed error: ${err}`,
             ),
           );
-          res.status(403).json({
-            message: 'Unsuccessful request. parsedUrl ' + parsedUrl,
-            'Detailed error': err,
-          });
+          if (res.headersSent) {
+            log.error(
+              logger.formatLogMsg(
+                metadataObj,
+                `Odd header already sent check = ${parsedUrl}. Detailed error: ${err}`,
+              ),
+            );
+          } else {
+            res.status(403).json({
+              message: 'Unsuccessful request. parsedUrl ' + parsedUrl,
+              'Detailed error': err,
+            });
+          }
+          return;
         }
       },
     )
