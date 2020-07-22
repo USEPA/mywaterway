@@ -23,17 +23,17 @@ import {
 } from 'components/shared/KeyMetrics';
 // contexts
 import { StateTabsContext, StateTabsProvider } from 'contexts/StateTabs';
+import { useIntroTextContext } from 'contexts/LookupFiles';
 // config
 import { attains } from 'config/webServiceConfig';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
-// data
-import introText from 'components/pages/State/lookups/introText';
 // styles
 import { colors, fonts, reactSelectStyles } from 'styles/index.js';
 // errors
 import {
   stateListError,
+  stateGeneralError,
   stateNoDataError,
   usesStateSummaryServiceInvalidResponse,
 } from 'config/errorMessages';
@@ -170,6 +170,8 @@ function State({ children, ...props }: Props) {
     setUsesStateSummaryServiceError,
   } = React.useContext(StateTabsContext);
 
+  const introText = useIntroTextContext();
+
   // reset active state if on state intro page
   React.useEffect(() => {
     if (props.location.pathname === '/state') {
@@ -189,7 +191,8 @@ function State({ children, ...props }: Props) {
   }, [activeState, setUsesStateSummaryServiceError]);
 
   // get the state intro and metrics data
-  const stateIntro = introText[activeState.code];
+  const stateIntro =
+    introText.status === 'success' ? introText.data[activeState.code] : null;
 
   return (
     <Page>
@@ -262,71 +265,89 @@ function State({ children, ...props }: Props) {
           <Content>
             {activeState.code !== '' && (
               <>
-                {!stateIntro ? (
+                {introText.status === 'fetching' && <LoadingSpinner />}
+                {introText.status === 'failure' && (
                   <ErrorBox>
-                    <p>{stateNoDataError(activeState.name)}.</p>
+                    <p>{stateGeneralError}</p>
                   </ErrorBox>
-                ) : (
+                )}
+                {introText.status === 'success' && (
                   <>
-                    {stateIntro.metrics.length > 0 && (
+                    {!stateIntro ? (
+                      <ErrorBox>
+                        <p>{stateNoDataError(activeState.name)}</p>
+                      </ErrorBox>
+                    ) : (
                       <>
-                        <h2>
-                          <i className="fas fa-chart-line" aria-hidden="true" />
-                          <strong>{activeState.name}</strong> by the Numbers
-                        </h2>
+                        {stateIntro.metrics.length > 0 && (
+                          <>
+                            <h2>
+                              <i
+                                className="fas fa-chart-line"
+                                aria-hidden="true"
+                              />
+                              <strong>{activeState.name}</strong> by the Numbers
+                            </h2>
 
-                        <StyledMetrics>
-                          {stateIntro.metrics.map(
-                            (metric, index) =>
-                              metric &&
-                              metric.value &&
-                              metric.label && (
-                                <StyledMetric key={index}>
-                                  <StyledNumber>{metric.value}</StyledNumber>
-                                  <StyledLabel>
-                                    {metric.label}
-                                    <br />
-                                    <em>{metric.unit}</em>
-                                  </StyledLabel>
-                                </StyledMetric>
-                              ),
-                          )}
-                        </StyledMetrics>
-                        <ByTheNumbersExplanation>
-                          Waters not assessed do not show up in summaries below.
-                        </ByTheNumbersExplanation>
+                            <StyledMetrics>
+                              {stateIntro.metrics.map(
+                                (metric, index) =>
+                                  metric &&
+                                  metric.value &&
+                                  metric.label && (
+                                    <StyledMetric key={index}>
+                                      <StyledNumber>
+                                        {metric.value}
+                                      </StyledNumber>
+                                      <StyledLabel>
+                                        {metric.label}
+                                        <br />
+                                        <em>{metric.unit}</em>
+                                      </StyledLabel>
+                                    </StyledMetric>
+                                  ),
+                              )}
+                            </StyledMetrics>
+                            <ByTheNumbersExplanation>
+                              Waters not assessed do not show up in summaries
+                              below.
+                            </ByTheNumbersExplanation>
+                          </>
+                        )}
+
+                        {stateIntro.intro && (
+                          <IntroBox>
+                            <p>
+                              <ShowLessMore
+                                text={stateIntro.intro}
+                                charLimit={450}
+                              />
+                            </p>
+                          </IntroBox>
+                        )}
+
+                        <Disclaimer>
+                          <p>
+                            The condition of a waterbody is dynamic and can
+                            change at any time, and the information in How’s My
+                            Waterway should only be used for general reference.
+                            If available, refer to local or state real-time
+                            water quality reports.
+                          </p>
+                          <p>
+                            Furthermore, users of this application should not
+                            rely on information relating to environmental laws
+                            and regulations posted on this application.
+                            Application users are solely responsible for
+                            ensuring that they are in compliance with all
+                            relevant environmental laws and regulations. In
+                            addition, EPA cannot attest to the accuracy of data
+                            provided by organizations outside of the federal
+                            government.
+                          </p>
+                        </Disclaimer>
                       </>
                     )}
-
-                    {stateIntro.intro && (
-                      <IntroBox>
-                        <p>
-                          <ShowLessMore
-                            text={stateIntro.intro}
-                            charLimit={450}
-                          />
-                        </p>
-                      </IntroBox>
-                    )}
-
-                    <Disclaimer>
-                      <p>
-                        The condition of a waterbody is dynamic and can change
-                        at any time, and the information in How’s My Waterway
-                        should only be used for general reference. If available,
-                        refer to local or state real-time water quality reports.
-                      </p>
-                      <p>
-                        Furthermore, users of this application should not rely
-                        on information relating to environmental laws and
-                        regulations posted on this application. Application
-                        users are solely responsible for ensuring that they are
-                        in compliance with all relevant environmental laws and
-                        regulations. In addition, EPA cannot attest to the
-                        accuracy of data provided by organizations outside of
-                        the federal government.
-                      </p>
-                    </Disclaimer>
                   </>
                 )}
               </>

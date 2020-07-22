@@ -1,17 +1,4 @@
-// Green
-// Old: #8cc63f
-// New: #20800c
-
-// Red:
-// Old: #f93b5b
-// New: #cb223e
-
-// Purple:
-// Old : #a879d8
-// New : #6b4195
-
-/* prettier-ignore */
-export const surveyMapping = [
+[
   {
     "state": "FL",
     "organizationIdentifier": "21FL303D",
@@ -24,14 +11,14 @@ export const surveyMapping = [
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
       {
@@ -39,58 +26,58 @@ export const surveyMapping = [
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "AMMONIA, UN-IONIZED",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "DISSOLVED OXYGEN SATURATION",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "DISSOLVED OXYGEN SATURATION",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "NITROGEN, TOTAL",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
-"stressor": "NITROGEN, TOTAL",
+        "stressor": "NITROGEN, TOTAL",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
   {
     "state": "FL",
@@ -104,14 +91,14 @@ export const surveyMapping = [
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
       {
@@ -119,16 +106,16 @@ export const surveyMapping = [
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "FECAL COLIFORM",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
   {
     "state": "FL",
@@ -142,73 +129,73 @@ export const surveyMapping = [
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
-{
+      {
         "stressor": "AMMONIA, UN-IONIZED",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "AMMONIA, UN-IONIZED",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "DISSOLVED OXYGEN SATURATION",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "DISSOLVED OXYGEN SATURATION",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "NITROGEN, TOTAL",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
-"stressor": "NITROGEN, TOTAL",
+        "stressor": "NITROGEN, TOTAL",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
   {
     "state": "FL",
@@ -222,33 +209,33 @@ export const surveyMapping = [
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
-       {
+      {
         "stressor": "FECAL COLIFORM",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "FECAL COLIFORM",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "FL",
     "organizationIdentifier": "21FL303D",
     "year": "2018",
@@ -260,14 +247,14 @@ export const surveyMapping = [
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
       {
@@ -275,60 +262,60 @@ export const surveyMapping = [
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "AMMONIA, UN-IONIZED",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "DISSOLVED OXYGEN SATURATION",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "DISSOLVED OXYGEN SATURATION",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "NITROGEN, TOTAL",
-      "surveyCategoryCode": "Not Supporting",
+        "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
-"stressor": "NITROGEN, TOTAL",
+        "stressor": "NITROGEN, TOTAL",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "WY",
     "organizationIdentifier": "WYDEQ",
     "year": "2012",
@@ -336,197 +323,197 @@ export const surveyMapping = [
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "AQUATIC LIFE OTHER THAN FISH",
     "categoryCodeMapping": [
-     {
+      {
         "surveyCategoryCode": "Indeterminate",
         "categoryCode_label": "Indeterminate",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
- {
+      {
         "surveyCategoryCode": "Most Disturbed",
         "categoryCode_label": "Most Disturbed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Least Disturbed",
         "categoryCode_label": "Least Disturbed",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
       {
         "stressor": "ALTERATION IN STREAM-SIDE OR LITTORAL VEGETATIVE COVERS",
-	"surveyCategoryCode": "Indeterminate",
+        "surveyCategoryCode": "Indeterminate",
         "categoryCode_label": "Indeterminate",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
-{
+      {
         "stressor": "ALTERATION IN STREAM-SIDE OR LITTORAL VEGETATIVE COVERS",
         "surveyCategoryCode": "Most Disturbed",
         "categoryCode_label": "Most Disturbed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "ALTERATION IN STREAM-SIDE OR LITTORAL VEGETATIVE COVERS",
         "surveyCategoryCode": "Least Disturbed",
         "categoryCode_label": "Least Disturbed",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "HABITAT ALTERATIONS",
         "surveyCategoryCode": "Indeterminate",
         "categoryCode_label": "Indeterminate",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
-{
+      {
         "stressor": "HABITAT ALTERATIONS",
         "surveyCategoryCode": "Most Disturbed",
         "categoryCode_label": "Most Disturbed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "HABITAT ALTERATIONS",
         "surveyCategoryCode": "Least Disturbed",
         "categoryCode_label": "Least Disturbed",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "NITRATE/NITRITE (NITRITE + NITRATE AS N)",
         "surveyCategoryCode": "Indeterminate",
         "categoryCode_label": "Indeterminate",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
-{
+      {
         "stressor": "NITRATE/NITRITE (NITRITE + NITRATE AS N)",
         "surveyCategoryCode": "Most Disturbed",
         "categoryCode_label": "Most Disturbed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "NITRATE/NITRITE (NITRITE + NITRATE AS N)",
         "surveyCategoryCode": "Least Disturbed",
         "categoryCode_label": "Least Disturbed",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "PH",
         "surveyCategoryCode": "Indeterminate",
         "categoryCode_label": "Indeterminate",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
-{
+      {
         "stressor": "PH",
         "surveyCategoryCode": "Most Disturbed",
         "categoryCode_label": "Most Disturbed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "PH",
         "surveyCategoryCode": "Least Disturbed",
         "categoryCode_label": "Least Disturbed",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Indeterminate",
         "categoryCode_label": "Indeterminate",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
-{
+      {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Most Disturbed",
         "categoryCode_label": "Most Disturbed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Least Disturbed",
         "categoryCode_label": "Least Disturbed",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "SPECIFIC CONDUCTIVITY",
         "surveyCategoryCode": "Indeterminate",
         "categoryCode_label": "Indeterminate",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
       {
         "stressor": "SPECIFIC CONDUCTIVITY",
         "surveyCategoryCode": "Most Disturbed",
         "categoryCode_label": "Most Disturbed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "SPECIFIC CONDUCTIVITY",
         "surveyCategoryCode": "Least Disturbed",
         "categoryCode_label": "Least Disturbed",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "SULFATE + CHLORIDE",
         "surveyCategoryCode": "Indeterminate",
         "categoryCode_label": "Indeterminate",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
-{
+      {
         "stressor": "SULFATE + CHLORIDE",
         "surveyCategoryCode": "Most Disturbed",
         "categoryCode_label": "Most Disturbed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "SULFATE + CHLORIDE",
         "surveyCategoryCode": "Least Disturbed",
         "categoryCode_label": "Least Disturbed",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "TOTAL SUSPENDED SOLIDS (TSS)",
         "surveyCategoryCode": "Indeterminate",
         "categoryCode_label": "Indeterminate",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
-{
+      {
         "stressor": "TOTAL SUSPENDED SOLIDS (TSS)",
         "surveyCategoryCode": "Most Disturbed",
         "categoryCode_label": "Most Disturbed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "TOTAL SUSPENDED SOLIDS (TSS)",
         "surveyCategoryCode": "Least Disturbed",
         "categoryCode_label": "Least Disturbed",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "WY",
     "organizationIdentifier": "WYDEQ",
     "year": "2012",
@@ -534,24 +521,24 @@ export const surveyMapping = [
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "RECREATION",
     "categoryCodeMapping": [
-     {
+      {
         "surveyCategoryCode": "Indeterminate",
         "categoryCode_label": "Indeterminate",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
- {
+      {
         "surveyCategoryCode": "Most Disturbed",
         "categoryCode_label": "Most Disturbed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Least Disturbed",
         "categoryCode_label": "Least Disturbed",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
       {
@@ -559,25 +546,25 @@ export const surveyMapping = [
         "surveyCategoryCode": "Indeterminate",
         "categoryCode_label": "Indeterminate",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
-{
+      {
         "stressor": "ESCHERICHIA COLI (E. COLI)",
         "surveyCategoryCode": "Most Disturbed",
         "categoryCode_label": "Most Disturbed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "ESCHERICHIA COLI (E. COLI)",
         "surveyCategoryCode": "Least Disturbed",
         "categoryCode_label": "Least Disturbed",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "ND",
     "organizationIdentifier": "21NDHDWQ",
     "year": "2016",
@@ -585,169 +572,169 @@ export const surveyMapping = [
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "FISH AND OTHER AQUATIC BIOTA",
     "categoryCodeMapping": [
-    {
+      {
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
- {
+      {
         "surveyCategoryCode": "Poor",
         "categoryCode_label": "Poor",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
- {
+      {
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "surveyCategoryCode": "Good",
         "categoryCode_label": "Good",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
-  {
+      {
         "stressor": "HABITAT ALTERATIONS",
         "surveyCategoryCode": "Poor",
         "categoryCode_label": "Poor",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "HABITAT ALTERATIONS",
-	
+
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "HABITAT ALTERATIONS",
         "surveyCategoryCode": "Good",
         "categoryCode_label": "Good",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "HABITAT ASSESSMENT",
         "surveyCategoryCode": "Poor",
         "categoryCode_label": "Poor",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "HABITAT ASSESSMENT",
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "HABITAT ASSESSMENT",
         "surveyCategoryCode": "Good",
         "categoryCode_label": "Good",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "NITROGEN, TOTAL",
         "surveyCategoryCode": "Poor",
         "categoryCode_label": "Poor",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "NITROGEN, TOTAL",
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "NITROGEN, TOTAL",
         "surveyCategoryCode": "Good",
         "categoryCode_label": "Good",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "PHOSPHORUS, TOTAL",
-     "surveyCategoryCode": "Poor",
+        "surveyCategoryCode": "Poor",
         "categoryCode_label": "Poor",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Good",
         "categoryCode_label": "Good",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "SALINITY/TOTAL DISSOLVED SOLIDS/CHLORIDES",
         "surveyCategoryCode": "Poor",
         "categoryCode_label": "Poor",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "SALINITY/TOTAL DISSOLVED SOLIDS/CHLORIDES",
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "SALINITY/TOTAL DISSOLVED SOLIDS/CHLORIDES",
         "surveyCategoryCode": "Good",
         "categoryCode_label": "Good",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-{
+      {
         "stressor": "SEDIMENTATION/SILTATION",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
-  {
+      {
         "stressor": "SEDIMENTATION/SILTATION",
         "surveyCategoryCode": "Poor",
         "categoryCode_label": "Poor",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "SEDIMENTATION/SILTATION",
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "SEDIMENTATION/SILTATION",
         "surveyCategoryCode": "Good",
         "categoryCode_label": "Good",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-   ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "ND",
     "organizationIdentifier": "21NDHDWQ",
     "year": "2016",
@@ -755,71 +742,71 @@ export const surveyMapping = [
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "RECREATION",
     "categoryCodeMapping": [
-     {
+      {
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "3",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
- {
+      {
         "surveyCategoryCode": "Poor",
         "categoryCode_label": "Poor",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Good",
         "categoryCode_label": "Good",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
-  {
+      {
         "stressor": "NITROGEN, TOTAL",
         "surveyCategoryCode": "Poor",
         "categoryCode_label": "Poor",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "NITROGEN, TOTAL",
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "NITROGEN, TOTAL",
         "surveyCategoryCode": "Good",
         "categoryCode_label": "Good",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Poor",
         "categoryCode_label": "Poor",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Good",
         "categoryCode_label": "Good",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "ND",
     "organizationIdentifier": "21NDHDWQ",
     "year": "2016",
@@ -827,155 +814,155 @@ export const surveyMapping = [
     "waterTypeGroupCode": "LAKE/RESERVOIR/POND",
     "surveyUseCode": "FISH AND OTHER AQUATIC BIOTA",
     "categoryCodeMapping": [
-    {
+      {
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
- {
+      {
         "surveyCategoryCode": "Poor",
         "categoryCode_label": "Poor",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
- {
+      {
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "surveyCategoryCode": "Good",
         "categoryCode_label": "Good",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
-   {
+      {
         "stressor": "HABITAT ALTERATIONS",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
- {
+      {
         "stressor": "HABITAT ALTERATIONS",
         "surveyCategoryCode": "Poor",
         "categoryCode_label": "Poor",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "HABITAT ALTERATIONS",
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "HABITAT ALTERATIONS",
         "surveyCategoryCode": "Good",
         "categoryCode_label": "Good",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "HABITAT ASSESSMENT",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
-  {
+      {
         "stressor": "HABITAT ASSESSMENT",
         "surveyCategoryCode": "Poor",
         "categoryCode_label": "Poor",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "HABITAT ASSESSMENT",
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "HABITAT ASSESSMENT",
         "surveyCategoryCode": "Good",
         "categoryCode_label": "Good",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "NITROGEN, TOTAL",
         "surveyCategoryCode": "Poor",
         "categoryCode_label": "Poor",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "NITROGEN, TOTAL",
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "NITROGEN, TOTAL",
         "surveyCategoryCode": "Good",
         "categoryCode_label": "Good",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Poor",
         "categoryCode_label": "Poor",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Good",
         "categoryCode_label": "Good",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "DISSOLVED OXYGEN",
-         "surveyCategoryCode": "Not Assessed",
+        "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "3",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
-{
+      {
         "stressor": "DISSOLVED OXYGEN",
         "surveyCategoryCode": "Moderate",
         "categoryCode_label": "Moderate",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "DISSOLVED OXYGEN",
-	     "surveyCategoryCode": "Low",
+        "surveyCategoryCode": "Low",
         "categoryCode_label": "Low",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
 
-{
+  {
     "state": "ND",
     "organizationIdentifier": "21NDHDWQ",
     "year": "2016",
@@ -983,98 +970,98 @@ export const surveyMapping = [
     "waterTypeGroupCode": "LAKE/RESERVOIR/POND",
     "surveyUseCode": "RECREATION",
     "categoryCodeMapping": [
-{
+      {
         "surveyCategoryCode": "Poor",
         "categoryCode_label": "Poor",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "surveyCategoryCode": "Good",
         "categoryCode_label": "Good",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
-  {
+      {
         "stressor": "NITROGEN, TOTAL",
         "surveyCategoryCode": "Poor",
         "categoryCode_label": "Poor",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "NITROGEN, TOTAL",
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "NITROGEN, TOTAL",
         "surveyCategoryCode": "Good",
         "categoryCode_label": "Good",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "PHOSPHORUS, TOTAL",
- "surveyCategoryCode": "Poor",
+        "surveyCategoryCode": "Poor",
         "categoryCode_label": "Poor",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Good",
         "categoryCode_label": "Good",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "CYANOBACTERIA HEPATOTOXIC MICROCYSTINS",
         "surveyCategoryCode": "High",
         "categoryCode_label": "High",
         "categoryCode_order": "4",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "CYANOBACTERIA HEPATOTOXIC MICROCYSTINS",
-	
+
         "surveyCategoryCode": "Moderate",
         "categoryCode_label": "Moderate",
         "categoryCode_order": "3",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "CYANOBACTERIA HEPATOTOXIC MICROCYSTINS",
         "surveyCategoryCode": "Low",
         "categoryCode_label": "Low",
         "categoryCode_order": "2",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "CYANOBACTERIA HEPATOTOXIC MICROCYSTINS",
         "surveyCategoryCode": "Not Detected",
         "categoryCode_label": "Not Detected",
         "categoryCode_order": "1",
-        "categoryCode_color": "#27AAE1",
-      },
-    ],
+        "categoryCode_color": "#27AAE1"
+      }
+    ]
   },
   {
     "state": "KS",
@@ -1088,14 +1075,14 @@ export const surveyMapping = [
         "surveyCategoryCode": "FAIL",
         "categoryCode_label": "FAIL",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "PASS",
         "categoryCode_label": "PASS",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
       {
@@ -1103,100 +1090,100 @@ export const surveyMapping = [
         "surveyCategoryCode": "FAIL",
         "categoryCode_label": "FAIL",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "ATRAZINE",
         "surveyCategoryCode": "PASS",
         "categoryCode_label": "PASS",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "BENTHIC MACROINVERTEBRATES BIOASSESSMENTS",
         "surveyCategoryCode": "FAIL",
         "categoryCode_label": "FAIL",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "BENTHIC MACROINVERTEBRATES BIOASSESSMENTS",
         "surveyCategoryCode": "PASS",
         "categoryCode_label": "PASS",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "CHLORIDE",
         "surveyCategoryCode": "FAIL",
         "categoryCode_label": "FAIL",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "CHLORIDE",
         "surveyCategoryCode": "PASS",
         "categoryCode_label": "PASS",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "DISSOLVED OXYGEN",
         "surveyCategoryCode": "FAIL",
         "categoryCode_label": "FAIL",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "DISSOLVED OXYGEN",
         "surveyCategoryCode": "PASS",
         "categoryCode_label": "PASS",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "LEAD",
         "surveyCategoryCode": "FAIL",
         "categoryCode_label": "FAIL",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "LEAD",
         "surveyCategoryCode": "PASS",
         "categoryCode_label": "PASS",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "PH",
         "surveyCategoryCode": "FAIL",
         "categoryCode_label": "FAIL",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "PH",
         "surveyCategoryCode": "PASS",
         "categoryCode_label": "PASS",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "SELENIUM",
         "surveyCategoryCode": "FAIL",
         "categoryCode_label": "FAIL",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "SELENIUM",
         "surveyCategoryCode": "PASS",
         "categoryCode_label": "PASS",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
   {
     "state": "KS",
@@ -1210,14 +1197,14 @@ export const surveyMapping = [
         "surveyCategoryCode": "FAIL",
         "categoryCode_label": "FAIL",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "PASS",
         "categoryCode_label": "PASS",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
       {
@@ -1225,18 +1212,18 @@ export const surveyMapping = [
         "surveyCategoryCode": "FAIL",
         "categoryCode_label": "FAIL",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "ESCHERICHIA COLI (E. COLI)",
         "surveyCategoryCode": "PASS",
         "categoryCode_label": "PASS",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "KS",
     "organizationIdentifier": "21KAN001",
     "year": "2020",
@@ -1248,14 +1235,14 @@ export const surveyMapping = [
         "surveyCategoryCode": "FAIL",
         "categoryCode_label": "FAIL",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "PASS",
         "categoryCode_label": "PASS",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
       {
@@ -1263,16 +1250,16 @@ export const surveyMapping = [
         "surveyCategoryCode": "FAIL",
         "categoryCode_label": "FAIL",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "MERCURY IN FISH TISSUE",
         "surveyCategoryCode": "PASS",
         "categoryCode_label": "PASS",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
   {
     "state": "SD",
@@ -1286,14 +1273,14 @@ export const surveyMapping = [
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-       {
+      {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
       {
@@ -1301,16 +1288,16 @@ export const surveyMapping = [
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "ESCHERICHIA COLI (E. COLI)",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
   {
     "state": "SD",
@@ -1324,14 +1311,14 @@ export const surveyMapping = [
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-       {
+      {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
       {
@@ -1339,18 +1326,18 @@ export const surveyMapping = [
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "ESCHERICHIA COLI (E. COLI)",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "WI",
     "organizationIdentifier": "WIDNR",
     "year": "2014",
@@ -1358,168 +1345,168 @@ export const surveyMapping = [
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "FISH AND AQUATIC LIFE",
     "categoryCodeMapping": [
-    {
+      {
         "surveyCategoryCode": "Poor Condition",
         "categoryCode_label": "Poor Condition",
         "categoryCode_order": "4",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
- {
+      {
         "surveyCategoryCode": "Fair Condition",
         "categoryCode_label": "Fair Condition",
         "categoryCode_order": "3",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
- {
+      {
         "surveyCategoryCode": "Good Condition",
         "categoryCode_label": "Good Condition",
         "categoryCode_order": "2",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "surveyCategoryCode": "Excellent Condition",
         "categoryCode_label": "Excellent Condition",
         "categoryCode_order": "1",
-        "categoryCode_color": "#27AAE1",
-      },
+        "categoryCode_color": "#27AAE1"
+      }
     ],
     "stressorMapping": [
-   {
+      {
         "stressor": "HABITAT ALTERATIONS",
         "surveyCategoryCode": "Unknown Condition",
         "categoryCode_label": "Unknown Condition",
         "categoryCode_order": "4",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
- {
+      {
         "stressor": "HABITAT ALTERATIONS",
         "surveyCategoryCode": "Poor Condition",
         "categoryCode_label": "Poor Condition",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "HABITAT ALTERATIONS",
         "surveyCategoryCode": "Fair Condition",
         "categoryCode_label": "Fair Condition",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "HABITAT ALTERATIONS",
         "surveyCategoryCode": "Good Condition",
         "categoryCode_label": "Good Condition",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "DISSOLVED OXYGEN",
         "surveyCategoryCode": "Poor Condition",
         "categoryCode_label": "Poor Condition",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "DISSOLVED OXYGEN",
         "surveyCategoryCode": "Good Condition",
         "categoryCode_label": "Good Condition",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "NITROGEN, TOTAL",
         "surveyCategoryCode": "Poor Condition",
         "categoryCode_label": "Poor Condition",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "NITROGEN, TOTAL",
         "surveyCategoryCode": "Good Condition",
         "categoryCode_label": "Good Condition",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Poor Condition",
         "categoryCode_label": "Poor Condition",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Fair Condition",
         "categoryCode_label": "Fair Condition",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Good Condition",
         "categoryCode_label": "Good Condition",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-  {
-        "stressor": "PH",
-         "surveyCategoryCode": "Unknown Condition",
-        "categoryCode_label": "Unknown Condition",
-        "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
-      },
-{
-        "stressor": "PH",
-	"surveyCategoryCode": "Poor Condition",
-        "categoryCode_label": "Poor Condition",
-        "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "PH",
-	"surveyCategoryCode": "Good Condition",
-        "categoryCode_label": "Good Condition",
-        "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-  {
-        "stressor": "SPECIFIC CONDUCTIVITY",
-         "surveyCategoryCode": "Unknown Condition",
+        "surveyCategoryCode": "Unknown Condition",
         "categoryCode_label": "Unknown Condition",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
-{
-        "stressor": "SPECIFIC CONDUCTIVITY",
-	"surveyCategoryCode": "Poor Condition",
+      {
+        "stressor": "PH",
+        "surveyCategoryCode": "Poor Condition",
         "categoryCode_label": "Poor Condition",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "PH",
+        "surveyCategoryCode": "Good Condition",
+        "categoryCode_label": "Good Condition",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      },
+      {
+        "stressor": "SPECIFIC CONDUCTIVITY",
+        "surveyCategoryCode": "Unknown Condition",
+        "categoryCode_label": "Unknown Condition",
+        "categoryCode_order": "3",
+        "categoryCode_color": "#6b4195"
+      },
+      {
+        "stressor": "SPECIFIC CONDUCTIVITY",
+        "surveyCategoryCode": "Poor Condition",
+        "categoryCode_label": "Poor Condition",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "SPECIFIC CONDUCTIVITY",
         "surveyCategoryCode": "Good Condition",
         "categoryCode_label": "Good Condition",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "TOTAL SUSPENDED SOLIDS (TSS)",
         "surveyCategoryCode": "Poor Condition",
         "categoryCode_label": "Poor Condition",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "TOTAL SUSPENDED SOLIDS (TSS)",
         "surveyCategoryCode": "Good Condition",
         "categoryCode_label": "Good Condition",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-],
-},
-{
+        "categoryCode_color": "#20800c"
+      }
+    ]
+  },
+  {
     "state": "MO",
     "organizationIdentifier": "MDNR",
     "year": "2012",
@@ -1527,50 +1514,50 @@ export const surveyMapping = [
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "AQUATIC LIFE",
     "categoryCodeMapping": [
-    {
+      {
         "surveyCategoryCode": "Unassessed",
         "categoryCode_label": "Unassessed",
         "categoryCode_order": "3",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
- {
+      {
         "surveyCategoryCode": "Impaired",
         "categoryCode_label": "Impaired",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
- {
+      {
         "surveyCategoryCode": "Unimpaired",
         "categoryCode_label": "Unimpaired",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
-   {
+      {
         "stressor": "BIOLOGICAL INTEGRITY",
         "surveyCategoryCode": "Unassessed",
         "categoryCode_label": "Unassessed",
         "categoryCode_order": "3",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
- {
+      {
         "stressor": "BIOLOGICAL INTEGRITY",
         "surveyCategoryCode": "Impaired",
         "categoryCode_label": "Impaired",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "BIOLOGICAL INTEGRITY",
         "surveyCategoryCode": "Unimpaired",
         "categoryCode_label": "Unimpaired",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-],
-},
-{
+        "categoryCode_color": "#20800c"
+      }
+    ]
+  },
+  {
     "state": "IA",
     "organizationIdentifier": "21IOWA",
     "year": "2012",
@@ -1578,63 +1565,63 @@ export const surveyMapping = [
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "AQUATIC LIFE SUPPORT",
     "categoryCodeMapping": [
-     {
+      {
         "surveyCategoryCode": "Unassessed",
         "categoryCode_label": "Unassessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
-{
+      {
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
- {
+      {
         "surveyCategoryCode": "Partially Supporting",
         "categoryCode_label": "Partially Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
- {
+      {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
-   {
+      {
         "stressor": "BIOLOGICAL INTEGRITY",
         "surveyCategoryCode": "Unassessed",
         "categoryCode_label": "Unassessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
- {
+      {
         "stressor": "BIOLOGICAL INTEGRITY",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "BIOLOGICAL INTEGRITY",
         "surveyCategoryCode": "Partially Supporting",
         "categoryCode_label": "Partially Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
-{
+      {
         "stressor": "BIOLOGICAL INTEGRITY",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-],
-},
-{
+        "categoryCode_color": "#20800c"
+      }
+    ]
+  },
+  {
     "state": "SC",
     "organizationIdentifier": "21SC60WQ",
     "year": "2016",
@@ -1642,266 +1629,266 @@ export const surveyMapping = [
     "waterTypeGroupCode": "LAKE/RESERVOIR/POND",
     "surveyUseCode": "AQUATIC LIFE USE SUPPORT",
     "categoryCodeMapping": [
-            {
+      {
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "surveyCategoryCode": "Partially Supporting",
         "categoryCode_label": "Partially Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
-            {
+      {
         "stressor": "AMMONIA",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "stressor": "AMMONIA",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "AMMONIA",
-	
-       "surveyCategoryCode": "Partially Supporting",
+
+        "surveyCategoryCode": "Partially Supporting",
         "categoryCode_label": "Partially Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "AMMONIA",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "CADMIUM",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "stressor": "CADMIUM",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "CHLOROPHYLL-A - AQUATIC LIFE USE SUPPORT",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "3",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "stressor": "CHLOROPHYLL-A - AQUATIC LIFE USE SUPPORT",
-                "surveyCategoryCode": "Not Supporting",
+        "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "CHLOROPHYLL-A - AQUATIC LIFE USE SUPPORT",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "CHROMIUM",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "stressor": "CHROMIUM",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "COPPER",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "stressor": "COPPER",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-{
+      {
         "stressor": "DISSOLVED OXYGEN",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "stressor": "DISSOLVED OXYGEN",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "DISSOLVED OXYGEN",
-       "surveyCategoryCode": "Partially Supporting",
+        "surveyCategoryCode": "Partially Supporting",
         "categoryCode_label": "Partially Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "DISSOLVED OXYGEN",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "NICKEL",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "stressor": "NICKEL",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "MERCURY",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "stressor": "MERCURY",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "NITROGEN, TOTAL",
-                "surveyCategoryCode": "Not Supporting",
+        "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "NITROGEN, TOTAL",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-{
+      {
         "stressor": "PH",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "stressor": "PH",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "PH",
-       "surveyCategoryCode": "Partially Supporting",
+        "surveyCategoryCode": "Partially Supporting",
         "categoryCode_label": "Partially Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "PH",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
-                "surveyCategoryCode": "Not Supporting",
+        "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-   {
+      {
         "stressor": "TURBIDITY",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "3",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
-   {
+      {
         "stressor": "TURBIDITY",
-                "surveyCategoryCode": "Not Supporting",
+        "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "TURBIDITY",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "ZINC",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "stressor": "ZINC",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
   {
     "state": "SC",
@@ -1912,17 +1899,17 @@ export const surveyMapping = [
     "surveyUseCode": "PRIMARY CONTACT RECREATION",
     "categoryCodeMapping": [
       {
-       "surveyCategoryCode": "Partially Supporting",
+        "surveyCategoryCode": "Partially Supporting",
         "categoryCode_label": "Partially Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
       {
@@ -1930,25 +1917,25 @@ export const surveyMapping = [
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "3",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "stressor": "ESCHERICHIA COLI (E. COLI)",
-       "surveyCategoryCode": "Partially Supporting",
+        "surveyCategoryCode": "Partially Supporting",
         "categoryCode_label": "Partially Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "ESCHERICHIA COLI (E. COLI)",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "SC",
     "organizationIdentifier": "21SC60WQ",
     "year": "2016",
@@ -1956,24 +1943,24 @@ export const surveyMapping = [
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "AQUATIC LIFE USE SUPPORT",
     "categoryCodeMapping": [
-            {
+      {
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "surveyCategoryCode": "Partially Supporting",
         "categoryCode_label": "Partially Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
       {
@@ -1981,176 +1968,177 @@ export const surveyMapping = [
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "AMMONIA",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "BENTHIC MACROINVERTEBRATES",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "stressor": "BENTHIC MACROINVERTEBRATES",
         "surveyCategoryCode": "Partially Supporting",
         "categoryCode_label": "Partially Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
-{
+      {
         "stressor": "CADMIUM",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "stressor": "CADMIUM",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },      {
+        "categoryCode_color": "#20800c"
+      },
+      {
         "stressor": "CHROMIUM",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "stressor": "CHROMIUM",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "COPPER",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "stressor": "COPPER",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "DISSOLVED OXYGEN",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "DISSOLVED OXYGEN",
-  "surveyCategoryCode": "Partially Supporting",
+        "surveyCategoryCode": "Partially Supporting",
         "categoryCode_label": "Partially Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "DISSOLVED OXYGEN",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "NICKEL",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "stressor": "NICKEL",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "MERCURY",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "stressor": "MERCURY",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-{
+      {
         "stressor": "PH",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
-   {
+      {
         "stressor": "PH",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "3",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
-   {
+      {
         "stressor": "PH",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "PH",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-   {
+      {
         "stressor": "TURBIDITY",
-                "surveyCategoryCode": "Not Supporting",
+        "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "TURBIDITY",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "ZINC",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "2",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "stressor": "ZINC",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
   {
     "state": "SC",
@@ -2160,24 +2148,24 @@ export const surveyMapping = [
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "PRIMARY CONTACT RECREATION",
     "categoryCodeMapping": [
-         {
+      {
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-   {
-       "surveyCategoryCode": "Partially Supporting",
+      {
+        "surveyCategoryCode": "Partially Supporting",
         "categoryCode_label": "Partially Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
       {
@@ -2185,25 +2173,25 @@ export const surveyMapping = [
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "ESCHERICHIA COLI (E. COLI)",
-       "surveyCategoryCode": "Partially Supporting",
+        "surveyCategoryCode": "Partially Supporting",
         "categoryCode_label": "Partially Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "ESCHERICHIA COLI (E. COLI)",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "SC",
     "organizationIdentifier": "21SC60WQ",
     "year": "2016",
@@ -2211,24 +2199,24 @@ export const surveyMapping = [
     "waterTypeGroupCode": "BAY/ESTUARY",
     "surveyUseCode": "AQUATIC LIFE USE SUPPORT",
     "categoryCodeMapping": [
-            {
+      {
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "surveyCategoryCode": "Partially Supporting",
         "categoryCode_label": "Partially Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
       {
@@ -2236,93 +2224,93 @@ export const surveyMapping = [
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "CADMIUM",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },     
+        "categoryCode_color": "#20800c"
+      },
       {
         "stressor": "CHROMIUM",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "COPPER",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "DISSOLVED OXYGEN",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "DISSOLVED OXYGEN",
-       "surveyCategoryCode": "Partially Supporting",
+        "surveyCategoryCode": "Partially Supporting",
         "categoryCode_label": "Partially Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "DISSOLVED OXYGEN",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "NICKEL",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "MERCURY",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "PH",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-   {
+      {
         "stressor": "TURBIDITY",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "TURBIDITY",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "ZINC",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
   {
     "state": "SC",
@@ -2332,57 +2320,57 @@ export const surveyMapping = [
     "waterTypeGroupCode": "BAY/ESTUARY",
     "surveyUseCode": "PRIMARY CONTACT RECREATION",
     "categoryCodeMapping": [
-         {
+      {
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-   {
-       "surveyCategoryCode": "Partially Supporting",
+      {
+        "surveyCategoryCode": "Partially Supporting",
         "categoryCode_label": "Partially Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
-           {
+      {
         "stressor": "ENTEROCOCCUS",
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
- {
+      {
         "stressor": "ENTEROCOCCUS",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "ENTEROCOCCUS",
-       "surveyCategoryCode": "Partially Supporting",
+        "surveyCategoryCode": "Partially Supporting",
         "categoryCode_label": "Partially Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "ENTEROCOCCUS",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "VA",
     "organizationIdentifier": "21VASWCB",
     "year": "2018",
@@ -2390,177 +2378,177 @@ export const surveyMapping = [
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "AQUATIC LIFE",
     "categoryCodeMapping": [
-{
+      {
         "surveyCategoryCode": "Suboptimal",
         "categoryCode_label": "Suboptimal",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Optimal",
         "categoryCode_label": "Optimal",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
-  {
-        "stressor": "DISSOLVED OXYGEN",
-        "surveyCategoryCode": "Suboptimal",
-        "categoryCode_label": "Suboptimal",
-        "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
-      },
       {
         "stressor": "DISSOLVED OXYGEN",
+        "surveyCategoryCode": "Suboptimal",
+        "categoryCode_label": "Suboptimal",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "DISSOLVED OXYGEN",
         "surveyCategoryCode": "Optimal",
         "categoryCode_label": "Optimal",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "HABITAT ASSESSMENT",
         "surveyCategoryCode": "Suboptimal",
         "categoryCode_label": "Suboptimal",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
-      },
-{
-        "stressor": "HABITAT ASSESSMENT",
-        "surveyCategoryCode": "Fair",
-        "categoryCode_label": "Fair",
-        "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "HABITAT ASSESSMENT",
+        "surveyCategoryCode": "Fair",
+        "categoryCode_label": "Fair",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#FFFF00"
+      },
+      {
+        "stressor": "HABITAT ASSESSMENT",
         "surveyCategoryCode": "Optimal",
         "categoryCode_label": "Optimal",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "NITROGEN, TOTAL",
         "surveyCategoryCode": "Suboptimal",
         "categoryCode_label": "Suboptimal",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "NITROGEN, TOTAL",
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "NITROGEN, TOTAL",
-"surveyCategoryCode": "Optimal",
+        "surveyCategoryCode": "Optimal",
         "categoryCode_label": "Optimal",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Suboptimal",
         "categoryCode_label": "Suboptimal",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Optimal",
         "categoryCode_label": "Optimal",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "METALS",
-  "surveyCategoryCode": "Suboptimal",
+        "surveyCategoryCode": "Suboptimal",
         "categoryCode_label": "Suboptimal",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "METALS",
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "METALS",
         "surveyCategoryCode": "Optimal",
         "categoryCode_label": "Optimal",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "SEDIMENTATION/SILTATION",
         "surveyCategoryCode": "Suboptimal",
         "categoryCode_label": "Suboptimal",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "SEDIMENTATION/SILTATION",
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "SEDIMENTATION/SILTATION",
         "surveyCategoryCode": "Optimal",
         "categoryCode_label": "Optimal",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "TOTAL DISSOLVED SOLIDS (TDS)",
         "surveyCategoryCode": "Suboptimal",
         "categoryCode_label": "Suboptimal",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
-{
+      {
         "stressor": "TOTAL DISSOLVED SOLIDS (TDS)",
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "TOTAL DISSOLVED SOLIDS (TDS)",
         "surveyCategoryCode": "Optimal",
         "categoryCode_label": "Optimal",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-  {
+      {
         "stressor": "PH",
         "surveyCategoryCode": "Suboptimal",
         "categoryCode_label": "Suboptimal",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "PH",
         "surveyCategoryCode": "Optimal",
         "categoryCode_label": "Optimal",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-  ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "AZ",
     "organizationIdentifier": "21ARIZ",
     "year": "2018",
@@ -2568,27 +2556,27 @@ export const surveyMapping = [
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "Agriculture",
     "categoryCodeMapping": [
-{
+      {
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "3",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
- {
+      {
         "surveyCategoryCode": "Inconclusive",
         "categoryCode_label": "Inconclusive",
         "categoryCode_order": "2",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
       {
         "surveyCategoryCode": "Supporting Use",
         "categoryCode_label": "Supporting Use",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "AZ",
     "organizationIdentifier": "21ARIZ",
     "year": "2018",
@@ -2596,33 +2584,33 @@ export const surveyMapping = [
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "Aquatic Life",
     "categoryCodeMapping": [
-{
+      {
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
- {
+      {
         "surveyCategoryCode": "Inconclusive",
         "categoryCode_label": "Inconclusive",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
- {
+      {
         "surveyCategoryCode": "Not Supporting Use",
         "categoryCode_label": "Not Supporting Use",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Supporting Use",
         "categoryCode_label": "Supporting Use",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "AZ",
     "organizationIdentifier": "21ARIZ",
     "year": "2018",
@@ -2630,33 +2618,33 @@ export const surveyMapping = [
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "Recreation",
     "categoryCodeMapping": [
-{
+      {
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
- {
+      {
         "surveyCategoryCode": "Inconclusive",
         "categoryCode_label": "Inconclusive",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
- {
+      {
         "surveyCategoryCode": "Not Supporting Use",
         "categoryCode_label": "Not Supporting Use",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Supporting Use",
         "categoryCode_label": "Supporting Use",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "AZ",
     "organizationIdentifier": "21ARIZ",
     "year": "2018",
@@ -2664,33 +2652,33 @@ export const surveyMapping = [
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "FISH CONSUMPTION",
     "categoryCodeMapping": [
-{
+      {
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
- {
+      {
         "surveyCategoryCode": "Inconclusive",
         "categoryCode_label": "Inconclusive",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
- {
+      {
         "surveyCategoryCode": "Not Supporting Use",
         "categoryCode_label": "Not Supporting Use",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Supporting Use",
         "categoryCode_label": "Supporting Use",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "VT",
     "organizationIdentifier": "1VTDECWQ",
     "year": "2017",
@@ -2698,39 +2686,39 @@ export const surveyMapping = [
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "Aquatic biota and wildlife that may utilize or are present in the waters",
     "categoryCodeMapping": [
-{
+      {
         "surveyCategoryCode": "Poor",
         "categoryCode_label": "Poor",
         "categoryCode_order": "5",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "4",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "surveyCategoryCode": "Good",
         "categoryCode_label": "Good",
         "categoryCode_order": "3",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "surveyCategoryCode": "Very Good",
         "categoryCode_label": "Very Good",
         "categoryCode_order": "2",
-        "categoryCode_color": "#00A86B",
+        "categoryCode_color": "#00A86B"
       },
       {
         "surveyCategoryCode": "Excellent",
         "categoryCode_label": "Excellent",
         "categoryCode_order": "1",
-        "categoryCode_color": "#27AAE1",
-      },
-    ],
+        "categoryCode_color": "#27AAE1"
+      }
+    ]
   },
-{
+  {
     "state": "VT",
     "organizationIdentifier": "1VTDECWQ",
     "year": "2017",
@@ -2738,39 +2726,39 @@ export const surveyMapping = [
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "Aquatic biota and wildlife that may utilize or are present in the waters",
     "categoryCodeMapping": [
-{
+      {
         "surveyCategoryCode": "Poor",
         "categoryCode_label": "Poor",
         "categoryCode_order": "5",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "4",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "surveyCategoryCode": "Good",
         "categoryCode_label": "Good",
         "categoryCode_order": "3",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "surveyCategoryCode": "Very Good",
         "categoryCode_label": "Very Good",
         "categoryCode_order": "2",
-        "categoryCode_color": "#00A86B",
+        "categoryCode_color": "#00A86B"
       },
       {
         "surveyCategoryCode": "Excellent",
         "categoryCode_label": "Excellent",
         "categoryCode_order": "1",
-        "categoryCode_color": "#27AAE1",
-      },
-    ],
+        "categoryCode_color": "#27AAE1"
+      }
+    ]
   },
-{
+  {
     "state": "VT",
     "organizationIdentifier": "1VTDECWQ",
     "year": "2017",
@@ -2778,39 +2766,39 @@ export const surveyMapping = [
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "Aquatic biota and wildlife that may utilize or are present in the waters",
     "categoryCodeMapping": [
-{
+      {
         "surveyCategoryCode": "Poor",
         "categoryCode_label": "Poor",
         "categoryCode_order": "5",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Fair",
         "categoryCode_label": "Fair",
         "categoryCode_order": "4",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "surveyCategoryCode": "Good",
         "categoryCode_label": "Good",
         "categoryCode_order": "3",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "surveyCategoryCode": "Very Good",
         "categoryCode_label": "Very Good",
         "categoryCode_order": "2",
-        "categoryCode_color": "#00A86B",
+        "categoryCode_color": "#00A86B"
       },
       {
         "surveyCategoryCode": "Excellent",
         "categoryCode_label": "Excellent",
         "categoryCode_order": "1",
-        "categoryCode_color": "#27AAE1",
-      },
-    ],
+        "categoryCode_color": "#27AAE1"
+      }
+    ]
   },
-{
+  {
     "state": "NH",
     "organizationIdentifier": "11113300",
     "year": "2010",
@@ -2818,33 +2806,33 @@ export const surveyMapping = [
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "AQUATIC LIFE INTEGRITY",
     "categoryCodeMapping": [
-{
+      {
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "surveyCategoryCode": "Insufficient Information",
         "categoryCode_label": "Insufficient Information",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
       {
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "NH",
     "organizationIdentifier": "11113300",
     "year": "2010",
@@ -2852,33 +2840,33 @@ export const surveyMapping = [
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "PRIMARY CONTACT RECREATION",
     "categoryCodeMapping": [
-{
+      {
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "surveyCategoryCode": "Insufficient Information",
         "categoryCode_label": "Insufficient Information",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
       {
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "NH",
     "organizationIdentifier": "11113300",
     "year": "2010",
@@ -2886,33 +2874,33 @@ export const surveyMapping = [
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "SECONDARY CONTACT RECREATION",
     "categoryCodeMapping": [
-{
+      {
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "surveyCategoryCode": "Insufficient Information",
         "categoryCode_label": "Insufficient Information",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
       {
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "NH",
     "organizationIdentifier": "11113300",
     "year": "2010",
@@ -2920,33 +2908,33 @@ export const surveyMapping = [
     "waterTypeGroupCode": "BAY/ESTUARY",
     "surveyUseCode": "AQUATIC LIFE INTEGRITY",
     "categoryCodeMapping": [
-{
+      {
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "surveyCategoryCode": "Insufficient Information",
         "categoryCode_label": "Insufficient Information",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
       {
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "NH",
     "organizationIdentifier": "11113300",
     "year": "2010",
@@ -2954,33 +2942,33 @@ export const surveyMapping = [
     "waterTypeGroupCode": "BAY/ESTUARY",
     "surveyUseCode": "PRIMARY CONTACT RECREATION",
     "categoryCodeMapping": [
-{
+      {
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "surveyCategoryCode": "Insufficient Information",
         "categoryCode_label": "Insufficient Information",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
       {
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "NH",
     "organizationIdentifier": "11113300",
     "year": "2010",
@@ -2988,33 +2976,33 @@ export const surveyMapping = [
     "waterTypeGroupCode": "BAY/ESTUARY",
     "surveyUseCode": "SECONDARY CONTACT RECREATION",
     "categoryCodeMapping": [
-{
+      {
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "surveyCategoryCode": "Insufficient Information",
         "categoryCode_label": "Insufficient Information",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
       {
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "NH",
     "organizationIdentifier": "11113300",
     "year": "2010",
@@ -3022,140 +3010,140 @@ export const surveyMapping = [
     "waterTypeGroupCode": "LAKE/RESERVOIR/POND",
     "surveyUseCode": "AQUATIC LIFE INTEGRITY",
     "categoryCodeMapping": [
-{
+      {
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "surveyCategoryCode": "Insufficient Information",
         "categoryCode_label": "Insufficient Information",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
       {
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
-{
+      {
         "stressor": "CHLOROPHYLL-A",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "CHLOROPHYLL-A",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "DISSOLVED OXYGEN",
         "surveyCategoryCode": "Insufficient Information",
         "categoryCode_label": "Insufficient Information",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
-{
+      {
         "stressor": "DISSOLVED OXYGEN",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "DISSOLVED OXYGEN",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "DISSOLVED OXYGEN SATURATION",
         "surveyCategoryCode": "Insufficient Information",
         "categoryCode_label": "Insufficient Information",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
-{
+      {
         "stressor": "DISSOLVED OXYGEN SATURATION",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "DISSOLVED OXYGEN SATURATION",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-{
+      {
         "stressor": "NON-NATIVE AQUATIC PLANTS",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "NON-NATIVE AQUATIC PLANTS",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-{
+      {
         "stressor": "PH",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "PH",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-{
+      {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Potentially Not Supporting",
         "categoryCode_label": "Potentially Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#FFFF00",
+        "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "NH",
     "organizationIdentifier": "11113300",
     "year": "2010",
@@ -3163,77 +3151,77 @@ export const surveyMapping = [
     "waterTypeGroupCode": "LAKE/RESERVOIR/POND",
     "surveyUseCode": "PRIMARY CONTACT RECREATION",
     "categoryCodeMapping": [
-{
+      {
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "surveyCategoryCode": "Insufficient Information",
         "categoryCode_label": "Insufficient Information",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
       {
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
-{
+      {
         "stressor": "CHLOROPHYLL-A",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "CHLOROPHYLL-A",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-{
+      {
         "stressor": "CYANOBACTERIA HEPATOTOXIC MICROCYSTINS",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "CYANOBACTERIA HEPATOTOXIC MICROCYSTINS",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
+        "categoryCode_color": "#20800c"
       },
-{
+      {
         "stressor": "ESCHERICHIA COLI (E. COLI)",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "ESCHERICHIA COLI (E. COLI)",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
+        "categoryCode_color": "#20800c"
+      }
+    ]
   },
-{
+  {
     "state": "NH",
     "organizationIdentifier": "11113300",
     "year": "2010",
@@ -3241,46 +3229,46 @@ export const surveyMapping = [
     "waterTypeGroupCode": "LAKE/RESERVOIR/POND",
     "surveyUseCode": "SECONDARY CONTACT RECREATION",
     "categoryCodeMapping": [
-{
+      {
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
         "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0",
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "surveyCategoryCode": "Insufficient Information",
         "categoryCode_label": "Insufficient Information",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195",
+        "categoryCode_color": "#6b4195"
       },
       {
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
+        "categoryCode_color": "#20800c"
+      }
     ],
     "stressorMapping": [
-{
+      {
         "stressor": "ESCHERICHIA COLI (E. COLI)",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e",
+        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "ESCHERICHIA COLI (E. COLI)",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
-        "categoryCode_color": "#20800c",
-      },
-    ],
-  },
-];
+        "categoryCode_color": "#20800c"
+      }
+    ]
+  }
+]

@@ -11,7 +11,7 @@ module.exports = function (app) {
 
   router.get('/', function (req, res, next) {
     let authoriztedURL = false;
-    let parsedUrl;
+    var parsedUrl;
     let metadataObj = logger.populateMetdataObjFromRequest(req);
 
     try {
@@ -23,16 +23,19 @@ module.exports = function (app) {
       } else {
         let msg = 'Missing proxy request';
         log.warn(logger.formatLogMsg(metadataObj, msg));
-        res.status(403).send(msg);
+        res.status(403).json({ message: msg });
         return;
       }
 
-      if (!authoriztedURL) {
+      if (
+        !authoriztedURL &&
+        !parsedUrl.toLowerCase().includes('://' + req.hostname.toLowerCase())
+      ) {
         let msg = 'Invalid proxy request';
         log.error(
           logger.formatLogMsg(metadataObj, `${msg}. parsedUrl = ${parsedUrl}`),
         );
-        res.status(403).send(msg);
+        res.status(403).json({ message: msg });
         return;
       }
     } catch (err) {
@@ -40,14 +43,23 @@ module.exports = function (app) {
       log.error(
         logger.formatLogMsg(metadataObj, `${msg}. parsedUrl = ${parsedUrl}`),
       );
-      res.status(403).send(msg);
+      res.status(403).json({ message: msg });
       return;
     }
 
     let request_headers = {};
-    if (parsedUrl.includes('etss.epa.gov')) {
-      //if its a terminology request
+    if (parsedUrl.toLowerCase().includes('etss.epa.gov')) {
       request_headers.authorization = 'basic ' + process.env.GLOSSARY_AUTH;
+    } else {
+      if (
+        !app.enabled('isLocal') &&
+        parsedUrl.toLowerCase().includes('://' + req.hostname.toLowerCase()) &&
+        parsedUrl.toLowerCase().includes('/data/')
+      ) {
+        //change out the URL for the internal s3 bucket that support this instance of the application in Cloud.gov
+        var jsonFileName = parsedUrl.split('/data/').pop();
+        parsedUrl = app.get('s3_bucket_url') + '/data/' + jsonFileName;
+      }
     }
 
     request(
@@ -55,7 +67,7 @@ module.exports = function (app) {
         method: req.query.method,
         headers: request_headers,
         uri: parsedUrl,
-        timeout: 30000,
+        timeout: 10000,
       },
       function (err, request_res, body) {
         if (err) {
@@ -65,11 +77,20 @@ module.exports = function (app) {
               `Unsuccessful request. parsedUrl = ${parsedUrl}. Detailed error: ${err}`,
             ),
           );
-          res
-            .status(403)
-            .send(
-              `Unsuccessful request. parsedUrl = ${parsedUrl}. Detailed error: ${err}`,
+          if (res.headersSent) {
+            log.error(
+              logger.formatLogMsg(
+                metadataObj,
+                `Odd header already sent check = ${parsedUrl}. Detailed error: ${err}`,
+              ),
             );
+          } else {
+            res.status(403).json({
+              message: 'Unsuccessful request. parsedUrl ' + parsedUrl,
+              'Detailed error': err,
+            });
+          }
+          return;
         }
       },
     )

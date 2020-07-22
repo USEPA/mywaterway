@@ -102,7 +102,11 @@ function AboutContent({ ...props }: Props) {
 
     // when the user hits the back button change the url back to the original
     return function cleanup() {
-      if (pathname !== 'about') window.history.pushState(null, null, href);
+      // exit early, if user clicked the banner link or the original path
+      // is the about page.
+      if (window.location.pathname === '/' || pathname === 'about') return;
+
+      window.history.pushState(null, null, href);
     };
   }, []);
 

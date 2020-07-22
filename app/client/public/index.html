@@ -133,10 +133,13 @@
       document.addEventListener('click', function (event) {
         //Button clicks
         if (event.target.onclick && event.target.textContent) {
+          const text = event.target.textContent.trim();
+          const title = event.target.title.trim();
+
           //Log to Google Analytics
-          const action = event.target.title ?
-            'ow-hmw2-' + event.target.textContent + ' - ' + event.target.title :
-            'ow-hmw2-' + event.target.textContent;
+          const action = title ?
+            'ow-hmw2-' + text + ' - ' + title :
+            'ow-hmw2-' + text;
           ga('send', 'event', 'buttonClick', action, window.location.pathname);
         }
 
@@ -158,7 +161,7 @@
           }
 
           //Log to Google Analytics
-          ga('send', 'event', category, 'ow-hmw2-' + event.target.text, href);
+          ga('send', 'event', category, 'ow-hmw2-' + event.target.text.trim(), href);
         }
       });
     }
