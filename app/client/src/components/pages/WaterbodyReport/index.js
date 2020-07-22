@@ -605,13 +605,13 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
   // Get the reporting cycle from the map
   const [mapReportingCycle, setMapReportingCycle] = React.useState('');
   React.useEffect(() => {
-    let reportingCycle = '';
     if (mapLayer.status === 'success' && mapLayer.layer.graphics.length > 0) {
-      reportingCycle =
-        mapLayer.layer.graphics.items[0].attributes.reportingcycle;
+      setMapReportingCycle(
+        mapLayer.layer.graphics.items[0].attributes.reportingcycle,
+      );
+    } else {
+      setMapReportingCycle('');
     }
-
-    setMapReportingCycle(reportingCycle);
   }, [mapLayer]);
 
   const [waterbodyActions, setWaterbodyActions] = React.useState({
