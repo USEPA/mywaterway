@@ -21,6 +21,7 @@ import {
   MapHighlightProvider,
 } from 'contexts/MapHighlight';
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
+import { useReportStatusMappingContext } from 'contexts/LookupFiles';
 // utilities
 import { getEnvironmentString, fetchCheck } from 'utils/fetchUtils';
 import { chunkArray } from 'utils/utils';
@@ -33,7 +34,7 @@ import { attains } from 'config/webServiceConfig';
 // styles
 import { reactSelectStyles } from 'styles/index.js';
 // errors
-import { stateGeneralError } from 'config/errorMessages';
+import { stateGeneralError, state303dStatusError } from 'config/errorMessages';
 
 const defaultDisplayOption = {
   label: 'Overall Waterbody Condition',
@@ -181,8 +182,6 @@ const Button = styled.button`
 `;
 
 const MapFooter = styled.div`
-  display: flex;
-  align-items: center;
   width: 100%;
   /* match ESRI map footer text */
   padding: 3px 5px;
@@ -190,6 +189,15 @@ const MapFooter = styled.div`
   border-top: none;
   font-size: 0.75em;
   background-color: whitesmoke;
+`;
+
+const MapFooterMessage = styled.div`
+  margin-bottom: 5px;
+`;
+
+const MapFooterStatus = styled.div`
+  display: flex;
+  align-items: center;
 
   svg {
     margin: 0 -0.875rem;
@@ -215,7 +223,9 @@ function AdvancedSearch({ ...props }: Props) {
   const {
     currentReportStatus,
     currentSummary,
-    activeState, //
+    currentReportingCycle,
+    setCurrentReportingCycle,
+    activeState,
   } = React.useContext(StateTabsContext);
 
   const { fullscreenActive } = React.useContext(FullscreenContext);
@@ -373,7 +383,11 @@ function AdvancedSearch({ ...props }: Props) {
       const query = new Query({
         returnGeometry: false,
         where: `state = '${activeState.code}'`,
-        outFields: ['assessmentunitidentifier', 'assessmentunitname'],
+        outFields: [
+          'assessmentunitidentifier',
+          'assessmentunitname',
+          'reportingcycle',
+        ],
       });
 
       retrieveFeatures({
@@ -386,7 +400,12 @@ function AdvancedSearch({ ...props }: Props) {
           // build a full list of waterbodies for the state. Will have the full
           // list prior to filters being visible on the screen.
           let waterbodiesList = [];
-          data.features.forEach((waterbody) => {
+          let reportingCycle = '';
+          data.features.forEach((waterbody, index) => {
+            if (waterbody.attributes.reportingcycle > reportingCycle) {
+              reportingCycle = waterbody.attributes.reportingcycle;
+            }
+
             const id = waterbody.attributes.assessmentunitidentifier;
             const name = waterbody.attributes.assessmentunitname;
             waterbodiesList.push({
@@ -396,12 +415,20 @@ function AdvancedSearch({ ...props }: Props) {
           });
 
           setWaterbodiesList(waterbodiesList);
+          setCurrentReportingCycle({
+            status: 'success',
+            reportingCycle,
+          });
         })
         .catch((err) => {
           console.error(err);
           setSearchLoading(false);
           setServiceError(true);
           setWaterbodiesList([]);
+          setCurrentReportingCycle({
+            status: 'failure',
+            reportingCycle: '',
+          });
         });
     } else {
       const query = new Query({
@@ -430,6 +457,7 @@ function AdvancedSearch({ ...props }: Props) {
     currentFilter,
     activeState,
     summaryLayerMaxRecordCount,
+    setCurrentReportingCycle,
   ]);
 
   const [waterbodyFilter, setWaterbodyFilter] = React.useState([]);
@@ -481,7 +509,7 @@ function AdvancedSearch({ ...props }: Props) {
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [nextFilter, setNextFilter] = React.useState('');
   React.useEffect(() => {
-    if (!nextFilter && !serviceError) return;
+    if (!nextFilter || serviceError) return;
 
     const { Query, QueryTask } = esriHelper.modules;
 
@@ -533,6 +561,10 @@ function AdvancedSearch({ ...props }: Props) {
     setWaterbodyData(null);
     setWaterbodiesList(null);
     setNumberOfRecords(null);
+    setCurrentReportingCycle({
+      status: 'fetching',
+      reportingCycle: '',
+    });
 
     // Reset the filters
     setCurrentFilter(null);
@@ -549,7 +581,7 @@ function AdvancedSearch({ ...props }: Props) {
     setNewDisplayOptions([defaultDisplayOption]);
     setDisplayOptions([defaultDisplayOption]);
     setSelectedDisplayOption(defaultDisplayOption);
-  }, [activeState, setWaterbodyData]);
+  }, [activeState, setWaterbodyData, setCurrentReportingCycle]);
 
   const executeFilter = () => {
     setSearchLoading(true);
@@ -960,6 +992,7 @@ function AdvancedSearch({ ...props }: Props) {
     setMapShownInitialized(true);
   }, [mapShownInitialized, width]);
 
+  const reportStatusMapping = useReportStatusMappingContext();
   const mapContent = (
     <StateMap
       windowHeight={height}
@@ -970,14 +1003,35 @@ function AdvancedSearch({ ...props }: Props) {
       numberOfRecords={numberOfRecords}
     >
       <MapFooter style={{ width: fullscreenActive ? width : '100%' }}>
-        <strong>303(d) List Status / Year Last Reported:</strong>
-        &nbsp;&nbsp;
-        {currentReportStatus ? <>{currentReportStatus}</> : <LoadingSpinner />}
-        <> / </>
-        {currentSummary.status === 'success' && (
-          <>{currentSummary.data.reportingCycle}</>
+        {reportStatusMapping.status === 'failure' && (
+          <MapFooterMessage>{state303dStatusError}</MapFooterMessage>
         )}
-        {currentSummary.status === 'fetching' && <LoadingSpinner />}
+        <MapFooterStatus>
+          <strong>303(d) List Status / Year Last Reported:</strong>
+          &nbsp;&nbsp;
+          {!currentReportStatus ? (
+            <LoadingSpinner />
+          ) : (
+            <>
+              {reportStatusMapping.status === 'fetching' && <LoadingSpinner />}
+              {reportStatusMapping.status === 'failure' && (
+                <>{currentReportStatus}</>
+              )}
+              {reportStatusMapping.status === 'success' && (
+                <>
+                  {reportStatusMapping.data.hasOwnProperty(currentReportStatus)
+                    ? reportStatusMapping.data[currentReportStatus]
+                    : currentReportStatus}
+                </>
+              )}
+            </>
+          )}
+          <> / </>
+          {currentReportingCycle.status === 'success' && (
+            <>{currentReportingCycle.reportingCycle}</>
+          )}
+          {currentReportingCycle.status === 'fetching' && <LoadingSpinner />}
+        </MapFooterStatus>
       </MapFooter>
     </StateMap>
   );

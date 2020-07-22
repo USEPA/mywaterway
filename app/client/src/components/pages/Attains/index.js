@@ -2,13 +2,13 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import ReactTable from 'react-table';
 // components
 import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import NavBar from 'components/shared/NavBar';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
+import ReactTable from 'components/shared/ReactTable';
 // styled components
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // utilities
@@ -17,8 +17,6 @@ import { fetchCheck } from 'utils/fetchUtils';
 import { attains } from 'config/webServiceConfig';
 // data
 import { impairmentFields } from 'config/attainsToHmwMapping';
-// styles
-import 'styles/react-table.css';
 // errors
 import { attainsParameterServiceError } from 'config/errorMessages';
 
@@ -94,16 +92,18 @@ function Attains({ ...props }: Props) {
   React.useEffect(() => {
     // array of arrays - each containing 3 values: the HMW mapping, the ATTAINS context, and the ATTAINS name
     // i.e. ["Excess Algae", "ALGAL GROWTH", "EXCESS ALGAL GROWTH"]
-    setMatchedMappings(
-      attainsData &&
-        attainsData.map((obj) => {
-          return {
-            hmwMapping: getMatchingLabel(obj.context),
-            attainsParameterGroup: obj.context,
-            attainsParameterName: obj.name,
-          };
-        }),
-    );
+    let data = [];
+    if (attainsData) {
+      data = attainsData.map((obj) => {
+        return {
+          hmwMapping: getMatchingLabel(obj.context),
+          attainsParameterGroup: obj.context,
+          attainsParameterName: obj.name,
+        };
+      });
+    }
+
+    setMatchedMappings(data);
   }, [attainsData]);
 
   if (serviceError) {
@@ -118,7 +118,7 @@ function Attains({ ...props }: Props) {
   }
 
   // if loading or matching the entries. prevents a flicker of an empty screen while table loads
-  if (loading || !matchedMappings) {
+  if (loading) {
     return (
       <Page>
         <NavBar title="ATTAINS Information" />
@@ -126,20 +126,6 @@ function Attains({ ...props }: Props) {
       </Page>
     );
   }
-
-  const generateFilterInput = (filter, onChange) => (
-    <input
-      type="text"
-      placeholder="Filter column..."
-      style={{ width: '100%' }}
-      value={filter ? filter.value : ''}
-      onChange={(event) => onChange(event.target.value)}
-      aria-label="Filter column..."
-    />
-  );
-
-  const createCustomFilter = (filter, row, id) =>
-    row._original[id].toLowerCase().includes(filter.value.toLowerCase());
 
   return (
     <Page>
@@ -163,48 +149,35 @@ function Attains({ ...props }: Props) {
         </p>
         <br />
 
-        {matchedMappings && (
-          <ReactTable
-            data={matchedMappings}
-            columns={[
+        <ReactTable
+          data={matchedMappings}
+          striped={true}
+          getColumns={(tableWidth) => {
+            const columnWidth = tableWidth / 3;
+
+            return [
               {
-                Header: '',
-                columns: [
-                  {
-                    Header: "How's My Waterway Impairment Category",
-                    accessor: 'hmwMapping',
-                    filterMethod: (filter, row) =>
-                      createCustomFilter(filter, row, 'hmwMapping'),
-                    Filter: ({ filter, onChange }) =>
-                      generateFilterInput(filter, onChange),
-                  },
-                  {
-                    id: 'parameterGroups',
-                    Header: 'ATTAINS Parameter Group',
-                    accessor: 'attainsParameterGroup',
-                    filterMethod: (filter, row) =>
-                      createCustomFilter(filter, row, 'attainsParameterGroup'),
-                    Filter: ({ filter, onChange }) =>
-                      generateFilterInput(filter, onChange),
-                  },
-                  {
-                    Header: 'ATTAINS Parameter Name',
-                    accessor: 'attainsParameterName',
-                    filterMethod: (filter, row) =>
-                      createCustomFilter(filter, row, 'attainsParameterName'),
-                    Filter: ({ filter, onChange }) =>
-                      generateFilterInput(filter, onChange),
-                  },
-                ],
+                Header: "How's My Waterway Impairment Category",
+                accessor: 'hmwMapping',
+                width: columnWidth,
+                filterable: true,
               },
-            ]}
-            filterable={true}
-            defaultPageSize={matchedMappings.length} // set number of displayed entries to number of entries
-            minRows={0} // hide empty rows that appear once filters have been applied
-            showPagination={false}
-            className="-striped -highlight"
-          />
-        )}
+              {
+                id: 'parameterGroups',
+                Header: 'ATTAINS Parameter Group',
+                accessor: 'attainsParameterGroup',
+                width: columnWidth,
+                filterable: true,
+              },
+              {
+                Header: 'ATTAINS Parameter Name',
+                accessor: 'attainsParameterName',
+                width: columnWidth,
+                filterable: true,
+              },
+            ];
+          }}
+        />
       </Container>
     </Page>
   );
