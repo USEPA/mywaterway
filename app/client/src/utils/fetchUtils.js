@@ -31,6 +31,40 @@ export function proxyFetch(apiUrl: string, timeout: number = defaultTimeout) {
   return fetchCheck(url, timeout);
 }
 
+export function lookupFetch(path: string, timeout: number = defaultTimeout) {
+  const { REACT_APP_SERVER_URL } = process.env;
+  const baseUrl = REACT_APP_SERVER_URL || window.location.origin;
+  const url = `${baseUrl}/data/${path}`;
+
+  return new Promise<Object>((resolve, reject) => {
+    // Function that fetches the lookup file.
+    // This will retry the fetch 3 times if the fetch fails with a
+    // 1 second delay between each retry.
+    const fetchLookup = (retryCount: number = 0) => {
+      proxyFetch(url)
+        .then((data) => {
+          resolve(data);
+        })
+        .catch((err) => {
+          console.error(err);
+
+          // resolve the request when the max retry count of 3 is hit
+          if (retryCount === 3) {
+            reject(err);
+          } else {
+            // recursive retry (1 second between retries)
+            console.log(
+              `Failed to fetch ${path}. Retrying (${retryCount + 1} of 3)...`,
+            );
+            setTimeout(() => fetchLookup(retryCount + 1), 1000);
+          }
+        });
+    };
+
+    fetchLookup();
+  });
+}
+
 export function fetchPost(
   apiUrl: string,
   data: object,

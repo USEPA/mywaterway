@@ -24,13 +24,13 @@ import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import { colors } from 'styles/index.js';
 // contexts
 import { StateTabsContext } from 'contexts/StateTabs';
+import {
+  useStateNationalUsesContext,
+  useWaterTypeOptionsContext,
+} from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 import { titleCase } from 'utils/utils';
-// data
-import { stateNationalUses } from 'components/pages/State/lookups/stateNationalUses';
-import { waterTypeOptions } from 'components/pages/State/lookups/waterTypeOptions';
-import { reportStatusOptions } from 'components/pages/State/lookups/reportStatusMapping';
 // config
 import { attains, grts } from 'config/webServiceConfig';
 // images
@@ -44,9 +44,9 @@ import {
   stateNoDataError,
 } from 'config/errorMessages';
 
-function relabelWaterType(oldLabel) {
+function relabelWaterType(oldLabel, waterTypeOptions) {
   let newLabel = 'Other Types';
-  Object.entries(waterTypeOptions).forEach((waterTypeOption) => {
+  Object.entries(waterTypeOptions.data).forEach((waterTypeOption) => {
     const [waterType, aliases] = waterTypeOption;
     if (aliases.includes(oldLabel)) newLabel = waterType;
   });
@@ -234,8 +234,12 @@ const ImageIcon = styled.img`
 type Props = {};
 
 function WaterQualityOverview({ ...props }: Props) {
+  const stateNationalUses = useStateNationalUsesContext();
+  const waterTypeOptions = useWaterTypeOptionsContext();
   const {
     activeState,
+    currentReportingCycle,
+    setCurrentReportingCycle,
     setCurrentReportStatus,
     setCurrentSummary,
     setUsesStateSummaryServiceError,
@@ -256,6 +260,7 @@ function WaterQualityOverview({ ...props }: Props) {
   const [currentTopic, setCurrentTopic] = React.useState('swimming');
   const [waterTypes, setWaterTypes] = React.useState(null);
   const [waterTypeData, setWaterTypeData] = React.useState(null);
+  const [organizationId, setOrganizationId] = React.useState('');
 
   const [surveyData, setSurveyData] = React.useState(null);
   const [assessmentDocuments, setAssessmentDocuments] = React.useState(null);
@@ -299,121 +304,155 @@ function WaterQualityOverview({ ...props }: Props) {
           const orgData = res.items[0];
           setAssessmentDocuments(orgData.documents);
 
-          const reportStatus = reportStatusOptions.hasOwnProperty(
-            orgData.reportStatusCode,
-          )
-            ? reportStatusOptions[orgData.reportStatusCode]
-            : orgData.reportStatusCode;
-          setCurrentReportStatus(reportStatus);
+          setCurrentReportStatus(orgData.reportStatusCode);
         })
         .catch((err) => {
           console.error(err);
           setDocumentServiceError(true);
           setAssessmentsLoading(false);
+          setCurrentReportStatus('Error getting 303(d) List Status');
         });
     },
     [setCurrentReportStatus],
   );
 
   // summary service has the different years of data for recreation/eco/fish/water/other
-  const fetchStateSummary = React.useCallback(
-    (orgID) => {
-      let url = `${attains.serviceUrl}usesStateSummary?organizationId=${orgID}`;
-
-      fetchCheck(url)
-        .then((res) => {
-          // for states like Alaska that have no reporting cycles
-          if (
-            !res.data ||
-            !res.data.reportingCycles ||
-            res.data.reportingCycles.length === 0
-          ) {
-            setUsesStateSummaryServiceError(true);
-            return;
-          }
-
-          setCurrentStateData(res.data);
-
-          // get the latest reporting cycle
-          let currentReportingCycle = '';
-          let currentSummary;
-          if (res.data.reportingCycles && res.data.reportingCycles.length > 0) {
-            currentSummary = res.data.reportingCycles.sort(
-              (a, b) =>
-                parseFloat(b.reportingCycle) - parseFloat(a.reportingCycle),
-            )[0];
-            currentReportingCycle = currentSummary.reportingCycle;
-          }
-
-          setYearSelected(currentReportingCycle);
-          setCurrentSummary({
-            status: 'success',
-            data: currentSummary,
-          });
-          setLoading(false);
-
-          fetchAssessments(orgID, currentReportingCycle);
-        })
-        .catch((err) => {
-          console.error('Error with attains summary web service: ', err);
-
-          // for states like Arkansas that cause internal server errors in ATTAINS when queried
-          if (err.status === 500) {
-            setUsesStateSummaryServiceError(true);
-            return;
-          }
-
-          setServiceError(true);
-          setLoading(false);
-          setCurrentSummary({
-            status: 'failure',
-            data: {},
-          });
-        });
-    },
-    [fetchAssessments, setCurrentSummary, setUsesStateSummaryServiceError],
+  const [usesStateSummaryCalled, setUsesStateSummaryCalled] = React.useState(
+    false,
   );
+  React.useEffect(() => {
+    if (
+      !organizationId ||
+      currentReportingCycle.status === 'fetching' ||
+      usesStateSummaryCalled
+    ) {
+      return;
+    }
+
+    if (currentReportingCycle.status === 'failure') {
+      setUsesStateSummaryCalled(true);
+      setServiceError(true);
+      setLoading(false);
+      setCurrentSummary({
+        status: 'failure',
+        data: {},
+      });
+      return;
+    }
+
+    const reportingCycleParam = currentReportingCycle.reportingCycle
+      ? `&reportingCycle=${currentReportingCycle.reportingCycle}`
+      : '';
+
+    const url =
+      `${attains.serviceUrl}usesStateSummary` +
+      `?organizationId=${organizationId}` +
+      reportingCycleParam;
+
+    fetchCheck(url)
+      .then((res) => {
+        // for states like Alaska that have no reporting cycles
+        if (
+          !res.data ||
+          !res.data.reportingCycles ||
+          res.data.reportingCycles.length === 0
+        ) {
+          setUsesStateSummaryServiceError(true);
+          setLoading(false);
+          return;
+        }
+
+        setCurrentStateData(res.data);
+
+        // get the latest reporting cycle
+        let latestReportingCycle = '';
+        let currentSummary;
+        if (res.data.reportingCycles && res.data.reportingCycles.length > 0) {
+          currentSummary = res.data.reportingCycles.sort(
+            (a, b) =>
+              parseFloat(b.reportingCycle) - parseFloat(a.reportingCycle),
+          )[0];
+          latestReportingCycle = currentSummary.reportingCycle;
+        }
+
+        setYearSelected(latestReportingCycle);
+        setCurrentSummary({
+          status: 'success',
+          data: currentSummary,
+        });
+        if (!reportingCycleParam) {
+          setCurrentReportingCycle({
+            status: 'success',
+            reportingCycle: latestReportingCycle,
+          });
+        }
+        setLoading(false);
+
+        fetchAssessments(organizationId, latestReportingCycle);
+      })
+      .catch((err) => {
+        console.error('Error with attains summary web service: ', err);
+
+        // for states like Arkansas that cause internal server errors in ATTAINS when queried
+        if (err.status === 500) {
+          setUsesStateSummaryServiceError(true);
+          return;
+        }
+
+        setServiceError(true);
+        setLoading(false);
+        setCurrentSummary({
+          status: 'failure',
+          data: {},
+        });
+      });
+
+    setUsesStateSummaryCalled(true);
+  }, [
+    fetchAssessments,
+    setCurrentSummary,
+    setUsesStateSummaryServiceError,
+    organizationId,
+    currentReportingCycle,
+    setCurrentReportingCycle,
+    usesStateSummaryCalled,
+  ]);
 
   // get state organization ID for summary service
-  const [organizationId, setOrganizationId] = React.useState('');
-  const fetchStateOrgId = React.useCallback(
-    (stateID: string) => {
-      const url = `${attains.serviceUrl}states/${stateID}/organizations`;
-      fetchCheck(url)
-        .then((res) => {
-          let orgID;
+  const fetchStateOrgId = React.useCallback((stateID: string) => {
+    const url = `${attains.serviceUrl}states/${stateID}/organizations`;
+    fetchCheck(url)
+      .then((res) => {
+        let orgID;
 
-          // look for an org id that is of type state
-          if (res && res.data) {
-            res.data.forEach((org) => {
-              if (org.type === 'State') orgID = org.id;
-            });
-          }
+        // look for an org id that is of type state
+        if (res && res.data) {
+          res.data.forEach((org) => {
+            if (org.type === 'State') orgID = org.id;
+          });
+        }
 
-          // go to the next step if an org id was found, otherwise flag an error
-          if (orgID) {
-            fetchStateSummary(orgID);
-            setOrganizationId(orgID);
-            fetchSurveyData(orgID);
-          } else {
-            console.log(
-              'Attains did not return any organization info for ',
-              stateID,
-            );
-            setNoDataError(true);
-            setLoading(false);
-            setSurveyLoading(false);
-            return;
-          }
-        })
-        .catch((err) => {
-          console.error('Error with attains org ID web service: ', err);
-          setServiceError(true);
+        // go to the next step if an org id was found, otherwise flag an error
+        if (orgID) {
+          setOrganizationId(orgID);
+          fetchSurveyData(orgID);
+        } else {
+          console.log(
+            'Attains did not return any organization info for ',
+            stateID,
+          );
+          setNoDataError(true);
           setLoading(false);
-        });
-    },
-    [fetchStateSummary],
-  );
+          setSurveyLoading(false);
+          return;
+        }
+      })
+      .catch((err) => {
+        console.error('Error with attains org ID web service: ', err);
+        setServiceError(true);
+        setLoading(false);
+      });
+  }, []);
 
   // If the user changes the search
   React.useEffect(() => {
@@ -436,6 +475,7 @@ function WaterQualityOverview({ ...props }: Props) {
       setAssessmentDocuments([]);
       setSubPopulationCodes([]);
       setCurrentReportStatus('');
+      setUsesStateSummaryCalled(false);
 
       setCurrentState(activeState.code);
       fetchStateOrgId(activeState.code);
@@ -522,13 +562,15 @@ function WaterQualityOverview({ ...props }: Props) {
 
   // Gets a list of uses that pertain to the current topic
   React.useEffect(() => {
-    if (activeState.code === '') return;
+    if (activeState.code === '' || stateNationalUses.status !== 'success') {
+      return;
+    }
 
     let category = formatTopic(currentTopic);
 
     //get the list of possible uses
     let possibleUses = {};
-    stateNationalUses.forEach((item) => {
+    stateNationalUses.data.forEach((item) => {
       if (item.state === activeState.code && item.category === category) {
         // make sure to use upper case to prevent duplicate uses
         possibleUses[item.name.toUpperCase()] = item;
@@ -536,11 +578,12 @@ function WaterQualityOverview({ ...props }: Props) {
     });
 
     setTopicUses(possibleUses);
-  }, [currentTopic, activeState, waterTypeData]);
+  }, [currentTopic, activeState, waterTypeData, stateNationalUses]);
 
   // Gets a unique list of water types that have data that is relevant to
   // the current topic
   React.useEffect(() => {
+    if (waterTypeOptions.status !== 'success');
     if (!waterTypes) {
       setDisplayWaterTypes([]);
       return;
@@ -564,15 +607,17 @@ function WaterQualityOverview({ ...props }: Props) {
             });
 
             if (hasUse) {
-              return relabelWaterType(item.waterTypeCode);
+              return relabelWaterType(item.waterTypeCode, waterTypeOptions);
             } else return null;
           })
-          .map((item) => relabelWaterType(item.waterTypeCode)),
+          .map((item) =>
+            relabelWaterType(item.waterTypeCode, waterTypeOptions),
+          ),
       ),
     ].sort();
 
     setDisplayWaterTypes(displayWaterTypes);
-  }, [waterTypes, topicUses]);
+  }, [waterTypes, topicUses, waterTypeOptions]);
 
   // Builds use lists that will be used for displaying in dropdowns and
   // building graphs with aggregrate data.
@@ -610,6 +655,7 @@ function WaterQualityOverview({ ...props }: Props) {
 
   // Handles user year changes and gets data associated with the selected year.
   React.useEffect(() => {
+    if (waterTypeOptions.status !== 'success') return;
     let yearData =
       yearSelected &&
       currentStateData.reportingCycles &&
@@ -625,7 +671,7 @@ function WaterQualityOverview({ ...props }: Props) {
         // Get the simple water type name (i.e. one of the types in the dropdown)
         // from the detailed water type
         let simpleWaterType = 'Other Types'; // if it's not found use "Other Types"
-        Object.entries(waterTypeOptions).forEach((option) => {
+        Object.entries(waterTypeOptions.data).forEach((option) => {
           const [key, value] = option;
           if (value.includes(waterType.waterTypeCode)) simpleWaterType = key;
         });
@@ -638,7 +684,7 @@ function WaterQualityOverview({ ...props }: Props) {
 
       setWaterTypes(waterTypes);
     } else setWaterTypes(null);
-  }, [currentTopic, yearSelected, currentStateData]);
+  }, [currentTopic, yearSelected, currentStateData, waterTypeOptions]);
 
   // Handles user and auto water type selection
   React.useEffect(() => {
@@ -691,7 +737,8 @@ function WaterQualityOverview({ ...props }: Props) {
       !useSelected ||
       !surveyData ||
       !waterType ||
-      !topicUses.hasOwnProperty(useSelected.toUpperCase())
+      !topicUses.hasOwnProperty(useSelected.toUpperCase()) ||
+      waterTypeOptions.status !== 'success'
     ) {
       if (surveyData) setSubPopulationCodes([]);
       return;
@@ -701,7 +748,7 @@ function WaterQualityOverview({ ...props }: Props) {
     let subPopulationCodes = [];
     surveyData.surveyWaterGroups
       .filter((x) =>
-        waterTypeOptions[waterType].includes(x['waterTypeGroupCode']),
+        waterTypeOptions.data[waterType].includes(x['waterTypeGroupCode']),
       )
       .forEach((waterGroup) => {
         // ensure the waterGroup has a use that matches the selected use
@@ -733,7 +780,7 @@ function WaterQualityOverview({ ...props }: Props) {
     });
 
     setSubPopulationCodes(subPopulationCodes);
-  }, [useSelected, surveyData, waterType, topicUses]);
+  }, [useSelected, surveyData, waterType, topicUses, waterTypeOptions]);
 
   // setup order of the tabs
   const tabs = [
@@ -771,7 +818,11 @@ function WaterQualityOverview({ ...props }: Props) {
   // unfortunately  need to manage the activeTabIndex (an implementation detail)
   const [activeTabIndex, setActiveTabIndex] = React.useState(initialTabIndex);
 
-  if (serviceError) {
+  if (
+    serviceError ||
+    waterTypeOptions.status === 'failure' ||
+    stateNationalUses.status === 'failure'
+  ) {
     return (
       <StyledErrorBox>
         <p>{stateGeneralError}</p>
@@ -787,7 +838,13 @@ function WaterQualityOverview({ ...props }: Props) {
     );
   }
 
-  if (loading || currentState !== activeState.code) return <LoadingSpinner />;
+  if (
+    loading ||
+    currentState !== activeState.code ||
+    waterTypeOptions.status === 'fetching'
+  ) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <Container>

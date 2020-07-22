@@ -7,6 +7,7 @@ import type { Node } from 'react';
 export const StateTabsContext: Object = React.createContext({
   currentReportStatus: '',
   currentSummary: { status: 'fetching', data: {} },
+  currentReportingCycle: { status: 'fetching', currentReportingCycle: '' },
   activeState: { code: '', name: '' },
 });
 
@@ -17,6 +18,7 @@ type Props = {
 type State = {
   currentReportStatus: string,
   currentSummary: object,
+  currentReportingCycle: object,
   activeState: { code: string, name: string },
 };
 
@@ -27,6 +29,10 @@ export class StateTabsProvider extends React.Component<Props, State> {
     currentSummary: {
       status: 'fetching',
       data: {},
+    },
+    currentReportingCycle: {
+      status: 'fetching',
+      currentReportingCycle: '',
     },
     activeState: { code: '', name: '' },
     // in case ATTAINS usesStateSummary service returns invalid data or an internal error
@@ -39,6 +45,9 @@ export class StateTabsProvider extends React.Component<Props, State> {
     },
     setCurrentSummary: (currentSummary: string) => {
       this.setState({ currentSummary });
+    },
+    setCurrentReportingCycle: (currentReportingCycle: object) => {
+      this.setState({ currentReportingCycle });
     },
     setActiveState: (activeState: { code: string, name: string }) => {
       this.setState({ activeState });

@@ -23,7 +23,11 @@ import WaterbodyReport from 'components/pages/WaterbodyReport';
 import ErrorPage from 'components/pages/404';
 import InvalidUrl from 'components/pages/InvalidUrl';
 // helpers
-import { containsScriptTag } from 'utils/utils';
+import {
+  containsScriptTag,
+  resetCanonicalLink,
+  removeJsonLD,
+} from 'utils/utils';
 
 // routes provided by Reach Router to each child of the Router component
 export type RouteProps = {
@@ -45,6 +49,18 @@ function Routes() {
           // gets all messed up.
           navigate('/invalid-url');
           window.location.reload();
+        }
+
+        // reset the canonical link and JSON LD:
+        // if the pathname is not on a community page
+        // or if the pathname is the community home page with no location
+        const pathName = window.location.pathname;
+        if (!pathName.includes('/community') || pathName === '/community') {
+          // reset canonical geoconnex PID link
+          resetCanonicalLink();
+
+          // remove JSON LD context script
+          removeJsonLD();
         }
 
         return (
@@ -76,6 +92,7 @@ function Routes() {
             <Actions path="/plan-summary/:orgId/:actionId" />
             {/* $FlowFixMe (orgId and auId props are passed from the path) */}
             <WaterbodyReport path="/waterbody-report/:orgId/:auId" />
+            <WaterbodyReport path="/waterbody-report/:orgId/:auId/:reportingCycle" />
             <InvalidUrl path="/invalid-url" />
             <ErrorPage default />
           </Router>
