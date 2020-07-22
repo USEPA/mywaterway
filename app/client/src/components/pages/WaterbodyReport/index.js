@@ -14,7 +14,7 @@ import ActionsMap from 'components/pages/Actions/ActionsMap';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import MapVisibilityButton from 'components/shared/MapVisibilityButton';
 // styled components
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes';
 import {
   StyledContainer,
   StyledColumns,
@@ -65,6 +65,11 @@ const Container = styled(StyledContainer)`
     margin-bottom: 0.875rem;
     border-top-color: #aebac3;
   }
+`;
+
+const InfoBoxContainer = styled.div`
+  padding: 1.5em;
+  padding-bottom: 0;
 `;
 
 const PageErrorBox = styled(StyledErrorBox)`
@@ -176,6 +181,14 @@ const Locations = styled.ul`
   padding-bottom: 0;
 `;
 
+const Icon = styled.i`
+  margin-right: 5px;
+`;
+
+const NewTabDisclaimer = styled.div`
+  display: inline-block;
+`;
+
 // --- components ---
 type Props = {
   ...RouteProps,
@@ -184,9 +197,10 @@ type Props = {
   // url params defined in routes.js
   orgId: string, // (organization id)
   auId: string, // (assessment unit id)
+  reportingCycle: number, // (reporting cycle year)
 };
 
-function WaterbodyReport({ fullscreen, orgId, auId }) {
+function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
   const [noWaterbodies, setNoWaterbodies] = React.useState(false);
 
   const [waterbodyName, setWaterbodyName] = React.useState('');
@@ -201,6 +215,10 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
   const [monitoringLocations, setMonitoringLocations] = React.useState({
     status: 'fetching',
     data: [],
+  });
+  const [mapLayer, setMapLayer] = React.useState({
+    status: 'fetching',
+    layer: null,
   });
 
   // fetch waterbody name, location, types from attains 'assessmentUnits' web service
@@ -304,7 +322,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
     );
   }, [auId, orgId]);
 
-  const [reportingCycle, setReportingCycle] = React.useState({
+  const [reportingCycleFetch, setReportingCycleFetch] = React.useState({
     status: 'fetching',
     year: '',
   });
@@ -332,11 +350,28 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
 
   // fetch reporting cycle, waterbody status, decision rational, uses,
   // and sources from attains 'assessments' web service
+  const [assessmentsCalled, setAssessmentsCalled] = React.useState(false);
   React.useEffect(() => {
+    if (assessmentsCalled) return;
+    if (!reportingCycle && mapLayer.status === 'fetching') return;
+
+    let reportingCycleParam = '';
+    if (reportingCycle) {
+      reportingCycleParam = reportingCycle;
+    } else {
+      if (mapLayer.status === 'success' && mapLayer.layer.graphics.length > 0) {
+        reportingCycleParam =
+          mapLayer.layer.graphics.items[0].attributes.reportingcycle;
+      }
+    }
+
+    setAssessmentsCalled(true);
+
     const url =
       attains.serviceUrl +
       `assessments?organizationId=${orgId}` +
-      `&assessmentUnitIdentifier=${auId}`;
+      `&assessmentUnitIdentifier=${auId}` +
+      (reportingCycleParam ? `&reportingCycle=${reportingCycleParam}` : '');
 
     fetchCheck(url).then(
       (res) => {
@@ -345,7 +380,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
             status: 'no-data',
             data: { condition: '', planForRestoration: '', listed303d: '' },
           });
-          setReportingCycle({
+          setReportingCycleFetch({
             status: 'success',
             year: '',
           });
@@ -366,7 +401,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
         }
 
         const firstItem = res.items[0];
-        setReportingCycle({
+        setReportingCycleFetch({
           status: 'success',
           year: firstItem.reportingCycleText,
         });
@@ -555,7 +590,7 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
           status: 'failure',
           data: [],
         });
-        setReportingCycle({ status: 'failure', year: '' });
+        setReportingCycleFetch({ status: 'failure', year: '' });
         setWaterbodyStatus({ status: 'failure', data: [] });
         setWaterbodyUses({ status: 'failure', data: [] });
         setWaterbodySources({ status: 'failure', data: [] });
@@ -565,7 +600,19 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
         });
       },
     );
-  }, [auId, orgId]);
+  }, [auId, orgId, reportingCycle, mapLayer, assessmentsCalled]);
+
+  // Get the reporting cycle from the map
+  const [mapReportingCycle, setMapReportingCycle] = React.useState('');
+  React.useEffect(() => {
+    if (mapLayer.status === 'success' && mapLayer.layer.graphics.length > 0) {
+      setMapReportingCycle(
+        mapLayer.layer.graphics.items[0].attributes.reportingcycle,
+      );
+    } else {
+      setMapReportingCycle('');
+    }
+  }, [mapLayer]);
 
   const [waterbodyActions, setWaterbodyActions] = React.useState({
     status: 'fetching',
@@ -793,27 +840,27 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
       </InlineBoxSection>
 
       <InlineBoxSection>
-        <h3>Year Last Reported:</h3>
-        {reportingCycle.status === 'fetching' && <LoadingSpinner />}
-        {reportingCycle.status === 'failure' && (
+        <h3>Year Reported:</h3>
+        {reportingCycleFetch.status === 'fetching' && <LoadingSpinner />}
+        {reportingCycleFetch.status === 'failure' && (
           <ErrorBox>
             <p>{waterbodyReportError('Assessment')}</p>
           </ErrorBox>
         )}
-        {reportingCycle.status === 'success' && (
-          <p>&nbsp; {reportingCycle.year}</p>
+        {reportingCycleFetch.status === 'success' && (
+          <p>&nbsp; {reportingCycleFetch.year}</p>
         )}
       </InlineBoxSection>
 
       <InlineBoxSection>
         <h3>Organization Name (ID):&nbsp;</h3>
-        {reportingCycle.status === 'fetching' && <LoadingSpinner />}
-        {reportingCycle.status === 'failure' && (
+        {reportingCycleFetch.status === 'fetching' && <LoadingSpinner />}
+        {reportingCycleFetch.status === 'failure' && (
           <ErrorBox>
             <p>{waterbodyReportError('Assessment')}</p>
           </ErrorBox>
         )}
-        {reportingCycle.status === 'success' && (
+        {reportingCycleFetch.status === 'success' && (
           <p>
             {organizationName.name} ({orgId})
           </p>
@@ -893,7 +940,8 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
               <strong>
                 {waterbodyName} ({auId})
               </strong>{' '}
-              has no data available.
+              has no data available
+              {reportingCycle ? ` for ${reportingCycle}` : ''}.
             </p>
           </PageErrorBox>
         </Container>
@@ -907,7 +955,11 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
         {({ width, height }) => {
           return (
             <div data-content="actionsmap" style={{ height, width }}>
-              <ActionsMap layout="fullscreen" unitIds={unitIds} />
+              <ActionsMap
+                layout="fullscreen"
+                unitIds={unitIds}
+                onLoad={setMapLayer}
+              />
             </div>
           );
         }}
@@ -920,6 +972,24 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
       <NavBar title={'Waterbody Report'} />
 
       <Container data-content="container">
+        {mapReportingCycle > reportingCycle && (
+          <InfoBoxContainer>
+            <StyledInfoBox>
+              There is more recent data available for this waterbody. Please use
+              the following link to view the latest information:{' '}
+              <a
+                href={`/waterbody-report/${orgId}/${auId}/${mapReportingCycle}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Icon className="fas fa-file-alt" aria-hidden="true" />
+                View Waterbody Report for 2018
+              </a>
+              &nbsp;&nbsp;
+              <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
+            </StyledInfoBox>
+          </InfoBoxContainer>
+        )}
         <WindowSize>
           {({ width, height }) => {
             return (
@@ -936,7 +1006,11 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                               height: height - 40,
                             }}
                           >
-                            <ActionsMap layout="narrow" unitIds={unitIds} />
+                            <ActionsMap
+                              layout="narrow"
+                              unitIds={unitIds}
+                              onLoad={setMapLayer}
+                            />
                           </div>
                         )}
                       </MapVisibilityButton>
@@ -945,7 +1019,11 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                     <StickyBox offsetTop={20} offsetBottom={20}>
                       {infoBox}
                       <div style={{ height: height - infoHeight - 70 }}>
-                        <ActionsMap layout="wide" unitIds={unitIds} />
+                        <ActionsMap
+                          layout="wide"
+                          unitIds={unitIds}
+                          onLoad={setMapLayer}
+                        />
                       </div>
                     </StickyBox>
                   )}
@@ -964,8 +1042,8 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                   <StyledBox>
                     <StyledBoxHeading>
                       Assessment Information{' '}
-                      {reportingCycle.status === 'success' && (
-                        <>from {reportingCycle.year}</>
+                      {reportingCycleFetch.status === 'success' && (
+                        <>from {reportingCycleFetch.year}</>
                       )}
                     </StyledBoxHeading>
 
@@ -1020,8 +1098,8 @@ function WaterbodyReport({ fullscreen, orgId, auId }) {
                     <StyledBoxSection>
                       <h3>
                         Probable sources contributing to impairment
-                        {reportingCycle.status === 'success' &&
-                          ` from ${reportingCycle.year}`}
+                        {reportingCycleFetch.status === 'success' &&
+                          ` from ${reportingCycleFetch.year}`}
                         :
                       </h3>
                       {waterbodySources.status === 'fetching' && (

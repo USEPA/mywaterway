@@ -12,3 +12,6 @@
         NODE_ENV: development
         LOGGER_LEVEL: DEBUG
         OPTIMIZE_MEMORY: true
+        S3_PUB_BIND_NAME: s3-pub-mywaterway-dev
+     services:
+      - s3-pub-mywaterway-dev

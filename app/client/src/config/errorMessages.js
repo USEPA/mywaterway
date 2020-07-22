@@ -81,6 +81,10 @@ export const noActionsAvailableCombo = (orgId, actionId) =>
 
 // National errors //
 
+// NARS JSON file
+export const narsError =
+  'The National Aquatic Resource Surveys (NARS) data is currently unavailable, please try again later.';
+
 // ofmpub.epa.gov GRPA service
 export const grpaError =
   'The EPA Drinking Water Performance and Results information is temporarily unavailable, please try again later.'; // also used on state page
@@ -96,6 +100,9 @@ export const usesStateSummaryServiceInvalidResponse = (stateName) =>
 // attains state document service
 export const stateDocumentError = (stateName) =>
   `${stateName} integrated report documents are temporarily unavailable, please try again later.`;
+
+export const stateDocumentSortingError =
+  'There was an issue sorting the below documents. Because of this, the documents have been sorted alphabetically on document type.';
 
 // this message is displayed in the State Survey Use section when the Survey service is down
 export const stateSurveySectionError =
@@ -120,6 +127,9 @@ export const stateGeneralError =
 // if an invalid state is entered
 export const stateNoDataError = (stateName) =>
   `No data available ${stateName && 'for ' + stateName}.`; // conditionals in case state name is undefined or an empty string
+
+export const state303dStatusError =
+  'There was an issue looking up the 303(d) List Status code. Because of this, the status code may not look familiar.';
 
 // Waterbody Report errors //
 export const waterbodyReportError = (type) =>

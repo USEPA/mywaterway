@@ -16,3 +16,6 @@
         NODE_ENV: production
         LOGGER_LEVEL: ERROR
         OPTIMIZE_MEMORY: true
+        S3_PUB_BIND_NAME: s3-pub-mywaterway-prod
+     services:
+      - s3-pub-mywaterway-prod

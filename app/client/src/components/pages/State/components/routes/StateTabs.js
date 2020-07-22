@@ -13,12 +13,11 @@ import AdvancedSearch from 'components/pages/State/components/tabs/AdvancedSearc
 import { LargeTab } from 'components/shared/ContentTabs/LargeTab.js';
 // contexts
 import { StateTabsContext } from 'contexts/StateTabs';
+import { useIntroTextContext } from 'contexts/LookupFiles';
 // config
 import { attains } from 'config/webServiceConfig';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
-// data
-import introText from 'components/pages/State/lookups/introText';
 
 // --- styled components ---
 const MoreInfo = styled.p`
@@ -39,6 +38,7 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
     activeTabIndex,
     setActiveTabIndex,
   } = React.useContext(StateTabsContext);
+  const introText = useIntroTextContext();
 
   // redirect to overview tab if tabName param wasn't provided in the url
   // (e.g. '/state/al' redirects to '/state/AL/water-quality-overview')
@@ -130,10 +130,10 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
         </Tabs>
       </ContentTabs>
 
-      {introText[activeState.code] && (
+      {introText.status === 'success' && introText.data[activeState.code] && (
         <MoreInfo>
           <a
-            href={introText[activeState.code].url}
+            href={introText.data[activeState.code].url}
             target="_blank"
             rel="noopener noreferrer"
           >
