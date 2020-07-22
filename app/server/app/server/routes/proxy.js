@@ -4,7 +4,6 @@ const request = require('request');
 const querystring = require('querystring');
 const config = require('../config/proxyConfig.json');
 const logger = require('../utilities/logger');
-const { Console } = require('console');
 const log = logger.logger;
 
 module.exports = function (app) {
