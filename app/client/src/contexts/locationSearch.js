@@ -399,6 +399,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         areasData: null,
         countyBoundaries: '',
         atHucBoundaries: false,
+        hucBoundaries: '',
         monitoringLocations: {
           status: 'fetching',
           data: [],
