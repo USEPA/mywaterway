@@ -288,21 +288,38 @@ function State({ children, ...props }: Props) {
 
                             <StyledMetrics>
                               {stateIntro.organizationMetrics.map(
-                                (metric, index) =>
-                                  metric &&
-                                  metric.value &&
-                                  metric.label && (
+                                (metric, index) => {
+                                  if (
+                                    !metric ||
+                                    !metric.value ||
+                                    !metric.label
+                                  ) {
+                                    return null;
+                                  }
+
+                                  let value = Number(metric.value);
+                                  if (!value) {
+                                    // just in case the service has a non-numeric string in the future
+                                    value = metric.value;
+                                  } else if (value <= 1) {
+                                    // numbers <=1 convert to percentages
+                                    value =
+                                      (value * 100).toLocaleString() + '%';
+                                  } else {
+                                    value = value.toLocaleString();
+                                  }
+
+                                  return (
                                     <StyledMetric key={index}>
-                                      <StyledNumber>
-                                        {metric.value}
-                                      </StyledNumber>
+                                      <StyledNumber>{value}</StyledNumber>
                                       <StyledLabel>
                                         {metric.label}
                                         <br />
                                         <em>{metric.unit}</em>
                                       </StyledLabel>
                                     </StyledMetric>
-                                  ),
+                                  );
+                                },
                               )}
                             </StyledMetrics>
                             <ByTheNumbersExplanation>
