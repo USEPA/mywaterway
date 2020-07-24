@@ -388,6 +388,15 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         mapView.extent = initialExtent;
         homeWidget.viewpoint = mapView.viewpoint;
       }
+
+      // reset lines, points, and areas layers
+      if (
+        waterbodyLayer &&
+        waterbodyLayer.layers &&
+        waterbodyLayer.layers.items
+      ) {
+        waterbodyLayer.layers.items = [];
+      }
     },
 
     resetData: () => {
@@ -431,7 +440,12 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       });
 
       // remove map content
-      this.state.resetMap();
+      // only zoom out the map if we are on the community intro page at /community
+      if (window.location.pathname === '/community') {
+        this.state.resetMap(true);
+      } else {
+        this.state.resetMap(false);
+      }
     },
 
     setNoDataAvailable: () => {
