@@ -519,6 +519,10 @@ function WaterQualityOverview({ ...props }: Props) {
         status: 'fetching',
         data: {},
       });
+      setIntroText({
+        status: 'fetching',
+        data: {},
+      });
       setStories({
         status: 'fetching',
         data: [],
@@ -530,6 +534,7 @@ function WaterQualityOverview({ ...props }: Props) {
     activeState,
     setCurrentReportStatus,
     setCurrentSummary,
+    setIntroText,
     fetchStateOrgId,
   ]);
 
