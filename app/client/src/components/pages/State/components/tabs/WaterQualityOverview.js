@@ -25,7 +25,6 @@ import { colors } from 'styles/index.js';
 // contexts
 import { StateTabsContext } from 'contexts/StateTabs';
 import {
-  useIntroTextContext,
   useStateNationalUsesContext,
   useWaterTypeOptionsContext,
 } from 'contexts/LookupFiles';
@@ -231,17 +230,22 @@ const ImageIcon = styled.img`
   max-height: 1.75em;
 `;
 
+const LinkList = styled.ul`
+  padding-bottom: 0;
+`;
+
 // --- components ---
 type Props = {};
 
 function WaterQualityOverview({ ...props }: Props) {
-  const introText = useIntroTextContext();
   const stateNationalUses = useStateNationalUsesContext();
   const waterTypeOptions = useWaterTypeOptionsContext();
   const {
     activeState,
     currentReportingCycle,
     setCurrentReportingCycle,
+    introText,
+    setIntroText,
     setCurrentReportStatus,
     setCurrentSummary,
     setUsesStateSummaryServiceError,
@@ -316,6 +320,29 @@ function WaterQualityOverview({ ...props }: Props) {
         });
     },
     [setCurrentReportStatus],
+  );
+
+  // Get the state intro text
+  const fetchIntroText = React.useCallback(
+    (orgID) => {
+      const url = `${attains.serviceUrl}metrics?organizationId=${orgID}`;
+      fetchCheck(url)
+        .then((res) => {
+          // check for missing data
+          if (res.length === 0) {
+            setIntroText({ status: 'failure', data: {} });
+            return;
+          }
+
+          setIntroText({ status: 'success', data: res[0] });
+        })
+        .catch((err) => {
+          console.error('Error with surveys org ID web service: ', err);
+          setSurveyServiceError(true);
+          setIntroText({ status: 'failure', data: {} });
+        });
+    },
+    [setIntroText],
   );
 
   // summary service has the different years of data for recreation/eco/fish/water/other
@@ -421,40 +448,44 @@ function WaterQualityOverview({ ...props }: Props) {
   ]);
 
   // get state organization ID for summary service
-  const fetchStateOrgId = React.useCallback((stateID: string) => {
-    const url = `${attains.serviceUrl}states/${stateID}/organizations`;
-    fetchCheck(url)
-      .then((res) => {
-        let orgID;
+  const fetchStateOrgId = React.useCallback(
+    (stateID: string) => {
+      const url = `${attains.serviceUrl}states/${stateID}/organizations`;
+      fetchCheck(url)
+        .then((res) => {
+          let orgID;
 
-        // look for an org id that is of type state
-        if (res && res.data) {
-          res.data.forEach((org) => {
-            if (org.type === 'State') orgID = org.id;
-          });
-        }
+          // look for an org id that is of type state
+          if (res && res.data) {
+            res.data.forEach((org) => {
+              if (org.type === 'State') orgID = org.id;
+            });
+          }
 
-        // go to the next step if an org id was found, otherwise flag an error
-        if (orgID) {
-          setOrganizationId(orgID);
-          fetchSurveyData(orgID);
-        } else {
-          console.log(
-            'Attains did not return any organization info for ',
-            stateID,
-          );
-          setNoDataError(true);
+          // go to the next step if an org id was found, otherwise flag an error
+          if (orgID) {
+            setOrganizationId(orgID);
+            fetchIntroText(orgID);
+            fetchSurveyData(orgID);
+          } else {
+            console.log(
+              'Attains did not return any organization info for ',
+              stateID,
+            );
+            setNoDataError(true);
+            setLoading(false);
+            setSurveyLoading(false);
+            return;
+          }
+        })
+        .catch((err) => {
+          console.error('Error with attains org ID web service: ', err);
+          setServiceError(true);
           setLoading(false);
-          setSurveyLoading(false);
-          return;
-        }
-      })
-      .catch((err) => {
-        console.error('Error with attains org ID web service: ', err);
-        setServiceError(true);
-        setLoading(false);
-      });
-  }, []);
+        });
+    },
+    [fetchIntroText],
+  );
 
   // If the user changes the search
   React.useEffect(() => {
@@ -1049,27 +1080,39 @@ function WaterQualityOverview({ ...props }: Props) {
           }
         >
           <AccordionContent>
-            {introText.status === 'success' &&
-              introText.data[activeState.code] && (
-                <>
-                  <a
-                    href={introText.data[activeState.code].url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <i className="fas fa-info-circle" aria-hidden="true" />
-                    &nbsp;More Information for {activeState.name}
-                  </a>
-                  <a
-                    className="exit-disclaimer"
-                    href="https://www.epa.gov/home/exit-epa"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    EXIT
-                  </a>
-                </>
-              )}
+            {introText.status === 'fetching' && <LoadingSpinner />}
+            {introText.status === 'failure' && <p>Failur occurred.</p>}
+            {introText.status === 'success' && (
+              <>
+                {introText.data.organizationURLs.length === 0 ? (
+                  <p>No URLs.</p>
+                ) : (
+                  <LinkList>
+                    {introText.data.organizationURLs.map((item, index) => {
+                      return (
+                        <li key={index}>
+                          <a
+                            href={item.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {item.label ? item.label : item.url}
+                          </a>
+                          <a
+                            className="exit-disclaimer"
+                            href="https://www.epa.gov/home/exit-epa"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            EXIT
+                          </a>
+                        </li>
+                      );
+                    })}
+                  </LinkList>
+                )}
+              </>
+            )}
           </AccordionContent>
         </AccordionItem>
       </Accordions>
