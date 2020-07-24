@@ -41,6 +41,8 @@ import { reactSelectStyles } from 'styles/index.js';
 import {
   stateSurveySectionError,
   stateGeneralError,
+  stateMetricsError,
+  stateMetricsNoDataError,
   stateNoDataError,
 } from 'config/errorMessages';
 
@@ -1081,11 +1083,17 @@ function WaterQualityOverview({ ...props }: Props) {
         >
           <AccordionContent>
             {introText.status === 'fetching' && <LoadingSpinner />}
-            {introText.status === 'failure' && <p>Failur occurred.</p>}
+            {introText.status === 'failure' && (
+              <StyledErrorBox>
+                <p>{stateMetricsError}</p>
+              </StyledErrorBox>
+            )}
             {introText.status === 'success' && (
               <>
                 {introText.data.organizationURLs.length === 0 ? (
-                  <p>No URLs.</p>
+                  <StyledErrorBox>
+                    <p>{stateMetricsNoDataError(activeState.name)}</p>
+                  </StyledErrorBox>
                 ) : (
                   <LinkList>
                     {introText.data.organizationURLs.map((item, index) => {

@@ -131,6 +131,14 @@ export const stateNoDataError = (stateName) =>
 export const state303dStatusError =
   'There was an issue looking up the 303(d) List Status code. Because of this, the status code may not look familiar.';
 
+// this message is displayed in the State metrics section and more information section when the metrics service is down
+export const stateMetricsError =
+  'State metrics information is temporarily unavailable, please try again later.';
+
+// this is displayed in the more information section if the state has no org urls.
+export const stateMetricsNoDataError = (stateName) =>
+  `No additional information available for ${stateName}`;
+
 // Waterbody Report errors //
 export const waterbodyReportError = (type) =>
   `${type} information is temporarily unavailable, please try again later.`; // where type is 'Assessment unit', 'Assessment', or 'Plans'
