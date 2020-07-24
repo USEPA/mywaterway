@@ -1,7 +1,6 @@
 // @flow
 
 import React from 'react';
-import styled from 'styled-components';
 import { navigate } from '@reach/router';
 import { Tabs, TabList, TabPanels, TabPanel } from '@reach/tabs';
 // components
@@ -13,16 +12,10 @@ import AdvancedSearch from 'components/pages/State/components/tabs/AdvancedSearc
 import { LargeTab } from 'components/shared/ContentTabs/LargeTab.js';
 // contexts
 import { StateTabsContext } from 'contexts/StateTabs';
-import { useIntroTextContext } from 'contexts/LookupFiles';
 // config
 import { attains } from 'config/webServiceConfig';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
-
-// --- styled components ---
-const MoreInfo = styled.p`
-  margin-top: 1.5em;
-`;
 
 // --- components ---
 type Props = {
@@ -38,7 +31,6 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
     activeTabIndex,
     setActiveTabIndex,
   } = React.useContext(StateTabsContext);
-  const introText = useIntroTextContext();
 
   // redirect to overview tab if tabName param wasn't provided in the url
   // (e.g. '/state/al' redirects to '/state/AL/water-quality-overview')
@@ -129,27 +121,6 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
           </TabPanels>
         </Tabs>
       </ContentTabs>
-
-      {introText.status === 'success' && introText.data[activeState.code] && (
-        <MoreInfo>
-          <a
-            href={introText.data[activeState.code].url}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <i className="fas fa-info-circle" aria-hidden="true" />
-            &nbsp;More Information for {activeState.name}
-          </a>
-          <a
-            className="exit-disclaimer"
-            href="https://www.epa.gov/home/exit-epa"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            EXIT
-          </a>
-        </MoreInfo>
-      )}
     </>
   );
 }

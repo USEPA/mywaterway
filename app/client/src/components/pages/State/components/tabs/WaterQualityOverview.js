@@ -25,6 +25,7 @@ import { colors } from 'styles/index.js';
 // contexts
 import { StateTabsContext } from 'contexts/StateTabs';
 import {
+  useIntroTextContext,
   useStateNationalUsesContext,
   useWaterTypeOptionsContext,
 } from 'contexts/LookupFiles';
@@ -234,6 +235,7 @@ const ImageIcon = styled.img`
 type Props = {};
 
 function WaterQualityOverview({ ...props }: Props) {
+  const introText = useIntroTextContext();
   const stateNationalUses = useStateNationalUsesContext();
   const waterTypeOptions = useWaterTypeOptionsContext();
   const {
@@ -1034,6 +1036,40 @@ function WaterQualityOverview({ ...props }: Props) {
               Stories below open in a new browser tab.
             </NewTabDisclaimer>
             <Stories stories={stories} />
+          </AccordionContent>
+        </AccordionItem>
+        <AccordionItem
+          icon={
+            <AccordionIcon className="fas fa-info-circle" aria-hidden="true" />
+          }
+          title={
+            <Heading>
+              More Information for <strong>{activeState.name}</strong>
+            </Heading>
+          }
+        >
+          <AccordionContent>
+            {introText.status === 'success' &&
+              introText.data[activeState.code] && (
+                <>
+                  <a
+                    href={introText.data[activeState.code].url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <i className="fas fa-info-circle" aria-hidden="true" />
+                    &nbsp;More Information for {activeState.name}
+                  </a>
+                  <a
+                    className="exit-disclaimer"
+                    href="https://www.epa.gov/home/exit-epa"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    EXIT
+                  </a>
+                </>
+              )}
           </AccordionContent>
         </AccordionItem>
       </Accordions>
