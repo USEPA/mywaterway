@@ -337,7 +337,7 @@ function WaterQualityOverview({ ...props }: Props) {
           setIntroText({ status: 'success', data: res[0] });
         })
         .catch((err) => {
-          console.error('Error with surveys org ID web service: ', err);
+          console.error('Error with metrics org ID web service: ', err);
           setSurveyServiceError(true);
           setIntroText({ status: 'failure', data: {} });
         });
