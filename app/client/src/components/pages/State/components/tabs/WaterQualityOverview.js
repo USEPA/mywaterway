@@ -42,7 +42,6 @@ import {
   stateSurveySectionError,
   stateGeneralError,
   stateMetricsError,
-  stateMetricsNoDataError,
   stateNoDataError,
 } from 'config/errorMessages';
 
@@ -233,6 +232,10 @@ const ImageIcon = styled.img`
 `;
 
 const LinkList = styled.ul`
+  padding-bottom: 0;
+`;
+
+const NoDataMessage = styled.p`
   padding-bottom: 0;
 `;
 
@@ -1096,9 +1099,9 @@ function WaterQualityOverview({ ...props }: Props) {
             {introText.status === 'success' && (
               <>
                 {introText.data.organizationURLs.length === 0 ? (
-                  <StyledErrorBox>
-                    <p>{stateMetricsNoDataError(activeState.name)}</p>
-                  </StyledErrorBox>
+                  <NoDataMessage>
+                    No additional information available for this state.
+                  </NoDataMessage>
                 ) : (
                   <LinkList>
                     {introText.data.organizationURLs.map((item, index) => {

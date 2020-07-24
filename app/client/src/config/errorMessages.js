@@ -135,10 +135,6 @@ export const state303dStatusError =
 export const stateMetricsError =
   'State metrics information is temporarily unavailable, please try again later.';
 
-// this is displayed in the more information section if the state has no org urls.
-export const stateMetricsNoDataError = (stateName) =>
-  `No additional information available for ${stateName}`;
-
 // Waterbody Report errors //
 export const waterbodyReportError = (type) =>
   `${type} information is temporarily unavailable, please try again later.`; // where type is 'Assessment unit', 'Assessment', or 'Plans'
