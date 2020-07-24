@@ -23,7 +23,6 @@ import {
 } from 'components/shared/KeyMetrics';
 // contexts
 import { StateTabsContext, StateTabsProvider } from 'contexts/StateTabs';
-import { useIntroTextContext } from 'contexts/LookupFiles';
 // config
 import { attains } from 'config/webServiceConfig';
 // utilities
@@ -166,11 +165,10 @@ function State({ children, ...props }: Props) {
   const {
     activeState,
     setActiveState,
+    introText,
     usesStateSummaryServiceError,
     setUsesStateSummaryServiceError,
   } = React.useContext(StateTabsContext);
-
-  const introText = useIntroTextContext();
 
   // reset active state if on state intro page
   React.useEffect(() => {
@@ -191,8 +189,7 @@ function State({ children, ...props }: Props) {
   }, [activeState, setUsesStateSummaryServiceError]);
 
   // get the state intro and metrics data
-  const stateIntro =
-    introText.status === 'success' ? introText.data[activeState.code] : null;
+  const stateIntro = introText.status === 'success' ? introText.data : null;
 
   return (
     <Page>
@@ -279,7 +276,7 @@ function State({ children, ...props }: Props) {
                       </ErrorBox>
                     ) : (
                       <>
-                        {stateIntro.metrics.length > 0 && (
+                        {stateIntro.organizationMetrics.length > 0 && (
                           <>
                             <h2>
                               <i
@@ -290,7 +287,7 @@ function State({ children, ...props }: Props) {
                             </h2>
 
                             <StyledMetrics>
-                              {stateIntro.metrics.map(
+                              {stateIntro.organizationMetrics.map(
                                 (metric, index) =>
                                   metric &&
                                   metric.value &&
@@ -315,11 +312,11 @@ function State({ children, ...props }: Props) {
                           </>
                         )}
 
-                        {stateIntro.intro && (
+                        {stateIntro.description && (
                           <IntroBox>
                             <p>
                               <ShowLessMore
-                                text={stateIntro.intro}
+                                text={stateIntro.description}
                                 charLimit={450}
                               />
                             </p>
