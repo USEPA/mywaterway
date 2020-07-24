@@ -38,7 +38,7 @@
          ,"in": "query"
          ,"type": "string"
          ,"required": true
-         ,"default": "https://mywaterway-stage.app.cloud.gov/proxy?url=https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer?f=json"
+         ,"default": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer?f=json"
       }
    }
    ,"paths": {
@@ -89,5 +89,3 @@
       }
    }
 }
-
-
