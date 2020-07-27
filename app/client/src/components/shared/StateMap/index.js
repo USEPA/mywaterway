@@ -14,6 +14,7 @@ import {
   createUniqueValueInfos,
   getPopupContent,
   getPopupTitle,
+  getWsioHealthIndexLayer,
 } from 'components/pages/LocationMap/MapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
 // contexts
@@ -100,6 +101,8 @@ function StateMap({
   const [layersInitialized, setLayersInitialized] = React.useState(false);
   React.useEffect(() => {
     if (layersInitialized) return;
+
+    const wsioHealthIndexLayer = new FeatureLayer(getWsioHealthIndexLayer());
 
     const mappedWaterLayer = new MapImageLayer({
       id: 'mappedWaterLayer',
@@ -206,7 +209,13 @@ function StateMap({
     waterbodyLayer.addMany([areasLayer, linesLayer, pointsLayer]);
     setWaterbodyLayer(waterbodyLayer);
 
-    setLayers([mappedWaterLayer, countyLayer, watershedsLayer, waterbodyLayer]);
+    setLayers([
+      wsioHealthIndexLayer,
+      mappedWaterLayer,
+      countyLayer,
+      watershedsLayer,
+      waterbodyLayer,
+    ]);
 
     setVisibleLayers({ waterbodyLayer: true });
 

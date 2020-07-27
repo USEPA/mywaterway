@@ -24,6 +24,7 @@ import { useWaterbodyHighlight } from 'utils/hooks';
 import {
   getPopupTitle,
   getPopupContent,
+  getWsioHealthIndexLayer,
 } from 'components/pages/LocationMap/MapFunctions';
 // errors
 import { actionMapError, actionMapNoData } from 'config/errorMessages';
@@ -66,6 +67,8 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
 
     const { GraphicsLayer, MapImageLayer, FeatureLayer } = esriModules;
 
+    const wsioHealthIndexLayer = new FeatureLayer(getWsioHealthIndexLayer());
+
     const mappedWaterLayer = new MapImageLayer({
       id: 'mappedWaterLayer',
       url: mappedWater,
@@ -103,6 +106,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
     }
 
     setLayers([
+      wsioHealthIndexLayer,
       mappedWaterLayer,
       countyLayer,
       watershedsLayer,
