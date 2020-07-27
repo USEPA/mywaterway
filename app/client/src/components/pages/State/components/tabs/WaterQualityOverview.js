@@ -29,7 +29,7 @@ import {
   useWaterTypeOptionsContext,
 } from 'contexts/LookupFiles';
 // utilities
-import { fetchCheck } from 'utils/fetchUtils';
+import { fetchCheck, proxyFetch } from 'utils/fetchUtils';
 import { titleCase } from 'utils/utils';
 // config
 import { attains, grts } from 'config/webServiceConfig';
@@ -67,8 +67,11 @@ function formatTopic(topic) {
 function hasUseValues(use) {
   return (
     use['Fully Supporting'] > 0 ||
+    use['Fully Supporting-count'] > 0 ||
     use['Not Supporting'] > 0 ||
-    use['Insufficient Information'] > 0
+    use['Not Supporting-count'] > 0 ||
+    use['Insufficient Information'] > 0 ||
+    use['Insufficient Information-count'] > 0
   );
 }
 
@@ -378,12 +381,17 @@ function WaterQualityOverview({ ...props }: Props) {
       ? `&reportingCycle=${currentReportingCycle.reportingCycle}`
       : '';
 
+    // TODO: Remove the baseUrl logic and put in attains.serviceUrl.
+    // TODO: Remove activeState from the dependency array of this useEffect.
+    // TODO: Switch proxyFetch back to fetchCheck.
+    const baseUrl =
+      activeState.code === 'SC' ? attains.serviceUrlDev : attains.serviceUrl;
     const url =
-      `${attains.serviceUrl}usesStateSummary` +
+      `${baseUrl}usesStateSummary` +
       `?organizationId=${organizationId}` +
       reportingCycleParam;
 
-    fetchCheck(url)
+    proxyFetch(url)
       .then((res) => {
         // for states like Alaska that have no reporting cycles
         if (
@@ -450,6 +458,7 @@ function WaterQualityOverview({ ...props }: Props) {
     currentReportingCycle,
     setCurrentReportingCycle,
     usesStateSummaryCalled,
+    activeState,
   ]);
 
   // get state organization ID for summary service
