@@ -1,13 +1,14 @@
 ﻿const watersGeoBase = 'https://gispub.epa.gov/arcgis/rest/services/';
 
+const geopubBase = 'https://geopub.epa.gov/arcgis/rest/services/';
+
 export const locatorUrl =
   '//geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer';
 
 export const wbd =
   'https://watersgeo.epa.gov/arcgis/rest/services/Support/HydrologicUnits/MapServer/6';
 
-export const counties =
-  'https://geopub.epa.gov/arcgis/rest/services/NEPAssist/Boundaries/MapServer/6';
+export const counties = `${geopubBase}NEPAssist/Boundaries/MapServer/6`;
 
 export const mappedWater =
   'https://watersgeo.epa.gov/arcgis/rest/services/NHDPlus/NHDPlus/MapServer';
@@ -16,6 +17,8 @@ export const nonprofits =
   'https://services7.arcgis.com/RozrT2Mi6zTs0s5F/arcgis/rest/services/Nonprofits_10_24_18/FeatureServer/0/';
 
 export const wsio = `${watersGeoBase}r4/wsio/MapServer/0`;
+
+export const tribal = `${geopubBase}EMEF/tribal/MapServer`;
 
 export const waterbodyService = {
   points: `${watersGeoBase}OW/ATTAINS_Assessment/MapServer/0`,
@@ -53,6 +56,10 @@ export const mapServiceMapping = [
   {
     wildcardUrl: `${counties}*`,
     name: 'geopub - NEPAssist counties',
+  },
+  {
+    wildcardUrl: `${tribal}*`,
+    name: 'geopub - EMEF tribal',
   },
   {
     wildcardUrl: `${mappedWater}*`,
