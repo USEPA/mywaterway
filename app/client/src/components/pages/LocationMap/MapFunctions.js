@@ -352,7 +352,7 @@ export function getWsioHealthIndexLayer() {
   return {
     id: 'wsioHealthIndexLayer',
     url: wsio,
-    title: 'Health Index',
+    title: 'Watershed Health Index',
     outFields: ['phwa_health_ndx_st_2016'],
     renderer: wsioHealthIndexRenderer,
     listMode: 'show',
