@@ -15,6 +15,7 @@ import {
   createUniqueValueInfos,
   getPopupContent,
   getPopupTitle,
+  getWsioHealthIndexLayer,
 } from 'components/pages/LocationMap/MapFunctions';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
@@ -164,6 +165,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     if (layers.length > 0) return;
 
     // create the layers for the map
+    const wsioHealthIndexLayer = new FeatureLayer(getWsioHealthIndexLayer());
+
     const mappedWaterLayer = new MapImageLayer({
       id: 'mappedWaterLayer',
       url: mappedWater,
@@ -246,6 +249,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setNonprofitsLayer(nonprofitsLayer);
 
     setLayers([
+      wsioHealthIndexLayer,
       mappedWaterLayer,
       countyLayer,
       watershedsLayer,
