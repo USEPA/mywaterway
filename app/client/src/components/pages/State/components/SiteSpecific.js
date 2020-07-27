@@ -86,10 +86,36 @@ function SiteSpecific({
 
   const [waterTypeUnits, setWaterTypeUnits] = React.useState('');
   React.useEffect(() => {
-    const tempUnits =
-      waterTypeData && waterTypeData.length > 0 && waterTypeData[0].unitsCode;
-    if (tempUnits !== waterTypeUnits) setWaterTypeUnits(tempUnits);
-  }, [waterType, waterTypeData, waterTypeUnits]);
+    if (!waterTypeData || waterTypeData.length === 0) {
+      if (waterTypeUnits) setWaterTypeUnits(null);
+      return;
+    }
+
+    // check the use to see if it is using counts or not
+    let usesCounts = false;
+    let tempUnits = waterTypeData[0].unitsCode;
+    waterTypeData.forEach((waterTypeOption) => {
+      waterTypeOption['useAttainments']
+        .filter((x) => x['useName'].toUpperCase() === useSelected.toUpperCase())
+        .forEach((use) => {
+          if (
+            (use['Fully Supporting'] === 0 &&
+              use['Fully Supporting-count'] > 0) ||
+            (use['Not Supporting'] === 0 && use['Not Supporting-count'] > 0) ||
+            (use['Insufficient Information'] === 0 &&
+              use['Insufficient Information-count'] > 0)
+          ) {
+            usesCounts = true;
+          }
+        });
+    });
+
+    if (usesCounts) tempUnits = 'Waterbodies';
+
+    if (tempUnits !== waterTypeUnits) {
+      setWaterTypeUnits(tempUnits);
+    }
+  }, [waterType, waterTypeData, waterTypeUnits, useSelected]);
 
   // adds up the total amount (miles, acres, square miles) of waters for each
   // support category (fully supporting, not supporting, etc.) accross
@@ -110,14 +136,19 @@ function SiteSpecific({
       waterTypeOption['useAttainments']
         .filter((x) => x['useName'].toUpperCase() === useSelected.toUpperCase())
         .forEach((use) => {
+          const usesCounts = waterTypeUnits === 'Waterbodies';
           support.supporting =
-            support.supporting + (use['Fully Supporting'] || 0);
+            support.supporting +
+            (use[`Fully Supporting${usesCounts ? '-count' : ''}`] || 0);
           support.notSupporting =
-            support.notSupporting + (use['Not Supporting'] || 0);
+            support.notSupporting +
+            (use[`Not Supporting${usesCounts ? '-count' : ''}`] || 0);
           support.insufficent =
-            support.insufficent + (use['Insufficient Information'] || 0);
+            support.insufficent +
+            (use[`Insufficient Information${usesCounts ? '-count' : ''}`] || 0);
           support.notAssessed =
-            support.notAssessed + (use['Not Assessed'] || 0);
+            support.notAssessed +
+            (use[`Not Assessed${usesCounts ? '-count' : ''}`] || 0);
         });
     });
 
