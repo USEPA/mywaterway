@@ -85,6 +85,10 @@ export const webServiceMapping = [
     name: 'attains - usesStateSummary',
   },
   {
+    wildcardUrl: `${attains.serviceUrl}metrics*`,
+    name: 'attains - metrics',
+  },
+  {
     wildcardUrl: `${attains.serviceUrl}domains?domainName=ParameterName`,
     name: 'attains - domain mapping',
   },
