@@ -15,6 +15,8 @@ export const mappedWater =
 export const nonprofits =
   'https://services7.arcgis.com/RozrT2Mi6zTs0s5F/arcgis/rest/services/Nonprofits_10_24_18/FeatureServer/0/';
 
+export const wsio = `${watersGeoBase}r4/wsio/MapServer/0`;
+
 export const waterbodyService = {
   points: `${watersGeoBase}OW/ATTAINS_Assessment/MapServer/0`,
   lines: `${watersGeoBase}OW/ATTAINS_Assessment/MapServer/1`,
@@ -55,6 +57,10 @@ export const mapServiceMapping = [
   {
     wildcardUrl: `${mappedWater}*`,
     name: 'watersgeo - NHDPluse mapped water',
+  },
+  {
+    wildcardUrl: `${wsio}*`,
+    name: 'gispub - wsio',
   },
   // esri
   {

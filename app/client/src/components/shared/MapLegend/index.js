@@ -52,6 +52,7 @@ const ignoreLayers = [
   'mappedWaterLayer',
   'countyLayer',
   'watershedsLayer',
+  'wsioHealthIndexLayer',
   'searchIconLayer',
 ];
 

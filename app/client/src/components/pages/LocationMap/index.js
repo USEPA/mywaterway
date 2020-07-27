@@ -15,6 +15,7 @@ import {
   createUniqueValueInfos,
   getPopupContent,
   getPopupTitle,
+  getSharedLayers,
 } from 'components/pages/LocationMap/MapFunctions';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
@@ -28,7 +29,6 @@ import {
   locatorUrl,
   wbd,
   counties,
-  mappedWater,
   // nonprofits,
 } from 'config/mapServiceConfig';
 import {
@@ -164,31 +164,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     if (layers.length > 0) return;
 
     // create the layers for the map
-    const mappedWaterLayer = new MapImageLayer({
-      id: 'mappedWaterLayer',
-      url: mappedWater,
-      title: 'Mapped Water (all)',
-      sublayers: [{ id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
-      listMode: 'hide-children',
-      visible: false,
-    });
-
-    const countyLayer = new FeatureLayer({
-      id: 'countyLayer',
-      url: counties,
-      title: 'County',
-      listMode: 'show',
-      visible: false,
-    });
-
-    const watershedsLayer = new FeatureLayer({
-      id: 'watershedsLayer',
-      url: wbd,
-      title: 'Watersheds',
-      listMode: 'show',
-      visible: false,
-    });
-
     const providersLayer = new GraphicsLayer({
       id: 'providersLayer',
       title: 'Who provides the drinking water here?',
@@ -246,9 +221,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setNonprofitsLayer(nonprofitsLayer);
 
     setLayers([
-      mappedWaterLayer,
-      countyLayer,
-      watershedsLayer,
+      ...getSharedLayers(FeatureLayer, MapImageLayer),
       providersLayer,
       boundariesLayer,
       monitoringStationsLayer,

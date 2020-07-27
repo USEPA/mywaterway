@@ -13,17 +13,13 @@ import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // config
 import { esriApiUrl } from 'config/esriConfig';
-import {
-  waterbodyService,
-  wbd,
-  counties,
-  mappedWater,
-} from 'config/mapServiceConfig';
+import { waterbodyService } from 'config/mapServiceConfig';
 // helpers
 import { useWaterbodyHighlight } from 'utils/hooks';
 import {
   getPopupTitle,
   getPopupContent,
+  getSharedLayers,
 } from 'components/pages/LocationMap/MapFunctions';
 // errors
 import { actionMapError, actionMapNoData } from 'config/errorMessages';
@@ -66,31 +62,6 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
 
     const { GraphicsLayer, MapImageLayer, FeatureLayer } = esriModules;
 
-    const mappedWaterLayer = new MapImageLayer({
-      id: 'mappedWaterLayer',
-      url: mappedWater,
-      title: 'Mapped Water (all)',
-      sublayers: [{ id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
-      listMode: 'hide-children',
-      visible: false,
-    });
-
-    const countyLayer = new FeatureLayer({
-      id: 'countyLayer',
-      url: counties,
-      title: 'County',
-      listMode: 'show',
-      visible: false,
-    });
-
-    const watershedsLayer = new FeatureLayer({
-      id: 'watershedsLayer',
-      url: wbd,
-      title: 'Watersheds',
-      listMode: 'show',
-      visible: false,
-    });
-
     let localActionsLayer = actionsLayer;
     if (!actionsLayer) {
       localActionsLayer = new GraphicsLayer({
@@ -103,9 +74,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
     }
 
     setLayers([
-      mappedWaterLayer,
-      countyLayer,
-      watershedsLayer,
+      ...getSharedLayers(FeatureLayer, MapImageLayer),
       localActionsLayer,
     ]);
 
