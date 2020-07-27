@@ -14,7 +14,7 @@ import {
   createUniqueValueInfos,
   getPopupContent,
   getPopupTitle,
-  getWsioHealthIndexLayer,
+  getSharedLayers,
 } from 'components/pages/LocationMap/MapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
 // contexts
@@ -23,12 +23,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { MapHighlightContext } from 'contexts/MapHighlight';
 // config
 import { esriApiUrl } from 'config/esriConfig';
-import {
-  waterbodyService,
-  wbd,
-  counties,
-  mappedWater,
-} from 'config/mapServiceConfig';
+import { waterbodyService } from 'config/mapServiceConfig';
 // helpers
 import { useWaterbodyHighlight } from 'utils/hooks';
 // styles
@@ -101,33 +96,6 @@ function StateMap({
   const [layersInitialized, setLayersInitialized] = React.useState(false);
   React.useEffect(() => {
     if (layersInitialized) return;
-
-    const wsioHealthIndexLayer = new FeatureLayer(getWsioHealthIndexLayer());
-
-    const mappedWaterLayer = new MapImageLayer({
-      id: 'mappedWaterLayer',
-      url: mappedWater,
-      title: 'Mapped Water (all)',
-      sublayers: [{ id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
-      listMode: 'hide-children',
-      visible: false,
-    });
-
-    const countyLayer = new FeatureLayer({
-      id: 'countyLayer',
-      url: counties,
-      title: 'County',
-      listMode: 'show',
-      visible: false,
-    });
-
-    const watershedsLayer = new FeatureLayer({
-      id: 'watershedsLayer',
-      url: wbd,
-      title: 'Watersheds',
-      listMode: 'show',
-      visible: false,
-    });
 
     const popupTemplate = {
       outFields: ['*'],
@@ -210,10 +178,7 @@ function StateMap({
     setWaterbodyLayer(waterbodyLayer);
 
     setLayers([
-      wsioHealthIndexLayer,
-      mappedWaterLayer,
-      countyLayer,
-      watershedsLayer,
+      ...getSharedLayers(FeatureLayer, MapImageLayer),
       waterbodyLayer,
     ]);
 

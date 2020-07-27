@@ -7,7 +7,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import MapPopup from 'components/shared/MapPopup';
 // config
-import { wsio } from 'config/mapServiceConfig';
+import { counties, mappedWater, wbd, wsio } from 'config/mapServiceConfig';
 // styles
 import { colors } from 'styles/index.js';
 
@@ -252,7 +252,7 @@ export function createWaterbodySymbol({
 }
 
 // Gets the settings for the WSIO Health Index layer.
-export function getWsioHealthIndexLayer() {
+export function getSharedLayers(FeatureLayer, MapImageLayer) {
   // shared symbol settings
   const symbol = {
     type: 'simple-fill',
@@ -349,7 +349,7 @@ export function getWsioHealthIndexLayer() {
   };
 
   // return the layer properties object
-  return {
+  const wsioHealthIndexLayer = new FeatureLayer({
     id: 'wsioHealthIndexLayer',
     url: wsio,
     title: 'Watershed Health Index',
@@ -357,7 +357,34 @@ export function getWsioHealthIndexLayer() {
     renderer: wsioHealthIndexRenderer,
     listMode: 'show',
     visible: false,
-  };
+  });
+
+  const mappedWaterLayer = new MapImageLayer({
+    id: 'mappedWaterLayer',
+    url: mappedWater,
+    title: 'Mapped Water (all)',
+    sublayers: [{ id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
+    listMode: 'hide-children',
+    visible: false,
+  });
+
+  const countyLayer = new FeatureLayer({
+    id: 'countyLayer',
+    url: counties,
+    title: 'County',
+    listMode: 'show',
+    visible: false,
+  });
+
+  const watershedsLayer = new FeatureLayer({
+    id: 'watershedsLayer',
+    url: wbd,
+    title: 'Watersheds',
+    listMode: 'show',
+    visible: false,
+  });
+
+  return [wsioHealthIndexLayer, mappedWaterLayer, countyLayer, watershedsLayer];
 }
 
 export function isIE() {
