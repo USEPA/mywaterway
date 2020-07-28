@@ -42,6 +42,13 @@ export const fishingInformationService = {
     '%29&outFields=*&returnGeometry=false&returnTrueCurves=false&returnIdsOnly=false&returnCountOnly=false&returnZ=false&returnM=false&returnDistinctValues=false&returnExtentsOnly=false&f=json',
 };
 
+// get origin for mapping proxy calls
+const loc = window.location;
+const origin =
+  loc.hostname === 'localhost'
+    ? `${loc.protocol}//${loc.hostname}:9091`
+    : loc.origin;
+
 export const webServiceMapping = [
   //attains
   {
@@ -167,5 +174,34 @@ export const webServiceMapping = [
   {
     wildcardUrl: `${fishingInformationService.serviceUrl}*`,
     name: 'fishing info',
+  },
+  // lookup files
+  {
+    wildcardUrl: `${origin}/proxy?url=${origin}/data/national/NARS.json`,
+    name: 's3 lookup - national NARS',
+  },
+  {
+    wildcardUrl: `${origin}/proxy?url=${origin}/data/notifications/messages.json`,
+    name: 's3 lookup - notification messages',
+  },
+  {
+    wildcardUrl: `${origin}/proxy?url=${origin}/data/state/documentOrder.json`,
+    name: 's3 lookup - state documentOrder',
+  },
+  {
+    wildcardUrl: `${origin}/proxy?url=${origin}/data/state/reportStatusMapping.json`,
+    name: 's3 lookup - state reportStatusMapping',
+  },
+  {
+    wildcardUrl: `${origin}/proxy?url=${origin}/data/state/stateNationalUses.json`,
+    name: 's3 lookup - state stateNationalUses',
+  },
+  {
+    wildcardUrl: `${origin}/proxy?url=${origin}/data/state/surveyMapping.json`,
+    name: 's3 lookup - state surveyMapping',
+  },
+  {
+    wildcardUrl: `${origin}/proxy?url=${origin}/data/state/waterTypeOptions.json`,
+    name: 's3 lookup - state waterTypeOptions',
   },
 ];
