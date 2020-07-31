@@ -263,6 +263,7 @@ function MapMouseEvents({ map, view }: Props) {
       const excludedLayers = [
         'mappedWaterLayer',
         'countyLayer',
+        'tribalLayer',
         'watershedsLayer',
         'wsioHealthIndexLayer',
         'boundaries',

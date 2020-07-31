@@ -7,7 +7,13 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import MapPopup from 'components/shared/MapPopup';
 // config
-import { counties, mappedWater, wbd, wsio } from 'config/mapServiceConfig';
+import {
+  counties,
+  mappedWater,
+  tribal,
+  wbd,
+  wsio,
+} from 'config/mapServiceConfig';
 // styles
 import { colors } from 'styles/index.js';
 
@@ -359,6 +365,21 @@ export function getSharedLayers(FeatureLayer, MapImageLayer) {
     visible: false,
   });
 
+  const tribalLayer = new MapImageLayer({
+    id: 'tribalLayer',
+    url: tribal,
+    title: 'Tribal Areas',
+    sublayers: [
+      { id: 0, labelsVisible: false },
+      { id: 1, labelsVisible: false },
+      { id: 2, labelsVisible: false },
+      { id: 3, labelsVisible: false },
+      { id: 4, labelsVisible: false },
+    ],
+    listMode: 'hide-children',
+    visible: false,
+  });
+
   const mappedWaterLayer = new MapImageLayer({
     id: 'mappedWaterLayer',
     url: mappedWater,
@@ -384,7 +405,13 @@ export function getSharedLayers(FeatureLayer, MapImageLayer) {
     visible: false,
   });
 
-  return [wsioHealthIndexLayer, mappedWaterLayer, countyLayer, watershedsLayer];
+  return [
+    wsioHealthIndexLayer,
+    tribalLayer,
+    mappedWaterLayer,
+    countyLayer,
+    watershedsLayer,
+  ];
 }
 
 export function isIE() {

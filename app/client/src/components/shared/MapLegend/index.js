@@ -51,6 +51,7 @@ const LegendLabel = styled.span`
 const ignoreLayers = [
   'mappedWaterLayer',
   'countyLayer',
+  'tribalLayer',
   'watershedsLayer',
   'wsioHealthIndexLayer',
   'searchIconLayer',
