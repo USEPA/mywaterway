@@ -854,6 +854,15 @@ function IdentifiedIssues() {
             </ul>
           </>
         )}
+        <button
+          style={{ display: 'none' }}
+          onClick={() => {
+            const testEx = cipSummary.test.error;
+            console.log('testEx: ', testEx);
+          }}
+        >
+          Log Exception
+        </button>
       </>
     </Container>
   );
