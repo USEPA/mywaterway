@@ -188,7 +188,11 @@ function useWaterbodyOnMap(
 // parameter is true, this will also attempt to highlight waterbodies on
 // other layers that have the same organization id and assessment unit id.
 function useWaterbodyHighlight(findOthers: boolean = true) {
-  const { Point, Query } = React.useContext(EsriModulesContext);
+  const { Handles, Point, Query } = React.useContext(EsriModulesContext);
+  const {
+    highlightedGraphic,
+    selectedGraphic, //
+  } = React.useContext(MapHighlightContext);
   const {
     mapView,
     pointsLayer, //part of waterbody group layer
@@ -199,13 +203,10 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     dischargersLayer,
     nonprofitsLayer,
     actionsLayer,
+    huc12,
   } = React.useContext(LocationSearchContext);
 
-  const {
-    highlightedGraphic,
-    selectedGraphic, //
-  } = React.useContext(MapHighlightContext);
-
+  // Handles zooming to a selected graphic when "View on Map" is clicked.
   React.useEffect(() => {
     if (
       !mapView ||
@@ -236,54 +237,40 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     });
   }, [Point, mapView, selectedGraphic]);
 
-  // Remove any old highlights
-  const [highlight, setHighlight] = React.useState(null);
-  const [nextHighlight, setNextHighlight] = React.useState(null);
+  // Initializes a handles object for more efficient handling of highlight handlers
+  const [handles, setHandles] = React.useState(null);
   React.useEffect(() => {
-    // Check the high level equality of the highlight objects
-    if (highlight === nextHighlight) return;
+    if (handles) return;
 
-    // Check the equality of the highlight arrays
-    if (
-      highlight &&
-      nextHighlight &&
-      highlight.length === nextHighlight.length
-    ) {
-      for (let i = 0; i < highlight.length; i++) {
-        for (let j = 0; j < nextHighlight.length; j++) {
-          // Check the equality of the functions in the highlight objects
-          if (highlight[i].toString() !== nextHighlight[j].toString()) return;
-        }
-      }
-    }
+    setHandles(new Handles());
+  }, [handles, Handles]);
 
-    // Remove any previous highlights
-    if (highlight && highlight.length > 0) {
-      highlight.forEach((item) => {
-        item.remove();
-      });
-    }
-
-    // Update the current highlight storage
-    setHighlight(nextHighlight);
-  }, [highlight, nextHighlight]);
-
+  // Clears the cache when users change searches. This is to fix issues
+  // with layer mismatch in ArcGIS API 4.14+
   const [highlightState, setHighlightState] = React.useState({
     currentHighlight: null,
     currentSelection: null,
     cachedHighlights: {},
   });
+  React.useEffect(() => {
+    setHighlightState({
+      currentHighlight: null,
+      currentSelection: null,
+      cachedHighlights: {},
+    });
+  }, [huc12]);
+
   // do the highlighting
   React.useEffect(() => {
-    if (!mapView) return;
+    if (!mapView || !handles) return;
 
     // use selected if there is not a highlighted graphic
     let graphic;
+    const group = 'highlights-group';
     if (highlightedGraphic) graphic = highlightedGraphic;
     else if (selectedGraphic) graphic = selectedGraphic;
 
     // save the state into separate variables for now
-    let highlight = null;
     let {
       currentHighlight,
       currentSelection,
@@ -292,7 +279,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     // verify that we have a graphic before continuing
     if (!graphic || !graphic.attributes) {
-      setNextHighlight(null); // remove any highlights
+      handles.remove(group);
 
       // remove the currentHighlight and currentSelection if either exist
       if (currentHighlight || currentSelection) {
@@ -339,6 +326,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     if (!layer) return;
 
+    // remove the highlights
+    handles.remove(group);
+
     // get organizationid and assessmentunitidentifier to figure out if the
     // selected waterbody changed.
     const graphicOrgId =
@@ -368,17 +358,19 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         }
       }
 
-      mapView.whenLayerView(layer).then((layerView) => {
-        const highlightObject = layerView.highlight(graphicToHighlight);
-        highlight = [highlightObject];
-        currentHighlight = graphic;
-        setNextHighlight(highlight);
-        setHighlightState({
-          currentHighlight,
-          currentSelection,
-          cachedHighlights,
-        });
-      });
+      mapView
+        .whenLayerView(layer)
+        .then((layerView) => {
+          const highlightObject = layerView.highlight(graphicToHighlight);
+          handles.add(highlightObject, group);
+          currentHighlight = graphic;
+          setHighlightState({
+            currentHighlight,
+            currentSelection,
+            cachedHighlights,
+          });
+        })
+        .catch((err) => console.error(err));
     } else if (
       layer.type === 'feature' &&
       (findOthers ||
@@ -388,16 +380,17 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       const key = `${graphicOrgId} - ${graphicAuId}`;
 
       if (cachedHighlights[key]) {
-        const highlights = [];
         cachedHighlights[key].forEach((feature) => {
-          mapView.whenLayerView(feature.layer).then((layerView) => {
-            highlights.push(layerView.highlight(feature));
-          });
+          mapView
+            .whenLayerView(feature.layer)
+            .then((layerView) => {
+              const highlightObject = layerView.highlight(feature);
+              handles.add(highlightObject, group);
+            })
+            .catch((err) => console.error(err));
         });
 
-        highlight = highlights;
         currentHighlight = graphic;
-        setNextHighlight(highlight);
         setHighlightState({
           currentHighlight,
           currentSelection,
@@ -418,16 +411,19 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         pointsLayer !== 'error' &&
           requests.push(pointsLayer.queryFeatures(query));
         Promise.all(requests).then((responses) => {
-          const highlights = [];
           const featuresToCache = [];
           responses.forEach((response) => {
             if (!response || !response.features) return;
 
             response.features.forEach((feature) => {
               featuresToCache.push(feature);
-              mapView.whenLayerView(feature.layer).then((layerView) => {
-                highlights.push(layerView.highlight(feature));
-              });
+              mapView
+                .whenLayerView(feature.layer)
+                .then((layerView) => {
+                  const highlightObject = layerView.highlight(feature);
+                  handles.add(highlightObject, group);
+                })
+                .catch((err) => console.error(err));
             });
 
             // build the new cachedHighlights object
@@ -435,9 +431,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
             keyToSet[key] = featuresToCache;
             cachedHighlights = { ...cachedHighlights, ...keyToSet };
 
-            highlight = highlights;
             currentHighlight = graphic;
-            setNextHighlight(highlight);
             setHighlightState({
               currentHighlight,
               currentSelection,
@@ -447,17 +441,19 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         });
       }
     } else {
-      mapView.whenLayerView(layer).then((layerView) => {
-        const highlightObject = layerView.highlight(graphicToHighlight);
-        highlight = [highlightObject];
-        currentHighlight = graphic;
-        setNextHighlight(highlight);
-        setHighlightState({
-          currentHighlight,
-          currentSelection,
-          cachedHighlights,
-        });
-      });
+      mapView
+        .whenLayerView(layer)
+        .then((layerView) => {
+          const highlightObject = layerView.highlight(graphicToHighlight);
+          handles.add(highlightObject, group);
+          currentHighlight = graphic;
+          setHighlightState({
+            currentHighlight,
+            currentSelection,
+            cachedHighlights,
+          });
+        })
+        .catch((err) => console.error(err));
     }
   }, [
     mapView,
@@ -474,6 +470,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     actionsLayer,
     findOthers,
     Query,
+    handles,
   ]);
 
   // Closes the popup and clears highlights whenever the tab changes
