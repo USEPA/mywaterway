@@ -110,7 +110,7 @@ function SiteSpecific({
         });
     });
 
-    if (usesCounts) tempUnits = 'Waterbodies';
+    if (usesCounts) tempUnits = 'Waters';
 
     if (tempUnits !== waterTypeUnits) {
       setWaterTypeUnits(tempUnits);
@@ -136,7 +136,7 @@ function SiteSpecific({
       waterTypeOption['useAttainments']
         .filter((x) => x['useName'].toUpperCase() === useSelected.toUpperCase())
         .forEach((use) => {
-          const usesCounts = waterTypeUnits === 'Waterbodies';
+          const usesCounts = waterTypeUnits === 'Waters';
           support.supporting =
             support.supporting +
             (use[`Fully Supporting${usesCounts ? '-count' : ''}`] || 0);

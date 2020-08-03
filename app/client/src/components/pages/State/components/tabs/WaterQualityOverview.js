@@ -384,8 +384,7 @@ function WaterQualityOverview({ ...props }: Props) {
     // TODO: Remove the baseUrl logic and put in attains.serviceUrl.
     // TODO: Remove activeState from the dependency array of this useEffect.
     // TODO: Switch proxyFetch back to fetchCheck.
-    const baseUrl =
-      activeState.code === 'SC' ? attains.serviceUrlDev : attains.serviceUrl;
+    const baseUrl = attains.serviceUrlDev;
     const url =
       `${baseUrl}usesStateSummary` +
       `?organizationId=${organizationId}` +
