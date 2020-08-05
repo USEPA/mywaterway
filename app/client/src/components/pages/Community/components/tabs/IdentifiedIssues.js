@@ -549,7 +549,6 @@ function IdentifiedIssues() {
     toggleDischargersChecked = false;
   }
 
-  const [testError, setTestError] = React.useState(false);
   return (
     <Container>
       <>
@@ -853,31 +852,6 @@ function IdentifiedIssues() {
                 like sewers and pipes
               </li>
             </ul>
-          </>
-        )}
-        <button
-          style={{ display: 'none' }}
-          onClick={() => {
-            const testEx = cipSummary.test.error;
-            console.log('testEx: ', testEx);
-          }}
-        >
-          Log Global Exception
-        </button>
-
-        <button
-          style={{ display: 'none' }}
-          onClick={() => {
-            setTestError(true);
-          }}
-        >
-          Log React Boundary Exception
-        </button>
-        {testError && (
-          <>
-            {cipSummary.test.mmmmaaaaapppp((item, idx) => {
-              return <p key={idx}>item</p>;
-            })}
           </>
         )}
       </>
