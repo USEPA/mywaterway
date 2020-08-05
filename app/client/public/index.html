@@ -69,21 +69,23 @@
   <!-- End Google Tag Manager -->
   <!-- Google Analytics -->
   <script>
-    (function (i, s, o, g, r, a, m) {
-    i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
-      (i[r].q = i[r].q || []).push(arguments)
-    }, i[r].l = 1 * new Date(); a = s.createElement(o),
-      m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
-    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+    function addGoogleAnalyticsObject() {
+      (function (i, s, o, g, r, a, m) {
+      i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+        (i[r].q = i[r].q || []).push(arguments)
+      }, i[r].l = 1 * new Date(); a = s.createElement(o),
+        m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+      })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+    }
 
     //Only setup the logging for public sites, ie don't log from localhost
     window.isIdSet = false;
     if (document.location.hostname.indexOf("epa.gov") > -1) {
-      ga('create', 'UA-32633028-1', 'auto');  //EPA ACCOUNT (Production)
-      ga('send', 'pageview');
+      //EPA (Production) - Just initialize the HMW logs by setting isIdSet
       isIdSet = true;
     }
     else if (document.location.hostname === 'mywaterway-stage.app.cloud.gov') {
+      addGoogleAnalyticsObject();
       ga('create', 'UA-37504877-4', 'auto');  //Stage
       ga('send', 'pageview');
       isIdSet = true;
@@ -92,6 +94,7 @@
       document.location.hostname === 'mywaterway-dev.app.cloud.gov' ||
       document.location.hostname === 'localhost'
     ) {
+      addGoogleAnalyticsObject();
       ga('create', 'UA-37504877-3', 'auto');  //Dev
       ga('send', 'pageview');
       isIdSet = true;
