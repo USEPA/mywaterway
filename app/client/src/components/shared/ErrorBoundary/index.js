@@ -34,7 +34,8 @@ class ErrorBoundary extends React.Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.warn(error);
 
-    // log to google analytics
+    // throw the error so the global error handler
+    // can log it to google analytics
     throw error;
   }
 
