@@ -36,8 +36,9 @@ class ErrorBoundary extends React.Component<Props, State> {
 
     // log to google analytics
     if (window.isIdSet) {
+      const stack = errorInfo.componentStack.replace('(', '').replace(')', '');
       window.ga('send', 'exception', {
-        exDescription: `${error}${errorInfo.componentStack}`,
+        exDescription: `${error}${stack}`,
         exFatal: true,
       });
     }
