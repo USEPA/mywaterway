@@ -164,6 +164,15 @@
           ga('send', 'event', category, 'ow-hmw2-' + event.target.text.trim(), href);
         }
       });
+
+      window.addEventListener('error', function(event) {
+        window.ga('send', 'exception', {
+          exDescription: `${event.error.message}${event.error.stack}`,
+          exFatal: true,
+        });
+
+        return true;
+      });
     }
   </script>
   <!-- End Google Analytics-->

@@ -549,6 +549,7 @@ function IdentifiedIssues() {
     toggleDischargersChecked = false;
   }
 
+  const [testError, setTestError] = React.useState(false);
   return (
     <Container>
       <>
@@ -861,8 +862,24 @@ function IdentifiedIssues() {
             console.log('testEx: ', testEx);
           }}
         >
-          Log Exception
+          Log Global Exception
         </button>
+
+        <button
+          style={{ display: 'none' }}
+          onClick={() => {
+            setTestError(true);
+          }}
+        >
+          Log React Boundary Exception
+        </button>
+        {testError && (
+          <>
+            {cipSummary.test.mmmmaaaaapppp((item, idx) => {
+              return <p key={idx}>item</p>;
+            })}
+          </>
+        )}
       </>
     </Container>
   );
