@@ -248,7 +248,6 @@ function MapWidgets({
       expandTooltip: 'Toggle Legend',
       autoCollapse: true,
       mode: 'floating',
-      label: 'Legend',
     });
     view.ui.add(newLegend, { position: 'bottom-leading', index: 0 });
     setLegend(newLegend);
