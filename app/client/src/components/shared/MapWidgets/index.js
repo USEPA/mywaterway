@@ -226,7 +226,7 @@ function MapWidgets({
       view: view,
       unit: 'dual',
     });
-    view.ui.add(newScaleBar, 'bottom-left');
+    view.ui.add(newScaleBar, { position: 'bottom-left', index: 1 });
     setScaleBar(newScaleBar);
   }, [ScaleBar, view, scaleBar]);
 
@@ -244,11 +244,13 @@ function MapWidgets({
       content: legendNode,
       view,
       expanded: false,
+      expandIconClass: 'esri-icon-layer-list',
       expandTooltip: 'Toggle Legend',
       autoCollapse: true,
       mode: 'floating',
+      label: 'Legend',
     });
-    view.ui.add(newLegend, 'bottom-left');
+    view.ui.add(newLegend, { position: 'bottom-leading', index: 0 });
     setLegend(newLegend);
   }, [Expand, view, legend, legendNode]);
 
