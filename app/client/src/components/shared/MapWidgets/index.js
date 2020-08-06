@@ -249,7 +249,7 @@ function MapWidgets({
       autoCollapse: true,
       mode: 'floating',
     });
-    view.ui.add(newLegend, { position: 'bottom-leading', index: 0 });
+    view.ui.add(newLegend, { position: 'bottom-left', index: 0 });
     setLegend(newLegend);
   }, [Expand, view, legend, legendNode]);
 
