@@ -53,7 +53,6 @@ const ignoreLayers = [
   'countyLayer',
   'tribalLayer',
   'watershedsLayer',
-  'wsioHealthIndexLayer',
   'searchIconLayer',
 ];
 
@@ -134,6 +133,121 @@ function MapLegendContent({ layer }: CardProps) {
           transform={`rotate(45, ${boxSize / 2}, ${boxSize / 2})`}
         />
       </svg>
+    );
+  };
+
+  const gradientIcon = ({ id, stops }) => {
+    const gradientHeight = 30 * (stops.length - 1);
+    const labelContainerHeight = 37.5 * (stops.length - 1);
+    return (
+      <table width="50%">
+        <tbody>
+          <tr>
+            <td width="34" align="center">
+              <div
+                style={{
+                  position: 'relative',
+                  width: '34px',
+                  height: `${gradientHeight}px`,
+                }}
+              >
+                <div
+                  className="esriLegendColorRamp"
+                  style={{
+                    border: '1px solid rgba(194, 194, 194, 0.25)',
+                    height: `${gradientHeight}px`,
+                  }}
+                >
+                  <svg
+                    overflow="hidden"
+                    width="24"
+                    height={gradientHeight}
+                    style={{ touchAction: 'none' }}
+                  >
+                    <defs>
+                      <linearGradient
+                        id={id}
+                        gradientUnits="userSpaceOnUse"
+                        x1="0.00000000"
+                        y1="0.00000000"
+                        x2="0.00000000"
+                        y2={gradientHeight}
+                      >
+                        {stops.map((item, index) => {
+                          return (
+                            <stop
+                              key={index}
+                              offset={index / (stops.length - 1)}
+                              stopColor={item.color}
+                              stopOpacity="1"
+                            />
+                          );
+                        })}
+                      </linearGradient>
+                    </defs>
+                    <rect
+                      fill={`url(#${id})`}
+                      stroke="none"
+                      strokeOpacity="0"
+                      strokeWidth="1"
+                      strokeLinecap="butt"
+                      strokeLinejoin="miter"
+                      strokeMiterlimit="4"
+                      x="0"
+                      y="0"
+                      width="24"
+                      height={gradientHeight}
+                      ry="0"
+                      rx="0"
+                      fillRule="evenodd"
+                    />
+                    <rect
+                      fill="rgb(255, 255, 255)"
+                      fillOpacity="0"
+                      stroke="none"
+                      strokeOpacity="0"
+                      strokeWidth="1"
+                      strokeLinecap="butt"
+                      strokeLinejoin="miter"
+                      strokeMiterlimit="4"
+                      x="0"
+                      y="0"
+                      width="24"
+                      height={gradientHeight}
+                      ry="0"
+                      rx="0"
+                      fillRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                {stops.map((item, index) => {
+                  return (
+                    <div
+                      key={index}
+                      className="esriLegendColorRampTick"
+                      style={{ top: `${(index / (stops.length - 1)) * 100}%` }}
+                    >
+                      &nbsp;
+                    </div>
+                  );
+                })}
+              </div>
+            </td>
+            <td>
+              <div
+                className="esriLegendColorRampLabels"
+                style={{ height: `${labelContainerHeight}px` }}
+              >
+                {stops.map((item, index) => {
+                  return (
+                    <div className="esriLegendColorRampLabel">{item.label}</div>
+                  );
+                })}
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     );
   };
 
@@ -258,6 +372,26 @@ function MapLegendContent({ layer }: CardProps) {
     </LI>
   );
 
+  // jsx
+  const healthIndexLegend = (
+    <LI>
+      <ImageContainer>
+        {squareIcon({ color: 'rgb(54, 140, 225)', strokeWidth: 0 })}
+      </ImageContainer>
+      <LegendLabel>Watershed Health Index Layer</LegendLabel>
+      {gradientIcon({
+        id: 'health-index-gradient',
+        stops: [
+          { label: '1', color: 'rgb(10, 8, 145)' },
+          { label: '0.75', color: 'rgb(30, 61, 181)' },
+          { label: '0.5', color: 'rgb(54, 140, 225)' },
+          { label: '0.25', color: 'rgb(124, 187, 234)' },
+          { label: '0', color: 'rgb(180, 238, 239)' },
+        ],
+      })}
+    </LI>
+  );
+
   if (layer.id === 'waterbodyLayer') return waterbodyLegend;
   if (layer.id === 'issuesLayer') return issuesLegend;
   if (layer.id === 'monitoringStationsLayer') return monitoringStationsLegend;
@@ -266,6 +400,7 @@ function MapLegendContent({ layer }: CardProps) {
   if (layer.id === 'providersLayer') return providersLegend;
   if (layer.id === 'boundariesLayer') return boundariesLegend;
   if (layer.id === 'actionsWaterbodies') return actionsWaterbodiesLegend;
+  if (layer.id === 'wsioHealthIndexLayer') return healthIndexLegend;
 
   return null;
 }
