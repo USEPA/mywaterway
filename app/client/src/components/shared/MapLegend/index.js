@@ -51,7 +51,6 @@ const LegendLabel = styled.span`
 const ignoreLayers = [
   'mappedWaterLayer',
   'countyLayer',
-  'tribalLayer',
   'watershedsLayer',
   'wsioHealthIndexLayer',
   'searchIconLayer',
@@ -132,6 +131,27 @@ function MapLegendContent({ layer }: CardProps) {
           strokeWidth={strokeWidth}
           stroke={stroke}
           transform={`rotate(45, ${boxSize / 2}, ${boxSize / 2})`}
+        />
+      </svg>
+    );
+  };
+
+  const circleIcon = ({ color, strokeWidth = 1, stroke = 'black' }) => {
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={boxSize}
+        height={boxSize}
+        viewBox={`0 0 ${boxSize} ${boxSize}`}
+        aria-hidden="true"
+      >
+        <circle
+          cx={boxSize / 2}
+          cy={boxSize / 2}
+          r="10"
+          fill={color}
+          strokeWidth={strokeWidth}
+          stroke={stroke}
         />
       </svg>
     );
@@ -258,6 +278,41 @@ function MapLegendContent({ layer }: CardProps) {
     </LI>
   );
 
+  const tribalLegend = (
+    <>
+      <LI>
+        <ImageContainer>
+          {squareIcon({
+            color: 'rgb(154, 154, 154)',
+            strokeWidth: 1,
+            stroke: '#6e6e6e',
+          })}
+        </ImageContainer>
+        <LegendLabel>Tribal Lands</LegendLabel>
+      </LI>
+      <LI>
+        <ImageContainer>
+          {circleIcon({
+            color: 'rgb(158, 0, 124)',
+            strokeWidth: 1,
+            stroke: '#000000',
+          })}
+        </ImageContainer>
+        <LegendLabel>Alaska Native Villages</LegendLabel>
+      </LI>
+      <LI>
+        <ImageContainer>
+          {squareIcon({
+            color: 'rgb(245, 215, 191)',
+            strokeWidth: 1,
+            stroke: '#6e6e6e',
+          })}
+        </ImageContainer>
+        <LegendLabel>Alaska Native Allotments</LegendLabel>
+      </LI>
+    </>
+  );
+
   if (layer.id === 'waterbodyLayer') return waterbodyLegend;
   if (layer.id === 'issuesLayer') return issuesLegend;
   if (layer.id === 'monitoringStationsLayer') return monitoringStationsLegend;
@@ -266,6 +321,7 @@ function MapLegendContent({ layer }: CardProps) {
   if (layer.id === 'providersLayer') return providersLegend;
   if (layer.id === 'boundariesLayer') return boundariesLegend;
   if (layer.id === 'actionsWaterbodies') return actionsWaterbodiesLegend;
+  if (layer.id === 'tribalLayer') return tribalLegend;
 
   return null;
 }
