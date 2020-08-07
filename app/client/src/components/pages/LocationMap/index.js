@@ -441,7 +441,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   // Builds the waterbody layer once data has been fetched for all sub layers
   const [waterbodyLayerCreated, setWaterbodyLayerCreated] = React.useState(
-    false,
+    waterbodyLayer ? true : false,
   );
   React.useEffect(() => {
     if (mapServiceFailure) {
