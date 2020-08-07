@@ -365,6 +365,20 @@ export function getSharedLayers(FeatureLayer, MapImageLayer) {
     visible: false,
   });
 
+  const renderer = {
+    type: 'simple',
+    symbol: {
+      type: 'simple-fill',
+      style: 'solid',
+      color: [154, 154, 154, 0.75],
+      outline: {
+        style: 'solid',
+        color: [110, 110, 110, 0.75],
+        width: 1,
+      },
+    },
+  };
+
   const tribalLayer = new MapImageLayer({
     id: 'tribalLayer',
     url: tribal,
@@ -372,9 +386,9 @@ export function getSharedLayers(FeatureLayer, MapImageLayer) {
     sublayers: [
       { id: 0, labelsVisible: false },
       { id: 1, labelsVisible: false },
-      { id: 2, labelsVisible: false },
+      { id: 2, labelsVisible: false, renderer },
       { id: 3, labelsVisible: false },
-      { id: 4, labelsVisible: false },
+      { id: 4, labelsVisible: false, renderer },
     ],
     listMode: 'hide-children',
     visible: false,
