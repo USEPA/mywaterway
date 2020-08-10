@@ -572,6 +572,8 @@ export const openPopup = (view: Object, feature: Object) => {
   } else if (feature.geometry.type === 'polygon') {
     const pointIndex = Math.round(feature.geometry.rings[0].length / 4);
     popupPoint = feature.geometry.getPoint(0, pointIndex);
+  } else if (feature.geometry.type === 'multipoint') {
+    popupPoint = feature.geometry.getPoint(0);
   } else {
     //point objects
     popupPoint = feature.geometry;
