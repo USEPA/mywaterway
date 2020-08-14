@@ -86,6 +86,7 @@ function StateMap({
 
     homeWidget,
     resetData,
+    getBasemap,
   } = React.useContext(LocationSearchContext);
 
   const [layers, setLayers] = React.useState(null);
@@ -375,7 +376,7 @@ function StateMap({
         <Map
           style={{ position: 'absolute' }}
           loaderOptions={{ url: esriApiUrl }}
-          mapProperties={{ basemap: 'gray' }}
+          mapProperties={{ basemap: getBasemap() }}
           viewProperties={{
             extent: {
               xmin: -13873570.722124241,

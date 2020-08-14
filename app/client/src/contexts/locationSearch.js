@@ -27,6 +27,7 @@ type State = {
   nonprofits: Object,
   mapView: Object,
   layers: Object[],
+  basemap: Object,
   waterbodyLayer: Object,
   issuesLayer: Object,
   monitoringStationsLayer: Object,
@@ -127,6 +128,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     selWaterBodyLayer: '',
     homeWidget: null,
     visibleLayers: {},
+    basemap: {},
     hucBoundaries: '',
     atHucBoundaries: false,
     countyBoundaries: '',
@@ -261,6 +263,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     setVisibleLayers: (visibleLayers) => {
       this.setState({ visibleLayers });
     },
+    setBasemap: (basemap) => {
+      this.setState({ basemap });
+    },
     setWaterbodyData: (waterbodyData) => {
       this.setState({ waterbodyData });
     },
@@ -327,6 +332,13 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       if (pointsData) features = features.concat(pointsData.features);
 
       return features;
+    },
+
+    // default basemap is gray but use basemap in context if it exists
+    getBasemap: () => {
+      return Object.keys(this.state.basemap).length === 0
+        ? 'gray'
+        : this.state.basemap;
     },
 
     resetMap: (useDefaultZoom = false) => {

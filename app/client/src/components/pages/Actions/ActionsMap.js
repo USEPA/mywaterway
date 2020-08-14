@@ -49,6 +49,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
     mapView,
     setActionsLayer,
     setMapView,
+    getBasemap,
   } = React.useContext(LocationSearchContext);
 
   const [layers, setLayers] = React.useState(null);
@@ -314,7 +315,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
           <Map
             style={{ position: 'absolute' }}
             loaderOptions={{ url: esriApiUrl }}
-            mapProperties={{ basemap: 'gray' }}
+            mapProperties={{ basemap: getBasemap() }}
             viewProperties={{ extent: initialExtent, highlightOptions }}
             onLoad={(map: Any, view: Any) => {
               setMapView(view);
