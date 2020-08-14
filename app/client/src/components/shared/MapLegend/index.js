@@ -434,7 +434,7 @@ function MapLegendContent({ layer }: CardProps) {
       <ImageContainer>
         {squareIcon({ color: 'rgb(54, 140, 225)', strokeWidth: 0 })}
       </ImageContainer>
-      <LegendLabel>Watershed Health Index Layer</LegendLabel>
+      <LegendLabel>State Watershed Health Index Layer</LegendLabel>
       {gradientIcon({
         id: 'health-index-gradient',
         stops: [
