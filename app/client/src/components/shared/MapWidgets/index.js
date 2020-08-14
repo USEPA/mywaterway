@@ -373,7 +373,7 @@ function MapWidgets({
     });
 
     setMapEventHandlersSet(true);
-  }, [watchUtils, view, mapEventHandlersSet, basemap, setBasemap]);
+  }, [watchUtils, view, mapEventHandlersSet, basemap, setBasemap, map]);
 
   React.useEffect(() => {
     if (!layers || layers.length === 0) return;
