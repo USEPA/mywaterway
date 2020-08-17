@@ -358,7 +358,7 @@ export function getSharedLayers(FeatureLayer, MapImageLayer) {
   const wsioHealthIndexLayer = new FeatureLayer({
     id: 'wsioHealthIndexLayer',
     url: wsio,
-    title: 'Watershed Health Index',
+    title: 'State Watershed Health Index',
     outFields: ['phwa_health_ndx_st_2016'],
     renderer: wsioHealthIndexRenderer,
     listMode: 'show',
