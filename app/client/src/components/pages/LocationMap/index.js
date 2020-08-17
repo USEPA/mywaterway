@@ -140,7 +140,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setNoDataAvailable,
     FIPS,
     setFIPS,
-
+    getBasemap,
     layers,
     setLayers,
     pointsLayer,
@@ -1315,7 +1315,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         <Map
           style={{ position: 'absolute' }}
           loaderOptions={{ url: esriApiUrl }}
-          mapProperties={{ basemap: 'gray' }}
+          mapProperties={{ basemap: getBasemap() }}
           viewProperties={{
             extent: initialExtent,
             highlightOptions,

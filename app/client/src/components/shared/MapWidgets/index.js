@@ -151,6 +151,8 @@ function MapWidgets({
     setHomeWidget,
     visibleLayers,
     setVisibleLayers,
+    setBasemap,
+    basemap,
   } = React.useContext(LocationSearchContext);
 
   const {
@@ -362,8 +364,16 @@ function MapWidgets({
       handleMapZoomChange(newVal, target);
     });
 
+    // when basemap changes, update the basemap in context for persistent basemaps
+    // across fullscreen and mobile/desktop layout changes
+    view.map.allLayers.on('change', function (event) {
+      if (map.basemap !== basemap) {
+        setBasemap(map.basemap);
+      }
+    });
+
     setMapEventHandlersSet(true);
-  }, [watchUtils, view, mapEventHandlersSet]);
+  }, [watchUtils, view, mapEventHandlersSet, basemap, setBasemap, map]);
 
   React.useEffect(() => {
     if (!layers || layers.length === 0) return;
