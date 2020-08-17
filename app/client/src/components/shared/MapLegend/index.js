@@ -260,7 +260,9 @@ function MapLegendContent({ layer }: CardProps) {
               >
                 {stops.map((item, index) => {
                   return (
-                    <div className="esriLegendColorRampLabel">{item.label}</div>
+                    <div key={index} className="esriLegendColorRampLabel">
+                      {item.label}
+                    </div>
                   );
                 })}
               </div>
