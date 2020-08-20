@@ -20,6 +20,8 @@ export const wsio = `${watersGeoBase}r4/wsio/MapServer/0`;
 
 export const tribal = `${geopubBase}EMEF/tribal/MapServer`;
 
+export const congressional = `${geopubBase}NEPAssist/Boundaries/MapServer/1`;
+
 export const waterbodyService = {
   points: `${watersGeoBase}OW/ATTAINS_Assessment/MapServer/0`,
   lines: `${watersGeoBase}OW/ATTAINS_Assessment/MapServer/1`,
