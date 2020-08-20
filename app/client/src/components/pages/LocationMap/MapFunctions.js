@@ -398,8 +398,9 @@ export function getSharedLayers(FeatureLayer, MapImageLayer) {
   const congressionalLayer = new MapImageLayer({
     id: 'congressionalLayer',
     url: congressional,
-    title: 'Congressional',
+    title: 'Congressional Districts',
     listMode: 'hide-children',
+    sublayers: [{ id: 1 }],
     visible: false,
   });
 
