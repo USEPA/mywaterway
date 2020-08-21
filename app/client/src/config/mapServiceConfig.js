@@ -63,7 +63,7 @@ export const mapServiceMapping = [
   },
   {
     wildcardUrl: `${mappedWater}*`,
-    name: 'watersgeo - NHDPluse mapped water',
+    name: 'watersgeo - NHDPlus mapped water',
   },
   {
     wildcardUrl: `${wsio}*`,
