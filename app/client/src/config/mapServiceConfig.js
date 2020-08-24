@@ -64,6 +64,10 @@ export const mapServiceMapping = [
     name: 'geopub - EMEF tribal',
   },
   {
+    wildcardUrl: `${congressional}*`,
+    name: 'geopub - NEPAssist Congressional Districts',
+  },
+  {
     wildcardUrl: `${mappedWater}*`,
     name: 'watersgeo - NHDPluse mapped water',
   },
