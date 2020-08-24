@@ -13,6 +13,7 @@ import {
   tribal,
   wbd,
   // wsio,
+  congressional,
 } from 'config/mapServiceConfig';
 // styles
 import { colors } from 'styles/index.js';
@@ -394,6 +395,15 @@ export function getSharedLayers(FeatureLayer, MapImageLayer) {
     visible: false,
   });
 
+  const congressionalLayer = new MapImageLayer({
+    id: 'congressionalLayer',
+    url: congressional,
+    title: 'Congressional Districts',
+    listMode: 'hide-children',
+    sublayers: [{ id: 1 }],
+    visible: false,
+  });
+
   const mappedWaterLayer = new MapImageLayer({
     id: 'mappedWaterLayer',
     url: mappedWater,
@@ -422,6 +432,7 @@ export function getSharedLayers(FeatureLayer, MapImageLayer) {
   return [
     // wsioHealthIndexLayer,
     tribalLayer,
+    congressionalLayer,
     mappedWaterLayer,
     countyLayer,
     watershedsLayer,

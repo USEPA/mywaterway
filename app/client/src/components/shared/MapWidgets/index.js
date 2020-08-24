@@ -93,6 +93,7 @@ function updateVisibleLayers(view: any, legendNode: Node) {
     'countyLayer',
     'watershedsLayer',
     'tribalLayer',
+    'congressionalLayer',
     'wsioHealthIndexLayer',
     'searchIconLayer',
   ];
