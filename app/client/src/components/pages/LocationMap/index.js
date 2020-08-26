@@ -257,6 +257,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const handleMapServiceError = React.useCallback(
     (err) => {
+      setMapLoading(false);
       console.error(err);
       setCipSummary({
         data: [],
