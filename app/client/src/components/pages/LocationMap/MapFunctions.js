@@ -380,6 +380,20 @@ export function getSharedLayers(FeatureLayer, MapImageLayer) {
     },
   };
 
+  const allotmentsRenderer = {
+    type: 'simple',
+    symbol: {
+      type: 'simple-fill',
+      style: 'solid',
+      color: [245, 215, 191, 0.75],
+      outline: {
+        style: 'solid',
+        color: [110, 110, 110, 0.75],
+        width: 0,
+      },
+    },
+  };
+
   const tribalLayer = new MapImageLayer({
     id: 'tribalLayer',
     url: tribal,
@@ -388,7 +402,7 @@ export function getSharedLayers(FeatureLayer, MapImageLayer) {
       { id: 0, labelsVisible: false },
       { id: 1, labelsVisible: false },
       { id: 2, labelsVisible: false, renderer },
-      { id: 3, labelsVisible: false },
+      { id: 3, labelsVisible: false, renderer: allotmentsRenderer },
       { id: 4, labelsVisible: false, renderer },
     ],
     listMode: 'hide-children',
