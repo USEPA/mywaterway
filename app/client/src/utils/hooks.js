@@ -494,7 +494,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 }
 
 function useSharedLayers() {
-  const { FeatureLayer, MapImageLayer } = React.useContext(EsriModulesContext);
+  const { FeatureLayer, GroupLayer, MapImageLayer } = React.useContext(
+    EsriModulesContext,
+  );
 
   // Gets the settings for the WSIO Health Index layer.
   return function getSharedLayers() {
@@ -604,6 +606,7 @@ function useSharedLayers() {
     //   visible: false,
     // });
 
+    // START - Tribal layers
     const renderer = {
       type: 'simple',
       symbol: {
@@ -632,27 +635,81 @@ function useSharedLayers() {
       },
     };
 
-    const tribalLayer = new MapImageLayer({
-      id: 'tribalLayer',
-      url: tribal,
-      title: 'Tribal Areas',
-      sublayers: [
-        { id: 0, labelsVisible: false },
-        { id: 1, labelsVisible: false },
-        { id: 2, labelsVisible: false, renderer },
-        { id: 3, labelsVisible: false, renderer: allotmentsRenderer },
-        { id: 4, labelsVisible: false, renderer },
-      ],
-      listMode: 'hide-children',
-      visible: false,
+    const alaskaNativeVillages = new FeatureLayer({
+      id: 'tribalLayer-1',
+      url: `${tribal}/1`,
+      title: 'Alaska Native Villages',
+      listMode: 'hide',
+      visible: true,
+      labelsVisible: false,
+      popupTemplate: {
+        title: '',
+        fieldInfos: [
+          { fieldName: 'Village Name', label: 'Village Name' },
+          { fieldName: 'Village Description', label: 'Village Description' },
+          { fieldName: 'TYPE', label: 'Type' },
+        ],
+      },
     });
 
-    const congressionalLayer = new MapImageLayer({
+    const alaskaReservations = new FeatureLayer({
+      id: 'tribalLayer-2',
+      url: `${tribal}/2`,
+      title: 'Alaska Reservations',
+      listMode: 'hide',
+      visible: true,
+      labelsVisible: false,
+      renderer,
+    });
+
+    const alaskaNativeAllotments = new FeatureLayer({
+      id: 'tribalLayer-3',
+      url: `${tribal}/3`,
+      title: 'Alaska Native Allotments',
+      listMode: 'hide',
+      visible: true,
+      labelsVisible: false,
+      renderer: allotmentsRenderer,
+    });
+
+    const lower48Tribal = new FeatureLayer({
+      id: 'tribalLayer-4',
+      url: `${tribal}/4`,
+      title: 'Lower 48 States',
+      listMode: 'hide',
+      visible: true,
+      labelsVisible: false,
+      renderer,
+      popupTemplate: {
+        title: '',
+        fieldInfos: [
+          { fieldName: 'NAME', label: 'Name' },
+          { fieldName: 'TRIBE_NAME', label: 'Tribe Name' },
+          { fieldName: 'NAMELSAD', label: 'NAMELSAD' },
+        ],
+      },
+    });
+
+    const tribalLayer = new GroupLayer({
+      id: 'tribalLayer',
+      title: 'Tribal Areas',
+      listMode: 'show',
+      visible: false,
+      layers: [
+        alaskaNativeVillages,
+        alaskaReservations,
+        alaskaNativeAllotments,
+        lower48Tribal,
+      ],
+    });
+
+    // END - Tribal layers
+
+    const congressionalLayer = new FeatureLayer({
       id: 'congressionalLayer',
       url: congressional,
       title: 'Congressional Districts',
       listMode: 'hide-children',
-      sublayers: [{ id: 1 }],
       visible: false,
     });
 
