@@ -15,11 +15,10 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { esriApiUrl } from 'config/esriConfig';
 import { waterbodyService } from 'config/mapServiceConfig';
 // helpers
-import { useWaterbodyHighlight } from 'utils/hooks';
+import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
 import {
   getPopupTitle,
   getPopupContent,
-  getSharedLayers,
 } from 'components/pages/LocationMap/MapFunctions';
 // errors
 import { actionMapError, actionMapNoData } from 'config/errorMessages';
@@ -54,6 +53,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
 
   const [layers, setLayers] = React.useState(null);
 
+  const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
 
   // Initially sets up the layers
@@ -61,7 +61,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
   React.useEffect(() => {
     if (layersInitialized) return;
 
-    const { GraphicsLayer, MapImageLayer, FeatureLayer } = esriModules;
+    const { GraphicsLayer } = esriModules;
 
     let localActionsLayer = actionsLayer;
     if (!actionsLayer) {
@@ -74,13 +74,16 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
       setActionsLayer(localActionsLayer);
     }
 
-    setLayers([
-      ...getSharedLayers(FeatureLayer, MapImageLayer),
-      localActionsLayer,
-    ]);
+    setLayers([...getSharedLayers(), localActionsLayer]);
 
     setLayersInitialized(true);
-  }, [esriModules, actionsLayer, setActionsLayer, layersInitialized]);
+  }, [
+    esriModules,
+    actionsLayer,
+    setActionsLayer,
+    getSharedLayers,
+    layersInitialized,
+  ]);
 
   const [fetchStatus, setFetchStatus] = React.useState('');
 

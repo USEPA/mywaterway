@@ -15,7 +15,6 @@ import {
   createUniqueValueInfos,
   getPopupContent,
   getPopupTitle,
-  getSharedLayers,
 } from 'components/pages/LocationMap/MapFunctions';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
@@ -40,7 +39,7 @@ import {
   fishingInformationService,
 } from 'config/webServiceConfig';
 // helpers
-import { useWaterbodyHighlight } from 'utils/hooks';
+import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
 import { fetchCheck } from 'utils/fetchUtils';
 import { isHuc12, updateCanonicalLink, createJsonLD } from 'utils/utils';
 // styles
@@ -83,7 +82,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     FeatureLayer,
     GraphicsLayer,
     GroupLayer,
-    MapImageLayer,
     Graphic,
     Locator,
     PictureMarkerSymbol,
@@ -154,6 +152,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const [errorMessage, setErrorMessage] = React.useState('');
   const [view, setView] = React.useState(null);
 
+  const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
 
   // Builds the layers that have no dependencies
@@ -221,7 +220,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setNonprofitsLayer(nonprofitsLayer);
 
     setLayers([
-      ...getSharedLayers(FeatureLayer, MapImageLayer),
+      ...getSharedLayers(),
       providersLayer,
       boundariesLayer,
       monitoringStationsLayer,
@@ -233,9 +232,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setLayersInitialized(true);
   }, [
-    FeatureLayer,
     GraphicsLayer,
-    MapImageLayer,
+    getSharedLayers,
     layers,
     setBoundariesLayer,
     setDischargersLayer,
