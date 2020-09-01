@@ -158,7 +158,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // Builds the layers that have no dependencies
   const [layersInitialized, setLayersInitialized] = React.useState(false);
   React.useEffect(() => {
-    if (layersInitialized) return;
+    if (!getSharedLayers || layersInitialized) return;
 
     if (layers.length > 0) return;
 

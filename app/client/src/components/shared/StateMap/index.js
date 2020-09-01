@@ -93,7 +93,7 @@ function StateMap({
   // Initializes the layers
   const [layersInitialized, setLayersInitialized] = React.useState(false);
   React.useEffect(() => {
-    if (layersInitialized) return;
+    if (!getSharedLayers || layersInitialized) return;
 
     const popupTemplate = {
       outFields: ['*'],

@@ -410,24 +410,46 @@ export const openPopup = (view: Object, feature: Object) => {
 export function getPopupTitle(attributes: Object) {
   let title = 'Unknown';
 
+  if (!attributes) return title;
+
   // line, area, point for waterbody
-  if (attributes && attributes.assessmentunitname) {
+  if (attributes.assessmentunitname) {
     title = `${attributes.assessmentunitname} (${attributes.assessmentunitidentifier})`;
   }
 
   // discharger
-  else if (attributes && attributes.CWPName) {
+  else if (attributes.CWPName) {
     title = attributes.CWPName;
   }
 
   // monitoring location
-  else if (attributes && attributes.MonitoringLocationName) {
+  else if (attributes.MonitoringLocationName) {
     title = attributes.MonitoringLocationName;
   }
 
   // protect tab teal nonprofits
-  else if (attributes && attributes.type === 'nonprofit') {
+  else if (attributes.type === 'nonprofit') {
     title = attributes.Name || 'Unknown name';
+  }
+
+  // congressional district
+  else if (attributes.CONG_DIST) {
+    title = `${attributes.STATE} District ${attributes.CONG_DIST}`;
+  }
+
+  // want to display name for Alaska Native Villages
+  else if (attributes.NAME && attributes.TRIBE_NAME) {
+    title = attributes.NAME;
+  }
+
+  // other tribal layers just use the tribe name
+  else if (attributes.TRIBE_NAME) {
+    title = attributes.TRIBE_NAME;
+  }
+
+  // want to display allotment for Alaska Native Allotments
+  else if (attributes.PARCEL_NO) {
+    title = attributes.PARCEL_NO;
   }
 
   return title;
@@ -481,6 +503,26 @@ export function getPopupContent({
   // protect tab teal nonprofits
   else if (attributes && attributes.type === 'nonprofit') {
     type = 'Nonprofit';
+  }
+
+  // congressional district
+  else if (attributes.CONG_DIST) {
+    type = 'Congressional District';
+  }
+
+  // want to display name for Alaska Native Villages
+  else if (attributes.NAME && attributes.TRIBE_NAME) {
+    type = 'Alaska Native Village';
+  }
+
+  // other tribal layers just use the tribe name
+  else if (attributes.TRIBE_NAME) {
+    type = 'Tribe';
+  }
+
+  // want to display allotment for Alaska Native Allotments
+  else if (attributes.PARCEL_NO) {
+    type = 'Alaska Native Allotment';
   }
 
   const content = (

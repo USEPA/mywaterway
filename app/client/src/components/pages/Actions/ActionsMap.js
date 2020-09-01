@@ -59,7 +59,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
   // Initially sets up the layers
   const [layersInitialized, setLayersInitialized] = React.useState(false);
   React.useEffect(() => {
-    if (layersInitialized) return;
+    if (!getSharedLayers || layersInitialized) return;
 
     const { GraphicsLayer } = esriModules;
 

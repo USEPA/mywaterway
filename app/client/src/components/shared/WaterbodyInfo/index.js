@@ -647,6 +647,41 @@ function WaterbodyInfo({
   );
 
   // jsx
+  const congressionalDistrictContent = () => {
+    if (!attributes.URL) {
+      return (
+        <p>
+          <strong>{attributes.CONG_DIST}</strong> - {attributes.CONG_REP}
+        </p>
+      );
+    }
+
+    return (
+      <p>
+        <a rel="noopener noreferrer" target="_blank" href={attributes.URL}>
+          {attributes.CONG_DIST}
+        </a>{' '}
+        - {attributes.CONG_REP}
+      </p>
+    );
+  };
+
+  // jsx
+  const tribeContent = labelValue('Tribe Name', attributes.TRIBE_NAME);
+
+  // jsx
+  const alaskaNativeVillageContent = labelValue(
+    'Village Name',
+    attributes.NAME,
+  );
+
+  // jsx
+  const alaskaNativeAllotmentContent = labelValue(
+    'Allotment',
+    attributes.PARCEL_NO,
+  );
+
+  // jsx
   // This content is filled in from the getPopupContent function in MapFunctions.
   const actionContent = <>{extraContent}</>;
 
@@ -661,6 +696,10 @@ function WaterbodyInfo({
   if (type === 'Nonprofit') return nonprofitContent;
   if (type === 'Waterbody State Overview') return waterbodyStateContent;
   if (type === 'Action') return actionContent;
+  if (type === 'Congressional District') return congressionalDistrictContent();
+  if (type === 'Tribe') return tribeContent;
+  if (type === 'Alaska Native Village') return alaskaNativeVillageContent;
+  if (type === 'Alaska Native Allotment') return alaskaNativeAllotmentContent;
 
   return null;
 }

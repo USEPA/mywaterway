@@ -9,8 +9,10 @@ import { EsriModulesContext } from 'contexts/EsriModules';
 import {
   createWaterbodySymbol,
   createUniqueValueInfos,
-  openPopup,
+  getPopupContent,
+  getPopupTitle,
   graphicComparison,
+  openPopup,
   shallowCompare,
 } from 'components/pages/LocationMap/MapFunctions';
 // config
@@ -497,6 +499,17 @@ function useSharedLayers() {
   const { FeatureLayer, GroupLayer, MapImageLayer } = React.useContext(
     EsriModulesContext,
   );
+  const { mapView } = React.useContext(LocationSearchContext);
+
+  if (!mapView) return null;
+
+  function getTemplate(graphic) {
+    return getPopupContent({ feature: graphic.graphic });
+  }
+
+  function getTitle(graphic) {
+    return getPopupTitle(graphic.graphic.attributes);
+  }
 
   // Gets the settings for the WSIO Health Index layer.
   return function getSharedLayers() {
@@ -639,16 +652,13 @@ function useSharedLayers() {
       id: 'tribalLayer-1',
       url: `${tribal}/1`,
       title: 'Alaska Native Villages',
+      outFields: ['NAME', 'TRIBE_NAME'],
       listMode: 'hide',
       visible: true,
       labelsVisible: false,
       popupTemplate: {
-        title: '',
-        fieldInfos: [
-          { fieldName: 'Village Name', label: 'Village Name' },
-          { fieldName: 'Village Description', label: 'Village Description' },
-          { fieldName: 'TYPE', label: 'Type' },
-        ],
+        title: getTitle,
+        content: getTemplate,
       },
     });
 
@@ -656,37 +666,44 @@ function useSharedLayers() {
       id: 'tribalLayer-2',
       url: `${tribal}/2`,
       title: 'Alaska Reservations',
+      outFields: ['TRIBE_NAME'],
       listMode: 'hide',
       visible: true,
       labelsVisible: false,
       renderer,
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+      },
     });
 
     const alaskaNativeAllotments = new FeatureLayer({
       id: 'tribalLayer-3',
       url: `${tribal}/3`,
       title: 'Alaska Native Allotments',
+      outFields: ['PARCEL_NO'],
       listMode: 'hide',
       visible: true,
       labelsVisible: false,
       renderer: allotmentsRenderer,
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+      },
     });
 
     const lower48Tribal = new FeatureLayer({
       id: 'tribalLayer-4',
       url: `${tribal}/4`,
       title: 'Lower 48 States',
+      outFields: ['TRIBE_NAME'],
       listMode: 'hide',
       visible: true,
       labelsVisible: false,
       renderer,
       popupTemplate: {
-        title: '',
-        fieldInfos: [
-          { fieldName: 'NAME', label: 'Name' },
-          { fieldName: 'TRIBE_NAME', label: 'Tribe Name' },
-          { fieldName: 'NAMELSAD', label: 'NAMELSAD' },
-        ],
+        title: getTitle,
+        content: getTemplate,
       },
     });
 
@@ -711,6 +728,11 @@ function useSharedLayers() {
       title: 'Congressional Districts',
       listMode: 'hide-children',
       visible: false,
+      outFields: ['CONG_DIST', 'URL', 'CONG_REP', 'STATE'],
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+      },
     });
 
     const mappedWaterLayer = new MapImageLayer({
