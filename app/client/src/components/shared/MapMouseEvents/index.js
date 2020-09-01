@@ -1,6 +1,4 @@
 import React from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
-import { navigate } from '@reach/router';
 // contexts
 import { MapHighlightContext } from 'contexts/MapHighlight';
 import { EsriModulesContext } from 'contexts/EsriModules';
@@ -12,8 +10,6 @@ import {
   getPopupTitle,
   graphicComparison,
 } from 'components/pages/LocationMap/MapFunctions';
-// styles
-import { colors } from 'styles/index.js';
 
 // --- components ---
 type Props = {
@@ -39,94 +35,6 @@ function MapMouseEvents({ map, view }: Props) {
     Query,
     QueryTask,
   } = React.useContext(EsriModulesContext);
-
-  const processBoundariesData = React.useCallback(
-    (boundaries) => {
-      // exit early if the user clicked where there are no huc boundaries
-      if (
-        !boundaries ||
-        !boundaries.features ||
-        boundaries.features.length < 1 ||
-        !boundaries.features[0].attributes ||
-        !boundaries.features[0].attributes.huc12
-      ) {
-        return;
-      }
-
-      const { attributes } = boundaries.features[0];
-      const clickedHuc12 = attributes.huc12;
-      // display the "Change location" popup if the user clicked in a
-      // different huc 12 or if no huc 12 has been selected
-      const popupContent = document.createElement('div');
-      popupContent.style.margin = '0 13px';
-      popupContent.innerHTML = renderToStaticMarkup(
-        <>
-          <br />
-          <div>
-            <p>
-              <strong style={{ fontSize: '0.875em' }}>WATERSHED:</strong>
-              <br />
-              {attributes.name} ({clickedHuc12})
-            </p>
-          </div>
-        </>,
-      );
-      const buttonContainer = document.createElement('div');
-      buttonContainer.style.textAlign = 'center';
-
-      const noButton = document.createElement('button');
-      noButton.innerHTML = 'No';
-      noButton.title = 'Stay at the current location';
-      noButton.className = 'btn';
-      noButton.style.marginRight = '15px';
-      noButton.style.fontSize = '0.9375em';
-      noButton.style.backgroundColor = 'lightgray';
-      noButton.onclick = function (ev) {
-        view.popup.close();
-      };
-
-      const yesButton = document.createElement('button');
-      yesButton.innerHTML = 'Yes';
-      yesButton.title = 'Change to this location';
-      yesButton.className = 'btn';
-      yesButton.style.fontSize = '0.9375em';
-      yesButton.style.color = colors.white();
-      yesButton.style.backgroundColor = colors.blue();
-      yesButton.onclick = function (ev) {
-        // Clear all data before navigating.
-        // The main reason for this is better performance
-        // when doing a huc search by clicking on the state map. The app
-        // will attempt to use all of the loaded state data, then clear it
-        // then load the huc. This could take a long time if the state
-        // has a lot of waterbodies.
-        resetData();
-
-        let baseRoute = `/community/${clickedHuc12}`;
-
-        // community will attempt to stay on the same tab
-        // if available, stay on the same tab otherwise go to overview
-        let urlParts = window.location.pathname.split('/');
-        if (urlParts.includes('community') && urlParts.length > 3) {
-          navigate(`${baseRoute}/${urlParts[3]}`);
-          return;
-        }
-
-        navigate(`${baseRoute}/overview`);
-      };
-
-      buttonContainer.appendChild(noButton);
-      buttonContainer.appendChild(yesButton);
-      popupContent.appendChild(buttonContainer);
-
-      // close any already opened popups, and create a new one
-      view.popup.close();
-      view.popup.open({
-        title: 'Change to this location?',
-        content: popupContent,
-      });
-    },
-    [resetData, view.popup],
-  );
 
   const handleMapClick = React.useCallback(
     (event, view) => {
@@ -172,7 +80,30 @@ function MapMouseEvents({ map, view }: Props) {
               .then((boundaries) => {
                 if (boundaries.features.length === 0) return;
 
-                processBoundariesData(boundaries);
+                const { attributes } = boundaries.features[0];
+
+                view.popup.close();
+                view.popup.open({
+                  title: 'Change to this location?',
+                  content: getPopupContent({
+                    resetData,
+                    feature: {
+                      attributes: {
+                        changelocationpopup: 'changelocationpopup',
+                      },
+                      view: view,
+                    },
+                    getClickedHuc: new Promise((resolve, reject) => {
+                      resolve({
+                        status: 'success',
+                        data: {
+                          huc12: attributes.huc12,
+                          watershed: attributes.name,
+                        },
+                      });
+                    }),
+                  }),
+                });
               })
               .catch((err) => console.error(err));
           }
@@ -183,9 +114,9 @@ function MapMouseEvents({ map, view }: Props) {
       Point,
       Query,
       QueryTask,
+      resetData,
       SpatialReference.WQGS84,
       getHucBoundaries,
-      processBoundariesData,
       setSelectedGraphic,
       webMercatorUtils,
     ],

@@ -529,6 +529,11 @@ export function getPopupContent({
     type = 'Alaska Native Allotment';
   }
 
+  // stand alone change location popup
+  else if (attributes.changelocationpopup) {
+    type = 'Change Location';
+  }
+
   const content = (
     <MapPopup
       type={type}

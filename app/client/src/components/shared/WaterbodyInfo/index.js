@@ -97,6 +97,12 @@ const ChangeLocationButton = styled.button`
   background-color: ${colors.blue()};
 `;
 
+const CancelChangeLocationButton = styled.button`
+  margin-right: 15px;
+  font-size: 0.9375em;
+  background-color: lightgray;
+`;
+
 // --- components ---
 type Props = {
   type: string,
@@ -132,7 +138,6 @@ function WaterbodyInfo({
 
     getClickedHuc
       .then((res) => {
-        console.log('res: ', res);
         setClickedHuc(res);
       })
       .catch((err) => {
@@ -145,6 +150,7 @@ function WaterbodyInfo({
   }, [getClickedHuc, clickedHuc]);
 
   const attributes = feature.attributes;
+
   const labelValue = (label, value, icon = null) => {
     if (isPopup) {
       return (
@@ -172,6 +178,7 @@ function WaterbodyInfo({
 
   const renderChangeWatershed = () => {
     if (!clickedHuc) return null;
+    if (clickedHuc.status === 'no-data') return <p>No Data</p>;
     if (clickedHuc.status === 'fetching') return <LoadingSpinner />;
     if (clickedHuc.status === 'failure') return <p>Web service error</p>;
     if (clickedHuc.status === 'success') {
@@ -179,11 +186,28 @@ function WaterbodyInfo({
       const watershed = clickedHuc.data.watershed;
       return (
         <>
-          <hr />
-          <strong>Change to this location?</strong>
-          <br />
+          {type !== 'Change Location' && (
+            <>
+              <hr />
+              <strong>Change to this location?</strong>
+              <br />
+            </>
+          )}
           {labelValue('WATERSHED', `${watershed} (${huc12})`)}
           <ButtonContainer>
+            {type === 'Change Location' && (
+              <CancelChangeLocationButton
+                title=""
+                className="btn"
+                onClick={(ev) => {
+                  if (!feature?.view) return;
+
+                  feature.view.popup.close();
+                }}
+              >
+                No
+              </CancelChangeLocationButton>
+            )}
             <ChangeLocationButton
               title="Change to this location"
               className="btn"
@@ -789,6 +813,9 @@ function WaterbodyInfo({
   );
 
   // jsx
+  const changeLocationContent = renderChangeWatershed();
+
+  // jsx
   // This content is filled in from the getPopupContent function in MapFunctions.
   const actionContent = <>{extraContent}</>;
 
@@ -807,6 +834,7 @@ function WaterbodyInfo({
   if (type === 'Tribe') return tribeContent;
   if (type === 'Alaska Native Village') return alaskaNativeVillageContent;
   if (type === 'Alaska Native Allotment') return alaskaNativeAllotmentContent;
+  if (type === 'Change Location') return changeLocationContent;
 
   return null;
 }

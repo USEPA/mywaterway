@@ -48,7 +48,7 @@ function MapPopup({
 }: Props) {
   if (!feature) return null;
 
-  const hideTypes = ['Action', 'Waterbody State Overview'];
+  const hideTypes = ['Action', 'Change Location', 'Waterbody State Overview'];
 
   return (
     <Container>
