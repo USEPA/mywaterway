@@ -518,25 +518,21 @@ function useSharedLayers() {
         latitude: location.latitude,
         longitude: location.longitude,
       };
-      console.log('testLocation: ', testLocation);
-      console.log('lastLocation: ', lastLocation);
+
+      // check if the location changed
       if (
         testLocation &&
         lastLocation &&
         testLocation.latitude === lastLocation.latitude &&
         testLocation.longitude === lastLocation.longitude
       ) {
-        console.log('start polling...');
         // polls the dom, based on provided timeout, until the esri search input
         // is added. Once the input is added this sets the id attribute and stops
         // the polling.
         function poll(timeout: number) {
-          console.log('hucInfo.status: ', hucInfo.status);
           if (['none', 'fetching'].includes(hucInfo.status)) {
-            console.log('do another poll...');
             setTimeout(poll, timeout);
           } else {
-            console.log('resolved...');
             resolve(hucInfo);
           }
         }
@@ -552,7 +548,6 @@ function useSharedLayers() {
         data: null,
       };
 
-      console.log('start querying...');
       //get the huc boundaries of where the user clicked
       const query = new Query({
         returnGeometry: true,
@@ -586,9 +581,6 @@ function useSharedLayers() {
 
   // Wrapper function for getting the content of the popup
   function getTemplate(graphic) {
-    console.log('getTemplate: ', graphic);
-    console.log('mapView: ', mapView);
-
     // get the currently selected huc boundaries, if applicable
     const hucBoundaries = getHucBoundaries();
     const location = mapView?.popup?.location;
@@ -752,25 +744,28 @@ function useSharedLayers() {
       },
     };
 
+    const alaskaNativeVillageOutFields = ['NAME', 'TRIBE_NAME'];
     const alaskaNativeVillages = new FeatureLayer({
       id: 'tribalLayer-1',
       url: `${tribal}/1`,
       title: 'Alaska Native Villages',
-      outFields: ['NAME', 'TRIBE_NAME'],
+      outFields: alaskaNativeVillageOutFields,
       listMode: 'hide',
       visible: true,
       labelsVisible: false,
       popupTemplate: {
         title: getTitle,
         content: getTemplate,
+        outFields: alaskaNativeVillageOutFields,
       },
     });
 
+    const alaskaReservationOutFields = ['TRIBE_NAME'];
     const alaskaReservations = new FeatureLayer({
       id: 'tribalLayer-2',
       url: `${tribal}/2`,
       title: 'Alaska Reservations',
-      outFields: ['TRIBE_NAME'],
+      outFields: alaskaReservationOutFields,
       listMode: 'hide',
       visible: true,
       labelsVisible: false,
@@ -778,14 +773,16 @@ function useSharedLayers() {
       popupTemplate: {
         title: getTitle,
         content: getTemplate,
+        outFields: alaskaReservationOutFields,
       },
     });
 
+    const alaskaNativeAllotmentsOutFields = ['PARCEL_NO'];
     const alaskaNativeAllotments = new FeatureLayer({
       id: 'tribalLayer-3',
       url: `${tribal}/3`,
       title: 'Alaska Native Allotments',
-      outFields: ['PARCEL_NO'],
+      outFields: alaskaNativeAllotmentsOutFields,
       listMode: 'hide',
       visible: true,
       labelsVisible: false,
@@ -793,14 +790,16 @@ function useSharedLayers() {
       popupTemplate: {
         title: getTitle,
         content: getTemplate,
+        outFields: alaskaNativeAllotmentsOutFields,
       },
     });
 
+    const lower48TribalOutFields = ['TRIBE_NAME'];
     const lower48Tribal = new FeatureLayer({
       id: 'tribalLayer-4',
       url: `${tribal}/4`,
       title: 'Lower 48 States',
-      outFields: ['TRIBE_NAME'],
+      outFields: lower48TribalOutFields,
       listMode: 'hide',
       visible: true,
       labelsVisible: false,
@@ -808,6 +807,7 @@ function useSharedLayers() {
       popupTemplate: {
         title: getTitle,
         content: getTemplate,
+        outFields: lower48TribalOutFields,
       },
     });
 
@@ -826,16 +826,23 @@ function useSharedLayers() {
 
     // END - Tribal layers
 
+    const congressionalLayerOutFields = [
+      'CONG_DIST',
+      'URL',
+      'CONG_REP',
+      'STATE',
+    ];
     const congressionalLayer = new FeatureLayer({
       id: 'congressionalLayer',
       url: congressional,
       title: 'Congressional Districts',
       listMode: 'hide-children',
       visible: false,
-      outFields: ['CONG_DIST', 'URL', 'CONG_REP', 'STATE'],
+      outFields: congressionalLayerOutFields,
       popupTemplate: {
         title: getTitle,
         content: getTemplate,
+        outFields: congressionalLayerOutFields,
       },
     });
 
