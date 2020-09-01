@@ -38,7 +38,11 @@ const basemapNames = [
   // 'USA Topo Maps',
 ];
 
-const zoomDependentLayers = ['mappedWaterLayer', 'watershedsLayer'];
+const zoomDependentLayers = [
+  'mappedWaterLayer',
+  'watershedsLayer',
+  'congressionalLayer',
+];
 
 // function called whenever the map's zoom changes
 function handleMapZoomChange(newVal: number, target: any) {
