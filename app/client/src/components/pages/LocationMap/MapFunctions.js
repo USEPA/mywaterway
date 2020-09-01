@@ -459,10 +459,14 @@ export function getPopupContent({
   feature,
   fieldName,
   extraContent,
+  getClickedHuc,
+  resetData,
 }: {
   feature: Object,
   fieldName: ?string,
   extraContent: ?Object,
+  getClickedHuc: ?Function,
+  resetData: ?Function,
 }) {
   let type = 'Unknown';
 
@@ -531,6 +535,8 @@ export function getPopupContent({
       feature={feature}
       fieldName={fieldName}
       extraContent={extraContent}
+      getClickedHuc={getClickedHuc}
+      resetData={resetData}
     />
   );
 

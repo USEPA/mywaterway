@@ -34,9 +34,18 @@ type Props = {
   feature: Object,
   fieldName: ?string,
   extraContent: ?Object,
+  getClickedHuc: ?Function,
+  resetData: ?Function,
 };
 
-function MapPopup({ type, feature, fieldName, extraContent }: Props) {
+function MapPopup({
+  type,
+  feature,
+  fieldName,
+  extraContent,
+  getClickedHuc,
+  resetData,
+}: Props) {
   if (!feature) return null;
 
   const hideTypes = ['Action', 'Waterbody State Overview'];
@@ -51,6 +60,7 @@ function MapPopup({ type, feature, fieldName, extraContent }: Props) {
           fieldName={fieldName}
           isPopup={true}
           extraContent={extraContent}
+          getClickedHuc={getClickedHuc}
         />
       </Content>
     </Container>
