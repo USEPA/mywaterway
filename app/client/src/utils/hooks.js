@@ -9,10 +9,21 @@ import { EsriModulesContext } from 'contexts/EsriModules';
 import {
   createWaterbodySymbol,
   createUniqueValueInfos,
-  openPopup,
+  getPopupContent,
+  getPopupTitle,
   graphicComparison,
+  openPopup,
   shallowCompare,
 } from 'components/pages/LocationMap/MapFunctions';
+// config
+import {
+  counties,
+  mappedWater,
+  tribal,
+  wbd,
+  // wsio,
+  congressional,
+} from 'config/mapServiceConfig';
 
 // Closes the map popup and clears highlights whenever the user changes
 // tabs. This function is called from the useWaterbodyHighlight hook (handles
@@ -484,7 +495,395 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
   }, [mapView, setHighlightedGraphic, setSelectedGraphic, visibleLayers]);
 }
 
+function useSharedLayers() {
+  const {
+    FeatureLayer,
+    GroupLayer,
+    MapImageLayer,
+    Query,
+    QueryTask,
+  } = React.useContext(EsriModulesContext);
+  const { getHucBoundaries, mapView, resetData } = React.useContext(
+    LocationSearchContext,
+  );
+  var hucInfo = {
+    status: 'none',
+    data: null,
+  };
+
+  var lastLocation = null;
+  function getClickedHuc(location) {
+    return new Promise((resolve, reject) => {
+      const testLocation = {
+        latitude: location.latitude,
+        longitude: location.longitude,
+      };
+
+      // check if the location changed
+      if (
+        testLocation &&
+        lastLocation &&
+        testLocation.latitude === lastLocation.latitude &&
+        testLocation.longitude === lastLocation.longitude
+      ) {
+        // polls the dom, based on provided timeout, until the esri search input
+        // is added. Once the input is added this sets the id attribute and stops
+        // the polling.
+        function poll(timeout: number) {
+          if (['none', 'fetching'].includes(hucInfo.status)) {
+            setTimeout(poll, timeout);
+          } else {
+            resolve(hucInfo);
+          }
+        }
+
+        poll(1000);
+
+        return;
+      }
+
+      lastLocation = testLocation;
+      hucInfo = {
+        status: 'fetching',
+        data: null,
+      };
+
+      //get the huc boundaries of where the user clicked
+      const query = new Query({
+        returnGeometry: true,
+        geometry: location,
+        outFields: ['*'],
+      });
+
+      new QueryTask({ url: wbd })
+        .execute(query)
+        .then((boundaries) => {
+          if (boundaries.features.length === 0) return;
+
+          const { attributes } = boundaries.features[0];
+          hucInfo = {
+            status: 'success',
+            data: {
+              huc12: attributes.huc12,
+              watershed: attributes.name,
+            },
+          };
+          resolve(hucInfo);
+        })
+        .catch((err) => {
+          console.error(err);
+          reject(err);
+        });
+    });
+  }
+
+  if (!mapView || !resetData) return null;
+
+  // Wrapper function for getting the content of the popup
+  function getTemplate(graphic) {
+    // get the currently selected huc boundaries, if applicable
+    const hucBoundaries = getHucBoundaries();
+    const location = mapView?.popup?.location;
+    // only look for huc boundaries if no graphics were clicked and the
+    // user clicked outside of the selected huc boundaries
+    if (
+      !location ||
+      (hucBoundaries &&
+        hucBoundaries.features.length > 0 &&
+        hucBoundaries.features[0].geometry.contains(location))
+    ) {
+      return getPopupContent({ feature: graphic.graphic });
+    }
+
+    return getPopupContent({
+      feature: graphic.graphic,
+      getClickedHuc: getClickedHuc(location),
+      resetData,
+    });
+  }
+
+  // Wrapper function for getting the title of the popup
+  function getTitle(graphic) {
+    return getPopupTitle(graphic.graphic.attributes);
+  }
+
+  // Gets the settings for the WSIO Health Index layer.
+  return function getSharedLayers() {
+    // shared symbol settings
+    // const symbol = {
+    //   type: 'simple-fill',
+    //   style: 'solid',
+    //   outline: { color: [0, 0, 0, 0.5], width: 1 },
+    // };
+
+    // define the color ramp renderer
+    // const wsioHealthIndexRenderer = {
+    //   type: 'class-breaks',
+    //   field: 'phwa_health_ndx_st_2016',
+    //   classBreakInfos: [
+    //     {
+    //       minValue: 0,
+    //       maxValue: 0.11,
+    //       symbol: {
+    //         ...symbol,
+    //         color: { r: 180, g: 238, b: 239 },
+    //       },
+    //     },
+    //     {
+    //       minValue: 0.11,
+    //       maxValue: 0.21,
+    //       symbol: {
+    //         ...symbol,
+    //         color: { r: 154, g: 209, b: 238 },
+    //       },
+    //     },
+    //     {
+    //       minValue: 0.21,
+    //       maxValue: 0.31,
+    //       symbol: {
+    //         ...symbol,
+    //         color: { r: 124, g: 187, b: 234 },
+    //       },
+    //     },
+    //     {
+    //       minValue: 0.31,
+    //       maxValue: 0.41,
+    //       symbol: {
+    //         ...symbol,
+    //         color: { r: 90, g: 162, b: 227 },
+    //       },
+    //     },
+    //     {
+    //       minValue: 0.41,
+    //       maxValue: 0.51,
+    //       symbol: {
+    //         ...symbol,
+    //         color: { r: 54, g: 140, b: 225 },
+    //       },
+    //     },
+    //     {
+    //       minValue: 0.51,
+    //       maxValue: 0.61,
+    //       symbol: {
+    //         ...symbol,
+    //         color: { r: 32, g: 118, b: 217 },
+    //       },
+    //     },
+    //     {
+    //       minValue: 0.61,
+    //       maxValue: 0.71,
+    //       symbol: {
+    //         ...symbol,
+    //         color: { r: 35, g: 88, b: 198 },
+    //       },
+    //     },
+    //     {
+    //       minValue: 0.71,
+    //       maxValue: 0.81,
+    //       symbol: {
+    //         ...symbol,
+    //         color: { r: 30, g: 61, b: 181 },
+    //       },
+    //     },
+    //     {
+    //       minValue: 0.81,
+    //       maxValue: 0.91,
+    //       symbol: {
+    //         ...symbol,
+    //         color: { r: 23, g: 38, b: 163 },
+    //       },
+    //     },
+    //     {
+    //       minValue: 0.91,
+    //       maxValue: 1.01,
+    //       symbol: {
+    //         ...symbol,
+    //         color: { r: 10, g: 8, b: 145 },
+    //       },
+    //     },
+    //   ],
+    // };
+
+    // return the layer properties object
+    // const wsioHealthIndexLayer = new FeatureLayer({
+    //   id: 'wsioHealthIndexLayer',
+    //   url: wsio,
+    //   title: 'State Watershed Health Index',
+    //   outFields: ['phwa_health_ndx_st_2016'],
+    //   renderer: wsioHealthIndexRenderer,
+    //   listMode: 'show',
+    //   visible: false,
+    // });
+
+    // START - Tribal layers
+    const renderer = {
+      type: 'simple',
+      symbol: {
+        type: 'simple-fill',
+        style: 'solid',
+        color: [154, 154, 154, 0.75],
+        outline: {
+          style: 'solid',
+          color: [110, 110, 110, 0.75],
+          width: 1,
+        },
+      },
+    };
+
+    const allotmentsRenderer = {
+      type: 'simple',
+      symbol: {
+        type: 'simple-fill',
+        style: 'solid',
+        color: [245, 215, 191, 0.75],
+        outline: {
+          style: 'solid',
+          color: [110, 110, 110, 0.75],
+          width: 0,
+        },
+      },
+    };
+
+    const alaskaNativeVillageOutFields = ['NAME', 'TRIBE_NAME'];
+    const alaskaNativeVillages = new FeatureLayer({
+      id: 'tribalLayer-1',
+      url: `${tribal}/1`,
+      title: 'Alaska Native Villages',
+      outFields: alaskaNativeVillageOutFields,
+      listMode: 'hide',
+      visible: true,
+      labelsVisible: false,
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields: alaskaNativeVillageOutFields,
+      },
+    });
+
+    const alaskaReservationOutFields = ['TRIBE_NAME'];
+    const alaskaReservations = new FeatureLayer({
+      id: 'tribalLayer-2',
+      url: `${tribal}/2`,
+      title: 'Alaska Reservations',
+      outFields: alaskaReservationOutFields,
+      listMode: 'hide',
+      visible: true,
+      labelsVisible: false,
+      renderer,
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields: alaskaReservationOutFields,
+      },
+    });
+
+    const alaskaNativeAllotmentsOutFields = ['PARCEL_NO'];
+    const alaskaNativeAllotments = new FeatureLayer({
+      id: 'tribalLayer-3',
+      url: `${tribal}/3`,
+      title: 'Alaska Native Allotments',
+      outFields: alaskaNativeAllotmentsOutFields,
+      listMode: 'hide',
+      visible: true,
+      labelsVisible: false,
+      renderer: allotmentsRenderer,
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields: alaskaNativeAllotmentsOutFields,
+      },
+    });
+
+    const lower48TribalOutFields = ['TRIBE_NAME'];
+    const lower48Tribal = new FeatureLayer({
+      id: 'tribalLayer-4',
+      url: `${tribal}/4`,
+      title: 'Lower 48 States',
+      outFields: lower48TribalOutFields,
+      listMode: 'hide',
+      visible: true,
+      labelsVisible: false,
+      renderer,
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields: lower48TribalOutFields,
+      },
+    });
+
+    const tribalLayer = new GroupLayer({
+      id: 'tribalLayer',
+      title: 'Tribal Areas',
+      listMode: 'show',
+      visible: false,
+      layers: [
+        alaskaNativeVillages,
+        alaskaReservations,
+        alaskaNativeAllotments,
+        lower48Tribal,
+      ],
+    });
+
+    // END - Tribal layers
+
+    const congressionalLayerOutFields = [
+      'CONG_DIST',
+      'URL',
+      'CONG_REP',
+      'STATE',
+    ];
+    const congressionalLayer = new FeatureLayer({
+      id: 'congressionalLayer',
+      url: congressional,
+      title: 'Congressional Districts',
+      listMode: 'hide-children',
+      visible: false,
+      outFields: congressionalLayerOutFields,
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields: congressionalLayerOutFields,
+      },
+    });
+
+    const mappedWaterLayer = new MapImageLayer({
+      id: 'mappedWaterLayer',
+      url: mappedWater,
+      title: 'Mapped Water (all)',
+      sublayers: [{ id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
+      listMode: 'hide-children',
+      visible: false,
+    });
+
+    const countyLayer = new FeatureLayer({
+      id: 'countyLayer',
+      url: counties,
+      title: 'County',
+      listMode: 'show',
+      visible: false,
+    });
+
+    const watershedsLayer = new FeatureLayer({
+      id: 'watershedsLayer',
+      url: wbd,
+      title: 'Watersheds',
+      listMode: 'show',
+      visible: false,
+    });
+
+    return [
+      // wsioHealthIndexLayer,
+      tribalLayer,
+      congressionalLayer,
+      mappedWaterLayer,
+      countyLayer,
+      watershedsLayer,
+    ];
+  };
+}
+
 export {
+  useSharedLayers,
   useWaterbodyFeatures,
   useWaterbodyFeaturesState,
   useWaterbodyOnMap,

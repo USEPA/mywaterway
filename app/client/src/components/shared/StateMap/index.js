@@ -14,7 +14,6 @@ import {
   createUniqueValueInfos,
   getPopupContent,
   getPopupTitle,
-  getSharedLayers,
 } from 'components/pages/LocationMap/MapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
 // contexts
@@ -25,7 +24,7 @@ import { MapHighlightContext } from 'contexts/MapHighlight';
 import { esriApiUrl } from 'config/esriConfig';
 import { waterbodyService } from 'config/mapServiceConfig';
 // helpers
-import { useWaterbodyHighlight } from 'utils/hooks';
+import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
 // styles
 import 'components/pages/LocationMap/mapStyles.css';
 
@@ -63,12 +62,9 @@ function StateMap({
 
   const { selectedGraphic } = React.useContext(MapHighlightContext);
 
-  const {
-    FeatureLayer,
-    GroupLayer,
-    MapImageLayer,
-    Viewpoint,
-  } = React.useContext(EsriModulesContext);
+  const { FeatureLayer, GroupLayer, Viewpoint } = React.useContext(
+    EsriModulesContext,
+  );
 
   const {
     highlightOptions,
@@ -91,12 +87,13 @@ function StateMap({
 
   const [layers, setLayers] = React.useState(null);
 
+  const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight(false);
 
   // Initializes the layers
   const [layersInitialized, setLayersInitialized] = React.useState(false);
   React.useEffect(() => {
-    if (layersInitialized) return;
+    if (!getSharedLayers || layersInitialized) return;
 
     const popupTemplate = {
       outFields: ['*'],
@@ -178,10 +175,7 @@ function StateMap({
     waterbodyLayer.addMany([areasLayer, linesLayer, pointsLayer]);
     setWaterbodyLayer(waterbodyLayer);
 
-    setLayers([
-      ...getSharedLayers(FeatureLayer, MapImageLayer),
-      waterbodyLayer,
-    ]);
+    setLayers([...getSharedLayers(), waterbodyLayer]);
 
     setVisibleLayers({ waterbodyLayer: true });
 
@@ -189,7 +183,7 @@ function StateMap({
   }, [
     FeatureLayer,
     GroupLayer,
-    MapImageLayer,
+    getSharedLayers,
     setAreasLayer,
     setLinesLayer,
     setPointsLayer,

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
+import { navigate } from '@reach/router';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
@@ -14,6 +15,8 @@ import { getWaterbodyCondition } from 'components/pages/LocationMap/MapFunctions
 import { fetchCheck } from 'utils/fetchUtils';
 // errors
 import { monitoringError } from 'config/errorMessages';
+// styles
+import { colors } from 'styles/index.js';
 
 function bool(value) {
   // Return 'Yes' for truthy values and non-zero strings
@@ -84,6 +87,22 @@ const NewTabDisclaimer = styled.div`
   padding-bottom: 1.5em;
 `;
 
+const ButtonContainer = styled.div`
+  text-align: center;
+`;
+
+const ChangeLocationButton = styled.button`
+  font-size: 0.9375em;
+  color: ${colors.white()};
+  background-color: ${colors.blue()};
+`;
+
+const CancelChangeLocationButton = styled.button`
+  margin-right: 15px;
+  font-size: 0.9375em;
+  background-color: lightgray;
+`;
+
 // --- components ---
 type Props = {
   type: string,
@@ -91,6 +110,8 @@ type Props = {
   fieldName: ?string,
   isPopup: boolean,
   extraContent: ?Object,
+  location: ?Object,
+  resetData: ?Function,
 };
 
 function WaterbodyInfo({
@@ -99,8 +120,37 @@ function WaterbodyInfo({
   fieldName,
   isPopup = false,
   extraContent,
+  getClickedHuc,
+  resetData,
 }: Props) {
+  // Gets the response of what huc was clicked, if provided.
+  const [clickedHuc, setClickedHuc] = React.useState({
+    status: 'none',
+    data: null,
+  });
+  React.useEffect(() => {
+    if (!getClickedHuc || clickedHuc.status !== 'none') return;
+
+    setClickedHuc({
+      status: 'fetching',
+      data: null,
+    });
+
+    getClickedHuc
+      .then((res) => {
+        setClickedHuc(res);
+      })
+      .catch((err) => {
+        console.error(err);
+        setClickedHuc({
+          status: 'failure',
+          data: null,
+        });
+      });
+  }, [getClickedHuc, clickedHuc]);
+
   const attributes = feature.attributes;
+
   const labelValue = (label, value, icon = null) => {
     if (isPopup) {
       return (
@@ -124,6 +174,73 @@ function WaterbodyInfo({
         {value}
       </TextBottomPadding>
     );
+  };
+
+  const renderChangeWatershed = () => {
+    if (!clickedHuc) return null;
+    if (clickedHuc.status === 'no-data') return <p>No Data</p>;
+    if (clickedHuc.status === 'fetching') return <LoadingSpinner />;
+    if (clickedHuc.status === 'failure') return <p>Web service error</p>;
+    if (clickedHuc.status === 'success') {
+      const huc12 = clickedHuc.data.huc12;
+      const watershed = clickedHuc.data.watershed;
+      return (
+        <>
+          {type !== 'Change Location' && (
+            <>
+              <hr />
+              <strong>Change to this location?</strong>
+              <br />
+            </>
+          )}
+          {labelValue('WATERSHED', `${watershed} (${huc12})`)}
+          <ButtonContainer>
+            {type === 'Change Location' && (
+              <CancelChangeLocationButton
+                title=""
+                className="btn"
+                onClick={(ev) => {
+                  if (!feature?.view) return;
+
+                  feature.view.popup.close();
+                }}
+              >
+                No
+              </CancelChangeLocationButton>
+            )}
+            <ChangeLocationButton
+              title="Change to this location"
+              className="btn"
+              onClick={(ev) => {
+                // Clear all data before navigating.
+                // The main reason for this is better performance
+                // when doing a huc search by clicking on the state map. The app
+                // will attempt to use all of the loaded state data, then clear it
+                // then load the huc. This could take a long time if the state
+                // has a lot of waterbodies.
+                if (resetData) resetData();
+
+                let baseRoute = `/community/${huc12}`;
+
+                // community will attempt to stay on the same tab
+                // if available, stay on the same tab otherwise go to overview
+                let urlParts = window.location.pathname.split('/');
+                if (urlParts.includes('community') && urlParts.length > 3) {
+                  navigate(`${baseRoute}/${urlParts[3]}`);
+                  return;
+                }
+
+                navigate(`${baseRoute}/overview`);
+              }}
+            >
+              Yes
+            </ChangeLocationButton>
+          </ButtonContainer>
+        </>
+      );
+    }
+
+    return null;
   };
 
   const waterbodyPollutionCategories = (label: string) => {
@@ -647,6 +764,58 @@ function WaterbodyInfo({
   );
 
   // jsx
+  const congressionalDistrictContent = () => {
+    return (
+      <>
+        <p>
+          <strong>District:</strong>
+          <br />
+          {attributes.URL ? (
+            <a rel="noopener noreferrer" target="_blank" href={attributes.URL}>
+              {attributes.CONG_DIST}
+            </a>
+          ) : (
+            attributes.CONG_DIST
+          )}{' '}
+          - {attributes.CONG_REP}
+        </p>
+
+        {renderChangeWatershed()}
+      </>
+    );
+  };
+
+  // jsx
+  const tribeContent = (
+    <>
+      {labelValue('Tribe Name', attributes.TRIBE_NAME)}
+
+      {renderChangeWatershed()}
+    </>
+  );
+
+  // jsx
+  const alaskaNativeVillageContent = (
+    <>
+      {labelValue('Village Name', attributes.NAME)}
+
+      {renderChangeWatershed()}
+    </>
+  );
+
+  // jsx
+  const alaskaNativeAllotmentContent = (
+    <>
+      {labelValue('Allotment', attributes.PARCEL_NO)}
+
+      {renderChangeWatershed()}
+    </>
+  );
+
+  // jsx
+  const changeLocationContent = renderChangeWatershed();
+
+  // jsx
   // This content is filled in from the getPopupContent function in MapFunctions.
   const actionContent = <>{extraContent}</>;
 
@@ -661,6 +830,11 @@ function WaterbodyInfo({
   if (type === 'Nonprofit') return nonprofitContent;
   if (type === 'Waterbody State Overview') return waterbodyStateContent;
   if (type === 'Action') return actionContent;
+  if (type === 'Congressional District') return congressionalDistrictContent();
+  if (type === 'Tribe') return tribeContent;
+  if (type === 'Alaska Native Village') return alaskaNativeVillageContent;
+  if (type === 'Alaska Native Allotment') return alaskaNativeAllotmentContent;
+  if (type === 'Change Location') return changeLocationContent;
 
   return null;
 }

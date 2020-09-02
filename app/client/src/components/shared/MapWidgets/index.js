@@ -38,7 +38,11 @@ const basemapNames = [
   // 'USA Topo Maps',
 ];
 
-const zoomDependentLayers = ['mappedWaterLayer', 'watershedsLayer'];
+const zoomDependentLayers = [
+  'mappedWaterLayer',
+  'watershedsLayer',
+  'congressionalLayer',
+];
 
 // function called whenever the map's zoom changes
 function handleMapZoomChange(newVal: number, target: any) {
@@ -93,6 +97,10 @@ function updateVisibleLayers(view: any, legendNode: Node) {
     'countyLayer',
     'watershedsLayer',
     'tribalLayer',
+    'tribalLayer-1',
+    'tribalLayer-2',
+    'tribalLayer-3',
+    'tribalLayer-4',
     'congressionalLayer',
     'wsioHealthIndexLayer',
     'searchIconLayer',

@@ -6,15 +6,6 @@ import { renderToStaticMarkup } from 'react-dom/server';
 // components
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import MapPopup from 'components/shared/MapPopup';
-// config
-import {
-  counties,
-  mappedWater,
-  tribal,
-  wbd,
-  // wsio,
-  congressional,
-} from 'config/mapServiceConfig';
 // styles
 import { colors } from 'styles/index.js';
 
@@ -258,187 +249,6 @@ export function createWaterbodySymbol({
   }
 }
 
-// Gets the settings for the WSIO Health Index layer.
-export function getSharedLayers(FeatureLayer, MapImageLayer) {
-  // shared symbol settings
-  // const symbol = {
-  //   type: 'simple-fill',
-  //   style: 'solid',
-  //   outline: { color: [0, 0, 0, 0.5], width: 1 },
-  // };
-
-  // define the color ramp renderer
-  // const wsioHealthIndexRenderer = {
-  //   type: 'class-breaks',
-  //   field: 'phwa_health_ndx_st_2016',
-  //   classBreakInfos: [
-  //     {
-  //       minValue: 0,
-  //       maxValue: 0.11,
-  //       symbol: {
-  //         ...symbol,
-  //         color: { r: 180, g: 238, b: 239 },
-  //       },
-  //     },
-  //     {
-  //       minValue: 0.11,
-  //       maxValue: 0.21,
-  //       symbol: {
-  //         ...symbol,
-  //         color: { r: 154, g: 209, b: 238 },
-  //       },
-  //     },
-  //     {
-  //       minValue: 0.21,
-  //       maxValue: 0.31,
-  //       symbol: {
-  //         ...symbol,
-  //         color: { r: 124, g: 187, b: 234 },
-  //       },
-  //     },
-  //     {
-  //       minValue: 0.31,
-  //       maxValue: 0.41,
-  //       symbol: {
-  //         ...symbol,
-  //         color: { r: 90, g: 162, b: 227 },
-  //       },
-  //     },
-  //     {
-  //       minValue: 0.41,
-  //       maxValue: 0.51,
-  //       symbol: {
-  //         ...symbol,
-  //         color: { r: 54, g: 140, b: 225 },
-  //       },
-  //     },
-  //     {
-  //       minValue: 0.51,
-  //       maxValue: 0.61,
-  //       symbol: {
-  //         ...symbol,
-  //         color: { r: 32, g: 118, b: 217 },
-  //       },
-  //     },
-  //     {
-  //       minValue: 0.61,
-  //       maxValue: 0.71,
-  //       symbol: {
-  //         ...symbol,
-  //         color: { r: 35, g: 88, b: 198 },
-  //       },
-  //     },
-  //     {
-  //       minValue: 0.71,
-  //       maxValue: 0.81,
-  //       symbol: {
-  //         ...symbol,
-  //         color: { r: 30, g: 61, b: 181 },
-  //       },
-  //     },
-  //     {
-  //       minValue: 0.81,
-  //       maxValue: 0.91,
-  //       symbol: {
-  //         ...symbol,
-  //         color: { r: 23, g: 38, b: 163 },
-  //       },
-  //     },
-  //     {
-  //       minValue: 0.91,
-  //       maxValue: 1.01,
-  //       symbol: {
-  //         ...symbol,
-  //         color: { r: 10, g: 8, b: 145 },
-  //       },
-  //     },
-  //   ],
-  // };
-
-  // return the layer properties object
-  // const wsioHealthIndexLayer = new FeatureLayer({
-  //   id: 'wsioHealthIndexLayer',
-  //   url: wsio,
-  //   title: 'State Watershed Health Index',
-  //   outFields: ['phwa_health_ndx_st_2016'],
-  //   renderer: wsioHealthIndexRenderer,
-  //   listMode: 'show',
-  //   visible: false,
-  // });
-
-  const renderer = {
-    type: 'simple',
-    symbol: {
-      type: 'simple-fill',
-      style: 'solid',
-      color: [154, 154, 154, 0.75],
-      outline: {
-        style: 'solid',
-        color: [110, 110, 110, 0.75],
-        width: 1,
-      },
-    },
-  };
-
-  const tribalLayer = new MapImageLayer({
-    id: 'tribalLayer',
-    url: tribal,
-    title: 'Tribal Areas',
-    sublayers: [
-      { id: 0, labelsVisible: false },
-      { id: 1, labelsVisible: false },
-      { id: 2, labelsVisible: false, renderer },
-      { id: 3, labelsVisible: false },
-      { id: 4, labelsVisible: false, renderer },
-    ],
-    listMode: 'hide-children',
-    visible: false,
-  });
-
-  const congressionalLayer = new MapImageLayer({
-    id: 'congressionalLayer',
-    url: congressional,
-    title: 'Congressional Districts',
-    listMode: 'hide-children',
-    sublayers: [{ id: 1 }],
-    visible: false,
-  });
-
-  const mappedWaterLayer = new MapImageLayer({
-    id: 'mappedWaterLayer',
-    url: mappedWater,
-    title: 'Mapped Water (all)',
-    sublayers: [{ id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
-    listMode: 'hide-children',
-    visible: false,
-  });
-
-  const countyLayer = new FeatureLayer({
-    id: 'countyLayer',
-    url: counties,
-    title: 'County',
-    listMode: 'show',
-    visible: false,
-  });
-
-  const watershedsLayer = new FeatureLayer({
-    id: 'watershedsLayer',
-    url: wbd,
-    title: 'Watersheds',
-    listMode: 'show',
-    visible: false,
-  });
-
-  return [
-    // wsioHealthIndexLayer,
-    tribalLayer,
-    congressionalLayer,
-    mappedWaterLayer,
-    countyLayer,
-    watershedsLayer,
-  ];
-}
-
 export function isIE() {
   const ua = navigator.userAgent;
   /* MSIE used to detect old browsers and Trident used to newer ones*/
@@ -600,24 +410,46 @@ export const openPopup = (view: Object, feature: Object) => {
 export function getPopupTitle(attributes: Object) {
   let title = 'Unknown';
 
+  if (!attributes) return title;
+
   // line, area, point for waterbody
-  if (attributes && attributes.assessmentunitname) {
+  if (attributes.assessmentunitname) {
     title = `${attributes.assessmentunitname} (${attributes.assessmentunitidentifier})`;
   }
 
   // discharger
-  else if (attributes && attributes.CWPName) {
+  else if (attributes.CWPName) {
     title = attributes.CWPName;
   }
 
   // monitoring location
-  else if (attributes && attributes.MonitoringLocationName) {
+  else if (attributes.MonitoringLocationName) {
     title = attributes.MonitoringLocationName;
   }
 
   // protect tab teal nonprofits
-  else if (attributes && attributes.type === 'nonprofit') {
+  else if (attributes.type === 'nonprofit') {
     title = attributes.Name || 'Unknown name';
+  }
+
+  // congressional district
+  else if (attributes.CONG_DIST) {
+    title = `${attributes.STATE} District ${attributes.CONG_DIST}`;
+  }
+
+  // want to display name for Alaska Native Villages
+  else if (attributes.NAME && attributes.TRIBE_NAME) {
+    title = attributes.NAME;
+  }
+
+  // other tribal layers just use the tribe name
+  else if (attributes.TRIBE_NAME) {
+    title = attributes.TRIBE_NAME;
+  }
+
+  // want to display allotment for Alaska Native Allotments
+  else if (attributes.PARCEL_NO) {
+    title = attributes.PARCEL_NO;
   }
 
   return title;
@@ -627,10 +459,14 @@ export function getPopupContent({
   feature,
   fieldName,
   extraContent,
+  getClickedHuc,
+  resetData,
 }: {
   feature: Object,
   fieldName: ?string,
   extraContent: ?Object,
+  getClickedHuc: ?Function,
+  resetData: ?Function,
 }) {
   let type = 'Unknown';
 
@@ -673,12 +509,39 @@ export function getPopupContent({
     type = 'Nonprofit';
   }
 
+  // congressional district
+  else if (attributes.CONG_DIST) {
+    type = 'Congressional District';
+  }
+
+  // want to display name for Alaska Native Villages
+  else if (attributes.NAME && attributes.TRIBE_NAME) {
+    type = 'Alaska Native Village';
+  }
+
+  // other tribal layers just use the tribe name
+  else if (attributes.TRIBE_NAME) {
+    type = 'Tribe';
+  }
+
+  // want to display allotment for Alaska Native Allotments
+  else if (attributes.PARCEL_NO) {
+    type = 'Alaska Native Allotment';
+  }
+
+  // stand alone change location popup
+  else if (attributes.changelocationpopup) {
+    type = 'Change Location';
+  }
+
   const content = (
     <MapPopup
       type={type}
       feature={feature}
       fieldName={fieldName}
       extraContent={extraContent}
+      getClickedHuc={getClickedHuc}
+      resetData={resetData}
     />
   );
 
