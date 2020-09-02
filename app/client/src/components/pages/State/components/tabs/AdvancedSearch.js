@@ -121,10 +121,6 @@ function retrieveFeatures({
 }
 
 // --- styled components ---
-const ErrorBox = styled(StyledErrorBox)`
-  margin-bottom: 1.5em;
-`;
-
 const Inputs = styled.div`
   display: flex;
   flex-flow: row wrap;
@@ -1042,6 +1038,14 @@ function AdvancedSearch({ ...props }: Props) {
 
   const contentVisible = currentFilter && waterbodyData;
 
+  if (serviceError) {
+    return (
+      <StyledErrorBox>
+        <p>{stateGeneralError}</p>
+      </StyledErrorBox>
+    );
+  }
+
   return (
     <div data-content="stateoverview">
       <ConfirmModal
@@ -1078,12 +1082,6 @@ function AdvancedSearch({ ...props }: Props) {
           <>Please change your filter criteria and try again.</>
         )}
       </ConfirmModal>
-
-      {serviceError && (
-        <ErrorBox>
-          <p>{stateGeneralError}</p>
-        </ErrorBox>
-      )}
 
       {filterControls}
 
