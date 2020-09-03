@@ -29,7 +29,7 @@ import {
   useWaterTypeOptionsContext,
 } from 'contexts/LookupFiles';
 // utilities
-import { fetchCheck, proxyFetch } from 'utils/fetchUtils';
+import { fetchCheck } from 'utils/fetchUtils';
 import { titleCase } from 'utils/utils';
 // config
 import { attains, grts } from 'config/webServiceConfig';
@@ -381,16 +381,12 @@ function WaterQualityOverview({ ...props }: Props) {
       ? `&reportingCycle=${currentReportingCycle.reportingCycle}`
       : '';
 
-    // TODO: Remove the baseUrl logic and put in attains.serviceUrl.
-    // TODO: Remove activeState from the dependency array of this useEffect.
-    // TODO: Switch proxyFetch back to fetchCheck.
-    const baseUrl = attains.serviceUrlDev;
     const url =
-      `${baseUrl}usesStateSummary` +
+      `${attains.serviceUrl}usesStateSummary` +
       `?organizationId=${organizationId}` +
       reportingCycleParam;
 
-    proxyFetch(url)
+    fetchCheck(url)
       .then((res) => {
         // for states like Alaska that have no reporting cycles
         if (
@@ -457,7 +453,6 @@ function WaterQualityOverview({ ...props }: Props) {
     currentReportingCycle,
     setCurrentReportingCycle,
     usesStateSummaryCalled,
-    activeState,
   ]);
 
   // get state organization ID for summary service
