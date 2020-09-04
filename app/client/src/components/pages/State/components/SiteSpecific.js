@@ -86,10 +86,36 @@ function SiteSpecific({
 
   const [waterTypeUnits, setWaterTypeUnits] = React.useState('');
   React.useEffect(() => {
-    const tempUnits =
-      waterTypeData && waterTypeData.length > 0 && waterTypeData[0].unitsCode;
-    if (tempUnits !== waterTypeUnits) setWaterTypeUnits(tempUnits);
-  }, [waterType, waterTypeData, waterTypeUnits]);
+    if (!waterTypeData || waterTypeData.length === 0) {
+      if (waterTypeUnits) setWaterTypeUnits(null);
+      return;
+    }
+
+    // check the use to see if it is using counts or not
+    let usesCounts = false;
+    let tempUnits = waterTypeData[0].unitsCode;
+    waterTypeData.forEach((waterTypeOption) => {
+      waterTypeOption['useAttainments']
+        .filter((x) => x['useName'].toUpperCase() === useSelected.toUpperCase())
+        .forEach((use) => {
+          if (
+            (use['Fully Supporting'] === 0 &&
+              use['Fully Supporting-count'] > 0) ||
+            (use['Not Supporting'] === 0 && use['Not Supporting-count'] > 0) ||
+            (use['Insufficient Information'] === 0 &&
+              use['Insufficient Information-count'] > 0)
+          ) {
+            usesCounts = true;
+          }
+        });
+    });
+
+    if (usesCounts) tempUnits = 'Waters';
+
+    if (tempUnits !== waterTypeUnits) {
+      setWaterTypeUnits(tempUnits);
+    }
+  }, [waterType, waterTypeData, waterTypeUnits, useSelected]);
 
   // adds up the total amount (miles, acres, square miles) of waters for each
   // support category (fully supporting, not supporting, etc.) accross
@@ -110,14 +136,19 @@ function SiteSpecific({
       waterTypeOption['useAttainments']
         .filter((x) => x['useName'].toUpperCase() === useSelected.toUpperCase())
         .forEach((use) => {
+          const usesCounts = waterTypeUnits === 'Waters';
           support.supporting =
-            support.supporting + (use['Fully Supporting'] || 0);
+            support.supporting +
+            (use[`Fully Supporting${usesCounts ? '-count' : ''}`] || 0);
           support.notSupporting =
-            support.notSupporting + (use['Not Supporting'] || 0);
+            support.notSupporting +
+            (use[`Not Supporting${usesCounts ? '-count' : ''}`] || 0);
           support.insufficent =
-            support.insufficent + (use['Insufficient Information'] || 0);
+            support.insufficent +
+            (use[`Insufficient Information${usesCounts ? '-count' : ''}`] || 0);
           support.notAssessed =
-            support.notAssessed + (use['Not Assessed'] || 0);
+            support.notAssessed +
+            (use[`Not Assessed${usesCounts ? '-count' : ''}`] || 0);
         });
     });
 
@@ -187,6 +218,31 @@ function SiteSpecific({
         );
       });
 
+  const barChartData = [];
+  if (calculatedSupport.supporting > 0) {
+    barChartData.push({
+      name: 'Good',
+      y: calculatedSupport.supporting || 0,
+      color: colors.green(0.75),
+    });
+  }
+  if (calculatedSupport.notSupporting > 0) {
+    barChartData.push({
+      name: 'Impaired',
+      y: calculatedSupport.notSupporting || 0,
+      color: colors.red(),
+    });
+  }
+  if (calculatedSupport.insufficent > 0) {
+    barChartData.push({
+      name: 'Insufficient Info',
+      y: calculatedSupport.insufficent || 0,
+      color: colors.purple(),
+    });
+  }
+
+  const responsiveBarChartHeight = barChartData.length * 60;
+
   const responsiveBarChartFontSize =
     window.innerWidth < 350
       ? '10px'
@@ -223,98 +279,88 @@ function SiteSpecific({
             </p>
           )}
 
-          <Text>
-            Targeted monitoring provides information on water quality problems
-            for the subset of those waters that were assessed.
-          </Text>
+          {barChartData.length > 0 && (
+            <>
+              <Text>
+                Targeted monitoring provides information on water quality
+                problems for the subset of those waters that were assessed.
+              </Text>
 
-          <HighchartsContainer>
-            <HighchartsReact
-              highcharts={Highcharts}
-              options={{
-                title: { text: null },
-                credits: { enabled: false },
-                chart: {
-                  type: 'bar',
-                  style: { fontFamily: fonts.primary },
-                  height: 180,
-                  plotBackgroundColor: null,
-                  plotBorderWidth: null,
-                  plotShadow: false,
-                },
-                tooltip: {
-                  formatter: function () {
-                    return `${this.key}<br/>
-                    ${this.series.name}: <b>${formatNumber(this.y)}</b>`;
-                  },
-                },
-                xAxis: {
-                  lineWidth: 0,
-                  categories: ['Good', 'Impaired', 'Insufficient Info'],
-                  labels: { style: { fontSize: '15px' } },
-                },
-                yAxis: {
-                  labels: { enabled: false },
-                  title: { text: null },
-                  gridLineWidth: 0,
-                },
-                plotOptions: {
-                  series: {
-                    pointPadding: 0.05,
-                    groupPadding: 0,
-                    inside: true,
-                    shadow: false,
-                    borderWidth: 1,
-                    edgeWidth: 0,
-                    dataLabels: {
-                      enabled: true,
-                      style: {
-                        fontSize: responsiveBarChartFontSize,
-                        textOutline: false,
-                      },
+              <HighchartsContainer>
+                <HighchartsReact
+                  highcharts={Highcharts}
+                  options={{
+                    title: { text: null },
+                    credits: { enabled: false },
+                    chart: {
+                      type: 'bar',
+                      style: { fontFamily: fonts.primary },
+                      height: responsiveBarChartHeight,
+                      plotBackgroundColor: null,
+                      plotBorderWidth: null,
+                      plotShadow: false,
+                    },
+                    tooltip: {
                       formatter: function () {
-                        if (!waterTypeUnits) return formatNumber(this.y);
-                        const units = waterTypeUnits.toLowerCase();
-                        return `${formatNumber(this.y)} ${units}`;
+                        return `${this.key}<br/>
+                    ${this.series.name}: <b>${formatNumber(this.y)}</b>`;
                       },
                     },
-                  },
-                },
+                    xAxis: {
+                      lineWidth: 0,
+                      categories: ['Good', 'Impaired', 'Insufficient Info'],
+                      labels: { style: { fontSize: '15px' } },
+                    },
+                    yAxis: {
+                      labels: { enabled: false },
+                      title: { text: null },
+                      gridLineWidth: 0,
+                    },
+                    plotOptions: {
+                      series: {
+                        pointPadding: 0.05,
+                        groupPadding: 0,
+                        inside: true,
+                        shadow: false,
+                        borderWidth: 1,
+                        edgeWidth: 0,
+                        dataLabels: {
+                          enabled: true,
+                          style: {
+                            fontSize: responsiveBarChartFontSize,
+                            textOutline: false,
+                          },
+                          formatter: function () {
+                            if (!waterTypeUnits) return formatNumber(this.y);
+                            const units = waterTypeUnits.toLowerCase();
+                            return `${formatNumber(this.y)} ${units}`;
+                          },
+                        },
+                      },
+                    },
 
-                series: [
-                  {
-                    name: waterTypeUnits,
-                    colorByPoint: true,
-                    data: [
+                    series: [
                       {
-                        name: 'Good',
-                        y: calculatedSupport.supporting || 0,
-                        color: colors.green(0.75),
-                      },
-                      {
-                        name: 'Impaired',
-                        y: calculatedSupport.notSupporting || 0,
-                        color: colors.red(),
-                      },
-                      {
-                        name: 'Insufficient Info',
-                        y: calculatedSupport.insufficent || 0,
-                        color: colors.purple(),
+                        name: waterTypeUnits,
+                        colorByPoint: true,
+                        data: barChartData,
                       },
                     ],
-                  },
-                ],
-                legend: { enabled: false },
-              }}
-            />
-          </HighchartsContainer>
-          <ChartFooter>
-            <strong>Year Last Reported:</strong>
-            {currentReportingCycle.status === 'success' && (
-              <>&nbsp;{currentReportingCycle.reportingCycle}</>
-            )}
-            {currentReportingCycle.status === 'fetching' && <LoadingSpinner />}
-          </ChartFooter>
+                    legend: { enabled: false },
+                  }}
+                />
+              </HighchartsContainer>
+              <ChartFooter>
+                <strong>Year Last Reported:</strong>
+                {currentReportingCycle.status === 'success' && (
+                  <>&nbsp;{currentReportingCycle.reportingCycle}</>
+                )}
+                {currentReportingCycle.status === 'fetching' && (
+                  <LoadingSpinner />
+                )}
+              </ChartFooter>
+            </>
+          )}
         </>
       )}
 

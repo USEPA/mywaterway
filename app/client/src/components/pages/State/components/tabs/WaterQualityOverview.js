@@ -67,8 +67,11 @@ function formatTopic(topic) {
 function hasUseValues(use) {
   return (
     use['Fully Supporting'] > 0 ||
+    use['Fully Supporting-count'] > 0 ||
     use['Not Supporting'] > 0 ||
-    use['Insufficient Information'] > 0
+    use['Not Supporting-count'] > 0 ||
+    use['Insufficient Information'] > 0 ||
+    use['Insufficient Information-count'] > 0
   );
 }
 
