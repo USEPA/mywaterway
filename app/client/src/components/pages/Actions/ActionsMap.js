@@ -301,49 +301,51 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
     setMapLoading(false);
   }, [fetchStatus, mapView, actionsLayer, esriModules, homeWidget]);
 
-  return (
-    <>
-      {fetchStatus === 'failure' && (
-        <StyledErrorBox>
-          <p>{actionMapError}</p>
-        </StyledErrorBox>
-      )}
-      {noMapData && (
-        <StyledInfoBox>
-          <p>{actionMapNoData}</p>
-        </StyledInfoBox>
-      )}
-      {fetchStatus === 'success' && !noMapData && (
-        <Container data-testid="hmw-actions-map">
-          <Map
-            style={{ position: 'absolute' }}
-            loaderOptions={{ url: esriApiUrl }}
-            mapProperties={{ basemap: getBasemap() }}
-            viewProperties={{ extent: initialExtent, highlightOptions }}
-            onLoad={(map: Any, view: Any) => {
-              setMapView(view);
-            }}
-            onFail={(err: Any) => console.error(err)}
-          >
-            {/* manually passing map and view props to Map component's     */}
-            {/* children to satisfy flow, but map and view props are auto  */}
-            {/* passed from Map component to its children by react-arcgis  */}
-            <MapWidgets
-              map={null}
-              view={null}
-              layers={layers}
-              onHomeWidgetRendered={(homeWidget) => {}}
-            />
+  if (fetchStatus === 'failure') {
+    return (
+      <StyledErrorBox>
+        <p>{actionMapError}</p>
+      </StyledErrorBox>
+    );
+  }
 
-            {/* manually passing map and view props to Map component's         */}
-            {/* children to satisfy flow, but map and view props are auto      */}
-            {/* passed from Map component to its children by react-arcgis      */}
-            <MapMouseEvents map={null} view={null} />
-          </Map>
-          {mapView && mapLoading && <MapLoadingSpinner />}
-        </Container>
-      )}
-    </>
+  if (noMapData) {
+    return (
+      <StyledInfoBox>
+        <p>{actionMapNoData}</p>
+      </StyledInfoBox>
+    );
+  }
+
+  return (
+    <Container data-testid="hmw-actions-map">
+      <Map
+        style={{ position: 'absolute' }}
+        loaderOptions={{ url: esriApiUrl }}
+        mapProperties={{ basemap: getBasemap() }}
+        viewProperties={{ extent: initialExtent, highlightOptions }}
+        onLoad={(map: Any, view: Any) => {
+          setMapView(view);
+        }}
+        onFail={(err: Any) => console.error(err)}
+      >
+        {/* manually passing map and view props to Map component's     */}
+        {/* children to satisfy flow, but map and view props are auto  */}
+        {/* passed from Map component to its children by react-arcgis  */}
+        <MapWidgets
+          map={null}
+          view={null}
+          layers={layers}
+          onHomeWidgetRendered={(homeWidget) => {}}
+        />
+
+        {/* manually passing map and view props to Map component's         */}
+        {/* children to satisfy flow, but map and view props are auto      */}
+        {/* passed from Map component to its children by react-arcgis      */}
+        <MapMouseEvents map={null} view={null} />
+      </Map>
+      {mapView && mapLoading && <MapLoadingSpinner />}
+    </Container>
   );
 }
 
