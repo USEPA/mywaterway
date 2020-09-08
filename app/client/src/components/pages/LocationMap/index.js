@@ -606,7 +606,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const queryAttainsPlans = React.useCallback(
     (huc12) => {
       // get the plans for the selected huc
-      fetchCheck(`${attains.serviceUrl}plans?huc=${huc12}`, 120000)
+      fetchCheck(`${attains.serviceUrl}plans?huc=${huc12}&summarize=Y`, 120000)
         .then((res) => {
           setAttainsPlans({
             data: res,
