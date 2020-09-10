@@ -435,16 +435,6 @@ function MapLegendContent({ layer }: CardProps) {
         </ImageContainer>
         <LegendLabel>Alaska Native Villages</LegendLabel>
       </LI>
-      <LI>
-        <ImageContainer>
-          {squareIcon({
-            color: 'rgb(245, 215, 191)',
-            strokeWidth: 1,
-            stroke: '#6e6e6e',
-          })}
-        </ImageContainer>
-        <LegendLabel>Alaska Native Allotments</LegendLabel>
-      </LI>
     </>
   );
 

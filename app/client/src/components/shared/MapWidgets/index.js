@@ -99,7 +99,6 @@ function updateVisibleLayers(view: any, legendNode: Node) {
     'tribalLayer',
     'tribalLayer-1',
     'tribalLayer-2',
-    'tribalLayer-3',
     'tribalLayer-4',
     'congressionalLayer',
     'wsioHealthIndexLayer',

@@ -524,11 +524,6 @@ export function getPopupContent({
     type = 'Tribe';
   }
 
-  // want to display allotment for Alaska Native Allotments
-  else if (attributes.PARCEL_NO) {
-    type = 'Alaska Native Allotment';
-  }
-
   // stand alone change location popup
   else if (attributes.changelocationpopup) {
     type = 'Change Location';

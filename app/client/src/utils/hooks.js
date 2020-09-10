@@ -731,20 +731,6 @@ function useSharedLayers() {
       },
     };
 
-    const allotmentsRenderer = {
-      type: 'simple',
-      symbol: {
-        type: 'simple-fill',
-        style: 'solid',
-        color: [245, 215, 191, 0.75],
-        outline: {
-          style: 'solid',
-          color: [110, 110, 110, 0.75],
-          width: 0,
-        },
-      },
-    };
-
     const alaskaNativeVillageOutFields = ['NAME', 'TRIBE_NAME'];
     const alaskaNativeVillages = new FeatureLayer({
       id: 'tribalLayer-1',
@@ -778,23 +764,6 @@ function useSharedLayers() {
       },
     });
 
-    const alaskaNativeAllotmentsOutFields = ['PARCEL_NO'];
-    const alaskaNativeAllotments = new FeatureLayer({
-      id: 'tribalLayer-3',
-      url: `${tribal}/3`,
-      title: 'Alaska Native Allotments',
-      outFields: alaskaNativeAllotmentsOutFields,
-      listMode: 'hide',
-      visible: true,
-      labelsVisible: false,
-      renderer: allotmentsRenderer,
-      popupTemplate: {
-        title: getTitle,
-        content: getTemplate,
-        outFields: alaskaNativeAllotmentsOutFields,
-      },
-    });
-
     const lower48TribalOutFields = ['TRIBE_NAME'];
     const lower48Tribal = new FeatureLayer({
       id: 'tribalLayer-4',
@@ -817,12 +786,7 @@ function useSharedLayers() {
       title: 'Tribal Areas',
       listMode: 'show',
       visible: false,
-      layers: [
-        alaskaNativeVillages,
-        alaskaReservations,
-        alaskaNativeAllotments,
-        lower48Tribal,
-      ],
+      layers: [alaskaNativeVillages, alaskaReservations, lower48Tribal],
     });
 
     // END - Tribal layers
