@@ -409,7 +409,7 @@ export const openPopup = (view: Object, feature: Object) => {
 
 export function getPopupTitle(attributes: Object) {
   let title = 'Unknown';
-  console.log(attributes);
+
   if (!attributes) return title;
 
   // line, area, point for waterbody
