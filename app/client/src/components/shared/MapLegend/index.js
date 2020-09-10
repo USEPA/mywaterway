@@ -395,6 +395,24 @@ function MapLegendContent({ layer }: CardProps) {
   );
 
   // jsx
+  const congressionalDistrictsLegend = (
+    <LI>
+      <ImageContainer>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="26"
+          height="26"
+          viewBox="0 0 26 26"
+          aria-hidden="true"
+        >
+          <rect x="0" y="12" width="26" height="3" fill="#FF00C5" />
+        </svg>
+      </ImageContainer>
+      <LegendLabel>Congressional Districts</LegendLabel>
+    </LI>
+  );
+
+  // jsx
   const tribalLegend = (
     <>
       <LI>
@@ -460,6 +478,7 @@ function MapLegendContent({ layer }: CardProps) {
   if (layer.id === 'actionsWaterbodies') return actionsWaterbodiesLegend;
   if (layer.id === 'tribalLayer') return tribalLegend;
   if (layer.id === 'wsioHealthIndexLayer') return healthIndexLegend;
+  if (layer.id === 'congressionalLayer') return congressionalDistrictsLegend;
 
   return null;
 }

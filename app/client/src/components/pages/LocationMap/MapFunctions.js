@@ -433,8 +433,8 @@ export function getPopupTitle(attributes: Object) {
   }
 
   // congressional district
-  else if (attributes.CONG_DIST) {
-    title = `${attributes.STATE} District ${attributes.CONG_DIST}`;
+  else if (attributes.DISTRICTID) {
+    title = `${attributes.STATE_ABBR} District ${attributes.CDFIPS}`;
   }
 
   // want to display name for Alaska Native Villages
@@ -510,7 +510,7 @@ export function getPopupContent({
   }
 
   // congressional district
-  else if (attributes.CONG_DIST) {
+  else if (attributes.DISTRICTID) {
     type = 'Congressional District';
   }
 

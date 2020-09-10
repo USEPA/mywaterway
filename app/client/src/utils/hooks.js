@@ -828,10 +828,14 @@ function useSharedLayers() {
     // END - Tribal layers
 
     const congressionalLayerOutFields = [
-      'CONG_DIST',
-      'URL',
-      'CONG_REP',
-      'STATE',
+      'DISTRICTID',
+      'STFIPS',
+      'CDFIPS',
+      'STATE_ABBR',
+      'NAME',
+      'LAST_NAME',
+      'PARTY',
+      'SQMI',
     ];
     const congressionalLayer = new FeatureLayer({
       id: 'congressionalLayer',
@@ -839,6 +843,18 @@ function useSharedLayers() {
       title: 'Congressional Districts',
       listMode: 'hide-children',
       visible: false,
+      renderer: {
+        type: 'simple',
+        symbol: {
+          type: 'simple-fill',
+          style: 'none',
+          outline: {
+            style: 'solid',
+            color: '#FF00C5',
+            width: 2,
+          },
+        },
+      },
       outFields: congressionalLayerOutFields,
       popupTemplate: {
         title: getTitle,
