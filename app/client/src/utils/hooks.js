@@ -503,7 +503,7 @@ function useSharedLayers() {
     Query,
     QueryTask,
   } = React.useContext(EsriModulesContext);
-  const { getHucBoundaries, mapView, resetData } = React.useContext(
+  const { getHucBoundaries, getMapView, resetData } = React.useContext(
     LocationSearchContext,
   );
   var hucInfo = {
@@ -577,12 +577,13 @@ function useSharedLayers() {
     });
   }
 
-  if (!mapView || !resetData) return null;
+  if (!resetData) return null;
 
   // Wrapper function for getting the content of the popup
   function getTemplate(graphic) {
     // get the currently selected huc boundaries, if applicable
     const hucBoundaries = getHucBoundaries();
+    const mapView = getMapView();
     const location = mapView?.popup?.location;
     // only look for huc boundaries if no graphics were clicked and the
     // user clicked outside of the selected huc boundaries
