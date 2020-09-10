@@ -409,7 +409,7 @@ export const openPopup = (view: Object, feature: Object) => {
 
 export function getPopupTitle(attributes: Object) {
   let title = 'Unknown';
-
+  console.log(attributes);
   if (!attributes) return title;
 
   // line, area, point for waterbody
@@ -433,8 +433,8 @@ export function getPopupTitle(attributes: Object) {
   }
 
   // congressional district
-  else if (attributes.CONG_DIST) {
-    title = `${attributes.STATE} District ${attributes.CONG_DIST}`;
+  else if (attributes.DISTRICTID) {
+    title = `${attributes.STATE_ABBR} District ${attributes.CDFIPS}`;
   }
 
   // want to display name for Alaska Native Villages
