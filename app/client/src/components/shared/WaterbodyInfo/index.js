@@ -770,14 +770,7 @@ function WaterbodyInfo({
         <p>
           <strong>District:</strong>
           <br />
-          {attributes.URL ? (
-            <a rel="noopener noreferrer" target="_blank" href={attributes.URL}>
-              {attributes.CONG_DIST}
-            </a>
-          ) : (
-            attributes.CONG_DIST
-          )}{' '}
-          - {attributes.CONG_REP}
+          {attributes.CDFIPS} - {attributes.NAME}
         </p>
 
         {renderChangeWatershed()}

@@ -510,7 +510,7 @@ export function getPopupContent({
   }
 
   // congressional district
-  else if (attributes.CONG_DIST) {
+  else if (attributes.DISTRICTID) {
     type = 'Congressional District';
   }
 
