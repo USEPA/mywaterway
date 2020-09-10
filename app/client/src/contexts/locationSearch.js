@@ -209,6 +209,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     setMapView: (mapView) => {
       this.setState({ mapView });
     },
+    getMapView: () => {
+      return this.state.mapView;
+    },
     setLayers: (layers) => {
       this.setState({ layers });
     },
