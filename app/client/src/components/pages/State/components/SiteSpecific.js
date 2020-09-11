@@ -139,16 +139,18 @@ function SiteSpecific({
           const usesCounts = waterTypeUnits === 'Waters';
           support.supporting =
             support.supporting +
-            (use[`Fully Supporting${usesCounts ? '-count' : ''}`] || 0);
+            (Number(use[`Fully Supporting${usesCounts ? '-count' : ''}`]) || 0);
           support.notSupporting =
             support.notSupporting +
-            (use[`Not Supporting${usesCounts ? '-count' : ''}`] || 0);
+            (Number(use[`Not Supporting${usesCounts ? '-count' : ''}`]) || 0);
           support.insufficent =
             support.insufficent +
-            (use[`Insufficient Information${usesCounts ? '-count' : ''}`] || 0);
+            (Number(
+              use[`Insufficient Information${usesCounts ? '-count' : ''}`],
+            ) || 0);
           support.notAssessed =
             support.notAssessed +
-            (use[`Not Assessed${usesCounts ? '-count' : ''}`] || 0);
+            (Number(use[`Not Assessed${usesCounts ? '-count' : ''}`]) || 0);
         });
     });
 
