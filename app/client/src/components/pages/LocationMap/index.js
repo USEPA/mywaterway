@@ -444,9 +444,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     linesLayer === 'error' || areasLayer === 'error' || pointsLayer === 'error';
 
   // Builds the waterbody layer once data has been fetched for all sub layers
-  const [waterbodyLayerCreated, setWaterbodyLayerCreated] = React.useState(
-    waterbodyLayer ? true : false,
-  );
   React.useEffect(() => {
     if (mapServiceFailure) {
       setMapLoading(false);
@@ -486,7 +483,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       }
     });
     setLayers(newLayers);
-    setWaterbodyLayerCreated(true);
   }, [
     layers,
     waterbodyLayer,
@@ -631,7 +627,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   React.useEffect(() => {
     if (mapServiceFailure) {
       setMapLoading(false);
-      setWaterbodyLayerCreated(false);
     }
   }, [mapServiceFailure]);
 
@@ -868,7 +863,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             setAddress(searchText); // preserve the user's search so it is displayed
             setNoDataAvailable();
             setMapLoading(false);
-            setWaterbodyLayerCreated(false);
             setErrorMessage(noDataAvailableError);
             return;
           }
@@ -1081,7 +1075,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     resetData();
     setMapLoading(true);
-    setWaterbodyLayerCreated(false);
     setHucResponse(null);
     setErrorMessage('');
     setLastSearchText(searchText);
@@ -1100,7 +1093,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     if (!searchText) {
       setHuc12('');
       setMapLoading(false);
-      setWaterbodyLayerCreated(false);
     }
   }, [searchText, setHuc12]);
 
