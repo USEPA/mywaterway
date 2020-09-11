@@ -797,15 +797,6 @@ function WaterbodyInfo({
   );
 
   // jsx
-  const alaskaNativeAllotmentContent = (
-    <>
-      {labelValue('Allotment', attributes.PARCEL_NO)}
-
-      {renderChangeWatershed()}
-    </>
-  );
-
-  // jsx
   const changeLocationContent = renderChangeWatershed();
 
   // jsx
@@ -826,7 +817,6 @@ function WaterbodyInfo({
   if (type === 'Congressional District') return congressionalDistrictContent();
   if (type === 'Tribe') return tribeContent;
   if (type === 'Alaska Native Village') return alaskaNativeVillageContent;
-  if (type === 'Alaska Native Allotment') return alaskaNativeAllotmentContent;
   if (type === 'Change Location') return changeLocationContent;
 
   return null;
