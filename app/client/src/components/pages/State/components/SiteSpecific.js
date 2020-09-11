@@ -99,11 +99,12 @@ function SiteSpecific({
         .filter((x) => x['useName'].toUpperCase() === useSelected.toUpperCase())
         .forEach((use) => {
           if (
-            (use['Fully Supporting'] === 0 &&
-              use['Fully Supporting-count'] > 0) ||
-            (use['Not Supporting'] === 0 && use['Not Supporting-count'] > 0) ||
-            (use['Insufficient Information'] === 0 &&
-              use['Insufficient Information-count'] > 0)
+            (Number(use['Fully Supporting']) === 0 &&
+              Number(use['Fully Supporting-count']) > 0) ||
+            (Number(use['Not Supporting']) === 0 &&
+              Number(use['Not Supporting-count']) > 0) ||
+            (Number(use['Insufficient Information']) === 0 &&
+              Number(use['Insufficient Information-count']) > 0)
           ) {
             usesCounts = true;
           }
@@ -139,16 +140,18 @@ function SiteSpecific({
           const usesCounts = waterTypeUnits === 'Waters';
           support.supporting =
             support.supporting +
-            (use[`Fully Supporting${usesCounts ? '-count' : ''}`] || 0);
+            (Number(use[`Fully Supporting${usesCounts ? '-count' : ''}`]) || 0);
           support.notSupporting =
             support.notSupporting +
-            (use[`Not Supporting${usesCounts ? '-count' : ''}`] || 0);
+            (Number(use[`Not Supporting${usesCounts ? '-count' : ''}`]) || 0);
           support.insufficent =
             support.insufficent +
-            (use[`Insufficient Information${usesCounts ? '-count' : ''}`] || 0);
+            (Number(
+              use[`Insufficient Information${usesCounts ? '-count' : ''}`],
+            ) || 0);
           support.notAssessed =
             support.notAssessed +
-            (use[`Not Assessed${usesCounts ? '-count' : ''}`] || 0);
+            (Number(use[`Not Assessed${usesCounts ? '-count' : ''}`]) || 0);
         });
     });
 
