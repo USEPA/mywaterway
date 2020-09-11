@@ -61,6 +61,7 @@ function MapPopup({
           isPopup={true}
           extraContent={extraContent}
           getClickedHuc={getClickedHuc}
+          resetData={resetData}
         />
       </Content>
     </Container>
