@@ -204,6 +204,7 @@ function StateMap({
   // cDU
   // detect when user changes their search
   const [homeWidgetSet, setHomeWidgetSet] = React.useState(false);
+  const [mapLoading, setMapLoading] = React.useState(true);
   React.useEffect(() => {
     // query geocode server for every new search
     if (
@@ -266,6 +267,8 @@ function StateMap({
                   // cut down on unnecessary service calls
                   waterbodyLayer.listMode = 'hide-children';
                   waterbodyLayer.visible = true;
+
+                  setMapLoading(false);
                 });
               } else {
                 waterbodyLayer.listMode = 'hide-children';
@@ -341,7 +344,6 @@ function StateMap({
   const mapInputsHeight = mapInputs && mapInputs.getBoundingClientRect().height;
 
   // jsx
-  const [mapLoading, setMapLoading] = React.useState(true);
   const mapContent = (
     <div
       style={
@@ -385,11 +387,6 @@ function StateMap({
           onLoad={(map, view) => {
             setView(view);
             setMapView(view);
-
-            // display a loading spinner until the initial map completes
-            view.watch('rendering', (rendering) => {
-              if (!view.interacting) setMapLoading(rendering); // turn off loading spinner
-            });
           }}
           onFail={(err) => {
             console.error(err);
