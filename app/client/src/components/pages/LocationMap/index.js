@@ -39,7 +39,11 @@ import {
   fishingInformationService,
 } from 'config/webServiceConfig';
 // helpers
-import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
+import {
+  useSharedLayers,
+  useWaterbodyHighlight,
+  useWaterbodyFeatures,
+} from 'utils/hooks';
 import { fetchCheck } from 'utils/fetchUtils';
 import { isHuc12, updateCanonicalLink, createJsonLD } from 'utils/utils';
 // styles
@@ -113,6 +117,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setPointsData,
     setAddress,
     setAttainsPlans,
+    cipSummary,
     setCipSummary,
     setCountyBoundaries,
     setDrinkingWater,
@@ -496,7 +501,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   ]);
 
   // query geocode server for every new search
-  const [waterbodyLayerAdded, setWaterbodyLayerAdded] = React.useState(false);
   const [mapLoading, setMapLoading] = React.useState(true);
 
   const queryMonitoringLocationService = React.useCallback(
@@ -628,7 +632,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     if (mapServiceFailure) {
       setMapLoading(false);
       setWaterbodyLayerCreated(false);
-      setWaterbodyLayerAdded(false);
     }
   }, [mapServiceFailure]);
 
@@ -866,7 +869,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             setNoDataAvailable();
             setMapLoading(false);
             setWaterbodyLayerCreated(false);
-            setWaterbodyLayerAdded(false);
             setErrorMessage(noDataAvailableError);
             return;
           }
@@ -1080,7 +1082,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     resetData();
     setMapLoading(true);
     setWaterbodyLayerCreated(false);
-    setWaterbodyLayerAdded(false);
     setHucResponse(null);
     setErrorMessage('');
     setLastSearchText(searchText);
@@ -1100,7 +1101,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       setHuc12('');
       setMapLoading(false);
       setWaterbodyLayerCreated(false);
-      setWaterbodyLayerAdded(false);
     }
   }, [searchText, setHuc12]);
 
@@ -1270,23 +1270,19 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setSearchTextHeight(node.getBoundingClientRect().height);
   }, []);
 
-  // Sets the waterbodyLayerAdded variable after the waterbodyLayerCreated
-  // variable is set and the view stops updating. This is to help prevent
-  // issues of the loading spinner shutting off early.
-  const [viewUpdating, setViewUpdating] = React.useState(true);
-  React.useEffect(() => {
-    if (!viewUpdating || !waterbodyLayerCreated) return;
-
-    setWaterbodyLayerAdded(true);
-  }, [viewUpdating, waterbodyLayerCreated]);
-
   // Used for shutting off the loading spinner after the waterbodyLayer is
   // added to the map and the view stops updating.
+  const waterbodyFeatures = useWaterbodyFeatures();
   React.useEffect(() => {
-    if (!mapLoading || !waterbodyLayerAdded || viewUpdating) return;
+    if (
+      (!waterbodyLayer || waterbodyFeatures === null) &&
+      cipSummary.status !== 'failure'
+    ) {
+      return;
+    }
 
     setMapLoading(false);
-  }, [viewUpdating, mapLoading, waterbodyLayerAdded]);
+  }, [waterbodyLayer, cipSummary, waterbodyFeatures]);
 
   // jsx
   const mapContent = (
@@ -1323,11 +1319,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           onLoad={(map, view) => {
             setView(view);
             setMapView(view);
-
-            // display a loading spinner until the initial map completes
-            view.watch('updating', (updating) => {
-              setViewUpdating(updating); // turn off loading spinner
-            });
           }}
           onFail={(err) => {
             console.error(err);
