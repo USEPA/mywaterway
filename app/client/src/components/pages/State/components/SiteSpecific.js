@@ -174,7 +174,7 @@ function SiteSpecific({
       if (param.Cause) {
         let groupName = param.parameterGroup;
         let currentValue = parameterCalc[groupName] || 0;
-        let value = param.Cause || 0;
+        let value = Number(param.Cause) || 0;
 
         parameterCalc[groupName] = currentValue + value;
       }
