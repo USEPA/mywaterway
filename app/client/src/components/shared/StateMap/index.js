@@ -22,14 +22,9 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { MapHighlightContext } from 'contexts/MapHighlight';
 // config
 import { esriApiUrl } from 'config/esriConfig';
-import {
-  waterbodyService,
-  wbd,
-  counties,
-  mappedWater,
-} from 'config/mapServiceConfig';
+import { waterbodyService } from 'config/mapServiceConfig';
 // helpers
-import { useWaterbodyHighlight } from 'utils/hooks';
+import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
 // styles
 import 'components/pages/LocationMap/mapStyles.css';
 
@@ -67,12 +62,9 @@ function StateMap({
 
   const { selectedGraphic } = React.useContext(MapHighlightContext);
 
-  const {
-    FeatureLayer,
-    GroupLayer,
-    MapImageLayer,
-    Viewpoint,
-  } = React.useContext(EsriModulesContext);
+  const { FeatureLayer, GroupLayer, Viewpoint } = React.useContext(
+    EsriModulesContext,
+  );
 
   const {
     highlightOptions,
@@ -90,41 +82,18 @@ function StateMap({
 
     homeWidget,
     resetData,
+    getBasemap,
   } = React.useContext(LocationSearchContext);
 
   const [layers, setLayers] = React.useState(null);
 
+  const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight(false);
 
   // Initializes the layers
   const [layersInitialized, setLayersInitialized] = React.useState(false);
   React.useEffect(() => {
-    if (layersInitialized) return;
-
-    const mappedWaterLayer = new MapImageLayer({
-      id: 'mappedWaterLayer',
-      url: mappedWater,
-      title: 'Mapped Water (all)',
-      sublayers: [{ id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
-      listMode: 'hide-children',
-      visible: false,
-    });
-
-    const countyLayer = new FeatureLayer({
-      id: 'countyLayer',
-      url: counties,
-      title: 'County',
-      listMode: 'show',
-      visible: false,
-    });
-
-    const watershedsLayer = new FeatureLayer({
-      id: 'watershedsLayer',
-      url: wbd,
-      title: 'Watersheds',
-      listMode: 'show',
-      visible: false,
-    });
+    if (!getSharedLayers || layersInitialized) return;
 
     const popupTemplate = {
       outFields: ['*'],
@@ -206,7 +175,7 @@ function StateMap({
     waterbodyLayer.addMany([areasLayer, linesLayer, pointsLayer]);
     setWaterbodyLayer(waterbodyLayer);
 
-    setLayers([mappedWaterLayer, countyLayer, watershedsLayer, waterbodyLayer]);
+    setLayers([...getSharedLayers(), waterbodyLayer]);
 
     setVisibleLayers({ waterbodyLayer: true });
 
@@ -214,7 +183,7 @@ function StateMap({
   }, [
     FeatureLayer,
     GroupLayer,
-    MapImageLayer,
+    getSharedLayers,
     setAreasLayer,
     setLinesLayer,
     setPointsLayer,
@@ -401,7 +370,7 @@ function StateMap({
         <Map
           style={{ position: 'absolute' }}
           loaderOptions={{ url: esriApiUrl }}
-          mapProperties={{ basemap: 'gray' }}
+          mapProperties={{ basemap: getBasemap() }}
           viewProperties={{
             extent: {
               xmin: -13873570.722124241,

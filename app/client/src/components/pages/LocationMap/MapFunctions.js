@@ -393,6 +393,8 @@ export const openPopup = (view: Object, feature: Object) => {
   } else if (feature.geometry.type === 'polygon') {
     const pointIndex = Math.round(feature.geometry.rings[0].length / 4);
     popupPoint = feature.geometry.getPoint(0, pointIndex);
+  } else if (feature.geometry.type === 'multipoint') {
+    popupPoint = feature.geometry.getPoint(0);
   } else {
     //point objects
     popupPoint = feature.geometry;
@@ -408,24 +410,46 @@ export const openPopup = (view: Object, feature: Object) => {
 export function getPopupTitle(attributes: Object) {
   let title = 'Unknown';
 
+  if (!attributes) return title;
+
   // line, area, point for waterbody
-  if (attributes && attributes.assessmentunitname) {
+  if (attributes.assessmentunitname) {
     title = `${attributes.assessmentunitname} (${attributes.assessmentunitidentifier})`;
   }
 
   // discharger
-  else if (attributes && attributes.CWPName) {
+  else if (attributes.CWPName) {
     title = attributes.CWPName;
   }
 
   // monitoring location
-  else if (attributes && attributes.MonitoringLocationName) {
+  else if (attributes.MonitoringLocationName) {
     title = attributes.MonitoringLocationName;
   }
 
   // protect tab teal nonprofits
-  else if (attributes && attributes.type === 'nonprofit') {
+  else if (attributes.type === 'nonprofit') {
     title = attributes.Name || 'Unknown name';
+  }
+
+  // congressional district
+  else if (attributes.DISTRICTID) {
+    title = `${attributes.STATE_ABBR} District ${attributes.CDFIPS}`;
+  }
+
+  // want to display name for Alaska Native Villages
+  else if (attributes.NAME && attributes.TRIBE_NAME) {
+    title = attributes.NAME;
+  }
+
+  // other tribal layers just use the tribe name
+  else if (attributes.TRIBE_NAME) {
+    title = attributes.TRIBE_NAME;
+  }
+
+  // want to display allotment for Alaska Native Allotments
+  else if (attributes.PARCEL_NO) {
+    title = attributes.PARCEL_NO;
   }
 
   return title;
@@ -435,10 +459,14 @@ export function getPopupContent({
   feature,
   fieldName,
   extraContent,
+  getClickedHuc,
+  resetData,
 }: {
   feature: Object,
   fieldName: ?string,
   extraContent: ?Object,
+  getClickedHuc: ?Function,
+  resetData: ?Function,
 }) {
   let type = 'Unknown';
 
@@ -481,12 +509,34 @@ export function getPopupContent({
     type = 'Nonprofit';
   }
 
+  // congressional district
+  else if (attributes.DISTRICTID) {
+    type = 'Congressional District';
+  }
+
+  // want to display name for Alaska Native Villages
+  else if (attributes.NAME && attributes.TRIBE_NAME) {
+    type = 'Alaska Native Village';
+  }
+
+  // other tribal layers just use the tribe name
+  else if (attributes.TRIBE_NAME) {
+    type = 'Tribe';
+  }
+
+  // stand alone change location popup
+  else if (attributes.changelocationpopup) {
+    type = 'Change Location';
+  }
+
   const content = (
     <MapPopup
       type={type}
       feature={feature}
       fieldName={fieldName}
       extraContent={extraContent}
+      getClickedHuc={getClickedHuc}
+      resetData={resetData}
     />
   );
 

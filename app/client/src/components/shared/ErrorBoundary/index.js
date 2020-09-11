@@ -31,16 +31,12 @@ class ErrorBoundary extends React.Component<Props, State> {
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.warn(error);
 
-    // log to google analytics
-    if (window.isIdSet) {
-      window.ga('send', 'exception', {
-        exDescription: error,
-        exFatal: true,
-      });
-    }
+    // throw the error so the global error handler
+    // can log it to google analytics
+    throw error;
   }
 
   render() {
