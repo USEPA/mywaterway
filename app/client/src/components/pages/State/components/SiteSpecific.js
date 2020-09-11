@@ -171,10 +171,10 @@ function SiteSpecific({
   let parameterCalc = {};
   completeUseList.forEach((use) => {
     use.parameters.forEach((param) => {
-      if (param.Cause) {
+      if (param.Cause || param['Cause-count']) {
         let groupName = param.parameterGroup;
         let currentValue = parameterCalc[groupName] || 0;
-        let value = Number(param.Cause) || 0;
+        let value = Number(param.Cause) || Number(param['Cause-count']) || 0;
 
         parameterCalc[groupName] = currentValue + value;
       }
