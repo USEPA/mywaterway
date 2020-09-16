@@ -16,7 +16,7 @@ const ErrorBox = styled(StyledErrorBox)`
   text-align: center;
 `;
 
-const Banner = styled.div`
+const ErrorBanner = styled.div`
   margin: 1rem;
   text-align: center;
 
@@ -65,18 +65,18 @@ class ErrorBoundary extends React.Component<Props, State> {
       return (
         <>
           {data && data['all'] && (
-            <Banner
+            <ErrorBanner
               color={data['all'].color}
               backgroundColor={data['all'].backgroundColor}
               dangerouslySetInnerHTML={createMarkup(data['all'].message)}
-            ></Banner>
+            />
           )}
           {data && Object.keys(data).includes(page) && (
-            <Banner
+            <ErrorBanner
               color={data[page].color}
               backgroundColor={data[page].backgroundColor}
               dangerouslySetInnerHTML={createMarkup(data[page].message)}
-            ></Banner>
+            />
           )}
           <ErrorBox>{this.props.message}</ErrorBox>
         </>
