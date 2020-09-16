@@ -27,6 +27,7 @@ type State = {
   nonprofits: Object,
   mapView: Object,
   layers: Object[],
+  basemap: Object,
   waterbodyLayer: Object,
   issuesLayer: Object,
   monitoringStationsLayer: Object,
@@ -127,6 +128,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     selWaterBodyLayer: '',
     homeWidget: null,
     visibleLayers: {},
+    basemap: {},
     hucBoundaries: '',
     atHucBoundaries: false,
     countyBoundaries: '',
@@ -207,6 +209,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     setMapView: (mapView) => {
       this.setState({ mapView });
     },
+    getMapView: () => {
+      return this.state.mapView;
+    },
     setLayers: (layers) => {
       this.setState({ layers });
     },
@@ -260,6 +265,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     },
     setVisibleLayers: (visibleLayers) => {
       this.setState({ visibleLayers });
+    },
+    setBasemap: (basemap) => {
+      this.setState({ basemap });
     },
     setWaterbodyData: (waterbodyData) => {
       this.setState({ waterbodyData });
@@ -329,6 +337,13 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       return features;
     },
 
+    // default basemap is gray but use basemap in context if it exists
+    getBasemap: () => {
+      return Object.keys(this.state.basemap).length === 0
+        ? 'gray'
+        : this.state.basemap;
+    },
+
     resetMap: (useDefaultZoom = false) => {
       const {
         initialExtent,
@@ -388,6 +403,15 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         mapView.extent = initialExtent;
         homeWidget.viewpoint = mapView.viewpoint;
       }
+
+      // reset lines, points, and areas layers
+      if (
+        waterbodyLayer &&
+        waterbodyLayer.layers &&
+        waterbodyLayer.layers.items
+      ) {
+        waterbodyLayer.layers.items = [];
+      }
     },
 
     resetData: () => {
@@ -399,6 +423,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         areasData: null,
         countyBoundaries: '',
         atHucBoundaries: false,
+        hucBoundaries: '',
         monitoringLocations: {
           status: 'fetching',
           data: [],
@@ -430,7 +455,12 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       });
 
       // remove map content
-      this.state.resetMap();
+      // only zoom out the map if we are on the community intro page at /community
+      if (window.location.pathname === '/community') {
+        this.state.resetMap(true);
+      } else {
+        this.state.resetMap(false);
+      }
     },
 
     setNoDataAvailable: () => {

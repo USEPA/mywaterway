@@ -121,6 +121,15 @@ function Community({ children, ...props }: Props) {
     setVisibleLayers(tabs[activeTabIndex].layers);
   }, [activeTabIndex, setVisibleLayers]);
 
+  // reset data when navigating back to /community
+  React.useEffect(() => {
+    if (window.location.pathname === '/community') {
+      resetData();
+      setSearchText('');
+      setLastSearchText('');
+    }
+  }, [atCommunityIntroRoute, resetData, setSearchText, setLastSearchText]);
+
   // jsx
   const activeTabRoute = tabs[activeTabIndex === -1 ? 0 : activeTabIndex].route;
   const searchMarkup = (

@@ -28,7 +28,6 @@ import {
   locatorUrl,
   wbd,
   counties,
-  mappedWater,
   // nonprofits,
 } from 'config/mapServiceConfig';
 import {
@@ -40,7 +39,11 @@ import {
   fishingInformationService,
 } from 'config/webServiceConfig';
 // helpers
-import { useWaterbodyHighlight } from 'utils/hooks';
+import {
+  useSharedLayers,
+  useWaterbodyHighlight,
+  useWaterbodyFeatures,
+} from 'utils/hooks';
 import { fetchCheck } from 'utils/fetchUtils';
 import { isHuc12, updateCanonicalLink, createJsonLD } from 'utils/utils';
 // styles
@@ -83,7 +86,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     FeatureLayer,
     GraphicsLayer,
     GroupLayer,
-    MapImageLayer,
     Graphic,
     Locator,
     PictureMarkerSymbol,
@@ -115,6 +117,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setPointsData,
     setAddress,
     setAttainsPlans,
+    cipSummary,
     setCipSummary,
     setCountyBoundaries,
     setDrinkingWater,
@@ -140,7 +143,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setNoDataAvailable,
     FIPS,
     setFIPS,
-
+    getBasemap,
     layers,
     setLayers,
     pointsLayer,
@@ -154,41 +157,17 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const [errorMessage, setErrorMessage] = React.useState('');
   const [view, setView] = React.useState(null);
 
+  const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
 
   // Builds the layers that have no dependencies
   const [layersInitialized, setLayersInitialized] = React.useState(false);
   React.useEffect(() => {
-    if (layersInitialized) return;
+    if (!getSharedLayers || layersInitialized) return;
 
     if (layers.length > 0) return;
 
     // create the layers for the map
-    const mappedWaterLayer = new MapImageLayer({
-      id: 'mappedWaterLayer',
-      url: mappedWater,
-      title: 'Mapped Water (all)',
-      sublayers: [{ id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
-      listMode: 'hide-children',
-      visible: false,
-    });
-
-    const countyLayer = new FeatureLayer({
-      id: 'countyLayer',
-      url: counties,
-      title: 'County',
-      listMode: 'show',
-      visible: false,
-    });
-
-    const watershedsLayer = new FeatureLayer({
-      id: 'watershedsLayer',
-      url: wbd,
-      title: 'Watersheds',
-      listMode: 'show',
-      visible: false,
-    });
-
     const providersLayer = new GraphicsLayer({
       id: 'providersLayer',
       title: 'Who provides the drinking water here?',
@@ -246,9 +225,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setNonprofitsLayer(nonprofitsLayer);
 
     setLayers([
-      mappedWaterLayer,
-      countyLayer,
-      watershedsLayer,
+      ...getSharedLayers(),
       providersLayer,
       boundariesLayer,
       monitoringStationsLayer,
@@ -260,9 +237,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setLayersInitialized(true);
   }, [
-    FeatureLayer,
     GraphicsLayer,
-    MapImageLayer,
+    getSharedLayers,
     layers,
     setBoundariesLayer,
     setDischargersLayer,
@@ -284,6 +260,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const handleMapServiceError = React.useCallback(
     (err) => {
+      setMapLoading(false);
       console.error(err);
       setCipSummary({
         data: [],
@@ -331,7 +308,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             popupTemplate,
           });
           setLinesLayer(newLinesLayer);
-          setMapLoading(true);
         })
         .catch((err) => {
           handleMapServiceError(err);
@@ -388,7 +364,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             popupTemplate,
           });
           setAreasLayer(newAreasLayer);
-          setMapLoading(true);
         })
         .catch((err) => {
           handleMapServiceError(err);
@@ -446,7 +421,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             popupTemplate,
           });
           setPointsLayer(newPointsLayer);
-          setMapLoading(true);
         })
         .catch((err) => {
           handleMapServiceError(err);
@@ -632,7 +606,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const queryAttainsPlans = React.useCallback(
     (huc12) => {
       // get the plans for the selected huc
-      fetchCheck(`${attains.serviceUrl}plans?huc=${huc12}`, 120000)
+      fetchCheck(`${attains.serviceUrl}plans?huc=${huc12}&summarize=Y`, 120000)
         .then((res) => {
           setAttainsPlans({
             data: res,
@@ -651,7 +625,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   React.useEffect(() => {
-    if (mapServiceFailure) setMapLoading(false);
+    if (mapServiceFailure) {
+      setMapLoading(false);
+    }
   }, [mapServiceFailure]);
 
   const getFishingLinkData = React.useCallback(
@@ -1286,6 +1262,20 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setSearchTextHeight(node.getBoundingClientRect().height);
   }, []);
 
+  // Used for shutting off the loading spinner after the waterbodyLayer is
+  // added to the map and the view stops updating.
+  const waterbodyFeatures = useWaterbodyFeatures();
+  React.useEffect(() => {
+    if (
+      (!waterbodyLayer || waterbodyFeatures === null) &&
+      cipSummary.status !== 'failure'
+    ) {
+      return;
+    }
+
+    setMapLoading(false);
+  }, [waterbodyLayer, cipSummary, waterbodyFeatures]);
+
   // jsx
   const mapContent = (
     <>
@@ -1312,7 +1302,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         <Map
           style={{ position: 'absolute' }}
           loaderOptions={{ url: esriApiUrl }}
-          mapProperties={{ basemap: 'gray' }}
+          mapProperties={{ basemap: getBasemap() }}
           viewProperties={{
             extent: initialExtent,
             highlightOptions,
@@ -1321,11 +1311,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           onLoad={(map, view) => {
             setView(view);
             setMapView(view);
-
-            // display a loading spinner until the initial map completes
-            view.watch('updating', (updating) => {
-              if (!updating) setMapLoading(false); // turn off loading spinner
-            });
           }}
           onFail={(err) => {
             console.error(err);

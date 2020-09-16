@@ -344,7 +344,7 @@ function IdentifiedIssues() {
     // check for null percent of assess waters impaired
     const nullPollutedWaterbodies =
       containImpairedWatersCatchmentAreaPercent === null ? true : false;
-    if (nullPollutedWaterbodies) {
+    if (nullPollutedWaterbodies && summaryByParameterImpairments.length > 0) {
       window.ga('send', 'exception', {
         exDescription: `The "% of assessed waters are impaired" value is 0, even though there are ${summaryByParameterImpairments.length} items in the summaryByParameterImpairments[] array.`,
         exFatal: false,

@@ -13,14 +13,9 @@ import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // config
 import { esriApiUrl } from 'config/esriConfig';
-import {
-  waterbodyService,
-  wbd,
-  counties,
-  mappedWater,
-} from 'config/mapServiceConfig';
+import { waterbodyService } from 'config/mapServiceConfig';
 // helpers
-import { useWaterbodyHighlight } from 'utils/hooks';
+import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
 import {
   getPopupTitle,
   getPopupContent,
@@ -53,43 +48,20 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
     mapView,
     setActionsLayer,
     setMapView,
+    getBasemap,
   } = React.useContext(LocationSearchContext);
 
   const [layers, setLayers] = React.useState(null);
 
+  const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
 
   // Initially sets up the layers
   const [layersInitialized, setLayersInitialized] = React.useState(false);
   React.useEffect(() => {
-    if (layersInitialized) return;
+    if (!getSharedLayers || layersInitialized) return;
 
-    const { GraphicsLayer, MapImageLayer, FeatureLayer } = esriModules;
-
-    const mappedWaterLayer = new MapImageLayer({
-      id: 'mappedWaterLayer',
-      url: mappedWater,
-      title: 'Mapped Water (all)',
-      sublayers: [{ id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
-      listMode: 'hide-children',
-      visible: false,
-    });
-
-    const countyLayer = new FeatureLayer({
-      id: 'countyLayer',
-      url: counties,
-      title: 'County',
-      listMode: 'show',
-      visible: false,
-    });
-
-    const watershedsLayer = new FeatureLayer({
-      id: 'watershedsLayer',
-      url: wbd,
-      title: 'Watersheds',
-      listMode: 'show',
-      visible: false,
-    });
+    const { GraphicsLayer } = esriModules;
 
     let localActionsLayer = actionsLayer;
     if (!actionsLayer) {
@@ -102,15 +74,16 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
       setActionsLayer(localActionsLayer);
     }
 
-    setLayers([
-      mappedWaterLayer,
-      countyLayer,
-      watershedsLayer,
-      localActionsLayer,
-    ]);
+    setLayers([...getSharedLayers(), localActionsLayer]);
 
     setLayersInitialized(true);
-  }, [esriModules, actionsLayer, setActionsLayer, layersInitialized]);
+  }, [
+    esriModules,
+    actionsLayer,
+    setActionsLayer,
+    getSharedLayers,
+    layersInitialized,
+  ]);
 
   const [fetchStatus, setFetchStatus] = React.useState('');
 
@@ -328,49 +301,51 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
     setMapLoading(false);
   }, [fetchStatus, mapView, actionsLayer, esriModules, homeWidget]);
 
-  return (
-    <>
-      {fetchStatus === 'failure' && (
-        <StyledErrorBox>
-          <p>{actionMapError}</p>
-        </StyledErrorBox>
-      )}
-      {noMapData && (
-        <StyledInfoBox>
-          <p>{actionMapNoData}</p>
-        </StyledInfoBox>
-      )}
-      {fetchStatus === 'success' && !noMapData && (
-        <Container data-testid="hmw-actions-map">
-          <Map
-            style={{ position: 'absolute' }}
-            loaderOptions={{ url: esriApiUrl }}
-            mapProperties={{ basemap: 'gray' }}
-            viewProperties={{ extent: initialExtent, highlightOptions }}
-            onLoad={(map: Any, view: Any) => {
-              setMapView(view);
-            }}
-            onFail={(err: Any) => console.error(err)}
-          >
-            {/* manually passing map and view props to Map component's     */}
-            {/* children to satisfy flow, but map and view props are auto  */}
-            {/* passed from Map component to its children by react-arcgis  */}
-            <MapWidgets
-              map={null}
-              view={null}
-              layers={layers}
-              onHomeWidgetRendered={(homeWidget) => {}}
-            />
+  if (fetchStatus === 'failure') {
+    return (
+      <StyledErrorBox>
+        <p>{actionMapError}</p>
+      </StyledErrorBox>
+    );
+  }
 
-            {/* manually passing map and view props to Map component's         */}
-            {/* children to satisfy flow, but map and view props are auto      */}
-            {/* passed from Map component to its children by react-arcgis      */}
-            <MapMouseEvents map={null} view={null} />
-          </Map>
-          {mapView && mapLoading && <MapLoadingSpinner />}
-        </Container>
-      )}
-    </>
+  if (noMapData) {
+    return (
+      <StyledInfoBox>
+        <p>{actionMapNoData}</p>
+      </StyledInfoBox>
+    );
+  }
+
+  return (
+    <Container data-testid="hmw-actions-map">
+      <Map
+        style={{ position: 'absolute' }}
+        loaderOptions={{ url: esriApiUrl }}
+        mapProperties={{ basemap: getBasemap() }}
+        viewProperties={{ extent: initialExtent, highlightOptions }}
+        onLoad={(map: Any, view: Any) => {
+          setMapView(view);
+        }}
+        onFail={(err: Any) => console.error(err)}
+      >
+        {/* manually passing map and view props to Map component's     */}
+        {/* children to satisfy flow, but map and view props are auto  */}
+        {/* passed from Map component to its children by react-arcgis  */}
+        <MapWidgets
+          map={null}
+          view={null}
+          layers={layers}
+          onHomeWidgetRendered={(homeWidget) => {}}
+        />
+
+        {/* manually passing map and view props to Map component's         */}
+        {/* children to satisfy flow, but map and view props are auto      */}
+        {/* passed from Map component to its children by react-arcgis      */}
+        <MapMouseEvents map={null} view={null} />
+      </Map>
+      {mapView && mapLoading && <MapLoadingSpinner />}
+    </Container>
   );
 }
 
