@@ -19,12 +19,10 @@ const ErrorBox = styled(StyledErrorBox)`
 const ErrorBanner = styled.div`
   margin: 1rem;
   text-align: center;
-
   background-color: ${(props) => props.backgroundColor};
   color: ${(props) => props.color};
   padding: 10px 5px;
   text-align: center;
-
   p {
     padding: 0;
     margin: 0;
