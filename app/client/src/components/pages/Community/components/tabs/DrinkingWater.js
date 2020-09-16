@@ -328,13 +328,18 @@ function DrinkingWater() {
 
     // if currently on the providers subtab, save the zoom level prior to
     // zooming, so it can be reset when switching away from the subtab
-    if (drinkingWaterTabIndex === providersTabIndex) {
+    if (
+      drinkingWaterTabIndex === providersTabIndex &&
+      mapZoom !== currentExtent
+    ) {
       setMapZoom(currentExtent);
       mapView.goTo(countyGraphic);
+      return;
     }
 
     // reset the zoom level when switching away from the providers subtab
     if (previousTabIndex === providersTabIndex && mapZoom) {
+      setMapZoom(null);
       mapView.goTo(currentExtent);
     }
   }, [
