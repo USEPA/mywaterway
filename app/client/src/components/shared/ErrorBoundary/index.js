@@ -61,22 +61,14 @@ class ErrorBoundary extends React.Component<Props, State> {
     const page = window.location.pathname.split('/')[1];
     const data = notifications.status === 'success' ? notifications.data : {};
 
-    const allPagesBanner = data && data['all'] && (
-      <Banner
-        color={data['all'].color}
-        backgroundColor={data['all'].backgroundColor}
-        dangerouslySetInnerHTML={createMarkup(data['all'].message)}
-      ></Banner>
-    );
-
     if (this.state.hasError) {
       return (
         <>
-          {data && Object.keys(data).includes(page) && (
+          {data && data['all'] && (
             <Banner
-              color={data[page].color}
-              backgroundColor={data[page].backgroundColor}
-              dangerouslySetInnerHTML={createMarkup(data[page].message)}
+              color={data['all'].color}
+              backgroundColor={data['all'].backgroundColor}
+              dangerouslySetInnerHTML={createMarkup(data['all'].message)}
             ></Banner>
           )}
           {data && Object.keys(data).includes(page) && (
