@@ -27,8 +27,6 @@ type LookupFile = {
 type LookupFiles = {
   documentOrder: LookupFile,
   setDocumentOrder: Function,
-  introText: LookupFile,
-  setIntroText: Function,
   reportStatusMapping: LookupFile,
   setReportStatusMapping: Function,
   stateNationalUses: LookupFile,
@@ -46,8 +44,6 @@ type LookupFiles = {
 const LookupFilesContext: Object = React.createContext<LookupFiles>({
   documentOrder: { status: 'fetching', data: null },
   setDocumentOrder: () => {},
-  introText: { status: 'fetching', data: null },
-  setIntroText: () => {},
   reportStatusMapping: { status: 'fetching', data: null },
   setReportStatusMapping: () => {},
   stateNationalUses: { status: 'fetching', data: null },
@@ -68,10 +64,6 @@ type Props = {
 
 function LookupFilesProvider({ children }: Props) {
   const [documentOrder, setDocumentOrder] = React.useState({
-    status: 'fetching',
-    data: {},
-  });
-  const [introText, setIntroText] = React.useState({
     status: 'fetching',
     data: {},
   });
@@ -105,8 +97,6 @@ function LookupFilesProvider({ children }: Props) {
       value={{
         documentOrder,
         setDocumentOrder,
-        introText,
-        setIntroText,
         reportStatusMapping,
         setReportStatusMapping,
         stateNationalUses,
@@ -140,20 +130,6 @@ function useDocumentOrderContext() {
   }
 
   return documentOrder;
-}
-
-// Custom hook for the introText.json lookup file.
-let introTextInitialized = false; // global var for ensuring fetch only happens once
-function useIntroTextContext() {
-  const { introText, setIntroText } = React.useContext(LookupFilesContext);
-
-  // fetch the lookup file if necessary
-  if (!introTextInitialized) {
-    introTextInitialized = true;
-    getLookupFile('state/introText.json', setIntroText);
-  }
-
-  return introText;
 }
 
 // Custom hook for the reportStatusMapping.json lookup file.
@@ -253,7 +229,6 @@ function useNotificationsContext() {
 export {
   LookupFilesProvider,
   useDocumentOrderContext,
-  useIntroTextContext,
   useReportStatusMappingContext,
   useStateNationalUsesContext,
   useSurveyMappingContext,

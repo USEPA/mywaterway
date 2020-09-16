@@ -38,7 +38,11 @@ const basemapNames = [
   // 'USA Topo Maps',
 ];
 
-const zoomDependentLayers = ['mappedWaterLayer', 'watershedsLayer'];
+const zoomDependentLayers = [
+  'mappedWaterLayer',
+  'watershedsLayer',
+  'congressionalLayer',
+];
 
 // function called whenever the map's zoom changes
 function handleMapZoomChange(newVal: number, target: any) {
@@ -92,6 +96,12 @@ function updateVisibleLayers(view: any, legendNode: Node) {
     'mappedWaterLayer',
     'countyLayer',
     'watershedsLayer',
+    'tribalLayer',
+    'tribalLayer-1',
+    'tribalLayer-2',
+    'tribalLayer-4',
+    'congressionalLayer',
+    'wsioHealthIndexLayer',
     'searchIconLayer',
   ];
 
@@ -149,6 +159,8 @@ function MapWidgets({
     setHomeWidget,
     visibleLayers,
     setVisibleLayers,
+    setBasemap,
+    basemap,
   } = React.useContext(LocationSearchContext);
 
   const {
@@ -224,7 +236,7 @@ function MapWidgets({
       view: view,
       unit: 'dual',
     });
-    view.ui.add(newScaleBar, 'bottom-left');
+    view.ui.add(newScaleBar, { position: 'bottom-left', index: 1 });
     setScaleBar(newScaleBar);
   }, [ScaleBar, view, scaleBar]);
 
@@ -242,11 +254,12 @@ function MapWidgets({
       content: legendNode,
       view,
       expanded: false,
+      expandIconClass: 'esri-icon-layer-list',
       expandTooltip: 'Toggle Legend',
       autoCollapse: true,
       mode: 'floating',
     });
-    view.ui.add(newLegend, 'bottom-left');
+    view.ui.add(newLegend, { position: 'bottom-left', index: 0 });
     setLegend(newLegend);
   }, [Expand, view, legend, legendNode]);
 
@@ -359,8 +372,16 @@ function MapWidgets({
       handleMapZoomChange(newVal, target);
     });
 
+    // when basemap changes, update the basemap in context for persistent basemaps
+    // across fullscreen and mobile/desktop layout changes
+    view.map.allLayers.on('change', function (event) {
+      if (map.basemap !== basemap) {
+        setBasemap(map.basemap);
+      }
+    });
+
     setMapEventHandlersSet(true);
-  }, [watchUtils, view, mapEventHandlersSet]);
+  }, [watchUtils, view, mapEventHandlersSet, basemap, setBasemap, map]);
 
   React.useEffect(() => {
     if (!layers || layers.length === 0) return;
