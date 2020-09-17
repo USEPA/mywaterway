@@ -235,4 +235,5 @@ export {
   useWaterTypeOptionsContext,
   useNarsContext,
   useNotificationsContext,
+  LookupFilesContext,
 };
