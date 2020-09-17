@@ -50,8 +50,12 @@ class ErrorBoundary extends React.Component<Props, State> {
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  componentDidCatch(error: Error) {
     console.warn(error);
+
+    if (document.location.hostname === 'localhost') return;
+
+    throw error;
   }
 
   render() {
