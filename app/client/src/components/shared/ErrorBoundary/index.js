@@ -34,10 +34,14 @@ class ErrorBoundary extends React.Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.warn(error);
 
-    window.ga('send', 'exception', {
-      exDescription: `${error.toString()}${JSON.stringify(errorInfo)}`,
-      exFatal: true,
-    });
+    try {
+      throw error;
+    } catch (err) {
+      window.ga('send', 'exception', {
+        exDescription: `${error.message}${error.stack}`,
+        exFatal: true,
+      });
+    }
   }
 
   render() {
