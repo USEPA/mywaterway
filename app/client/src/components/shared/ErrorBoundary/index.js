@@ -31,12 +31,13 @@ class ErrorBoundary extends React.Component<Props, State> {
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.warn(error);
 
-    if (document.location.hostname === 'localhost') return;
-
-    throw error;
+    window.ga('send', 'exception', {
+      exDescription: `${error.toString()}${JSON.stringify(errorInfo)}`,
+      exFatal: true,
+    });
   }
 
   render() {
