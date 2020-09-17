@@ -222,7 +222,9 @@ function SiteSpecific({
       });
 
   const barChartData = [];
+  const categories = [];
   if (calculatedSupport.supporting > 0) {
+    categories.push('Good');
     barChartData.push({
       name: 'Good',
       y: calculatedSupport.supporting || 0,
@@ -230,6 +232,7 @@ function SiteSpecific({
     });
   }
   if (calculatedSupport.notSupporting > 0) {
+    categories.push('Impaired');
     barChartData.push({
       name: 'Impaired',
       y: calculatedSupport.notSupporting || 0,
@@ -237,6 +240,7 @@ function SiteSpecific({
     });
   }
   if (calculatedSupport.insufficent > 0) {
+    categories.push('Insufficient Info');
     barChartData.push({
       name: 'Insufficient Info',
       y: calculatedSupport.insufficent || 0,
@@ -311,7 +315,7 @@ function SiteSpecific({
                     },
                     xAxis: {
                       lineWidth: 0,
-                      categories: ['Good', 'Impaired', 'Insufficient Info'],
+                      categories,
                       labels: { style: { fontSize: '15px' } },
                     },
                     yAxis: {
