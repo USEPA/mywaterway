@@ -864,7 +864,6 @@ function WaterQualityOverview({ ...props }: Props) {
   // unfortunately  need to manage the activeTabIndex (an implementation detail)
   const [activeTabIndex, setActiveTabIndex] = React.useState(initialTabIndex);
 
-  const [testError, setTestError] = React.useState(false);
   if (
     serviceError ||
     waterTypeOptions.status === 'failure' ||
@@ -1136,21 +1135,6 @@ function WaterQualityOverview({ ...props }: Props) {
           </AccordionContent>
         </AccordionItem>
       </Accordions>
-      <button
-        style={{ display: 'none' }}
-        onClick={() => {
-          setTestError(true);
-        }}
-      >
-        Log React Boundary Exception
-      </button>
-      {testError && (
-        <>
-          {tabs.test.mmmmaaaaapppp((item, idx) => {
-            return <p key={idx}>item</p>;
-          })}
-        </>
-      )}
     </Container>
   );
 }
