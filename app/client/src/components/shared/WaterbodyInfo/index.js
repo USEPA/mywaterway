@@ -67,8 +67,6 @@ const Icon = styled.i`
 `;
 
 const IconValue = styled.span`
-  /* display: flex;
-  align-items: center; */
   display: inline-block;
 `;
 
