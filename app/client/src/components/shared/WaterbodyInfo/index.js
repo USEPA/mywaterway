@@ -67,8 +67,9 @@ const Icon = styled.i`
 `;
 
 const IconValue = styled.span`
-  display: flex;
-  align-items: center;
+  /* display: flex;
+  align-items: center; */
+  display: inline-block;
 `;
 
 const Table = styled.table`
@@ -156,7 +157,6 @@ function WaterbodyInfo({
       return (
         <p>
           <strong>{label}: </strong>
-          <br />
           {icon ? (
             <IconValue>
               {icon} {value}
