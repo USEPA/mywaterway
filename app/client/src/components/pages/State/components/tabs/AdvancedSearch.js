@@ -318,7 +318,7 @@ function AdvancedSearch({ ...props }: Props) {
 
     const { Query, QueryTask } = esriHelper.modules;
     const queryParams = {
-      where: `STATES LIKE '%${activeState.code}%'`,
+      where: `UPPER(STATES) LIKE '%${activeState.code}%' AND STATES <> 'CAN' AND STATES <> 'MEX'`,
       outFields: ['huc12', 'name'],
     };
 
