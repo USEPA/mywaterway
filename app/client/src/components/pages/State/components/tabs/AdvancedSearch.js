@@ -61,21 +61,24 @@ function retrieveMaxRecordCount(url) {
 // Gets the features without geometry for quickly displaying in the
 // waterbody list component.
 function retrieveFeatures({
+  Query,
   QueryTask,
   url,
-  query,
+  queryParams,
   maxRecordCount,
 }: {
+  Query: any,
   QueryTask: any,
   url: string,
-  query: Object,
+  queryParams: Object,
   maxRecordCount: number,
 }) {
   return new Promise((resolve, reject) => {
     // query to get just the ids since there is a maxRecordCount
     const queryTask = new QueryTask({ url: url });
+    const idsQuery = new Query(queryParams);
     queryTask
-      .executeForIds(query)
+      .executeForIds(idsQuery)
       .then((objectIds) => {
         // set the features value of the data to an empty array if no objectIds
         // were returned.
@@ -91,8 +94,10 @@ function retrieveFeatures({
         const requests = [];
 
         chunkedObjectIds.forEach((chunk: Array<string>) => {
-          const queryChunk = query;
-          queryChunk.where = `OBJECTID in (${chunk.join(',')})`;
+          const queryChunk = new Query({
+            ...queryParams,
+            where: `OBJECTID in (${chunk.join(',')})`,
+          });
           const request = queryTask.execute(queryChunk);
           requests.push(request);
         });
@@ -312,15 +317,16 @@ function AdvancedSearch({ ...props }: Props) {
     if (activeState.code === '' || !watershedsLayerMaxRecordCount) return;
 
     const { Query, QueryTask } = esriHelper.modules;
-    const query = new Query({
+    const queryParams = {
       where: `STATES LIKE '%${activeState.code}%'`,
       outFields: ['huc12', 'name'],
-    });
+    };
 
     retrieveFeatures({
+      Query,
       QueryTask,
       url: wbd,
-      query,
+      queryParams,
       maxRecordCount: watershedsLayerMaxRecordCount,
     })
       .then((data) => {
@@ -376,7 +382,7 @@ function AdvancedSearch({ ...props }: Props) {
 
     // query for initial load
     if (!currentFilter) {
-      const query = new Query({
+      const queryParams = {
         returnGeometry: false,
         where: `state = '${activeState.code}'`,
         outFields: [
@@ -384,12 +390,13 @@ function AdvancedSearch({ ...props }: Props) {
           'assessmentunitname',
           'reportingcycle',
         ],
-      });
+      };
 
       retrieveFeatures({
+        Query,
         QueryTask,
         url: waterbodyService.summary,
-        query,
+        queryParams,
         maxRecordCount: summaryLayerMaxRecordCount,
       })
         .then((data) => {
@@ -427,16 +434,17 @@ function AdvancedSearch({ ...props }: Props) {
           });
         });
     } else {
-      const query = new Query({
+      const queryParams = {
         returnGeometry: false,
         where: currentFilter,
         outFields: ['*'],
-      });
+      };
 
       retrieveFeatures({
+        Query,
         QueryTask,
         url: waterbodyService.summary,
-        query,
+        queryParams,
         maxRecordCount: summaryLayerMaxRecordCount,
       })
         .then((data) => setWaterbodyData(data))
