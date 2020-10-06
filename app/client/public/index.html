@@ -111,29 +111,32 @@
     }
 
     //Only setup the logging for public sites, ie don't log from localhost
-    window.isIdSet = false;
-    if (document.location.hostname.indexOf("epa.gov") > -1) {
-      //EPA (Production) - Just initialize the HMW logs by setting isIdSet
-      isIdSet = true;
+    window.gaTarget = '';
+    if (
+      document.location.hostname.indexOf("epa.gov") > -1 || 
+      document.location.hostname === 'mywaterway-prod.app.cloud.gov'
+    ) {
+      //EPA (Production) - Just initialize the HMW logs by setting gaTarget
+      window.gaTarget = 'EPA';
     }
     else if (document.location.hostname === 'mywaterway-stage.app.cloud.gov') {
       addGoogleAnalyticsObject();
-      ga('create', 'UA-37504877-4', 'auto');  //Stage
-      ga('send', 'pageview');
-      isIdSet = true;
+      ga('create', 'UA-37504877-4', 'auto', 'ERG');  //Stage
+      window.gaTarget = 'ERG';
+      ga(`${window.gaTarget}.send`, 'pageview');
     }
     else if (
       document.location.hostname === 'mywaterway-dev.app.cloud.gov' ||
       document.location.hostname === 'localhost'
     ) {
       addGoogleAnalyticsObject();
-      ga('create', 'UA-37504877-3', 'auto');  //Dev
-      ga('send', 'pageview');
-      isIdSet = true;
+      ga('create', 'UA-37504877-3', 'auto', 'ERG');  //Dev
+      window.gaTarget = 'ERG';
+      ga(`${window.gaTarget}.send`, 'pageview');
     }
 
     //Only setup the logging for public sites, ie don't log from localhost
-    if (isIdSet) {
+    if (gaTarget) {
       // create the locationChange event 
       let event;
       if (typeof Event === 'function') { // used for modern browsers
@@ -145,8 +148,8 @@
 
       // create the location change event listener
       window.addEventListener("locationchange", function (event) {
-        ga('set', 'page', window.location.pathname)
-        ga('send', 'pageview');
+        ga(`${window.gaTarget}.set`, 'page', window.location.pathname)
+        ga(`${window.gaTarget}.send`, 'pageview');
       });
 
       // Modify the pushState, replaceState and popState events so they
@@ -175,7 +178,7 @@
           const action = title ?
             'ow-hmw2-' + text + ' - ' + title :
             'ow-hmw2-' + text;
-          ga('send', 'event', 'buttonClick', action, window.location.pathname);
+          ga(`${window.gaTarget}.send`, 'event', 'buttonClick', action, window.location.pathname);
         }
 
         //Link clicks
@@ -196,12 +199,12 @@
           }
 
           //Log to Google Analytics
-          ga('send', 'event', category, 'ow-hmw2-' + event.target.text.trim(), href);
+          ga(`${window.gaTarget}.send`, 'event', category, 'ow-hmw2-' + event.target.text.trim(), href);
         }
       });
 
       window.addEventListener('error', function (event) {
-        window.ga('send', 'exception', {
+        window.ga(`${window.gaTarget}.send`, 'exception', {
           exDescription: `${event.error.message}${event.error.stack}`,
           exFatal: true,
         });
