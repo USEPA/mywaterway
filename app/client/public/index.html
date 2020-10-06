@@ -110,6 +110,11 @@
       })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
     }
 
+    // Wrapper for logging to GA which adds the target to the command
+    function logToGa(command, ...props) {
+      ga(`${window.gaTarget}.${command}`, ...props);
+    }
+
     //Only setup the logging for public sites, ie don't log from localhost
     window.gaTarget = '';
     if (
@@ -123,7 +128,7 @@
       addGoogleAnalyticsObject();
       ga('create', 'UA-37504877-4', 'auto', 'ERG');  //Stage
       window.gaTarget = 'ERG';
-      ga(`${window.gaTarget}.send`, 'pageview');
+      logToGa('send', 'pageview');
     }
     else if (
       document.location.hostname === 'mywaterway-dev.app.cloud.gov' ||
@@ -132,7 +137,7 @@
       addGoogleAnalyticsObject();
       ga('create', 'UA-37504877-3', 'auto', 'ERG');  //Dev
       window.gaTarget = 'ERG';
-      ga(`${window.gaTarget}.send`, 'pageview');
+      logToGa('send', 'pageview');
     }
 
     //Only setup the logging for public sites, ie don't log from localhost
@@ -148,8 +153,8 @@
 
       // create the location change event listener
       window.addEventListener("locationchange", function (event) {
-        ga(`${window.gaTarget}.set`, 'page', window.location.pathname)
-        ga(`${window.gaTarget}.send`, 'pageview');
+        logToGa('set', 'page', window.location.pathname)
+        logToGa('send', 'pageview');
       });
 
       // Modify the pushState, replaceState and popState events so they
@@ -178,7 +183,7 @@
           const action = title ?
             'ow-hmw2-' + text + ' - ' + title :
             'ow-hmw2-' + text;
-          ga(`${window.gaTarget}.send`, 'event', 'buttonClick', action, window.location.pathname);
+          logToGa('send', 'event', 'buttonClick', action, window.location.pathname);
         }
 
         //Link clicks
@@ -199,12 +204,12 @@
           }
 
           //Log to Google Analytics
-          ga(`${window.gaTarget}.send`, 'event', category, 'ow-hmw2-' + event.target.text.trim(), href);
+          logToGa('send', 'event', category, 'ow-hmw2-' + event.target.text.trim(), href);
         }
       });
 
       window.addEventListener('error', function (event) {
-        window.ga(`${window.gaTarget}.send`, 'exception', {
+        window.logToGa('send', 'exception', {
           exDescription: `${event.error.message}${event.error.stack}`,
           exFatal: true,
         });

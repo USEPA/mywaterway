@@ -147,13 +147,7 @@ export function logCallToGoogleAnalytics(
   const eventLabel = `${url} | status:${status} | time:${duration}`;
 
   // log to google analytics if it has been setup
-  window.ga(
-    `${window.gaTarget}.send`,
-    'event',
-    'Web-service',
-    eventAction,
-    eventLabel,
-  );
+  window.logToGa('send', 'event', 'Web-service', eventAction, eventLabel);
 }
 
 function wildcardIncludes(str, rule) {

@@ -58,7 +58,7 @@ class ErrorBoundary extends React.Component<Props, State> {
     } catch (err) {
       if (!window.gaTarget) return;
 
-      window.ga(`${window.gaTarget}.send`, 'exception', {
+      window.logToGa('send', 'exception', {
         exDescription: `${error.message}${error.stack}`,
         exFatal: true,
       });
