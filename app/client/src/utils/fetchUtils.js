@@ -128,7 +128,7 @@ export function logCallToGoogleAnalytics(
   status: number,
   startTime: number,
 ) {
-  if (!window.isIdSet) return;
+  if (!window.gaTarget) return;
 
   const duration = performance.now() - startTime;
 
@@ -147,7 +147,7 @@ export function logCallToGoogleAnalytics(
   const eventLabel = `${url} | status:${status} | time:${duration}`;
 
   // log to google analytics if it has been setup
-  window.ga('send', 'event', 'Web-service', eventAction, eventLabel);
+  window.logToGa('send', 'event', 'Web-service', eventAction, eventLabel);
 }
 
 function wildcardIncludes(str, rule) {
