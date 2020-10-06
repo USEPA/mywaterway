@@ -8,7 +8,7 @@ export const locatorUrl =
 export const wbd =
   'https://watersgeo.epa.gov/arcgis/rest/services/Support/HydrologicUnits/MapServer/6';
 
-export const counties = `${geopubBase}NEPAssist/Boundaries/MapServer/6`;
+export const counties = `https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_Counties/FeatureServer/0`;
 
 export const mappedWater =
   'https://watersgeo.epa.gov/arcgis/rest/services/NHDPlus/NHDPlus/MapServer';
@@ -58,7 +58,7 @@ export const mapServiceMapping = [
   },
   {
     wildcardUrl: `${counties}*`,
-    name: 'geopub - NEPAssist counties',
+    name: 'geopub - USA counties',
   },
   {
     wildcardUrl: `${tribal}*`,
