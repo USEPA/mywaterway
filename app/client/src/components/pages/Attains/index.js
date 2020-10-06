@@ -153,7 +153,7 @@ function Attains({ ...props }: Props) {
           data={matchedMappings}
           striped={true}
           getColumns={(tableWidth) => {
-            const columnWidth = tableWidth / 3;
+            const columnWidth = tableWidth / 3 - 1;
 
             return [
               {
