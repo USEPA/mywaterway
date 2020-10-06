@@ -145,6 +145,7 @@ const Disclaimer = styled(DisclaimerModal)`
 
 const ByTheNumbersExplanation = styled.p`
   font-style: italic;
+  padding: 0.5rem 0 0 0;
 `;
 
 // --- components ---
