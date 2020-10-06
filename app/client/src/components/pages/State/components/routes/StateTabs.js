@@ -44,11 +44,13 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
   // and conditionally set active tab index
   React.useEffect(() => {
     const validRoutes = [
-      `/state/${stateCode.toUpperCase()}/water-quality-overview`,
-      `/state/${stateCode.toUpperCase()}/advanced-search`,
+      `/state/${stateCode.toLowerCase()}/water-quality-overview`,
+      `/state/${stateCode.toLowerCase()}/advanced-search`,
     ];
 
-    const tabIndex = validRoutes.indexOf(window.location.pathname);
+    const tabIndex = validRoutes.indexOf(
+      window.location.pathname.toLowerCase(),
+    );
 
     if (tabIndex === -1) {
       navigate('/state');
