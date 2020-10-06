@@ -937,8 +937,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                 countiesRes.features.length > 0 &&
                 countiesRes.features[0].attributes
               ) {
-                const stateCode = countiesRes.features[0].attributes.STFIPS;
-                const countyCode = countiesRes.features[0].attributes.CTFIPS.substring(
+                const stateCode = countiesRes.features[0].attributes.STATE_FIPS;
+                const countyCode = countiesRes.features[0].attributes.FIPS.substring(
                   2,
                   5,
                 );
