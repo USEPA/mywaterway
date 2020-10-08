@@ -842,6 +842,18 @@ function useSharedLayers() {
       title: 'County',
       listMode: 'show',
       visible: false,
+      renderer: {
+        type: 'simple',
+        symbol: {
+          type: 'simple-fill',
+          style: 'none',
+          outline: {
+            color: [251, 164, 93, 255],
+            width: 0.75,
+            style: 'solid',
+          },
+        },
+      },
     });
 
     const watershedsLayer = new FeatureLayer({
