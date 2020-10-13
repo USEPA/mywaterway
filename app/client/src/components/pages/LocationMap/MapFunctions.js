@@ -183,7 +183,9 @@ export function createWaterbodySymbol({
   selected: boolean,
   geometryType: string,
 }) {
-  const outline = selected ? { color: [0, 255, 255, 0.5], width: 1 } : null;
+  const outline = selected
+    ? { color: [0, 255, 255, 0.5], width: 1 }
+    : { color: [0, 0, 0, 1], width: 1 };
 
   // from colors.highlightedPurple() and colors.purple()
   let color = selected ? { r: 84, g: 188, b: 236 } : { r: 107, g: 65, b: 149 };
@@ -212,6 +214,9 @@ export function createWaterbodySymbol({
   if (geometryType === 'point') {
     if (condition === 'good') {
       symbol.style = 'circle';
+      // symbol.outline = selected
+      //   ? { color: [0, 255, 255, 0.5], width: 1 }
+      //   : { color: 'black', width: 1 };
     }
 
     if (condition === 'polluted') {
