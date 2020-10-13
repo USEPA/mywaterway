@@ -214,9 +214,6 @@ export function createWaterbodySymbol({
   if (geometryType === 'point') {
     if (condition === 'good') {
       symbol.style = 'circle';
-      // symbol.outline = selected
-      //   ? { color: [0, 255, 255, 0.5], width: 1 }
-      //   : { color: 'black', width: 1 };
     }
 
     if (condition === 'polluted') {
