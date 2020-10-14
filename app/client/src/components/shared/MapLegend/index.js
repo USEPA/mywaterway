@@ -48,12 +48,7 @@ const LegendLabel = styled.span`
   font-size: 0.75rem;
 `;
 
-const ignoreLayers = [
-  'mappedWaterLayer',
-  'countyLayer',
-  'watershedsLayer',
-  'searchIconLayer',
-];
+const ignoreLayers = ['mappedWaterLayer', 'watershedsLayer', 'searchIconLayer'];
 
 // --- components ---
 type Props = {
@@ -458,6 +453,24 @@ function MapLegendContent({ layer }: CardProps) {
     </LI>
   );
 
+  // jsx
+  const countyLegend = (
+    <LI>
+      <ImageContainer>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="26"
+          height="26"
+          viewBox="0 0 26 26"
+          aria-hidden="true"
+        >
+          <rect x="0" y="12" width="26" height="3" fill="#FBA45D" />
+        </svg>
+      </ImageContainer>
+      <LegendLabel>County</LegendLabel>
+    </LI>
+  );
+
   if (layer.id === 'waterbodyLayer') return waterbodyLegend;
   if (layer.id === 'issuesLayer') return issuesLegend;
   if (layer.id === 'monitoringStationsLayer') return monitoringStationsLegend;
@@ -466,6 +479,7 @@ function MapLegendContent({ layer }: CardProps) {
   if (layer.id === 'providersLayer') return providersLegend;
   if (layer.id === 'boundariesLayer') return boundariesLegend;
   if (layer.id === 'actionsWaterbodies') return actionsWaterbodiesLegend;
+  if (layer.id === 'countyLayer') return countyLegend;
   if (layer.id === 'tribalLayer') return tribalLegend;
   if (layer.id === 'wsioHealthIndexLayer') return healthIndexLegend;
   if (layer.id === 'congressionalLayer') return congressionalDistrictsLegend;
