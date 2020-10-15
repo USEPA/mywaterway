@@ -91,7 +91,7 @@ function Attains({ ...props }: Props) {
 
   React.useEffect(() => {
     // array of arrays - each containing 3 values: the HMW mapping, the ATTAINS context, and the ATTAINS name
-    // i.e. ["Excess Algae", "ALGAL GROWTH", "EXCESS ALGAL GROWTH"]
+    // i.e. ["Algae", "ALGAL GROWTH", "EXCESS ALGAL GROWTH"]
     let data = [];
     if (attainsData) {
       data = attainsData.map((obj) => {

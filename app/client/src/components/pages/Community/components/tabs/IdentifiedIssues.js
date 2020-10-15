@@ -844,7 +844,7 @@ function IdentifiedIssues() {
               <li>
                 Impairments take many forms, often a result of human behavior.
                 Water impairments are identified across 34 categories such as
-                excess algae, mercury, pathogens, pesticides, trash and more.
+                algae, mercury, pathogens, pesticides, trash and more.
               </li>
               <li>
                 Impairments can enter your water through runoff, water discharge

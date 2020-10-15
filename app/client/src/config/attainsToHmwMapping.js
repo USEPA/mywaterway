@@ -13,8 +13,8 @@ export const impairmentFields = [
   {
     value: 'algal_growth',
     parameterGroup: 'ALGAL GROWTH',
-    label: 'Excess Algae',
-    term: 'Excess Algae',
+    label: 'Algae',
+    term: 'Algae',
     sentence: null,
   },
   {
@@ -138,8 +138,8 @@ export const impairmentFields = [
   {
     value: 'noxious_aquatic_plants',
     parameterGroup: 'NOXIOUS AQUATIC PLANTS',
-    label: 'Excess Aquatic Weeds',
-    term: 'Excess Aquatic Weeds',
+    label: 'Aquatic Weeds',
+    term: 'Aquatic Weeds',
     sentence: null,
   },
   {
@@ -159,8 +159,8 @@ export const impairmentFields = [
   {
     value: 'nutrients',
     parameterGroup: 'NUTRIENTS',
-    label: 'Nitrogen and Phosphorus',
-    term: 'Nitrogen and Phosphorus',
+    label: 'Nitrogen and/or Phosphorus',
+    term: 'Nitrogen and/or Phosphorus',
     sentence: null,
   },
   {
@@ -233,8 +233,8 @@ export const impairmentFields = [
   {
     value: 'sediment',
     parameterGroup: 'SEDIMENT',
-    label: 'Excess Sediment',
-    term: 'Excess Sediment',
+    label: 'Sediment',
+    term: 'Sediment',
     sentence: null,
   },
   {
