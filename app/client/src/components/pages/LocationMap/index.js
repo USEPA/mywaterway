@@ -152,9 +152,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setPointsLayer,
     setLinesLayer,
     setAreasLayer,
+    errorMessage,
+    setErrorMessage,
   } = React.useContext(LocationSearchContext);
 
-  const [errorMessage, setErrorMessage] = React.useState('');
+  // const [errorMessage, setErrorMessage] = React.useState('');
   const [view, setView] = React.useState(null);
 
   const getSharedLayers = useSharedLayers();
@@ -775,6 +777,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       queryPermittedDischargersService,
       setHuc12,
       setNoDataAvailable,
+      setErrorMessage,
     ],
   );
 
@@ -1020,6 +1023,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       setDrinkingWater,
       setFIPS,
       setNoDataAvailable,
+      setErrorMessage,
     ],
   );
 
@@ -1067,7 +1071,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         processGeocodeServerResults(searchText);
       }
     },
-    [Query, QueryTask, processGeocodeServerResults, setNoDataAvailable],
+    [
+      Query,
+      QueryTask,
+      processGeocodeServerResults,
+      setNoDataAvailable,
+      setErrorMessage,
+    ],
   );
 
   React.useEffect(() => {
@@ -1086,6 +1096,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     resetData,
     setLastSearchText,
     queryGeocodeServer,
+    setErrorMessage,
   ]);
 
   // reset map when searchText is cleared (when navigating away from '/community')

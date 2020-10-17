@@ -11,6 +11,8 @@ type Props = {
 
 type State = {
   initialExtent: Object,
+  currentExtent: Object,
+  upstreamExtent: Object,
   highlighOptions: Object,
   searchText: string,
   lastSearchText: String,
@@ -50,6 +52,8 @@ type State = {
   pointsLayer: Object,
   linesLayer: Object,
   areasLayer: Object,
+  upstreamLayer: Object,
+  errorMessage: string,
   summaryLayerMaxRecordCount: ?number,
   watershedsLayerMaxRecordCount: ?number,
   FIPS: Object,
@@ -74,6 +78,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       spatialReference: { wkid: 102100 },
     },
     currentExtent: '',
+    upstreamExtent: '',
     highlightOptions: {
       color: '#32C5FD',
       fillOpacity: 1,
@@ -146,6 +151,8 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     pointsLayer: '',
     linesLayer: '',
     areasLayer: '',
+    upstreamLayer: '',
+    errorMessage: '',
     summaryLayerMaxRecordCount: null,
     watershedsLayerMaxRecordCount: null,
 
@@ -181,6 +188,12 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     setCurrentExtent: (currentExtent) => {
       this.setState({ currentExtent });
     },
+    setErrorMessage: (errorMessage) => {
+      this.setState({ errorMessage });
+    },
+    setUpstreamExtent: (upstreamExtent) => {
+      this.setState({ upstreamExtent });
+    },
     setAtHucBoundaries: (atHucBoundaries) => {
       this.setState({ atHucBoundaries });
     },
@@ -211,6 +224,18 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     },
     getMapView: () => {
       return this.state.mapView;
+    },
+    getHuc12: () => {
+      return this.state.huc12;
+    },
+    getUpstreamLayer: () => {
+      return this.state.upstreamLayer;
+    },
+    getCurrentExtent: () => {
+      return this.state.currentExtent;
+    },
+    getUpstreamExtent: () => {
+      return this.state.upstreamExtent;
     },
     setLayers: (layers) => {
       this.setState({ layers });
@@ -253,6 +278,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     },
     setAreasLayer: (areasLayer) => {
       this.setState({ areasLayer });
+    },
+    setUpstreamLayer: (upstreamLayer) => {
+      this.setState({ upstreamLayer });
     },
     setSummaryLayerMaxRecordCount: (summaryLayerMaxRecordCount) => {
       this.setState({ summaryLayerMaxRecordCount });
@@ -351,6 +379,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         pointsLayer,
         linesLayer,
         areasLayer,
+        upstreamLayer,
         providersLayer,
         boundariesLayer,
         searchIconLayer,
@@ -368,12 +397,14 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       if (linesLayer) newState['linesLayer'] = null;
       if (areasLayer) newState['areasLayer'] = null;
       if (waterbodyLayer) newState['waterbodyLayer'] = null;
+      if (upstreamLayer) newState['upstreamLayer'] = null;
 
       const layersToRemove = [
         'pointsLayer',
         'linesLayer',
         'areasLayer',
         'waterbodyLayer',
+        'upstreamLayer',
       ];
 
       // remove the layers from state layers list

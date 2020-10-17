@@ -9,7 +9,11 @@ import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { FullscreenContext } from 'contexts/Fullscreen';
 // utilities
-import { shallowCompare } from 'components/pages/LocationMap/MapFunctions';
+import {
+  shallowCompare,
+  getPopupTitle,
+  getPopupContent,
+} from 'components/pages/LocationMap/MapFunctions';
 
 const basemapNames = [
   'Streets',
@@ -152,6 +156,10 @@ function MapWidgets({
     Expand,
     watchUtils,
     ScaleBar,
+    Query,
+    QueryTask,
+    FeatureLayer,
+    Viewpoint,
   } = React.useContext(EsriModulesContext);
 
   const {
@@ -161,6 +169,14 @@ function MapWidgets({
     setVisibleLayers,
     setBasemap,
     basemap,
+    setUpstreamLayer,
+    getUpstreamLayer,
+    getCurrentExtent,
+    setCurrentExtent,
+    getHuc12,
+    getUpstreamExtent,
+    setUpstreamExtent,
+    setErrorMessage,
   } = React.useContext(LocationSearchContext);
 
   const {
@@ -464,6 +480,249 @@ function MapWidgets({
     view,
     fullScreenWidgetCreated,
   ]);
+
+  const popupTemplate = {
+    outFields: ['*'],
+    title: (feature) => getPopupTitle(feature.graphic.attributes),
+    content: (feature) => getPopupContent({ feature: feature.graphic }),
+  };
+
+  const buttonStyle = {
+    margin: '8.5px',
+    fontSize: '15px',
+    textAlign: 'center',
+    verticalAlign: 'middle',
+
+    backgroundColor: 'white',
+    color: '#6E6E6E',
+  };
+
+  const buttonHoverStyle = {
+    margin: '8.5px',
+    fontSize: '15px',
+    textAlign: 'center',
+    verticalAlign: 'middle',
+
+    backgroundColor: '#F0F0F0',
+    color: 'black',
+    cursor: 'pointer',
+  };
+
+  const divStyle = {
+    height: '32px',
+    width: '32px',
+    backgroundColor: 'white',
+  };
+
+  const divHoverStyle = {
+    height: '32px',
+    width: '32px',
+    backgroundColor: '#F0F0F0',
+    cursor: 'pointer',
+  };
+
+  // create upstream widget
+  const [
+    upstreamWidgetCreated,
+    setUpstreamWidgetCreated, //
+  ] = React.useState(false);
+  React.useEffect(() => {
+    if (upstreamWidgetCreated || !view || !view.ui) return;
+
+    const node = document.createElement('div');
+    view.ui.add(node, { position: 'top-right', index: 1 });
+    ReactDOM.render(
+      <ShowUpstreamWatershed
+        getHuc12={getHuc12}
+        getCurrentExtent={getCurrentExtent}
+        setCurrentExtent={setCurrentExtent}
+        getUpstreamLayer={getUpstreamLayer}
+        setUpstreamLayer={setUpstreamLayer}
+        getUpstreamExtent={getUpstreamExtent}
+        setUpstreamExtent={setUpstreamExtent}
+        setErrorMessage={setErrorMessage}
+      />,
+      node,
+    );
+    setUpstreamWidgetCreated(true);
+  }, [
+    view,
+    upstreamWidgetCreated,
+    getHuc12,
+    getCurrentExtent,
+    setCurrentExtent,
+    setUpstreamLayer,
+    getUpstreamLayer,
+    getUpstreamExtent,
+    setUpstreamExtent,
+    setErrorMessage,
+  ]);
+
+  type upstreamProps = {
+    getHuc12: Function,
+    getCurrentExtent: Function,
+    setCurrentExtent: Function,
+    getUpstreamLayer: Function,
+    setUpstreamLayer: Function,
+    getUpstreamExtent: Function,
+    setUpstreamExtent: Function,
+    setErrorMessage: Function,
+  };
+
+  function ShowUpstreamWatershed({
+    getHuc12,
+    getCurrentExtent,
+    setCurrentExtent,
+    getUpstreamLayer,
+    setUpstreamLayer,
+    getUpstreamExtent,
+    setUpstreamExtent,
+    setErrorMessage,
+  }: upstreamProps) {
+    const [hover, setHover] = React.useState(false);
+    const [lastHuc12, setLastHuc12] = React.useState('');
+    const currentHuc12 = getHuc12();
+
+    console.log(getUpstreamLayer());
+
+    return (
+      <div
+        title={'Display Upstream Watershed'}
+        style={hover ? divHoverStyle : divStyle}
+        onMouseOver={() => setHover(true)}
+        onMouseOut={() => setHover(false)}
+        onClick={(ev) => {
+          retrieveUpstreamWatersheds(
+            currentHuc12,
+            lastHuc12,
+            setLastHuc12,
+            getCurrentExtent,
+            setCurrentExtent,
+            getUpstreamLayer,
+            setUpstreamLayer,
+            getUpstreamExtent,
+            setUpstreamExtent,
+            setErrorMessage,
+          );
+        }}
+      >
+        <span
+          className={'esri-icon esri-icon-maps'}
+          style={hover ? buttonHoverStyle : buttonStyle}
+        />
+      </div>
+    );
+  }
+
+  const retrieveUpstreamWatersheds = React.useCallback(
+    (
+      currentHuc12,
+      lastHuc12,
+      setLastHuc12,
+      getCurrentExtent,
+      setCurrentExtent,
+      getUpstreamLayer,
+      setUpstreamLayer,
+      getUpstreamExtent,
+      setUpstreamExtent,
+      setErrorMessage,
+    ) => {
+      const upstreamLayer = getUpstreamLayer();
+
+      if (upstreamLayer === 'error') {
+        console.log('upstreamlayer failed to load');
+        return;
+      }
+
+      if (currentHuc12 === lastHuc12 && upstreamLayer.visible) {
+        console.log('not fetching again. Hiding upstream layer');
+        // zoom to current extent
+        view.goTo(getCurrentExtent());
+        upstreamLayer.visible = false;
+        return;
+      }
+
+      if (currentHuc12 === lastHuc12 && !upstreamLayer.visible) {
+        console.log('not fetching again. Displaying upstream layer');
+        // zoom out to upstream extent
+        view.goTo(getUpstreamExtent());
+        upstreamLayer.visible = true;
+        return;
+      }
+
+      if (currentHuc12 !== lastHuc12) {
+        setLastHuc12(currentHuc12);
+      }
+
+      const filter = `xwalk_huc12='${currentHuc12}'`;
+      console.log(filter);
+      const query = new Query({
+        returnGeometry: true,
+        where: filter,
+        outFields: ['*'],
+      });
+
+      new QueryTask({
+        url: `https://watersgeo.epa.gov/arcgis/rest/services/Support/CatchmentFabric/MapServer/2/`,
+      })
+        .execute(query)
+        .then((res) => {
+          console.log(res);
+
+          const newUpstreamLayer = new FeatureLayer({
+            id: 'upstreamWatersheds',
+            name: 'Upstream Watersheds',
+            geometryType: res.geometryType,
+            spatialReference: res.spatialReference,
+            fields: res.fields,
+            source: res.features,
+            outFields: ['*'],
+            renderer: {
+              type: 'simple',
+              symbol: {
+                type: 'simple-fill',
+                style: 'none',
+                outline: {
+                  style: 'solid',
+                  color: '#1fb8ff',
+                  width: 2,
+                },
+              },
+            },
+            popupTemplate,
+          });
+          setUpstreamLayer(newUpstreamLayer);
+          map.layers.add(newUpstreamLayer);
+
+          const currentViewpoint = new Viewpoint({
+            targetGeometry: res.features[0].geometry.extent,
+          });
+
+          // store the current viewpoint in context
+          setUpstreamExtent(currentViewpoint);
+
+          // zoom out to full extent
+          view.goTo(res.features[0].geometry.extent);
+        })
+        .catch((err) => {
+          // TODO: different error for upstream layer failure. block network request to test
+          setErrorMessage(
+            'Unable to get upstream watershed data for this location.',
+          );
+          console.log(err);
+          setUpstreamLayer('error');
+        });
+    },
+    [
+      map.layers,
+      view,
+      FeatureLayer,
+      Query,
+      QueryTask,
+      Viewpoint,
+      popupTemplate,
+    ],
+  );
 
   return null;
 }
