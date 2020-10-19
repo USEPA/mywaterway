@@ -12,8 +12,7 @@ import AdvancedSearch from 'components/pages/State/components/tabs/AdvancedSearc
 import { LargeTab } from 'components/shared/ContentTabs/LargeTab.js';
 // contexts
 import { StateTabsContext } from 'contexts/StateTabs';
-// config
-import { attains } from 'config/webServiceConfig';
+import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 
@@ -25,6 +24,8 @@ type Props = {
 };
 
 function StateTabs({ stateCode, tabName, ...props }: Props) {
+  const services = useServicesContext();
+
   const {
     activeState,
     setActiveState,
@@ -65,7 +66,7 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
   // string, so we'll need to query the attains states service for the states
   React.useEffect(() => {
     if (activeState.code === '') {
-      fetchCheck(`${attains.serviceUrl}states`)
+      fetchCheck(`${services.data.attains.serviceUrl}states`)
         .then((res) => {
           // get matched state from web service response
           const match = res.data.filter(
@@ -81,7 +82,7 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
           navigate('/state');
         });
     }
-  }, [activeState, setActiveState, stateCode]);
+  }, [activeState, setActiveState, stateCode, services]);
 
   const tabListRef = React.useRef();
 

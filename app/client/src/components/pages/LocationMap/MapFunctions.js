@@ -262,6 +262,7 @@ export function plotStations(
   Graphic: any,
   stations: Array<Object>,
   layer: any,
+  services: Object,
 ) {
   if (!stations || !layer) return;
 
@@ -288,6 +289,7 @@ export function plotStations(
           title: getPopupTitle(station.properties),
           content: getPopupContent({
             feature: { attributes: station.properties },
+            services,
           }),
         },
       }),
@@ -368,7 +370,7 @@ export function plotFacilities({
   });
 }
 
-export const openPopup = (view: Object, feature: Object) => {
+export const openPopup = (view: Object, feature: Object, services: Object) => {
   // tell the getPopupContent function to use the full popup version that includes the service call
   if (feature.attributes && feature.attributes.MonitoringLocationName) {
     feature.attributes.fullPopup = true;
@@ -383,7 +385,7 @@ export const openPopup = (view: Object, feature: Object) => {
   ) {
     feature.popupTemplate = {
       title: getPopupTitle(feature.attributes),
-      content: getPopupContent({ feature, fieldName }),
+      content: getPopupContent({ feature, fieldName, services }),
     };
   }
 
@@ -463,12 +465,14 @@ export function getPopupContent({
   extraContent,
   getClickedHuc,
   resetData,
+  services,
 }: {
   feature: Object,
   fieldName: ?string,
   extraContent: ?Object,
   getClickedHuc: ?Function,
   resetData: ?Function,
+  services: ?Object,
 }) {
   let type = 'Unknown';
 
@@ -539,6 +543,7 @@ export function getPopupContent({
       extraContent={extraContent}
       getClickedHuc={getClickedHuc}
       resetData={resetData}
+      services={services}
     />
   );
 

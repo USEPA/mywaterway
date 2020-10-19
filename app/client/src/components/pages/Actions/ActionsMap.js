@@ -11,9 +11,9 @@ import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes';
 // contexts
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
+import { useServicesContext } from 'contexts/LookupFiles';
 // config
 import { esriApiUrl } from 'config/esriConfig';
-import { waterbodyService } from 'config/mapServiceConfig';
 // helpers
 import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
 import {
@@ -53,6 +53,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
 
   const [layers, setLayers] = React.useState(null);
 
+  const services = useServicesContext();
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
 
@@ -120,9 +121,15 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
         query.where = `assessmentunitidentifier in ('${auIds}')`;
       });
 
-      const lineQueryTask = new QueryTask({ url: waterbodyService.lines });
-      const areaQueryTask = new QueryTask({ url: waterbodyService.areas });
-      const pointQueryTask = new QueryTask({ url: waterbodyService.points });
+      const lineQueryTask = new QueryTask({
+        url: services.data.waterbodyService.lines,
+      });
+      const areaQueryTask = new QueryTask({
+        url: services.data.waterbodyService.areas,
+      });
+      const pointQueryTask = new QueryTask({
+        url: services.data.waterbodyService.points,
+      });
 
       const linePromise = lineQueryTask.execute(lineQuery);
       const areaPromise = areaQueryTask.execute(areaQuery);
@@ -244,7 +251,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
     }
 
     if (Object.keys(unitIds).length > 0) plotAssessments(unitIds);
-  }, [unitIds, actionsLayer, fetchStatus, esriModules, onLoad]);
+  }, [unitIds, actionsLayer, fetchStatus, esriModules, onLoad, services]);
 
   // Scrolls to the map when switching layouts
   React.useEffect(() => {

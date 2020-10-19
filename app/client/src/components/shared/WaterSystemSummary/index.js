@@ -10,11 +10,11 @@ import WindowSize from '@reach/window-size';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
+// contexts
+import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
 import { fetchCheck } from 'utils/fetchUtils';
 import { formatNumber } from 'utils/utils';
-// config
-import { dwmaps } from 'config/webServiceConfig';
 // errors
 import { grpaError } from 'config/errorMessages';
 
@@ -103,6 +103,8 @@ type Props = {
 };
 
 function WaterSystemSummary({ state }: Props) {
+  const services = useServicesContext();
+
   const [systemTypeRes, setSystemTypeRes] = React.useState({
     status: 'fetching',
     data: {
@@ -112,7 +114,7 @@ function WaterSystemSummary({ state }: Props) {
     },
   });
   React.useEffect(() => {
-    fetchCheck(`${dwmaps.getGPRASystemCountsByType}${state.code}`)
+    fetchCheck(`${services.data.dwmaps.getGPRASystemCountsByType}${state.code}`)
       .then((res) => {
         if (!res || !res.items || res.items.length === 0) {
           setSystemTypeRes({
@@ -158,7 +160,7 @@ function WaterSystemSummary({ state }: Props) {
           },
         });
       });
-  }, [state]);
+  }, [state, services]);
 
   // fetch GPRA data
   const [gpraData, setGpraData] = React.useState({
@@ -167,10 +169,10 @@ function WaterSystemSummary({ state }: Props) {
   });
 
   React.useEffect(() => {
-    fetchCheck(`${dwmaps.getGPRASummary}${state.code}`)
+    fetchCheck(`${services.data.dwmaps.getGPRASummary}${state.code}`)
       .then((res) => setGpraData({ status: 'success', data: res.items[0] }))
       .catch((err) => setGpraData({ status: 'failure', data: {} }));
-  }, [state]);
+  }, [state, services]);
 
   return (
     <>

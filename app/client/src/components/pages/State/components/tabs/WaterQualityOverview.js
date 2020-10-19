@@ -25,14 +25,13 @@ import { colors } from 'styles/index.js';
 // contexts
 import { StateTabsContext } from 'contexts/StateTabs';
 import {
+  useServicesContext,
   useStateNationalUsesContext,
   useWaterTypeOptionsContext,
 } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 import { titleCase } from 'utils/utils';
-// config
-import { attains, grts } from 'config/webServiceConfig';
 // images
 import drinkingWaterIcon from 'components/pages/Community/images/drinking-water.png';
 // styles
@@ -246,6 +245,7 @@ const NoDataMessage = styled.p`
 type Props = {};
 
 function WaterQualityOverview({ ...props }: Props) {
+  const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
   const waterTypeOptions = useWaterTypeOptionsContext();
   const {
@@ -306,7 +306,7 @@ function WaterQualityOverview({ ...props }: Props) {
     (orgID, year) => {
       // use the excludeAsssessments flag to improve performance, since we only
       // need the documents and reportStatusCode
-      const url = `${attains.serviceUrl}assessments?organizationId=${orgID}&reportingCycle=${year}&excludeAssessments=Y`;
+      const url = `${services.data.attains.serviceUrl}assessments?organizationId=${orgID}&reportingCycle=${year}&excludeAssessments=Y`;
       fetchCheck(url)
         .then((res) => {
           setAssessmentsLoading(false);
@@ -327,13 +327,13 @@ function WaterQualityOverview({ ...props }: Props) {
           setCurrentReportStatus('Error getting 303(d) List Status');
         });
     },
-    [setCurrentReportStatus],
+    [setCurrentReportStatus, services],
   );
 
   // Get the state intro text
   const fetchIntroText = React.useCallback(
     (orgID) => {
-      const url = `${attains.serviceUrl}metrics?organizationId=${orgID}`;
+      const url = `${services.data.attains.serviceUrl}metrics?organizationId=${orgID}`;
       fetchCheck(url)
         .then((res) => {
           // check for missing data
@@ -350,7 +350,7 @@ function WaterQualityOverview({ ...props }: Props) {
           setIntroText({ status: 'failure', data: {} });
         });
     },
-    [setIntroText],
+    [setIntroText, services],
   );
 
   // summary service has the different years of data for recreation/eco/fish/water/other
@@ -382,7 +382,7 @@ function WaterQualityOverview({ ...props }: Props) {
       : '';
 
     const url =
-      `${attains.serviceUrl}usesStateSummary` +
+      `${services.data.attains.serviceUrl}usesStateSummary` +
       `?organizationId=${organizationId}` +
       reportingCycleParam;
 
@@ -453,12 +453,50 @@ function WaterQualityOverview({ ...props }: Props) {
     currentReportingCycle,
     setCurrentReportingCycle,
     usesStateSummaryCalled,
+    services,
   ]);
+
+  // Get the survey data and survey documents
+  const fetchSurveyData = React.useCallback(
+    (orgID) => {
+      const url = `${services.data.attains.serviceUrl}surveys?organizationId=${orgID}`;
+      fetchCheck(url)
+        .then((res) => {
+          setSurveyLoading(false);
+
+          if (
+            !res ||
+            !res.items ||
+            res.items.length === 0 ||
+            !res.items[0].surveys ||
+            res.items[0].surveys.length === 0
+          ) {
+            setSurveyData(null);
+            setSurveyDocuments([]);
+            return;
+          }
+
+          // get the surveys sorted by year
+          let surveys = res.items[0].surveys.sort(
+            (a, b) => parseFloat(b.year) - parseFloat(a.year),
+          );
+
+          setSurveyData(surveys[0]);
+          setSurveyDocuments(surveys[0].documents);
+        })
+        .catch((err) => {
+          console.error('Error with surveys org ID web service: ', err);
+          setSurveyServiceError(true);
+          setSurveyLoading(false);
+        });
+    },
+    [services],
+  );
 
   // get state organization ID for summary service
   const fetchStateOrgId = React.useCallback(
     (stateID: string) => {
-      const url = `${attains.serviceUrl}states/${stateID}/organizations`;
+      const url = `${services.data.attains.serviceUrl}states/${stateID}/organizations`;
       fetchCheck(url)
         .then((res) => {
           let orgID;
@@ -492,7 +530,7 @@ function WaterQualityOverview({ ...props }: Props) {
           setLoading(false);
         });
     },
-    [fetchIntroText],
+    [fetchIntroText, fetchSurveyData, services],
   );
 
   // If the user changes the search
@@ -532,7 +570,7 @@ function WaterQualityOverview({ ...props }: Props) {
       setStories({
         status: 'fetching',
         data: [],
-        nextUrl: `${grts.getSSByState}${activeState.code}`,
+        nextUrl: `${services.data.grts.getSSByState}${activeState.code}`,
       });
     }
   }, [
@@ -542,41 +580,8 @@ function WaterQualityOverview({ ...props }: Props) {
     setCurrentSummary,
     setIntroText,
     fetchStateOrgId,
+    services,
   ]);
-
-  // Get the survey data and survey documents
-  const fetchSurveyData = (orgID) => {
-    const url = `${attains.serviceUrl}surveys?organizationId=${orgID}`;
-    fetchCheck(url)
-      .then((res) => {
-        setSurveyLoading(false);
-
-        if (
-          !res ||
-          !res.items ||
-          res.items.length === 0 ||
-          !res.items[0].surveys ||
-          res.items[0].surveys.length === 0
-        ) {
-          setSurveyData(null);
-          setSurveyDocuments([]);
-          return;
-        }
-
-        // get the surveys sorted by year
-        let surveys = res.items[0].surveys.sort(
-          (a, b) => parseFloat(b.year) - parseFloat(a.year),
-        );
-
-        setSurveyData(surveys[0]);
-        setSurveyDocuments(surveys[0].documents);
-      })
-      .catch((err) => {
-        console.error('Error with surveys org ID web service: ', err);
-        setSurveyServiceError(true);
-        setSurveyLoading(false);
-      });
-  };
 
   // fetch the stories from the provided url. This also saves the next stories
   // url to nextStoriesUrl, if the web service provided it, and the useEffect
