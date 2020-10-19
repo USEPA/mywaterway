@@ -36,8 +36,8 @@ export const GlobalStyle = createGlobalStyle`
 // --- components ---
 function Root() {
   return (
-    <EsriModulesProvider>
-      <LookupFilesProvider>
+    <LookupFilesProvider>
+      <EsriModulesProvider>
         <LocationSearchProvider>
           <GlossaryProvider>
             <GlobalStyle />
@@ -47,8 +47,9 @@ function Root() {
             </ErrorBoundary>
           </GlossaryProvider>
         </LocationSearchProvider>
-      </LookupFilesProvider>
-    </EsriModulesProvider>
+      </EsriModulesProvider>
+      )}
+    </LookupFilesProvider>
   );
 }
 
