@@ -30,7 +30,7 @@ export class EsriModulesProvider extends React.Component<Props, State> {
 
   componentDidUpdate() {
     const services = this.context.services;
-    if (services.status === 'fetching' || this.state.initialized) return;
+    if (services.status !== 'success' || this.state.initialized) return;
     this.setState({ initialized: true });
 
     loadModules(
