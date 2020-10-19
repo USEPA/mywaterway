@@ -10,7 +10,6 @@ import * as serviceWorker from './serviceWorker';
 // components
 import Routes from './routes';
 import ErrorBoundary from 'components/shared/ErrorBoundary';
-import AlertMessage from 'components/shared/AlertMessage';
 // contexts
 import { EsriModulesProvider } from 'contexts/EsriModules';
 import { LocationSearchProvider } from 'contexts/locationSearch';
@@ -42,7 +41,6 @@ function Root() {
           <GlossaryProvider>
             <GlobalStyle />
             <ErrorBoundary message={defaultErrorBoundaryMessage}>
-              <AlertMessage />
               <Routes />
             </ErrorBoundary>
           </GlossaryProvider>

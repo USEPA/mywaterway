@@ -24,6 +24,7 @@ import WaterbodyReport from 'components/pages/WaterbodyReport';
 import ErrorPage from 'components/pages/404';
 import InvalidUrl from 'components/pages/InvalidUrl';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
+import AlertMessage from 'components/shared/AlertMessage';
 // styled components
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // contexts
@@ -64,64 +65,67 @@ function Routes() {
   }
 
   return (
-    <Location>
-      {({ location }) => {
-        if (containsScriptTag(location.href)) {
-          // if someone puts a <script> tag in the url we have to
-          // navigate to invalid-url and reload the page, otherwise the css
-          // gets all messed up.
-          navigate('/invalid-url');
-          window.location.reload();
-        }
+    <>
+      <AlertMessage />
+      <Location>
+        {({ location }) => {
+          if (containsScriptTag(location.href)) {
+            // if someone puts a <script> tag in the url we have to
+            // navigate to invalid-url and reload the page, otherwise the css
+            // gets all messed up.
+            navigate('/invalid-url');
+            window.location.reload();
+          }
 
-        // reset the canonical link and JSON LD:
-        // if the pathname is not on a community page
-        // or if the pathname is the community home page with no location
-        const pathName = window.location.pathname;
-        if (!pathName.includes('/community') || pathName === '/community') {
-          // reset canonical geoconnex PID link
-          resetCanonicalLink();
+          // reset the canonical link and JSON LD:
+          // if the pathname is not on a community page
+          // or if the pathname is the community home page with no location
+          const pathName = window.location.pathname;
+          if (!pathName.includes('/community') || pathName === '/community') {
+            // reset canonical geoconnex PID link
+            resetCanonicalLink();
 
-          // remove JSON LD context script
-          removeJsonLD();
-        }
+            // remove JSON LD context script
+            removeJsonLD();
+          }
 
-        return (
-          <Router>
-            <Home path="/" />
-            <About path="/about" />
-            <Data path="/data" />
-            <Attains path="/attains" />
-            <Community path="/community">
-              <CommunityIntro path="/" />
-              {/* $FlowFixMe (urlSearch prop is passed from the path) */}
-              <CommunityTabs path="/:urlSearch" />
-              {/* $FlowFixMe (urlSearch and tabName props are passed from the path) */}
-              <CommunityTabs path="/:urlSearch/:tabName" />
-            </Community>
-            <State path="/state">
-              <StateIntro path="/" />
-              {/* $FlowFixMe (stateCode prop is passed from the path) */}
-              <StateTabs path="/:stateCode" />
-              {/* $FlowFixMe (stateCode and tabName props are passed from the path) */}
-              <StateTabs path="/:stateCode/:tabName" />
-            </State>
-            <National path="/national" />
-            <DrinkingWater path="/drinking-water" />
-            <Swimming path="/swimming" />
-            <EatingFish path="/eating-fish" />
-            <AquaticLife path="/aquatic-life" />
-            {/* $FlowFixMe (orgId and actionId props are passed from the path) */}
-            <Actions path="/plan-summary/:orgId/:actionId" />
-            {/* $FlowFixMe (orgId and auId props are passed from the path) */}
-            <WaterbodyReport path="/waterbody-report/:orgId/:auId" />
-            <WaterbodyReport path="/waterbody-report/:orgId/:auId/:reportingCycle" />
-            <InvalidUrl path="/invalid-url" />
-            <ErrorPage default />
-          </Router>
-        );
-      }}
-    </Location>
+          return (
+            <Router>
+              <Home path="/" />
+              <About path="/about" />
+              <Data path="/data" />
+              <Attains path="/attains" />
+              <Community path="/community">
+                <CommunityIntro path="/" />
+                {/* $FlowFixMe (urlSearch prop is passed from the path) */}
+                <CommunityTabs path="/:urlSearch" />
+                {/* $FlowFixMe (urlSearch and tabName props are passed from the path) */}
+                <CommunityTabs path="/:urlSearch/:tabName" />
+              </Community>
+              <State path="/state">
+                <StateIntro path="/" />
+                {/* $FlowFixMe (stateCode prop is passed from the path) */}
+                <StateTabs path="/:stateCode" />
+                {/* $FlowFixMe (stateCode and tabName props are passed from the path) */}
+                <StateTabs path="/:stateCode/:tabName" />
+              </State>
+              <National path="/national" />
+              <DrinkingWater path="/drinking-water" />
+              <Swimming path="/swimming" />
+              <EatingFish path="/eating-fish" />
+              <AquaticLife path="/aquatic-life" />
+              {/* $FlowFixMe (orgId and actionId props are passed from the path) */}
+              <Actions path="/plan-summary/:orgId/:actionId" />
+              {/* $FlowFixMe (orgId and auId props are passed from the path) */}
+              <WaterbodyReport path="/waterbody-report/:orgId/:auId" />
+              <WaterbodyReport path="/waterbody-report/:orgId/:auId/:reportingCycle" />
+              <InvalidUrl path="/invalid-url" />
+              <ErrorPage default />
+            </Router>
+          );
+        }}
+      </Location>
+    </>
   );
 }
 
