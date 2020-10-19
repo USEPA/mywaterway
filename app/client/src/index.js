@@ -46,7 +46,6 @@ function Root() {
           </GlossaryProvider>
         </LocationSearchProvider>
       </EsriModulesProvider>
-      )}
     </LookupFilesProvider>
   );
 }
