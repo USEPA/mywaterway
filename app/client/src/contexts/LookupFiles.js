@@ -244,47 +244,46 @@ function useServicesContext() {
   // fetch the lookup file if necessary
   if (!servicesInitialized) {
     servicesInitialized = true;
-    setTimeout(() => {
-      // get origin for mapping proxy calls
-      const loc = window.location;
-      const origin =
-        loc.hostname === 'localhost'
-          ? `${loc.protocol}//${loc.hostname}:9091`
-          : loc.origin;
 
-      // fetch the lookup file
-      lookupFetch('config/services.json')
-        .then((data) => {
-          const googleAnalyticsMapping = [];
-          data.googleAnalyticsMapping.forEach((item) => {
-            // get base url
-            let urlLookup = origin;
-            if (item.urlLookup !== 'origin') {
-              urlLookup = data;
-              const pathParts = item.urlLookup.split('.');
-              pathParts.forEach((part) => {
-                urlLookup = urlLookup[part];
-              });
-            }
+    // get origin for mapping proxy calls
+    const loc = window.location;
+    const origin =
+      loc.hostname === 'localhost'
+        ? `${loc.protocol}//${loc.hostname}:9091`
+        : loc.origin;
 
-            let wildcardUrl = item.wildcardUrl;
-            wildcardUrl = wildcardUrl.replace(/\{urlLookup\}/g, urlLookup);
-
-            googleAnalyticsMapping.push({
-              wildcardUrl,
-              name: item.name,
+    // fetch the lookup file
+    lookupFetch('config/services.json')
+      .then((data) => {
+        const googleAnalyticsMapping = [];
+        data.googleAnalyticsMapping.forEach((item) => {
+          // get base url
+          let urlLookup = origin;
+          if (item.urlLookup !== 'origin') {
+            urlLookup = data;
+            const pathParts = item.urlLookup.split('.');
+            pathParts.forEach((part) => {
+              urlLookup = urlLookup[part];
             });
+          }
+
+          let wildcardUrl = item.wildcardUrl;
+          wildcardUrl = wildcardUrl.replace(/\{urlLookup\}/g, urlLookup);
+
+          googleAnalyticsMapping.push({
+            wildcardUrl,
+            name: item.name,
           });
-
-          window.googleAnalyticsMapping = googleAnalyticsMapping;
-
-          setServices({ status: 'success', data });
-        })
-        .catch((err) => {
-          console.error(err);
-          setServices({ status: 'failure', data: err });
         });
-    }, 2000);
+
+        window.googleAnalyticsMapping = googleAnalyticsMapping;
+
+        setServices({ status: 'success', data });
+      })
+      .catch((err) => {
+        console.error(err);
+        setServices({ status: 'failure', data: err });
+      });
   }
 
   return services;
