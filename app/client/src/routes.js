@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Router, Location, navigate } from '@reach/router';
+import styled from 'styled-components';
 // components
 import Home from 'components/pages/Home';
 import Attains from 'components/pages/Attains';
@@ -22,12 +23,25 @@ import Actions from 'components/pages/Actions';
 import WaterbodyReport from 'components/pages/WaterbodyReport';
 import ErrorPage from 'components/pages/404';
 import InvalidUrl from 'components/pages/InvalidUrl';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+// styled components
+import { StyledErrorBox } from 'components/shared/MessageBoxes';
+// contexts
+import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
 import {
   containsScriptTag,
   resetCanonicalLink,
   removeJsonLD,
 } from 'utils/utils';
+// errors
+import { servicesLookupServiceError } from 'config/errorMessages';
+
+// --- styled components ---
+const ErrorBox = styled(StyledErrorBox)`
+  margin: 1rem;
+  text-align: center;
+`;
 
 // routes provided by Reach Router to each child of the Router component
 export type RouteProps = {
@@ -40,6 +54,15 @@ export type RouteProps = {
 
 // --- components ---
 function Routes() {
+  const services = useServicesContext();
+
+  if (services.status === 'fetching') {
+    return <LoadingSpinner />;
+  }
+  if (services.status === 'failure') {
+    return <ErrorBox>{servicesLookupServiceError}</ErrorBox>;
+  }
+
   return (
     <Location>
       {({ location }) => {
