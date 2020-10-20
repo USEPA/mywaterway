@@ -674,8 +674,17 @@ function MapWidgets({
         .execute(query)
         .then((res) => {
           setLoading(false);
-
           const upstreamLayer = getUpstreamLayer();
+
+          if (!res || !res.features || res.features.length === 0) {
+            upstreamLayer.error = true;
+            upstreamLayer.graphics.removeAll();
+            setUpstreamLayer(upstreamLayer);
+            setErrorMessage(
+              'Unable to get upstream watershed data for this location.',
+            );
+            return;
+          }
 
           upstreamLayer.graphics.add(
             new Graphic({
@@ -715,12 +724,12 @@ function MapWidgets({
         })
         .catch((err) => {
           setLoading(false);
-          upstreamLayer.error = true;
-          setUpstreamLayer(upstreamLayer);
           setErrorMessage(
-            'Unable to get upstream watershed data for this location.',
+            'Error fetching upstream watershed data for this location.',
           );
+          upstreamLayer.error = true;
           upstreamLayer.graphics.removeAll();
+          setUpstreamLayer(upstreamLayer);
         });
     },
     [view, Query, QueryTask, Viewpoint, Graphic],
