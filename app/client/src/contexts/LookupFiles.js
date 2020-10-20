@@ -253,7 +253,7 @@ function useServicesContext() {
         : loc.origin;
 
     // fetch the lookup file
-    lookupFetch('config/services-attains.json')
+    lookupFetch('config/services.json')
       .then((data) => {
         const googleAnalyticsMapping = [];
         data.googleAnalyticsMapping.forEach((item) => {
