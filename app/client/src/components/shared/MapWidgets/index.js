@@ -576,6 +576,7 @@ function MapWidgets({
 
     // store loading state to Upstream Watershed map widget icon
     const [loading, setLoading] = React.useState(false);
+
     const currentHuc12 = getHuc12();
 
     return (
@@ -628,8 +629,14 @@ function MapWidgets({
     ) => {
       const upstreamLayer = getUpstreamLayer();
 
-      // if upstream layer failed to load - don't retry
-      if (upstreamLayer === 'error') {
+      // if location changed since last widget click, update lastHuc12 state
+      if (currentHuc12 !== lastHuc12) {
+        setLastHuc12(currentHuc12);
+        upstreamLayer.error = false;
+      }
+
+      // already encountered an error for this location - don't retry
+      if (upstreamLayer.error === true) {
         return;
       }
 
@@ -649,16 +656,6 @@ function MapWidgets({
         upstreamLayer.visible = true;
         upstreamLayer.listMode = 'show';
         return;
-      }
-
-      // if location changed since last widget click, update lastHuc12 state
-      if (currentHuc12 !== lastHuc12) {
-        setLastHuc12(currentHuc12);
-        if (upstreamLayer) {
-          // upstreamLayer.visible = false;
-          // upstreamLayer.listMode = 'hide';
-          upstreamLayer.graphics.removeAll();
-        }
       }
 
       // fetch the upstream catchment
@@ -709,19 +706,21 @@ function MapWidgets({
           // store the current viewpoint in context
           setUpstreamExtent(currentViewpoint);
 
-          setUpstreamLayer(upstreamLayer);
           upstreamLayer.visible = true;
           upstreamLayer.listMode = 'show';
+          setUpstreamLayer(upstreamLayer);
 
           // zoom out to full extent
           view.goTo(upstreamExtent);
         })
         .catch((err) => {
           setLoading(false);
+          upstreamLayer.error = true;
+          setUpstreamLayer(upstreamLayer);
           setErrorMessage(
             'Unable to get upstream watershed data for this location.',
           );
-          setUpstreamLayer('error');
+          upstreamLayer.graphics.removeAll();
         });
     },
     [view, Query, QueryTask, Viewpoint, Graphic],

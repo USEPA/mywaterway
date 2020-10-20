@@ -423,7 +423,8 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       if (upstreamLayer) {
         upstreamLayer.visible = false;
         upstreamLayer.listMode = 'hide';
-        if (upstreamLayer) upstreamLayer.graphics.removeAll();
+        upstreamLayer.graphics.removeAll();
+        upstreamLayer.error = false;
       }
 
       // remove all map content defined in this file
