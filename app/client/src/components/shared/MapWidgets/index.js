@@ -679,8 +679,6 @@ function MapWidgets({
           setLoading(false);
 
           const upstreamLayer = getUpstreamLayer();
-          console.log('Upstream layer: ', upstreamLayer);
-          console.log('Response: ', res);
 
           upstreamLayer.graphics.add(
             new Graphic({
@@ -720,7 +718,6 @@ function MapWidgets({
         })
         .catch((err) => {
           setLoading(false);
-          console.log(err);
           setErrorMessage(
             'Unable to get upstream watershed data for this location.',
           );
