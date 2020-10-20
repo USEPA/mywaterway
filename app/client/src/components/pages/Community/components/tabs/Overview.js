@@ -19,6 +19,7 @@ import {
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { OverviewFiltersContext } from 'contexts/OverviewFilters';
+import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
 import {
@@ -77,6 +78,8 @@ function Overview() {
     setDischargersFilterEnabled,
   } = React.useContext(OverviewFiltersContext);
 
+  const services = useServicesContext();
+
   // set the waterbody features
   const waterbodies = useWaterbodyFeatures();
 
@@ -91,6 +94,7 @@ function Overview() {
   React.useEffect(() => {
     // wait until monitoring stations data is set in context
     if (!monitoringLocations.data.features) return;
+    if (services.status === 'fetching') return;
 
     const stations = monitoringLocations.data.features.map((station) => {
       return {
@@ -100,8 +104,8 @@ function Overview() {
       };
     });
 
-    plotStations(Graphic, stations, monitoringStationsLayer);
-  }, [monitoringLocations.data, Graphic, monitoringStationsLayer]);
+    plotStations(Graphic, stations, monitoringStationsLayer, services);
+  }, [monitoringLocations.data, Graphic, monitoringStationsLayer, services]);
 
   // draw the permitted dischargers on the map
   React.useEffect(() => {

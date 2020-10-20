@@ -9,10 +9,9 @@ import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // contexts
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
+import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
 import { containsScriptTag, isHuc12 } from 'utils/utils';
-// config
-import { locatorUrl } from 'config/mapServiceConfig';
 // styles
 import { colors } from 'styles/index.js';
 // errors
@@ -83,6 +82,7 @@ type Props = {
 };
 
 function LocationSearch({ route, label }: Props) {
+  const services = useServicesContext();
   const { Locator, Point } = React.useContext(EsriModulesContext);
   const { searchText, watershed, huc12 } = React.useContext(
     LocationSearchContext,
@@ -166,7 +166,9 @@ function LocationSearch({ route, label }: Props) {
                   navigator.geolocation.getCurrentPosition(
                     // success function called when geolocation succeeds
                     (position) => {
-                      const locatorTask = new Locator({ url: locatorUrl });
+                      const locatorTask = new Locator({
+                        url: services.data.locatorUrl,
+                      });
                       const params = {
                         location: new Point({
                           x: position.coords.longitude,

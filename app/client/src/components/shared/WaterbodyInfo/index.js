@@ -9,7 +9,6 @@ import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // utilities
-import { waterQualityPortal } from 'config/webServiceConfig';
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
 import { getWaterbodyCondition } from 'components/pages/LocationMap/MapFunctions';
 import { fetchCheck } from 'utils/fetchUtils';
@@ -67,8 +66,7 @@ const Icon = styled.i`
 `;
 
 const IconValue = styled.span`
-  display: flex;
-  align-items: center;
+  display: inline-block;
 `;
 
 const Table = styled.table`
@@ -112,6 +110,7 @@ type Props = {
   extraContent: ?Object,
   location: ?Object,
   resetData: ?Function,
+  services: ?Object,
 };
 
 function WaterbodyInfo({
@@ -122,6 +121,7 @@ function WaterbodyInfo({
   extraContent,
   getClickedHuc,
   resetData,
+  services,
 }: Props) {
   // Gets the response of what huc was clicked, if provided.
   const [clickedHuc, setClickedHuc] = React.useState({
@@ -156,7 +156,6 @@ function WaterbodyInfo({
       return (
         <p>
           <strong>{label}: </strong>
-          <br />
           {icon ? (
             <IconValue>
               {icon} {value}
@@ -471,7 +470,7 @@ function WaterbodyInfo({
     if (type !== 'Monitoring Location') return;
 
     const wqpUrl =
-      `${waterQualityPortal.monitoringLocation}` +
+      `${services.data.waterQualityPortal.monitoringLocation}` +
       `search?mimeType=geojson&zip=no&siteid=` +
       `${attributes.MonitoringLocationIdentifier}`;
 
@@ -508,7 +507,12 @@ function WaterbodyInfo({
           data: [],
         });
       });
-  }, [attributes.MonitoringLocationIdentifier, attributes.ProviderName, type]);
+  }, [
+    attributes.MonitoringLocationIdentifier,
+    attributes.ProviderName,
+    type,
+    services,
+  ]);
 
   const [charGroupFilters, setCharGroupFilters] = React.useState('');
   const [selected, setSelected] = React.useState({});
@@ -556,7 +560,7 @@ function WaterbodyInfo({
     // parameters in the download URL string
     // (see setCharGroupFilters in Table's onChange handler)
     const downloadUrl =
-      `${waterQualityPortal.resultSearch}zip=no&siteid=` +
+      `${services.data.waterQualityPortal.resultSearch}zip=no&siteid=` +
       `${attributes.MonitoringLocationIdentifier}&providers=` +
       `${attributes.ProviderName}` +
       `${charGroupFilters}`;
@@ -713,7 +717,7 @@ function WaterbodyInfo({
             rel="noopener noreferrer"
             target="_blank"
             href={
-              waterQualityPortal.monitoringLocationDetails +
+              services.data.waterQualityPortal.monitoringLocationDetails +
               attributes.ProviderName +
               '/' +
               attributes.OrganizationIdentifier +

@@ -110,30 +110,54 @@
       })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
     }
 
+    // Wrapper for logging to GA which adds the target to the command
+    function logToGa(command, ...props) {
+      ga(`${window.gaTarget}.${command}`, ...props);
+    }
+
+    // get origin for mapping proxy calls
+    const loc = window.location;
+    const origin =
+      loc.hostname === 'localhost'
+        ? `${loc.protocol}//${loc.hostname}:9091`
+        : loc.origin;
+        
+    // initialize the googleAnalyticsMapping window object so the calls to get
+    // the services lookup file are logged.
+    window.googleAnalyticsMapping = [
+      { 
+        wildcardUrl: `${origin}/proxy?url=${origin}/data/config/services.json`, 
+        name: 's3 lookup - config services'
+      },
+    ];
+
     //Only setup the logging for public sites, ie don't log from localhost
-    window.isIdSet = false;
-    if (document.location.hostname.indexOf("epa.gov") > -1) {
-      //EPA (Production) - Just initialize the HMW logs by setting isIdSet
-      isIdSet = true;
+    window.gaTarget = '';
+    if (
+      document.location.hostname.indexOf("epa.gov") > -1 || 
+      document.location.hostname === 'mywaterway-prod.app.cloud.gov'
+    ) {
+      //EPA (Production) - Just initialize the HMW logs by setting gaTarget
+      window.gaTarget = 'EPA';
     }
     else if (document.location.hostname === 'mywaterway-stage.app.cloud.gov') {
       addGoogleAnalyticsObject();
-      ga('create', 'UA-37504877-4', 'auto');  //Stage
-      ga('send', 'pageview');
-      isIdSet = true;
+      ga('create', 'UA-37504877-4', 'auto', 'ERG');  //Stage
+      window.gaTarget = 'ERG';
+      logToGa('send', 'pageview');
     }
     else if (
       document.location.hostname === 'mywaterway-dev.app.cloud.gov' ||
       document.location.hostname === 'localhost'
     ) {
       addGoogleAnalyticsObject();
-      ga('create', 'UA-37504877-3', 'auto');  //Dev
-      ga('send', 'pageview');
-      isIdSet = true;
+      ga('create', 'UA-37504877-3', 'auto', 'ERG');  //Dev
+      window.gaTarget = 'ERG';
+      logToGa('send', 'pageview');
     }
 
     //Only setup the logging for public sites, ie don't log from localhost
-    if (isIdSet) {
+    if (gaTarget) {
       // create the locationChange event 
       let event;
       if (typeof Event === 'function') { // used for modern browsers
@@ -145,8 +169,8 @@
 
       // create the location change event listener
       window.addEventListener("locationchange", function (event) {
-        ga('set', 'page', window.location.pathname)
-        ga('send', 'pageview');
+        logToGa('set', 'page', window.location.pathname)
+        logToGa('send', 'pageview');
       });
 
       // Modify the pushState, replaceState and popState events so they
@@ -175,7 +199,7 @@
           const action = title ?
             'ow-hmw2-' + text + ' - ' + title :
             'ow-hmw2-' + text;
-          ga('send', 'event', 'buttonClick', action, window.location.pathname);
+          logToGa('send', 'event', 'buttonClick', action, window.location.pathname);
         }
 
         //Link clicks
@@ -196,12 +220,12 @@
           }
 
           //Log to Google Analytics
-          ga('send', 'event', category, 'ow-hmw2-' + event.target.text.trim(), href);
+          logToGa('send', 'event', category, 'ow-hmw2-' + event.target.text.trim(), href);
         }
       });
 
       window.addEventListener('error', function (event) {
-        window.ga('send', 'exception', {
+        window.logToGa('send', 'exception', {
           exDescription: `${event.error.message}${event.error.stack}`,
           exFatal: true,
         });

@@ -11,10 +11,10 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import ReactTable from 'components/shared/ReactTable';
 // styled components
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
+// contexts
+import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
-// config
-import { attains } from 'config/webServiceConfig';
 // data
 import { impairmentFields } from 'config/attainsToHmwMapping';
 // errors
@@ -69,13 +69,23 @@ type Props = {
 };
 
 function Attains({ ...props }: Props) {
+  const services = useServicesContext();
+
   const [loading, setLoading] = React.useState(true);
   const [serviceError, setServiceError] = React.useState(false);
   const [attainsData, setAttainsData] = React.useState(null);
   const [matchedMappings, setMatchedMappings] = React.useState([]);
 
+  const [attainsDataInitialized, setAttainsDataInitialized] = React.useState(
+    false,
+  );
   React.useEffect(() => {
-    const url = attains.serviceUrl + 'domains?domainName=ParameterName';
+    if (attainsDataInitialized) return;
+
+    setAttainsDataInitialized(true);
+
+    const url =
+      services.data.attains.serviceUrl + 'domains?domainName=ParameterName';
 
     fetchCheck(url)
       .then((res) => {
@@ -87,11 +97,11 @@ function Attains({ ...props }: Props) {
         setLoading(false);
         setServiceError(true);
       });
-  }, []);
+  }, [services, attainsDataInitialized]);
 
   React.useEffect(() => {
     // array of arrays - each containing 3 values: the HMW mapping, the ATTAINS context, and the ATTAINS name
-    // i.e. ["Excess Algae", "ALGAL GROWTH", "EXCESS ALGAL GROWTH"]
+    // i.e. ["Algae", "ALGAL GROWTH", "EXCESS ALGAL GROWTH"]
     let data = [];
     if (attainsData) {
       data = attainsData.map((obj) => {
@@ -153,7 +163,7 @@ function Attains({ ...props }: Props) {
           data={matchedMappings}
           striped={true}
           getColumns={(tableWidth) => {
-            const columnWidth = tableWidth / 3;
+            const columnWidth = tableWidth / 3 - 1;
 
             return [
               {
