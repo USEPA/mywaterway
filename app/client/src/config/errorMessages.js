@@ -144,6 +144,8 @@ export const attainsParameterServiceError =
   'Parameter information is temporarily unavailable, please try again later.';
 
 // Error Boundaries //
+export const servicesLookupServiceError =
+  "How's My Waterway is temporarily unavailable, please try again later.";
 
 // message displayed for Esri map error boundaries
 export const mapErrorBoundaryMessage = (

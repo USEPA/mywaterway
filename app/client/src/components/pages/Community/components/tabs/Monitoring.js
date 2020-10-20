@@ -16,6 +16,7 @@ import {
 // contexts
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
+import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { plotStations } from 'components/pages/LocationMap/MapFunctions';
 // errors
@@ -113,6 +114,8 @@ type StationGroups = {
 
 function Monitoring() {
   const { Graphic } = React.useContext(EsriModulesContext);
+
+  const services = useServicesContext();
 
   const {
     monitoringLocations,
@@ -234,6 +237,7 @@ function Monitoring() {
 
   const drawMap = React.useCallback(() => {
     if (allMonitoringStations.length === 0) return;
+    if (services.status === 'fetching') return;
     const addedStationUids = [];
     let tempDisplayedMonitoringStations = [];
 
@@ -260,6 +264,7 @@ function Monitoring() {
       Graphic,
       tempDisplayedMonitoringStations,
       monitoringStationsLayer,
+      services,
     );
 
     if (tempDisplayedMonitoringStations.length === 0) {
@@ -283,6 +288,7 @@ function Monitoring() {
     monitoringLocationToggles,
     monitoringStationGroups,
     monitoringStationsLayer,
+    services,
   ]);
 
   const toggleSwitch = React.useCallback(
@@ -534,6 +540,7 @@ function Monitoring() {
                         <WaterbodyInfo
                           type={'Monitoring Location'}
                           feature={feature}
+                          services={services}
                         />
                         <ViewOnMapButton feature={feature} />
                       </AccordionContent>

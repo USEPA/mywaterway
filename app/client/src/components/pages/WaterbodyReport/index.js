@@ -28,8 +28,7 @@ import {
 // contexts
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
-// config
-import { attains, waterQualityPortal } from 'config/webServiceConfig';
+import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck, fetchPost } from 'utils/fetchUtils';
 import { titleCaseWithExceptions } from 'utils/utils';
@@ -201,6 +200,8 @@ type Props = {
 };
 
 function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
+  const services = useServicesContext();
+
   const [noWaterbodies, setNoWaterbodies] = React.useState(false);
 
   const [waterbodyName, setWaterbodyName] = React.useState('');
@@ -224,7 +225,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
   // fetch waterbody name, location, types from attains 'assessmentUnits' web service
   React.useEffect(() => {
     const url =
-      attains.serviceUrl +
+      services.data.attains.serviceUrl +
       `assessmentUnits?organizationId=${orgId}` +
       `&assessmentUnitIdentifier=${auId}`;
 
@@ -269,7 +270,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         }));
 
         // build the post reqest
-        const wqpUrl = `${waterQualityPortal.stationSearch}mimeType=geojson`;
+        const wqpUrl = `${services.data.waterQualityPortal.stationSearch}mimeType=geojson`;
         const headers = { 'content-type': 'application/json' };
         const data = {
           siteid: stations.map((s) => {
@@ -297,7 +298,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                 : '';
 
               const url = match
-                ? `${waterQualityPortal.monitoringLocationDetails}` +
+                ? `${services.data.waterQualityPortal.monitoringLocationDetails}` +
                   `${match.properties['ProviderName']}/` +
                   `${match.properties['OrganizationIdentifier']}/` +
                   `${match.properties['MonitoringLocationIdentifier']}/`
@@ -320,7 +321,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         setWaterbodyLocation({ status: 'failure', text: '' });
       },
     );
-  }, [auId, orgId]);
+  }, [auId, orgId, services]);
 
   const [reportingCycleFetch, setReportingCycleFetch] = React.useState({
     status: 'fetching',
@@ -368,7 +369,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
     setAssessmentsCalled(true);
 
     const url =
-      attains.serviceUrl +
+      services.data.attains.serviceUrl +
       `assessments?organizationId=${orgId}` +
       `&assessmentUnitIdentifier=${auId}` +
       (reportingCycleParam ? `&reportingCycle=${reportingCycleParam}` : '');
@@ -600,7 +601,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         });
       },
     );
-  }, [auId, orgId, reportingCycle, mapLayer, assessmentsCalled]);
+  }, [auId, orgId, reportingCycle, mapLayer, assessmentsCalled, services]);
 
   // Get the reporting cycle from the map
   const [mapReportingCycle, setMapReportingCycle] = React.useState('');
@@ -623,7 +624,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
   // 'organizationId' and 'assessmentUnitIdentifier' query string parameters
   React.useEffect(() => {
     const url =
-      attains.serviceUrl +
+      services.data.attains.serviceUrl +
       `actions?organizationIdentifier=${orgId}` +
       `&assessmentUnitIdentifier=${auId}`;
 
@@ -665,7 +666,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         console.error(err);
       },
     );
-  }, [auId, orgId]);
+  }, [auId, orgId, services]);
 
   // call attains 'actions' web service again, this time using the
   // 'actionIdentifier' query string parameter – once for each action
@@ -698,7 +699,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
       }
 
       const url =
-        attains.serviceUrl +
+        services.data.attains.serviceUrl +
         `actions?organizationIdentifier=${orgId}` +
         `&actionIdentifier=${additionalIds.join(',')}`;
 
@@ -756,7 +757,13 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
           }));
         });
     }
-  }, [actionsFetchedAgain, allParameterActionIds, orgId, waterbodyActions]);
+  }, [
+    actionsFetchedAgain,
+    allParameterActionIds,
+    orgId,
+    waterbodyActions,
+    services,
+  ]);
 
   // Builds the unitIds dictionary that is used for determining what
   // waters to display on the screen and what the content will be.

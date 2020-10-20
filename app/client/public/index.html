@@ -115,6 +115,22 @@
       ga(`${window.gaTarget}.${command}`, ...props);
     }
 
+    // get origin for mapping proxy calls
+    const loc = window.location;
+    const origin =
+      loc.hostname === 'localhost'
+        ? `${loc.protocol}//${loc.hostname}:9091`
+        : loc.origin;
+        
+    // initialize the googleAnalyticsMapping window object so the calls to get
+    // the services lookup file are logged.
+    window.googleAnalyticsMapping = [
+      { 
+        wildcardUrl: `${origin}/proxy?url=${origin}/data/config/services.json`, 
+        name: 's3 lookup - config services'
+      },
+    ];
+
     //Only setup the logging for public sites, ie don't log from localhost
     window.gaTarget = '';
     if (

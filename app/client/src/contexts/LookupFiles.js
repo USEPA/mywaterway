@@ -39,6 +39,8 @@ type LookupFiles = {
   setNars: Function,
   notifications: LookupFile,
   setNotifications: Function,
+  services: LookupFile,
+  setServices: Function,
 };
 
 const LookupFilesContext: Object = React.createContext<LookupFiles>({
@@ -56,6 +58,8 @@ const LookupFilesContext: Object = React.createContext<LookupFiles>({
   setNars: () => {},
   notifications: { status: 'fetching', data: null },
   setNotifications: () => {},
+  services: { status: 'fetching', data: null },
+  setServices: () => {},
 });
 
 type Props = {
@@ -91,6 +95,10 @@ function LookupFilesProvider({ children }: Props) {
     status: 'fetching',
     data: [],
   });
+  const [services, setServices] = React.useState({
+    status: 'fetching',
+    data: {},
+  });
 
   return (
     <LookupFilesContext.Provider
@@ -109,6 +117,8 @@ function LookupFilesProvider({ children }: Props) {
         setNars,
         notifications,
         setNotifications,
+        services,
+        setServices,
       }}
     >
       {children}
@@ -226,6 +236,59 @@ function useNotificationsContext() {
   return notifications;
 }
 
+// Custom hook for the services.json file.
+let servicesInitialized = false; // global var for ensuring fetch only happens once
+function useServicesContext() {
+  const { services, setServices } = React.useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!servicesInitialized) {
+    servicesInitialized = true;
+
+    // get origin for mapping proxy calls
+    const loc = window.location;
+    const origin =
+      loc.hostname === 'localhost'
+        ? `${loc.protocol}//${loc.hostname}:9091`
+        : loc.origin;
+
+    // fetch the lookup file
+    lookupFetch('config/services.json')
+      .then((data) => {
+        const googleAnalyticsMapping = [];
+        data.googleAnalyticsMapping.forEach((item) => {
+          // get base url
+          let urlLookup = origin;
+          if (item.urlLookup !== 'origin') {
+            urlLookup = data;
+            const pathParts = item.urlLookup.split('.');
+            pathParts.forEach((part) => {
+              urlLookup = urlLookup[part];
+            });
+          }
+
+          let wildcardUrl = item.wildcardUrl;
+          wildcardUrl = wildcardUrl.replace(/\{urlLookup\}/g, urlLookup);
+
+          googleAnalyticsMapping.push({
+            wildcardUrl,
+            name: item.name,
+          });
+        });
+
+        window.googleAnalyticsMapping = googleAnalyticsMapping;
+
+        setServices({ status: 'success', data });
+      })
+      .catch((err) => {
+        console.error(err);
+        setServices({ status: 'failure', data: err });
+      });
+  }
+
+  return services;
+}
+
 export {
   LookupFilesProvider,
   useDocumentOrderContext,
@@ -235,5 +298,6 @@ export {
   useWaterTypeOptionsContext,
   useNarsContext,
   useNotificationsContext,
+  useServicesContext,
   LookupFilesContext,
 };
