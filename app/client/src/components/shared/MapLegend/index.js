@@ -471,6 +471,24 @@ function MapLegendContent({ layer }: CardProps) {
     </LI>
   );
 
+  // jsx
+  const upstreamLegend = (
+    <LI>
+      <ImageContainer>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="26"
+          height="26"
+          viewBox="0 0 26 26"
+          aria-hidden="true"
+        >
+          <rect x="0" y="12" width="26" height="3" fill="#1fb8ff" />
+        </svg>
+      </ImageContainer>
+      <LegendLabel>Upstream Watersheds</LegendLabel>
+    </LI>
+  );
+
   if (layer.id === 'waterbodyLayer') return waterbodyLegend;
   if (layer.id === 'issuesLayer') return issuesLegend;
   if (layer.id === 'monitoringStationsLayer') return monitoringStationsLegend;
@@ -483,6 +501,7 @@ function MapLegendContent({ layer }: CardProps) {
   if (layer.id === 'tribalLayer') return tribalLegend;
   if (layer.id === 'wsioHealthIndexLayer') return healthIndexLegend;
   if (layer.id === 'congressionalLayer') return congressionalDistrictsLegend;
+  if (layer.id === 'upstreamWatersheds') return upstreamLegend;
 
   return null;
 }

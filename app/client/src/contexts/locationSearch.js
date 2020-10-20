@@ -379,11 +379,11 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         pointsLayer,
         linesLayer,
         areasLayer,
-        upstreamLayer,
         providersLayer,
         boundariesLayer,
         searchIconLayer,
         monitoringStationsLayer,
+        upstreamLayer,
         dischargersLayer,
         nonprofitsLayer,
         mapView,
@@ -397,14 +397,12 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       if (linesLayer) newState['linesLayer'] = null;
       if (areasLayer) newState['areasLayer'] = null;
       if (waterbodyLayer) newState['waterbodyLayer'] = null;
-      if (upstreamLayer) newState['upstreamLayer'] = null;
 
       const layersToRemove = [
         'pointsLayer',
         'linesLayer',
         'areasLayer',
         'waterbodyLayer',
-        'upstreamLayer',
       ];
 
       // remove the layers from state layers list
@@ -421,11 +419,19 @@ export class LocationSearchProvider extends React.Component<Props, State> {
 
       this.setState(newState);
 
+      // hide and remove upstream layer graphics when switching locations
+      if (upstreamLayer) {
+        upstreamLayer.visible = false;
+        upstreamLayer.listMode = 'hide';
+        if (upstreamLayer) upstreamLayer.graphics.removeAll();
+      }
+
       // remove all map content defined in this file
       if (providersLayer) providersLayer.graphics.removeAll();
       if (boundariesLayer) boundariesLayer.graphics.removeAll();
       if (searchIconLayer) searchIconLayer.graphics.removeAll();
       if (monitoringStationsLayer) monitoringStationsLayer.graphics.removeAll();
+
       if (dischargersLayer) dischargersLayer.graphics.removeAll();
       if (nonprofitsLayer) nonprofitsLayer.graphics.removeAll();
 

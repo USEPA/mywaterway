@@ -133,6 +133,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setWaterbodyLayer,
     setIssuesLayer,
     setMonitoringStationsLayer,
+    setUpstreamLayer,
     setDischargersLayer,
     setNonprofitsLayer,
     setProvidersLayer,
@@ -194,6 +195,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setSearchIconLayer(searchIconLayer);
 
+    const upstreamLayer = new GraphicsLayer({
+      id: 'upstreamWatersheds',
+      title: 'Upstream Watersheds',
+      listMode: 'hide',
+    });
+
+    setUpstreamLayer(upstreamLayer);
+
     const monitoringStationsLayer = new GraphicsLayer({
       id: 'monitoringStationsLayer',
       title: 'Monitoring Stations',
@@ -231,6 +240,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       providersLayer,
       boundariesLayer,
       monitoringStationsLayer,
+      upstreamLayer,
       issuesLayer,
       dischargersLayer,
       nonprofitsLayer,
@@ -247,6 +257,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setIssuesLayer,
     setLayers,
     setMonitoringStationsLayer,
+    setUpstreamLayer,
     setNonprofitsLayer,
     setProvidersLayer,
     setSearchIconLayer,
