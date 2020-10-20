@@ -157,7 +157,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setErrorMessage,
   } = React.useContext(LocationSearchContext);
 
-  // const [errorMessage, setErrorMessage] = React.useState('');
   const [view, setView] = React.useState(null);
 
   const getSharedLayers = useSharedLayers();

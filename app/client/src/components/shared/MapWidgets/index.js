@@ -169,7 +169,6 @@ function MapWidgets({
     setUpstreamLayer,
     getUpstreamLayer,
     getCurrentExtent,
-    setCurrentExtent,
     getHuc12,
     getUpstreamExtent,
     setUpstreamExtent,
@@ -527,7 +526,6 @@ function MapWidgets({
       <ShowUpstreamWatershed
         getHuc12={getHuc12}
         getCurrentExtent={getCurrentExtent}
-        setCurrentExtent={setCurrentExtent}
         getUpstreamLayer={getUpstreamLayer}
         setUpstreamLayer={setUpstreamLayer}
         getUpstreamExtent={getUpstreamExtent}
@@ -542,7 +540,6 @@ function MapWidgets({
     upstreamWidgetCreated,
     getHuc12,
     getCurrentExtent,
-    setCurrentExtent,
     setUpstreamLayer,
     getUpstreamLayer,
     getUpstreamExtent,
@@ -553,7 +550,6 @@ function MapWidgets({
   type upstreamProps = {
     getHuc12: Function,
     getCurrentExtent: Function,
-    setCurrentExtent: Function,
     getUpstreamLayer: Function,
     setUpstreamLayer: Function,
     getUpstreamExtent: Function,
@@ -564,7 +560,6 @@ function MapWidgets({
   function ShowUpstreamWatershed({
     getHuc12,
     getCurrentExtent,
-    setCurrentExtent,
     getUpstreamLayer,
     setUpstreamLayer,
     getUpstreamExtent,
@@ -591,7 +586,6 @@ function MapWidgets({
             lastHuc12,
             setLastHuc12,
             getCurrentExtent,
-            setCurrentExtent,
             getUpstreamLayer,
             setUpstreamLayer,
             getUpstreamExtent,
@@ -619,7 +613,6 @@ function MapWidgets({
       lastHuc12,
       setLastHuc12,
       getCurrentExtent,
-      setCurrentExtent,
       getUpstreamLayer,
       setUpstreamLayer,
       getUpstreamExtent,
