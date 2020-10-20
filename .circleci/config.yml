@@ -170,10 +170,10 @@ jobs:
             cd server/app/public/data/config
             cp -rf services-attains.json services.json
       - run:
-          name: Deploy application to Cloud.gov
+          name: Deploy ATTAINS version of application to Cloud.gov
           command: |
             cd server
-            cf push --no-start $APP_NAME_ATTAINS-green -f ../manifest-staging.yml -p . -n $APP_NAME_ATTAINS-green 
+            cf push --no-start $APP_NAME_ATTAINS-green -f ../manifest-attains.yml -p . -n $APP_NAME_ATTAINS-green 
             cf set-env $APP_NAME_ATTAINS-green GLOSSARY_AUTH "$GLOSSARY_AUTH"
             cf set-env $APP_NAME_ATTAINS-green HMW_BASIC_USER_NAME "$HMW_BASIC_USER_NAME"
             cf set-env $APP_NAME_ATTAINS-green HMW_BASIC_USER_PWD "$HMW_BASIC_USER_PWD"
