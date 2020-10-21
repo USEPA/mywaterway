@@ -42,6 +42,7 @@ type State = {
   selWaterBodyLayer: Object,
   homeWidget: Object,
   upstreamWidget: Object,
+  upstreamWidgetDisabled: boolean,
   hucBoundaries: Object,
   atHucBoundaries: boolean,
   countyBoundaries: Object,
@@ -134,6 +135,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     selWaterBodyLayer: '',
     homeWidget: null,
     upstreamWidget: null,
+    upstreamWidgetDisabled: false,
     visibleLayers: {},
     basemap: {},
     hucBoundaries: '',
@@ -196,6 +198,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     setUpstreamExtent: (upstreamExtent) => {
       this.setState({ upstreamExtent });
     },
+    setUpstreamWidgetDisabled: (upstreamWidgetDisabled) => {
+      this.setState({ upstreamWidgetDisabled });
+    },
     setAtHucBoundaries: (atHucBoundaries) => {
       this.setState({ atHucBoundaries });
     },
@@ -232,6 +237,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     },
     getUpstreamLayer: () => {
       return this.state.upstreamLayer;
+    },
+    getUpstreamWidgetDisabled: () => {
+      return this.state.upstreamWidgetDisabled;
     },
     getCurrentExtent: () => {
       return this.state.currentExtent;

@@ -163,6 +163,9 @@ function MapWidgets({
     homeWidget,
     setHomeWidget,
     upstreamWidget,
+    upstreamWidgetDisabled,
+    setUpstreamWidgetDisabled,
+    getUpstreamWidgetDisabled,
     setUpstreamWidget,
     visibleLayers,
     setVisibleLayers,
@@ -519,16 +522,36 @@ function MapWidgets({
   // widget should only be displayed on valid Community page location
   React.useEffect(() => {
     if (!upstreamWidget) return;
-    if (
-      !huc12 ||
-      !window.location.pathname.includes('/community') ||
-      window.location.pathname === '/community'
-    ) {
+
+    if (!window.location.pathname.includes('/community')) {
+      // hide upstream widget on other pages
       upstreamWidget.style.display = 'none';
+      return;
+    }
+
+    if (!huc12 || window.location.pathname === '/community') {
+      // disable upstream widget on community home or invalid searches
+      setUpstreamWidgetDisabled(true);
+      return;
+    }
+
+    // display and enable the upstream widget
+    setUpstreamWidgetDisabled(false);
+  }, [huc12, upstreamWidget, setUpstreamWidgetDisabled]);
+
+  React.useEffect(() => {
+    if (!upstreamWidget) return;
+
+    if (upstreamWidgetDisabled) {
+      upstreamWidget.style.display = 'block';
+      upstreamWidget.style.opacity = '0.5';
+      upstreamWidget.style.cursor = 'default';
     } else {
       upstreamWidget.style.display = 'block';
+      upstreamWidget.style.opacity = '1';
+      upstreamWidget.style.cursor = 'pointer';
     }
-  }, [huc12, upstreamWidget]);
+  }, [upstreamWidget, upstreamWidgetDisabled]);
 
   // create upstream widget
   const [
@@ -550,6 +573,8 @@ function MapWidgets({
         getUpstreamExtent={getUpstreamExtent}
         setUpstreamExtent={setUpstreamExtent}
         setErrorMessage={setErrorMessage}
+        getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
+        setUpstreamWidgetDisabled={setUpstreamWidgetDisabled}
       />,
       node,
     );
@@ -565,6 +590,8 @@ function MapWidgets({
     getUpstreamExtent,
     setUpstreamExtent,
     setErrorMessage,
+    getUpstreamWidgetDisabled,
+    setUpstreamWidgetDisabled,
   ]);
 
   type upstreamProps = {
@@ -575,6 +602,8 @@ function MapWidgets({
     getUpstreamExtent: Function,
     setUpstreamExtent: Function,
     setErrorMessage: Function,
+    getUpstreamWidgetDisabled: Function,
+    setUpstreamWidgetDisabled: Function,
   };
 
   function ShowUpstreamWatershed({
@@ -585,6 +614,8 @@ function MapWidgets({
     getUpstreamExtent,
     setUpstreamExtent,
     setErrorMessage,
+    getUpstreamWidgetDisabled,
+    setUpstreamWidgetDisabled,
   }: upstreamProps) {
     const [hover, setHover] = React.useState(false);
     const [lastHuc12, setLastHuc12] = React.useState('');
@@ -594,10 +625,12 @@ function MapWidgets({
 
     const currentHuc12 = getHuc12();
 
+    const upstreamWidgetDisabled = getUpstreamWidgetDisabled();
+
     return (
       <div
         title={'Display Upstream Watershed'}
-        style={hover ? divHoverStyle : divStyle}
+        style={!upstreamWidgetDisabled && hover ? divHoverStyle : divStyle}
         onMouseOver={() => setHover(true)}
         onMouseOut={() => setHover(false)}
         onClick={(ev) => {
@@ -611,6 +644,8 @@ function MapWidgets({
             getUpstreamExtent,
             setUpstreamExtent,
             setErrorMessage,
+            getUpstreamWidgetDisabled,
+            setUpstreamWidgetDisabled,
             setLoading,
           );
         }}
@@ -621,7 +656,9 @@ function MapWidgets({
               ? 'esri-icon-loading-indicator esri-rotating'
               : 'esri-icon esri-icon-maps'
           }
-          style={hover ? buttonHoverStyle : buttonStyle}
+          style={
+            !upstreamWidgetDisabled && hover ? buttonHoverStyle : buttonStyle
+          }
         />
       </div>
     );
@@ -638,8 +675,13 @@ function MapWidgets({
       getUpstreamExtent,
       setUpstreamExtent,
       setErrorMessage,
+      getUpstreamWidgetDisabled,
+      setUpstreamWidgetDisabled,
       setLoading,
     ) => {
+      // if widget is disabled do nothing
+      if (getUpstreamWidgetDisabled()) return;
+
       const upstreamLayer = getUpstreamLayer();
 
       // if location changed since last widget click, update lastHuc12 state
@@ -701,6 +743,7 @@ function MapWidgets({
             upstreamLayer.error = true;
             upstreamLayer.graphics.removeAll();
             setUpstreamLayer(upstreamLayer);
+            setUpstreamWidgetDisabled(true);
             setErrorMessage(
               'Unable to get upstream watershed data for this location.',
             );
@@ -745,6 +788,7 @@ function MapWidgets({
         })
         .catch((err) => {
           setLoading(false);
+          setUpstreamWidgetDisabled(true);
           setErrorMessage(
             'Error fetching upstream watershed data for this location.',
           );
