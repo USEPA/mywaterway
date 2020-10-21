@@ -162,6 +162,8 @@ function MapWidgets({
   const {
     homeWidget,
     setHomeWidget,
+    upstreamWidget,
+    setUpstreamWidget,
     visibleLayers,
     setVisibleLayers,
     setBasemap,
@@ -170,6 +172,7 @@ function MapWidgets({
     getUpstreamLayer,
     getCurrentExtent,
     getHuc12,
+    huc12,
     getUpstreamExtent,
     setUpstreamExtent,
     setErrorMessage,
@@ -512,6 +515,21 @@ function MapWidgets({
     cursor: 'pointer',
   };
 
+  // watch for location changes and disable/enable the upstream widget accordingly
+  // widget should only be displayed on valid Community page location
+  React.useEffect(() => {
+    if (!upstreamWidget) return;
+    if (
+      !huc12 ||
+      !window.location.pathname.includes('/community') ||
+      window.location.pathname === '/community'
+    ) {
+      upstreamWidget.style.display = 'none';
+    } else {
+      upstreamWidget.style.display = 'block';
+    }
+  }, [huc12, upstreamWidget]);
+
   // create upstream widget
   const [
     upstreamWidgetCreated,
@@ -522,6 +540,7 @@ function MapWidgets({
 
     const node = document.createElement('div');
     view.ui.add(node, { position: 'top-right', index: 1 });
+    setUpstreamWidget(node); // store the widget in context so it can be shown or hidden later
     ReactDOM.render(
       <ShowUpstreamWatershed
         getHuc12={getHuc12}
@@ -536,6 +555,7 @@ function MapWidgets({
     );
     setUpstreamWidgetCreated(true);
   }, [
+    setUpstreamWidget,
     view,
     upstreamWidgetCreated,
     getHuc12,
@@ -635,7 +655,11 @@ function MapWidgets({
 
       // if location hasn't changed and upstream layer is displayed:
       // zoom to current location extent and hide the upstream layer
-      if (currentHuc12 === lastHuc12 && upstreamLayer.visible) {
+      if (
+        currentHuc12 === lastHuc12 &&
+        upstreamLayer.visible &&
+        upstreamLayer.graphics.length > 0
+      ) {
         view.goTo(getCurrentExtent());
         upstreamLayer.visible = false;
         upstreamLayer.listMode = 'hide';
@@ -644,7 +668,11 @@ function MapWidgets({
 
       // if location hasn't changed and upstream layer is hidden:
       // zoom to full upstream extent and display the upstream layer
-      if (currentHuc12 === lastHuc12 && !upstreamLayer.visible) {
+      if (
+        currentHuc12 === lastHuc12 &&
+        !upstreamLayer.visible &&
+        upstreamLayer.graphics.length > 0
+      ) {
         view.goTo(getUpstreamExtent());
         upstreamLayer.visible = true;
         upstreamLayer.listMode = 'show';
