@@ -1300,7 +1300,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // jsx
   const mapContent = (
     <>
-      {errorMessage && (
+      {errorMessage && layout !== 'fullscreen' && (
         <ErrorBox>
           <p>{errorMessage}</p>
         </ErrorBox>
