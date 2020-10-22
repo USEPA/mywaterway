@@ -8,13 +8,13 @@ import MapLegend from 'components/shared/MapLegend';
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { FullscreenContext } from 'contexts/Fullscreen';
+import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import {
   shallowCompare,
   getPopupContent,
   getPopupTitle,
 } from 'components/pages/LocationMap/MapFunctions';
-import { wbd } from 'config/mapServiceConfig';
 
 const basemapNames = [
   'Streets',
@@ -189,6 +189,8 @@ function MapWidgets({
     getMapView,
     resetData,
   } = React.useContext(LocationSearchContext);
+
+  const services = useServicesContext();
 
   const {
     getFullscreenActive,
@@ -728,7 +730,7 @@ function MapWidgets({
         outFields: ['*'],
       });
 
-      new QueryTask({ url: wbd })
+      new QueryTask({ url: services.data.wbd })
         .execute(query)
         .then((boundaries) => {
           if (boundaries.features.length === 0) return;
@@ -848,7 +850,7 @@ function MapWidgets({
       setUpstreamLoading(true);
 
       new QueryTask({
-        url: `https://watersgeo.epa.gov/arcgis/rest/services/Support/CatchmentFabric/MapServer/2/`,
+        url: services.data.upstreamWatershed,
       })
         .execute(query)
         .then((res) => {
