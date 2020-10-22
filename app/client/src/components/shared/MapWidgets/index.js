@@ -497,38 +497,6 @@ function MapWidgets({
     fullScreenWidgetCreated,
   ]);
 
-  const buttonStyle = {
-    margin: '8.5px',
-    fontSize: '15px',
-    textAlign: 'center',
-    verticalAlign: 'middle',
-    backgroundColor: 'white',
-    color: '#6E6E6E',
-  };
-
-  const buttonHoverStyle = {
-    margin: '8.5px',
-    fontSize: '15px',
-    textAlign: 'center',
-    verticalAlign: 'middle',
-    backgroundColor: '#F0F0F0',
-    color: 'black',
-    cursor: 'pointer',
-  };
-
-  const divStyle = {
-    height: '32px',
-    width: '32px',
-    backgroundColor: 'white',
-  };
-
-  const divHoverStyle = {
-    height: '32px',
-    width: '32px',
-    backgroundColor: '#F0F0F0',
-    cursor: 'pointer',
-  };
-
   // watch for location changes and disable/enable the upstream widget accordingly
   // widget should only be displayed on valid Community page location
   React.useEffect(() => {
