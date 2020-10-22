@@ -630,7 +630,7 @@ function MapWidgets({
 
     const title = upstreamWidgetDisabled
       ? 'Upstream Widget Not Available'
-      : upstreamLayer.visible === true
+      : upstreamLayer.visible
       ? 'Hide Upstream Watershed'
       : 'Display Upstream Watershed';
 
