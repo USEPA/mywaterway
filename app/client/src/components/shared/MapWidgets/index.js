@@ -96,7 +96,7 @@ function updateVisibleLayers(view: any, legendNode: Node) {
     'mappedWaterLayer',
     'countyLayer',
     'watershedsLayer',
-    'upstreamWatersheds',
+    'upstreamWatershed',
     'tribalLayer',
     'tribalLayer-1',
     'tribalLayer-2',
@@ -626,15 +626,22 @@ function MapWidgets({
     const currentHuc12 = getHuc12();
 
     const upstreamWidgetDisabled = getUpstreamWidgetDisabled();
+    const upstreamLayer = getUpstreamLayer();
+
+    const title = upstreamWidgetDisabled
+      ? 'Upstream Widget Not Available'
+      : upstreamLayer.visible === true
+      ? 'Hide Upstream Watershed'
+      : 'Display Upstream Watershed';
 
     return (
       <div
-        title={'Display Upstream Watershed'}
+        title={title}
         style={!upstreamWidgetDisabled && hover ? divHoverStyle : divStyle}
         onMouseOver={() => setHover(true)}
         onMouseOut={() => setHover(false)}
         onClick={(ev) => {
-          retrieveUpstreamWatersheds(
+          retrieveUpstreamWatershed(
             currentHuc12,
             lastHuc12,
             setLastHuc12,
@@ -664,7 +671,7 @@ function MapWidgets({
     );
   }
 
-  const retrieveUpstreamWatersheds = React.useCallback(
+  const retrieveUpstreamWatershed = React.useCallback(
     (
       currentHuc12,
       lastHuc12,
@@ -766,7 +773,7 @@ function MapWidgets({
                   width: 2,
                 },
               },
-              attributes: { name: 'Upstream Watersheds' },
+              attributes: res.features[0].attributes,
             }),
           );
 

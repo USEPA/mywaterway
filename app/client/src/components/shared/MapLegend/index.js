@@ -485,7 +485,7 @@ function MapLegendContent({ layer }: CardProps) {
           <rect x="0" y="12" width="26" height="3" fill="#1fb8ff" />
         </svg>
       </ImageContainer>
-      <LegendLabel>Upstream Watersheds</LegendLabel>
+      <LegendLabel>Upstream Watershed</LegendLabel>
     </LI>
   );
 
@@ -501,7 +501,7 @@ function MapLegendContent({ layer }: CardProps) {
   if (layer.id === 'tribalLayer') return tribalLegend;
   if (layer.id === 'wsioHealthIndexLayer') return healthIndexLegend;
   if (layer.id === 'congressionalLayer') return congressionalDistrictsLegend;
-  if (layer.id === 'upstreamWatersheds') return upstreamLegend;
+  if (layer.id === 'upstreamWatershed') return upstreamLegend;
 
   return null;
 }

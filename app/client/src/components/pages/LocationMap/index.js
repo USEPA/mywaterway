@@ -195,8 +195,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setSearchIconLayer(searchIconLayer);
 
     const upstreamLayer = new GraphicsLayer({
-      id: 'upstreamWatersheds',
-      title: 'Upstream Watersheds',
+      id: 'upstreamWatershed',
+      title: 'Upstream Watershed',
       listMode: 'hide',
     });
 
