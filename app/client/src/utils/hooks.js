@@ -851,6 +851,26 @@ function useSharedLayers() {
       },
     });
 
+    const stateBoundariesLayer = new FeatureLayer({
+      id: 'stateBoundariesLayer',
+      url: services.data.stateBoundaries,
+      title: 'State',
+      listMode: 'show',
+      visible: false,
+      renderer: {
+        type: 'simple',
+        symbol: {
+          type: 'simple-fill',
+          style: 'none',
+          outline: {
+            color: [0, 0, 0, 1],
+            width: 1.5,
+            style: 'solid',
+          },
+        },
+      },
+    });
+
     const watershedsLayer = new FeatureLayer({
       id: 'watershedsLayer',
       url: services.data.wbd,
@@ -863,6 +883,7 @@ function useSharedLayers() {
       // wsioHealthIndexLayer,
       tribalLayer,
       congressionalLayer,
+      stateBoundariesLayer,
       mappedWaterLayer,
       countyLayer,
       watershedsLayer,
