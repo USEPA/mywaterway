@@ -55,6 +55,7 @@ type State = {
   linesLayer: Object,
   areasLayer: Object,
   upstreamLayer: Object,
+  upstreamLayerVisible: boolean,
   errorMessage: string,
   summaryLayerMaxRecordCount: ?number,
   watershedsLayerMaxRecordCount: ?number,
@@ -156,6 +157,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     linesLayer: '',
     areasLayer: '',
     upstreamLayer: '',
+    upstreamLayerVisible: false,
     errorMessage: '',
     summaryLayerMaxRecordCount: null,
     watershedsLayerMaxRecordCount: null,
@@ -291,6 +293,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     },
     setUpstreamLayer: (upstreamLayer) => {
       this.setState({ upstreamLayer });
+    },
+    setUpstreamLayerVisible: (upstreamLayerVisible) => {
+      this.setState({ upstreamLayerVisible });
     },
     setSummaryLayerMaxRecordCount: (summaryLayerMaxRecordCount) => {
       this.setState({ summaryLayerMaxRecordCount });
@@ -434,6 +439,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
 
       // hide and remove upstream layer graphics when switching locations
       if (upstreamLayer) {
+        newState['upstreamLayerVisible'] = false;
         upstreamLayer.visible = false;
         upstreamLayer.listMode = 'hide';
         upstreamLayer.graphics.removeAll();

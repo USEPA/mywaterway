@@ -177,6 +177,8 @@ function MapWidgets({
     setVisibleLayers,
     setBasemap,
     basemap,
+    upstreamLayerVisible,
+    setUpstreamLayerVisible,
     setUpstreamLayer,
     getUpstreamLayer,
     getCurrentExtent,
@@ -562,6 +564,11 @@ function MapWidgets({
     }
   }, [upstreamWidget, upstreamWidgetDisabled]);
 
+  // watch for changes to upstream layer visibility and update visible layers accordingly
+  React.useEffect(() => {
+    updateVisibleLayers(view, legendNode);
+  }, [view, legendNode, upstreamLayerVisible]);
+
   // create upstream widget
   const [
     upstreamWidgetCreated,
@@ -584,6 +591,7 @@ function MapWidgets({
         setErrorMessage={setErrorMessage}
         getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
         setUpstreamWidgetDisabled={setUpstreamWidgetDisabled}
+        setUpstreamLayerVisible={setUpstreamLayerVisible}
       />,
       node,
     );
@@ -601,6 +609,7 @@ function MapWidgets({
     setErrorMessage,
     getUpstreamWidgetDisabled,
     setUpstreamWidgetDisabled,
+    setUpstreamLayerVisible,
   ]);
 
   type upstreamProps = {
@@ -613,6 +622,7 @@ function MapWidgets({
     setErrorMessage: Function,
     getUpstreamWidgetDisabled: Function,
     setUpstreamWidgetDisabled: Function,
+    setUpstreamLayerVisible: Function,
   };
 
   function ShowUpstreamWatershed({
@@ -625,6 +635,7 @@ function MapWidgets({
     setErrorMessage,
     getUpstreamWidgetDisabled,
     setUpstreamWidgetDisabled,
+    setUpstreamLayerVisible,
   }: upstreamProps) {
     const [hover, setHover] = React.useState(false);
     const [lastHuc12, setLastHuc12] = React.useState('');
@@ -664,6 +675,7 @@ function MapWidgets({
             setUpstreamWidgetDisabled,
             setUpstreamLoading,
             getTemplate,
+            setUpstreamLayerVisible,
           );
         }}
       >
@@ -796,6 +808,7 @@ function MapWidgets({
       setUpstreamWidgetDisabled,
       setUpstreamLoading,
       getTemplate,
+      setUpstreamLayerVisible,
     ) => {
       // if widget is disabled do nothing
       if (getUpstreamWidgetDisabled()) return;
@@ -822,7 +835,8 @@ function MapWidgets({
       ) {
         view.goTo(getCurrentExtent());
         upstreamLayer.visible = false;
-        upstreamLayer.listMode = 'hide';
+        setUpstreamLayerVisible(false);
+        setUpstreamLayer(upstreamLayer);
         return;
       }
 
@@ -835,7 +849,8 @@ function MapWidgets({
       ) {
         view.goTo(getUpstreamExtent());
         upstreamLayer.visible = true;
-        upstreamLayer.listMode = 'show';
+        setUpstreamLayerVisible(true);
+        setUpstreamLayer(upstreamLayer);
         return;
       }
 
@@ -862,6 +877,7 @@ function MapWidgets({
             upstreamLayer.graphics.removeAll();
             setUpstreamLayer(upstreamLayer);
             setUpstreamWidgetDisabled(true);
+            setUpstreamLayerVisible(false);
             setErrorMessage(
               'Unable to get upstream watershed data for this location.',
             );
@@ -903,8 +919,8 @@ function MapWidgets({
           setUpstreamExtent(currentViewpoint);
 
           upstreamLayer.visible = true;
-          upstreamLayer.listMode = 'show';
           setUpstreamLayer(upstreamLayer);
+          setUpstreamLayerVisible(true);
 
           // zoom out to full extent
           view.goTo(upstreamExtent);
@@ -916,7 +932,9 @@ function MapWidgets({
             'Error fetching upstream watershed data for this location.',
           );
           upstreamLayer.error = true;
+          upstreamLayer.visible = false;
           upstreamLayer.graphics.removeAll();
+          setUpstreamLayerVisible(false);
           setUpstreamLayer(upstreamLayer);
         });
     },
