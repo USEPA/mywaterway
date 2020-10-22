@@ -540,8 +540,9 @@ function MapWidgets({
   }, [huc12, upstreamWidget, setUpstreamWidgetDisabled]);
 
   React.useEffect(() => {
-    if (!upstreamWidget || !window.location.pathname.includes('/community'))
+    if (!upstreamWidget || !window.location.pathname.includes('/community')) {
       return;
+    }
 
     if (upstreamWidgetDisabled) {
       upstreamWidget.style.opacity = '0.5';
