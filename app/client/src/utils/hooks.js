@@ -5,6 +5,7 @@ import React from 'react';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { MapHighlightContext } from 'contexts/MapHighlight';
 import { EsriModulesContext } from 'contexts/EsriModules';
+import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import {
   createWaterbodySymbol,
@@ -15,15 +16,6 @@ import {
   openPopup,
   shallowCompare,
 } from 'components/pages/LocationMap/MapFunctions';
-// config
-import {
-  counties,
-  mappedWater,
-  tribal,
-  wbd,
-  // wsio,
-  congressional,
-} from 'config/mapServiceConfig';
 
 // Closes the map popup and clears highlights whenever the user changes
 // tabs. This function is called from the useWaterbodyHighlight hook (handles
@@ -216,6 +208,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     actionsLayer,
     huc12,
   } = React.useContext(LocationSearchContext);
+  const services = useServicesContext();
 
   // Handles zooming to a selected graphic when "View on Map" is clicked.
   React.useEffect(() => {
@@ -223,7 +216,8 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       !mapView ||
       !selectedGraphic ||
       !selectedGraphic.attributes ||
-      !selectedGraphic.attributes.zoom
+      !selectedGraphic.attributes.zoom ||
+      services.status === 'fetching'
     ) {
       return;
     }
@@ -244,9 +238,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     // perform the zoom and return the Promise
     mapView.goTo(params).then(() => {
-      openPopup(mapView, selectedGraphic);
+      openPopup(mapView, selectedGraphic, services);
     });
-  }, [Point, mapView, selectedGraphic]);
+  }, [Point, mapView, selectedGraphic, services]);
 
   // Initializes a handles object for more efficient handling of highlight handlers
   const [handles, setHandles] = React.useState(null);
@@ -496,6 +490,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 }
 
 function useSharedLayers() {
+  const services = useServicesContext();
   const {
     FeatureLayer,
     GroupLayer,
@@ -510,6 +505,8 @@ function useSharedLayers() {
     status: 'none',
     data: null,
   };
+
+  if (!resetData || services.status === 'fetching') return null;
 
   var lastLocation = null;
   function getClickedHuc(location) {
@@ -555,7 +552,7 @@ function useSharedLayers() {
         outFields: ['*'],
       });
 
-      new QueryTask({ url: wbd })
+      new QueryTask({ url: services.data.wbd })
         .execute(query)
         .then((boundaries) => {
           if (boundaries.features.length === 0) return;
@@ -576,8 +573,6 @@ function useSharedLayers() {
         });
     });
   }
-
-  if (!resetData) return null;
 
   // Wrapper function for getting the content of the popup
   function getTemplate(graphic) {
@@ -708,7 +703,7 @@ function useSharedLayers() {
     // return the layer properties object
     // const wsioHealthIndexLayer = new FeatureLayer({
     //   id: 'wsioHealthIndexLayer',
-    //   url: wsio,
+    //   url: services.data.wsio,
     //   title: 'State Watershed Health Index',
     //   outFields: ['phwa_health_ndx_st_2016'],
     //   renderer: wsioHealthIndexRenderer,
@@ -734,7 +729,7 @@ function useSharedLayers() {
     const alaskaNativeVillageOutFields = ['NAME', 'TRIBE_NAME'];
     const alaskaNativeVillages = new FeatureLayer({
       id: 'tribalLayer-1',
-      url: `${tribal}/1`,
+      url: `${services.data.tribal}/1`,
       title: 'Alaska Native Villages',
       outFields: alaskaNativeVillageOutFields,
       listMode: 'hide',
@@ -750,7 +745,7 @@ function useSharedLayers() {
     const alaskaReservationOutFields = ['TRIBE_NAME'];
     const alaskaReservations = new FeatureLayer({
       id: 'tribalLayer-2',
-      url: `${tribal}/2`,
+      url: `${services.data.tribal}/2`,
       title: 'Alaska Reservations',
       outFields: alaskaReservationOutFields,
       listMode: 'hide',
@@ -767,7 +762,7 @@ function useSharedLayers() {
     const lower48TribalOutFields = ['TRIBE_NAME'];
     const lower48Tribal = new FeatureLayer({
       id: 'tribalLayer-4',
-      url: `${tribal}/4`,
+      url: `${services.data.tribal}/4`,
       title: 'Lower 48 States',
       outFields: lower48TribalOutFields,
       listMode: 'hide',
@@ -803,7 +798,7 @@ function useSharedLayers() {
     ];
     const congressionalLayer = new FeatureLayer({
       id: 'congressionalLayer',
-      url: congressional,
+      url: services.data.congressional,
       title: 'Congressional Districts',
       listMode: 'hide-children',
       visible: false,
@@ -829,7 +824,7 @@ function useSharedLayers() {
 
     const mappedWaterLayer = new MapImageLayer({
       id: 'mappedWaterLayer',
-      url: mappedWater,
+      url: services.data.mappedWater,
       title: 'Mapped Water (all)',
       sublayers: [{ id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
       listMode: 'hide-children',
@@ -838,7 +833,7 @@ function useSharedLayers() {
 
     const countyLayer = new FeatureLayer({
       id: 'countyLayer',
-      url: counties,
+      url: services.data.counties,
       title: 'County',
       listMode: 'show',
       visible: false,
@@ -858,7 +853,7 @@ function useSharedLayers() {
 
     const watershedsLayer = new FeatureLayer({
       id: 'watershedsLayer',
-      url: wbd,
+      url: services.data.wbd,
       title: 'Watersheds',
       listMode: 'show',
       visible: false,

@@ -21,16 +21,16 @@ import {
   MapHighlightProvider,
 } from 'contexts/MapHighlight';
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
-import { useReportStatusMappingContext } from 'contexts/LookupFiles';
+import {
+  useReportStatusMappingContext,
+  useServicesContext,
+} from 'contexts/LookupFiles';
 // utilities
 import { getEnvironmentString, fetchCheck } from 'utils/fetchUtils';
 import { chunkArray } from 'utils/utils';
 import { useWaterbodyFeaturesState, useWaterbodyOnMap } from 'utils/hooks';
 // data
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
-// config
-import { waterbodyService, wbd } from 'config/mapServiceConfig';
-import { attains } from 'config/webServiceConfig';
 // styles
 import { reactSelectStyles } from 'styles/index.js';
 // errors
@@ -221,6 +221,8 @@ const ScreenLabelWithPadding = styled(ScreenLabel)`
 type Props = {};
 
 function AdvancedSearch({ ...props }: Props) {
+  const services = useServicesContext();
+
   const {
     currentReportStatus,
     currentSummary,
@@ -295,7 +297,7 @@ function AdvancedSearch({ ...props }: Props) {
   React.useEffect(() => {
     if (watershedsLayerMaxRecordCount || watershedMrcError) return;
 
-    retrieveMaxRecordCount(wbd)
+    retrieveMaxRecordCount(services.data.wbd)
       .then((maxRecordCount) => {
         setWatershedsLayerMaxRecordCount(maxRecordCount);
       })
@@ -309,6 +311,7 @@ function AdvancedSearch({ ...props }: Props) {
     watershedsLayerMaxRecordCount,
     setWatershedsLayerMaxRecordCount,
     watershedMrcError,
+    services,
   ]);
 
   // get a list of watersheds and build the esri where clause
@@ -325,7 +328,7 @@ function AdvancedSearch({ ...props }: Props) {
     retrieveFeatures({
       Query,
       QueryTask,
-      url: wbd,
+      url: services.data.wbd,
       queryParams,
       maxRecordCount: watershedsLayerMaxRecordCount,
     })
@@ -347,14 +350,14 @@ function AdvancedSearch({ ...props }: Props) {
         setServiceError(true);
         setWatersheds([]);
       });
-  }, [esriHelper, activeState, watershedsLayerMaxRecordCount]);
+  }, [esriHelper, activeState, watershedsLayerMaxRecordCount, services]);
 
   // Get the maxRecordCount of the summary (waterbody) layer
   const [summaryMrcError, setSummaryMrcError] = React.useState(false);
   React.useEffect(() => {
     if (summaryLayerMaxRecordCount || summaryMrcError) return;
 
-    retrieveMaxRecordCount(waterbodyService.summary)
+    retrieveMaxRecordCount(services.data.waterbodyService.summary)
       .then((maxRecordCount) => {
         setSummaryLayerMaxRecordCount(maxRecordCount);
       })
@@ -368,6 +371,7 @@ function AdvancedSearch({ ...props }: Props) {
     summaryLayerMaxRecordCount,
     setSummaryLayerMaxRecordCount,
     summaryMrcError,
+    services,
   ]);
 
   const [currentFilter, setCurrentFilter] = React.useState(null);
@@ -395,7 +399,7 @@ function AdvancedSearch({ ...props }: Props) {
       retrieveFeatures({
         Query,
         QueryTask,
-        url: waterbodyService.summary,
+        url: services.data.waterbodyService.summary,
         queryParams,
         maxRecordCount: summaryLayerMaxRecordCount,
       })
@@ -443,7 +447,7 @@ function AdvancedSearch({ ...props }: Props) {
       retrieveFeatures({
         Query,
         QueryTask,
-        url: waterbodyService.summary,
+        url: services.data.waterbodyService.summary,
         queryParams,
         maxRecordCount: summaryLayerMaxRecordCount,
       })
@@ -462,6 +466,7 @@ function AdvancedSearch({ ...props }: Props) {
     activeState,
     summaryLayerMaxRecordCount,
     setCurrentReportingCycle,
+    services,
   ]);
 
   const [waterbodyFilter, setWaterbodyFilter] = React.useState([]);
@@ -524,7 +529,9 @@ function AdvancedSearch({ ...props }: Props) {
     });
 
     // query to get just the ids since there is a maxRecordCount
-    let queryTask = new QueryTask({ url: waterbodyService.summary });
+    let queryTask = new QueryTask({
+      url: services.data.waterbodyService.summary,
+    });
     queryTask
       .executeForCount(query)
       .then((res) => {
@@ -538,7 +545,7 @@ function AdvancedSearch({ ...props }: Props) {
         setNextFilter('');
         setServiceError(true);
       });
-  }, [esriHelper, serviceError, nextFilter]);
+  }, [esriHelper, serviceError, nextFilter, services]);
 
   const [
     newDisplayOptions,
@@ -598,7 +605,7 @@ function AdvancedSearch({ ...props }: Props) {
         // run a fetch to get the assessments in the huc
         requests.push(
           fetchCheck(
-            `${attains.serviceUrl}huc12summary?huc=${watershed.value}`,
+            `${services.data.attains.serviceUrl}huc12summary?huc=${watershed.value}`,
           ),
         );
       }

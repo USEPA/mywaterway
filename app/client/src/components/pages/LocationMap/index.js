@@ -21,23 +21,9 @@ import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
 // contexts
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
+import { useServicesContext } from 'contexts/LookupFiles';
 // config
 import { esriApiUrl } from 'config/esriConfig';
-import {
-  waterbodyService,
-  locatorUrl,
-  wbd,
-  counties,
-  // nonprofits,
-} from 'config/mapServiceConfig';
-import {
-  waterQualityPortal,
-  echoNPDES,
-  grts,
-  dwmaps,
-  attains,
-  fishingInformationService,
-} from 'config/webServiceConfig';
 // helpers
 import {
   useSharedLayers,
@@ -82,6 +68,8 @@ type Props = {
 };
 
 function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
+  const services = useServicesContext();
+
   const {
     FeatureLayer,
     GraphicsLayer,
@@ -291,7 +279,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         outFields: ['*'],
       });
 
-      new QueryTask({ url: waterbodyService.lines })
+      new QueryTask({ url: services.data.waterbodyService.lines })
         .execute(query)
         .then((res) => {
           setLinesData(res);
@@ -335,6 +323,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       popupTemplate,
       setLinesData,
       setLinesLayer,
+      services,
     ],
   );
 
@@ -347,7 +336,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         outFields: ['*'],
       });
 
-      new QueryTask({ url: waterbodyService.areas })
+      new QueryTask({ url: services.data.waterbodyService.areas })
         .execute(query)
         .then((res) => {
           setAreasData(res);
@@ -391,6 +380,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       popupTemplate,
       setAreasData,
       setAreasLayer,
+      services,
     ],
   );
 
@@ -403,7 +393,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         outFields: ['*'],
       });
 
-      new QueryTask({ url: waterbodyService.points })
+      new QueryTask({ url: services.data.waterbodyService.points })
         .execute(query)
         .then((res) => {
           setPointsData(res);
@@ -448,6 +438,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       popupTemplate,
       setPointsData,
       setPointsLayer,
+      services,
     ],
   );
 
@@ -514,7 +505,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const queryMonitoringLocationService = React.useCallback(
     (huc12) => {
       const url =
-        `${waterQualityPortal.monitoringLocation}` +
+        `${services.data.waterQualityPortal.monitoringLocation}` +
         `search?mimeType=geojson&zip=no&huc=${huc12}`;
 
       fetchCheck(url)
@@ -532,12 +523,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
         });
     },
-    [setMonitoringLocations],
+    [setMonitoringLocations, services],
   );
 
   const queryPermittedDischargersService = React.useCallback(
     (huc12) => {
-      fetchCheck(echoNPDES.metadata)
+      fetchCheck(services.data.echoNPDES.metadata)
         .then((res) => {
           // Columns to return from Echo
           const facilityColumns = [
@@ -563,7 +554,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
 
           const url =
-            `${echoNPDES.getFacilities}?output=JSON&tablelist=Y&p_wbd=${huc12}` +
+            `${services.data.echoNPDES.getFacilities}?output=JSON&tablelist=Y&p_wbd=${huc12}` +
             `&p_act=Y&p_ptype=NPD&responseset=5000` +
             `&qcolumns=${columnIds.join(',')}`;
 
@@ -590,12 +581,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
         });
     },
-    [setPermittedDischargers],
+    [setPermittedDischargers, services],
   );
 
   const queryGrtsHuc12 = React.useCallback(
     (huc12) => {
-      fetchCheck(`${grts.getGRTSHUC12}${huc12}`)
+      fetchCheck(`${services.data.grts.getGRTSHUC12}${huc12}`)
         .then((res) => {
           setGrts({
             data: res,
@@ -610,7 +601,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
         });
     },
-    [setGrts],
+    [setGrts, services],
   );
 
   // Runs a query to get the plans for the selected huc.
@@ -618,7 +609,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const queryAttainsPlans = React.useCallback(
     (huc12) => {
       // get the plans for the selected huc
-      fetchCheck(`${attains.serviceUrl}plans?huc=${huc12}&summarize=Y`, 120000)
+      fetchCheck(
+        `${services.data.attains.serviceUrl}plans?huc=${huc12}&summarize=Y`,
+        120000,
+      )
         .then((res) => {
           setAttainsPlans({
             data: res,
@@ -633,7 +627,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
         });
     },
-    [setAttainsPlans],
+    [setAttainsPlans, services],
   );
 
   React.useEffect(() => {
@@ -656,10 +650,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         .join();
 
       const url =
-        fishingInformationService.serviceUrl +
-        fishingInformationService.queryStringFirstPart +
+        services.data.fishingInformationService.serviceUrl +
+        services.data.fishingInformationService.queryStringFirstPart +
         stateQueryString +
-        fishingInformationService.queryStringSecondPart;
+        services.data.fishingInformationService.queryStringSecondPart;
 
       fetchCheck(url)
         .then((res) => {
@@ -680,7 +674,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           setFishingInfo({ status: 'failure', data: [] });
         });
     },
-    [setFishingInfo],
+    [setFishingInfo, services],
   );
 
   const handleMapServices = React.useCallback(
@@ -725,7 +719,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       if (statesData.status !== 'success') {
         setStatesData({ status: 'fetching', data: [] });
 
-        fetchCheck(`${attains.serviceUrl}states`)
+        fetchCheck(`${services.data.attains.serviceUrl}states`)
           .then((res) => {
             setStatesData({ status: 'success', data: res.data });
           })
@@ -735,10 +729,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
       }
 
-      fetchCheck(`${attains.serviceUrl}huc12summary?huc=${huc12}`).then(
-        handleMapServices,
-        handleMapServiceError,
-      );
+      fetchCheck(
+        `${services.data.attains.serviceUrl}huc12summary?huc=${huc12}`,
+      ).then(handleMapServices, handleMapServiceError);
     },
     [
       getFishingLinkData,
@@ -748,6 +741,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       setStatesData,
       setWatershed,
       statesData.status,
+      services,
     ],
   );
 
@@ -818,7 +812,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         callback();
       };
 
-      const locator = new Locator({ url: locatorUrl });
+      const locator = new Locator({ url: services.data.locatorUrl });
       locator.outSpatialReference = SpatialReference.WebMercator;
 
       const regex = /^(-?\d+(\.\d*)?)[\s,]+(-?\d+(\.\d*)?)$/;
@@ -912,7 +906,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               outFields: ['*'],
             });
 
-            new QueryTask({ url: wbd })
+            new QueryTask({ url: services.data.wbd })
               .execute(hucQuery)
               .then((hucRes) => {
                 renderMapAndZoomTo(
@@ -941,7 +935,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             status: 'fetching',
           });
 
-          new QueryTask({ url: `${counties}/query` })
+          new QueryTask({ url: `${services.data.counties}/query` })
             .execute(countiesQuery)
             .then((countiesRes) => {
               // not all locations have a State and County code, check for it
@@ -1034,6 +1028,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       setFIPS,
       setNoDataAvailable,
       setErrorMessage,
+      services,
     ],
   );
 
@@ -1049,7 +1044,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           outFields: ['*'],
         });
 
-        new QueryTask({ url: wbd })
+        new QueryTask({ url: services.data.wbd })
           .execute(query)
           .then((response) => {
             if (response.features.length === 0) {
@@ -1087,6 +1082,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       processGeocodeServerResults,
       setNoDataAvailable,
       setErrorMessage,
+      services,
     ],
   );
 
@@ -1201,7 +1197,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       }
 
       const drinkingWaterUrl =
-        `${dwmaps.GetPWSWMHUC12FIPS}` +
+        `${services.data.dwmaps.GetPWSWMHUC12FIPS}` +
         `${hucResponse.features[0].attributes.huc12}/` +
         `${FIPS.stateCode}/` +
         `${FIPS.countyCode}`;
@@ -1221,7 +1217,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
         });
     }
-  }, [FIPS, countyBoundaries, hucResponse, location, setDrinkingWater]);
+  }, [
+    FIPS,
+    countyBoundaries,
+    hucResponse,
+    location,
+    setDrinkingWater,
+    services,
+  ]);
 
   // const queryNonprofits = (boundaries) => {
   //   if (

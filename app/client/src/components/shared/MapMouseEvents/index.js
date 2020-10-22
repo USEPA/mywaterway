@@ -3,8 +3,8 @@ import React from 'react';
 import { MapHighlightContext } from 'contexts/MapHighlight';
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
+import { useServicesContext } from 'contexts/LookupFiles';
 // config
-import { wbd } from 'config/mapServiceConfig';
 import {
   getPopupContent,
   getPopupTitle,
@@ -19,6 +19,7 @@ type Props = {
 };
 
 function MapMouseEvents({ map, view }: Props) {
+  const services = useServicesContext();
   const {
     setHighlightedGraphic,
     setSelectedGraphic, //
@@ -75,7 +76,7 @@ function MapMouseEvents({ map, view }: Props) {
               outFields: ['*'],
             });
 
-            new QueryTask({ url: wbd })
+            new QueryTask({ url: services.data.wbd })
               .execute(query)
               .then((boundaries) => {
                 if (boundaries.features.length === 0) return;
@@ -119,13 +120,14 @@ function MapMouseEvents({ map, view }: Props) {
       getHucBoundaries,
       setSelectedGraphic,
       webMercatorUtils,
+      services,
     ],
   );
 
   // Sets up the map mouse events when the component initializes
   const [initialized, setInitialized] = React.useState(false);
   React.useEffect(() => {
-    if (initialized) return;
+    if (initialized || services.status === 'fetching') return;
 
     // These global scoped variables are used to prevent flickering that is caused
     // by the hitTest async events occurring out of order. The global scoped variables
@@ -173,7 +175,7 @@ function MapMouseEvents({ map, view }: Props) {
         graphic.attributes &&
         graphic.attributes.fullPopup === false
       ) {
-        loadMonitoringLocation(graphic);
+        loadMonitoringLocation(graphic, services);
       }
     });
 
@@ -183,7 +185,7 @@ function MapMouseEvents({ map, view }: Props) {
     });
 
     setInitialized(true);
-  }, [view, handleMapClick, setHighlightedGraphic, initialized]);
+  }, [view, handleMapClick, setHighlightedGraphic, initialized, services]);
 
   function getGraphicFromResponse(res: Object) {
     if (!res.results || res.results.length === 0) return null;
@@ -213,12 +215,12 @@ function MapMouseEvents({ map, view }: Props) {
     return match[0] ? match[0].graphic : null;
   }
 
-  const loadMonitoringLocation = (graphic) => {
+  const loadMonitoringLocation = (graphic, services) => {
     // tell the getPopupContent function to use the full popup version that includes the service call
     graphic.attributes.fullPopup = true;
     graphic.popupTemplate = {
       title: getPopupTitle(graphic.attributes),
-      content: getPopupContent({ feature: graphic }),
+      content: getPopupContent({ feature: graphic, services }),
     };
   };
 
