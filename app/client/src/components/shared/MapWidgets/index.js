@@ -540,14 +540,13 @@ function MapWidgets({
   }, [huc12, upstreamWidget, setUpstreamWidgetDisabled]);
 
   React.useEffect(() => {
-    if (!upstreamWidget) return;
+    if (!upstreamWidget || !window.location.pathname.includes('/community'))
+      return;
 
     if (upstreamWidgetDisabled) {
-      upstreamWidget.style.display = 'block';
       upstreamWidget.style.opacity = '0.5';
       upstreamWidget.style.cursor = 'default';
     } else {
-      upstreamWidget.style.display = 'block';
       upstreamWidget.style.opacity = '1';
       upstreamWidget.style.cursor = 'pointer';
     }
