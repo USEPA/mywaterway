@@ -445,7 +445,6 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       if (boundariesLayer) boundariesLayer.graphics.removeAll();
       if (searchIconLayer) searchIconLayer.graphics.removeAll();
       if (monitoringStationsLayer) monitoringStationsLayer.graphics.removeAll();
-
       if (dischargersLayer) dischargersLayer.graphics.removeAll();
       if (nonprofitsLayer) nonprofitsLayer.graphics.removeAll();
 
