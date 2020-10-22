@@ -194,6 +194,7 @@ function MapMouseEvents({ map, view }: Props) {
       const { attributes: attr } = result.graphic;
       // ignore huc 12 boundaries, map-marker, highlight and provider graphics
       const excludedLayers = [
+        'stateBoundariesLayer',
         'mappedWaterLayer',
         'countyLayer',
         'watershedsLayer',
