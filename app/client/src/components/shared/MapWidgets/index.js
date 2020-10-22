@@ -498,7 +498,6 @@ function MapWidgets({
     fontSize: '15px',
     textAlign: 'center',
     verticalAlign: 'middle',
-
     backgroundColor: 'white',
     color: '#6E6E6E',
   };
@@ -508,7 +507,6 @@ function MapWidgets({
     fontSize: '15px',
     textAlign: 'center',
     verticalAlign: 'middle',
-
     backgroundColor: '#F0F0F0',
     color: 'black',
     cursor: 'pointer',
