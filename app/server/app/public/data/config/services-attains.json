@@ -258,7 +258,12 @@
     {
       "urlLookup": "counties",
       "wildcardUrl": "{urlLookup}*",
-      "name": "geopub - USA counties"
+      "name": "AGO - USA counties"
+    },
+    {
+      "urlLookup": "stateBoundaries",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "AGO - USA State Boundaries"
     },
     {
       "urlLookup": "tribal",
