@@ -920,7 +920,14 @@ function MapWidgets({
           setUpstreamLayer(upstreamLayer);
         });
     },
-    [view, Query, QueryTask, Viewpoint, Graphic],
+    [
+      view,
+      Query,
+      QueryTask,
+      Viewpoint,
+      Graphic,
+      services.data.upstreamWatershed,
+    ],
   );
 
   return null;
