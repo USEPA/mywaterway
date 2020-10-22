@@ -621,7 +621,7 @@ function MapWidgets({
     const [lastHuc12, setLastHuc12] = React.useState('');
 
     // store loading state to Upstream Watershed map widget icon
-    const [loading, setLoading] = React.useState(false);
+    const [upstreamLoading, setUpstreamLoading] = React.useState(false);
 
     const currentHuc12 = getHuc12();
 
@@ -653,13 +653,13 @@ function MapWidgets({
             setErrorMessage,
             getUpstreamWidgetDisabled,
             setUpstreamWidgetDisabled,
-            setLoading,
+            setUpstreamLoading,
           );
         }}
       >
         <span
           className={
-            loading
+            upstreamLoading
               ? 'esri-icon-loading-indicator esri-rotating'
               : 'esri-icon esri-icon-maps'
           }
@@ -684,7 +684,7 @@ function MapWidgets({
       setErrorMessage,
       getUpstreamWidgetDisabled,
       setUpstreamWidgetDisabled,
-      setLoading,
+      setUpstreamLoading,
     ) => {
       // if widget is disabled do nothing
       if (getUpstreamWidgetDisabled()) return;
@@ -736,14 +736,14 @@ function MapWidgets({
         outFields: ['*'],
       });
 
-      setLoading(true);
+      setUpstreamLoading(true);
 
       new QueryTask({
         url: `https://watersgeo.epa.gov/arcgis/rest/services/Support/CatchmentFabric/MapServer/2/`,
       })
         .execute(query)
         .then((res) => {
-          setLoading(false);
+          setUpstreamLoading(false);
           const upstreamLayer = getUpstreamLayer();
 
           if (!res || !res.features || res.features.length === 0) {
@@ -794,7 +794,7 @@ function MapWidgets({
           view.goTo(upstreamExtent);
         })
         .catch((err) => {
-          setLoading(false);
+          setUpstreamLoading(false);
           setUpstreamWidgetDisabled(true);
           setErrorMessage(
             'Error fetching upstream watershed data for this location.',
