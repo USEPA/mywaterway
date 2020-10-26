@@ -15,7 +15,7 @@ type State = {
   upstreamExtent: Object,
   highlighOptions: Object,
   searchText: string,
-  lastSearchText: String,
+  lastSearchText: string,
   huc12: string,
   watershed: string,
   address: string,
