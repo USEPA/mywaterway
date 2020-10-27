@@ -851,6 +851,15 @@ function useSharedLayers() {
       },
     });
 
+    const stateBoundariesLayer = new MapImageLayer({
+      id: 'stateBoundariesLayer',
+      url: services.data.stateBoundaries,
+      title: 'State',
+      subLayers: [{ id: 0 }],
+      listMode: 'hide',
+      visible: false,
+    });
+
     const watershedsLayer = new FeatureLayer({
       id: 'watershedsLayer',
       url: services.data.wbd,
@@ -863,6 +872,7 @@ function useSharedLayers() {
       // wsioHealthIndexLayer,
       tribalLayer,
       congressionalLayer,
+      stateBoundariesLayer,
       mappedWaterLayer,
       countyLayer,
       watershedsLayer,
