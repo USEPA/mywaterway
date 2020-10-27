@@ -42,6 +42,7 @@ const zoomDependentLayers = [
   'mappedWaterLayer',
   'watershedsLayer',
   'congressionalLayer',
+  'stateBoundariesLayer',
 ];
 
 // function called whenever the map's zoom changes
@@ -53,9 +54,21 @@ function handleMapZoomChange(newVal: number, target: any) {
   target.map.layers.items.forEach((layer) => {
     if (zoomDependentLayers.includes(layer.id)) {
       if (isInScale(layer, target.scale)) {
-        layer.listMode = layer.sublayers ? 'hide-children' : 'show';
+        if (layer.id === 'stateBoundariesLayer')
+          layer.listMode = layer.sublayers ? 'hide-children' : 'show';
       } else {
         layer.listMode = 'hide';
+      }
+
+      // Workaround for issue of stateBoundariesLayer showing excluded layers.
+      // This issue is caused by esri hiding/unhiding sub layers when the
+      // zoom threshould is reached. This esri logic overrides the sublayer
+      // visibility setting that is set when the layer is defined.
+      if (layer.id === 'stateBoundariesLayer') {
+        layer.sublayers.forEach((sublayer) => {
+          if (sublayer.id === 0) return;
+          sublayer.visible = false;
+        });
       }
     }
   });
