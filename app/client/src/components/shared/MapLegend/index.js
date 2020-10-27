@@ -472,6 +472,24 @@ function MapLegendContent({ layer }: CardProps) {
   );
 
   // jsx
+  const stateBoundariesLegend = (
+    <LI>
+      <ImageContainer>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="26"
+          height="26"
+          viewBox="0 0 26 26"
+          aria-hidden="true"
+        >
+          <rect x="0" y="12" width="26" height="3" fill="#000" />
+        </svg>
+      </ImageContainer>
+      <LegendLabel>State</LegendLabel>
+    </LI>
+  );
+
+  // jsx
   const upstreamLegend = (
     <LI>
       <ImageContainer>
@@ -502,6 +520,7 @@ function MapLegendContent({ layer }: CardProps) {
   if (layer.id === 'wsioHealthIndexLayer') return healthIndexLegend;
   if (layer.id === 'congressionalLayer') return congressionalDistrictsLegend;
   if (layer.id === 'upstreamWatershed') return upstreamLegend;
+  if (layer.id === 'stateBoundariesLayer') return stateBoundariesLegend;
 
   return null;
 }
