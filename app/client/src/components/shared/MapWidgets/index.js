@@ -54,8 +54,9 @@ function handleMapZoomChange(newVal: number, target: any) {
   target.map.layers.items.forEach((layer) => {
     if (zoomDependentLayers.includes(layer.id)) {
       if (isInScale(layer, target.scale)) {
-        if (layer.id === 'stateBoundariesLayer')
-          layer.listMode = layer.sublayers ? 'hide-children' : 'show';
+        layer.listMode = layer.hasOwnProperty('sublayers')
+          ? 'hide-children'
+          : 'show';
       } else {
         layer.listMode = 'hide';
       }
