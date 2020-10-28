@@ -493,15 +493,11 @@ function MapLegendContent({ layer }: CardProps) {
   const upstreamLegend = (
     <LI>
       <ImageContainer>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="26"
-          height="26"
-          viewBox="0 0 26 26"
-          aria-hidden="true"
-        >
-          <rect x="0" y="12" width="26" height="3" fill="#1fb8ff" />
-        </svg>
+        {squareIcon({
+          color: 'rgb(31, 184, 255, 0.2)',
+          strokeWidth: 2,
+          stroke: '#000000',
+        })}
       </ImageContainer>
       <LegendLabel>Upstream Watershed</LegendLabel>
     </LI>

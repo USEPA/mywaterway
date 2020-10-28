@@ -763,11 +763,12 @@ function MapWidgets({
               },
               symbol: {
                 type: 'simple-fill',
-                style: 'none',
+                style: 'solid',
+                color: [31, 184, 255, 0.2],
                 outline: {
                   style: 'solid',
-                  color: '#1fb8ff',
-                  width: 2,
+                  color: 'black',
+                  width: 1,
                 },
               },
               attributes: res.features[0].attributes,
