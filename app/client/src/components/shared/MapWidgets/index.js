@@ -64,7 +64,7 @@ function handleMapZoomChange(newVal: number, target: any) {
       // This issue is caused by esri hiding/unhiding sub layers when the
       // zoom threshould is reached. This esri logic overrides the sublayer
       // visibility setting that is set when the layer is defined.
-      if (layer.id === 'stateBoundariesLayer') {
+      if (layer.id === 'stateBoundariesLayer' && layer?.sublayers) {
         layer.sublayers.forEach((sublayer) => {
           if (sublayer.id === 0) return;
           sublayer.visible = false;
