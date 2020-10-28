@@ -11,9 +11,11 @@ type Props = {
 
 type State = {
   initialExtent: Object,
+  currentExtent: Object,
+  upstreamExtent: Object,
   highlighOptions: Object,
   searchText: string,
-  lastSearchText: String,
+  lastSearchText: string,
   huc12: string,
   watershed: string,
   address: string,
@@ -39,6 +41,8 @@ type State = {
   actionsLayer: Object,
   selWaterBodyLayer: Object,
   homeWidget: Object,
+  upstreamWidget: Object,
+  upstreamWidgetDisabled: boolean,
   hucBoundaries: Object,
   atHucBoundaries: boolean,
   countyBoundaries: Object,
@@ -50,6 +54,9 @@ type State = {
   pointsLayer: Object,
   linesLayer: Object,
   areasLayer: Object,
+  upstreamLayer: Object,
+  upstreamLayerVisible: boolean,
+  errorMessage: string,
   summaryLayerMaxRecordCount: ?number,
   watershedsLayerMaxRecordCount: ?number,
   FIPS: Object,
@@ -74,6 +81,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       spatialReference: { wkid: 102100 },
     },
     currentExtent: '',
+    upstreamExtent: '',
     highlightOptions: {
       color: '#32C5FD',
       fillOpacity: 1,
@@ -127,6 +135,8 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     actionsLayer: '',
     selWaterBodyLayer: '',
     homeWidget: null,
+    upstreamWidget: null,
+    upstreamWidgetDisabled: false,
     visibleLayers: {},
     basemap: {},
     hucBoundaries: '',
@@ -146,6 +156,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     pointsLayer: '',
     linesLayer: '',
     areasLayer: '',
+    upstreamLayer: '',
+    upstreamLayerVisible: false,
+    errorMessage: '',
     summaryLayerMaxRecordCount: null,
     watershedsLayerMaxRecordCount: null,
 
@@ -181,6 +194,15 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     setCurrentExtent: (currentExtent) => {
       this.setState({ currentExtent });
     },
+    setErrorMessage: (errorMessage) => {
+      this.setState({ errorMessage });
+    },
+    setUpstreamExtent: (upstreamExtent) => {
+      this.setState({ upstreamExtent });
+    },
+    setUpstreamWidgetDisabled: (upstreamWidgetDisabled) => {
+      this.setState({ upstreamWidgetDisabled });
+    },
     setAtHucBoundaries: (atHucBoundaries) => {
       this.setState({ atHucBoundaries });
     },
@@ -211,6 +233,21 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     },
     getMapView: () => {
       return this.state.mapView;
+    },
+    getHuc12: () => {
+      return this.state.huc12;
+    },
+    getUpstreamLayer: () => {
+      return this.state.upstreamLayer;
+    },
+    getUpstreamWidgetDisabled: () => {
+      return this.state.upstreamWidgetDisabled;
+    },
+    getCurrentExtent: () => {
+      return this.state.currentExtent;
+    },
+    getUpstreamExtent: () => {
+      return this.state.upstreamExtent;
     },
     setLayers: (layers) => {
       this.setState({ layers });
@@ -254,6 +291,12 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     setAreasLayer: (areasLayer) => {
       this.setState({ areasLayer });
     },
+    setUpstreamLayer: (upstreamLayer) => {
+      this.setState({ upstreamLayer });
+    },
+    setUpstreamLayerVisible: (upstreamLayerVisible) => {
+      this.setState({ upstreamLayerVisible });
+    },
     setSummaryLayerMaxRecordCount: (summaryLayerMaxRecordCount) => {
       this.setState({ summaryLayerMaxRecordCount });
     },
@@ -262,6 +305,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     },
     setHomeWidget: (homeWidget) => {
       this.setState({ homeWidget });
+    },
+    setUpstreamWidget: (upstreamWidget) => {
+      this.setState({ upstreamWidget });
     },
     setVisibleLayers: (visibleLayers) => {
       this.setState({ visibleLayers });
@@ -355,6 +401,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         boundariesLayer,
         searchIconLayer,
         monitoringStationsLayer,
+        upstreamLayer,
         dischargersLayer,
         nonprofitsLayer,
         mapView,
@@ -389,6 +436,15 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       if (removedLayers) newState['layers'] = layers;
 
       this.setState(newState);
+
+      // hide and remove upstream layer graphics when switching locations
+      if (upstreamLayer) {
+        newState['upstreamLayerVisible'] = false;
+        upstreamLayer.visible = false;
+        upstreamLayer.listMode = 'hide';
+        upstreamLayer.graphics.removeAll();
+        upstreamLayer.error = false;
+      }
 
       // remove all map content defined in this file
       if (providersLayer) providersLayer.graphics.removeAll();

@@ -489,119 +489,128 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
   }, [mapView, setHighlightedGraphic, setSelectedGraphic, visibleLayers]);
 }
 
-function useSharedLayers() {
+function useDynamicPopup() {
   const services = useServicesContext();
-  const {
-    FeatureLayer,
-    GroupLayer,
-    MapImageLayer,
-    Query,
-    QueryTask,
-  } = React.useContext(EsriModulesContext);
+  const { Query, QueryTask } = React.useContext(EsriModulesContext);
   const { getHucBoundaries, getMapView, resetData } = React.useContext(
     LocationSearchContext,
   );
-  var hucInfo = {
-    status: 'none',
-    data: null,
-  };
 
-  if (!resetData || services.status === 'fetching') return null;
+  return function getDynamicPopup() {
+    var hucInfo = {
+      status: 'none',
+      data: null,
+    };
 
-  var lastLocation = null;
-  function getClickedHuc(location) {
-    return new Promise((resolve, reject) => {
-      const testLocation = {
-        latitude: location.latitude,
-        longitude: location.longitude,
-      };
+    if (!resetData || services.status === 'fetching') return null;
 
-      // check if the location changed
-      if (
-        testLocation &&
-        lastLocation &&
-        testLocation.latitude === lastLocation.latitude &&
-        testLocation.longitude === lastLocation.longitude
-      ) {
-        // polls the dom, based on provided timeout, until the esri search input
-        // is added. Once the input is added this sets the id attribute and stops
-        // the polling.
-        function poll(timeout: number) {
-          if (['none', 'fetching'].includes(hucInfo.status)) {
-            setTimeout(poll, timeout);
-          } else {
-            resolve(hucInfo);
+    var lastLocation = null;
+    function getClickedHuc(location) {
+      return new Promise((resolve, reject) => {
+        const testLocation = {
+          latitude: location.latitude,
+          longitude: location.longitude,
+        };
+
+        // check if the location changed
+        if (
+          testLocation &&
+          lastLocation &&
+          testLocation.latitude === lastLocation.latitude &&
+          testLocation.longitude === lastLocation.longitude
+        ) {
+          // polls the dom, based on provided timeout, until the esri search input
+          // is added. Once the input is added this sets the id attribute and stops
+          // the polling.
+          function poll(timeout: number) {
+            if (['none', 'fetching'].includes(hucInfo.status)) {
+              setTimeout(poll, timeout);
+            } else {
+              resolve(hucInfo);
+            }
           }
+
+          poll(1000);
+
+          return;
         }
 
-        poll(1000);
+        lastLocation = testLocation;
+        hucInfo = {
+          status: 'fetching',
+          data: null,
+        };
 
-        return;
-      }
-
-      lastLocation = testLocation;
-      hucInfo = {
-        status: 'fetching',
-        data: null,
-      };
-
-      //get the huc boundaries of where the user clicked
-      const query = new Query({
-        returnGeometry: true,
-        geometry: location,
-        outFields: ['*'],
-      });
-
-      new QueryTask({ url: services.data.wbd })
-        .execute(query)
-        .then((boundaries) => {
-          if (boundaries.features.length === 0) return;
-
-          const { attributes } = boundaries.features[0];
-          hucInfo = {
-            status: 'success',
-            data: {
-              huc12: attributes.huc12,
-              watershed: attributes.name,
-            },
-          };
-          resolve(hucInfo);
-        })
-        .catch((err) => {
-          console.error(err);
-          reject(err);
+        //get the huc boundaries of where the user clicked
+        const query = new Query({
+          returnGeometry: true,
+          geometry: location,
+          outFields: ['*'],
         });
-    });
-  }
 
-  // Wrapper function for getting the content of the popup
-  function getTemplate(graphic) {
-    // get the currently selected huc boundaries, if applicable
-    const hucBoundaries = getHucBoundaries();
-    const mapView = getMapView();
-    const location = mapView?.popup?.location;
-    // only look for huc boundaries if no graphics were clicked and the
-    // user clicked outside of the selected huc boundaries
-    if (
-      !location ||
-      (hucBoundaries &&
-        hucBoundaries.features.length > 0 &&
-        hucBoundaries.features[0].geometry.contains(location))
-    ) {
-      return getPopupContent({ feature: graphic.graphic });
+        new QueryTask({ url: services.data.wbd })
+          .execute(query)
+          .then((boundaries) => {
+            if (boundaries.features.length === 0) return;
+
+            const { attributes } = boundaries.features[0];
+            hucInfo = {
+              status: 'success',
+              data: {
+                huc12: attributes.huc12,
+                watershed: attributes.name,
+              },
+            };
+            resolve(hucInfo);
+          })
+          .catch((err) => {
+            console.error(err);
+            reject(err);
+          });
+      });
     }
 
-    return getPopupContent({
-      feature: graphic.graphic,
-      getClickedHuc: getClickedHuc(location),
-      resetData,
-    });
-  }
+    // Wrapper function for getting the content of the popup
+    function getTemplate(graphic) {
+      // get the currently selected huc boundaries, if applicable
+      const hucBoundaries = getHucBoundaries();
+      const mapView = getMapView();
+      const location = mapView?.popup?.location;
+      // only look for huc boundaries if no graphics were clicked and the
+      // user clicked outside of the selected huc boundaries
+      if (
+        !location ||
+        (hucBoundaries &&
+          hucBoundaries.features.length > 0 &&
+          hucBoundaries.features[0].geometry.contains(location))
+      ) {
+        return getPopupContent({ feature: graphic.graphic });
+      }
 
-  // Wrapper function for getting the title of the popup
-  function getTitle(graphic) {
-    return getPopupTitle(graphic.graphic.attributes);
-  }
+      return getPopupContent({
+        feature: graphic.graphic,
+        getClickedHuc: getClickedHuc(location),
+        resetData,
+      });
+    }
+
+    // Wrapper function for getting the title of the popup
+    function getTitle(graphic) {
+      return getPopupTitle(graphic.graphic.attributes);
+    }
+
+    return { getTitle, getTemplate };
+  };
+}
+
+function useSharedLayers() {
+  const services = useServicesContext();
+  const { FeatureLayer, GroupLayer, MapImageLayer } = React.useContext(
+    EsriModulesContext,
+  );
+
+  const getDynamicPopup = useDynamicPopup();
+  const { getTitle, getTemplate } = getDynamicPopup();
 
   // Gets the settings for the WSIO Health Index layer.
   return function getSharedLayers() {
@@ -886,4 +895,5 @@ export {
   useWaterbodyFeaturesState,
   useWaterbodyOnMap,
   useWaterbodyHighlight,
+  useDynamicPopup,
 };

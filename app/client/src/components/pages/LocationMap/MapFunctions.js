@@ -451,6 +451,11 @@ export function getPopupTitle(attributes: Object) {
     title = attributes.TRIBE_NAME;
   }
 
+  // upstream watershed
+  else if (attributes.xwalk_huc12) {
+    title = `Currently Selected Huc12: ${attributes.xwalk_huc12}`;
+  }
+
   // want to display allotment for Alaska Native Allotments
   else if (attributes.PARCEL_NO) {
     title = attributes.PARCEL_NO;
@@ -528,6 +533,11 @@ export function getPopupContent({
   // other tribal layers just use the tribe name
   else if (attributes.TRIBE_NAME) {
     type = 'Tribe';
+  }
+
+  // upstream watershed
+  else if (attributes.xwalk_huc12) {
+    type = 'Upstream Watershed';
   }
 
   // stand alone change location popup

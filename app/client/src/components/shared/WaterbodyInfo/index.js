@@ -11,6 +11,7 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
 import { getWaterbodyCondition } from 'components/pages/LocationMap/MapFunctions';
+import { formatNumber } from 'utils/utils';
 import { fetchCheck } from 'utils/fetchUtils';
 // errors
 import { monitoringError } from 'config/errorMessages';
@@ -792,6 +793,18 @@ function WaterbodyInfo({
   );
 
   // jsx
+  const upstreamWatershedContent = (
+    <>
+      {labelValue(
+        'Area',
+        attributes.areasqkm && `${formatNumber(attributes.areasqkm)} sq. km.`,
+      )}
+
+      {renderChangeWatershed()}
+    </>
+  );
+
+  // jsx
   const alaskaNativeVillageContent = (
     <>
       {labelValue('Village Name', attributes.NAME)}
@@ -820,6 +833,7 @@ function WaterbodyInfo({
   if (type === 'Action') return actionContent;
   if (type === 'Congressional District') return congressionalDistrictContent();
   if (type === 'Tribe') return tribeContent;
+  if (type === 'Upstream Watershed') return upstreamWatershedContent;
   if (type === 'Alaska Native Village') return alaskaNativeVillageContent;
   if (type === 'Change Location') return changeLocationContent;
 

@@ -121,6 +121,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setWaterbodyLayer,
     setIssuesLayer,
     setMonitoringStationsLayer,
+    setUpstreamLayer,
     setDischargersLayer,
     setNonprofitsLayer,
     setProvidersLayer,
@@ -140,9 +141,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setPointsLayer,
     setLinesLayer,
     setAreasLayer,
+    errorMessage,
+    setErrorMessage,
   } = React.useContext(LocationSearchContext);
 
-  const [errorMessage, setErrorMessage] = React.useState('');
   const [view, setView] = React.useState(null);
 
   const getSharedLayers = useSharedLayers();
@@ -180,6 +182,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setSearchIconLayer(searchIconLayer);
 
+    const upstreamLayer = new GraphicsLayer({
+      id: 'upstreamWatershed',
+      title: 'Upstream Watershed',
+      listMode: 'hide',
+    });
+
+    setUpstreamLayer(upstreamLayer);
+
     const monitoringStationsLayer = new GraphicsLayer({
       id: 'monitoringStationsLayer',
       title: 'Monitoring Stations',
@@ -216,6 +226,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       ...getSharedLayers(),
       providersLayer,
       boundariesLayer,
+      upstreamLayer,
       monitoringStationsLayer,
       issuesLayer,
       dischargersLayer,
@@ -233,6 +244,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setIssuesLayer,
     setLayers,
     setMonitoringStationsLayer,
+    setUpstreamLayer,
     setNonprofitsLayer,
     setProvidersLayer,
     setSearchIconLayer,
@@ -769,6 +781,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       queryPermittedDischargersService,
       setHuc12,
       setNoDataAvailable,
+      setErrorMessage,
     ],
   );
 
@@ -1014,6 +1027,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       setDrinkingWater,
       setFIPS,
       setNoDataAvailable,
+      setErrorMessage,
       services,
     ],
   );
@@ -1067,6 +1081,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       QueryTask,
       processGeocodeServerResults,
       setNoDataAvailable,
+      setErrorMessage,
       services,
     ],
   );
@@ -1087,6 +1102,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     resetData,
     setLastSearchText,
     queryGeocodeServer,
+    setErrorMessage,
   ]);
 
   // reset map when searchText is cleared (when navigating away from '/community')
@@ -1287,7 +1303,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // jsx
   const mapContent = (
     <>
-      {errorMessage && (
+      {errorMessage && layout !== 'fullscreen' && (
         <ErrorBox>
           <p>{errorMessage}</p>
         </ErrorBox>

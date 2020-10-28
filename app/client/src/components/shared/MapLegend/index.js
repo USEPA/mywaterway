@@ -489,6 +489,20 @@ function MapLegendContent({ layer }: CardProps) {
     </LI>
   );
 
+  // jsx
+  const upstreamLegend = (
+    <LI>
+      <ImageContainer>
+        {squareIcon({
+          color: 'rgb(31, 184, 255, 0.2)',
+          strokeWidth: 2,
+          stroke: '#000000',
+        })}
+      </ImageContainer>
+      <LegendLabel>Upstream Watershed</LegendLabel>
+    </LI>
+  );
+
   if (layer.id === 'waterbodyLayer') return waterbodyLegend;
   if (layer.id === 'issuesLayer') return issuesLegend;
   if (layer.id === 'monitoringStationsLayer') return monitoringStationsLegend;
@@ -501,6 +515,7 @@ function MapLegendContent({ layer }: CardProps) {
   if (layer.id === 'tribalLayer') return tribalLegend;
   if (layer.id === 'wsioHealthIndexLayer') return healthIndexLegend;
   if (layer.id === 'congressionalLayer') return congressionalDistrictsLegend;
+  if (layer.id === 'upstreamWatershed') return upstreamLegend;
   if (layer.id === 'stateBoundariesLayer') return stateBoundariesLegend;
 
   return null;
