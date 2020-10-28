@@ -60,17 +60,6 @@ function handleMapZoomChange(newVal: number, target: any) {
       } else {
         layer.listMode = 'hide';
       }
-
-      // Workaround for issue of stateBoundariesLayer showing excluded layers.
-      // This issue is caused by esri hiding/unhiding sub layers when the
-      // zoom threshould is reached. This esri logic overrides the sublayer
-      // visibility setting that is set when the layer is defined.
-      if (layer.id === 'stateBoundariesLayer' && layer?.sublayers) {
-        layer.sublayers.forEach((sublayer) => {
-          if (sublayer.id === 0) return;
-          sublayer.visible = false;
-        });
-      }
     }
   });
 }

@@ -855,7 +855,7 @@ function useSharedLayers() {
       id: 'stateBoundariesLayer',
       url: services.data.stateBoundaries,
       title: 'State',
-      subLayers: [{ id: 0 }],
+      sublayers: [{ id: 0 }],
       listMode: 'hide',
       visible: false,
     });
