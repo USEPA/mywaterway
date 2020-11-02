@@ -622,7 +622,7 @@ function MapWidgets({
       ? 'Upstream Widget Not Available'
       : upstreamLayer.visible
       ? 'Hide Upstream Watershed'
-      : 'Display Upstream Watershed';
+      : 'View Upstream Watershed';
 
     return (
       <div
