@@ -189,12 +189,13 @@ function MapWidgets({
     getUpstreamExtent,
     setUpstreamExtent,
     setErrorMessage,
+    getWatershed,
   } = React.useContext(LocationSearchContext);
 
   const services = useServicesContext();
 
   const getDynamicPopup = useDynamicPopup();
-  const { getTitle, getTemplate } = getDynamicPopup();
+  const { getTemplate } = getDynamicPopup();
 
   const {
     getFullscreenActive,
@@ -423,7 +424,6 @@ function MapWidgets({
     const layerList = [
       'dischargersLayer',
       'monitoringStationsLayer',
-      'upstreamLayer',
       'nonprofitsLayer',
       'providersLayer',
       'waterbodyLayer',
@@ -552,6 +552,7 @@ function MapWidgets({
     setUpstreamWidget(node); // store the widget in context so it can be shown or hidden later
     ReactDOM.render(
       <ShowUpstreamWatershed
+        getWatershedName={getWatershed}
         getHuc12={getHuc12}
         getCurrentExtent={getCurrentExtent}
         getUpstreamLayer={getUpstreamLayer}
@@ -570,6 +571,7 @@ function MapWidgets({
     setUpstreamWidget,
     view,
     upstreamWidgetCreated,
+    getWatershed,
     getHuc12,
     getCurrentExtent,
     setUpstreamLayer,
@@ -583,6 +585,7 @@ function MapWidgets({
   ]);
 
   type upstreamProps = {
+    getWatershedName: Function,
     getHuc12: Function,
     getCurrentExtent: Function,
     getUpstreamLayer: Function,
@@ -596,6 +599,7 @@ function MapWidgets({
   };
 
   function ShowUpstreamWatershed({
+    getWatershedName,
     getHuc12,
     getCurrentExtent,
     getUpstreamLayer,
@@ -632,6 +636,7 @@ function MapWidgets({
         onMouseOut={() => setHover(false)}
         onClick={(ev) => {
           retrieveUpstreamWatershed(
+            getWatershedName,
             currentHuc12,
             lastHuc12,
             setLastHuc12,
@@ -665,6 +670,7 @@ function MapWidgets({
 
   const retrieveUpstreamWatershed = React.useCallback(
     (
+      getWatershedName,
       currentHuc12,
       lastHuc12,
       setLastHuc12,
@@ -704,6 +710,7 @@ function MapWidgets({
         upstreamLayer.graphics.length > 0
       ) {
         view.goTo(getCurrentExtent());
+        view.popup.close();
         upstreamLayer.visible = false;
         setUpstreamLayerVisible(false);
         setUpstreamLayer(upstreamLayer);
@@ -741,6 +748,8 @@ function MapWidgets({
         .then((res) => {
           setUpstreamLoading(false);
           const upstreamLayer = getUpstreamLayer();
+          const watershed = getWatershedName() || 'Unknown Watershed';
+          const upstreamTitle = `Upstream Watershed for Currently Selected Location: ${watershed} (${currentHuc12})`;
 
           if (!res || !res.features || res.features.length === 0) {
             upstreamLayer.error = true;
@@ -773,7 +782,7 @@ function MapWidgets({
               },
               attributes: res.features[0].attributes,
               popupTemplate: {
-                title: getTitle,
+                title: upstreamTitle,
                 content: getTemplate,
                 outfields: ['*'],
               },
@@ -816,7 +825,6 @@ function MapWidgets({
       Viewpoint,
       Graphic,
       services.data.upstreamWatershed,
-      getTitle,
     ],
   );
 
