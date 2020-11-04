@@ -552,7 +552,7 @@ function MapWidgets({
     setUpstreamWidget(node); // store the widget in context so it can be shown or hidden later
     ReactDOM.render(
       <ShowUpstreamWatershed
-        getWatershed={getWatershed}
+        getWatershedName={getWatershed}
         getHuc12={getHuc12}
         getCurrentExtent={getCurrentExtent}
         getUpstreamLayer={getUpstreamLayer}
@@ -585,7 +585,7 @@ function MapWidgets({
   ]);
 
   type upstreamProps = {
-    getWatershed: Function,
+    getWatershedName: Function,
     getHuc12: Function,
     getCurrentExtent: Function,
     getUpstreamLayer: Function,
@@ -599,7 +599,7 @@ function MapWidgets({
   };
 
   function ShowUpstreamWatershed({
-    getWatershed,
+    getWatershedName,
     getHuc12,
     getCurrentExtent,
     getUpstreamLayer,
@@ -636,7 +636,7 @@ function MapWidgets({
         onMouseOut={() => setHover(false)}
         onClick={(ev) => {
           retrieveUpstreamWatershed(
-            getWatershed,
+            getWatershedName,
             currentHuc12,
             lastHuc12,
             setLastHuc12,
@@ -670,7 +670,7 @@ function MapWidgets({
 
   const retrieveUpstreamWatershed = React.useCallback(
     (
-      getWatershed,
+      getWatershedName,
       currentHuc12,
       lastHuc12,
       setLastHuc12,
@@ -748,7 +748,7 @@ function MapWidgets({
         .then((res) => {
           setUpstreamLoading(false);
           const upstreamLayer = getUpstreamLayer();
-          const watershed = getWatershed() || 'Unknown Watershed';
+          const watershed = getWatershedName() || 'Unknown Watershed';
           const upstreamTitle = `Upstream Watershed for Currently Selected Location: ${watershed} (${currentHuc12})`;
 
           if (!res || !res.features || res.features.length === 0) {
