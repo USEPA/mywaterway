@@ -147,22 +147,15 @@ function useWaterbodyOnMap(
     (layer, geometryType, attributeName) => {
       const renderer = {
         type: 'unique-value',
+        field: attributeName ? attributeName : 'overallstatus',
         fieldDelimiter: ', ',
         defaultSymbol: createWaterbodySymbol({
           condition: defaultCondition,
           selected: false,
           geometryType,
         }),
-        uniqueValueInfos: createUniqueValueInfos(geometryType, attributeName),
+        uniqueValueInfos: createUniqueValueInfos(geometryType),
       };
-
-      if (attributeName) {
-        renderer.field = attributeName;
-      } else {
-        renderer.field = 'isassessed';
-        renderer.field2 = 'isimpaired';
-      }
-
       layer.renderer = renderer;
 
       // close popup and clear highlights when the renderer changes

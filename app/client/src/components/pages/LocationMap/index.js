@@ -286,8 +286,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
           const linesRenderer = {
             type: 'unique-value',
-            field: 'isassessed',
-            field2: 'isimpaired',
+            field: 'overallstatus',
             fieldDelimiter: ', ',
             defaultSymbol: createWaterbodySymbol({
               condition: 'unassessed',
@@ -343,8 +342,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
           const areasRenderer = {
             type: 'unique-value',
-            field: 'isassessed',
-            field2: 'isimpaired',
+            field: 'overallstatus',
             fieldDelimiter: ', ',
             defaultSymbol: createWaterbodySymbol({
               condition: 'unassessed',
@@ -400,8 +398,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
           const pointsRenderer = {
             type: 'unique-value',
-            field: 'isassessed',
-            field2: 'isimpaired',
+            field: 'overallstatus',
             fieldDelimiter: ', ',
             defaultSymbol: createWaterbodySymbol({
               condition: 'unassessed',

@@ -277,6 +277,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
       !fetchStatus ||
       !mapView ||
       !actionsLayer ||
+      !homeWidget ||
       fetchStatus === 'fetching'
     ) {
       return;

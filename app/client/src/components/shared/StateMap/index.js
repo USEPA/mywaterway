@@ -105,8 +105,7 @@ function StateMap({
     // Build the feature layers that will make up the waterbody layer
     const pointsRenderer = {
       type: 'unique-value',
-      field: 'isassessed',
-      field2: 'isimpaired',
+      field: 'overallstatus',
       fieldDelimiter: ', ',
       defaultSymbol: createWaterbodySymbol({
         condition: 'unassessed',
@@ -126,8 +125,7 @@ function StateMap({
 
     const linesRenderer = {
       type: 'unique-value',
-      field: 'isassessed',
-      field2: 'isimpaired',
+      field: 'overallstatus',
       fieldDelimiter: ', ',
       defaultSymbol: createWaterbodySymbol({
         condition: 'unassessed',
@@ -147,8 +145,7 @@ function StateMap({
 
     const areasRenderer = {
       type: 'unique-value',
-      field: 'isassessed',
-      field2: 'isimpaired',
+      field: 'overallstatus',
       fieldDelimiter: ', ',
       defaultSymbol: createWaterbodySymbol({
         condition: 'unassessed',
