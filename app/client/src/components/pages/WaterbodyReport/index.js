@@ -413,6 +413,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
 
         const {
           epaIRCategory,
+          overallStatus,
           rationaleText,
           useAttainments,
           parameters,
@@ -422,19 +423,17 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         setDecisionRationale(rationaleText);
 
         const status = {
-          polluted:
-            ['4A', '4B', '4C', '5', '5A', '5M'].indexOf(epaIRCategory) !== -1,
           planForRestoration: ['4A', '4B', '5A'].indexOf(epaIRCategory) !== -1,
           listed303d: ['5', '5A', '5M'].indexOf(epaIRCategory) !== -1,
-          good: ['1', '2'].indexOf(epaIRCategory) !== -1,
-          unknown: ['3'].indexOf(epaIRCategory) !== -1,
         };
 
-        const condition = status.polluted
-          ? 'Impaired'
-          : status.good
-          ? 'Good'
-          : 'Condition Unknown'; // catch all
+        const condition =
+          overallStatus === 'Not Supporting' || overallStatus === 'Cause'
+            ? 'Impaired'
+            : overallStatus === 'Fully Supporting' ||
+              overallStatus === 'Meeting Criteria'
+            ? 'Good'
+            : 'Condition Unknown'; // catch all
 
         // Use the status above initially. When looping through the use attainments
         // this will be set this to yes if any of the uses have a plan in place
