@@ -34,108 +34,30 @@ export function getWaterbodyCondition(
   showNulls: boolean = false,
 ) {
   // when no fieldName is provided, use the isassessed/isimpaired logic
-  if (!fieldName) {
-    return attributes.isassessed === 'N'
-      ? waterbodyStatuses.unassessed
-      : attributes.isimpaired === 'Y'
-      ? waterbodyStatuses.polluted
-      : waterbodyStatuses.good;
-  }
+  const statusValue = fieldName
+    ? attributes[fieldName]
+    : attributes.overallstatus;
 
-  if (!attributes[fieldName]) {
+  if (!statusValue) {
     if (showNulls) return waterbodyStatuses.unassessed;
     else return waterbodyStatuses.notApplicable;
-  } else if (attributes[fieldName] === 'Not Supporting') {
+  } else if (statusValue === 'Not Supporting') {
     return waterbodyStatuses.polluted;
-  } else if (attributes[fieldName] === 'Fully Supporting') {
+  } else if (statusValue === 'Fully Supporting') {
     return waterbodyStatuses.good;
-  } else if (attributes[fieldName] === 'Cause') {
+  } else if (statusValue === 'Cause') {
     return waterbodyStatuses.polluted;
-  } else if (attributes[fieldName] === 'Meeting Criteria') {
+  } else if (statusValue === 'Meeting Criteria') {
     return waterbodyStatuses.good;
   } else {
     return waterbodyStatuses.unassessed;
   }
 }
 
-export function createUniqueValueInfos(
-  geometryType: string,
-  attributeName: string = '',
-) {
-  if (attributeName) {
-    return [
-      {
-        value: `Fully Supporting`,
-        symbol: createWaterbodySymbol({
-          condition: 'good',
-          selected: false,
-          geometryType,
-        }),
-      },
-      {
-        value: `Not Supporting`,
-        symbol: createWaterbodySymbol({
-          condition: 'polluted',
-          selected: false,
-          geometryType,
-        }),
-      },
-      {
-        value: `Insufficient Information`,
-        symbol: createWaterbodySymbol({
-          condition: 'unassessed',
-          selected: false,
-          geometryType,
-        }),
-      },
-      {
-        value: `Not Assessed`,
-        symbol: createWaterbodySymbol({
-          condition: 'unassessed',
-          selected: false,
-          geometryType,
-        }),
-      },
-      {
-        value: `Meeting Criteria`,
-        symbol: createWaterbodySymbol({
-          condition: 'good',
-          selected: false,
-          geometryType,
-        }),
-      },
-      {
-        value: `Cause`,
-        symbol: createWaterbodySymbol({
-          condition: 'polluted',
-          selected: false,
-          geometryType,
-        }),
-      },
-
-      // else use the default symbol (community = hiddend and state = unassessed)
-    ];
-  }
-
+export function createUniqueValueInfos(geometryType: string) {
   return [
     {
-      value: `N, N`,
-      symbol: createWaterbodySymbol({
-        condition: 'unassessed',
-        selected: false,
-        geometryType,
-      }),
-    },
-    {
-      value: `N, Y`,
-      symbol: createWaterbodySymbol({
-        condition: 'unassessed',
-        selected: false,
-        geometryType,
-      }),
-    },
-    {
-      value: `Y, N`,
+      value: `Fully Supporting`,
       symbol: createWaterbodySymbol({
         condition: 'good',
         selected: false,
@@ -143,7 +65,39 @@ export function createUniqueValueInfos(
       }),
     },
     {
-      value: `Y, Y`,
+      value: `Not Supporting`,
+      symbol: createWaterbodySymbol({
+        condition: 'polluted',
+        selected: false,
+        geometryType,
+      }),
+    },
+    {
+      value: `Insufficient Information`,
+      symbol: createWaterbodySymbol({
+        condition: 'unassessed',
+        selected: false,
+        geometryType,
+      }),
+    },
+    {
+      value: `Not Assessed`,
+      symbol: createWaterbodySymbol({
+        condition: 'unassessed',
+        selected: false,
+        geometryType,
+      }),
+    },
+    {
+      value: `Meeting Criteria`,
+      symbol: createWaterbodySymbol({
+        condition: 'good',
+        selected: false,
+        geometryType,
+      }),
+    },
+    {
+      value: `Cause`,
       symbol: createWaterbodySymbol({
         condition: 'polluted',
         selected: false,
