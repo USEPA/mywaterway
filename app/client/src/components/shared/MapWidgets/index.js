@@ -804,7 +804,6 @@ function MapWidgets({
 
           // zoom out to full extent
           view.goTo(upstreamExtent);
-          // view.map.layers.items.forEach((item) => console.log(item.id));
         })
         .catch((err) => {
           setUpstreamLoading(false);
