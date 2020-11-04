@@ -451,11 +451,6 @@ export function getPopupTitle(attributes: Object) {
     title = attributes.TRIBE_NAME;
   }
 
-  // upstream watershed
-  else if (attributes.xwalk_huc12) {
-    title = `Currently Selected Huc12: ${attributes.xwalk_huc12}`;
-  }
-
   // want to display allotment for Alaska Native Allotments
   else if (attributes.PARCEL_NO) {
     title = attributes.PARCEL_NO;

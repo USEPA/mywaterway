@@ -205,6 +205,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     monitoringStationsLayer,
     dischargersLayer,
     nonprofitsLayer,
+    upstreamLayer,
     actionsLayer,
     huc12,
   } = React.useContext(LocationSearchContext);
@@ -327,6 +328,8 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       layer = monitoringStationsLayer;
     } else if (attributes.type === 'nonprofit') {
       layer = nonprofitsLayer;
+    } else if (attributes.xwalk_huc12) {
+      layer = upstreamLayer;
     }
 
     if (!layer) return;
@@ -409,12 +412,16 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         });
 
         const requests = [];
-        areasLayer !== 'error' &&
+
+        if (areasLayer && areasLayer !== 'error')
           requests.push(areasLayer.queryFeatures(query));
-        linesLayer !== 'error' &&
+
+        if (linesLayer && linesLayer !== 'error')
           requests.push(linesLayer.queryFeatures(query));
-        pointsLayer !== 'error' &&
+
+        if (pointsLayer && pointsLayer !== 'error')
           requests.push(pointsLayer.queryFeatures(query));
+
         Promise.all(requests).then((responses) => {
           const featuresToCache = [];
           responses.forEach((response) => {
@@ -471,6 +478,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     dischargersLayer,
     monitoringStationsLayer,
     nonprofitsLayer,
+    upstreamLayer,
     issuesLayer,
     actionsLayer,
     findOthers,

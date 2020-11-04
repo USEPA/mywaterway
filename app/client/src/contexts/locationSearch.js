@@ -237,6 +237,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     getHuc12: () => {
       return this.state.huc12;
     },
+    getWatershed: () => {
+      return this.state.watershed;
+    },
     getUpstreamLayer: () => {
       return this.state.upstreamLayer;
     },
