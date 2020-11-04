@@ -195,7 +195,7 @@ function MapWidgets({
   const services = useServicesContext();
 
   const getDynamicPopup = useDynamicPopup();
-  const { getTitle, getTemplate } = getDynamicPopup();
+  const { getTemplate } = getDynamicPopup();
 
   const {
     getFullscreenActive,
