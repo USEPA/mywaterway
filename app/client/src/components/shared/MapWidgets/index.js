@@ -826,7 +826,6 @@ function MapWidgets({
       Viewpoint,
       Graphic,
       services.data.upstreamWatershed,
-      // getTitle,
     ],
   );
 
