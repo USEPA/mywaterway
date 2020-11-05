@@ -611,17 +611,19 @@ function AdvancedSearch({ ...props }: Props) {
 
     // waterbody and watershed filter
     const requests = [];
-    watershedFilter.forEach((watershed) => {
-      // Fire off requests for any watersheds that we don't already have data for
-      if (!watershedResults.hasOwnProperty(watershed.value)) {
-        // run a fetch to get the assessments in the huc
-        requests.push(
-          fetchCheck(
-            `${services.data.attains.serviceUrl}huc12summary?huc=${watershed.value}`,
-          ),
-        );
-      }
-    });
+    if (watershedFilter) {
+      watershedFilter.forEach((watershed) => {
+        // Fire off requests for any watersheds that we don't already have data for
+        if (!watershedResults.hasOwnProperty(watershed.value)) {
+          // run a fetch to get the assessments in the huc
+          requests.push(
+            fetchCheck(
+              `${services.data.attains.serviceUrl}huc12summary?huc=${watershed.value}`,
+            ),
+          );
+        }
+      });
+    }
 
     // If we have data for everything then execute the filter, otherwise parse the requests
     if (requests.length === 0) {
