@@ -583,7 +583,6 @@ function AdvancedSearch({ ...props }: Props) {
       reportingCycle: '',
     });
 
-    console.log('clear stuff...');
     // Reset the filters
     setCurrentFilter(null);
     setWaterbodyFilter([]);
