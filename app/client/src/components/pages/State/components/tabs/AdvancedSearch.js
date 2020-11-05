@@ -230,6 +230,7 @@ function AdvancedSearch({ ...props }: Props) {
     setCurrentReportingCycle,
     activeState,
     stateAndOrganization,
+    setStateAndOrganization,
   } = React.useContext(StateTabsContext);
 
   const { fullscreenActive } = React.useContext(FullscreenContext);
@@ -576,6 +577,7 @@ function AdvancedSearch({ ...props }: Props) {
     setWaterbodyData(null);
     setWaterbodiesList(null);
     setNumberOfRecords(null);
+    setStateAndOrganization(null);
     setCurrentReportingCycle({
       status: 'fetching',
       reportingCycle: '',
@@ -596,7 +598,12 @@ function AdvancedSearch({ ...props }: Props) {
     setNewDisplayOptions([defaultDisplayOption]);
     setDisplayOptions([defaultDisplayOption]);
     setSelectedDisplayOption(defaultDisplayOption);
-  }, [stateAndOrganization, setWaterbodyData, setCurrentReportingCycle]);
+  }, [
+    activeState,
+    setWaterbodyData,
+    setCurrentReportingCycle,
+    setStateAndOrganization,
+  ]);
 
   const executeFilter = () => {
     setSearchLoading(true);
