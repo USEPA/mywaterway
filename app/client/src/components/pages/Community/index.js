@@ -11,6 +11,7 @@ import TabLinks from 'components/shared/TabLinks';
 import LocationSearch from 'components/shared/LocationSearch';
 import LocationMap from 'components/pages/LocationMap';
 import MapVisibilityButton from 'components/shared/MapVisibilityButton';
+import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
@@ -60,6 +61,10 @@ const RightColumn = styled.div`
   }
 `;
 
+const ErrorBox = styled(StyledErrorBox)`
+  margin-bottom: 1em;
+`;
+
 // --- components ---
 type Props = {
   children: Node,
@@ -101,7 +106,8 @@ function Community({ children, ...props }: Props) {
   const {
     resetData,
     setSearchText,
-    setLastSearchText, //
+    setLastSearchText,
+    errorMessage,
   } = React.useContext(LocationSearchContext);
   React.useEffect(() => {
     return function cleanup() {
@@ -166,6 +172,7 @@ function Community({ children, ...props }: Props) {
             return (
               <Columns data-content="community">
                 <LeftColumn data-column="left">
+                  {errorMessage && <ErrorBox>{errorMessage}</ErrorBox>}
                   {searchMarkup}
                   <RightColumn data-column="right">
                     {/* children is either CommunityIntro or CommunityTabs (upper tabs) */}
@@ -195,6 +202,7 @@ function Community({ children, ...props }: Props) {
             return (
               <Columns data-content="community">
                 <LeftColumn data-column="left">
+                  {errorMessage && <ErrorBox>{errorMessage}</ErrorBox>}
                   <LocationMap windowHeight={height} layout="wide">
                     {searchMarkup}
                   </LocationMap>
