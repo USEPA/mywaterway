@@ -16,7 +16,6 @@ import {
   getPopupContent,
   getPopupTitle,
 } from 'components/pages/LocationMap/MapFunctions';
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
 // contexts
 import { EsriModulesContext } from 'contexts/EsriModules';
@@ -54,10 +53,6 @@ const Container = styled.div`
   position: relative;
   border: 1px solid #aebac3;
   background-color: #fff;
-`;
-
-const ErrorBox = styled(StyledErrorBox)`
-  margin-bottom: 1em;
 `;
 
 // --- components ---
@@ -141,7 +136,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setPointsLayer,
     setLinesLayer,
     setAreasLayer,
-    errorMessage,
     setErrorMessage,
   } = React.useContext(LocationSearchContext);
 
@@ -1300,12 +1294,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // jsx
   const mapContent = (
     <>
-      {errorMessage && layout !== 'fullscreen' && (
-        <ErrorBox>
-          <p>{errorMessage}</p>
-        </ErrorBox>
-      )}
-
       {/* for wide screens, LocationMap's children is searchText */}
       <div ref={measuredRef}>{children}</div>
 
