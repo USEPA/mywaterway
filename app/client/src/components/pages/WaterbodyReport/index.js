@@ -162,11 +162,11 @@ const ParameterCategory = styled.p`
   font-style: italic;
   font-size: 1em !important;
   color: #526571;
+  font-weight: bold;
 `;
 
 const Parameter = styled.li`
   border-bottom: 1px dotted #eee;
-
   &:last-of-type {
     border-bottom: none;
   }
