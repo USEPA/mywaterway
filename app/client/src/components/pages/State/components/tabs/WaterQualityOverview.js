@@ -257,6 +257,8 @@ function WaterQualityOverview({ ...props }: Props) {
     setCurrentReportStatus,
     setCurrentSummary,
     setUsesStateSummaryServiceError,
+    organizationId,
+    setOrganizationId,
   } = React.useContext(StateTabsContext);
 
   const [loading, setLoading] = React.useState(true);
@@ -274,7 +276,6 @@ function WaterQualityOverview({ ...props }: Props) {
   const [currentTopic, setCurrentTopic] = React.useState('swimming');
   const [waterTypes, setWaterTypes] = React.useState(null);
   const [waterTypeData, setWaterTypeData] = React.useState(null);
-  const [organizationId, setOrganizationId] = React.useState('');
 
   const [surveyData, setSurveyData] = React.useState(null);
   const [assessmentDocuments, setAssessmentDocuments] = React.useState(null);
@@ -530,7 +531,7 @@ function WaterQualityOverview({ ...props }: Props) {
           setLoading(false);
         });
     },
-    [fetchIntroText, fetchSurveyData, services],
+    [fetchIntroText, fetchSurveyData, services, setOrganizationId],
   );
 
   // If the user changes the search
