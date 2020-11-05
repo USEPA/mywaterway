@@ -44,7 +44,7 @@ const switches = [
     groupName: 'Sediment',
   },
   {
-    label: 'Microbiological',
+    label: 'Bacterial',
     groupName: 'Microbiological',
   },
   {
