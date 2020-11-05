@@ -583,6 +583,7 @@ function AdvancedSearch({ ...props }: Props) {
       reportingCycle: '',
     });
 
+    console.log('clear stuff...');
     // Reset the filters
     setCurrentFilter(null);
     setWaterbodyFilter([]);
@@ -654,9 +655,9 @@ function AdvancedSearch({ ...props }: Props) {
 
   // build esri where clause
   const executeFilterWrapped = (watershedResults: Object) => {
-    if (activeState.code === '') return;
+    if (activeState.code === '' || !stateAndOrganization) return;
 
-    let newFilter = `state = '${activeState.code}'`;
+    let newFilter = `state = '${activeState.code}' AND organizationid = '${stateAndOrganization.organizationId}'`;
 
     // radio button filters
     if (waterTypeFilter === '303d') {
