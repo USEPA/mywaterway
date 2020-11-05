@@ -257,8 +257,8 @@ function WaterQualityOverview({ ...props }: Props) {
     setCurrentReportStatus,
     setCurrentSummary,
     setUsesStateSummaryServiceError,
-    organizationId,
-    setOrganizationId,
+    stateAndOrganization,
+    setStateAndOrganization,
   } = React.useContext(StateTabsContext);
 
   const [loading, setLoading] = React.useState(true);
@@ -360,7 +360,7 @@ function WaterQualityOverview({ ...props }: Props) {
   );
   React.useEffect(() => {
     if (
-      !organizationId ||
+      !stateAndOrganization ||
       currentReportingCycle.status === 'fetching' ||
       usesStateSummaryCalled
     ) {
@@ -384,7 +384,7 @@ function WaterQualityOverview({ ...props }: Props) {
 
     const url =
       `${services.data.attains.serviceUrl}usesStateSummary` +
-      `?organizationId=${organizationId}` +
+      `?organizationId=${stateAndOrganization.organizationId}` +
       reportingCycleParam;
 
     fetchCheck(url)
@@ -426,7 +426,10 @@ function WaterQualityOverview({ ...props }: Props) {
         }
         setLoading(false);
 
-        fetchAssessments(organizationId, latestReportingCycle);
+        fetchAssessments(
+          stateAndOrganization.organizationId,
+          latestReportingCycle,
+        );
       })
       .catch((err) => {
         console.error('Error with attains summary web service: ', err);
@@ -450,7 +453,7 @@ function WaterQualityOverview({ ...props }: Props) {
     fetchAssessments,
     setCurrentSummary,
     setUsesStateSummaryServiceError,
-    organizationId,
+    stateAndOrganization,
     currentReportingCycle,
     setCurrentReportingCycle,
     usesStateSummaryCalled,
@@ -511,7 +514,10 @@ function WaterQualityOverview({ ...props }: Props) {
 
           // go to the next step if an org id was found, otherwise flag an error
           if (orgID) {
-            setOrganizationId(orgID);
+            setStateAndOrganization({
+              state: activeState.code,
+              organizationId: orgID,
+            });
             fetchIntroText(orgID);
             fetchSurveyData(orgID);
           } else {
@@ -531,7 +537,13 @@ function WaterQualityOverview({ ...props }: Props) {
           setLoading(false);
         });
     },
-    [fetchIntroText, fetchSurveyData, services, setOrganizationId],
+    [
+      fetchIntroText,
+      fetchSurveyData,
+      services,
+      setStateAndOrganization,
+      activeState,
+    ],
   );
 
   // If the user changes the search
@@ -995,7 +1007,7 @@ function WaterQualityOverview({ ...props }: Props) {
                   ) : (
                     <SurveyResults
                       loading={surveyLoading}
-                      organizationId={organizationId}
+                      organizationId={stateAndOrganization.organizationId}
                       activeState={activeState}
                       subPopulationCodes={subPopulationCodes}
                       surveyData={surveyData}

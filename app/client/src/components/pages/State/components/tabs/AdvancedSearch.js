@@ -229,7 +229,7 @@ function AdvancedSearch({ ...props }: Props) {
     currentReportingCycle,
     setCurrentReportingCycle,
     activeState,
-    organizationId,
+    stateAndOrganization,
   } = React.useContext(StateTabsContext);
 
   const { fullscreenActive } = React.useContext(FullscreenContext);
@@ -379,18 +379,11 @@ function AdvancedSearch({ ...props }: Props) {
 
   // these lists just have the name and id for faster load time
   const [waterbodiesList, setWaterbodiesList] = React.useState(null);
-  const [lastOrgId, setLastOrgId] = React.useState('');
   // Get the features on the waterbodies point layer
   React.useEffect(() => {
-    if (
-      activeState.code === '' ||
-      organizationId === lastOrgId ||
-      !summaryLayerMaxRecordCount
-    ) {
+    if (!stateAndOrganization || !summaryLayerMaxRecordCount) {
       return;
     }
-
-    setLastOrgId(organizationId);
 
     const { Query, QueryTask } = esriHelper.modules;
 
@@ -398,7 +391,7 @@ function AdvancedSearch({ ...props }: Props) {
     if (!currentFilter) {
       const queryParams = {
         returnGeometry: false,
-        where: `state = '${activeState.code}' AND organizationid = '${organizationId}'`,
+        where: `state = '${stateAndOrganization.state}' AND organizationid = '${stateAndOrganization.organizationId}'`,
         outFields: [
           'assessmentunitidentifier',
           'assessmentunitname',
@@ -474,12 +467,10 @@ function AdvancedSearch({ ...props }: Props) {
     esriHelper,
     setWaterbodyData,
     currentFilter,
-    activeState,
     summaryLayerMaxRecordCount,
     setCurrentReportingCycle,
     services,
-    organizationId,
-    lastOrgId,
+    stateAndOrganization,
   ]);
 
   const [waterbodyFilter, setWaterbodyFilter] = React.useState([]);
@@ -605,7 +596,7 @@ function AdvancedSearch({ ...props }: Props) {
     setNewDisplayOptions([defaultDisplayOption]);
     setDisplayOptions([defaultDisplayOption]);
     setSelectedDisplayOption(defaultDisplayOption);
-  }, [activeState, setWaterbodyData, setCurrentReportingCycle]);
+  }, [stateAndOrganization, setWaterbodyData, setCurrentReportingCycle]);
 
   const executeFilter = () => {
     setSearchLoading(true);
