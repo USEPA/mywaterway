@@ -229,6 +229,7 @@ function AdvancedSearch({ ...props }: Props) {
     currentReportingCycle,
     setCurrentReportingCycle,
     activeState,
+    organizationId,
   } = React.useContext(StateTabsContext);
 
   const { fullscreenActive } = React.useContext(FullscreenContext);
@@ -378,9 +379,18 @@ function AdvancedSearch({ ...props }: Props) {
 
   // these lists just have the name and id for faster load time
   const [waterbodiesList, setWaterbodiesList] = React.useState(null);
+  const [lastOrgId, setLastOrgId] = React.useState('');
   // Get the features on the waterbodies point layer
   React.useEffect(() => {
-    if (activeState.code === '' || !summaryLayerMaxRecordCount) return;
+    if (
+      activeState.code === '' ||
+      organizationId === lastOrgId ||
+      !summaryLayerMaxRecordCount
+    ) {
+      return;
+    }
+
+    setLastOrgId(organizationId);
 
     const { Query, QueryTask } = esriHelper.modules;
 
@@ -388,10 +398,11 @@ function AdvancedSearch({ ...props }: Props) {
     if (!currentFilter) {
       const queryParams = {
         returnGeometry: false,
-        where: `state = '${activeState.code}'`,
+        where: `state = '${activeState.code}' AND organizationid = '${organizationId}'`,
         outFields: [
           'assessmentunitidentifier',
           'assessmentunitname',
+          'orgtype',
           'reportingcycle',
         ],
       };
@@ -467,6 +478,8 @@ function AdvancedSearch({ ...props }: Props) {
     summaryLayerMaxRecordCount,
     setCurrentReportingCycle,
     services,
+    organizationId,
+    lastOrgId,
   ]);
 
   const [waterbodyFilter, setWaterbodyFilter] = React.useState([]);
