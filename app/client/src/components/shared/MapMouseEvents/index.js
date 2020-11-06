@@ -53,7 +53,17 @@ function MapMouseEvents({ map, view }: Props) {
         .then((res) => {
           // get and update the selected graphic
           const graphic = getGraphicFromResponse(res);
+
+          // if upstream watershed is clicked:
+          // set the view highlight options to 0 fill opacity
           if (graphic && graphic.attributes) {
+            if (graphic.layer.id === 'upstreamWatershed') {
+              view.highlightOptions.fillOpacity = 0;
+              console.log('setting upstream selected to true');
+            } else {
+              view.highlightOptions.fillOpacity = 1;
+            }
+
             setSelectedGraphic(graphic);
           } else {
             setSelectedGraphic('');
@@ -146,6 +156,16 @@ function MapMouseEvents({ map, view }: Props) {
 
           // get the graphic from the hittest
           let feature = getGraphicFromResponse(res);
+
+          // if any feature besides the upstream watershed is moused over:
+          // set the view's highlight fill opacity back to 1
+          if (
+            feature?.layer?.id !== 'upstreamWatershed' &&
+            view.highlightOptions.fillOpacity !== 1 &&
+            !view.popup.visible // if popup is not visible then the upstream layer isn't currently selected
+          ) {
+            view.highlightOptions.fillOpacity = 1;
+          }
 
           // ensure the graphic actually changed prior to setting the context variable
           const equal = graphicComparison(feature, lastFeature);
