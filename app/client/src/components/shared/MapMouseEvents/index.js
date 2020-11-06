@@ -54,9 +54,9 @@ function MapMouseEvents({ map, view }: Props) {
           // get and update the selected graphic
           const graphic = getGraphicFromResponse(res);
 
-          // if upstream watershed is clicked:
-          // set the view highlight options to 0 fill opacity
           if (graphic && graphic.attributes) {
+            // if upstream watershed is clicked:
+            // set the view highlight options to 0 fill opacity
             if (graphic.layer.id === 'upstreamWatershed') {
               view.highlightOptions.fillOpacity = 0;
               console.log('setting upstream selected to true');
