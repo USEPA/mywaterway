@@ -196,6 +196,13 @@ function MapMouseEvents({ map, view }: Props) {
       ) {
         loadMonitoringLocation(graphic, services);
       }
+
+      // set the view highlight options to 0 fill opacity if upstream watershed is selected
+      if (graphic?.layer?.id === 'upstreamWatershed') {
+        view.highlightOptions.fillOpacity = 0;
+      } else {
+        view.highlightOptions.fillOpacity = 1;
+      }
     });
 
     // auto expands the popup when it is first opened
