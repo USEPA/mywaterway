@@ -154,7 +154,6 @@ export function createWaterbodySymbol({
 
   // for polygons, add transparency to the color so that lines can be seen
   if (geometryType === 'polygon') color.a = 0.75;
-  if (condition === 'hidden') color.a = 0; //handle the identified issues panel
 
   let symbol = {
     type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
@@ -164,6 +163,12 @@ export function createWaterbodySymbol({
     outline,
     condition,
   };
+
+  if (condition === 'hidden') {
+    symbol.outline = { color: [0, 0, 0, 0], width: 0 };
+    symbol.color = [0, 0, 0, 0];
+    return symbol;
+  }
 
   if (geometryType === 'point') {
     if (condition === 'good') {
