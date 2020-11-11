@@ -6,7 +6,10 @@ import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import MapWidgets from 'components/shared/MapWidgets';
 import MapMouseEvents from 'components/shared/MapMouseEvents';
 import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
-import { createWaterbodySymbol } from 'components/pages/LocationMap/MapFunctions';
+import {
+  createWaterbodySymbol,
+  getWaterbodyCondition,
+} from 'components/pages/LocationMap/MapFunctions';
 // styled components
 import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes';
 // contexts
@@ -196,15 +199,8 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
             }
 
             // handle Waterbody Report page
-            const overallStatus = feature?.attributes?.overallstatus;
-
-            const condition =
-              overallStatus === 'Not Supporting' || overallStatus === 'Cause'
-                ? 'polluted'
-                : overallStatus === 'Fully Supporting' ||
-                  overallStatus === 'Meeting Criteria'
-                ? 'good'
-                : 'unassessed'; // catch all
+            const condition = getWaterbodyCondition(feature.attributes)
+              .condition;
 
             const symbol = createWaterbodySymbol({
               condition: condition,
