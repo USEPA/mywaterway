@@ -164,24 +164,64 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
             return;
           }
 
+          function getWaterbodyColor(feature: Object, type: string) {
+            // handle Actions page
+            if (window.location.pathname.includes('/plan-summary')) {
+              if (type === 'area') return [0, 123, 255, 0.75];
+              return [0, 123, 255];
+            }
+
+            // handle Waterbody Report page
+            const overallStatus = feature?.attributes?.overallstatus;
+            const condition =
+              overallStatus === 'Not Supporting' || overallStatus === 'Cause'
+                ? 'Impaired'
+                : overallStatus === 'Fully Supporting' ||
+                  overallStatus === 'Meeting Criteria'
+                ? 'Good'
+                : 'Condition Unknown'; // catch all
+
+            const formattedCondition =
+              condition === 'Good'
+                ? 'good'
+                : condition === 'Impaired'
+                ? 'polluted'
+                : 'unassessed';
+
+            let color = { r: 107, g: 65, b: 149 }; // purple
+            if (formattedCondition === 'good') {
+              color = { r: 32, g: 128, b: 12 }; // green
+            }
+            if (formattedCondition === 'polluted') {
+              color = { r: 203, g: 34, b: 62 }; // red
+            }
+
+            // add transparency for area features
+            if (type === 'area') color.a = 0.75;
+
+            return color;
+          }
+
           function createGraphic(feature: Object, type: string) {
+            const color = getWaterbodyColor(feature, type);
+
             let symbol;
             if (type === 'point') {
               symbol = new SimpleMarkerSymbol({
-                color: [0, 123, 255],
+                color,
                 style: 'circle',
               });
             }
             if (type === 'line') {
               symbol = new SimpleLineSymbol({
-                color: [0, 123, 255],
+                color,
                 style: 'solid',
                 width: '2',
               });
             }
             if (type === 'area') {
               symbol = new SimpleFillSymbol({
-                color: [0, 123, 255, 0.5],
+                color,
                 style: 'solid',
               });
             }
