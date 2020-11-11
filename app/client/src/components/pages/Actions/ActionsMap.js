@@ -6,6 +6,7 @@ import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import MapWidgets from 'components/shared/MapWidgets';
 import MapMouseEvents from 'components/shared/MapMouseEvents';
 import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
+import { createWaterbodySymbol } from 'components/pages/LocationMap/MapFunctions';
 // styled components
 import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes';
 // contexts
@@ -164,59 +165,58 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
             return;
           }
 
-          function getWaterbodyColor(feature: Object, type: string) {
+          function getWaterbodySymbol(feature: Object, type: string) {
             // handle Actions page
             if (window.location.pathname.includes('/plan-summary')) {
-              if (type === 'area') return [0, 123, 255, 0.75];
-              return [0, 123, 255];
+              let color = { r: 0, g: 123, b: 255 };
+              if (type === 'polygon') color.a = 0.75;
+
+              let symbol;
+              if (type === 'point') {
+                symbol = new SimpleMarkerSymbol({
+                  color,
+                  style: 'circle',
+                });
+              }
+              if (type === 'polyline') {
+                symbol = new SimpleLineSymbol({
+                  color,
+                  style: 'solid',
+                  width: '2',
+                });
+              }
+              if (type === 'polygon') {
+                symbol = new SimpleFillSymbol({
+                  color,
+                  style: 'solid',
+                });
+              }
+
+              return symbol;
             }
 
             // handle Waterbody Report page
             const overallStatus = feature?.attributes?.overallstatus;
 
-            let color = { r: 107, g: 65, b: 149 }; // purple
-            if (
-              overallStatus === 'Fully Supporting' ||
-              overallStatus === 'Meeting Criteria'
-            ) {
-              color = { r: 32, g: 128, b: 12 }; // green
-            }
-            if (
-              overallStatus === 'Not Supporting' ||
-              overallStatus === 'Cause'
-            ) {
-              color = { r: 203, g: 34, b: 62 }; // red
-            }
+            const condition =
+              overallStatus === 'Not Supporting' || overallStatus === 'Cause'
+                ? 'polluted'
+                : overallStatus === 'Fully Supporting' ||
+                  overallStatus === 'Meeting Criteria'
+                ? 'good'
+                : 'unassessed'; // catch all
 
-            // add transparency for area features
-            if (type === 'area') color.a = 0.75;
+            const symbol = createWaterbodySymbol({
+              condition: condition,
+              selected: false,
+              geometryType: type,
+            });
 
-            return color;
+            return symbol;
           }
 
           function createGraphic(feature: Object, type: string) {
-            const color = getWaterbodyColor(feature, type);
-
-            let symbol;
-            if (type === 'point') {
-              symbol = new SimpleMarkerSymbol({
-                color,
-                style: 'circle',
-              });
-            }
-            if (type === 'line') {
-              symbol = new SimpleLineSymbol({
-                color,
-                style: 'solid',
-                width: '2',
-              });
-            }
-            if (type === 'area') {
-              symbol = new SimpleFillSymbol({
-                color,
-                style: 'solid',
-              });
-            }
+            const symbol = getWaterbodySymbol(feature, type);
 
             const auId = feature.attributes.assessmentunitidentifier;
             const reportingCycle = feature.attributes.reportingcycle;
@@ -253,11 +253,11 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
 
           // add graphics to graphicsLayer based on feature type
           areaResponse.features.forEach((feature) => {
-            actionsLayer.graphics.add(createGraphic(feature, 'area'));
+            actionsLayer.graphics.add(createGraphic(feature, 'polygon'));
           });
 
           lineResponse.features.forEach((feature) => {
-            actionsLayer.graphics.add(createGraphic(feature, 'line'));
+            actionsLayer.graphics.add(createGraphic(feature, 'polyline'));
           });
 
           pointResponse.features.forEach((feature) => {
