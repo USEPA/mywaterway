@@ -173,26 +173,18 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
 
             // handle Waterbody Report page
             const overallStatus = feature?.attributes?.overallstatus;
-            const condition =
-              overallStatus === 'Not Supporting' || overallStatus === 'Cause'
-                ? 'Impaired'
-                : overallStatus === 'Fully Supporting' ||
-                  overallStatus === 'Meeting Criteria'
-                ? 'Good'
-                : 'Condition Unknown'; // catch all
-
-            const formattedCondition =
-              condition === 'Good'
-                ? 'good'
-                : condition === 'Impaired'
-                ? 'polluted'
-                : 'unassessed';
 
             let color = { r: 107, g: 65, b: 149 }; // purple
-            if (formattedCondition === 'good') {
+            if (
+              overallStatus === 'Fully Supporting' ||
+              overallStatus === 'Meeting Criteria'
+            ) {
               color = { r: 32, g: 128, b: 12 }; // green
             }
-            if (formattedCondition === 'polluted') {
+            if (
+              overallStatus === 'Not Supporting' ||
+              overallStatus === 'Cause'
+            ) {
               color = { r: 203, g: 34, b: 62 }; // red
             }
 
