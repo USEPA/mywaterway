@@ -174,41 +174,41 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
               let color = { r: 0, g: 123, b: 255 };
               if (type === 'polygon') color.a = 0.75;
 
-              let symbol;
+              let planSummarySymbol;
               if (type === 'point') {
-                symbol = new SimpleMarkerSymbol({
+                planSummarySymbol = new SimpleMarkerSymbol({
                   color,
                   style: 'circle',
                 });
               }
               if (type === 'polyline') {
-                symbol = new SimpleLineSymbol({
+                planSummarySymbol = new SimpleLineSymbol({
                   color,
                   style: 'solid',
                   width: '2',
                 });
               }
               if (type === 'polygon') {
-                symbol = new SimpleFillSymbol({
+                planSummarySymbol = new SimpleFillSymbol({
                   color,
                   style: 'solid',
                 });
               }
 
-              return symbol;
+              return planSummarySymbol;
             }
 
             // handle Waterbody Report page
             const condition = getWaterbodyCondition(feature.attributes)
               .condition;
 
-            const symbol = createWaterbodySymbol({
+            const waterbodyReportSymbol = createWaterbodySymbol({
               condition: condition,
               selected: false,
               geometryType: type,
             });
 
-            return symbol;
+            return waterbodyReportSymbol;
           }
 
           function createGraphic(feature: Object, type: string) {
