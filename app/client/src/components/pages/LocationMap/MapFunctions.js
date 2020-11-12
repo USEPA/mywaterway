@@ -382,7 +382,7 @@ const organizationMapping = {
 
 export function getOrganizationLabel(attributes: Object) {
   const mappedLabel = organizationMapping[attributes.organizationid];
-  if (mappedLabel) return `${mappedLabel}`;
+  if (mappedLabel) return mappedLabel;
   if (attributes.orgtype === 'Tribe') return 'Tribe';
   if (attributes.orgtype === 'State') return 'State';
   return ''; // catch all
