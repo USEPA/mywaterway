@@ -381,6 +381,8 @@ const organizationMapping = {
 };
 
 export function getOrganizationLabel(attributes: Object) {
+  if (!attributes) return '';
+
   const mappedLabel = organizationMapping[attributes.organizationid];
   if (mappedLabel) return mappedLabel;
   if (attributes.orgtype === 'Tribe') return 'Tribe';
