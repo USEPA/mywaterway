@@ -17,6 +17,7 @@ import {
   createWaterbodySymbol,
   getWaterbodyCondition,
   getUniqueWaterbodies,
+  getOrganizationLabel,
 } from 'components/pages/LocationMap/MapFunctions';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -132,7 +133,9 @@ function WaterbodyList({
             <AccordionItem
               key={index}
               title={<strong>{graphic.attributes.assessmentunitname}</strong>}
-              subTitle={`ID: ${graphic.attributes.assessmentunitidentifier}`}
+              subTitle={`${getOrganizationLabel(graphic.attributes)} ID: ${
+                graphic.attributes.assessmentunitidentifier
+              }`}
               icon={<WaterbodyIcon condition={condition} selected={false} />}
               mapIcon={icon}
               feature={graphic}

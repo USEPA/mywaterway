@@ -370,6 +370,26 @@ export const openPopup = (view: Object, feature: Object, services: Object) => {
   });
 };
 
+// map District and Territory organization IDs to their labels
+const organizationMapping = {
+  DOEE: 'District',
+  PR_LAKES: 'Territory',
+  USVIST: 'Territory',
+  '21AQ': 'Territory',
+  '21AS': 'Territory',
+  '21GUAM': 'Territory',
+};
+
+export function getOrganizationLabel(attributes: Object) {
+  if (!attributes) return '';
+
+  const mappedLabel = organizationMapping[attributes.organizationid];
+  if (mappedLabel) return mappedLabel;
+  if (attributes.orgtype === 'Tribe') return 'Tribe';
+  if (attributes.orgtype === 'State') return 'State';
+  return ''; // catch all
+}
+
 export function getPopupTitle(attributes: Object) {
   let title = 'Unknown';
 
@@ -377,7 +397,9 @@ export function getPopupTitle(attributes: Object) {
 
   // line, area, point for waterbody
   if (attributes.assessmentunitname) {
-    title = `${attributes.assessmentunitname} (${attributes.assessmentunitidentifier})`;
+    title = `${attributes.assessmentunitname} (${getOrganizationLabel(
+      attributes,
+    )} ID: ${attributes.assessmentunitidentifier})`;
   }
 
   // discharger

@@ -34,6 +34,8 @@ import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 import { chunkArray } from 'utils/utils';
+// utilities
+import { getOrganizationLabel } from 'components/pages/LocationMap/MapFunctions';
 // styles
 import { colors } from 'styles/index.js';
 // errors
@@ -689,7 +691,13 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                                     {assessmentUnitName || 'Name not provided'}
                                   </strong>
                                 }
-                                subTitle={`ID: ${assessmentUnitIdentifier}`}
+                                subTitle={`${
+                                  waterbodyData?.attributes
+                                    ? getOrganizationLabel(
+                                        waterbodyData.attributes,
+                                      )
+                                    : ''
+                                } ID: ${assessmentUnitIdentifier}`}
                               >
                                 <AccordionContent>
                                   {unitIds[assessmentUnitIdentifier] &&
