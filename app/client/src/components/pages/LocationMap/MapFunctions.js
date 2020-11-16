@@ -417,6 +417,11 @@ export function getPopupTitle(attributes: Object) {
     title = attributes.Name || 'Unknown name';
   }
 
+  // county
+  else if (attributes.CNTY_FIPS) {
+    title = `${attributes.STATE_NAME} County ${attributes.CNTY_FIPS}`;
+  }
+
   // congressional district
   else if (attributes.DISTRICTID) {
     title = `${attributes.STATE_ABBR} District ${attributes.CDFIPS}`;
@@ -494,6 +499,11 @@ export function getPopupContent({
   // protect tab teal nonprofits
   else if (attributes && attributes.type === 'nonprofit') {
     type = 'Nonprofit';
+  }
+
+  // county
+  else if (attributes.CNTY_FIPS) {
+    type = 'County';
   }
 
   // congressional district

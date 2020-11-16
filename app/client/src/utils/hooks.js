@@ -859,6 +859,11 @@ function useSharedLayers() {
           },
         },
       },
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields: ['NAME', 'CNTY_FIPS', 'STATE_NAME'],
+      },
     });
 
     const stateBoundariesLayer = new MapImageLayer({
