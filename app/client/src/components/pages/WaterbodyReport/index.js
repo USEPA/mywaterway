@@ -411,14 +411,22 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
           name: firstItem.organizationName,
         });
 
-        const {
-          epaIRCategory,
-          overallStatus,
-          rationaleText,
-          useAttainments,
-          parameters,
-          probableSources,
-        } = res.items[0].assessments[0];
+        let epaIRCategory = null;
+        let overallStatus = null;
+        let rationaleText = null;
+        let useAttainments = [];
+        let parameters = [];
+        let probableSources = [];
+        if (firstItem.assessments.length > 0) {
+          const assessment = firstItem.assessments[0];
+
+          epaIRCategory = assessment.epaIRCategory;
+          overallStatus = assessment.overallStatus;
+          rationaleText = assessment.rationaleText;
+          useAttainments = assessment.useAttainments;
+          parameters = assessment.parameters;
+          probableSources = assessment.probableSources;
+        }
 
         setDecisionRationale(rationaleText);
 
