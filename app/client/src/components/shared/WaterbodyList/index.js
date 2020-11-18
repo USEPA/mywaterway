@@ -133,7 +133,7 @@ function WaterbodyList({
             <AccordionItem
               key={index}
               title={<strong>{graphic.attributes.assessmentunitname}</strong>}
-              subTitle={`${getOrganizationLabel(graphic.attributes)} ID: ${
+              subTitle={`${getOrganizationLabel(graphic.attributes)} ${
                 graphic.attributes.assessmentunitidentifier
               }`}
               icon={<WaterbodyIcon condition={condition} selected={false} />}

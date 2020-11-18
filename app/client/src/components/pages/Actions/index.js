@@ -691,13 +691,9 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                                     {assessmentUnitName || 'Name not provided'}
                                   </strong>
                                 }
-                                subTitle={`${
-                                  waterbodyData?.attributes
-                                    ? getOrganizationLabel(
-                                        waterbodyData.attributes,
-                                      )
-                                    : ''
-                                } ID: ${assessmentUnitIdentifier}`}
+                                subTitle={`${getOrganizationLabel(
+                                  waterbodyData?.attributes,
+                                )} ${assessmentUnitIdentifier}`}
                               >
                                 <AccordionContent>
                                   {unitIds[assessmentUnitIdentifier] &&

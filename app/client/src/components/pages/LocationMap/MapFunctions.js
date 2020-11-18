@@ -381,13 +381,13 @@ const organizationMapping = {
 };
 
 export function getOrganizationLabel(attributes: Object) {
-  if (!attributes) return '';
+  if (!attributes) return 'Waterbody ID:';
 
   const mappedLabel = organizationMapping[attributes.organizationid];
-  if (mappedLabel) return mappedLabel;
-  if (attributes.orgtype === 'Tribe') return 'Tribe';
-  if (attributes.orgtype === 'State') return 'State';
-  return ''; // catch all
+  if (mappedLabel) return `${mappedLabel} Waterbody ID:`;
+  if (attributes.orgtype === 'Tribe') return 'Tribe Waterbody ID:';
+  if (attributes.orgtype === 'State') return 'State Waterbody ID:';
+  return 'Waterbody ID:'; // catch all
 }
 
 export function getPopupTitle(attributes: Object) {
@@ -399,7 +399,7 @@ export function getPopupTitle(attributes: Object) {
   if (attributes.assessmentunitname) {
     title = `${attributes.assessmentunitname} (${getOrganizationLabel(
       attributes,
-    )} ID: ${attributes.assessmentunitidentifier})`;
+    )} ${attributes.assessmentunitidentifier})`;
   }
 
   // discharger
