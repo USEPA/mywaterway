@@ -13,6 +13,8 @@ import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
 import { getWaterbodyCondition } from 'components/pages/LocationMap/MapFunctions';
 import { formatNumber } from 'utils/utils';
 import { fetchCheck } from 'utils/fetchUtils';
+// data
+import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // errors
 import { monitoringError } from 'config/errorMessages';
 // styles
@@ -462,46 +464,10 @@ function WaterbodyInfo({
     </>
   );
 
-  // move this to JSON file and import -
-  // ask Brad if he's okay with it being added as JSON because it's used across multiple files
-
-  const switches = [
-    {
-      label: 'All',
-      groupNames: [],
-    },
-    {
-      label: 'Nutrients',
-      groupNames: ['Nutrient'],
-    },
-    {
-      label: 'Pesticides',
-      groupNames: ['Organics, Pesticide'],
-    },
-    {
-      label: 'Metals',
-      groupNames: ['Inorganics, Major, Metals', 'Inorganics, Minor, Metals'],
-    },
-    {
-      label: 'Sediments',
-      groupNames: ['Sediment'],
-    },
-    {
-      label: 'Bacterial',
-      groupNames: ['Microbiological'],
-    },
-    {
-      label: 'Physical',
-      groupNames: ['Physical'],
-    },
-    {
-      label: 'Other',
-      groupNames: [],
-    },
-  ];
-
-  function checkIfGroupInMapping(groupName, switches) {
-    return switches.find((mapping) => mapping.groupNames.includes(groupName));
+  function checkIfGroupInMapping(groupName) {
+    return characteristicGroupMappings.find((mapping) =>
+      mapping.groupNames.includes(groupName),
+    );
   }
 
   const [charGroupFilters, setCharGroupFilters] = React.useState('');
@@ -538,25 +504,25 @@ function WaterbodyInfo({
           Other: { characteristicGroups: [], resultCount: 0 },
         };
 
-        switches.forEach((s) => {
+        characteristicGroupMappings.forEach((mapping) => {
           for (const groupName in groups) {
             if (
-              s.groupNames.includes(groupName) &&
-              !monitoringStationGroups[s.label]?.characteristicGroups.includes(
-                groupName,
-              )
+              mapping.groupNames.includes(groupName) &&
+              !monitoringStationGroups[
+                mapping.label
+              ]?.characteristicGroups.includes(groupName)
             ) {
-              // push to existing
-              if (monitoringStationGroups[s.label]) {
-                monitoringStationGroups[s.label].characteristicGroups.push(
-                  groupName,
-                );
-                monitoringStationGroups[s.label].resultCount +=
+              // push to existing group
+              if (monitoringStationGroups[mapping.label]) {
+                monitoringStationGroups[
+                  mapping.label
+                ].characteristicGroups.push(groupName);
+                monitoringStationGroups[mapping.label].resultCount +=
                   groups[groupName];
               }
-              // create a new one
+              // create a new group
               else {
-                monitoringStationGroups[s.label] = {
+                monitoringStationGroups[mapping.label] = {
                   characteristicGroups: [groupName],
                   resultCount: groups[groupName],
                 };
@@ -564,7 +530,7 @@ function WaterbodyInfo({
             }
             // push to Other
             else if (
-              !checkIfGroupInMapping(groupName, switches) &&
+              !checkIfGroupInMapping(groupName) &&
               !monitoringStationGroups['Other'].characteristicGroups.includes(
                 groupName,
               )

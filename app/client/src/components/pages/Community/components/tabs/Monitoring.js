@@ -19,43 +19,10 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { plotStations } from 'components/pages/LocationMap/MapFunctions';
+// data
+import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // errors
 import { monitoringError } from 'config/errorMessages';
-
-const switches = [
-  {
-    label: 'All',
-    groupNames: [],
-  },
-  {
-    label: 'Nutrients',
-    groupNames: ['Nutrient'],
-  },
-  {
-    label: 'Pesticides',
-    groupNames: ['Organics, Pesticide'],
-  },
-  {
-    label: 'Metals',
-    groupNames: ['Inorganics, Major, Metals', 'Inorganics, Minor, Metals'],
-  },
-  {
-    label: 'Sediments',
-    groupNames: ['Sediment'],
-  },
-  {
-    label: 'Bacterial',
-    groupNames: ['Microbiological'],
-  },
-  {
-    label: 'Physical',
-    groupNames: ['Physical'],
-  },
-  {
-    label: 'Other',
-    groupNames: [],
-  },
-];
 
 // --- styled components ---
 const Container = styled.div`
@@ -192,19 +159,19 @@ function Monitoring() {
 
       // build up the monitoringLocationToggles and monitoringStationGroups
       let groupAdded = false;
-      switches.forEach((s) => {
-        monitoringLocationToggles[s.label] = true;
+      characteristicGroupMappings.forEach((mapping) => {
+        monitoringLocationToggles[mapping.label] = true;
 
         for (const group in properties.characteristicGroupResultCount) {
           // if characteristic group exists in switch config object
-          if (s.groupNames.includes(group)) {
+          if (mapping.groupNames.includes(group)) {
             // if switch group (w/ label key) already exists, add the stations to it
-            if (monitoringStationGroups[s.label]) {
-              monitoringStationGroups[s.label].stations.push(station);
+            if (monitoringStationGroups[mapping.label]) {
+              monitoringStationGroups[mapping.label].stations.push(station);
               // else, create the group (w/ label key) and add the station
             } else {
-              monitoringStationGroups[s.label] = {
-                label: s.label,
+              monitoringStationGroups[mapping.label] = {
+                label: mapping.label,
                 stations: [station],
                 toggled: true,
               };
