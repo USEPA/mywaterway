@@ -784,6 +784,21 @@ function WaterbodyInfo({
   };
 
   // jsx
+  const countyContent = () => {
+    return (
+      <>
+        <p>
+          <strong>County:</strong>
+          <br />
+          {attributes.CNTY_FIPS} - {attributes.NAME}
+        </p>
+
+        {renderChangeWatershed()}
+      </>
+    );
+  };
+
+  // jsx
   const tribeContent = (
     <>
       {labelValue('Tribe Name', attributes.TRIBE_NAME)}
@@ -831,6 +846,7 @@ function WaterbodyInfo({
   if (type === 'Nonprofit') return nonprofitContent;
   if (type === 'Waterbody State Overview') return waterbodyStateContent;
   if (type === 'Action') return actionContent;
+  if (type === 'County') return countyContent();
   if (type === 'Congressional District') return congressionalDistrictContent();
   if (type === 'Tribe') return tribeContent;
   if (type === 'Upstream Watershed') return upstreamWatershedContent;
