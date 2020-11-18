@@ -571,12 +571,15 @@ function WaterbodyInfo({
   ]);
 
   const monitoringContent = () => {
-    const buildFilter = (selected: Object, monitoringLocationData: Object) => {
+    const buildFilter = (
+      selectedNames: Object,
+      monitoringLocationData: Object,
+    ) => {
       // build up filter text for the given table
       let filter = '';
 
-      for (const name in selected) {
-        if (selected[name]) {
+      for (const name in selectedNames) {
+        if (selectedNames[name]) {
           const joinedGroupnames =
             '&characteristicType=' +
             monitoringLocationData[name].characteristicGroups.join(
