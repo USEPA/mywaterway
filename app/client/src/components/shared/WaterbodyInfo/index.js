@@ -571,7 +571,7 @@ function WaterbodyInfo({
   ]);
 
   const monitoringContent = () => {
-    const buildFilter = (selected: Object, monitoringLocationData) => {
+    const buildFilter = (selected: Object, monitoringLocationData: Object) => {
       // build up filter text for the given table
       let filter = '';
 
