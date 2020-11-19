@@ -248,7 +248,8 @@ function SiteSpecific({
     });
   }
 
-  const responsiveBarChartHeight = barChartData.length * 60;
+  const responsiveBarChartHeight =
+    barChartData.length === 1 ? 75 : barChartData.length * 60;
 
   const responsiveBarChartFontSize =
     window.innerWidth < 350
