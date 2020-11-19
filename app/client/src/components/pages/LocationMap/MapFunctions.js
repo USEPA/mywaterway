@@ -385,7 +385,7 @@ export function getOrganizationLabel(attributes: Object) {
 
   const mappedLabel = organizationMapping[attributes.organizationid];
   if (mappedLabel) return `${mappedLabel} Waterbody ID:`;
-  if (attributes.orgtype === 'Tribe') return 'Tribe Waterbody ID:';
+  if (attributes.orgtype === 'Tribe') return 'Tribal Waterbody ID:';
   if (attributes.orgtype === 'State') return 'State Waterbody ID:';
   return 'Waterbody ID:'; // catch all
 }
