@@ -324,6 +324,13 @@ function WaterbodyInfo({
           />,
         )}
 
+        {attributes?.organizationid && attributes?.organizationname && (
+          <TextBottomPadding>
+            <strong>Organization Name (ID): </strong>
+            {`${attributes.organizationname} (${attributes.organizationid})`}
+          </TextBottomPadding>
+        )}
+
         {useLabel === 'Waterbody' && (
           <>
             {applicableFields.length === 0 && (
