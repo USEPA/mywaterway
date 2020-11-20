@@ -463,7 +463,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
     });
 
     setUnitIds(unitIds);
-  }, [waters, actionTypeCode, orgId]);
+  }, [waters, actionTypeCode, orgId, organizationName]);
 
   // calculate height of div holding actions info
   const [infoHeight, setInfoHeight] = React.useState(0);
