@@ -236,6 +236,10 @@ const NewTabDisclaimerDiv = styled.div`
   display: inline-block;
 `;
 
+const TextBottomMargin = styled.p`
+  margin-bottom: 0.5em !important;
+`;
+
 // --- components ---
 type Props = {
   ...RouteProps,
@@ -353,6 +357,12 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
 
         return (
           <>
+            {organizationName && orgId && (
+              <TextBottomMargin>
+                <strong>Organization Name (ID):&nbsp;</strong>
+                {organizationName} ({orgId})
+              </TextBottomMargin>
+            )}
             {hasTmdlData && (
               <>
                 <strong>Associated Impairments: </strong>
