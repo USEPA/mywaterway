@@ -6,6 +6,10 @@ import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import MapWidgets from 'components/shared/MapWidgets';
 import MapMouseEvents from 'components/shared/MapMouseEvents';
 import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
+import {
+  createWaterbodySymbol,
+  getWaterbodyCondition,
+} from 'components/pages/LocationMap/MapFunctions';
 // styled components
 import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes';
 // contexts
@@ -164,27 +168,51 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
             return;
           }
 
+          function getWaterbodySymbol(feature: Object, type: string) {
+            // handle Actions page
+            if (window.location.pathname.includes('/plan-summary')) {
+              let color = { r: 0, g: 123, b: 255 };
+              if (type === 'polygon') color.a = 0.75;
+
+              let planSummarySymbol;
+              if (type === 'point') {
+                planSummarySymbol = new SimpleMarkerSymbol({
+                  color,
+                  style: 'circle',
+                });
+              }
+              if (type === 'polyline') {
+                planSummarySymbol = new SimpleLineSymbol({
+                  color,
+                  style: 'solid',
+                  width: '2',
+                });
+              }
+              if (type === 'polygon') {
+                planSummarySymbol = new SimpleFillSymbol({
+                  color,
+                  style: 'solid',
+                });
+              }
+
+              return planSummarySymbol;
+            }
+
+            // handle Waterbody Report page
+            const condition = getWaterbodyCondition(feature.attributes)
+              .condition;
+
+            const waterbodyReportSymbol = createWaterbodySymbol({
+              condition: condition,
+              selected: false,
+              geometryType: type,
+            });
+
+            return waterbodyReportSymbol;
+          }
+
           function createGraphic(feature: Object, type: string) {
-            let symbol;
-            if (type === 'point') {
-              symbol = new SimpleMarkerSymbol({
-                color: [0, 123, 255],
-                style: 'circle',
-              });
-            }
-            if (type === 'line') {
-              symbol = new SimpleLineSymbol({
-                color: [0, 123, 255],
-                style: 'solid',
-                width: '2',
-              });
-            }
-            if (type === 'area') {
-              symbol = new SimpleFillSymbol({
-                color: [0, 123, 255, 0.5],
-                style: 'solid',
-              });
-            }
+            const symbol = getWaterbodySymbol(feature, type);
 
             const auId = feature.attributes.assessmentunitidentifier;
             const reportingCycle = feature.attributes.reportingcycle;
@@ -221,11 +249,11 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
 
           // add graphics to graphicsLayer based on feature type
           areaResponse.features.forEach((feature) => {
-            actionsLayer.graphics.add(createGraphic(feature, 'area'));
+            actionsLayer.graphics.add(createGraphic(feature, 'polygon'));
           });
 
           lineResponse.features.forEach((feature) => {
-            actionsLayer.graphics.add(createGraphic(feature, 'line'));
+            actionsLayer.graphics.add(createGraphic(feature, 'polyline'));
           });
 
           pointResponse.features.forEach((feature) => {
@@ -277,6 +305,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
       !fetchStatus ||
       !mapView ||
       !actionsLayer ||
+      !homeWidget ||
       fetchStatus === 'fetching'
     ) {
       return;

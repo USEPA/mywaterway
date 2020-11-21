@@ -229,6 +229,8 @@ function AdvancedSearch({ ...props }: Props) {
     currentReportingCycle,
     setCurrentReportingCycle,
     activeState,
+    stateAndOrganization,
+    setStateAndOrganization,
   } = React.useContext(StateTabsContext);
 
   const { fullscreenActive } = React.useContext(FullscreenContext);
@@ -380,7 +382,9 @@ function AdvancedSearch({ ...props }: Props) {
   const [waterbodiesList, setWaterbodiesList] = React.useState(null);
   // Get the features on the waterbodies point layer
   React.useEffect(() => {
-    if (activeState.code === '' || !summaryLayerMaxRecordCount) return;
+    if (!stateAndOrganization || !summaryLayerMaxRecordCount) {
+      return;
+    }
 
     const { Query, QueryTask } = esriHelper.modules;
 
@@ -388,10 +392,11 @@ function AdvancedSearch({ ...props }: Props) {
     if (!currentFilter) {
       const queryParams = {
         returnGeometry: false,
-        where: `state = '${activeState.code}'`,
+        where: `state = '${stateAndOrganization.state}' AND organizationid = '${stateAndOrganization.organizationId}'`,
         outFields: [
           'assessmentunitidentifier',
           'assessmentunitname',
+          'orgtype',
           'reportingcycle',
         ],
       };
@@ -463,10 +468,10 @@ function AdvancedSearch({ ...props }: Props) {
     esriHelper,
     setWaterbodyData,
     currentFilter,
-    activeState,
     summaryLayerMaxRecordCount,
     setCurrentReportingCycle,
     services,
+    stateAndOrganization,
   ]);
 
   const [waterbodyFilter, setWaterbodyFilter] = React.useState([]);
@@ -572,6 +577,7 @@ function AdvancedSearch({ ...props }: Props) {
     setWaterbodyData(null);
     setWaterbodiesList(null);
     setNumberOfRecords(null);
+    setStateAndOrganization(null);
     setCurrentReportingCycle({
       status: 'fetching',
       reportingCycle: '',
@@ -592,24 +598,31 @@ function AdvancedSearch({ ...props }: Props) {
     setNewDisplayOptions([defaultDisplayOption]);
     setDisplayOptions([defaultDisplayOption]);
     setSelectedDisplayOption(defaultDisplayOption);
-  }, [activeState, setWaterbodyData, setCurrentReportingCycle]);
+  }, [
+    activeState,
+    setWaterbodyData,
+    setCurrentReportingCycle,
+    setStateAndOrganization,
+  ]);
 
   const executeFilter = () => {
     setSearchLoading(true);
 
     // waterbody and watershed filter
     const requests = [];
-    watershedFilter.forEach((watershed) => {
-      // Fire off requests for any watersheds that we don't already have data for
-      if (!watershedResults.hasOwnProperty(watershed.value)) {
-        // run a fetch to get the assessments in the huc
-        requests.push(
-          fetchCheck(
-            `${services.data.attains.serviceUrl}huc12summary?huc=${watershed.value}`,
-          ),
-        );
-      }
-    });
+    if (watershedFilter) {
+      watershedFilter.forEach((watershed) => {
+        // Fire off requests for any watersheds that we don't already have data for
+        if (!watershedResults.hasOwnProperty(watershed.value)) {
+          // run a fetch to get the assessments in the huc
+          requests.push(
+            fetchCheck(
+              `${services.data.attains.serviceUrl}huc12summary?huc=${watershed.value}`,
+            ),
+          );
+        }
+      });
+    }
 
     // If we have data for everything then execute the filter, otherwise parse the requests
     if (requests.length === 0) {
@@ -643,9 +656,9 @@ function AdvancedSearch({ ...props }: Props) {
 
   // build esri where clause
   const executeFilterWrapped = (watershedResults: Object) => {
-    if (activeState.code === '') return;
+    if (activeState.code === '' || !stateAndOrganization) return;
 
-    let newFilter = `state = '${activeState.code}'`;
+    let newFilter = `state = '${activeState.code}' AND organizationid = '${stateAndOrganization.organizationId}'`;
 
     // radio button filters
     if (waterTypeFilter === '303d') {

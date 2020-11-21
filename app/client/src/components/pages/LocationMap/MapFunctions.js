@@ -34,108 +34,30 @@ export function getWaterbodyCondition(
   showNulls: boolean = false,
 ) {
   // when no fieldName is provided, use the isassessed/isimpaired logic
-  if (!fieldName) {
-    return attributes.isassessed === 'N'
-      ? waterbodyStatuses.unassessed
-      : attributes.isimpaired === 'Y'
-      ? waterbodyStatuses.polluted
-      : waterbodyStatuses.good;
-  }
+  const statusValue = fieldName
+    ? attributes[fieldName]
+    : attributes.overallstatus;
 
-  if (!attributes[fieldName]) {
+  if (!statusValue) {
     if (showNulls) return waterbodyStatuses.unassessed;
     else return waterbodyStatuses.notApplicable;
-  } else if (attributes[fieldName] === 'Not Supporting') {
+  } else if (statusValue === 'Not Supporting') {
     return waterbodyStatuses.polluted;
-  } else if (attributes[fieldName] === 'Fully Supporting') {
+  } else if (statusValue === 'Fully Supporting') {
     return waterbodyStatuses.good;
-  } else if (attributes[fieldName] === 'Cause') {
+  } else if (statusValue === 'Cause') {
     return waterbodyStatuses.polluted;
-  } else if (attributes[fieldName] === 'Meeting Criteria') {
+  } else if (statusValue === 'Meeting Criteria') {
     return waterbodyStatuses.good;
   } else {
     return waterbodyStatuses.unassessed;
   }
 }
 
-export function createUniqueValueInfos(
-  geometryType: string,
-  attributeName: string = '',
-) {
-  if (attributeName) {
-    return [
-      {
-        value: `Fully Supporting`,
-        symbol: createWaterbodySymbol({
-          condition: 'good',
-          selected: false,
-          geometryType,
-        }),
-      },
-      {
-        value: `Not Supporting`,
-        symbol: createWaterbodySymbol({
-          condition: 'polluted',
-          selected: false,
-          geometryType,
-        }),
-      },
-      {
-        value: `Insufficient Information`,
-        symbol: createWaterbodySymbol({
-          condition: 'unassessed',
-          selected: false,
-          geometryType,
-        }),
-      },
-      {
-        value: `Not Assessed`,
-        symbol: createWaterbodySymbol({
-          condition: 'unassessed',
-          selected: false,
-          geometryType,
-        }),
-      },
-      {
-        value: `Meeting Criteria`,
-        symbol: createWaterbodySymbol({
-          condition: 'good',
-          selected: false,
-          geometryType,
-        }),
-      },
-      {
-        value: `Cause`,
-        symbol: createWaterbodySymbol({
-          condition: 'polluted',
-          selected: false,
-          geometryType,
-        }),
-      },
-
-      // else use the default symbol (community = hiddend and state = unassessed)
-    ];
-  }
-
+export function createUniqueValueInfos(geometryType: string) {
   return [
     {
-      value: `N, N`,
-      symbol: createWaterbodySymbol({
-        condition: 'unassessed',
-        selected: false,
-        geometryType,
-      }),
-    },
-    {
-      value: `N, Y`,
-      symbol: createWaterbodySymbol({
-        condition: 'unassessed',
-        selected: false,
-        geometryType,
-      }),
-    },
-    {
-      value: `Y, N`,
+      value: `Fully Supporting`,
       symbol: createWaterbodySymbol({
         condition: 'good',
         selected: false,
@@ -143,7 +65,39 @@ export function createUniqueValueInfos(
       }),
     },
     {
-      value: `Y, Y`,
+      value: `Not Supporting`,
+      symbol: createWaterbodySymbol({
+        condition: 'polluted',
+        selected: false,
+        geometryType,
+      }),
+    },
+    {
+      value: `Insufficient Information`,
+      symbol: createWaterbodySymbol({
+        condition: 'unassessed',
+        selected: false,
+        geometryType,
+      }),
+    },
+    {
+      value: `Not Assessed`,
+      symbol: createWaterbodySymbol({
+        condition: 'unassessed',
+        selected: false,
+        geometryType,
+      }),
+    },
+    {
+      value: `Meeting Criteria`,
+      symbol: createWaterbodySymbol({
+        condition: 'good',
+        selected: false,
+        geometryType,
+      }),
+    },
+    {
+      value: `Cause`,
       symbol: createWaterbodySymbol({
         condition: 'polluted',
         selected: false,
@@ -200,7 +154,6 @@ export function createWaterbodySymbol({
 
   // for polygons, add transparency to the color so that lines can be seen
   if (geometryType === 'polygon') color.a = 0.75;
-  if (condition === 'hidden') color.a = 0; //handle the identified issues panel
 
   let symbol = {
     type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
@@ -210,6 +163,12 @@ export function createWaterbodySymbol({
     outline,
     condition,
   };
+
+  if (condition === 'hidden') {
+    symbol.outline = { color: [0, 0, 0, 0], width: 0 };
+    symbol.color = [0, 0, 0, 0];
+    return symbol;
+  }
 
   if (geometryType === 'point') {
     if (condition === 'good') {
@@ -411,6 +370,26 @@ export const openPopup = (view: Object, feature: Object, services: Object) => {
   });
 };
 
+// map District and Territory organization IDs to their labels
+const organizationMapping = {
+  DOEE: 'District',
+  PR_LAKES: 'Territory',
+  USVIST: 'Territory',
+  '21AQ': 'Territory',
+  '21AS': 'Territory',
+  '21GUAM': 'Territory',
+};
+
+export function getOrganizationLabel(attributes: Object) {
+  if (!attributes) return 'Waterbody ID:';
+
+  const mappedLabel = organizationMapping[attributes.organizationid];
+  if (mappedLabel) return `${mappedLabel} Waterbody ID:`;
+  if (attributes.orgtype === 'Tribe') return 'Tribal Waterbody ID:';
+  if (attributes.orgtype === 'State') return 'State Waterbody ID:';
+  return 'Waterbody ID:'; // catch all
+}
+
 export function getPopupTitle(attributes: Object) {
   let title = 'Unknown';
 
@@ -418,7 +397,9 @@ export function getPopupTitle(attributes: Object) {
 
   // line, area, point for waterbody
   if (attributes.assessmentunitname) {
-    title = `${attributes.assessmentunitname} (${attributes.assessmentunitidentifier})`;
+    title = `${attributes.assessmentunitname} (${getOrganizationLabel(
+      attributes,
+    )} ${attributes.assessmentunitidentifier})`;
   }
 
   // discharger
@@ -434,6 +415,11 @@ export function getPopupTitle(attributes: Object) {
   // protect tab teal nonprofits
   else if (attributes.type === 'nonprofit') {
     title = attributes.Name || 'Unknown name';
+  }
+
+  // county
+  else if (attributes.CNTY_FIPS) {
+    title = `${attributes.STATE_NAME} County ${attributes.CNTY_FIPS}`;
   }
 
   // congressional district
@@ -515,6 +501,11 @@ export function getPopupContent({
     type = 'Nonprofit';
   }
 
+  // county
+  else if (attributes.CNTY_FIPS) {
+    type = 'County';
+  }
+
   // congressional district
   else if (attributes.DISTRICTID) {
     type = 'Congressional District';
@@ -528,6 +519,11 @@ export function getPopupContent({
   // other tribal layers just use the tribe name
   else if (attributes.TRIBE_NAME) {
     type = 'Tribe';
+  }
+
+  // upstream watershed
+  else if (attributes.xwalk_huc12) {
+    type = 'Upstream Watershed';
   }
 
   // stand alone change location popup

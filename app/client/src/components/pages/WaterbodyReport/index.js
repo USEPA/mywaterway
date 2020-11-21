@@ -162,11 +162,11 @@ const ParameterCategory = styled.p`
   font-style: italic;
   font-size: 1em !important;
   color: #526571;
+  font-weight: bold;
 `;
 
 const Parameter = styled.li`
   border-bottom: 1px dotted #eee;
-
   &:last-of-type {
     border-bottom: none;
   }
@@ -411,30 +411,37 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
           name: firstItem.organizationName,
         });
 
-        const {
-          epaIRCategory,
-          rationaleText,
-          useAttainments,
-          parameters,
-          probableSources,
-        } = res.items[0].assessments[0];
+        let epaIRCategory = null;
+        let overallStatus = null;
+        let rationaleText = null;
+        let useAttainments = [];
+        let parameters = [];
+        let probableSources = [];
+        if (firstItem.assessments.length > 0) {
+          const assessment = firstItem.assessments[0];
+
+          epaIRCategory = assessment.epaIRCategory;
+          overallStatus = assessment.overallStatus;
+          rationaleText = assessment.rationaleText;
+          useAttainments = assessment.useAttainments;
+          parameters = assessment.parameters;
+          probableSources = assessment.probableSources;
+        }
 
         setDecisionRationale(rationaleText);
 
         const status = {
-          polluted:
-            ['4A', '4B', '4C', '5', '5A', '5M'].indexOf(epaIRCategory) !== -1,
           planForRestoration: ['4A', '4B', '5A'].indexOf(epaIRCategory) !== -1,
           listed303d: ['5', '5A', '5M'].indexOf(epaIRCategory) !== -1,
-          good: ['1', '2'].indexOf(epaIRCategory) !== -1,
-          unknown: ['3'].indexOf(epaIRCategory) !== -1,
         };
 
-        const condition = status.polluted
-          ? 'Impaired'
-          : status.good
-          ? 'Good'
-          : 'Condition Unknown'; // catch all
+        const condition =
+          overallStatus === 'Not Supporting' || overallStatus === 'Cause'
+            ? 'Impaired'
+            : overallStatus === 'Fully Supporting' ||
+              overallStatus === 'Meeting Criteria'
+            ? 'Good'
+            : 'Condition Unknown'; // catch all
 
         // Use the status above initially. When looping through the use attainments
         // this will be set this to yes if any of the uses have a plan in place

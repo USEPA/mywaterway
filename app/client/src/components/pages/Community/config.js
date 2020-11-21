@@ -46,9 +46,9 @@ const overviewUpper = (
     </p>
     <p>
       Water quality is monitored for physical, chemical and biological factors.
-      The monitoring results are assessed against state water quality standards
-      approved by EPA. Water can be impaired, meaning it is not able to be used
-      for certain purposes.
+      The monitoring results are assessed against EPA approved water quality
+      standards or thresholds. Water can be impaired, meaning it is not able to
+      be used for certain purposes.
       <ShowLessMore
         charLimit={0}
         text={`

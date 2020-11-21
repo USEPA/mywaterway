@@ -34,6 +34,8 @@ import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 import { chunkArray } from 'utils/utils';
+// utilities
+import { getOrganizationLabel } from 'components/pages/LocationMap/MapFunctions';
 // styles
 import { colors } from 'styles/index.js';
 // errors
@@ -234,6 +236,10 @@ const NewTabDisclaimerDiv = styled.div`
   display: inline-block;
 `;
 
+const TextBottomMargin = styled.p`
+  margin-bottom: 0.5em !important;
+`;
+
 // --- components ---
 type Props = {
   ...RouteProps,
@@ -351,6 +357,12 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
 
         return (
           <>
+            {organizationName && orgId && (
+              <TextBottomMargin>
+                <strong>Organization Name (ID):&nbsp;</strong>
+                {organizationName} ({orgId})
+              </TextBottomMargin>
+            )}
             {hasTmdlData && (
               <>
                 <strong>Associated Impairments: </strong>
@@ -451,7 +463,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
     });
 
     setUnitIds(unitIds);
-  }, [waters, actionTypeCode, orgId]);
+  }, [waters, actionTypeCode, orgId, organizationName]);
 
   // calculate height of div holding actions info
   const [infoHeight, setInfoHeight] = React.useState(0);
@@ -689,7 +701,9 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                                     {assessmentUnitName || 'Name not provided'}
                                   </strong>
                                 }
-                                subTitle={`ID: ${assessmentUnitIdentifier}`}
+                                subTitle={`${getOrganizationLabel(
+                                  waterbodyData?.attributes,
+                                )} ${assessmentUnitIdentifier}`}
                               >
                                 <AccordionContent>
                                   {unitIds[assessmentUnitIdentifier] &&

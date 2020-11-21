@@ -108,18 +108,18 @@ const Content = styled.div`
     font-size: 1.375em;
   }
 
+  h2,
+  h3 {
+    font-family: ${fonts.primary};
+    font-weight: normal;
+  }
+
   h4 {
     margin-bottom: 0.75rem;
     padding-bottom: 0;
     font-size: 1.125em;
     color: #526571;
-  }
-
-  h2,
-  h3,
-  h4 {
     font-family: ${fonts.primary};
-    font-weight: normal;
   }
 `;
 
