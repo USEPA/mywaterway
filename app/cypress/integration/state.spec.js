@@ -139,10 +139,9 @@ describe('State page Water Quality Overview sub tabs', () => {
     // Florida > Aquatic Life > Coastal Waters
     // verify the pie chart is not there and the bar chart is
 
-    // temporarily disabling the check for the Survey Results section due to service issues
-    // cy.findByTestId('hmw-ecological-tab-panel')
-    //   .contains(surveyResultsText)
-    //   .should('not.exist');
+    cy.findByTestId('hmw-ecological-tab-panel')
+      .contains(surveyResultsText)
+      .should('not.exist');
     cy.findByTestId('hmw-ecological-tab-panel')
       .contains(siteSpecificText)
       .should('exist');
@@ -154,10 +153,9 @@ describe('State page Water Quality Overview sub tabs', () => {
 
     // verify the pie chart is not there and the bar chart is
 
-    // temporarily disabling the check for the Survey Results section due to service issues
-    // cy.findByTestId('hmw-ecological-tab-panel')
-    //   .contains(surveyResultsText)
-    //   .should('exist');
+    cy.findByTestId('hmw-ecological-tab-panel')
+      .contains(surveyResultsText)
+      .should('exist');
     cy.findByTestId('hmw-ecological-tab-panel')
       .contains(siteSpecificText)
       .should('exist');
