@@ -328,6 +328,8 @@ function SiteSpecific({
                       series: {
                         pointPadding: 0.05,
                         groupPadding: 0,
+                        pointWidth: 45,
+                        minPointLength: 3,
                         inside: true,
                         shadow: false,
                         borderWidth: 1,
