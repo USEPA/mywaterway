@@ -40,6 +40,10 @@ const Heading = styled.h3`
 
 const AccordionContent = styled.div`
   padding: 0.875em;
+
+  p:last-of-type {
+    padding-bottom: 0.875rem;
+  }
 `;
 
 const Project = styled.div`
@@ -208,13 +212,96 @@ function Protect() {
                     title={<strong>Watershed Health Scores</strong>}
                   >
                     <AccordionContent>
-                      <p>(Watershed Health Scores...)</p>
+                      <p>
+                        <strong>
+                          Where do the healthiest watersheds occur?
+                        </strong>
+                      </p>
+                      <p>
+                        The Watershed Health Index, from the Preliminary Healthy
+                        Watersheds Assessment (PHWA), is a score of{' '}
+                        <strong>watershed health</strong> across the
+                        conterminous United States
+                      </p>
+                      <ul>
+                        <li>
+                          The map to the left shows watershed health,
+                          characterized by the presence of natural land cover
+                          that supports hydrologic and geomorphic processes
+                          within their natural range of variation, good water
+                          quality, and habitats of sufficient size and
+                          connectivity to support healthy, native aquatic and
+                          riparian biological communities.
+                        </li>
+                        <li>
+                          Each Watershed Health Index score is relative to the
+                          scores (1-99% percentile) of watersheds across the
+                          state. A HUC12 watershed that straddles more than one
+                          state is scored only in the state in which its
+                          majority area resides.
+                        </li>
+                      </ul>
+
+                      <p>
+                        <strong>Why is the PHWA valuable?</strong>
+                      </p>
+
+                      <ul>
+                        <li>
+                          Raises awareness of where the healthiest watersheds
+                          occur
+                        </li>
+                        <li>
+                          Provides an initial dataset upon which others can
+                          build better watershed condition information.
+                        </li>
+                        <li>
+                          Improves communication and coordination among
+                          watershed management partners by providing nationally
+                          consistent measures of watershed health.
+                        </li>
+                        <li>
+                          Provides a basis to promote high quality waters
+                          protection.
+                        </li>
+                        <li>
+                          Supports efforts to prioritize, protect and maintain
+                          high quality waters.
+                        </li>
+                      </ul>
+
+                      <p>
+                        <a
+                          href="https://www.epa.gov/hwp/download-preliminary-healthy-watersheds-assessments"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          More Information »
+                        </a>
+                      </p>
                     </AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem title={<strong>Protected Areas</strong>}>
                     <AccordionContent>
-                      <p>(Protected Areas...)</p>
+                      <p>
+                        The Protected Areas Database (PAD-US) is America’s
+                        official national inventory of U.S. terrestrial and
+                        marine protected areas that are dedicated to the
+                        preservation of biological diversity and to other
+                        natural, recreation and cultural uses, managed for these
+                        purposes through legal or other effective means.
+                      </p>
+
+                      <p>
+                        <a
+                          href="https://www.usgs.gov/core-science-systems/science-analytics-and-synthesis/gap/science/protected-areas"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          More Information »
+                        </a>
+                      </p>
                     </AccordionContent>
                   </AccordionItem>
 
@@ -222,7 +309,29 @@ function Protect() {
                     title={<strong>Wild and Scenic Rivers</strong>}
                   >
                     <AccordionContent>
-                      <p>(Wild and Scenic Rivers...)</p>
+                      <p>
+                        The National Wild and Scenic Rivers System was created
+                        by Congress in 1968 to preserve certain rivers with
+                        outstanding natural, cultural, and recreational values
+                        in a free-flowing condition for the enjoyment of present
+                        and future generations. The Act is notable for
+                        safeguarding the special character of these rivers,
+                        while also recognizing the potential for their
+                        appropriate use and development. It encourages river
+                        management that crosses political boundaries and
+                        promotes public participation in developing goals for
+                        river protection.
+                      </p>
+
+                      <p>
+                        <a
+                          href="https://www.rivers.gov/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          More Information »
+                        </a>
+                      </p>
                     </AccordionContent>
                   </AccordionItem>
 
