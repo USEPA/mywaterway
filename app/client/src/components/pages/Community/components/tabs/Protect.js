@@ -38,6 +38,24 @@ const Heading = styled.h3`
   font-size: 1.375em;
 `;
 
+const AccordionContent = styled.div`
+  padding: 0.875em;
+`;
+
+const Project = styled.div`
+  // NOTE: this is still a work in progress...just highlighting each project
+  // on hover for now (if there's eventually a geospacial component for each
+  // project, we'll want to hightlight it on the map)
+
+  &:hover {
+    background-color: #f0f6f9;
+  }
+`;
+
+const ProjectTitle = styled.p`
+  padding: 0.75rem;
+`;
+
 const NewTabDisclaimer = styled.div`
   display: inline-block;
 `;
@@ -58,13 +76,24 @@ function Protect() {
           )
       : [];
 
+  const accordionRef = React.useRef();
+
+  // initially expand first accordion item
+  React.useEffect(() => {
+    if (accordionRef.current) {
+      const accordion = accordionRef.current;
+      const header = accordion.querySelector('.hmw-accordion-header');
+      if (header) header.click();
+    }
+  }, [accordionRef]);
+
   return (
     <Container>
       <ContentTabs>
         <Tabs>
           <TabList>
             <Tab>Tips</Tab>
-            <Tab>Protection Projects</Tab>
+            <Tab>Watershed Health and Protection</Tab>
           </TabList>
           <TabPanels>
             <TabPanel>
@@ -167,148 +196,191 @@ function Protect() {
               </List>
             </TabPanel>
             <TabPanel>
-              <>
-                {grts.status === 'fetching' && <LoadingSpinner />}
+              <p>
+                Learn about watershed health scores in relation to your state,
+                if there are any protected areas in your watershed, and the
+                location of any designated <em>Wild and Scenic Rivers</em>
+              </p>
 
-                {grts.status === 'failure' && (
-                  <StyledErrorBox>
-                    <p>{protectNonpointSourceError}</p>
-                  </StyledErrorBox>
-                )}
+              <div ref={accordionRef}>
+                <AccordionList title={''}>
+                  <AccordionItem
+                    title={<strong>Watershed Health Scores</strong>}
+                  >
+                    <AccordionContent>
+                      <p>(Watershed Health Scores...)</p>
+                    </AccordionContent>
+                  </AccordionItem>
 
-                {grts.status === 'success' && (
-                  <>
-                    {sortedGrtsData.length === 0 && (
-                      <Text>
-                        There are no EPA funded protection projects in the{' '}
-                        {watershed} watershed.
-                      </Text>
-                    )}
-                    {sortedGrtsData.length > 0 && (
-                      <AccordionList
-                        title={`EPA funded protection projects in the ${watershed} watershed.`}
-                      >
-                        {sortedGrtsData.map((item, index) => {
-                          const url = getUrlFromMarkup(item['project_link']);
-                          const protectionPlans =
-                            item['watershed_plans'] &&
-                            // break string into pieces separated by commas and map over them
-                            item['watershed_plans'].split(',').map((plan) => {
-                              const markup = plan.split('</a>')[0] + '</a>';
-                              const title = getTitleFromMarkup(markup);
-                              const planUrl = getUrlFromMarkup(markup);
-                              if (!title || !planUrl) return false;
-                              return { url: planUrl, title: title };
-                            });
-                          // remove any plans with missing titles or urls
-                          const filteredProtectionPlans =
-                            protectionPlans &&
-                            protectionPlans.filter(
-                              (plan) => plan && plan.url && plan.title,
-                            );
-                          return (
-                            <AccordionItem
-                              key={index}
-                              title={
-                                <strong>
-                                  {item['prj_title'] || 'Unknown'}
-                                </strong>
-                              }
-                              subTitle={`ID: ${
-                                item['prj_seq'] || 'Unknown ID'
-                              }`}
-                            >
-                              <table className="table">
-                                <tbody>
-                                  {item['pollutants'] && (
-                                    <tr>
-                                      <td>
-                                        <em>Impairments:</em>
-                                      </td>
-                                      <td>{item['pollutants']}</td>
-                                    </tr>
-                                  )}
-                                  <tr>
-                                    <td>
-                                      <em>Total Funds:</em>
-                                    </td>
-                                    <td>{item['total_319_funds']}</td>
-                                  </tr>
-                                  <tr>
-                                    <td>
-                                      <em>Project Start Date:</em>
-                                    </td>
-                                    <td>{item['project_start_date']}</td>
-                                  </tr>
-                                  <tr>
-                                    <td>
-                                      <em>Project Status:</em>
-                                    </td>
-                                    <td>{item['status']}</td>
-                                  </tr>
-                                  <tr>
-                                    <td>
-                                      <em>Project Details:</em>
-                                    </td>
-                                    <td>
-                                      <a
-                                        href={url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                      >
-                                        Open Project Summary
-                                      </a>
-                                      &nbsp;&nbsp;
-                                      <NewTabDisclaimer>
-                                        (opens new browser tab)
-                                      </NewTabDisclaimer>
-                                    </td>
-                                  </tr>
+                  <AccordionItem title={<strong>Protected Areas</strong>}>
+                    <AccordionContent>
+                      <p>(Protected Areas...)</p>
+                    </AccordionContent>
+                  </AccordionItem>
 
-                                  <tr>
-                                    <td>
-                                      <em>Protection Plans:</em>
-                                    </td>
-                                    {filteredProtectionPlans &&
-                                    filteredProtectionPlans.length > 0 ? (
-                                      <td>
-                                        {filteredProtectionPlans.map(
-                                          (plan, index) => {
-                                            if (
-                                              plan &&
-                                              plan.url &&
-                                              plan.title
-                                            ) {
-                                              return (
-                                                <div key={index}>
-                                                  <a
-                                                    href={plan.url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                  >
-                                                    {plan.title}
-                                                  </a>
-                                                </div>
-                                              );
-                                            }
-                                            return false;
-                                          },
+                  <AccordionItem
+                    title={<strong>Wild and Scenic Rivers</strong>}
+                  >
+                    <AccordionContent>
+                      <p>(Wild and Scenic Rivers...)</p>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem title={<strong>Protection Projects</strong>}>
+                    <AccordionContent>
+                      {grts.status === 'fetching' && <LoadingSpinner />}
+
+                      {grts.status === 'failure' && (
+                        <StyledErrorBox>
+                          <p>{protectNonpointSourceError}</p>
+                        </StyledErrorBox>
+                      )}
+
+                      {grts.status === 'success' && (
+                        <>
+                          {sortedGrtsData.length === 0 && (
+                            <Text>
+                              There are no EPA funded protection projects in the{' '}
+                              {watershed} watershed.
+                            </Text>
+                          )}
+
+                          {sortedGrtsData.length > 0 && (
+                            <>
+                              <p>
+                                EPA funded protection projects in the{' '}
+                                {watershed} watershed.
+                              </p>
+
+                              {sortedGrtsData.map((item, index) => {
+                                const url = getUrlFromMarkup(
+                                  item['project_link'],
+                                );
+                                const protectionPlans =
+                                  item['watershed_plans'] &&
+                                  // break string into pieces separated by commas and map over them
+                                  item['watershed_plans']
+                                    .split(',')
+                                    .map((plan) => {
+                                      const markup =
+                                        plan.split('</a>')[0] + '</a>';
+                                      const title = getTitleFromMarkup(markup);
+                                      const planUrl = getUrlFromMarkup(markup);
+                                      if (!title || !planUrl) return false;
+                                      return { url: planUrl, title: title };
+                                    });
+                                // remove any plans with missing titles or urls
+                                const filteredProtectionPlans =
+                                  protectionPlans &&
+                                  protectionPlans.filter(
+                                    (plan) => plan && plan.url && plan.title,
+                                  );
+                                return (
+                                  <Project key={index}>
+                                    <ProjectTitle>
+                                      <strong>
+                                        {item['prj_title'] || 'Unknown'}
+                                      </strong>
+                                      <br />
+                                      <small>
+                                        ID: {item['prj_seq'] || 'Unknown ID'}
+                                      </small>
+                                    </ProjectTitle>
+
+                                    <table className="table">
+                                      <tbody>
+                                        {item['pollutants'] && (
+                                          <tr>
+                                            <td>
+                                              <em>Impairments:</em>
+                                            </td>
+                                            <td>{item['pollutants']}</td>
+                                          </tr>
                                         )}
-                                      </td>
-                                    ) : (
-                                      <td>Document not available</td>
-                                    )}
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </AccordionItem>
-                          );
-                        })}
-                      </AccordionList>
-                    )}
-                  </>
-                )}
-              </>
+                                        <tr>
+                                          <td>
+                                            <em>Total Funds:</em>
+                                          </td>
+                                          <td>{item['total_319_funds']}</td>
+                                        </tr>
+                                        <tr>
+                                          <td>
+                                            <em>Project Start Date:</em>
+                                          </td>
+                                          <td>{item['project_start_date']}</td>
+                                        </tr>
+                                        <tr>
+                                          <td>
+                                            <em>Project Status:</em>
+                                          </td>
+                                          <td>{item['status']}</td>
+                                        </tr>
+                                        <tr>
+                                          <td>
+                                            <em>Project Details:</em>
+                                          </td>
+                                          <td>
+                                            <a
+                                              href={url}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                            >
+                                              Open Project Summary
+                                            </a>
+                                            &nbsp;&nbsp;
+                                            <NewTabDisclaimer>
+                                              (opens new browser tab)
+                                            </NewTabDisclaimer>
+                                          </td>
+                                        </tr>
+
+                                        <tr>
+                                          <td>
+                                            <em>Protection Plans:</em>
+                                          </td>
+                                          {filteredProtectionPlans &&
+                                          filteredProtectionPlans.length > 0 ? (
+                                            <td>
+                                              {filteredProtectionPlans.map(
+                                                (plan, index) => {
+                                                  if (
+                                                    plan &&
+                                                    plan.url &&
+                                                    plan.title
+                                                  ) {
+                                                    return (
+                                                      <div key={index}>
+                                                        <a
+                                                          href={plan.url}
+                                                          target="_blank"
+                                                          rel="noopener noreferrer"
+                                                        >
+                                                          {plan.title}
+                                                        </a>
+                                                      </div>
+                                                    );
+                                                  }
+                                                  return false;
+                                                },
+                                              )}
+                                            </td>
+                                          ) : (
+                                            <td>Document not available</td>
+                                          )}
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                  </Project>
+                                );
+                              })}
+                            </>
+                          )}
+                        </>
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+                </AccordionList>
+              </div>
             </TabPanel>
           </TabPanels>
         </Tabs>
