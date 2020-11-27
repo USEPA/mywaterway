@@ -58,8 +58,8 @@ const Label = styled.label`
   }
 `;
 
-const Project = styled.div`
-  // NOTE: this is still a work in progress...just highlighting each project
+const Feature = styled.div`
+  // NOTE: this is still a work in progress...just highlighting each item
   // on hover for now (if there's eventually a geospacial component for each
   // project, we'll want to hightlight it on the map)
 
@@ -68,7 +68,7 @@ const Project = styled.div`
   }
 `;
 
-const ProjectTitle = styled.p`
+const FeatureTitle = styled.p`
   padding: 0.75rem;
 `;
 
@@ -348,6 +348,48 @@ function Protect() {
                       <span>Display on Map</span>
                     </Label>
 
+                    {
+                      /* TODO: replace array with actual protected areas */
+                      [1, 2, 3].map((item) => {
+                        return (
+                          <Feature key={item}>
+                            <FeatureTitle>
+                              <strong>Protected Area {item}</strong>
+                            </FeatureTitle>
+
+                            <table className="table">
+                              <tbody>
+                                <tr>
+                                  <td>
+                                    <em>Manager Type:</em>
+                                  </td>
+                                  <td>{'...'}</td>
+                                </tr>
+                                <tr>
+                                  <td>
+                                    <em>Manager Name:</em>
+                                  </td>
+                                  <td>{'...'}</td>
+                                </tr>
+                                <tr>
+                                  <td>
+                                    <em>Protection Category:</em>
+                                  </td>
+                                  <td>{'...'}</td>
+                                </tr>
+                                <tr>
+                                  <td>
+                                    <em>Public Access:</em>
+                                  </td>
+                                  <td>{'...'}</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </Feature>
+                        );
+                      })
+                    }
+
                     <p>
                       The Protected Areas Database (PAD-US) is America’s
                       official national inventory of U.S. terrestrial and marine
@@ -382,6 +424,36 @@ function Protect() {
                       />
                       <span>Display on Map</span>
                     </Label>
+
+                    {
+                      /* TODO: replace array with actual wild and scenic rivers */
+                      [1, 2, 3].map((item) => {
+                        return (
+                          <Feature key={item}>
+                            <FeatureTitle>
+                              <strong>Wild and Scenic River {item}</strong>
+                            </FeatureTitle>
+
+                            <table className="table">
+                              <tbody>
+                                <tr>
+                                  <td>
+                                    <em>{'...'}</em>
+                                  </td>
+                                  <td>{'...'}</td>
+                                </tr>
+                                <tr>
+                                  <td>
+                                    <em>{'...'}</em>
+                                  </td>
+                                  <td>{'...'}</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </Feature>
+                        );
+                      })
+                    }
 
                     <p>
                       The National Wild and Scenic Rivers System was created by
@@ -458,8 +530,8 @@ function Protect() {
                                   (plan) => plan && plan.url && plan.title,
                                 );
                               return (
-                                <Project key={index}>
-                                  <ProjectTitle>
+                                <Feature key={index}>
+                                  <FeatureTitle>
                                     <strong>
                                       {item['prj_title'] || 'Unknown'}
                                     </strong>
@@ -467,7 +539,7 @@ function Protect() {
                                     <small>
                                       ID: {item['prj_seq'] || 'Unknown ID'}
                                     </small>
-                                  </ProjectTitle>
+                                  </FeatureTitle>
 
                                   <table className="table">
                                     <tbody>
@@ -552,7 +624,7 @@ function Protect() {
                                       </tr>
                                     </tbody>
                                   </table>
-                                </Project>
+                                </Feature>
                               );
                             })}
                           </>
