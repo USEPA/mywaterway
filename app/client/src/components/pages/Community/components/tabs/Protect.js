@@ -9,6 +9,7 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
+import Switch from 'components/shared/Switch';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
@@ -46,6 +47,17 @@ const AccordionContent = styled.div`
   }
 `;
 
+const Label = styled.label`
+  display: flex;
+  align-items: center;
+  margin: 0.75rem 0;
+  font-weight: bold;
+
+  span {
+    margin-left: 0.5em;
+  }
+`;
+
 const Project = styled.div`
   // NOTE: this is still a work in progress...just highlighting each project
   // on hover for now (if there's eventually a geospacial component for each
@@ -66,7 +78,7 @@ const NewTabDisclaimer = styled.div`
 
 // --- components ---
 function Protect() {
-  const { grts, watershed } = React.useContext(LocationSearchContext);
+  const { grts, watershed, huc12 } = React.useContext(LocationSearchContext);
 
   const sortedGrtsData =
     grts.data.items && grts.data.items.length > 0
@@ -80,16 +92,20 @@ function Protect() {
           )
       : [];
 
-  const accordionRef = React.useRef();
+  const [
+    healthScoresDisplayed,
+    setHealthScoresDisplayed, //
+  ] = React.useState(true);
 
-  // initially expand first accordion item
-  React.useEffect(() => {
-    if (accordionRef.current) {
-      const accordion = accordionRef.current;
-      const header = accordion.querySelector('.hmw-accordion-header');
-      if (header) header.click();
-    }
-  }, [accordionRef]);
+  const [
+    protectedAreasDisplayed,
+    setProtectedAreasDisplayed, //
+  ] = React.useState(false);
+
+  const [
+    wildScenicRiversDisplayed,
+    setWildScenicRiversDisplayed,
+  ] = React.useState(false);
 
   return (
     <Container>
@@ -206,290 +222,346 @@ function Protect() {
                 location of any designated <em>Wild and Scenic Rivers</em>
               </p>
 
-              <div ref={accordionRef}>
-                <AccordionList title={''}>
-                  <AccordionItem
-                    title={<strong>Watershed Health Scores</strong>}
-                  >
-                    <AccordionContent>
-                      <p>
-                        <strong>
-                          Where do the healthiest watersheds occur?
-                        </strong>
-                      </p>
-                      <p>
-                        The Watershed Health Index, from the Preliminary Healthy
-                        Watersheds Assessment (PHWA), is a score of{' '}
-                        <strong>watershed health</strong> across the
-                        conterminous United States
-                      </p>
-                      <ul>
-                        <li>
-                          The map to the left shows watershed health,
-                          characterized by the presence of natural land cover
-                          that supports hydrologic and geomorphic processes
-                          within their natural range of variation, good water
-                          quality, and habitats of sufficient size and
-                          connectivity to support healthy, native aquatic and
-                          riparian biological communities.
-                        </li>
-                        <li>
-                          Each Watershed Health Index score is relative to the
-                          scores (1-99% percentile) of watersheds across the
-                          state. A HUC12 watershed that straddles more than one
-                          state is scored only in the state in which its
-                          majority area resides.
-                        </li>
-                      </ul>
+              <AccordionList title={''}>
+                <AccordionItem title={<strong>Watershed Health Scores</strong>}>
+                  <AccordionContent>
+                    <Label>
+                      <Switch
+                        checked={healthScoresDisplayed}
+                        onChange={(checked) => {
+                          setHealthScoresDisplayed(checked);
+                        }}
+                        disabled={false}
+                        ariaLabel="Watershed Health Scores"
+                      />
+                      <span>Display on Map</span>
+                    </Label>
 
-                      <p>
-                        <strong>Why is the PHWA valuable?</strong>
-                      </p>
+                    <table className="table">
+                      <tbody>
+                        <tr>
+                          <td>
+                            <em>Watershed Name:</em>
+                          </td>
+                          <td>{watershed}</td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <em>HUC Code:</em>
+                          </td>
+                          <td>{huc12}</td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <em>State:</em>
+                          </td>
+                          <td>{'...'}</td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <em>Watershed Health Score:</em>
+                          </td>
+                          <td>{'...'}</td>
+                        </tr>
+                      </tbody>
+                    </table>
 
-                      <ul>
-                        <li>
-                          Raises awareness of where the healthiest watersheds
-                          occur
-                        </li>
-                        <li>
-                          Provides an initial dataset upon which others can
-                          build better watershed condition information.
-                        </li>
-                        <li>
-                          Improves communication and coordination among
-                          watershed management partners by providing nationally
-                          consistent measures of watershed health.
-                        </li>
-                        <li>
-                          Provides a basis to promote high quality waters
-                          protection.
-                        </li>
-                        <li>
-                          Supports efforts to prioritize, protect and maintain
-                          high quality waters.
-                        </li>
-                      </ul>
+                    <p>
+                      <strong>Where do the healthiest watersheds occur?</strong>
+                    </p>
+                    <p>
+                      The Watershed Health Index, from the Preliminary Healthy
+                      Watersheds Assessment (PHWA), is a score of{' '}
+                      <strong>watershed health</strong> across the conterminous
+                      United States
+                    </p>
+                    <ul>
+                      <li>
+                        The map to the left shows watershed health,
+                        characterized by the presence of natural land cover that
+                        supports hydrologic and geomorphic processes within
+                        their natural range of variation, good water quality,
+                        and habitats of sufficient size and connectivity to
+                        support healthy, native aquatic and riparian biological
+                        communities.
+                      </li>
+                      <li>
+                        Each Watershed Health Index score is relative to the
+                        scores (1-99% percentile) of watersheds across the
+                        state. A HUC12 watershed that straddles more than one
+                        state is scored only in the state in which its majority
+                        area resides.
+                      </li>
+                    </ul>
 
-                      <p>
-                        <a
-                          href="https://www.epa.gov/hwp/download-preliminary-healthy-watersheds-assessments"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          More Information »
-                        </a>
-                      </p>
-                    </AccordionContent>
-                  </AccordionItem>
+                    <p>
+                      <strong>Why is the PHWA valuable?</strong>
+                    </p>
 
-                  <AccordionItem title={<strong>Protected Areas</strong>}>
-                    <AccordionContent>
-                      <p>
-                        The Protected Areas Database (PAD-US) is America’s
-                        official national inventory of U.S. terrestrial and
-                        marine protected areas that are dedicated to the
-                        preservation of biological diversity and to other
-                        natural, recreation and cultural uses, managed for these
-                        purposes through legal or other effective means.
-                      </p>
+                    <ul>
+                      <li>
+                        Raises awareness of where the healthiest watersheds
+                        occur
+                      </li>
+                      <li>
+                        Provides an initial dataset upon which others can build
+                        better watershed condition information.
+                      </li>
+                      <li>
+                        Improves communication and coordination among watershed
+                        management partners by providing nationally consistent
+                        measures of watershed health.
+                      </li>
+                      <li>
+                        Provides a basis to promote high quality waters
+                        protection.
+                      </li>
+                      <li>
+                        Supports efforts to prioritize, protect and maintain
+                        high quality waters.
+                      </li>
+                    </ul>
 
-                      <p>
-                        <a
-                          href="https://www.usgs.gov/core-science-systems/science-analytics-and-synthesis/gap/science/protected-areas"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          More Information »
-                        </a>
-                      </p>
-                    </AccordionContent>
-                  </AccordionItem>
+                    <p>
+                      <a
+                        href="https://www.epa.gov/hwp/download-preliminary-healthy-watersheds-assessments"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        More Information »
+                      </a>
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
 
-                  <AccordionItem
-                    title={<strong>Wild and Scenic Rivers</strong>}
-                  >
-                    <AccordionContent>
-                      <p>
-                        The National Wild and Scenic Rivers System was created
-                        by Congress in 1968 to preserve certain rivers with
-                        outstanding natural, cultural, and recreational values
-                        in a free-flowing condition for the enjoyment of present
-                        and future generations. The Act is notable for
-                        safeguarding the special character of these rivers,
-                        while also recognizing the potential for their
-                        appropriate use and development. It encourages river
-                        management that crosses political boundaries and
-                        promotes public participation in developing goals for
-                        river protection.
-                      </p>
+                <AccordionItem title={<strong>Protected Areas</strong>}>
+                  <AccordionContent>
+                    <Label>
+                      <Switch
+                        checked={protectedAreasDisplayed}
+                        onChange={(checked) => {
+                          setProtectedAreasDisplayed(checked);
+                        }}
+                        disabled={false}
+                        ariaLabel="Protected Areas"
+                      />
+                      <span>Display on Map</span>
+                    </Label>
 
-                      <p>
-                        <a
-                          href="https://www.rivers.gov/"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          More Information »
-                        </a>
-                      </p>
-                    </AccordionContent>
-                  </AccordionItem>
+                    <p>
+                      The Protected Areas Database (PAD-US) is America’s
+                      official national inventory of U.S. terrestrial and marine
+                      protected areas that are dedicated to the preservation of
+                      biological diversity and to other natural, recreation and
+                      cultural uses, managed for these purposes through legal or
+                      other effective means.
+                    </p>
 
-                  <AccordionItem title={<strong>Protection Projects</strong>}>
-                    <AccordionContent>
-                      {grts.status === 'fetching' && <LoadingSpinner />}
+                    <p>
+                      <a
+                        href="https://www.usgs.gov/core-science-systems/science-analytics-and-synthesis/gap/science/protected-areas"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        More Information »
+                      </a>
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
 
-                      {grts.status === 'failure' && (
-                        <StyledErrorBox>
-                          <p>{protectNonpointSourceError}</p>
-                        </StyledErrorBox>
-                      )}
+                <AccordionItem title={<strong>Wild and Scenic Rivers</strong>}>
+                  <AccordionContent>
+                    <Label>
+                      <Switch
+                        checked={wildScenicRiversDisplayed}
+                        onChange={(checked) => {
+                          setWildScenicRiversDisplayed(checked);
+                        }}
+                        disabled={false}
+                        ariaLabel="Wild and Scenic Rivers"
+                      />
+                      <span>Display on Map</span>
+                    </Label>
 
-                      {grts.status === 'success' && (
-                        <>
-                          {sortedGrtsData.length === 0 && (
-                            <Text>
-                              There are no EPA funded protection projects in the{' '}
-                              {watershed} watershed.
-                            </Text>
-                          )}
+                    <p>
+                      The National Wild and Scenic Rivers System was created by
+                      Congress in 1968 to preserve certain rivers with
+                      outstanding natural, cultural, and recreational values in
+                      a free-flowing condition for the enjoyment of present and
+                      future generations. The Act is notable for safeguarding
+                      the special character of these rivers, while also
+                      recognizing the potential for their appropriate use and
+                      development. It encourages river management that crosses
+                      political boundaries and promotes public participation in
+                      developing goals for river protection.
+                    </p>
 
-                          {sortedGrtsData.length > 0 && (
-                            <>
-                              <p>
-                                EPA funded protection projects in the{' '}
-                                {watershed} watershed.
-                              </p>
+                    <p>
+                      <a
+                        href="https://www.rivers.gov/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        More Information »
+                      </a>
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
 
-                              {sortedGrtsData.map((item, index) => {
-                                const url = getUrlFromMarkup(
-                                  item['project_link'],
+                <AccordionItem title={<strong>Protection Projects</strong>}>
+                  <AccordionContent>
+                    {grts.status === 'fetching' && <LoadingSpinner />}
+
+                    {grts.status === 'failure' && (
+                      <StyledErrorBox>
+                        <p>{protectNonpointSourceError}</p>
+                      </StyledErrorBox>
+                    )}
+
+                    {grts.status === 'success' && (
+                      <>
+                        {sortedGrtsData.length === 0 && (
+                          <Text>
+                            There are no EPA funded protection projects in the{' '}
+                            {watershed} watershed.
+                          </Text>
+                        )}
+
+                        {sortedGrtsData.length > 0 && (
+                          <>
+                            <p>
+                              EPA funded protection projects in the {watershed}{' '}
+                              watershed.
+                            </p>
+
+                            {sortedGrtsData.map((item, index) => {
+                              const url = getUrlFromMarkup(
+                                item['project_link'],
+                              );
+                              const protectionPlans =
+                                item['watershed_plans'] &&
+                                // break string into pieces separated by commas and map over them
+                                item['watershed_plans']
+                                  .split(',')
+                                  .map((plan) => {
+                                    const markup =
+                                      plan.split('</a>')[0] + '</a>';
+                                    const title = getTitleFromMarkup(markup);
+                                    const planUrl = getUrlFromMarkup(markup);
+                                    if (!title || !planUrl) return false;
+                                    return { url: planUrl, title: title };
+                                  });
+                              // remove any plans with missing titles or urls
+                              const filteredProtectionPlans =
+                                protectionPlans &&
+                                protectionPlans.filter(
+                                  (plan) => plan && plan.url && plan.title,
                                 );
-                                const protectionPlans =
-                                  item['watershed_plans'] &&
-                                  // break string into pieces separated by commas and map over them
-                                  item['watershed_plans']
-                                    .split(',')
-                                    .map((plan) => {
-                                      const markup =
-                                        plan.split('</a>')[0] + '</a>';
-                                      const title = getTitleFromMarkup(markup);
-                                      const planUrl = getUrlFromMarkup(markup);
-                                      if (!title || !planUrl) return false;
-                                      return { url: planUrl, title: title };
-                                    });
-                                // remove any plans with missing titles or urls
-                                const filteredProtectionPlans =
-                                  protectionPlans &&
-                                  protectionPlans.filter(
-                                    (plan) => plan && plan.url && plan.title,
-                                  );
-                                return (
-                                  <Project key={index}>
-                                    <ProjectTitle>
-                                      <strong>
-                                        {item['prj_title'] || 'Unknown'}
-                                      </strong>
-                                      <br />
-                                      <small>
-                                        ID: {item['prj_seq'] || 'Unknown ID'}
-                                      </small>
-                                    </ProjectTitle>
+                              return (
+                                <Project key={index}>
+                                  <ProjectTitle>
+                                    <strong>
+                                      {item['prj_title'] || 'Unknown'}
+                                    </strong>
+                                    <br />
+                                    <small>
+                                      ID: {item['prj_seq'] || 'Unknown ID'}
+                                    </small>
+                                  </ProjectTitle>
 
-                                    <table className="table">
-                                      <tbody>
-                                        {item['pollutants'] && (
-                                          <tr>
-                                            <td>
-                                              <em>Impairments:</em>
-                                            </td>
-                                            <td>{item['pollutants']}</td>
-                                          </tr>
+                                  <table className="table">
+                                    <tbody>
+                                      {item['pollutants'] && (
+                                        <tr>
+                                          <td>
+                                            <em>Impairments:</em>
+                                          </td>
+                                          <td>{item['pollutants']}</td>
+                                        </tr>
+                                      )}
+                                      <tr>
+                                        <td>
+                                          <em>Total Funds:</em>
+                                        </td>
+                                        <td>{item['total_319_funds']}</td>
+                                      </tr>
+                                      <tr>
+                                        <td>
+                                          <em>Project Start Date:</em>
+                                        </td>
+                                        <td>{item['project_start_date']}</td>
+                                      </tr>
+                                      <tr>
+                                        <td>
+                                          <em>Project Status:</em>
+                                        </td>
+                                        <td>{item['status']}</td>
+                                      </tr>
+                                      <tr>
+                                        <td>
+                                          <em>Project Details:</em>
+                                        </td>
+                                        <td>
+                                          <a
+                                            href={url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                          >
+                                            Open Project Summary
+                                          </a>
+                                          &nbsp;&nbsp;
+                                          <NewTabDisclaimer>
+                                            (opens new browser tab)
+                                          </NewTabDisclaimer>
+                                        </td>
+                                      </tr>
+
+                                      <tr>
+                                        <td>
+                                          <em>Protection Plans:</em>
+                                        </td>
+                                        {filteredProtectionPlans &&
+                                        filteredProtectionPlans.length > 0 ? (
+                                          <td>
+                                            {filteredProtectionPlans.map(
+                                              (plan, index) => {
+                                                if (
+                                                  plan &&
+                                                  plan.url &&
+                                                  plan.title
+                                                ) {
+                                                  return (
+                                                    <div key={index}>
+                                                      <a
+                                                        href={plan.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                      >
+                                                        {plan.title}
+                                                      </a>
+                                                    </div>
+                                                  );
+                                                }
+                                                return false;
+                                              },
+                                            )}
+                                          </td>
+                                        ) : (
+                                          <td>Document not available</td>
                                         )}
-                                        <tr>
-                                          <td>
-                                            <em>Total Funds:</em>
-                                          </td>
-                                          <td>{item['total_319_funds']}</td>
-                                        </tr>
-                                        <tr>
-                                          <td>
-                                            <em>Project Start Date:</em>
-                                          </td>
-                                          <td>{item['project_start_date']}</td>
-                                        </tr>
-                                        <tr>
-                                          <td>
-                                            <em>Project Status:</em>
-                                          </td>
-                                          <td>{item['status']}</td>
-                                        </tr>
-                                        <tr>
-                                          <td>
-                                            <em>Project Details:</em>
-                                          </td>
-                                          <td>
-                                            <a
-                                              href={url}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                            >
-                                              Open Project Summary
-                                            </a>
-                                            &nbsp;&nbsp;
-                                            <NewTabDisclaimer>
-                                              (opens new browser tab)
-                                            </NewTabDisclaimer>
-                                          </td>
-                                        </tr>
-
-                                        <tr>
-                                          <td>
-                                            <em>Protection Plans:</em>
-                                          </td>
-                                          {filteredProtectionPlans &&
-                                          filteredProtectionPlans.length > 0 ? (
-                                            <td>
-                                              {filteredProtectionPlans.map(
-                                                (plan, index) => {
-                                                  if (
-                                                    plan &&
-                                                    plan.url &&
-                                                    plan.title
-                                                  ) {
-                                                    return (
-                                                      <div key={index}>
-                                                        <a
-                                                          href={plan.url}
-                                                          target="_blank"
-                                                          rel="noopener noreferrer"
-                                                        >
-                                                          {plan.title}
-                                                        </a>
-                                                      </div>
-                                                    );
-                                                  }
-                                                  return false;
-                                                },
-                                              )}
-                                            </td>
-                                          ) : (
-                                            <td>Document not available</td>
-                                          )}
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </Project>
-                                );
-                              })}
-                            </>
-                          )}
-                        </>
-                      )}
-                    </AccordionContent>
-                  </AccordionItem>
-                </AccordionList>
-              </div>
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                </Project>
+                              );
+                            })}
+                          </>
+                        )}
+                      </>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+              </AccordionList>
             </TabPanel>
           </TabPanels>
         </Tabs>
