@@ -137,6 +137,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setLinesLayer,
     setAreasLayer,
     setErrorMessage,
+    setWsioHealthIndexData,
   } = React.useContext(LocationSearchContext);
 
   const [view, setView] = React.useState(null);
@@ -668,6 +669,37 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [setFishingInfo, services],
   );
 
+  const getWsioHealthIndexData = React.useCallback(
+    (huc12) => {
+      const url =
+        `${services.data.wsio}/query?where=HUC12_TEXT%3D%27${huc12}%27` +
+        '&outFields=HUC12_TEXT%2Cstates2013%2Cphwa_health_ndx_st_2016&returnGeometry=false&f=json';
+
+      fetchCheck(url)
+        .then((res) => {
+          if (!res || !res.features || res.features.length <= 0) {
+            setWsioHealthIndexData({ status: 'success', data: [] });
+            return;
+          }
+
+          const healthIndexData = res.features.map((feature) => ({
+            states: feature.attributes.states2013,
+            phwa_health_ndx_st_2016: feature.attributes.phwa_health_ndx_st_2016,
+          }));
+
+          setWsioHealthIndexData({
+            status: 'success',
+            data: healthIndexData,
+          });
+        })
+        .catch((err) => {
+          console.error(err);
+          setWsioHealthIndexData({ status: 'failure', data: [] });
+        });
+    },
+    [setWsioHealthIndexData, services],
+  );
+
   const handleMapServices = React.useCallback(
     (results) => {
       // sort the parameters by highest percent to lowest
@@ -705,6 +737,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       // pass all of the states that the HUC12 is in
       getFishingLinkData(boundaries.features[0].attributes.states);
 
+      // get wsio health index data for the current huc
+      getWsioHealthIndexData(huc12);
+
       // call states service for converting statecodes to state names
       // don't re-fetch the states service if it's already populated, it doesn't vary by location
       if (statesData.status !== 'success') {
@@ -726,6 +761,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     },
     [
       getFishingLinkData,
+      getWsioHealthIndexData,
       handleMapServiceError,
       handleMapServices,
       setHucBoundaries,

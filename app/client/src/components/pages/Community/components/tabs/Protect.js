@@ -10,6 +10,7 @@ import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 import Switch from 'components/shared/Switch';
+import { gradientIcon } from 'components/pages/LocationMap/MapFunctions';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
@@ -18,6 +19,28 @@ import { getUrlFromMarkup, getTitleFromMarkup } from 'components/shared/Regex';
 import { fonts } from 'styles/index.js';
 // errors
 import { protectNonpointSourceError } from 'config/errorMessages';
+
+// given a state code like AL,VA and an array of state objects from attains states service,
+// returns the full name of the states (e.g., Alabama and Virginia)
+function convertStateCode(stateCode: string, stateData: Array<Object>) {
+  if (stateData.length === 0) return stateCode;
+
+  const stateCodes = stateCode.split(',');
+  const stateNames = [];
+
+  stateCodes.forEach((code) => {
+    const matchingState = stateData.filter((s) => s.code === code)[0];
+
+    if (matchingState) stateNames.push(matchingState.name);
+  });
+
+  const sortedStateNames = stateNames.sort();
+  const stateNamesStr =
+    sortedStateNames.slice(0, -1).join(', ') +
+    ' and ' +
+    sortedStateNames.slice(-1);
+  return stateNamesStr;
+}
 
 // --- styled components ---
 const Container = styled.div`
@@ -76,9 +99,28 @@ const NewTabDisclaimer = styled.div`
   display: inline-block;
 `;
 
+const WatershedContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const GradientHeaderFooter = styled.div`
+  text-align: center;
+`;
+
 // --- components ---
 function Protect() {
-  const { grts, watershed, huc12 } = React.useContext(LocationSearchContext);
+  const {
+    grts,
+    watershed,
+    huc12,
+    statesData,
+    visibleLayers,
+    setVisibleLayers,
+    wsioHealthIndexLayer,
+    wsioHealthIndexData,
+  } = React.useContext(LocationSearchContext);
 
   const sortedGrtsData =
     grts.data.items && grts.data.items.length > 0
@@ -107,10 +149,50 @@ function Protect() {
     setWildScenicRiversDisplayed,
   ] = React.useState(false);
 
+  const [tabIndex, setTabIndex] = React.useState(null);
+  // toggle map layers' visibility when a tab changes
+  React.useEffect(() => {
+    // if (!boundariesLayer || !waterbodyLayer || !providersLayer) return;
+    if (!wsioHealthIndexLayer) return;
+
+    if (tabIndex === 0) {
+      setVisibleLayers({
+        wsioHealthIndexLayer: false,
+      });
+    }
+
+    if (tabIndex === 1) {
+      setVisibleLayers({
+        wsioHealthIndexLayer: true,
+      });
+    }
+  }, [tabIndex, setVisibleLayers, wsioHealthIndexLayer]);
+
+  // toggle the switches setting when the map layer's visibility changes
+  React.useEffect(() => {
+    if (healthScoresDisplayed !== visibleLayers['wsioHealthIndexLayer']) {
+      setHealthScoresDisplayed(visibleLayers['wsioHealthIndexLayer']);
+    }
+  }, [healthScoresDisplayed, visibleLayers]);
+
+  const wsioData =
+    wsioHealthIndexData.status === 'success'
+      ? wsioHealthIndexData.data[0]
+      : null;
+
+  const wsioScore = wsioData
+    ? Math.round(wsioData.phwa_health_ndx_st_2016 * 100) / 100
+    : null;
+
   return (
     <Container>
       <ContentTabs>
-        <Tabs>
+        <Tabs
+          onChange={(index) => {
+            setTabIndex(index);
+          }}
+          defaultIndex={tabIndex}
+        >
           <TabList>
             <Tab>Tips</Tab>
             <Tab>Watershed Health and Protection</Tab>
@@ -230,6 +312,10 @@ function Protect() {
                         checked={healthScoresDisplayed}
                         onChange={(checked) => {
                           setHealthScoresDisplayed(checked);
+
+                          setVisibleLayers({
+                            wsioHealthIndexLayer: checked,
+                          });
                         }}
                         disabled={false}
                         ariaLabel="Watershed Health Scores"
@@ -237,34 +323,88 @@ function Protect() {
                       <span>Display on Map</span>
                     </Label>
 
-                    <table className="table">
-                      <tbody>
-                        <tr>
-                          <td>
-                            <em>Watershed Name:</em>
-                          </td>
-                          <td>{watershed}</td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <em>HUC Code:</em>
-                          </td>
-                          <td>{huc12}</td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <em>State:</em>
-                          </td>
-                          <td>{'...'}</td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <em>Watershed Health Score:</em>
-                          </td>
-                          <td>{'...'}</td>
-                        </tr>
-                      </tbody>
-                    </table>
+                    <WatershedContainer>
+                      <div style={{ width: 'calc(80% - 0.75em)' }}>
+                        <table className="table">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <em>Watershed Name:</em>
+                              </td>
+                              <td>{watershed}</td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <em>HUC Code:</em>
+                              </td>
+                              <td>{huc12}</td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <em>State:</em>
+                              </td>
+                              <td>
+                                {(wsioHealthIndexData.status === 'fetching' ||
+                                  statesData.status === 'fetching') && (
+                                  <LoadingSpinner />
+                                )}
+                                {wsioHealthIndexData.status === 'success' &&
+                                  statesData.status === 'success' &&
+                                  convertStateCode(
+                                    wsioData.states,
+                                    statesData.data,
+                                  )}
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <em>Watershed Health Score:</em>
+                              </td>
+                              <td>
+                                {wsioHealthIndexData.status === 'fetching' && (
+                                  <LoadingSpinner />
+                                )}
+                                {wsioHealthIndexData.status === 'success' && (
+                                  <>
+                                    {wsioScore < 0.5 ? (
+                                      <>Less Healthy ({wsioScore})</>
+                                    ) : (
+                                      <>Healthy ({wsioScore})</>
+                                    )}
+                                  </>
+                                )}
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div style={{ width: 'calc(20% - 0.75em)' }}>
+                        <div>
+                          <GradientHeaderFooter>Healthy</GradientHeaderFooter>
+                          <div style={{ marginLeft: '25px' }}>
+                            {gradientIcon({
+                              id: 'health-index-horizontal-gradient',
+                              stops: [
+                                { label: '1', color: 'rgb(10, 8, 145)' },
+                                { label: '0.75', color: 'rgb(30, 61, 181)' },
+                                { label: '0.5', color: 'rgb(54, 140, 225)' },
+                                {
+                                  label: '0.25',
+                                  color: 'rgb(124, 187, 234)',
+                                },
+                                {
+                                  label: '0',
+                                  color: 'rgb(180, 238, 239)',
+                                },
+                              ],
+                            })}
+                          </div>
+                          <GradientHeaderFooter>
+                            Less Healthy
+                          </GradientHeaderFooter>
+                        </div>
+                      </div>
+                    </WatershedContainer>
 
                     <p>
                       <strong>Where do the healthiest watersheds occur?</strong>

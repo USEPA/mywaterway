@@ -429,6 +429,7 @@ function MapWidgets({
       'waterbodyLayer',
       'issuesLayer',
       'actionsLayer',
+      'wsioHealthIndexLayer',
     ];
 
     // hide/show layers based on the provided list of layers to show
