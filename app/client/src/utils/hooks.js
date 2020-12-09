@@ -609,6 +609,7 @@ function useSharedLayers() {
   const { FeatureLayer, GroupLayer, MapImageLayer } = React.useContext(
     EsriModulesContext,
   );
+  const { setWsioHealthIndexLayer } = React.useContext(LocationSearchContext);
 
   const getDynamicPopup = useDynamicPopup();
   const { getTitle, getTemplate } = getDynamicPopup();
@@ -616,110 +617,112 @@ function useSharedLayers() {
   // Gets the settings for the WSIO Health Index layer.
   return function getSharedLayers() {
     // shared symbol settings
-    // const symbol = {
-    //   type: 'simple-fill',
-    //   style: 'solid',
-    //   outline: { color: [0, 0, 0, 0.5], width: 1 },
-    // };
+    const symbol = {
+      type: 'simple-fill',
+      style: 'solid',
+      outline: { color: [0, 0, 0, 0.5], width: 1 },
+    };
 
     // define the color ramp renderer
-    // const wsioHealthIndexRenderer = {
-    //   type: 'class-breaks',
-    //   field: 'phwa_health_ndx_st_2016',
-    //   classBreakInfos: [
-    //     {
-    //       minValue: 0,
-    //       maxValue: 0.11,
-    //       symbol: {
-    //         ...symbol,
-    //         color: { r: 180, g: 238, b: 239 },
-    //       },
-    //     },
-    //     {
-    //       minValue: 0.11,
-    //       maxValue: 0.21,
-    //       symbol: {
-    //         ...symbol,
-    //         color: { r: 154, g: 209, b: 238 },
-    //       },
-    //     },
-    //     {
-    //       minValue: 0.21,
-    //       maxValue: 0.31,
-    //       symbol: {
-    //         ...symbol,
-    //         color: { r: 124, g: 187, b: 234 },
-    //       },
-    //     },
-    //     {
-    //       minValue: 0.31,
-    //       maxValue: 0.41,
-    //       symbol: {
-    //         ...symbol,
-    //         color: { r: 90, g: 162, b: 227 },
-    //       },
-    //     },
-    //     {
-    //       minValue: 0.41,
-    //       maxValue: 0.51,
-    //       symbol: {
-    //         ...symbol,
-    //         color: { r: 54, g: 140, b: 225 },
-    //       },
-    //     },
-    //     {
-    //       minValue: 0.51,
-    //       maxValue: 0.61,
-    //       symbol: {
-    //         ...symbol,
-    //         color: { r: 32, g: 118, b: 217 },
-    //       },
-    //     },
-    //     {
-    //       minValue: 0.61,
-    //       maxValue: 0.71,
-    //       symbol: {
-    //         ...symbol,
-    //         color: { r: 35, g: 88, b: 198 },
-    //       },
-    //     },
-    //     {
-    //       minValue: 0.71,
-    //       maxValue: 0.81,
-    //       symbol: {
-    //         ...symbol,
-    //         color: { r: 30, g: 61, b: 181 },
-    //       },
-    //     },
-    //     {
-    //       minValue: 0.81,
-    //       maxValue: 0.91,
-    //       symbol: {
-    //         ...symbol,
-    //         color: { r: 23, g: 38, b: 163 },
-    //       },
-    //     },
-    //     {
-    //       minValue: 0.91,
-    //       maxValue: 1.01,
-    //       symbol: {
-    //         ...symbol,
-    //         color: { r: 10, g: 8, b: 145 },
-    //       },
-    //     },
-    //   ],
-    // };
+    const wsioHealthIndexRenderer = {
+      type: 'class-breaks',
+      field: 'phwa_health_ndx_st_2016',
+      classBreakInfos: [
+        {
+          minValue: 0,
+          maxValue: 0.11,
+          symbol: {
+            ...symbol,
+            color: { r: 180, g: 238, b: 239 },
+          },
+        },
+        {
+          minValue: 0.11,
+          maxValue: 0.21,
+          symbol: {
+            ...symbol,
+            color: { r: 154, g: 209, b: 238 },
+          },
+        },
+        {
+          minValue: 0.21,
+          maxValue: 0.31,
+          symbol: {
+            ...symbol,
+            color: { r: 124, g: 187, b: 234 },
+          },
+        },
+        {
+          minValue: 0.31,
+          maxValue: 0.41,
+          symbol: {
+            ...symbol,
+            color: { r: 90, g: 162, b: 227 },
+          },
+        },
+        {
+          minValue: 0.41,
+          maxValue: 0.51,
+          symbol: {
+            ...symbol,
+            color: { r: 54, g: 140, b: 225 },
+          },
+        },
+        {
+          minValue: 0.51,
+          maxValue: 0.61,
+          symbol: {
+            ...symbol,
+            color: { r: 32, g: 118, b: 217 },
+          },
+        },
+        {
+          minValue: 0.61,
+          maxValue: 0.71,
+          symbol: {
+            ...symbol,
+            color: { r: 35, g: 88, b: 198 },
+          },
+        },
+        {
+          minValue: 0.71,
+          maxValue: 0.81,
+          symbol: {
+            ...symbol,
+            color: { r: 30, g: 61, b: 181 },
+          },
+        },
+        {
+          minValue: 0.81,
+          maxValue: 0.91,
+          symbol: {
+            ...symbol,
+            color: { r: 23, g: 38, b: 163 },
+          },
+        },
+        {
+          minValue: 0.91,
+          maxValue: 1.01,
+          symbol: {
+            ...symbol,
+            color: { r: 10, g: 8, b: 145 },
+          },
+        },
+      ],
+    };
 
     // return the layer properties object
-    // const wsioHealthIndexLayer = new FeatureLayer({
-    //   id: 'wsioHealthIndexLayer',
-    //   url: services.data.wsio,
-    //   title: 'State Watershed Health Index',
-    //   outFields: ['phwa_health_ndx_st_2016'],
-    //   renderer: wsioHealthIndexRenderer,
-    //   listMode: 'show',
-    //   visible: false,
-    // });
+    const wsioHealthIndexLayer = new FeatureLayer({
+      id: 'wsioHealthIndexLayer',
+      url: services.data.wsio,
+      title: 'State Watershed Health Index',
+      outFields: ['HUC12_TEXT', 'STATES2013', 'phwa_health_ndx_st_2016'],
+      renderer: wsioHealthIndexRenderer,
+      listMode: 'show',
+      visible: false,
+    });
+
+    setWsioHealthIndexLayer(wsioHealthIndexLayer);
 
     // START - Tribal layers
     const renderer = {
@@ -884,7 +887,7 @@ function useSharedLayers() {
     });
 
     return [
-      // wsioHealthIndexLayer,
+      wsioHealthIndexLayer,
       tribalLayer,
       congressionalLayer,
       stateBoundariesLayer,

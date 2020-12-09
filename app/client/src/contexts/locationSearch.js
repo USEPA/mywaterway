@@ -40,6 +40,7 @@ type State = {
   searchIconLayer: Object,
   actionsLayer: Object,
   selWaterBodyLayer: Object,
+  wsioHealthIndexLayer: Object,
   homeWidget: Object,
   upstreamWidget: Object,
   upstreamWidgetDisabled: boolean,
@@ -93,6 +94,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     address: '',
     fishingInfo: { status: 'fetching', data: [] },
     statesData: { status: 'fetching', data: [] },
+    wsioHealthIndexData: { status: 'fetching', data: [] },
     assessmentUnitId: '',
     monitoringLocations: {
       status: 'fetching',
@@ -134,6 +136,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     searchIconLayer: '',
     actionsLayer: '',
     selWaterBodyLayer: '',
+    wsioHealthIndexLayer: '',
     homeWidget: null,
     upstreamWidget: null,
     upstreamWidgetDisabled: false,
@@ -221,6 +224,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     setStatesData: (statesData) => {
       this.setState({ statesData });
     },
+    setWsioHealthIndexData: (wsioHealthIndexData) => {
+      this.setState({ wsioHealthIndexData });
+    },
 
     setAddress: (address) => {
       this.setState({ address });
@@ -284,6 +290,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     },
     setSelWaterbodyLayer: (selWaterbodyLayer) => {
       this.setState({ selWaterbodyLayer });
+    },
+    setWsioHealthIndexLayer: (wsioHealthIndexLayer) => {
+      this.setState({ wsioHealthIndexLayer });
     },
     setPointsLayer: (pointsLayer) => {
       this.setState({ pointsLayer });
