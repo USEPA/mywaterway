@@ -597,3 +597,121 @@ export function graphicComparison(graphic1, graphic2) {
 
   return true;
 }
+
+// Creates a gradient scale used for legends
+export function gradientIcon({ id, stops }) {
+  const gradientHeight = 30 * (stops.length - 1);
+  const labelContainerHeight = 37.5 * (stops.length - 1);
+  return (
+    <table width="50%">
+      <tbody>
+        <tr>
+          <td width="34" align="center">
+            <div
+              style={{
+                position: 'relative',
+                width: '34px',
+                height: `${gradientHeight}px`,
+              }}
+            >
+              <div
+                className="esriLegendColorRamp"
+                style={{
+                  border: '1px solid rgba(194, 194, 194, 0.25)',
+                  height: `${gradientHeight}px`,
+                }}
+              >
+                <svg
+                  overflow="hidden"
+                  width="24"
+                  height={gradientHeight}
+                  style={{ touchAction: 'none' }}
+                >
+                  <defs>
+                    <linearGradient
+                      id={id}
+                      gradientUnits="userSpaceOnUse"
+                      x1="0.00000000"
+                      y1="0.00000000"
+                      x2="0.00000000"
+                      y2={gradientHeight}
+                    >
+                      {stops.map((item, index) => {
+                        return (
+                          <stop
+                            key={index}
+                            offset={index / (stops.length - 1)}
+                            stopColor={item.color}
+                            stopOpacity="1"
+                          />
+                        );
+                      })}
+                    </linearGradient>
+                  </defs>
+                  <rect
+                    fill={`url(#${id})`}
+                    stroke="none"
+                    strokeOpacity="0"
+                    strokeWidth="1"
+                    strokeLinecap="butt"
+                    strokeLinejoin="miter"
+                    strokeMiterlimit="4"
+                    x="0"
+                    y="0"
+                    width="24"
+                    height={gradientHeight}
+                    ry="0"
+                    rx="0"
+                    fillRule="evenodd"
+                  />
+                  <rect
+                    fill="rgb(255, 255, 255)"
+                    fillOpacity="0"
+                    stroke="none"
+                    strokeOpacity="0"
+                    strokeWidth="1"
+                    strokeLinecap="butt"
+                    strokeLinejoin="miter"
+                    strokeMiterlimit="4"
+                    x="0"
+                    y="0"
+                    width="24"
+                    height={gradientHeight}
+                    ry="0"
+                    rx="0"
+                    fillRule="evenodd"
+                  />
+                </svg>
+              </div>
+              {stops.map((item, index) => {
+                return (
+                  <div
+                    key={index}
+                    className={item.label ? 'esriLegendColorRampTick' : ''}
+                    style={{ top: `${(index / (stops.length - 1)) * 100}%` }}
+                  >
+                    &nbsp;
+                  </div>
+                );
+              })}
+            </div>
+          </td>
+          <td>
+            <div
+              className="esriLegendColorRampLabels"
+              style={{ height: `${labelContainerHeight}px` }}
+            >
+              {stops.map((item, index) => {
+                return (
+                  <div key={index} className="esriLegendColorRampLabel">
+                    {item.label ? item.label : <>&nbsp;</>}
+                  </div>
+                );
+              })}
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  );
+}
