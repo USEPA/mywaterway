@@ -34,13 +34,13 @@ describe('Waterbody Report page', () => {
     );
   });
 
-  it('For waterbodies without GIS data, display the "has no data available" message', () => {
+  it('For waterbodies without GIS data, display the "No map data is available" message', () => {
     const orgId = '21GAEPD';
     const auId = 'GAR_A-33_5_00';
 
     cy.visit(`/waterbody-report/${orgId}/${auId}`);
 
-    cy.findByText('has no data available.', { exact: false });
+    cy.findByText('No map data is available.', { exact: false });
   });
 
   it('Viewing waterbody report for an older year', () => {
@@ -79,5 +79,17 @@ describe('Waterbody Report page', () => {
     );
     cy.findByText(linkText).should('have.attr', 'target', '_blank');
     cy.findByText(linkText).should('have.attr', 'rel', 'noopener noreferrer');
+  });
+
+  it('Test waterbody report with empty attains assessments array', () => {
+    cy.visit('/waterbody-report/DOEE/DC_02_DCANA00E_02');
+
+    // wait for the web services to finish (attains/plans is sometimes slow)
+    // the timeout chosen is the same timeout used for the attains/plans fetch
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 20000 }).should(
+      'not.exist',
+    );
+
+    cy.findAllByText('DC_02_DCANA00E_02').should('be.visible');
   });
 });
