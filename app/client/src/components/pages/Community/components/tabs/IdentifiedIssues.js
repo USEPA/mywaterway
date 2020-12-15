@@ -315,7 +315,7 @@ function IdentifiedIssues() {
     false,
   );
   React.useEffect(() => {
-    if (!window.isIdSet || cipSummary.status !== 'success') return;
+    if (!window.gaTarget || cipSummary.status !== 'success') return;
 
     const {
       assessedCatchmentAreaSqMi,
@@ -335,7 +335,7 @@ function IdentifiedIssues() {
     );
     if (pollutedPercent > 0 && summaryByParameterImpairments.length === 0) {
       emptyCategoriesWithPercent = true;
-      window.ga('send', 'exception', {
+      window.logToGa('send', 'exception', {
         exDescription: `The summaryByParameterImpairments[] array is empty, even though ${pollutedPercent}% of assessed waters are impaired `,
         exFatal: false,
       });
@@ -345,7 +345,7 @@ function IdentifiedIssues() {
     const nullPollutedWaterbodies =
       containImpairedWatersCatchmentAreaPercent === null ? true : false;
     if (nullPollutedWaterbodies && summaryByParameterImpairments.length > 0) {
-      window.ga('send', 'exception', {
+      window.logToGa('send', 'exception', {
         exDescription: `The "% of assessed waters are impaired" value is 0, even though there are ${summaryByParameterImpairments.length} items in the summaryByParameterImpairments[] array.`,
         exFatal: false,
       });
@@ -844,7 +844,7 @@ function IdentifiedIssues() {
               <li>
                 Impairments take many forms, often a result of human behavior.
                 Water impairments are identified across 34 categories such as
-                excess algae, mercury, pathogens, pesticides, trash and more.
+                algae, mercury, pathogens, pesticides, trash and more.
               </li>
               <li>
                 Impairments can enter your water through runoff, water discharge

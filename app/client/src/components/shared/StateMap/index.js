@@ -20,9 +20,9 @@ import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { MapHighlightContext } from 'contexts/MapHighlight';
+import { useServicesContext } from 'contexts/LookupFiles';
 // config
 import { esriApiUrl } from 'config/esriConfig';
-import { waterbodyService } from 'config/mapServiceConfig';
 // helpers
 import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
 // styles
@@ -58,6 +58,7 @@ function StateMap({
   numberOfRecords,
   children,
 }: Props) {
+  const services = useServicesContext();
   const [view, setView] = React.useState(null);
 
   const { selectedGraphic } = React.useContext(MapHighlightContext);
@@ -104,8 +105,7 @@ function StateMap({
     // Build the feature layers that will make up the waterbody layer
     const pointsRenderer = {
       type: 'unique-value',
-      field: 'isassessed',
-      field2: 'isimpaired',
+      field: 'overallstatus',
       fieldDelimiter: ', ',
       defaultSymbol: createWaterbodySymbol({
         condition: 'unassessed',
@@ -115,7 +115,7 @@ function StateMap({
       uniqueValueInfos: createUniqueValueInfos('point'),
     };
     const pointsLayer = new FeatureLayer({
-      url: waterbodyService.points,
+      url: services.data.waterbodyService.points,
       definitionExpression: 'objectid = 0', //hide everything at first
       outFields: ['*'],
       renderer: pointsRenderer,
@@ -125,8 +125,7 @@ function StateMap({
 
     const linesRenderer = {
       type: 'unique-value',
-      field: 'isassessed',
-      field2: 'isimpaired',
+      field: 'overallstatus',
       fieldDelimiter: ', ',
       defaultSymbol: createWaterbodySymbol({
         condition: 'unassessed',
@@ -136,7 +135,7 @@ function StateMap({
       uniqueValueInfos: createUniqueValueInfos('polyline'),
     };
     const linesLayer = new FeatureLayer({
-      url: waterbodyService.lines,
+      url: services.data.waterbodyService.lines,
       definitionExpression: 'objectid = 0', //hide everything at first
       outFields: ['*'],
       renderer: linesRenderer,
@@ -146,8 +145,7 @@ function StateMap({
 
     const areasRenderer = {
       type: 'unique-value',
-      field: 'isassessed',
-      field2: 'isimpaired',
+      field: 'overallstatus',
       fieldDelimiter: ', ',
       defaultSymbol: createWaterbodySymbol({
         condition: 'unassessed',
@@ -157,7 +155,7 @@ function StateMap({
       uniqueValueInfos: createUniqueValueInfos('polygon'),
     };
     const areasLayer = new FeatureLayer({
-      url: waterbodyService.areas,
+      url: services.data.waterbodyService.areas,
       definitionExpression: 'objectid = 0', //hide everything at first
       outFields: ['*'],
       renderer: areasRenderer,
@@ -190,6 +188,7 @@ function StateMap({
     setVisibleLayers,
     setWaterbodyLayer,
     layersInitialized,
+    services,
   ]);
 
   // Function for resetting the LocationSearch context when the map is removed

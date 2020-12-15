@@ -2,10 +2,10 @@
 
 import React from 'react';
 import type { Node } from 'react';
+// contexts
+import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { proxyFetch } from 'utils/fetchUtils';
-// config
-import { glossaryURL } from 'config/webServiceConfig';
 
 // --- components ---
 const GlossaryContext: Object = React.createContext({
@@ -20,6 +20,8 @@ type Props = {
 };
 
 function GlossaryProvider({ children }: Props) {
+  const services = useServicesContext();
+
   const [initialized, setInitialized] = React.useState(false);
   const [glossaryStatus, setGlossaryStatus] = React.useState('fetching');
 
@@ -27,13 +29,18 @@ function GlossaryProvider({ children }: Props) {
   // some GlossaryTerm components are rendered outside of the main React tree
   // (see getPopupContent() in components/MapFunctions), so we need to store
   // the fetched glossary terms on the global window object
+  const [promiseInitialized, setPromiseInitialized] = React.useState(false);
   React.useEffect(() => {
+    if (promiseInitialized || services.status !== 'success') return;
+
+    setPromiseInitialized(true);
+
     window.fetchGlossaryTerms = new Promise((resolve, reject) => {
       // Function that fetches the glossary terms.
       // This will retry the fetch 3 times if the fetch fails with a
       // 1 second delay between each retry.
       const fetchTerms = (retryCount: number = 0) => {
-        proxyFetch(glossaryURL)
+        proxyFetch(services.data.glossaryURL)
           .then((res) => {
             let data = res
               .filter((item) => item['ActiveStatus'] !== 'Deleted')
@@ -73,7 +80,7 @@ function GlossaryProvider({ children }: Props) {
 
       fetchTerms();
     });
-  }, []);
+  }, [promiseInitialized, services]);
 
   return (
     <GlossaryContext.Provider

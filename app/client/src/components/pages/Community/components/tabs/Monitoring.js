@@ -16,41 +16,13 @@ import {
 // contexts
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
+import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { plotStations } from 'components/pages/LocationMap/MapFunctions';
+// data
+import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // errors
 import { monitoringError } from 'config/errorMessages';
-
-const switches = [
-  {
-    label: 'All',
-    groupName: '',
-  },
-  {
-    label: 'Nutrients',
-    groupName: 'Nutrient',
-  },
-  {
-    label: 'Pesticides',
-    groupName: 'Organics, Pesticide',
-  },
-  {
-    label: 'Metals',
-    groupName: 'Inorganics, Major, Metals',
-  },
-  {
-    label: 'Sediments',
-    groupName: 'Sediment',
-  },
-  {
-    label: 'Microbiological',
-    groupName: 'Microbiological',
-  },
-  {
-    label: 'Other',
-    groupName: '',
-  },
-];
 
 // --- styled components ---
 const Container = styled.div`
@@ -114,6 +86,8 @@ type StationGroups = {
 function Monitoring() {
   const { Graphic } = React.useContext(EsriModulesContext);
 
+  const services = useServicesContext();
+
   const {
     monitoringLocations,
     monitoringGroups,
@@ -159,7 +133,7 @@ function Monitoring() {
     let allMonitoringStations = [];
     let monitoringLocationToggles = {};
     let monitoringStationGroups: StationGroups = {
-      Other: { label: 'Other', groupName: '', stations: [], toggled: true },
+      Other: { label: 'Other', stations: [], toggled: true },
     };
 
     monitoringLocations.data.features.forEach((feature) => {
@@ -185,20 +159,19 @@ function Monitoring() {
 
       // build up the monitoringLocationToggles and monitoringStationGroups
       let groupAdded = false;
-      switches.forEach((s) => {
-        monitoringLocationToggles[s.label] = true;
+      characteristicGroupMappings.forEach((mapping) => {
+        monitoringLocationToggles[mapping.label] = true;
 
         for (const group in properties.characteristicGroupResultCount) {
           // if characteristic group exists in switch config object
-          if (group === s.groupName) {
+          if (mapping.groupNames.includes(group)) {
             // if switch group (w/ label key) already exists, add the stations to it
-            if (monitoringStationGroups[s.label]) {
-              monitoringStationGroups[s.label].stations.push(station);
+            if (monitoringStationGroups[mapping.label]) {
+              monitoringStationGroups[mapping.label].stations.push(station);
               // else, create the group (w/ label key) and add the station
             } else {
-              monitoringStationGroups[s.label] = {
-                label: s.label,
-                groupName: s.groupName,
+              monitoringStationGroups[mapping.label] = {
+                label: mapping.label,
                 stations: [station],
                 toggled: true,
               };
@@ -208,7 +181,7 @@ function Monitoring() {
         }
       });
 
-      // if characteristic group didn't exists in switch config object,
+      // if characteristic group didn't exist in switch config object,
       // add the station to the 'Other' group
       if (!groupAdded) monitoringStationGroups['Other'].stations.push(station);
     });
@@ -234,6 +207,7 @@ function Monitoring() {
 
   const drawMap = React.useCallback(() => {
     if (allMonitoringStations.length === 0) return;
+    if (services.status === 'fetching') return;
     const addedStationUids = [];
     let tempDisplayedMonitoringStations = [];
 
@@ -260,6 +234,7 @@ function Monitoring() {
       Graphic,
       tempDisplayedMonitoringStations,
       monitoringStationsLayer,
+      services,
     );
 
     if (tempDisplayedMonitoringStations.length === 0) {
@@ -283,6 +258,7 @@ function Monitoring() {
     monitoringLocationToggles,
     monitoringStationGroups,
     monitoringStationsLayer,
+    services,
   ]);
 
   const toggleSwitch = React.useCallback(
@@ -438,6 +414,11 @@ function Monitoring() {
                   {Object.values(monitoringStationGroups)
                     .map((group) => {
                       const { label, stations } = group;
+
+                      // remove duplicates caused by a single monitoring station having multiple overlapping groupNames
+                      // like 'Inorganics, Major, Metals' and 'Inorganics, Minor, Metals'
+                      const uniqueStations = [...new Set(stations)];
+
                       return (
                         <tr key={label}>
                           <td>
@@ -450,7 +431,7 @@ function Monitoring() {
                               <span>{label}</span>
                             </Toggle>
                           </td>
-                          <td>{stations.length.toLocaleString()}</td>
+                          <td>{uniqueStations.length.toLocaleString()}</td>
                         </tr>
                       );
                     })
@@ -534,6 +515,7 @@ function Monitoring() {
                         <WaterbodyInfo
                           type={'Monitoring Location'}
                           feature={feature}
+                          services={services}
                         />
                         <ViewOnMapButton feature={feature} />
                       </AccordionContent>

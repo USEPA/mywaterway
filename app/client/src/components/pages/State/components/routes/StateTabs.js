@@ -12,8 +12,7 @@ import AdvancedSearch from 'components/pages/State/components/tabs/AdvancedSearc
 import { LargeTab } from 'components/shared/ContentTabs/LargeTab.js';
 // contexts
 import { StateTabsContext } from 'contexts/StateTabs';
-// config
-import { attains } from 'config/webServiceConfig';
+import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 
@@ -25,6 +24,8 @@ type Props = {
 };
 
 function StateTabs({ stateCode, tabName, ...props }: Props) {
+  const services = useServicesContext();
+
   const {
     activeState,
     setActiveState,
@@ -44,11 +45,13 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
   // and conditionally set active tab index
   React.useEffect(() => {
     const validRoutes = [
-      `/state/${stateCode.toUpperCase()}/water-quality-overview`,
-      `/state/${stateCode.toUpperCase()}/advanced-search`,
+      `/state/${stateCode.toLowerCase()}/water-quality-overview`,
+      `/state/${stateCode.toLowerCase()}/advanced-search`,
     ];
 
-    const tabIndex = validRoutes.indexOf(window.location.pathname);
+    const tabIndex = validRoutes.indexOf(
+      window.location.pathname.toLowerCase(),
+    );
 
     if (tabIndex === -1) {
       navigate('/state');
@@ -63,7 +66,7 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
   // string, so we'll need to query the attains states service for the states
   React.useEffect(() => {
     if (activeState.code === '') {
-      fetchCheck(`${attains.serviceUrl}states`)
+      fetchCheck(`${services.data.attains.serviceUrl}states`)
         .then((res) => {
           // get matched state from web service response
           const match = res.data.filter(
@@ -79,7 +82,7 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
           navigate('/state');
         });
     }
-  }, [activeState, setActiveState, stateCode]);
+  }, [activeState, setActiveState, stateCode, services]);
 
   const tabListRef = React.useRef();
 

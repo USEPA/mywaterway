@@ -3,14 +3,10 @@
 import React from 'react';
 import type { Node } from 'react';
 import { loadModules } from 'esri-loader';
+// context
+import { LookupFilesContext } from 'contexts/LookupFiles';
 // config
 import { esriApiUrl } from 'config/esriConfig';
-import {
-  waterbodyService,
-  wbd,
-  mappedWater,
-  locatorUrl,
-} from 'config/mapServiceConfig';
 // utilities
 import {
   getEnvironmentString,
@@ -26,11 +22,17 @@ type Props = { children: Node };
 type State = { modulesLoaded: boolean };
 
 export class EsriModulesProvider extends React.Component<Props, State> {
+  static contextType = LookupFilesContext;
   state: State = {
+    initialized: false,
     modulesLoaded: false,
   };
 
-  componentDidMount() {
+  componentDidUpdate() {
+    const services = this.context.services;
+    if (services.status !== 'success' || this.state.initialized) return;
+    this.setState({ initialized: true });
+
     loadModules(
       [
         'esri/config',
@@ -132,13 +134,13 @@ export class EsriModulesProvider extends React.Component<Props, State> {
 
           // intercept esri calls to gispub
           const urls = [
-            waterbodyService.points,
-            waterbodyService.lines,
-            waterbodyService.areas,
-            waterbodyService.summary,
-            wbd,
-            mappedWater,
-            locatorUrl,
+            services.data.waterbodyService.points,
+            services.data.waterbodyService.lines,
+            services.data.waterbodyService.areas,
+            services.data.waterbodyService.summary,
+            services.data.wbd,
+            services.data.mappedWater,
+            services.data.locatorUrl,
           ];
           esriConfig.request.interceptors.push({
             urls,

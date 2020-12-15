@@ -7,7 +7,7 @@ describe('Data page', () => {
     cy.findByText('Go').click();
 
     // wait for the all web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 20000 }).should(
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
       'not.exist',
     );
 
