@@ -30,11 +30,12 @@ import {
 // contexts
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
-// config
-import { attains } from 'config/webServiceConfig';
+import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 import { chunkArray } from 'utils/utils';
+// utilities
+import { getOrganizationLabel } from 'components/pages/LocationMap/MapFunctions';
 // styles
 import { colors } from 'styles/index.js';
 // errors
@@ -42,7 +43,7 @@ import { actionsError, noActionsAvailableCombo } from 'config/errorMessages';
 
 const echoUrl = 'https://echo.epa.gov/detailed-facility-report?fid=';
 
-function getAssessmentUnitNames(orgId: string, action: Object) {
+function getAssessmentUnitNames(services: any, orgId: string, action: Object) {
   return new Promise((resolve, reject) => {
     const unitIds = action.associatedWaters.specificWaters.map((water) => {
       return water.assessmentUnitIdentifier;
@@ -56,7 +57,7 @@ function getAssessmentUnitNames(orgId: string, action: Object) {
 
     chunkedUnitIds.forEach((chunk: Array<string>) => {
       const url =
-        `${attains.serviceUrl}` +
+        `${services.data.attains.serviceUrl}` +
         `assessmentUnits?organizationId=${orgId}` +
         `&assessmentUnitIdentifier=${chunk.join(',')}`;
       const request = fetchCheck(url);
@@ -235,6 +236,10 @@ const NewTabDisclaimerDiv = styled.div`
   display: inline-block;
 `;
 
+const TextBottomMargin = styled.p`
+  margin-bottom: 0.5em !important;
+`;
+
 // --- components ---
 type Props = {
   ...RouteProps,
@@ -244,6 +249,8 @@ type Props = {
 };
 
 function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
+  const services = useServicesContext();
+
   const [loading, setLoading] = React.useState(true);
   const [noActions, setNoActions] = React.useState(false);
   const [error, setError] = React.useState(false);
@@ -263,7 +270,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
   const [waters, setWaters] = React.useState([]);
   React.useEffect(() => {
     const url =
-      attains.serviceUrl +
+      services.data.attains.serviceUrl +
       `actions?ActionIdentifier=${actionId}` +
       `&organizationIdentifier=${orgId}`;
 
@@ -279,7 +286,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
         if (res.items.length >= 1 && res.items[0].actions.length >= 1) {
           const action = res.items[0].actions[0];
 
-          getAssessmentUnitNames(orgId, action)
+          getAssessmentUnitNames(services, orgId, action)
             .then((data) => {
               // process assessment unit data and get key action data
               const {
@@ -322,7 +329,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
         setError(true);
         console.error(err);
       });
-  }, [actionId, orgId]);
+  }, [actionId, orgId, services]);
 
   // Builds the unitIds dictionary that is used for determining what
   // waters to display on the screen and what the content will be.
@@ -350,6 +357,12 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
 
         return (
           <>
+            {organizationName && orgId && (
+              <TextBottomMargin>
+                <strong>Organization Name (ID):&nbsp;</strong>
+                {organizationName} ({orgId})
+              </TextBottomMargin>
+            )}
             {hasTmdlData && (
               <>
                 <strong>Associated Impairments: </strong>
@@ -450,7 +463,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
     });
 
     setUnitIds(unitIds);
-  }, [waters, actionTypeCode, orgId]);
+  }, [waters, actionTypeCode, orgId, organizationName]);
 
   // calculate height of div holding actions info
   const [infoHeight, setInfoHeight] = React.useState(0);
@@ -688,7 +701,9 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                                     {assessmentUnitName || 'Name not provided'}
                                   </strong>
                                 }
-                                subTitle={`ID: ${assessmentUnitIdentifier}`}
+                                subTitle={`${getOrganizationLabel(
+                                  waterbodyData?.attributes,
+                                )} ${assessmentUnitIdentifier}`}
                               >
                                 <AccordionContent>
                                   {unitIds[assessmentUnitIdentifier] &&

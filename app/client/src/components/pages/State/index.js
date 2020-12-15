@@ -23,8 +23,7 @@ import {
 } from 'components/shared/KeyMetrics';
 // contexts
 import { StateTabsContext, StateTabsProvider } from 'contexts/StateTabs';
-// config
-import { attains } from 'config/webServiceConfig';
+import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 // styles
@@ -109,18 +108,18 @@ const Content = styled.div`
     font-size: 1.375em;
   }
 
+  h2,
+  h3 {
+    font-family: ${fonts.primary};
+    font-weight: normal;
+  }
+
   h4 {
     margin-bottom: 0.75rem;
     padding-bottom: 0;
     font-size: 1.125em;
     color: #526571;
-  }
-
-  h2,
-  h3,
-  h4 {
     font-family: ${fonts.primary};
-    font-weight: normal;
   }
 `;
 
@@ -145,6 +144,7 @@ const Disclaimer = styled(DisclaimerModal)`
 
 const ByTheNumbersExplanation = styled.p`
   font-style: italic;
+  padding: 0.5rem 0 0 0;
 `;
 
 // --- components ---
@@ -154,13 +154,20 @@ type Props = {
 };
 
 function State({ children, ...props }: Props) {
+  const services = useServicesContext();
+
   // query attains for the list of states
   const [states, setStates] = React.useState({ status: 'fetching', data: [] });
+  const [statesInitialized, setStatesInitialized] = React.useState(false);
   React.useEffect(() => {
-    fetchCheck(`${attains.serviceUrl}states`)
+    if (statesInitialized) return;
+
+    setStatesInitialized(true);
+
+    fetchCheck(`${services.data.attains.serviceUrl}states`)
       .then((res) => setStates({ status: 'success', data: res.data }))
       .catch((err) => setStates({ status: 'failure', data: [] }));
-  }, []);
+  }, [services, statesInitialized]);
 
   const {
     activeState,

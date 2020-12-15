@@ -48,12 +48,7 @@ const LegendLabel = styled.span`
   font-size: 0.75rem;
 `;
 
-const ignoreLayers = [
-  'mappedWaterLayer',
-  'countyLayer',
-  'watershedsLayer',
-  'searchIconLayer',
-];
+const ignoreLayers = ['mappedWaterLayer', 'watershedsLayer', 'searchIconLayer'];
 
 // --- components ---
 type Props = {
@@ -458,6 +453,56 @@ function MapLegendContent({ layer }: CardProps) {
     </LI>
   );
 
+  // jsx
+  const countyLegend = (
+    <LI>
+      <ImageContainer>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="26"
+          height="26"
+          viewBox="0 0 26 26"
+          aria-hidden="true"
+        >
+          <rect x="0" y="12" width="26" height="3" fill="#FBA45D" />
+        </svg>
+      </ImageContainer>
+      <LegendLabel>County</LegendLabel>
+    </LI>
+  );
+
+  // jsx
+  const stateBoundariesLegend = (
+    <LI>
+      <ImageContainer>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="26"
+          height="26"
+          viewBox="0 0 26 26"
+          aria-hidden="true"
+        >
+          <rect x="0" y="12" width="26" height="3" fill="#000" />
+        </svg>
+      </ImageContainer>
+      <LegendLabel>State</LegendLabel>
+    </LI>
+  );
+
+  // jsx
+  const upstreamLegend = (
+    <LI>
+      <ImageContainer>
+        {squareIcon({
+          color: 'rgb(31, 184, 255, 0.2)',
+          strokeWidth: 2,
+          stroke: '#000000',
+        })}
+      </ImageContainer>
+      <LegendLabel>Upstream Watershed</LegendLabel>
+    </LI>
+  );
+
   if (layer.id === 'waterbodyLayer') return waterbodyLegend;
   if (layer.id === 'issuesLayer') return issuesLegend;
   if (layer.id === 'monitoringStationsLayer') return monitoringStationsLegend;
@@ -466,9 +511,12 @@ function MapLegendContent({ layer }: CardProps) {
   if (layer.id === 'providersLayer') return providersLegend;
   if (layer.id === 'boundariesLayer') return boundariesLegend;
   if (layer.id === 'actionsWaterbodies') return actionsWaterbodiesLegend;
+  if (layer.id === 'countyLayer') return countyLegend;
   if (layer.id === 'tribalLayer') return tribalLegend;
   if (layer.id === 'wsioHealthIndexLayer') return healthIndexLegend;
   if (layer.id === 'congressionalLayer') return congressionalDistrictsLegend;
+  if (layer.id === 'upstreamWatershed') return upstreamLegend;
+  if (layer.id === 'stateBoundariesLayer') return stateBoundariesLegend;
 
   return null;
 }

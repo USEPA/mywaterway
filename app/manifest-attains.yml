@@ -1,0 +1,17 @@
+---
+ applications:
+   - name: mywaterway-attains
+     instances: 1
+     memory: 128M
+     disk_quota: 512MB
+     timeout: 180
+     buildpacks:
+      - nodejs_buildpack
+     command: node app/server.js
+     env:
+        NODE_ENV: staging
+        LOGGER_LEVEL: DEBUG
+        OPTIMIZE_MEMORY: true
+        S3_PUB_BIND_NAME: s3-pub-mywaterway-attains-stage
+     services:
+      - s3-pub-mywaterway-attains-stage

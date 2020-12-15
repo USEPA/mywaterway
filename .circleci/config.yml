@@ -86,6 +86,7 @@ jobs:
       - image: circleci/node:erbium-buster
     environment:
       APP_NAME: mywaterway-stage
+      APP_NAME_ATTAINS: mywaterway-attains
       APP_DOMAIN: app.cloud.gov
     steps:
       - checkout:
@@ -163,6 +164,43 @@ jobs:
             tar -czf hmwv2.tar.gz server      
       - store_artifacts:
           path: hmwv2.tar.gz
+      - run:
+          name: Copy ATTAINS NCC endpoints over 
+          command: |
+            cd server/app/public/data/config
+            cp -rf services-attains.json services.json
+      - run:
+          name: Deploy ATTAINS version of application to Cloud.gov
+          command: |
+            cd server
+            cf push --no-start $APP_NAME_ATTAINS-green -f ../manifest-attains.yml -p . -n $APP_NAME_ATTAINS-green 
+            cf set-env $APP_NAME_ATTAINS-green GLOSSARY_AUTH "$GLOSSARY_AUTH"
+            cf set-env $APP_NAME_ATTAINS-green HMW_BASIC_USER_NAME "$HMW_BASIC_USER_NAME"
+            cf set-env $APP_NAME_ATTAINS-green HMW_BASIC_USER_PWD "$HMW_BASIC_USER_PWD"
+      - run:
+          name: Start application on Cloud.gov and clean routes
+          command: |
+            cf start $APP_NAME_ATTAINS-green
+            cf unmap-route $APP_NAME_ATTAINS-green $APP_DOMAIN -n $APP_NAME_ATTAINS-green
+            cf delete-route app.cloud.gov -n $APP_NAME_ATTAINS-green -f
+      - aws-s3/sync:
+          arguments: |
+            --acl public-read \
+            --cache-control "max-age=86400"
+          aws-access-key-id: CF_ATTAINS_STAGE_S3_ACCESS_KEY
+          aws-region: CF_ATTAINS_STAGE_S3_REGION
+          aws-secret-access-key: CF_ATTAINS_STAGE_S3_SECRET_KEY
+          from: server/app/public/data
+          overwrite: true
+          to: 's3://$CF_ATTAINS_STAGE_S3_BUCKET_ID/data'
+      - run:
+          name: Re-route green to blue and then remove blue
+          command: |
+            cf map-route $APP_NAME_ATTAINS-green $APP_DOMAIN -n $APP_NAME_ATTAINS
+            cf unmap-route $APP_NAME_ATTAINS $APP_DOMAIN -n $APP_NAME_ATTAINS
+            cf stop $APP_NAME_ATTAINS
+            cf delete $APP_NAME_ATTAINS -f
+            cf rename $APP_NAME_ATTAINS-green $APP_NAME_ATTAINS
 workflows:
   version: 2
   main:

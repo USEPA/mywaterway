@@ -138,12 +138,14 @@ function IdentifiedIssues() {
   const setViolatingFacilities = React.useCallback(
     (data: Object) => {
       if (!data || !data['Results'] || !data['Results']['Facilities']) return;
-      const violatingFacilities = data['Results']['Facilities'].filter(fac => {
-        return (
-          fac['CWPSNCStatus'] &&
-          fac['CWPSNCStatus'].toLowerCase().indexOf('effluent') !== -1
-        );
-      });
+      const violatingFacilities = data['Results']['Facilities'].filter(
+        (fac) => {
+          return (
+            fac['CWPSNCStatus'] &&
+            fac['CWPSNCStatus'].toLowerCase().indexOf('effluent') !== -1
+          );
+        },
+      );
 
       // if the permitter discharger data has changed from a new search
       if (permittedDischargersData !== permittedDischargers.data) {
@@ -184,7 +186,7 @@ function IdentifiedIssues() {
     parameter: String,
   ) => {
     const filteredFields = parameterFields.filter(
-      field => parameter === field.parameterGroup,
+      (field) => parameter === field.parameterGroup,
     )[0];
     if (!filteredFields) {
       return null;
@@ -204,15 +206,15 @@ function IdentifiedIssues() {
     issuesLayer.graphics.removeAll();
 
     if (features && features.length !== 0) {
-      features.forEach(feature => {
+      features.forEach((feature) => {
         if (
           feature &&
           feature.attributes &&
           impairmentFields.findIndex(
-            field => feature.attributes[field.value] === 'Cause',
+            (field) => feature.attributes[field.value] === 'Cause',
           ) !== -1
         ) {
-          impairmentFields.forEach(field => {
+          impairmentFields.forEach((field) => {
             // if impairment is not a cause, ignore it. overview waterbody listview only displays impairments that are causes
             if (feature.attributes[field.value] !== 'Cause') return null;
             else if (parameterToggleObject[field.label] || showAllParameters) {
@@ -247,7 +249,7 @@ function IdentifiedIssues() {
 
     // generate an object with all possible parameters to store which ones are displayed
     const parameterToggles = {};
-    impairmentFields.forEach(param => {
+    impairmentFields.forEach((param) => {
       parameterToggles[param.label] = true;
     });
 
@@ -313,7 +315,7 @@ function IdentifiedIssues() {
     false,
   );
   React.useEffect(() => {
-    if (!window.isIdSet || cipSummary.status !== 'success') return;
+    if (!window.gaTarget || cipSummary.status !== 'success') return;
 
     const {
       assessedCatchmentAreaSqMi,
@@ -333,7 +335,7 @@ function IdentifiedIssues() {
     );
     if (pollutedPercent > 0 && summaryByParameterImpairments.length === 0) {
       emptyCategoriesWithPercent = true;
-      window.ga('send', 'exception', {
+      window.logToGa('send', 'exception', {
         exDescription: `The summaryByParameterImpairments[] array is empty, even though ${pollutedPercent}% of assessed waters are impaired `,
         exFatal: false,
       });
@@ -343,7 +345,7 @@ function IdentifiedIssues() {
     const nullPollutedWaterbodies =
       containImpairedWatersCatchmentAreaPercent === null ? true : false;
     if (nullPollutedWaterbodies && summaryByParameterImpairments.length > 0) {
-      window.ga('send', 'exception', {
+      window.logToGa('send', 'exception', {
         exDescription: `The "% of assessed waters are impaired" value is 0, even though there are ${summaryByParameterImpairments.length} items in the summaryByParameterImpairments[] array.`,
         exFatal: false,
       });
@@ -360,7 +362,7 @@ function IdentifiedIssues() {
     const parameters = [];
 
     // get a list of all parameters displayed in table and push them to array
-    cipSummaryData.items[0].summaryByParameterImpairments.forEach(param => {
+    cipSummaryData.items[0].summaryByParameterImpairments.forEach((param) => {
       const mappedParameterName = getMappedParameterName(
         impairmentFields,
         param['parameterGroupName'],
@@ -372,11 +374,11 @@ function IdentifiedIssues() {
     });
 
     // return true if toggle for a parameter is not checked
-    const checkNotCheckedParameters = param => {
+    const checkNotCheckedParameters = (param) => {
       return !tempParameterToggleObject[param];
     };
 
-    const checkAnyCheckedParameters = param => {
+    const checkAnyCheckedParameters = (param) => {
       return tempParameterToggleObject[param];
     };
 
@@ -547,7 +549,6 @@ function IdentifiedIssues() {
     toggleDischargersChecked = false;
   }
 
-  const [testError, setTestError] = React.useState(false);
   return (
     <Container>
       <>
@@ -715,7 +716,7 @@ function IdentifiedIssues() {
                                 </THead>
                                 <tbody>
                                   {cipSummary.data.items[0].summaryByParameterImpairments.map(
-                                    param => {
+                                    (param) => {
                                       const percent = formatNumber(
                                         Math.min(
                                           100,
@@ -843,7 +844,7 @@ function IdentifiedIssues() {
               <li>
                 Impairments take many forms, often a result of human behavior.
                 Water impairments are identified across 34 categories such as
-                excess algae, mercury, pathogens, pesticides, trash and more.
+                algae, mercury, pathogens, pesticides, trash and more.
               </li>
               <li>
                 Impairments can enter your water through runoff, water discharge
@@ -851,21 +852,6 @@ function IdentifiedIssues() {
                 like sewers and pipes
               </li>
             </ul>
-          </>
-        )}
-        <button
-          style={{ display: 'none' }}
-          onClick={() => {
-            setTestError(true);
-          }}
-        >
-          Log React Boundary Exception
-        </button>
-        {testError && (
-          <>
-            {cipSummary.test.mmmmaaaaapppp((item, idx) => {
-              return <p key={idx}>item</p>;
-            })}
           </>
         )}
       </>
