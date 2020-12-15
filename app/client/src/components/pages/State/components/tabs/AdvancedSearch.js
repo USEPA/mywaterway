@@ -21,16 +21,16 @@ import {
   MapHighlightProvider,
 } from 'contexts/MapHighlight';
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
-import { useReportStatusMappingContext } from 'contexts/LookupFiles';
+import {
+  useReportStatusMappingContext,
+  useServicesContext,
+} from 'contexts/LookupFiles';
 // utilities
 import { getEnvironmentString, fetchCheck } from 'utils/fetchUtils';
 import { chunkArray } from 'utils/utils';
 import { useWaterbodyFeaturesState, useWaterbodyOnMap } from 'utils/hooks';
 // data
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
-// config
-import { waterbodyService, wbd } from 'config/mapServiceConfig';
-import { attains } from 'config/webServiceConfig';
 // styles
 import { reactSelectStyles } from 'styles/index.js';
 // errors
@@ -61,21 +61,24 @@ function retrieveMaxRecordCount(url) {
 // Gets the features without geometry for quickly displaying in the
 // waterbody list component.
 function retrieveFeatures({
+  Query,
   QueryTask,
   url,
-  query,
+  queryParams,
   maxRecordCount,
 }: {
+  Query: any,
   QueryTask: any,
   url: string,
-  query: Object,
+  queryParams: Object,
   maxRecordCount: number,
 }) {
   return new Promise((resolve, reject) => {
     // query to get just the ids since there is a maxRecordCount
     const queryTask = new QueryTask({ url: url });
+    const idsQuery = new Query(queryParams);
     queryTask
-      .executeForIds(query)
+      .executeForIds(idsQuery)
       .then((objectIds) => {
         // set the features value of the data to an empty array if no objectIds
         // were returned.
@@ -91,8 +94,10 @@ function retrieveFeatures({
         const requests = [];
 
         chunkedObjectIds.forEach((chunk: Array<string>) => {
-          const queryChunk = query;
-          queryChunk.where = `OBJECTID in (${chunk.join(',')})`;
+          const queryChunk = new Query({
+            ...queryParams,
+            where: `OBJECTID in (${chunk.join(',')})`,
+          });
           const request = queryTask.execute(queryChunk);
           requests.push(request);
         });
@@ -216,12 +221,16 @@ const ScreenLabelWithPadding = styled(ScreenLabel)`
 type Props = {};
 
 function AdvancedSearch({ ...props }: Props) {
+  const services = useServicesContext();
+
   const {
     currentReportStatus,
     currentSummary,
     currentReportingCycle,
     setCurrentReportingCycle,
     activeState,
+    stateAndOrganization,
+    setStateAndOrganization,
   } = React.useContext(StateTabsContext);
 
   const { fullscreenActive } = React.useContext(FullscreenContext);
@@ -290,7 +299,7 @@ function AdvancedSearch({ ...props }: Props) {
   React.useEffect(() => {
     if (watershedsLayerMaxRecordCount || watershedMrcError) return;
 
-    retrieveMaxRecordCount(wbd)
+    retrieveMaxRecordCount(services.data.wbd)
       .then((maxRecordCount) => {
         setWatershedsLayerMaxRecordCount(maxRecordCount);
       })
@@ -304,6 +313,7 @@ function AdvancedSearch({ ...props }: Props) {
     watershedsLayerMaxRecordCount,
     setWatershedsLayerMaxRecordCount,
     watershedMrcError,
+    services,
   ]);
 
   // get a list of watersheds and build the esri where clause
@@ -312,15 +322,16 @@ function AdvancedSearch({ ...props }: Props) {
     if (activeState.code === '' || !watershedsLayerMaxRecordCount) return;
 
     const { Query, QueryTask } = esriHelper.modules;
-    const query = new Query({
-      where: `STATES LIKE '%${activeState.code}%'`,
+    const queryParams = {
+      where: `UPPER(STATES) LIKE '%${activeState.code}%' AND STATES <> 'CAN' AND STATES <> 'MEX'`,
       outFields: ['huc12', 'name'],
-    });
+    };
 
     retrieveFeatures({
+      Query,
       QueryTask,
-      url: wbd,
-      query,
+      url: services.data.wbd,
+      queryParams,
       maxRecordCount: watershedsLayerMaxRecordCount,
     })
       .then((data) => {
@@ -341,14 +352,14 @@ function AdvancedSearch({ ...props }: Props) {
         setServiceError(true);
         setWatersheds([]);
       });
-  }, [esriHelper, activeState, watershedsLayerMaxRecordCount]);
+  }, [esriHelper, activeState, watershedsLayerMaxRecordCount, services]);
 
   // Get the maxRecordCount of the summary (waterbody) layer
   const [summaryMrcError, setSummaryMrcError] = React.useState(false);
   React.useEffect(() => {
     if (summaryLayerMaxRecordCount || summaryMrcError) return;
 
-    retrieveMaxRecordCount(waterbodyService.summary)
+    retrieveMaxRecordCount(services.data.waterbodyService.summary)
       .then((maxRecordCount) => {
         setSummaryLayerMaxRecordCount(maxRecordCount);
       })
@@ -362,6 +373,7 @@ function AdvancedSearch({ ...props }: Props) {
     summaryLayerMaxRecordCount,
     setSummaryLayerMaxRecordCount,
     summaryMrcError,
+    services,
   ]);
 
   const [currentFilter, setCurrentFilter] = React.useState(null);
@@ -370,26 +382,30 @@ function AdvancedSearch({ ...props }: Props) {
   const [waterbodiesList, setWaterbodiesList] = React.useState(null);
   // Get the features on the waterbodies point layer
   React.useEffect(() => {
-    if (activeState.code === '' || !summaryLayerMaxRecordCount) return;
+    if (!stateAndOrganization || !summaryLayerMaxRecordCount) {
+      return;
+    }
 
     const { Query, QueryTask } = esriHelper.modules;
 
     // query for initial load
     if (!currentFilter) {
-      const query = new Query({
+      const queryParams = {
         returnGeometry: false,
-        where: `state = '${activeState.code}'`,
+        where: `state = '${stateAndOrganization.state}' AND organizationid = '${stateAndOrganization.organizationId}'`,
         outFields: [
           'assessmentunitidentifier',
           'assessmentunitname',
+          'orgtype',
           'reportingcycle',
         ],
-      });
+      };
 
       retrieveFeatures({
+        Query,
         QueryTask,
-        url: waterbodyService.summary,
-        query,
+        url: services.data.waterbodyService.summary,
+        queryParams,
         maxRecordCount: summaryLayerMaxRecordCount,
       })
         .then((data) => {
@@ -427,16 +443,17 @@ function AdvancedSearch({ ...props }: Props) {
           });
         });
     } else {
-      const query = new Query({
+      const queryParams = {
         returnGeometry: false,
         where: currentFilter,
         outFields: ['*'],
-      });
+      };
 
       retrieveFeatures({
+        Query,
         QueryTask,
-        url: waterbodyService.summary,
-        query,
+        url: services.data.waterbodyService.summary,
+        queryParams,
         maxRecordCount: summaryLayerMaxRecordCount,
       })
         .then((data) => setWaterbodyData(data))
@@ -451,9 +468,10 @@ function AdvancedSearch({ ...props }: Props) {
     esriHelper,
     setWaterbodyData,
     currentFilter,
-    activeState,
     summaryLayerMaxRecordCount,
     setCurrentReportingCycle,
+    services,
+    stateAndOrganization,
   ]);
 
   const [waterbodyFilter, setWaterbodyFilter] = React.useState([]);
@@ -516,7 +534,9 @@ function AdvancedSearch({ ...props }: Props) {
     });
 
     // query to get just the ids since there is a maxRecordCount
-    let queryTask = new QueryTask({ url: waterbodyService.summary });
+    let queryTask = new QueryTask({
+      url: services.data.waterbodyService.summary,
+    });
     queryTask
       .executeForCount(query)
       .then((res) => {
@@ -530,7 +550,7 @@ function AdvancedSearch({ ...props }: Props) {
         setNextFilter('');
         setServiceError(true);
       });
-  }, [esriHelper, serviceError, nextFilter]);
+  }, [esriHelper, serviceError, nextFilter, services]);
 
   const [
     newDisplayOptions,
@@ -557,6 +577,7 @@ function AdvancedSearch({ ...props }: Props) {
     setWaterbodyData(null);
     setWaterbodiesList(null);
     setNumberOfRecords(null);
+    setStateAndOrganization(null);
     setCurrentReportingCycle({
       status: 'fetching',
       reportingCycle: '',
@@ -577,24 +598,31 @@ function AdvancedSearch({ ...props }: Props) {
     setNewDisplayOptions([defaultDisplayOption]);
     setDisplayOptions([defaultDisplayOption]);
     setSelectedDisplayOption(defaultDisplayOption);
-  }, [activeState, setWaterbodyData, setCurrentReportingCycle]);
+  }, [
+    activeState,
+    setWaterbodyData,
+    setCurrentReportingCycle,
+    setStateAndOrganization,
+  ]);
 
   const executeFilter = () => {
     setSearchLoading(true);
 
     // waterbody and watershed filter
     const requests = [];
-    watershedFilter.forEach((watershed) => {
-      // Fire off requests for any watersheds that we don't already have data for
-      if (!watershedResults.hasOwnProperty(watershed.value)) {
-        // run a fetch to get the assessments in the huc
-        requests.push(
-          fetchCheck(
-            `${attains.serviceUrl}huc12summary?huc=${watershed.value}`,
-          ),
-        );
-      }
-    });
+    if (watershedFilter) {
+      watershedFilter.forEach((watershed) => {
+        // Fire off requests for any watersheds that we don't already have data for
+        if (!watershedResults.hasOwnProperty(watershed.value)) {
+          // run a fetch to get the assessments in the huc
+          requests.push(
+            fetchCheck(
+              `${services.data.attains.serviceUrl}huc12summary?huc=${watershed.value}`,
+            ),
+          );
+        }
+      });
+    }
 
     // If we have data for everything then execute the filter, otherwise parse the requests
     if (requests.length === 0) {
@@ -628,9 +656,9 @@ function AdvancedSearch({ ...props }: Props) {
 
   // build esri where clause
   const executeFilterWrapped = (watershedResults: Object) => {
-    if (activeState.code === '') return;
+    if (activeState.code === '' || !stateAndOrganization) return;
 
-    let newFilter = `state = '${activeState.code}'`;
+    let newFilter = `state = '${activeState.code}' AND organizationid = '${stateAndOrganization.organizationId}'`;
 
     // radio button filters
     if (waterTypeFilter === '303d') {

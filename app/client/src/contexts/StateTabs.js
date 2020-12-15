@@ -10,6 +10,7 @@ export const StateTabsContext: Object = React.createContext({
   currentReportingCycle: { status: 'fetching', currentReportingCycle: '' },
   activeState: { code: '', name: '' },
   introText: { status: 'fetching', data: {} },
+  stateAndOrganizationId: null,
 });
 
 type Props = {
@@ -22,6 +23,7 @@ type State = {
   currentReportingCycle: object,
   activeState: { code: string, name: string },
   introText: object,
+  stateAndOrganization: object,
 };
 
 export class StateTabsProvider extends React.Component<Props, State> {
@@ -41,6 +43,7 @@ export class StateTabsProvider extends React.Component<Props, State> {
       status: 'fetching',
       data: {},
     },
+    stateAndOrganization: null,
     // in case ATTAINS usesStateSummary service returns invalid data or an internal error
     usesStateSummaryServiceError: false,
     setActiveTabIndex: (activeTabIndex: number) => {
@@ -65,6 +68,9 @@ export class StateTabsProvider extends React.Component<Props, State> {
       usesStateSummaryServiceError: boolean,
     ) => {
       this.setState({ usesStateSummaryServiceError });
+    },
+    setStateAndOrganization: (stateAndOrganization: object) => {
+      this.setState({ stateAndOrganization });
     },
   };
 

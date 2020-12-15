@@ -1,8 +1,5 @@
 // @flow
 
-import { mapServiceMapping } from 'config/mapServiceConfig';
-import { webServiceMapping } from 'config/webServiceConfig';
-
 const defaultTimeout = 60000;
 
 export function fetchCheck(apiUrl: string, timeout: number = defaultTimeout) {
@@ -128,16 +125,16 @@ export function logCallToGoogleAnalytics(
   status: number,
   startTime: number,
 ) {
-  if (!window.isIdSet) return;
+  if (!window.gaTarget) return;
 
   const duration = performance.now() - startTime;
 
   // combine the web service and map service mappings
-  let combinedMapping = webServiceMapping.concat(mapServiceMapping);
+  let mapping = window.googleAnalyticsMapping;
 
   // get the short name from the url
   let eventAction = 'UNKNOWN';
-  combinedMapping.forEach((item) => {
+  mapping.forEach((item) => {
     if (eventAction === 'UNKNOWN' && wildcardIncludes(url, item.wildcardUrl)) {
       eventAction = item.name;
     }
@@ -147,7 +144,7 @@ export function logCallToGoogleAnalytics(
   const eventLabel = `${url} | status:${status} | time:${duration}`;
 
   // log to google analytics if it has been setup
-  window.ga('send', 'event', 'Web-service', eventAction, eventLabel);
+  window.logToGa('send', 'event', 'Web-service', eventAction, eventLabel);
 }
 
 function wildcardIncludes(str, rule) {

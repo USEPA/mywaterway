@@ -20,6 +20,7 @@ import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import {
   getTypeFromAttributes,
   getWaterbodyCondition,
+  getOrganizationLabel,
 } from 'components/pages/LocationMap/MapFunctions';
 // contexts
 import { MapHighlightContext } from 'contexts/MapHighlight';
@@ -224,7 +225,9 @@ function WaterbodyItems({ sortedWaterbodies, allExpanded, fieldName }) {
               graphic.attributes.assessmentunitidentifier
             }
             title={<strong>{graphic.attributes.assessmentunitname}</strong>}
-            subTitle={`ID: ${graphic.attributes.assessmentunitidentifier}`}
+            subTitle={`${getOrganizationLabel(graphic.attributes)} ${
+              graphic.attributes.assessmentunitidentifier
+            }`}
             icon={<WaterbodyIcon condition={condition} selected={false} />}
             feature={graphic}
             idKey={'assessmentunitidentifier'}
