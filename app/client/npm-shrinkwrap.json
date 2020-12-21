@@ -9045,7 +9045,7 @@
       }
     },
     "glossary-panel": {
-      "version": "github:Eastern-Research-Group/glossary#3b17ad8785e762ce7dc692f7af4611238ad9cf75",
+      "version": "github:Eastern-Research-Group/glossary#b36979a69bf5b3d89f9cb05227cc80bfecf13bd1",
       "from": "github:Eastern-Research-Group/glossary",
       "requires": {
         "aria-accordion": "^1.0.0",
