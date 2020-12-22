@@ -11,7 +11,7 @@ import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
-import { containsScriptTag, isHuc12 } from 'utils/utils';
+import { containsScriptTag, isHuc12, splitSuggestedSearch } from 'utils/utils';
 // styles
 import { colors } from 'styles/index.js';
 // errors
@@ -36,17 +36,6 @@ const Form = styled.form`
   display: flex;
   flex-flow: row wrap;
   align-items: center;
-`;
-
-const Input = styled.input`
-  margin-top: 1em;
-  width: 100%;
-  font-size: 0.9375em;
-
-  @media (min-width: 480px) {
-    flex: 1;
-    margin-right: 0.5em;
-  }
 `;
 
 const Button = styled.button`
@@ -75,6 +64,53 @@ const Text = styled.p`
   font-weight: bold;
 `;
 
+const SearchBox = styled.div`
+  margin-top: 1em;
+  width: 100%;
+  height: 36.75px;
+  font-size: 0.9375em;
+
+  @media (min-width: 480px) {
+    flex: 1;
+    margin-right: 0.5em;
+  }
+
+  .esri-search__container {
+    border: 1px solid rgb(211, 211, 211);
+    border-radius: 4px;
+  }
+
+  .esri-search__input {
+    height: 36px;
+    border-radius: 4px;
+    padding: 1px 2px 1px 8px;
+    color: #495057;
+    font-family: 'Source Sans Pro', 'Helvetica Neue', 'Helvetica', 'Roboto',
+      'Arial', sans-serif;
+    font-size: 16px;
+  }
+
+  .esri-search__input::placeholder {
+    color: #6C757D;
+  }
+
+  .esri-search__clear-button {
+    height: 36px;
+    width: 36px;
+  }
+
+  .esri-search__submit-button {
+    display: none;
+  }
+
+  .esri-icon-search::before {
+    content: '\f002';
+    font-family: 'Font Awesome 5 Free', sans-serif;
+    color: rgb(204, 204, 204);
+    font-weight: 900;
+  }
+`
+
 // --- components ---
 type Props = {
   route: string,
@@ -83,7 +119,7 @@ type Props = {
 
 function LocationSearch({ route, label }: Props) {
   const services = useServicesContext();
-  const { Locator, Point } = React.useContext(EsriModulesContext);
+  const { FeatureLayer, Locator, Point, Search, watchUtils } = React.useContext(EsriModulesContext);
   const { searchText, watershed, huc12 } = React.useContext(
     LocationSearchContext,
   );
@@ -96,11 +132,129 @@ function LocationSearch({ route, label }: Props) {
 
   // initialize inputText from searchText context
   const [inputText, setInputText] = React.useState(searchText);
+  const [selectedResult, setSelectedResult] = React.useState(null);
 
   // update inputText whenever searchText changes (i.e. Form onSubmit)
   React.useEffect(() => setInputText(searchText), [searchText]);
 
   const [errorMessage, setErrorMessage] = React.useState('');
+
+  // Initialize the esri search widget
+  const [searchWidget, setSearchWidget] = React.useState(null);
+  React.useEffect(() => {
+    if (searchWidget) return;
+
+    const placeholder = 'Search by address, zip code, or place...'
+    const search = new Search({
+      allPlaceholder: placeholder,
+      container: 'search-container',
+      locationEnabled: false,
+      label: 'Search',
+      sources: [
+        {
+          layer: new FeatureLayer({
+            url: `${services.data.tribal}/4`,
+            listMode: 'hide',
+          }),
+          searchFields: ['TRIBE_NAME'],
+          suggestionTemplate: '{TRIBE_NAME}',
+          exactMatch: false,
+          outFields: ['TRIBE_NAME'],
+          placeholder: placeholder,
+          name: "EPA Tribal Areas - Lower 48 States",
+        },
+        {
+          layer: new FeatureLayer({
+            url: `${services.data.tribal}/1`,
+            listMode: 'hide',
+          }),
+          searchFields: ['NAME'],
+          suggestionTemplate: '{NAME}',
+          exactMatch: false,
+          outFields: ['NAME'],
+          placeholder: placeholder,
+          name: "EPA Tribal Areas - Alaska Native Villages",
+        },
+        {
+          layer: new FeatureLayer({
+            url: `${services.data.tribal}/2`,
+            listMode: 'hide',
+          }),
+          searchFields: ['TRIBE_NAME'],
+          suggestionTemplate: '{TRIBE_NAME}',
+          exactMatch: false,
+          outFields: ['TRIBE_NAME'],
+          placeholder: placeholder,
+          name: "EPA Tribal Areas - Alaska Reservations",
+        }
+      ]
+    });
+
+    // create a watcher for the input text
+    watchUtils.watch(search, "searchTerm", (newVal, oldVal, propName, event) => {
+      setInputText(newVal);
+    });
+
+    // create a watcher for the selected suggestion. This is used for getting
+    // the lat/long of the selected suggestion, to ensure the locator zooms to the
+    // suggestion rather than the highest scored text.
+    // (ex. user searches for "Beaver" and selects the Alaska Reservations option, 
+    // this code ensures the map zooms to Beaver Alaska instead of Beaver Ohio)
+    watchUtils.watch(search, "selectedResult", (newVal, oldVal, propName, event) => {
+      if (newVal && newVal.sourceIndex > 0) {
+        setSelectedResult(newVal);
+      } else {
+        setSelectedResult(null);
+      }
+    });
+
+    setSearchWidget(search);
+  }, [FeatureLayer, Locator, Search, watchUtils, searchWidget, services, searchText]);
+
+  // Initialize the esri search widget value with the search text.
+  React.useEffect(() => {
+    if (!searchWidget) return;
+
+    // Remove coordinates if search text was from non-esri suggestions
+    searchWidget.searchTerm = splitSuggestedSearch(Point, searchText).searchPart;
+  }, [Point, searchWidget, searchText]);
+
+  // Adds additional info to search box if the search was a huc12
+  React.useEffect(() => {
+    if (!searchWidget) return;
+
+    // Remove coordinates if search text was from non-esri suggestions
+    const searchTerm = splitSuggestedSearch(Point, searchText).searchPart;
+
+    // Set the input text to be more detailed if the search is a huc
+    if (inputText === searchTerm && isHuc12(inputText) && watershed && huc12) {
+      searchWidget.searchTerm = `WATERSHED: ${watershed} (${huc12})`;
+    }
+  }, [Point, searchWidget, searchText, huc12, inputText, watershed]);
+
+  // Starts a poll which eventually sets the id of the esri search input.
+  // This code is needed to work aroudn a 508 compliance issue. Adding the
+  // id to the Search constructor (above) does not add an id to the DOM element.
+  const [pollInitialized, setPollInitialized] = React.useState(false);
+  React.useEffect(() => {
+    if (pollInitialized) return;
+
+    setPollInitialized(true);
+
+    // polls the dom, based on provided timeout, until the esri search input
+    // is added. Once the input is added this sets the id attribute and stops
+    // the polling.
+    function poll(timeout: number) {
+      const searchInput = document.getElementsByClassName('esri-search__input');
+      if (searchInput.length === 0) {
+        setTimeout(poll, timeout);
+      } else {
+        searchInput[0].setAttribute('id', 'hmw-search-input');
+      }
+    }
+
+    poll(250);
+  }, [pollInitialized]);
 
   return (
     <>
@@ -119,25 +273,27 @@ function LocationSearch({ route, label }: Props) {
             return;
           }
 
-          if (inputText) {
+          // get urlSearch parameter value
+          let urlSearch = null;
+          if (selectedResult) {
+            const center = selectedResult.extent.center;
+            urlSearch = `${inputText.trim()}|${center.longitude}, ${center.latitude}`;
+          }
+          else if (inputText) {
+            urlSearch = inputText.trim();
+          }
+
+          // navigate if the urlSearch value is available
+          if (urlSearch) {
             setErrorMessage('');
             setGeolocationError(false);
+
             // only navigate if search box contains text
-            navigate(encodeURI(route.replace('{urlSearch}', inputText.trim())));
+            navigate(encodeURI(route.replace('{urlSearch}', urlSearch)));
           }
         }}
       >
-        <Input
-          id="hmw-search-input"
-          className="form-control"
-          placeholder="Search by address, zip code, or place..."
-          value={
-            inputText === searchText && isHuc12(inputText) && watershed && huc12
-              ? `WATERSHED: ${watershed} (${huc12})`
-              : inputText
-          }
-          onChange={(ev) => setInputText(ev.target.value)}
-        />
+        <SearchBox id="search-container" />
 
         <Button
           className="btn"
@@ -157,59 +313,59 @@ function LocationSearch({ route, label }: Props) {
                 &nbsp;&nbsp;Error Getting Location
               </Button>
             ) : (
-              <Button
-                className="btn"
-                type="button"
-                onClick={(ev) => {
-                  setGeolocating(true);
+                <Button
+                  className="btn"
+                  type="button"
+                  onClick={(ev) => {
+                    setGeolocating(true);
 
-                  navigator.geolocation.getCurrentPosition(
-                    // success function called when geolocation succeeds
-                    (position) => {
-                      const locatorTask = new Locator({
-                        url: services.data.locatorUrl,
-                      });
-                      const params = {
-                        location: new Point({
-                          x: position.coords.longitude,
-                          y: position.coords.latitude,
-                        }),
-                      };
-
-                      locatorTask
-                        .locationToAddress(params)
-                        .then((candidate) => {
-                          setGeolocating(false);
-                          navigate(
-                            encodeURI(
-                              route.replace('{urlSearch}', candidate.address),
-                            ),
-                          );
+                    navigator.geolocation.getCurrentPosition(
+                      // success function called when geolocation succeeds
+                      (position) => {
+                        const locatorTask = new Locator({
+                          url: services.data.locatorUrl,
                         });
-                    },
-                    // failure function called when geolocation fails
-                    (err) => {
-                      console.error(err);
-                      setGeolocating(false);
-                      setGeolocationError(true);
-                    },
-                  );
-                }}
-              >
-                {/* don't display the loading indicator in IE11 */}
-                {!geolocating || isIE() ? (
-                  <>
-                    <i className="fas fa-crosshairs" aria-hidden="true" />
+                        const params = {
+                          location: new Point({
+                            x: position.coords.longitude,
+                            y: position.coords.latitude,
+                          }),
+                        };
+
+                        locatorTask
+                          .locationToAddress(params)
+                          .then((candidate) => {
+                            setGeolocating(false);
+                            navigate(
+                              encodeURI(
+                                route.replace('{urlSearch}', candidate.address),
+                              ),
+                            );
+                          });
+                      },
+                      // failure function called when geolocation fails
+                      (err) => {
+                        console.error(err);
+                        setGeolocating(false);
+                        setGeolocationError(true);
+                      },
+                    );
+                  }}
+                >
+                  {/* don't display the loading indicator in IE11 */}
+                  {!geolocating || isIE() ? (
+                    <>
+                      <i className="fas fa-crosshairs" aria-hidden="true" />
                     &nbsp;&nbsp;Use My Location
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-spinner fa-pulse" aria-hidden="true" />
+                    </>
+                  ) : (
+                      <>
+                        <i className="fas fa-spinner fa-pulse" aria-hidden="true" />
                     &nbsp;&nbsp;Getting Location...
-                  </>
-                )}
-              </Button>
-            )}
+                      </>
+                    )}
+                </Button>
+              )}
           </>
         )}
       </Form>

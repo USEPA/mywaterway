@@ -63,6 +63,7 @@ export class EsriModulesProvider extends React.Component<Props, State> {
         'esri/widgets/LayerList',
         'esri/widgets/LayerList/ListItem',
         'esri/widgets/ScaleBar',
+        'esri/widgets/Search',
       ],
       { url: esriApiUrl },
     )
@@ -96,6 +97,7 @@ export class EsriModulesProvider extends React.Component<Props, State> {
           LayerList,
           ListItem,
           ScaleBar,
+          Search,
         ]) => {
           // $FlowFixMe
           this.setState({
@@ -127,6 +129,7 @@ export class EsriModulesProvider extends React.Component<Props, State> {
             LayerList,
             ListItem,
             ScaleBar,
+            Search,
           });
 
           var callId = 0;
