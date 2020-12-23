@@ -274,7 +274,7 @@ describe('Identified Issues Tab', () => {
     // switch to Dischargers tab of Identified Issues tab and check that the discharger accordion item exists and expands when clicked
     cy.findByText('Identified Issues').click();
     cy.findByTestId('hmw-dischargers').click();
-    cy.findByText('KOPPERS INC.').click();
+    cy.findByText('1178 CR LLC').click();
     cy.findByText('Compliance Status:');
   });
 });
