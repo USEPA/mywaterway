@@ -30,7 +30,7 @@ import {
   useWaterbodyFeatures,
 } from 'utils/hooks';
 import { fetchCheck } from 'utils/fetchUtils';
-import { isHuc12, updateCanonicalLink, createJsonLD } from 'utils/utils';
+import { isHuc12, updateCanonicalLink, createJsonLD, getPointFromCoordinates, splitSuggestedSearch } from 'utils/utils';
 // styles
 import './mapStyles.css';
 // errors
@@ -806,17 +806,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       const locator = new Locator({ url: services.data.locatorUrl });
       locator.outSpatialReference = SpatialReference.WebMercator;
 
-      const regex = /^(-?\d+(\.\d*)?)[\s,]+(-?\d+(\.\d*)?)$/;
-      let point = null;
-      if (regex.test(searchText)) {
-        const found = searchText.match(regex);
-        if (found.length >= 4 && found[1] && found[3]) {
-          point = new Point({
-            x: found[1],
-            y: found[3],
-          });
-        }
-      }
+      // Parse the search text to see if it is from a non-esri search suggestion
+      const {
+        searchPart,
+        coordinatesPart,
+      } = splitSuggestedSearch(Point, searchText);
+
+      // Check if the search text contains coordinates. 
+      // First see if coordinates are part of a non-esri suggestion and 
+      // then see if the full text is coordinates
+      let point = coordinatesPart ? coordinatesPart : getPointFromCoordinates(Point, searchText);
 
       let getCandidates;
       if (point === null) {
@@ -858,7 +857,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           }
 
           if (candidates.length === 0 || !location || !location.attributes) {
-            setAddress(searchText); // preserve the user's search so it is displayed
+            const newAddress = coordinatesPart ? searchPart : searchText;
+            setAddress(newAddress); // preserve the user's search so it is displayed
             setNoDataAvailable();
             setMapLoading(false);
             setErrorMessage(noDataAvailableError);
@@ -908,7 +908,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               })
               .catch((err) => {
                 console.error(err);
-                setAddress(searchText); // preserve the user's search so it is displayed
+                const newAddress = coordinatesPart ? searchPart : searchText;
+                setAddress(newAddress); // preserve the user's search so it is displayed
                 setNoDataAvailable();
                 setErrorMessage(watersgeoError);
               });
@@ -972,7 +973,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         .catch((err) => {
           if (!hucRes) {
             console.error(err);
-            setAddress(searchText); // preserve the user's search so it is displayed
+            const newAddress = coordinatesPart ? searchPart : searchText;
+            setAddress(newAddress); // preserve the user's search so it is displayed
             setNoDataAvailable();
             setErrorMessage(geocodeError);
             return;
@@ -983,8 +985,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           const digits = 6;
           setAddress(
             parseFloat(coords[0]).toFixed(digits) +
-              ', ' +
-              parseFloat(coords[1]).toFixed(digits),
+            ', ' +
+            parseFloat(coords[1]).toFixed(digits),
           );
 
           // Note: that since the geocoder failed, the lat/long will be displayed
@@ -1335,7 +1337,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             view={null}
             layers={layers}
             scrollToComponent="locationmap"
-            onHomeWidgetRendered={(homeWidget) => {}}
+            onHomeWidgetRendered={(homeWidget) => { }}
           />
 
           {/* manually passing map and view props to Map component's         */}

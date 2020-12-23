@@ -143,6 +143,46 @@ function createMarkup(message) {
   return { __html: message };
 }
 
+// Determines if the input text is a string representing coordinates.
+// If so the coordinates are converted to an Esri Point object.
+function getPointFromCoordinates(Point, text) {
+  const regex = /^(-?\d+(\.\d*)?)[\s,]+(-?\d+(\.\d*)?)$/;
+  let point = null;
+  if (regex.test(text)) {
+    const found = text.match(regex);
+    if (found.length >= 4 && found[1] && found[3]) {
+      point = new Point({
+        x: found[1],
+        y: found[3],
+      });
+    }
+  }
+
+  return point;
+}
+
+// Determines if the input text is a string that contains coordinates.
+// The return value is an object containing the esri point for the coordinates (coordinatesPart) 
+// and any remaining text (searchPart).
+function splitSuggestedSearch(Point, text) {
+  // split search
+  const parts = text.split('|');
+
+  // get the coordinates part (is last item)
+  const tempCoords = parts[parts.length - 1];
+  const coordinatesPart = getPointFromCoordinates(Point, tempCoords);
+
+  // remove the coordinates part from initial array
+  let coordinatesString = "";
+  if (coordinatesPart) coordinatesString = parts.pop();
+
+  // get the point from the coordinates part
+  return {
+    searchPart: parts.length > 0 ? parts.join('|') : coordinatesString,
+    coordinatesPart,
+  };
+}
+
 export {
   chunkArray,
   containsScriptTag,
@@ -156,4 +196,6 @@ export {
   resetCanonicalLink,
   removeJsonLD,
   createMarkup,
+  getPointFromCoordinates,
+  splitSuggestedSearch
 };
