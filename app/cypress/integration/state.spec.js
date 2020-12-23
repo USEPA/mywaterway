@@ -116,19 +116,19 @@ describe('State page Water Quality Overview sub tabs', () => {
     const noWaterTypes = 'No Available Water Types';
     const noUses = 'No Available Uses';
 
-    // verify a tab without data
-    cy.findByTestId('hmw-swimming-tab-button').click();
-    cy.findByTestId('hmw-swimming-tab-panel').contains(noWaterTypes);
-    cy.findByTestId('hmw-swimming-tab-panel').contains(noUses);
-
     // verify a tab with data
-    cy.findByTestId('hmw-fishing-tab-button').click();
-    cy.findByTestId('hmw-fishing-tab-panel')
+    cy.findByTestId('hmw-swimming-tab-button').click();
+    cy.findByTestId('hmw-swimming-tab-panel')
       .contains(noWaterTypes)
       .should('not.exist');
-    cy.findByTestId('hmw-fishing-tab-panel')
+    cy.findByTestId('hmw-swimming-tab-panel')
       .contains(noUses)
       .should('not.exist');
+
+    // verify a tab without data
+    cy.findByTestId('hmw-fishing-tab-button').click();
+    cy.findByTestId('hmw-fishing-tab-panel').contains(noWaterTypes);
+    cy.findByTestId('hmw-fishing-tab-panel').contains(noUses);
   });
 
   it('Navigating to a sub-tab selection shows correct charts', () => {
