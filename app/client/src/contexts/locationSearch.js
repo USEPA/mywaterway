@@ -460,7 +460,10 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       // reset the zoom and home widget to the initial extent
       if (useDefaultZoom && mapView) {
         mapView.extent = initialExtent;
-        homeWidget.viewpoint = mapView.viewpoint;
+
+        if (homeWidget) {
+          homeWidget.viewpoint = mapView.viewpoint;
+        }
       }
 
       // reset lines, points, and areas layers
