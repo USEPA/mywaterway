@@ -197,7 +197,7 @@ describe('State page Water Overview tab', () => {
     const text = 'Documents Related to Integrated Report';
 
     // verify text is not visible
-    cy.findByText(text).should('not.be.visible');
+    cy.findByText(text).should('not.exist');
 
     // open accordion and check text is visible
     cy.get('.hmw-accordion').contains(title).click();
@@ -205,7 +205,7 @@ describe('State page Water Overview tab', () => {
 
     // close accordion and verify text is not visible
     cy.get('.hmw-accordion').contains(title).click();
-    cy.findByText(text).should('not.be.visible');
+    cy.findByText(text).should('not.exist');
   });
 
   it(`Clicking "<state name> Water Stories" opens the water stories content.`, () => {
@@ -214,7 +214,7 @@ describe('State page Water Overview tab', () => {
       'Upgrading Boat Motors Reduces Hydrocarbon Pollution in Kenai River (PDF)';
 
     // verify text is not visible
-    cy.findByText(text).should('not.be.visible');
+    cy.findByText(text).should('not.exist');
 
     // open accordion and check text is visible
     cy.get('.hmw-accordion').contains(title).click();
@@ -222,6 +222,6 @@ describe('State page Water Overview tab', () => {
 
     // close accordion and verify text is not visible
     cy.get('.hmw-accordion').contains(title).click();
-    cy.findByText(text).should('not.be.visible');
+    cy.findByText(text).should('not.exist');
   });
 });
