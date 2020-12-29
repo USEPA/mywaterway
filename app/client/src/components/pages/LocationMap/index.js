@@ -1335,11 +1335,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             highlightOptions,
           }}
           layers={layers}
-          onFail={(error) => {
-            document.getElementById(
-              'errormessages',
-            ).textContent += `onFail event. error: ${error}`;
-          }}
           onLoad={(map, view) => {
             view.on('error', (error) => {
               document.getElementById(
@@ -1372,6 +1367,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           }}
           onFail={(err) => {
             console.error(err);
+            document.getElementById(
+              'errormessages',
+            ).textContent += `onFail event. error: ${error}`;
             setView(null);
             setMapView(null);
           }}
