@@ -30,7 +30,13 @@ import {
   useWaterbodyFeatures,
 } from 'utils/hooks';
 import { fetchCheck } from 'utils/fetchUtils';
-import { isHuc12, updateCanonicalLink, createJsonLD, getPointFromCoordinates, splitSuggestedSearch } from 'utils/utils';
+import {
+  isHuc12,
+  updateCanonicalLink,
+  createJsonLD,
+  getPointFromCoordinates,
+  splitSuggestedSearch,
+} from 'utils/utils';
 // styles
 import './mapStyles.css';
 // errors
@@ -807,15 +813,17 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       locator.outSpatialReference = SpatialReference.WebMercator;
 
       // Parse the search text to see if it is from a non-esri search suggestion
-      const {
-        searchPart,
-        coordinatesPart,
-      } = splitSuggestedSearch(Point, searchText);
+      const { searchPart, coordinatesPart } = splitSuggestedSearch(
+        Point,
+        searchText,
+      );
 
-      // Check if the search text contains coordinates. 
-      // First see if coordinates are part of a non-esri suggestion and 
+      // Check if the search text contains coordinates.
+      // First see if coordinates are part of a non-esri suggestion and
       // then see if the full text is coordinates
-      let point = coordinatesPart ? coordinatesPart : getPointFromCoordinates(Point, searchText);
+      let point = coordinatesPart
+        ? coordinatesPart
+        : getPointFromCoordinates(Point, searchText);
 
       let getCandidates;
       if (point === null) {
@@ -985,8 +993,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           const digits = 6;
           setAddress(
             parseFloat(coords[0]).toFixed(digits) +
-            ', ' +
-            parseFloat(coords[1]).toFixed(digits),
+              ', ' +
+              parseFloat(coords[1]).toFixed(digits),
           );
 
           // Note: that since the geocoder failed, the lat/long will be displayed
@@ -1320,6 +1328,24 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           }}
           layers={layers}
           onLoad={(map, view) => {
+            view.on('error', (error) => {
+              alert(`view error: ${error}`);
+            });
+
+            map.on('error', (error) => {
+              alert(`map error: ${error}`);
+            });
+
+            view.when(
+              function () {
+                // all resources in the view have loaded
+                alert('view successfully loaded');
+              },
+              function (error) {
+                // handle when the view doesn't load properly
+                alert('view when() error:', error);
+              },
+            );
             setView(view);
             setMapView(view);
           }}
@@ -1337,7 +1363,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             view={null}
             layers={layers}
             scrollToComponent="locationmap"
-            onHomeWidgetRendered={(homeWidget) => { }}
+            onHomeWidgetRendered={(homeWidget) => {}}
           />
 
           {/* manually passing map and view props to Map component's         */}
