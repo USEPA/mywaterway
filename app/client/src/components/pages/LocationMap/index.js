@@ -1369,7 +1369,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             console.error(err);
             document.getElementById(
               'errormessages',
-            ).textContent += `onFail event. error: ${error}`;
+            ).textContent += `onFail event. error: ${err}`;
             setView(null);
             setMapView(null);
           }}
