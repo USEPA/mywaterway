@@ -1306,6 +1306,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     <>
       {/* for wide screens, LocationMap's children is searchText */}
       <div ref={measuredRef}>{children}</div>
+      <div
+        style={{
+          backgroundColor: 'lightpink',
+          color: 'black',
+          padding: '10px',
+        }}
+        id="errormessages"
+      ></div>
 
       <Container
         data-content="locationmap"
@@ -1327,23 +1335,36 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             highlightOptions,
           }}
           layers={layers}
+          onFail={(error) => {
+            document.getElementById(
+              'errormessages',
+            ).textContent += `onFail event. error: ${error}`;
+          }}
           onLoad={(map, view) => {
             view.on('error', (error) => {
-              alert(`view error: ${error}`);
+              document.getElementById(
+                'errormessages',
+              ).textContent += `view error: ${error}`;
             });
 
             map.on('error', (error) => {
-              alert(`map error: ${error}`);
+              document.getElementById(
+                'errormessages',
+              ).textContent += `map error: ${error}`;
             });
 
             view.when(
               function () {
                 // all resources in the view have loaded
-                alert('view successfully loaded');
+                document.getElementById(
+                  'errormessages',
+                ).textContent += `view successfully loaded`;
               },
               function (error) {
                 // handle when the view doesn't load properly
-                alert('view when() error:', error);
+                document.getElementById(
+                  'errormessages',
+                ).textContent += `view when() error: ${error}`;
               },
             );
             setView(view);
