@@ -377,7 +377,11 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
         onFail={(err: Any) => {
           console.error(err);
           window.logToGa('send', 'exception', {
-            exDescription: `${window.location.pathname} map failed to load - ${err}`,
+            exDescription: `${
+              window.location.pathname.includes('waterbody-report')
+                ? 'Waterbody Report'
+                : 'Plan Summary'
+            } map failed to load - ${err}`,
             exFatal: false,
           });
           setMapLoadError(true);
