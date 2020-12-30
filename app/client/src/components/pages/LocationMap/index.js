@@ -1314,7 +1314,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     <>
       {/* for wide screens, LocationMap's children is searchText */}
       <div ref={measuredRef}>{children}</div>
-
+      <div
+        style={{
+          backgroundColor: 'lightpink',
+          color: 'black',
+          padding: '10px',
+        }}
+        id="errormessages"
+      ></div>
       <Container
         data-content="locationmap"
         data-testid="hmw-community-map"
@@ -1336,15 +1343,40 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           }}
           layers={layers}
           onLoad={(map, view) => {
-            // fix issue where map gets stuck on 'Loading...'
             view.on('error', (error) => {
-              console.log(error);
+              document.getElementById(
+                'errormessages',
+              ).textContent += `view error: ${error}`;
             });
+
+            map.on('error', (error) => {
+              document.getElementById(
+                'errormessages',
+              ).textContent += `map error: ${error}`;
+            });
+
+            view.when(
+              function () {
+                // all resources in the view have loaded
+                document.getElementById(
+                  'errormessages',
+                ).textContent += `view successfully loaded. `;
+              },
+              function (error) {
+                // handle when the view doesn't load properly
+                document.getElementById(
+                  'errormessages',
+                ).textContent += `view when() error: ${error}`;
+              },
+            );
             setView(view);
             setMapView(view);
           }}
           onFail={(err) => {
             console.error(err);
+            document.getElementById(
+              'errormessages',
+            ).textContent += `onFail event. error: ${err}`;
             window.logToGa('send', 'exception', {
               exDescription: `Community map failed to load - ${err}`,
               exFatal: false,
