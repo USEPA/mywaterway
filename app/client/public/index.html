@@ -121,12 +121,12 @@
       loc.hostname === 'localhost'
         ? `${loc.protocol}//${loc.hostname}:9091`
         : loc.origin;
-        
+
     // initialize the googleAnalyticsMapping window object so the calls to get
     // the services lookup file are logged.
     window.googleAnalyticsMapping = [
-      { 
-        wildcardUrl: `${origin}/proxy?url=${origin}/data/config/services.json`, 
+      {
+        wildcardUrl: `${origin}/proxy?url=${origin}/data/config/services.json`,
         name: 's3 lookup - config services'
       },
     ];
@@ -134,7 +134,7 @@
     //Only setup the logging for public sites, ie don't log from localhost
     window.gaTarget = '';
     if (
-      document.location.hostname.indexOf("epa.gov") > -1 || 
+      document.location.hostname.indexOf("epa.gov") > -1 ||
       document.location.hostname === 'mywaterway-prod.app.cloud.gov'
     ) {
       //EPA (Production) - Just initialize the HMW logs by setting gaTarget
@@ -233,6 +233,20 @@
         return true;
       });
     }
+
+    // TODO: {remove this} code for debugging iPad issues
+    const displayError = function (message, url, linenumber) {
+      var errorbox = document.createElement("div");
+      errorbox.className = 'display-error';
+      errorbox.innerHTML = `<strong>Error:</strong> ${message}<br><strong>Line number:</strong> ${linenumber}<br><strong>Error source:</strong> ${url}`
+      document.getElementById('error-message-container').appendChild(errorbox);
+      return false;
+    }
+
+    window.onerror = function (message, url, linenumber) {
+      console.log(message)
+      return displayError(message, url, linenumber);
+    }
   </script>
   <!-- End Google Analytics-->
 </head>
@@ -242,6 +256,58 @@
   <noscript><iframe title="google tag manager" src="//www.googletagmanager.com/ns.html?id=GTM-L8ZB" height="0" width="0"
       style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager -->
+
+  <!-- TODO: {remove this} code for testing ipad issues -->
+  <style>
+    .error-message-container {
+      padding: 5px;
+      position: fixed;
+      top: 0;
+      right: 0;
+      min-height: 50px;
+      max-height: 600px;
+      background-color: #535353;
+      overflow: auto;
+      z-index: 99999;
+      width: 450px;
+    }
+
+    .display-error {
+      font-size: 11px;
+      margin: 0;
+      padding: 0;
+      margin-bottom: 10px;
+      background-color: #f8d7da;
+      color: #721c24;
+      padding: 5px;
+    }
+
+    .error-log-title {
+      color: white;
+      padding-bottom: 5px;
+    }
+
+    .sample-button {
+      position: fixed;
+      top: 0;
+      right: 0;
+      z-index: 999999999999;
+    }
+
+    .clear-button {
+      position: fixed;
+      top: 0;
+      right: 125px;
+      z-index: 999999999999;
+    }
+  </style>
+  <div id="error-message-container" class="error-message-container">
+    <div class="error-log-title">Global Error Log</div>
+  </div>
+  <button class="sample-button" onclick="throw('test error event')">Sample Error</button>
+  <button class="clear-button"
+    onclick="document.getElementById('error-message-container').innerHTML='<div class=\'error-log-title\'>Global Error Log</div>'">Clear
+    Logs</button>
 
   <div class="skip-links">
     <a href="#main-content" class="skip-link element-invisible element-focusable">Jump to main content</a>

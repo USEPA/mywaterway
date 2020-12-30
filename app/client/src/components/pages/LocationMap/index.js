@@ -1309,13 +1309,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setMapLoading(false);
   }, [waterbodyLayer, cipSummary, waterbodyFeatures]);
 
-  window.addEventListener('error', function (event) {
-    console.log(event);
-    document.getElementById(
-      'errormessages',
-    ).textContent += `${event.error.message}\n`;
-  });
-
   // jsx
   const mapContent = (
     <>
@@ -1380,17 +1373,17 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             setMapView(view);
           }}
           onFail={(err) => {
+            setCommunityMapLoadError(true);
             console.error(err);
             document.getElementById(
               'errormessages',
             ).textContent += `onFail event. error: ${err}`;
+            setView(null);
+            setMapView(null);
             window.logToGa('send', 'exception', {
               exDescription: `Community map failed to load - ${err}`,
               exFatal: false,
             });
-            setCommunityMapLoadError(true);
-            setView(null);
-            setMapView(null);
           }}
         >
           {/* manually passing map and view props to Map component's         */}
