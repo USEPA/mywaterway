@@ -1337,7 +1337,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           layers={layers}
           onLoad={(map, view) => {
             // fix issue where map gets stuck on 'Loading...'
-            map.on('error', (error) => {
+            view.on('error', (error) => {
               console.log(error);
             });
             setView(view);
