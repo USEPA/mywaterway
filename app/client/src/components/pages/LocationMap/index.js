@@ -1309,6 +1309,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setMapLoading(false);
   }, [waterbodyLayer, cipSummary, waterbodyFeatures]);
 
+  window.addEventListener('error', function (event) {
+    console.log(event);
+    document.getElementById(
+      'errormessages',
+    ).textContent += `${event.error.message}\n`;
+  });
+
   // jsx
   const mapContent = (
     <>
