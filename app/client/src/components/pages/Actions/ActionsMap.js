@@ -25,7 +25,11 @@ import {
   getPopupContent,
 } from 'components/pages/LocationMap/MapFunctions';
 // errors
-import { actionMapError, actionMapNoData } from 'config/errorMessages';
+import {
+  actionMapError,
+  actionMapNoData,
+  esriMapLoadingFailure,
+} from 'config/errorMessages';
 
 // --- styled components ---
 const Container = styled.div`
@@ -56,6 +60,9 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
   } = React.useContext(LocationSearchContext);
 
   const [layers, setLayers] = React.useState(null);
+
+  // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
+  const [mapLoadError, setMapLoadError] = React.useState(false);
 
   const services = useServicesContext();
   const getSharedLayers = useSharedLayers();
@@ -337,6 +344,10 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
     setMapLoading(false);
   }, [fetchStatus, mapView, actionsLayer, esriModules, homeWidget]);
 
+  if (mapLoadError) {
+    return <StyledErrorBox>{esriMapLoadingFailure}</StyledErrorBox>;
+  }
+
   if (fetchStatus === 'failure') {
     return (
       <StyledErrorBox>
@@ -363,7 +374,14 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
         onLoad={(map: Any, view: Any) => {
           setMapView(view);
         }}
-        onFail={(err: Any) => console.error(err)}
+        onFail={(err: Any) => {
+          console.error(err);
+          window.logToGa('send', 'exception', {
+            exDescription: `${window.location.pathname} map failed to load - ${err}`,
+            exFatal: false,
+          });
+          setMapLoadError(true);
+        }}
       >
         {/* manually passing map and view props to Map component's     */}
         {/* children to satisfy flow, but map and view props are auto  */}

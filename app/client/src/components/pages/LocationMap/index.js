@@ -17,6 +17,8 @@ import {
   getPopupTitle,
 } from 'components/pages/LocationMap/MapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
+// styled components
+import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // contexts
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -44,6 +46,7 @@ import {
   geocodeError,
   noDataAvailableError,
   watersgeoError,
+  esriMapLoadingFailure,
 } from 'config/errorMessages';
 
 // turns an array into a string for the service queries
@@ -146,6 +149,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   } = React.useContext(LocationSearchContext);
 
   const [view, setView] = React.useState(null);
+
+  // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
+  const [mapLoadError, setMapLoadError] = React.useState(false);
 
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
@@ -1306,14 +1312,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     <>
       {/* for wide screens, LocationMap's children is searchText */}
       <div ref={measuredRef}>{children}</div>
-      <div
-        style={{
-          backgroundColor: 'lightpink',
-          color: 'black',
-          padding: '10px',
-        }}
-        id="errormessages"
-      ></div>
 
       <Container
         data-content="locationmap"
@@ -1336,40 +1334,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           }}
           layers={layers}
           onLoad={(map, view) => {
-            view.on('error', (error) => {
-              document.getElementById(
-                'errormessages',
-              ).textContent += `view error: ${error}`;
-            });
-
-            map.on('error', (error) => {
-              document.getElementById(
-                'errormessages',
-              ).textContent += `map error: ${error}`;
-            });
-
-            view.when(
-              function () {
-                // all resources in the view have loaded
-                document.getElementById(
-                  'errormessages',
-                ).textContent += `view successfully loaded`;
-              },
-              function (error) {
-                // handle when the view doesn't load properly
-                document.getElementById(
-                  'errormessages',
-                ).textContent += `view when() error: ${error}`;
-              },
-            );
             setView(view);
             setMapView(view);
           }}
           onFail={(err) => {
             console.error(err);
-            document.getElementById(
-              'errormessages',
-            ).textContent += `onFail event. error: ${err}`;
+            window.logToGa('send', 'exception', {
+              exDescription: `Community map failed to load - ${err}`,
+              exFatal: false,
+            });
+            setMapLoadError(true);
             setView(null);
             setMapView(null);
           }}
@@ -1394,6 +1368,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       </Container>
     </>
   );
+
+  if (mapLoadError) {
+    return <StyledErrorBox>{esriMapLoadingFailure}</StyledErrorBox>;
+  }
 
   if (layout === 'wide') {
     return (

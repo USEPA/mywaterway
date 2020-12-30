@@ -183,3 +183,7 @@ export const defaultErrorBoundaryMessage = (
     Something went wrong. Return to the <a href="/">homepage</a>.
   </p>
 );
+
+// message displayed when the Esri map fails to load due to incompatible browsers and devices
+export const esriMapLoadingFailure = `The How's My Waterway Map is currently unavailable. Your web browser is
+incompatible or outdated.`;
