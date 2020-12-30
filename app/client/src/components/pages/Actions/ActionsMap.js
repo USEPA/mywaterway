@@ -62,7 +62,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
   const [layers, setLayers] = React.useState(null);
 
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
-  const [mapLoadError, setMapLoadError] = React.useState(false);
+  const [actionsMapLoadError, setActionsMapLoadError] = React.useState(false);
 
   const services = useServicesContext();
   const getSharedLayers = useSharedLayers();
@@ -344,7 +344,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
     setMapLoading(false);
   }, [fetchStatus, mapView, actionsLayer, esriModules, homeWidget]);
 
-  if (mapLoadError) {
+  if (actionsMapLoadError) {
     return <StyledErrorBox>{esriMapLoadingFailure}</StyledErrorBox>;
   }
 
@@ -384,7 +384,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
             } map failed to load - ${err}`,
             exFatal: false,
           });
-          setMapLoadError(true);
+          setActionsMapLoadError(true);
         }}
       >
         {/* manually passing map and view props to Map component's     */}

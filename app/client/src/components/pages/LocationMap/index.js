@@ -151,7 +151,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const [view, setView] = React.useState(null);
 
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
-  const [mapLoadError, setMapLoadError] = React.useState(false);
+  const [communityMapLoadError, setCommunityMapLoadError] = React.useState(
+    false,
+  );
 
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
@@ -1343,7 +1345,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               exDescription: `Community map failed to load - ${err}`,
               exFatal: false,
             });
-            setMapLoadError(true);
+            setCommunityMapLoadError(true);
             setView(null);
             setMapView(null);
           }}
@@ -1369,7 +1371,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     </>
   );
 
-  if (mapLoadError) {
+  if (communityMapLoadError) {
     return <StyledErrorBox>{esriMapLoadingFailure}</StyledErrorBox>;
   }
 

@@ -93,7 +93,7 @@ function StateMap({
   const [layers, setLayers] = React.useState(null);
 
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
-  const [mapLoadError, setMapLoadError] = React.useState(false);
+  const [stateMapLoadError, setStateMapLoadError] = React.useState(false);
 
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight(false);
@@ -400,7 +400,7 @@ function StateMap({
               exDescription: `State map failed to load - ${err}`,
               exFatal: false,
             });
-            setMapLoadError(true);
+            setStateMapLoadError(true);
             setView(null);
             setMapView(null);
           }}
@@ -429,7 +429,7 @@ function StateMap({
     </div>
   );
 
-  if (mapLoadError) {
+  if (stateMapLoadError) {
     return <StyledErrorBox>{esriMapLoadingFailure}</StyledErrorBox>;
   }
 
