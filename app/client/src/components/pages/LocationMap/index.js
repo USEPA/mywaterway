@@ -1351,6 +1351,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           }}
           onFail={(err) => {
             console.error(err);
+            setCommunityMapLoadError(true);
             setView(null);
             setMapView(null);
             window.logToGa('send', 'exception', {

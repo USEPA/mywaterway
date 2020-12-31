@@ -186,6 +186,10 @@ function splitSuggestedSearch(Point, text) {
 // older browsers lack support for performance.mark() which is used by arcgis 4.x
 // returns true if browser supports this feature
 function browserIsCompatibleWithArcGIS() {
+  if (!window) return false;
+  if (!window.hasOwnProperty('performance')) return false;
+  if (!window.performance) return false;
+  if (!window.performance.mark) return false;
   if (!performance) return false;
   if (!performance.mark) return false;
   if (typeof performance.mark === 'function') return true;
