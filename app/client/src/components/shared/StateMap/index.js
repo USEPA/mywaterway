@@ -406,10 +406,9 @@ function StateMap({
           }}
           onFail={(err) => {
             console.error(err);
-            setStateMapLoadError(true);
             setView(null);
+            setStateMapLoadError(true);
             setMapView(null);
-            // log event to GA
             window.logToGa('send', 'exception', {
               exDescription: `State map failed to load - ${err}`,
               exFatal: false,
