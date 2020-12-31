@@ -20,6 +20,7 @@ import { useServicesContext } from 'contexts/LookupFiles';
 import { esriApiUrl } from 'config/esriConfig';
 // helpers
 import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
+import { browserIsCompatibleWithArcGIS } from 'utils/utils';
 import {
   getPopupTitle,
   getPopupContent,
@@ -344,6 +345,17 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
     setMapLoading(false);
   }, [fetchStatus, mapView, actionsLayer, esriModules, homeWidget]);
 
+  // check for browser compatibility with map
+  if (!browserIsCompatibleWithArcGIS() && !actionsMapLoadError) {
+    setActionsMapLoadError(true);
+    window.logToGa('send', 'exception', {
+      exDescription: `${
+        window.location.pathname.split('/')[1]
+      } map failed to load - browser does not support performance.mark()`,
+      exFatal: false,
+    });
+  }
+
   if (actionsMapLoadError) {
     return <StyledErrorBox>{esriMapLoadingFailure}</StyledErrorBox>;
   }
@@ -376,15 +388,13 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
         }}
         onFail={(err: Any) => {
           console.error(err);
+          setActionsMapLoadError(true);
           window.logToGa('send', 'exception', {
             exDescription: `${
-              window.location.pathname.includes('waterbody-report')
-                ? 'Waterbody Report'
-                : 'Plan Summary'
+              window.location.pathname.split('/')[1]
             } map failed to load - ${err}`,
             exFatal: false,
           });
-          setActionsMapLoadError(true);
         }}
       >
         {/* manually passing map and view props to Map component's     */}

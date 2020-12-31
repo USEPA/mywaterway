@@ -27,6 +27,7 @@ import { useServicesContext } from 'contexts/LookupFiles';
 import { esriApiUrl } from 'config/esriConfig';
 // helpers
 import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
+import { browserIsCompatibleWithArcGIS } from 'utils/utils';
 // styles
 import 'components/pages/LocationMap/mapStyles.css';
 // errors
@@ -349,6 +350,15 @@ function StateMap({
   const mapInputs = document.querySelector(`[data-content="stateinputs"]`);
   const mapInputsHeight = mapInputs && mapInputs.getBoundingClientRect().height;
 
+  // check for browser compatibility with map
+  if (!browserIsCompatibleWithArcGIS() && !stateMapLoadError) {
+    setStateMapLoadError(true);
+    window.logToGa('send', 'exception', {
+      exDescription: `State map failed to load - browser does not support performance.mark()`,
+      exFatal: false,
+    });
+  }
+
   // jsx
   const mapContent = (
     <div
@@ -396,13 +406,13 @@ function StateMap({
           }}
           onFail={(err) => {
             console.error(err);
+            setStateMapLoadError(true);
+            setView(null);
+            setMapView(null);
             window.logToGa('send', 'exception', {
               exDescription: `State map failed to load - ${err}`,
               exFatal: false,
             });
-            setStateMapLoadError(true);
-            setView(null);
-            setMapView(null);
           }}
         >
           {/* manually passing map and view props to Map component's         */}
