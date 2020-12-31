@@ -38,6 +38,7 @@ import {
   createJsonLD,
   getPointFromCoordinates,
   splitSuggestedSearch,
+  browserIsCompatibleWithArcGIS,
 } from 'utils/utils';
 // styles
 import './mapStyles.css';
@@ -1309,19 +1310,21 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setMapLoading(false);
   }, [waterbodyLayer, cipSummary, waterbodyFeatures]);
 
+  // check for browser compatibility with map
+  if (!browserIsCompatibleWithArcGIS() && !communityMapLoadError) {
+    setCommunityMapLoadError(true);
+    window.logToGa('send', 'exception', {
+      exDescription: `Community map failed to load - browser does not support performance.mark()`,
+      exFatal: false,
+    });
+  }
+
   // jsx
   const mapContent = (
     <>
       {/* for wide screens, LocationMap's children is searchText */}
       <div ref={measuredRef}>{children}</div>
-      <div
-        style={{
-          backgroundColor: 'lightpink',
-          color: 'black',
-          padding: '10px',
-        }}
-        id="errormessages"
-      ></div>
+
       <Container
         data-content="locationmap"
         data-testid="hmw-community-map"
@@ -1343,41 +1346,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           }}
           layers={layers}
           onLoad={(map, view) => {
-            view.on('error', (error) => {
-              document.getElementById(
-                'errormessages',
-              ).textContent += `view error: ${error}`;
-            });
-
-            map.on('error', (error) => {
-              document.getElementById(
-                'errormessages',
-              ).textContent += `map error: ${error}`;
-            });
-
-            view.when(
-              function () {
-                // all resources in the view have loaded
-                document.getElementById(
-                  'errormessages',
-                ).textContent += `view successfully loaded. `;
-              },
-              function (error) {
-                // handle when the view doesn't load properly
-                document.getElementById(
-                  'errormessages',
-                ).textContent += `view when() error: ${error}`;
-              },
-            );
             setView(view);
             setMapView(view);
           }}
           onFail={(err) => {
-            setCommunityMapLoadError(true);
             console.error(err);
-            document.getElementById(
-              'errormessages',
-            ).textContent += `onFail event. error: ${err}`;
             setView(null);
             setMapView(null);
             window.logToGa('send', 'exception', {

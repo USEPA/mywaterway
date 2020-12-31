@@ -162,7 +162,7 @@ function getPointFromCoordinates(Point, text) {
 }
 
 // Determines if the input text is a string that contains coordinates.
-// The return value is an object containing the esri point for the coordinates (coordinatesPart) 
+// The return value is an object containing the esri point for the coordinates (coordinatesPart)
 // and any remaining text (searchPart).
 function splitSuggestedSearch(Point, text) {
   // split search
@@ -173,7 +173,7 @@ function splitSuggestedSearch(Point, text) {
   const coordinatesPart = getPointFromCoordinates(Point, tempCoords);
 
   // remove the coordinates part from initial array
-  let coordinatesString = "";
+  let coordinatesString = '';
   if (coordinatesPart) coordinatesString = parts.pop();
 
   // get the point from the coordinates part
@@ -181,6 +181,14 @@ function splitSuggestedSearch(Point, text) {
     searchPart: parts.length > 0 ? parts.join('|') : coordinatesString,
     coordinatesPart,
   };
+}
+
+// older browsers lack support for performance.mark() which is used by arcgis 4.x
+// returns true if browser supports this feature
+function browserIsCompatibleWithArcGIS() {
+  if (performance && typeof performance.mark === 'function') return true;
+
+  return false; // browser is incompatible with current arcgis version
 }
 
 export {
@@ -197,5 +205,6 @@ export {
   removeJsonLD,
   createMarkup,
   getPointFromCoordinates,
-  splitSuggestedSearch
+  splitSuggestedSearch,
+  browserIsCompatibleWithArcGIS,
 };
