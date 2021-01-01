@@ -185,9 +185,20 @@ function splitSuggestedSearch(Point, text) {
 
 // older browsers lack support for performance.mark() which is used by arcgis 4.x
 // returns true if browser supports this feature
+
 function browserIsCompatibleWithArcGIS() {
-  if (typeof performance === 'undefined') return false;
-  if (typeof performance.mark === 'undefined') return false;
+  const performance =
+    window.performance ||
+    window.webkitPerformance ||
+    window.msPerformance ||
+    window.mozPerformance;
+
+  if (performance === undefined) {
+    console.log(
+      'Unfortunately, your browser does not support the Navigation Timing API',
+    );
+    return false;
+  }
 
   // performance.mark() is supported
   return true;
