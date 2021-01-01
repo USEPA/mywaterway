@@ -38,7 +38,6 @@ import {
   createJsonLD,
   getPointFromCoordinates,
   splitSuggestedSearch,
-  browserIsCompatibleWithArcGIS,
 } from 'utils/utils';
 // styles
 import './mapStyles.css';
