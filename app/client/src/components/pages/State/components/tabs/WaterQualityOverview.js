@@ -3,9 +3,9 @@
 import React from 'react';
 import styled from 'styled-components';
 import Select from 'react-select';
-import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
+import { Tabs, TabList, Tab, TabPanels } from '@reach/tabs';
 // components
-import { ContentTabs } from 'components/shared/ContentTabs';
+import { ContentTabs, StyledTabPanel } from 'components/shared/ContentTabs';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import DrinkingWaterIcon from 'components/shared/Icons/DrinkingWaterIcon';
@@ -938,7 +938,10 @@ function WaterQualityOverview({ ...props }: Props) {
 
           <TabPanels>
             {tabs.map((tab) => (
-              <TabPanel key={tab.id} data-testid={`hmw-${tab.id}-tab-panel`}>
+              <StyledTabPanel
+                key={tab.id}
+                data-testid={`hmw-${tab.id}-tab-panel`}
+              >
                 <FiltersSection>
                   <h4>Pick your Water Type and Use:</h4>
 
@@ -1000,22 +1003,24 @@ function WaterQualityOverview({ ...props }: Props) {
                 </FiltersSection>
 
                 <Section>
-                  {surveyServiceError || !stateAndOrganization || !surveyData ? (
+                  {surveyServiceError ||
+                  !stateAndOrganization ||
+                  !surveyData ? (
                     <StyledErrorBox>
                       <p>{stateSurveySectionError}</p>
                     </StyledErrorBox>
                   ) : (
-                      <SurveyResults
-                        loading={surveyLoading}
-                        organizationId={stateAndOrganization.organizationId}
-                        activeState={activeState}
-                        subPopulationCodes={subPopulationCodes}
-                        surveyData={surveyData}
-                        topicUses={topicUses}
-                        useSelected={useSelected}
-                        waterType={waterType}
-                      />
-                    )}
+                    <SurveyResults
+                      loading={surveyLoading}
+                      organizationId={stateAndOrganization.organizationId}
+                      activeState={activeState}
+                      subPopulationCodes={subPopulationCodes}
+                      surveyData={surveyData}
+                      topicUses={topicUses}
+                      useSelected={useSelected}
+                      waterType={waterType}
+                    />
+                  )}
                 </Section>
 
                 <SiteSpecific
@@ -1054,7 +1059,7 @@ function WaterQualityOverview({ ...props }: Props) {
                     (opens new browser tab)
                   </DrinkingWaterText>
                 </DrinkingWaterSection>
-              </TabPanel>
+              </StyledTabPanel>
             ))}
           </TabPanels>
         </Tabs>
@@ -1124,30 +1129,30 @@ function WaterQualityOverview({ ...props }: Props) {
                     No additional information available for this state.
                   </NoDataMessage>
                 ) : (
-                    <LinkList>
-                      {introText.data.organizationURLs.map((item, index) => {
-                        return (
-                          <li key={index}>
-                            <a
-                              href={item.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              {item.label ? item.label : item.url}
-                            </a>
-                            <a
-                              className="exit-disclaimer"
-                              href="https://www.epa.gov/home/exit-epa"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              EXIT
+                  <LinkList>
+                    {introText.data.organizationURLs.map((item, index) => {
+                      return (
+                        <li key={index}>
+                          <a
+                            href={item.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {item.label ? item.label : item.url}
                           </a>
-                          </li>
-                        );
-                      })}
-                    </LinkList>
-                  )}
+                          <a
+                            className="exit-disclaimer"
+                            href="https://www.epa.gov/home/exit-epa"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            EXIT
+                          </a>
+                        </li>
+                      );
+                    })}
+                  </LinkList>
+                )}
               </>
             )}
           </AccordionContent>

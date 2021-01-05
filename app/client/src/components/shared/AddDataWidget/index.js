@@ -27,6 +27,16 @@ const Container = styled.div`
   [data-reach-tab-panel] {
     height: calc(100% - 40px);
     padding: 0 !important;
+
+    h3 {
+      margin: 0 5px;
+      padding: 0;
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      line-height: 1.3;
+    }
   }
 `;
 
@@ -41,6 +51,7 @@ function AddDataWidget() {
   return (
     <React.Fragment>
       <div
+        className="drag-handle"
         style={{
           width: '100%',
           height: '35px',

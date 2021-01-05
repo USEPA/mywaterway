@@ -46,15 +46,6 @@ const Container = styled.div`
     padding-right: 0.2em !important;
   }
 
-  [data-reach-tab-panel] {
-    padding: 1.5em !important;
-
-    p,
-    li {
-      line-height: 1.375;
-    }
-  }
-
   .Select__single-value {
     line-height: 1.25;
   }
