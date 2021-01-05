@@ -2,10 +2,13 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { Rnd } from 'react-rnd';
 // components
+import AddDataWidget from 'components/shared/AddDataWidget';
 import MapLegend from 'components/shared/MapLegend';
 // contexts
 import { EsriModulesContext } from 'contexts/EsriModules';
+import { AddDataWidgetContext } from 'contexts/AddDataWidget';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { FullscreenContext } from 'contexts/Fullscreen';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -168,6 +171,12 @@ function MapWidgets({
   } = React.useContext(EsriModulesContext);
 
   const {
+    addDataWidgetVisible,
+    getAddDataWidgetVisible,
+    setAddDataWidgetVisible,
+  } = React.useContext(AddDataWidgetContext);
+
+  const {
     homeWidget,
     setHomeWidget,
     upstreamWidget,
@@ -296,6 +305,71 @@ function MapWidgets({
     view.ui.add(newLegend, { position: 'bottom-left', index: 0 });
     setLegend(newLegend);
   }, [Expand, view, legend, legendNode]);
+
+  // Creates and adds the legend widget to the map
+  const [addDataWidget, setAddDataWidget] = React.useState(null);
+  React.useEffect(() => {
+    if (!view?.ui || addDataWidget) return;
+
+    const node = document.createElement('div');
+    view.ui.add(node, { position: 'top-right', index: 2 });
+
+    ReactDOM.render(
+      <ShowAddDataWidget
+        addDataWidgetVisible={addDataWidgetVisible}
+        getAddDataWidgetVisible={getAddDataWidgetVisible}
+        setAddDataWidgetVisible={setAddDataWidgetVisible}
+      />,
+      node,
+    );
+
+    // let width = window.innerWidth;
+    // function handleResize() {
+    //   const difference = width - window.innerWidth;
+    //   if (width <= 0) return;
+
+    //   width = width - difference;
+
+    //   const item = document.getElementById('add-data-widget');
+    //   const newPosition = item.getBoundingClientRect().left - item.parentElement.getBoundingClientRect().left - difference;
+    //   this.Rnd.updatePosition({ x: newPosition, y: 0 });
+    // }
+
+    // window.addEventListener('resize', handleResize);
+
+    setAddDataWidget(node);
+  }, [
+    view,
+    addDataWidget,
+    addDataWidgetVisible,
+    getAddDataWidgetVisible,
+    setAddDataWidgetVisible,
+  ]);
+
+  function ShowAddDataWidget({
+    getAddDataWidgetVisible,
+    setAddDataWidgetVisible,
+  }) {
+    const [hover, setHover] = React.useState(false);
+
+    return (
+      <div
+        className="add-data-widget"
+        title={`${getAddDataWidgetVisible() ? 'Hide' : 'Show'} Add Data Widget`}
+        style={hover ? divHoverStyle : divStyle}
+        onMouseOver={() => setHover(true)}
+        onMouseOut={() => setHover(false)}
+        onClick={(ev) => {
+          setAddDataWidgetVisible(!getAddDataWidgetVisible());
+        }}
+      >
+        <span
+          className="esri-icon-add-attachment"
+          style={hover ? buttonHoverStyle : buttonStyle}
+        />
+      </div>
+    );
+  }
 
   // Creates and adds the basemap/layer list widget to the map
   const [layerListWidget, setLayerListWidget] = React.useState(null);
@@ -828,7 +902,44 @@ function MapWidgets({
     ],
   );
 
-  return null;
+  if (!addDataWidget) return null;
+
+  const mapWidth = document
+    .getElementById('base-container')
+    .getBoundingClientRect().width;
+
+  return (
+    <div
+      style={{
+        display: addDataWidgetVisible ? 'block' : 'none',
+        position: 'absolute',
+        top: '0',
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+      }}
+    >
+      <Rnd
+        id="add-data-widget"
+        style={{ backgroundColor: 'white', pointerEvents: 'all' }}
+        default={{
+          x: (mapWidth - 400 - 15) / 2,
+          y: 70,
+          width: '400px',
+          height: '410px',
+        }}
+        minWidth="200px"
+        minHeight="410px"
+        bounds="parent"
+        enableResizing={{
+          bottomRight: true,
+        }}
+        dragHandleClassName="drag-handle"
+      >
+        <AddDataWidget />
+      </Rnd>
+    </div>
+  );
 }
 
 const buttonStyle = {

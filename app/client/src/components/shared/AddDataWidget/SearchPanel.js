@@ -1,0 +1,861 @@
+// @flow
+
+import React from 'react';
+import styled from 'styled-components';
+// components
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+// contexts
+import { EsriModulesContext } from 'contexts/EsriModules';
+import { LocationSearchContext } from 'contexts/locationSearch';
+import { AddDataWidgetContext } from 'contexts/AddDataWidget';
+// config
+import { webServiceErrorMessage } from 'config/errorMessages';
+
+// --- styles (SearchPanel) ---
+const SearchContainer = styled.form`
+  border: 1px solid #ccc;
+  border-radius: 4px;
+`;
+
+const SearchInput = styled.input`
+  margin: 0;
+  padding-left: 8px;
+  border: none;
+  border-radius: 4px;
+  height: 36px;
+
+  /* width = 100% - width of search button  */
+  width: calc(100% - 37px);
+`;
+
+const SearchSeparator = styled.span`
+  align-self: stretch;
+  background-color: #ccc;
+  margin-bottom: 8px;
+  margin-top: 8px;
+  padding-right: 1px;
+  box-sizing: border-box;
+`;
+
+const SearchButton = styled.button`
+  margin: 0;
+  height: 36px;
+  width: 36px;
+  padding: 10px;
+  background-color: white;
+  color: #ccc;
+  border: none;
+  border-radius: 4px;
+`;
+
+const ButtonHiddenText = styled.span`
+  font: 0/0 a, sans-serif;
+  text-indent: -999em;
+`;
+
+const FilterContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 1em;
+`;
+
+const WithinMapLabel = styled.label`
+  margin: 0;
+`;
+
+const TypeSelect = styled.div`
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  z-index: 2;
+
+  ul {
+    padding: 0.5em;
+    list-style-type: none;
+  }
+`;
+
+const SortOrder = styled.button`
+  color: black;
+  width: 10px;
+  background-color: white;
+  padding: 0;
+  margin: 0 5px;
+
+  &:disabled {
+    cursor: default;
+  }
+`;
+
+const FooterBar = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const PageControl = styled.button`
+  color: black;
+  background-color: white;
+  padding: 0;
+  margin: 0 5px;
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+`;
+
+const Total = styled.span`
+  margin-left: 10px;
+`;
+
+const ExitDisclaimer = styled.span`
+  margin: 0;
+  padding: 0.75em 0.5em;
+  text-align: center;
+
+  a {
+    margin: 0 0 0 0.3333333333em;
+  }
+`;
+
+// --- components (SearchPanel) ---
+function SearchPanel() {
+  const { mapView } = React.useContext(LocationSearchContext);
+  const { Portal, watchUtils } = React.useContext(EsriModulesContext);
+
+  // filters
+  const [
+    location,
+    setLocation, //
+  ] = React.useState({
+    value: 'ArcGIS Online',
+    label: 'ArcGIS Online',
+  });
+  const [search, setSearch] = React.useState('');
+  const [searchText, setSearchText] = React.useState('');
+  const [withinMap, setWithinMap] = React.useState(false);
+  const [mapService, setMapService] = React.useState(false);
+  const [featureService, setFeatureService] = React.useState(false);
+  const [imageService, setImageService] = React.useState(false);
+  const [vectorTileService, setVectorTileService] = React.useState(false);
+  const [kml, setKml] = React.useState(false);
+  const [wms, setWms] = React.useState(false);
+
+  const [
+    searchResults,
+    setSearchResults, //
+  ] = React.useState({ status: 'none', data: null });
+  const [currentExtent, setCurrentExtent] = React.useState(null);
+  const [pageNumber, setPageNumber] = React.useState(1);
+  const [sortBy, setSortBy] = React.useState({
+    value: 'none',
+    label: 'Relevance',
+    defaultSort: 'desc',
+  });
+  const [sortOrder, setSortOrder] = React.useState('desc');
+
+  // Builds and executes the search query on search button click
+  React.useEffect(() => {
+    setSearchResults({ status: 'fetching', data: null });
+
+    const tmpPortal = new Portal();
+
+    function appendToQuery(
+      query: string,
+      part: string,
+      separator: string = 'AND',
+    ) {
+      // nothing to append
+      if (part.length === 0) return query;
+
+      // append the query part
+      if (query.length > 0) return `${query} ${separator} (${part})`;
+      else return `(${part})`;
+    }
+
+    let query = '';
+    // search box
+    if (search) {
+      query = appendToQuery(query, search);
+    }
+
+    // type selection
+    let typePart = '';
+    const defaultTypePart =
+      'type:"Map Service" OR type:"Feature Service" OR type:"Image Service" ' +
+      'OR type:"Vector Tile Service" OR type:"KML" OR type:"WMS"';
+    if (mapService) {
+      typePart = appendToQuery(typePart, 'type:"Map Service"', 'OR');
+    }
+    if (featureService) {
+      typePart = appendToQuery(typePart, 'type:"Feature Service"', 'OR');
+    }
+    if (imageService) {
+      typePart = appendToQuery(typePart, 'type:"Image Service"', 'OR');
+    }
+    if (vectorTileService) {
+      typePart = appendToQuery(typePart, 'type:"Vector Tile Service"', 'OR');
+    }
+    if (kml) {
+      typePart = appendToQuery(typePart, 'type:"KML"', 'OR');
+    }
+    if (wms) {
+      typePart = appendToQuery(typePart, 'type:"WMS"', 'OR');
+    }
+
+    // add the type selection to the query, use all types if all types are set to false
+    if (typePart.length > 0) query = appendToQuery(query, typePart);
+    else query = appendToQuery(query, defaultTypePart);
+
+    // build the query parameters
+    let queryParams = {
+      query,
+      sortOrder,
+    };
+
+    if (withinMap && currentExtent) queryParams.extent = currentExtent;
+
+    // if a sort by (other than relevance) is selected, add it to the query params
+    if (sortBy.value !== 'none') {
+      queryParams.sortField = sortBy.value;
+    } else {
+      if (!withinMap) {
+        queryParams.sortField = 'num-views';
+      }
+    }
+
+    // perform the query
+    tmpPortal
+      .queryItems(queryParams)
+      .then((res) => {
+        if (res.total > 0) {
+          setSearchResults({ status: 'success', data: res });
+          setPageNumber(1);
+        } else {
+          setSearchResults({ status: 'success', data: null });
+          setPageNumber(1);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setSearchResults({ status: 'failure', data: null });
+      });
+  }, [
+    currentExtent,
+    Portal,
+    location,
+    search,
+    setSearchResults,
+    withinMap,
+    mapService,
+    featureService,
+    imageService,
+    vectorTileService,
+    kml,
+    wms,
+    sortBy,
+    sortOrder,
+  ]);
+
+  // Runs the query for changing pages of the result set
+  const [lastPageNumber, setLastPageNumber] = React.useState(1);
+  React.useEffect(() => {
+    if (!searchResults.data || pageNumber === lastPageNumber) return;
+
+    // prevent running the same query multiple times
+    setLastPageNumber(pageNumber);
+
+    // get the query
+    let queryParams = searchResults.data.queryParams;
+    if (pageNumber === 1) {
+      // going to first page
+      queryParams.start = 1;
+    }
+    if (pageNumber > lastPageNumber) {
+      // going to next page
+      queryParams = searchResults.data.nextQueryParams;
+    }
+    if (pageNumber < lastPageNumber) {
+      // going to previous page
+      queryParams.start = queryParams.start - queryParams.num;
+    }
+
+    // perform the query
+    const tmpPortal = new Portal();
+    tmpPortal
+      .queryItems(queryParams)
+      .then((res) => {
+        setSearchResults({ status: 'success', data: res });
+      })
+      .catch((err) => {
+        console.error(err);
+        setSearchResults({ status: 'failure', data: null });
+      });
+  }, [Portal, pageNumber, lastPageNumber, searchResults]);
+
+  // Defines a watch event for filtering results based on the map extent
+  const [watchViewInitialized, setWatchViewInitialized] = React.useState(false);
+  React.useEffect(() => {
+    if (!mapView || watchViewInitialized) return;
+
+    const watchEvent = watchUtils.whenTrue(mapView, 'stationary', () => {
+      setCurrentExtent(mapView.extent);
+    });
+
+    setWatchViewInitialized(true);
+
+    // remove watch event to prevent it from running after component unmounts
+    return function cleanup() {
+      watchEvent.remove();
+    };
+  }, [mapView, watchUtils, watchViewInitialized]);
+
+  const [showLocationOptions, setShowLocationOptions] = React.useState(false);
+
+  const [showFilterOptions, setShowFilterOptions] = React.useState(false);
+
+  const [showSortOptions, setShowSortOptions] = React.useState(false);
+
+  return (
+    <React.Fragment>
+      {/* <label htmlFor="locations-select">Data Location</label>
+            <Select
+                inputId="locations-select"
+                value={location}
+                onChange={(ev) => setLocation(ev)}
+                options={[
+                    { value: 'ArcGIS Online', label: 'ArcGIS Online' },
+                ]}
+            /> */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          margin: '10px 1em',
+        }}
+      >
+        <div>
+          <span onClick={() => setShowLocationOptions(!showLocationOptions)}>
+            {location.label} <i className="fas fa-caret-down"></i>
+          </span>
+          {showLocationOptions && (
+            <TypeSelect>
+              <ul>
+                <li
+                  onClick={() =>
+                    setLocation({
+                      value: 'ArcGIS Online',
+                      label: 'ArcGIS Online',
+                    })
+                  }
+                >
+                  ArcGIS Online
+                </li>
+              </ul>
+            </TypeSelect>
+          )}
+        </div>
+        <SearchContainer
+          onSubmit={(ev) => {
+            ev.preventDefault();
+          }}
+        >
+          <SearchInput
+            value={searchText}
+            placeholder={'Search...'}
+            onChange={(ev) => setSearchText(ev.target.value)}
+          />
+          <SearchSeparator />
+          <SearchButton type="submit" onClick={(ev) => setSearch(searchText)}>
+            <i className="fas fa-search"></i>
+            <ButtonHiddenText>Search</ButtonHiddenText>
+          </SearchButton>
+        </SearchContainer>
+      </div>
+
+      <FilterContainer>
+        <div>
+          <input
+            id="within_map_filter"
+            type="checkbox"
+            checked={withinMap}
+            onChange={(ev) => setWithinMap(!withinMap)}
+          />{' '}
+          <WithinMapLabel htmlFor="within_map_filter">
+            Within map...
+          </WithinMapLabel>
+        </div>
+        <div>
+          <span onClick={() => setShowFilterOptions(!showFilterOptions)}>
+            Type <i className="fas fa-caret-down"></i>
+          </span>
+          {showFilterOptions && (
+            <TypeSelect>
+              <ul>
+                <li>
+                  <input
+                    id="map_service_filter"
+                    type="checkbox"
+                    checked={mapService}
+                    onChange={(ev) => setMapService(!mapService)}
+                  />
+                  <label htmlFor="map_service_filter">Map Service</label>
+                </li>
+
+                <li>
+                  <input
+                    id="feature_service_filter"
+                    type="checkbox"
+                    checked={featureService}
+                    onChange={(ev) => setFeatureService(!featureService)}
+                  />
+                  <label htmlFor="feature_service_filter">
+                    Feature Service
+                  </label>
+                </li>
+
+                <li>
+                  <input
+                    id="image_service_filter"
+                    type="checkbox"
+                    checked={imageService}
+                    onChange={(ev) => setImageService(!imageService)}
+                  />
+                  <label htmlFor="image_service_filter">Image Service</label>
+                </li>
+
+                <li>
+                  <input
+                    id="vector_tile_service_filter"
+                    type="checkbox"
+                    checked={vectorTileService}
+                    onChange={(ev) => setVectorTileService(!vectorTileService)}
+                  />
+                  <label htmlFor="vector_tile_service_filter">
+                    Vector Tile Service
+                  </label>
+                </li>
+
+                <li>
+                  <input
+                    id="kml_filter"
+                    type="checkbox"
+                    checked={kml}
+                    onChange={(ev) => setKml(!kml)}
+                  />
+                  <label htmlFor="kml_filter">KML</label>
+                </li>
+
+                <li>
+                  <input
+                    id="wms_filter"
+                    type="checkbox"
+                    checked={wms}
+                    onChange={(ev) => setWms(!wms)}
+                  />
+                  <label htmlFor="wms_filter">WMS</label>
+                </li>
+              </ul>
+            </TypeSelect>
+          )}
+        </div>
+        <div>
+          <span onClick={() => setShowSortOptions(!showSortOptions)}>
+            {sortBy.label} <i className="fas fa-caret-down"></i>
+          </span>
+          {showSortOptions && (
+            <TypeSelect>
+              <ul>
+                <li
+                  onClick={() => {
+                    setSortBy({
+                      value: 'none',
+                      label: 'Relevance',
+                      defaultSort: 'desc',
+                    });
+                    setSortOrder('desc');
+                  }}
+                >
+                  Relevance
+                </li>
+
+                <li
+                  onClick={() => {
+                    setSortBy({
+                      value: 'title',
+                      label: 'Title',
+                      defaultSort: 'asc',
+                    });
+                    setSortOrder('asc');
+                  }}
+                >
+                  Title
+                </li>
+
+                <li
+                  onClick={() => {
+                    setSortBy({
+                      value: 'owner',
+                      label: 'Owner',
+                      defaultSort: 'asc',
+                    });
+                    setSortOrder('asc');
+                  }}
+                >
+                  Owner
+                </li>
+
+                <li
+                  onClick={() => {
+                    setSortBy({
+                      value: 'avgrating',
+                      label: 'Rating',
+                      defaultSort: 'desc',
+                    });
+                    setSortOrder('desc');
+                  }}
+                >
+                  Rating
+                </li>
+
+                <li
+                  onClick={() => {
+                    setSortBy({
+                      value: 'numviews',
+                      label: 'Views',
+                      defaultSort: 'desc',
+                    });
+                    setSortOrder('desc');
+                  }}
+                >
+                  Views
+                </li>
+
+                <li
+                  onClick={() => {
+                    setSortBy({
+                      value: 'modified',
+                      label: 'Date',
+                      defaultSort: 'desc',
+                    });
+                    setSortOrder('desc');
+                  }}
+                >
+                  Data
+                </li>
+              </ul>
+            </TypeSelect>
+          )}
+
+          {sortBy.value !== 'none' && (
+            <SortOrder
+              onClick={() =>
+                setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')
+              }
+            >
+              <i
+                className={`fas fa-long-arrow-alt-${
+                  sortOrder === 'desc' ? 'up' : 'down'
+                }`}
+              ></i>
+              <ButtonHiddenText>
+                {sortOrder === 'desc' ? 'Sort Ascending' : 'Sort Descending'}
+              </ButtonHiddenText>
+            </SortOrder>
+          )}
+        </div>
+      </FilterContainer>
+      <div style={{ overflow: 'auto', height: 'calc(100% - 74px)' }}>
+        {searchResults?.data?.results && searchResults.data.results.length > 0 && (
+          <ExitDisclaimer className="disclaimer">
+            The following links exit the site{' '}
+            <a
+              className="exit-disclaimer"
+              href="https://www.epa.gov/home/exit-epa"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Exit
+            </a>
+          </ExitDisclaimer>
+        )}
+        <div>
+          {searchResults.status === 'fetching' && <LoadingSpinner />}
+          {searchResults.status === 'failure' && webServiceErrorMessage}
+          {searchResults.status === 'success' && (
+            <React.Fragment>
+              <div>
+                {searchResults.data?.results.map((result, index) => {
+                  return <ResultCard result={result} key={index} />;
+                })}
+              </div>
+              {!searchResults.data && (
+                <div>No items for this search criteria.</div>
+              )}
+              {searchResults.data && (
+                <FooterBar>
+                  <div>
+                    <PageControl
+                      disabled={pageNumber === 1}
+                      onClick={() => setPageNumber(1)}
+                    >
+                      <i className="fas fa-angle-double-left"></i>
+                      <ButtonHiddenText>Go to first page</ButtonHiddenText>
+                    </PageControl>
+                    <PageControl
+                      disabled={pageNumber === 1}
+                      onClick={() => setPageNumber(pageNumber - 1)}
+                    >
+                      <i className="fas fa-angle-left"></i>
+                      <ButtonHiddenText>Previous</ButtonHiddenText>
+                    </PageControl>
+                    <span>{pageNumber}</span>
+                    <PageControl
+                      disabled={searchResults.data.nextQueryParams.start === -1}
+                      onClick={() => setPageNumber(pageNumber + 1)}
+                    >
+                      <i className="fas fa-angle-right"></i>
+                      <ButtonHiddenText>Next</ButtonHiddenText>
+                    </PageControl>
+                    <Total>
+                      {searchResults.data.total.toLocaleString()} Items
+                    </Total>
+                  </div>
+                </FooterBar>
+              )}
+            </React.Fragment>
+          )}
+        </div>
+      </div>
+    </React.Fragment>
+  );
+}
+
+// --- styles (ResultCard) ---
+const CardContainer = styled.div`
+  height: 70px;
+  padding: 5px;
+  border: 1px solid #e0e0e0;
+`;
+
+const CardThumbnail = styled.img`
+  float: left;
+  margin-right: 10px;
+  height: 60px;
+  width: 90px;
+`;
+
+const CardTitle = styled.h3`
+  margin: 0 5px;
+  padding: 0;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.3;
+`;
+
+const CardInfo = styled.span`
+  font-size: 11px;
+  color: #545454;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding-top: 3px;
+`;
+
+const CardButtonContainer = styled.div`
+  text-align: right;
+`;
+
+const CardMessage = styled.span`
+  font-size: 11px;
+  font-style: italic;
+  margin-left: 4px;
+  margin-right: 4px;
+`;
+
+const cardButtonStyles = `
+  display: inline-block;
+  font-size: 11px;
+  padding: 5px;
+  margin: 0 5px 0 0;
+
+  &:disabled {
+    cursor: default;
+  }
+`;
+
+const CardButton = styled.button`
+  ${cardButtonStyles}
+`;
+
+const CardLinkButton = styled.a`
+  ${cardButtonStyles}
+`;
+
+// --- components (ResultCard) ---
+type ResultCardProps = {
+  result: any,
+};
+
+function ResultCard({ result }: ResultCardProps) {
+  const { Layer, PortalItem, watchUtils } = React.useContext(
+    EsriModulesContext,
+  );
+  const { portalLayers, addPortalLayer, removePortalLayer } = React.useContext(
+    AddDataWidgetContext,
+  );
+  const { mapView } = React.useContext(LocationSearchContext);
+
+  // Used to determine if the layer for this card has been added or not
+  const [added, setAdded] = React.useState(false);
+  React.useEffect(() => {
+    const added =
+      portalLayers.findIndex((portalLayer) => portalLayer.id === result.id) !==
+      -1;
+    setAdded(added);
+  }, [portalLayers, result]);
+
+  // removes the esri watch handle when the card is removed from the DOM.
+  const [status, setStatus] = React.useState('');
+  const [watcher, setWatcher] = React.useState(null);
+  React.useEffect(() => {
+    return function cleanup() {
+      if (watcher) watcher.remove();
+    };
+  }, [watcher]);
+
+  /**
+   * Adds non-tots layers as reference portal layers.
+   */
+  function addRefLayer() {
+    if (!mapView?.map) return;
+
+    setStatus('loading');
+
+    Layer.fromPortalItem({
+      portalItem: new PortalItem({
+        id: result.id,
+      }),
+    }).then((layer) => {
+      // setup the watch event to see when the layer finishes loading
+      const watcher = watchUtils.watch(
+        layer,
+        'loadStatus',
+        (loadStatus: string) => {
+          // set the status based on the load status
+          if (loadStatus === 'loaded') {
+            addPortalLayer({ id: result.id, type: 'arcgis' });
+            setStatus('');
+
+            // set the min/max scale for tile layers
+            if (layer.type === 'tile') {
+              const tileLayer = layer;
+              tileLayer.minScale = 0;
+              tileLayer.maxScale = 0;
+            }
+
+            if (mapView) {
+              layer.visible = true;
+
+              // zoom to the layer if it has an extent
+              if (layer.fullExtent) {
+                mapView.goTo(layer.fullExtent);
+              }
+            }
+          } else if (loadStatus === 'failed') {
+            setStatus('error');
+          }
+        },
+      );
+
+      setWatcher(watcher);
+
+      // add the layer to the map
+      mapView.map.add(layer);
+    });
+  }
+
+  /**
+   * Removes the reference portal layers.
+   */
+  function removeRefLayer() {
+    if (!mapView?.map) return;
+
+    // get the layers to be removed
+    const layersToRemove = mapView.map.allLayers.filter((layer: any) => {
+      // had to use any, since some layer types don't have portalItem
+      if (layer?.portalItem?.id === result.id) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+
+    // remove the layers from the map and session storage.
+    if (layersToRemove.length > 0) {
+      mapView.map.removeMany(layersToRemove.toArray());
+      removePortalLayer(result.id);
+      // setPortalLayers((portalLayers) =>
+      //     portalLayers.filter((portalLayer) => portalLayer.id !== result.id),
+      // );
+    }
+  }
+
+  return (
+    <CardContainer>
+      <CardThumbnail
+        src={result.thumbnailUrl}
+        alt={`${result.title} Thumbnail`}
+      />
+      <CardTitle>{result.title}</CardTitle>
+      <CardInfo>
+        {result.type} by {result.owner}
+      </CardInfo>
+      <br />
+      <CardButtonContainer>
+        <CardMessage>
+          {status === 'loading' && 'Adding...'}
+          {status === 'error' && 'Add Failed'}
+        </CardMessage>
+        {mapView?.map && (
+          <React.Fragment>
+            {!added && (
+              <CardButton
+                disabled={status === 'loading'}
+                onClick={() => {
+                  addRefLayer();
+                }}
+              >
+                Add
+              </CardButton>
+            )}
+            {added && !status && (
+              <CardButton
+                onClick={() => {
+                  removeRefLayer();
+                }}
+              >
+                Remove
+              </CardButton>
+            )}
+          </React.Fragment>
+        )}
+        <CardLinkButton
+          href={`https://arcgis.com/home/item.html?id=${result.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Layer Details
+        </CardLinkButton>
+      </CardButtonContainer>
+    </CardContainer>
+  );
+}
+
+export default SearchPanel;
