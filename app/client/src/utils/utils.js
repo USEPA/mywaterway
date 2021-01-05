@@ -187,13 +187,7 @@ function splitSuggestedSearch(Point, text) {
 // returns true if browser supports this feature
 
 function browserIsCompatibleWithArcGIS() {
-  const performance = window.performance;
-
-  if (performance === undefined) return false;
-  if (typeof performance.mark !== 'function') return false;
-  if (!performance.mark) return false;
-
-  // performance.mark() is supported
+  // TODO: find a solution to checking browser support for ArcGIS 4.x
   return true;
 }
 
