@@ -24,7 +24,7 @@
     "Courtney Myers <courtney.myers@erg.com>"
   ],
   "engines": {
-    "node": "12.x"
+    "node": "14.x"
   },
   "scripts": {
     "client": "cd client && npm start",
