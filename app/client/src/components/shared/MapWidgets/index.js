@@ -923,8 +923,8 @@ function MapWidgets({
         id="add-data-widget"
         style={{ backgroundColor: 'white', pointerEvents: 'all' }}
         default={{
-          x: (mapWidth - 400 - 15) / 2,
-          y: 70,
+          x: (mapWidth - 400 - 60) / 2,
+          y: 7.5,
           width: '400px',
           height: '410px',
         }}
