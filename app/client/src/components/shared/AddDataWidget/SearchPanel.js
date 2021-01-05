@@ -4,6 +4,8 @@ import React from 'react';
 import styled from 'styled-components';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
+import { LinkButton } from 'components/shared/LinkButton';
+import Switch from 'components/shared/Switch';
 // contexts
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -48,6 +50,10 @@ const SearchButton = styled.button`
   border-radius: 4px;
 `;
 
+const Checkbox = styled.input`
+  margin-right: 5px;
+`;
+
 const ButtonHiddenText = styled.span`
   font: 0/0 a, sans-serif;
   text-indent: -999em;
@@ -60,8 +66,8 @@ const FilterContainer = styled.div`
   margin: 10px 1em;
 `;
 
-const WithinMapLabel = styled.label`
-  margin: 0;
+const TextSelect = styled.span`
+  cursor: pointer;
 `;
 
 const TypeSelect = styled.div`
@@ -76,6 +82,37 @@ const TypeSelect = styled.div`
     padding: 0.5em;
     list-style-type: none;
   }
+
+  li,
+  input,
+  label {
+    cursor: pointer;
+  }
+`;
+
+const LocationSelect = styled.button`
+  width: 100%;
+  height: 35px;
+  margin: 0;
+  border-radius: 0;
+  font-weight: normal;
+  font-size: 12px;
+`;
+
+const ButtonSelect = styled.button`
+  width: 100%;
+  height: 35px;
+  margin: 0;
+  border-radius: 0;
+  font-weight: normal;
+  font-size: 12px;
+  text-align: left;
+  background-color: white;
+  color: black;
+
+  &:hover {
+    background-color: #f1f1f1;
+  }
 `;
 
 const SortOrder = styled.button`
@@ -88,27 +125,6 @@ const SortOrder = styled.button`
   &:disabled {
     cursor: default;
   }
-`;
-
-const FooterBar = styled.div`
-  display: flex;
-  align-items: center;
-`;
-
-const PageControl = styled.button`
-  color: black;
-  background-color: white;
-  padding: 0;
-  margin: 0 5px;
-
-  &:disabled {
-    opacity: 0.35;
-    cursor: default;
-  }
-`;
-
-const Total = styled.span`
-  margin-left: 10px;
 `;
 
 const ExitDisclaimer = styled.span`
@@ -125,6 +141,12 @@ const ExitDisclaimer = styled.span`
 function SearchPanel() {
   const { mapView } = React.useContext(LocationSearchContext);
   const { Portal, watchUtils } = React.useContext(EsriModulesContext);
+  const {
+    pageNumber,
+    setPageNumber,
+    searchResults,
+    setSearchResults,
+  } = React.useContext(AddDataWidgetContext);
 
   // filters
   const [
@@ -136,7 +158,7 @@ function SearchPanel() {
   });
   const [search, setSearch] = React.useState('');
   const [searchText, setSearchText] = React.useState('');
-  const [withinMap, setWithinMap] = React.useState(false);
+  const [withinMap, setWithinMap] = React.useState(true);
   const [mapService, setMapService] = React.useState(false);
   const [featureService, setFeatureService] = React.useState(false);
   const [imageService, setImageService] = React.useState(false);
@@ -144,12 +166,7 @@ function SearchPanel() {
   const [kml, setKml] = React.useState(false);
   const [wms, setWms] = React.useState(false);
 
-  const [
-    searchResults,
-    setSearchResults, //
-  ] = React.useState({ status: 'none', data: null });
   const [currentExtent, setCurrentExtent] = React.useState(null);
-  const [pageNumber, setPageNumber] = React.useState(1);
   const [sortBy, setSortBy] = React.useState({
     value: 'none',
     label: 'Relevance',
@@ -258,6 +275,7 @@ function SearchPanel() {
     wms,
     sortBy,
     sortOrder,
+    setPageNumber,
   ]);
 
   // Runs the query for changing pages of the result set
@@ -294,7 +312,7 @@ function SearchPanel() {
         console.error(err);
         setSearchResults({ status: 'failure', data: null });
       });
-  }, [Portal, pageNumber, lastPageNumber, searchResults]);
+  }, [Portal, pageNumber, lastPageNumber, searchResults, setSearchResults]);
 
   // Defines a watch event for filtering results based on the map extent
   const [watchViewInitialized, setWatchViewInitialized] = React.useState(false);
@@ -321,15 +339,6 @@ function SearchPanel() {
 
   return (
     <React.Fragment>
-      {/* <label htmlFor="locations-select">Data Location</label>
-            <Select
-                inputId="locations-select"
-                value={location}
-                onChange={(ev) => setLocation(ev)}
-                options={[
-                    { value: 'ArcGIS Online', label: 'ArcGIS Online' },
-                ]}
-            /> */}
       <div
         style={{
           display: 'flex',
@@ -339,23 +348,23 @@ function SearchPanel() {
         }}
       >
         <div>
-          <span onClick={() => setShowLocationOptions(!showLocationOptions)}>
+          <TextSelect
+            onClick={() => setShowLocationOptions(!showLocationOptions)}
+          >
             {location.label} <i className="fas fa-caret-down"></i>
-          </span>
+          </TextSelect>
           {showLocationOptions && (
-            <TypeSelect>
-              <ul>
-                <li
-                  onClick={() =>
-                    setLocation({
-                      value: 'ArcGIS Online',
-                      label: 'ArcGIS Online',
-                    })
-                  }
-                >
-                  ArcGIS Online
-                </li>
-              </ul>
+            <TypeSelect style={{ minWidth: '50%' }}>
+              <LocationSelect
+                onClick={() =>
+                  setLocation({
+                    value: 'ArcGIS Online',
+                    label: 'ArcGIS Online',
+                  })
+                }
+              >
+                ArcGIS Online
+              </LocationSelect>
             </TypeSelect>
           )}
         </div>
@@ -379,25 +388,29 @@ function SearchPanel() {
 
       <FilterContainer>
         <div>
-          <input
-            id="within_map_filter"
-            type="checkbox"
-            checked={withinMap}
-            onChange={(ev) => setWithinMap(!withinMap)}
-          />{' '}
-          <WithinMapLabel htmlFor="within_map_filter">
-            Within map...
-          </WithinMapLabel>
+          <label style={{ display: 'flex', alignItems: 'center', margin: '0' }}>
+            <Switch
+              checked={withinMap}
+              onChange={(ev) => setWithinMap(!withinMap)}
+              ariaLabel="Within map..."
+            />{' '}
+            <span style={{ marginLeft: '5px' }}>Within map...</span>
+          </label>
         </div>
         <div>
-          <span onClick={() => setShowFilterOptions(!showFilterOptions)}>
+          <TextSelect
+            onClick={() => {
+              setShowFilterOptions(!showFilterOptions);
+              setShowSortOptions(false);
+            }}
+          >
             Type <i className="fas fa-caret-down"></i>
-          </span>
+          </TextSelect>
           {showFilterOptions && (
             <TypeSelect>
               <ul>
                 <li>
-                  <input
+                  <Checkbox
                     id="map_service_filter"
                     type="checkbox"
                     checked={mapService}
@@ -407,7 +420,7 @@ function SearchPanel() {
                 </li>
 
                 <li>
-                  <input
+                  <Checkbox
                     id="feature_service_filter"
                     type="checkbox"
                     checked={featureService}
@@ -419,7 +432,7 @@ function SearchPanel() {
                 </li>
 
                 <li>
-                  <input
+                  <Checkbox
                     id="image_service_filter"
                     type="checkbox"
                     checked={imageService}
@@ -429,7 +442,7 @@ function SearchPanel() {
                 </li>
 
                 <li>
-                  <input
+                  <Checkbox
                     id="vector_tile_service_filter"
                     type="checkbox"
                     checked={vectorTileService}
@@ -441,7 +454,7 @@ function SearchPanel() {
                 </li>
 
                 <li>
-                  <input
+                  <Checkbox
                     id="kml_filter"
                     type="checkbox"
                     checked={kml}
@@ -451,7 +464,7 @@ function SearchPanel() {
                 </li>
 
                 <li>
-                  <input
+                  <Checkbox
                     id="wms_filter"
                     type="checkbox"
                     checked={wms}
@@ -463,91 +476,100 @@ function SearchPanel() {
             </TypeSelect>
           )}
         </div>
-        <div>
-          <span onClick={() => setShowSortOptions(!showSortOptions)}>
+        <div style={{ width: '100px', textAlign: 'right' }}>
+          <TextSelect
+            onClick={() => {
+              setShowSortOptions(!showSortOptions);
+              setShowFilterOptions(false);
+            }}
+          >
             {sortBy.label} <i className="fas fa-caret-down"></i>
-          </span>
+          </TextSelect>
           {showSortOptions && (
             <TypeSelect>
-              <ul>
-                <li
-                  onClick={() => {
-                    setSortBy({
-                      value: 'none',
-                      label: 'Relevance',
-                      defaultSort: 'desc',
-                    });
-                    setSortOrder('desc');
-                  }}
-                >
-                  Relevance
-                </li>
+              <ButtonSelect
+                onClick={() => {
+                  setShowSortOptions(false);
+                  setSortOrder('desc');
+                  setSortBy({
+                    value: 'none',
+                    label: 'Relevance',
+                    defaultSort: 'desc',
+                  });
+                }}
+              >
+                Relevance
+              </ButtonSelect>
 
-                <li
-                  onClick={() => {
-                    setSortBy({
-                      value: 'title',
-                      label: 'Title',
-                      defaultSort: 'asc',
-                    });
-                    setSortOrder('asc');
-                  }}
-                >
-                  Title
-                </li>
+              <ButtonSelect
+                onClick={() => {
+                  setShowSortOptions(false);
+                  setSortOrder('asc');
+                  setSortBy({
+                    value: 'title',
+                    label: 'Title',
+                    defaultSort: 'asc',
+                  });
+                }}
+              >
+                Title
+              </ButtonSelect>
 
-                <li
-                  onClick={() => {
-                    setSortBy({
-                      value: 'owner',
-                      label: 'Owner',
-                      defaultSort: 'asc',
-                    });
-                    setSortOrder('asc');
-                  }}
-                >
-                  Owner
-                </li>
+              <ButtonSelect
+                onClick={() => {
+                  setShowSortOptions(false);
+                  setSortOrder('asc');
+                  setSortBy({
+                    value: 'owner',
+                    label: 'Owner',
+                    defaultSort: 'asc',
+                  });
+                }}
+              >
+                Owner
+              </ButtonSelect>
 
-                <li
-                  onClick={() => {
-                    setSortBy({
-                      value: 'avgrating',
-                      label: 'Rating',
-                      defaultSort: 'desc',
-                    });
-                    setSortOrder('desc');
-                  }}
-                >
-                  Rating
-                </li>
+              <ButtonSelect
+                onClick={() => {
+                  setShowSortOptions(false);
+                  setSortOrder('desc');
+                  setSortBy({
+                    value: 'avgrating',
+                    label: 'Rating',
+                    defaultSort: 'desc',
+                  });
+                }}
+              >
+                Rating
+              </ButtonSelect>
 
-                <li
-                  onClick={() => {
-                    setSortBy({
-                      value: 'numviews',
-                      label: 'Views',
-                      defaultSort: 'desc',
-                    });
-                    setSortOrder('desc');
-                  }}
-                >
-                  Views
-                </li>
+              <ButtonSelect
+                onClick={() => {
+                  setShowSortOptions(false);
+                  setSortOrder('desc');
+                  setSortBy({
+                    value: 'numviews',
+                    label: 'Views',
+                    defaultSort: 'desc',
+                  });
+                }}
+              >
+                Views
+              </ButtonSelect>
 
-                <li
-                  onClick={() => {
-                    setSortBy({
-                      value: 'modified',
-                      label: 'Date',
-                      defaultSort: 'desc',
-                    });
-                    setSortOrder('desc');
-                  }}
-                >
-                  Data
-                </li>
-              </ul>
+              <ButtonSelect
+                onClick={() => {
+                  setShowSortOptions(false);
+                  setSortOrder('desc');
+                  setSortBy({
+                    value: 'modified',
+                    label: 'Date',
+                    defaultSort: 'desc',
+                  });
+                }}
+              >
+                Data
+              </ButtonSelect>
             </TypeSelect>
           )}
 
@@ -569,7 +591,13 @@ function SearchPanel() {
           )}
         </div>
       </FilterContainer>
-      <div style={{ overflow: 'auto', height: 'calc(100% - 74px)' }}>
+      <div
+        style={{
+          overflow: 'auto',
+          height: 'calc(100% - 74px)',
+          backgroundColor: '#efefef',
+        }}
+      >
         {searchResults?.data?.results && searchResults.data.results.length > 0 && (
           <ExitDisclaimer className="disclaimer">
             The following links exit the site{' '}
@@ -594,38 +622,9 @@ function SearchPanel() {
                 })}
               </div>
               {!searchResults.data && (
-                <div>No items for this search criteria.</div>
-              )}
-              {searchResults.data && (
-                <FooterBar>
-                  <div>
-                    <PageControl
-                      disabled={pageNumber === 1}
-                      onClick={() => setPageNumber(1)}
-                    >
-                      <i className="fas fa-angle-double-left"></i>
-                      <ButtonHiddenText>Go to first page</ButtonHiddenText>
-                    </PageControl>
-                    <PageControl
-                      disabled={pageNumber === 1}
-                      onClick={() => setPageNumber(pageNumber - 1)}
-                    >
-                      <i className="fas fa-angle-left"></i>
-                      <ButtonHiddenText>Previous</ButtonHiddenText>
-                    </PageControl>
-                    <span>{pageNumber}</span>
-                    <PageControl
-                      disabled={searchResults.data.nextQueryParams.start === -1}
-                      onClick={() => setPageNumber(pageNumber + 1)}
-                    >
-                      <i className="fas fa-angle-right"></i>
-                      <ButtonHiddenText>Next</ButtonHiddenText>
-                    </PageControl>
-                    <Total>
-                      {searchResults.data.total.toLocaleString()} Items
-                    </Total>
-                  </div>
-                </FooterBar>
+                <div style={{ margin: '10px 1em' }}>
+                  No items for this search criteria.
+                </div>
               )}
             </React.Fragment>
           )}
@@ -640,6 +639,7 @@ const CardContainer = styled.div`
   height: 70px;
   padding: 5px;
   border: 1px solid #e0e0e0;
+  background-color: white;
 `;
 
 const CardThumbnail = styled.img`
@@ -659,7 +659,7 @@ const CardTitle = styled.h3`
   line-height: 1.3;
 `;
 
-const CardInfo = styled.span`
+const CardInfo = styled.div`
   font-size: 11px;
   color: #545454;
   overflow: hidden;
@@ -682,15 +682,22 @@ const CardMessage = styled.span`
 const cardButtonStyles = `
   display: inline-block;
   font-size: 11px;
+  text-decoration: none;
+  text-transform: uppercase;
   padding: 5px;
   margin: 0 5px 0 0;
+  font-weight: normal;
 
   &:disabled {
     cursor: default;
   }
+
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
-const CardButton = styled.button`
+const CardButton = styled(LinkButton)`
   ${cardButtonStyles}
 `;
 
@@ -851,7 +858,7 @@ function ResultCard({ result }: ResultCardProps) {
           target="_blank"
           rel="noopener noreferrer"
         >
-          Layer Details
+          Details
         </CardLinkButton>
       </CardButtonContainer>
     </CardContainer>

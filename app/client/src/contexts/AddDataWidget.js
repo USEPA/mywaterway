@@ -5,6 +5,8 @@ import type { Node } from 'react';
 
 export const AddDataWidgetContext: Object = React.createContext({
   addDataWidgetVisible: false,
+  pageNumber: 1,
+  searchResults: { status: 'none', data: null },
   portalLayers: [],
   referenceLayers: [],
   urlLayers: [],
@@ -16,6 +18,8 @@ type Props = {
 
 type State = {
   addDataWidgetVisible: boolean,
+  pageNumber: number,
+  searchResults: Object,
   portalLayers: Object[],
   referenceLayers: Object[],
   urlLayers: Object[],
@@ -24,6 +28,8 @@ type State = {
 export class AddDataWidgetProvider extends React.Component<Props, State> {
   state: State = {
     addDataWidgetVisible: false,
+    pageNumber: 1,
+    searchResults: { status: 'none', data: null },
     portalLayers: [],
     referenceLayers: [],
     urlLayers: [],
@@ -33,6 +39,12 @@ export class AddDataWidgetProvider extends React.Component<Props, State> {
     },
     setAddDataWidgetVisible: (addDataWidgetVisible) => {
       this.setState({ addDataWidgetVisible });
+    },
+    setPageNumber: (pageNumber) => {
+      this.setState({ pageNumber });
+    },
+    setSearchResults: (searchResults) => {
+      this.setState({ searchResults });
     },
     addPortalLayer: (portalLayer) => {
       this.setState((prevState, props) => ({

@@ -928,7 +928,7 @@ function MapWidgets({
           width: '400px',
           height: '410px',
         }}
-        minWidth="200px"
+        minWidth="275px"
         minHeight="410px"
         bounds="parent"
         enableResizing={{
