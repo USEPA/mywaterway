@@ -85,13 +85,17 @@
       ">0.2%",
       "not dead",
       "not op_mini all",
-      "ie 11"
+      "ie 11",
+      "safari > 3",
+      "ios > 3"
     ],
     "development": [
       "last 1 chrome version",
       "last 1 firefox version",
       "last 1 safari version",
-      "ie 11"
+      "ie 11",
+      "safari > 3",
+      "ios > 3"
     ]
   }
 }
