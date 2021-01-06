@@ -11,6 +11,7 @@ import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
 import { fetchPostFile, fetchPostForm } from 'utils/fetchUtils';
+import { getSimplePopupTemplate } from 'utils/utils';
 // config
 import {
   fileReadErrorMessage,
@@ -407,6 +408,9 @@ function FilePanel() {
         layer.layerDefinition.drawingInfo.renderer,
       );
 
+      const layerName = getLayerName(widgetLayers, file.file.name);
+      setNewLayerName(layerName);
+
       // create the popup template if popup information was provided
       let popupTemplate;
       if (layer.popupInfo) {
@@ -415,9 +419,14 @@ function FilePanel() {
           content: layer.popupInfo.description,
         };
       }
+      // if no popup template, then make the template all of the attributes
+      if (!layer.popupInfo && features.length > 0) {
+        popupTemplate = getSimplePopupTemplate(
+          layerName,
+          features[0].attributes,
+        );
+      }
 
-      const layerName = getLayerName(widgetLayers, file.file.name);
-      setNewLayerName(layerName);
       const layerProps: __esri.FeatureLayerProperties = {
         fields,
         objectIdField: layer.layerDefinition.objectIdField,
