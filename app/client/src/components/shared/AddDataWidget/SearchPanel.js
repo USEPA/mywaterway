@@ -339,258 +339,265 @@ function SearchPanel() {
 
   return (
     <React.Fragment>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          margin: '10px 1em',
-        }}
-      >
-        <div>
-          <TextSelect
-            onClick={() => setShowLocationOptions(!showLocationOptions)}
-          >
-            {location.label} <i className="fas fa-caret-down"></i>
-          </TextSelect>
-          {showLocationOptions && (
-            <TypeSelect style={{ minWidth: '50%' }}>
-              <LocationSelect
-                onClick={() =>
-                  setLocation({
-                    value: 'ArcGIS Online',
-                    label: 'ArcGIS Online',
-                  })
-                }
-              >
-                ArcGIS Online
-              </LocationSelect>
-            </TypeSelect>
-          )}
-        </div>
-        <SearchContainer
-          onSubmit={(ev) => {
-            ev.preventDefault();
+      <div>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            margin: '10px 1em',
           }}
         >
-          <SearchInput
-            value={searchText}
-            placeholder={'Search...'}
-            onChange={(ev) => setSearchText(ev.target.value)}
-          />
-          <SearchSeparator />
-          <SearchButton type="submit" onClick={(ev) => setSearch(searchText)}>
-            <i className="fas fa-search"></i>
-            <ButtonHiddenText>Search</ButtonHiddenText>
-          </SearchButton>
-        </SearchContainer>
+          <div>
+            <TextSelect
+              onClick={() => setShowLocationOptions(!showLocationOptions)}
+            >
+              {location.label} <i className="fas fa-caret-down"></i>
+            </TextSelect>
+            {showLocationOptions && (
+              <TypeSelect style={{ minWidth: '50%' }}>
+                <LocationSelect
+                  onClick={() =>
+                    setLocation({
+                      value: 'ArcGIS Online',
+                      label: 'ArcGIS Online',
+                    })
+                  }
+                >
+                  ArcGIS Online
+                </LocationSelect>
+              </TypeSelect>
+            )}
+          </div>
+          <SearchContainer
+            onSubmit={(ev) => {
+              ev.preventDefault();
+            }}
+          >
+            <SearchInput
+              value={searchText}
+              placeholder={'Search...'}
+              onChange={(ev) => setSearchText(ev.target.value)}
+            />
+            <SearchSeparator />
+            <SearchButton type="submit" onClick={(ev) => setSearch(searchText)}>
+              <i className="fas fa-search"></i>
+              <ButtonHiddenText>Search</ButtonHiddenText>
+            </SearchButton>
+          </SearchContainer>
+        </div>
+
+        <FilterContainer>
+          <div>
+            <label
+              style={{ display: 'flex', alignItems: 'center', margin: '0' }}
+            >
+              <Switch
+                checked={withinMap}
+                onChange={(ev) => setWithinMap(!withinMap)}
+                ariaLabel="Within map..."
+              />{' '}
+              <span style={{ marginLeft: '5px' }}>Within map...</span>
+            </label>
+          </div>
+          <div>
+            <TextSelect
+              onClick={() => {
+                setShowFilterOptions(!showFilterOptions);
+                setShowSortOptions(false);
+              }}
+            >
+              Type <i className="fas fa-caret-down"></i>
+            </TextSelect>
+            {showFilterOptions && (
+              <TypeSelect>
+                <ul>
+                  <li>
+                    <Checkbox
+                      id="map_service_filter"
+                      type="checkbox"
+                      checked={mapService}
+                      onChange={(ev) => setMapService(!mapService)}
+                    />
+                    <label htmlFor="map_service_filter">Map Service</label>
+                  </li>
+
+                  <li>
+                    <Checkbox
+                      id="feature_service_filter"
+                      type="checkbox"
+                      checked={featureService}
+                      onChange={(ev) => setFeatureService(!featureService)}
+                    />
+                    <label htmlFor="feature_service_filter">
+                      Feature Service
+                    </label>
+                  </li>
+
+                  <li>
+                    <Checkbox
+                      id="image_service_filter"
+                      type="checkbox"
+                      checked={imageService}
+                      onChange={(ev) => setImageService(!imageService)}
+                    />
+                    <label htmlFor="image_service_filter">Image Service</label>
+                  </li>
+
+                  <li>
+                    <Checkbox
+                      id="vector_tile_service_filter"
+                      type="checkbox"
+                      checked={vectorTileService}
+                      onChange={(ev) =>
+                        setVectorTileService(!vectorTileService)
+                      }
+                    />
+                    <label htmlFor="vector_tile_service_filter">
+                      Vector Tile Service
+                    </label>
+                  </li>
+
+                  <li>
+                    <Checkbox
+                      id="kml_filter"
+                      type="checkbox"
+                      checked={kml}
+                      onChange={(ev) => setKml(!kml)}
+                    />
+                    <label htmlFor="kml_filter">KML</label>
+                  </li>
+
+                  <li>
+                    <Checkbox
+                      id="wms_filter"
+                      type="checkbox"
+                      checked={wms}
+                      onChange={(ev) => setWms(!wms)}
+                    />
+                    <label htmlFor="wms_filter">WMS</label>
+                  </li>
+                </ul>
+              </TypeSelect>
+            )}
+          </div>
+          <div style={{ width: '100px', textAlign: 'right' }}>
+            <TextSelect
+              onClick={() => {
+                setShowSortOptions(!showSortOptions);
+                setShowFilterOptions(false);
+              }}
+            >
+              {sortBy.label} <i className="fas fa-caret-down"></i>
+            </TextSelect>
+            {showSortOptions && (
+              <TypeSelect>
+                <ButtonSelect
+                  onClick={() => {
+                    setShowSortOptions(false);
+                    setSortOrder('desc');
+                    setSortBy({
+                      value: 'none',
+                      label: 'Relevance',
+                      defaultSort: 'desc',
+                    });
+                  }}
+                >
+                  Relevance
+                </ButtonSelect>
+
+                <ButtonSelect
+                  onClick={() => {
+                    setShowSortOptions(false);
+                    setSortOrder('asc');
+                    setSortBy({
+                      value: 'title',
+                      label: 'Title',
+                      defaultSort: 'asc',
+                    });
+                  }}
+                >
+                  Title
+                </ButtonSelect>
+
+                <ButtonSelect
+                  onClick={() => {
+                    setShowSortOptions(false);
+                    setSortOrder('asc');
+                    setSortBy({
+                      value: 'owner',
+                      label: 'Owner',
+                      defaultSort: 'asc',
+                    });
+                  }}
+                >
+                  Owner
+                </ButtonSelect>
+
+                <ButtonSelect
+                  onClick={() => {
+                    setShowSortOptions(false);
+                    setSortOrder('desc');
+                    setSortBy({
+                      value: 'avgrating',
+                      label: 'Rating',
+                      defaultSort: 'desc',
+                    });
+                  }}
+                >
+                  Rating
+                </ButtonSelect>
+
+                <ButtonSelect
+                  onClick={() => {
+                    setShowSortOptions(false);
+                    setSortOrder('desc');
+                    setSortBy({
+                      value: 'numviews',
+                      label: 'Views',
+                      defaultSort: 'desc',
+                    });
+                  }}
+                >
+                  Views
+                </ButtonSelect>
+
+                <ButtonSelect
+                  onClick={() => {
+                    setShowSortOptions(false);
+                    setSortOrder('desc');
+                    setSortBy({
+                      value: 'modified',
+                      label: 'Date',
+                      defaultSort: 'desc',
+                    });
+                  }}
+                >
+                  Data
+                </ButtonSelect>
+              </TypeSelect>
+            )}
+
+            {sortBy.value !== 'none' && (
+              <SortOrder
+                onClick={() =>
+                  setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')
+                }
+              >
+                <i
+                  className={`fas fa-long-arrow-alt-${
+                    sortOrder === 'desc' ? 'up' : 'down'
+                  }`}
+                ></i>
+                <ButtonHiddenText>
+                  {sortOrder === 'desc' ? 'Sort Ascending' : 'Sort Descending'}
+                </ButtonHiddenText>
+              </SortOrder>
+            )}
+          </div>
+        </FilterContainer>
       </div>
 
-      <FilterContainer>
-        <div>
-          <label style={{ display: 'flex', alignItems: 'center', margin: '0' }}>
-            <Switch
-              checked={withinMap}
-              onChange={(ev) => setWithinMap(!withinMap)}
-              ariaLabel="Within map..."
-            />{' '}
-            <span style={{ marginLeft: '5px' }}>Within map...</span>
-          </label>
-        </div>
-        <div>
-          <TextSelect
-            onClick={() => {
-              setShowFilterOptions(!showFilterOptions);
-              setShowSortOptions(false);
-            }}
-          >
-            Type <i className="fas fa-caret-down"></i>
-          </TextSelect>
-          {showFilterOptions && (
-            <TypeSelect>
-              <ul>
-                <li>
-                  <Checkbox
-                    id="map_service_filter"
-                    type="checkbox"
-                    checked={mapService}
-                    onChange={(ev) => setMapService(!mapService)}
-                  />
-                  <label htmlFor="map_service_filter">Map Service</label>
-                </li>
-
-                <li>
-                  <Checkbox
-                    id="feature_service_filter"
-                    type="checkbox"
-                    checked={featureService}
-                    onChange={(ev) => setFeatureService(!featureService)}
-                  />
-                  <label htmlFor="feature_service_filter">
-                    Feature Service
-                  </label>
-                </li>
-
-                <li>
-                  <Checkbox
-                    id="image_service_filter"
-                    type="checkbox"
-                    checked={imageService}
-                    onChange={(ev) => setImageService(!imageService)}
-                  />
-                  <label htmlFor="image_service_filter">Image Service</label>
-                </li>
-
-                <li>
-                  <Checkbox
-                    id="vector_tile_service_filter"
-                    type="checkbox"
-                    checked={vectorTileService}
-                    onChange={(ev) => setVectorTileService(!vectorTileService)}
-                  />
-                  <label htmlFor="vector_tile_service_filter">
-                    Vector Tile Service
-                  </label>
-                </li>
-
-                <li>
-                  <Checkbox
-                    id="kml_filter"
-                    type="checkbox"
-                    checked={kml}
-                    onChange={(ev) => setKml(!kml)}
-                  />
-                  <label htmlFor="kml_filter">KML</label>
-                </li>
-
-                <li>
-                  <Checkbox
-                    id="wms_filter"
-                    type="checkbox"
-                    checked={wms}
-                    onChange={(ev) => setWms(!wms)}
-                  />
-                  <label htmlFor="wms_filter">WMS</label>
-                </li>
-              </ul>
-            </TypeSelect>
-          )}
-        </div>
-        <div style={{ width: '100px', textAlign: 'right' }}>
-          <TextSelect
-            onClick={() => {
-              setShowSortOptions(!showSortOptions);
-              setShowFilterOptions(false);
-            }}
-          >
-            {sortBy.label} <i className="fas fa-caret-down"></i>
-          </TextSelect>
-          {showSortOptions && (
-            <TypeSelect>
-              <ButtonSelect
-                onClick={() => {
-                  setShowSortOptions(false);
-                  setSortOrder('desc');
-                  setSortBy({
-                    value: 'none',
-                    label: 'Relevance',
-                    defaultSort: 'desc',
-                  });
-                }}
-              >
-                Relevance
-              </ButtonSelect>
-
-              <ButtonSelect
-                onClick={() => {
-                  setShowSortOptions(false);
-                  setSortOrder('asc');
-                  setSortBy({
-                    value: 'title',
-                    label: 'Title',
-                    defaultSort: 'asc',
-                  });
-                }}
-              >
-                Title
-              </ButtonSelect>
-
-              <ButtonSelect
-                onClick={() => {
-                  setShowSortOptions(false);
-                  setSortOrder('asc');
-                  setSortBy({
-                    value: 'owner',
-                    label: 'Owner',
-                    defaultSort: 'asc',
-                  });
-                }}
-              >
-                Owner
-              </ButtonSelect>
-
-              <ButtonSelect
-                onClick={() => {
-                  setShowSortOptions(false);
-                  setSortOrder('desc');
-                  setSortBy({
-                    value: 'avgrating',
-                    label: 'Rating',
-                    defaultSort: 'desc',
-                  });
-                }}
-              >
-                Rating
-              </ButtonSelect>
-
-              <ButtonSelect
-                onClick={() => {
-                  setShowSortOptions(false);
-                  setSortOrder('desc');
-                  setSortBy({
-                    value: 'numviews',
-                    label: 'Views',
-                    defaultSort: 'desc',
-                  });
-                }}
-              >
-                Views
-              </ButtonSelect>
-
-              <ButtonSelect
-                onClick={() => {
-                  setShowSortOptions(false);
-                  setSortOrder('desc');
-                  setSortBy({
-                    value: 'modified',
-                    label: 'Date',
-                    defaultSort: 'desc',
-                  });
-                }}
-              >
-                Data
-              </ButtonSelect>
-            </TypeSelect>
-          )}
-
-          {sortBy.value !== 'none' && (
-            <SortOrder
-              onClick={() =>
-                setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')
-              }
-            >
-              <i
-                className={`fas fa-long-arrow-alt-${
-                  sortOrder === 'desc' ? 'up' : 'down'
-                }`}
-              ></i>
-              <ButtonHiddenText>
-                {sortOrder === 'desc' ? 'Sort Ascending' : 'Sort Descending'}
-              </ButtonHiddenText>
-            </SortOrder>
-          )}
-        </div>
-      </FilterContainer>
       <div
         style={{
           overflow: 'auto',

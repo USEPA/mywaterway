@@ -25,10 +25,13 @@ const Container = styled.div`
   [data-reach-tab-panels] {
     height: 100%;
     border: none !important;
+    padding: 0 1px;
   }
 
   [data-reach-tab-panel] {
-    height: calc(100% - 40px);
+    display: flex;
+    flex-flow: column;
+    height: calc(100% - 30px);
     padding: 0 !important;
 
     h3 {
@@ -58,9 +61,9 @@ const FooterBar = styled.div`
 
 const PageControl = styled.button`
   color: black;
-  background-color: white;
-  padding: 0;
-  margin: 0 5px;
+  background-color: transparent;
+  padding: 3px;
+  margin: 0 3px;
 
   &:disabled {
     opacity: 0.35;
@@ -82,6 +85,7 @@ const StyledLinkButton = styled(LinkButton)`
   text-transform: uppercase;
   text-decoration: none;
   font-weight: normal;
+  padding: 5px;
 `;
 
 const ResizeHandle = styled.div`
@@ -109,6 +113,7 @@ function AddDataWidget() {
   } = React.useContext(AddDataWidgetContext);
 
   const [activeTabIndex, setActiveTabIndex] = React.useState(0);
+  const [layerPanelVisible, setLayerPanelVisible] = React.useState(false);
 
   return (
     <React.Fragment>
@@ -135,7 +140,9 @@ function AddDataWidget() {
         </button>
       </div>
       <Container>
-        <StyledContentTabs>
+        <StyledContentTabs
+          style={{ display: layerPanelVisible ? 'none' : 'block' }}
+        >
           <Tabs
             index={activeTabIndex}
             onChange={(index) => {
@@ -163,6 +170,14 @@ function AddDataWidget() {
             </TabPanels>
           </Tabs>
         </StyledContentTabs>
+        <div
+          style={{
+            display: layerPanelVisible ? 'block' : 'none',
+            height: '100%',
+          }}
+        >
+          Layers
+        </div>
         <FooterBar>
           <div>
             {activeTabIndex === 0 && (
@@ -201,8 +216,20 @@ function AddDataWidget() {
               </React.Fragment>
             )}
           </div>
-          <StyledLinkButton>
-            <i class="fas fa-layer-group"></i> Layers
+          <StyledLinkButton
+            onClick={() => {
+              setLayerPanelVisible(!layerPanelVisible);
+            }}
+          >
+            {layerPanelVisible ? (
+              <React.Fragment>
+                Back <i class="fas fa-angle-double-right"></i>
+              </React.Fragment>
+            ) : (
+              <React.Fragment>
+                <i class="fas fa-layer-group"></i> Layers
+              </React.Fragment>
+            )}
           </StyledLinkButton>
         </FooterBar>
       </Container>
