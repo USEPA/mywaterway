@@ -721,7 +721,7 @@ function ResultCard({ result }: ResultCardProps) {
   const { Layer, PortalItem, watchUtils } = React.useContext(
     EsriModulesContext,
   );
-  const { portalLayers, addPortalLayer, removePortalLayer } = React.useContext(
+  const { widgetLayers, addWidgetLayer, removeWidgetLayer } = React.useContext(
     AddDataWidgetContext,
   );
   const { mapView } = React.useContext(LocationSearchContext);
@@ -730,10 +730,11 @@ function ResultCard({ result }: ResultCardProps) {
   const [added, setAdded] = React.useState(false);
   React.useEffect(() => {
     const added =
-      portalLayers.findIndex((portalLayer) => portalLayer.id === result.id) !==
-      -1;
+      widgetLayers.findIndex(
+        (widgetLayer) => widgetLayer.portalItem?.id === result.id,
+      ) !== -1;
     setAdded(added);
-  }, [portalLayers, result]);
+  }, [widgetLayers, result]);
 
   // removes the esri watch handle when the card is removed from the DOM.
   const [status, setStatus] = React.useState('');
@@ -764,7 +765,6 @@ function ResultCard({ result }: ResultCardProps) {
         (loadStatus: string) => {
           // set the status based on the load status
           if (loadStatus === 'loaded') {
-            addPortalLayer({ id: result.id, type: 'arcgis' });
             setStatus('');
 
             // set the min/max scale for tile layers
@@ -792,6 +792,7 @@ function ResultCard({ result }: ResultCardProps) {
 
       // add the layer to the map
       mapView.map.add(layer);
+      addWidgetLayer(layer);
     });
   }
 
@@ -814,10 +815,9 @@ function ResultCard({ result }: ResultCardProps) {
     // remove the layers from the map and session storage.
     if (layersToRemove.length > 0) {
       mapView.map.removeMany(layersToRemove.toArray());
-      removePortalLayer(result.id);
-      // setPortalLayers((portalLayers) =>
-      //     portalLayers.filter((portalLayer) => portalLayer.id !== result.id),
-      // );
+      layersToRemove.forEach((layer) => {
+        removeWidgetLayer(layer.id);
+      });
     }
   }
 

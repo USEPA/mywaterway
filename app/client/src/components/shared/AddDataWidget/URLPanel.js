@@ -50,7 +50,9 @@ const StyledLinkButton = styled(LinkButton)`
 
 // --- components (URLPanel) ---
 function URLPanel() {
-  const { urlLayers, setUrlLayers } = React.useContext(AddDataWidgetContext);
+  const { widgetLayers, addWidgetLayer } = React.useContext(
+    AddDataWidgetContext,
+  );
   const { mapView } = React.useContext(LocationSearchContext);
   const {
     CSVLayer,
@@ -77,22 +79,11 @@ function URLPanel() {
   React.useEffect(() => {
     if (!mapView || !layer) return;
 
-    // keep the original set of url layers in case the layer errors out
-    const originalUrlLayers = urlLayers;
-
     // add the layer to the map
     mapView.map.add(layer);
 
     layer.on('layerview-create', (event) => {
-      setUrlLayers((urlLayers) => {
-        urlLayers.forEach((urlLayer) => {
-          if (urlLayer.url === url && urlLayer.type === urlType.value) {
-            urlLayer.layerId = layer.id;
-          }
-        });
-
-        return urlLayers;
-      });
+      addWidgetLayer(layer);
       setStatus('success');
     });
 
@@ -101,20 +92,18 @@ function URLPanel() {
 
       mapView.map.remove(layer);
 
-      setUrlLayers(originalUrlLayers);
-
       setStatus('failure');
     });
 
     setLayer(null);
-  }, [mapView, layer, setUrlLayers, url, urlLayers, urlType]);
+  }, [mapView, layer, addWidgetLayer, widgetLayers, url, urlType]);
 
   if (!mapView) return null;
 
   const handleAdd = (ev: React.MouseEvent<HTMLButtonElement>) => {
     // make sure the url hasn't already been added
-    const index = urlLayers.findIndex(
-      (layer) => layer.url.toLowerCase() === url.toLowerCase(),
+    const index = widgetLayers.findIndex(
+      (layer) => layer.url?.toLowerCase() === url.toLowerCase(),
     );
     if (index > -1) {
       setStatus('already-added');
@@ -128,9 +117,6 @@ function URLPanel() {
     let layer = null;
     if (type === 'ArcGIS') {
       // add this layer to the url layers
-      const urlLayer = { url, type: urlType.value, layerId: '' };
-      setUrlLayers([...urlLayers, urlLayer]);
-
       Layer.fromArcGISServerUrl({ url })
         .then((layer) => {
           setLayer(layer);
@@ -161,9 +147,6 @@ function URLPanel() {
     // unsupported layer type
     if (layer) {
       // add this layer to the url layers
-      const urlLayer = { url, type: urlType.value, layerId: layer.id };
-      setUrlLayers([...urlLayers, urlLayer]);
-
       setLayer(layer);
     } else {
       setStatus('unsupported');

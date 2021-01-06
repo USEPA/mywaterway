@@ -7,9 +7,7 @@ export const AddDataWidgetContext: Object = React.createContext({
   addDataWidgetVisible: false,
   pageNumber: 1,
   searchResults: { status: 'none', data: null },
-  portalLayers: [],
-  referenceLayers: [],
-  urlLayers: [],
+  widgetLayers: [],
 });
 
 type Props = {
@@ -20,9 +18,7 @@ type State = {
   addDataWidgetVisible: boolean,
   pageNumber: number,
   searchResults: Object,
-  portalLayers: Object[],
-  referenceLayers: Object[],
-  urlLayers: Object[],
+  widgetLayers: Object[],
 };
 
 export class AddDataWidgetProvider extends React.Component<Props, State> {
@@ -30,9 +26,7 @@ export class AddDataWidgetProvider extends React.Component<Props, State> {
     addDataWidgetVisible: false,
     pageNumber: 1,
     searchResults: { status: 'none', data: null },
-    portalLayers: [],
-    referenceLayers: [],
-    urlLayers: [],
+    widgetLayers: [],
 
     getAddDataWidgetVisible: () => {
       return this.state.addDataWidgetVisible;
@@ -46,38 +40,17 @@ export class AddDataWidgetProvider extends React.Component<Props, State> {
     setSearchResults: (searchResults) => {
       this.setState({ searchResults });
     },
-    addPortalLayer: (portalLayer) => {
+    addWidgetLayer: (widgetLayer) => {
       this.setState((prevState, props) => ({
-        portalLayers: [...prevState.portalLayers, portalLayer],
+        widgetLayers: [...prevState.widgetLayers, widgetLayer],
       }));
     },
-    removePortalLayer: (layerId) => {
+    removeWidgetLayer: (layerId) => {
       this.setState((prevState, props) => ({
-        portalLayers: prevState.portalLayers.filter(
-          (portalLayer) => portalLayer.id !== layerId,
+        widgetLayers: prevState.widgetLayers.filter(
+          (widgetLayer) => widgetLayer.id !== layerId,
         ),
       }));
-    },
-    setPortalLayers: (portalLayers) => {
-      this.setState({ portalLayers });
-    },
-    addReferenceLayer: (referenceLayer) => {
-      this.setState((prevState, props) => ({
-        referenceLayers: [...prevState.referenceLayers, referenceLayer],
-      }));
-    },
-    removeReferenceLayer: (layerId) => {
-      this.setState((prevState, props) => ({
-        referenceLayers: prevState.referenceLayers.filter(
-          (referenceLayer) => referenceLayer.layerId !== layerId,
-        ),
-      }));
-    },
-    setReferenceLayers: (referenceLayers) => {
-      this.setState({ referenceLayers });
-    },
-    setUrlLayers: (urlLayers) => {
-      this.setState({ urlLayers });
     },
   };
   render() {

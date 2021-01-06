@@ -141,7 +141,7 @@ type UploadStatusType =
   | 'file-read-error';
 
 function FilePanel() {
-  const { referenceLayers, addReferenceLayer } = React.useContext(
+  const { widgetLayers, addWidgetLayer } = React.useContext(
     AddDataWidgetContext,
   );
   const { mapView } = React.useContext(LocationSearchContext);
@@ -416,7 +416,7 @@ function FilePanel() {
         };
       }
 
-      const layerName = getLayerName(referenceLayers, file.file.name);
+      const layerName = getLayerName(widgetLayers, file.file.name);
       setNewLayerName(layerName);
       const layerProps: __esri.FeatureLayerProperties = {
         fields,
@@ -432,11 +432,7 @@ function FilePanel() {
       const layerToAdd = new FeatureLayer(layerProps);
       featureLayers.push(layerToAdd);
 
-      addReferenceLayer({
-        ...layerProps,
-        layerId: layerToAdd.id,
-        portalId: '',
-      });
+      addWidgetLayer(layerToAdd);
     });
 
     mapView.map.addMany(featureLayers);
@@ -456,8 +452,8 @@ function FilePanel() {
     featuresAdded,
     file,
     mapView,
-    referenceLayers,
-    addReferenceLayer,
+    widgetLayers,
+    addWidgetLayer,
   ]);
 
   // handle loading of the KMLLayer

@@ -11,6 +11,7 @@ import SearchPanel from 'components/shared/AddDataWidget/SearchPanel';
 import URLPanel from 'components/shared/AddDataWidget/URLPanel';
 // contexts
 import { AddDataWidgetContext } from 'contexts/AddDataWidget';
+import { LocationSearchContext } from 'contexts/locationSearch';
 // icons
 import resizeIcon from '../Icons/resize.png';
 
@@ -43,6 +44,27 @@ const Container = styled.div`
       white-space: nowrap;
       line-height: 1.3;
     }
+  }
+`;
+
+const WidgetHeader = styled.div`
+  width: 100%;
+  height: 35px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #0071bc;
+  color: white;
+
+  h1 {
+    margin: 0 10px;
+    font-size: 16px;
+    line-height: 35px;
+    padding: 0;
+  }
+
+  button {
+    margin: 0;
   }
 `;
 
@@ -103,42 +125,91 @@ const ResizeHandle = styled.div`
   }
 `;
 
+const LayerPanel = styled.div`
+  display: ${({ layerPanelVisible }) => (layerPanelVisible ? 'flex' : 'none')};
+  flex-flow: column;
+  height: 100%;
+`;
+
+const LayerPanelHeader = styled.h2`
+  height: 40px;
+  margin: 0;
+  padding: 7px 15px;
+  border-bottom: 1px solid #ccc;
+  color: #898989;
+  font-size: 16px;
+  font-weight: normal;
+  line-height: 2;
+`;
+
+const RecordList = styled.div`
+  overflow: auto;
+  padding: 10px 15px;
+`;
+
+const RecordContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const DeleteButton = styled.button`
+  margin: 0;
+  color: black;
+  background-color: transparent;
+`;
+
 // --- components (AddData) ---
 function AddDataWidget() {
+  const { mapView } = React.useContext(LocationSearchContext);
   const {
     setAddDataWidgetVisible,
     pageNumber,
     setPageNumber,
     searchResults,
+    widgetLayers,
+    removeWidgetLayer,
   } = React.useContext(AddDataWidgetContext);
 
   const [activeTabIndex, setActiveTabIndex] = React.useState(0);
   const [layerPanelVisible, setLayerPanelVisible] = React.useState(false);
 
+  // Build an array of layers to display on the layers panel.
+  // Note: ArcGIS Online has some group layers that are empty, these will not
+  //  be displayed on the layers panel.
+  const layersToDisplay = [];
+  widgetLayers.forEach((layer) => {
+    // directly add non-group layers
+    if (layer.type !== 'group') {
+      layersToDisplay.push({ layer, title: layer.title });
+      return;
+    }
+
+    // for group layers, add each child layer separately
+    layer.layers.items
+      .slice()
+      .reverse()
+      .forEach((childLayer) => {
+        // filter out tables as they don't get displayed on the map
+        if (childLayer.isTable) return;
+
+        const title = `${layer.title} - ${childLayer.title}`;
+        layersToDisplay.push({ layer: childLayer, title });
+      });
+  });
+
   return (
     <React.Fragment>
-      <div
-        className="drag-handle"
-        style={{
-          width: '100%',
-          height: '35px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          backgroundColor: '#0071bc',
-          color: 'white',
-        }}
-      >
-        <strong style={{ margin: '0 10px' }}>Add Data</strong>
+      <WidgetHeader className="drag-handle">
+        <h1>Add Data</h1>
         <button
-          style={{ margin: '0' }}
           onClick={() => {
             setAddDataWidgetVisible(false);
           }}
         >
           X
         </button>
-      </div>
+      </WidgetHeader>
       <Container>
         <StyledContentTabs
           style={{ display: layerPanelVisible ? 'none' : 'block' }}
@@ -170,17 +241,44 @@ function AddDataWidget() {
             </TabPanels>
           </Tabs>
         </StyledContentTabs>
-        <div
-          style={{
-            display: layerPanelVisible ? 'block' : 'none',
-            height: '100%',
-          }}
-        >
-          Layers
-        </div>
+        <LayerPanel layerPanelVisible={layerPanelVisible}>
+          <LayerPanelHeader>Layers</LayerPanelHeader>
+          <RecordList>
+            {layersToDisplay.length === 0 && (
+              <div>No layers have been added.</div>
+            )}
+            {layersToDisplay.length > 0 &&
+              layersToDisplay.map((item) => {
+                return (
+                  <RecordContainer key={item.layer.id}>
+                    <label htmlFor={item.layer.id}>{item.title}</label>
+                    <DeleteButton
+                      id={item.layer.id}
+                      className="esri-icon-trash"
+                      onClick={() => {
+                        if (
+                          !item.layer.parent?.type ||
+                          item.layer.parent.type !== 'group'
+                        ) {
+                          removeWidgetLayer(item.layer.id);
+                          mapView.map.remove(item.layer);
+                          return;
+                        }
+
+                        if (item.layer.parent.layers.length === 1) {
+                          removeWidgetLayer(item.layer.parent.id);
+                        }
+                        item.layer.parent.remove(item.layer);
+                      }}
+                    ></DeleteButton>
+                  </RecordContainer>
+                );
+              })}
+          </RecordList>
+        </LayerPanel>
         <FooterBar>
           <div>
-            {activeTabIndex === 0 && (
+            {activeTabIndex === 0 && !layerPanelVisible && (
               <React.Fragment>
                 <PageControl
                   disabled={pageNumber === 1 || !searchResults?.data}
@@ -223,11 +321,11 @@ function AddDataWidget() {
           >
             {layerPanelVisible ? (
               <React.Fragment>
-                Back <i class="fas fa-angle-double-right"></i>
+                Back <i className="fas fa-angle-double-right"></i>
               </React.Fragment>
             ) : (
               <React.Fragment>
-                <i class="fas fa-layer-group"></i> Layers
+                <i className="fas fa-layer-group"></i> Layers
               </React.Fragment>
             )}
           </StyledLinkButton>
