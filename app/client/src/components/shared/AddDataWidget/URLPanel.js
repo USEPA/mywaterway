@@ -4,6 +4,7 @@ import React from 'react';
 import styled from 'styled-components';
 import Select from 'react-select';
 // components
+import { LinkButton } from 'components/shared/LinkButton';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 // contexts
 import { EsriModulesContext } from 'contexts/EsriModules';
@@ -18,12 +19,33 @@ import {
 } from 'config/errorMessages';
 
 // --- styles (URLPanel) ---
+const ButtonContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+`;
+
 const AddButton = styled.button`
-  float: right;
+  margin: 0;
+  min-width: 50%;
+  font-weight: normal;
+  font-size: 12px;
 `;
 
 const UrlInput = styled.input`
   width: 100%;
+`;
+
+const StyledLinkButton = styled(LinkButton)`
+  text-transform: uppercase;
+  text-decoration: none;
+  font-weight: normal;
+  padding: 5px;
+
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 // --- components (URLPanel) ---
@@ -193,12 +215,17 @@ function URLPanel() {
       {status === 'failure' && urlLayerFailureMessage(url)}
       {status === 'unsupported' && unsupportedLayerMessage(urlType.label)}
       {status === 'already-added' && urlAlreadyAddedMessage(url)}
-      <button type="button" onClick={() => setShowSampleUrls(!showSampleUrls)}>
-        SAMPLE URL(S)
-      </button>
-      <AddButton type="submit" onClick={handleAdd}>
-        ADD
-      </AddButton>
+      <ButtonContainer>
+        <StyledLinkButton
+          type="button"
+          onClick={() => setShowSampleUrls(!showSampleUrls)}
+        >
+          SAMPLE URL(S)
+        </StyledLinkButton>
+        <AddButton type="submit" onClick={handleAdd}>
+          ADD
+        </AddButton>
+      </ButtonContainer>
 
       {showSampleUrls && (
         <React.Fragment>

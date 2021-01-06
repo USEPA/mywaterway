@@ -48,7 +48,7 @@ function getLayerName(layers, desiredName) {
 const FileIconOuterContainer = styled.span`
   width: 2em;
   line-height: 1;
-  margin: 5px;
+  margin: 2px;
 `;
 
 const FileIconContainer = styled.span`
@@ -533,7 +533,10 @@ function FilePanel() {
             Generalize features for web display
           </label>
           <br />
-          <div {...getRootProps({ className: 'dropzone' })}>
+          <div
+            {...getRootProps({ className: 'dropzone' })}
+            style={{ padding: '10px' }}
+          >
             <input
               id="tots-dropzone"
               data-testid="tots-dropzone"
@@ -547,7 +550,6 @@ function FilePanel() {
                   <FileIcon label="Shape File" />
                   <FileIcon label="CSV" />
                   <FileIcon label="KML" />
-                  <br />
                   <FileIcon label="GPX" />
                   <FileIcon label="Geo JSON" />
                 </div>
