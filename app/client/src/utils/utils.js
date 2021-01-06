@@ -185,30 +185,30 @@ function splitSuggestedSearch(Point, text) {
 
 // check user-agent for iOS version, if applicable
 function browserIsCompatibleWithArcGIS() {
-  const agent = window.navigator.userAgent;
-  const start = agent.indexOf('OS ');
+  // const agent = window.navigator.userAgent;
+  // const start = agent.indexOf('OS ');
 
-  if (
-    (agent.indexOf('iPhone') > -1 || agent.indexOf('iPad') > -1) &&
-    start > -1
-  ) {
-    const iosVersion = window.Number(
-      agent.substr(start + 3, 3).replace('_', '.'),
-    );
+  // if (
+  //   (agent.indexOf('iPhone') > -1 || agent.indexOf('iPad') > -1) &&
+  //   start > -1
+  // ) {
+  //   const iosVersion = window.Number(
+  //     agent.substr(start + 3, 3).replace('_', '.'),
+  //   );
 
-    if (isNaN(iosVersion)) {
-      // unable to detect iOS version - assume browser supports ArcGIS
-      return true;
-    }
+  //   if (isNaN(iosVersion)) {
+  //     // unable to detect iOS version - assume browser supports ArcGIS
+  //     return true;
+  //   }
 
-    if (iosVersion <= 10) {
-      // iOS version is below 10 - browser will not support ArcGIS
-      return false;
-    }
+  //   if (iosVersion <= 10) {
+  //     // iOS version is below 10 - browser will not support ArcGIS
+  //     return false;
+  //   }
 
-    // iOS Version is 10 or higher and will support ArcGIS
-    return true;
-  }
+  //   // iOS Version is 10 or higher and will support ArcGIS
+  //   return true;
+  // }
 
   // iOS version not found - assume browser supports ArcGIS
   return true;
