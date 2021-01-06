@@ -1313,10 +1313,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // check for browser compatibility with map
   if (!browserIsCompatibleWithArcGIS() && !communityMapLoadError) {
     setCommunityMapLoadError(true);
-    window.logToGa('send', 'exception', {
-      exDescription: `Community map failed to load - browser does not support performance.mark()`,
-      exFatal: false,
-    });
   }
 
   // jsx
