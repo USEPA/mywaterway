@@ -337,6 +337,15 @@ function MapLegendContent({ layer }: CardProps) {
     </LI>
   );
 
+  const wildScenicRiversLegend = (
+    <LI>
+      <ImageContainer>
+        {squareIcon({ color: 'rgb(0, 123, 255)' })}
+      </ImageContainer>
+      <LegendLabel>Wild and Scenic Rivers</LegendLabel>
+    </LI>
+  );
+
   // jsx
   const countyLegend = (
     <LI>
@@ -398,6 +407,7 @@ function MapLegendContent({ layer }: CardProps) {
   if (layer.id === 'countyLayer') return countyLegend;
   if (layer.id === 'tribalLayer') return tribalLegend;
   if (layer.id === 'wsioHealthIndexLayer') return healthIndexLegend;
+  if (layer.id === 'wildScenicRiversLayer') return wildScenicRiversLegend;
   if (layer.id === 'congressionalLayer') return congressionalDistrictsLegend;
   if (layer.id === 'upstreamWatershed') return upstreamLegend;
   if (layer.id === 'stateBoundariesLayer') return stateBoundariesLegend;

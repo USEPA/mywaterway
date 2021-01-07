@@ -110,6 +110,7 @@ function updateVisibleLayers(view: any, legendNode: Node) {
     'tribalLayer-2',
     'tribalLayer-4',
     'wsioHealthIndexLayer',
+    'wildScenicRiversLayer',
     'searchIconLayer',
   ];
 
@@ -430,6 +431,7 @@ function MapWidgets({
       'issuesLayer',
       'actionsLayer',
       'wsioHealthIndexLayer',
+      'wildScenicRiversLayer',
     ];
 
     // hide/show layers based on the provided list of layers to show

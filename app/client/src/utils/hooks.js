@@ -720,6 +720,16 @@ function useSharedLayers() {
       renderer: wsioHealthIndexRenderer,
       listMode: 'show',
       visible: false,
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields: [
+          'phwa_health_ndx_st_2016',
+          'huc12_text',
+          'name_huc12',
+          'states2013',
+        ],
+      },
     });
 
     setWsioHealthIndexLayer(wsioHealthIndexLayer);

@@ -18,7 +18,12 @@ import { getUrlFromMarkup, getTitleFromMarkup } from 'components/shared/Regex';
 // styles
 import { fonts } from 'styles/index.js';
 // errors
-import { protectNonpointSourceError } from 'config/errorMessages';
+import {
+  protectNonpointSourceError,
+  protectedAreasDatabaseError,
+  wildScenicRiversError,
+  wsioHealthIndexError,
+} from 'config/errorMessages';
 
 // given a state code like AL,VA and an array of state objects from attains states service,
 // returns the full name of the states (e.g., Alabama and Virginia)
@@ -33,6 +38,9 @@ function convertStateCode(stateCode: string, stateData: Array<Object>) {
 
     if (matchingState) stateNames.push(matchingState.name);
   });
+
+  // don't add ' and ' if only one state is found
+  if (stateNames.length === 1) return stateNames[0];
 
   const sortedStateNames = stateNames.sort();
   const stateNamesStr =
@@ -109,6 +117,14 @@ const GradientHeaderFooter = styled.div`
   text-align: center;
 `;
 
+const ErrorBox = styled(StyledErrorBox)`
+  text-align: center;
+
+  p {
+    padding-bottom: 0 !important;
+  }
+`;
+
 // --- components ---
 function Protect() {
   const {
@@ -120,6 +136,10 @@ function Protect() {
     setVisibleLayers,
     wsioHealthIndexLayer,
     wsioHealthIndexData,
+    wildScenicRiversLayer,
+    wildScenicRiversData,
+    protectedAreasLayer,
+    protectedAreasData,
   } = React.useContext(LocationSearchContext);
 
   const sortedGrtsData =
@@ -152,28 +172,51 @@ function Protect() {
   const [tabIndex, setTabIndex] = React.useState(null);
   // toggle map layers' visibility when a tab changes
   React.useEffect(() => {
-    // if (!boundariesLayer || !waterbodyLayer || !providersLayer) return;
-    if (!wsioHealthIndexLayer) return;
+    if (!wsioHealthIndexLayer || !wildScenicRiversLayer || !protectedAreasLayer)
+      return;
 
     if (tabIndex === 0) {
       setVisibleLayers({
-        wsioHealthIndexLayer: false,
+        wsioHealthIndexLayer: true,
+        wildScenicRiversLayer: false,
+        protectedAreasLayer: false,
       });
     }
 
     if (tabIndex === 1) {
       setVisibleLayers({
-        wsioHealthIndexLayer: true,
+        wsioHealthIndexLayer: false,
+        wildScenicRiversLayer: false,
+        protectedAreasLayer: false,
       });
     }
-  }, [tabIndex, setVisibleLayers, wsioHealthIndexLayer]);
+  }, [
+    tabIndex,
+    setVisibleLayers,
+    wsioHealthIndexLayer,
+    wildScenicRiversLayer,
+    protectedAreasLayer,
+  ]);
 
   // toggle the switches setting when the map layer's visibility changes
   React.useEffect(() => {
     if (healthScoresDisplayed !== visibleLayers['wsioHealthIndexLayer']) {
       setHealthScoresDisplayed(visibleLayers['wsioHealthIndexLayer']);
     }
-  }, [healthScoresDisplayed, visibleLayers]);
+
+    if (wildScenicRiversDisplayed !== visibleLayers['wildScenicRiversLayer']) {
+      setWildScenicRiversDisplayed(visibleLayers['wildScenicRiversLayer']);
+    }
+
+    if (protectedAreasDisplayed !== visibleLayers['protectedAreasLayer']) {
+      setProtectedAreasDisplayed(visibleLayers['protectedAreasLayer']);
+    }
+  }, [
+    healthScoresDisplayed,
+    wildScenicRiversDisplayed,
+    protectedAreasDisplayed,
+    visibleLayers,
+  ]);
 
   const wsioData =
     wsioHealthIndexData.status === 'success'
@@ -194,109 +237,10 @@ function Protect() {
           defaultIndex={tabIndex}
         >
           <TabList>
-            <Tab>Tips</Tab>
             <Tab>Watershed Health and Protection</Tab>
+            <Tab>Tips</Tab>
           </TabList>
           <TabPanels>
-            <TabPanel>
-              <p>
-                <em>Links below open in a new browser tab.</em>
-              </p>
-              <p>Get quick tips for reducing water impairment in your:</p>
-
-              <Heading>Community</Heading>
-              <List>
-                <li>Contribute to local water cleanup efforts.</li>
-                <li>Find a watershed protection organization to support.</li>
-                <li>Volunteer to help monitor water quality.</li>
-                <li>
-                  Lead a campaign to educate your community about impairment
-                  from nonpoint sources, like stormwater.
-                </li>
-                <li>
-                  Sponsor a watershed festival in your community to raise
-                  awareness about the importance of watershed protection.
-                </li>
-                <li>See how your state is protecting your waters.</li>
-              </List>
-
-              <Heading>School</Heading>
-              <List>
-                <li>Adopt your watershed.</li>
-                <li>
-                  Teach students about watershed protection by showing the
-                  “After the Storm” television special and using other resources
-                  from EPA’s Watershed Academy.
-                </li>
-                <li>
-                  <a
-                    href="https://www.epa.gov/schools"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Find other ways to make a difference in your school.
-                  </a>
-                </li>
-              </List>
-
-              <Heading>Yard</Heading>
-              <List>
-                <li>
-                  <a
-                    href="https://www.epa.gov/nutrientpollution/what-you-can-do-your-yard"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Use fertilizer responsibly.
-                  </a>
-                </li>
-                <li>Don’t overwater gardens and yards.</li>
-                <li>
-                  <a
-                    href="https://www.epa.gov/watersense/what-plant"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Landscape with native plants.
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://www.epa.gov/soakuptherain"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Reduce runoff.
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://www.epa.gov/safepestcontrol/lawn-and-garden"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Find other ways to make a difference in your yard.
-                  </a>
-                </li>
-              </List>
-
-              <Heading>Home</Heading>
-              <List>
-                <li>Choose phosphate-free soaps and detergents.</li>
-                <li>Pick up after your pet.</li>
-                <li>
-                  <a
-                    href="https://www.epa.gov/watersense"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Use water efficiently.
-                  </a>
-                </li>
-                <li>Wash your car on your lawn or in commercial car washes.</li>
-                <li>Find other ways to make a difference in your home.</li>
-              </List>
-            </TabPanel>
             <TabPanel>
               <p>
                 Learn about watershed health scores in relation to your state,
@@ -304,107 +248,135 @@ function Protect() {
                 location of any designated <em>Wild and Scenic Rivers</em>
               </p>
 
-              <AccordionList title={''}>
+              <AccordionList>
                 <AccordionItem title={<strong>Watershed Health Scores</strong>}>
                   <AccordionContent>
                     <Label>
                       <Switch
-                        checked={healthScoresDisplayed}
+                        checked={
+                          healthScoresDisplayed &&
+                          wsioHealthIndexData.status === 'success' &&
+                          wsioHealthIndexData.data.length > 0
+                        }
                         onChange={(checked) => {
                           setHealthScoresDisplayed(checked);
-
                           setVisibleLayers({
                             wsioHealthIndexLayer: checked,
                           });
                         }}
-                        disabled={false}
+                        disabled={
+                          wsioHealthIndexData.status === 'failure' ||
+                          wsioHealthIndexData.data.length === 0
+                        }
                         ariaLabel="Watershed Health Scores"
                       />
                       <span>Display on Map</span>
                     </Label>
 
-                    <WatershedContainer>
-                      <div style={{ width: 'calc(80% - 0.75em)' }}>
-                        <table className="table">
-                          <tbody>
-                            <tr>
-                              <td>
-                                <em>Watershed Name:</em>
-                              </td>
-                              <td>{watershed}</td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <em>HUC Code:</em>
-                              </td>
-                              <td>{huc12}</td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <em>State:</em>
-                              </td>
-                              <td>
-                                {(wsioHealthIndexData.status === 'fetching' ||
-                                  statesData.status === 'fetching') && (
-                                  <LoadingSpinner />
-                                )}
-                                {wsioHealthIndexData.status === 'success' &&
-                                  statesData.status === 'success' &&
-                                  convertStateCode(
-                                    wsioData.states,
-                                    statesData.data,
-                                  )}
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <em>Watershed Health Score:</em>
-                              </td>
-                              <td>
-                                {wsioHealthIndexData.status === 'fetching' && (
-                                  <LoadingSpinner />
-                                )}
-                                {wsioHealthIndexData.status === 'success' && (
-                                  <>
-                                    {wsioScore < 0.5 ? (
-                                      <>Less Healthy ({wsioScore})</>
-                                    ) : (
-                                      <>Healthy ({wsioScore})</>
+                    {wsioHealthIndexData.status === 'failure' && (
+                      <ErrorBox>
+                        <p>{wsioHealthIndexError}</p>
+                      </ErrorBox>
+                    )}
+
+                    {wsioHealthIndexData.status === 'fetching' && (
+                      <LoadingSpinner />
+                    )}
+
+                    {wsioHealthIndexData.status === 'success' &&
+                      wsioHealthIndexData.data.length === 0 && (
+                        <p>
+                          No Protected Areas Database data available for this
+                          location.
+                        </p>
+                      )}
+
+                    {wsioHealthIndexData.status === 'success' &&
+                      wsioHealthIndexData.data.length > 0 && (
+                        <WatershedContainer>
+                          <div style={{ width: 'calc(80% - 0.75em)' }}>
+                            <table className="table">
+                              <tbody>
+                                <tr>
+                                  <td>
+                                    <em>Watershed Name:</em>
+                                  </td>
+                                  <td>{watershed}</td>
+                                </tr>
+                                <tr>
+                                  <td>
+                                    <em>Watershed:</em>
+                                  </td>
+                                  <td>{huc12}</td>
+                                </tr>
+                                <tr>
+                                  <td>
+                                    <em>State:</em>
+                                  </td>
+                                  <td>
+                                    {(wsioHealthIndexData.status ===
+                                      'fetching' ||
+                                      statesData.status === 'fetching') && (
+                                      <LoadingSpinner />
                                     )}
-                                  </>
-                                )}
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                      <div style={{ width: 'calc(20% - 0.75em)' }}>
-                        <div>
-                          <GradientHeaderFooter>Healthy</GradientHeaderFooter>
-                          <div style={{ marginLeft: '25px' }}>
-                            {gradientIcon({
-                              id: 'health-index-horizontal-gradient',
-                              stops: [
-                                { label: '1', color: 'rgb(10, 8, 145)' },
-                                { label: '0.75', color: 'rgb(30, 61, 181)' },
-                                { label: '0.5', color: 'rgb(54, 140, 225)' },
-                                {
-                                  label: '0.25',
-                                  color: 'rgb(124, 187, 234)',
-                                },
-                                {
-                                  label: '0',
-                                  color: 'rgb(180, 238, 239)',
-                                },
-                              ],
-                            })}
+                                    {wsioHealthIndexData.status === 'success' &&
+                                      statesData.status === 'success' &&
+                                      convertStateCode(
+                                        wsioData.states,
+                                        statesData.data,
+                                      )}
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td>
+                                    <em>Watershed Health Score:</em>
+                                  </td>
+                                  <td>
+                                    {wsioHealthIndexData.status ===
+                                      'fetching' && <LoadingSpinner />}
+                                    {wsioHealthIndexData.status ===
+                                      'success' && <>{wsioScore}</>}
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
                           </div>
-                          <GradientHeaderFooter>
-                            Less Healthy
-                          </GradientHeaderFooter>
-                        </div>
-                      </div>
-                    </WatershedContainer>
+                          <div style={{ width: 'calc(20% - 0.75em)' }}>
+                            <div>
+                              <GradientHeaderFooter>
+                                More Healthy
+                              </GradientHeaderFooter>
+                              <div style={{ marginLeft: '25px' }}>
+                                {gradientIcon({
+                                  id: 'health-index-horizontal-gradient',
+                                  stops: [
+                                    { label: '1', color: 'rgb(10, 8, 145)' },
+                                    {
+                                      label: '0.75',
+                                      color: 'rgb(30, 61, 181)',
+                                    },
+                                    {
+                                      label: '0.5',
+                                      color: 'rgb(54, 140, 225)',
+                                    },
+                                    {
+                                      label: '0.25',
+                                      color: 'rgb(124, 187, 234)',
+                                    },
+                                    {
+                                      label: '0',
+                                      color: 'rgb(180, 238, 239)',
+                                    },
+                                  ],
+                                })}
+                              </div>
+                              <GradientHeaderFooter>
+                                Less Healthy
+                              </GradientHeaderFooter>
+                            </div>
+                          </div>
+                        </WatershedContainer>
+                      )}
 
                     <p>
                       <strong>Where do the healthiest watersheds occur?</strong>
@@ -476,21 +448,69 @@ function Protect() {
 
                 <AccordionItem title={<strong>Protected Areas</strong>}>
                   <AccordionContent>
+                    <p>
+                      The Protected Areas Database (PAD-US) is America’s
+                      official national inventory of U.S. terrestrial and marine
+                      protected areas that are dedicated to the preservation of
+                      biological diversity and to other natural, recreation and
+                      cultural uses, managed for these purposes through legal or
+                      other effective means.
+                    </p>
+
+                    <p>
+                      <a
+                        href="https://www.usgs.gov/core-science-systems/science-analytics-and-synthesis/gap/science/protected-areas"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        More Information »
+                      </a>
+                    </p>
+
                     <Label>
                       <Switch
-                        checked={protectedAreasDisplayed}
+                        checked={
+                          protectedAreasDisplayed &&
+                          protectedAreasData.status === 'success' &&
+                          protectedAreasData.data.length > 0
+                        }
                         onChange={(checked) => {
                           setProtectedAreasDisplayed(checked);
+                          setVisibleLayers({
+                            protectedAreasLayer: checked,
+                          });
                         }}
-                        disabled={false}
+                        disabled={
+                          protectedAreasData.status === 'failure' ||
+                          protectedAreasData.data.length === 0
+                        }
                         ariaLabel="Protected Areas"
                       />
                       <span>Display on Map</span>
                     </Label>
 
-                    {
-                      /* TODO: replace array with actual protected areas */
-                      [1, 2, 3].map((item) => {
+                    {protectedAreasData.status === 'failure' && (
+                      <ErrorBox>
+                        <p>{protectedAreasDatabaseError}</p>
+                      </ErrorBox>
+                    )}
+
+                    {protectedAreasData.status === 'fetching' && (
+                      <LoadingSpinner />
+                    )}
+
+                    {protectedAreasData.status === 'success' &&
+                      protectedAreasData.data.length === 0 && (
+                        <p>
+                          No Protected Areas Database data available for this
+                          location.
+                        </p>
+                      )}
+
+                    {protectedAreasData.status === 'success' &&
+                      protectedAreasData.data.length > 0 &&
+                      protectedAreasData.data.map((item) => {
+                        /* TODO: replace with protected areas data */
                         return (
                           <Feature key={item}>
                             <FeatureTitle>
@@ -527,74 +547,12 @@ function Protect() {
                             </table>
                           </Feature>
                         );
-                      })
-                    }
-
-                    <p>
-                      The Protected Areas Database (PAD-US) is America’s
-                      official national inventory of U.S. terrestrial and marine
-                      protected areas that are dedicated to the preservation of
-                      biological diversity and to other natural, recreation and
-                      cultural uses, managed for these purposes through legal or
-                      other effective means.
-                    </p>
-
-                    <p>
-                      <a
-                        href="https://www.usgs.gov/core-science-systems/science-analytics-and-synthesis/gap/science/protected-areas"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        More Information »
-                      </a>
-                    </p>
+                      })}
                   </AccordionContent>
                 </AccordionItem>
 
                 <AccordionItem title={<strong>Wild and Scenic Rivers</strong>}>
                   <AccordionContent>
-                    <Label>
-                      <Switch
-                        checked={wildScenicRiversDisplayed}
-                        onChange={(checked) => {
-                          setWildScenicRiversDisplayed(checked);
-                        }}
-                        disabled={false}
-                        ariaLabel="Wild and Scenic Rivers"
-                      />
-                      <span>Display on Map</span>
-                    </Label>
-
-                    {
-                      /* TODO: replace array with actual wild and scenic rivers */
-                      [1, 2, 3].map((item) => {
-                        return (
-                          <Feature key={item}>
-                            <FeatureTitle>
-                              <strong>Wild and Scenic River {item}</strong>
-                            </FeatureTitle>
-
-                            <table className="table">
-                              <tbody>
-                                <tr>
-                                  <td>
-                                    <em>{'...'}</em>
-                                  </td>
-                                  <td>{'...'}</td>
-                                </tr>
-                                <tr>
-                                  <td>
-                                    <em>{'...'}</em>
-                                  </td>
-                                  <td>{'...'}</td>
-                                </tr>
-                              </tbody>
-                            </table>
-                          </Feature>
-                        );
-                      })
-                    }
-
                     <p>
                       The National Wild and Scenic Rivers System was created by
                       Congress in 1968 to preserve certain rivers with
@@ -617,6 +575,131 @@ function Protect() {
                         More Information »
                       </a>
                     </p>
+
+                    <Label>
+                      <Switch
+                        checked={
+                          wildScenicRiversDisplayed &&
+                          wildScenicRiversData.status === 'success' &&
+                          wildScenicRiversData.data.length > 0
+                        }
+                        onChange={(checked) => {
+                          setWildScenicRiversDisplayed(checked);
+                          setVisibleLayers({
+                            wildScenicRiversLayer: checked,
+                          });
+                        }}
+                        disabled={
+                          wildScenicRiversData.status === 'failure' ||
+                          wildScenicRiversData.data.length === 0
+                        }
+                        ariaLabel="Wild and Scenic Rivers"
+                      />
+                      <span>Display on Map</span>
+                    </Label>
+
+                    {wildScenicRiversData.status === 'failure' && (
+                      <ErrorBox>
+                        <p>{wildScenicRiversError}</p>
+                      </ErrorBox>
+                    )}
+
+                    {wildScenicRiversData.status === 'fetching' && (
+                      <LoadingSpinner />
+                    )}
+
+                    {wildScenicRiversData.status === 'success' &&
+                      wildScenicRiversData.data.length === 0 && (
+                        <p>
+                          No Wild and Scenic River data available for this
+                          location.
+                        </p>
+                      )}
+
+                    {wildScenicRiversData.status === 'success' &&
+                      wildScenicRiversData.data.length > 0 &&
+                      wildScenicRiversData.data.map((item) => {
+                        const attributes = item.attributes;
+                        return (
+                          <Feature key={item}>
+                            <FeatureTitle>
+                              <strong>{attributes.WSR_RIVER_NAME}</strong>
+                            </FeatureTitle>
+
+                            <table className="table">
+                              <tbody>
+                                <tr>
+                                  <td>
+                                    <em>Short Name</em>
+                                  </td>
+                                  <td>{attributes.WSR_RIVER_SHORTNAME}</td>
+                                </tr>
+
+                                <tr>
+                                  <td>
+                                    <em>Agency</em>
+                                  </td>
+                                  <td>{attributes.AGENCY}</td>
+                                </tr>
+
+                                <tr>
+                                  <td>
+                                    <em>Management Plan</em>
+                                  </td>
+                                  <td>
+                                    {attributes.MANAGEMENT_PLAN === 'Y'
+                                      ? 'Yes'
+                                      : 'No'}
+                                  </td>
+                                </tr>
+
+                                <tr>
+                                  <td>
+                                    <em>Managing Entities</em>
+                                  </td>
+                                  <td>{attributes.MANAGING_ENTITIES}</td>
+                                </tr>
+
+                                <tr>
+                                  <td>
+                                    <em>Public Law Name</em>
+                                  </td>
+                                  <td>{attributes.PUBLIC_LAW_NAME}</td>
+                                </tr>
+
+                                <tr>
+                                  <td>
+                                    <em>State</em>
+                                  </td>
+                                  <td>{attributes.STATE}</td>
+                                </tr>
+
+                                <tr>
+                                  <td>
+                                    <em>River Category</em>
+                                  </td>
+                                  <td>{attributes.RiverCategory}</td>
+                                </tr>
+
+                                <tr>
+                                  <td>
+                                    <em>More information</em>
+                                  </td>
+                                  <td>
+                                    <a
+                                      href={attributes.WEBLINK}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      {attributes.WEBLINK}
+                                    </a>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </Feature>
+                        );
+                      })}
                   </AccordionContent>
                 </AccordionItem>
 
@@ -625,9 +708,9 @@ function Protect() {
                     {grts.status === 'fetching' && <LoadingSpinner />}
 
                     {grts.status === 'failure' && (
-                      <StyledErrorBox>
+                      <ErrorBox>
                         <p>{protectNonpointSourceError}</p>
-                      </StyledErrorBox>
+                      </ErrorBox>
                     )}
 
                     {grts.status === 'success' && (
@@ -774,6 +857,105 @@ function Protect() {
                   </AccordionContent>
                 </AccordionItem>
               </AccordionList>
+            </TabPanel>
+            <TabPanel>
+              <p>
+                <em>Links below open in a new browser tab.</em>
+              </p>
+              <p>Get quick tips for reducing water impairment in your:</p>
+
+              <Heading>Community</Heading>
+              <List>
+                <li>Contribute to local water cleanup efforts.</li>
+                <li>Find a watershed protection organization to support.</li>
+                <li>Volunteer to help monitor water quality.</li>
+                <li>
+                  Lead a campaign to educate your community about impairment
+                  from nonpoint sources, like stormwater.
+                </li>
+                <li>
+                  Sponsor a watershed festival in your community to raise
+                  awareness about the importance of watershed protection.
+                </li>
+                <li>See how your state is protecting your waters.</li>
+              </List>
+
+              <Heading>School</Heading>
+              <List>
+                <li>Adopt your watershed.</li>
+                <li>
+                  Teach students about watershed protection by showing the
+                  “After the Storm” television special and using other resources
+                  from EPA’s Watershed Academy.
+                </li>
+                <li>
+                  <a
+                    href="https://www.epa.gov/schools"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Find other ways to make a difference in your school.
+                  </a>
+                </li>
+              </List>
+
+              <Heading>Yard</Heading>
+              <List>
+                <li>
+                  <a
+                    href="https://www.epa.gov/nutrientpollution/what-you-can-do-your-yard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Use fertilizer responsibly.
+                  </a>
+                </li>
+                <li>Don’t overwater gardens and yards.</li>
+                <li>
+                  <a
+                    href="https://www.epa.gov/watersense/what-plant"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Landscape with native plants.
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://www.epa.gov/soakuptherain"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Reduce runoff.
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://www.epa.gov/safepestcontrol/lawn-and-garden"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Find other ways to make a difference in your yard.
+                  </a>
+                </li>
+              </List>
+
+              <Heading>Home</Heading>
+              <List>
+                <li>Choose phosphate-free soaps and detergents.</li>
+                <li>Pick up after your pet.</li>
+                <li>
+                  <a
+                    href="https://www.epa.gov/watersense"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Use water efficiently.
+                  </a>
+                </li>
+                <li>Wash your car on your lawn or in commercial car washes.</li>
+                <li>Find other ways to make a difference in your home.</li>
+              </List>
             </TabPanel>
           </TabPanels>
         </Tabs>

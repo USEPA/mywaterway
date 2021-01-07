@@ -289,6 +289,58 @@ export function plotIssues(Graphic: any, features: Array<Object>, layer: any) {
   });
 }
 
+// plot wild and scenic rivers on map
+export function plotWildScenicRivers(
+  Graphic: any,
+  features: Array<Object>,
+  layer: any,
+) {
+  if (!features || !layer) return;
+
+  // clear the layer
+  layer.graphics.removeAll();
+  // put graphics on the layer
+  features.forEach((river) => {
+    layer.graphics.add(
+      new Graphic({
+        geometry: river.geometry,
+        symbol: {
+          type: 'simple-line', // autocasts as SimpleLineSymbol() or SimpleFillSymbol()
+          color: [0, 123, 255],
+          width: 3,
+        },
+        attributes: {
+          ...river.attributes,
+          fieldName: null,
+        },
+        popupTemplate: {
+          title: getPopupTitle(river.attributes),
+          content: getPopupContent({
+            feature: { attributes: river.attributes },
+          }),
+        },
+      }),
+    );
+  });
+}
+
+// plot protected areas on map
+export function plotProtectedAreas(
+  Graphic: any,
+  features: Array<Object>,
+  layer: any,
+) {
+  if (!features || !layer) return;
+
+  // clear the layer
+  layer.graphics.removeAll();
+
+  // TODO: put graphics on the layer
+  features.forEach((area) => {
+    console.log(area);
+  });
+}
+
 // plot facilities on map
 export function plotFacilities({
   Graphic,
@@ -442,6 +494,16 @@ export function getPopupTitle(attributes: Object) {
     title = attributes.PARCEL_NO;
   }
 
+  // wild scenic rivers
+  else if (attributes.WSR_RIVER_NAME) {
+    title = attributes.WSR_RIVER_NAME;
+  }
+
+  // WSIO Health Index
+  else if (attributes.phwa_health_ndx_st_2016) {
+    title = attributes.name_huc12;
+  }
+
   return title;
 }
 
@@ -529,6 +591,16 @@ export function getPopupContent({
   // stand alone change location popup
   else if (attributes.changelocationpopup) {
     type = 'Change Location';
+  }
+
+  // wild scenic rivers
+  else if (attributes.WSR_RIVER_NAME) {
+    type = 'Wild and Scenic Rivers';
+  }
+
+  // WSIO Health Index
+  else if (attributes.phwa_health_ndx_st_2016) {
+    type = 'State Watershed Health Index';
   }
 
   const content = (
