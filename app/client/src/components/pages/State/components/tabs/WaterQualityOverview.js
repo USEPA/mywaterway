@@ -1000,22 +1000,22 @@ function WaterQualityOverview({ ...props }: Props) {
                 </FiltersSection>
 
                 <Section>
-                  {surveyServiceError || !stateAndOrganization || !surveyData ? (
+                  {surveyServiceError || !stateAndOrganization ? (
                     <StyledErrorBox>
                       <p>{stateSurveySectionError}</p>
                     </StyledErrorBox>
                   ) : (
-                      <SurveyResults
-                        loading={surveyLoading}
-                        organizationId={stateAndOrganization.organizationId}
-                        activeState={activeState}
-                        subPopulationCodes={subPopulationCodes}
-                        surveyData={surveyData}
-                        topicUses={topicUses}
-                        useSelected={useSelected}
-                        waterType={waterType}
-                      />
-                    )}
+                    <SurveyResults
+                      loading={surveyLoading}
+                      organizationId={stateAndOrganization.organizationId}
+                      activeState={activeState}
+                      subPopulationCodes={subPopulationCodes}
+                      surveyData={surveyData}
+                      topicUses={topicUses}
+                      useSelected={useSelected}
+                      waterType={waterType}
+                    />
+                  )}
                 </Section>
 
                 <SiteSpecific
@@ -1124,30 +1124,30 @@ function WaterQualityOverview({ ...props }: Props) {
                     No additional information available for this state.
                   </NoDataMessage>
                 ) : (
-                    <LinkList>
-                      {introText.data.organizationURLs.map((item, index) => {
-                        return (
-                          <li key={index}>
-                            <a
-                              href={item.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              {item.label ? item.label : item.url}
-                            </a>
-                            <a
-                              className="exit-disclaimer"
-                              href="https://www.epa.gov/home/exit-epa"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              EXIT
+                  <LinkList>
+                    {introText.data.organizationURLs.map((item, index) => {
+                      return (
+                        <li key={index}>
+                          <a
+                            href={item.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {item.label ? item.label : item.url}
                           </a>
-                          </li>
-                        );
-                      })}
-                    </LinkList>
-                  )}
+                          <a
+                            className="exit-disclaimer"
+                            href="https://www.epa.gov/home/exit-epa"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            EXIT
+                          </a>
+                        </li>
+                      );
+                    })}
+                  </LinkList>
+                )}
               </>
             )}
           </AccordionContent>
