@@ -348,12 +348,6 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
   // check for browser compatibility with map
   if (!browserIsCompatibleWithArcGIS() && !actionsMapLoadError) {
     setActionsMapLoadError(true);
-    window.logToGa('send', 'exception', {
-      exDescription: `${
-        window.location.pathname.split('/')[1]
-      } map failed to load - browser does not support performance.mark()`,
-      exFatal: false,
-    });
   }
 
   if (actionsMapLoadError) {
