@@ -5,6 +5,7 @@ import styled from 'styled-components';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { LinkButton } from 'components/shared/LinkButton';
+import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import Switch from 'components/shared/Switch';
 // contexts
 import { EsriModulesContext } from 'contexts/EsriModules';
@@ -620,7 +621,9 @@ function SearchPanel() {
         )}
         <div>
           {searchResults.status === 'fetching' && <LoadingSpinner />}
-          {searchResults.status === 'failure' && webServiceErrorMessage}
+          {searchResults.status === 'failure' && (
+            <StyledErrorBox>{webServiceErrorMessage}</StyledErrorBox>
+          )}
           {searchResults.status === 'success' && (
             <React.Fragment>
               <div>

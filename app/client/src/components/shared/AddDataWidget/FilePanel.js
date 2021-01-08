@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { useDropzone } from 'react-dropzone';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
+import { StyledErrorBox, StyledNoteBox } from 'components/shared/MessageBoxes';
 // contexts
 import { AddDataWidgetContext } from 'contexts/AddDataWidget';
 import { EsriModulesContext } from 'contexts/EsriModules';
@@ -103,6 +104,19 @@ function FileIcon({ label }: FileIconProps) {
 }
 
 // --- styles (FilePanel) ---
+const MessageBoxStyles = `
+  margin-bottom: 10px;
+  word-break: break-word;
+`;
+
+const ErrorBox = styled(StyledErrorBox)`
+  ${MessageBoxStyles}
+`;
+
+const NoteBox = styled(StyledNoteBox)`
+  ${MessageBoxStyles}
+`;
+
 const SearchContainer = styled.div`
   height: 100%;
   overflow: auto;
@@ -520,14 +534,24 @@ function FilePanel() {
       {uploadStatus === 'fetching' && <LoadingSpinner />}
       {uploadStatus !== 'fetching' && (
         <React.Fragment>
-          {uploadStatus === 'invalid-file-type' &&
-            invalidFileTypeMessage(filename)}
-          {uploadStatus === 'import-error' && importErrorMessage}
-          {uploadStatus === 'file-read-error' && fileReadErrorMessage(filename)}
-          {uploadStatus === 'no-data' && noDataMessage(filename)}
-          {uploadStatus === 'failure' && webServiceErrorMessage}
-          {uploadStatus === 'success' &&
-            uploadSuccessMessage(filename, newLayerName)}
+          {uploadStatus === 'invalid-file-type' && (
+            <ErrorBox>{invalidFileTypeMessage(filename)}</ErrorBox>
+          )}
+          {uploadStatus === 'import-error' && (
+            <ErrorBox>{importErrorMessage}</ErrorBox>
+          )}
+          {uploadStatus === 'file-read-error' && (
+            <ErrorBox>{fileReadErrorMessage(filename)}</ErrorBox>
+          )}
+          {uploadStatus === 'no-data' && (
+            <ErrorBox>{noDataMessage(filename)}</ErrorBox>
+          )}
+          {uploadStatus === 'failure' && (
+            <ErrorBox>{webServiceErrorMessage}</ErrorBox>
+          )}
+          {uploadStatus === 'success' && (
+            <NoteBox>{uploadSuccessMessage(filename, newLayerName)}</NoteBox>
+          )}
           <CheckBoxStyles
             id="generalize-features-input"
             type="checkbox"

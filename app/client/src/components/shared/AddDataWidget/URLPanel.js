@@ -6,6 +6,7 @@ import Select from 'react-select';
 // components
 import { LinkButton } from 'components/shared/LinkButton';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
+import { StyledErrorBox, StyledNoteBox } from 'components/shared/MessageBoxes';
 // contexts
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -19,6 +20,19 @@ import {
 } from 'config/errorMessages';
 
 // --- styles (URLPanel) ---
+const MessageBoxStyles = `
+  margin-bottom: 10px;
+  word-break: break-word;
+`;
+
+const ErrorBox = styled(StyledErrorBox)`
+  ${MessageBoxStyles}
+`;
+
+const NoteBox = styled(StyledNoteBox)`
+  ${MessageBoxStyles}
+`;
+
 const ButtonContainer = styled.div`
   display: flex;
   justify-content: space-between;
@@ -194,10 +208,16 @@ function URLPanel() {
       <br />
       <br />
       {status === 'fetching' && <LoadingSpinner />}
-      {status === 'success' && urlLayerSuccessMessage}
-      {status === 'failure' && urlLayerFailureMessage(url)}
-      {status === 'unsupported' && unsupportedLayerMessage(urlType.label)}
-      {status === 'already-added' && urlAlreadyAddedMessage(url)}
+      {status === 'success' && <NoteBox>{urlLayerSuccessMessage}</NoteBox>}
+      {status === 'failure' && (
+        <ErrorBox>{urlLayerFailureMessage(url)}</ErrorBox>
+      )}
+      {status === 'unsupported' && (
+        <ErrorBox>{unsupportedLayerMessage(urlType.label)}</ErrorBox>
+      )}
+      {status === 'already-added' && (
+        <NoteBox>{urlAlreadyAddedMessage(url)}</NoteBox>
+      )}
       <ButtonContainer>
         <StyledLinkButton
           type="button"
