@@ -721,7 +721,7 @@ function ResultCard({ result }: ResultCardProps) {
   const { Layer, PortalItem, watchUtils } = React.useContext(
     EsriModulesContext,
   );
-  const { widgetLayers, addWidgetLayer, removeWidgetLayer } = React.useContext(
+  const { widgetLayers, setWidgetLayers } = React.useContext(
     AddDataWidgetContext,
   );
   const { mapView } = React.useContext(LocationSearchContext);
@@ -792,7 +792,7 @@ function ResultCard({ result }: ResultCardProps) {
 
       // add the layer to the map
       mapView.map.add(layer);
-      addWidgetLayer(layer);
+      setWidgetLayers((widgetLayers) => [...widgetLayers, layer]);
     });
   }
 
@@ -815,9 +815,11 @@ function ResultCard({ result }: ResultCardProps) {
     // remove the layers from the map and session storage.
     if (layersToRemove.length > 0) {
       mapView.map.removeMany(layersToRemove.toArray());
-      layersToRemove.forEach((layer) => {
-        removeWidgetLayer(layer.id);
-      });
+      setWidgetLayers((widgetLayers) =>
+        widgetLayers.filter(
+          (widgetLayer) => widgetLayer?.portalItem?.id !== result.id,
+        ),
+      );
     }
   }
 

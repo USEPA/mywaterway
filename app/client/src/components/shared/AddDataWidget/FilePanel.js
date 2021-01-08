@@ -142,7 +142,7 @@ type UploadStatusType =
   | 'file-read-error';
 
 function FilePanel() {
-  const { widgetLayers, addWidgetLayer } = React.useContext(
+  const { widgetLayers, setWidgetLayers } = React.useContext(
     AddDataWidgetContext,
   );
   const { mapView } = React.useContext(LocationSearchContext);
@@ -441,7 +441,7 @@ function FilePanel() {
       const layerToAdd = new FeatureLayer(layerProps);
       featureLayers.push(layerToAdd);
 
-      addWidgetLayer(layerToAdd);
+      setWidgetLayers((widgetLayers) => [...widgetLayers, layerToAdd]);
     });
 
     mapView.map.addMany(featureLayers);
@@ -462,7 +462,7 @@ function FilePanel() {
     file,
     mapView,
     widgetLayers,
-    addWidgetLayer,
+    setWidgetLayers,
   ]);
 
   // handle loading of the KMLLayer

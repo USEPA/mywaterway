@@ -50,7 +50,7 @@ const StyledLinkButton = styled(LinkButton)`
 
 // --- components (URLPanel) ---
 function URLPanel() {
-  const { widgetLayers, addWidgetLayer } = React.useContext(
+  const { widgetLayers, setWidgetLayers } = React.useContext(
     AddDataWidgetContext,
   );
   const { mapView } = React.useContext(LocationSearchContext);
@@ -83,7 +83,7 @@ function URLPanel() {
     mapView.map.add(layer);
 
     layer.on('layerview-create', (event) => {
-      addWidgetLayer(layer);
+      setWidgetLayers((widgetLayers) => [...widgetLayers, layer]);
       setStatus('success');
     });
 
@@ -96,7 +96,7 @@ function URLPanel() {
     });
 
     setLayer(null);
-  }, [mapView, layer, addWidgetLayer, widgetLayers, url, urlType]);
+  }, [mapView, layer, setWidgetLayers, widgetLayers, url, urlType]);
 
   if (!mapView) return null;
 

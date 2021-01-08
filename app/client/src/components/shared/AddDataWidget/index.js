@@ -168,7 +168,7 @@ function AddDataWidget() {
     setPageNumber,
     searchResults,
     widgetLayers,
-    removeWidgetLayer,
+    setWidgetLayers,
   } = React.useContext(AddDataWidgetContext);
 
   const [activeTabIndex, setActiveTabIndex] = React.useState(0);
@@ -260,13 +260,22 @@ function AddDataWidget() {
                           !item.layer.parent?.type ||
                           item.layer.parent.type !== 'group'
                         ) {
-                          removeWidgetLayer(item.layer.id);
+                          setWidgetLayers((widgetLayers) =>
+                            widgetLayers.filter(
+                              (widgetLayer) => widgetLayer.id !== item.layer.id,
+                            ),
+                          );
                           mapView.map.remove(item.layer);
                           return;
                         }
 
                         if (item.layer.parent.layers.length === 1) {
-                          removeWidgetLayer(item.layer.parent.id);
+                          setWidgetLayers((widgetLayers) =>
+                            widgetLayers.filter(
+                              (widgetLayer) =>
+                                widgetLayer.id !== item.layer.parent.id,
+                            ),
+                          );
                         }
                         item.layer.parent.remove(item.layer);
                       }}
