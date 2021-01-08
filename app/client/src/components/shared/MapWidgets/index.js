@@ -51,6 +51,31 @@ const zoomDependentLayers = [
   'stateBoundariesLayer',
 ];
 
+// used to order the layer legends, so the ordering is consistent no matter
+// which layer legends are visible.
+const orderedLayers = [
+  'waterbodyLayer',
+  'monitoringStationsLayer',
+  'issuesLayer',
+  'dischargersLayer',
+  'nonprofitsLayer',
+  'providersLayer',
+  'upstreamWatershed',
+  'boundariesLayer',
+  'actionsWaterbodies',
+  'watershedsLayer',
+  'countyLayer',
+  'mappedWaterLayer',
+  'stateBoundariesLayer',
+  'congressionalLayer',
+  'tribalLayer',
+  'tribalLayer-1',
+  'tribalLayer-2',
+  'tribalLayer-4',
+  'wsioHealthIndexLayer',
+  'searchIconLayer',
+];
+
 // function called whenever the map's zoom changes
 function handleMapZoomChange(newVal: number, target: any) {
   // return early if zoom is not set to an integer
@@ -86,35 +111,10 @@ function isInScale(layer: any, scale: number) {
   return isInScale;
 }
 
-function updateVisibleLayers(view: any, legendNode: Node) {
+function updateVisibleLayers(view: any, hmwLegendNode: Node) {
   if (!view || !view.map || !view.map.layers || !view.map.layers.items) {
     return;
   }
-
-  // used to order the layer legends, so the ordering is consistent no matter
-  // which layer legends are visible.
-  const orderedLayers = [
-    'waterbodyLayer',
-    'monitoringStationsLayer',
-    'issuesLayer',
-    'dischargersLayer',
-    'nonprofitsLayer',
-    'providersLayer',
-    'upstreamWatershed',
-    'boundariesLayer',
-    'actionsWaterbodies',
-    'watershedsLayer',
-    'countyLayer',
-    'mappedWaterLayer',
-    'stateBoundariesLayer',
-    'congressionalLayer',
-    'tribalLayer',
-    'tribalLayer-1',
-    'tribalLayer-2',
-    'tribalLayer-4',
-    'wsioHealthIndexLayer',
-    'searchIconLayer',
-  ];
 
   // build an array of layers that are visible based on the ordering above
   const visibleLayers = [];
@@ -136,7 +136,10 @@ function updateVisibleLayers(view: any, legendNode: Node) {
     }
   });
 
-  ReactDOM.render(<MapLegend visibleLayers={visibleLayers} />, legendNode);
+  ReactDOM.render(
+    <MapLegend visibleLayers={visibleLayers} mapView={view} />,
+    hmwLegendNode,
+  );
 }
 
 // --- components ---
@@ -168,12 +171,13 @@ function MapWidgets({
     QueryTask,
     Viewpoint,
     Graphic,
+    Legend,
   } = React.useContext(EsriModulesContext);
 
   const {
     addDataWidgetVisible,
-    getAddDataWidgetVisible,
     setAddDataWidgetVisible,
+    widgetLayers,
   } = React.useContext(AddDataWidgetContext);
 
   const {
@@ -286,6 +290,14 @@ function MapWidgets({
   // manages which layers are visible in the legend
   const legendTemp = document.createElement('div');
   legendTemp.className = 'map-legend';
+  const hmwLegendTemp = document.createElement('div');
+  const esriLegendTemp = document.createElement('div');
+  esriLegendTemp.id = 'esri-legend-container';
+  esriLegendTemp.className = 'esri-legend-hidden';
+  legendTemp.append(hmwLegendTemp);
+  legendTemp.append(esriLegendTemp);
+  const [hmwLegendNode] = React.useState(hmwLegendTemp);
+  const [esriLegendNode] = React.useState(esriLegendTemp);
   const [legendNode] = React.useState(legendTemp);
 
   // Creates and adds the legend widget to the map
@@ -306,6 +318,42 @@ function MapWidgets({
     setLegend(newLegend);
   }, [Expand, view, legend, legendNode]);
 
+  // Create the layer list toolbar widget
+  const [esriLegend, setEsriLegend] = React.useState(null);
+  React.useEffect(() => {
+    if (!view || !Legend || esriLegend) return;
+
+    // create the layer list using the same styles and structure as the
+    // esri version.
+    const legend = new Legend({
+      view,
+      container: esriLegendNode,
+      layerInfos: [],
+    });
+
+    setEsriLegend(legend);
+  }, [Legend, view, esriLegend, esriLegendNode]);
+
+  // Update the list of layers in the esri portion of the legend widget
+  React.useEffect(() => {
+    if (!esriLegend) return;
+
+    // build the list of layers for the widget and update
+    const layerInfos = [];
+    widgetLayers.forEach((widgetLayer) => {
+      layerInfos.push({
+        layer: widgetLayer,
+      });
+    });
+    esriLegend.layerInfos = layerInfos;
+
+    // show the esri portion if widget layers has layers otherwise hide it
+    const elm = document.getElementById('esri-legend-container');
+    if (!elm) return;
+    elm.className =
+      widgetLayers.length > 0 ? 'esri-legend' : 'esri-legend-hidden';
+  }, [widgetLayers, esriLegend]);
+
   // Creates and adds the legend widget to the map
   const [addDataWidget, setAddDataWidget] = React.useState(null);
   React.useEffect(() => {
@@ -317,7 +365,6 @@ function MapWidgets({
     ReactDOM.render(
       <ShowAddDataWidget
         addDataWidgetVisible={addDataWidgetVisible}
-        getAddDataWidgetVisible={getAddDataWidgetVisible}
         setAddDataWidgetVisible={setAddDataWidgetVisible}
       />,
       node,
@@ -338,16 +385,10 @@ function MapWidgets({
     // window.addEventListener('resize', handleResize);
 
     setAddDataWidget(node);
-  }, [
-    view,
-    addDataWidget,
-    addDataWidgetVisible,
-    getAddDataWidgetVisible,
-    setAddDataWidgetVisible,
-  ]);
+  }, [view, addDataWidget, addDataWidgetVisible, setAddDataWidgetVisible]);
 
   function ShowAddDataWidget({
-    getAddDataWidgetVisible,
+    addDataWidgetVisible,
     setAddDataWidgetVisible,
   }) {
     const [hover, setHover] = React.useState(false);
@@ -355,12 +396,12 @@ function MapWidgets({
     return (
       <div
         className="add-data-widget"
-        title={`${getAddDataWidgetVisible() ? 'Hide' : 'Show'} Add Data Widget`}
+        title={`${addDataWidgetVisible ? 'Hide' : 'Show'} Add Data Widget`}
         style={hover ? divHoverStyle : divStyle}
         onMouseOver={() => setHover(true)}
         onMouseOut={() => setHover(false)}
         onClick={(ev) => {
-          setAddDataWidgetVisible(!getAddDataWidgetVisible());
+          setAddDataWidgetVisible(!addDataWidgetVisible);
         }}
       >
         <span
@@ -413,10 +454,10 @@ function MapWidgets({
         //only add the item if it has not been added before
         if (!uniqueParentItems.includes(item.title)) {
           uniqueParentItems.push(item.title);
-          updateVisibleLayers(view, legendNode);
+          updateVisibleLayers(view, hmwLegendNode);
 
           item.watch('visible', function (event) {
-            updateVisibleLayers(view, legendNode);
+            updateVisibleLayers(view, hmwLegendNode);
             const dict = {
               layerId: item.layer.id,
               visible: item.layer.visible,
@@ -465,7 +506,7 @@ function MapWidgets({
     Expand,
     LayerList,
     PortalBasemapsSource,
-    legendNode,
+    hmwLegendNode,
     view,
     layerListWidget,
   ]);
@@ -608,10 +649,75 @@ function MapWidgets({
     }
   }, [upstreamWidget, upstreamWidgetDisabled]);
 
+  // Creates a watch event that is used for reordering the layers
+  const [watchInitialized, setWatchInitialized] = React.useState(false);
+  React.useEffect(() => {
+    if (!map || watchInitialized) return;
+
+    // whenever layers are added, reorder them
+    map.layers.on('change', ({ added }) => {
+      if (added.length === 0) return;
+
+      // gets a layer type value used for sorting
+      function getLayerType(layer: __esri.Layer) {
+        // if the layer is in orderedLayers, then classify it as an hmw
+        // layer
+        if (orderedLayers.indexOf(layer.id) > -1) return 'hmw';
+
+        const imageryTypes = ['imagery', 'tile', 'vector-tile'];
+        let type = 'other';
+
+        let groupType = '';
+        if (layer.type === 'group') {
+          const groupLayer = layer;
+          groupLayer.layers.forEach((layer, index) => {
+            if (groupType === 'combo') return;
+
+            if (index === 0) {
+              groupType = layer.type;
+              return;
+            }
+
+            if (groupType !== layer.type) {
+              groupType = 'combo';
+            }
+          });
+        }
+
+        if (layer.type === 'graphics' || groupType === 'graphics') {
+          type = 'graphics';
+        } else if (layer.type === 'feature' || groupType === 'feature') {
+          type = 'feature';
+        } else if (
+          imageryTypes.includes(type) ||
+          imageryTypes.includes(groupType)
+        ) {
+          type = 'imagery';
+        }
+
+        return type;
+      }
+
+      // the layers are ordered as follows:
+      // graphicsLayers (top)
+      // featureLayers
+      // otherLayers
+      // imageryLayers (bottom)
+      const sortBy = ['other', 'imagery', 'feature', 'graphics', 'hmw'];
+      map.layers.sort((a: __esri.Layer, b: __esri.Layer) => {
+        return (
+          sortBy.indexOf(getLayerType(a)) - sortBy.indexOf(getLayerType(b))
+        );
+      });
+    });
+
+    setWatchInitialized(true);
+  }, [map, watchInitialized]);
+
   // watch for changes to upstream layer visibility and update visible layers accordingly
   React.useEffect(() => {
-    updateVisibleLayers(view, legendNode);
-  }, [view, legendNode, upstreamLayerVisible]);
+    updateVisibleLayers(view, hmwLegendNode);
+  }, [view, hmwLegendNode, upstreamLayerVisible]);
 
   // create upstream widget
   const [

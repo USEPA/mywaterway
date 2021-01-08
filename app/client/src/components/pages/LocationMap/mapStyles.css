@@ -192,3 +192,11 @@
   text-align: left;
   white-space: nowrap;
 }
+
+.esri-legend {
+  max-height: none !important;
+}
+
+.esri-legend-hidden {
+  display: none;
+}

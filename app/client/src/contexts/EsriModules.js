@@ -71,6 +71,7 @@ export class EsriModulesProvider extends React.Component<Props, State> {
         'esri/widgets/Home',
         'esri/widgets/LayerList',
         'esri/widgets/LayerList/ListItem',
+        'esri/widgets/Legend',
         'esri/widgets/ScaleBar',
         'esri/widgets/Search',
       ],
@@ -114,6 +115,7 @@ export class EsriModulesProvider extends React.Component<Props, State> {
           Home,
           LayerList,
           ListItem,
+          Legend,
           ScaleBar,
           Search,
         ]) => {
@@ -155,6 +157,7 @@ export class EsriModulesProvider extends React.Component<Props, State> {
             Home,
             LayerList,
             ListItem,
+            Legend,
             ScaleBar,
             Search,
           });
