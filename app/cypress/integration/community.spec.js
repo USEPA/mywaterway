@@ -353,6 +353,7 @@ describe('Protect Tab', () => {
 
     // check that the Protection Projects in the Protect tab contains a project
     cy.findByText('Protect').click();
+    cy.findByText('Watershed Health and Protection').click();
     cy.findByText('Protection Projects').click();
     cy.findByText('Cypress Creek WPP Imp - Years 1-3');
   });
@@ -371,6 +372,7 @@ describe('Protect Tab', () => {
 
     cy.findByText('Protect').click();
     cy.findByText('Get quick tips for reducing water impairment in your:');
+    cy.findByText('Watershed Health and Protection').click();
     cy.findByText('Protection Projects').click();
     cy.findByText('There are no EPA funded protection projects in the', {
       exact: false,

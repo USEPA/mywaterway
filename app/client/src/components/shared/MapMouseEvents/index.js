@@ -223,7 +223,6 @@ function MapMouseEvents({ map, view }: Props) {
         'stateBoundariesLayer',
         'mappedWaterLayer',
         'watershedsLayer',
-        'wsioHealthIndexLayer',
         'boundaries',
         'map-marker',
         'highlight',
