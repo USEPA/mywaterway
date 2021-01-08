@@ -269,15 +269,20 @@ function AddDataWidget() {
                           return;
                         }
 
-                        if (item.layer.parent.layers.length === 1) {
+                        // If the parent layer only has 1 layer left, remove the
+                        // parent layer, otherwise just remove the layer from
+                        // the parent layer.
+                        if (item.layer.parent.layers.length > 1) {
+                          item.layer.parent.remove(item.layer);
+                        } else {
                           setWidgetLayers((widgetLayers) =>
                             widgetLayers.filter(
                               (widgetLayer) =>
                                 widgetLayer.id !== item.layer.parent.id,
                             ),
                           );
+                          mapView.map.remove(item.layer.parent);
                         }
-                        item.layer.parent.remove(item.layer);
                       }}
                     ></DeleteButton>
                   </RecordContainer>
