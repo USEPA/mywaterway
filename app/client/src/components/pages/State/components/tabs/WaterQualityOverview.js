@@ -1003,9 +1003,7 @@ function WaterQualityOverview({ ...props }: Props) {
                 </FiltersSection>
 
                 <Section>
-                  {surveyServiceError ||
-                  !stateAndOrganization ||
-                  !surveyData ? (
+                  {surveyServiceError || !stateAndOrganization ? (
                     <StyledErrorBox>
                       <p>{stateSurveySectionError}</p>
                     </StyledErrorBox>

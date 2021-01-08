@@ -104,6 +104,14 @@ const CancelChangeLocationButton = styled.button`
   background-color: lightgray;
 `;
 
+const ScenicRiverImageContainer = styled.div`
+  padding: 1rem;
+`;
+
+const ScenicRiverImage = styled.img`
+  max-width: 100%;
+`;
+
 // --- components ---
 type Props = {
   type: string,
@@ -921,6 +929,76 @@ function WaterbodyInfo({
   );
 
   // jsx
+  const wildScenicRiversContent = (
+    <>
+      <ScenicRiverImageContainer>
+        <ScenicRiverImage
+          src={attributes.PhotoLink}
+          alt="Wild and Scenic River"
+        ></ScenicRiverImage>
+
+        <br />
+
+        <em>Photo Credit: {attributes.PhotoCredit}</em>
+      </ScenicRiverImageContainer>
+
+      <p>
+        <strong>Agency: </strong>
+        {attributes.AGENCY}
+      </p>
+
+      <p>
+        <strong>Category: </strong>
+        {attributes.RiverCategory}
+        <br />
+      </p>
+
+      <p>
+        <a href={attributes.WEBLINK} target="_blank" rel="noopener noreferrer">
+          More information
+        </a>
+      </p>
+    </>
+  );
+
+  // jsx
+  const wsioContent = (
+    <>
+      <table className="table">
+        <tbody>
+          <tr>
+            <td>
+              <em>Watershed Name:</em>
+            </td>
+            <td>{attributes.name_huc12}</td>
+          </tr>
+          <tr>
+            <td>
+              <em>Watershed:</em>
+            </td>
+            <td>{attributes.huc12_text}</td>
+          </tr>
+          <tr>
+            <td>
+              <em>State:</em>
+            </td>
+            <td>{attributes.states2013}</td>
+          </tr>
+          <tr>
+            <td>
+              <em>Watershed Health Score:</em>
+            </td>
+            <td>
+              ({Math.round(attributes.phwa_health_ndx_st_2016 * 100) / 100})
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      {renderChangeWatershed()}
+    </>
+  );
+
+  // jsx
   const alaskaNativeVillageContent = (
     <>
       {labelValue('Village Name', attributes.NAME)}
@@ -951,6 +1029,8 @@ function WaterbodyInfo({
   if (type === 'Congressional District') return congressionalDistrictContent();
   if (type === 'Tribe') return tribeContent;
   if (type === 'Upstream Watershed') return upstreamWatershedContent;
+  if (type === 'Wild and Scenic Rivers') return wildScenicRiversContent;
+  if (type === 'State Watershed Health Index') return wsioContent;
   if (type === 'Alaska Native Village') return alaskaNativeVillageContent;
   if (type === 'Change Location') return changeLocationContent;
 

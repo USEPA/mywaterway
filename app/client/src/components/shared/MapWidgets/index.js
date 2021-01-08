@@ -544,6 +544,8 @@ function MapWidgets({
       'waterbodyLayer',
       'issuesLayer',
       'actionsLayer',
+      'wsioHealthIndexLayer',
+      'wildScenicRiversLayer',
     ];
 
     // hide/show layers based on the provided list of layers to show

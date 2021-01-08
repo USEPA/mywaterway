@@ -307,8 +307,11 @@ const tabs = [
     icon: protectIcon,
     upper: protectUpper,
     lower: <Protect />,
-    layers: {}, // hide the nonprofits layer, re-add when nonprofits are approved
-    // layers: { nonprofitsLayer: true }
+    layers: {
+      wsioHealthIndexLayer: true,
+      wildScenicRiversLayer: false,
+      protectedAreasLayer: false,
+    },
   },
 ];
 

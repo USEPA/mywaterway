@@ -15,6 +15,8 @@ import {
   createUniqueValueInfos,
   getPopupContent,
   getPopupTitle,
+  plotWildScenicRivers,
+  plotProtectedAreas,
 } from 'components/pages/LocationMap/MapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
 // styled components
@@ -126,6 +128,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setWaterbodyLayer,
     setIssuesLayer,
     setMonitoringStationsLayer,
+    wildScenicRiversLayer,
+    setWildScenicRiversLayer,
+    protectedAreasLayer,
+    setProtectedAreasLayer,
     setUpstreamLayer,
     setDischargersLayer,
     setNonprofitsLayer,
@@ -147,6 +153,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setLinesLayer,
     setAreasLayer,
     setErrorMessage,
+    setWsioHealthIndexData,
+    setWildScenicRiversData,
+    setProtectedAreasData,
   } = React.useContext(LocationSearchContext);
 
   const [view, setView] = React.useState(null);
@@ -207,6 +216,22 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setMonitoringStationsLayer(monitoringStationsLayer);
 
+    const wildScenicRiversLayer = new GraphicsLayer({
+      id: 'wildScenicRiversLayer',
+      title: 'Wild and Scenic Rivers',
+      listMode: 'hide',
+    });
+
+    setWildScenicRiversLayer(wildScenicRiversLayer);
+
+    const protectedAreasLayer = new GraphicsLayer({
+      id: 'protectedAreasLayer',
+      title: 'Protected Areas',
+      listMode: 'hide',
+    });
+
+    setProtectedAreasLayer(protectedAreasLayer);
+
     const issuesLayer = new GraphicsLayer({
       id: 'issuesLayer',
       title: 'Identified Issues',
@@ -237,6 +262,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       boundariesLayer,
       upstreamLayer,
       monitoringStationsLayer,
+      wildScenicRiversLayer,
+      protectedAreasLayer,
       issuesLayer,
       dischargersLayer,
       nonprofitsLayer,
@@ -253,6 +280,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setIssuesLayer,
     setLayers,
     setMonitoringStationsLayer,
+    setWildScenicRiversLayer,
+    setProtectedAreasLayer,
     setUpstreamLayer,
     setNonprofitsLayer,
     setProvidersLayer,
@@ -683,6 +712,153 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [setFishingInfo, services],
   );
 
+  const getWsioHealthIndexData = React.useCallback(
+    (huc12) => {
+      const url =
+        `${services.data.wsio}/query?where=HUC12_TEXT%3D%27${huc12}%27` +
+        '&outFields=HUC12_TEXT%2Cstates2013%2Cphwa_health_ndx_st_2016&returnGeometry=false&f=json';
+
+      setWsioHealthIndexData({
+        data: [],
+        status: 'fetching',
+      });
+
+      fetchCheck(url)
+        .then((res) => {
+          if (!res || !res.features || res.features.length <= 0) {
+            setWsioHealthIndexData({ status: 'success', data: [] });
+            return;
+          }
+
+          const healthIndexData = res.features.map((feature) => ({
+            states: feature.attributes.states2013,
+            phwa_health_ndx_st_2016: feature.attributes.phwa_health_ndx_st_2016,
+          }));
+
+          setWsioHealthIndexData({
+            status: 'success',
+            data: healthIndexData,
+          });
+        })
+        .catch((err) => {
+          console.error(err);
+          setWsioHealthIndexData({ status: 'failure', data: [] });
+        });
+    },
+    [setWsioHealthIndexData, services],
+  );
+
+  const getWildScenicRivers = React.useCallback(
+    (boundaries) => {
+      if (
+        !boundaries ||
+        !boundaries.features ||
+        boundaries.features.length === 0
+      ) {
+        setWildScenicRiversData({
+          data: [],
+          status: 'success',
+        });
+        return;
+      }
+
+      const query = new Query({
+        geometry: boundaries.features[0].geometry,
+        returnGeometry: true,
+        spatialReference: 102100,
+        outFields: ['*'],
+      });
+
+      setWildScenicRiversData({
+        data: [],
+        status: 'fetching',
+      });
+
+      new QueryTask({
+        url: services.data.wildScenicRivers,
+      })
+        .execute(query)
+        .then((res) => {
+          setWildScenicRiversData({
+            data: res.features,
+            status: 'success',
+          });
+          plotWildScenicRivers(Graphic, res.features, wildScenicRiversLayer);
+        })
+        .catch((err) => {
+          console.error(err);
+          setWildScenicRiversData({
+            data: [],
+            status: 'failure',
+          });
+        });
+    },
+    [
+      services,
+      Graphic,
+      Query,
+      QueryTask,
+      setWildScenicRiversData,
+      wildScenicRiversLayer,
+    ],
+  );
+
+  const getProtectedAreas = React.useCallback(
+    (boundaries) => {
+      if (
+        !boundaries ||
+        !boundaries.features ||
+        boundaries.features.length === 0
+      ) {
+        setProtectedAreasData({
+          data: [],
+          status: 'success',
+        });
+        return;
+      }
+
+      const query = new Query({
+        geometry: boundaries.features[0].geometry,
+        returnGeometry: true,
+        spatialReference: 102100,
+        outFields: ['*'],
+      });
+
+      setProtectedAreasData({
+        data: [],
+        status: 'fetching',
+      });
+
+      new QueryTask({
+        url: services.data.protectedAreasDatabase,
+      })
+        .execute(query)
+        .then((res) => {
+          console.log(res);
+          setProtectedAreasData({
+            data: res.features,
+            status: 'success',
+          });
+          plotProtectedAreas(Graphic, res.features, protectedAreasLayer);
+        })
+        .catch((err) => {
+          console.error(err);
+          setProtectedAreasData({
+            data: [],
+            status: 'failure',
+          });
+        });
+    },
+    [
+      services,
+      Graphic,
+      Query,
+      QueryTask,
+      setProtectedAreasData,
+      protectedAreasLayer,
+    ],
+  );
+
   const handleMapServices = React.useCallback(
     (results) => {
       // sort the parameters by highest percent to lowest
@@ -720,6 +896,15 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       // pass all of the states that the HUC12 is in
       getFishingLinkData(boundaries.features[0].attributes.states);
 
+      // get wsio health index data for the current huc
+      getWsioHealthIndexData(huc12);
+
+      // get Scenic River data for current huc boundaries
+      getWildScenicRivers(boundaries);
+
+      // get Protected Areas data for current huc boundaries
+      getProtectedAreas(boundaries);
+
       // call states service for converting statecodes to state names
       // don't re-fetch the states service if it's already populated, it doesn't vary by location
       if (statesData.status !== 'success') {
@@ -741,6 +926,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     },
     [
       getFishingLinkData,
+      getWsioHealthIndexData,
+      getWildScenicRivers,
+      getProtectedAreas,
       handleMapServiceError,
       handleMapServices,
       setHucBoundaries,
@@ -1313,10 +1501,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // check for browser compatibility with map
   if (!browserIsCompatibleWithArcGIS() && !communityMapLoadError) {
     setCommunityMapLoadError(true);
-    window.logToGa('send', 'exception', {
-      exDescription: `Community map failed to load - browser does not support performance.mark()`,
-      exFatal: false,
-    });
   }
 
   // jsx

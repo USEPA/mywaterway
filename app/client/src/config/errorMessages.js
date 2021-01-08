@@ -62,6 +62,18 @@ export const watersgeoError =
 export const mapServerError =
   'There was an error retrieving some waterbody information on the map. Please try again later for a complete view.';
 
+// usgs.gov - for protect tab
+export const protectedAreasDatabaseError =
+  'The Protected Areas Database is temporarily unavailable, please try again later.';
+
+// Wild and Scenic Rivers - for protect tab
+export const wildScenicRiversError =
+  'The Wild and Scenic Rivers data is temporarily unavailable, please try again later.';
+
+// gispub WSIO - for protect tab
+export const wsioHealthIndexError =
+  'The WSIO Health Index data is temporarily unavailable, please try again later.';
+
 // plan-summary errors //
 
 // Attains Actions service error

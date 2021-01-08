@@ -205,11 +205,34 @@ function getSimplePopupTemplate(title: string, attributes: any) {
   };
 }
 
-// older browsers lack support for performance.mark() which is used by arcgis 4.x
-// returns true if browser supports this feature
-
+// check user-agent for iOS version, if applicable
 function browserIsCompatibleWithArcGIS() {
-  // TODO: find a solution to checking browser support for ArcGIS 4.x
+  const agent = window.navigator.userAgent;
+  const start = agent.indexOf('OS ');
+
+  if (
+    (agent.indexOf('iPhone') > -1 || agent.indexOf('iPad') > -1) &&
+    start > -1
+  ) {
+    const iosVersion = window.Number(
+      agent.substr(start + 3, 3).replace('_', '.'),
+    );
+
+    if (isNaN(iosVersion)) {
+      // unable to detect iOS version - assume browser supports ArcGIS
+      return true;
+    }
+
+    if (iosVersion <= 10) {
+      // iOS version is below 10 - browser will not support ArcGIS
+      return false;
+    }
+
+    // iOS Version is 10 or higher and will support ArcGIS
+    return true;
+  }
+
+  // iOS version not found - assume browser supports ArcGIS
   return true;
 }
 

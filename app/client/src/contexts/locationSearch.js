@@ -35,11 +35,14 @@ type State = {
   monitoringStationsLayer: Object,
   dischargersLayer: Object,
   nonprofitsLayer: Object,
+  wildScenicRiversLayer: Object,
+  protectedAreasLayer: Object,
   providersLayer: Object,
   boundariesLayer: Object,
   searchIconLayer: Object,
   actionsLayer: Object,
   selWaterBodyLayer: Object,
+  wsioHealthIndexLayer: Object,
   homeWidget: Object,
   upstreamWidget: Object,
   upstreamWidgetDisabled: boolean,
@@ -93,6 +96,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     address: '',
     fishingInfo: { status: 'fetching', data: [] },
     statesData: { status: 'fetching', data: [] },
+    wsioHealthIndexData: { status: 'fetching', data: [] },
+    wildScenicRiversData: { status: 'fetching', data: [] },
+    protectedAreasData: { status: 'fetching', data: [] },
     assessmentUnitId: '',
     monitoringLocations: {
       status: 'fetching',
@@ -129,11 +135,14 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     monitoringStationsLayer: '',
     dischargersLayer: '',
     nonprofitsLayer: '',
+    wildScenicRiversLayer: '',
+    protectedAreasLayer: '',
     providersLayer: '',
     boundariesLayer: '',
     searchIconLayer: '',
     actionsLayer: '',
     selWaterBodyLayer: '',
+    wsioHealthIndexLayer: '',
     homeWidget: null,
     upstreamWidget: null,
     upstreamWidgetDisabled: false,
@@ -221,7 +230,15 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     setStatesData: (statesData) => {
       this.setState({ statesData });
     },
-
+    setWsioHealthIndexData: (wsioHealthIndexData) => {
+      this.setState({ wsioHealthIndexData });
+    },
+    setWildScenicRiversData: (wildScenicRiversData) => {
+      this.setState({ wildScenicRiversData });
+    },
+    setProtectedAreasData: (protectedAreasData) => {
+      this.setState({ protectedAreasData });
+    },
     setAddress: (address) => {
       this.setState({ address });
     },
@@ -270,6 +287,12 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     setNonprofitsLayer: (nonprofitsLayer) => {
       this.setState({ nonprofitsLayer });
     },
+    setWildScenicRiversLayer: (wildScenicRiversLayer) => {
+      this.setState({ wildScenicRiversLayer });
+    },
+    setProtectedAreasLayer: (protectedAreasLayer) => {
+      this.setState({ protectedAreasLayer });
+    },
     setProvidersLayer: (providersLayer) => {
       this.setState({ providersLayer });
     },
@@ -284,6 +307,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     },
     setSelWaterbodyLayer: (selWaterbodyLayer) => {
       this.setState({ selWaterbodyLayer });
+    },
+    setWsioHealthIndexLayer: (wsioHealthIndexLayer) => {
+      this.setState({ wsioHealthIndexLayer });
     },
     setPointsLayer: (pointsLayer) => {
       this.setState({ pointsLayer });
@@ -407,6 +433,8 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         upstreamLayer,
         dischargersLayer,
         nonprofitsLayer,
+        wildScenicRiversLayer,
+        protectedAreasLayer,
         mapView,
         homeWidget,
         waterbodyLayer,
@@ -456,6 +484,8 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       if (monitoringStationsLayer) monitoringStationsLayer.graphics.removeAll();
       if (dischargersLayer) dischargersLayer.graphics.removeAll();
       if (nonprofitsLayer) nonprofitsLayer.graphics.removeAll();
+      if (wildScenicRiversLayer) wildScenicRiversLayer.graphics.removeAll();
+      if (protectedAreasLayer) protectedAreasLayer.graphics.removeAll();
 
       // reset the zoom and home widget to the initial extent
       if (useDefaultZoom && mapView) {

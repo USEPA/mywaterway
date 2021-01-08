@@ -353,10 +353,6 @@ function StateMap({
   // check for browser compatibility with map
   if (!browserIsCompatibleWithArcGIS() && !stateMapLoadError) {
     setStateMapLoadError(true);
-    window.logToGa('send', 'exception', {
-      exDescription: `State map failed to load - browser does not support performance.mark()`,
-      exFatal: false,
-    });
   }
 
   // jsx
