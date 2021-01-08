@@ -302,6 +302,16 @@
       "urlLookup": "upstreamWatershed",
       "wildcardUrl": "{urlLookup}*",
       "name": "watersgeo - upstream watershed"
+    },
+    {
+      "urlLookup": "wildScenicRivers",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Wild and Scenic Rivers"
+    },
+    {
+      "urlLookup": "protectedAreasDatabase",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "USGS - Protected Areas Database"
     }
   ]
 }

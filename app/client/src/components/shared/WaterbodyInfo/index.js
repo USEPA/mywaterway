@@ -937,6 +937,8 @@ function WaterbodyInfo({
           alt="Wild and Scenic River"
         ></ScenicRiverImage>
 
+        <br />
+
         <em>Photo Credit: {attributes.PhotoCredit}</em>
       </ScenicRiverImageContainer>
 

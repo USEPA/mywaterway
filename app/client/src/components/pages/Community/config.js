@@ -309,6 +309,8 @@ const tabs = [
     lower: <Protect />,
     layers: {
       wsioHealthIndexLayer: true,
+      wildScenicRiversLayer: false,
+      protectedAreasLayer: false,
     },
   },
 ];
