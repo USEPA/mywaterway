@@ -3,6 +3,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { useDropzone } from 'react-dropzone';
+import { DialogOverlay, DialogContent } from '@reach/dialog';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { StyledErrorBox, StyledNoteBox } from 'components/shared/MessageBoxes';
@@ -22,6 +23,8 @@ import {
   uploadSuccessMessage,
   webServiceErrorMessage,
 } from 'config/errorMessages';
+// styles
+import { colors } from 'styles/index.js';
 
 /**
  * Determines if the desired name has already been used. If it has
@@ -47,6 +50,60 @@ function getLayerName(layers, desiredName) {
 }
 
 // --- styles (FileIcon) ---
+const Overlay = styled(DialogOverlay)`
+  &[data-reach-dialog-overlay] {
+    z-index: 1000;
+    background-color: ${colors.black(0.75)};
+  }
+`;
+
+const Content = styled(DialogContent)`
+  &[data-reach-dialog-content] {
+    position: relative;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    padding: 1.5rem;
+    width: auto;
+    max-width: 25rem;
+  }
+
+  p {
+    margin-top: 1rem;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    font-size: 0.875rem;
+    line-height: 1.375;
+
+    &:first-of-type {
+      margin-top: 0;
+    }
+  }
+
+  ul {
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0;
+  border: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: white;
+  background-color: ${colors.black(0.5)};
+
+  &:hover,
+  &:focus {
+    background-color: ${colors.black(0.75)};
+  }
+`;
+
 const FileIconOuterContainer = styled.span`
   width: 2em;
   line-height: 1;
@@ -83,6 +140,13 @@ const FileIconText = styled.span`
 
 const CheckBoxStyles = styled.input`
   margin-right: 5px;
+`;
+
+const HelpIcon = styled.i`
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  color: #485566;
 `;
 
 // --- components (FileIcon) ---
@@ -529,6 +593,8 @@ function FilePanel() {
 
   const filename = file?.file?.name ? file.file.name : '';
 
+  const [dialogShown, setDialogShown] = React.useState(false);
+
   return (
     <SearchContainer>
       {uploadStatus === 'fetching' && <LoadingSpinner />}
@@ -564,7 +630,7 @@ function FilePanel() {
           <br />
           <div
             {...getRootProps({ className: 'dropzone' })}
-            style={{ padding: '10px' }}
+            style={{ padding: '10px', position: 'relative' }}
           >
             <input
               id="tots-dropzone"
@@ -587,9 +653,43 @@ function FilePanel() {
                 <button onClick={open}>Browse</button>
               </FileIconTextColorDiv>
             )}
+
+            <HelpIcon
+              className="fas fa-question-circle"
+              onClick={() => {
+                setDialogShown(true);
+              }}
+            ></HelpIcon>
           </div>
         </React.Fragment>
       )}
+
+      <Overlay isOpen={dialogShown} onDismiss={() => setDialogShown(false)}>
+        <Content aria-label="Disclaimer">
+          <label>
+            You can drop or browse for one the following file types:
+          </label>
+          <ul>
+            <li>
+              A Shapefile (.zip, ZIP archive containing all shapefile files)
+            </li>
+            <li>
+              A CSV File (.csv, with address or latitude, longitude and comma,
+              semi-colon or tab delimited)
+            </li>
+            <li>A KML File (.kml)</li>
+            <li>A GPX File (.gpx, GPS Exchange Format)</li>
+            <li>A GeoJSON File (.geo.json or .geojson)</li>
+            <li>A maximum of 1000 features is allowed</li>
+          </ul>
+          <CloseButton
+            title="Close disclaimer"
+            onClick={(ev) => setDialogShown(false)}
+          >
+            ×
+          </CloseButton>
+        </Content>
+      </Overlay>
     </SearchContainer>
   );
 }

@@ -376,6 +376,7 @@ function SearchPanel() {
             }}
           >
             <SearchInput
+              aria-label="Search"
               value={searchText}
               placeholder={'Search...'}
               onChange={(ev) => setSearchText(ev.target.value)}
@@ -659,10 +660,13 @@ const CardThumbnail = styled.img`
   width: 90px;
 `;
 
-const CardTitle = styled.h3`
-  margin: 0 5px;
+const CardTitle = styled.span`
+  margin: 0;
   padding: 0;
+  font-family: 'Merriweather', 'Georgia', 'Cambria', 'Times New Roman', 'Times',
+    serif;
   font-size: 12px;
+  font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
