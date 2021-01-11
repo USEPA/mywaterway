@@ -175,7 +175,7 @@ function Protect() {
 
     if (tabIndex === 0) {
       setVisibleLayers({
-        wsioHealthIndexLayer: true,
+        wsioHealthIndexLayer: false,
         wildScenicRiversLayer: false,
         protectedAreasLayer: false,
       });
@@ -438,8 +438,10 @@ function Protect() {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        More Information »
-                      </a>
+                        <i className="fas fa-info-circle" aria-hidden="true" />{' '}
+                        More Information
+                      </a>{' '}
+                      (opens new browser tab)
                     </p>
                   </AccordionContent>
                 </AccordionItem>
@@ -461,8 +463,10 @@ function Protect() {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        More Information »
-                      </a>
+                        <i className="fas fa-info-circle" aria-hidden="true" />{' '}
+                        More Information
+                      </a>{' '}
+                      (opens new browser tab)
                     </p>
 
                     <Label>
@@ -570,8 +574,10 @@ function Protect() {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        More Information »
-                      </a>
+                        <i className="fas fa-info-circle" aria-hidden="true" />{' '}
+                        More Information
+                      </a>{' '}
+                      (opens new browser tab)
                     </p>
 
                     <Label>
@@ -681,7 +687,7 @@ function Protect() {
 
                                 <tr>
                                   <td>
-                                    <em>More information</em>
+                                    <em>Website</em>
                                   </td>
                                   <td>
                                     <a
