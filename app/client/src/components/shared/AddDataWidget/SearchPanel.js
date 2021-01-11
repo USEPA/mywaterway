@@ -814,11 +814,7 @@ function ResultCard({ result }: ResultCardProps) {
     // get the layers to be removed
     const layersToRemove = mapView.map.allLayers.filter((layer: any) => {
       // had to use any, since some layer types don't have portalItem
-      if (layer?.portalItem?.id === result.id) {
-        return true;
-      } else {
-        return false;
-      }
+      return layer?.portalItem?.id === result.id;
     });
 
     // remove the layers from the map and session storage.
