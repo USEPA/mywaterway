@@ -126,6 +126,7 @@ export function logCallToGoogleAnalytics(
   startTime: number,
 ) {
   if (!window.gaTarget) return;
+  if (!window.ga) return;
 
   const duration = performance.now() - startTime;
 
