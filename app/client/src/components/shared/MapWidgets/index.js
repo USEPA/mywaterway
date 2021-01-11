@@ -3,6 +3,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Rnd } from 'react-rnd';
+import styled from 'styled-components';
 // components
 import AddDataWidget from 'components/shared/AddDataWidget';
 import MapLegend from 'components/shared/MapLegend';
@@ -16,6 +17,8 @@ import { useServicesContext } from 'contexts/LookupFiles';
 import { shallowCompare } from 'components/pages/LocationMap/MapFunctions';
 // helpers
 import { useDynamicPopup } from 'utils/hooks';
+// icons
+import resizeIcon from '../Icons/resize.png';
 
 const basemapNames = [
   'Streets',
@@ -141,6 +144,22 @@ function updateVisibleLayers(view: any, hmwLegendNode: Node) {
     hmwLegendNode,
   );
 }
+
+// --- styles ---
+const ResizeHandle = styled.div`
+  float: right;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+
+  .fa-rotate-45 {
+    transform: rotate(45deg);
+  }
+
+  .fa-rotate-315 {
+    transform: rotate(315deg);
+  }
+`;
 
 // --- components ---
 type Props = {
@@ -1024,6 +1043,8 @@ function MapWidgets({
     .getElementById('base-container')
     .getBoundingClientRect().width;
 
+  const viewportWidth = window.innerWidth;
+
   return (
     <div
       style={{
@@ -1035,26 +1056,46 @@ function MapWidgets({
         pointerEvents: 'none',
       }}
     >
-      <Rnd
-        id="add-data-widget"
-        className={addDataWidgetVisible ? '' : 'hidden'}
-        style={{ backgroundColor: 'white', pointerEvents: 'all' }}
-        default={{
-          x: (mapWidth - 400 - 60) / 2,
-          y: 7.5,
-          width: '400px',
-          height: '410px',
-        }}
-        minWidth="275px"
-        minHeight="410px"
-        bounds="parent"
-        enableResizing={{
-          bottomRight: true,
-        }}
-        dragHandleClassName="drag-handle"
-      >
-        <AddDataWidget />
-      </Rnd>
+      {viewportWidth < 960 ? (
+        <div
+          id="add-data-widget"
+          className={addDataWidgetVisible ? '' : 'hidden'}
+          style={{
+            backgroundColor: 'white',
+            pointerEvents: 'all',
+            height: '410px',
+            width: `${mapWidth}px`,
+            position: 'absolute',
+            bottom: 0,
+          }}
+        >
+          <AddDataWidget />
+        </div>
+      ) : (
+        <Rnd
+          id="add-data-widget"
+          className={addDataWidgetVisible ? '' : 'hidden'}
+          style={{ backgroundColor: 'white', pointerEvents: 'all' }}
+          default={{
+            x: (mapWidth - 400 - 60) / 2,
+            y: 7.5,
+            width: '400px',
+            height: '410px',
+          }}
+          minWidth="275px"
+          minHeight="410px"
+          bounds="parent"
+          enableResizing={{
+            bottomRight: true,
+          }}
+          dragHandleClassName="drag-handle"
+        >
+          <AddDataWidget />
+          <ResizeHandle>
+            <img src={resizeIcon} alt="Resize Handle"></img>
+          </ResizeHandle>
+        </Rnd>
+      )}
     </div>
   );
 }

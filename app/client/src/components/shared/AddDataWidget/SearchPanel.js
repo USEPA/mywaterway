@@ -62,6 +62,7 @@ const ButtonHiddenText = styled.span`
 
 const FilterContainer = styled.div`
   display: flex;
+  flex-flow: wrap;
   justify-content: space-between;
   align-items: center;
   margin: 10px 1em;
@@ -344,6 +345,7 @@ function SearchPanel() {
         <div
           style={{
             display: 'flex',
+            flexFlow: 'wrap',
             justifyContent: 'space-between',
             alignItems: 'center',
             margin: '10px 1em',

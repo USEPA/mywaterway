@@ -12,8 +12,6 @@ import URLPanel from 'components/shared/AddDataWidget/URLPanel';
 // contexts
 import { AddDataWidgetContext } from 'contexts/AddDataWidget';
 import { LocationSearchContext } from 'contexts/locationSearch';
-// icons
-import resizeIcon from '../Icons/resize.png';
 
 // --- styles (AddData) ---
 const Container = styled.div`
@@ -112,21 +110,6 @@ const StyledLinkButton = styled(LinkButton)`
   text-decoration: none;
   font-weight: normal;
   padding: 5px;
-`;
-
-const ResizeHandle = styled.div`
-  float: right;
-  position: absolute;
-  right: 0;
-  bottom: 0;
-
-  .fa-rotate-45 {
-    transform: rotate(45deg);
-  }
-
-  .fa-rotate-315 {
-    transform: rotate(315deg);
-  }
 `;
 
 const LayerPanel = styled.div`
@@ -353,9 +336,6 @@ function AddDataWidget() {
           </StyledLinkButton>
         </FooterBar>
       </Container>
-      <ResizeHandle>
-        <img src={resizeIcon} alt="Resize Handle"></img>
-      </ResizeHandle>
     </React.Fragment>
   );
 }
