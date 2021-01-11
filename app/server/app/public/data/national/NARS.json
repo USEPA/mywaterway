@@ -67,5 +67,12 @@
       "title": "of our national wetland area has experienced low or moderate rates of surface hardening when compared to the best 75% of the least-disturbed reference sites",
       "content": "<p>Wetlands with high levels of surface hardening (e.g., pavement, soil compaction) are vulnerable to flooding and erosion, and are twice as likely to have poor biological condition.</p>"
     }
-  ]
+  ],
+  "excessNutrientsUrl": "https://www.epa.gov/nutrientpollution",
+  "excessNutrientsImageUrl": "https://www.epa.gov/nutrientpollution",
+  "reduceNutriantsPollutionUrl": "https://www.epa.gov/nutrient-policy-data/what-epa-doing-reduce-nutrient-pollution",
+  "riversStreamsUrl": "https://www.epa.gov/national-aquatic-resource-surveys/national-rivers-and-streams-assessment-2013-2014-results",
+  "lakesUrl": "https://www.epa.gov/national-aquatic-resource-surveys/national-lakes-assessment-2012-key-findings",
+  "coastsUrl" : "https://www.epa.gov/national-aquatic-resource-surveys/national-coastal-condition-assessment-2010-results",
+  "wetlandsUrl": "https://www.epa.gov/national-aquatic-resource-surveys/nwca"
 }
