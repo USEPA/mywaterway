@@ -956,7 +956,8 @@ function WaterbodyInfo({
       <p>
         <a href={attributes.WEBLINK} target="_blank" rel="noopener noreferrer">
           More information
-        </a>
+        </a>{' '}
+        (opens new browser tab)
       </p>
     </>
   );

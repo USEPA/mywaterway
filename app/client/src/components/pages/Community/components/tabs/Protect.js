@@ -690,7 +690,8 @@ function Protect() {
                                       rel="noopener noreferrer"
                                     >
                                       {attributes.WEBLINK}
-                                    </a>
+                                    </a>{' '}
+                                    (opens new browser tab)
                                   </td>
                                 </tr>
                               </tbody>
