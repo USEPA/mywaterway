@@ -957,8 +957,7 @@ function WaterbodyInfo({
         <a rel="noopener noreferrer" target="_blank" href={attributes.WEBLINK}>
           <Icon className="fas fa-info-circle" aria-hidden="true" />
           More Information
-        </a>
-        &nbsp;&nbsp;
+        </a>{' '}
         <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
       </div>
     </>

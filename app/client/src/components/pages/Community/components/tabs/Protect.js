@@ -243,7 +243,7 @@ function Protect() {
               <p>
                 Learn about watershed health scores in relation to your state,
                 if there are any protected areas in your watershed, and the
-                location of any designated <em>Wild and Scenic Rivers</em>
+                location of any designated <em>Wild and Scenic Rivers</em>.
               </p>
 
               <AccordionList>
