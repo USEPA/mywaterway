@@ -68,6 +68,10 @@ const WidgetHeader = styled.div`
   }
 `;
 
+const DragHandle = styled.div`
+  width: calc(100% - 46.7px);
+`;
+
 const StyledContentTabs = styled(ContentTabs)`
   height: 100%;
 `;
@@ -200,8 +204,10 @@ function AddDataWidget() {
 
   return (
     <React.Fragment>
-      <WidgetHeader className="drag-handle">
-        <h1>Add Data</h1>
+      <WidgetHeader>
+        <DragHandle className="drag-handle">
+          <h1>Add Data</h1>
+        </DragHandle>
         <button
           onClick={() => {
             const widget = document.getElementById('add-data-widget');
