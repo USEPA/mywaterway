@@ -396,12 +396,20 @@ function MapWidgets({
     return (
       <div
         className="add-data-widget"
-        title={`${addDataWidgetVisible ? 'Hide' : 'Show'} Add Data Widget`}
+        title="Add Data Widget"
         style={hover ? divHoverStyle : divStyle}
         onMouseOver={() => setHover(true)}
         onMouseOut={() => setHover(false)}
         onClick={(ev) => {
-          setAddDataWidgetVisible(!addDataWidgetVisible);
+          const widget = document.getElementById('add-data-widget');
+          if (!widget) return;
+          if (widget.classList.contains('hidden')) {
+            widget.classList.remove('hidden');
+            setAddDataWidgetVisible(true);
+          } else {
+            widget.classList.add('hidden');
+            setAddDataWidgetVisible(false);
+          }
         }}
       >
         <span
@@ -1029,6 +1037,7 @@ function MapWidgets({
     >
       <Rnd
         id="add-data-widget"
+        className={addDataWidgetVisible ? '' : 'hidden'}
         style={{ backgroundColor: 'white', pointerEvents: 'all' }}
         default={{
           x: (mapWidth - 400 - 60) / 2,

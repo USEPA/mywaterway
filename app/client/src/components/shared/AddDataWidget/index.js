@@ -204,6 +204,8 @@ function AddDataWidget() {
         <h1>Add Data</h1>
         <button
           onClick={() => {
+            const widget = document.getElementById('add-data-widget');
+            widget.classList.add('hidden');
             setAddDataWidgetVisible(false);
           }}
         >
