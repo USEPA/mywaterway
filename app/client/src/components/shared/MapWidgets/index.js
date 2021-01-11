@@ -374,6 +374,7 @@ function MapWidgets({
   }, [widgetLayers, esriLegend]);
 
   // Creates and adds the legend widget to the map
+  const rnd = React.useRef();
   const [addDataWidget, setAddDataWidget] = React.useState(null);
   React.useEffect(() => {
     if (!view?.ui || addDataWidget) return;
@@ -389,19 +390,22 @@ function MapWidgets({
       node,
     );
 
-    // let width = window.innerWidth;
-    // function handleResize() {
-    //   const difference = width - window.innerWidth;
-    //   if (width <= 0) return;
+    // Ensures the add data widget stays within the map div
+    let width = window.innerWidth;
+    function handleResize() {
+      const difference = width - window.innerWidth;
+      width = window.innerWidth;
+      if (difference < 0 || !rnd?.current) return;
 
-    //   width = width - difference;
+      // update the position of the add data widget
+      const newPosition = rnd.current.draggable.state.x - difference / 2;
+      rnd.current.updatePosition({
+        x: newPosition < 0 ? 0 : newPosition,
+        y: rnd.current.draggable.state.y,
+      });
+    }
 
-    //   const item = document.getElementById('add-data-widget');
-    //   const newPosition = item.getBoundingClientRect().left - item.parentElement.getBoundingClientRect().left - difference;
-    //   this.Rnd.updatePosition({ x: newPosition, y: 0 });
-    // }
-
-    // window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', handleResize);
 
     setAddDataWidget(node);
   }, [view, addDataWidget, addDataWidgetVisible, setAddDataWidgetVisible]);
@@ -1076,6 +1080,7 @@ function MapWidgets({
           id="add-data-widget"
           className={addDataWidgetVisible ? '' : 'hidden'}
           style={{ backgroundColor: 'white', pointerEvents: 'all' }}
+          ref={rnd}
           default={{
             x: (mapWidth - 400 - 60) / 2,
             y: 7.5,
