@@ -649,10 +649,12 @@ function SearchPanel() {
 
 // --- styles (ResultCard) ---
 const CardContainer = styled.div`
-  height: 70px;
+  min-height: 70px;
   padding: 5px;
   border: 1px solid #e0e0e0;
   background-color: white;
+  display: ${({ width }) => (width > 200 || width === 0 ? 'block' : 'flex')};
+  flex-flow: column;
 `;
 
 const CardThumbnail = styled.img`
@@ -662,7 +664,7 @@ const CardThumbnail = styled.img`
   width: 90px;
 `;
 
-const CardTitle = styled.span`
+const CardTitle = styled.div`
   margin: 0;
   padding: 0;
   font-family: 'Merriweather', 'Georgia', 'Cambria', 'Times New Roman', 'Times',
@@ -686,6 +688,7 @@ const CardInfo = styled.div`
 
 const CardButtonContainer = styled.div`
   text-align: right;
+  margin-top: 5px;
 `;
 
 const CardMessage = styled.span`
@@ -828,19 +831,36 @@ function ResultCard({ result }: ResultCardProps) {
     }
   }
 
+  let statusStr = '';
+  if (status === 'loading') statusStr = 'Adding...';
+  if (status === 'error') statusStr = 'Add Failed';
+
+  const infoStr = `${result.type} by ${result.owner}`;
+
+  // Updates the styles when the add data widget shrinks below
+  // 200 pixels wide
+  const cardRef = React.useRef();
+  const [cardWidth, setCardWidth] = React.useState(0);
+  React.useEffect(() => {
+    if (!cardRef?.current) return;
+
+    function handleResize() {
+      if (!cardRef?.current) return;
+      setCardWidth(cardRef.current.clientWidth);
+    }
+    window.addEventListener('resize', handleResize);
+  }, [cardRef]);
+
   return (
-    <CardContainer>
+    <CardContainer ref={cardRef} width={cardWidth}>
       <CardThumbnail
         src={result.thumbnailUrl}
         alt={`${result.title} Thumbnail`}
       />
-      <CardTitle>{result.title}</CardTitle>
-      <CardInfo>
-        {result.type} by {result.owner}
-      </CardInfo>
-      <br />
+      <CardTitle title={result.title}>{result.title}</CardTitle>
+      <CardInfo title={infoStr}>{infoStr}</CardInfo>
       <CardButtonContainer>
-        <CardMessage>
+        <CardMessage title={statusStr}>
           {status === 'loading' && 'Adding...'}
           {status === 'error' && 'Add Failed'}
         </CardMessage>
