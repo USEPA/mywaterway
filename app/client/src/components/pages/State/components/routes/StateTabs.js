@@ -2,10 +2,10 @@
 
 import React from 'react';
 import { navigate } from '@reach/router';
-import { Tabs, TabList, TabPanels, TabPanel } from '@reach/tabs';
+import { Tabs, TabList, TabPanels } from '@reach/tabs';
 // components
 import type { RouteProps } from 'routes.js';
-import { ContentTabs } from 'components/shared/ContentTabs';
+import { ContentTabs, StyledTabPanel } from 'components/shared/ContentTabs';
 import WaterQualityOverview from 'components/pages/State/components/tabs/WaterQualityOverview';
 import AdvancedSearch from 'components/pages/State/components/tabs/AdvancedSearch';
 // styled components
@@ -115,12 +115,12 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
           </TabList>
 
           <TabPanels>
-            <TabPanel>
+            <StyledTabPanel>
               <WaterQualityOverview />
-            </TabPanel>
-            <TabPanel>
+            </StyledTabPanel>
+            <StyledTabPanel>
               <AdvancedSearch />
-            </TabPanel>
+            </StyledTabPanel>
           </TabPanels>
         </Tabs>
       </ContentTabs>

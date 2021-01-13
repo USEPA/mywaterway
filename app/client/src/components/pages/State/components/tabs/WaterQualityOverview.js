@@ -3,9 +3,9 @@
 import React from 'react';
 import styled from 'styled-components';
 import Select from 'react-select';
-import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
+import { Tabs, TabList, Tab, TabPanels } from '@reach/tabs';
 // components
-import { ContentTabs } from 'components/shared/ContentTabs';
+import { ContentTabs, StyledTabPanel } from 'components/shared/ContentTabs';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import DrinkingWaterIcon from 'components/shared/Icons/DrinkingWaterIcon';
@@ -938,7 +938,10 @@ function WaterQualityOverview({ ...props }: Props) {
 
           <TabPanels>
             {tabs.map((tab) => (
-              <TabPanel key={tab.id} data-testid={`hmw-${tab.id}-tab-panel`}>
+              <StyledTabPanel
+                key={tab.id}
+                data-testid={`hmw-${tab.id}-tab-panel`}
+              >
                 <FiltersSection>
                   <h4>Pick your Water Type and Use:</h4>
 
@@ -1054,7 +1057,7 @@ function WaterQualityOverview({ ...props }: Props) {
                     (opens new browser tab)
                   </DrinkingWaterText>
                 </DrinkingWaterSection>
-              </TabPanel>
+              </StyledTabPanel>
             ))}
           </TabPanels>
         </Tabs>

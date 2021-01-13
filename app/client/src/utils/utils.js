@@ -183,6 +183,28 @@ function splitSuggestedSearch(Point, text) {
   };
 }
 
+/**
+ * Creates a simple popup that contains all of the attributes on the
+ * graphic.
+ *
+ * @param title The title to be displayed on the popup
+ * @param attributes Attributes to be placed in the popup content
+ * @returns the json object to pass to the Esri PopupTemplate constructor.
+ */
+function getSimplePopupTemplate(title: string, attributes: any) {
+  return {
+    title,
+    content: [
+      {
+        type: 'fields',
+        fieldInfos: Object.keys(attributes).map((key) => {
+          return { fieldName: key, label: key };
+        }),
+      },
+    ],
+  };
+}
+
 // check user-agent for iOS version, if applicable
 function browserIsCompatibleWithArcGIS() {
   const agent = window.navigator.userAgent;
@@ -229,5 +251,6 @@ export {
   createMarkup,
   getPointFromCoordinates,
   splitSuggestedSearch,
+  getSimplePopupTemplate,
   browserIsCompatibleWithArcGIS,
 };

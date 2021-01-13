@@ -57,6 +57,8 @@
     "react": "16.13.1",
     "react-app-polyfill": "1.0.6",
     "react-dom": "16.13.1",
+    "react-dropzone": "^11.2.4",
+    "react-rnd": "^10.2.4",
     "react-scripts": "3.4.3",
     "react-select": "3.1.0",
     "react-sticky-box": "0.9.3",

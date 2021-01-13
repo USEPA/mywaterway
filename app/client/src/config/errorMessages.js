@@ -155,6 +155,38 @@ export const waterbodyReportError = (type) =>
 export const attainsParameterServiceError =
   'Parameter information is temporarily unavailable, please try again later.';
 
+// Add Data Widget //
+export const webServiceErrorMessage = 'An error occurred in the web service';
+
+export const unsupportedLayerMessage = (layerType) =>
+  `The "${layerType}" layer type is unsupported`;
+
+export const urlAlreadyAddedMessage = (url) =>
+  `The "${url}" has already been added. If you want to change the type, please remove the layer first and re-add it.`;
+
+export const urlLayerFailureMessage = (url) =>
+  `Failed to add the layer at the following url: ${url}`;
+
+export const urlLayerSuccessMessage =
+  'The layer was successfully added to the map';
+
+export const fileReadErrorMessage = (filename) =>
+  `Failed to read the ${filename} file. Check the console log for details.`;
+
+export const importErrorMessage = 'Unable to import this dataset.';
+
+export const invalidFileTypeMessage = (filename) =>
+  `${filename} is an invalid file type. The accepted file types are .zip, .csv, .kml, .gpx, .goe.json and .geojson`;
+
+export const noDataMessage = (filename) =>
+  `The ${filename} file did not have any data to display on the map`;
+
+export const uploadSuccessMessage = (filename, layerName = '') => {
+  return filename === layerName
+    ? `"${filename}" was successfully uploaded`
+    : `"${filename}" was successfully uploaded as "${layerName}"`;
+};
+
 // Error Boundaries //
 export const servicesLookupServiceError =
   "How's My Waterway is temporarily unavailable, please try again later.";
