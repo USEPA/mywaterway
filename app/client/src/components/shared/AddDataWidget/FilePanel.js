@@ -450,7 +450,6 @@ function FilePanel() {
     setFeaturesAdded(true);
 
     const featureLayers: __esri.FeatureLayer[] = [];
-    const graphicsAdded: __esri.Graphic[] = [];
     generateResponse.featureCollection.layers.forEach((layer: any) => {
       if (
         !layer?.featureSet?.features ||
@@ -478,7 +477,6 @@ function FilePanel() {
         }
         const graphic = Graphic.fromJSON(feature);
         features.push(graphic);
-        graphicsAdded.push(graphic);
       });
 
       // use jsonUtils to convert the REST API renderer to an ArcGIS JS renderer
@@ -523,7 +521,6 @@ function FilePanel() {
     });
 
     mapView.map.addMany(featureLayers);
-    if (graphicsAdded.length > 0) mapView.goTo(graphicsAdded);
 
     setUploadStatus('success');
   }, [

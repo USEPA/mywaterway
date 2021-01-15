@@ -321,16 +321,11 @@ function SearchPanel() {
   React.useEffect(() => {
     if (!mapView || watchViewInitialized) return;
 
-    const watchEvent = watchUtils.whenTrue(mapView, 'stationary', () => {
+    watchUtils.whenTrue(mapView, 'stationary', () => {
       setCurrentExtent(mapView.extent);
     });
 
     setWatchViewInitialized(true);
-
-    // remove watch event to prevent it from running after component unmounts
-    return function cleanup() {
-      watchEvent.remove();
-    };
   }, [mapView, watchUtils, watchViewInitialized]);
 
   const [showLocationOptions, setShowLocationOptions] = React.useState(false);
@@ -788,11 +783,6 @@ function ResultCard({ result }: ResultCardProps) {
 
             if (mapView) {
               layer.visible = true;
-
-              // zoom to the layer if it has an extent
-              if (layer.fullExtent) {
-                mapView.goTo(layer.fullExtent);
-              }
             }
           } else if (loadStatus === 'failed') {
             setStatus('error');
