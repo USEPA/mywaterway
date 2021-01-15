@@ -380,7 +380,7 @@ function MapWidgets({
     if (!view?.ui || addDataWidget) return;
 
     const node = document.createElement('div');
-    view.ui.add(node, { position: 'top-right', index: 2 });
+    view.ui.add(node, { position: 'top-right', index: 1 });
 
     ReactDOM.render(
       <ShowAddDataWidget
@@ -774,7 +774,7 @@ function MapWidgets({
     if (upstreamWidgetCreated || !view || !view.ui) return;
 
     const node = document.createElement('div');
-    view.ui.add(node, { position: 'top-right', index: 1 });
+    view.ui.add(node, { position: 'top-right', index: 2 });
     setUpstreamWidget(node); // store the widget in context so it can be shown or hidden later
     ReactDOM.render(
       <ShowUpstreamWatershed

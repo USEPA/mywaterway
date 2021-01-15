@@ -240,9 +240,6 @@ function URLPanel() {
               <p>
                 http://services.arcgisonline.com/ArcGIS/rest/services/Demographics/USA_Tapestry/MapServer
               </p>
-              <p>
-                http://imagery.arcgisonline.com/ArcGIS/rest/services/LandsatGLS/VegetationAnalysis/ImageServer
-              </p>
             </div>
           )}
           {urlType.value === 'WMS' && (
