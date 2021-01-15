@@ -326,11 +326,6 @@ function SearchPanel() {
     });
 
     setWatchViewInitialized(true);
-
-    // remove watch event to prevent it from running after component unmounts
-    return function cleanup() {
-      watchEvent.remove();
-    };
   }, [mapView, watchUtils, watchViewInitialized]);
 
   const [showLocationOptions, setShowLocationOptions] = React.useState(false);
