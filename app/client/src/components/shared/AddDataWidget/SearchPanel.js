@@ -321,7 +321,7 @@ function SearchPanel() {
   React.useEffect(() => {
     if (!mapView || watchViewInitialized) return;
 
-    const watchEvent = watchUtils.whenTrue(mapView, 'stationary', () => {
+    watchUtils.whenTrue(mapView, 'stationary', () => {
       setCurrentExtent(mapView.extent);
     });
 
