@@ -91,7 +91,7 @@ const SearchBox = styled.div`
   }
 
   .esri-search__input::placeholder {
-    color: #6C757D;
+    color: #6c757d;
   }
 
   .esri-search__clear-button {
@@ -109,7 +109,7 @@ const SearchBox = styled.div`
     color: rgb(204, 204, 204);
     font-weight: 900;
   }
-`
+`;
 
 // --- components ---
 type Props = {
@@ -119,7 +119,9 @@ type Props = {
 
 function LocationSearch({ route, label }: Props) {
   const services = useServicesContext();
-  const { FeatureLayer, Locator, Point, Search, watchUtils } = React.useContext(EsriModulesContext);
+  const { FeatureLayer, Locator, Point, Search, watchUtils } = React.useContext(
+    EsriModulesContext,
+  );
   const { searchText, watershed, huc12 } = React.useContext(
     LocationSearchContext,
   );
@@ -144,7 +146,7 @@ function LocationSearch({ route, label }: Props) {
   React.useEffect(() => {
     if (searchWidget) return;
 
-    const placeholder = 'Search by address, zip code, or place...'
+    const placeholder = 'Search by address, zip code, or place...';
     const search = new Search({
       allPlaceholder: placeholder,
       container: 'search-container',
@@ -161,7 +163,7 @@ function LocationSearch({ route, label }: Props) {
           exactMatch: false,
           outFields: ['TRIBE_NAME'],
           placeholder: placeholder,
-          name: "EPA Tribal Areas - Lower 48 States",
+          name: 'EPA Tribal Areas - Lower 48 States',
         },
         {
           layer: new FeatureLayer({
@@ -173,7 +175,7 @@ function LocationSearch({ route, label }: Props) {
           exactMatch: false,
           outFields: ['NAME'],
           placeholder: placeholder,
-          name: "EPA Tribal Areas - Alaska Native Villages",
+          name: 'EPA Tribal Areas - Alaska Native Villages',
         },
         {
           layer: new FeatureLayer({
@@ -185,38 +187,58 @@ function LocationSearch({ route, label }: Props) {
           exactMatch: false,
           outFields: ['TRIBE_NAME'],
           placeholder: placeholder,
-          name: "EPA Tribal Areas - Alaska Reservations",
-        }
-      ]
+          name: 'EPA Tribal Areas - Alaska Reservations',
+        },
+      ],
     });
 
     // create a watcher for the input text
-    watchUtils.watch(search, "searchTerm", (newVal, oldVal, propName, event) => {
-      setInputText(newVal);
-    });
+    watchUtils.watch(
+      search,
+      'searchTerm',
+      (newVal, oldVal, propName, event) => {
+        setSelectedResult(null);
+        setInputText(newVal);
+      },
+    );
 
     // create a watcher for the selected suggestion. This is used for getting
     // the lat/long of the selected suggestion, to ensure the locator zooms to the
     // suggestion rather than the highest scored text.
-    // (ex. user searches for "Beaver" and selects the Alaska Reservations option, 
+    // (ex. user searches for "Beaver" and selects the Alaska Reservations option,
     // this code ensures the map zooms to Beaver Alaska instead of Beaver Ohio)
-    watchUtils.watch(search, "selectedResult", (newVal, oldVal, propName, event) => {
-      if (newVal && newVal.sourceIndex > 0) {
-        setSelectedResult(newVal);
-      } else {
-        setSelectedResult(null);
-      }
-    });
+    watchUtils.watch(
+      search,
+      'selectedResult',
+      (newVal, oldVal, propName, event) => {
+        if (newVal) {
+          setSelectedResult(newVal);
+        } else {
+          setSelectedResult(null);
+        }
+      },
+    );
 
     setSearchWidget(search);
-  }, [FeatureLayer, Locator, Search, watchUtils, searchWidget, services, searchText]);
+  }, [
+    FeatureLayer,
+    Locator,
+    Search,
+    watchUtils,
+    searchWidget,
+    services,
+    searchText,
+  ]);
 
   // Initialize the esri search widget value with the search text.
   React.useEffect(() => {
     if (!searchWidget) return;
 
     // Remove coordinates if search text was from non-esri suggestions
-    searchWidget.searchTerm = splitSuggestedSearch(Point, searchText).searchPart;
+    searchWidget.searchTerm = splitSuggestedSearch(
+      Point,
+      searchText,
+    ).searchPart;
   }, [Point, searchWidget, searchText]);
 
   // Adds additional info to search box if the search was a huc12
@@ -277,9 +299,10 @@ function LocationSearch({ route, label }: Props) {
           let urlSearch = null;
           if (selectedResult) {
             const center = selectedResult.extent.center;
-            urlSearch = `${inputText.trim()}|${center.longitude}, ${center.latitude}`;
-          }
-          else if (inputText) {
+            urlSearch = `${inputText.trim()}|${center.longitude}, ${
+              center.latitude
+            }`;
+          } else if (inputText) {
             urlSearch = inputText.trim();
           }
 
@@ -313,59 +336,59 @@ function LocationSearch({ route, label }: Props) {
                 &nbsp;&nbsp;Error Getting Location
               </Button>
             ) : (
-                <Button
-                  className="btn"
-                  type="button"
-                  onClick={(ev) => {
-                    setGeolocating(true);
+              <Button
+                className="btn"
+                type="button"
+                onClick={(ev) => {
+                  setGeolocating(true);
 
-                    navigator.geolocation.getCurrentPosition(
-                      // success function called when geolocation succeeds
-                      (position) => {
-                        const locatorTask = new Locator({
-                          url: services.data.locatorUrl,
+                  navigator.geolocation.getCurrentPosition(
+                    // success function called when geolocation succeeds
+                    (position) => {
+                      const locatorTask = new Locator({
+                        url: services.data.locatorUrl,
+                      });
+                      const params = {
+                        location: new Point({
+                          x: position.coords.longitude,
+                          y: position.coords.latitude,
+                        }),
+                      };
+
+                      locatorTask
+                        .locationToAddress(params)
+                        .then((candidate) => {
+                          setGeolocating(false);
+                          navigate(
+                            encodeURI(
+                              route.replace('{urlSearch}', candidate.address),
+                            ),
+                          );
                         });
-                        const params = {
-                          location: new Point({
-                            x: position.coords.longitude,
-                            y: position.coords.latitude,
-                          }),
-                        };
-
-                        locatorTask
-                          .locationToAddress(params)
-                          .then((candidate) => {
-                            setGeolocating(false);
-                            navigate(
-                              encodeURI(
-                                route.replace('{urlSearch}', candidate.address),
-                              ),
-                            );
-                          });
-                      },
-                      // failure function called when geolocation fails
-                      (err) => {
-                        console.error(err);
-                        setGeolocating(false);
-                        setGeolocationError(true);
-                      },
-                    );
-                  }}
-                >
-                  {/* don't display the loading indicator in IE11 */}
-                  {!geolocating || isIE() ? (
-                    <>
-                      <i className="fas fa-crosshairs" aria-hidden="true" />
+                    },
+                    // failure function called when geolocation fails
+                    (err) => {
+                      console.error(err);
+                      setGeolocating(false);
+                      setGeolocationError(true);
+                    },
+                  );
+                }}
+              >
+                {/* don't display the loading indicator in IE11 */}
+                {!geolocating || isIE() ? (
+                  <>
+                    <i className="fas fa-crosshairs" aria-hidden="true" />
                     &nbsp;&nbsp;Use My Location
-                    </>
-                  ) : (
-                      <>
-                        <i className="fas fa-spinner fa-pulse" aria-hidden="true" />
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-spinner fa-pulse" aria-hidden="true" />
                     &nbsp;&nbsp;Getting Location...
-                      </>
-                    )}
-                </Button>
-              )}
+                  </>
+                )}
+              </Button>
+            )}
           </>
         )}
       </Form>
