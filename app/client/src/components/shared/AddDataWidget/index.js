@@ -140,7 +140,7 @@ const RecordContainer = styled.div`
   align-items: center;
 `;
 
-const DeleteButton = styled.button`
+const LayerIconButton = styled.button`
   margin: 0;
   color: black;
   background-color: transparent;
@@ -242,40 +242,53 @@ function AddDataWidget() {
               layersToDisplay.map((item) => {
                 return (
                   <RecordContainer key={item.layer.id}>
-                    <label htmlFor={item.layer.id}>{item.title}</label>
-                    <DeleteButton
-                      id={item.layer.id}
-                      className="esri-icon-trash"
-                      onClick={() => {
-                        if (
-                          !item.layer.parent?.type ||
-                          item.layer.parent.type !== 'group'
-                        ) {
-                          setWidgetLayers((widgetLayers) =>
-                            widgetLayers.filter(
-                              (widgetLayer) => widgetLayer.id !== item.layer.id,
-                            ),
-                          );
-                          mapView.map.remove(item.layer);
-                          return;
-                        }
+                    <span>{item.title}</span>
+                    <div>
+                      <LayerIconButton
+                        className="esri-icon-zoom-in-magnifying-glass"
+                        onClick={() => {
+                          if (!item?.layer?.fullExtent) return;
+                          mapView.goTo(item.layer.fullExtent);
+                        }}
+                      >
+                        <ButtonHiddenText>Zoom to Layer</ButtonHiddenText>
+                      </LayerIconButton>
+                      <LayerIconButton
+                        className="esri-icon-trash"
+                        onClick={() => {
+                          if (
+                            !item.layer.parent?.type ||
+                            item.layer.parent.type !== 'group'
+                          ) {
+                            setWidgetLayers((widgetLayers) =>
+                              widgetLayers.filter(
+                                (widgetLayer) =>
+                                  widgetLayer.id !== item.layer.id,
+                              ),
+                            );
+                            mapView.map.remove(item.layer);
+                            return;
+                          }
 
-                        // If the parent layer only has 1 layer left, remove the
-                        // parent layer, otherwise just remove the layer from
-                        // the parent layer.
-                        if (item.layer.parent.layers.length > 1) {
-                          item.layer.parent.remove(item.layer);
-                        } else {
-                          setWidgetLayers((widgetLayers) =>
-                            widgetLayers.filter(
-                              (widgetLayer) =>
-                                widgetLayer.id !== item.layer.parent.id,
-                            ),
-                          );
-                          mapView.map.remove(item.layer.parent);
-                        }
-                      }}
-                    ></DeleteButton>
+                          // If the parent layer only has 1 layer left, remove the
+                          // parent layer, otherwise just remove the layer from
+                          // the parent layer.
+                          if (item.layer.parent.layers.length > 1) {
+                            item.layer.parent.remove(item.layer);
+                          } else {
+                            setWidgetLayers((widgetLayers) =>
+                              widgetLayers.filter(
+                                (widgetLayer) =>
+                                  widgetLayer.id !== item.layer.parent.id,
+                              ),
+                            );
+                            mapView.map.remove(item.layer.parent);
+                          }
+                        }}
+                      >
+                        <ButtonHiddenText>Delete Layer</ButtonHiddenText>
+                      </LayerIconButton>
+                    </div>
                   </RecordContainer>
                 );
               })}
