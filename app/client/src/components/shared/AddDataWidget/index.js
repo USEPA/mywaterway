@@ -56,6 +56,8 @@ const WidgetHeader = styled.div`
 
   h1 {
     margin: 0 10px;
+    font-family: 'Source Sans Pro', 'Helvetica Neue', 'Helvetica', 'Roboto',
+      'Arial', sans-serif;
     font-size: 16px;
     line-height: 35px;
     padding: 0;

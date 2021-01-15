@@ -397,8 +397,21 @@ function MapWidgets({
       width = window.innerWidth;
       if (difference < 0 || !rnd?.current) return;
 
+      let mapRect = document
+        .getElementById('base-container')
+        .getBoundingClientRect();
+      let awdRect = document
+        .getElementById('add-data-widget')
+        .getBoundingClientRect();
+
+      const maxLeft = mapRect.width - awdRect.width;
+      const curLeft = awdRect.left - mapRect.left;
+
       // update the position of the add data widget
-      const newPosition = rnd.current.draggable.state.x - difference / 2;
+      const newPosition =
+        curLeft > maxLeft
+          ? maxLeft
+          : awdRect.left - mapRect.left - difference / 2;
       rnd.current.updatePosition({
         x: newPosition < 0 ? 0 : newPosition,
         y: rnd.current.draggable.state.y,
