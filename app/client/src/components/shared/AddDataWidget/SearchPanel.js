@@ -788,11 +788,6 @@ function ResultCard({ result }: ResultCardProps) {
 
             if (mapView) {
               layer.visible = true;
-
-              // zoom to the layer if it has an extent
-              if (layer.fullExtent) {
-                mapView.goTo(layer.fullExtent);
-              }
             }
           } else if (loadStatus === 'failed') {
             setStatus('error');

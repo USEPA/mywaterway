@@ -523,7 +523,6 @@ function FilePanel() {
     });
 
     mapView.map.addMany(featureLayers);
-    if (graphicsAdded.length > 0) mapView.goTo(graphicsAdded);
 
     setUploadStatus('success');
   }, [
