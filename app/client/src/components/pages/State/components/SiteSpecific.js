@@ -9,6 +9,8 @@ import highchartsAccessibility from 'highcharts/modules/accessibility';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
+// styled components
+import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // contexts
 import { StateTabsContext } from 'contexts/StateTabs';
 // utilities
@@ -17,6 +19,8 @@ import { formatNumber } from 'utils/utils';
 import { impairmentFields } from 'config/attainsToHmwMapping';
 // styles
 import { fonts, colors } from 'styles/index.js';
+// errors
+import { fishingAdvisoryError } from 'config/errorMessages';
 
 // add accessibility features to highcharts
 highchartsAccessibility(Highcharts);
@@ -65,6 +69,14 @@ const HighchartsContainer = styled.div`
   }
 `;
 
+const FishingAdvisoryText = styled.h3`
+  display: inline-block;
+`;
+
+const ErrorBox = styled(StyledErrorBox)`
+  margin-bottom: 1.5em;
+`;
+
 // --- components ---
 type Props = {
   activeState: { code: string, name: string },
@@ -81,6 +93,7 @@ function SiteSpecific({
   waterTypeData,
   completeUseList,
   useSelected,
+  fishingAdvisoryData,
 }: Props) {
   const { currentReportingCycle } = React.useContext(StateTabsContext);
 
@@ -396,6 +409,45 @@ function SiteSpecific({
           </AccordionItem>
         </AccordionList>
       )}
+
+      {topic === 'fishing' && fishingAdvisoryData.status === 'fetching' && (
+        <LoadingSpinner />
+      )}
+
+      {topic === 'fishing' && fishingAdvisoryData.status === 'failure' && (
+        <ErrorBox>{fishingAdvisoryError}</ErrorBox>
+      )}
+
+      {topic === 'fishing' &&
+        fishingAdvisoryData.status === 'success' &&
+        fishingAdvisoryData.data.length === 0 && (
+          <ErrorBox>{fishingAdvisoryError}</ErrorBox>
+        )}
+
+      {topic === 'fishing' &&
+        fishingAdvisoryData.status === 'success' &&
+        fishingAdvisoryData.data.length !== 0 && (
+          <>
+            <FishingAdvisoryText>
+              Fish Consumption Advisories for{' '}
+              <a
+                href={fishingAdvisoryData.data[0].url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {activeState.name}
+              </a>{' '}
+            </FishingAdvisoryText>
+            <a
+              className="exit-disclaimer"
+              href="https://www.epa.gov/home/exit-epa"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              EXIT
+            </a>
+          </>
+        )}
     </>
   );
 }

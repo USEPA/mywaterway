@@ -155,6 +155,10 @@ export const waterbodyReportError = (type) =>
 export const attainsParameterServiceError =
   'Parameter information is temporarily unavailable, please try again later.';
 
+// WatersGEO Fishing Advisory Service Error
+export const fishingAdvisoryError =
+  'Fishing Advisory information is not available at this time. Please try again later.';
+
 // Add Data Widget //
 export const webServiceErrorMessage = 'An error occurred in the web service';
 
