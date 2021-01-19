@@ -960,10 +960,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         } catch (err) {
           console.error(err);
           setNoDataAvailable();
+          setMapLoading(false);
           setErrorMessage(noDataAvailableError);
         }
       } else {
         setNoDataAvailable();
+        setMapLoading(false);
         setErrorMessage(noDataAvailableError);
       }
     },
@@ -1247,6 +1249,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           .then((response) => {
             if (response.features.length === 0) {
               // flag no data available for no response
+              setMapLoading(false);
               setErrorMessage(noDataAvailableError);
               setNoDataAvailable();
             }
@@ -1266,6 +1269,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           })
           .catch((err) => {
             console.error(err);
+            setMapLoading(false);
             setErrorMessage(noDataAvailableError);
             setNoDataAvailable();
           });
