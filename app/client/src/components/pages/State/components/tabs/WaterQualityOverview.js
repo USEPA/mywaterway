@@ -280,6 +280,11 @@ function WaterQualityOverview({ ...props }: Props) {
   const [surveyData, setSurveyData] = React.useState(null);
   const [assessmentDocuments, setAssessmentDocuments] = React.useState(null);
 
+  const [fishingAdvisoryData, setFishingAdvisoryData] = React.useState({
+    status: 'fetching',
+    data: [],
+  });
+
   const [topicUses, setTopicUses] = React.useState({});
   const [useList, setUseList] = React.useState([]);
   const [completeUseList, setCompleteUseList] = React.useState([]);
@@ -460,6 +465,40 @@ function WaterQualityOverview({ ...props }: Props) {
     services,
   ]);
 
+  // Get fishing advisory information
+  const fetchFishingAdvisoryData = React.useCallback(
+    (stateCode) => {
+      setFishingAdvisoryData({ status: 'fetching', data: [] });
+
+      const url =
+        services.data.fishingInformationService.serviceUrl +
+        services.data.fishingInformationService.queryStringFirstPart +
+        `'${stateCode}'` +
+        services.data.fishingInformationService.queryStringSecondPart;
+
+      fetchCheck(url)
+        .then((res) => {
+          if (!res || !res.features || res.features.length === 0) {
+            setFishingAdvisoryData({ status: 'success', data: [] });
+            return;
+          }
+
+          const fishingInfo = [
+            {
+              url: res.features[0].attributes.STATEURL,
+            },
+          ];
+
+          setFishingAdvisoryData({ status: 'success', data: fishingInfo });
+        })
+        .catch((err) => {
+          console.error(err);
+          setFishingAdvisoryData({ status: 'failure', data: [] });
+        });
+    },
+    [setFishingAdvisoryData, services],
+  );
+
   // Get the survey data and survey documents
   const fetchSurveyData = React.useCallback(
     (orgID) => {
@@ -571,6 +610,7 @@ function WaterQualityOverview({ ...props }: Props) {
 
       setCurrentState(activeState.code);
       fetchStateOrgId(activeState.code);
+      fetchFishingAdvisoryData(activeState.code);
 
       setCurrentSummary({
         status: 'fetching',
@@ -593,6 +633,7 @@ function WaterQualityOverview({ ...props }: Props) {
     setCurrentSummary,
     setIntroText,
     fetchStateOrgId,
+    fetchFishingAdvisoryData,
     services,
   ]);
 
@@ -1028,6 +1069,7 @@ function WaterQualityOverview({ ...props }: Props) {
                   useSelected={useSelected}
                   waterType={waterType}
                   waterTypeData={waterTypeData}
+                  fishingAdvisoryData={fishingAdvisoryData}
                 />
 
                 <DrinkingWaterSection displayed={currentTopic === 'drinking'}>
