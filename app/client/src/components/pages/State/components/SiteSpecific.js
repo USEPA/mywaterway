@@ -10,7 +10,7 @@ import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 // styled components
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes';
 // contexts
 import { StateTabsContext } from 'contexts/StateTabs';
 // utilities
@@ -74,6 +74,10 @@ const FishingAdvisoryText = styled.h3`
 `;
 
 const ErrorBox = styled(StyledErrorBox)`
+  margin-bottom: 1.5em;
+`;
+
+const InfoBox = styled(StyledInfoBox)`
   margin-bottom: 1.5em;
 `;
 
@@ -421,7 +425,9 @@ function SiteSpecific({
       {topic === 'fishing' &&
         fishingAdvisoryData.status === 'success' &&
         fishingAdvisoryData.data.length === 0 && (
-          <ErrorBox>{fishingAdvisoryError}</ErrorBox>
+          <InfoBox>
+            Fishing Advisory information is not available for this state.
+          </InfoBox>
         )}
 
       {topic === 'fishing' &&
