@@ -426,7 +426,7 @@ function SiteSpecific({
         fishingAdvisoryData.status === 'success' &&
         fishingAdvisoryData.data.length === 0 && (
           <InfoBox>
-            Fishing Advisory information is not available for this state.
+            Fishing Advisory information is not available for this location.
           </InfoBox>
         )}
 
