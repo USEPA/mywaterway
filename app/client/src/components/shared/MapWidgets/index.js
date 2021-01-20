@@ -76,6 +76,7 @@ const orderedLayers = [
   'tribalLayer-2',
   'tribalLayer-4',
   'wsioHealthIndexLayer',
+  'wildScenicRiversLayer',
   'searchIconLayer',
 ];
 

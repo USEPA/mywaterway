@@ -609,7 +609,10 @@ function useSharedLayers() {
   const { FeatureLayer, GroupLayer, MapImageLayer } = React.useContext(
     EsriModulesContext,
   );
-  const { setWsioHealthIndexLayer } = React.useContext(LocationSearchContext);
+  const {
+    setWsioHealthIndexLayer,
+    setWildScenicRiversLayer,
+  } = React.useContext(LocationSearchContext);
 
   const getDynamicPopup = useDynamicPopup();
   const { getTitle, getTemplate } = getDynamicPopup();
@@ -733,6 +736,32 @@ function useSharedLayers() {
     });
 
     setWsioHealthIndexLayer(wsioHealthIndexLayer);
+
+    const wildScenicRiversRenderer = {
+      type: 'simple',
+      symbol: {
+        type: 'simple-line',
+        color: [0, 123, 255],
+        width: 3,
+      },
+    };
+
+    const wildScenicRiversLayer = new FeatureLayer({
+      id: 'wildScenicRiversLayer',
+      url: services.data.wildScenicRivers,
+      title: 'Wild and Scenic Rivers',
+      outFields: ['*'],
+      renderer: wildScenicRiversRenderer,
+      listMode: 'hide',
+      visible: false,
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields: ['*'],
+      },
+    });
+
+    setWildScenicRiversLayer(wildScenicRiversLayer);
 
     // START - Tribal layers
     const renderer = {
@@ -898,6 +927,7 @@ function useSharedLayers() {
 
     return [
       wsioHealthIndexLayer,
+      wildScenicRiversLayer,
       tribalLayer,
       congressionalLayer,
       stateBoundariesLayer,
