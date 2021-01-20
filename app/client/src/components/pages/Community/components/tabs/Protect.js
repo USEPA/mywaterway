@@ -601,8 +601,7 @@ function Protect() {
                       <Switch
                         checked={
                           wildScenicRiversDisplayed &&
-                          wildScenicRiversData.status === 'success' &&
-                          wildScenicRiversData.data.length > 0
+                          wildScenicRiversData.status === 'success'
                         }
                         onChange={(checked) => {
                           setWildScenicRiversDisplayed(checked);
@@ -610,10 +609,7 @@ function Protect() {
                             wildScenicRiversLayer: checked,
                           });
                         }}
-                        disabled={
-                          wildScenicRiversData.status === 'failure' ||
-                          wildScenicRiversData.data.length === 0
-                        }
+                        disabled={wildScenicRiversData.status === 'failure'}
                         ariaLabel="Wild and Scenic Rivers"
                       />
                       <span>Display on Map</span>
