@@ -239,7 +239,7 @@ function browserIsCompatibleWithArcGIS() {
 function convertAgencyCode(agencyShortCode) {
   if (!agencyShortCode) return 'Unknown';
 
-  // services returns multiple agencies as a string. ex: 'USFS, FWS, NPS'
+  // Wild and Scenic Rivers service returns multiple agencies as a string. ex: 'USFS, FWS, NPS'
   const agencies = agencyShortCode.split(',');
   const convertedAgencies = agencies
     .map((agency) => {
