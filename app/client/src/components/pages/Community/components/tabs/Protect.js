@@ -11,6 +11,7 @@ import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 import Switch from 'components/shared/Switch';
 import { gradientIcon } from 'components/pages/LocationMap/MapFunctions';
+import ShowLessMore from 'components/shared/ShowLessMore';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
@@ -123,6 +124,14 @@ const ErrorBox = styled(StyledErrorBox)`
   p {
     padding-bottom: 0 !important;
   }
+`;
+
+const InlineBlockWrapper = styled.div`
+  display: inline-block;
+`;
+
+const WsioQuestionContainer = styled.div`
+  padding-bottom: 0.875rem;
 `;
 
 // --- components ---
@@ -276,17 +285,14 @@ function Protect() {
                       />
                       <span>Display on Map</span>
                     </Label>
-
                     {wsioHealthIndexData.status === 'failure' && (
                       <ErrorBox>
                         <p>{wsioHealthIndexError}</p>
                       </ErrorBox>
                     )}
-
                     {wsioHealthIndexData.status === 'fetching' && (
                       <LoadingSpinner />
                     )}
-
                     {wsioHealthIndexData.status === 'success' &&
                       wsioHealthIndexData.data.length === 0 && (
                         <p>
@@ -294,7 +300,6 @@ function Protect() {
                           location.
                         </p>
                       )}
-
                     {wsioHealthIndexData.status === 'success' &&
                       wsioHealthIndexData.data.length > 0 && (
                         <WatershedContainer>
@@ -382,67 +387,93 @@ function Protect() {
                         </WatershedContainer>
                       )}
 
-                    {infoToggleChecked && (
-                      <>
+                    <WsioQuestionContainer>
+                      <InlineBlockWrapper>
                         <p>
                           <strong>
                             Where do the healthiest watersheds occur?
                           </strong>
                         </p>
-                        <p>
-                          The Watershed Health Index, from the Preliminary
-                          Healthy Watersheds Assessment (PHWA), is a score of{' '}
-                          <strong>watershed health</strong> across the
-                          conterminous United States
-                        </p>
-                        <ul>
-                          <li>
-                            The map to the left shows watershed health,
-                            characterized by the presence of natural land cover
-                            that supports hydrologic and geomorphic processes
-                            within their natural range of variation, good water
-                            quality, and habitats of sufficient size and
-                            connectivity to support healthy, native aquatic and
-                            riparian biological communities.
-                          </li>
-                          <li>
-                            Each Watershed Health Index score is relative to the
-                            scores (1-99% percentile) of watersheds across the
-                            state. A HUC12 watershed that straddles more than
-                            one state is scored only in the state in which its
-                            majority area resides.
-                          </li>
-                        </ul>
+                      </InlineBlockWrapper>
 
+                      <InlineBlockWrapper>
+                        <ShowLessMore
+                          charLimit={0}
+                          text={
+                            <>
+                              <p>
+                                The Watershed Health Index, from the Preliminary
+                                Healthy Watersheds Assessment (PHWA), is a score
+                                of <strong>watershed health</strong> across the
+                                conterminous United States
+                              </p>
+                              <ul>
+                                <li>
+                                  The map to the left shows watershed health,
+                                  characterized by the presence of natural land
+                                  cover that supports hydrologic and geomorphic
+                                  processes within their natural range of
+                                  variation, good water quality, and habitats of
+                                  sufficient size and connectivity to support
+                                  healthy, native aquatic and riparian
+                                  biological communities.
+                                </li>
+                                <li>
+                                  Each Watershed Health Index score is relative
+                                  to the scores (1-99% percentile) of watersheds
+                                  across the state. A HUC12 watershed that
+                                  straddles more than one state is scored only
+                                  in the state in which its majority area
+                                  resides.
+                                </li>
+                              </ul>
+                            </>
+                          }
+                        />
+                      </InlineBlockWrapper>
+                    </WsioQuestionContainer>
+
+                    <WsioQuestionContainer>
+                      <InlineBlockWrapper>
                         <p>
                           <strong>Why is the PHWA valuable?</strong>
                         </p>
-
-                        <ul>
-                          <li>
-                            Raises awareness of where the healthiest watersheds
-                            occur.
-                          </li>
-                          <li>
-                            Provides an initial dataset upon which others can
-                            build better watershed condition information.
-                          </li>
-                          <li>
-                            Improves communication and coordination among
-                            watershed management partners by providing
-                            nationally consistent measures of watershed health.
-                          </li>
-                          <li>
-                            Provides a basis to promote high quality waters
-                            protection.
-                          </li>
-                          <li>
-                            Supports efforts to prioritize, protect and maintain
-                            high quality waters.
-                          </li>
-                        </ul>
-                      </>
-                    )}
+                      </InlineBlockWrapper>
+                      <InlineBlockWrapper>
+                        <ShowLessMore
+                          charLimit={0}
+                          text={
+                            <>
+                              <ul>
+                                <li>
+                                  Raises awareness of where the healthiest
+                                  watersheds occur.
+                                </li>
+                                <li>
+                                  Provides an initial dataset upon which others
+                                  can build better watershed condition
+                                  information.
+                                </li>
+                                <li>
+                                  Improves communication and coordination among
+                                  watershed management partners by providing
+                                  nationally consistent measures of watershed
+                                  health.
+                                </li>
+                                <li>
+                                  Provides a basis to promote high quality
+                                  waters protection.
+                                </li>
+                                <li>
+                                  Supports efforts to prioritize, protect and
+                                  maintain high quality waters.
+                                </li>
+                              </ul>
+                            </>
+                          }
+                        />
+                      </InlineBlockWrapper>
+                    </WsioQuestionContainer>
 
                     <p>
                       <a
