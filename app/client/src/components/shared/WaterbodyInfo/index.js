@@ -109,7 +109,8 @@ const ScenicRiverImageContainer = styled.div`
 `;
 
 const ScenicRiverImage = styled.img`
-  max-width: 100%;
+  width: 100%;
+  height: auto;
 `;
 
 // --- components ---
