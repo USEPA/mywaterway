@@ -253,7 +253,6 @@ function convertAgencyCode(agencyShortCode) {
     })
     .join(', ');
 
-  console.log(convertedAgencies);
   return convertedAgencies;
 }
 
