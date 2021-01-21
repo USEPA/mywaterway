@@ -405,7 +405,7 @@ function Protect() {
                                 The Watershed Health Index, from the Preliminary
                                 Healthy Watersheds Assessment (PHWA), is a score
                                 of <strong>watershed health</strong> across the
-                                conterminous United States
+                                conterminous United States.
                               </p>
                               <ul>
                                 <li>
