@@ -17,6 +17,30 @@ import { colors } from 'styles/index.js';
 // errors
 import { invalidSearchError } from 'config/errorMessages';
 
+// Polls the dom, based on provided classname and timeout, until the esri search
+// input is added. Once the input is added this calls the provided callback.
+function poll({
+  className,
+  checkText = false,
+  timeout = 250,
+  callback,
+}: {
+  className: string,
+  checkText: boolean,
+  timeout: number,
+  callback: Function,
+}) {
+  const items = document.getElementsByClassName(className);
+  if (items.length === 0 || (checkText && items[0].innerText === '')) {
+    setTimeout(
+      () => poll({ className, checkText, timeout, callback }),
+      timeout,
+    );
+  } else {
+    callback(items);
+  }
+}
+
 // --- styled components ---
 const ErrorBox = styled(StyledErrorBox)`
   margin-bottom: 1em;
@@ -192,6 +216,19 @@ function LocationSearch({ route, label }: Props) {
       ],
     });
 
+    // poll until the sources menu is visible
+    poll({
+      className: 'esri-search__source',
+      checkText: true,
+      callback: (sources) => {
+        sources.forEach((source) => {
+          if (source.innerText === 'ArcGIS World Geocoding Service') {
+            source.innerText = 'Address, zip code, and place search';
+          }
+        });
+      },
+    });
+
     // create a watcher for the input text
     watchUtils.watch(
       search,
@@ -199,6 +236,18 @@ function LocationSearch({ route, label }: Props) {
       (newVal, oldVal, propName, event) => {
         setSelectedResult(null);
         setInputText(newVal);
+
+        // poll until the suggestion div is visible
+        poll({
+          className: 'esri-menu__header',
+          callback: (headers) => {
+            headers.forEach((header) => {
+              if (header.innerText === 'ArcGIS World Geocoding Service') {
+                header.innerText = 'Address, zip code, and place search';
+              }
+            });
+          },
+        });
       },
     );
 
@@ -263,19 +312,13 @@ function LocationSearch({ route, label }: Props) {
 
     setPollInitialized(true);
 
-    // polls the dom, based on provided timeout, until the esri search input
-    // is added. Once the input is added this sets the id attribute and stops
-    // the polling.
-    function poll(timeout: number) {
-      const searchInput = document.getElementsByClassName('esri-search__input');
-      if (searchInput.length === 0) {
-        setTimeout(poll, timeout);
-      } else {
-        searchInput[0].setAttribute('id', 'hmw-search-input');
-      }
-    }
-
-    poll(250);
+    poll({
+      className: 'esri-search__input',
+      callback: (searchInputs) => {
+        console.log('searchInputs: ', searchInputs);
+        searchInputs[0].setAttribute('id', 'hmw-search-input');
+      },
+    });
   }, [pollInitialized]);
 
   return (
