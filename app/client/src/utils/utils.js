@@ -246,7 +246,6 @@ function convertAgencyCode(agencyShortCode) {
       const code = agency.trim();
       if (code === 'BLM') return 'Bureau of Land Management';
       if (code === 'NPS') return 'U.S. National Park Service';
-      if (code === 'NSFS') return 'United States Forest Service';
       if (code === 'FWS') return 'U.S. Fish and Wildlife Service';
       if (code === 'USFS') return 'United States Forest Service';
       return code;
