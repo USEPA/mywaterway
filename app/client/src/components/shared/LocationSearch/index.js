@@ -315,7 +315,6 @@ function LocationSearch({ route, label }: Props) {
     poll({
       className: 'esri-search__input',
       callback: (searchInputs) => {
-        console.log('searchInputs: ', searchInputs);
         searchInputs[0].setAttribute('id', 'hmw-search-input');
       },
     });
