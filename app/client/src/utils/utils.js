@@ -236,6 +236,26 @@ function browserIsCompatibleWithArcGIS() {
   return true;
 }
 
+function convertAgencyCode(agencyShortCode) {
+  if (!agencyShortCode) return 'Unknown';
+
+  // Wild and Scenic Rivers service returns multiple agencies as a string. ex: 'USFS, FWS, NPS'
+  const agencies = agencyShortCode.split(',');
+  const convertedAgencies = agencies
+    .map((agency) => {
+      const code = agency.trim();
+      if (code === 'BLM') return 'Bureau of Land Management';
+      if (code === 'NPS') return 'U.S. National Park Service';
+      if (code === 'NSFS') return 'United States Forest Service';
+      if (code === 'FWS') return 'U.S. Fish and Wildlife Service';
+      if (code === 'USFS') return 'United States Forest Service';
+      return code;
+    })
+    .join(', ');
+
+  return convertedAgencies;
+}
+
 export {
   chunkArray,
   containsScriptTag,
@@ -253,4 +273,5 @@ export {
   splitSuggestedSearch,
   getSimplePopupTemplate,
   browserIsCompatibleWithArcGIS,
+  convertAgencyCode,
 };

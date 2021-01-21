@@ -433,7 +433,6 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         upstreamLayer,
         dischargersLayer,
         nonprofitsLayer,
-        wildScenicRiversLayer,
         protectedAreasLayer,
         mapView,
         homeWidget,
@@ -484,7 +483,6 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       if (monitoringStationsLayer) monitoringStationsLayer.graphics.removeAll();
       if (dischargersLayer) dischargersLayer.graphics.removeAll();
       if (nonprofitsLayer) nonprofitsLayer.graphics.removeAll();
-      if (wildScenicRiversLayer) wildScenicRiversLayer.graphics.removeAll();
       if (protectedAreasLayer) protectedAreasLayer.graphics.removeAll();
 
       // reset the zoom and home widget to the initial extent

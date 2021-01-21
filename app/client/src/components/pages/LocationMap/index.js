@@ -15,7 +15,6 @@ import {
   createUniqueValueInfos,
   getPopupContent,
   getPopupTitle,
-  plotWildScenicRivers,
   plotProtectedAreas,
 } from 'components/pages/LocationMap/MapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
@@ -128,8 +127,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setWaterbodyLayer,
     setIssuesLayer,
     setMonitoringStationsLayer,
-    wildScenicRiversLayer,
-    setWildScenicRiversLayer,
     protectedAreasLayer,
     setProtectedAreasLayer,
     setUpstreamLayer,
@@ -216,14 +213,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setMonitoringStationsLayer(monitoringStationsLayer);
 
-    const wildScenicRiversLayer = new GraphicsLayer({
-      id: 'wildScenicRiversLayer',
-      title: 'Wild and Scenic Rivers',
-      listMode: 'hide',
-    });
-
-    setWildScenicRiversLayer(wildScenicRiversLayer);
-
     const protectedAreasLayer = new GraphicsLayer({
       id: 'protectedAreasLayer',
       title: 'Protected Areas',
@@ -262,7 +251,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       boundariesLayer,
       upstreamLayer,
       monitoringStationsLayer,
-      wildScenicRiversLayer,
       protectedAreasLayer,
       issuesLayer,
       dischargersLayer,
@@ -280,7 +268,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setIssuesLayer,
     setLayers,
     setMonitoringStationsLayer,
-    setWildScenicRiversLayer,
     setProtectedAreasLayer,
     setUpstreamLayer,
     setNonprofitsLayer,
@@ -764,7 +751,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       const query = new Query({
         geometry: boundaries.features[0].geometry,
-        returnGeometry: true,
+        returnGeometry: false,
         spatialReference: 102100,
         outFields: ['*'],
       });
@@ -783,7 +770,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             data: res.features,
             status: 'success',
           });
-          plotWildScenicRivers(Graphic, res.features, wildScenicRiversLayer);
         })
         .catch((err) => {
           console.error(err);
@@ -793,14 +779,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
         });
     },
-    [
-      services,
-      Graphic,
-      Query,
-      QueryTask,
-      setWildScenicRiversData,
-      wildScenicRiversLayer,
-    ],
+    [services, Query, QueryTask, setWildScenicRiversData],
   );
 
   const getProtectedAreas = React.useCallback(

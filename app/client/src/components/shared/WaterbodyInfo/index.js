@@ -11,7 +11,7 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
 import { getWaterbodyCondition } from 'components/pages/LocationMap/MapFunctions';
-import { formatNumber } from 'utils/utils';
+import { formatNumber, convertAgencyCode } from 'utils/utils';
 import { fetchCheck } from 'utils/fetchUtils';
 // data
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
@@ -109,7 +109,8 @@ const ScenicRiverImageContainer = styled.div`
 `;
 
 const ScenicRiverImage = styled.img`
-  max-width: 100%;
+  width: 100%;
+  height: auto;
 `;
 
 // --- components ---
@@ -931,28 +932,27 @@ function WaterbodyInfo({
   // jsx
   const wildScenicRiversContent = (
     <>
-      <ScenicRiverImageContainer>
-        <ScenicRiverImage
-          src={attributes.PhotoLink}
-          alt="Wild and Scenic River"
-        ></ScenicRiverImage>
-
-        <br />
-
-        <em>Photo Credit: {attributes.PhotoCredit}</em>
-      </ScenicRiverImageContainer>
-
+      {attributes.PhotoLink && attributes.PhotoCredit && (
+        <>
+          <ScenicRiverImageContainer>
+            <ScenicRiverImage
+              src={attributes.PhotoLink}
+              alt="Wild and Scenic River"
+            ></ScenicRiverImage>
+            <br />
+            <em>Photo Credit: {attributes.PhotoCredit}</em>
+          </ScenicRiverImageContainer>
+        </>
+      )}
       <p>
         <strong>Agency: </strong>
-        {attributes.AGENCY}
+        {convertAgencyCode(attributes.AGENCY)}
       </p>
-
       <p>
         <strong>Category: </strong>
         {attributes.RiverCategory}
         <br />
       </p>
-
       <div>
         <a rel="noopener noreferrer" target="_blank" href={attributes.WEBLINK}>
           <Icon className="fas fa-info-circle" aria-hidden="true" />

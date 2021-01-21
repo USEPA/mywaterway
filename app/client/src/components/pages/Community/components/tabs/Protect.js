@@ -11,10 +11,13 @@ import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 import Switch from 'components/shared/Switch';
 import { gradientIcon } from 'components/pages/LocationMap/MapFunctions';
+import ShowLessMore from 'components/shared/ShowLessMore';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
+import { CommunityTabsContext } from 'contexts/CommunityTabs';
 // utilities
 import { getUrlFromMarkup, getTitleFromMarkup } from 'components/shared/Regex';
+import { convertAgencyCode } from 'utils/utils';
 // styles
 import { fonts } from 'styles/index.js';
 // errors
@@ -123,6 +126,14 @@ const ErrorBox = styled(StyledErrorBox)`
   }
 `;
 
+const InlineBlockWrapper = styled.div`
+  display: inline-block;
+`;
+
+const WsioQuestionContainer = styled.div`
+  padding-bottom: 0.875rem;
+`;
+
 // --- components ---
 function Protect() {
   const {
@@ -139,6 +150,8 @@ function Protect() {
     protectedAreasLayer,
     protectedAreasData,
   } = React.useContext(LocationSearchContext);
+
+  const { infoToggleChecked } = React.useContext(CommunityTabsContext);
 
   const sortedGrtsData =
     grts.data.items && grts.data.items.length > 0
@@ -240,11 +253,13 @@ function Protect() {
           </TabList>
           <TabPanels>
             <TabPanel>
-              <p>
-                Learn about watershed health scores in relation to your state,
-                if there are any protected areas in your watershed, and the
-                location of any designated <em>Wild and Scenic Rivers</em>.
-              </p>
+              {infoToggleChecked && (
+                <p>
+                  Learn about watershed health scores in relation to your state,
+                  if there are any protected areas in your watershed, and the
+                  location of any designated <em>Wild and Scenic Rivers</em>.
+                </p>
+              )}
 
               <AccordionList>
                 <AccordionItem title={<strong>Watershed Health Scores</strong>}>
@@ -270,17 +285,14 @@ function Protect() {
                       />
                       <span>Display on Map</span>
                     </Label>
-
                     {wsioHealthIndexData.status === 'failure' && (
                       <ErrorBox>
                         <p>{wsioHealthIndexError}</p>
                       </ErrorBox>
                     )}
-
                     {wsioHealthIndexData.status === 'fetching' && (
                       <LoadingSpinner />
                     )}
-
                     {wsioHealthIndexData.status === 'success' &&
                       wsioHealthIndexData.data.length === 0 && (
                         <p>
@@ -288,7 +300,6 @@ function Protect() {
                           location.
                         </p>
                       )}
-
                     {wsioHealthIndexData.status === 'success' &&
                       wsioHealthIndexData.data.length > 0 && (
                         <WatershedContainer>
@@ -376,61 +387,93 @@ function Protect() {
                         </WatershedContainer>
                       )}
 
-                    <p>
-                      <strong>Where do the healthiest watersheds occur?</strong>
-                    </p>
-                    <p>
-                      The Watershed Health Index, from the Preliminary Healthy
-                      Watersheds Assessment (PHWA), is a score of{' '}
-                      <strong>watershed health</strong> across the conterminous
-                      United States
-                    </p>
-                    <ul>
-                      <li>
-                        The map to the left shows watershed health,
-                        characterized by the presence of natural land cover that
-                        supports hydrologic and geomorphic processes within
-                        their natural range of variation, good water quality,
-                        and habitats of sufficient size and connectivity to
-                        support healthy, native aquatic and riparian biological
-                        communities.
-                      </li>
-                      <li>
-                        Each Watershed Health Index score is relative to the
-                        scores (1-99% percentile) of watersheds across the
-                        state. A HUC12 watershed that straddles more than one
-                        state is scored only in the state in which its majority
-                        area resides.
-                      </li>
-                    </ul>
+                    <WsioQuestionContainer>
+                      <InlineBlockWrapper>
+                        <p>
+                          <strong>
+                            Where do the healthiest watersheds occur?
+                          </strong>
+                        </p>
+                      </InlineBlockWrapper>
 
-                    <p>
-                      <strong>Why is the PHWA valuable?</strong>
-                    </p>
+                      <InlineBlockWrapper>
+                        <ShowLessMore
+                          charLimit={0}
+                          text={
+                            <>
+                              <p>
+                                The Watershed Health Index, from the Preliminary
+                                Healthy Watersheds Assessment (PHWA), is a score
+                                of <strong>watershed health</strong> across the
+                                conterminous United States.
+                              </p>
+                              <ul>
+                                <li>
+                                  The map to the left shows watershed health,
+                                  characterized by the presence of natural land
+                                  cover that supports hydrologic and geomorphic
+                                  processes within their natural range of
+                                  variation, good water quality, and habitats of
+                                  sufficient size and connectivity to support
+                                  healthy, native aquatic and riparian
+                                  biological communities.
+                                </li>
+                                <li>
+                                  Each Watershed Health Index score is relative
+                                  to the scores (1-99% percentile) of watersheds
+                                  across the state. A HUC12 watershed that
+                                  straddles more than one state is scored only
+                                  in the state in which its majority area
+                                  resides.
+                                </li>
+                              </ul>
+                            </>
+                          }
+                        />
+                      </InlineBlockWrapper>
+                    </WsioQuestionContainer>
 
-                    <ul>
-                      <li>
-                        Raises awareness of where the healthiest watersheds
-                        occur
-                      </li>
-                      <li>
-                        Provides an initial dataset upon which others can build
-                        better watershed condition information.
-                      </li>
-                      <li>
-                        Improves communication and coordination among watershed
-                        management partners by providing nationally consistent
-                        measures of watershed health.
-                      </li>
-                      <li>
-                        Provides a basis to promote high quality waters
-                        protection.
-                      </li>
-                      <li>
-                        Supports efforts to prioritize, protect and maintain
-                        high quality waters.
-                      </li>
-                    </ul>
+                    <WsioQuestionContainer>
+                      <InlineBlockWrapper>
+                        <p>
+                          <strong>Why is the PHWA valuable?</strong>
+                        </p>
+                      </InlineBlockWrapper>
+                      <InlineBlockWrapper>
+                        <ShowLessMore
+                          charLimit={0}
+                          text={
+                            <>
+                              <ul>
+                                <li>
+                                  Raises awareness of where the healthiest
+                                  watersheds occur.
+                                </li>
+                                <li>
+                                  Provides an initial dataset upon which others
+                                  can build better watershed condition
+                                  information.
+                                </li>
+                                <li>
+                                  Improves communication and coordination among
+                                  watershed management partners by providing
+                                  nationally consistent measures of watershed
+                                  health.
+                                </li>
+                                <li>
+                                  Provides a basis to promote high quality
+                                  waters protection.
+                                </li>
+                                <li>
+                                  Supports efforts to prioritize, protect and
+                                  maintain high quality waters.
+                                </li>
+                              </ul>
+                            </>
+                          }
+                        />
+                      </InlineBlockWrapper>
+                    </WsioQuestionContainer>
 
                     <p>
                       <a
@@ -448,26 +491,33 @@ function Protect() {
 
                 <AccordionItem title={<strong>Protected Areas</strong>}>
                   <AccordionContent>
-                    <p>
-                      The Protected Areas Database (PAD-US) is America’s
-                      official national inventory of U.S. terrestrial and marine
-                      protected areas that are dedicated to the preservation of
-                      biological diversity and to other natural, recreation and
-                      cultural uses, managed for these purposes through legal or
-                      other effective means.
-                    </p>
+                    {infoToggleChecked && (
+                      <>
+                        <p>
+                          The Protected Areas Database (PAD-US) is America’s
+                          official national inventory of U.S. terrestrial and
+                          marine protected areas that are dedicated to the
+                          preservation of biological diversity and to other
+                          natural, recreation and cultural uses, managed for
+                          these purposes through legal or other effective means.
+                        </p>
 
-                    <p>
-                      <a
-                        href="https://www.usgs.gov/core-science-systems/science-analytics-and-synthesis/gap/science/protected-areas"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <i className="fas fa-info-circle" aria-hidden="true" />{' '}
-                        More Information
-                      </a>{' '}
-                      (opens new browser tab)
-                    </p>
+                        <p>
+                          <a
+                            href="https://www.usgs.gov/core-science-systems/science-analytics-and-synthesis/gap/science/protected-areas"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <i
+                              className="fas fa-info-circle"
+                              aria-hidden="true"
+                            />{' '}
+                            More Information
+                          </a>{' '}
+                          (opens new browser tab)
+                        </p>
+                      </>
+                    )}
 
                     <Label>
                       <Switch
@@ -555,37 +605,34 @@ function Protect() {
 
                 <AccordionItem title={<strong>Wild and Scenic Rivers</strong>}>
                   <AccordionContent>
-                    <p>
-                      The National Wild and Scenic Rivers System was created by
-                      Congress in 1968 to preserve certain rivers with
-                      outstanding natural, cultural, and recreational values in
-                      a free-flowing condition for the enjoyment of present and
-                      future generations. The Act is notable for safeguarding
-                      the special character of these rivers, while also
-                      recognizing the potential for their appropriate use and
-                      development. It encourages river management that crosses
-                      political boundaries and promotes public participation in
-                      developing goals for river protection.
-                    </p>
-
-                    <p>
-                      <a
-                        href="https://www.rivers.gov/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <i className="fas fa-info-circle" aria-hidden="true" />{' '}
-                        More Information
-                      </a>{' '}
-                      (opens new browser tab)
-                    </p>
+                    {infoToggleChecked && (
+                      <p>
+                        The{' '}
+                        <a
+                          href="https://www.rivers.gov/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          National Wild and Scenic Rivers System{' '}
+                        </a>{' '}
+                        (opens new browser tab) was created by Congress in 1968
+                        to preserve certain rivers with outstanding natural,
+                        cultural, and recreational values in a free-flowing
+                        condition for the enjoyment of present and future
+                        generations. The Act is notable for safeguarding the
+                        special character of these rivers, while also
+                        recognizing the potential for their appropriate use and
+                        development. It encourages river management that crosses
+                        political boundaries and promotes public participation
+                        in developing goals for river protection.
+                      </p>
+                    )}
 
                     <Label>
                       <Switch
                         checked={
                           wildScenicRiversDisplayed &&
-                          wildScenicRiversData.status === 'success' &&
-                          wildScenicRiversData.data.length > 0
+                          wildScenicRiversData.status === 'success'
                         }
                         onChange={(checked) => {
                           setWildScenicRiversDisplayed(checked);
@@ -593,10 +640,7 @@ function Protect() {
                             wildScenicRiversLayer: checked,
                           });
                         }}
-                        disabled={
-                          wildScenicRiversData.status === 'failure' ||
-                          wildScenicRiversData.data.length === 0
-                        }
+                        disabled={wildScenicRiversData.status === 'failure'}
                         ariaLabel="Wild and Scenic Rivers"
                       />
                       <span>Display on Map</span>
@@ -627,23 +671,20 @@ function Protect() {
                         return (
                           <Feature key={item}>
                             <FeatureTitle>
-                              <strong>{attributes.WSR_RIVER_NAME}</strong>
+                              <strong>
+                                River Name: {attributes.WSR_RIVER_SHORTNAME}
+                              </strong>
                             </FeatureTitle>
 
                             <table className="table">
                               <tbody>
                                 <tr>
                                   <td>
-                                    <em>Short Name</em>
-                                  </td>
-                                  <td>{attributes.WSR_RIVER_SHORTNAME}</td>
-                                </tr>
-
-                                <tr>
-                                  <td>
                                     <em>Agency</em>
                                   </td>
-                                  <td>{attributes.AGENCY}</td>
+                                  <td>
+                                    {convertAgencyCode(attributes.AGENCY)}
+                                  </td>
                                 </tr>
 
                                 <tr>
@@ -661,7 +702,11 @@ function Protect() {
                                   <td>
                                     <em>Managing Entities</em>
                                   </td>
-                                  <td>{attributes.MANAGING_ENTITIES}</td>
+                                  <td>
+                                    {convertAgencyCode(
+                                      attributes.MANAGING_ENTITIES,
+                                    )}
+                                  </td>
                                 </tr>
 
                                 <tr>
@@ -690,14 +735,20 @@ function Protect() {
                                     <em>Website</em>
                                   </td>
                                   <td>
-                                    <a
-                                      href={attributes.WEBLINK}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                    >
-                                      {attributes.WEBLINK}
-                                    </a>{' '}
-                                    (opens new browser tab)
+                                    {attributes.WEBLINK ? (
+                                      <>
+                                        <a
+                                          href={attributes.WEBLINK}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                        >
+                                          {attributes.WEBLINK}
+                                        </a>{' '}
+                                        (opens new browser tab)
+                                      </>
+                                    ) : (
+                                      'Not available.'
+                                    )}
                                   </td>
                                 </tr>
                               </tbody>
