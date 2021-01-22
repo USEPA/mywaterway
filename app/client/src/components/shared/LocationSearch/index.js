@@ -251,6 +251,39 @@ function LocationSearch({ route, label }: Props) {
       },
     );
 
+    watchUtils.watch(
+      search,
+      'suggestions',
+      (newVal, oldVal, propName, event) => {
+        // poll until the suggestion div is visible
+        poll({
+          className: 'esri-menu__header',
+          callback: (headers) => {
+            setTimeout(() => {
+              let first = true;
+
+              headers.forEach((header) => {
+                if (header.innerText === 'ArcGIS World Geocoding Service') {
+                  header.innerText = 'Address, zip code, and place search';
+                }
+
+                if (header.innerText.indexOf('EPA Tribal Areas') > -1) {
+                  if (first) {
+                    header.style.display = 'block';
+                    header.innerText = 'EPA Tribal Areas';
+                    first = false;
+                    return;
+                  }
+
+                  header.style.display = 'none';
+                }
+              });
+            }, 100);
+          },
+        });
+      },
+    );
+
     // create a watcher for the selected suggestion. This is used for getting
     // the lat/long of the selected suggestion, to ensure the locator zooms to the
     // suggestion rather than the highest scored text.
