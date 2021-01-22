@@ -109,6 +109,10 @@ const SearchBox = styled.div`
     color: rgb(204, 204, 204);
     font-weight: 900;
   }
+
+  .esri-menu {
+    z-index: 1000;
+  }
 `;
 
 // --- components ---
