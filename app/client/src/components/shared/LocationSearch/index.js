@@ -170,6 +170,10 @@ function LocationSearch({ route, label }: Props) {
       name: 'All',
     },
     {
+      type: 'ArcGIS',
+      name: 'Address, zip code, and place search',
+    },
+    {
       type: 'group',
       name: 'EPA Tribal Areas',
       sources: [
@@ -237,6 +241,7 @@ function LocationSearch({ route, label }: Props) {
     const sources = [];
     allSources.forEach((source) => {
       if (source.type === 'default') return;
+      if (source.type === 'ArcGIS') return;
       sources.push(...source.sources);
     });
 
@@ -308,23 +313,27 @@ function LocationSearch({ route, label }: Props) {
 
   // Updates the search widget sources whenever the user selects a source.
   const [sourcesVisible, setSourcesVisible] = React.useState(false);
-  const [selectedSource, setSelectedSource] = React.useState('All');
+  const [selectedSource, setSelectedSource] = React.useState(allSources[0]);
   const [suggestionsVisible, setSuggestionsVisible] = React.useState(false);
   React.useEffect(() => {
     if (!searchWidget) return;
 
     const sources = [];
 
-    if (selectedSource === 'All') {
+    if (selectedSource.name === 'All') {
       allSources.forEach((source) => {
         if (source.type === 'default') return;
+        if (source.type === 'ArcGIS') return;
         sources.push(...source.sources);
       });
       searchWidget.includeDefaultSources = true;
       searchWidget.sources = sources;
+    } else if (selectedSource.type === 'ArcGIS') {
+      searchWidget.includeDefaultSources = true;
+      searchWidget.sources = [];
     } else {
       allSources.forEach((source) => {
-        if (source.name !== selectedSource) return;
+        if (source.name !== selectedSource.name) return;
         sources.push(...source.sources);
       });
       searchWidget.includeDefaultSources = false;
@@ -345,8 +354,15 @@ function LocationSearch({ route, label }: Props) {
     const resultsCombined = [];
 
     allSources.forEach((item) => {
-      if (item.type === 'default') {
-        const sug = findSource('ArcGIS World Geocoding Service', suggestions);
+      if (item.type === 'default' || item.type === 'ArcGIS') {
+        // check if this has already been added
+        let sug = findSource(
+          'ArcGIS World Geocoding Service',
+          filteredSuggestions,
+        );
+        if (sug) return;
+
+        sug = findSource('ArcGIS World Geocoding Service', suggestions);
         if (sug && sug.results.length > 0) {
           filteredSuggestions.push(sug);
           resultsCombined.push(...sug.results);
@@ -536,7 +552,7 @@ function LocationSearch({ route, label }: Props) {
     // handle selecting a source
     if (sourceCursor < 0 || sourceCursor > allSources.length) return;
     if (allSources[sourceCursor].name) {
-      setSelectedSource(allSources[sourceCursor].name);
+      setSelectedSource(allSources[sourceCursor]);
       setSourceCursor(-1);
 
       setTimeout(() => {
@@ -638,7 +654,7 @@ function LocationSearch({ route, label }: Props) {
                 role="presentation"
                 className="esri-search__source-name"
               >
-                {selectedSource}
+                {selectedSource.name}
               </span>
             </div>
             <div
@@ -658,7 +674,7 @@ function LocationSearch({ route, label }: Props) {
                       id={`source-${index}`}
                       role="menuitem"
                       className={`esri-search__source esri-menu__list-item ${
-                        selectedSource === source.name
+                        selectedSource.name === source.name
                           ? 'esri-menu__list-item--active'
                           : index === sourceCursor
                           ? 'esri-menu__list-item-active'
@@ -667,7 +683,7 @@ function LocationSearch({ route, label }: Props) {
                       tabIndex="-1"
                       key={`source-key-${index}`}
                       onClick={() => {
-                        setSelectedSource(source.name);
+                        setSelectedSource(source);
                         setSourcesVisible(false);
 
                         const searchInput = document.getElementById(
@@ -745,12 +761,14 @@ function LocationSearch({ route, label }: Props) {
                       if (
                         source.source.name === 'ArcGIS World Geocoding Service'
                       ) {
-                        return 'Esri World GeoCoder';
+                        return 'Address, zip code, and place search';
                       }
 
                       let title = '';
                       allSources.forEach((item) => {
-                        if (item.type === 'default') return;
+                        if (item.type === 'default' || item.type === 'ArcGIS') {
+                          return;
+                        }
 
                         item.sources.forEach((nestedItem) => {
                           if (nestedItem.name === source.source.name) {
