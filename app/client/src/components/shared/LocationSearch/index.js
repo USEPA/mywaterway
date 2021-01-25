@@ -643,7 +643,7 @@ function LocationSearch({ route, label }: Props) {
             </div>
             <div
               id="search-container-source-menu-div"
-              tabIndex="0"
+              tabIndex="-1"
               className="esri-menu esri-search__sources-menu"
             >
               <ul
@@ -720,6 +720,11 @@ function LocationSearch({ route, label }: Props) {
                     setSourcesVisible(false);
                     setSuggestionsVisible(true);
                     setCursor(-1);
+                  }}
+                  onBlur={(ev) => {
+                    setTimeout(() => {
+                      setSuggestionsVisible(false);
+                    }, 250);
                   }}
                   aria-owns={
                     filteredSuggestions.length > 0
