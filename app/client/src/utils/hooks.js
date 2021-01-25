@@ -938,6 +938,39 @@ function useSharedLayers() {
   };
 }
 
+// Custom hook that is used for handling key presses. This can be used for
+// navigating lists with a keyboard.
+function useKeyPress(targetKey: string, ref: Object) {
+  const [keyPressed, setKeyPressed] = React.useState(false);
+
+  function downHandler({ key }: { key: string }) {
+    if (key === targetKey) {
+      setKeyPressed(true);
+    }
+  }
+
+  const upHandler = ({ key }: { key: string }) => {
+    if (key === targetKey) {
+      setKeyPressed(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (!ref?.current?.addEventListener) return;
+    const tempRef = ref.current;
+
+    ref.current.addEventListener('keydown', downHandler);
+    ref.current.addEventListener('keyup', upHandler);
+
+    return function cleanup() {
+      tempRef.removeEventListener('keydown', downHandler);
+      tempRef.removeEventListener('keyup', upHandler);
+    };
+  });
+
+  return keyPressed;
+}
+
 export {
   useSharedLayers,
   useWaterbodyFeatures,
@@ -945,4 +978,5 @@ export {
   useWaterbodyOnMap,
   useWaterbodyHighlight,
   useDynamicPopup,
+  useKeyPress,
 };

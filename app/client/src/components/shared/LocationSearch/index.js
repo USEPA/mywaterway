@@ -11,11 +11,22 @@ import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
+import { useKeyPress } from 'utils/hooks';
 import { containsScriptTag, isHuc12, splitSuggestedSearch } from 'utils/utils';
 // styles
 import { colors } from 'styles/index.js';
 // errors
 import { invalidSearchError } from 'config/errorMessages';
+
+// Finds the source of the suggestion
+function findSource(name, suggestions) {
+  let source = null;
+  suggestions.forEach((item) => {
+    if (item.source.name === name) source = item;
+  });
+
+  return source;
+}
 
 // --- styled components ---
 const ErrorBox = styled(StyledErrorBox)`
@@ -113,6 +124,18 @@ const SearchBox = styled.div`
   .esri-menu {
     z-index: 1000;
   }
+
+  .esri-menu__list-item::hover {
+    background-color: #f3f3f3;
+  }
+
+  .esri-menu__list-item-active {
+    background-color: #e2f1fb;
+  }
+
+  .esri-search__sources-button {
+    height: 38px;
+  }
 `;
 
 // --- components ---
@@ -123,6 +146,16 @@ type Props = {
 
 function LocationSearch({ route, label }: Props) {
   const services = useServicesContext();
+  const searchBox = React.createRef();
+  const downPress = useKeyPress('ArrowDown', searchBox);
+  const upPress = useKeyPress('ArrowUp', searchBox);
+  const enterPress = useKeyPress('Enter', searchBox);
+  const sourceList = React.createRef();
+  const sourceDownPress = useKeyPress('ArrowDown', sourceList);
+  const sourceUpPress = useKeyPress('ArrowUp', sourceList);
+  const sourceEnterPress = useKeyPress('Enter', sourceList);
+  const clearButton = React.createRef();
+  const clearEnterPress = useKeyPress('Enter', clearButton);
   const { FeatureLayer, Locator, Point, Search, watchUtils } = React.useContext(
     EsriModulesContext,
   );
@@ -130,32 +163,19 @@ function LocationSearch({ route, label }: Props) {
     LocationSearchContext,
   );
 
-  // geolocating state for updating the 'Use My Location' button
-  const [geolocating, setGeolocating] = React.useState(false);
-
-  // geolocationError state for disabling the 'Use My Location' button
-  const [geolocationError, setGeolocationError] = React.useState(false);
-
-  // initialize inputText from searchText context
-  const [inputText, setInputText] = React.useState(searchText);
-  const [selectedResult, setSelectedResult] = React.useState(null);
-
-  // update inputText whenever searchText changes (i.e. Form onSubmit)
-  React.useEffect(() => setInputText(searchText), [searchText]);
-
-  const [errorMessage, setErrorMessage] = React.useState('');
-
-  // Initialize the esri search widget
-  const [searchWidget, setSearchWidget] = React.useState(null);
-  React.useEffect(() => {
-    if (searchWidget) return;
-
-    const placeholder = 'Search by address, zip code, or place...';
-    const search = new Search({
-      allPlaceholder: placeholder,
-      container: 'search-container',
-      locationEnabled: false,
-      label: 'Search',
+  const placeholder = 'Search by address, zip code, or place...';
+  const [allSources] = React.useState([
+    {
+      type: 'default',
+      name: 'All',
+    },
+    {
+      type: 'ArcGIS',
+      name: 'Address, zip code, and place search',
+    },
+    {
+      type: 'group',
+      name: 'EPA Tribal Areas',
       sources: [
         {
           layer: new FeatureLayer({
@@ -194,6 +214,42 @@ function LocationSearch({ route, label }: Props) {
           name: 'EPA Tribal Areas - Alaska Reservations',
         },
       ],
+    },
+  ]);
+
+  // geolocating state for updating the 'Use My Location' button
+  const [geolocating, setGeolocating] = React.useState(false);
+
+  // geolocationError state for disabling the 'Use My Location' button
+  const [geolocationError, setGeolocationError] = React.useState(false);
+
+  // initialize inputText from searchText context
+  const [inputText, setInputText] = React.useState(searchText);
+  const [selectedResult, setSelectedResult] = React.useState(null);
+
+  // update inputText whenever searchText changes (i.e. Form onSubmit)
+  React.useEffect(() => setInputText(searchText), [searchText]);
+
+  const [errorMessage, setErrorMessage] = React.useState('');
+
+  // Initialize the esri search widget
+  const [searchWidget, setSearchWidget] = React.useState(null);
+  const [suggestions, setSuggestions] = React.useState([]);
+  React.useEffect(() => {
+    if (searchWidget) return;
+
+    const sources = [];
+    allSources.forEach((source) => {
+      if (source.type === 'default') return;
+      if (source.type === 'ArcGIS') return;
+      sources.push(...source.sources);
+    });
+
+    const search = new Search({
+      allPlaceholder: placeholder,
+      locationEnabled: false,
+      label: 'Search',
+      sources,
     });
 
     // create a watcher for the input text
@@ -203,6 +259,15 @@ function LocationSearch({ route, label }: Props) {
       (newVal, oldVal, propName, event) => {
         setSelectedResult(null);
         setInputText(newVal);
+      },
+    );
+
+    // create a watcher for the suggestions based on search input
+    watchUtils.watch(
+      search,
+      'suggestions',
+      (newVal, oldVal, propName, event) => {
+        setSuggestions(newVal ? newVal : []);
       },
     );
 
@@ -232,6 +297,7 @@ function LocationSearch({ route, label }: Props) {
     searchWidget,
     services,
     searchText,
+    allSources,
   ]);
 
   // Initialize the esri search widget value with the search text.
@@ -245,42 +311,266 @@ function LocationSearch({ route, label }: Props) {
     ).searchPart;
   }, [Point, searchWidget, searchText]);
 
-  // Adds additional info to search box if the search was a huc12
+  // Updates the search widget sources whenever the user selects a source.
+  const [sourcesVisible, setSourcesVisible] = React.useState(false);
+  const [selectedSource, setSelectedSource] = React.useState(allSources[0]);
+  const [suggestionsVisible, setSuggestionsVisible] = React.useState(false);
   React.useEffect(() => {
     if (!searchWidget) return;
 
-    // Remove coordinates if search text was from non-esri suggestions
-    const searchTerm = splitSuggestedSearch(Point, searchText).searchPart;
+    const sources = [];
 
-    // Set the input text to be more detailed if the search is a huc
-    if (inputText === searchTerm && isHuc12(inputText) && watershed && huc12) {
-      searchWidget.searchTerm = `WATERSHED: ${watershed} (${huc12})`;
+    if (selectedSource.name === 'All') {
+      allSources.forEach((source) => {
+        if (source.type === 'default') return;
+        if (source.type === 'ArcGIS') return;
+        sources.push(...source.sources);
+      });
+      searchWidget.includeDefaultSources = true;
+      searchWidget.sources = sources;
+    } else if (selectedSource.type === 'ArcGIS') {
+      searchWidget.includeDefaultSources = true;
+      searchWidget.sources = [];
+    } else {
+      allSources.forEach((source) => {
+        if (source.name !== selectedSource.name) return;
+        sources.push(...source.sources);
+      });
+      searchWidget.includeDefaultSources = false;
+      searchWidget.sources = sources;
     }
-  }, [Point, searchWidget, searchText, huc12, inputText, watershed]);
 
-  // Starts a poll which eventually sets the id of the esri search input.
-  // This code is needed to work aroudn a 508 compliance issue. Adding the
-  // id to the Search constructor (above) does not add an id to the DOM element.
-  const [pollInitialized, setPollInitialized] = React.useState(false);
+    if (searchWidget.searchTerm) {
+      searchWidget.suggest();
+    }
+  }, [allSources, searchWidget, selectedSource]);
+
+  // filter the suggestions down to just sources that have results
+  // and combine grouped sources
+  const [filteredSuggestions, setFilteredSuggestions] = React.useState([]);
+  const [resultsCombined, setResultsCombined] = React.useState([]);
   React.useEffect(() => {
-    if (pollInitialized) return;
+    const filteredSuggestions = [];
+    const resultsCombined = [];
 
-    setPollInitialized(true);
+    allSources.forEach((item) => {
+      if (item.type === 'default' || item.type === 'ArcGIS') {
+        // check if this has already been added
+        let sug = findSource(
+          'ArcGIS World Geocoding Service',
+          filteredSuggestions,
+        );
+        if (sug) return;
 
-    // polls the dom, based on provided timeout, until the esri search input
-    // is added. Once the input is added this sets the id attribute and stops
-    // the polling.
-    function poll(timeout: number) {
-      const searchInput = document.getElementsByClassName('esri-search__input');
-      if (searchInput.length === 0) {
-        setTimeout(poll, timeout);
-      } else {
-        searchInput[0].setAttribute('id', 'hmw-search-input');
+        sug = findSource('ArcGIS World Geocoding Service', suggestions);
+        if (sug && sug.results.length > 0) {
+          filteredSuggestions.push(sug);
+          resultsCombined.push(...sug.results);
+        }
+        return;
       }
+
+      // combine group sources into a single source, i.e. combine the 3 tribes
+      // sources into one source
+      const results = [];
+      let source = null;
+      let sourceIndex = -1;
+      item.sources.forEach((item2) => {
+        const sug = findSource(item2.name, suggestions);
+        if (!sug) return;
+
+        if (!source) {
+          source = sug.source;
+          sourceIndex = sug.sourceIndex;
+        }
+        results.push(...sug.results);
+      });
+
+      if (results.length > 0) {
+        filteredSuggestions.push({
+          results,
+          source,
+          sourceIndex,
+        });
+        resultsCombined.push(...results);
+      }
+    });
+    setFilteredSuggestions(filteredSuggestions);
+    setResultsCombined(resultsCombined);
+  }, [allSources, suggestions]);
+
+  const [cursor, setCursor] = React.useState(-1);
+
+  // Handle arrow down key press (search input)
+  React.useEffect(() => {
+    if (resultsCombined.length > 0 && downPress) {
+      setCursor((prevState) => {
+        const newIndex =
+          prevState < resultsCombined.length - 1 ? prevState + 1 : 0;
+
+        // scroll to the suggestion
+        const elm = document.getElementById(`search-suggestion-${newIndex}`);
+        const panel = document.getElementById('search-container-suggest-menu');
+        if (elm && panel) panel.scrollTop = elm.offsetTop;
+
+        return newIndex;
+      });
+    }
+  }, [resultsCombined, downPress]);
+
+  // Handle arrow up key press (search input)
+  React.useEffect(() => {
+    if (resultsCombined.length > 0 && upPress) {
+      setCursor((prevState) => {
+        const newIndex =
+          prevState > 0 ? prevState - 1 : resultsCombined.length - 1;
+
+        // scroll to the suggestion
+        const elm = document.getElementById(`search-suggestion-${newIndex}`);
+        const panel = document.getElementById('search-container-suggest-menu');
+        if (elm && panel) panel.scrollTop = elm.offsetTop;
+
+        return newIndex;
+      });
+    }
+  }, [resultsCombined, upPress]);
+
+  // Handle enter key press (search input)
+  React.useEffect(() => {
+    if (resultsCombined.length === 0 || !enterPress) return;
+    if (cursor < 0 || cursor > resultsCombined.length) return;
+    if (resultsCombined[cursor].text)
+      setInputText(resultsCombined[cursor].text);
+  }, [cursor, enterPress, resultsCombined]);
+
+  let index = -1;
+  function LayerSuggestions({ title, results }) {
+    return (
+      <>
+        <div className="esri-menu__header">{title}</div>
+        <ul
+          role="presentation"
+          className="esri-menu__list esri-search__suggestions-list"
+        >
+          {results.map((result) => {
+            index = index + 1;
+            return (
+              <li
+                id={`search-suggestion-${index}`}
+                role="menuitem"
+                className={`esri-menu__list-item ${
+                  index === cursor ? 'esri-menu__list-item-active' : ''
+                }`}
+                key={`suggestion-key-${index}`}
+                onClick={() => {
+                  setInputText(result.text);
+                  setSuggestionsVisible(false);
+                  setCursor(-1);
+
+                  if (!searchWidget) return;
+                  searchWidget.searchTerm = result.text;
+                  searchWidget.search(result.text);
+                }}
+              >
+                {result.text
+                  .split(new RegExp(`(${inputText})`, 'gi'))
+                  .map((part, index) => {
+                    if (part.toLowerCase() === inputText.toLowerCase()) {
+                      return <strong key={`text-key-${index}`}>{part}</strong>;
+                    } else {
+                      return (
+                        <React.Fragment key={`text-key-${index}`}>
+                          {part}
+                        </React.Fragment>
+                      );
+                    }
+                  })}
+              </li>
+            );
+          })}
+        </ul>
+      </>
+    );
+  }
+
+  const [sourceCursor, setSourceCursor] = React.useState(-1);
+
+  // Handle arrow down key press (sources list)
+  React.useEffect(() => {
+    if (allSources.length > 0 && sourceDownPress) {
+      setSourceCursor((prevState) => {
+        const newIndex = prevState < allSources.length - 1 ? prevState + 1 : 0;
+
+        // scroll to the suggestion
+        const elm = document.getElementById(`source-${newIndex}`);
+        const panel = document.getElementById('search-container-source-menu');
+        if (elm && panel) panel.scrollTop = elm.offsetTop;
+
+        return newIndex;
+      });
+    }
+  }, [allSources, sourceDownPress]);
+
+  // Handle arrow up key press (sources list)
+  React.useEffect(() => {
+    if (allSources.length > 0 && sourceUpPress) {
+      setSourceCursor((prevState) => {
+        const newIndex = prevState > 0 ? prevState - 1 : allSources.length - 1;
+
+        // scroll to the suggestion
+        const elm = document.getElementById(`source-${newIndex}`);
+        const panel = document.getElementById('search-container-source-menu');
+        if (elm && panel) panel.scrollTop = elm.offsetTop;
+
+        return newIndex;
+      });
+    }
+  }, [allSources, sourceUpPress]);
+
+  // Handle enter key press (sources list)
+  React.useEffect(() => {
+    if (!sourceEnterPress) return;
+
+    // determine if the sources menu is visible
+    const sourcesShown =
+      document
+        .getElementById('search-container-source-menu-div')
+        .getBoundingClientRect().height !== 0;
+
+    // determine whether or not the enter button is being used to open/close
+    // the sources menu or select a source
+    if (!sourcesShown) {
+      setSourcesVisible(true);
+      setSuggestionsVisible(false);
+      return;
+    }
+    if (sourcesShown && sourceCursor === -1) {
+      setSourcesVisible(false);
+      return;
     }
 
-    poll(250);
-  }, [pollInitialized]);
+    // handle selecting a source
+    if (sourceCursor < 0 || sourceCursor > allSources.length) return;
+    if (allSources[sourceCursor].name) {
+      setSelectedSource(allSources[sourceCursor]);
+      setSourceCursor(-1);
+
+      setTimeout(() => {
+        const searchInput = document.getElementById('hmw-search-input');
+        if (searchInput) searchInput.focus();
+      }, 250);
+    }
+  }, [allSources, sourceCursor, sourceEnterPress]);
+
+  // Handle enter key press (clear button)
+  React.useEffect(() => {
+    if (!clearEnterPress) return;
+
+    const clearButton = document.getElementById('search-input-clear');
+    clearButton.click();
+  }, [clearEnterPress]);
+
+  const searchTerm = splitSuggestedSearch(Point, searchText).searchPart;
 
   return (
     <>
@@ -293,6 +583,9 @@ function LocationSearch({ route, label }: Props) {
       <Form
         onSubmit={(ev) => {
           ev.preventDefault();
+
+          setSuggestionsVisible(false);
+          setCursor(-1);
 
           if (containsScriptTag(inputText)) {
             setErrorMessage(invalidSearchError);
@@ -320,7 +613,216 @@ function LocationSearch({ route, label }: Props) {
           }
         }}
       >
-        <SearchBox id="search-container" />
+        <SearchBox>
+          <div
+            role="presentation"
+            className={`esri-search-multiple-sources esri-search__container ${
+              sourcesVisible ? 'esri-search--sources' : ''
+            } ${
+              filteredSuggestions.length > 0
+                ? 'esri-search--show-suggestions'
+                : ''
+            }`}
+          >
+            <div
+              role="button"
+              title="Search in"
+              aria-haspopup="true"
+              aria-controls="search-container-source-menu"
+              className="esri-search__sources-button esri-widget--button"
+              tabIndex="0"
+              data-node-ref="_sourceMenuButtonNode"
+              ref={sourceList}
+              onClick={() => {
+                setSourcesVisible(!sourcesVisible);
+                setSuggestionsVisible(false);
+                setCursor(-1);
+              }}
+            >
+              <span
+                aria-hidden="true"
+                role="presentation"
+                className="esri-icon-down-arrow esri-search__sources-button--down"
+              ></span>
+              <span
+                aria-hidden="true"
+                role="presentation"
+                className="esri-icon-up-arrow esri-search__sources-button--up"
+              ></span>
+              <span
+                aria-hidden="true"
+                role="presentation"
+                className="esri-search__source-name"
+              >
+                {selectedSource.name}
+              </span>
+            </div>
+            <div
+              id="search-container-source-menu-div"
+              tabIndex="-1"
+              className="esri-menu esri-search__sources-menu"
+            >
+              <ul
+                id="search-container-source-menu"
+                role="menu"
+                data-node-ref="_sourceListNode"
+                className="esri-menu__list"
+              >
+                {allSources.map((source, index) => {
+                  return (
+                    <li
+                      id={`source-${index}`}
+                      role="menuitem"
+                      className={`esri-search__source esri-menu__list-item ${
+                        selectedSource.name === source.name
+                          ? 'esri-menu__list-item--active'
+                          : index === sourceCursor
+                          ? 'esri-menu__list-item-active'
+                          : ''
+                      }`}
+                      tabIndex="-1"
+                      key={`source-key-${index}`}
+                      onClick={() => {
+                        setSelectedSource(source);
+                        setSourcesVisible(false);
+
+                        const searchInput = document.getElementById(
+                          'hmw-search-input',
+                        );
+                        if (searchInput) searchInput.focus();
+                      }}
+                    >
+                      {source.name}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+            <div className="esri-search__input-container">
+              <div className="esri-search__form" role="search">
+                <input
+                  id="hmw-search-input"
+                  type="text"
+                  ref={searchBox}
+                  placeholder={placeholder}
+                  aria-label="Search"
+                  autoComplete="off"
+                  tabIndex="0"
+                  className="esri-input esri-search__input"
+                  aria-autocomplete="list"
+                  aria-haspopup="true"
+                  data-node-ref="_inputNode"
+                  title={placeholder}
+                  value={
+                    inputText === searchTerm &&
+                    isHuc12(inputText) &&
+                    watershed &&
+                    huc12
+                      ? `WATERSHED: ${watershed} (${huc12})`
+                      : inputText.indexOf('|') > -1
+                      ? inputText.split('|')[0]
+                      : inputText
+                  }
+                  onChange={(ev) => {
+                    setInputText(ev.target.value);
+                    setSuggestionsVisible(true);
+                    setCursor(-1);
+
+                    if (!searchWidget) return;
+                    searchWidget.searchTerm = ev.target.value;
+                    searchWidget.suggest();
+                  }}
+                  onFocus={(ev) => {
+                    setSourcesVisible(false);
+                    setSuggestionsVisible(true);
+                    setCursor(-1);
+                  }}
+                  onBlur={(ev) => {
+                    setTimeout(() => {
+                      setSuggestionsVisible(false);
+                    }, 250);
+                  }}
+                  aria-owns={
+                    filteredSuggestions.length > 0
+                      ? 'search-container-suggest-menu'
+                      : ''
+                  }
+                />
+              </div>
+              {filteredSuggestions.length > 0 && suggestionsVisible && (
+                <div
+                  id="search-container-suggest-menu"
+                  className="esri-menu esri-search__suggestions-menu"
+                  role="menu"
+                  data-node-ref="_suggestionListNode"
+                >
+                  {filteredSuggestions.map((source, index) => {
+                    function findGroupName() {
+                      if (
+                        source.source.name === 'ArcGIS World Geocoding Service'
+                      ) {
+                        return 'Address, zip code, and place search';
+                      }
+
+                      let title = '';
+                      allSources.forEach((item) => {
+                        if (item.type === 'default' || item.type === 'ArcGIS') {
+                          return;
+                        }
+
+                        item.sources.forEach((nestedItem) => {
+                          if (nestedItem.name === source.source.name) {
+                            title = item.name;
+                          }
+                        });
+                      });
+                      return title;
+                    }
+                    if (source.results.length === 0) return null;
+
+                    const title = findGroupName();
+                    return (
+                      <LayerSuggestions
+                        key={`layer-suggestions-key-${index}`}
+                        title={title}
+                        results={source.results}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+              {inputText && (
+                <div
+                  id="search-input-clear"
+                  role="button"
+                  className="esri-search__clear-button esri-widget--button"
+                  tabIndex="0"
+                  title="Clear search"
+                  ref={clearButton}
+                  onClick={() => {
+                    if (searchWidget) searchWidget.searchTerm = '';
+                    setInputText('');
+                    setSourcesVisible(false);
+                    setSuggestionsVisible(false);
+                    setCursor(-1);
+                  }}
+                >
+                  <span aria-hidden="true" className="esri-icon-close"></span>
+                </div>
+              )}
+            </div>
+            <div className="esri-menu esri-search__warning-menu">
+              <div className="esri-search__warning-body">
+                <div>
+                  <div className="esri-search__warning-header">No results</div>
+                  <div className="esri-search__warning-text">
+                    There were no results found for {inputText}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </SearchBox>
 
         <Button
           className="btn"
