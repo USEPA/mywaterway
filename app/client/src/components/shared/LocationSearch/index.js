@@ -132,6 +132,10 @@ const SearchBox = styled.div`
   .esri-menu__list-item-active {
     background-color: #e2f1fb;
   }
+
+  .esri-search__sources-button {
+    height: 38px;
+  }
 `;
 
 // --- components ---
@@ -146,6 +150,12 @@ function LocationSearch({ route, label }: Props) {
   const downPress = useKeyPress('ArrowDown', searchBox);
   const upPress = useKeyPress('ArrowUp', searchBox);
   const enterPress = useKeyPress('Enter', searchBox);
+  const sourceList = React.createRef();
+  const sourceDownPress = useKeyPress('ArrowDown', sourceList);
+  const sourceUpPress = useKeyPress('ArrowUp', sourceList);
+  const sourceEnterPress = useKeyPress('Enter', sourceList);
+  const clearButton = React.createRef();
+  const clearEnterPress = useKeyPress('Enter', clearButton);
   const { FeatureLayer, Locator, Point, Search, watchUtils } = React.useContext(
     EsriModulesContext,
   );
@@ -375,7 +385,7 @@ function LocationSearch({ route, label }: Props) {
 
   const [cursor, setCursor] = React.useState(-1);
 
-  // Handle arrow down key press
+  // Handle arrow down key press (search input)
   React.useEffect(() => {
     if (resultsCombined.length > 0 && downPress) {
       setCursor((prevState) => {
@@ -392,7 +402,7 @@ function LocationSearch({ route, label }: Props) {
     }
   }, [resultsCombined, downPress]);
 
-  // Handle arrow up key press
+  // Handle arrow up key press (search input)
   React.useEffect(() => {
     if (resultsCombined.length > 0 && upPress) {
       setCursor((prevState) => {
@@ -409,7 +419,7 @@ function LocationSearch({ route, label }: Props) {
     }
   }, [resultsCombined, upPress]);
 
-  // Handle enter key press
+  // Handle enter key press (search input)
   React.useEffect(() => {
     if (resultsCombined.length === 0 || !enterPress) return;
     if (cursor < 0 || cursor > resultsCombined.length) return;
@@ -435,7 +445,7 @@ function LocationSearch({ route, label }: Props) {
                 className={`esri-menu__list-item ${
                   index === cursor ? 'esri-menu__list-item-active' : ''
                 }`}
-                key={result.key}
+                key={`suggestion-key-${index}`}
                 onClick={() => {
                   setInputText(result.text);
                   setSuggestionsVisible(false);
@@ -448,11 +458,15 @@ function LocationSearch({ route, label }: Props) {
               >
                 {result.text
                   .split(new RegExp(`(${inputText})`, 'gi'))
-                  .map((part) => {
+                  .map((part, index) => {
                     if (part.toLowerCase() === inputText.toLowerCase()) {
-                      return <strong>{part}</strong>;
+                      return <strong key={`text-key-${index}`}>{part}</strong>;
                     } else {
-                      return part;
+                      return (
+                        <React.Fragment key={`text-key-${index}`}>
+                          {part}
+                        </React.Fragment>
+                      );
                     }
                   })}
               </li>
@@ -462,6 +476,83 @@ function LocationSearch({ route, label }: Props) {
       </>
     );
   }
+
+  const [sourceCursor, setSourceCursor] = React.useState(-1);
+
+  // Handle arrow down key press (sources list)
+  React.useEffect(() => {
+    if (allSources.length > 0 && sourceDownPress) {
+      setSourceCursor((prevState) => {
+        const newIndex = prevState < allSources.length - 1 ? prevState + 1 : 0;
+
+        // scroll to the suggestion
+        const elm = document.getElementById(`source-${newIndex}`);
+        const panel = document.getElementById('search-container-source-menu');
+        if (elm && panel) panel.scrollTop = elm.offsetTop;
+
+        return newIndex;
+      });
+    }
+  }, [allSources, sourceDownPress]);
+
+  // Handle arrow up key press (sources list)
+  React.useEffect(() => {
+    if (allSources.length > 0 && sourceUpPress) {
+      setSourceCursor((prevState) => {
+        const newIndex = prevState > 0 ? prevState - 1 : allSources.length - 1;
+
+        // scroll to the suggestion
+        const elm = document.getElementById(`source-${newIndex}`);
+        const panel = document.getElementById('search-container-source-menu');
+        if (elm && panel) panel.scrollTop = elm.offsetTop;
+
+        return newIndex;
+      });
+    }
+  }, [allSources, sourceUpPress]);
+
+  // Handle enter key press (sources list)
+  React.useEffect(() => {
+    if (!sourceEnterPress) return;
+
+    // determine if the sources menu is visible
+    const sourcesShown =
+      document
+        .getElementById('search-container-source-menu-div')
+        .getBoundingClientRect().height !== 0;
+
+    // determine whether or not the enter button is being used to open/close
+    // the sources menu or select a source
+    if (!sourcesShown) {
+      setSourcesVisible(true);
+      setSuggestionsVisible(false);
+      return;
+    }
+    if (sourcesShown && sourceCursor === -1) {
+      setSourcesVisible(false);
+      return;
+    }
+
+    // handle selecting a source
+    if (sourceCursor < 0 || sourceCursor > allSources.length) return;
+    if (allSources[sourceCursor].name) {
+      setSelectedSource(allSources[sourceCursor].name);
+      setSourceCursor(-1);
+
+      setTimeout(() => {
+        const searchInput = document.getElementById('hmw-search-input');
+        if (searchInput) searchInput.focus();
+      }, 250);
+    }
+  }, [allSources, sourceCursor, sourceEnterPress]);
+
+  // Handle enter key press (clear button)
+  React.useEffect(() => {
+    if (!clearEnterPress) return;
+
+    const clearButton = document.getElementById('search-input-clear');
+    clearButton.click();
+  }, [clearEnterPress]);
 
   const searchTerm = splitSuggestedSearch(Point, searchText).searchPart;
 
@@ -525,6 +616,7 @@ function LocationSearch({ route, label }: Props) {
               className="esri-search__sources-button esri-widget--button"
               tabIndex="0"
               data-node-ref="_sourceMenuButtonNode"
+              ref={sourceList}
               onClick={() => {
                 setSourcesVisible(!sourcesVisible);
                 setSuggestionsVisible(false);
@@ -549,7 +641,11 @@ function LocationSearch({ route, label }: Props) {
                 {selectedSource}
               </span>
             </div>
-            <div tabIndex="0" className="esri-menu esri-search__sources-menu">
+            <div
+              id="search-container-source-menu-div"
+              tabIndex="0"
+              className="esri-menu esri-search__sources-menu"
+            >
               <ul
                 id="search-container-source-menu"
                 role="menu"
@@ -559,17 +655,25 @@ function LocationSearch({ route, label }: Props) {
                 {allSources.map((source, index) => {
                   return (
                     <li
+                      id={`source-${index}`}
                       role="menuitem"
                       className={`esri-search__source esri-menu__list-item ${
                         selectedSource === source.name
                           ? 'esri-menu__list-item--active'
+                          : index === sourceCursor
+                          ? 'esri-menu__list-item-active'
                           : ''
                       }`}
                       tabIndex="-1"
-                      key={index}
+                      key={`source-key-${index}`}
                       onClick={() => {
                         setSelectedSource(source.name);
                         setSourcesVisible(false);
+
+                        const searchInput = document.getElementById(
+                          'hmw-search-input',
+                        );
+                        if (searchInput) searchInput.focus();
                       }}
                     >
                       {source.name}
@@ -656,6 +760,7 @@ function LocationSearch({ route, label }: Props) {
                     const title = findGroupName();
                     return (
                       <LayerSuggestions
+                        key={`layer-suggestions-key-${index}`}
                         title={title}
                         results={source.results}
                       />
@@ -665,10 +770,12 @@ function LocationSearch({ route, label }: Props) {
               )}
               {inputText && (
                 <div
+                  id="search-input-clear"
                   role="button"
                   className="esri-search__clear-button esri-widget--button"
                   tabIndex="0"
                   title="Clear search"
+                  ref={clearButton}
                   onClick={() => {
                     if (searchWidget) searchWidget.searchTerm = '';
                     setInputText('');
