@@ -121,6 +121,10 @@ const SearchBox = styled.div`
     font-weight: 900;
   }
 
+  .esri-menu {
+    z-index: 1000;
+  }
+
   .esri-menu__list-item::hover {
     background-color: #f3f3f3;
   }
@@ -407,9 +411,10 @@ function LocationSearch({ route, label }: Props) {
 
   // Handle enter key press
   React.useEffect(() => {
-    if (resultsCombined.length > 0 && enterPress) {
+    if (resultsCombined.length === 0 || !enterPress) return;
+    if (cursor < 0 || cursor > resultsCombined.length) return;
+    if (resultsCombined[cursor].text)
       setInputText(resultsCombined[cursor].text);
-    }
   }, [cursor, enterPress, resultsCombined]);
 
   let index = -1;
@@ -434,6 +439,7 @@ function LocationSearch({ route, label }: Props) {
                 onClick={() => {
                   setInputText(result.text);
                   setSuggestionsVisible(false);
+                  setCursor(-1);
 
                   if (!searchWidget) return;
                   searchWidget.searchTerm = result.text;
@@ -472,6 +478,7 @@ function LocationSearch({ route, label }: Props) {
           ev.preventDefault();
 
           setSuggestionsVisible(false);
+          setCursor(-1);
 
           if (containsScriptTag(inputText)) {
             setErrorMessage(invalidSearchError);
@@ -521,6 +528,7 @@ function LocationSearch({ route, label }: Props) {
               onClick={() => {
                 setSourcesVisible(!sourcesVisible);
                 setSuggestionsVisible(false);
+                setCursor(-1);
               }}
             >
               <span
@@ -598,6 +606,7 @@ function LocationSearch({ route, label }: Props) {
                   onChange={(ev) => {
                     setInputText(ev.target.value);
                     setSuggestionsVisible(true);
+                    setCursor(-1);
 
                     if (!searchWidget) return;
                     searchWidget.searchTerm = ev.target.value;
@@ -606,6 +615,7 @@ function LocationSearch({ route, label }: Props) {
                   onFocus={(ev) => {
                     setSourcesVisible(false);
                     setSuggestionsVisible(true);
+                    setCursor(-1);
                   }}
                   aria-owns={
                     filteredSuggestions.length > 0
@@ -664,6 +674,7 @@ function LocationSearch({ route, label }: Props) {
                     setInputText('');
                     setSourcesVisible(false);
                     setSuggestionsVisible(false);
+                    setCursor(-1);
                   }}
                 >
                   <span aria-hidden="true" className="esri-icon-close"></span>
