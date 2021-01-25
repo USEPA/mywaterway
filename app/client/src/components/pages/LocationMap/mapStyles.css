@@ -205,6 +205,6 @@
   display: none !important;
 }
 
-.esri-menu__list-item:first-child {
+/* .esri-menu__list-item:first-child {
   border-top: solid 1px rgba(110, 110, 110, 0.3);
-}
+} */
