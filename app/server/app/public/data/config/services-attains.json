@@ -45,7 +45,7 @@
     "queryStringSecondPart": "%29&outFields=*&returnGeometry=false&returnTrueCurves=false&returnIdsOnly=false&returnCountOnly=false&returnZ=false&returnM=false&returnDistinctValues=false&returnExtentsOnly=false&f=json"
   },
   "wildScenicRivers": "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/WildScenicRiversV2_AGOL/FeatureServer/1/",
-  "protectedAreasDatabase": "https://gis1.usgs.gov/arcgis/rest/services/padus2/protection_mechanism_category/MapServer/0/query?f=json&where=OBJECTID=1&returnCountOnly=true",
+  "protectedAreasDatabase": "https://gis1.usgs.gov/arcgis/rest/services/padus2/protection_mechanism_category/MapServer/0/",
   "googleAnalyticsMapping": [
     {
       "urlLookup": "attains.serviceUrl",
