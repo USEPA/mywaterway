@@ -201,6 +201,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     upstreamLayer,
     actionsLayer,
     huc12,
+    wildScenicRiversLayer,
   } = React.useContext(LocationSearchContext);
   const services = useServicesContext();
 
@@ -306,15 +307,23 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     // figure out what layer we the graphic belongs to
     let layer = null;
+    let featureLayerType = '';
     if (attributes.layerType === 'issues') {
       layer = issuesLayer;
     } else if (attributes.layerType === 'actions') {
       layer = actionsLayer;
+    } else if (attributes.WSR_RIVER_NAME) {
+      layer = wildScenicRiversLayer;
+      featureLayerType = 'wildScenicRivers';
     } else if (attributes.Shape_Length && attributes.Shape_Area) {
       layer = areasLayer;
-    } else if (attributes.Shape_Length) layer = linesLayer;
-    else if (attributes.assessmentunitidentifier) {
+      featureLayerType = 'waterbodyLayer';
+    } else if (attributes.Shape_Length) {
+      layer = linesLayer;
+      featureLayerType = 'waterbodyLayer';
+    } else if (attributes.assessmentunitidentifier) {
       layer = pointsLayer;
+      featureLayerType = 'waterbodyLayer';
     } else if (attributes.CWPName) {
       layer = dischargersLayer;
     } else if (attributes.MonitoringLocationIdentifier) {
@@ -378,7 +387,15 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         (graphicOrgId === selectedGraphicOrgId &&
           graphicAuId === selectedGraphicAuId))
     ) {
-      const key = `${graphicOrgId} - ${graphicAuId}`;
+      let key = '';
+      let where = '';
+      if (featureLayerType === 'waterbodyLayer') {
+        key = `${graphicOrgId} - ${graphicAuId}`;
+        where = `organizationid = '${graphicOrgId}' And assessmentunitidentifier = '${graphicAuId}'`;
+      } else if (featureLayerType === 'wildScenicRivers') {
+        key = attributes.GlobalID;
+        where = `GlobalID = '${key}'`;
+      }
 
       if (cachedHighlights[key]) {
         cachedHighlights[key].forEach((feature) => {
@@ -398,22 +415,30 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
           cachedHighlights,
         });
       } else {
+        if (!key || !where) return;
+
         const query = new Query({
           returnGeometry: false,
-          where: `organizationid = '${graphicOrgId}' And assessmentunitidentifier = '${graphicAuId}'`,
+          where,
           outFields: ['*'],
         });
 
         const requests = [];
 
-        if (areasLayer && areasLayer !== 'error')
-          requests.push(areasLayer.queryFeatures(query));
+        if (featureLayerType === 'waterbodyLayer') {
+          if (areasLayer && areasLayer !== 'error')
+            requests.push(areasLayer.queryFeatures(query));
 
-        if (linesLayer && linesLayer !== 'error')
-          requests.push(linesLayer.queryFeatures(query));
+          if (linesLayer && linesLayer !== 'error')
+            requests.push(linesLayer.queryFeatures(query));
 
-        if (pointsLayer && pointsLayer !== 'error')
-          requests.push(pointsLayer.queryFeatures(query));
+          if (pointsLayer && pointsLayer !== 'error')
+            requests.push(pointsLayer.queryFeatures(query));
+        } else if (featureLayerType === 'wildScenicRivers') {
+          requests.push(layer.queryFeatures(query));
+        }
+
+        if (requests.length === 0) return;
 
         Promise.all(requests).then((responses) => {
           const featuresToCache = [];
@@ -477,6 +502,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     findOthers,
     Query,
     handles,
+    wildScenicRiversLayer,
   ]);
 
   // Closes the popup and clears highlights whenever the tab changes

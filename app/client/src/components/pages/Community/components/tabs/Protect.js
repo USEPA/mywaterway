@@ -15,6 +15,7 @@ import ShowLessMore from 'components/shared/ShowLessMore';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
+import { MapHighlightContext } from 'contexts/MapHighlight';
 // utilities
 import { getUrlFromMarkup, getTitleFromMarkup } from 'components/shared/Regex';
 import { convertAgencyCode } from 'utils/utils';
@@ -91,10 +92,6 @@ const Label = styled.label`
 `;
 
 const Feature = styled.div`
-  // NOTE: this is still a work in progress...just highlighting each item
-  // on hover for now (if there's eventually a geospacial component for each
-  // project, we'll want to hightlight it on the map)
-
   &:hover {
     background-color: #f0f6f9;
   }
@@ -678,13 +675,16 @@ function Protect() {
                       wildScenicRiversData.data.map((item) => {
                         const attributes = item.attributes;
                         return (
-                          <Feature key={item}>
-                            <FeatureTitle>
+                          <FeatureItem
+                            key={item}
+                            idKey="GlobalId"
+                            feature={item}
+                            title={
                               <strong>
                                 River Name: {attributes.WSR_RIVER_SHORTNAME}
                               </strong>
-                            </FeatureTitle>
-
+                            }
+                          >
                             <table className="table">
                               <tbody>
                                 <tr>
@@ -762,7 +762,7 @@ function Protect() {
                                 </tr>
                               </tbody>
                             </table>
-                          </Feature>
+                          </FeatureItem>
                         );
                       })}
                   </AccordionContent>
@@ -821,17 +821,20 @@ function Protect() {
                                   (plan) => plan && plan.url && plan.title,
                                 );
                               return (
-                                <Feature key={index}>
-                                  <FeatureTitle>
-                                    <strong>
-                                      {item['prj_title'] || 'Unknown'}
-                                    </strong>
-                                    <br />
-                                    <small>
-                                      ID: {item['prj_seq'] || 'Unknown ID'}
-                                    </small>
-                                  </FeatureTitle>
-
+                                <FeatureItem
+                                  key={index}
+                                  title={
+                                    <>
+                                      <strong>
+                                        {item['prj_title'] || 'Unknown'}
+                                      </strong>
+                                      <br />
+                                      <small>
+                                        ID: {item['prj_seq'] || 'Unknown ID'}
+                                      </small>
+                                    </>
+                                  }
+                                >
                                   <table className="table">
                                     <tbody>
                                       {item['pollutants'] && (
@@ -915,7 +918,7 @@ function Protect() {
                                       </tr>
                                     </tbody>
                                   </table>
-                                </Feature>
+                                </FeatureItem>
                               );
                             })}
                           </>
@@ -1029,6 +1032,48 @@ function Protect() {
         </Tabs>
       </ContentTabs>
     </Container>
+  );
+}
+
+type FeatureItemProps = {
+  feature: ?Object,
+  idKey: string,
+  key: string,
+  title: Node,
+  children: Node,
+};
+
+function FeatureItem({
+  feature,
+  idKey,
+  key,
+  title,
+  children,
+}: FeatureItemProps) {
+  const { mapView } = React.useContext(LocationSearchContext);
+  const { setHighlightedGraphic } = React.useContext(MapHighlightContext);
+
+  const addHighlight = () => {
+    if (!feature || !mapView) return;
+    setHighlightedGraphic(feature);
+  };
+
+  const removeHighlight = () => {
+    if (!feature || !mapView) return;
+    setHighlightedGraphic(null);
+  };
+
+  return (
+    <Feature
+      onMouseEnter={(ev) => addHighlight()}
+      onMouseLeave={(ev) => removeHighlight()}
+      onFocus={(ev) => addHighlight()}
+      onBlur={(ev) => removeHighlight()}
+    >
+      <FeatureTitle>{title}</FeatureTitle>
+
+      {children}
+    </Feature>
   );
 }
 
