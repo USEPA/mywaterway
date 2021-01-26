@@ -676,7 +676,7 @@ function Protect() {
                         const attributes = item.attributes;
                         return (
                           <FeatureItem
-                            key={item}
+                            key={attributes.GlobalID}
                             idKey="GlobalId"
                             feature={item}
                             title={
@@ -1038,18 +1038,11 @@ function Protect() {
 type FeatureItemProps = {
   feature: ?Object,
   idKey: string,
-  key: string,
   title: Node,
   children: Node,
 };
 
-function FeatureItem({
-  feature,
-  idKey,
-  key,
-  title,
-  children,
-}: FeatureItemProps) {
+function FeatureItem({ feature, idKey, title, children }: FeatureItemProps) {
   const { mapView } = React.useContext(LocationSearchContext);
   const { setHighlightedGraphic } = React.useContext(MapHighlightContext);
 
