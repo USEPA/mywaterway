@@ -262,7 +262,10 @@ function Protect() {
               )}
 
               <AccordionList>
-                <AccordionItem title={<strong>Watershed Health Scores</strong>}>
+                <AccordionItem
+                  highlightContent={false}
+                  title={<strong>Watershed Health Scores</strong>}
+                >
                   <AccordionContent>
                     <Label>
                       <Switch
@@ -489,7 +492,10 @@ function Protect() {
                   </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem title={<strong>Protected Areas</strong>}>
+                <AccordionItem
+                  highlightContent={false}
+                  title={<strong>Protected Areas</strong>}
+                >
                   <AccordionContent>
                     {infoToggleChecked && (
                       <>
@@ -603,7 +609,10 @@ function Protect() {
                   </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem title={<strong>Wild and Scenic Rivers</strong>}>
+                <AccordionItem
+                  highlightContent={false}
+                  title={<strong>Wild and Scenic Rivers</strong>}
+                >
                   <AccordionContent>
                     {infoToggleChecked && (
                       <p>
@@ -759,7 +768,10 @@ function Protect() {
                   </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem title={<strong>Protection Projects</strong>}>
+                <AccordionItem
+                  highlightContent={false}
+                  title={<strong>Protection Projects</strong>}
+                >
                   <AccordionContent>
                     {grts.status === 'fetching' && <LoadingSpinner />}
 
