@@ -150,6 +150,11 @@ function SearchPanel() {
     setSearchResults,
   } = React.useContext(AddDataWidgetContext);
 
+  const locationList = [
+    { value: 'ArcGIS Online', label: 'ArcGIS Online' },
+    { value: '161a24e10b8d405d97492264589afd0b', label: 'Curated Content' },
+  ];
+
   // filters
   const [
     location,
@@ -199,6 +204,10 @@ function SearchPanel() {
     // search box
     if (search) {
       query = appendToQuery(query, search);
+    }
+
+    if (location.label === 'Curated Content') {
+      query = appendToQuery(query, `group: "${location.value}"`);
     }
 
     // type selection
@@ -354,16 +363,27 @@ function SearchPanel() {
             </TextSelect>
             {showLocationOptions && (
               <TypeSelect style={{ minWidth: '50%' }}>
-                <LocationSelect
-                  onClick={() =>
-                    setLocation({
-                      value: 'ArcGIS Online',
-                      label: 'ArcGIS Online',
-                    })
-                  }
-                >
-                  ArcGIS Online
-                </LocationSelect>
+                {locationList.map((item, index) => {
+                  return (
+                    <LocationSelect
+                      key={index}
+                      onClick={() => {
+                        setLocation(item);
+                        setShowLocationOptions(false);
+                      }}
+                      style={
+                        location.label === item.label
+                          ? {}
+                          : {
+                              backgroundColor: 'white',
+                              color: 'black',
+                            }
+                      }
+                    >
+                      {item.label}
+                    </LocationSelect>
+                  );
+                })}
               </TypeSelect>
             )}
           </div>
