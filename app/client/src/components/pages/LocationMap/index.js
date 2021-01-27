@@ -15,7 +15,6 @@ import {
   createUniqueValueInfos,
   getPopupContent,
   getPopupTitle,
-  plotProtectedAreas,
 } from 'components/pages/LocationMap/MapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
 // styled components
@@ -28,6 +27,7 @@ import { useServicesContext } from 'contexts/LookupFiles';
 import { esriApiUrl } from 'config/esriConfig';
 // helpers
 import {
+  useDynamicPopup,
   useSharedLayers,
   useWaterbodyHighlight,
   useWaterbodyFeatures,
@@ -127,8 +127,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setWaterbodyLayer,
     setIssuesLayer,
     setMonitoringStationsLayer,
-    protectedAreasLayer,
-    setProtectedAreasLayer,
     setUpstreamLayer,
     setDischargersLayer,
     setNonprofitsLayer,
@@ -164,6 +162,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
+
+  const getDynamicPopup = useDynamicPopup();
+  const { getTitle, getTemplate, setDynamicPopupFields } = getDynamicPopup();
 
   // Builds the layers that have no dependencies
   const [layersInitialized, setLayersInitialized] = React.useState(false);
@@ -213,14 +214,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setMonitoringStationsLayer(monitoringStationsLayer);
 
-    const protectedAreasLayer = new GraphicsLayer({
-      id: 'protectedAreasLayer',
-      title: 'Protected Areas',
-      listMode: 'hide',
-    });
-
-    setProtectedAreasLayer(protectedAreasLayer);
-
     const issuesLayer = new GraphicsLayer({
       id: 'issuesLayer',
       title: 'Identified Issues',
@@ -251,7 +244,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       boundariesLayer,
       upstreamLayer,
       monitoringStationsLayer,
-      protectedAreasLayer,
       issuesLayer,
       dischargersLayer,
       nonprofitsLayer,
@@ -260,20 +252,23 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setLayersInitialized(true);
   }, [
+    FeatureLayer,
     GraphicsLayer,
     getSharedLayers,
+    getTemplate,
+    getTitle,
     layers,
     setBoundariesLayer,
     setDischargersLayer,
     setIssuesLayer,
     setLayers,
     setMonitoringStationsLayer,
-    setProtectedAreasLayer,
     setUpstreamLayer,
     setNonprofitsLayer,
     setProvidersLayer,
     setSearchIconLayer,
     layersInitialized,
+    services,
   ]);
 
   // popup template to be used for all waterbody sublayers
@@ -791,51 +786,65 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       ) {
         setProtectedAreasData({
           data: [],
+          fields: [],
           status: 'success',
         });
         return;
       }
 
-      const query = new Query({
-        geometry: boundaries.features[0].geometry,
-        returnGeometry: true,
-        spatialReference: 102100,
-        outFields: ['*'],
-      });
-
-      setProtectedAreasData({
-        data: [],
-        status: 'fetching',
-      });
-
-      new QueryTask({
-        url: services.data.protectedAreasDatabase,
-      })
-        .execute(query)
-        .then((res) => {
-          console.log(res);
-          setProtectedAreasData({
-            data: res.features,
-            status: 'success',
+      fetchCheck(`${services.data.protectedAreasDatabase}0?f=json`)
+        .then((layerInfo) => {
+          const query = new Query({
+            geometry: boundaries.features[0].geometry,
+            returnGeometry: false,
+            spatialReference: 102100,
+            outFields: ['*'],
           });
-          plotProtectedAreas(Graphic, res.features, protectedAreasLayer);
+
+          setProtectedAreasData({
+            data: [],
+            fields: [],
+            status: 'fetching',
+          });
+
+          new QueryTask({
+            url: `${services.data.protectedAreasDatabase}0`,
+          })
+            .execute(query)
+            .then((res) => {
+              // build/set the filter
+              let filter = '';
+              res.features.forEach((feature) => {
+                if (filter) filter += ' Or ';
+                filter += `OBJECTID = ${feature.attributes.OBJECTID}`;
+              });
+
+              setDynamicPopupFields(layerInfo.fields);
+              setProtectedAreasData({
+                data: res.features,
+                fields: layerInfo.fields,
+                status: 'success',
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+              setProtectedAreasData({
+                data: [],
+                fields: [],
+                status: 'failure',
+              });
+            });
         })
         .catch((err) => {
           console.error(err);
           setProtectedAreasData({
             data: [],
+            fields: [],
             status: 'failure',
           });
         });
     },
-    [
-      services,
-      Graphic,
-      Query,
-      QueryTask,
-      setProtectedAreasData,
-      protectedAreasLayer,
-    ],
+    [services, Query, QueryTask, setProtectedAreasData, setDynamicPopupFields],
   );
 
   const handleMapServices = React.useCallback(

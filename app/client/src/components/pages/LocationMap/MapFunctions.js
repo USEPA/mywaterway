@@ -324,23 +324,6 @@ export function plotWildScenicRivers(
   });
 }
 
-// plot protected areas on map
-export function plotProtectedAreas(
-  Graphic: any,
-  features: Array<Object>,
-  layer: any,
-) {
-  if (!features || !layer) return;
-
-  // clear the layer
-  layer.graphics.removeAll();
-
-  // TODO: put graphics on the layer
-  features.forEach((area) => {
-    console.log(area);
-  });
-}
-
 // plot facilities on map
 export function plotFacilities({
   Graphic,
@@ -381,12 +364,16 @@ export function plotFacilities({
   });
 }
 
-export const openPopup = (view: Object, feature: Object, services: Object) => {
+export const openPopup = (
+  view: Object,
+  feature: Object,
+  fields: Object,
+  services: Object,
+) => {
   // tell the getPopupContent function to use the full popup version that includes the service call
   if (feature.attributes && feature.attributes.MonitoringLocationName) {
     feature.attributes.fullPopup = true;
   }
-
   const fieldName = feature.attributes && feature.attributes.fieldName;
 
   // set the popup template
@@ -396,7 +383,7 @@ export const openPopup = (view: Object, feature: Object, services: Object) => {
   ) {
     feature.popupTemplate = {
       title: getPopupTitle(feature.attributes),
-      content: getPopupContent({ feature, fieldName, services }),
+      content: getPopupContent({ feature, fields, fieldName, services }),
     };
   }
 
@@ -514,6 +501,7 @@ export function getPopupContent({
   getClickedHuc,
   resetData,
   services,
+  fields,
 }: {
   feature: Object,
   fieldName: ?string,
@@ -521,6 +509,7 @@ export function getPopupContent({
   getClickedHuc: ?Function,
   resetData: ?Function,
   services: ?Object,
+  fields: ?Object,
 }) {
   let type = 'Unknown';
 
@@ -603,6 +592,11 @@ export function getPopupContent({
     type = 'State Watershed Health Index';
   }
 
+  // Protected areas
+  else if (attributes.GAPCdSrc) {
+    type = 'Protected Areas';
+  }
+
   const content = (
     <MapPopup
       type={type}
@@ -612,6 +606,7 @@ export function getPopupContent({
       getClickedHuc={getClickedHuc}
       resetData={resetData}
       services={services}
+      fields={fields}
     />
   );
 

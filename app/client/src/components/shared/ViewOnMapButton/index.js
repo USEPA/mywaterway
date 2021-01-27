@@ -20,10 +20,20 @@ const Button = styled.button`
 type Props = {
   feature: Object,
   fieldName: ?fieldName,
+  idField: ?string,
   layers: ?Array<Object>,
+  customQuery: ?Function,
+  onClick: ?Function,
 };
 
-function ViewOnMapButton({ feature, fieldName, layers }: Props) {
+function ViewOnMapButton({
+  feature,
+  fieldName,
+  idField,
+  layers,
+  customQuery,
+  onClick,
+}: Props) {
   const {
     pointsLayer,
     linesLayer,
@@ -63,7 +73,9 @@ function ViewOnMapButton({ feature, fieldName, layers }: Props) {
       if (layer.type === 'feature') {
         const params = layer.createQuery();
         params.returnGeometry = true;
-        params.where = `organizationid = '${orgId}' And assessmentunitidentifier = '${auId}'`;
+        params.where = idField
+          ? `${idField} = '${feature.attributes[idField]}'`
+          : `organizationid = '${orgId}' And assessmentunitidentifier = '${auId}'`;
         params.outFields = ['*'];
         layer
           .queryFeatures(params)
@@ -107,9 +119,13 @@ function ViewOnMapButton({ feature, fieldName, layers }: Props) {
   return (
     <Button
       onClick={(ev) => {
+        if (onClick) onClick();
+
         if (!feature) return;
         if (feature.geometry) {
           viewClick(feature);
+        } else if (customQuery) {
+          customQuery(viewClick);
         } else {
           getGeometry((feature) => viewClick(feature));
         }

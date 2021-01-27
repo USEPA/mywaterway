@@ -12,13 +12,16 @@ import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 import Switch from 'components/shared/Switch';
 import { gradientIcon } from 'components/pages/LocationMap/MapFunctions';
 import ShowLessMore from 'components/shared/ShowLessMore';
+import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 // contexts
+import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { MapHighlightContext } from 'contexts/MapHighlight';
+import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { getUrlFromMarkup, getTitleFromMarkup } from 'components/shared/Regex';
-import { convertAgencyCode } from 'utils/utils';
+import { convertAgencyCode, convertDomainCode } from 'utils/utils';
 // styles
 import { fonts } from 'styles/index.js';
 // errors
@@ -133,7 +136,13 @@ const WsioQuestionContainer = styled.div`
 
 // --- components ---
 function Protect() {
+  const services = useServicesContext();
+
+  const { Query, QueryTask, SimpleFillSymbol } = React.useContext(
+    EsriModulesContext,
+  );
   const {
+    mapView,
     grts,
     watershed,
     huc12,
@@ -146,6 +155,7 @@ function Protect() {
     wildScenicRiversData,
     protectedAreasLayer,
     protectedAreasData,
+    protectedAreasHighlightLayer,
   } = React.useContext(LocationSearchContext);
 
   const { infoToggleChecked } = React.useContext(CommunityTabsContext);
@@ -565,42 +575,123 @@ function Protect() {
                     {protectedAreasData.status === 'success' &&
                       protectedAreasData.data.length > 0 &&
                       protectedAreasData.data.map((item) => {
-                        /* TODO: replace with protected areas data */
+                        const attributes = item.attributes;
+                        const fields = protectedAreasData.fields;
+                        const idKey = 'OBJECTID';
                         return (
-                          <Feature key={item}>
-                            <FeatureTitle>
-                              <strong>Protected Area {item}</strong>
-                            </FeatureTitle>
-
+                          <FeatureItem
+                            key={`protected-area-${attributes.OBJECTID}`}
+                            idKey={idKey}
+                            feature={item}
+                            title={
+                              <strong>
+                                Protected Area {attributes.Loc_Nm}
+                              </strong>
+                            }
+                          >
                             <table className="table">
                               <tbody>
                                 <tr>
                                   <td>
                                     <em>Manager Type:</em>
                                   </td>
-                                  <td>{'...'}</td>
+                                  <td>
+                                    {convertDomainCode(
+                                      fields,
+                                      'Mang_Type',
+                                      attributes.Mang_Type,
+                                    )}
+                                  </td>
                                 </tr>
                                 <tr>
                                   <td>
                                     <em>Manager Name:</em>
                                   </td>
-                                  <td>{'...'}</td>
+                                  <td>
+                                    {convertDomainCode(
+                                      fields,
+                                      'Mang_Name',
+                                      attributes.Mang_Name,
+                                    )}
+                                  </td>
                                 </tr>
                                 <tr>
                                   <td>
                                     <em>Protection Category:</em>
                                   </td>
-                                  <td>{'...'}</td>
+                                  <td>
+                                    {convertDomainCode(
+                                      fields,
+                                      'Category',
+                                      attributes.Category,
+                                    )}
+                                  </td>
                                 </tr>
                                 <tr>
                                   <td>
                                     <em>Public Access:</em>
                                   </td>
-                                  <td>{'...'}</td>
+                                  <td>
+                                    {convertDomainCode(
+                                      fields,
+                                      'Access',
+                                      attributes.Access,
+                                    )}
+                                  </td>
                                 </tr>
                               </tbody>
                             </table>
-                          </Feature>
+
+                            <ViewOnMapButton
+                              layers={[protectedAreasLayer]}
+                              feature={item}
+                              fieldName={idKey}
+                              customQuery={(viewClick) => {
+                                // query for the item
+                                const query = new Query({
+                                  where: `${idKey} = ${attributes[idKey]}`,
+                                  returnGeometry: true,
+                                  outFields: ['*'],
+                                });
+
+                                new QueryTask({
+                                  url: `${services.data.protectedAreasDatabase}0`,
+                                })
+                                  .execute(query)
+                                  .then((res) => {
+                                    if (res.features.length === 0) return;
+
+                                    // create the feature
+                                    const feature = res.features[0];
+                                    feature.symbol = new SimpleFillSymbol({
+                                      color: mapView.highlightOptions.color,
+                                      outline: null,
+                                    });
+
+                                    // add it to the highlight layer
+                                    protectedAreasHighlightLayer.removeAll();
+                                    protectedAreasHighlightLayer.add(feature);
+
+                                    // set the highlight
+                                    viewClick(
+                                      protectedAreasHighlightLayer.graphics
+                                        .items[0],
+                                    );
+                                  })
+                                  .catch((err) => {
+                                    console.error(err);
+                                  });
+                              }}
+                              onClick={() => {
+                                if (protectedAreasDisplayed) return;
+
+                                setProtectedAreasDisplayed(true);
+                                setVisibleLayers({
+                                  protectedAreasLayer: true,
+                                });
+                              }}
+                            />
+                          </FeatureItem>
                         );
                       })}
                   </AccordionContent>
@@ -674,10 +765,11 @@ function Protect() {
                       wildScenicRiversData.data.length > 0 &&
                       wildScenicRiversData.data.map((item) => {
                         const attributes = item.attributes;
+                        const idKey = 'GlobalID';
                         return (
                           <FeatureItem
                             key={attributes.GlobalID}
-                            idKey="GlobalId"
+                            idKey={idKey}
                             feature={item}
                             title={
                               <strong>
@@ -762,6 +854,20 @@ function Protect() {
                                 </tr>
                               </tbody>
                             </table>
+
+                            <ViewOnMapButton
+                              layers={[wildScenicRiversLayer]}
+                              feature={item}
+                              idField={idKey}
+                              onClick={() => {
+                                if (wildScenicRiversDisplayed) return;
+
+                                setWildScenicRiversDisplayed(true);
+                                setVisibleLayers({
+                                  wildScenicRiversLayer: true,
+                                });
+                              }}
+                            />
                           </FeatureItem>
                         );
                       })}

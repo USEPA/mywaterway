@@ -11,7 +11,11 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
 import { getWaterbodyCondition } from 'components/pages/LocationMap/MapFunctions';
-import { formatNumber, convertAgencyCode } from 'utils/utils';
+import {
+  formatNumber,
+  convertAgencyCode,
+  convertDomainCode,
+} from 'utils/utils';
 import { fetchCheck } from 'utils/fetchUtils';
 // data
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
@@ -123,6 +127,7 @@ type Props = {
   location: ?Object,
   resetData: ?Function,
   services: ?Object,
+  fields: ?Object,
 };
 
 function WaterbodyInfo({
@@ -134,6 +139,7 @@ function WaterbodyInfo({
   getClickedHuc,
   resetData,
   services,
+  fields,
 }: Props) {
   // Gets the response of what huc was clicked, if provided.
   const [clickedHuc, setClickedHuc] = React.useState({
@@ -1010,6 +1016,32 @@ function WaterbodyInfo({
   );
 
   // jsx
+  const protectedAreaContent = (
+    <>
+      {labelValue(
+        'Manager Type',
+        convertDomainCode(fields, 'Mang_Type', attributes.Mang_Type),
+      )}
+
+      {labelValue(
+        'Manager Name',
+        convertDomainCode(fields, 'Mang_Name', attributes.Mang_Name),
+      )}
+
+      {labelValue(
+        'Protection Category',
+        convertDomainCode(fields, 'Category', attributes.Category),
+      )}
+
+      {labelValue(
+        'Public Access',
+        convertDomainCode(fields, 'Access', attributes.Access),
+      )}
+      {renderChangeWatershed()}
+    </>
+  );
+
+  // jsx
   const changeLocationContent = renderChangeWatershed();
 
   // jsx
@@ -1035,6 +1067,7 @@ function WaterbodyInfo({
   if (type === 'State Watershed Health Index') return wsioContent;
   if (type === 'Alaska Native Village') return alaskaNativeVillageContent;
   if (type === 'Change Location') return changeLocationContent;
+  if (type === 'Protected Areas') return protectedAreaContent;
 
   return null;
 }
