@@ -491,6 +491,11 @@ export function getPopupTitle(attributes: Object) {
     title = attributes.name_huc12;
   }
 
+  // Protected areas
+  else if (attributes.GAPCdSrc) {
+    title = attributes.Loc_Nm;
+  }
+
   return title;
 }
 
