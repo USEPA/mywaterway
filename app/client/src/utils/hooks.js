@@ -791,11 +791,16 @@ function useSharedLayers() {
       id: 'protectedAreasLayer',
       title: 'Protected Areas',
       url: services.data.protectedAreasDatabase,
-      popupTemplate: {
-        title: getTitle,
-        content: getTemplate,
-        outFields: ['*'],
-      },
+      sublayers: [
+        {
+          id: 0,
+          popupTemplate: {
+            title: getTitle,
+            content: getTemplate,
+            outFields: ['*'],
+          },
+        },
+      ],
     });
 
     setProtectedAreasLayer(protectedAreasLayer);
