@@ -134,6 +134,10 @@ const WsioQuestionContainer = styled.div`
   padding-bottom: 0.875rem;
 `;
 
+const ViewButtonContainer = styled.div`
+  margin-left: 0.5em;
+`;
+
 // --- components ---
 function Protect() {
   const services = useServicesContext();
@@ -642,55 +646,57 @@ function Protect() {
                               </tbody>
                             </table>
 
-                            <ViewOnMapButton
-                              layers={[protectedAreasLayer]}
-                              feature={item}
-                              fieldName={idKey}
-                              customQuery={(viewClick) => {
-                                // query for the item
-                                const query = new Query({
-                                  where: `${idKey} = ${attributes[idKey]}`,
-                                  returnGeometry: true,
-                                  outFields: ['*'],
-                                });
-
-                                new QueryTask({
-                                  url: `${services.data.protectedAreasDatabase}0`,
-                                })
-                                  .execute(query)
-                                  .then((res) => {
-                                    if (res.features.length === 0) return;
-
-                                    // create the feature
-                                    const feature = res.features[0];
-                                    feature.symbol = new SimpleFillSymbol({
-                                      color: mapView.highlightOptions.color,
-                                      outline: null,
-                                    });
-
-                                    // add it to the highlight layer
-                                    protectedAreasHighlightLayer.removeAll();
-                                    protectedAreasHighlightLayer.add(feature);
-
-                                    // set the highlight
-                                    viewClick(
-                                      protectedAreasHighlightLayer.graphics
-                                        .items[0],
-                                    );
-                                  })
-                                  .catch((err) => {
-                                    console.error(err);
+                            <ViewButtonContainer>
+                              <ViewOnMapButton
+                                layers={[protectedAreasLayer]}
+                                feature={item}
+                                fieldName={idKey}
+                                customQuery={(viewClick) => {
+                                  // query for the item
+                                  const query = new Query({
+                                    where: `${idKey} = ${attributes[idKey]}`,
+                                    returnGeometry: true,
+                                    outFields: ['*'],
                                   });
-                              }}
-                              onClick={() => {
-                                if (protectedAreasDisplayed) return;
 
-                                setProtectedAreasDisplayed(true);
-                                setVisibleLayers({
-                                  protectedAreasLayer: true,
-                                });
-                              }}
-                            />
+                                  new QueryTask({
+                                    url: `${services.data.protectedAreasDatabase}0`,
+                                  })
+                                    .execute(query)
+                                    .then((res) => {
+                                      if (res.features.length === 0) return;
+
+                                      // create the feature
+                                      const feature = res.features[0];
+                                      feature.symbol = new SimpleFillSymbol({
+                                        color: mapView.highlightOptions.color,
+                                        outline: null,
+                                      });
+
+                                      // add it to the highlight layer
+                                      protectedAreasHighlightLayer.removeAll();
+                                      protectedAreasHighlightLayer.add(feature);
+
+                                      // set the highlight
+                                      viewClick(
+                                        protectedAreasHighlightLayer.graphics
+                                          .items[0],
+                                      );
+                                    })
+                                    .catch((err) => {
+                                      console.error(err);
+                                    });
+                                }}
+                                onClick={() => {
+                                  if (protectedAreasDisplayed) return;
+
+                                  setProtectedAreasDisplayed(true);
+                                  setVisibleLayers({
+                                    protectedAreasLayer: true,
+                                  });
+                                }}
+                              />
+                            </ViewButtonContainer>
                           </FeatureItem>
                         );
                       })}
@@ -855,19 +861,21 @@ function Protect() {
                               </tbody>
                             </table>
 
-                            <ViewOnMapButton
-                              layers={[wildScenicRiversLayer]}
-                              feature={item}
-                              idField={idKey}
-                              onClick={() => {
-                                if (wildScenicRiversDisplayed) return;
+                            <ViewButtonContainer>
+                              <ViewOnMapButton
+                                layers={[wildScenicRiversLayer]}
+                                feature={item}
+                                idField={idKey}
+                                onClick={() => {
+                                  if (wildScenicRiversDisplayed) return;
 
-                                setWildScenicRiversDisplayed(true);
-                                setVisibleLayers({
-                                  wildScenicRiversLayer: true,
-                                });
-                              }}
-                            />
+                                  setWildScenicRiversDisplayed(true);
+                                  setVisibleLayers({
+                                    wildScenicRiversLayer: true,
+                                  });
+                                }}
+                              />
+                            </ViewButtonContainer>
                           </FeatureItem>
                         );
                       })}
