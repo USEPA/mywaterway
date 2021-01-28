@@ -172,6 +172,26 @@ function LocationSearch({ route, label }: Props) {
     {
       type: 'ArcGIS',
       name: 'Address, zip code, and place search',
+      sources: [
+        {
+          locator: new Locator({ url: services.data.locatorUrl }),
+          countryCode: 'USA',
+          searchFields: ['Loc_name'],
+          suggestionTemplate: '{Loc_name}',
+          exactMatch: false,
+          outFields: [
+            'Loc_name',
+            'City',
+            'Place_addr',
+            'Region',
+            'RegionAbbr',
+            'Country',
+            'Addr_type',
+          ],
+          placeholder: placeholder,
+          name: 'ArcGIS',
+        },
+      ],
     },
     {
       type: 'group',
@@ -225,7 +245,6 @@ function LocationSearch({ route, label }: Props) {
 
   // initialize inputText from searchText context
   const [inputText, setInputText] = React.useState(searchText);
-  const [selectedResult, setSelectedResult] = React.useState(null);
 
   // update inputText whenever searchText changes (i.e. Form onSubmit)
   React.useEffect(() => setInputText(searchText), [searchText]);
@@ -241,12 +260,12 @@ function LocationSearch({ route, label }: Props) {
     const sources = [];
     allSources.forEach((source) => {
       if (source.type === 'default') return;
-      if (source.type === 'ArcGIS') return;
       sources.push(...source.sources);
     });
 
     const search = new Search({
       allPlaceholder: placeholder,
+      includeDefaultSources: false,
       locationEnabled: false,
       label: 'Search',
       sources,
@@ -257,7 +276,6 @@ function LocationSearch({ route, label }: Props) {
       search,
       'searchTerm',
       (newVal, oldVal, propName, event) => {
-        setSelectedResult(null);
         setInputText(newVal);
       },
     );
@@ -268,23 +286,6 @@ function LocationSearch({ route, label }: Props) {
       'suggestions',
       (newVal, oldVal, propName, event) => {
         setSuggestions(newVal ? newVal : []);
-      },
-    );
-
-    // create a watcher for the selected suggestion. This is used for getting
-    // the lat/long of the selected suggestion, to ensure the locator zooms to the
-    // suggestion rather than the highest scored text.
-    // (ex. user searches for "Beaver" and selects the Alaska Reservations option,
-    // this code ensures the map zooms to Beaver Alaska instead of Beaver Ohio)
-    watchUtils.watch(
-      search,
-      'selectedResult',
-      (newVal, oldVal, propName, event) => {
-        if (newVal) {
-          setSelectedResult(newVal);
-        } else {
-          setSelectedResult(null);
-        }
       },
     );
 
@@ -323,20 +324,14 @@ function LocationSearch({ route, label }: Props) {
     if (selectedSource.name === 'All') {
       allSources.forEach((source) => {
         if (source.type === 'default') return;
-        if (source.type === 'ArcGIS') return;
         sources.push(...source.sources);
       });
-      searchWidget.includeDefaultSources = true;
       searchWidget.sources = sources;
-    } else if (selectedSource.type === 'ArcGIS') {
-      searchWidget.includeDefaultSources = true;
-      searchWidget.sources = [];
     } else {
       allSources.forEach((source) => {
         if (source.name !== selectedSource.name) return;
         sources.push(...source.sources);
       });
-      searchWidget.includeDefaultSources = false;
       searchWidget.sources = sources;
     }
 
@@ -354,7 +349,7 @@ function LocationSearch({ route, label }: Props) {
     const resultsCombined = [];
 
     allSources.forEach((item) => {
-      if (item.type === 'default' || item.type === 'ArcGIS') {
+      if (item.type === 'default') {
         // check if this has already been added
         let sug = findSource(
           'ArcGIS World Geocoding Service',
@@ -593,23 +588,12 @@ function LocationSearch({ route, label }: Props) {
           }
 
           // get urlSearch parameter value
-          let urlSearch = null;
-          if (selectedResult) {
-            const center = selectedResult.extent.center;
-            urlSearch = `${inputText.trim()}|${center.longitude}, ${
-              center.latitude
-            }`;
-          } else if (inputText) {
-            urlSearch = inputText.trim();
-          }
-
-          // navigate if the urlSearch value is available
-          if (urlSearch) {
+          if (inputText) {
             setErrorMessage('');
             setGeolocationError(false);
 
             // only navigate if search box contains text
-            navigate(encodeURI(route.replace('{urlSearch}', urlSearch)));
+            navigate(encodeURI(route.replace('{urlSearch}', inputText.trim())));
           }
         }}
       >
@@ -766,9 +750,7 @@ function LocationSearch({ route, label }: Props) {
 
                       let title = '';
                       allSources.forEach((item) => {
-                        if (item.type === 'default' || item.type === 'ArcGIS') {
-                          return;
-                        }
+                        if (item.type === 'default') return;
 
                         item.sources.forEach((nestedItem) => {
                           if (nestedItem.name === source.source.name) {
