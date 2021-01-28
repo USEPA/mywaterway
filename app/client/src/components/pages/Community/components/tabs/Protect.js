@@ -849,7 +849,7 @@ function Protect() {
                                           target="_blank"
                                           rel="noopener noreferrer"
                                         >
-                                          {attributes.WEBLINK}
+                                          More information
                                         </a>{' '}
                                         (opens new browser tab)
                                       </>
