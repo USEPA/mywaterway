@@ -96,17 +96,21 @@ function URLPanel() {
     // add the layer to the map
     mapView.map.add(layer);
 
-    layer.on('layerview-create', (event) => {
+    const createHandler = layer.on('layerview-create', (event) => {
       setWidgetLayers((widgetLayers) => [...widgetLayers, layer]);
       setStatus('success');
+
+      createHandler.remove();
     });
 
-    layer.on('layerview-create-error', (event) => {
+    const errorHandler = layer.on('layerview-create-error', (event) => {
       console.error('create error event: ', event);
 
       mapView.map.remove(layer);
 
       setStatus('failure');
+
+      errorHandler.remove();
     });
 
     setLayer(null);
