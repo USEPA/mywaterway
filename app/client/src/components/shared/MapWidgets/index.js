@@ -77,6 +77,8 @@ const orderedLayers = [
   'tribalLayer-4',
   'wsioHealthIndexLayer',
   'wildScenicRiversLayer',
+  'protectedAreasHighlightLayer',
+  'protectedAreasLayer',
   'searchIconLayer',
 ];
 
@@ -223,6 +225,7 @@ function MapWidgets({
     setUpstreamExtent,
     setErrorMessage,
     getWatershed,
+    protectedAreasLayer,
   } = React.useContext(LocationSearchContext);
 
   const services = useServicesContext();
@@ -365,14 +368,27 @@ function MapWidgets({
         layer: widgetLayer,
       });
     });
+
+    // add protectedAreasLayer if visible
+    if (
+      protectedAreasLayer &&
+      visibleLayers.hasOwnProperty(protectedAreasLayer.id) &&
+      visibleLayers[protectedAreasLayer.id]
+    ) {
+      // add layer to esri widget
+      layerInfos.push({
+        layer: protectedAreasLayer,
+      });
+    }
+
     esriLegend.layerInfos = layerInfos;
 
     // show the esri portion if widget layers has layers otherwise hide it
     const elm = document.getElementById('esri-legend-container');
     if (!elm) return;
     elm.className =
-      widgetLayers.length > 0 ? 'esri-legend' : 'esri-legend-hidden';
-  }, [widgetLayers, esriLegend]);
+      layerInfos.length > 0 ? 'esri-legend' : 'esri-legend-hidden';
+  }, [widgetLayers, esriLegend, visibleLayers, protectedAreasLayer]);
 
   // Creates and adds the legend widget to the map
   const rnd = React.useRef();
@@ -591,6 +607,7 @@ function MapWidgets({
       'actionsLayer',
       'wsioHealthIndexLayer',
       'wildScenicRiversLayer',
+      'protectedAreasLayer',
     ];
 
     // hide/show layers based on the provided list of layers to show

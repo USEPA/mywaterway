@@ -17,6 +17,8 @@ import {
   shallowCompare,
 } from 'components/pages/LocationMap/MapFunctions';
 
+let dynamicPopupFields = [];
+
 // Closes the map popup and clears highlights whenever the user changes
 // tabs. This function is called from the useWaterbodyHighlight hook (handles
 // tab changes) and from the use useWaterbodyOnMap hook (handles sub tab changes
@@ -201,6 +203,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     upstreamLayer,
     actionsLayer,
     huc12,
+    wildScenicRiversLayer,
+    protectedAreasLayer,
+    protectedAreasHighlightLayer,
   } = React.useContext(LocationSearchContext);
   const services = useServicesContext();
 
@@ -232,7 +237,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     // perform the zoom and return the Promise
     mapView.goTo(params).then(() => {
-      openPopup(mapView, selectedGraphic, services);
+      openPopup(mapView, selectedGraphic, dynamicPopupFields, services);
     });
   }, [Point, mapView, selectedGraphic, services]);
 
@@ -279,6 +284,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     // verify that we have a graphic before continuing
     if (!graphic || !graphic.attributes) {
       handles.remove(group);
+      if (protectedAreasHighlightLayer) {
+        protectedAreasHighlightLayer.removeAll();
+      }
 
       // remove the currentHighlight and currentSelection if either exist
       if (currentHighlight || currentSelection) {
@@ -306,15 +314,23 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     // figure out what layer we the graphic belongs to
     let layer = null;
+    let featureLayerType = '';
     if (attributes.layerType === 'issues') {
       layer = issuesLayer;
     } else if (attributes.layerType === 'actions') {
       layer = actionsLayer;
+    } else if (attributes.WSR_RIVER_NAME) {
+      layer = wildScenicRiversLayer;
+      featureLayerType = 'wildScenicRivers';
     } else if (attributes.Shape_Length && attributes.Shape_Area) {
       layer = areasLayer;
-    } else if (attributes.Shape_Length) layer = linesLayer;
-    else if (attributes.assessmentunitidentifier) {
+      featureLayerType = 'waterbodyLayer';
+    } else if (attributes.Shape_Length) {
+      layer = linesLayer;
+      featureLayerType = 'waterbodyLayer';
+    } else if (attributes.assessmentunitidentifier) {
       layer = pointsLayer;
+      featureLayerType = 'waterbodyLayer';
     } else if (attributes.CWPName) {
       layer = dischargersLayer;
     } else if (attributes.MonitoringLocationIdentifier) {
@@ -329,6 +345,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     // remove the highlights
     handles.remove(group);
+    if (protectedAreasHighlightLayer) {
+      protectedAreasHighlightLayer.removeAll();
+    }
 
     // get organizationid and assessmentunitidentifier to figure out if the
     // selected waterbody changed.
@@ -378,7 +397,15 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         (graphicOrgId === selectedGraphicOrgId &&
           graphicAuId === selectedGraphicAuId))
     ) {
-      const key = `${graphicOrgId} - ${graphicAuId}`;
+      let key = '';
+      let where = '';
+      if (featureLayerType === 'waterbodyLayer') {
+        key = `${graphicOrgId} - ${graphicAuId}`;
+        where = `organizationid = '${graphicOrgId}' And assessmentunitidentifier = '${graphicAuId}'`;
+      } else if (featureLayerType === 'wildScenicRivers') {
+        key = attributes.GlobalID;
+        where = `GlobalID = '${key}'`;
+      }
 
       if (cachedHighlights[key]) {
         cachedHighlights[key].forEach((feature) => {
@@ -398,22 +425,28 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
           cachedHighlights,
         });
       } else {
+        if (!key || !where) return;
+
         const query = new Query({
           returnGeometry: false,
-          where: `organizationid = '${graphicOrgId}' And assessmentunitidentifier = '${graphicAuId}'`,
+          where,
           outFields: ['*'],
         });
 
         const requests = [];
 
-        if (areasLayer && areasLayer !== 'error')
-          requests.push(areasLayer.queryFeatures(query));
+        if (featureLayerType === 'waterbodyLayer') {
+          if (areasLayer && areasLayer !== 'error')
+            requests.push(areasLayer.queryFeatures(query));
 
-        if (linesLayer && linesLayer !== 'error')
-          requests.push(linesLayer.queryFeatures(query));
+          if (linesLayer && linesLayer !== 'error')
+            requests.push(linesLayer.queryFeatures(query));
 
-        if (pointsLayer && pointsLayer !== 'error')
-          requests.push(pointsLayer.queryFeatures(query));
+          if (pointsLayer && pointsLayer !== 'error')
+            requests.push(pointsLayer.queryFeatures(query));
+        } else {
+          requests.push(layer.queryFeatures(query));
+        }
 
         Promise.all(requests).then((responses) => {
           const featuresToCache = [];
@@ -477,6 +510,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     findOthers,
     Query,
     handles,
+    wildScenicRiversLayer,
+    protectedAreasLayer,
+    protectedAreasHighlightLayer,
   ]);
 
   // Closes the popup and clears highlights whenever the tab changes
@@ -496,6 +532,10 @@ function useDynamicPopup() {
   const { getHucBoundaries, getMapView, resetData } = React.useContext(
     LocationSearchContext,
   );
+
+  const setDynamicPopupFields = (fields) => {
+    dynamicPopupFields = fields;
+  };
 
   return function getDynamicPopup() {
     var hucInfo = {
@@ -577,6 +617,7 @@ function useDynamicPopup() {
       const hucBoundaries = getHucBoundaries();
       const mapView = getMapView();
       const location = mapView?.popup?.location;
+      const fields = dynamicPopupFields;
       // only look for huc boundaries if no graphics were clicked and the
       // user clicked outside of the selected huc boundaries
       if (
@@ -585,11 +626,15 @@ function useDynamicPopup() {
           hucBoundaries.features.length > 0 &&
           hucBoundaries.features[0].geometry.contains(location))
       ) {
-        return getPopupContent({ feature: graphic.graphic });
+        return getPopupContent({
+          feature: graphic.graphic,
+          fields,
+        });
       }
 
       return getPopupContent({
         feature: graphic.graphic,
+        fields,
         getClickedHuc: getClickedHuc(location),
         resetData,
       });
@@ -600,16 +645,21 @@ function useDynamicPopup() {
       return getPopupTitle(graphic.graphic.attributes);
     }
 
-    return { getTitle, getTemplate };
+    return { getTitle, getTemplate, setDynamicPopupFields };
   };
 }
 
 function useSharedLayers() {
   const services = useServicesContext();
-  const { FeatureLayer, GroupLayer, MapImageLayer } = React.useContext(
-    EsriModulesContext,
-  );
   const {
+    FeatureLayer,
+    GraphicsLayer,
+    GroupLayer,
+    MapImageLayer,
+  } = React.useContext(EsriModulesContext);
+  const {
+    setProtectedAreasLayer,
+    setProtectedAreasHighlightLayer,
     setWsioHealthIndexLayer,
     setWildScenicRiversLayer,
   } = React.useContext(LocationSearchContext);
@@ -736,6 +786,32 @@ function useSharedLayers() {
     });
 
     setWsioHealthIndexLayer(wsioHealthIndexLayer);
+
+    const protectedAreasLayer = new MapImageLayer({
+      id: 'protectedAreasLayer',
+      title: 'Protected Areas',
+      url: services.data.protectedAreasDatabase,
+      sublayers: [
+        {
+          id: 0,
+          popupTemplate: {
+            title: getTitle,
+            content: getTemplate,
+            outFields: ['*'],
+          },
+        },
+      ],
+    });
+
+    setProtectedAreasLayer(protectedAreasLayer);
+
+    const protectedAreasHighlightLayer = new GraphicsLayer({
+      id: 'protectedAreasHighlightLayer',
+      title: 'Protected Areas Highlight Layer',
+      listMode: 'hide',
+    });
+
+    setProtectedAreasHighlightLayer(protectedAreasHighlightLayer);
 
     const wildScenicRiversRenderer = {
       type: 'simple',
@@ -927,6 +1003,8 @@ function useSharedLayers() {
 
     return [
       wsioHealthIndexLayer,
+      protectedAreasLayer,
+      protectedAreasHighlightLayer,
       wildScenicRiversLayer,
       tribalLayer,
       congressionalLayer,

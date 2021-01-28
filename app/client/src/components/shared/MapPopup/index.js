@@ -37,6 +37,7 @@ type Props = {
   getClickedHuc: ?Function,
   resetData: ?Function,
   services: ?Object,
+  fields: ?Object,
 };
 
 function MapPopup({
@@ -47,6 +48,7 @@ function MapPopup({
   getClickedHuc,
   resetData,
   services,
+  fields,
 }: Props) {
   if (!feature) return null;
 
@@ -65,6 +67,7 @@ function MapPopup({
           getClickedHuc={getClickedHuc}
           resetData={resetData}
           services={services}
+          fields={fields}
         />
       </Content>
     </Container>

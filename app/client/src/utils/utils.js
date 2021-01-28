@@ -255,6 +255,30 @@ function convertAgencyCode(agencyShortCode) {
   return convertedAgencies;
 }
 
+// Lookup the value of an attribute using domain coded values from
+// the arcgis feature layer fields.
+function convertDomainCode(fields, name, value) {
+  if (!fields) return value;
+
+  // look for the field using name
+  for (let i = 0; i < fields.length; i++) {
+    const field = fields[i];
+    if (field.name === name && field.domain) {
+      // look for the code using value
+      const codedValues = field.domain.codedValues;
+      for (let j = 0; j < codedValues.length; j++) {
+        const codedValue = codedValues[j];
+        if (codedValue.code === value) {
+          return codedValue.name;
+        }
+      }
+    }
+  }
+
+  // code was not found, just return the value provided
+  return value;
+}
+
 export {
   chunkArray,
   containsScriptTag,
@@ -273,4 +297,5 @@ export {
   getSimplePopupTemplate,
   browserIsCompatibleWithArcGIS,
   convertAgencyCode,
+  convertDomainCode,
 };

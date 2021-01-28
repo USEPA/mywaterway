@@ -98,7 +98,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     statesData: { status: 'fetching', data: [] },
     wsioHealthIndexData: { status: 'fetching', data: [] },
     wildScenicRiversData: { status: 'fetching', data: [] },
-    protectedAreasData: { status: 'fetching', data: [] },
+    protectedAreasData: { status: 'fetching', data: [], fields: [] },
     assessmentUnitId: '',
     monitoringLocations: {
       status: 'fetching',
@@ -137,6 +137,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     nonprofitsLayer: '',
     wildScenicRiversLayer: '',
     protectedAreasLayer: '',
+    protectedAreasHighlightLayer: '',
     providersLayer: '',
     boundariesLayer: '',
     searchIconLayer: '',
@@ -293,6 +294,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     setProtectedAreasLayer: (protectedAreasLayer) => {
       this.setState({ protectedAreasLayer });
     },
+    setProtectedAreasHighlightLayer: (protectedAreasHighlightLayer) => {
+      this.setState({ protectedAreasHighlightLayer });
+    },
     setProvidersLayer: (providersLayer) => {
       this.setState({ providersLayer });
     },
@@ -433,7 +437,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         upstreamLayer,
         dischargersLayer,
         nonprofitsLayer,
-        protectedAreasLayer,
+        protectedAreasHighlightLayer,
         mapView,
         homeWidget,
         waterbodyLayer,
@@ -483,7 +487,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       if (monitoringStationsLayer) monitoringStationsLayer.graphics.removeAll();
       if (dischargersLayer) dischargersLayer.graphics.removeAll();
       if (nonprofitsLayer) nonprofitsLayer.graphics.removeAll();
-      if (protectedAreasLayer) protectedAreasLayer.graphics.removeAll();
+      if (protectedAreasHighlightLayer) {
+        protectedAreasHighlightLayer.graphics.removeAll();
+      }
 
       // reset the zoom and home widget to the initial extent
       if (useDefaultZoom && mapView) {

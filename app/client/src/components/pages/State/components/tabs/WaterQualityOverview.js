@@ -1107,6 +1107,7 @@ function WaterQualityOverview({ ...props }: Props) {
 
       <Accordions>
         <AccordionItem
+          highlightContent={false}
           icon={
             <AccordionIcon className="fas fa-file-alt" aria-hidden="true" />
           }
@@ -1129,6 +1130,7 @@ function WaterQualityOverview({ ...props }: Props) {
           </AccordionContent>
         </AccordionItem>
         <AccordionItem
+          highlightContent={false}
           icon={
             <AccordionIcon className="fas fa-newspaper" aria-hidden="true" />
           }
@@ -1146,6 +1148,7 @@ function WaterQualityOverview({ ...props }: Props) {
           </AccordionContent>
         </AccordionItem>
         <AccordionItem
+          highlightContent={false}
           icon={
             <AccordionIcon className="fas fa-info-circle" aria-hidden="true" />
           }

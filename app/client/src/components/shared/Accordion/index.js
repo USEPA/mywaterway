@@ -193,6 +193,7 @@ type AccordionItemProps = {
   onChange: Function,
   idKey: ?string,
   allExpanded: boolean,
+  highlightContent: ?boolean,
   children: Node,
 };
 
@@ -207,6 +208,7 @@ function AccordionItem({
   onChange = () => {},
   idKey,
   allExpanded,
+  highlightContent = true,
   children,
 }: AccordionItemProps) {
   const [isOpen, setIsOpen] = React.useState(allExpanded);
@@ -273,7 +275,15 @@ function AccordionItem({
         />
       </Header>
 
-      {isOpen && children}
+      <div
+        style={
+          highlightContent
+            ? { backgroundColor }
+            : { backgroundColor: colorMap.default }
+        }
+      >
+        {isOpen && children}
+      </div>
     </AccordionItemContainer>
   );
 }
