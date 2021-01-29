@@ -96,7 +96,11 @@ const FilterContainer = styled.div`
   flex-flow: wrap;
   justify-content: space-between;
   align-items: center;
-  margin: 10px 1em;
+  margin: 2.5px;
+`;
+
+const FilterOption = styled.div`
+  margin: 5px;
 `;
 
 const TextSelect = styled.span`
@@ -403,19 +407,19 @@ function SearchPanel() {
         </SearchFlexBox>
 
         <FilterContainer>
-          <div>
+          <FilterOption>
             <label
               style={{ display: 'flex', alignItems: 'center', margin: '0' }}
             >
               <Switch
                 checked={withinMap}
                 onChange={(ev) => setWithinMap(!withinMap)}
-                ariaLabel="Within map..."
+                ariaLabel="Within map view"
               />{' '}
-              <span style={{ marginLeft: '5px' }}>Within map...</span>
+              <span style={{ marginLeft: '5px' }}>Within map view</span>
             </label>
-          </div>
-          <div>
+          </FilterOption>
+          <FilterOption>
             <TextSelect
               onClick={() => {
                 setShowFilterOptions(!showFilterOptions);
@@ -495,8 +499,8 @@ function SearchPanel() {
                 </ul>
               </TypeSelect>
             )}
-          </div>
-          <div style={{ width: '100px', textAlign: 'right' }}>
+          </FilterOption>
+          <FilterOption style={{ textAlign: 'right' }}>
             <TextSelect
               onClick={() => {
                 setShowSortOptions(!showSortOptions);
@@ -609,7 +613,7 @@ function SearchPanel() {
                 </ButtonHiddenText>
               </SortOrder>
             )}
-          </div>
+          </FilterOption>
         </FilterContainer>
       </div>
 
