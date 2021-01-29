@@ -168,10 +168,12 @@ function LocationSearch({ route, label }: Props) {
     {
       type: 'default',
       name: 'All',
+      placeholder,
     },
     {
       type: 'ArcGIS',
       name: 'Address, zip code, and place search',
+      placeholder,
       sources: [
         {
           locator: new Locator({ url: services.data.locatorUrl }),
@@ -188,7 +190,7 @@ function LocationSearch({ route, label }: Props) {
             'Country',
             'Addr_type',
           ],
-          placeholder: placeholder,
+          placeholder,
           name: 'ArcGIS',
         },
       ],
@@ -196,6 +198,7 @@ function LocationSearch({ route, label }: Props) {
     {
       type: 'group',
       name: 'EPA Tribal Areas',
+      placeholder: 'Search EPA tribal areas...',
       sources: [
         {
           layer: new FeatureLayer({
@@ -688,7 +691,7 @@ function LocationSearch({ route, label }: Props) {
                   id="hmw-search-input"
                   type="text"
                   ref={searchBox}
-                  placeholder={placeholder}
+                  placeholder={selectedSource.placeholder}
                   aria-label="Search"
                   autoComplete="off"
                   tabIndex="0"
