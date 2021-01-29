@@ -1118,6 +1118,9 @@ function WaterQualityOverview({ ...props }: Props) {
           }
         >
           <AccordionContent>
+            <NewTabDisclaimer>
+              Documents below open in a new browser tab.
+            </NewTabDisclaimer>
             <Documents
               activeState={activeState}
               surveyLoading={surveyLoading}
@@ -1172,29 +1175,34 @@ function WaterQualityOverview({ ...props }: Props) {
                     No additional information available for this state.
                   </NoDataMessage>
                 ) : (
-                  <LinkList>
-                    {introText.data.organizationURLs.map((item, index) => {
-                      return (
-                        <li key={index}>
-                          <a
-                            href={item.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            {item.label ? item.label : item.url}
-                          </a>
-                          <a
-                            className="exit-disclaimer"
-                            href="https://www.epa.gov/home/exit-epa"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            EXIT
-                          </a>
-                        </li>
-                      );
-                    })}
-                  </LinkList>
+                  <>
+                    <NewTabDisclaimer>
+                      Links below open in a new browser tab.
+                    </NewTabDisclaimer>
+                    <LinkList>
+                      {introText.data.organizationURLs.map((item, index) => {
+                        return (
+                          <li key={index}>
+                            <a
+                              href={item.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {item.label ? item.label : item.url}
+                            </a>
+                            <a
+                              className="exit-disclaimer"
+                              href="https://www.epa.gov/home/exit-epa"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              EXIT
+                            </a>
+                          </li>
+                        );
+                      })}
+                    </LinkList>
+                  </>
                 )}
               </>
             )}
