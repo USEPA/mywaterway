@@ -76,9 +76,19 @@ const Checkbox = styled.input`
   margin-right: 5px;
 `;
 
-const ButtonHiddenText = styled.span`
+const HiddenText = `
   font: 0/0 a, sans-serif;
   text-indent: -999em;
+`;
+
+const LabelHiddenText = styled.label`
+  ${HiddenText}
+  margin: 0;
+  display: block;
+`;
+
+const ButtonHiddenText = styled.span`
+  ${HiddenText}
 `;
 
 const FilterContainer = styled.div`
@@ -355,8 +365,11 @@ function SearchPanel() {
       <div>
         <SearchFlexBox>
           <SearchFlexItem>
+            <LabelHiddenText htmlFor="location-select">
+              Search In
+            </LabelHiddenText>
             <StyledSelect
-              inputId={`location-select`}
+              inputId="location-select"
               options={locationList}
               value={location}
               onChange={(ev) => {
