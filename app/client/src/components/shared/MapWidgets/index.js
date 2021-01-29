@@ -246,7 +246,8 @@ function MapWidgets({
 
     map.removeAll();
     map.addMany(layers);
-  }, [layers, map]);
+    map.addMany(widgetLayers);
+  }, [layers, map, widgetLayers]);
 
   // put the home widget back on the ui after the window is resized
   React.useEffect(() => {
