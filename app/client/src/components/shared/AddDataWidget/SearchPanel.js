@@ -2,6 +2,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
+import Select from 'react-select';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { LinkButton } from 'components/shared/LinkButton';
@@ -13,11 +14,31 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { AddDataWidgetContext } from 'contexts/AddDataWidget';
 // config
 import { webServiceErrorMessage } from 'config/errorMessages';
+// styles
+import { reactSelectStyles } from 'styles/index.js';
 
 // --- styles (SearchPanel) ---
+const SearchFlexBox = styled.div`
+  display: flex;
+  flex-flow: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin: 2.5px;
+`;
+
+const SearchFlexItem = styled.div`
+  flex: 1 1 175px;
+  margin: 2.5px;
+`;
+
 const SearchContainer = styled.form`
+  width: 100%;
   border: 1px solid #ccc;
   border-radius: 4px;
+`;
+
+const StyledSelect = styled(Select)`
+  width: 100%;
 `;
 
 const SearchInput = styled.input`
@@ -92,15 +113,6 @@ const TypeSelect = styled.div`
   }
 `;
 
-const LocationSelect = styled.button`
-  width: 100%;
-  height: 35px;
-  margin: 0;
-  border-radius: 0;
-  font-weight: normal;
-  font-size: 12px;
-`;
-
 const ButtonSelect = styled.button`
   width: 100%;
   height: 35px;
@@ -151,18 +163,15 @@ function SearchPanel() {
   } = React.useContext(AddDataWidgetContext);
 
   const locationList = [
+    { value: '161a24e10b8d405d97492264589afd0b', label: 'Suggested Content' },
     { value: 'ArcGIS Online', label: 'ArcGIS Online' },
-    { value: '161a24e10b8d405d97492264589afd0b', label: 'Curated Content' },
   ];
 
   // filters
   const [
     location,
     setLocation, //
-  ] = React.useState({
-    value: 'ArcGIS Online',
-    label: 'ArcGIS Online',
-  });
+  ] = React.useState(locationList[0]);
   const [search, setSearch] = React.useState('');
   const [searchText, setSearchText] = React.useState('');
   const [withinMap, setWithinMap] = React.useState(true);
@@ -206,7 +215,7 @@ function SearchPanel() {
       query = appendToQuery(query, search);
     }
 
-    if (location.label === 'Curated Content') {
+    if (location.label === 'Suggested Content') {
       query = appendToQuery(query, `group: "${location.value}"`);
     }
 
@@ -337,8 +346,6 @@ function SearchPanel() {
     setWatchViewInitialized(true);
   }, [mapView, watchUtils, watchViewInitialized]);
 
-  const [showLocationOptions, setShowLocationOptions] = React.useState(false);
-
   const [showFilterOptions, setShowFilterOptions] = React.useState(false);
 
   const [showSortOptions, setShowSortOptions] = React.useState(false);
@@ -346,65 +353,41 @@ function SearchPanel() {
   return (
     <React.Fragment>
       <div>
-        <div
-          style={{
-            display: 'flex',
-            flexFlow: 'wrap',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            margin: '10px 1em',
-          }}
-        >
-          <div>
-            <TextSelect
-              onClick={() => setShowLocationOptions(!showLocationOptions)}
-            >
-              {location.label} <i className="fas fa-caret-down"></i>
-            </TextSelect>
-            {showLocationOptions && (
-              <TypeSelect style={{ minWidth: '50%' }}>
-                {locationList.map((item, index) => {
-                  return (
-                    <LocationSelect
-                      key={index}
-                      onClick={() => {
-                        setLocation(item);
-                        setShowLocationOptions(false);
-                      }}
-                      style={
-                        location.label === item.label
-                          ? {}
-                          : {
-                              backgroundColor: 'white',
-                              color: 'black',
-                            }
-                      }
-                    >
-                      {item.label}
-                    </LocationSelect>
-                  );
-                })}
-              </TypeSelect>
-            )}
-          </div>
-          <SearchContainer
-            onSubmit={(ev) => {
-              ev.preventDefault();
-            }}
-          >
-            <SearchInput
-              aria-label="Search"
-              value={searchText}
-              placeholder={'Search...'}
-              onChange={(ev) => setSearchText(ev.target.value)}
+        <SearchFlexBox>
+          <SearchFlexItem>
+            <StyledSelect
+              inputId={`location-select`}
+              options={locationList}
+              value={location}
+              onChange={(ev) => {
+                setLocation(ev);
+              }}
+              styles={reactSelectStyles}
             />
-            <SearchSeparator />
-            <SearchButton type="submit" onClick={(ev) => setSearch(searchText)}>
-              <i className="fas fa-search"></i>
-              <ButtonHiddenText>Search</ButtonHiddenText>
-            </SearchButton>
-          </SearchContainer>
-        </div>
+          </SearchFlexItem>
+          <SearchFlexItem>
+            <SearchContainer
+              onSubmit={(ev) => {
+                ev.preventDefault();
+              }}
+            >
+              <SearchInput
+                aria-label="Search"
+                value={searchText}
+                placeholder={'Search...'}
+                onChange={(ev) => setSearchText(ev.target.value)}
+              />
+              <SearchSeparator />
+              <SearchButton
+                type="submit"
+                onClick={(ev) => setSearch(searchText)}
+              >
+                <i className="fas fa-search"></i>
+                <ButtonHiddenText>Search</ButtonHiddenText>
+              </SearchButton>
+            </SearchContainer>
+          </SearchFlexItem>
+        </SearchFlexBox>
 
         <FilterContainer>
           <div>
