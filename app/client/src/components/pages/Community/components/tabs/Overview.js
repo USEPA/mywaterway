@@ -156,6 +156,59 @@ function Overview() {
     setWaterbodiesFilterEnabled,
   ]);
 
+  // Updates the visible layers. This function also takes into account whether
+  // or not the underlying webservices failed.
+  const updateVisibleLayers = React.useCallback(
+    (key = null, newValue = null) => {
+      const newVisibleLayers = {};
+      if (monitoringLocations.status !== 'failure') {
+        newVisibleLayers['monitoringStationsLayer'] =
+          monitoringStationsLayer && monitoringLocationsFilterEnabled;
+      }
+      if (cipSummary.status !== 'failure') {
+        newVisibleLayers['waterbodyLayer'] =
+          waterbodyLayer && waterbodiesFilterEnabled;
+      }
+      if (permittedDischargers.status !== 'failure') {
+        newVisibleLayers['dischargersLayer'] =
+          dischargersLayer && dischargersFilterEnabled;
+      }
+
+      if (newVisibleLayers.hasOwnProperty(key)) {
+        newVisibleLayers[key] = newValue;
+      }
+
+      // set the visible layers if something changed
+      if (JSON.stringify(visibleLayers) !== JSON.stringify(newVisibleLayers)) {
+        setVisibleLayers(newVisibleLayers);
+      }
+    },
+    [
+      dischargersLayer,
+      dischargersFilterEnabled,
+      permittedDischargers,
+      monitoringLocations,
+      monitoringStationsLayer,
+      monitoringLocationsFilterEnabled,
+      waterbodyLayer,
+      waterbodiesFilterEnabled,
+      cipSummary,
+      visibleLayers,
+      setVisibleLayers,
+    ],
+  );
+
+  // Updates visible layers based on webservice statuses.
+  React.useEffect(() => {
+    updateVisibleLayers();
+  }, [
+    monitoringLocations,
+    cipSummary,
+    permittedDischargers,
+    visibleLayers,
+    updateVisibleLayers,
+  ]);
+
   const waterbodyCount = uniqueWaterbodies && uniqueWaterbodies.length;
   const monitoringLocationCount =
     monitoringLocations.data.features &&
@@ -203,15 +256,10 @@ function Overview() {
                     setWaterbodiesFilterEnabled(!waterbodiesFilterEnabled);
 
                     // first check if layer exists and is not falsy
-                    setVisibleLayers({
-                      waterbodyLayer:
-                        waterbodyLayer && !waterbodiesFilterEnabled,
-                      monitoringStationsLayer:
-                        monitoringStationsLayer &&
-                        monitoringLocationsFilterEnabled,
-                      dischargersLayer:
-                        dischargersLayer && dischargersFilterEnabled,
-                    });
+                    updateVisibleLayers(
+                      'waterbodyLayer',
+                      waterbodyLayer && !waterbodiesFilterEnabled,
+                    );
                   }}
                   disabled={!Boolean(waterbodyCount)}
                   ariaLabel="Waterbodies"
@@ -247,15 +295,11 @@ function Overview() {
                     );
 
                     // first check if layer exists and is not falsy
-                    setVisibleLayers({
-                      waterbodyLayer:
-                        waterbodyLayer && waterbodiesFilterEnabled,
-                      monitoringStationsLayer:
-                        monitoringStationsLayer &&
+                    updateVisibleLayers(
+                      'monitoringStationsLayer',
+                      monitoringStationsLayer &&
                         !monitoringLocationsFilterEnabled,
-                      dischargersLayer:
-                        dischargersLayer && dischargersFilterEnabled,
-                    });
+                    );
                   }}
                   disabled={!Boolean(monitoringLocationCount)}
                   ariaLabel="Monitoring Locations"
@@ -288,15 +332,10 @@ function Overview() {
                     setDischargersFilterEnabled(!dischargersFilterEnabled);
 
                     // first check if layer exists and is not falsy
-                    setVisibleLayers({
-                      waterbodyLayer:
-                        waterbodyLayer && waterbodiesFilterEnabled,
-                      monitoringStationsLayer:
-                        monitoringStationsLayer &&
-                        monitoringLocationsFilterEnabled,
-                      dischargersLayer:
-                        dischargersLayer && !dischargersFilterEnabled,
-                    });
+                    updateVisibleLayers(
+                      'dischargersLayer',
+                      dischargersLayer && !dischargersFilterEnabled,
+                    );
                   }}
                   disabled={!Boolean(permittedDischargerCount)}
                   ariaLabel="Permitted Dischargers"

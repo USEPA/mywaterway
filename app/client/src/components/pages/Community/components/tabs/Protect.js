@@ -153,7 +153,6 @@ function Protect() {
     statesData,
     visibleLayers,
     setVisibleLayers,
-    wsioHealthIndexLayer,
     wsioHealthIndexData,
     wildScenicRiversLayer,
     wildScenicRiversData,
@@ -191,34 +190,51 @@ function Protect() {
     setWildScenicRiversDisplayed,
   ] = React.useState(false);
 
-  const [tabIndex, setTabIndex] = React.useState(null);
-  // toggle map layers' visibility when a tab changes
+  // Updates the visible layers. This function also takes into account whether
+  // or not the underlying webservices failed.
+  const updateVisibleLayers = React.useCallback(
+    (key = null, newValue = null) => {
+      const newVisibleLayers = {};
+      if (wsioHealthIndexData.status !== 'failure') {
+        newVisibleLayers['wsioHealthIndexLayer'] = false;
+      }
+      if (protectedAreasData.status !== 'failure') {
+        newVisibleLayers['protectedAreasLayer'] = false;
+      }
+      if (wildScenicRiversData.status !== 'failure') {
+        newVisibleLayers['wildScenicRiversLayer'] = false;
+      }
+
+      if (newVisibleLayers.hasOwnProperty(key)) {
+        newVisibleLayers[key] = newValue;
+      }
+
+      // set the visible layers if something changed
+      if (JSON.stringify(visibleLayers) !== JSON.stringify(newVisibleLayers)) {
+        setVisibleLayers(newVisibleLayers);
+      }
+    },
+    [
+      wsioHealthIndexData,
+      protectedAreasData,
+      wildScenicRiversData,
+      visibleLayers,
+      setVisibleLayers,
+    ],
+  );
+
+  // Updates visible layers based on webservice statuses.
   React.useEffect(() => {
-    if (!wsioHealthIndexLayer || !wildScenicRiversLayer || !protectedAreasLayer)
-      return;
-
-    if (tabIndex === 0) {
-      setVisibleLayers({
-        wsioHealthIndexLayer: false,
-        wildScenicRiversLayer: false,
-        protectedAreasLayer: false,
-      });
-    }
-
-    if (tabIndex === 1) {
-      setVisibleLayers({
-        wsioHealthIndexLayer: false,
-        wildScenicRiversLayer: false,
-        protectedAreasLayer: false,
-      });
-    }
+    updateVisibleLayers();
   }, [
-    tabIndex,
-    setVisibleLayers,
-    wsioHealthIndexLayer,
-    wildScenicRiversLayer,
-    protectedAreasLayer,
+    wsioHealthIndexData,
+    protectedAreasData,
+    wildScenicRiversData,
+    visibleLayers,
+    updateVisibleLayers,
   ]);
+
+  const [tabIndex, setTabIndex] = React.useState(null);
 
   // toggle the switches setting when the map layer's visibility changes
   React.useEffect(() => {
@@ -255,6 +271,7 @@ function Protect() {
         <Tabs
           onChange={(index) => {
             setTabIndex(index);
+            updateVisibleLayers();
           }}
           defaultIndex={tabIndex}
         >
@@ -287,9 +304,7 @@ function Protect() {
                         }
                         onChange={(checked) => {
                           setHealthScoresDisplayed(checked);
-                          setVisibleLayers({
-                            wsioHealthIndexLayer: checked,
-                          });
+                          updateVisibleLayers('wsioHealthIndexLayer', checked);
                         }}
                         disabled={
                           wsioHealthIndexData.status === 'failure' ||
@@ -545,9 +560,7 @@ function Protect() {
                         }
                         onChange={(checked) => {
                           setProtectedAreasDisplayed(checked);
-                          setVisibleLayers({
-                            protectedAreasLayer: checked,
-                          });
+                          updateVisibleLayers('protectedAreasLayer', checked);
                         }}
                         disabled={
                           protectedAreasData.status === 'failure' ||
@@ -691,9 +704,10 @@ function Protect() {
                                   if (protectedAreasDisplayed) return;
 
                                   setProtectedAreasDisplayed(true);
-                                  setVisibleLayers({
-                                    protectedAreasLayer: true,
-                                  });
+                                  updateVisibleLayers(
+                                    'protectedAreasLayer',
+                                    true,
+                                  );
                                 }}
                               />
                             </ViewButtonContainer>
@@ -739,9 +753,7 @@ function Protect() {
                         }
                         onChange={(checked) => {
                           setWildScenicRiversDisplayed(checked);
-                          setVisibleLayers({
-                            wildScenicRiversLayer: checked,
-                          });
+                          updateVisibleLayers('wildScenicRiversLayer', checked);
                         }}
                         disabled={wildScenicRiversData.status === 'failure'}
                         ariaLabel="Wild and Scenic Rivers"
@@ -870,9 +882,10 @@ function Protect() {
                                   if (wildScenicRiversDisplayed) return;
 
                                   setWildScenicRiversDisplayed(true);
-                                  setVisibleLayers({
-                                    wildScenicRiversLayer: true,
-                                  });
+                                  updateVisibleLayers(
+                                    'wildScenicRiversLayer',
+                                    true,
+                                  );
                                 }}
                               />
                             </ViewButtonContainer>
