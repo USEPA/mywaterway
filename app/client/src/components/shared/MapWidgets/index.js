@@ -14,6 +14,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { FullscreenContext } from 'contexts/Fullscreen';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
+import { fetchCheck } from 'utils/fetchUtils';
 import { shallowCompare } from 'components/pages/LocationMap/MapFunctions';
 // helpers
 import { useDynamicPopup } from 'utils/hooks';
@@ -117,7 +118,11 @@ function isInScale(layer: any, scale: number) {
   return isInScale;
 }
 
-function updateVisibleLayers(view: any, hmwLegendNode: Node) {
+function updateVisibleLayers(
+  view: any,
+  hmwLegendNode: Node,
+  additionalLegendInfo: Object,
+) {
   if (!view || !view.map || !view.map.layers || !view.map.layers.items) {
     return;
   }
@@ -143,7 +148,10 @@ function updateVisibleLayers(view: any, hmwLegendNode: Node) {
   });
 
   ReactDOM.render(
-    <MapLegend visibleLayers={visibleLayers} mapView={view} />,
+    <MapLegend
+      visibleLayers={visibleLayers}
+      additionalLegendInfo={additionalLegendInfo}
+    />,
     hmwLegendNode,
   );
 }
@@ -225,7 +233,6 @@ function MapWidgets({
     setUpstreamExtent,
     setErrorMessage,
     getWatershed,
-    protectedAreasLayer,
   } = React.useContext(LocationSearchContext);
 
   const services = useServicesContext();
@@ -369,19 +376,6 @@ function MapWidgets({
         layer: widgetLayer,
       });
     });
-
-    // add protectedAreasLayer if visible
-    if (
-      protectedAreasLayer &&
-      visibleLayers.hasOwnProperty(protectedAreasLayer.id) &&
-      visibleLayers[protectedAreasLayer.id]
-    ) {
-      // add layer to esri widget
-      layerInfos.push({
-        layer: protectedAreasLayer,
-      });
-    }
-
     esriLegend.layerInfos = layerInfos;
 
     // show the esri portion if widget layers has layers otherwise hide it
@@ -389,7 +383,7 @@ function MapWidgets({
     if (!elm) return;
     elm.className =
       layerInfos.length > 0 ? 'esri-legend' : 'esri-legend-hidden';
-  }, [widgetLayers, esriLegend, visibleLayers, protectedAreasLayer]);
+  }, [widgetLayers, esriLegend, visibleLayers]);
 
   // Creates and adds the legend widget to the map
   const rnd = React.useRef();
@@ -474,10 +468,48 @@ function MapWidgets({
     );
   }
 
+  // Fetch additional legend information. Data is stored in a dictionary
+  // where the key is the layer id.
+  const [
+    additioanlLegendInitialized,
+    setAdditionalLegendInitialized,
+  ] = React.useState(false);
+  const [additionalLegendInfo, setAdditionalLegendInfo] = React.useState({
+    status: 'fetching',
+    data: {},
+  });
+  React.useState(() => {
+    if (additioanlLegendInitialized) return;
+
+    setAdditionalLegendInitialized(true);
+
+    const url = `${services.data.protectedAreasDatabase}/legend?f=json`;
+    fetchCheck(url)
+      .then((res) => {
+        setAdditionalLegendInfo({
+          status: 'success',
+          data: { protectedAreasLayer: res },
+        });
+      })
+      .catch((err) => {
+        console.error(err);
+        setAdditionalLegendInfo({
+          status: 'failure',
+          data: {},
+        });
+      });
+  }, [additioanlLegendInitialized, services]);
+
   // Creates and adds the basemap/layer list widget to the map
   const [layerListWidget, setLayerListWidget] = React.useState(null);
   React.useEffect(() => {
-    if (!view || layerListWidget) return;
+    if (
+      !view ||
+      additionalLegendInfo.status === 'fetching' ||
+      layerListWidget
+    ) {
+      return;
+    }
 
     // create the basemap/layers widget
     const basemapsSource = new PortalBasemapsSource({
@@ -516,10 +548,10 @@ function MapWidgets({
         //only add the item if it has not been added before
         if (!uniqueParentItems.includes(item.title)) {
           uniqueParentItems.push(item.title);
-          updateVisibleLayers(view, hmwLegendNode);
+          updateVisibleLayers(view, hmwLegendNode, additionalLegendInfo);
 
           item.watch('visible', function (event) {
-            updateVisibleLayers(view, hmwLegendNode);
+            updateVisibleLayers(view, hmwLegendNode, additionalLegendInfo);
             const dict = {
               layerId: item.layer.id,
               visible: item.layer.visible,
@@ -571,6 +603,7 @@ function MapWidgets({
     hmwLegendNode,
     view,
     layerListWidget,
+    additionalLegendInfo,
   ]);
 
   // Sets up the zoom event handler that is used for determining if layers
@@ -781,8 +814,8 @@ function MapWidgets({
 
   // watch for changes to upstream layer visibility and update visible layers accordingly
   React.useEffect(() => {
-    updateVisibleLayers(view, hmwLegendNode);
-  }, [view, hmwLegendNode, upstreamLayerVisible]);
+    updateVisibleLayers(view, hmwLegendNode, additionalLegendInfo);
+  }, [view, hmwLegendNode, upstreamLayerVisible, additionalLegendInfo]);
 
   // create upstream widget
   const [

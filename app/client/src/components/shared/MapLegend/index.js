@@ -3,9 +3,13 @@
 import React from 'react';
 import styled from 'styled-components';
 // components
+import LoadingSpinner from 'components/shared/LoadingSpinner';
 import PinIcon from 'components/shared/Icons/PinIcon';
+import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import { gradientIcon } from 'components/pages/LocationMap/MapFunctions';
+// errors
+import { legendUnavailableError } from 'config/errorMessages';
 // styles
 import { colors } from 'styles/index.js';
 
@@ -49,14 +53,23 @@ const LegendLabel = styled.span`
   font-size: 0.75rem;
 `;
 
+const MultiContainer = styled.div`
+  padding-top: 12px;
+`;
+
+const Subtitle = styled.div`
+  padding: 6px 0;
+`;
+
 const ignoreLayers = ['mappedWaterLayer', 'watershedsLayer', 'searchIconLayer'];
 
 // --- components ---
 type Props = {
-  type: string,
+  visibleLayers: Object,
+  additionalLegendInfo: Object,
 };
 
-function MapLegend({ visibleLayers }: Props) {
+function MapLegend({ visibleLayers, additionalLegendInfo }: Props) {
   const filteredVisibleLayers = visibleLayers.filter(
     (layer) => !ignoreLayers.includes(layer.id),
   );
@@ -69,7 +82,13 @@ function MapLegend({ visibleLayers }: Props) {
       <LegendContainer>
         <UL>
           {filteredVisibleLayers.map((layer, index) => {
-            return <MapLegendContent key={index} layer={layer} />;
+            return (
+              <MapLegendContent
+                key={index}
+                layer={layer}
+                additionalLegendInfo={additionalLegendInfo}
+              />
+            );
           })}
         </UL>
       </LegendContainer>
@@ -79,12 +98,13 @@ function MapLegend({ visibleLayers }: Props) {
 
 type CardProps = {
   layer: Object,
+  additionalLegendInfo: Object,
 };
 
 const boxSize = 26;
 const iconSize = 20;
 
-function MapLegendContent({ layer }: CardProps) {
+function MapLegendContent({ layer, additionalLegendInfo }: CardProps) {
   const squareIcon = ({ color, strokeWidth = 1, stroke = 'black' }) => {
     return (
       <svg
@@ -396,6 +416,48 @@ function MapLegendContent({ layer }: CardProps) {
     </LI>
   );
 
+  // jsx
+  const protectedAreasLegend = () => {
+    const layerName = 'Protected Areas';
+
+    if (additionalLegendInfo.status === 'fetching') return <LoadingSpinner />;
+    if (additionalLegendInfo.status === 'failure') {
+      return (
+        <StyledErrorBox>{legendUnavailableError(layerName)}</StyledErrorBox>
+      );
+    }
+
+    const padLegend =
+      additionalLegendInfo.data['protectedAreasLayer']?.layers?.[0]?.legend;
+    if (!padLegend) {
+      return (
+        <StyledErrorBox>{legendUnavailableError(layerName)}</StyledErrorBox>
+      );
+    }
+
+    return (
+      <MultiContainer>
+        <h3 className="esri-widget__heading esri-legend__service-label">
+          {layerName}
+        </h3>
+        <Subtitle>Protection Category</Subtitle>
+        {padLegend.map((item, index) => {
+          return (
+            <LI key={index}>
+              <ImageContainer>
+                <img
+                  src={`data:image/png;base64,${item.imageData}`}
+                  alt={item.label}
+                />
+              </ImageContainer>
+              <LegendLabel>{item.label}</LegendLabel>
+            </LI>
+          );
+        })}
+      </MultiContainer>
+    );
+  };
+
   if (layer.id === 'waterbodyLayer') return waterbodyLegend;
   if (layer.id === 'issuesLayer') return issuesLegend;
   if (layer.id === 'monitoringStationsLayer') return monitoringStationsLegend;
@@ -411,6 +473,7 @@ function MapLegendContent({ layer }: CardProps) {
   if (layer.id === 'congressionalLayer') return congressionalDistrictsLegend;
   if (layer.id === 'upstreamWatershed') return upstreamLegend;
   if (layer.id === 'stateBoundariesLayer') return stateBoundariesLegend;
+  if (layer.id === 'protectedAreasLayer') return protectedAreasLegend();
 
   return null;
 }
