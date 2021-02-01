@@ -2,9 +2,9 @@
 
 import React from 'react';
 import styled from 'styled-components';
+import Select from 'react-select';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
-import { LinkButton } from 'components/shared/LinkButton';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import Switch from 'components/shared/Switch';
 // contexts
@@ -13,11 +13,31 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { AddDataWidgetContext } from 'contexts/AddDataWidget';
 // config
 import { webServiceErrorMessage } from 'config/errorMessages';
+// styles
+import { reactSelectStyles } from 'styles/index.js';
 
 // --- styles (SearchPanel) ---
+const SearchFlexBox = styled.div`
+  display: flex;
+  flex-flow: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin: 2.5px;
+`;
+
+const SearchFlexItem = styled.div`
+  flex: 1 1 175px;
+  margin: 2.5px;
+`;
+
 const SearchContainer = styled.form`
+  width: 100%;
   border: 1px solid #ccc;
   border-radius: 4px;
+`;
+
+const StyledSelect = styled(Select)`
+  width: 100%;
 `;
 
 const SearchInput = styled.input`
@@ -55,9 +75,19 @@ const Checkbox = styled.input`
   margin-right: 5px;
 `;
 
-const ButtonHiddenText = styled.span`
+const HiddenText = `
   font: 0/0 a, sans-serif;
   text-indent: -999em;
+`;
+
+const LabelHiddenText = styled.label`
+  ${HiddenText}
+  margin: 0;
+  display: block;
+`;
+
+const ButtonHiddenText = styled.span`
+  ${HiddenText}
 `;
 
 const FilterContainer = styled.div`
@@ -65,7 +95,11 @@ const FilterContainer = styled.div`
   flex-flow: wrap;
   justify-content: space-between;
   align-items: center;
-  margin: 10px 1em;
+  margin: 2.5px;
+`;
+
+const FilterOption = styled.div`
+  margin: 5px;
 `;
 
 const TextSelect = styled.span`
@@ -90,15 +124,6 @@ const TypeSelect = styled.div`
   label {
     cursor: pointer;
   }
-`;
-
-const LocationSelect = styled.button`
-  width: 100%;
-  height: 35px;
-  margin: 0;
-  border-radius: 0;
-  font-weight: normal;
-  font-size: 12px;
 `;
 
 const ButtonSelect = styled.button`
@@ -129,14 +154,12 @@ const SortOrder = styled.button`
   }
 `;
 
-const ExitDisclaimer = styled.span`
+const NewTabDisclaimer = styled.em`
+  display: block;
   margin: 0;
   padding: 0.75em 0.5em;
-  text-align: center;
-
-  a {
-    margin: 0 0 0 0.3333333333em;
-  }
+  background-color: white;
+  border-bottom: 1px solid #e0e0e0;
 `;
 
 // --- components (SearchPanel) ---
@@ -151,18 +174,15 @@ function SearchPanel() {
   } = React.useContext(AddDataWidgetContext);
 
   const locationList = [
+    { value: '161a24e10b8d405d97492264589afd0b', label: 'Suggested Content' },
     { value: 'ArcGIS Online', label: 'ArcGIS Online' },
-    { value: '161a24e10b8d405d97492264589afd0b', label: 'Curated Content' },
   ];
 
   // filters
   const [
     location,
     setLocation, //
-  ] = React.useState({
-    value: 'ArcGIS Online',
-    label: 'ArcGIS Online',
-  });
+  ] = React.useState(locationList[0]);
   const [search, setSearch] = React.useState('');
   const [searchText, setSearchText] = React.useState('');
   const [withinMap, setWithinMap] = React.useState(true);
@@ -206,7 +226,7 @@ function SearchPanel() {
       query = appendToQuery(query, search);
     }
 
-    if (location.label === 'Curated Content') {
+    if (location.label === 'Suggested Content') {
       query = appendToQuery(query, `group: "${location.value}"`);
     }
 
@@ -337,8 +357,6 @@ function SearchPanel() {
     setWatchViewInitialized(true);
   }, [mapView, watchUtils, watchViewInitialized]);
 
-  const [showLocationOptions, setShowLocationOptions] = React.useState(false);
-
   const [showFilterOptions, setShowFilterOptions] = React.useState(false);
 
   const [showSortOptions, setShowSortOptions] = React.useState(false);
@@ -346,80 +364,59 @@ function SearchPanel() {
   return (
     <React.Fragment>
       <div>
-        <div
-          style={{
-            display: 'flex',
-            flexFlow: 'wrap',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            margin: '10px 1em',
-          }}
-        >
-          <div>
-            <TextSelect
-              onClick={() => setShowLocationOptions(!showLocationOptions)}
-            >
-              {location.label} <i className="fas fa-caret-down"></i>
-            </TextSelect>
-            {showLocationOptions && (
-              <TypeSelect style={{ minWidth: '50%' }}>
-                {locationList.map((item, index) => {
-                  return (
-                    <LocationSelect
-                      key={index}
-                      onClick={() => {
-                        setLocation(item);
-                        setShowLocationOptions(false);
-                      }}
-                      style={
-                        location.label === item.label
-                          ? {}
-                          : {
-                              backgroundColor: 'white',
-                              color: 'black',
-                            }
-                      }
-                    >
-                      {item.label}
-                    </LocationSelect>
-                  );
-                })}
-              </TypeSelect>
-            )}
-          </div>
-          <SearchContainer
-            onSubmit={(ev) => {
-              ev.preventDefault();
-            }}
-          >
-            <SearchInput
-              aria-label="Search"
-              value={searchText}
-              placeholder={'Search...'}
-              onChange={(ev) => setSearchText(ev.target.value)}
+        <SearchFlexBox>
+          <SearchFlexItem>
+            <LabelHiddenText htmlFor="location-select">
+              Search In
+            </LabelHiddenText>
+            <StyledSelect
+              inputId="location-select"
+              options={locationList}
+              value={location}
+              onChange={(ev) => {
+                setLocation(ev);
+              }}
+              styles={reactSelectStyles}
             />
-            <SearchSeparator />
-            <SearchButton type="submit" onClick={(ev) => setSearch(searchText)}>
-              <i className="fas fa-search"></i>
-              <ButtonHiddenText>Search</ButtonHiddenText>
-            </SearchButton>
-          </SearchContainer>
-        </div>
+          </SearchFlexItem>
+          <SearchFlexItem>
+            <SearchContainer
+              onSubmit={(ev) => {
+                ev.preventDefault();
+              }}
+            >
+              <SearchInput
+                aria-label="Search"
+                value={searchText}
+                placeholder={'Search...'}
+                onChange={(ev) => setSearchText(ev.target.value)}
+              />
+              <SearchSeparator />
+              <SearchButton
+                type="submit"
+                onClick={(ev) => setSearch(searchText)}
+              >
+                <i className="fas fa-search"></i>
+                <ButtonHiddenText>Search</ButtonHiddenText>
+              </SearchButton>
+            </SearchContainer>
+          </SearchFlexItem>
+        </SearchFlexBox>
 
         <FilterContainer>
-          <div>
+          <FilterOption>
             <label
               style={{ display: 'flex', alignItems: 'center', margin: '0' }}
             >
               <Switch
                 checked={withinMap}
                 onChange={(ev) => setWithinMap(!withinMap)}
-                ariaLabel="Within map..."
+                ariaLabel="Within map view"
               />{' '}
-              <span style={{ marginLeft: '5px' }}>Within map...</span>
+              <span style={{ marginLeft: '5px' }}>Within map view</span>
             </label>
-          </div>
-          <div>
+          </FilterOption>
+          <FilterOption>
             <TextSelect
               onClick={() => {
                 setShowFilterOptions(!showFilterOptions);
@@ -499,8 +496,8 @@ function SearchPanel() {
                 </ul>
               </TypeSelect>
             )}
-          </div>
-          <div style={{ width: '100px', textAlign: 'right' }}>
+          </FilterOption>
+          <FilterOption style={{ textAlign: 'right' }}>
             <TextSelect
               onClick={() => {
                 setShowSortOptions(!showSortOptions);
@@ -613,7 +610,7 @@ function SearchPanel() {
                 </ButtonHiddenText>
               </SortOrder>
             )}
-          </div>
+          </FilterOption>
         </FilterContainer>
       </div>
 
@@ -624,19 +621,12 @@ function SearchPanel() {
           backgroundColor: '#efefef',
         }}
       >
-        {searchResults?.data?.results && searchResults.data.results.length > 0 && (
-          <ExitDisclaimer className="disclaimer">
-            The following links exit the site{' '}
-            <a
-              className="exit-disclaimer"
-              href="https://www.epa.gov/home/exit-epa"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Exit
-            </a>
-          </ExitDisclaimer>
-        )}
+        {searchResults?.data?.results &&
+          searchResults.data.results.length > 0 && (
+            <NewTabDisclaimer>
+              Links below open in a new browser tab.
+            </NewTabDisclaimer>
+          )}
         <div>
           {searchResults.status === 'fetching' && <LoadingSpinner />}
           {searchResults.status === 'failure' && (
@@ -713,30 +703,22 @@ const CardMessage = styled.span`
   margin-right: 4px;
 `;
 
-const cardButtonStyles = `
-  display: inline-block;
-  font-size: 11px;
-  text-decoration: none;
-  text-transform: uppercase;
-  padding: 5px;
+const CardButton = styled.button`
+  font-size: 13px;
   margin: 0 5px 0 0;
-  font-weight: normal;
+  padding: 0.3em 0.7em;
 
-  &:disabled {
-    cursor: default;
-  }
-
-  &:hover {
-    text-decoration: underline;
+  :hover {
+    background-color: rgba(64, 97, 142, 1);
   }
 `;
 
-const CardButton = styled(LinkButton)`
-  ${cardButtonStyles}
-`;
-
-const CardLinkButton = styled.a`
-  ${cardButtonStyles}
+const CardLink = styled.a`
+  font-size: 14px;
+  display: inline-block;
+  margin: 0 0 0 5px;
+  padding: 5px 0 5px 5px;
+  text-transform: uppercase;
 `;
 
 // --- components (ResultCard) ---
@@ -897,13 +879,21 @@ function ResultCard({ result }: ResultCardProps) {
             )}
           </React.Fragment>
         )}
-        <CardLinkButton
+        <CardLink
           href={`https://arcgis.com/home/item.html?id=${result.id}`}
           target="_blank"
           rel="noopener noreferrer"
         >
           Details
-        </CardLinkButton>
+        </CardLink>
+        <a
+          className="exit-disclaimer"
+          href="https://www.epa.gov/home/exit-epa"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Exit
+        </a>
       </CardButtonContainer>
     </CardContainer>
   );
