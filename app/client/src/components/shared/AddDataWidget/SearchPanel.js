@@ -5,7 +5,6 @@ import styled from 'styled-components';
 import Select from 'react-select';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
-import { LinkButton } from 'components/shared/LinkButton';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import Switch from 'components/shared/Switch';
 // contexts
@@ -155,14 +154,12 @@ const SortOrder = styled.button`
   }
 `;
 
-const ExitDisclaimer = styled.span`
+const NewTabDisclaimer = styled.em`
+  display: block;
   margin: 0;
   padding: 0.75em 0.5em;
-  text-align: center;
-
-  a {
-    margin: 0 0 0 0.3333333333em;
-  }
+  background-color: white;
+  border-bottom: 1px solid #e0e0e0;
 `;
 
 // --- components (SearchPanel) ---
@@ -624,19 +621,12 @@ function SearchPanel() {
           backgroundColor: '#efefef',
         }}
       >
-        {searchResults?.data?.results && searchResults.data.results.length > 0 && (
-          <ExitDisclaimer className="disclaimer">
-            The following links exit the site{' '}
-            <a
-              className="exit-disclaimer"
-              href="https://www.epa.gov/home/exit-epa"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Exit
-            </a>
-          </ExitDisclaimer>
-        )}
+        {searchResults?.data?.results &&
+          searchResults.data.results.length > 0 && (
+            <NewTabDisclaimer>
+              Links below open in a new browser tab.
+            </NewTabDisclaimer>
+          )}
         <div>
           {searchResults.status === 'fetching' && <LoadingSpinner />}
           {searchResults.status === 'failure' && (
@@ -713,30 +703,22 @@ const CardMessage = styled.span`
   margin-right: 4px;
 `;
 
-const cardButtonStyles = `
-  display: inline-block;
-  font-size: 11px;
-  text-decoration: none;
-  text-transform: uppercase;
-  padding: 5px;
+const CardButton = styled.button`
+  font-size: 13px;
   margin: 0 5px 0 0;
-  font-weight: normal;
+  padding: 0.3em 0.7em;
 
-  &:disabled {
-    cursor: default;
-  }
-
-  &:hover {
-    text-decoration: underline;
+  :hover {
+    background-color: rgba(64, 97, 142, 1);
   }
 `;
 
-const CardButton = styled(LinkButton)`
-  ${cardButtonStyles}
-`;
-
-const CardLinkButton = styled.a`
-  ${cardButtonStyles}
+const CardLink = styled.a`
+  font-size: 14px;
+  display: inline-block;
+  margin: 0 0 0 5px;
+  padding: 5px 0 5px 5px;
+  text-transform: uppercase;
 `;
 
 // --- components (ResultCard) ---
@@ -897,13 +879,21 @@ function ResultCard({ result }: ResultCardProps) {
             )}
           </React.Fragment>
         )}
-        <CardLinkButton
+        <CardLink
           href={`https://arcgis.com/home/item.html?id=${result.id}`}
           target="_blank"
           rel="noopener noreferrer"
         >
           Details
-        </CardLinkButton>
+        </CardLink>
+        <a
+          className="exit-disclaimer"
+          href="https://www.epa.gov/home/exit-epa"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Exit
+        </a>
       </CardButtonContainer>
     </CardContainer>
   );
