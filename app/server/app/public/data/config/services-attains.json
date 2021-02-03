@@ -108,6 +108,11 @@
       "name": "attains - domain mapping"
     },
     {
+      "urlLookup": "attains.serviceUrl",
+      "wildcardUrl": "{urlLookup}documents*",
+      "name": "attains - documents"
+    },
+    {
       "urlLookup": "grts.getGRTSHUC12",
       "wildcardUrl": "{urlLookup}*",
       "name": "ofmpub - nonpoint restoration projects"
