@@ -185,6 +185,7 @@ function URLPanel() {
       <label htmlFor="url-type-select">Type</label>
       <Select
         inputId="url-type-select"
+        isSearchable={false}
         value={urlType}
         onChange={(ev) => {
           setUrlType(ev);

@@ -371,6 +371,7 @@ function SearchPanel() {
             </LabelHiddenText>
             <StyledSelect
               inputId="location-select"
+              isSearchable={false}
               options={locationList}
               value={location}
               onChange={(ev) => {

@@ -786,6 +786,7 @@ function AdvancedSearch({ ...props }: Props) {
             aria-label="Parameter Groups"
             isMulti
             isLoading={!parameterGroupOptions}
+            isSearchable={false}
             options={parameterGroupOptions ? parameterGroupOptions : []}
             value={parameterFilter}
             onChange={(ev) => setParameterFilter(ev)}
@@ -800,6 +801,7 @@ function AdvancedSearch({ ...props }: Props) {
           <Select
             aria-label="Use Groups"
             isMulti
+            isSearchable={false}
             options={useFields}
             value={useFilter}
             onChange={(ev) => setUseFilter(ev)}
@@ -971,6 +973,7 @@ function AdvancedSearch({ ...props }: Props) {
           <label htmlFor="display-by">Display Waterbodies by:</label>
           <Select
             inputId="display-by"
+            isSearchable={false}
             options={displayOptions}
             value={selectedDisplayOption}
             onChange={(ev) => setSelectedDisplayOption(ev)}

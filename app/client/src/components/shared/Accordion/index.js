@@ -97,6 +97,7 @@ function AccordionList({
             <SelectLabel htmlFor={`sort-by-${uniqueID}`}>Sort By:</SelectLabel>
             <StyledSelect
               inputId={`sort-by-${uniqueID}`}
+              isSearchable={false}
               options={sortOptions}
               value={sortBy}
               onChange={(ev) => {
