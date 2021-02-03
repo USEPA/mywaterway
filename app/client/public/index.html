@@ -217,14 +217,12 @@
 
           // combine the web service and map service mappings
           let mapping = window.googleAnalyticsMapping;
-          console.log('mapping: ', mapping);
           mapping.forEach((item) => {
             if (!action && wildcardIncludes(href, item.wildcardUrl)) {
               action = item.name;
             }
           });
           action = 'ow-hmw2-' + (action ? action : event.target.text.trim());
-          console.log('action: ', action);
 
           if (document.location.hostname === event.target.hostname) {
             //Part of the HMW application
