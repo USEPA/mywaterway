@@ -110,8 +110,15 @@ const NewTabDisclaimer = styled.div`
 
 const WatershedContainer = styled.div`
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+`;
+
+const GradientInnerContainer = styled.div`
+  align-items: center;
+  display: flex;
+  flex-direction: column;
 `;
 
 const GradientHeaderFooter = styled.div`
@@ -317,7 +324,7 @@ function Protect() {
                     {wsioHealthIndexData.status === 'success' &&
                       wsioHealthIndexData.data.length > 0 && (
                         <WatershedContainer>
-                          <div style={{ width: 'calc(80% - 0.75em)' }}>
+                          <div style={{ flex: '3 1 220px' }}>
                             <table className="table">
                               <tbody>
                                 <tr>
@@ -364,8 +371,8 @@ function Protect() {
                               </tbody>
                             </table>
                           </div>
-                          <div style={{ width: 'calc(20% - 0.75em)' }}>
-                            <div>
+                          <div style={{ flex: '1 1 0', marginLeft: '10px' }}>
+                            <GradientInnerContainer>
                               <GradientHeaderFooter>
                                 More Healthy
                               </GradientHeaderFooter>
@@ -396,7 +403,7 @@ function Protect() {
                               <GradientHeaderFooter>
                                 Less Healthy
                               </GradientHeaderFooter>
-                            </div>
+                            </GradientInnerContainer>
                           </div>
                         </WatershedContainer>
                       )}
