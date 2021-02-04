@@ -458,6 +458,46 @@ function MapLegendContent({ layer, additionalLegendInfo }: CardProps) {
     );
   };
 
+  // jsx
+  const ejscreenLegend = () => {
+    const layerName = 'Environmental Justice';
+
+    if (additionalLegendInfo.status === 'fetching') return <LoadingSpinner />;
+    if (additionalLegendInfo.status === 'failure') {
+      return (
+        <StyledErrorBox>{legendUnavailableError(layerName)}</StyledErrorBox>
+      );
+    }
+
+    const legend = additionalLegendInfo.data['ejscreen']?.layers?.[0]?.legend;
+    if (!legend) {
+      return (
+        <StyledErrorBox>{legendUnavailableError(layerName)}</StyledErrorBox>
+      );
+    }
+
+    return (
+      <MultiContainer>
+        <h3 className="esri-widget__heading esri-legend__service-label">
+          {layerName}
+        </h3>
+        {legend.map((item, index) => {
+          return (
+            <LI key={index}>
+              <ImageContainer>
+                <img
+                  src={`data:image/png;base64,${item.imageData}`}
+                  alt={item.label}
+                />
+              </ImageContainer>
+              <LegendLabel>{item.label}</LegendLabel>
+            </LI>
+          );
+        })}
+      </MultiContainer>
+    );
+  };
+
   if (layer.id === 'waterbodyLayer') return waterbodyLegend;
   if (layer.id === 'issuesLayer') return issuesLegend;
   if (layer.id === 'monitoringStationsLayer') return monitoringStationsLegend;
@@ -474,6 +514,7 @@ function MapLegendContent({ layer, additionalLegendInfo }: CardProps) {
   if (layer.id === 'upstreamWatershed') return upstreamLegend;
   if (layer.id === 'stateBoundariesLayer') return stateBoundariesLegend;
   if (layer.id === 'protectedAreasLayer') return protectedAreasLegend();
+  if (layer.id === 'ejscreenLayer') return ejscreenLegend();
 
   return null;
 }

@@ -1042,6 +1042,29 @@ function WaterbodyInfo({
   );
 
   // jsx
+  const ejscreenContent = (
+    <>
+      {labelValue('Demographic Index Percentage', attributes.T_VULEOPCT)}
+
+      {labelValue('Percent Minority', attributes.T_MINORPCT)}
+
+      {labelValue('Percent Low Income', attributes.T_LWINCPCT)}
+
+      {labelValue(
+        'Percent Less Than High School Education',
+        attributes.T_LESHSPCT,
+      )}
+
+      {labelValue('Percent Linguistically Isolated', attributes.T_LNGISPCT)}
+
+      {labelValue('Percent Individuals Under 5', attributes.T_UNDR5PCT)}
+
+      {labelValue('Percent Individuals Over 64', attributes.T_OVR64PCT)}
+      {renderChangeWatershed()}
+    </>
+  );
+
+  // jsx
   const changeLocationContent = renderChangeWatershed();
 
   // jsx
@@ -1068,6 +1091,7 @@ function WaterbodyInfo({
   if (type === 'Alaska Native Village') return alaskaNativeVillageContent;
   if (type === 'Change Location') return changeLocationContent;
   if (type === 'Protected Areas') return protectedAreaContent;
+  if (type === 'EJSCREEN') return ejscreenContent;
 
   return null;
 }
