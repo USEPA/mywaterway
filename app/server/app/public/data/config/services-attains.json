@@ -46,6 +46,7 @@
   },
   "wildScenicRivers": "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/WildScenicRiversV2_AGOL/FeatureServer/1/",
   "protectedAreasDatabase": "https://gis1.usgs.gov/arcgis/rest/services/padus2/protection_mechanism_category/MapServer/",
+  "ejscreen": "https://geopub.epa.gov/arcgis/rest/services/ejscreen/Demographic_Indicators_2018_Public/MapServer/",
   "googleAnalyticsMapping": [
     {
       "urlLookup": "attains.serviceUrl",
@@ -311,6 +312,11 @@
       "urlLookup": "protectedAreasDatabase",
       "wildcardUrl": "{urlLookup}*",
       "name": "USGS - Protected Areas Database"
+    },
+    {
+      "urlLookup": "ejscreen",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "EJSCREEN"
     }
   ]
 }

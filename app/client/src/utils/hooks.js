@@ -1001,7 +1001,74 @@ function useSharedLayers() {
       visible: false,
     });
 
+    const ejscreenPopupTemplate = {
+      title: getTitle,
+      content: getTemplate,
+      outFields: [
+        'T_MINORPCT',
+        'T_LWINCPCT',
+        'T_LESHSPCT',
+        'T_LNGISPCT',
+        'T_UNDR5PCT',
+        'T_OVR64PCT',
+        'T_VULEOPCT',
+      ],
+    };
+
+    const ejscreen = new MapImageLayer({
+      id: 'ejscreenLayer',
+      title: 'Environmental Justice',
+      url: services.data.ejscreen,
+      listMode: 'show',
+      visible: false,
+      sublayers: [
+        {
+          id: 6,
+          visible: false,
+          title: 'Less Than HS Education',
+          popupTemplate: ejscreenPopupTemplate,
+        },
+        {
+          id: 5,
+          visible: false,
+          title: 'Minority Population',
+          popupTemplate: ejscreenPopupTemplate,
+        },
+        {
+          id: 4,
+          visible: false,
+          title: 'Linguistically Isolated',
+          popupTemplate: ejscreenPopupTemplate,
+        },
+        {
+          id: 3,
+          visible: false,
+          title: 'Low Income',
+          popupTemplate: ejscreenPopupTemplate,
+        },
+        {
+          id: 2,
+          visible: false,
+          title: 'Over Age 64',
+          popupTemplate: ejscreenPopupTemplate,
+        },
+        {
+          id: 1,
+          visible: false,
+          title: 'Under Age 5',
+          popupTemplate: ejscreenPopupTemplate,
+        },
+        {
+          id: 0,
+          visible: true,
+          title: 'Demographic Index',
+          popupTemplate: ejscreenPopupTemplate,
+        },
+      ],
+    });
+
     return [
+      ejscreen,
       wsioHealthIndexLayer,
       protectedAreasLayer,
       protectedAreasHighlightLayer,

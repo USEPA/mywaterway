@@ -496,6 +496,11 @@ export function getPopupTitle(attributes: Object) {
     title = attributes.Loc_Nm;
   }
 
+  // EJSCREEN
+  else if (attributes.T_OVR64PCT) {
+    title = '';
+  }
+
   return title;
 }
 
@@ -600,6 +605,11 @@ export function getPopupContent({
   // Protected areas
   else if (attributes.GAPCdSrc) {
     type = 'Protected Areas';
+  }
+
+  // EJSCREEN
+  else if (attributes.T_OVR64PCT) {
+    type = 'EJSCREEN';
   }
 
   const content = (

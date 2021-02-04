@@ -80,6 +80,7 @@ const orderedLayers = [
   'wildScenicRiversLayer',
   'protectedAreasHighlightLayer',
   'protectedAreasLayer',
+  'ejscreenLayer',
   'searchIconLayer',
 ];
 
@@ -483,12 +484,20 @@ function MapWidgets({
 
     setAdditionalLegendInitialized(true);
 
-    const url = `${services.data.protectedAreasDatabase}/legend?f=json`;
-    fetchCheck(url)
-      .then((res) => {
+    const requests = [];
+    let url = `${services.data.protectedAreasDatabase}/legend?f=json`;
+    requests.push(fetchCheck(url));
+    url = `${services.data.ejscreen}legend?f=json`;
+    requests.push(fetchCheck(url));
+
+    Promise.all(requests)
+      .then((responses) => {
         setAdditionalLegendInfo({
           status: 'success',
-          data: { protectedAreasLayer: res },
+          data: {
+            protectedAreasLayer: responses[0],
+            ejscreen: responses[1],
+          },
         });
       })
       .catch((err) => {
