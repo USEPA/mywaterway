@@ -60,7 +60,7 @@ const Table = styled.table`
   }
 `;
 
-const Heading = styled.h3`
+const Heading = styled.h2`
   margin-top: 1rem;
   margin-bottom: 1rem;
   padding-bottom: 0;

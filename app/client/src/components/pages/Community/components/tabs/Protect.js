@@ -68,7 +68,7 @@ const List = styled.ul`
   padding-bottom: 1.5rem;
 `;
 
-const Heading = styled.h3`
+const Heading = styled.h2`
   margin-bottom: 0.25rem;
   padding-bottom: 0;
   font-family: ${fonts.primary};

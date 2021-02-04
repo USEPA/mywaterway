@@ -263,12 +263,6 @@ const TabHeader = styled.div`
     height: 2.25em;
   }
 
-  p {
-    padding-bottom: 0;
-    font-size: 1.5em;
-    font-weight: bold;
-  }
-
   label {
     display: flex;
     align-items: center;
@@ -279,6 +273,14 @@ const TabHeader = styled.div`
   span {
     margin-right: 0.5em;
   }
+`;
+
+const TabTitle = styled.h1`
+  font-family: inherit;
+  font-size: 1.5em;
+  font-weight: bold;
+  margin: 0;
+  padding-bottom: 0;
 `;
 
 // --- components ---
@@ -470,7 +472,7 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
               src={tabs[activeTabIndex].icon}
               alt={tabs[activeTabIndex].title}
             />
-            <p>{tabs[activeTabIndex].title}</p>
+            <TabTitle>{tabs[activeTabIndex].title}</TabTitle>
           </div>
 
           <div>
