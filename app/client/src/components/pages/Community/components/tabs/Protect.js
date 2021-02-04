@@ -160,7 +160,6 @@ function Protect() {
     statesData,
     visibleLayers,
     setVisibleLayers,
-    wsioHealthIndexLayer,
     wsioHealthIndexData,
     wildScenicRiversLayer,
     wildScenicRiversData,
@@ -198,34 +197,57 @@ function Protect() {
     setWildScenicRiversDisplayed,
   ] = React.useState(false);
 
-  const [tabIndex, setTabIndex] = React.useState(null);
-  // toggle map layers' visibility when a tab changes
+  // Updates the visible layers. This function also takes into account whether
+  // or not the underlying webservices failed.
+  const updateVisibleLayers = React.useCallback(
+    ({ key = null, newValue = null, useCurrentValue = false }) => {
+      const newVisibleLayers = {};
+      if (wsioHealthIndexData.status !== 'failure') {
+        newVisibleLayers['wsioHealthIndexLayer'] = useCurrentValue
+          ? visibleLayers['wsioHealthIndexLayer']
+          : false;
+      }
+      if (protectedAreasData.status !== 'failure') {
+        newVisibleLayers['protectedAreasLayer'] = useCurrentValue
+          ? visibleLayers['protectedAreasLayer']
+          : false;
+      }
+      if (wildScenicRiversData.status !== 'failure') {
+        newVisibleLayers['wildScenicRiversLayer'] = useCurrentValue
+          ? visibleLayers['wildScenicRiversLayer']
+          : false;
+      }
+
+      if (newVisibleLayers.hasOwnProperty(key)) {
+        newVisibleLayers[key] = newValue;
+      }
+
+      // set the visible layers if something changed
+      if (JSON.stringify(visibleLayers) !== JSON.stringify(newVisibleLayers)) {
+        setVisibleLayers(newVisibleLayers);
+      }
+    },
+    [
+      wsioHealthIndexData,
+      protectedAreasData,
+      wildScenicRiversData,
+      visibleLayers,
+      setVisibleLayers,
+    ],
+  );
+
+  // Updates visible layers based on webservice statuses.
   React.useEffect(() => {
-    if (!wsioHealthIndexLayer || !wildScenicRiversLayer || !protectedAreasLayer)
-      return;
-
-    if (tabIndex === 0) {
-      setVisibleLayers({
-        wsioHealthIndexLayer: false,
-        wildScenicRiversLayer: false,
-        protectedAreasLayer: false,
-      });
-    }
-
-    if (tabIndex === 1) {
-      setVisibleLayers({
-        wsioHealthIndexLayer: false,
-        wildScenicRiversLayer: false,
-        protectedAreasLayer: false,
-      });
-    }
+    updateVisibleLayers({ useCurrentValue: true });
   }, [
-    tabIndex,
-    setVisibleLayers,
-    wsioHealthIndexLayer,
-    wildScenicRiversLayer,
-    protectedAreasLayer,
+    wsioHealthIndexData,
+    protectedAreasData,
+    wildScenicRiversData,
+    visibleLayers,
+    updateVisibleLayers,
   ]);
+
+  const [tabIndex, setTabIndex] = React.useState(null);
 
   // toggle the switches setting when the map layer's visibility changes
   React.useEffect(() => {
@@ -262,6 +284,7 @@ function Protect() {
         <Tabs
           onChange={(index) => {
             setTabIndex(index);
+            updateVisibleLayers();
           }}
           defaultIndex={tabIndex}
         >
@@ -294,8 +317,9 @@ function Protect() {
                         }
                         onChange={(checked) => {
                           setHealthScoresDisplayed(checked);
-                          setVisibleLayers({
-                            wsioHealthIndexLayer: checked,
+                          updateVisibleLayers({
+                            key: 'wsioHealthIndexLayer',
+                            newValue: checked,
                           });
                         }}
                         disabled={
@@ -552,8 +576,9 @@ function Protect() {
                         }
                         onChange={(checked) => {
                           setProtectedAreasDisplayed(checked);
-                          setVisibleLayers({
-                            protectedAreasLayer: checked,
+                          updateVisibleLayers({
+                            key: 'protectedAreasLayer',
+                            newValue: checked,
                           });
                         }}
                         disabled={
@@ -698,8 +723,9 @@ function Protect() {
                                   if (protectedAreasDisplayed) return;
 
                                   setProtectedAreasDisplayed(true);
-                                  setVisibleLayers({
-                                    protectedAreasLayer: true,
+                                  updateVisibleLayers({
+                                    key: 'protectedAreasLayer',
+                                    newValue: true,
                                   });
                                 }}
                               />
@@ -746,8 +772,9 @@ function Protect() {
                         }
                         onChange={(checked) => {
                           setWildScenicRiversDisplayed(checked);
-                          setVisibleLayers({
-                            wildScenicRiversLayer: checked,
+                          updateVisibleLayers({
+                            key: 'wildScenicRiversLayer',
+                            newValue: checked,
                           });
                         }}
                         disabled={wildScenicRiversData.status === 'failure'}
@@ -877,8 +904,9 @@ function Protect() {
                                   if (wildScenicRiversDisplayed) return;
 
                                   setWildScenicRiversDisplayed(true);
-                                  setVisibleLayers({
-                                    wildScenicRiversLayer: true,
+                                  updateVisibleLayers({
+                                    key: 'wildScenicRiversLayer',
+                                    newValue: true,
                                   });
                                 }}
                               />

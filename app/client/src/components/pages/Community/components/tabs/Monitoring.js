@@ -96,6 +96,8 @@ function Monitoring() {
     monitoringStationsLayer,
     setShowAllMonitoring,
     watershed,
+    visibleLayers,
+    setVisibleLayers,
   } = React.useContext(LocationSearchContext);
 
   const [
@@ -350,6 +352,13 @@ function Monitoring() {
     drawMap,
     storeMonitoringStations,
   ]);
+
+  // clear the visible layers if the monitoring locations service failed
+  React.useEffect(() => {
+    if (monitoringLocations.status !== 'failure') return;
+
+    if (Object.keys(visibleLayers).length > 0) setVisibleLayers({});
+  }, [monitoringLocations, visibleLayers, setVisibleLayers]);
 
   const sortedMonitoringStations = displayedMonitoringStations
     ? displayedMonitoringStations.sort((objA, objB) => {
