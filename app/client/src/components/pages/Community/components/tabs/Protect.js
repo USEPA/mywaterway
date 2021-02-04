@@ -193,16 +193,22 @@ function Protect() {
   // Updates the visible layers. This function also takes into account whether
   // or not the underlying webservices failed.
   const updateVisibleLayers = React.useCallback(
-    (key = null, newValue = null) => {
+    ({ key = null, newValue = null, useCurrentValue = false }) => {
       const newVisibleLayers = {};
       if (wsioHealthIndexData.status !== 'failure') {
-        newVisibleLayers['wsioHealthIndexLayer'] = false;
+        newVisibleLayers['wsioHealthIndexLayer'] = useCurrentValue
+          ? visibleLayers['wsioHealthIndexLayer']
+          : false;
       }
       if (protectedAreasData.status !== 'failure') {
-        newVisibleLayers['protectedAreasLayer'] = false;
+        newVisibleLayers['protectedAreasLayer'] = useCurrentValue
+          ? visibleLayers['protectedAreasLayer']
+          : false;
       }
       if (wildScenicRiversData.status !== 'failure') {
-        newVisibleLayers['wildScenicRiversLayer'] = false;
+        newVisibleLayers['wildScenicRiversLayer'] = useCurrentValue
+          ? visibleLayers['wildScenicRiversLayer']
+          : false;
       }
 
       if (newVisibleLayers.hasOwnProperty(key)) {
@@ -225,7 +231,7 @@ function Protect() {
 
   // Updates visible layers based on webservice statuses.
   React.useEffect(() => {
-    updateVisibleLayers();
+    updateVisibleLayers({ useCurrentValue: true });
   }, [
     wsioHealthIndexData,
     protectedAreasData,
@@ -304,7 +310,10 @@ function Protect() {
                         }
                         onChange={(checked) => {
                           setHealthScoresDisplayed(checked);
-                          updateVisibleLayers('wsioHealthIndexLayer', checked);
+                          updateVisibleLayers({
+                            key: 'wsioHealthIndexLayer',
+                            newValue: checked,
+                          });
                         }}
                         disabled={
                           wsioHealthIndexData.status === 'failure' ||
@@ -560,7 +569,10 @@ function Protect() {
                         }
                         onChange={(checked) => {
                           setProtectedAreasDisplayed(checked);
-                          updateVisibleLayers('protectedAreasLayer', checked);
+                          updateVisibleLayers({
+                            key: 'protectedAreasLayer',
+                            newValue: checked,
+                          });
                         }}
                         disabled={
                           protectedAreasData.status === 'failure' ||
@@ -704,10 +716,10 @@ function Protect() {
                                   if (protectedAreasDisplayed) return;
 
                                   setProtectedAreasDisplayed(true);
-                                  updateVisibleLayers(
-                                    'protectedAreasLayer',
-                                    true,
-                                  );
+                                  updateVisibleLayers({
+                                    key: 'protectedAreasLayer',
+                                    newValue: true,
+                                  });
                                 }}
                               />
                             </ViewButtonContainer>
@@ -753,7 +765,10 @@ function Protect() {
                         }
                         onChange={(checked) => {
                           setWildScenicRiversDisplayed(checked);
-                          updateVisibleLayers('wildScenicRiversLayer', checked);
+                          updateVisibleLayers({
+                            key: 'wildScenicRiversLayer',
+                            newValue: checked,
+                          });
                         }}
                         disabled={wildScenicRiversData.status === 'failure'}
                         ariaLabel="Wild and Scenic Rivers"
@@ -882,10 +897,10 @@ function Protect() {
                                   if (wildScenicRiversDisplayed) return;
 
                                   setWildScenicRiversDisplayed(true);
-                                  updateVisibleLayers(
-                                    'wildScenicRiversLayer',
-                                    true,
-                                  );
+                                  updateVisibleLayers({
+                                    key: 'wildScenicRiversLayer',
+                                    newValue: true,
+                                  });
                                 }}
                               />
                             </ViewButtonContainer>

@@ -358,14 +358,19 @@ function IdentifiedIssues() {
   // Updates the visible layers. This function also takes into account whether
   // or not the underlying webservices failed.
   const updateVisibleLayers = React.useCallback(
-    (key = null, newValue = null) => {
+    ({ key = null, newValue = null, useCurrentValue = false }) => {
       const newVisibleLayers = {};
       if (cipSummary.status !== 'failure') {
-        newVisibleLayers['issuesLayer'] = issuesLayer && showIssuesLayer;
+        newVisibleLayers['issuesLayer'] =
+          !issuesLayer || useCurrentValue
+            ? visibleLayers['issuesLayer']
+            : showIssuesLayer;
       }
       if (permittedDischargers.status !== 'failure') {
         newVisibleLayers['dischargersLayer'] =
-          dischargersLayer && showDischargersLayer;
+          !dischargersLayer || useCurrentValue
+            ? visibleLayers['dischargersLayer']
+            : showDischargersLayer;
       }
 
       if (newVisibleLayers.hasOwnProperty(key)) {
@@ -391,7 +396,7 @@ function IdentifiedIssues() {
 
   // Updates visible layers based on webservice statuses.
   React.useEffect(() => {
-    updateVisibleLayers();
+    updateVisibleLayers({ useCurrentValue: true });
   }, [cipSummary, permittedDischargers, visibleLayers, updateVisibleLayers]);
 
   const checkIfAllSwitchesToggled = (
@@ -424,10 +429,10 @@ function IdentifiedIssues() {
     if (!parameters.some(checkAnyCheckedParameters)) {
       setShowIssuesLayer(false);
 
-      updateVisibleLayers('issuesLayer', false);
+      updateVisibleLayers({ key: 'issuesLayer', newValue: false });
     } else {
       setShowIssuesLayer(true);
-      updateVisibleLayers('issuesLayer', true);
+      updateVisibleLayers({ key: 'issuesLayer', newValue: true });
     }
 
     // check if any parameters are not checked. if all parameters are checked, set the showAllParameters switch to true
@@ -456,7 +461,7 @@ function IdentifiedIssues() {
       }
 
       setShowAllPolluted(true);
-      updateVisibleLayers('issuesLayer', true);
+      updateVisibleLayers({ key: 'issuesLayer', newValue: true });
     };
 
     // set all parameters to Off and hide the issuesLayer
@@ -469,7 +474,7 @@ function IdentifiedIssues() {
       }
 
       setShowAllPolluted(false);
-      updateVisibleLayers('issuesLayer', false);
+      updateVisibleLayers({ key: 'issuesLayer', newValue: false });
     };
 
     // if switch at top of table is switched
@@ -497,10 +502,10 @@ function IdentifiedIssues() {
       setShowDischargersLayer(!showDischargersLayer);
       checkDischargersToDisplay();
 
-      updateVisibleLayers(
-        'dischargersLayer',
-        dischargersLayer && !showDischargersLayer,
-      );
+      updateVisibleLayers({
+        key: 'dischargersLayer',
+        newValue: dischargersLayer && !showDischargersLayer,
+      });
     }
     // one of the parameters is switched
     else {

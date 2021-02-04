@@ -126,14 +126,6 @@ function Overview() {
   // used for when the user toggles layers in full screen mode and then
   // exist full screen.
   React.useEffect(() => {
-    if (
-      !visibleLayers.hasOwnProperty('waterbodyLayer') ||
-      !visibleLayers.hasOwnProperty('monitoringStationsLayer') ||
-      !visibleLayers.hasOwnProperty('dischargersLayer')
-    ) {
-      return;
-    }
-
     const {
       waterbodyLayer,
       monitoringStationsLayer,
@@ -159,19 +151,25 @@ function Overview() {
   // Updates the visible layers. This function also takes into account whether
   // or not the underlying webservices failed.
   const updateVisibleLayers = React.useCallback(
-    (key = null, newValue = null) => {
+    ({ key = null, newValue = null, useCurrentValue = false }) => {
       const newVisibleLayers = {};
       if (monitoringLocations.status !== 'failure') {
         newVisibleLayers['monitoringStationsLayer'] =
-          monitoringStationsLayer && monitoringLocationsFilterEnabled;
+          !monitoringStationsLayer || useCurrentValue
+            ? visibleLayers['monitoringStationsLayer']
+            : monitoringLocationsFilterEnabled;
       }
       if (cipSummary.status !== 'failure') {
         newVisibleLayers['waterbodyLayer'] =
-          waterbodyLayer && waterbodiesFilterEnabled;
+          !waterbodyLayer || useCurrentValue
+            ? visibleLayers['waterbodyLayer']
+            : waterbodiesFilterEnabled;
       }
       if (permittedDischargers.status !== 'failure') {
         newVisibleLayers['dischargersLayer'] =
-          dischargersLayer && dischargersFilterEnabled;
+          !dischargersLayer || useCurrentValue
+            ? visibleLayers['dischargersLayer']
+            : dischargersFilterEnabled;
       }
 
       if (newVisibleLayers.hasOwnProperty(key)) {
@@ -200,7 +198,7 @@ function Overview() {
 
   // Updates visible layers based on webservice statuses.
   React.useEffect(() => {
-    updateVisibleLayers();
+    updateVisibleLayers({ useCurrentValue: true });
   }, [
     monitoringLocations,
     cipSummary,
@@ -256,10 +254,10 @@ function Overview() {
                     setWaterbodiesFilterEnabled(!waterbodiesFilterEnabled);
 
                     // first check if layer exists and is not falsy
-                    updateVisibleLayers(
-                      'waterbodyLayer',
-                      waterbodyLayer && !waterbodiesFilterEnabled,
-                    );
+                    updateVisibleLayers({
+                      key: 'waterbodyLayer',
+                      newValue: waterbodyLayer && !waterbodiesFilterEnabled,
+                    });
                   }}
                   disabled={!Boolean(waterbodyCount)}
                   ariaLabel="Waterbodies"
@@ -295,11 +293,12 @@ function Overview() {
                     );
 
                     // first check if layer exists and is not falsy
-                    updateVisibleLayers(
-                      'monitoringStationsLayer',
-                      monitoringStationsLayer &&
+                    updateVisibleLayers({
+                      key: 'monitoringStationsLayer',
+                      newValue:
+                        monitoringStationsLayer &&
                         !monitoringLocationsFilterEnabled,
-                    );
+                    });
                   }}
                   disabled={!Boolean(monitoringLocationCount)}
                   ariaLabel="Monitoring Locations"
@@ -332,10 +331,10 @@ function Overview() {
                     setDischargersFilterEnabled(!dischargersFilterEnabled);
 
                     // first check if layer exists and is not falsy
-                    updateVisibleLayers(
-                      'dischargersLayer',
-                      dischargersLayer && !dischargersFilterEnabled,
-                    );
+                    updateVisibleLayers({
+                      key: 'dischargersLayer',
+                      newValue: dischargersLayer && !dischargersFilterEnabled,
+                    });
                   }}
                   disabled={!Boolean(permittedDischargerCount)}
                   ariaLabel="Permitted Dischargers"
