@@ -516,11 +516,9 @@ function FilePanel() {
       // create the feature layer
       const layerToAdd = new FeatureLayer(layerProps);
       featureLayers.push(layerToAdd);
-
-      setWidgetLayers((widgetLayers) => [...widgetLayers, layerToAdd]);
     });
 
-    mapView.map.addMany(featureLayers);
+    setWidgetLayers((widgetLayers) => [...widgetLayers, ...featureLayers]);
 
     setUploadStatus('success');
   }, [

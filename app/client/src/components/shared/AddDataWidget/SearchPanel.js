@@ -786,6 +786,18 @@ function ResultCard({ result }: ResultCardProps) {
 
             if (mapView) {
               layer.visible = true;
+
+              // make all child layers visible, if applicable
+              if (layer.layers) {
+                layer.layers.items.forEach((layer) => {
+                  layer.visible = true;
+                });
+              }
+              if (layer.sublayers) {
+                layer.sublayers.items.forEach((layer) => {
+                  layer.visible = true;
+                });
+              }
             }
           } else if (loadStatus === 'failed') {
             setStatus('error');
@@ -796,7 +808,6 @@ function ResultCard({ result }: ResultCardProps) {
       setWatcher(watcher);
 
       // add the layer to the map
-      mapView.map.add(layer);
       setWidgetLayers((widgetLayers) => [...widgetLayers, layer]);
     });
   }
