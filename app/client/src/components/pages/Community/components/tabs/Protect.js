@@ -298,7 +298,7 @@ function Protect() {
                 <p>
                   Learn about watershed health scores in relation to your state,
                   if there are any protected areas in your watershed, and the
-                  location of any designated <em>Wild and Scenic Rivers</em>.
+                  location of designated <em>Wild and Scenic Rivers</em>.
                 </p>
               )}
 
@@ -436,7 +436,8 @@ function Protect() {
                       <InlineBlockWrapper>
                         <p>
                           <strong>
-                            Where do the healthiest watersheds occur?
+                            Where might the healthier watersheds be located in
+                            your state?
                           </strong>
                         </p>
                       </InlineBlockWrapper>
@@ -465,11 +466,10 @@ function Protect() {
                                 </li>
                                 <li>
                                   Each Watershed Health Index score is relative
-                                  to the scores (1-99% percentile) of watersheds
-                                  across the state. A HUC12 watershed that
-                                  straddles more than one state is scored only
-                                  in the state in which its majority area
-                                  resides.
+                                  to the scores of watersheds across the state.
+                                  A watershed that straddles more than one state
+                                  is scored only in the state in which its
+                                  majority area resides.
                                 </li>
                               </ul>
                             </>
@@ -491,8 +491,8 @@ function Protect() {
                             <>
                               <ul>
                                 <li>
-                                  Raises awareness of where the healthiest
-                                  watersheds occur.
+                                  Raises awareness of where the healthier
+                                  watersheds may occur.
                                 </li>
                                 <li>
                                   Provides an initial dataset upon which others
