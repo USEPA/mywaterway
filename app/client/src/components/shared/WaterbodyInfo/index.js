@@ -1091,7 +1091,7 @@ function WaterbodyInfo({
   if (type === 'Alaska Native Village') return alaskaNativeVillageContent;
   if (type === 'Change Location') return changeLocationContent;
   if (type === 'Protected Areas') return protectedAreaContent;
-  if (type === 'EJSCREEN') return ejscreenContent;
+  if (type === 'Environmental Justice') return ejscreenContent;
 
   return null;
 }
