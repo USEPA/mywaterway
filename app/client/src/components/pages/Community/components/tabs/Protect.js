@@ -160,6 +160,7 @@ function Protect() {
     statesData,
     visibleLayers,
     setVisibleLayers,
+    wsioHealthIndexLayer,
     wsioHealthIndexData,
     wildScenicRiversLayer,
     wildScenicRiversData,
@@ -203,19 +204,22 @@ function Protect() {
     ({ key = null, newValue = null, useCurrentValue = false }) => {
       const newVisibleLayers = {};
       if (wsioHealthIndexData.status !== 'failure') {
-        newVisibleLayers['wsioHealthIndexLayer'] = useCurrentValue
-          ? visibleLayers['wsioHealthIndexLayer']
-          : false;
+        newVisibleLayers['wsioHealthIndexLayer'] =
+          !wsioHealthIndexLayer || useCurrentValue
+            ? visibleLayers['wsioHealthIndexLayer']
+            : healthScoresDisplayed;
       }
       if (protectedAreasData.status !== 'failure') {
-        newVisibleLayers['protectedAreasLayer'] = useCurrentValue
-          ? visibleLayers['protectedAreasLayer']
-          : false;
+        newVisibleLayers['protectedAreasLayer'] =
+          !protectedAreasLayer || useCurrentValue
+            ? visibleLayers['protectedAreasLayer']
+            : protectedAreasDisplayed;
       }
       if (wildScenicRiversData.status !== 'failure') {
-        newVisibleLayers['wildScenicRiversLayer'] = useCurrentValue
-          ? visibleLayers['wildScenicRiversLayer']
-          : false;
+        newVisibleLayers['wildScenicRiversLayer'] =
+          !wildScenicRiversLayer || useCurrentValue
+            ? visibleLayers['wildScenicRiversLayer']
+            : wildScenicRiversDisplayed;
       }
 
       if (newVisibleLayers.hasOwnProperty(key)) {
@@ -228,8 +232,14 @@ function Protect() {
       }
     },
     [
+      healthScoresDisplayed,
+      wsioHealthIndexLayer,
       wsioHealthIndexData,
+      protectedAreasDisplayed,
+      protectedAreasLayer,
       protectedAreasData,
+      wildScenicRiversDisplayed,
+      wildScenicRiversLayer,
       wildScenicRiversData,
       visibleLayers,
       setVisibleLayers,
