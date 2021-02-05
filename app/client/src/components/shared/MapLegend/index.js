@@ -496,7 +496,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     for (let i = 0; i < layers.length; i++) {
       const layer = layers[i];
       if (layer.id === 'ejscreenLayer') {
-        layer.sublayers.items.forEach((sublayer) => {
+        layer.layers.items.forEach((sublayer) => {
           if (sublayer.visible) {
             subtitleParts.push(titleMap[sublayer.title]);
           }

@@ -1001,71 +1001,104 @@ function useSharedLayers() {
       visible: false,
     });
 
+    // BEGIN - EJSCREEN layers
+
+    const ejOutFields = [
+      'T_MINORPCT',
+      'T_LWINCPCT',
+      'T_LESHSPCT',
+      'T_LNGISPCT',
+      'T_UNDR5PCT',
+      'T_OVR64PCT',
+      'T_VULEOPCT',
+    ];
+
     const ejscreenPopupTemplate = {
       title: getTitle,
       content: getTemplate,
-      outFields: [
-        'T_MINORPCT',
-        'T_LWINCPCT',
-        'T_LESHSPCT',
-        'T_LNGISPCT',
-        'T_UNDR5PCT',
-        'T_OVR64PCT',
-        'T_VULEOPCT',
-      ],
+      outFields: ejOutFields,
     };
 
-    const ejscreen = new MapImageLayer({
+    const ejDemographicIndex = new FeatureLayer({
+      id: 0,
+      url: `${services.data.ejscreen}0`,
+      title: 'Demographic Index',
+      outFields: ejOutFields,
+      visible: true,
+      popupTemplate: ejscreenPopupTemplate,
+    });
+
+    const ejUnderAge5 = new FeatureLayer({
+      id: 1,
+      url: `${services.data.ejscreen}1`,
+      title: 'Under Age 5',
+      outFields: ejOutFields,
+      visible: false,
+      popupTemplate: ejscreenPopupTemplate,
+    });
+
+    const ejOverAge64 = new FeatureLayer({
+      id: 2,
+      url: `${services.data.ejscreen}2`,
+      title: 'Over Age 64',
+      outFields: ejOutFields,
+      visible: false,
+      popupTemplate: ejscreenPopupTemplate,
+    });
+
+    const ejLowIncome = new FeatureLayer({
+      id: 3,
+      url: `${services.data.ejscreen}3`,
+      title: 'Low Income',
+      outFields: ejOutFields,
+      visible: false,
+      popupTemplate: ejscreenPopupTemplate,
+    });
+
+    const ejLinguistIsolated = new FeatureLayer({
+      id: 4,
+      url: `${services.data.ejscreen}4`,
+      title: 'Linguistically Isolated',
+      outFields: ejOutFields,
+      visible: false,
+      popupTemplate: ejscreenPopupTemplate,
+    });
+
+    const ejMinority = new FeatureLayer({
+      id: 5,
+      url: `${services.data.ejscreen}5`,
+      title: 'Minority Population',
+      outFields: ejOutFields,
+      visible: false,
+      popupTemplate: ejscreenPopupTemplate,
+    });
+
+    const ejLessThanHS = new FeatureLayer({
+      id: 6,
+      url: `${services.data.ejscreen}6`,
+      title: 'Less Than HS Education',
+      outFields: ejOutFields,
+      visible: false,
+      popupTemplate: ejscreenPopupTemplate,
+    });
+
+    const ejscreen = new GroupLayer({
       id: 'ejscreenLayer',
       title: 'Environmental Justice',
-      url: services.data.ejscreen,
       listMode: 'show',
       visible: false,
-      sublayers: [
-        {
-          id: 6,
-          visible: false,
-          title: 'Less Than HS Education',
-          popupTemplate: ejscreenPopupTemplate,
-        },
-        {
-          id: 5,
-          visible: false,
-          title: 'Minority Population',
-          popupTemplate: ejscreenPopupTemplate,
-        },
-        {
-          id: 4,
-          visible: false,
-          title: 'Linguistically Isolated',
-          popupTemplate: ejscreenPopupTemplate,
-        },
-        {
-          id: 3,
-          visible: false,
-          title: 'Low Income',
-          popupTemplate: ejscreenPopupTemplate,
-        },
-        {
-          id: 2,
-          visible: false,
-          title: 'Over Age 64',
-          popupTemplate: ejscreenPopupTemplate,
-        },
-        {
-          id: 1,
-          visible: false,
-          title: 'Under Age 5',
-          popupTemplate: ejscreenPopupTemplate,
-        },
-        {
-          id: 0,
-          visible: true,
-          title: 'Demographic Index',
-          popupTemplate: ejscreenPopupTemplate,
-        },
+      layers: [
+        ejLessThanHS,
+        ejMinority,
+        ejLinguistIsolated,
+        ejLowIncome,
+        ejOverAge64,
+        ejUnderAge5,
+        ejDemographicIndex,
       ],
     });
+
+    // END - EJSCREEN layers
 
     return [
       ejscreen,
