@@ -160,6 +160,7 @@ function Protect() {
     statesData,
     visibleLayers,
     setVisibleLayers,
+    wsioHealthIndexLayer,
     wsioHealthIndexData,
     wildScenicRiversLayer,
     wildScenicRiversData,
@@ -203,19 +204,22 @@ function Protect() {
     ({ key = null, newValue = null, useCurrentValue = false }) => {
       const newVisibleLayers = {};
       if (wsioHealthIndexData.status !== 'failure') {
-        newVisibleLayers['wsioHealthIndexLayer'] = useCurrentValue
-          ? visibleLayers['wsioHealthIndexLayer']
-          : false;
+        newVisibleLayers['wsioHealthIndexLayer'] =
+          !wsioHealthIndexLayer || useCurrentValue
+            ? visibleLayers['wsioHealthIndexLayer']
+            : healthScoresDisplayed;
       }
       if (protectedAreasData.status !== 'failure') {
-        newVisibleLayers['protectedAreasLayer'] = useCurrentValue
-          ? visibleLayers['protectedAreasLayer']
-          : false;
+        newVisibleLayers['protectedAreasLayer'] =
+          !protectedAreasLayer || useCurrentValue
+            ? visibleLayers['protectedAreasLayer']
+            : protectedAreasDisplayed;
       }
       if (wildScenicRiversData.status !== 'failure') {
-        newVisibleLayers['wildScenicRiversLayer'] = useCurrentValue
-          ? visibleLayers['wildScenicRiversLayer']
-          : false;
+        newVisibleLayers['wildScenicRiversLayer'] =
+          !wildScenicRiversLayer || useCurrentValue
+            ? visibleLayers['wildScenicRiversLayer']
+            : wildScenicRiversDisplayed;
       }
 
       if (newVisibleLayers.hasOwnProperty(key)) {
@@ -228,8 +232,14 @@ function Protect() {
       }
     },
     [
+      healthScoresDisplayed,
+      wsioHealthIndexLayer,
       wsioHealthIndexData,
+      protectedAreasDisplayed,
+      protectedAreasLayer,
       protectedAreasData,
+      wildScenicRiversDisplayed,
+      wildScenicRiversLayer,
       wildScenicRiversData,
       visibleLayers,
       setVisibleLayers,
@@ -284,7 +294,7 @@ function Protect() {
         <Tabs
           onChange={(index) => {
             setTabIndex(index);
-            updateVisibleLayers();
+            updateVisibleLayers({});
           }}
           defaultIndex={tabIndex}
         >
@@ -298,7 +308,7 @@ function Protect() {
                 <p>
                   Learn about watershed health scores in relation to your state,
                   if there are any protected areas in your watershed, and the
-                  location of any designated <em>Wild and Scenic Rivers</em>.
+                  location of designated <em>Wild and Scenic Rivers</em>.
                 </p>
               )}
 
@@ -436,7 +446,8 @@ function Protect() {
                       <InlineBlockWrapper>
                         <p>
                           <strong>
-                            Where do the healthiest watersheds occur?
+                            Where might the healthier watersheds be located in
+                            your state?
                           </strong>
                         </p>
                       </InlineBlockWrapper>
@@ -465,11 +476,10 @@ function Protect() {
                                 </li>
                                 <li>
                                   Each Watershed Health Index score is relative
-                                  to the scores (1-99% percentile) of watersheds
-                                  across the state. A HUC12 watershed that
-                                  straddles more than one state is scored only
-                                  in the state in which its majority area
-                                  resides.
+                                  to the scores of watersheds across the state.
+                                  A watershed that straddles more than one state
+                                  is scored only in the state in which its
+                                  majority area resides.
                                 </li>
                               </ul>
                             </>
@@ -491,8 +501,8 @@ function Protect() {
                             <>
                               <ul>
                                 <li>
-                                  Raises awareness of where the healthiest
-                                  watersheds occur.
+                                  Raises awareness of where the healthier
+                                  watersheds may occur.
                                 </li>
                                 <li>
                                   Provides an initial dataset upon which others
@@ -531,208 +541,6 @@ function Protect() {
                       </a>{' '}
                       (opens new browser tab)
                     </p>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem
-                  highlightContent={false}
-                  title={<strong>Protected Areas</strong>}
-                >
-                  <AccordionContent>
-                    {infoToggleChecked && (
-                      <>
-                        <p>
-                          The Protected Areas Database (PAD-US) is America’s
-                          official national inventory of U.S. terrestrial and
-                          marine protected areas that are dedicated to the
-                          preservation of biological diversity and to other
-                          natural, recreation and cultural uses, managed for
-                          these purposes through legal or other effective means.
-                        </p>
-
-                        <p>
-                          <a
-                            href="https://www.usgs.gov/core-science-systems/science-analytics-and-synthesis/gap/science/protected-areas"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <i
-                              className="fas fa-info-circle"
-                              aria-hidden="true"
-                            />{' '}
-                            More Information
-                          </a>{' '}
-                          (opens new browser tab)
-                        </p>
-                      </>
-                    )}
-
-                    <Label>
-                      <Switch
-                        checked={
-                          protectedAreasDisplayed &&
-                          protectedAreasData.status === 'success' &&
-                          protectedAreasData.data.length > 0
-                        }
-                        onChange={(checked) => {
-                          setProtectedAreasDisplayed(checked);
-                          updateVisibleLayers({
-                            key: 'protectedAreasLayer',
-                            newValue: checked,
-                          });
-                        }}
-                        disabled={
-                          protectedAreasData.status === 'failure' ||
-                          protectedAreasData.data.length === 0
-                        }
-                        ariaLabel="Protected Areas"
-                      />
-                      <span>Display on Map</span>
-                    </Label>
-
-                    {protectedAreasData.status === 'failure' && (
-                      <ErrorBox>
-                        <p>{protectedAreasDatabaseError}</p>
-                      </ErrorBox>
-                    )}
-
-                    {protectedAreasData.status === 'fetching' && (
-                      <LoadingSpinner />
-                    )}
-
-                    {protectedAreasData.status === 'success' &&
-                      protectedAreasData.data.length === 0 && (
-                        <p>
-                          No Protected Areas Database data available for this
-                          location.
-                        </p>
-                      )}
-
-                    {protectedAreasData.status === 'success' &&
-                      protectedAreasData.data.length > 0 &&
-                      protectedAreasData.data.map((item) => {
-                        const attributes = item.attributes;
-                        const fields = protectedAreasData.fields;
-                        const idKey = 'OBJECTID';
-                        return (
-                          <FeatureItem
-                            key={`protected-area-${attributes.OBJECTID}`}
-                            idKey={idKey}
-                            feature={item}
-                            title={
-                              <strong>
-                                Protected Area {attributes.Loc_Nm}
-                              </strong>
-                            }
-                          >
-                            <table className="table">
-                              <tbody>
-                                <tr>
-                                  <td>
-                                    <em>Manager Type:</em>
-                                  </td>
-                                  <td>
-                                    {convertDomainCode(
-                                      fields,
-                                      'Mang_Type',
-                                      attributes.Mang_Type,
-                                    )}
-                                  </td>
-                                </tr>
-                                <tr>
-                                  <td>
-                                    <em>Manager Name:</em>
-                                  </td>
-                                  <td>
-                                    {convertDomainCode(
-                                      fields,
-                                      'Mang_Name',
-                                      attributes.Mang_Name,
-                                    )}
-                                  </td>
-                                </tr>
-                                <tr>
-                                  <td>
-                                    <em>Protection Category:</em>
-                                  </td>
-                                  <td>
-                                    {convertDomainCode(
-                                      fields,
-                                      'Category',
-                                      attributes.Category,
-                                    )}
-                                  </td>
-                                </tr>
-                                <tr>
-                                  <td>
-                                    <em>Public Access:</em>
-                                  </td>
-                                  <td>
-                                    {convertDomainCode(
-                                      fields,
-                                      'Access',
-                                      attributes.Access,
-                                    )}
-                                  </td>
-                                </tr>
-                              </tbody>
-                            </table>
-
-                            <ViewButtonContainer>
-                              <ViewOnMapButton
-                                layers={[protectedAreasLayer]}
-                                feature={item}
-                                fieldName={idKey}
-                                customQuery={(viewClick) => {
-                                  // query for the item
-                                  const query = new Query({
-                                    where: `${idKey} = ${attributes[idKey]}`,
-                                    returnGeometry: true,
-                                    outFields: ['*'],
-                                  });
-
-                                  new QueryTask({
-                                    url: `${services.data.protectedAreasDatabase}0`,
-                                  })
-                                    .execute(query)
-                                    .then((res) => {
-                                      if (res.features.length === 0) return;
-
-                                      // create the feature
-                                      const feature = res.features[0];
-                                      feature.symbol = new SimpleFillSymbol({
-                                        color: mapView.highlightOptions.color,
-                                        outline: null,
-                                      });
-
-                                      // add it to the highlight layer
-                                      protectedAreasHighlightLayer.removeAll();
-                                      protectedAreasHighlightLayer.add(feature);
-
-                                      // set the highlight
-                                      viewClick(
-                                        protectedAreasHighlightLayer.graphics
-                                          .items[0],
-                                      );
-                                    })
-                                    .catch((err) => {
-                                      console.error(err);
-                                    });
-                                }}
-                                onClick={() => {
-                                  if (protectedAreasDisplayed) return;
-
-                                  setProtectedAreasDisplayed(true);
-                                  updateVisibleLayers({
-                                    key: 'protectedAreasLayer',
-                                    newValue: true,
-                                  });
-                                }}
-                              />
-                            </ViewButtonContainer>
-                          </FeatureItem>
-                        );
-                      })}
                   </AccordionContent>
                 </AccordionItem>
 
@@ -1074,6 +882,208 @@ function Protect() {
                         )}
                       </>
                     )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem
+                  highlightContent={false}
+                  title={<strong>Protected Areas</strong>}
+                >
+                  <AccordionContent>
+                    {infoToggleChecked && (
+                      <>
+                        <p>
+                          The Protected Areas Database (PAD-US) is America’s
+                          official national inventory of U.S. terrestrial and
+                          marine protected areas that are dedicated to the
+                          preservation of biological diversity and to other
+                          natural, recreation and cultural uses, managed for
+                          these purposes through legal or other effective means.
+                        </p>
+
+                        <p>
+                          <a
+                            href="https://www.usgs.gov/core-science-systems/science-analytics-and-synthesis/gap/science/protected-areas"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <i
+                              className="fas fa-info-circle"
+                              aria-hidden="true"
+                            />{' '}
+                            More Information
+                          </a>{' '}
+                          (opens new browser tab)
+                        </p>
+                      </>
+                    )}
+
+                    <Label>
+                      <Switch
+                        checked={
+                          protectedAreasDisplayed &&
+                          protectedAreasData.status === 'success' &&
+                          protectedAreasData.data.length > 0
+                        }
+                        onChange={(checked) => {
+                          setProtectedAreasDisplayed(checked);
+                          updateVisibleLayers({
+                            key: 'protectedAreasLayer',
+                            newValue: checked,
+                          });
+                        }}
+                        disabled={
+                          protectedAreasData.status === 'failure' ||
+                          protectedAreasData.data.length === 0
+                        }
+                        ariaLabel="Protected Areas"
+                      />
+                      <span>Display on Map</span>
+                    </Label>
+
+                    {protectedAreasData.status === 'failure' && (
+                      <ErrorBox>
+                        <p>{protectedAreasDatabaseError}</p>
+                      </ErrorBox>
+                    )}
+
+                    {protectedAreasData.status === 'fetching' && (
+                      <LoadingSpinner />
+                    )}
+
+                    {protectedAreasData.status === 'success' &&
+                      protectedAreasData.data.length === 0 && (
+                        <p>
+                          No Protected Areas Database data available for this
+                          location.
+                        </p>
+                      )}
+
+                    {protectedAreasData.status === 'success' &&
+                      protectedAreasData.data.length > 0 &&
+                      protectedAreasData.data.map((item) => {
+                        const attributes = item.attributes;
+                        const fields = protectedAreasData.fields;
+                        const idKey = 'OBJECTID';
+                        return (
+                          <FeatureItem
+                            key={`protected-area-${attributes.OBJECTID}`}
+                            idKey={idKey}
+                            feature={item}
+                            title={
+                              <strong>
+                                Protected Area {attributes.Loc_Nm}
+                              </strong>
+                            }
+                          >
+                            <table className="table">
+                              <tbody>
+                                <tr>
+                                  <td>
+                                    <em>Manager Type:</em>
+                                  </td>
+                                  <td>
+                                    {convertDomainCode(
+                                      fields,
+                                      'Mang_Type',
+                                      attributes.Mang_Type,
+                                    )}
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td>
+                                    <em>Manager Name:</em>
+                                  </td>
+                                  <td>
+                                    {convertDomainCode(
+                                      fields,
+                                      'Mang_Name',
+                                      attributes.Mang_Name,
+                                    )}
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td>
+                                    <em>Protection Category:</em>
+                                  </td>
+                                  <td>
+                                    {convertDomainCode(
+                                      fields,
+                                      'Category',
+                                      attributes.Category,
+                                    )}
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td>
+                                    <em>Public Access:</em>
+                                  </td>
+                                  <td>
+                                    {convertDomainCode(
+                                      fields,
+                                      'Access',
+                                      attributes.Access,
+                                    )}
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+
+                            <ViewButtonContainer>
+                              <ViewOnMapButton
+                                layers={[protectedAreasLayer]}
+                                feature={item}
+                                fieldName={idKey}
+                                customQuery={(viewClick) => {
+                                  // query for the item
+                                  const query = new Query({
+                                    where: `${idKey} = ${attributes[idKey]}`,
+                                    returnGeometry: true,
+                                    outFields: ['*'],
+                                  });
+
+                                  new QueryTask({
+                                    url: `${services.data.protectedAreasDatabase}0`,
+                                  })
+                                    .execute(query)
+                                    .then((res) => {
+                                      if (res.features.length === 0) return;
+
+                                      // create the feature
+                                      const feature = res.features[0];
+                                      feature.symbol = new SimpleFillSymbol({
+                                        color: mapView.highlightOptions.color,
+                                        outline: null,
+                                      });
+
+                                      // add it to the highlight layer
+                                      protectedAreasHighlightLayer.removeAll();
+                                      protectedAreasHighlightLayer.add(feature);
+
+                                      // set the highlight
+                                      viewClick(
+                                        protectedAreasHighlightLayer.graphics
+                                          .items[0],
+                                      );
+                                    })
+                                    .catch((err) => {
+                                      console.error(err);
+                                    });
+                                }}
+                                onClick={() => {
+                                  if (protectedAreasDisplayed) return;
+
+                                  setProtectedAreasDisplayed(true);
+                                  updateVisibleLayers({
+                                    key: 'protectedAreasLayer',
+                                    newValue: true,
+                                  });
+                                }}
+                              />
+                            </ViewButtonContainer>
+                          </FeatureItem>
+                        );
+                      })}
                   </AccordionContent>
                 </AccordionItem>
               </AccordionList>
