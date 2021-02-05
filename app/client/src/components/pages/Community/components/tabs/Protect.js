@@ -294,7 +294,7 @@ function Protect() {
         <Tabs
           onChange={(index) => {
             setTabIndex(index);
-            updateVisibleLayers();
+            updateVisibleLayers({});
           }}
           defaultIndex={tabIndex}
         >
