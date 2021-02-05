@@ -150,6 +150,7 @@ function updateVisibleLayers(
 
   ReactDOM.render(
     <MapLegend
+      view={view}
       visibleLayers={visibleLayers}
       additionalLegendInfo={additionalLegendInfo}
     />,
@@ -553,7 +554,7 @@ function MapWidgets({
     const uniqueParentItems = [];
     function defineActions(event) {
       const item = event.item;
-      if (!item.parent) {
+      if (!item.parent || item.parent.title === 'Environmental Justice') {
         //only add the item if it has not been added before
         if (!uniqueParentItems.includes(item.title)) {
           uniqueParentItems.push(item.title);

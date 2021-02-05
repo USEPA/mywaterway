@@ -609,7 +609,7 @@ export function getPopupContent({
 
   // EJSCREEN
   else if (attributes.T_OVR64PCT) {
-    type = 'EJSCREEN';
+    type = 'Environmental Justice';
   }
 
   const content = (
