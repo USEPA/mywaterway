@@ -94,25 +94,8 @@ function URLPanel() {
     if (!mapView || !layer) return;
 
     // add the layer to the map
-    mapView.map.add(layer);
-
-    const createHandler = layer.on('layerview-create', (event) => {
-      setWidgetLayers((widgetLayers) => [...widgetLayers, layer]);
-      setStatus('success');
-
-      createHandler.remove();
-    });
-
-    const errorHandler = layer.on('layerview-create-error', (event) => {
-      console.error('create error event: ', event);
-
-      mapView.map.remove(layer);
-
-      setStatus('failure');
-
-      errorHandler.remove();
-    });
-
+    setWidgetLayers((widgetLayers) => [...widgetLayers, layer]);
+    setStatus('success');
     setLayer(null);
   }, [mapView, layer, setWidgetLayers, widgetLayers, url, urlType]);
 

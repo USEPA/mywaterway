@@ -796,7 +796,6 @@ function ResultCard({ result }: ResultCardProps) {
       setWatcher(watcher);
 
       // add the layer to the map
-      mapView.map.add(layer);
       setWidgetLayers((widgetLayers) => [...widgetLayers, layer]);
     });
   }
