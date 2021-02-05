@@ -613,11 +613,9 @@ function Protect() {
                       wildScenicRiversData.data.length > 0 &&
                       wildScenicRiversData.data.map((item) => {
                         const attributes = item.attributes;
-                        const idKey = 'GlobalID';
                         return (
                           <FeatureItem
                             key={attributes.GlobalID}
-                            idKey={idKey}
                             feature={item}
                             title={
                               <strong>
@@ -707,7 +705,7 @@ function Protect() {
                               <ViewOnMapButton
                                 layers={[wildScenicRiversLayer]}
                                 feature={item}
-                                idField={idKey}
+                                idField={'GlobalID'}
                                 onClick={() => {
                                   if (wildScenicRiversDisplayed) return;
 
@@ -960,130 +958,137 @@ function Protect() {
                       )}
 
                     {protectedAreasData.status === 'success' &&
-                      protectedAreasData.data.length > 0 &&
-                      protectedAreasData.data.map((item) => {
-                        const attributes = item.attributes;
-                        const fields = protectedAreasData.fields;
-                        const idKey = 'OBJECTID';
-                        return (
-                          <FeatureItem
-                            key={`protected-area-${attributes.OBJECTID}`}
-                            idKey={idKey}
-                            feature={item}
-                            title={
-                              <strong>
-                                Protected Area {attributes.Loc_Nm}
-                              </strong>
-                            }
-                          >
-                            <table className="table">
-                              <tbody>
-                                <tr>
-                                  <td>
-                                    <em>Manager Type:</em>
-                                  </td>
-                                  <td>
-                                    {convertDomainCode(
-                                      fields,
-                                      'Mang_Type',
-                                      attributes.Mang_Type,
-                                    )}
-                                  </td>
-                                </tr>
-                                <tr>
-                                  <td>
-                                    <em>Manager Name:</em>
-                                  </td>
-                                  <td>
-                                    {convertDomainCode(
-                                      fields,
-                                      'Mang_Name',
-                                      attributes.Mang_Name,
-                                    )}
-                                  </td>
-                                </tr>
-                                <tr>
-                                  <td>
-                                    <em>Protection Category:</em>
-                                  </td>
-                                  <td>
-                                    {convertDomainCode(
-                                      fields,
-                                      'Category',
-                                      attributes.Category,
-                                    )}
-                                  </td>
-                                </tr>
-                                <tr>
-                                  <td>
-                                    <em>Public Access:</em>
-                                  </td>
-                                  <td>
-                                    {convertDomainCode(
-                                      fields,
-                                      'Access',
-                                      attributes.Access,
-                                    )}
-                                  </td>
-                                </tr>
-                              </tbody>
-                            </table>
-
-                            <ViewButtonContainer>
-                              <ViewOnMapButton
-                                layers={[protectedAreasLayer]}
+                      protectedAreasData.data.length > 0 && (
+                        <AccordionList>
+                          {protectedAreasData.data.map((item) => {
+                            const attributes = item.attributes;
+                            const fields = protectedAreasData.fields;
+                            const idKey = 'OBJECTID';
+                            return (
+                              <AccordionItem
+                                key={`protected-area-${attributes.OBJECTID}`}
                                 feature={item}
-                                fieldName={idKey}
-                                customQuery={(viewClick) => {
-                                  // query for the item
-                                  const query = new Query({
-                                    where: `${idKey} = ${attributes[idKey]}`,
-                                    returnGeometry: true,
-                                    outFields: ['*'],
-                                  });
+                                title={
+                                  <strong>
+                                    Protected Area {attributes.Loc_Nm}
+                                  </strong>
+                                }
+                              >
+                                <table className="table">
+                                  <tbody>
+                                    <tr>
+                                      <td>
+                                        <em>Manager Type:</em>
+                                      </td>
+                                      <td>
+                                        {convertDomainCode(
+                                          fields,
+                                          'Mang_Type',
+                                          attributes.Mang_Type,
+                                        )}
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td>
+                                        <em>Manager Name:</em>
+                                      </td>
+                                      <td>
+                                        {convertDomainCode(
+                                          fields,
+                                          'Mang_Name',
+                                          attributes.Mang_Name,
+                                        )}
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td>
+                                        <em>Protection Category:</em>
+                                      </td>
+                                      <td>
+                                        {convertDomainCode(
+                                          fields,
+                                          'Category',
+                                          attributes.Category,
+                                        )}
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td>
+                                        <em>Public Access:</em>
+                                      </td>
+                                      <td>
+                                        {convertDomainCode(
+                                          fields,
+                                          'Access',
+                                          attributes.Access,
+                                        )}
+                                      </td>
+                                    </tr>
+                                  </tbody>
+                                </table>
 
-                                  new QueryTask({
-                                    url: `${services.data.protectedAreasDatabase}0`,
-                                  })
-                                    .execute(query)
-                                    .then((res) => {
-                                      if (res.features.length === 0) return;
-
-                                      // create the feature
-                                      const feature = res.features[0];
-                                      feature.symbol = new SimpleFillSymbol({
-                                        color: mapView.highlightOptions.color,
-                                        outline: null,
+                                <ViewButtonContainer>
+                                  <ViewOnMapButton
+                                    layers={[protectedAreasLayer]}
+                                    feature={item}
+                                    fieldName={idKey}
+                                    customQuery={(viewClick) => {
+                                      // query for the item
+                                      const query = new Query({
+                                        where: `${idKey} = ${attributes[idKey]}`,
+                                        returnGeometry: true,
+                                        outFields: ['*'],
                                       });
 
-                                      // add it to the highlight layer
-                                      protectedAreasHighlightLayer.removeAll();
-                                      protectedAreasHighlightLayer.add(feature);
+                                      new QueryTask({
+                                        url: `${services.data.protectedAreasDatabase}0`,
+                                      })
+                                        .execute(query)
+                                        .then((res) => {
+                                          if (res.features.length === 0) return;
 
-                                      // set the highlight
-                                      viewClick(
-                                        protectedAreasHighlightLayer.graphics
-                                          .items[0],
-                                      );
-                                    })
-                                    .catch((err) => {
-                                      console.error(err);
-                                    });
-                                }}
-                                onClick={() => {
-                                  if (protectedAreasDisplayed) return;
+                                          // create the feature
+                                          const feature = res.features[0];
+                                          feature.symbol = new SimpleFillSymbol(
+                                            {
+                                              color:
+                                                mapView.highlightOptions.color,
+                                              outline: null,
+                                            },
+                                          );
 
-                                  setProtectedAreasDisplayed(true);
-                                  updateVisibleLayers({
-                                    key: 'protectedAreasLayer',
-                                    newValue: true,
-                                  });
-                                }}
-                              />
-                            </ViewButtonContainer>
-                          </FeatureItem>
-                        );
-                      })}
+                                          // add it to the highlight layer
+                                          protectedAreasHighlightLayer.removeAll();
+                                          protectedAreasHighlightLayer.add(
+                                            feature,
+                                          );
+
+                                          // set the highlight
+                                          viewClick(
+                                            protectedAreasHighlightLayer
+                                              .graphics.items[0],
+                                          );
+                                        })
+                                        .catch((err) => {
+                                          console.error(err);
+                                        });
+                                    }}
+                                    onClick={() => {
+                                      if (protectedAreasDisplayed) return;
+
+                                      setProtectedAreasDisplayed(true);
+                                      updateVisibleLayers({
+                                        key: 'protectedAreasLayer',
+                                        newValue: true,
+                                      });
+                                    }}
+                                  />
+                                </ViewButtonContainer>
+                              </AccordionItem>
+                            );
+                          })}
+                        </AccordionList>
+                      )}
                   </AccordionContent>
                 </AccordionItem>
               </AccordionList>
@@ -1196,12 +1201,11 @@ function Protect() {
 
 type FeatureItemProps = {
   feature: ?Object,
-  idKey: string,
   title: Node,
   children: Node,
 };
 
-function FeatureItem({ feature, idKey, title, children }: FeatureItemProps) {
+function FeatureItem({ feature, title, children }: FeatureItemProps) {
   const { mapView } = React.useContext(LocationSearchContext);
   const { setHighlightedGraphic } = React.useContext(MapHighlightContext);
 
@@ -1222,7 +1226,7 @@ function FeatureItem({ feature, idKey, title, children }: FeatureItemProps) {
       onFocus={(ev) => addHighlight()}
       onBlur={(ev) => removeHighlight()}
     >
-      <FeatureTitle>{title}</FeatureTitle>
+      {title && <FeatureTitle>{title}</FeatureTitle>}
 
       {children}
     </Feature>
