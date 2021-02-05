@@ -268,7 +268,6 @@ function AddDataWidget() {
                                   widgetLayer.id !== item.layer.id,
                               ),
                             );
-                            mapView.map.remove(item.layer);
                             return;
                           }
 
@@ -284,7 +283,6 @@ function AddDataWidget() {
                                   widgetLayer.id !== item.layer.parent.id,
                               ),
                             );
-                            mapView.map.remove(item.layer.parent);
                           }
                         }}
                       >
