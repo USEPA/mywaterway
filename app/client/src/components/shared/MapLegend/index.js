@@ -494,9 +494,9 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     const subtitleParts = [];
     const layers = view.map.layers.items;
     for (let i = 0; i < layers.length; i++) {
-      const layer = layers[i];
-      if (layer.id === 'ejscreenLayer') {
-        layer.layers.items.forEach((sublayer) => {
+      const layerItem = layers[i];
+      if (layerItem.id === 'ejscreenLayer') {
+        layerItem.layers.items.forEach((sublayer) => {
           if (sublayer.visible) {
             subtitleParts.push(titleMap[sublayer.title]);
           }
@@ -506,18 +506,20 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     }
 
     // combine the subtitle parts into a comma delimited string
-    const sortedItems = subtitleParts.sort();
+    subtitleParts.sort();
     const sortedSubtitlePartsStr =
-      sortedItems.length === 1
-        ? sortedItems[0]
-        : sortedItems.slice(0, -1).join(', ') + ' & ' + sortedItems.slice(-1);
+      subtitleParts.length === 1
+        ? subtitleParts[0]
+        : subtitleParts.slice(0, -1).join(', ') +
+          ' & ' +
+          subtitleParts.slice(-1);
 
     return (
       <MultiContainer>
         <h3 className="esri-widget__heading esri-legend__service-label">
           {layerName}
         </h3>
-        {sortedItems.length > 0 && (
+        {subtitleParts.length > 0 && (
           <Subtitle>
             Average of {sortedSubtitlePartsStr}, as an integer 0-100
           </Subtitle>
