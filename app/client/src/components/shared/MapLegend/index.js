@@ -65,11 +65,12 @@ const ignoreLayers = ['mappedWaterLayer', 'watershedsLayer', 'searchIconLayer'];
 
 // --- components ---
 type Props = {
+  view: Object,
   visibleLayers: Object,
   additionalLegendInfo: Object,
 };
 
-function MapLegend({ visibleLayers, additionalLegendInfo }: Props) {
+function MapLegend({ view, visibleLayers, additionalLegendInfo }: Props) {
   const filteredVisibleLayers = visibleLayers.filter(
     (layer) => !ignoreLayers.includes(layer.id),
   );
@@ -85,6 +86,7 @@ function MapLegend({ visibleLayers, additionalLegendInfo }: Props) {
             return (
               <MapLegendContent
                 key={index}
+                view={view}
                 layer={layer}
                 additionalLegendInfo={additionalLegendInfo}
               />
@@ -97,6 +99,7 @@ function MapLegend({ visibleLayers, additionalLegendInfo }: Props) {
 }
 
 type CardProps = {
+  view: Object,
   layer: Object,
   additionalLegendInfo: Object,
 };
@@ -104,7 +107,7 @@ type CardProps = {
 const boxSize = 26;
 const iconSize = 20;
 
-function MapLegendContent({ layer, additionalLegendInfo }: CardProps) {
+function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   const squareIcon = ({ color, strokeWidth = 1, stroke = 'black' }) => {
     return (
       <svg
@@ -476,11 +479,49 @@ function MapLegendContent({ layer, additionalLegendInfo }: CardProps) {
       );
     }
 
+    // maps the layer title to a text for a sentence
+    const titleMap = {
+      'Less Than HS Education': '% less than HS education',
+      'Minority Population': '% minority',
+      'Linguistically Isolated': '% linguistically isolated',
+      'Low Income': '% low income',
+      'Over Age 64': '% over age 64',
+      'Under Age 5': '% under age 5',
+      'Demographic Index': 'demographic index',
+    };
+
+    // build subtitle based on which layers are visible
+    const subtitleParts = [];
+    const layers = view.map.layers.items;
+    for (let i = 0; i < layers.length; i++) {
+      const layer = layers[i];
+      if (layer.id === 'ejscreenLayer') {
+        layer.sublayers.items.forEach((sublayer) => {
+          if (sublayer.visible) {
+            subtitleParts.push(titleMap[sublayer.title]);
+          }
+        });
+        break;
+      }
+    }
+
+    // combine the subtitle parts into a comma delimited string
+    const sortedItems = subtitleParts.sort();
+    const sortedSubtitlePartsStr =
+      sortedItems.length === 1
+        ? sortedItems[0]
+        : sortedItems.slice(0, -1).join(', ') + ' & ' + sortedItems.slice(-1);
+
     return (
       <MultiContainer>
         <h3 className="esri-widget__heading esri-legend__service-label">
           {layerName}
         </h3>
+        {sortedItems.length > 0 && (
+          <Subtitle>
+            Average of {sortedSubtitlePartsStr}, as an integer 0-100
+          </Subtitle>
+        )}
         {legend.map((item, index) => {
           return (
             <LI key={index}>
