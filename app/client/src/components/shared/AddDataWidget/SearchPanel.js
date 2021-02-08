@@ -826,7 +826,6 @@ function ResultCard({ result }: ResultCardProps) {
 
     // remove the layers from the map and session storage.
     if (layersToRemove.length > 0) {
-      mapView.map.removeMany(layersToRemove.toArray());
       setWidgetLayers((widgetLayers) =>
         widgetLayers.filter(
           (widgetLayer) => widgetLayer?.portalItem?.id !== result.id,

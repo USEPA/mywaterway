@@ -256,6 +256,56 @@ function MapWidgets({
     map.removeAll();
     map.addMany(layers);
     map.addMany(widgetLayers);
+
+    // gets a layer type value used for sorting
+    function getLayerType(layer: __esri.Layer) {
+      // if the layer is in orderedLayers, then classify it as an hmw
+      // layer
+      if (orderedLayers.indexOf(layer.id) > -1) return 'hmw';
+
+      const imageryTypes = ['imagery', 'tile', 'vector-tile'];
+      let type = 'other';
+
+      let groupType = '';
+      if (layer.type === 'group') {
+        const groupLayer = layer;
+        groupLayer.layers.forEach((layer, index) => {
+          if (groupType === 'combo') return;
+
+          if (index === 0) {
+            groupType = layer.type;
+            return;
+          }
+
+          if (groupType !== layer.type) {
+            groupType = 'combo';
+          }
+        });
+      }
+
+      if (layer.type === 'graphics' || groupType === 'graphics') {
+        type = 'graphics';
+      } else if (layer.type === 'feature' || groupType === 'feature') {
+        type = 'feature';
+      } else if (
+        imageryTypes.includes(type) ||
+        imageryTypes.includes(groupType)
+      ) {
+        type = 'imagery';
+      }
+
+      return type;
+    }
+
+    // the layers are ordered as follows:
+    // graphicsLayers (top)
+    // featureLayers
+    // otherLayers
+    // imageryLayers (bottom)
+    const sortBy = ['other', 'imagery', 'feature', 'graphics', 'hmw'];
+    map.layers.sort((a: __esri.Layer, b: __esri.Layer) => {
+      return sortBy.indexOf(getLayerType(a)) - sortBy.indexOf(getLayerType(b));
+    });
   }, [layers, map, widgetLayers]);
 
   // put the home widget back on the ui after the window is resized
@@ -756,71 +806,6 @@ function MapWidgets({
       upstreamWidget.style.cursor = 'pointer';
     }
   }, [upstreamWidget, upstreamWidgetDisabled]);
-
-  // Creates a watch event that is used for reordering the layers
-  const [watchInitialized, setWatchInitialized] = React.useState(false);
-  React.useEffect(() => {
-    if (!map || watchInitialized) return;
-
-    // whenever layers are added, reorder them
-    map.layers.on('change', ({ added }) => {
-      if (added.length === 0) return;
-
-      // gets a layer type value used for sorting
-      function getLayerType(layer: __esri.Layer) {
-        // if the layer is in orderedLayers, then classify it as an hmw
-        // layer
-        if (orderedLayers.indexOf(layer.id) > -1) return 'hmw';
-
-        const imageryTypes = ['imagery', 'tile', 'vector-tile'];
-        let type = 'other';
-
-        let groupType = '';
-        if (layer.type === 'group') {
-          const groupLayer = layer;
-          groupLayer.layers.forEach((layer, index) => {
-            if (groupType === 'combo') return;
-
-            if (index === 0) {
-              groupType = layer.type;
-              return;
-            }
-
-            if (groupType !== layer.type) {
-              groupType = 'combo';
-            }
-          });
-        }
-
-        if (layer.type === 'graphics' || groupType === 'graphics') {
-          type = 'graphics';
-        } else if (layer.type === 'feature' || groupType === 'feature') {
-          type = 'feature';
-        } else if (
-          imageryTypes.includes(type) ||
-          imageryTypes.includes(groupType)
-        ) {
-          type = 'imagery';
-        }
-
-        return type;
-      }
-
-      // the layers are ordered as follows:
-      // graphicsLayers (top)
-      // featureLayers
-      // otherLayers
-      // imageryLayers (bottom)
-      const sortBy = ['other', 'imagery', 'feature', 'graphics', 'hmw'];
-      map.layers.sort((a: __esri.Layer, b: __esri.Layer) => {
-        return (
-          sortBy.indexOf(getLayerType(a)) - sortBy.indexOf(getLayerType(b))
-        );
-      });
-    });
-
-    setWatchInitialized(true);
-  }, [map, watchInitialized]);
 
   // watch for changes to upstream layer visibility and update visible layers accordingly
   React.useEffect(() => {
