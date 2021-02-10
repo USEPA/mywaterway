@@ -277,8 +277,8 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
             viewBox="0 0 26 26"
             aria-hidden="true"
           >
-            <rect x="0" y="12" width="10" height="3" fill="#666666" />
-            <rect x="16" y="12" width="10" height="3" fill="#666666" />
+            <rect x="0" y="12" width="10" height="3" fill="#000" />
+            <rect x="16" y="12" width="10" height="3" fill="#000" />
           </svg>
         </ImageContainer>
         <LegendLabel>HUC12 Boundaries</LegendLabel>
