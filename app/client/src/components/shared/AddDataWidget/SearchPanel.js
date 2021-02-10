@@ -161,8 +161,7 @@ const NewTabDisclaimer = styled.em`
 
 // --- components (SearchPanel) ---
 function SearchPanel() {
-  const { mapView } = React.useContext(LocationSearchContext);
-  const { Portal, watchUtils } = React.useContext(EsriModulesContext);
+  const { Portal } = React.useContext(EsriModulesContext);
   const {
     pageNumber,
     setPageNumber,
@@ -189,7 +188,6 @@ function SearchPanel() {
   const [kml, setKml] = React.useState(false);
   const [wms, setWms] = React.useState(false);
 
-  const [currentExtent, setCurrentExtent] = React.useState(null);
   const [sortBy, setSortBy] = React.useState({
     value: 'none',
     label: 'Relevance',
@@ -284,7 +282,6 @@ function SearchPanel() {
         setSearchResults({ status: 'failure', data: null });
       });
   }, [
-    currentExtent,
     Portal,
     location,
     search,
@@ -335,18 +332,6 @@ function SearchPanel() {
         setSearchResults({ status: 'failure', data: null });
       });
   }, [Portal, pageNumber, lastPageNumber, searchResults, setSearchResults]);
-
-  // Defines a watch event for filtering results based on the map extent
-  const [watchViewInitialized, setWatchViewInitialized] = React.useState(false);
-  React.useEffect(() => {
-    if (!mapView || watchViewInitialized) return;
-
-    watchUtils.whenTrue(mapView, 'stationary', () => {
-      setCurrentExtent(mapView.extent);
-    });
-
-    setWatchViewInitialized(true);
-  }, [mapView, watchUtils, watchViewInitialized]);
 
   const [showFilterOptions, setShowFilterOptions] = React.useState(false);
 
