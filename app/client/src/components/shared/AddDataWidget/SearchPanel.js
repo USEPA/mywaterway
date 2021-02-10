@@ -6,7 +6,6 @@ import Select from 'react-select';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
-import Switch from 'components/shared/Switch';
 // contexts
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -92,9 +91,7 @@ const ButtonHiddenText = styled.span`
 
 const FilterContainer = styled.div`
   display: flex;
-  flex-flow: wrap;
-  justify-content: space-between;
-  align-items: center;
+  flex-wrap: wrap;
   margin: 2.5px;
 `;
 
@@ -164,8 +161,7 @@ const NewTabDisclaimer = styled.em`
 
 // --- components (SearchPanel) ---
 function SearchPanel() {
-  const { mapView } = React.useContext(LocationSearchContext);
-  const { Portal, watchUtils } = React.useContext(EsriModulesContext);
+  const { Portal } = React.useContext(EsriModulesContext);
   const {
     pageNumber,
     setPageNumber,
@@ -185,7 +181,6 @@ function SearchPanel() {
   ] = React.useState(locationList[0]);
   const [search, setSearch] = React.useState('');
   const [searchText, setSearchText] = React.useState('');
-  const [withinMap, setWithinMap] = React.useState(true);
   const [mapService, setMapService] = React.useState(false);
   const [featureService, setFeatureService] = React.useState(false);
   const [imageService, setImageService] = React.useState(false);
@@ -193,7 +188,6 @@ function SearchPanel() {
   const [kml, setKml] = React.useState(false);
   const [wms, setWms] = React.useState(false);
 
-  const [currentExtent, setCurrentExtent] = React.useState(null);
   const [sortBy, setSortBy] = React.useState({
     value: 'none',
     label: 'Relevance',
@@ -264,15 +258,11 @@ function SearchPanel() {
       sortOrder,
     };
 
-    if (withinMap && currentExtent) queryParams.extent = currentExtent;
-
     // if a sort by (other than relevance) is selected, add it to the query params
     if (sortBy.value !== 'none') {
       queryParams.sortField = sortBy.value;
     } else {
-      if (!withinMap) {
-        queryParams.sortField = 'num-views';
-      }
+      queryParams.sortField = 'num-views';
     }
 
     // perform the query
@@ -292,12 +282,10 @@ function SearchPanel() {
         setSearchResults({ status: 'failure', data: null });
       });
   }, [
-    currentExtent,
     Portal,
     location,
     search,
     setSearchResults,
-    withinMap,
     mapService,
     featureService,
     imageService,
@@ -344,18 +332,6 @@ function SearchPanel() {
         setSearchResults({ status: 'failure', data: null });
       });
   }, [Portal, pageNumber, lastPageNumber, searchResults, setSearchResults]);
-
-  // Defines a watch event for filtering results based on the map extent
-  const [watchViewInitialized, setWatchViewInitialized] = React.useState(false);
-  React.useEffect(() => {
-    if (!mapView || watchViewInitialized) return;
-
-    watchUtils.whenTrue(mapView, 'stationary', () => {
-      setCurrentExtent(mapView.extent);
-    });
-
-    setWatchViewInitialized(true);
-  }, [mapView, watchUtils, watchViewInitialized]);
 
   const [showFilterOptions, setShowFilterOptions] = React.useState(false);
 
@@ -405,18 +381,6 @@ function SearchPanel() {
         </SearchFlexBox>
 
         <FilterContainer>
-          <FilterOption>
-            <label
-              style={{ display: 'flex', alignItems: 'center', margin: '0' }}
-            >
-              <Switch
-                checked={withinMap}
-                onChange={(ev) => setWithinMap(!withinMap)}
-                ariaLabel="Within map view"
-              />{' '}
-              <span style={{ marginLeft: '5px' }}>Within map view</span>
-            </label>
-          </FilterOption>
           <FilterOption>
             <TextSelect
               onClick={() => {
@@ -498,7 +462,7 @@ function SearchPanel() {
               </TypeSelect>
             )}
           </FilterOption>
-          <FilterOption style={{ textAlign: 'right' }}>
+          <FilterOption>
             <TextSelect
               onClick={() => {
                 setShowSortOptions(!showSortOptions);
