@@ -6,7 +6,6 @@ import Select from 'react-select';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
-import Switch from 'components/shared/Switch';
 // contexts
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -92,9 +91,7 @@ const ButtonHiddenText = styled.span`
 
 const FilterContainer = styled.div`
   display: flex;
-  flex-flow: wrap;
-  justify-content: space-between;
-  align-items: center;
+  flex-wrap: wrap;
   margin: 2.5px;
 `;
 
@@ -185,7 +182,6 @@ function SearchPanel() {
   ] = React.useState(locationList[0]);
   const [search, setSearch] = React.useState('');
   const [searchText, setSearchText] = React.useState('');
-  const [withinMap, setWithinMap] = React.useState(true);
   const [mapService, setMapService] = React.useState(false);
   const [featureService, setFeatureService] = React.useState(false);
   const [imageService, setImageService] = React.useState(false);
@@ -264,15 +260,11 @@ function SearchPanel() {
       sortOrder,
     };
 
-    if (withinMap && currentExtent) queryParams.extent = currentExtent;
-
     // if a sort by (other than relevance) is selected, add it to the query params
     if (sortBy.value !== 'none') {
       queryParams.sortField = sortBy.value;
     } else {
-      if (!withinMap) {
-        queryParams.sortField = 'num-views';
-      }
+      queryParams.sortField = 'num-views';
     }
 
     // perform the query
@@ -297,7 +289,6 @@ function SearchPanel() {
     location,
     search,
     setSearchResults,
-    withinMap,
     mapService,
     featureService,
     imageService,
@@ -406,18 +397,6 @@ function SearchPanel() {
 
         <FilterContainer>
           <FilterOption>
-            <label
-              style={{ display: 'flex', alignItems: 'center', margin: '0' }}
-            >
-              <Switch
-                checked={withinMap}
-                onChange={(ev) => setWithinMap(!withinMap)}
-                ariaLabel="Within map view"
-              />{' '}
-              <span style={{ marginLeft: '5px' }}>Within map view</span>
-            </label>
-          </FilterOption>
-          <FilterOption>
             <TextSelect
               onClick={() => {
                 setShowFilterOptions(!showFilterOptions);
@@ -498,7 +477,7 @@ function SearchPanel() {
               </TypeSelect>
             )}
           </FilterOption>
-          <FilterOption style={{ textAlign: 'right' }}>
+          <FilterOption>
             <TextSelect
               onClick={() => {
                 setShowSortOptions(!showSortOptions);
