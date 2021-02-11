@@ -307,8 +307,9 @@ function Protect() {
               {infoToggleChecked && (
                 <p>
                   Learn about watershed health scores in relation to your state,
-                  if there are any protected areas in your watershed, and the
-                  location of designated <em>Wild and Scenic Rivers</em>.
+                  the location of designated Wild and Scenic Rivers and if there
+                  are any protection projects or protected areas in your
+                  watershed.
                 </p>
               )}
 
@@ -1099,7 +1100,7 @@ function Protect() {
               <p>
                 <em>Links below open in a new browser tab.</em>
               </p>
-              <p>Get quick tips for reducing water impairment in your:</p>
+              <p>Get quick tips for protecting water in your:</p>
 
               <Heading>Community</Heading>
               <List>
