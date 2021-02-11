@@ -461,7 +461,7 @@ function Protect() {
                                 The Watershed Health Index, from the Preliminary
                                 Healthy Watersheds Assessment (PHWA), is a score
                                 of <strong>watershed health</strong> across the
-                                conterminous United States.
+                                United States.
                               </p>
                               <ul>
                                 <li>
@@ -491,7 +491,9 @@ function Protect() {
                     <WsioQuestionContainer>
                       <InlineBlockWrapper>
                         <p>
-                          <strong>Why is the PHWA valuable?</strong>
+                          <strong>
+                            Why is the Watershed Health Index valuable?
+                          </strong>
                         </p>
                       </InlineBlockWrapper>
                       <InlineBlockWrapper>
