@@ -465,6 +465,11 @@ function LocationSearch({ route, label }: Props) {
                   setSuggestionsVisible(false);
                   setCursor(-1);
 
+                  const searchButton = document.getElementById(
+                    'search-submit-button',
+                  );
+                  if (searchButton) searchButton.click();
+
                   if (!searchWidget) return;
                   searchWidget.searchTerm = result.text;
                   searchWidget.search(result.text);
@@ -810,6 +815,7 @@ function LocationSearch({ route, label }: Props) {
         </SearchBox>
 
         <Button
+          id="search-submit-button"
           className="btn"
           type="submit"
           disabled={inputText === searchText}
