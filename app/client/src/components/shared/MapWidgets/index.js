@@ -135,6 +135,23 @@ function updateVisibleLayers(
     let layer = view.map.layers.items.find((layer) => layer.id === layerId);
     if (!layer) return;
 
+    // verify there is atleast one child layer visible before adding the layer
+    // to the legend
+    if (layer.layers) {
+      let anyVisible = false;
+      layer.layers.forEach((sublayer) => {
+        if (sublayer.visible) anyVisible = true;
+      });
+      if (!anyVisible) return;
+    }
+    if (layer.sublayers) {
+      let anyVisible = false;
+      layer.sublayers.forEach((sublayer) => {
+        if (sublayer.visible) anyVisible = true;
+      });
+      if (!anyVisible) return;
+    }
+
     // add the layer if it is visible on the map. Boundaries and actions
     // waterbodies layers are handled separately here because it is always
     // hidden from the layer list widget, but still needs to be in the legend.
