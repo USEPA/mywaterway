@@ -49,6 +49,12 @@ const AddButton = styled.button`
 
 const UrlInput = styled.input`
   width: 100%;
+  height: 36px;
+  padding: 2px 8px;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 4px;
+  border-color: hsl(0, 0%, 80%);
 `;
 
 const StyledLinkButton = styled(LinkButton)`
