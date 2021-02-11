@@ -238,6 +238,26 @@ function LocationSearch({ route, label }: Props) {
         },
       ],
     },
+    {
+      type: 'layer',
+      name: 'Watershed',
+      placeholder: 'Search watersheds...',
+      sources: [
+        {
+          layer: new FeatureLayer({
+            url:
+              'https://gispub.epa.gov/arcgis/rest/services/OW/HydrologicUnits/MapServer/19',
+            listMode: 'hide',
+          }),
+          searchFields: ['name', 'huc12'],
+          suggestionTemplate: '{name} ({huc12})',
+          exactMatch: false,
+          outFields: ['name', 'huc12'],
+          placeholder: placeholder,
+          name: 'Watersheds',
+        },
+      ],
+    },
   ]);
 
   // geolocating state for updating the 'Use My Location' button
@@ -462,7 +482,7 @@ function LocationSearch({ route, label }: Props) {
   }
 
   let index = -1;
-  function LayerSuggestions({ title, results }) {
+  function LayerSuggestions({ title, source }) {
     return (
       <>
         <div className="esri-menu__header">{title}</div>
@@ -470,7 +490,7 @@ function LocationSearch({ route, label }: Props) {
           role="presentation"
           className="esri-menu__list esri-search__suggestions-list"
         >
-          {results.map((result) => {
+          {source.results.map((result) => {
             index = index + 1;
             return (
               <li
@@ -485,11 +505,17 @@ function LocationSearch({ route, label }: Props) {
                   setSuggestionsVisible(false);
                   setCursor(-1);
 
-                  formSubmit(result.text);
-
                   if (!searchWidget) return;
                   searchWidget.searchTerm = result.text;
-                  searchWidget.search(result.text);
+
+                  if (source.source.name === 'Watersheds') {
+                    // extract the huc from "Watershed (huc)" and search on the huc
+                    const huc = result.text.split('(')[1].replace(')', '');
+                    formSubmit(huc);
+                  } else {
+                    searchWidget.search(result.text);
+                    formSubmit(result.text);
+                  }
                 }}
               >
                 {result.text
@@ -777,7 +803,7 @@ function LocationSearch({ route, label }: Props) {
                       <LayerSuggestions
                         key={`layer-suggestions-key-${index}`}
                         title={title}
-                        results={source.results}
+                        source={source}
                       />
                     );
                   })}
