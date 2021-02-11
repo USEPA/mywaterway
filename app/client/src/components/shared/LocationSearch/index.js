@@ -441,6 +441,26 @@ function LocationSearch({ route, label }: Props) {
       setInputText(resultsCombined[cursor].text);
   }, [cursor, enterPress, resultsCombined]);
 
+  // Performs the search operation
+  function formSubmit(searchTerm) {
+    setSuggestionsVisible(false);
+    setCursor(-1);
+
+    if (containsScriptTag(searchTerm)) {
+      setErrorMessage(invalidSearchError);
+      return;
+    }
+
+    // get urlSearch parameter value
+    if (searchTerm) {
+      setErrorMessage('');
+      setGeolocationError(false);
+
+      // only navigate if search box contains text
+      navigate(encodeURI(route.replace('{urlSearch}', searchTerm.trim())));
+    }
+  }
+
   let index = -1;
   function LayerSuggestions({ title, results }) {
     return (
@@ -464,6 +484,8 @@ function LocationSearch({ route, label }: Props) {
                   setInputText(result.text);
                   setSuggestionsVisible(false);
                   setCursor(-1);
+
+                  formSubmit(result.text);
 
                   if (!searchWidget) return;
                   searchWidget.searchTerm = result.text;
@@ -582,22 +604,7 @@ function LocationSearch({ route, label }: Props) {
         onSubmit={(ev) => {
           ev.preventDefault();
 
-          setSuggestionsVisible(false);
-          setCursor(-1);
-
-          if (containsScriptTag(inputText)) {
-            setErrorMessage(invalidSearchError);
-            return;
-          }
-
-          // get urlSearch parameter value
-          if (inputText) {
-            setErrorMessage('');
-            setGeolocationError(false);
-
-            // only navigate if search box contains text
-            navigate(encodeURI(route.replace('{urlSearch}', inputText.trim())));
-          }
+          formSubmit(inputText);
         }}
       >
         <SearchBox>
