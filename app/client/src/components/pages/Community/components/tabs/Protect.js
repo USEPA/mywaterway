@@ -307,8 +307,9 @@ function Protect() {
               {infoToggleChecked && (
                 <p>
                   Learn about watershed health scores in relation to your state,
-                  if there are any protected areas in your watershed, and the
-                  location of designated <em>Wild and Scenic Rivers</em>.
+                  the location of designated Wild and Scenic Rivers and if there
+                  are any protection projects or protected areas in your
+                  watershed.
                 </p>
               )}
 
@@ -461,7 +462,7 @@ function Protect() {
                                 The Watershed Health Index, from the Preliminary
                                 Healthy Watersheds Assessment (PHWA), is a score
                                 of <strong>watershed health</strong> across the
-                                conterminous United States.
+                                United States.
                               </p>
                               <ul>
                                 <li>
@@ -491,7 +492,9 @@ function Protect() {
                     <WsioQuestionContainer>
                       <InlineBlockWrapper>
                         <p>
-                          <strong>Why is the PHWA valuable?</strong>
+                          <strong>
+                            Why is the Watershed Health Index valuable?
+                          </strong>
                         </p>
                       </InlineBlockWrapper>
                       <InlineBlockWrapper>
@@ -1097,7 +1100,7 @@ function Protect() {
               <p>
                 <em>Links below open in a new browser tab.</em>
               </p>
-              <p>Get quick tips for reducing water impairment in your:</p>
+              <p>Get quick tips for protecting water in your:</p>
 
               <Heading>Community</Heading>
               <List>
