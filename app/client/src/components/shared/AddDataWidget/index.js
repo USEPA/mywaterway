@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 // components
 import { ContentTabs } from 'components/shared/ContentTabs';
+import DisclaimerModal from 'components/shared/DisclaimerModal';
 import { LinkButton } from 'components/shared/LinkButton';
 import FilePanel from 'components/shared/AddDataWidget/FilePanel';
 import SearchPanel from 'components/shared/AddDataWidget/SearchPanel';
@@ -80,6 +81,7 @@ const FooterBar = styled.div`
   height: 40px;
   width: 100%;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   background-color: #f8f8f8;
@@ -332,6 +334,16 @@ function AddDataWidget() {
               </React.Fragment>
             )}
           </div>
+          <DisclaimerModal>
+            <p>
+              <strong>Disclaimer:</strong> The following data sets may come from
+              several sources outside of EPA.
+            </p>
+            <p>
+              EPA cannot attest to the accuracy of data provided by
+              organizations outside of the federal government.
+            </p>
+          </DisclaimerModal>
           <StyledLinkButton
             onClick={() => {
               setLayerPanelVisible(!layerPanelVisible);
