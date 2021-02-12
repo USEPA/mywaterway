@@ -16,7 +16,10 @@ import { containsScriptTag, isHuc12, splitSuggestedSearch } from 'utils/utils';
 // styles
 import { colors } from 'styles/index.js';
 // errors
-import { invalidSearchError } from 'config/errorMessages';
+import {
+  invalidSearchError,
+  webServiceErrorMessage,
+} from 'config/errorMessages';
 
 // Finds the source of the suggestion
 function findSource(name, suggestions) {
@@ -401,7 +404,13 @@ function LocationSearch({ route, label }: Props) {
           source = sug.source;
           sourceIndex = sug.sourceIndex;
         }
-        results.push(...sug.results);
+        sug.results.forEach((result) => {
+          results.push({
+            ...result,
+            source: sug.source,
+            sourceIndex: sug.sourceIndex,
+          });
+        });
       });
 
       if (results.length > 0) {
@@ -462,7 +471,7 @@ function LocationSearch({ route, label }: Props) {
   }, [cursor, enterPress, resultsCombined]);
 
   // Performs the search operation
-  function formSubmit(searchTerm) {
+  function formSubmit(searchTerm, geometry = null) {
     setSuggestionsVisible(false);
     setCursor(-1);
 
@@ -472,12 +481,22 @@ function LocationSearch({ route, label }: Props) {
     }
 
     // get urlSearch parameter value
-    if (searchTerm) {
+    let urlSearch = null;
+    if (geometry) {
+      urlSearch = `${searchTerm.trim()}|${geometry.longitude}, ${
+        geometry.latitude
+      }`;
+    } else if (searchTerm) {
+      urlSearch = searchTerm.trim();
+    }
+
+    // navigate if the urlSearch value is available
+    if (urlSearch) {
       setErrorMessage('');
       setGeolocationError(false);
 
       // only navigate if search box contains text
-      navigate(encodeURI(route.replace('{urlSearch}', searchTerm.trim())));
+      navigate(encodeURI(route.replace('{urlSearch}', urlSearch)));
     }
   }
 
@@ -508,13 +527,31 @@ function LocationSearch({ route, label }: Props) {
                   if (!searchWidget) return;
                   searchWidget.searchTerm = result.text;
 
-                  if (source.source.name === 'Watersheds') {
+                  if (source.source.name === 'ArcGIS') {
+                    // use esri geocoder
+                    searchWidget.search(result.text);
+                    formSubmit(result.text);
+                  } else if (source.source.name === 'Watersheds') {
                     // extract the huc from "Watershed (huc)" and search on the huc
                     const huc = result.text.split('(')[1].replace(')', '');
                     formSubmit(huc);
                   } else {
-                    searchWidget.search(result.text);
-                    formSubmit(result.text);
+                    // query to get the feature and search based on the centroid
+                    const params = result.source.layer.createQuery();
+                    params.returnGeometry = true;
+                    params.where = `${result.source.layer.objectIdField} = ${result.key}`;
+                    result.source.layer
+                      .queryFeatures(params)
+                      .then((res) => {
+                        if (res.features.length > 0) {
+                          const center = res.features[0].geometry.centroid;
+                          formSubmit(result.text, center);
+                          searchWidget.search(result.text);
+                        }
+                      })
+                      .catch((err) => {
+                        setErrorMessage(webServiceErrorMessage);
+                      });
                   }
                 }}
               >
