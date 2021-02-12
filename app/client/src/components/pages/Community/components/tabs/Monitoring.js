@@ -19,6 +19,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { plotStations } from 'components/pages/LocationMap/MapFunctions';
+import { useWaterbodyOnMap } from 'utils/hooks';
 // data
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // errors
@@ -87,6 +88,9 @@ function Monitoring() {
   const { Graphic } = React.useContext(EsriModulesContext);
 
   const services = useServicesContext();
+
+  // draw the waterbody on the map
+  useWaterbodyOnMap();
 
   const {
     monitoringLocations,
