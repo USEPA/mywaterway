@@ -83,11 +83,22 @@ const AccordionContent = styled.div`
   }
 `;
 
+const NoSwitchHeader = styled.strong`
+  margin-left: 48px;
+`;
+
+const StyledSwitch = styled.div`
+  margin-right: 10px;
+  pointer-events: all;
+  display: flex;
+`;
+
 const Label = styled.label`
   display: flex;
   align-items: center;
-  margin: 0.75rem 0;
+  margin: 0;
   font-weight: bold;
+  pointer-events: none;
 
   span {
     margin-left: 0.5em;
@@ -288,6 +299,21 @@ function Protect() {
     ? Math.round(wsioData.phwa_health_ndx_st_2016 * 100) / 100
     : null;
 
+  function SwitchContainer({ children }) {
+    // This div is to workaround a couple of issues with the react-switch component.
+    // The first issue is the className prop of the component does not work, which
+    // prevented putting styles (margin, pointer-events) on the component. The
+    // second issue is the react-switch component returns two different event types.
+    // One event type has stopPropagation and the other does not. This container
+    // allows us to stopPropagation in the case of the event without stopPropagation
+    // is returned.
+    return (
+      <StyledSwitch onClick={(ev) => ev.stopPropagation()}>
+        {children}
+      </StyledSwitch>
+    );
+  }
+
   return (
     <Container>
       <ContentTabs>
@@ -316,31 +342,34 @@ function Protect() {
               <AccordionList>
                 <AccordionItem
                   highlightContent={false}
-                  title={<strong>Watershed Health Scores</strong>}
+                  title={
+                    <Label>
+                      <SwitchContainer>
+                        <Switch
+                          checked={
+                            healthScoresDisplayed &&
+                            wsioHealthIndexData.status === 'success' &&
+                            wsioHealthIndexData.data.length > 0
+                          }
+                          onChange={(checked, event) => {
+                            setHealthScoresDisplayed(checked);
+                            updateVisibleLayers({
+                              key: 'wsioHealthIndexLayer',
+                              newValue: checked,
+                            });
+                          }}
+                          disabled={
+                            wsioHealthIndexData.status === 'failure' ||
+                            wsioHealthIndexData.data.length === 0
+                          }
+                          ariaLabel="Watershed Health Scores"
+                        />
+                      </SwitchContainer>
+                      <strong>Watershed Health Scores</strong>
+                    </Label>
+                  }
                 >
                   <AccordionContent>
-                    <Label>
-                      <Switch
-                        checked={
-                          healthScoresDisplayed &&
-                          wsioHealthIndexData.status === 'success' &&
-                          wsioHealthIndexData.data.length > 0
-                        }
-                        onChange={(checked) => {
-                          setHealthScoresDisplayed(checked);
-                          updateVisibleLayers({
-                            key: 'wsioHealthIndexLayer',
-                            newValue: checked,
-                          });
-                        }}
-                        disabled={
-                          wsioHealthIndexData.status === 'failure' ||
-                          wsioHealthIndexData.data.length === 0
-                        }
-                        ariaLabel="Watershed Health Scores"
-                      />
-                      <span>Display on Map</span>
-                    </Label>
                     {wsioHealthIndexData.status === 'failure' && (
                       <ErrorBox>
                         <p>{wsioHealthIndexError}</p>
@@ -406,7 +435,9 @@ function Protect() {
                               </tbody>
                             </table>
                           </div>
-                          <div style={{ flex: '1 1 0', marginLeft: '10px' }}>
+                          <div
+                            style={{ flex: '1 1 0', margin: '0 0 10px 10px' }}
+                          >
                             <GradientInnerContainer>
                               <GradientHeaderFooter>
                                 More Healthy
@@ -549,7 +580,28 @@ function Protect() {
 
                 <AccordionItem
                   highlightContent={false}
-                  title={<strong>Wild and Scenic Rivers</strong>}
+                  title={
+                    <Label>
+                      <SwitchContainer>
+                        <Switch
+                          checked={
+                            wildScenicRiversDisplayed &&
+                            wildScenicRiversData.status === 'success'
+                          }
+                          onChange={(checked, event) => {
+                            setWildScenicRiversDisplayed(checked);
+                            updateVisibleLayers({
+                              key: 'wildScenicRiversLayer',
+                              newValue: checked,
+                            });
+                          }}
+                          disabled={wildScenicRiversData.status === 'failure'}
+                          ariaLabel="Wild and Scenic Rivers"
+                        />
+                      </SwitchContainer>
+                      <strong>Wild and Scenic Rivers</strong>
+                    </Label>
+                  }
                 >
                   <AccordionContent>
                     {infoToggleChecked && (
@@ -574,25 +626,6 @@ function Protect() {
                         in developing goals for river protection.
                       </p>
                     )}
-
-                    <Label>
-                      <Switch
-                        checked={
-                          wildScenicRiversDisplayed &&
-                          wildScenicRiversData.status === 'success'
-                        }
-                        onChange={(checked) => {
-                          setWildScenicRiversDisplayed(checked);
-                          updateVisibleLayers({
-                            key: 'wildScenicRiversLayer',
-                            newValue: checked,
-                          });
-                        }}
-                        disabled={wildScenicRiversData.status === 'failure'}
-                        ariaLabel="Wild and Scenic Rivers"
-                      />
-                      <span>Display on Map</span>
-                    </Label>
 
                     {wildScenicRiversData.status === 'failure' && (
                       <ErrorBox>
@@ -728,7 +761,7 @@ function Protect() {
 
                 <AccordionItem
                   highlightContent={false}
-                  title={<strong>Protection Projects</strong>}
+                  title={<NoSwitchHeader>Protection Projects</NoSwitchHeader>}
                 >
                   <AccordionContent>
                     {grts.status === 'fetching' && <LoadingSpinner />}
@@ -888,7 +921,32 @@ function Protect() {
 
                 <AccordionItem
                   highlightContent={false}
-                  title={<strong>Protected Areas</strong>}
+                  title={
+                    <Label>
+                      <SwitchContainer>
+                        <Switch
+                          checked={
+                            protectedAreasDisplayed &&
+                            protectedAreasData.status === 'success' &&
+                            protectedAreasData.data.length > 0
+                          }
+                          onChange={(checked, event) => {
+                            setProtectedAreasDisplayed(checked);
+                            updateVisibleLayers({
+                              key: 'protectedAreasLayer',
+                              newValue: checked,
+                            });
+                          }}
+                          disabled={
+                            protectedAreasData.status === 'failure' ||
+                            protectedAreasData.data.length === 0
+                          }
+                          ariaLabel="Protected Areas"
+                        />
+                      </SwitchContainer>
+                      <strong>Protected Areas</strong>
+                    </Label>
+                  }
                 >
                   <AccordionContent>
                     {infoToggleChecked && (
@@ -918,29 +976,6 @@ function Protect() {
                         </p>
                       </>
                     )}
-
-                    <Label>
-                      <Switch
-                        checked={
-                          protectedAreasDisplayed &&
-                          protectedAreasData.status === 'success' &&
-                          protectedAreasData.data.length > 0
-                        }
-                        onChange={(checked) => {
-                          setProtectedAreasDisplayed(checked);
-                          updateVisibleLayers({
-                            key: 'protectedAreasLayer',
-                            newValue: checked,
-                          });
-                        }}
-                        disabled={
-                          protectedAreasData.status === 'failure' ||
-                          protectedAreasData.data.length === 0
-                        }
-                        ariaLabel="Protected Areas"
-                      />
-                      <span>Display on Map</span>
-                    </Label>
 
                     {protectedAreasData.status === 'failure' && (
                       <ErrorBox>
