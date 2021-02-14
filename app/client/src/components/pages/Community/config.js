@@ -289,7 +289,10 @@ const tabs = [
     icon: monitoringIcon,
     upper: monitoringUpper,
     lower: <Monitoring />,
-    layers: { monitoringStationsLayer: true },
+    layers: {
+      monitoringStationsLayer: true,
+      waterbodyLayer: false,
+    },
   },
   {
     title: 'Identified Issues',
@@ -305,7 +308,9 @@ const tabs = [
     icon: restoreIcon,
     upper: restoreUpper,
     lower: <Restore />,
-    layers: {},
+    layers: {
+      waterbodyLayer: false,
+    },
   },
   {
     title: 'Protect',
@@ -317,6 +322,7 @@ const tabs = [
       wsioHealthIndexLayer: false,
       wildScenicRiversLayer: false,
       protectedAreasLayer: false,
+      waterbodyLayer: false,
     },
   },
 ];

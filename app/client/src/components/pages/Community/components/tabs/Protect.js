@@ -21,6 +21,7 @@ import { MapHighlightContext } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { getUrlFromMarkup, getTitleFromMarkup } from 'components/shared/Regex';
+import { useWaterbodyOnMap } from 'utils/hooks';
 import { convertAgencyCode, convertDomainCode } from 'utils/utils';
 // styles
 import { fonts } from 'styles/index.js';
@@ -160,6 +161,9 @@ const ViewButtonContainer = styled.div`
 function Protect() {
   const services = useServicesContext();
 
+  // draw the waterbody on the map
+  useWaterbodyOnMap();
+
   const { Query, QueryTask, SimpleFillSymbol } = React.useContext(
     EsriModulesContext,
   );
@@ -178,6 +182,8 @@ function Protect() {
     protectedAreasLayer,
     protectedAreasData,
     protectedAreasHighlightLayer,
+    waterbodyLayer,
+    cipSummary,
   } = React.useContext(LocationSearchContext);
 
   const { infoToggleChecked } = React.useContext(CommunityTabsContext);
@@ -232,6 +238,12 @@ function Protect() {
             ? visibleLayers['wildScenicRiversLayer']
             : wildScenicRiversDisplayed;
       }
+      if (cipSummary.status !== 'failure') {
+        newVisibleLayers['waterbodyLayer'] =
+          !waterbodyLayer || useCurrentValue
+            ? visibleLayers['waterbodyLayer']
+            : false;
+      }
 
       if (newVisibleLayers.hasOwnProperty(key)) {
         newVisibleLayers[key] = newValue;
@@ -252,6 +264,8 @@ function Protect() {
       wildScenicRiversDisplayed,
       wildScenicRiversLayer,
       wildScenicRiversData,
+      waterbodyLayer,
+      cipSummary,
       visibleLayers,
       setVisibleLayers,
     ],
