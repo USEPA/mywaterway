@@ -16,7 +16,10 @@ import { containsScriptTag, isHuc12, splitSuggestedSearch } from 'utils/utils';
 // styles
 import { colors } from 'styles/index.js';
 // errors
-import { invalidSearchError } from 'config/errorMessages';
+import {
+  invalidSearchError,
+  webServiceErrorMessage,
+} from 'config/errorMessages';
 
 // Finds the source of the suggestion
 function findSource(name, suggestions) {
@@ -238,6 +241,26 @@ function LocationSearch({ route, label }: Props) {
         },
       ],
     },
+    {
+      type: 'layer',
+      name: 'Watershed',
+      placeholder: 'Search watersheds...',
+      sources: [
+        {
+          layer: new FeatureLayer({
+            url:
+              'https://gispub.epa.gov/arcgis/rest/services/OW/HydrologicUnits/MapServer/19',
+            listMode: 'hide',
+          }),
+          searchFields: ['name', 'huc12'],
+          suggestionTemplate: '{name} ({huc12})',
+          exactMatch: false,
+          outFields: ['name', 'huc12'],
+          placeholder: placeholder,
+          name: 'Watersheds',
+        },
+      ],
+    },
   ]);
 
   // geolocating state for updating the 'Use My Location' button
@@ -381,7 +404,13 @@ function LocationSearch({ route, label }: Props) {
           source = sug.source;
           sourceIndex = sug.sourceIndex;
         }
-        results.push(...sug.results);
+        sug.results.forEach((result) => {
+          results.push({
+            ...result,
+            source: sug.source,
+            sourceIndex: sug.sourceIndex,
+          });
+        });
       });
 
       if (results.length > 0) {
@@ -442,7 +471,7 @@ function LocationSearch({ route, label }: Props) {
   }, [cursor, enterPress, resultsCombined]);
 
   // Performs the search operation
-  function formSubmit(searchTerm) {
+  function formSubmit(searchTerm, geometry = null) {
     setSuggestionsVisible(false);
     setCursor(-1);
 
@@ -452,17 +481,27 @@ function LocationSearch({ route, label }: Props) {
     }
 
     // get urlSearch parameter value
-    if (searchTerm) {
+    let urlSearch = null;
+    if (geometry) {
+      urlSearch = `${searchTerm.trim()}|${geometry.longitude}, ${
+        geometry.latitude
+      }`;
+    } else if (searchTerm) {
+      urlSearch = searchTerm.trim();
+    }
+
+    // navigate if the urlSearch value is available
+    if (urlSearch) {
       setErrorMessage('');
       setGeolocationError(false);
 
       // only navigate if search box contains text
-      navigate(encodeURI(route.replace('{urlSearch}', searchTerm.trim())));
+      navigate(encodeURI(route.replace('{urlSearch}', urlSearch)));
     }
   }
 
   let index = -1;
-  function LayerSuggestions({ title, results }) {
+  function LayerSuggestions({ title, source }) {
     return (
       <>
         <div className="esri-menu__header">{title}</div>
@@ -470,7 +509,7 @@ function LocationSearch({ route, label }: Props) {
           role="presentation"
           className="esri-menu__list esri-search__suggestions-list"
         >
-          {results.map((result) => {
+          {source.results.map((result) => {
             index = index + 1;
             return (
               <li
@@ -485,11 +524,35 @@ function LocationSearch({ route, label }: Props) {
                   setSuggestionsVisible(false);
                   setCursor(-1);
 
-                  formSubmit(result.text);
-
                   if (!searchWidget) return;
                   searchWidget.searchTerm = result.text;
-                  searchWidget.search(result.text);
+
+                  if (source.source.name === 'ArcGIS') {
+                    // use esri geocoder
+                    searchWidget.search(result.text);
+                    formSubmit(result.text);
+                  } else if (source.source.name === 'Watersheds') {
+                    // extract the huc from "Watershed (huc)" and search on the huc
+                    const huc = result.text.split('(')[1].replace(')', '');
+                    formSubmit(huc);
+                  } else {
+                    // query to get the feature and search based on the centroid
+                    const params = result.source.layer.createQuery();
+                    params.returnGeometry = true;
+                    params.where = `${result.source.layer.objectIdField} = ${result.key}`;
+                    result.source.layer
+                      .queryFeatures(params)
+                      .then((res) => {
+                        if (res.features.length > 0) {
+                          const center = res.features[0].geometry.centroid;
+                          formSubmit(result.text, center);
+                          searchWidget.search(result.text);
+                        }
+                      })
+                      .catch((err) => {
+                        setErrorMessage(webServiceErrorMessage);
+                      });
+                  }
                 }}
               >
                 {result.text
@@ -777,7 +840,7 @@ function LocationSearch({ route, label }: Props) {
                       <LayerSuggestions
                         key={`layer-suggestions-key-${index}`}
                         title={title}
-                        results={source.results}
+                        source={source}
                       />
                     );
                   })}
