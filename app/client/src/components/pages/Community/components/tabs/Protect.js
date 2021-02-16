@@ -53,9 +53,7 @@ function convertStateCode(stateCode: string, stateData: Array<Object>) {
   if (stateNames.length === 1) return stateNames[0];
 
   stateNames.sort();
-  const stateNamesStr =
-    stateNames.slice(0, -1).join(', ') + ' and ' + stateNames.slice(-1);
-  return stateNamesStr;
+  return stateNames.slice(0, -1).join(', ') + ' and ' + stateNames.slice(-1);
 }
 
 // --- styled components ---
