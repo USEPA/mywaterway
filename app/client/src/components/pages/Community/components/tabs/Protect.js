@@ -61,10 +61,6 @@ const Container = styled.div`
   padding: 1em;
 `;
 
-const Text = styled.p`
-  text-align: center;
-`;
-
 const List = styled.ul`
   padding-bottom: 1.5rem;
 `;
@@ -653,10 +649,7 @@ function Protect() {
 
                     {wildScenicRiversData.status === 'success' &&
                       wildScenicRiversData.data.length === 0 && (
-                        <p>
-                          No Wild and Scenic River data available for this
-                          location.
-                        </p>
+                        <p>No Wild and Scenic River data available.</p>
                       )}
 
                     {wildScenicRiversData.status === 'success' &&
@@ -789,10 +782,10 @@ function Protect() {
                     {grts.status === 'success' && (
                       <>
                         {sortedGrtsData.length === 0 && (
-                          <Text>
+                          <p>
                             There are no EPA funded protection projects in the{' '}
                             {watershed} watershed.
-                          </Text>
+                          </p>
                         )}
 
                         {sortedGrtsData.length > 0 && (
