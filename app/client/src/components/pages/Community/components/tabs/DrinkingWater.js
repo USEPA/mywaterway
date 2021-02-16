@@ -465,7 +465,7 @@ function DrinkingWater() {
     countyBoundaries.features &&
     countyBoundaries.features.length > 0
   ) {
-    county = countyBoundaries.features[0].attributes.COUNTY;
+    county = countyBoundaries.features[0].attributes.NAME;
   }
 
   const [providersSortBy, setProvidersSortBy] = React.useState('population');
