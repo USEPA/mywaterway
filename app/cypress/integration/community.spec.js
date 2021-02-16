@@ -371,7 +371,7 @@ describe('Protect Tab', () => {
     );
 
     cy.findByText('Protect').click();
-    cy.findByText('Get quick tips for reducing water impairment in your:');
+    cy.findByText('You can help keep your water clean.', { exact: false });
     cy.findByText('Watershed Health and Protection').click();
     cy.findByText('Protection Projects').click();
     cy.findByText('There are no EPA funded protection projects in the', {
