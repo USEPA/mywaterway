@@ -33,6 +33,8 @@ import {
   wsioHealthIndexError,
 } from 'config/errorMessages';
 
+const protectedAreasIdKey = 'OBJECTID';
+
 // given a state code like AL,VA and an array of state objects from attains states service,
 // returns the full name of the states (e.g., Alabama and Virginia)
 function convertStateCode(stateCode: string, stateData: Array<Object>) {
@@ -51,9 +53,7 @@ function convertStateCode(stateCode: string, stateData: Array<Object>) {
   if (stateNames.length === 1) return stateNames[0];
 
   stateNames.sort();
-  const stateNamesStr =
-    stateNames.slice(0, -1).join(', ') + ' and ' + stateNames.slice(-1);
-  return stateNamesStr;
+  return stateNames.slice(0, -1).join(', ') + ' and ' + stateNames.slice(-1);
 }
 
 // --- styled components ---
@@ -160,6 +160,7 @@ function Protect() {
   // draw the waterbody on the map
   useWaterbodyOnMap();
 
+  const { setSelectedGraphic } = React.useContext(MapHighlightContext);
   const { Query, QueryTask, SimpleFillSymbol } = React.useContext(
     EsriModulesContext,
   );
@@ -167,6 +168,7 @@ function Protect() {
     mapView,
     grts,
     watershed,
+    highlightOptions,
     huc12,
     statesData,
     visibleLayers,
@@ -323,6 +325,29 @@ function Protect() {
       </StyledSwitch>
     );
   }
+
+  const [selectedFeature, setSelectedFeature] = React.useState(null);
+  React.useEffect(() => {
+    if (!mapView || !selectedFeature) return;
+
+    // add it to the highlight layer
+    protectedAreasHighlightLayer.removeAll();
+    protectedAreasHighlightLayer.add(selectedFeature);
+
+    // set the highlight
+    // update context with the new selected graphic
+    selectedFeature.attributes['zoom'] = true;
+    selectedFeature.attributes['fieldName'] = protectedAreasIdKey;
+    setSelectedGraphic(selectedFeature);
+
+    // reset the selectedFeature
+    setSelectedFeature(null);
+  }, [
+    mapView,
+    selectedFeature,
+    protectedAreasHighlightLayer,
+    setSelectedGraphic,
+  ]);
 
   return (
     <Container>
@@ -1008,7 +1033,6 @@ function Protect() {
                           {protectedAreasData.data.map((item) => {
                             const attributes = item.attributes;
                             const fields = protectedAreasData.fields;
-                            const idKey = 'OBJECTID';
                             return (
                               <AccordionItem
                                 key={`protected-area-${attributes.OBJECTID}`}
@@ -1076,11 +1100,11 @@ function Protect() {
                                   <ViewOnMapButton
                                     layers={[protectedAreasLayer]}
                                     feature={item}
-                                    fieldName={idKey}
+                                    fieldName={protectedAreasIdKey}
                                     customQuery={(viewClick) => {
                                       // query for the item
                                       const query = new Query({
-                                        where: `${idKey} = ${attributes[idKey]}`,
+                                        where: `${protectedAreasIdKey} = ${attributes[protectedAreasIdKey]}`,
                                         returnGeometry: true,
                                         outFields: ['*'],
                                       });
@@ -1096,23 +1120,16 @@ function Protect() {
                                           const feature = res.features[0];
                                           feature.symbol = new SimpleFillSymbol(
                                             {
-                                              color:
-                                                mapView.highlightOptions.color,
+                                              ...highlightOptions,
                                               outline: null,
                                             },
                                           );
 
-                                          // add it to the highlight layer
-                                          protectedAreasHighlightLayer.removeAll();
-                                          protectedAreasHighlightLayer.add(
-                                            feature,
-                                          );
+                                          if (!mapView) {
+                                            viewClick(feature);
+                                          }
 
-                                          // set the highlight
-                                          viewClick(
-                                            protectedAreasHighlightLayer
-                                              .graphics.items[0],
-                                          );
+                                          setSelectedFeature(feature);
                                         })
                                         .catch((err) => {
                                           console.error(err);
