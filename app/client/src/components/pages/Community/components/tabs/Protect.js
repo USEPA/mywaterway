@@ -377,14 +377,24 @@ function Protect() {
               <AccordionList>
                 <AccordionItem
                   highlightContent={false}
+                  onChange={(isOpen) => {
+                    if (!isOpen || wsioHealthIndexData.status === 'failure') {
+                      return;
+                    }
+
+                    setHealthScoresDisplayed(true);
+                    updateVisibleLayers({
+                      key: 'wsioHealthIndexLayer',
+                      newValue: true,
+                    });
+                  }}
                   title={
                     <Label>
                       <SwitchContainer>
                         <Switch
                           checked={
                             healthScoresDisplayed &&
-                            wsioHealthIndexData.status === 'success' &&
-                            wsioHealthIndexData.data.length > 0
+                            wsioHealthIndexData.status === 'success'
                           }
                           onChange={(checked, event) => {
                             setHealthScoresDisplayed(checked);
@@ -393,10 +403,7 @@ function Protect() {
                               newValue: checked,
                             });
                           }}
-                          disabled={
-                            wsioHealthIndexData.status === 'failure' ||
-                            wsioHealthIndexData.data.length === 0
-                          }
+                          disabled={wsioHealthIndexData.status === 'failure'}
                           ariaLabel="Watershed Health Scores"
                         />
                       </SwitchContainer>
@@ -615,6 +622,17 @@ function Protect() {
 
                 <AccordionItem
                   highlightContent={false}
+                  onChange={(isOpen) => {
+                    if (!isOpen || wildScenicRiversData.status === 'failure') {
+                      return;
+                    }
+
+                    setWildScenicRiversDisplayed(true);
+                    updateVisibleLayers({
+                      key: 'wildScenicRiversLayer',
+                      newValue: true,
+                    });
+                  }}
                   title={
                     <Label>
                       <SwitchContainer>
@@ -953,14 +971,24 @@ function Protect() {
 
                 <AccordionItem
                   highlightContent={false}
+                  onChange={(isOpen) => {
+                    if (!isOpen || protectedAreasData.status === 'failure') {
+                      return;
+                    }
+
+                    setProtectedAreasDisplayed(true);
+                    updateVisibleLayers({
+                      key: 'protectedAreasLayer',
+                      newValue: true,
+                    });
+                  }}
                   title={
                     <Label>
                       <SwitchContainer>
                         <Switch
                           checked={
                             protectedAreasDisplayed &&
-                            protectedAreasData.status === 'success' &&
-                            protectedAreasData.data.length > 0
+                            protectedAreasData.status === 'success'
                           }
                           onChange={(checked, event) => {
                             setProtectedAreasDisplayed(checked);
@@ -969,10 +997,7 @@ function Protect() {
                               newValue: checked,
                             });
                           }}
-                          disabled={
-                            protectedAreasData.status === 'failure' ||
-                            protectedAreasData.data.length === 0
-                          }
+                          disabled={protectedAreasData.status === 'failure'}
                           ariaLabel="Protected Areas"
                         />
                       </SwitchContainer>

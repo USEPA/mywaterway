@@ -248,13 +248,15 @@ function AccordionItem({
         tabIndex="0"
         style={{ backgroundColor }}
         onClick={(ev) => {
-          setIsOpen(!isOpen);
-          onChange();
+          const newIsOpen = !isOpen;
+          setIsOpen(newIsOpen);
+          onChange(newIsOpen);
         }}
         onKeyUp={(ev) => {
           if (ev.key === 'Enter') {
-            setIsOpen(!isOpen);
-            onChange();
+            const newIsOpen = !isOpen;
+            setIsOpen(newIsOpen);
+            onChange(newIsOpen);
           }
         }}
       >
