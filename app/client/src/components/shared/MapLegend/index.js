@@ -8,6 +8,7 @@ import PinIcon from 'components/shared/Icons/PinIcon';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import { gradientIcon } from 'components/pages/LocationMap/MapFunctions';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // errors
 import { legendUnavailableError } from 'config/errorMessages';
 // styles
@@ -481,13 +482,62 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
 
     // maps the layer title to a text for a sentence
     const titleMap = {
-      'Less Than HS Education': '% less than HS education',
-      'Minority Population': '% minority',
-      'Linguistically Isolated': '% linguistically isolated',
-      'Low Income': '% low income',
-      'Over Age 64': '% over age 64',
-      'Under Age 5': '% under age 5',
-      'Demographic Index': 'demographic index',
+      'Less Than HS Education': {
+        label: 'percent less than HS education',
+        glossary: (
+          <GlossaryTerm term="Percent Less than High School Education (Environmental Justice)">
+            percent less than HS education
+          </GlossaryTerm>
+        ),
+      },
+      'Minority Population': {
+        label: 'percent minority',
+        glossary: (
+          <GlossaryTerm term="Percent Minority (Environmental Justice)">
+            percent minority
+          </GlossaryTerm>
+        ),
+      },
+      'Linguistically Isolated': {
+        label: 'percent in linguistic isolation',
+        glossary: (
+          <GlossaryTerm term="Percent in Linguistic Isolation (Environmental Justice)">
+            percent in linguistic isolation
+          </GlossaryTerm>
+        ),
+      },
+      'Low Income': {
+        label: 'percent low-income',
+        glossary: (
+          <GlossaryTerm term="Percent Low- Income (Environmental Justice)">
+            percent low-income
+          </GlossaryTerm>
+        ),
+      },
+      'Over Age 64': {
+        label: 'percent over age 64',
+        glossary: (
+          <GlossaryTerm term="Percent over age 64 (Environmental Justice)">
+            percent over age 64
+          </GlossaryTerm>
+        ),
+      },
+      'Under Age 5': {
+        label: 'percent under age 5',
+        glossary: (
+          <GlossaryTerm term="Percent under age 5 (Environmental Justice)">
+            percent under age 5
+          </GlossaryTerm>
+        ),
+      },
+      'Demographic Index': {
+        label: 'demographic index',
+        glossary: (
+          <GlossaryTerm term="Demographic Index (Environmental Justice)">
+            demographic index
+          </GlossaryTerm>
+        ),
+      },
     };
 
     // build subtitle based on which layers are visible
@@ -506,13 +556,9 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     }
 
     // combine the subtitle parts into a comma delimited string
-    subtitleParts.sort();
-    const sortedSubtitlePartsStr =
-      subtitleParts.length === 1
-        ? subtitleParts[0]
-        : subtitleParts.slice(0, -1).join(', ') +
-          ' & ' +
-          subtitleParts.slice(-1);
+    subtitleParts.sort((a, b) => {
+      return a.label.localeCompare(b.label);
+    });
 
     return (
       <MultiContainer>
@@ -521,7 +567,18 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
         </h3>
         {subtitleParts.length > 0 && (
           <Subtitle>
-            Average of {sortedSubtitlePartsStr}, as an integer 0-100
+            Average of{' '}
+            {subtitleParts.map((part, index) => {
+              return (
+                <React.Fragment key={index}>
+                  {part.glossary}
+                  {index !== subtitleParts.length - 1 && (
+                    <>{index === subtitleParts.length - 2 ? ' & ' : ', '}</>
+                  )}
+                </React.Fragment>
+              );
+            })}
+            , as an integer 0-100
           </Subtitle>
         )}
         {legend.map((item, index) => {
@@ -530,10 +587,10 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
               <ImageContainer>
                 <img
                   src={`data:image/png;base64,${item.imageData}`}
-                  alt={item.label}
+                  alt={item.label.replace('%ile', '%')}
                 />
               </ImageContainer>
-              <LegendLabel>{item.label}</LegendLabel>
+              <LegendLabel>{item.label.replace('%ile', '%')}</LegendLabel>
             </LI>
           );
         })}
