@@ -36,10 +36,10 @@
     "coverage": "concurrently --kill-others \"npm run server\" \"npm run coverage_client\" \"cypress open\""
   },
   "devDependencies": {
-    "@cypress/code-coverage": "3.8.8",
+    "@cypress/code-coverage": "3.9.2",
     "@testing-library/cypress": "7.0.3",
     "concurrently": "5.3.0",
-    "cypress": "6.2.0",
+    "cypress": "6.5.0",
     "eslint-plugin-cypress": "2.11.2",
     "istanbul-lib-coverage": "3.0.0",
     "nyc": "15.1.0"
