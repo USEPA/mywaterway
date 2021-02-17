@@ -712,7 +712,9 @@ function Protect() {
 
                     {wildScenicRiversData.status === 'success' &&
                       wildScenicRiversData.data.length === 0 && (
-                        <p>No Wild and Scenic River data available.</p>
+                        <p>
+                          No Wild and Scenic River data available in this area.
+                        </p>
                       )}
 
                     {wildScenicRiversData.status === 'success' &&

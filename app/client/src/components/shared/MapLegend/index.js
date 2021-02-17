@@ -483,58 +483,58 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     // maps the layer title to a text for a sentence
     const titleMap = {
       'Less Than HS Education': {
-        label: 'percent less than HS education',
+        label: 'Percent Less than High School Education',
         glossary: (
           <GlossaryTerm term="Percent Less than High School Education (Environmental Justice)">
-            percent less than HS education
+            Percent Less than High School Education
           </GlossaryTerm>
         ),
       },
       'Minority Population': {
-        label: 'percent minority',
+        label: 'Percent Minority',
         glossary: (
           <GlossaryTerm term="Percent Minority (Environmental Justice)">
-            percent minority
+            Percent Minority
           </GlossaryTerm>
         ),
       },
       'Linguistically Isolated': {
-        label: 'percent in linguistic isolation',
+        label: 'Percent in Linguistic Isolation',
         glossary: (
           <GlossaryTerm term="Percent in Linguistic Isolation (Environmental Justice)">
-            percent in linguistic isolation
+            Percent in Linguistic Isolation
           </GlossaryTerm>
         ),
       },
       'Low Income': {
-        label: 'percent low-income',
+        label: 'Percent Low-Income',
         glossary: (
           <GlossaryTerm term="Percent Low- Income (Environmental Justice)">
-            percent low-income
+            Percent Low-Income
           </GlossaryTerm>
         ),
       },
       'Over Age 64': {
-        label: 'percent over age 64',
+        label: 'Percent over age 64',
         glossary: (
           <GlossaryTerm term="Percent over age 64 (Environmental Justice)">
-            percent over age 64
+            Percent over age 64
           </GlossaryTerm>
         ),
       },
       'Under Age 5': {
-        label: 'percent under age 5',
+        label: 'Percent under age 5',
         glossary: (
           <GlossaryTerm term="Percent under age 5 (Environmental Justice)">
-            percent under age 5
+            Percent under age 5
           </GlossaryTerm>
         ),
       },
       'Demographic Index': {
-        label: 'demographic index',
+        label: 'Demographic Index',
         glossary: (
           <GlossaryTerm term="Demographic Index (Environmental Justice)">
-            demographic index
+            Demographic Index
           </GlossaryTerm>
         ),
       },
@@ -567,18 +567,9 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
         </h3>
         {subtitleParts.length > 0 && (
           <Subtitle>
-            Average of{' '}
             {subtitleParts.map((part, index) => {
-              return (
-                <React.Fragment key={index}>
-                  {part.glossary}
-                  {index !== subtitleParts.length - 1 && (
-                    <>{index === subtitleParts.length - 2 ? ' & ' : ', '}</>
-                  )}
-                </React.Fragment>
-              );
+              return <div key={index}>{part.glossary}</div>;
             })}
-            , as an integer 0-100
           </Subtitle>
         )}
         {legend.map((item, index) => {
