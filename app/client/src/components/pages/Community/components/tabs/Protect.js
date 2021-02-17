@@ -311,7 +311,7 @@ function Protect() {
     ? Math.round(wsioData.phwa_health_ndx_st_2016 * 100) / 100
     : null;
 
-  function SwitchContainer({ children }) {
+  function SwitchContainer({ onEnter, children }) {
     // This div is to workaround a couple of issues with the react-switch component.
     // The first issue is the className prop of the component does not work, which
     // prevented putting styles (margin, pointer-events) on the component. The
@@ -320,10 +320,42 @@ function Protect() {
     // allows us to stopPropagation in the case of the event without stopPropagation
     // is returned.
     return (
-      <StyledSwitch onClick={(ev) => ev.stopPropagation()}>
+      <StyledSwitch
+        onClick={(ev) => ev.stopPropagation()}
+        onKeyUp={(ev) => {
+          if (ev.key !== 'Enter') return;
+
+          ev.stopPropagation();
+          onEnter();
+        }}
+      >
         {children}
       </StyledSwitch>
     );
+  }
+
+  function onWsioToggle() {
+    setHealthScoresDisplayed(!healthScoresDisplayed);
+    updateVisibleLayers({
+      key: 'wsioHealthIndexLayer',
+      newValue: !healthScoresDisplayed,
+    });
+  }
+
+  function onWildScenicToggle() {
+    setWildScenicRiversDisplayed(!wildScenicRiversDisplayed);
+    updateVisibleLayers({
+      key: 'wildScenicRiversLayer',
+      newValue: !wildScenicRiversDisplayed,
+    });
+  }
+
+  function onProtectedAreasToggle() {
+    setProtectedAreasDisplayed(!protectedAreasDisplayed);
+    updateVisibleLayers({
+      key: 'protectedAreasLayer',
+      newValue: !protectedAreasDisplayed,
+    });
   }
 
   const [selectedFeature, setSelectedFeature] = React.useState(null);
@@ -390,19 +422,13 @@ function Protect() {
                   }}
                   title={
                     <Label>
-                      <SwitchContainer>
+                      <SwitchContainer onEnter={onWsioToggle}>
                         <Switch
                           checked={
                             healthScoresDisplayed &&
                             wsioHealthIndexData.status === 'success'
                           }
-                          onChange={(checked, event) => {
-                            setHealthScoresDisplayed(checked);
-                            updateVisibleLayers({
-                              key: 'wsioHealthIndexLayer',
-                              newValue: checked,
-                            });
-                          }}
+                          onChange={onWsioToggle}
                           disabled={wsioHealthIndexData.status === 'failure'}
                           ariaLabel="Watershed Health Scores"
                         />
@@ -635,19 +661,13 @@ function Protect() {
                   }}
                   title={
                     <Label>
-                      <SwitchContainer>
+                      <SwitchContainer onEnter={onWildScenicToggle}>
                         <Switch
                           checked={
                             wildScenicRiversDisplayed &&
                             wildScenicRiversData.status === 'success'
                           }
-                          onChange={(checked, event) => {
-                            setWildScenicRiversDisplayed(checked);
-                            updateVisibleLayers({
-                              key: 'wildScenicRiversLayer',
-                              newValue: checked,
-                            });
-                          }}
+                          onChange={onWildScenicToggle}
                           disabled={wildScenicRiversData.status === 'failure'}
                           ariaLabel="Wild and Scenic Rivers"
                         />
@@ -824,19 +844,13 @@ function Protect() {
                   }}
                   title={
                     <Label>
-                      <SwitchContainer>
+                      <SwitchContainer onEnter={onProtectedAreasToggle}>
                         <Switch
                           checked={
                             protectedAreasDisplayed &&
                             protectedAreasData.status === 'success'
                           }
-                          onChange={(checked, event) => {
-                            setProtectedAreasDisplayed(checked);
-                            updateVisibleLayers({
-                              key: 'protectedAreasLayer',
-                              newValue: checked,
-                            });
-                          }}
+                          onChange={onProtectedAreasToggle}
                           disabled={protectedAreasData.status === 'failure'}
                           ariaLabel="Protected Areas"
                         />
