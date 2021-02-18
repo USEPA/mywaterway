@@ -183,7 +183,7 @@ function IdentifiedIssues() {
   // translate scientific parameter names
   const getMappedParameterName = (
     parameterFields: Object,
-    parameter: String,
+    parameter: string,
   ) => {
     const filteredFields = parameterFields.filter(
       (field) => parameter === field.parameterGroup,
