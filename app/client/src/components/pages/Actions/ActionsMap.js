@@ -390,12 +390,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
         {/* manually passing map and view props to Map component's     */}
         {/* children to satisfy flow, but map and view props are auto  */}
         {/* passed from Map component to its children by react-arcgis  */}
-        <MapWidgets
-          map={null}
-          view={null}
-          layers={layers}
-          onHomeWidgetRendered={(homeWidget) => {}}
-        />
+        <MapWidgets map={null} view={null} layers={layers} />
 
         {/* manually passing map and view props to Map component's         */}
         {/* children to satisfy flow, but map and view props are auto      */}
