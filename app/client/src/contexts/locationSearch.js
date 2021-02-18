@@ -485,11 +485,11 @@ export class LocationSearchProvider extends React.Component<Props, State> {
 
       // remove all map content defined in this file
       if (providersLayer) providersLayer.graphics.removeAll();
-      if (boundariesLayer) {
-        boundariesLayer.visible = false;
-        boundariesLayer.graphics.removeAll();
+      if (boundariesLayer) boundariesLayer.graphics.removeAll();
+      if (searchIconLayer) {
+        searchIconLayer.visible = false;
+        searchIconLayer.graphics.removeAll();
       }
-      if (searchIconLayer) searchIconLayer.graphics.removeAll();
       if (monitoringStationsLayer) monitoringStationsLayer.graphics.removeAll();
       if (dischargersLayer) dischargersLayer.graphics.removeAll();
       if (nonprofitsLayer) nonprofitsLayer.graphics.removeAll();
