@@ -655,6 +655,27 @@ function LocationSearch({ route, label }: Props) {
 
   const searchTerm = splitSuggestedSearch(Point, searchText).searchPart;
 
+  // Detect clicks outside of the search input and search suggestions list.
+  // This is used for closing the suggestions list when the user clicks outside.
+  const suggestionsRef = React.useRef();
+  React.useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target)
+      ) {
+        setSuggestionsVisible(false);
+      }
+    }
+
+    // Bind the event listener
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      // Unbind the event listener on clean up
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [suggestionsRef]);
+
   return (
     <>
       {errorMessage && (
@@ -755,7 +776,7 @@ function LocationSearch({ route, label }: Props) {
                 })}
               </ul>
             </div>
-            <div className="esri-search__input-container">
+            <div className="esri-search__input-container" ref={suggestionsRef}>
               <div className="esri-search__form" role="search">
                 <input
                   id="hmw-search-input"
@@ -793,11 +814,6 @@ function LocationSearch({ route, label }: Props) {
                     setSourcesVisible(false);
                     setSuggestionsVisible(true);
                     setCursor(-1);
-                  }}
-                  onBlur={(ev) => {
-                    setTimeout(() => {
-                      setSuggestionsVisible(false);
-                    }, 250);
                   }}
                   aria-owns={
                     filteredSuggestions.length > 0 && suggestionsVisible
