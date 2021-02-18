@@ -20,12 +20,17 @@ import { useServicesContext } from 'contexts/LookupFiles';
 import { esriApiUrl } from 'config/esriConfig';
 // helpers
 import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
+import { browserIsCompatibleWithArcGIS } from 'utils/utils';
 import {
   getPopupTitle,
   getPopupContent,
 } from 'components/pages/LocationMap/MapFunctions';
 // errors
-import { actionMapError, actionMapNoData } from 'config/errorMessages';
+import {
+  actionMapError,
+  actionMapNoData,
+  esriMapLoadingFailure,
+} from 'config/errorMessages';
 
 // --- styled components ---
 const Container = styled.div`
@@ -56,6 +61,9 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
   } = React.useContext(LocationSearchContext);
 
   const [layers, setLayers] = React.useState(null);
+
+  // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
+  const [actionsMapLoadError, setActionsMapLoadError] = React.useState(false);
 
   const services = useServicesContext();
   const getSharedLayers = useSharedLayers();
@@ -337,6 +345,15 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
     setMapLoading(false);
   }, [fetchStatus, mapView, actionsLayer, esriModules, homeWidget]);
 
+  // check for browser compatibility with map
+  if (!browserIsCompatibleWithArcGIS() && !actionsMapLoadError) {
+    setActionsMapLoadError(true);
+  }
+
+  if (actionsMapLoadError) {
+    return <StyledErrorBox>{esriMapLoadingFailure}</StyledErrorBox>;
+  }
+
   if (fetchStatus === 'failure') {
     return (
       <StyledErrorBox>
@@ -363,7 +380,16 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
         onLoad={(map: Any, view: Any) => {
           setMapView(view);
         }}
-        onFail={(err: Any) => console.error(err)}
+        onFail={(err: Any) => {
+          console.error(err);
+          setActionsMapLoadError(true);
+          window.logToGa('send', 'exception', {
+            exDescription: `${
+              window.location.pathname.split('/')[1]
+            } map failed to load - ${err}`,
+            exFatal: false,
+          });
+        }}
       >
         {/* manually passing map and view props to Map component's     */}
         {/* children to satisfy flow, but map and view props are auto  */}

@@ -17,6 +17,8 @@ import {
   shallowCompare,
 } from 'components/pages/LocationMap/MapFunctions';
 
+let dynamicPopupFields = [];
+
 // Closes the map popup and clears highlights whenever the user changes
 // tabs. This function is called from the useWaterbodyHighlight hook (handles
 // tab changes) and from the use useWaterbodyOnMap hook (handles sub tab changes
@@ -201,6 +203,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     upstreamLayer,
     actionsLayer,
     huc12,
+    wildScenicRiversLayer,
+    protectedAreasLayer,
+    protectedAreasHighlightLayer,
   } = React.useContext(LocationSearchContext);
   const services = useServicesContext();
 
@@ -232,7 +237,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     // perform the zoom and return the Promise
     mapView.goTo(params).then(() => {
-      openPopup(mapView, selectedGraphic, services);
+      openPopup(mapView, selectedGraphic, dynamicPopupFields, services);
     });
   }, [Point, mapView, selectedGraphic, services]);
 
@@ -279,6 +284,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     // verify that we have a graphic before continuing
     if (!graphic || !graphic.attributes) {
       handles.remove(group);
+      if (protectedAreasHighlightLayer) {
+        protectedAreasHighlightLayer.removeAll();
+      }
 
       // remove the currentHighlight and currentSelection if either exist
       if (currentHighlight || currentSelection) {
@@ -306,15 +314,23 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     // figure out what layer we the graphic belongs to
     let layer = null;
+    let featureLayerType = '';
     if (attributes.layerType === 'issues') {
       layer = issuesLayer;
     } else if (attributes.layerType === 'actions') {
       layer = actionsLayer;
+    } else if (attributes.WSR_RIVER_NAME) {
+      layer = wildScenicRiversLayer;
+      featureLayerType = 'wildScenicRivers';
     } else if (attributes.Shape_Length && attributes.Shape_Area) {
       layer = areasLayer;
-    } else if (attributes.Shape_Length) layer = linesLayer;
-    else if (attributes.assessmentunitidentifier) {
+      featureLayerType = 'waterbodyLayer';
+    } else if (attributes.Shape_Length) {
+      layer = linesLayer;
+      featureLayerType = 'waterbodyLayer';
+    } else if (attributes.assessmentunitidentifier) {
       layer = pointsLayer;
+      featureLayerType = 'waterbodyLayer';
     } else if (attributes.CWPName) {
       layer = dischargersLayer;
     } else if (attributes.MonitoringLocationIdentifier) {
@@ -329,6 +345,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     // remove the highlights
     handles.remove(group);
+    if (protectedAreasHighlightLayer) {
+      protectedAreasHighlightLayer.removeAll();
+    }
 
     // get organizationid and assessmentunitidentifier to figure out if the
     // selected waterbody changed.
@@ -378,7 +397,15 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         (graphicOrgId === selectedGraphicOrgId &&
           graphicAuId === selectedGraphicAuId))
     ) {
-      const key = `${graphicOrgId} - ${graphicAuId}`;
+      let key = '';
+      let where = '';
+      if (featureLayerType === 'waterbodyLayer') {
+        key = `${graphicOrgId} - ${graphicAuId}`;
+        where = `organizationid = '${graphicOrgId}' And assessmentunitidentifier = '${graphicAuId}'`;
+      } else if (featureLayerType === 'wildScenicRivers') {
+        key = attributes.GlobalID;
+        where = `GlobalID = '${key}'`;
+      }
 
       if (cachedHighlights[key]) {
         cachedHighlights[key].forEach((feature) => {
@@ -398,22 +425,28 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
           cachedHighlights,
         });
       } else {
+        if (!key || !where) return;
+
         const query = new Query({
           returnGeometry: false,
-          where: `organizationid = '${graphicOrgId}' And assessmentunitidentifier = '${graphicAuId}'`,
+          where,
           outFields: ['*'],
         });
 
         const requests = [];
 
-        if (areasLayer && areasLayer !== 'error')
-          requests.push(areasLayer.queryFeatures(query));
+        if (featureLayerType === 'waterbodyLayer') {
+          if (areasLayer && areasLayer !== 'error')
+            requests.push(areasLayer.queryFeatures(query));
 
-        if (linesLayer && linesLayer !== 'error')
-          requests.push(linesLayer.queryFeatures(query));
+          if (linesLayer && linesLayer !== 'error')
+            requests.push(linesLayer.queryFeatures(query));
 
-        if (pointsLayer && pointsLayer !== 'error')
-          requests.push(pointsLayer.queryFeatures(query));
+          if (pointsLayer && pointsLayer !== 'error')
+            requests.push(pointsLayer.queryFeatures(query));
+        } else {
+          requests.push(layer.queryFeatures(query));
+        }
 
         Promise.all(requests).then((responses) => {
           const featuresToCache = [];
@@ -477,6 +510,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     findOthers,
     Query,
     handles,
+    wildScenicRiversLayer,
+    protectedAreasLayer,
+    protectedAreasHighlightLayer,
   ]);
 
   // Closes the popup and clears highlights whenever the tab changes
@@ -496,6 +532,10 @@ function useDynamicPopup() {
   const { getHucBoundaries, getMapView, resetData } = React.useContext(
     LocationSearchContext,
   );
+
+  const setDynamicPopupFields = (fields) => {
+    dynamicPopupFields = fields;
+  };
 
   return function getDynamicPopup() {
     var hucInfo = {
@@ -577,6 +617,7 @@ function useDynamicPopup() {
       const hucBoundaries = getHucBoundaries();
       const mapView = getMapView();
       const location = mapView?.popup?.location;
+      const fields = dynamicPopupFields;
       // only look for huc boundaries if no graphics were clicked and the
       // user clicked outside of the selected huc boundaries
       if (
@@ -585,11 +626,15 @@ function useDynamicPopup() {
           hucBoundaries.features.length > 0 &&
           hucBoundaries.features[0].geometry.contains(location))
       ) {
-        return getPopupContent({ feature: graphic.graphic });
+        return getPopupContent({
+          feature: graphic.graphic,
+          fields,
+        });
       }
 
       return getPopupContent({
         feature: graphic.graphic,
+        fields,
         getClickedHuc: getClickedHuc(location),
         resetData,
       });
@@ -600,15 +645,24 @@ function useDynamicPopup() {
       return getPopupTitle(graphic.graphic.attributes);
     }
 
-    return { getTitle, getTemplate };
+    return { getTitle, getTemplate, setDynamicPopupFields };
   };
 }
 
 function useSharedLayers() {
   const services = useServicesContext();
-  const { FeatureLayer, GroupLayer, MapImageLayer } = React.useContext(
-    EsriModulesContext,
-  );
+  const {
+    FeatureLayer,
+    GraphicsLayer,
+    GroupLayer,
+    MapImageLayer,
+  } = React.useContext(EsriModulesContext);
+  const {
+    setProtectedAreasLayer,
+    setProtectedAreasHighlightLayer,
+    setWsioHealthIndexLayer,
+    setWildScenicRiversLayer,
+  } = React.useContext(LocationSearchContext);
 
   const getDynamicPopup = useDynamicPopup();
   const { getTitle, getTemplate } = getDynamicPopup();
@@ -616,110 +670,174 @@ function useSharedLayers() {
   // Gets the settings for the WSIO Health Index layer.
   return function getSharedLayers() {
     // shared symbol settings
-    // const symbol = {
-    //   type: 'simple-fill',
-    //   style: 'solid',
-    //   outline: { color: [0, 0, 0, 0.5], width: 1 },
-    // };
+    const symbol = {
+      type: 'simple-fill',
+      style: 'solid',
+      outline: { color: [0, 0, 0, 0.5], width: 1 },
+    };
 
     // define the color ramp renderer
-    // const wsioHealthIndexRenderer = {
-    //   type: 'class-breaks',
-    //   field: 'phwa_health_ndx_st_2016',
-    //   classBreakInfos: [
-    //     {
-    //       minValue: 0,
-    //       maxValue: 0.11,
-    //       symbol: {
-    //         ...symbol,
-    //         color: { r: 180, g: 238, b: 239 },
-    //       },
-    //     },
-    //     {
-    //       minValue: 0.11,
-    //       maxValue: 0.21,
-    //       symbol: {
-    //         ...symbol,
-    //         color: { r: 154, g: 209, b: 238 },
-    //       },
-    //     },
-    //     {
-    //       minValue: 0.21,
-    //       maxValue: 0.31,
-    //       symbol: {
-    //         ...symbol,
-    //         color: { r: 124, g: 187, b: 234 },
-    //       },
-    //     },
-    //     {
-    //       minValue: 0.31,
-    //       maxValue: 0.41,
-    //       symbol: {
-    //         ...symbol,
-    //         color: { r: 90, g: 162, b: 227 },
-    //       },
-    //     },
-    //     {
-    //       minValue: 0.41,
-    //       maxValue: 0.51,
-    //       symbol: {
-    //         ...symbol,
-    //         color: { r: 54, g: 140, b: 225 },
-    //       },
-    //     },
-    //     {
-    //       minValue: 0.51,
-    //       maxValue: 0.61,
-    //       symbol: {
-    //         ...symbol,
-    //         color: { r: 32, g: 118, b: 217 },
-    //       },
-    //     },
-    //     {
-    //       minValue: 0.61,
-    //       maxValue: 0.71,
-    //       symbol: {
-    //         ...symbol,
-    //         color: { r: 35, g: 88, b: 198 },
-    //       },
-    //     },
-    //     {
-    //       minValue: 0.71,
-    //       maxValue: 0.81,
-    //       symbol: {
-    //         ...symbol,
-    //         color: { r: 30, g: 61, b: 181 },
-    //       },
-    //     },
-    //     {
-    //       minValue: 0.81,
-    //       maxValue: 0.91,
-    //       symbol: {
-    //         ...symbol,
-    //         color: { r: 23, g: 38, b: 163 },
-    //       },
-    //     },
-    //     {
-    //       minValue: 0.91,
-    //       maxValue: 1.01,
-    //       symbol: {
-    //         ...symbol,
-    //         color: { r: 10, g: 8, b: 145 },
-    //       },
-    //     },
-    //   ],
-    // };
+    const wsioHealthIndexRenderer = {
+      type: 'class-breaks',
+      field: 'phwa_health_ndx_st_2016',
+      classBreakInfos: [
+        {
+          minValue: 0,
+          maxValue: 0.11,
+          symbol: {
+            ...symbol,
+            color: { r: 180, g: 238, b: 239 },
+          },
+        },
+        {
+          minValue: 0.11,
+          maxValue: 0.21,
+          symbol: {
+            ...symbol,
+            color: { r: 154, g: 209, b: 238 },
+          },
+        },
+        {
+          minValue: 0.21,
+          maxValue: 0.31,
+          symbol: {
+            ...symbol,
+            color: { r: 124, g: 187, b: 234 },
+          },
+        },
+        {
+          minValue: 0.31,
+          maxValue: 0.41,
+          symbol: {
+            ...symbol,
+            color: { r: 90, g: 162, b: 227 },
+          },
+        },
+        {
+          minValue: 0.41,
+          maxValue: 0.51,
+          symbol: {
+            ...symbol,
+            color: { r: 54, g: 140, b: 225 },
+          },
+        },
+        {
+          minValue: 0.51,
+          maxValue: 0.61,
+          symbol: {
+            ...symbol,
+            color: { r: 32, g: 118, b: 217 },
+          },
+        },
+        {
+          minValue: 0.61,
+          maxValue: 0.71,
+          symbol: {
+            ...symbol,
+            color: { r: 35, g: 88, b: 198 },
+          },
+        },
+        {
+          minValue: 0.71,
+          maxValue: 0.81,
+          symbol: {
+            ...symbol,
+            color: { r: 30, g: 61, b: 181 },
+          },
+        },
+        {
+          minValue: 0.81,
+          maxValue: 0.91,
+          symbol: {
+            ...symbol,
+            color: { r: 23, g: 38, b: 163 },
+          },
+        },
+        {
+          minValue: 0.91,
+          maxValue: 1.01,
+          symbol: {
+            ...symbol,
+            color: { r: 10, g: 8, b: 145 },
+          },
+        },
+      ],
+    };
 
     // return the layer properties object
-    // const wsioHealthIndexLayer = new FeatureLayer({
-    //   id: 'wsioHealthIndexLayer',
-    //   url: services.data.wsio,
-    //   title: 'State Watershed Health Index',
-    //   outFields: ['phwa_health_ndx_st_2016'],
-    //   renderer: wsioHealthIndexRenderer,
-    //   listMode: 'show',
-    //   visible: false,
-    // });
+    const wsioHealthIndexLayer = new FeatureLayer({
+      id: 'wsioHealthIndexLayer',
+      url: services.data.wsio,
+      title: 'State Watershed Health Index',
+      outFields: ['HUC12_TEXT', 'STATES2013', 'phwa_health_ndx_st_2016'],
+      renderer: wsioHealthIndexRenderer,
+      listMode: 'show',
+      visible: false,
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields: [
+          'phwa_health_ndx_st_2016',
+          'huc12_text',
+          'name_huc12',
+          'states2013',
+        ],
+      },
+    });
+
+    setWsioHealthIndexLayer(wsioHealthIndexLayer);
+
+    const protectedAreasLayer = new MapImageLayer({
+      id: 'protectedAreasLayer',
+      title: 'Protected Areas',
+      url: services.data.protectedAreasDatabase,
+      sublayers: [
+        {
+          id: 0,
+          popupTemplate: {
+            title: getTitle,
+            content: getTemplate,
+            outFields: ['*'],
+          },
+        },
+      ],
+    });
+
+    setProtectedAreasLayer(protectedAreasLayer);
+
+    const protectedAreasHighlightLayer = new GraphicsLayer({
+      id: 'protectedAreasHighlightLayer',
+      title: 'Protected Areas Highlight Layer',
+      listMode: 'hide',
+    });
+
+    setProtectedAreasHighlightLayer(protectedAreasHighlightLayer);
+
+    const wildScenicRiversRenderer = {
+      type: 'simple',
+      symbol: {
+        type: 'simple-line',
+        color: [0, 123, 255],
+        width: 3,
+      },
+    };
+
+    const wildScenicRiversLayer = new FeatureLayer({
+      id: 'wildScenicRiversLayer',
+      url: services.data.wildScenicRivers,
+      title: 'Wild and Scenic Rivers',
+      outFields: ['*'],
+      renderer: wildScenicRiversRenderer,
+      listMode: 'hide',
+      visible: false,
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields: ['*'],
+      },
+    });
+
+    setWildScenicRiversLayer(wildScenicRiversLayer);
 
     // START - Tribal layers
     const renderer = {
@@ -883,8 +1001,111 @@ function useSharedLayers() {
       visible: false,
     });
 
+    // BEGIN - EJSCREEN layers
+
+    const ejOutFields = [
+      'T_MINORPCT',
+      'T_LWINCPCT',
+      'T_LESHSPCT',
+      'T_LNGISPCT',
+      'T_UNDR5PCT',
+      'T_OVR64PCT',
+      'T_VULEOPCT',
+    ];
+
+    const ejscreenPopupTemplate = {
+      title: getTitle,
+      content: getTemplate,
+      outFields: ejOutFields,
+    };
+
+    const ejDemographicIndex = new FeatureLayer({
+      id: 0,
+      url: `${services.data.ejscreen}0`,
+      title: 'Demographic Index',
+      outFields: ejOutFields,
+      visible: true,
+      popupTemplate: ejscreenPopupTemplate,
+    });
+
+    const ejUnderAge5 = new FeatureLayer({
+      id: 1,
+      url: `${services.data.ejscreen}1`,
+      title: 'Under Age 5',
+      outFields: ejOutFields,
+      visible: false,
+      popupTemplate: ejscreenPopupTemplate,
+    });
+
+    const ejOverAge64 = new FeatureLayer({
+      id: 2,
+      url: `${services.data.ejscreen}2`,
+      title: 'Over Age 64',
+      outFields: ejOutFields,
+      visible: false,
+      popupTemplate: ejscreenPopupTemplate,
+    });
+
+    const ejLowIncome = new FeatureLayer({
+      id: 3,
+      url: `${services.data.ejscreen}3`,
+      title: 'Low Income',
+      outFields: ejOutFields,
+      visible: false,
+      popupTemplate: ejscreenPopupTemplate,
+    });
+
+    const ejLinguistIsolated = new FeatureLayer({
+      id: 4,
+      url: `${services.data.ejscreen}4`,
+      title: 'Linguistically Isolated',
+      outFields: ejOutFields,
+      visible: false,
+      popupTemplate: ejscreenPopupTemplate,
+    });
+
+    const ejMinority = new FeatureLayer({
+      id: 5,
+      url: `${services.data.ejscreen}5`,
+      title: 'Minority Population',
+      outFields: ejOutFields,
+      visible: false,
+      popupTemplate: ejscreenPopupTemplate,
+    });
+
+    const ejLessThanHS = new FeatureLayer({
+      id: 6,
+      url: `${services.data.ejscreen}6`,
+      title: 'Less Than HS Education',
+      outFields: ejOutFields,
+      visible: false,
+      popupTemplate: ejscreenPopupTemplate,
+    });
+
+    const ejscreen = new GroupLayer({
+      id: 'ejscreenLayer',
+      title: 'Environmental Justice',
+      listMode: 'show',
+      visible: false,
+      layers: [
+        ejLessThanHS,
+        ejMinority,
+        ejLinguistIsolated,
+        ejLowIncome,
+        ejOverAge64,
+        ejUnderAge5,
+        ejDemographicIndex,
+      ],
+    });
+
+    // END - EJSCREEN layers
+
     return [
-      // wsioHealthIndexLayer,
+      ejscreen,
+      wsioHealthIndexLayer,
+      protectedAreasLayer,
+      protectedAreasHighlightLayer,
+      wildScenicRiversLayer,
       tribalLayer,
       congressionalLayer,
       stateBoundariesLayer,
@@ -895,6 +1116,39 @@ function useSharedLayers() {
   };
 }
 
+// Custom hook that is used for handling key presses. This can be used for
+// navigating lists with a keyboard.
+function useKeyPress(targetKey: string, ref: Object) {
+  const [keyPressed, setKeyPressed] = React.useState(false);
+
+  function downHandler({ key }: { key: string }) {
+    if (key === targetKey) {
+      setKeyPressed(true);
+    }
+  }
+
+  const upHandler = ({ key }: { key: string }) => {
+    if (key === targetKey) {
+      setKeyPressed(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (!ref?.current?.addEventListener) return;
+    const tempRef = ref.current;
+
+    ref.current.addEventListener('keydown', downHandler);
+    ref.current.addEventListener('keyup', upHandler);
+
+    return function cleanup() {
+      tempRef.removeEventListener('keydown', downHandler);
+      tempRef.removeEventListener('keyup', upHandler);
+    };
+  });
+
+  return keyPressed;
+}
+
 export {
   useSharedLayers,
   useWaterbodyFeatures,
@@ -902,4 +1156,5 @@ export {
   useWaterbodyOnMap,
   useWaterbodyHighlight,
   useDynamicPopup,
+  useKeyPress,
 };

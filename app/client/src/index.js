@@ -12,6 +12,7 @@ import Routes from './routes';
 import ErrorBoundary from 'components/shared/ErrorBoundary';
 // contexts
 import { EsriModulesProvider } from 'contexts/EsriModules';
+import { AddDataWidgetProvider } from 'contexts/AddDataWidget';
 import { LocationSearchProvider } from 'contexts/locationSearch';
 import { GlossaryProvider } from 'contexts/Glossary';
 import { LookupFilesProvider } from 'contexts/LookupFiles';
@@ -39,10 +40,12 @@ function Root() {
       <EsriModulesProvider>
         <LocationSearchProvider>
           <GlossaryProvider>
-            <GlobalStyle />
-            <ErrorBoundary message={defaultErrorBoundaryMessage}>
-              <Routes />
-            </ErrorBoundary>
+            <AddDataWidgetProvider>
+              <GlobalStyle />
+              <ErrorBoundary message={defaultErrorBoundaryMessage}>
+                <Routes />
+              </ErrorBoundary>
+            </AddDataWidgetProvider>
           </GlossaryProvider>
         </LocationSearchProvider>
       </EsriModulesProvider>

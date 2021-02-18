@@ -434,6 +434,7 @@ function SurveyResults({
             <Select
               inputId={`population-${populationId}`}
               classNamePrefix="Select"
+              isSearchable={false}
               options={subPopulationCodes.map((item) => {
                 const value = item.subPopulationCode;
                 return { value, label: value };

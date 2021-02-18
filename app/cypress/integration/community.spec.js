@@ -274,7 +274,7 @@ describe('Identified Issues Tab', () => {
     // switch to Dischargers tab of Identified Issues tab and check that the discharger accordion item exists and expands when clicked
     cy.findByText('Identified Issues').click();
     cy.findByTestId('hmw-dischargers').click();
-    cy.findByText('KOPPERS INC.').click();
+    cy.findByText('1178 CR LLC').click();
     cy.findByText('Compliance Status:');
   });
 });
@@ -353,6 +353,7 @@ describe('Protect Tab', () => {
 
     // check that the Protection Projects in the Protect tab contains a project
     cy.findByText('Protect').click();
+    cy.findByText('Watershed Health and Protection').click();
     cy.findByText('Protection Projects').click();
     cy.findByText('Cypress Creek WPP Imp - Years 1-3');
   });
@@ -370,7 +371,8 @@ describe('Protect Tab', () => {
     );
 
     cy.findByText('Protect').click();
-    cy.findByText('Get quick tips for reducing water impairment in your:');
+    cy.findByText('You can help keep your water clean.', { exact: false });
+    cy.findByText('Watershed Health and Protection').click();
     cy.findByText('Protection Projects').click();
     cy.findByText('There are no EPA funded protection projects in the', {
       exact: false,

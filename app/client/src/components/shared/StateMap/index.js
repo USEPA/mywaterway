@@ -16,6 +16,8 @@ import {
   getPopupTitle,
 } from 'components/pages/LocationMap/MapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
+// styled components
+import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // contexts
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -25,8 +27,11 @@ import { useServicesContext } from 'contexts/LookupFiles';
 import { esriApiUrl } from 'config/esriConfig';
 // helpers
 import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
+import { browserIsCompatibleWithArcGIS } from 'utils/utils';
 // styles
 import 'components/pages/LocationMap/mapStyles.css';
+// errors
+import { esriMapLoadingFailure } from 'config/errorMessages';
 
 // --- styled components ---
 const mapPadding = 20;
@@ -87,6 +92,9 @@ function StateMap({
   } = React.useContext(LocationSearchContext);
 
   const [layers, setLayers] = React.useState(null);
+
+  // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
+  const [stateMapLoadError, setStateMapLoadError] = React.useState(false);
 
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight(false);
@@ -342,6 +350,11 @@ function StateMap({
   const mapInputs = document.querySelector(`[data-content="stateinputs"]`);
   const mapInputsHeight = mapInputs && mapInputs.getBoundingClientRect().height;
 
+  // check for browser compatibility with map
+  if (!browserIsCompatibleWithArcGIS() && !stateMapLoadError) {
+    setStateMapLoadError(true);
+  }
+
   // jsx
   const mapContent = (
     <div
@@ -389,8 +402,13 @@ function StateMap({
           }}
           onFail={(err) => {
             console.error(err);
+            setStateMapLoadError(true);
             setView(null);
             setMapView(null);
+            window.logToGa('send', 'exception', {
+              exDescription: `State map failed to load - ${err}`,
+              exFatal: false,
+            });
           }}
         >
           {/* manually passing map and view props to Map component's         */}
@@ -416,6 +434,10 @@ function StateMap({
       <div ref={measuredRef}>{children}</div>
     </div>
   );
+
+  if (stateMapLoadError) {
+    return <StyledErrorBox>{esriMapLoadingFailure}</StyledErrorBox>;
+  }
 
   if (layout === 'wide') {
     return (
