@@ -870,7 +870,6 @@ function WaterbodyInfo({
   };
 
   // jsx
-  // TODO: use table like monitoring stations and dischargers if we add nonprofits back
   const nonprofitContent = (
     <>
       {labelValue('Address', attributes.Address || 'No address found.')}

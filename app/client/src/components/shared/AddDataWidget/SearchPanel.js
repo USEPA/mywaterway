@@ -202,15 +202,15 @@ function SearchPanel() {
     const tmpPortal = new Portal();
 
     function appendToQuery(
-      query: string,
+      fullQuery: string,
       part: string,
       separator: string = 'AND',
     ) {
       // nothing to append
-      if (part.length === 0) return query;
+      if (part.length === 0) return fullQuery;
 
       // append the query part
-      if (query.length > 0) return `${query} ${separator} (${part})`;
+      if (fullQuery.length > 0) return `${fullQuery} ${separator} (${part})`;
       else return `(${part})`;
     }
 
@@ -703,11 +703,11 @@ function ResultCard({ result }: ResultCardProps) {
   // Used to determine if the layer for this card has been added or not
   const [added, setAdded] = React.useState(false);
   React.useEffect(() => {
-    const added =
+    setAdded(
       widgetLayers.findIndex(
         (widgetLayer) => widgetLayer.portalItem?.id === result.id,
-      ) !== -1;
-    setAdded(added);
+      ) !== -1,
+    );
   }, [widgetLayers, result]);
 
   // removes the esri watch handle when the card is removed from the DOM.
@@ -733,7 +733,7 @@ function ResultCard({ result }: ResultCardProps) {
       }),
     }).then((layer) => {
       // setup the watch event to see when the layer finishes loading
-      const watcher = watchUtils.watch(
+      const newWatcher = watchUtils.watch(
         layer,
         'loadStatus',
         (loadStatus: string) => {
@@ -753,13 +753,13 @@ function ResultCard({ result }: ResultCardProps) {
 
               // make all child layers visible, if applicable
               if (layer.layers) {
-                layer.layers.items.forEach((layer) => {
-                  layer.visible = true;
+                layer.layers.items.forEach((tempLayer) => {
+                  tempLayer.visible = true;
                 });
               }
               if (layer.sublayers) {
-                layer.sublayers.items.forEach((layer) => {
-                  layer.visible = true;
+                layer.sublayers.items.forEach((tempLayer) => {
+                  tempLayer.visible = true;
                 });
               }
             }
@@ -769,10 +769,10 @@ function ResultCard({ result }: ResultCardProps) {
         },
       );
 
-      setWatcher(watcher);
+      setWatcher(newWatcher);
 
       // add the layer to the map
-      setWidgetLayers((widgetLayers) => [...widgetLayers, layer]);
+      setWidgetLayers((currentWidgetLayers) => [...currentWidgetLayers, layer]);
     });
   }
 
@@ -790,8 +790,8 @@ function ResultCard({ result }: ResultCardProps) {
 
     // remove the layers from the map and session storage.
     if (layersToRemove.length > 0) {
-      setWidgetLayers((widgetLayers) =>
-        widgetLayers.filter(
+      setWidgetLayers((currentWidgetLayers) =>
+        currentWidgetLayers.filter(
           (widgetLayer) => widgetLayer?.portalItem?.id !== result.id,
         ),
       );

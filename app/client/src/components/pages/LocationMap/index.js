@@ -1021,7 +1021,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         // If not coordinates, perform regular geolocation
         getCandidates = locator.addressToLocations({
           address: { SingleLine: searchText },
-          countryCode: 'USA', // TODO: this doesn't have any effect but should according to the documentation
+          countryCode: 'USA',
           outFields: [
             'Loc_name',
             'City',
@@ -1045,10 +1045,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           // if multiple candidates have the same highhest value the first one is chosen
           let location;
           let highestCandidateScore = -1;
-          for (let i = 0; i < candidates.length; i++) {
-            if (candidates[i].score > highestCandidateScore) {
-              location = candidates[i];
-              highestCandidateScore = candidates[i].score;
+          for (const candidate of candidates) {
+            if (candidate.score > highestCandidateScore) {
+              location = candidate;
+              highestCandidateScore = candidate.score;
             }
           }
 
@@ -1067,8 +1067,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           if (location.attributes.Country !== 'USA') {
             const country = location.attributes.Country;
             // break out of loop after first candidate with region and same country
-            for (let i = 0; i < candidates.length; i++) {
-              let candidate = candidates[i];
+            for (const candidate of candidates) {
               let candidateAttr = candidate.attributes;
               if (candidateAttr.Country === country && candidateAttr.Region) {
                 location = candidate;
@@ -1545,7 +1544,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             view={null}
             layers={layers}
             scrollToComponent="locationmap"
-            onHomeWidgetRendered={(homeWidget) => {}}
           />
 
           {/* manually passing map and view props to Map component's         */}

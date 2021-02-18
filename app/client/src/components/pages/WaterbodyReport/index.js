@@ -504,7 +504,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
             'Meeting criteria': categories.assessedGood,
             'Not enough information': categories.insufficentInfo,
             'Not Applicable': categories.otherObserved,
-            Threatened: categories.ofConcern, // TODO: confirm 'Threatened' is the correct value
+            Threatened: categories.ofConcern,
           };
 
           // allAssociatedActionIds will contain all parameters' associated action ids

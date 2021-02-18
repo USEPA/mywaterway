@@ -241,7 +241,7 @@ function convertAgencyCode(agencyShortCode) {
 
   // Wild and Scenic Rivers service returns multiple agencies as a string. ex: 'USFS, FWS, NPS'
   const agencies = agencyShortCode.split(',');
-  const convertedAgencies = agencies
+  return agencies
     .map((agency) => {
       const code = agency.trim();
       if (code === 'BLM') return 'Bureau of Land Management';
@@ -251,8 +251,6 @@ function convertAgencyCode(agencyShortCode) {
       return code;
     })
     .join(', ');
-
-  return convertedAgencies;
 }
 
 // Lookup the value of an attribute using domain coded values from
@@ -261,13 +259,11 @@ function convertDomainCode(fields, name, value) {
   if (!fields) return value;
 
   // look for the field using name
-  for (let i = 0; i < fields.length; i++) {
-    const field = fields[i];
+  for (const field of fields) {
     if (field.name === name && field.domain) {
       // look for the code using value
       const codedValues = field.domain.codedValues;
-      for (let j = 0; j < codedValues.length; j++) {
-        const codedValue = codedValues[j];
+      for (const codedValue of codedValues) {
         if (codedValue.code === value) {
           return codedValue.name;
         }

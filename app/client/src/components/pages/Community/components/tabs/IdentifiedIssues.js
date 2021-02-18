@@ -183,7 +183,7 @@ function IdentifiedIssues() {
   // translate scientific parameter names
   const getMappedParameterName = (
     parameterFields: Object,
-    parameter: String,
+    parameter: string,
   ) => {
     const filteredFields = parameterFields.filter(
       (field) => parameter === field.parameterGroup,
@@ -581,6 +581,11 @@ function IdentifiedIssues() {
     toggleDischargersChecked = false;
   }
 
+  function getImpairedWatersPercent() {
+    if (cipSummary.status === 'failure') return 'N/A';
+    return nullPollutedWaterbodies ? 'N/A %' : `${pollutedPercent}%` || 0 + '%';
+  }
+
   return (
     <Container>
       <>
@@ -590,13 +595,7 @@ function IdentifiedIssues() {
               <LoadingSpinner />
             ) : (
               <>
-                <StyledNumber>
-                  {cipSummary.status === 'failure'
-                    ? 'N/A'
-                    : nullPollutedWaterbodies
-                    ? 'N/A %'
-                    : `${pollutedPercent}%` || 0 + '%'}
-                </StyledNumber>
+                <StyledNumber>{getImpairedWatersPercent()}</StyledNumber>
                 <StyledLabel>of Assessed Waters are impaired</StyledLabel>
                 <SwitchContainer>
                   <Switch

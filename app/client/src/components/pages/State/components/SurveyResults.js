@@ -136,8 +136,7 @@ function SurveyResults({
     if (!mapping || !stressor || !surveyCategoryCode) return null;
 
     // find the stressor/categoryCode combo in stressorMapping if surveyMapping.js
-    for (let i = 0; i < mapping.length; i++) {
-      let stressorMap = mapping[i];
+    for (const stressorMap of mapping) {
       if (
         stressorMap.stressor.toUpperCase() === stressor.toUpperCase() &&
         stressorMap.surveyCategoryCode.toUpperCase() ===
@@ -153,8 +152,7 @@ function SurveyResults({
     if (!mapping || !surveyCategoryCode) return null;
 
     // find the surveyCategoryCode in categoryCodeMapping if surveyMapping.js
-    for (let i = 0; i < mapping.length; i++) {
-      let categoryMap = mapping[i];
+    for (const categoryMap of mapping) {
       if (
         categoryMap.surveyCategoryCode.toUpperCase() ===
         surveyCategoryCode.toUpperCase()
@@ -192,8 +190,7 @@ function SurveyResults({
         // get the categoryCodeMapping and stressorMapping for the current selections
         let categoryMapping = null;
         let stressorMapping = null;
-        for (let i = 0; i < surveyMapping.data.length; i++) {
-          let mapping = surveyMapping.data[i];
+        for (const mapping of surveyMapping.data) {
           let useSelectedUpper = useSelected.toUpperCase();
           let topicUseSelected = topicUses[useSelectedUpper];
           surveyUseSelected =

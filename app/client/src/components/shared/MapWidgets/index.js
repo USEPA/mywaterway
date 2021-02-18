@@ -286,15 +286,15 @@ function MapWidgets({
       let groupType = '';
       if (layer.type === 'group') {
         const groupLayer = layer;
-        groupLayer.layers.forEach((layer, index) => {
+        groupLayer.layers.forEach((innerLayer, index) => {
           if (groupType === 'combo') return;
 
           if (index === 0) {
-            groupType = layer.type;
+            groupType = innerLayer.type;
             return;
           }
 
-          if (groupType !== layer.type) {
+          if (groupType !== innerLayer.type) {
             groupType = 'combo';
           }
         });
@@ -425,13 +425,13 @@ function MapWidgets({
 
     // create the layer list using the same styles and structure as the
     // esri version.
-    const legend = new Legend({
+    const tempLegend = new Legend({
       view,
       container: esriLegendNode,
       layerInfos: [],
     });
 
-    setEsriLegend(legend);
+    setEsriLegend(tempLegend);
   }, [Legend, view, esriLegend, esriLegendNode]);
 
   // Update the list of layers in the esri portion of the legend widget
@@ -466,7 +466,7 @@ function MapWidgets({
     ReactDOM.render(
       <ShowAddDataWidget
         addDataWidgetVisible={addDataWidgetVisible}
-        setAddDataWidgetVisible={setAddDataWidgetVisible}
+        setAddDataWidgetVisibleParam={setAddDataWidgetVisible}
       />,
       node,
     );
@@ -505,8 +505,8 @@ function MapWidgets({
   }, [view, addDataWidget, addDataWidgetVisible, setAddDataWidgetVisible]);
 
   function ShowAddDataWidget({
-    addDataWidgetVisible,
-    setAddDataWidgetVisible,
+    addDataWidgetVisibleParam,
+    setAddDataWidgetVisibleParam,
   }) {
     const [hover, setHover] = React.useState(false);
 
@@ -522,10 +522,10 @@ function MapWidgets({
           if (!widget) return;
           if (widget.classList.contains('hidden')) {
             widget.classList.remove('hidden');
-            setAddDataWidgetVisible(true);
+            setAddDataWidgetVisibleParam(true);
           } else {
             widget.classList.add('hidden');
-            setAddDataWidgetVisible(false);
+            setAddDataWidgetVisibleParam(false);
           }
         }}
       >
