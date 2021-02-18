@@ -581,6 +581,11 @@ function IdentifiedIssues() {
     toggleDischargersChecked = false;
   }
 
+  function getImpairedWatersPercent() {
+    if (cipSummary.status === 'failure') return 'N/A';
+    return nullPollutedWaterbodies ? 'N/A %' : `${pollutedPercent}%` || 0 + '%';
+  }
+
   return (
     <Container>
       <>
@@ -590,13 +595,7 @@ function IdentifiedIssues() {
               <LoadingSpinner />
             ) : (
               <>
-                <StyledNumber>
-                  {cipSummary.status === 'failure'
-                    ? 'N/A'
-                    : nullPollutedWaterbodies
-                    ? 'N/A %'
-                    : `${pollutedPercent}%` || 0 + '%'}
-                </StyledNumber>
+                <StyledNumber>{getImpairedWatersPercent()}</StyledNumber>
                 <StyledLabel>of Assessed Waters are impaired</StyledLabel>
                 <SwitchContainer>
                   <Switch
