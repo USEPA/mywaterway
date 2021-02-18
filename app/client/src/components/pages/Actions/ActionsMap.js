@@ -6,10 +6,6 @@ import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import MapWidgets from 'components/shared/MapWidgets';
 import MapMouseEvents from 'components/shared/MapMouseEvents';
 import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
-import {
-  createWaterbodySymbol,
-  getWaterbodyCondition,
-} from 'components/pages/LocationMap/MapFunctions';
 // styled components
 import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes';
 // contexts
@@ -22,8 +18,10 @@ import { esriApiUrl } from 'config/esriConfig';
 import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
 import { browserIsCompatibleWithArcGIS } from 'utils/utils';
 import {
+  createWaterbodySymbol,
   getPopupTitle,
   getPopupContent,
+  getWaterbodyCondition,
 } from 'components/pages/LocationMap/MapFunctions';
 // errors
 import {
