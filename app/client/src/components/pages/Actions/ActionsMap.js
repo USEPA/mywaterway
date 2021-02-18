@@ -208,13 +208,11 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
             const condition = getWaterbodyCondition(feature.attributes)
               .condition;
 
-            const waterbodyReportSymbol = createWaterbodySymbol({
+            return createWaterbodySymbol({
               condition: condition,
               selected: false,
               geometryType: type,
             });
-
-            return waterbodyReportSymbol;
           }
 
           function createGraphic(feature: Object, type: string) {
