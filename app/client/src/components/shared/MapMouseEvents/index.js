@@ -104,14 +104,12 @@ function MapMouseEvents({ map, view }: Props) {
                         },
                         view: view,
                       },
-                      getClickedHuc: new Promise((resolve, reject) => {
-                        resolve({
-                          status: 'success',
-                          data: {
-                            huc12: attributes.huc12,
-                            watershed: attributes.name,
-                          },
-                        });
+                      getClickedHuc: Promise.resolve({
+                        status: 'success',
+                        data: {
+                          huc12: attributes.huc12,
+                          watershed: attributes.name,
+                        },
                       }),
                     }),
                   });
@@ -124,7 +122,7 @@ function MapMouseEvents({ map, view }: Props) {
                   openChangeLocationPopup();
                 } else {
                   // check if protected areas layer was clicked on
-                  const query = new Query({
+                  const queryPadUs = new Query({
                     returnGeometry: false,
                     geometry: location,
                     outFields: ['*'],
@@ -132,7 +130,7 @@ function MapMouseEvents({ map, view }: Props) {
                   new QueryTask({
                     url: `${services.data.protectedAreasDatabase}0`,
                   })
-                    .execute(query)
+                    .execute(queryPadUs)
                     .then((padRes) => {
                       if (padRes.features.length === 0) {
                         // user did not click on a protected area, open the popup
@@ -270,12 +268,12 @@ function MapMouseEvents({ map, view }: Props) {
     return match[0] ? match[0].graphic : null;
   }
 
-  const loadMonitoringLocation = (graphic, services) => {
+  const loadMonitoringLocation = (graphic, servicesParam) => {
     // tell the getPopupContent function to use the full popup version that includes the service call
     graphic.attributes.fullPopup = true;
     graphic.popupTemplate = {
       title: getPopupTitle(graphic.attributes),
-      content: getPopupContent({ feature: graphic, services }),
+      content: getPopupContent({ feature: graphic, services: servicesParam }),
     };
   };
 
