@@ -378,4 +378,77 @@ describe('Protect Tab', () => {
       exact: false,
     });
   });
+
+  it('Check the watershed health scores section', () => {
+    // navigate to Protect tab of Community page
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      '121002030202',
+    );
+    cy.findByText('Go').click();
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    // check that the Protection Projects in the Protect tab contains a project
+    cy.findByText('Protect').click();
+
+    cy.get('.hmw-accordion').first().click();
+    cy.findByText('Where might the healthier watersheds be located', {
+      exact: false,
+    });
+  });
+
+  it('Check the wild and scenic rivers section', () => {
+    // navigate to Protect tab of Community page
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      '121002030202',
+    );
+    cy.findByText('Go').click();
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    // check that the Protection Projects in the Protect tab contains a project
+    cy.findByText('Protect').click();
+
+    cy.get('.hmw-accordion').then((elms) => {
+      cy.wrap(elms[1]).click();
+    });
+    cy.findByText(
+      'was created by Congress in 1968 to preserve certain rivers with outstanding',
+      {
+        exact: false,
+      },
+    );
+  });
+
+  it('Check the protected areas section', () => {
+    // navigate to Protect tab of Community page
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      '121002030202',
+    );
+    cy.findByText('Go').click();
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    // check that the Protection Projects in the Protect tab contains a project
+    cy.findByText('Protect').click();
+
+    cy.get('.hmw-accordion').then((elms) => {
+      cy.wrap(elms[2]).click();
+    });
+    cy.findByText(
+      'The Protected Areas Database (PAD-US) is America’s official national inventory of U.S.',
+      {
+        exact: false,
+      },
+    );
+  });
 });

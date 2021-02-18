@@ -21,4 +21,25 @@ describe('About page', () => {
       'Overall condition of waterbodies in the San Pedro Creek watershed.',
     ).should('exist');
   });
+
+  it('Test navigating to about page', () => {
+    const text =
+      'was designed to provide the general public with information about the condition of their local waters';
+
+    cy.visit('/about');
+
+    // verify the app navigates to the page
+    cy.findByText(text, { exact: false });
+
+    // check the Questions and Answers tab
+    cy.findByText('Questions and Answers').click();
+    cy.findByText(
+      'is an EPA tool that helps users find information on the condition of their waters',
+      { exact: false },
+    );
+
+    // go back to the About HMW page
+    cy.findByText("About How's My Waterway").click();
+    cy.findByText(text, { exact: false });
+  });
 });
