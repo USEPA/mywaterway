@@ -370,8 +370,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     let graphicToHighlight = graphic;
     // find the actual graphic on the layer
     if (layer.type === 'graphics') {
-      for (let i = 0; i < layer.graphics.items.length; i++) {
-        let graphic = layer.graphics.items[i];
+      for (const graphic of layer.graphics.items) {
         if (shallowCompare(graphic.attributes, graphicToHighlight.attributes)) {
           graphicToHighlight = graphic;
           break;
