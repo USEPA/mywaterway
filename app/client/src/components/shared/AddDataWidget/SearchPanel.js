@@ -352,6 +352,9 @@ function SearchPanel() {
               value={location}
               onChange={(ev) => {
                 setLocation(ev);
+
+                // trigger a re-query
+                setSearch(searchText);
               }}
               styles={reactSelectStyles}
             />
