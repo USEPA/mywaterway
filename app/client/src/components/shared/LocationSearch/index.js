@@ -728,17 +728,18 @@ function LocationSearch({ route, label }: Props) {
                 className="esri-menu__list"
               >
                 {allSources.map((source, sourceIndex) => {
+                  let secondClass = '';
+                  if (selectedSource.name === source.name) {
+                    secondClass = 'esri-menu__list-item--active';
+                  } else if (sourceIndex === sourceCursor) {
+                    secondClass = 'esri-menu__list-item-active';
+                  }
+
                   return (
                     <li
                       id={`source-${sourceIndex}`}
                       role="menuitem"
-                      className={`esri-search__source esri-menu__list-item ${
-                        selectedSource.name === source.name
-                          ? 'esri-menu__list-item--active'
-                          : sourceIndex === sourceCursor
-                          ? 'esri-menu__list-item-active'
-                          : ''
-                      }`}
+                      className={`esri-search__source esri-menu__list-item ${secondClass}`}
                       tabIndex="-1"
                       key={`source-key-${sourceIndex}`}
                       onClick={() => {
