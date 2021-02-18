@@ -7,7 +7,7 @@ import styled from 'styled-components';
 import { ContentTabs } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 import Switch from 'components/shared/Switch';
 import { gradientIcon } from 'components/pages/LocationMap/MapFunctions';
@@ -151,6 +151,11 @@ const WsioQuestionContainer = styled.div`
 
 const ViewButtonContainer = styled.div`
   margin-left: 0.5em;
+`;
+
+const InfoBoxWithMargin = styled(StyledInfoBox)`
+  margin: 1em;
+  text-align: center;
 `;
 
 // --- components ---
@@ -425,10 +430,10 @@ function Protect() {
                     )}
                     {wsioHealthIndexData.status === 'success' &&
                       wsioHealthIndexData.data.length === 0 && (
-                        <p>
+                        <StyledInfoBox>
                           No Protected Areas Database data available for this
                           location.
-                        </p>
+                        </StyledInfoBox>
                       )}
                     {wsioHealthIndexData.status === 'success' &&
                       wsioHealthIndexData.data.length > 0 && (
@@ -689,10 +694,10 @@ function Protect() {
 
                     {wildScenicRiversData.status === 'success' &&
                       wildScenicRiversData.data.length === 0 && (
-                        <p>
+                        <StyledInfoBox>
                           No Wild and Scenic River data available in the{' '}
                           {watershed} watershed.
-                        </p>
+                        </StyledInfoBox>
                       )}
 
                     {wildScenicRiversData.status === 'success' &&
@@ -880,10 +885,10 @@ function Protect() {
 
                     {protectedAreasData.status === 'success' &&
                       protectedAreasData.data.length === 0 && (
-                        <p>
+                        <StyledInfoBox>
                           No Protected Areas Database data available for this
                           location.
-                        </p>
+                        </StyledInfoBox>
                       )}
 
                     {protectedAreasData.status === 'success' &&
@@ -1029,10 +1034,10 @@ function Protect() {
                     {grts.status === 'success' && (
                       <>
                         {sortedGrtsData.length === 0 && (
-                          <p>
+                          <StyledInfoBox>
                             There are no EPA funded protection projects in the{' '}
                             {watershed} watershed.
-                          </p>
+                          </StyledInfoBox>
                         )}
 
                         {sortedGrtsData.length > 0 && (
