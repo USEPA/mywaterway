@@ -1021,7 +1021,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         // If not coordinates, perform regular geolocation
         getCandidates = locator.addressToLocations({
           address: { SingleLine: searchText },
-          countryCode: 'USA', // TODO: this doesn't have any effect but should according to the documentation
+          countryCode: 'USA',
           outFields: [
             'Loc_name',
             'City',
