@@ -94,8 +94,7 @@ function ViewOnMapButton({
       } else if (layer.type === 'graphics') {
         const { organizationid } = feature.attributes;
 
-        for (let i = 0; i < layer.graphics.items.length; i++) {
-          const graphic = layer.graphics.items[i];
+        for (const graphic of layer.graphics.items) {
           const graphicOrgId =
             graphic && graphic.attributes && graphic.attributes.organizationid;
           const graphicAuId =
