@@ -430,9 +430,9 @@ function Protect() {
                     )}
                     {wsioHealthIndexData.status === 'success' &&
                       wsioHealthIndexData.data.length === 0 && (
-                        <StyledInfoBox>
-                          No Protected Areas Database data available for this
-                          location.
+                        <StyledInfoBox style={{ marginBottom: '0.875em' }}>
+                          No Watershed Health Score data available for the{' '}
+                          {watershed} watershed.
                         </StyledInfoBox>
                       )}
                     {wsioHealthIndexData.status === 'success' &&
@@ -886,8 +886,8 @@ function Protect() {
                     {protectedAreasData.status === 'success' &&
                       protectedAreasData.data.length === 0 && (
                         <StyledInfoBox>
-                          No Protected Areas Database data available for this
-                          location.
+                          No Protected Areas Database data available for the{' '}
+                          {watershed} watershed.
                         </StyledInfoBox>
                       )}
 
