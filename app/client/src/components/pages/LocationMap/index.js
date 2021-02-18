@@ -980,6 +980,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         if (!searchIconLayer) return;
 
         searchIconLayer.graphics.removeAll();
+        searchIconLayer.visible = true;
         searchIconLayer.graphics.add(
           new Graphic({
             geometry: location,

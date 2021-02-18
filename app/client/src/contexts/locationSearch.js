@@ -441,6 +441,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         mapView,
         homeWidget,
         waterbodyLayer,
+        wsioHealthIndexLayer,
+        wildScenicRiversLayer,
+        protectedAreasLayer,
       } = this.state;
 
       // Clear waterbody layers from state
@@ -483,12 +486,33 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       // remove all map content defined in this file
       if (providersLayer) providersLayer.graphics.removeAll();
       if (boundariesLayer) boundariesLayer.graphics.removeAll();
-      if (searchIconLayer) searchIconLayer.graphics.removeAll();
+      if (searchIconLayer) {
+        searchIconLayer.visible = false;
+        searchIconLayer.graphics.removeAll();
+      }
       if (monitoringStationsLayer) monitoringStationsLayer.graphics.removeAll();
       if (dischargersLayer) dischargersLayer.graphics.removeAll();
       if (nonprofitsLayer) nonprofitsLayer.graphics.removeAll();
+      if (wsioHealthIndexLayer) {
+        wsioHealthIndexLayer.visible = false;
+        wsioHealthIndexLayer.listMode = 'hide';
+      }
+      if (protectedAreasLayer) {
+        protectedAreasLayer.visible = false;
+        protectedAreasLayer.listMode = 'hide';
+      }
       if (protectedAreasHighlightLayer) {
         protectedAreasHighlightLayer.graphics.removeAll();
+      }
+      if (wildScenicRiversLayer) {
+        // This timeout is to workaround an issue with the wild and scenic rivers
+        // layer. When turning visibility off for multiple layers with this one
+        // included, the app would crash. This timeout prevents the app from
+        // crashing. Similarly setting visibleLayers to {} would crash the app.
+        setTimeout(() => {
+          wildScenicRiversLayer.visible = false;
+          wildScenicRiversLayer.listMode = 'hide';
+        }, 100);
       }
 
       // reset the zoom and home widget to the initial extent

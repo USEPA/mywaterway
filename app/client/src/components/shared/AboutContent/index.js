@@ -386,6 +386,14 @@ function AboutContent({ ...props }: Props) {
                     https://github.com/USEPA/mywaterway
                   </a>
                   .
+                  <a
+                    className="exit-disclaimer"
+                    href="https://www.epa.gov/home/exit-epa"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    EXIT
+                  </a>
                 </p>
 
                 <h2>More Questions?</h2>
