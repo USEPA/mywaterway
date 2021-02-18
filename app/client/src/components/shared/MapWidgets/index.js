@@ -466,7 +466,7 @@ function MapWidgets({
     ReactDOM.render(
       <ShowAddDataWidget
         addDataWidgetVisible={addDataWidgetVisible}
-        setAddDataWidgetVisible={setAddDataWidgetVisible}
+        setAddDataWidgetVisibleParam={setAddDataWidgetVisible}
       />,
       node,
     );
