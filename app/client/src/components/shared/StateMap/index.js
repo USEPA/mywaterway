@@ -419,7 +419,6 @@ function StateMap({
             view={null}
             layers={layers}
             scrollToComponent="statemap"
-            onHomeWidgetRendered={(homeWidget) => {}}
           />
 
           {/* manually passing map and view props to Map component's         */}
