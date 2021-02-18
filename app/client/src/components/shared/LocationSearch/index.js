@@ -371,22 +371,22 @@ function LocationSearch({ route, label }: Props) {
   const [filteredSuggestions, setFilteredSuggestions] = React.useState([]);
   const [resultsCombined, setResultsCombined] = React.useState([]);
   React.useEffect(() => {
-    const filteredSuggestions = [];
-    const resultsCombined = [];
+    const newFilteredSuggestions = [];
+    const newResultsCombined = [];
 
     allSources.forEach((item) => {
       if (item.type === 'default') {
         // check if this has already been added
         let sug = findSource(
           'ArcGIS World Geocoding Service',
-          filteredSuggestions,
+          newFilteredSuggestions,
         );
         if (sug) return;
 
         sug = findSource('ArcGIS World Geocoding Service', suggestions);
         if (sug && sug.results.length > 0) {
-          filteredSuggestions.push(sug);
-          resultsCombined.push(...sug.results);
+          newFilteredSuggestions.push(sug);
+          newResultsCombined.push(...sug.results);
         }
         return;
       }
@@ -414,16 +414,16 @@ function LocationSearch({ route, label }: Props) {
       });
 
       if (results.length > 0) {
-        filteredSuggestions.push({
+        newFilteredSuggestions.push({
           results,
           source,
           sourceIndex,
         });
-        resultsCombined.push(...results);
+        newResultsCombined.push(...results);
       }
     });
-    setFilteredSuggestions(filteredSuggestions);
-    setResultsCombined(resultsCombined);
+    setFilteredSuggestions(newFilteredSuggestions);
+    setResultsCombined(newResultsCombined);
   }, [allSources, suggestions]);
 
   const [cursor, setCursor] = React.useState(-1);
@@ -471,11 +471,11 @@ function LocationSearch({ route, label }: Props) {
   }, [cursor, enterPress, resultsCombined]);
 
   // Performs the search operation
-  function formSubmit(searchTerm, geometry = null) {
+  function formSubmit(newSearchTerm, geometry = null) {
     setSuggestionsVisible(false);
     setCursor(-1);
 
-    if (containsScriptTag(searchTerm)) {
+    if (containsScriptTag(newSearchTerm)) {
       setErrorMessage(invalidSearchError);
       return;
     }
@@ -483,11 +483,11 @@ function LocationSearch({ route, label }: Props) {
     // get urlSearch parameter value
     let urlSearch = null;
     if (geometry) {
-      urlSearch = `${searchTerm.trim()}|${geometry.longitude}, ${
+      urlSearch = `${newSearchTerm.trim()}|${geometry.longitude}, ${
         geometry.latitude
       }`;
-    } else if (searchTerm) {
-      urlSearch = searchTerm.trim();
+    } else if (newSearchTerm) {
+      urlSearch = newSearchTerm.trim();
     }
 
     // navigate if the urlSearch value is available
@@ -557,12 +557,14 @@ function LocationSearch({ route, label }: Props) {
               >
                 {result.text
                   .split(new RegExp(`(${inputText})`, 'gi'))
-                  .map((part, index) => {
+                  .map((part, textIndex) => {
                     if (part.toLowerCase() === inputText.toLowerCase()) {
-                      return <strong key={`text-key-${index}`}>{part}</strong>;
+                      return (
+                        <strong key={`text-key-${textIndex}`}>{part}</strong>
+                      );
                     } else {
                       return (
-                        <React.Fragment key={`text-key-${index}`}>
+                        <React.Fragment key={`text-key-${textIndex}`}>
                           {part}
                         </React.Fragment>
                       );
@@ -649,8 +651,8 @@ function LocationSearch({ route, label }: Props) {
   React.useEffect(() => {
     if (!clearEnterPress) return;
 
-    const clearButton = document.getElementById('search-input-clear');
-    clearButton.click();
+    const nodeClearButton = document.getElementById('search-input-clear');
+    nodeClearButton.click();
   }, [clearEnterPress]);
 
   const searchTerm = splitSuggestedSearch(Point, searchText).searchPart;
@@ -725,20 +727,20 @@ function LocationSearch({ route, label }: Props) {
                 data-node-ref="_sourceListNode"
                 className="esri-menu__list"
               >
-                {allSources.map((source, index) => {
+                {allSources.map((source, sourceIndex) => {
                   return (
                     <li
-                      id={`source-${index}`}
+                      id={`source-${sourceIndex}`}
                       role="menuitem"
                       className={`esri-search__source esri-menu__list-item ${
                         selectedSource.name === source.name
                           ? 'esri-menu__list-item--active'
-                          : index === sourceCursor
+                          : sourceIndex === sourceCursor
                           ? 'esri-menu__list-item-active'
                           : ''
                       }`}
                       tabIndex="-1"
-                      key={`source-key-${index}`}
+                      key={`source-key-${sourceIndex}`}
                       onClick={() => {
                         setSelectedSource(source);
                         setSourcesVisible(false);
@@ -813,7 +815,7 @@ function LocationSearch({ route, label }: Props) {
                   role="menu"
                   data-node-ref="_suggestionListNode"
                 >
-                  {filteredSuggestions.map((source, index) => {
+                  {filteredSuggestions.map((source, suggestIndex) => {
                     function findGroupName() {
                       if (
                         source.source.name === 'ArcGIS World Geocoding Service'
@@ -821,24 +823,24 @@ function LocationSearch({ route, label }: Props) {
                         return 'Address, zip code, and place search';
                       }
 
-                      let title = '';
+                      let newTitle = '';
                       allSources.forEach((item) => {
                         if (item.type === 'default') return;
 
                         item.sources.forEach((nestedItem) => {
                           if (nestedItem.name === source.source.name) {
-                            title = item.name;
+                            newTitle = item.name;
                           }
                         });
                       });
-                      return title;
+                      return newTitle;
                     }
                     if (source.results.length === 0) return null;
 
                     const title = findGroupName();
                     return (
                       <LayerSuggestions
-                        key={`layer-suggestions-key-${index}`}
+                        key={`layer-suggestions-key-${suggestIndex}`}
                         title={title}
                         source={source}
                       />
