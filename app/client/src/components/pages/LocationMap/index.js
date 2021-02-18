@@ -1544,7 +1544,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             view={null}
             layers={layers}
             scrollToComponent="locationmap"
-            onHomeWidgetRendered={(homeWidget) => {}}
           />
 
           {/* manually passing map and view props to Map component's         */}
