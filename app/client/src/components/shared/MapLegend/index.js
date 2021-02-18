@@ -543,8 +543,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     // build subtitle based on which layers are visible
     const subtitleParts = [];
     const layers = view.map.layers.items;
-    for (let i = 0; i < layers.length; i++) {
-      const layerItem = layers[i];
+    for (const layerItem of layers) {
       if (layerItem.id === 'ejscreenLayer') {
         layerItem.layers.items.forEach((sublayer) => {
           if (sublayer.visible) {
