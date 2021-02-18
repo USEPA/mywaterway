@@ -394,8 +394,8 @@ function MapWidgets({
   const esriLegendTemp = document.createElement('div');
   esriLegendTemp.id = 'esri-legend-container';
   esriLegendTemp.className = 'esri-legend-hidden';
-  legendTemp.append(hmwLegendTemp);
-  legendTemp.append(esriLegendTemp);
+  legendTemp.appendChild(hmwLegendTemp);
+  legendTemp.appendChild(esriLegendTemp);
   const [hmwLegendNode] = React.useState(hmwLegendTemp);
   const [esriLegendNode] = React.useState(esriLegendTemp);
   const [legendNode] = React.useState(legendTemp);
