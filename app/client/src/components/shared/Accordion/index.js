@@ -191,7 +191,7 @@ type AccordionItemProps = {
   status: ?string,
   onAddHighlight: Function,
   onRemoveHighlight: Function,
-  onChange: Function,
+  onChange: (isOpen: boolean) => void,
   idKey: ?string,
   allExpanded: boolean,
   highlightContent: ?boolean,
