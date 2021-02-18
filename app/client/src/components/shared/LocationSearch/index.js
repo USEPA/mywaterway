@@ -800,7 +800,7 @@ function LocationSearch({ route, label }: Props) {
                     }, 250);
                   }}
                   aria-owns={
-                    filteredSuggestions.length > 0
+                    filteredSuggestions.length > 0 && suggestionsVisible
                       ? 'search-container-suggest-menu'
                       : ''
                   }
