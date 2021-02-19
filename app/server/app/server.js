@@ -11,11 +11,8 @@ const browserSyncPort = 9091;
 let port = process.env.PORT || 9090;
 
 app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'", '*'],
-      upgradeInsecureRequests: [],
-    },
+  helmet({
+    contentSecurityPolicy: false,
   }),
 );
 app.use(
