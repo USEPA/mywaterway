@@ -255,19 +255,19 @@ function FilePanel() {
     }
 
     // get the filetype
-    const file = acceptedFiles[0];
+    const tempFile = acceptedFiles[0];
     let fileType = '';
-    if (file.name.endsWith('.zip')) fileType = 'shapefile';
-    if (file.name.endsWith('.csv')) fileType = 'csv';
-    if (file.name.endsWith('.kml')) fileType = 'kml';
-    if (file.name.endsWith('.geojson')) fileType = 'geojson';
-    if (file.name.endsWith('.geo.json')) fileType = 'geojson';
-    if (file.name.endsWith('.gpx')) fileType = 'gpx';
+    if (tempFile.name.endsWith('.zip')) fileType = 'shapefile';
+    if (tempFile.name.endsWith('.csv')) fileType = 'csv';
+    if (tempFile.name.endsWith('.kml')) fileType = 'kml';
+    if (tempFile.name.endsWith('.geojson')) fileType = 'geojson';
+    if (tempFile.name.endsWith('.geo.json')) fileType = 'geojson';
+    if (tempFile.name.endsWith('.gpx')) fileType = 'gpx';
 
     // set the file state
-    file['esriFileType'] = fileType;
+    tempFile['esriFileType'] = fileType;
     setFile({
-      file,
+      file: tempFile,
       lastFileName: '',
       analyzeCalled: false,
     });
@@ -280,7 +280,6 @@ function FilePanel() {
 
     if (!fileType) {
       setUploadStatus('invalid-file-type');
-      return;
     }
   }, []);
 
@@ -302,9 +301,9 @@ function FilePanel() {
       return;
     }
 
-    setFile((file: any) => {
+    setFile((currentFile: any) => {
       return {
-        ...file,
+        ...currentFile,
         analyzeCalled: true,
       };
     });
@@ -341,9 +340,9 @@ function FilePanel() {
     if (file.file.esriFileType === 'kml') return; // KML doesn't need to do this
     if (file.file.esriFileType === 'csv' && !analyzeResponse) return; // CSV needs to wait for the analyze response
 
-    setFile((file: any) => {
+    setFile((currentFile: any) => {
       return {
-        ...file,
+        ...currentFile,
         lastFileName: file.file.name,
       };
     });
@@ -518,7 +517,10 @@ function FilePanel() {
       featureLayers.push(layerToAdd);
     });
 
-    setWidgetLayers((widgetLayers) => [...widgetLayers, ...featureLayers]);
+    setWidgetLayers((currentWidgetLayers) => [
+      ...currentWidgetLayers,
+      ...featureLayers,
+    ]);
 
     setUploadStatus('success');
   }, [

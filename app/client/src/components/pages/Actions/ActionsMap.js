@@ -6,10 +6,6 @@ import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import MapWidgets from 'components/shared/MapWidgets';
 import MapMouseEvents from 'components/shared/MapMouseEvents';
 import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
-import {
-  createWaterbodySymbol,
-  getWaterbodyCondition,
-} from 'components/pages/LocationMap/MapFunctions';
 // styled components
 import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes';
 // contexts
@@ -22,8 +18,10 @@ import { esriApiUrl } from 'config/esriConfig';
 import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
 import { browserIsCompatibleWithArcGIS } from 'utils/utils';
 import {
+  createWaterbodySymbol,
   getPopupTitle,
   getPopupContent,
+  getWaterbodyCondition,
 } from 'components/pages/LocationMap/MapFunctions';
 // errors
 import {
@@ -210,13 +208,11 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
             const condition = getWaterbodyCondition(feature.attributes)
               .condition;
 
-            const waterbodyReportSymbol = createWaterbodySymbol({
+            return createWaterbodySymbol({
               condition: condition,
               selected: false,
               geometryType: type,
             });
-
-            return waterbodyReportSymbol;
           }
 
           function createGraphic(feature: Object, type: string) {
@@ -394,12 +390,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
         {/* manually passing map and view props to Map component's     */}
         {/* children to satisfy flow, but map and view props are auto  */}
         {/* passed from Map component to its children by react-arcgis  */}
-        <MapWidgets
-          map={null}
-          view={null}
-          layers={layers}
-          onHomeWidgetRendered={(homeWidget) => {}}
-        />
+        <MapWidgets map={null} view={null} layers={layers} />
 
         {/* manually passing map and view props to Map component's         */}
         {/* children to satisfy flow, but map and view props are auto      */}

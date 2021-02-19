@@ -264,8 +264,8 @@ function AddDataWidget() {
                             !item.layer.parent?.type ||
                             item.layer.parent.type !== 'group'
                           ) {
-                            setWidgetLayers((widgetLayers) =>
-                              widgetLayers.filter(
+                            setWidgetLayers((currentWidgetLayers) =>
+                              currentWidgetLayers.filter(
                                 (widgetLayer) =>
                                   widgetLayer.id !== item.layer.id,
                               ),
@@ -279,8 +279,8 @@ function AddDataWidget() {
                           if (item.layer.parent.layers.length > 1) {
                             item.layer.parent.remove(item.layer);
                           } else {
-                            setWidgetLayers((widgetLayers) =>
-                              widgetLayers.filter(
+                            setWidgetLayers((currentWidgetLayers) =>
+                              currentWidgetLayers.filter(
                                 (widgetLayer) =>
                                   widgetLayer.id !== item.layer.parent.id,
                               ),

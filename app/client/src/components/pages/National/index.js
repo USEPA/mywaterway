@@ -282,6 +282,24 @@ function WaterConditionsPanel() {
     </FooterText>
   );
 
+  const narsTabContent = (data) => {
+    return data.map((category, index) => (
+      <AccordionItem
+        key={index}
+        title={
+          <>
+            <Percent>{category.metric}</Percent>{' '}
+            <span dangerouslySetInnerHTML={createMarkup(category.title)} />
+          </>
+        }
+      >
+        <AccordionContent
+          dangerouslySetInnerHTML={createMarkup(category.content)}
+        />
+      </AccordionItem>
+    ));
+  };
+
   return (
     <>
       <IntroBox>
@@ -363,27 +381,7 @@ function WaterConditionsPanel() {
               <TabPanels>
                 <TabPanel>
                   <AccordionList>
-                    {NARS.data.riversAndStreams.map((category, index) => (
-                      <AccordionItem
-                        key={index}
-                        title={
-                          <>
-                            <Percent>{category.metric}</Percent>{' '}
-                            <span
-                              dangerouslySetInnerHTML={createMarkup(
-                                category.title,
-                              )}
-                            />
-                          </>
-                        }
-                      >
-                        <AccordionContent
-                          dangerouslySetInnerHTML={createMarkup(
-                            category.content,
-                          )}
-                        />
-                      </AccordionItem>
-                    ))}
+                    {narsTabContent(NARS.data.riversAndStreams)}
                   </AccordionList>
 
                   {narsFooter}
@@ -391,27 +389,7 @@ function WaterConditionsPanel() {
 
                 <TabPanel>
                   <AccordionList>
-                    {NARS.data.lakes.map((category, index) => (
-                      <AccordionItem
-                        key={index}
-                        title={
-                          <>
-                            <Percent>{category.metric}</Percent>{' '}
-                            <span
-                              dangerouslySetInnerHTML={createMarkup(
-                                category.title,
-                              )}
-                            />
-                          </>
-                        }
-                      >
-                        <AccordionContent
-                          dangerouslySetInnerHTML={createMarkup(
-                            category.content,
-                          )}
-                        />
-                      </AccordionItem>
-                    ))}
+                    {narsTabContent(NARS.data.lakes)}
                   </AccordionList>
 
                   {narsFooter}
@@ -419,27 +397,7 @@ function WaterConditionsPanel() {
 
                 <TabPanel>
                   <AccordionList>
-                    {NARS.data.coasts.map((category, index) => (
-                      <AccordionItem
-                        key={index}
-                        title={
-                          <>
-                            <Percent>{category.metric}</Percent>{' '}
-                            <span
-                              dangerouslySetInnerHTML={createMarkup(
-                                category.title,
-                              )}
-                            />
-                          </>
-                        }
-                      >
-                        <AccordionContent
-                          dangerouslySetInnerHTML={createMarkup(
-                            category.content,
-                          )}
-                        />
-                      </AccordionItem>
-                    ))}
+                    {narsTabContent(NARS.data.coasts)}
                   </AccordionList>
 
                   {narsFooter}
@@ -447,27 +405,7 @@ function WaterConditionsPanel() {
 
                 <TabPanel>
                   <AccordionList>
-                    {NARS.data.wetlands.map((category, index) => (
-                      <AccordionItem
-                        key={index}
-                        title={
-                          <>
-                            <Percent>{category.metric}</Percent>{' '}
-                            <span
-                              dangerouslySetInnerHTML={createMarkup(
-                                category.title,
-                              )}
-                            />
-                          </>
-                        }
-                      >
-                        <AccordionContent
-                          dangerouslySetInnerHTML={createMarkup(
-                            category.content,
-                          )}
-                        />
-                      </AccordionItem>
-                    ))}
+                    {narsTabContent(NARS.data.wetlands)}
                   </AccordionList>
 
                   {narsFooter}

@@ -100,7 +100,7 @@ function URLPanel() {
     if (!mapView || !layer) return;
 
     // add the layer to the map
-    setWidgetLayers((widgetLayers) => [...widgetLayers, layer]);
+    setWidgetLayers((currentWidgetLayers) => [...currentWidgetLayers, layer]);
     setStatus('success');
     setLayer(null);
   }, [mapView, layer, setWidgetLayers, widgetLayers, url, urlType]);
@@ -110,7 +110,7 @@ function URLPanel() {
   const handleAdd = (ev: React.MouseEvent<HTMLButtonElement>) => {
     // make sure the url hasn't already been added
     const index = widgetLayers.findIndex(
-      (layer) => layer.url?.toLowerCase() === url.toLowerCase(),
+      (tempLayer) => tempLayer.url?.toLowerCase() === url.toLowerCase(),
     );
     if (index > -1) {
       setStatus('already-added');
@@ -121,12 +121,12 @@ function URLPanel() {
 
     const type = urlType.value;
 
-    let layer = null;
+    let newLayer = null;
     if (type === 'ArcGIS') {
       // add this layer to the url layers
       Layer.fromArcGISServerUrl({ url })
-        .then((layer) => {
-          setLayer(layer);
+        .then((tempLayer) => {
+          setLayer(tempLayer);
         })
         .catch((err) => {
           console.error(err);
@@ -135,26 +135,26 @@ function URLPanel() {
       return;
     }
     if (type === 'WMS') {
-      layer = new WMSLayer({ url });
+      newLayer = new WMSLayer({ url });
     }
     /* // not supported in 4.x js api
         if(type === 'WFS') {
           layer = new WFSLayer({ url });
         } */
     if (type === 'KML') {
-      layer = new KMLLayer({ url });
+      newLayer = new KMLLayer({ url });
     }
     if (type === 'GeoRSS') {
-      layer = new GeoRSSLayer({ url });
+      newLayer = new GeoRSSLayer({ url });
     }
     if (type === 'CSV') {
-      layer = new CSVLayer({ url });
+      newLayer = new CSVLayer({ url });
     }
 
     // unsupported layer type
-    if (layer) {
+    if (newLayer) {
       // add this layer to the url layers
-      setLayer(layer);
+      setLayer(newLayer);
     } else {
       setStatus('unsupported');
     }

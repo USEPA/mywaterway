@@ -7,7 +7,7 @@ import styled from 'styled-components';
 import { ContentTabs } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 import Switch from 'components/shared/Switch';
 import { gradientIcon } from 'components/pages/LocationMap/MapFunctions';
@@ -151,6 +151,11 @@ const WsioQuestionContainer = styled.div`
 
 const ViewButtonContainer = styled.div`
   margin-left: 0.5em;
+`;
+
+const InfoBoxWithMargin = styled(StyledInfoBox)`
+  margin: 1em;
+  text-align: center;
 `;
 
 // --- components ---
@@ -311,30 +316,7 @@ function Protect() {
     ? Math.round(wsioData.phwa_health_ndx_st_2016 * 100) / 100
     : null;
 
-  function SwitchContainer({ onEnter, children }) {
-    // This div is to workaround a couple of issues with the react-switch component.
-    // The first issue is the className prop of the component does not work, which
-    // prevented putting styles (margin, pointer-events) on the component. The
-    // second issue is the react-switch component returns two different event types.
-    // One event type has stopPropagation and the other does not. This container
-    // allows us to stopPropagation in the case of the event without stopPropagation
-    // is returned.
-    return (
-      <StyledSwitch
-        onClick={(ev) => ev.stopPropagation()}
-        onKeyUp={(ev) => {
-          if (ev.key !== 'Enter') return;
-
-          ev.stopPropagation();
-          onEnter();
-        }}
-      >
-        {children}
-      </StyledSwitch>
-    );
-  }
-
-  function onWsioToggle() {
+  function onWsioToggle(checked, ev, id) {
     setHealthScoresDisplayed(!healthScoresDisplayed);
     updateVisibleLayers({
       key: 'wsioHealthIndexLayer',
@@ -422,7 +404,7 @@ function Protect() {
                   }}
                   title={
                     <Label>
-                      <SwitchContainer onEnter={onWsioToggle}>
+                      <StyledSwitch onClick={(ev) => ev.stopPropagation()}>
                         <Switch
                           checked={
                             healthScoresDisplayed &&
@@ -432,7 +414,7 @@ function Protect() {
                           disabled={wsioHealthIndexData.status === 'failure'}
                           ariaLabel="Watershed Health Scores"
                         />
-                      </SwitchContainer>
+                      </StyledSwitch>
                       <strong>Watershed Health Scores</strong>
                     </Label>
                   }
@@ -448,10 +430,10 @@ function Protect() {
                     )}
                     {wsioHealthIndexData.status === 'success' &&
                       wsioHealthIndexData.data.length === 0 && (
-                        <p>
-                          No Protected Areas Database data available for this
-                          location.
-                        </p>
+                        <StyledInfoBox style={{ marginBottom: '0.875em' }}>
+                          No Watershed Health Score data available for the{' '}
+                          {watershed} watershed.
+                        </StyledInfoBox>
                       )}
                     {wsioHealthIndexData.status === 'success' &&
                       wsioHealthIndexData.data.length > 0 && (
@@ -661,7 +643,7 @@ function Protect() {
                   }}
                   title={
                     <Label>
-                      <SwitchContainer onEnter={onWildScenicToggle}>
+                      <StyledSwitch onClick={(ev) => ev.stopPropagation()}>
                         <Switch
                           checked={
                             wildScenicRiversDisplayed &&
@@ -671,7 +653,7 @@ function Protect() {
                           disabled={wildScenicRiversData.status === 'failure'}
                           ariaLabel="Wild and Scenic Rivers"
                         />
-                      </SwitchContainer>
+                      </StyledSwitch>
                       <strong>Wild and Scenic Rivers</strong>
                     </Label>
                   }
@@ -712,10 +694,10 @@ function Protect() {
 
                     {wildScenicRiversData.status === 'success' &&
                       wildScenicRiversData.data.length === 0 && (
-                        <p>
+                        <StyledInfoBox>
                           No Wild and Scenic River data available in the{' '}
                           {watershed} watershed.
-                        </p>
+                        </StyledInfoBox>
                       )}
 
                     {wildScenicRiversData.status === 'success' &&
@@ -847,7 +829,7 @@ function Protect() {
                   }}
                   title={
                     <Label>
-                      <SwitchContainer onEnter={onProtectedAreasToggle}>
+                      <StyledSwitch onClick={(ev) => ev.stopPropagation()}>
                         <Switch
                           checked={
                             protectedAreasDisplayed &&
@@ -857,7 +839,7 @@ function Protect() {
                           disabled={protectedAreasData.status === 'failure'}
                           ariaLabel="Protected Areas"
                         />
-                      </SwitchContainer>
+                      </StyledSwitch>
                       <strong>Protected Areas</strong>
                     </Label>
                   }
@@ -903,10 +885,10 @@ function Protect() {
 
                     {protectedAreasData.status === 'success' &&
                       protectedAreasData.data.length === 0 && (
-                        <p>
-                          No Protected Areas Database data available for this
-                          location.
-                        </p>
+                        <StyledInfoBox>
+                          No Protected Areas Database data available for the{' '}
+                          {watershed} watershed.
+                        </StyledInfoBox>
                       )}
 
                     {protectedAreasData.status === 'success' &&
@@ -1052,10 +1034,10 @@ function Protect() {
                     {grts.status === 'success' && (
                       <>
                         {sortedGrtsData.length === 0 && (
-                          <p>
+                          <StyledInfoBox>
                             There are no EPA funded protection projects in the{' '}
                             {watershed} watershed.
-                          </p>
+                          </StyledInfoBox>
                         )}
 
                         {sortedGrtsData.length > 0 && (

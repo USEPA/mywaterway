@@ -21,7 +21,7 @@ import Stories from 'components/pages/State/components/Stories';
 // styled components
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // styles
-import { colors } from 'styles/index.js';
+import { colors, reactSelectStyles } from 'styles/index.js';
 // contexts
 import { StateTabsContext } from 'contexts/StateTabs';
 import {
@@ -34,8 +34,6 @@ import { fetchCheck } from 'utils/fetchUtils';
 import { titleCase } from 'utils/utils';
 // images
 import drinkingWaterIcon from 'components/pages/Community/images/drinking-water.png';
-// styles
-import { reactSelectStyles } from 'styles/index.js';
 // errors
 import {
   stateSurveySectionError,
@@ -567,7 +565,6 @@ function WaterQualityOverview({ ...props }: Props) {
             setNoDataError(true);
             setLoading(false);
             setSurveyLoading(false);
-            return;
           }
         })
         .catch((err) => {
