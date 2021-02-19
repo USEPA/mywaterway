@@ -1,5 +1,49 @@
 # Change Log
 
+## 2.0.4 (February 2021)
+
+### Added
+
+- New mapping widget (i.e., Add Data Widget) - can be used to add geospatial information from ArcGIS Online, external GIS services, and by uploading files contain spatial information.
+
+- Watershed Health Scores data from WSIO to the Protect panel of the Community page.
+
+- Wild and Scenic Rivers data to the Protect panel of the Community page.
+
+- Protected Areas data from PAD-US to the Protect panel of the Community page.
+
+- Demographic Indicators information from EJSCREEN to the layer list.
+
+- ATTAINS Waterbodies layer to the Monitoring, Restore, and Protect tabs of the Community page.
+
+- A "Fish Consumption Advisories" link to the "Eating Fish" tab of the State page. 
+
+### Changed
+
+- The Community search box now displays search suggestions based on what the user has typed (includes break out sections for Tribes and Watersheds).
+
+- Updated the NARS data on the National page.
+
+- Updated One EPA Template footer links.
+
+- Updated the watershed boundaries graphic to have a darker outline so that it stands out more.
+
+- Increased the size of the header banner buttons, so they are easier to click on mobile devices.
+
+- Updated "opens in new browser tab" language for ATTAINS documents and more information sections on the State page.
+
+- Updated the National page to pull NARS data from an AWS configuration file.
+
+- Updated the glossary to perform an exact match when the user opens the glossary by clicking a term.
+
+- Updated the look of the charts on the State Water Quality Overview tab.
+
+- Fixed an issue with drop down menus opening keyboards on mobile devices.
+
+- Fixed an issue where users could attempt to use the layer list to turn on layers that failed to load.
+
+- Fixed an issue with counties showing up as "undefined" on the Drinking Water tab of the Community page.
+
 ## 2.0.3 (November 2020)
 
 ### Added
