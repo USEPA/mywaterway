@@ -4,29 +4,29 @@
 
 ### Added
 
-- Add Data Widget to all maps within the application. This can be used for adding layers from ArcGIS Online, URLs, and by uploading files.
+- New mapping widget (i.e., Add Data Widget) - can be used to add geospatial information from ArcGIS Online, external GIS services, and by uploading files contain spatial information.
 
-- Watershed Health Scores data to the Protect panel of the Community page.
+- Watershed Health Scores data from WSIO to the Protect panel of the Community page.
 
 - Wild and Scenic Rivers data to the Protect panel of the Community page.
 
-- Protected Areas data to the Protect panel of the Community page.
+- Protected Areas data from PAD-US to the Protect panel of the Community page.
 
-- Environmental Justice layer to the layer list.
+- Demographic Indicators information from EJSCREEN to the layer list.
 
-- The Waterbodies layer to the Monitoring, Restore, and Protect tabs of the Community page.
+- ATTAINS Waterbodies layer to the Monitoring, Restore, and Protect tabs of the Community page.
 
 - A "Fish Consumption Advisories" link to the "Eating Fish" tab of the State page. 
 
 ### Changed
 
-- The Community search box no displays search suggestions based on what the user has typed.
+- The Community search box now displays search suggestions based on what the user has typed (includes break out sections for Tribes and Watersheds).
 
 - Updated the NARS data on the National page.
 
-- Updated one EPA template footer links.
+- Updated One EPA Template footer links.
 
-- Updated the watershed boundaries graphic to have a darker outline, so that it stands out more.
+- Updated the watershed boundaries graphic to have a darker outline so that it stands out more.
 
 - Increased the size of the header banner buttons, so they are easier to click on mobile devices.
 
@@ -40,9 +40,7 @@
 
 - Fixed an issue with drop down menus opening keyboards on mobile devices.
 
-- Fixed an issue where users could use the layer list to turn on layers that failed to load.
-
-- Fixed an error with the waterbody report for certain waterbodies.
+- Fixed an issue where users could attempt to use the layer list to turn on layers that failed to load.
 
 - Fixed an issue with counties showing up as "undefined" on the Drinking Water tab of the Community page.
 
