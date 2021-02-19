@@ -13,7 +13,8 @@ let port = process.env.PORT || 9090;
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
-      defaultSrc: ['*'],
+      defaultSrc: ["'self'", '*'],
+      upgradeInsecureRequests: [],
     },
   }),
 );
