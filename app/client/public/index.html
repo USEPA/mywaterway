@@ -121,12 +121,12 @@
       loc.hostname === 'localhost'
         ? `${loc.protocol}//${loc.hostname}:9091`
         : loc.origin;
-        
+
     // initialize the googleAnalyticsMapping window object so the calls to get
     // the services lookup file are logged.
     window.googleAnalyticsMapping = [
-      { 
-        wildcardUrl: `${origin}/proxy?url=${origin}/data/config/services.json`, 
+      {
+        wildcardUrl: `${origin}/proxy?url=${origin}/data/config/services.json`,
         name: 's3 lookup - config services'
       },
     ];
@@ -134,7 +134,7 @@
     //Only setup the logging for public sites, ie don't log from localhost
     window.gaTarget = '';
     if (
-      document.location.hostname.indexOf("epa.gov") > -1 || 
+      document.location.hostname.indexOf("epa.gov") > -1 ||
       document.location.hostname === 'mywaterway-prod.app.cloud.gov'
     ) {
       //EPA (Production) - Just initialize the HMW logs by setting gaTarget
@@ -189,6 +189,13 @@
         window.dispatchEvent(event);
       });
 
+      function wildcardIncludes(str, rule) {
+        var escapeRegex = (str) => str.replace(/([.*+?^=!:${}()|\]\\])/g, '\\$1');
+        return new RegExp(
+          '^' + rule.split('*').map(escapeRegex).join('.*') + '$',
+        ).test(str);
+      }
+
       document.addEventListener('click', function (event) {
         //Button clicks
         if (event.target.onclick && event.target.textContent) {
@@ -206,6 +213,16 @@
         if (event.target.tagName.toLowerCase() === 'a' && event.target.target === '_blank') {
           const href = event.target.href;
           let category = 'Web-service';
+          let action = '';
+
+          // combine the web service and map service mappings
+          let mapping = window.googleAnalyticsMapping;
+          mapping.forEach((item) => {
+            if (!action && wildcardIncludes(href, item.wildcardUrl)) {
+              action = item.name;
+            }
+          });
+          action = 'ow-hmw2-' + (action ? action : event.target.text.trim());
 
           if (document.location.hostname === event.target.hostname) {
             //Part of the HMW application
@@ -220,7 +237,7 @@
           }
 
           //Log to Google Analytics
-          logToGa('send', 'event', category, 'ow-hmw2-' + event.target.text.trim(), href);
+          logToGa('send', 'event', category, action, href);
         }
       });
 
@@ -242,7 +259,6 @@
   <noscript><iframe title="google tag manager" src="//www.googletagmanager.com/ns.html?id=GTM-L8ZB" height="0" width="0"
       style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager -->
-
   <div class="skip-links">
     <a href="#main-content" class="skip-link element-invisible element-focusable">Jump to main content</a>
   </div>
@@ -334,19 +350,16 @@
                   <a href="https://www.epa.gov/accessibility">Accessibility</a>
                 </li>
                 <li>
-                  <a href="https://www.epa.gov/aboutepa/epas-administrator">EPA Administrator</a>
-                </li>
-                <li>
                   <a href="https://www.epa.gov/planandbudget">Budget &amp; Performance</a>
                 </li>
                 <li>
                   <a href="https://www.epa.gov/contracts">Contracting</a>
                 </li>
                 <li>
-                  <a href="https://www.epa.gov/home/grants-and-other-funding-opportunities">Grants</a>
+                  <a href="https://www.epa.gov/grants">Grants</a>
                 </li>
                 <li>
-                  <a href="https://19january2017snapshot.epa.gov">January 19, 2017 Web Snapshot</a>
+                  <a href="https://www.epa.gov/home/wwwepagov-snapshots">EPA www Web Snapshots</a>
                 </li>
                 <li>
                   <a
@@ -355,6 +368,9 @@
                 </li>
                 <li>
                   <a href="https://www.epa.gov/privacy">Privacy</a>
+                </li>
+                <li>
+                  <a href="https://www.epa.gov/privacy/privacy-and-security-notice">Privacy and Security Notice</a>
                 </li>
               </ul>
             </div>
@@ -373,9 +389,6 @@
                 </li>
                 <li>
                   <a href="https://www.epa.gov/newsroom">Newsroom</a>
-                </li>
-                <li>
-                  <a href="https://www.epa.gov/open">Open Government</a>
                 </li>
                 <li>
                   <a href="https://www.regulations.gov/">Regulations.gov</a>

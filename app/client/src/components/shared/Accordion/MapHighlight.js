@@ -18,7 +18,7 @@ type AccordionItemProps = {
   feature: ?Object,
   idKey: ?string,
   allExpanded: boolean,
-  onChange: Function,
+  onChange: (isOpen: boolean) => void,
   children: Node,
 };
 

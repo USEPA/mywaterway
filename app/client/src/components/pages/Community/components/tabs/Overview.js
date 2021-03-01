@@ -126,14 +126,6 @@ function Overview() {
   // used for when the user toggles layers in full screen mode and then
   // exist full screen.
   React.useEffect(() => {
-    if (
-      !visibleLayers.hasOwnProperty('waterbodyLayer') ||
-      !visibleLayers.hasOwnProperty('monitoringStationsLayer') ||
-      !visibleLayers.hasOwnProperty('dischargersLayer')
-    ) {
-      return;
-    }
-
     const {
       waterbodyLayer,
       monitoringStationsLayer,
@@ -154,6 +146,65 @@ function Overview() {
     setDischargersFilterEnabled,
     setMonitoringLocationsFilterEnabled,
     setWaterbodiesFilterEnabled,
+  ]);
+
+  // Updates the visible layers. This function also takes into account whether
+  // or not the underlying webservices failed.
+  const updateVisibleLayers = React.useCallback(
+    ({ key = null, newValue = null, useCurrentValue = false }) => {
+      const newVisibleLayers = {};
+      if (monitoringLocations.status !== 'failure') {
+        newVisibleLayers['monitoringStationsLayer'] =
+          !monitoringStationsLayer || useCurrentValue
+            ? visibleLayers['monitoringStationsLayer']
+            : monitoringLocationsFilterEnabled;
+      }
+      if (cipSummary.status !== 'failure') {
+        newVisibleLayers['waterbodyLayer'] =
+          !waterbodyLayer || useCurrentValue
+            ? visibleLayers['waterbodyLayer']
+            : waterbodiesFilterEnabled;
+      }
+      if (permittedDischargers.status !== 'failure') {
+        newVisibleLayers['dischargersLayer'] =
+          !dischargersLayer || useCurrentValue
+            ? visibleLayers['dischargersLayer']
+            : dischargersFilterEnabled;
+      }
+
+      if (newVisibleLayers.hasOwnProperty(key)) {
+        newVisibleLayers[key] = newValue;
+      }
+
+      // set the visible layers if something changed
+      if (JSON.stringify(visibleLayers) !== JSON.stringify(newVisibleLayers)) {
+        setVisibleLayers(newVisibleLayers);
+      }
+    },
+    [
+      dischargersLayer,
+      dischargersFilterEnabled,
+      permittedDischargers,
+      monitoringLocations,
+      monitoringStationsLayer,
+      monitoringLocationsFilterEnabled,
+      waterbodyLayer,
+      waterbodiesFilterEnabled,
+      cipSummary,
+      visibleLayers,
+      setVisibleLayers,
+    ],
+  );
+
+  // Updates visible layers based on webservice statuses.
+  React.useEffect(() => {
+    updateVisibleLayers({ useCurrentValue: true });
+  }, [
+    monitoringLocations,
+    cipSummary,
+    permittedDischargers,
+    visibleLayers,
+    updateVisibleLayers,
   ]);
 
   const waterbodyCount = uniqueWaterbodies && uniqueWaterbodies.length;
@@ -203,14 +254,9 @@ function Overview() {
                     setWaterbodiesFilterEnabled(!waterbodiesFilterEnabled);
 
                     // first check if layer exists and is not falsy
-                    setVisibleLayers({
-                      waterbodyLayer:
-                        waterbodyLayer && !waterbodiesFilterEnabled,
-                      monitoringStationsLayer:
-                        monitoringStationsLayer &&
-                        monitoringLocationsFilterEnabled,
-                      dischargersLayer:
-                        dischargersLayer && dischargersFilterEnabled,
+                    updateVisibleLayers({
+                      key: 'waterbodyLayer',
+                      newValue: waterbodyLayer && !waterbodiesFilterEnabled,
                     });
                   }}
                   disabled={!Boolean(waterbodyCount)}
@@ -247,14 +293,11 @@ function Overview() {
                     );
 
                     // first check if layer exists and is not falsy
-                    setVisibleLayers({
-                      waterbodyLayer:
-                        waterbodyLayer && waterbodiesFilterEnabled,
-                      monitoringStationsLayer:
+                    updateVisibleLayers({
+                      key: 'monitoringStationsLayer',
+                      newValue:
                         monitoringStationsLayer &&
                         !monitoringLocationsFilterEnabled,
-                      dischargersLayer:
-                        dischargersLayer && dischargersFilterEnabled,
                     });
                   }}
                   disabled={!Boolean(monitoringLocationCount)}
@@ -288,14 +331,9 @@ function Overview() {
                     setDischargersFilterEnabled(!dischargersFilterEnabled);
 
                     // first check if layer exists and is not falsy
-                    setVisibleLayers({
-                      waterbodyLayer:
-                        waterbodyLayer && waterbodiesFilterEnabled,
-                      monitoringStationsLayer:
-                        monitoringStationsLayer &&
-                        monitoringLocationsFilterEnabled,
-                      dischargersLayer:
-                        dischargersLayer && !dischargersFilterEnabled,
+                    updateVisibleLayers({
+                      key: 'dischargersLayer',
+                      newValue: dischargersLayer && !dischargersFilterEnabled,
                     });
                   }}
                   disabled={!Boolean(permittedDischargerCount)}

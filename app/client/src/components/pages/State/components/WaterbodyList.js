@@ -86,7 +86,7 @@ function WaterbodyList({
     return <Text>No waterbodies found.</Text>;
   }
 
-  const sortedWaterbodies = waterbodies.sort((objA, objB) => {
+  waterbodies.sort((objA, objB) => {
     return objA['attributes'][sortBy].localeCompare(objB['attributes'][sortBy]);
   });
 
@@ -114,10 +114,7 @@ function WaterbodyList({
         ]}
         onSortChange={(sortBy) => setSortBy(sortBy.value)}
       >
-        <WaterbodyItems
-          sortedWaterbodies={sortedWaterbodies}
-          fieldName={fieldName}
-        />
+        <WaterbodyItems sortedWaterbodies={waterbodies} fieldName={fieldName} />
       </AccordionList>
     </>
   );

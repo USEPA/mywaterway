@@ -289,6 +289,41 @@ export function plotIssues(Graphic: any, features: Array<Object>, layer: any) {
   });
 }
 
+// plot wild and scenic rivers on map
+export function plotWildScenicRivers(
+  Graphic: any,
+  features: Array<Object>,
+  layer: any,
+) {
+  if (!features || !layer) return;
+
+  // clear the layer
+  layer.graphics.removeAll();
+  // put graphics on the layer
+  features.forEach((river) => {
+    layer.graphics.add(
+      new Graphic({
+        geometry: river.geometry,
+        symbol: {
+          type: 'simple-line', // autocasts as SimpleLineSymbol() or SimpleFillSymbol()
+          color: [0, 123, 255],
+          width: 3,
+        },
+        attributes: {
+          ...river.attributes,
+          fieldName: null,
+        },
+        popupTemplate: {
+          title: getPopupTitle(river.attributes),
+          content: getPopupContent({
+            feature: { attributes: river.attributes },
+          }),
+        },
+      }),
+    );
+  });
+}
+
 // plot facilities on map
 export function plotFacilities({
   Graphic,
@@ -329,12 +364,16 @@ export function plotFacilities({
   });
 }
 
-export const openPopup = (view: Object, feature: Object, services: Object) => {
+export const openPopup = (
+  view: Object,
+  feature: Object,
+  fields: Object,
+  services: Object,
+) => {
   // tell the getPopupContent function to use the full popup version that includes the service call
   if (feature.attributes && feature.attributes.MonitoringLocationName) {
     feature.attributes.fullPopup = true;
   }
-
   const fieldName = feature.attributes && feature.attributes.fieldName;
 
   // set the popup template
@@ -344,7 +383,7 @@ export const openPopup = (view: Object, feature: Object, services: Object) => {
   ) {
     feature.popupTemplate = {
       title: getPopupTitle(feature.attributes),
-      content: getPopupContent({ feature, fieldName, services }),
+      content: getPopupContent({ feature, fields, fieldName, services }),
     };
   }
 
@@ -442,6 +481,26 @@ export function getPopupTitle(attributes: Object) {
     title = attributes.PARCEL_NO;
   }
 
+  // wild scenic rivers
+  else if (attributes.WSR_RIVER_NAME) {
+    title = attributes.WSR_RIVER_NAME;
+  }
+
+  // WSIO Health Index
+  else if (attributes.phwa_health_ndx_st_2016) {
+    title = attributes.name_huc12;
+  }
+
+  // Protected areas
+  else if (attributes.GAPCdSrc) {
+    title = attributes.Loc_Nm;
+  }
+
+  // EJSCREEN
+  else if (attributes.T_OVR64PCT) {
+    title = '';
+  }
+
   return title;
 }
 
@@ -452,6 +511,7 @@ export function getPopupContent({
   getClickedHuc,
   resetData,
   services,
+  fields,
 }: {
   feature: Object,
   fieldName: ?string,
@@ -459,6 +519,7 @@ export function getPopupContent({
   getClickedHuc: ?Function,
   resetData: ?Function,
   services: ?Object,
+  fields: ?Object,
 }) {
   let type = 'Unknown';
 
@@ -531,6 +592,26 @@ export function getPopupContent({
     type = 'Change Location';
   }
 
+  // wild scenic rivers
+  else if (attributes.WSR_RIVER_NAME) {
+    type = 'Wild and Scenic Rivers';
+  }
+
+  // WSIO Health Index
+  else if (attributes.phwa_health_ndx_st_2016) {
+    type = 'State Watershed Health Index';
+  }
+
+  // Protected areas
+  else if (attributes.GAPCdSrc) {
+    type = 'Protected Areas';
+  }
+
+  // EJSCREEN
+  else if (attributes.T_OVR64PCT) {
+    type = 'Environmental Justice';
+  }
+
   const content = (
     <MapPopup
       type={type}
@@ -540,6 +621,7 @@ export function getPopupContent({
       getClickedHuc={getClickedHuc}
       resetData={resetData}
       services={services}
+      fields={fields}
     />
   );
 
@@ -596,4 +678,122 @@ export function graphicComparison(graphic1, graphic2) {
   }
 
   return true;
+}
+
+// Creates a gradient scale used for legends
+export function gradientIcon({ id, stops }) {
+  const gradientHeight = 30 * (stops.length - 1);
+  const labelContainerHeight = 37.5 * (stops.length - 1);
+  return (
+    <table width="50%">
+      <tbody>
+        <tr>
+          <td width="34" align="center">
+            <div
+              style={{
+                position: 'relative',
+                width: '34px',
+                height: `${gradientHeight}px`,
+              }}
+            >
+              <div
+                className="esriLegendColorRamp"
+                style={{
+                  border: '1px solid rgba(194, 194, 194, 0.25)',
+                  height: `${gradientHeight}px`,
+                }}
+              >
+                <svg
+                  overflow="hidden"
+                  width="24"
+                  height={gradientHeight}
+                  style={{ touchAction: 'none' }}
+                >
+                  <defs>
+                    <linearGradient
+                      id={id}
+                      gradientUnits="userSpaceOnUse"
+                      x1="0.00000000"
+                      y1="0.00000000"
+                      x2="0.00000000"
+                      y2={gradientHeight}
+                    >
+                      {stops.map((item, index) => {
+                        return (
+                          <stop
+                            key={index}
+                            offset={index / (stops.length - 1)}
+                            stopColor={item.color}
+                            stopOpacity="1"
+                          />
+                        );
+                      })}
+                    </linearGradient>
+                  </defs>
+                  <rect
+                    fill={`url(#${id})`}
+                    stroke="none"
+                    strokeOpacity="0"
+                    strokeWidth="1"
+                    strokeLinecap="butt"
+                    strokeLinejoin="miter"
+                    strokeMiterlimit="4"
+                    x="0"
+                    y="0"
+                    width="24"
+                    height={gradientHeight}
+                    ry="0"
+                    rx="0"
+                    fillRule="evenodd"
+                  />
+                  <rect
+                    fill="rgb(255, 255, 255)"
+                    fillOpacity="0"
+                    stroke="none"
+                    strokeOpacity="0"
+                    strokeWidth="1"
+                    strokeLinecap="butt"
+                    strokeLinejoin="miter"
+                    strokeMiterlimit="4"
+                    x="0"
+                    y="0"
+                    width="24"
+                    height={gradientHeight}
+                    ry="0"
+                    rx="0"
+                    fillRule="evenodd"
+                  />
+                </svg>
+              </div>
+              {stops.map((item, index) => {
+                return (
+                  <div
+                    key={index}
+                    className={item.label ? 'esriLegendColorRampTick' : ''}
+                    style={{ top: `${(index / (stops.length - 1)) * 100}%` }}
+                  >
+                    &nbsp;
+                  </div>
+                );
+              })}
+            </div>
+          </td>
+          <td>
+            <div
+              className="esriLegendColorRampLabels"
+              style={{ height: `${labelContainerHeight}px` }}
+            >
+              {stops.map((item, index) => {
+                return (
+                  <div key={index} className="esriLegendColorRampLabel">
+                    {item.label ? item.label : <>&nbsp;</>}
+                  </div>
+                );
+              })}
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  );
 }

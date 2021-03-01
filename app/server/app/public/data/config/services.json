@@ -45,6 +45,9 @@
     "queryStringFirstPart": "query?where=IS_DEFAULT%3D%27Y%27+and+STATE+in+%28",
     "queryStringSecondPart": "%29&outFields=*&returnGeometry=false&returnTrueCurves=false&returnIdsOnly=false&returnCountOnly=false&returnZ=false&returnM=false&returnDistinctValues=false&returnExtentsOnly=false&f=json"
   },
+  "wildScenicRivers": "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/WildScenicRiversV2_AGOL/FeatureServer/1/",
+  "protectedAreasDatabase": "https://gis1.usgs.gov/arcgis/rest/services/padus2/protection_mechanism_category/MapServer/",
+  "ejscreen": "https://geopub.epa.gov/arcgis/rest/services/ejscreen/Demographic_Indicators_2018_Public/MapServer/",
   "googleAnalyticsMapping": [
     {
       "urlLookup": "attains.serviceUrl",
@@ -105,6 +108,11 @@
       "urlLookup": "attains.serviceUrl",
       "wildcardUrl": "{urlLookup}domains?domainName=ParameterName",
       "name": "attains - domain mapping"
+    },
+    {
+      "urlLookup": "attains.serviceUrl",
+      "wildcardUrl": "{urlLookup}documents*",
+      "name": "attains - documents"
     },
     {
       "urlLookup": "grts.getGRTSHUC12",
@@ -300,6 +308,21 @@
       "urlLookup": "upstreamWatershed",
       "wildcardUrl": "{urlLookup}*",
       "name": "watersgeo - upstream watershed"
+    },
+    {
+      "urlLookup": "wildScenicRivers",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Wild and Scenic Rivers"
+    },
+    {
+      "urlLookup": "protectedAreasDatabase",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "USGS - Protected Areas Database"
+    },
+    {
+      "urlLookup": "ejscreen",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "EJSCREEN"
     }
   ]
 }

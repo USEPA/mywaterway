@@ -21,4 +21,19 @@ describe('Data page', () => {
       'Overall condition of waterbodies in the San Pedro Creek watershed.',
     ).should('exist');
   });
+
+  it('Test navigating to data page', () => {
+    cy.visit('/data');
+
+    // verify the page loads
+    cy.findByText(
+      'pulls data from multiple databases at EPA and other federal agencies',
+      { exact: false },
+    );
+
+    // check the attains link
+    cy.findByText(
+      'Assessment, Total Maximum Daily Load Tracking and Implementation System (ATTAINS)',
+    ).should('have.attr', 'href', 'https://www.epa.gov/waterdata/attains');
+  });
 });

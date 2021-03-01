@@ -80,7 +80,7 @@ describe('National Water Quality tab', () => {
       .should(
         'have.attr',
         'href',
-        'https://www.epa.gov/national-aquatic-resource-surveys/national-rivers-and-streams-assessment-2008-2009-results',
+        'https://www.epa.gov/national-aquatic-resource-surveys/national-rivers-and-streams-assessment-2013-2014-results',
       )
       .should('have.attr', 'target', '_blank')
       .should('have.attr', 'rel', 'noopener noreferrer');
