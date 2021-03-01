@@ -25,7 +25,7 @@ function MapMouseEvents({ map, view }: Props) {
     setSelectedGraphic, //
   } = React.useContext(MapHighlightContext);
 
-  const { getHucBoundaries, resetData } = React.useContext(
+  const { getHucBoundaries, resetData, protectedAreasLayer } = React.useContext(
     LocationSearchContext,
   );
 
@@ -90,30 +90,57 @@ function MapMouseEvents({ map, view }: Props) {
               .then((boundaries) => {
                 if (boundaries.features.length === 0) return;
 
-                const { attributes } = boundaries.features[0];
-
-                view.popup.close();
-                view.popup.open({
-                  title: 'Change to this location?',
-                  content: getPopupContent({
-                    resetData,
-                    feature: {
-                      attributes: {
-                        changelocationpopup: 'changelocationpopup',
+                // Opens the change location popup
+                function openChangeLocationPopup() {
+                  const { attributes } = boundaries.features[0];
+                  view.popup.close();
+                  view.popup.open({
+                    title: 'Change to this location?',
+                    content: getPopupContent({
+                      resetData,
+                      feature: {
+                        attributes: {
+                          changelocationpopup: 'changelocationpopup',
+                        },
+                        view: view,
                       },
-                      view: view,
-                    },
-                    getClickedHuc: new Promise((resolve, reject) => {
-                      resolve({
+                      getClickedHuc: Promise.resolve({
                         status: 'success',
                         data: {
                           huc12: attributes.huc12,
                           watershed: attributes.name,
                         },
-                      });
+                      }),
                     }),
-                  }),
-                });
+                  });
+                }
+
+                // if the protectedAreasLayer is not visible just open the popup
+                // like normal, otherwise query the protectedAreasLayer to see
+                // if the user clicked on a protected area
+                if (!protectedAreasLayer.visible) {
+                  openChangeLocationPopup();
+                } else {
+                  // check if protected areas layer was clicked on
+                  const queryPadUs = new Query({
+                    returnGeometry: false,
+                    geometry: location,
+                    outFields: ['*'],
+                  });
+                  new QueryTask({
+                    url: `${services.data.protectedAreasDatabase}0`,
+                  })
+                    .execute(queryPadUs)
+                    .then((padRes) => {
+                      if (padRes.features.length === 0) {
+                        // user did not click on a protected area, open the popup
+                        openChangeLocationPopup();
+                      } else {
+                        // do nothing, so the protected area popup opens
+                      }
+                    })
+                    .catch((err) => console.error(err));
+                }
               })
               .catch((err) => console.error(err));
           }
@@ -130,6 +157,7 @@ function MapMouseEvents({ map, view }: Props) {
       setSelectedGraphic,
       webMercatorUtils,
       services,
+      protectedAreasLayer,
     ],
   );
 
@@ -223,7 +251,6 @@ function MapMouseEvents({ map, view }: Props) {
         'stateBoundariesLayer',
         'mappedWaterLayer',
         'watershedsLayer',
-        'wsioHealthIndexLayer',
         'boundaries',
         'map-marker',
         'highlight',
@@ -241,12 +268,12 @@ function MapMouseEvents({ map, view }: Props) {
     return match[0] ? match[0].graphic : null;
   }
 
-  const loadMonitoringLocation = (graphic, services) => {
+  const loadMonitoringLocation = (graphic, servicesParam) => {
     // tell the getPopupContent function to use the full popup version that includes the service call
     graphic.attributes.fullPopup = true;
     graphic.popupTemplate = {
       title: getPopupTitle(graphic.attributes),
-      content: getPopupContent({ feature: graphic, services }),
+      content: getPopupContent({ feature: graphic, services: servicesParam }),
     };
   };
 

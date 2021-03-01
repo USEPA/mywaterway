@@ -97,6 +97,7 @@ function AccordionList({
             <SelectLabel htmlFor={`sort-by-${uniqueID}`}>Sort By:</SelectLabel>
             <StyledSelect
               inputId={`sort-by-${uniqueID}`}
+              isSearchable={false}
               options={sortOptions}
               value={sortBy}
               onChange={(ev) => {
@@ -188,11 +189,12 @@ type AccordionItemProps = {
   title: Node,
   subTitle: ?Node,
   status: ?string,
-  onAddHighlight: Function,
-  onRemoveHighlight: Function,
-  onChange: Function,
+  onAddHighlight: () => void,
+  onRemoveHighlight: () => void,
+  onChange: (isOpen: boolean) => void,
   idKey: ?string,
   allExpanded: boolean,
+  highlightContent: ?boolean,
   children: Node,
 };
 
@@ -207,6 +209,7 @@ function AccordionItem({
   onChange = () => {},
   idKey,
   allExpanded,
+  highlightContent = true,
   children,
 }: AccordionItemProps) {
   const [isOpen, setIsOpen] = React.useState(allExpanded);
@@ -245,13 +248,15 @@ function AccordionItem({
         tabIndex="0"
         style={{ backgroundColor }}
         onClick={(ev) => {
-          setIsOpen(!isOpen);
-          onChange();
+          const newIsOpen = !isOpen;
+          setIsOpen(newIsOpen);
+          onChange(newIsOpen);
         }}
         onKeyUp={(ev) => {
           if (ev.key === 'Enter') {
-            setIsOpen(!isOpen);
-            onChange();
+            const newIsOpen = !isOpen;
+            setIsOpen(newIsOpen);
+            onChange(newIsOpen);
           }
         }}
       >
@@ -273,7 +278,15 @@ function AccordionItem({
         />
       </Header>
 
-      {isOpen && children}
+      <div
+        style={
+          highlightContent
+            ? { backgroundColor }
+            : { backgroundColor: colorMap.default }
+        }
+      >
+        {isOpen && children}
+      </div>
     </AccordionItemContainer>
   );
 }

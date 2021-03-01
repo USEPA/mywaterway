@@ -25,14 +25,20 @@ import monitoringIcon from './images/monitoring.png';
 import identifiedIssuesIcon from './images/identified-issues.png';
 import restoreIcon from './images/restore.png';
 import protectIcon from './images/protect.png';
+// styles
+import { fonts } from 'styles/index.js';
 
 // --- styled components ---
 const Disclaimer = styled(DisclaimerModal)`
   /* */
 `;
 
-const Heading = styled.h3`
+const Heading = styled.h2`
   margin-top: 0 !important;
+  margin-bottom: 17px !important;
+  font-family: ${fonts.primary};
+  font-size: 1.375em;
+  margin-bottom: 17px;
 `;
 
 // --- upper tabs content ---
@@ -283,7 +289,10 @@ const tabs = [
     icon: monitoringIcon,
     upper: monitoringUpper,
     lower: <Monitoring />,
-    layers: { monitoringStationsLayer: true },
+    layers: {
+      monitoringStationsLayer: true,
+      waterbodyLayer: false,
+    },
   },
   {
     title: 'Identified Issues',
@@ -299,7 +308,9 @@ const tabs = [
     icon: restoreIcon,
     upper: restoreUpper,
     lower: <Restore />,
-    layers: {},
+    layers: {
+      waterbodyLayer: false,
+    },
   },
   {
     title: 'Protect',
@@ -307,8 +318,12 @@ const tabs = [
     icon: protectIcon,
     upper: protectUpper,
     lower: <Protect />,
-    layers: {}, // hide the nonprofits layer, re-add when nonprofits are approved
-    // layers: { nonprofitsLayer: true }
+    layers: {
+      wsioHealthIndexLayer: false,
+      wildScenicRiversLayer: false,
+      protectedAreasLayer: false,
+      waterbodyLayer: false,
+    },
   },
 ];
 

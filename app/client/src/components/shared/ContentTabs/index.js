@@ -1,6 +1,7 @@
 // @flow
 
 import styled from 'styled-components';
+import { TabPanel } from '@reach/tabs';
 // styles
 import { colors } from 'styles/index.js';
 
@@ -9,6 +10,15 @@ import { colors } from 'styles/index.js';
 const left = `inset 1px 0 0 ${colors.black(0.375)}`;
 const right = `inset -1px 0 0 ${colors.white(0.0625)}`;
 const bottom = (color) => `inset 0 -3px 0 ${color}`;
+
+const StyledTabPanel = styled(TabPanel)`
+  padding: 1.5em !important;
+
+  p,
+  li {
+    line-height: 1.375;
+  }
+`;
 
 const ContentTabs = styled.div`
   [data-reach-tabs] {
@@ -71,4 +81,4 @@ const ContentTabs = styled.div`
   }
 `;
 
-export { ContentTabs };
+export { ContentTabs, StyledTabPanel };

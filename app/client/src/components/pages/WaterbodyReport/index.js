@@ -504,7 +504,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
             'Meeting criteria': categories.assessedGood,
             'Not enough information': categories.insufficentInfo,
             'Not Applicable': categories.otherObserved,
-            Threatened: categories.ofConcern, // TODO: confirm 'Threatened' is the correct value
+            Threatened: categories.ofConcern,
           };
 
           // allAssociatedActionIds will contain all parameters' associated action ids
@@ -637,13 +637,12 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
 
     fetchCheck(url).then(
       (res) => {
-        if (res.items.length < 1) {
+        // filter out any actions with org ids that don't match the one provided
+        const filteredActions = filterActions(res.items, orgId);
+        if (filteredActions.length < 1) {
           setWaterbodyActions({ status: 'pending', data: [] });
           return;
         }
-
-        // filter out any actions with org ids that don't match the one provided
-        const filteredActions = filterActions(res.items, orgId);
 
         const actions = filteredActions[0].actions.map((action) => {
           // get water with matching assessment unit identifier

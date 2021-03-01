@@ -21,6 +21,7 @@ import {
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { getUrlFromMarkup, getTitleFromMarkup } from 'components/shared/Regex';
+import { useWaterbodyOnMap } from 'utils/hooks';
 // errors
 import {
   restoreNonpointSourceError,
@@ -45,6 +46,9 @@ function Restore() {
   const { attainsPlans, grts, watershed } = React.useContext(
     LocationSearchContext,
   );
+
+  // draw the waterbody on the map
+  useWaterbodyOnMap();
 
   const sortedGrtsData =
     grts.data.items && grts.data.items.length > 0
