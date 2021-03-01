@@ -273,8 +273,6 @@ const NewTabDisclaimer = styled.p`
 
 // --- components ---
 function WaterConditionsPanel() {
-  const narsUrl = 'https://www.epa.gov/national-aquatic-resource-surveys';
-
   const NARS = useNarsContext();
 
   const narsFooter = (
@@ -283,6 +281,24 @@ function WaterConditionsPanel() {
       the metrics are only for the conterminous US.
     </FooterText>
   );
+
+  const narsTabContent = (data) => {
+    return data.map((category, index) => (
+      <AccordionItem
+        key={index}
+        title={
+          <>
+            <Percent>{category.metric}</Percent>{' '}
+            <span dangerouslySetInnerHTML={createMarkup(category.title)} />
+          </>
+        }
+      >
+        <AccordionContent
+          dangerouslySetInnerHTML={createMarkup(category.content)}
+        />
+      </AccordionItem>
+    ));
+  };
 
   return (
     <>
@@ -295,49 +311,6 @@ function WaterConditionsPanel() {
         </StyledIntroText>
       </IntroBox>
 
-      <h3>Excess nutrients in waterways continue to be an issue</h3>
-
-      <Article>
-        <p>
-          <a
-            href="https://www.epa.gov/nutrientpollution"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Excess Nutrients in Waterways
-          </a>{' '}
-          (opens new browser tab) is one of America’s most widespread water
-          quality issues. While nutrients are important, too much of a good
-          thing can become a bad thing. Excess nutrients can lead to excessive
-          algae growth, which can use up oxygen that aquatic organisms need to
-          survive. Too much algae growth can cause fish to die.{' '}
-          <a
-            href="https://www.epa.gov/nutrient-policy-data/what-epa-doing-reduce-nutrient-pollution"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn more about what EPA is doing to reduce excess nutrients in
-            waterways
-          </a>{' '}
-          (opens new browser tab).
-        </p>
-
-        <a
-          href="https://www.epa.gov/nutrientpollution"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Figure>
-            <img
-              src={nutrientPollutionPhoto}
-              alt="Map of excess nutrients across the United States"
-            />
-          </Figure>
-        </a>
-      </Article>
-
-      <h3>Learn about the health of our waters</h3>
-
       {NARS.status === 'fetching' && <LoadingSpinner />}
 
       {NARS.status === 'failure' && (
@@ -349,173 +322,154 @@ function WaterConditionsPanel() {
       )}
 
       {NARS.status === 'success' && Object.keys(NARS.data).length > 0 && (
-        <ContentTabs>
-          <Tabs>
-            <TabList>
-              <Tab data-testid="hmw-national-rivers-and-streams-tab">
-                Rivers and Streams
-              </Tab>
-              <Tab data-testid="hmw-national-lakes-tab">Lakes</Tab>
-              <Tab data-testid="hmw-national-coasts-tab">Coasts</Tab>
-              <Tab data-testid="hmw-national-wetlands-tab">Wetlands</Tab>
-            </TabList>
+        <>
+          <h3>Excess nutrients in waterways continue to be an issue</h3>
 
-            <TabPanels>
-              <TabPanel>
-                <AccordionList>
-                  {NARS.data.riversAndStreams.map((category, index) => (
-                    <AccordionItem
-                      key={index}
-                      title={
-                        <>
-                          <Percent>{category.metric}</Percent>{' '}
-                          <span
-                            dangerouslySetInnerHTML={createMarkup(
-                              category.title,
-                            )}
-                          />
-                        </>
-                      }
-                    >
-                      <AccordionContent
-                        dangerouslySetInnerHTML={createMarkup(category.content)}
-                      />
-                    </AccordionItem>
-                  ))}
-                </AccordionList>
+          <Article>
+            <p>
+              <a
+                href={NARS.data.excessNutrientsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Excess Nutrients in Waterways
+              </a>{' '}
+              (opens new browser tab) is one of America’s most widespread water
+              quality issues. While nutrients are important, too much of a good
+              thing can become a bad thing. Excess nutrients can lead to
+              excessive algae growth, which can use up oxygen that aquatic
+              organisms need to survive. Too much algae growth can cause fish to
+              die.{' '}
+              <a
+                href={NARS.data.reduceNutriantsPollutionUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Learn more about what EPA is doing to reduce excess nutrients in
+                waterways
+              </a>{' '}
+              (opens new browser tab).
+            </p>
 
-                {narsFooter}
-              </TabPanel>
+            <a
+              href={NARS.data.excessNutrientsImageUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Figure>
+                <img
+                  src={nutrientPollutionPhoto}
+                  alt="Map of excess nutrients across the United States"
+                />
+              </Figure>
+            </a>
+          </Article>
 
-              <TabPanel>
-                <AccordionList>
-                  {NARS.data.lakes.map((category, index) => (
-                    <AccordionItem
-                      key={index}
-                      title={
-                        <>
-                          <Percent>{category.metric}</Percent>{' '}
-                          <span
-                            dangerouslySetInnerHTML={createMarkup(
-                              category.title,
-                            )}
-                          />
-                        </>
-                      }
-                    >
-                      <AccordionContent
-                        dangerouslySetInnerHTML={createMarkup(category.content)}
-                      />
-                    </AccordionItem>
-                  ))}
-                </AccordionList>
+          <h3>Learn about the health of our waters</h3>
 
-                {narsFooter}
-              </TabPanel>
+          <ContentTabs>
+            <Tabs>
+              <TabList>
+                <Tab data-testid="hmw-national-rivers-and-streams-tab">
+                  Rivers and Streams
+                </Tab>
+                <Tab data-testid="hmw-national-lakes-tab">Lakes</Tab>
+                <Tab data-testid="hmw-national-coasts-tab">Coasts</Tab>
+                <Tab data-testid="hmw-national-wetlands-tab">Wetlands</Tab>
+              </TabList>
 
-              <TabPanel>
-                <AccordionList>
-                  {NARS.data.coasts.map((category, index) => (
-                    <AccordionItem
-                      key={index}
-                      title={
-                        <>
-                          <Percent>{category.metric}</Percent>{' '}
-                          <span
-                            dangerouslySetInnerHTML={createMarkup(
-                              category.title,
-                            )}
-                          />
-                        </>
-                      }
-                    >
-                      <AccordionContent
-                        dangerouslySetInnerHTML={createMarkup(category.content)}
-                      />
-                    </AccordionItem>
-                  ))}
-                </AccordionList>
+              <TabPanels>
+                <TabPanel>
+                  <AccordionList>
+                    {narsTabContent(NARS.data.riversAndStreams)}
+                  </AccordionList>
 
-                {narsFooter}
-              </TabPanel>
+                  {narsFooter}
+                </TabPanel>
 
-              <TabPanel>
-                <AccordionList>
-                  {NARS.data.wetlands.map((category, index) => (
-                    <AccordionItem
-                      key={index}
-                      title={
-                        <>
-                          <Percent>{category.metric}</Percent>{' '}
-                          <span
-                            dangerouslySetInnerHTML={createMarkup(
-                              category.title,
-                            )}
-                          />
-                        </>
-                      }
-                    >
-                      <AccordionContent
-                        dangerouslySetInnerHTML={createMarkup(category.content)}
-                      />
-                    </AccordionItem>
-                  ))}
-                </AccordionList>
+                <TabPanel>
+                  <AccordionList>
+                    {narsTabContent(NARS.data.lakes)}
+                  </AccordionList>
 
-                {narsFooter}
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
-        </ContentTabs>
+                  {narsFooter}
+                </TabPanel>
+
+                <TabPanel>
+                  <AccordionList>
+                    {narsTabContent(NARS.data.coasts)}
+                  </AccordionList>
+
+                  {narsFooter}
+                </TabPanel>
+
+                <TabPanel>
+                  <AccordionList>
+                    {narsTabContent(NARS.data.wetlands)}
+                  </AccordionList>
+
+                  {narsFooter}
+                </TabPanel>
+              </TabPanels>
+            </Tabs>
+          </ContentTabs>
+
+          <h3>Learn more about waterbody types</h3>
+
+          <NewTabDisclaimer>
+            Links below open in a new browser tab.
+          </NewTabDisclaimer>
+
+          <Links>
+            <a
+              href={NARS.data.riversStreamsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Figure>
+                <img
+                  src={riversPhoto}
+                  alt="Learn more about Rivers & Streams"
+                />
+                <figcaption>Rivers & Stream</figcaption>
+              </Figure>
+            </a>
+
+            <a
+              href={NARS.data.lakesUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Figure>
+                <img src={lakesPhoto} alt="Learn more about Lakes" />
+                <figcaption>Lakes</figcaption>
+              </Figure>
+            </a>
+
+            <a
+              href={NARS.data.coastsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Figure>
+                <img src={coastsPhoto} alt="Learn more about Coasts" />
+                <figcaption>Coasts</figcaption>
+              </Figure>
+            </a>
+
+            <a
+              href={NARS.data.wetlandsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Figure>
+                <img src={wetlandsPhoto} alt="Learn more about Wetlands" />
+                <figcaption>Wetlands</figcaption>
+              </Figure>
+            </a>
+          </Links>
+        </>
       )}
-
-      <h3>Learn more about waterbody types</h3>
-
-      <NewTabDisclaimer>
-        Links below open in a new browser tab.
-      </NewTabDisclaimer>
-
-      <Links>
-        <a
-          href={`${narsUrl}/national-rivers-and-streams-assessment-2008-2009-results`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Figure>
-            <img src={riversPhoto} alt="Learn more about Rivers & Streams" />
-            <figcaption>Rivers & Stream</figcaption>
-          </Figure>
-        </a>
-
-        <a
-          href={`${narsUrl}/national-lakes-assessment-2012-key-findings`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Figure>
-            <img src={lakesPhoto} alt="Learn more about Lakes" />
-            <figcaption>Lakes</figcaption>
-          </Figure>
-        </a>
-
-        <a
-          href={`${narsUrl}/national-coastal-condition-assessment-2010-results`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Figure>
-            <img src={coastsPhoto} alt="Learn more about Coasts" />
-            <figcaption>Coasts</figcaption>
-          </Figure>
-        </a>
-
-        <a href={`${narsUrl}/nwca`} target="_blank" rel="noopener noreferrer">
-          <Figure>
-            <img src={wetlandsPhoto} alt="Learn more about Wetlands" />
-            <figcaption>Wetlands</figcaption>
-          </Figure>
-        </a>
-      </Links>
     </>
   );
 }

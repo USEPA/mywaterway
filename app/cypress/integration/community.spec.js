@@ -274,7 +274,7 @@ describe('Identified Issues Tab', () => {
     // switch to Dischargers tab of Identified Issues tab and check that the discharger accordion item exists and expands when clicked
     cy.findByText('Identified Issues').click();
     cy.findByTestId('hmw-dischargers').click();
-    cy.findByText('KOPPERS INC.').click();
+    cy.findByText('1178 CR LLC').click();
     cy.findByText('Compliance Status:');
   });
 });
@@ -353,6 +353,7 @@ describe('Protect Tab', () => {
 
     // check that the Protection Projects in the Protect tab contains a project
     cy.findByText('Protect').click();
+    cy.findByText('Watershed Health and Protection').click();
     cy.findByText('Protection Projects').click();
     cy.findByText('Cypress Creek WPP Imp - Years 1-3');
   });
@@ -370,10 +371,84 @@ describe('Protect Tab', () => {
     );
 
     cy.findByText('Protect').click();
-    cy.findByText('Get quick tips for reducing water impairment in your:');
+    cy.findByText('You can help keep your water clean.', { exact: false });
+    cy.findByText('Watershed Health and Protection').click();
     cy.findByText('Protection Projects').click();
     cy.findByText('There are no EPA funded protection projects in the', {
       exact: false,
     });
+  });
+
+  it('Check the watershed health scores section', () => {
+    // navigate to Protect tab of Community page
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      '121002030202',
+    );
+    cy.findByText('Go').click();
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    // check that the Protection Projects in the Protect tab contains a project
+    cy.findByText('Protect').click();
+
+    cy.get('.hmw-accordion').first().click();
+    cy.findByText('Where might the healthier watersheds be located', {
+      exact: false,
+    });
+  });
+
+  it('Check the wild and scenic rivers section', () => {
+    // navigate to Protect tab of Community page
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      '121002030202',
+    );
+    cy.findByText('Go').click();
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    // check that the Protection Projects in the Protect tab contains a project
+    cy.findByText('Protect').click();
+
+    cy.get('.hmw-accordion').then((elms) => {
+      cy.wrap(elms[1]).click();
+    });
+    cy.findByText(
+      'was created by Congress in 1968 to preserve certain rivers with outstanding',
+      {
+        exact: false,
+      },
+    );
+  });
+
+  it('Check the protected areas section', () => {
+    // navigate to Protect tab of Community page
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      '121002030202',
+    );
+    cy.findByText('Go').click();
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    // check that the Protection Projects in the Protect tab contains a project
+    cy.findByText('Protect').click();
+
+    cy.get('.hmw-accordion').then((elms) => {
+      cy.wrap(elms[2]).click();
+    });
+    cy.findByText(
+      'The Protected Areas Database (PAD-US) is America’s official national inventory of U.S.',
+      {
+        exact: false,
+      },
+    );
   });
 });

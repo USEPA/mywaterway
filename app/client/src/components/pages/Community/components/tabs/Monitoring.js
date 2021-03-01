@@ -19,6 +19,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { plotStations } from 'components/pages/LocationMap/MapFunctions';
+import { useWaterbodyOnMap } from 'utils/hooks';
 // data
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // errors
@@ -88,6 +89,9 @@ function Monitoring() {
 
   const services = useServicesContext();
 
+  // draw the waterbody on the map
+  useWaterbodyOnMap();
+
   const {
     monitoringLocations,
     monitoringGroups,
@@ -96,6 +100,8 @@ function Monitoring() {
     monitoringStationsLayer,
     setShowAllMonitoring,
     watershed,
+    visibleLayers,
+    setVisibleLayers,
   } = React.useContext(LocationSearchContext);
 
   const [
@@ -350,6 +356,13 @@ function Monitoring() {
     drawMap,
     storeMonitoringStations,
   ]);
+
+  // clear the visible layers if the monitoring locations service failed
+  React.useEffect(() => {
+    if (monitoringLocations.status !== 'failure') return;
+
+    if (Object.keys(visibleLayers).length > 0) setVisibleLayers({});
+  }, [monitoringLocations, visibleLayers, setVisibleLayers]);
 
   const sortedMonitoringStations = displayedMonitoringStations
     ? displayedMonitoringStations.sort((objA, objB) => {

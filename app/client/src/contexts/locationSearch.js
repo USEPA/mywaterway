@@ -35,11 +35,14 @@ type State = {
   monitoringStationsLayer: Object,
   dischargersLayer: Object,
   nonprofitsLayer: Object,
+  wildScenicRiversLayer: Object,
+  protectedAreasLayer: Object,
   providersLayer: Object,
   boundariesLayer: Object,
   searchIconLayer: Object,
   actionsLayer: Object,
   selWaterBodyLayer: Object,
+  wsioHealthIndexLayer: Object,
   homeWidget: Object,
   upstreamWidget: Object,
   upstreamWidgetDisabled: boolean,
@@ -93,6 +96,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     address: '',
     fishingInfo: { status: 'fetching', data: [] },
     statesData: { status: 'fetching', data: [] },
+    wsioHealthIndexData: { status: 'fetching', data: [] },
+    wildScenicRiversData: { status: 'fetching', data: [] },
+    protectedAreasData: { status: 'fetching', data: [], fields: [] },
     assessmentUnitId: '',
     monitoringLocations: {
       status: 'fetching',
@@ -129,11 +135,15 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     monitoringStationsLayer: '',
     dischargersLayer: '',
     nonprofitsLayer: '',
+    wildScenicRiversLayer: '',
+    protectedAreasLayer: '',
+    protectedAreasHighlightLayer: '',
     providersLayer: '',
     boundariesLayer: '',
     searchIconLayer: '',
     actionsLayer: '',
     selWaterBodyLayer: '',
+    wsioHealthIndexLayer: '',
     homeWidget: null,
     upstreamWidget: null,
     upstreamWidgetDisabled: false,
@@ -221,7 +231,15 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     setStatesData: (statesData) => {
       this.setState({ statesData });
     },
-
+    setWsioHealthIndexData: (wsioHealthIndexData) => {
+      this.setState({ wsioHealthIndexData });
+    },
+    setWildScenicRiversData: (wildScenicRiversData) => {
+      this.setState({ wildScenicRiversData });
+    },
+    setProtectedAreasData: (protectedAreasData) => {
+      this.setState({ protectedAreasData });
+    },
     setAddress: (address) => {
       this.setState({ address });
     },
@@ -270,6 +288,15 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     setNonprofitsLayer: (nonprofitsLayer) => {
       this.setState({ nonprofitsLayer });
     },
+    setWildScenicRiversLayer: (wildScenicRiversLayer) => {
+      this.setState({ wildScenicRiversLayer });
+    },
+    setProtectedAreasLayer: (protectedAreasLayer) => {
+      this.setState({ protectedAreasLayer });
+    },
+    setProtectedAreasHighlightLayer: (protectedAreasHighlightLayer) => {
+      this.setState({ protectedAreasHighlightLayer });
+    },
     setProvidersLayer: (providersLayer) => {
       this.setState({ providersLayer });
     },
@@ -284,6 +311,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     },
     setSelWaterbodyLayer: (selWaterbodyLayer) => {
       this.setState({ selWaterbodyLayer });
+    },
+    setWsioHealthIndexLayer: (wsioHealthIndexLayer) => {
+      this.setState({ wsioHealthIndexLayer });
     },
     setPointsLayer: (pointsLayer) => {
       this.setState({ pointsLayer });
@@ -407,9 +437,13 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         upstreamLayer,
         dischargersLayer,
         nonprofitsLayer,
+        protectedAreasHighlightLayer,
         mapView,
         homeWidget,
         waterbodyLayer,
+        wsioHealthIndexLayer,
+        wildScenicRiversLayer,
+        protectedAreasLayer,
       } = this.state;
 
       // Clear waterbody layers from state
@@ -452,15 +486,42 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       // remove all map content defined in this file
       if (providersLayer) providersLayer.graphics.removeAll();
       if (boundariesLayer) boundariesLayer.graphics.removeAll();
-      if (searchIconLayer) searchIconLayer.graphics.removeAll();
+      if (searchIconLayer) {
+        searchIconLayer.visible = false;
+        searchIconLayer.graphics.removeAll();
+      }
       if (monitoringStationsLayer) monitoringStationsLayer.graphics.removeAll();
       if (dischargersLayer) dischargersLayer.graphics.removeAll();
       if (nonprofitsLayer) nonprofitsLayer.graphics.removeAll();
+      if (wsioHealthIndexLayer) {
+        wsioHealthIndexLayer.visible = false;
+        wsioHealthIndexLayer.listMode = 'hide';
+      }
+      if (protectedAreasLayer) {
+        protectedAreasLayer.visible = false;
+        protectedAreasLayer.listMode = 'hide';
+      }
+      if (protectedAreasHighlightLayer) {
+        protectedAreasHighlightLayer.graphics.removeAll();
+      }
+      if (wildScenicRiversLayer) {
+        // This timeout is to workaround an issue with the wild and scenic rivers
+        // layer. When turning visibility off for multiple layers with this one
+        // included, the app would crash. This timeout prevents the app from
+        // crashing. Similarly setting visibleLayers to {} would crash the app.
+        setTimeout(() => {
+          wildScenicRiversLayer.visible = false;
+          wildScenicRiversLayer.listMode = 'hide';
+        }, 100);
+      }
 
       // reset the zoom and home widget to the initial extent
       if (useDefaultZoom && mapView) {
         mapView.extent = initialExtent;
-        homeWidget.viewpoint = mapView.viewpoint;
+
+        if (homeWidget) {
+          homeWidget.viewpoint = mapView.viewpoint;
+        }
       }
 
       // reset lines, points, and areas layers

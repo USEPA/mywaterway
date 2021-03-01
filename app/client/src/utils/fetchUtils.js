@@ -88,6 +88,84 @@ export function fetchPost(
     });
 }
 
+export function fetchPostForm(
+  apiUrl: string,
+  data: object,
+  headers: any = { 'content-type': 'application/x-www-form-urlencoded' },
+  timeout: number = defaultTimeout,
+) {
+  const startTime = performance.now();
+
+  // build the url search params
+  const body = new URLSearchParams();
+  for (let [key, value] of Object.entries(data)) {
+    // get the value convert JSON to strings where necessary
+    let valueToAdd = value;
+    if (typeof value === 'object') {
+      valueToAdd = JSON.stringify(value);
+    }
+
+    body.append(key, valueToAdd);
+  }
+
+  return timeoutPromise(
+    timeout,
+    fetch(apiUrl, {
+      method: 'POST',
+      headers,
+      body,
+    }),
+  )
+    .then((response) => {
+      logCallToGoogleAnalytics(apiUrl, response.status, startTime);
+      return checkResponse(response);
+    })
+    .catch((err) => {
+      console.error(err);
+      logCallToGoogleAnalytics(apiUrl, err, startTime);
+      return checkResponse(err);
+    });
+}
+
+export function fetchPostFile(
+  apiUrl: string,
+  data: object,
+  file: any,
+  timeout: number = defaultTimeout,
+) {
+  const startTime = performance.now();
+
+  // build the url search params
+  const body = new FormData();
+  for (let [key, value] of Object.entries(data)) {
+    // get the value convert JSON to strings where necessary
+    let valueToAdd = value;
+    if (typeof value === 'object') {
+      valueToAdd = JSON.stringify(value);
+    }
+
+    body.append(key, valueToAdd);
+  }
+  body.append('file', file);
+
+  return timeoutPromise(
+    timeout,
+    fetch(apiUrl, {
+      method: 'POST',
+      body,
+    }),
+  )
+    .then((response) => {
+      logCallToGoogleAnalytics(apiUrl, response.status, startTime);
+      return checkResponse(response);
+    })
+    .catch((err) => {
+      console.error(err);
+      logCallToGoogleAnalytics(apiUrl, err, startTime);
+      return checkResponse(err);
+    });
+}
+
 function timeoutPromise(timeout, promise) {
   return new Promise((resolve, reject) => {
     const timeoutId = setTimeout(() => {
@@ -126,6 +204,7 @@ export function logCallToGoogleAnalytics(
   startTime: number,
 ) {
   if (!window.gaTarget) return;
+  if (!window.ga) return;
 
   const duration = performance.now() - startTime;
 

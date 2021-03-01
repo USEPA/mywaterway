@@ -371,6 +371,31 @@ function AboutContent({ ...props }: Props) {
                   there is no app available through common app stores.
                 </p>
 
+                <h2>
+                  Is the How’s My Waterway source code available to review or
+                  contribute to?
+                </h2>
+                <p>
+                  Yes, the How’s My Waterway application code and instructions
+                  for contributing changes to the project are available at{' '}
+                  <a
+                    href="https://github.com/USEPA/mywaterway"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    https://github.com/USEPA/mywaterway
+                  </a>
+                  .
+                  <a
+                    className="exit-disclaimer"
+                    href="https://www.epa.gov/home/exit-epa"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    EXIT
+                  </a>
+                </p>
+
                 <h2>More Questions?</h2>
                 <div>
                   <a

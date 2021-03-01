@@ -274,6 +274,12 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
       `actions?ActionIdentifier=${actionId}` +
       `&organizationIdentifier=${orgId}`;
 
+    function onError(err) {
+      setLoading(false);
+      setError(true);
+      console.error(err);
+    }
+
     fetchCheck(url)
       .then((res) => {
         if (res.items.length < 1) {
@@ -317,18 +323,10 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
               setPollutants(pollutants);
               setWaters(waters);
             })
-            .catch((err) => {
-              setLoading(false);
-              setError(true);
-              console.error(err);
-            });
+            .catch(onError);
         }
       })
-      .catch((err) => {
-        setLoading(false);
-        setError(true);
-        console.error(err);
-      });
+      .catch(onError);
   }, [actionId, orgId, services]);
 
   // Builds the unitIds dictionary that is used for determining what

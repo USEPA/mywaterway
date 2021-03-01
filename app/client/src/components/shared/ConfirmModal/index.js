@@ -87,8 +87,8 @@ type Props = {
   label: string,
   isOpen: boolean,
   confirmEnabled: boolean,
-  onConfirm: Function,
-  onCancel: Function,
+  onConfirm: (ev: any) => void,
+  onCancel: (ev: any) => void,
   children: Node,
 };
 

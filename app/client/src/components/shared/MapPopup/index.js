@@ -37,6 +37,7 @@ type Props = {
   getClickedHuc: ?Function,
   resetData: ?Function,
   services: ?Object,
+  fields: ?Object,
 };
 
 function MapPopup({
@@ -47,14 +48,20 @@ function MapPopup({
   getClickedHuc,
   resetData,
   services,
+  fields,
 }: Props) {
   if (!feature) return null;
 
   const hideTypes = ['Action', 'Change Location', 'Waterbody State Overview'];
 
+  let typeTitle = type;
+  if (type === 'Environmental Justice') {
+    typeTitle += ` - ${feature.layer.title}`;
+  }
+
   return (
     <Container>
-      {!hideTypes.includes(type) && <Type>{type}</Type>}
+      {!hideTypes.includes(type) && <Type>{typeTitle}</Type>}
       <Content>
         <WaterbodyInfo
           type={type}
@@ -65,6 +72,7 @@ function MapPopup({
           getClickedHuc={getClickedHuc}
           resetData={resetData}
           services={services}
+          fields={fields}
         />
       </Content>
     </Container>

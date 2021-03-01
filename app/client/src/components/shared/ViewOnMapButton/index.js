@@ -20,10 +20,20 @@ const Button = styled.button`
 type Props = {
   feature: Object,
   fieldName: ?fieldName,
+  idField: ?string,
   layers: ?Array<Object>,
+  customQuery: ?Function,
+  onClick: ?Function,
 };
 
-function ViewOnMapButton({ feature, fieldName, layers }: Props) {
+function ViewOnMapButton({
+  feature,
+  fieldName,
+  idField,
+  layers,
+  customQuery,
+  onClick,
+}: Props) {
   const {
     pointsLayer,
     linesLayer,
@@ -63,7 +73,9 @@ function ViewOnMapButton({ feature, fieldName, layers }: Props) {
       if (layer.type === 'feature') {
         const params = layer.createQuery();
         params.returnGeometry = true;
-        params.where = `organizationid = '${orgId}' And assessmentunitidentifier = '${auId}'`;
+        params.where = idField
+          ? `${idField} = '${feature.attributes[idField]}'`
+          : `organizationid = '${orgId}' And assessmentunitidentifier = '${auId}'`;
         params.outFields = ['*'];
         layer
           .queryFeatures(params)
@@ -82,8 +94,7 @@ function ViewOnMapButton({ feature, fieldName, layers }: Props) {
       } else if (layer.type === 'graphics') {
         const { organizationid } = feature.attributes;
 
-        for (let i = 0; i < layer.graphics.items.length; i++) {
-          const graphic = layer.graphics.items[i];
+        for (const graphic of layer.graphics.items) {
           const graphicOrgId =
             graphic && graphic.attributes && graphic.attributes.organizationid;
           const graphicAuId =
@@ -107,9 +118,13 @@ function ViewOnMapButton({ feature, fieldName, layers }: Props) {
   return (
     <Button
       onClick={(ev) => {
+        if (onClick) onClick();
+
         if (!feature) return;
         if (feature.geometry) {
           viewClick(feature);
+        } else if (customQuery) {
+          customQuery(viewClick);
         } else {
           getGeometry((feature) => viewClick(feature));
         }

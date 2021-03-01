@@ -3,8 +3,14 @@
 import React from 'react';
 import styled from 'styled-components';
 // components
+import LoadingSpinner from 'components/shared/LoadingSpinner';
 import PinIcon from 'components/shared/Icons/PinIcon';
+import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
+import { gradientIcon } from 'components/pages/LocationMap/MapFunctions';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+// errors
+import { legendUnavailableError } from 'config/errorMessages';
 // styles
 import { colors } from 'styles/index.js';
 
@@ -48,14 +54,24 @@ const LegendLabel = styled.span`
   font-size: 0.75rem;
 `;
 
+const MultiContainer = styled.div`
+  padding-top: 12px;
+`;
+
+const Subtitle = styled.div`
+  padding: 6px 0;
+`;
+
 const ignoreLayers = ['mappedWaterLayer', 'watershedsLayer', 'searchIconLayer'];
 
 // --- components ---
 type Props = {
-  type: string,
+  view: Object,
+  visibleLayers: Object,
+  additionalLegendInfo: Object,
 };
 
-function MapLegend({ visibleLayers }: Props) {
+function MapLegend({ view, visibleLayers, additionalLegendInfo }: Props) {
   const filteredVisibleLayers = visibleLayers.filter(
     (layer) => !ignoreLayers.includes(layer.id),
   );
@@ -68,7 +84,14 @@ function MapLegend({ visibleLayers }: Props) {
       <LegendContainer>
         <UL>
           {filteredVisibleLayers.map((layer, index) => {
-            return <MapLegendContent key={index} layer={layer} />;
+            return (
+              <MapLegendContent
+                key={index}
+                view={view}
+                layer={layer}
+                additionalLegendInfo={additionalLegendInfo}
+              />
+            );
           })}
         </UL>
       </LegendContainer>
@@ -77,13 +100,15 @@ function MapLegend({ visibleLayers }: Props) {
 }
 
 type CardProps = {
+  view: Object,
   layer: Object,
+  additionalLegendInfo: Object,
 };
 
 const boxSize = 26;
 const iconSize = 20;
 
-function MapLegendContent({ layer }: CardProps) {
+function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   const squareIcon = ({ color, strokeWidth = 1, stroke = 'black' }) => {
     return (
       <svg
@@ -148,123 +173,6 @@ function MapLegendContent({ layer }: CardProps) {
           stroke={stroke}
         />
       </svg>
-    );
-  };
-
-  const gradientIcon = ({ id, stops }) => {
-    const gradientHeight = 30 * (stops.length - 1);
-    const labelContainerHeight = 37.5 * (stops.length - 1);
-    return (
-      <table width="50%">
-        <tbody>
-          <tr>
-            <td width="34" align="center">
-              <div
-                style={{
-                  position: 'relative',
-                  width: '34px',
-                  height: `${gradientHeight}px`,
-                }}
-              >
-                <div
-                  className="esriLegendColorRamp"
-                  style={{
-                    border: '1px solid rgba(194, 194, 194, 0.25)',
-                    height: `${gradientHeight}px`,
-                  }}
-                >
-                  <svg
-                    overflow="hidden"
-                    width="24"
-                    height={gradientHeight}
-                    style={{ touchAction: 'none' }}
-                  >
-                    <defs>
-                      <linearGradient
-                        id={id}
-                        gradientUnits="userSpaceOnUse"
-                        x1="0.00000000"
-                        y1="0.00000000"
-                        x2="0.00000000"
-                        y2={gradientHeight}
-                      >
-                        {stops.map((item, index) => {
-                          return (
-                            <stop
-                              key={index}
-                              offset={index / (stops.length - 1)}
-                              stopColor={item.color}
-                              stopOpacity="1"
-                            />
-                          );
-                        })}
-                      </linearGradient>
-                    </defs>
-                    <rect
-                      fill={`url(#${id})`}
-                      stroke="none"
-                      strokeOpacity="0"
-                      strokeWidth="1"
-                      strokeLinecap="butt"
-                      strokeLinejoin="miter"
-                      strokeMiterlimit="4"
-                      x="0"
-                      y="0"
-                      width="24"
-                      height={gradientHeight}
-                      ry="0"
-                      rx="0"
-                      fillRule="evenodd"
-                    />
-                    <rect
-                      fill="rgb(255, 255, 255)"
-                      fillOpacity="0"
-                      stroke="none"
-                      strokeOpacity="0"
-                      strokeWidth="1"
-                      strokeLinecap="butt"
-                      strokeLinejoin="miter"
-                      strokeMiterlimit="4"
-                      x="0"
-                      y="0"
-                      width="24"
-                      height={gradientHeight}
-                      ry="0"
-                      rx="0"
-                      fillRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                {stops.map((item, index) => {
-                  return (
-                    <div
-                      key={index}
-                      className="esriLegendColorRampTick"
-                      style={{ top: `${(index / (stops.length - 1)) * 100}%` }}
-                    >
-                      &nbsp;
-                    </div>
-                  );
-                })}
-              </div>
-            </td>
-            <td>
-              <div
-                className="esriLegendColorRampLabels"
-                style={{ height: `${labelContainerHeight}px` }}
-              >
-                {stops.map((item, index) => {
-                  return (
-                    <div key={index} className="esriLegendColorRampLabel">
-                      {item.label}
-                    </div>
-                  );
-                })}
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
     );
   };
 
@@ -370,8 +278,8 @@ function MapLegendContent({ layer }: CardProps) {
             viewBox="0 0 26 26"
             aria-hidden="true"
           >
-            <rect x="0" y="12" width="10" height="3" fill="#666666" />
-            <rect x="16" y="12" width="10" height="3" fill="#666666" />
+            <rect x="0" y="12" width="10" height="3" fill="#000" />
+            <rect x="16" y="12" width="10" height="3" fill="#000" />
           </svg>
         </ImageContainer>
         <LegendLabel>HUC12 Boundaries</LegendLabel>
@@ -453,6 +361,15 @@ function MapLegendContent({ layer }: CardProps) {
     </LI>
   );
 
+  const wildScenicRiversLegend = (
+    <LI>
+      <ImageContainer>
+        {squareIcon({ color: 'rgb(0, 123, 255)' })}
+      </ImageContainer>
+      <LegendLabel>Wild and Scenic Rivers</LegendLabel>
+    </LI>
+  );
+
   // jsx
   const countyLegend = (
     <LI>
@@ -503,6 +420,174 @@ function MapLegendContent({ layer }: CardProps) {
     </LI>
   );
 
+  // jsx
+  const protectedAreasLegend = () => {
+    const layerName = 'Protected Areas';
+
+    if (additionalLegendInfo.status === 'fetching') return <LoadingSpinner />;
+    if (additionalLegendInfo.status === 'failure') {
+      return (
+        <StyledErrorBox>{legendUnavailableError(layerName)}</StyledErrorBox>
+      );
+    }
+
+    const padLegend =
+      additionalLegendInfo.data['protectedAreasLayer']?.layers?.[0]?.legend;
+    if (!padLegend) {
+      return (
+        <StyledErrorBox>{legendUnavailableError(layerName)}</StyledErrorBox>
+      );
+    }
+
+    return (
+      <MultiContainer>
+        <h3 className="esri-widget__heading esri-legend__service-label">
+          {layerName}
+        </h3>
+        <Subtitle>Protection Category</Subtitle>
+        {padLegend.map((item, index) => {
+          return (
+            <LI key={index}>
+              <ImageContainer>
+                <img
+                  src={`data:image/png;base64,${item.imageData}`}
+                  alt={item.label}
+                />
+              </ImageContainer>
+              <LegendLabel>{item.label}</LegendLabel>
+            </LI>
+          );
+        })}
+      </MultiContainer>
+    );
+  };
+
+  // jsx
+  const ejscreenLegend = () => {
+    const layerName = 'Environmental Justice';
+
+    if (additionalLegendInfo.status === 'fetching') return <LoadingSpinner />;
+    if (additionalLegendInfo.status === 'failure') {
+      return (
+        <StyledErrorBox>{legendUnavailableError(layerName)}</StyledErrorBox>
+      );
+    }
+
+    const legend = additionalLegendInfo.data['ejscreen']?.layers?.[0]?.legend;
+    if (!legend) {
+      return (
+        <StyledErrorBox>{legendUnavailableError(layerName)}</StyledErrorBox>
+      );
+    }
+
+    // maps the layer title to a text for a sentence
+    const titleMap = {
+      'Less Than HS Education': {
+        label: 'Percent Less than High School Education',
+        glossary: (
+          <GlossaryTerm term="Percent Less than High School Education (Environmental Justice)">
+            Percent Less than High School Education
+          </GlossaryTerm>
+        ),
+      },
+      'Minority Population': {
+        label: 'Percent Minority',
+        glossary: (
+          <GlossaryTerm term="Percent Minority (Environmental Justice)">
+            Percent Minority
+          </GlossaryTerm>
+        ),
+      },
+      'Linguistically Isolated': {
+        label: 'Percent in Linguistic Isolation',
+        glossary: (
+          <GlossaryTerm term="Percent in Linguistic Isolation (Environmental Justice)">
+            Percent in Linguistic Isolation
+          </GlossaryTerm>
+        ),
+      },
+      'Low Income': {
+        label: 'Percent Low-Income',
+        glossary: (
+          <GlossaryTerm term="Percent Low- Income (Environmental Justice)">
+            Percent Low-Income
+          </GlossaryTerm>
+        ),
+      },
+      'Over Age 64': {
+        label: 'Percent over age 64',
+        glossary: (
+          <GlossaryTerm term="Percent over age 64 (Environmental Justice)">
+            Percent over age 64
+          </GlossaryTerm>
+        ),
+      },
+      'Under Age 5': {
+        label: 'Percent under age 5',
+        glossary: (
+          <GlossaryTerm term="Percent under age 5 (Environmental Justice)">
+            Percent under age 5
+          </GlossaryTerm>
+        ),
+      },
+      'Demographic Index': {
+        label: 'Demographic Index',
+        glossary: (
+          <GlossaryTerm term="Demographic Index (Environmental Justice)">
+            Demographic Index
+          </GlossaryTerm>
+        ),
+      },
+    };
+
+    // build subtitle based on which layers are visible
+    const subtitleParts = [];
+    const layers = view.map.layers.items;
+    for (const layerItem of layers) {
+      if (layerItem.id === 'ejscreenLayer') {
+        layerItem.layers.items.forEach((sublayer) => {
+          if (sublayer.visible) {
+            subtitleParts.push(titleMap[sublayer.title]);
+          }
+        });
+        break;
+      }
+    }
+
+    // combine the subtitle parts into a comma delimited string
+    subtitleParts.sort((a, b) => {
+      return a.label.localeCompare(b.label);
+    });
+
+    return (
+      <MultiContainer>
+        <h3 className="esri-widget__heading esri-legend__service-label">
+          {layerName}
+        </h3>
+        {subtitleParts.length > 0 && (
+          <Subtitle>
+            {subtitleParts.map((part, index) => {
+              return <div key={index}>{part.glossary}</div>;
+            })}
+          </Subtitle>
+        )}
+        {legend.map((item, index) => {
+          return (
+            <LI key={index}>
+              <ImageContainer>
+                <img
+                  src={`data:image/png;base64,${item.imageData}`}
+                  alt={item.label.replace('%ile', '%')}
+                />
+              </ImageContainer>
+              <LegendLabel>{item.label.replace('%ile', '%')}</LegendLabel>
+            </LI>
+          );
+        })}
+      </MultiContainer>
+    );
+  };
+
   if (layer.id === 'waterbodyLayer') return waterbodyLegend;
   if (layer.id === 'issuesLayer') return issuesLegend;
   if (layer.id === 'monitoringStationsLayer') return monitoringStationsLegend;
@@ -514,9 +599,12 @@ function MapLegendContent({ layer }: CardProps) {
   if (layer.id === 'countyLayer') return countyLegend;
   if (layer.id === 'tribalLayer') return tribalLegend;
   if (layer.id === 'wsioHealthIndexLayer') return healthIndexLegend;
+  if (layer.id === 'wildScenicRiversLayer') return wildScenicRiversLegend;
   if (layer.id === 'congressionalLayer') return congressionalDistrictsLegend;
   if (layer.id === 'upstreamWatershed') return upstreamLegend;
   if (layer.id === 'stateBoundariesLayer') return stateBoundariesLegend;
+  if (layer.id === 'protectedAreasLayer') return protectedAreasLegend();
+  if (layer.id === 'ejscreenLayer') return ejscreenLegend();
 
   return null;
 }

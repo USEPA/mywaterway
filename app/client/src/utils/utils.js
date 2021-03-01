@@ -143,6 +143,138 @@ function createMarkup(message) {
   return { __html: message };
 }
 
+// Determines if the input text is a string representing coordinates.
+// If so the coordinates are converted to an Esri Point object.
+function getPointFromCoordinates(Point, text) {
+  const regex = /^(-?\d+(\.\d*)?)[\s,]+(-?\d+(\.\d*)?)$/;
+  let point = null;
+  if (regex.test(text)) {
+    const found = text.match(regex);
+    if (found.length >= 4 && found[1] && found[3]) {
+      point = new Point({
+        x: found[1],
+        y: found[3],
+      });
+    }
+  }
+
+  return point;
+}
+
+// Determines if the input text is a string that contains coordinates.
+// The return value is an object containing the esri point for the coordinates (coordinatesPart)
+// and any remaining text (searchPart).
+function splitSuggestedSearch(Point, text) {
+  // split search
+  const parts = text.split('|');
+
+  // get the coordinates part (is last item)
+  const tempCoords = parts[parts.length - 1];
+  const coordinatesPart = getPointFromCoordinates(Point, tempCoords);
+
+  // remove the coordinates part from initial array
+  let coordinatesString = '';
+  if (coordinatesPart) coordinatesString = parts.pop();
+
+  // get the point from the coordinates part
+  return {
+    searchPart: parts.length > 0 ? parts.join('|') : coordinatesString,
+    coordinatesPart,
+  };
+}
+
+/**
+ * Creates a simple popup that contains all of the attributes on the
+ * graphic.
+ *
+ * @param title The title to be displayed on the popup
+ * @param attributes Attributes to be placed in the popup content
+ * @returns the json object to pass to the Esri PopupTemplate constructor.
+ */
+function getSimplePopupTemplate(title: string, attributes: any) {
+  return {
+    title,
+    content: [
+      {
+        type: 'fields',
+        fieldInfos: Object.keys(attributes).map((key) => {
+          return { fieldName: key, label: key };
+        }),
+      },
+    ],
+  };
+}
+
+// check user-agent for iOS version, if applicable
+function browserIsCompatibleWithArcGIS() {
+  const agent = window.navigator.userAgent;
+  const start = agent.indexOf('OS ');
+
+  if (
+    (agent.indexOf('iPhone') > -1 || agent.indexOf('iPad') > -1) &&
+    start > -1
+  ) {
+    const iosVersion = window.Number(
+      agent.substr(start + 3, 3).replace('_', '.'),
+    );
+
+    if (isNaN(iosVersion)) {
+      // unable to detect iOS version - assume browser supports ArcGIS
+      return true;
+    }
+
+    if (iosVersion <= 10) {
+      // iOS version is below 10 - browser will not support ArcGIS
+      return false;
+    }
+
+    // iOS Version is 10 or higher and will support ArcGIS
+    return true;
+  }
+
+  // iOS version not found - assume browser supports ArcGIS
+  return true;
+}
+
+function convertAgencyCode(agencyShortCode) {
+  if (!agencyShortCode) return 'Unknown';
+
+  // Wild and Scenic Rivers service returns multiple agencies as a string. ex: 'USFS, FWS, NPS'
+  const agencies = agencyShortCode.split(',');
+  return agencies
+    .map((agency) => {
+      const code = agency.trim();
+      if (code === 'BLM') return 'Bureau of Land Management';
+      if (code === 'NPS') return 'U.S. National Park Service';
+      if (code === 'FWS') return 'U.S. Fish and Wildlife Service';
+      if (code === 'USFS') return 'United States Forest Service';
+      return code;
+    })
+    .join(', ');
+}
+
+// Lookup the value of an attribute using domain coded values from
+// the arcgis feature layer fields.
+function convertDomainCode(fields, name, value) {
+  if (!fields) return value;
+
+  // look for the field using name
+  for (const field of fields) {
+    if (field.name === name && field.domain) {
+      // look for the code using value
+      const codedValues = field.domain.codedValues;
+      for (const codedValue of codedValues) {
+        if (codedValue.code === value) {
+          return codedValue.name;
+        }
+      }
+    }
+  }
+
+  // code was not found, just return the value provided
+  return value;
+}
+
 export {
   chunkArray,
   containsScriptTag,
@@ -156,4 +288,10 @@ export {
   resetCanonicalLink,
   removeJsonLD,
   createMarkup,
+  getPointFromCoordinates,
+  splitSuggestedSearch,
+  getSimplePopupTemplate,
+  browserIsCompatibleWithArcGIS,
+  convertAgencyCode,
+  convertDomainCode,
 };
