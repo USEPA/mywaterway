@@ -116,19 +116,19 @@ describe('State page Water Quality Overview sub tabs', () => {
     const noWaterTypes = 'No Available Water Types';
     const noUses = 'No Available Uses';
 
-    // verify a tab without data
-    cy.findByTestId('hmw-swimming-tab-button').click();
-    cy.findByTestId('hmw-swimming-tab-panel').contains(noWaterTypes);
-    cy.findByTestId('hmw-swimming-tab-panel').contains(noUses);
-
     // verify a tab with data
-    cy.findByTestId('hmw-fishing-tab-button').click();
-    cy.findByTestId('hmw-fishing-tab-panel')
+    cy.findByTestId('hmw-swimming-tab-button').click();
+    cy.findByTestId('hmw-swimming-tab-panel')
       .contains(noWaterTypes)
       .should('not.exist');
-    cy.findByTestId('hmw-fishing-tab-panel')
+    cy.findByTestId('hmw-swimming-tab-panel')
       .contains(noUses)
       .should('not.exist');
+
+    // verify a tab without data
+    cy.findByTestId('hmw-fishing-tab-button').click();
+    cy.findByTestId('hmw-fishing-tab-panel').contains(noWaterTypes);
+    cy.findByTestId('hmw-fishing-tab-panel').contains(noUses);
   });
 
   it('Navigating to a sub-tab selection shows correct charts', () => {
@@ -139,10 +139,9 @@ describe('State page Water Quality Overview sub tabs', () => {
     // Florida > Aquatic Life > Coastal Waters
     // verify the pie chart is not there and the bar chart is
 
-    // temporarily disabling the check for the Survey Results section due to service issues
-    // cy.findByTestId('hmw-ecological-tab-panel')
-    //   .contains(surveyResultsText)
-    //   .should('not.exist');
+    cy.findByTestId('hmw-ecological-tab-panel')
+      .contains(surveyResultsText)
+      .should('not.exist');
     cy.findByTestId('hmw-ecological-tab-panel')
       .contains(siteSpecificText)
       .should('exist');
@@ -154,10 +153,9 @@ describe('State page Water Quality Overview sub tabs', () => {
 
     // verify the pie chart is not there and the bar chart is
 
-    // temporarily disabling the check for the Survey Results section due to service issues
-    // cy.findByTestId('hmw-ecological-tab-panel')
-    //   .contains(surveyResultsText)
-    //   .should('exist');
+    cy.findByTestId('hmw-ecological-tab-panel')
+      .contains(surveyResultsText)
+      .should('exist');
     cy.findByTestId('hmw-ecological-tab-panel')
       .contains(siteSpecificText)
       .should('exist');
@@ -199,7 +197,7 @@ describe('State page Water Overview tab', () => {
     const text = 'Documents Related to Integrated Report';
 
     // verify text is not visible
-    cy.findByText(text).should('not.be.visible');
+    cy.findByText(text).should('not.exist');
 
     // open accordion and check text is visible
     cy.get('.hmw-accordion').contains(title).click();
@@ -207,7 +205,7 @@ describe('State page Water Overview tab', () => {
 
     // close accordion and verify text is not visible
     cy.get('.hmw-accordion').contains(title).click();
-    cy.findByText(text).should('not.be.visible');
+    cy.findByText(text).should('not.exist');
   });
 
   it(`Clicking "<state name> Water Stories" opens the water stories content.`, () => {
@@ -216,7 +214,7 @@ describe('State page Water Overview tab', () => {
       'Upgrading Boat Motors Reduces Hydrocarbon Pollution in Kenai River (PDF)';
 
     // verify text is not visible
-    cy.findByText(text).should('not.be.visible');
+    cy.findByText(text).should('not.exist');
 
     // open accordion and check text is visible
     cy.get('.hmw-accordion').contains(title).click();
@@ -224,6 +222,6 @@ describe('State page Water Overview tab', () => {
 
     // close accordion and verify text is not visible
     cy.get('.hmw-accordion').contains(title).click();
-    cy.findByText(text).should('not.be.visible');
+    cy.findByText(text).should('not.exist');
   });
 });

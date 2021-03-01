@@ -3,9 +3,9 @@
 import React from 'react';
 import styled from 'styled-components';
 import Select from 'react-select';
-import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
+import { Tabs, TabList, Tab, TabPanels } from '@reach/tabs';
 // components
-import { ContentTabs } from 'components/shared/ContentTabs';
+import { ContentTabs, StyledTabPanel } from 'components/shared/ContentTabs';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import DrinkingWaterIcon from 'components/shared/Icons/DrinkingWaterIcon';
@@ -21,7 +21,7 @@ import Stories from 'components/pages/State/components/Stories';
 // styled components
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // styles
-import { colors } from 'styles/index.js';
+import { colors, reactSelectStyles } from 'styles/index.js';
 // contexts
 import { StateTabsContext } from 'contexts/StateTabs';
 import {
@@ -34,8 +34,6 @@ import { fetchCheck } from 'utils/fetchUtils';
 import { titleCase } from 'utils/utils';
 // images
 import drinkingWaterIcon from 'components/pages/Community/images/drinking-water.png';
-// styles
-import { reactSelectStyles } from 'styles/index.js';
 // errors
 import {
   stateSurveySectionError,
@@ -280,6 +278,11 @@ function WaterQualityOverview({ ...props }: Props) {
   const [surveyData, setSurveyData] = React.useState(null);
   const [assessmentDocuments, setAssessmentDocuments] = React.useState(null);
 
+  const [fishingAdvisoryData, setFishingAdvisoryData] = React.useState({
+    status: 'fetching',
+    data: [],
+  });
+
   const [topicUses, setTopicUses] = React.useState({});
   const [useList, setUseList] = React.useState([]);
   const [completeUseList, setCompleteUseList] = React.useState([]);
@@ -460,6 +463,40 @@ function WaterQualityOverview({ ...props }: Props) {
     services,
   ]);
 
+  // Get fishing advisory information
+  const fetchFishingAdvisoryData = React.useCallback(
+    (stateCode) => {
+      setFishingAdvisoryData({ status: 'fetching', data: [] });
+
+      const url =
+        services.data.fishingInformationService.serviceUrl +
+        services.data.fishingInformationService.queryStringFirstPart +
+        `'${stateCode}'` +
+        services.data.fishingInformationService.queryStringSecondPart;
+
+      fetchCheck(url)
+        .then((res) => {
+          if (!res || !res.features || res.features.length === 0) {
+            setFishingAdvisoryData({ status: 'success', data: [] });
+            return;
+          }
+
+          const fishingInfo = [
+            {
+              url: res.features[0].attributes.STATEURL,
+            },
+          ];
+
+          setFishingAdvisoryData({ status: 'success', data: fishingInfo });
+        })
+        .catch((err) => {
+          console.error(err);
+          setFishingAdvisoryData({ status: 'failure', data: [] });
+        });
+    },
+    [setFishingAdvisoryData, services],
+  );
+
   // Get the survey data and survey documents
   const fetchSurveyData = React.useCallback(
     (orgID) => {
@@ -528,7 +565,6 @@ function WaterQualityOverview({ ...props }: Props) {
             setNoDataError(true);
             setLoading(false);
             setSurveyLoading(false);
-            return;
           }
         })
         .catch((err) => {
@@ -571,6 +607,7 @@ function WaterQualityOverview({ ...props }: Props) {
 
       setCurrentState(activeState.code);
       fetchStateOrgId(activeState.code);
+      fetchFishingAdvisoryData(activeState.code);
 
       setCurrentSummary({
         status: 'fetching',
@@ -593,6 +630,7 @@ function WaterQualityOverview({ ...props }: Props) {
     setCurrentSummary,
     setIntroText,
     fetchStateOrgId,
+    fetchFishingAdvisoryData,
     services,
   ]);
 
@@ -938,7 +976,10 @@ function WaterQualityOverview({ ...props }: Props) {
 
           <TabPanels>
             {tabs.map((tab) => (
-              <TabPanel key={tab.id} data-testid={`hmw-${tab.id}-tab-panel`}>
+              <StyledTabPanel
+                key={tab.id}
+                data-testid={`hmw-${tab.id}-tab-panel`}
+              >
                 <FiltersSection>
                   <h4>Pick your Water Type and Use:</h4>
 
@@ -951,6 +992,7 @@ function WaterQualityOverview({ ...props }: Props) {
                         id={`water-type-${tab.id}`}
                         inputId={`water-type-input-${tab.id}`}
                         classNamePrefix="Select"
+                        isSearchable={false}
                         options={displayWaterTypes.map((waterType) => {
                           return { value: waterType, label: waterType };
                         })}
@@ -976,6 +1018,7 @@ function WaterQualityOverview({ ...props }: Props) {
                         id={`water-use-${tab.id}`}
                         inputId={`water-use-input-${tab.id}`}
                         classNamePrefix="Select"
+                        isSearchable={false}
                         options={displayUses.map((use) => {
                           return { value: use, label: use };
                         })}
@@ -1000,7 +1043,7 @@ function WaterQualityOverview({ ...props }: Props) {
                 </FiltersSection>
 
                 <Section>
-                  {surveyServiceError ? (
+                  {surveyServiceError || !stateAndOrganization ? (
                     <StyledErrorBox>
                       <p>{stateSurveySectionError}</p>
                     </StyledErrorBox>
@@ -1025,6 +1068,7 @@ function WaterQualityOverview({ ...props }: Props) {
                   useSelected={useSelected}
                   waterType={waterType}
                   waterTypeData={waterTypeData}
+                  fishingAdvisoryData={fishingAdvisoryData}
                 />
 
                 <DrinkingWaterSection displayed={currentTopic === 'drinking'}>
@@ -1054,7 +1098,7 @@ function WaterQualityOverview({ ...props }: Props) {
                     (opens new browser tab)
                   </DrinkingWaterText>
                 </DrinkingWaterSection>
-              </TabPanel>
+              </StyledTabPanel>
             ))}
           </TabPanels>
         </Tabs>
@@ -1062,6 +1106,7 @@ function WaterQualityOverview({ ...props }: Props) {
 
       <Accordions>
         <AccordionItem
+          highlightContent={false}
           icon={
             <AccordionIcon className="fas fa-file-alt" aria-hidden="true" />
           }
@@ -1072,6 +1117,9 @@ function WaterQualityOverview({ ...props }: Props) {
           }
         >
           <AccordionContent>
+            <NewTabDisclaimer>
+              Documents below open in a new browser tab.
+            </NewTabDisclaimer>
             <Documents
               activeState={activeState}
               surveyLoading={surveyLoading}
@@ -1084,6 +1132,7 @@ function WaterQualityOverview({ ...props }: Props) {
           </AccordionContent>
         </AccordionItem>
         <AccordionItem
+          highlightContent={false}
           icon={
             <AccordionIcon className="fas fa-newspaper" aria-hidden="true" />
           }
@@ -1101,6 +1150,7 @@ function WaterQualityOverview({ ...props }: Props) {
           </AccordionContent>
         </AccordionItem>
         <AccordionItem
+          highlightContent={false}
           icon={
             <AccordionIcon className="fas fa-info-circle" aria-hidden="true" />
           }
@@ -1124,29 +1174,34 @@ function WaterQualityOverview({ ...props }: Props) {
                     No additional information available for this state.
                   </NoDataMessage>
                 ) : (
-                  <LinkList>
-                    {introText.data.organizationURLs.map((item, index) => {
-                      return (
-                        <li key={index}>
-                          <a
-                            href={item.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            {item.label ? item.label : item.url}
-                          </a>
-                          <a
-                            className="exit-disclaimer"
-                            href="https://www.epa.gov/home/exit-epa"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            EXIT
-                          </a>
-                        </li>
-                      );
-                    })}
-                  </LinkList>
+                  <>
+                    <NewTabDisclaimer>
+                      Links below open in a new browser tab.
+                    </NewTabDisclaimer>
+                    <LinkList>
+                      {introText.data.organizationURLs.map((item, index) => {
+                        return (
+                          <li key={index}>
+                            <a
+                              href={item.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {item.label ? item.label : item.url}
+                            </a>
+                            <a
+                              className="exit-disclaimer"
+                              href="https://www.epa.gov/home/exit-epa"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              EXIT
+                            </a>
+                          </li>
+                        );
+                      })}
+                    </LinkList>
+                  </>
                 )}
               </>
             )}

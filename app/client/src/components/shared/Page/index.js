@@ -72,11 +72,16 @@ const TopLink = styled.a`
   }
 
   @media (max-width: 25em) {
+    height: 48px;
+    width: 48px;
     font-size: 0px;
 
     i {
+      width: 48px;
+      height: 48px;
       font-size: 16px;
       margin-right: 0em;
+      text-align: center;
     }
   }
 `;

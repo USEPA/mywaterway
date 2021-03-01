@@ -11,7 +11,11 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
 import { getWaterbodyCondition } from 'components/pages/LocationMap/MapFunctions';
-import { formatNumber } from 'utils/utils';
+import {
+  formatNumber,
+  convertAgencyCode,
+  convertDomainCode,
+} from 'utils/utils';
 import { fetchCheck } from 'utils/fetchUtils';
 // data
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
@@ -104,6 +108,15 @@ const CancelChangeLocationButton = styled.button`
   background-color: lightgray;
 `;
 
+const ScenicRiverImageContainer = styled.div`
+  padding: 1rem;
+`;
+
+const ScenicRiverImage = styled.img`
+  width: 100%;
+  height: auto;
+`;
+
 // --- components ---
 type Props = {
   type: string,
@@ -114,6 +127,7 @@ type Props = {
   location: ?Object,
   resetData: ?Function,
   services: ?Object,
+  fields: ?Object,
 };
 
 function WaterbodyInfo({
@@ -125,6 +139,7 @@ function WaterbodyInfo({
   getClickedHuc,
   resetData,
   services,
+  fields,
 }: Props) {
   // Gets the response of what huc was clicked, if provided.
   const [clickedHuc, setClickedHuc] = React.useState({
@@ -855,7 +870,6 @@ function WaterbodyInfo({
   };
 
   // jsx
-  // TODO: use table like monitoring stations and dischargers if we add nonprofits back
   const nonprofitContent = (
     <>
       {labelValue('Address', attributes.Address || 'No address found.')}
@@ -921,10 +935,130 @@ function WaterbodyInfo({
   );
 
   // jsx
+  const wildScenicRiversContent = (
+    <>
+      {attributes.PhotoLink && attributes.PhotoCredit && (
+        <>
+          <ScenicRiverImageContainer>
+            <ScenicRiverImage
+              src={attributes.PhotoLink}
+              alt="Wild and Scenic River"
+            ></ScenicRiverImage>
+            <br />
+            <em>Photo Credit: {attributes.PhotoCredit}</em>
+          </ScenicRiverImageContainer>
+        </>
+      )}
+      <p>
+        <strong>Agency: </strong>
+        {convertAgencyCode(attributes.AGENCY)}
+      </p>
+      <p>
+        <strong>Category: </strong>
+        {attributes.RiverCategory}
+        <br />
+      </p>
+      <div>
+        <a rel="noopener noreferrer" target="_blank" href={attributes.WEBLINK}>
+          <Icon className="fas fa-info-circle" aria-hidden="true" />
+          More Information
+        </a>{' '}
+        <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
+      </div>
+    </>
+  );
+
+  // jsx
+  const wsioContent = (
+    <>
+      <table className="table">
+        <tbody>
+          <tr>
+            <td>
+              <em>Watershed Name:</em>
+            </td>
+            <td>{attributes.name_huc12}</td>
+          </tr>
+          <tr>
+            <td>
+              <em>Watershed:</em>
+            </td>
+            <td>{attributes.huc12_text}</td>
+          </tr>
+          <tr>
+            <td>
+              <em>State:</em>
+            </td>
+            <td>{attributes.states2013}</td>
+          </tr>
+          <tr>
+            <td>
+              <em>Watershed Health Score:</em>
+            </td>
+            <td>
+              ({Math.round(attributes.phwa_health_ndx_st_2016 * 100) / 100})
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      {renderChangeWatershed()}
+    </>
+  );
+
+  // jsx
   const alaskaNativeVillageContent = (
     <>
       {labelValue('Village Name', attributes.NAME)}
 
+      {renderChangeWatershed()}
+    </>
+  );
+
+  // jsx
+  const protectedAreaContent = (
+    <>
+      {labelValue(
+        'Manager Type',
+        convertDomainCode(fields, 'Mang_Type', attributes.Mang_Type),
+      )}
+
+      {labelValue(
+        'Manager Name',
+        convertDomainCode(fields, 'Mang_Name', attributes.Mang_Name),
+      )}
+
+      {labelValue(
+        'Protection Category',
+        convertDomainCode(fields, 'Category', attributes.Category),
+      )}
+
+      {labelValue(
+        'Public Access',
+        convertDomainCode(fields, 'Access', attributes.Access),
+      )}
+      {renderChangeWatershed()}
+    </>
+  );
+
+  // jsx
+  const ejscreenContent = (
+    <>
+      {labelValue('Demographic Index Percentage', attributes.T_VULEOPCT)}
+
+      {labelValue('Percent Minority', attributes.T_MINORPCT)}
+
+      {labelValue('Percent Low Income', attributes.T_LWINCPCT)}
+
+      {labelValue(
+        'Percent Less Than High School Education',
+        attributes.T_LESHSPCT,
+      )}
+
+      {labelValue('Percent Linguistically Isolated', attributes.T_LNGISPCT)}
+
+      {labelValue('Percent Individuals Under 5', attributes.T_UNDR5PCT)}
+
+      {labelValue('Percent Individuals Over 64', attributes.T_OVR64PCT)}
       {renderChangeWatershed()}
     </>
   );
@@ -951,8 +1085,12 @@ function WaterbodyInfo({
   if (type === 'Congressional District') return congressionalDistrictContent();
   if (type === 'Tribe') return tribeContent;
   if (type === 'Upstream Watershed') return upstreamWatershedContent;
+  if (type === 'Wild and Scenic Rivers') return wildScenicRiversContent;
+  if (type === 'State Watershed Health Index') return wsioContent;
   if (type === 'Alaska Native Village') return alaskaNativeVillageContent;
   if (type === 'Change Location') return changeLocationContent;
+  if (type === 'Protected Areas') return protectedAreaContent;
+  if (type === 'Environmental Justice') return ejscreenContent;
 
   return null;
 }

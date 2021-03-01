@@ -261,11 +261,9 @@ function DocumentsTable({ documents, type }: DocumentsTableProps) {
             Header: 'Agency Code',
             width: 125,
             Render: (cell) => {
-              return cell.value === 'S'
-                ? 'State'
-                : cell.value === 'E'
-                ? 'EPA'
-                : cell.value;
+              if (cell.value === 'S') return 'State';
+              if (cell.value === 'E') return 'EPA';
+              return cell.value;
             },
           },
         ];

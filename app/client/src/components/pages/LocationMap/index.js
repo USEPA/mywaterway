@@ -17,6 +17,8 @@ import {
   getPopupTitle,
 } from 'components/pages/LocationMap/MapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
+// styled components
+import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // contexts
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -25,12 +27,20 @@ import { useServicesContext } from 'contexts/LookupFiles';
 import { esriApiUrl } from 'config/esriConfig';
 // helpers
 import {
+  useDynamicPopup,
   useSharedLayers,
   useWaterbodyHighlight,
   useWaterbodyFeatures,
 } from 'utils/hooks';
 import { fetchCheck } from 'utils/fetchUtils';
-import { isHuc12, updateCanonicalLink, createJsonLD } from 'utils/utils';
+import {
+  isHuc12,
+  updateCanonicalLink,
+  createJsonLD,
+  getPointFromCoordinates,
+  splitSuggestedSearch,
+  browserIsCompatibleWithArcGIS,
+} from 'utils/utils';
 // styles
 import './mapStyles.css';
 // errors
@@ -38,6 +48,7 @@ import {
   geocodeError,
   noDataAvailableError,
   watersgeoError,
+  esriMapLoadingFailure,
 } from 'config/errorMessages';
 
 // turns an array into a string for the service queries
@@ -137,12 +148,23 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setLinesLayer,
     setAreasLayer,
     setErrorMessage,
+    setWsioHealthIndexData,
+    setWildScenicRiversData,
+    setProtectedAreasData,
   } = React.useContext(LocationSearchContext);
 
   const [view, setView] = React.useState(null);
 
+  // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
+  const [communityMapLoadError, setCommunityMapLoadError] = React.useState(
+    false,
+  );
+
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
+
+  const getDynamicPopup = useDynamicPopup();
+  const { getTitle, getTemplate, setDynamicPopupFields } = getDynamicPopup();
 
   // Builds the layers that have no dependencies
   const [layersInitialized, setLayersInitialized] = React.useState(false);
@@ -230,8 +252,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setLayersInitialized(true);
   }, [
+    FeatureLayer,
     GraphicsLayer,
     getSharedLayers,
+    getTemplate,
+    getTitle,
     layers,
     setBoundariesLayer,
     setDischargersLayer,
@@ -243,6 +268,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setProvidersLayer,
     setSearchIconLayer,
     layersInitialized,
+    services,
   ]);
 
   // popup template to be used for all waterbody sublayers
@@ -668,6 +694,159 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [setFishingInfo, services],
   );
 
+  const getWsioHealthIndexData = React.useCallback(
+    (huc12) => {
+      const url =
+        `${services.data.wsio}/query?where=HUC12_TEXT%3D%27${huc12}%27` +
+        '&outFields=HUC12_TEXT%2Cstates2013%2Cphwa_health_ndx_st_2016&returnGeometry=false&f=json';
+
+      setWsioHealthIndexData({
+        data: [],
+        status: 'fetching',
+      });
+
+      fetchCheck(url)
+        .then((res) => {
+          if (!res || !res.features || res.features.length <= 0) {
+            setWsioHealthIndexData({ status: 'success', data: [] });
+            return;
+          }
+
+          const healthIndexData = res.features.map((feature) => ({
+            states: feature.attributes.states2013,
+            phwa_health_ndx_st_2016: feature.attributes.phwa_health_ndx_st_2016,
+          }));
+
+          setWsioHealthIndexData({
+            status: 'success',
+            data: healthIndexData,
+          });
+        })
+        .catch((err) => {
+          console.error(err);
+          setWsioHealthIndexData({ status: 'failure', data: [] });
+        });
+    },
+    [setWsioHealthIndexData, services],
+  );
+
+  const getWildScenicRivers = React.useCallback(
+    (boundaries) => {
+      if (
+        !boundaries ||
+        !boundaries.features ||
+        boundaries.features.length === 0
+      ) {
+        setWildScenicRiversData({
+          data: [],
+          status: 'success',
+        });
+        return;
+      }
+
+      const query = new Query({
+        geometry: boundaries.features[0].geometry,
+        returnGeometry: false,
+        spatialReference: 102100,
+        outFields: ['*'],
+      });
+
+      setWildScenicRiversData({
+        data: [],
+        status: 'fetching',
+      });
+
+      new QueryTask({
+        url: services.data.wildScenicRivers,
+      })
+        .execute(query)
+        .then((res) => {
+          setWildScenicRiversData({
+            data: res.features,
+            status: 'success',
+          });
+        })
+        .catch((err) => {
+          console.error(err);
+          setWildScenicRiversData({
+            data: [],
+            status: 'failure',
+          });
+        });
+    },
+    [services, Query, QueryTask, setWildScenicRiversData],
+  );
+
+  const getProtectedAreas = React.useCallback(
+    (boundaries) => {
+      if (
+        !boundaries ||
+        !boundaries.features ||
+        boundaries.features.length === 0
+      ) {
+        setProtectedAreasData({
+          data: [],
+          fields: [],
+          status: 'success',
+        });
+        return;
+      }
+
+      fetchCheck(`${services.data.protectedAreasDatabase}0?f=json`)
+        .then((layerInfo) => {
+          const query = new Query({
+            geometry: boundaries.features[0].geometry,
+            returnGeometry: false,
+            spatialReference: 102100,
+            outFields: ['*'],
+          });
+
+          setProtectedAreasData({
+            data: [],
+            fields: [],
+            status: 'fetching',
+          });
+
+          new QueryTask({
+            url: `${services.data.protectedAreasDatabase}0`,
+          })
+            .execute(query)
+            .then((res) => {
+              // build/set the filter
+              let filter = '';
+              res.features.forEach((feature) => {
+                if (filter) filter += ' Or ';
+                filter += `OBJECTID = ${feature.attributes.OBJECTID}`;
+              });
+
+              setDynamicPopupFields(layerInfo.fields);
+              setProtectedAreasData({
+                data: res.features,
+                fields: layerInfo.fields,
+                status: 'success',
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+              setProtectedAreasData({
+                data: [],
+                fields: [],
+                status: 'failure',
+              });
+            });
+        })
+        .catch((err) => {
+          console.error(err);
+          setProtectedAreasData({
+            data: [],
+            fields: [],
+            status: 'failure',
+          });
+        });
+    },
+    [services, Query, QueryTask, setProtectedAreasData, setDynamicPopupFields],
+  );
+
   const handleMapServices = React.useCallback(
     (results) => {
       // sort the parameters by highest percent to lowest
@@ -705,6 +884,15 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       // pass all of the states that the HUC12 is in
       getFishingLinkData(boundaries.features[0].attributes.states);
 
+      // get wsio health index data for the current huc
+      getWsioHealthIndexData(huc12);
+
+      // get Scenic River data for current huc boundaries
+      getWildScenicRivers(boundaries);
+
+      // get Protected Areas data for current huc boundaries
+      getProtectedAreas(boundaries);
+
       // call states service for converting statecodes to state names
       // don't re-fetch the states service if it's already populated, it doesn't vary by location
       if (statesData.status !== 'success') {
@@ -726,6 +914,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     },
     [
       getFishingLinkData,
+      getWsioHealthIndexData,
+      getWildScenicRivers,
+      getProtectedAreas,
       handleMapServiceError,
       handleMapServices,
       setHucBoundaries,
@@ -757,10 +948,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         } catch (err) {
           console.error(err);
           setNoDataAvailable();
+          setMapLoading(false);
           setErrorMessage(noDataAvailableError);
         }
       } else {
         setNoDataAvailable();
+        setMapLoading(false);
         setErrorMessage(noDataAvailableError);
       }
     },
@@ -787,6 +980,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         if (!searchIconLayer) return;
 
         searchIconLayer.graphics.removeAll();
+        searchIconLayer.visible = true;
         searchIconLayer.graphics.add(
           new Graphic({
             geometry: location,
@@ -806,17 +1000,18 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       const locator = new Locator({ url: services.data.locatorUrl });
       locator.outSpatialReference = SpatialReference.WebMercator;
 
-      const regex = /^(-?\d+(\.\d*)?)[\s,]+(-?\d+(\.\d*)?)$/;
-      let point = null;
-      if (regex.test(searchText)) {
-        const found = searchText.match(regex);
-        if (found.length >= 4 && found[1] && found[3]) {
-          point = new Point({
-            x: found[1],
-            y: found[3],
-          });
-        }
-      }
+      // Parse the search text to see if it is from a non-esri search suggestion
+      const { searchPart, coordinatesPart } = splitSuggestedSearch(
+        Point,
+        searchText,
+      );
+
+      // Check if the search text contains coordinates.
+      // First see if coordinates are part of a non-esri suggestion and
+      // then see if the full text is coordinates
+      let point = coordinatesPart
+        ? coordinatesPart
+        : getPointFromCoordinates(Point, searchText);
 
       let getCandidates;
       if (point === null) {
@@ -826,7 +1021,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         // If not coordinates, perform regular geolocation
         getCandidates = locator.addressToLocations({
           address: { SingleLine: searchText },
-          countryCode: 'USA', // TODO: this doesn't have any effect but should according to the documentation
+          countryCode: 'USA',
           outFields: [
             'Loc_name',
             'City',
@@ -850,15 +1045,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           // if multiple candidates have the same highhest value the first one is chosen
           let location;
           let highestCandidateScore = -1;
-          for (let i = 0; i < candidates.length; i++) {
-            if (candidates[i].score > highestCandidateScore) {
-              location = candidates[i];
-              highestCandidateScore = candidates[i].score;
+          for (const candidate of candidates) {
+            if (candidate.score > highestCandidateScore) {
+              location = candidate;
+              highestCandidateScore = candidate.score;
             }
           }
 
           if (candidates.length === 0 || !location || !location.attributes) {
-            setAddress(searchText); // preserve the user's search so it is displayed
+            const newAddress = coordinatesPart ? searchPart : searchText;
+            setAddress(newAddress); // preserve the user's search so it is displayed
             setNoDataAvailable();
             setMapLoading(false);
             setErrorMessage(noDataAvailableError);
@@ -871,8 +1067,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           if (location.attributes.Country !== 'USA') {
             const country = location.attributes.Country;
             // break out of loop after first candidate with region and same country
-            for (let i = 0; i < candidates.length; i++) {
-              let candidate = candidates[i];
+            for (const candidate of candidates) {
               let candidateAttr = candidate.attributes;
               if (candidateAttr.Country === country && candidateAttr.Region) {
                 location = candidate;
@@ -908,7 +1103,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               })
               .catch((err) => {
                 console.error(err);
-                setAddress(searchText); // preserve the user's search so it is displayed
+                const newAddress = coordinatesPart ? searchPart : searchText;
+                setAddress(newAddress); // preserve the user's search so it is displayed
                 setNoDataAvailable();
                 setErrorMessage(watersgeoError);
               });
@@ -972,7 +1168,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         .catch((err) => {
           if (!hucRes) {
             console.error(err);
-            setAddress(searchText); // preserve the user's search so it is displayed
+            const newAddress = coordinatesPart ? searchPart : searchText;
+            setAddress(newAddress); // preserve the user's search so it is displayed
             setNoDataAvailable();
             setErrorMessage(geocodeError);
             return;
@@ -1040,6 +1237,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           .then((response) => {
             if (response.features.length === 0) {
               // flag no data available for no response
+              setMapLoading(false);
               setErrorMessage(noDataAvailableError);
               setNoDataAvailable();
             }
@@ -1059,6 +1257,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           })
           .catch((err) => {
             console.error(err);
+            setMapLoading(false);
             setErrorMessage(noDataAvailableError);
             setNoDataAvailable();
           });
@@ -1122,9 +1321,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       },
       symbol: {
         type: 'simple-fill', // autocasts as new SimpleFillSymbol()
-        color: [204, 255, 255, 0.2],
+        color: [204, 255, 255, 0.5],
         outline: {
-          color: [102, 102, 102],
+          color: [0, 0, 0],
           width: 2,
           style: 'dash',
         },
@@ -1291,6 +1490,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setMapLoading(false);
   }, [waterbodyLayer, cipSummary, waterbodyFeatures]);
 
+  // check for browser compatibility with map
+  if (!browserIsCompatibleWithArcGIS() && !communityMapLoadError) {
+    setCommunityMapLoadError(true);
+  }
+
   // jsx
   const mapContent = (
     <>
@@ -1323,8 +1527,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           }}
           onFail={(err) => {
             console.error(err);
+            setCommunityMapLoadError(true);
             setView(null);
             setMapView(null);
+            window.logToGa('send', 'exception', {
+              exDescription: `Community map failed to load - ${err}`,
+              exFatal: false,
+            });
           }}
         >
           {/* manually passing map and view props to Map component's         */}
@@ -1335,7 +1544,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             view={null}
             layers={layers}
             scrollToComponent="locationmap"
-            onHomeWidgetRendered={(homeWidget) => {}}
           />
 
           {/* manually passing map and view props to Map component's         */}
@@ -1347,6 +1555,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       </Container>
     </>
   );
+
+  if (communityMapLoadError) {
+    return <StyledErrorBox>{esriMapLoadingFailure}</StyledErrorBox>;
+  }
 
   if (layout === 'wide') {
     return (

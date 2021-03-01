@@ -43,6 +43,12 @@ const reactSelectStyles = {
       color: '#495057',
     };
   },
+  singleValue: (defaultStyles) => {
+    return {
+      ...defaultStyles,
+      lineHeight: 2,
+    };
+  },
 };
 
 export { colors, fonts, reactSelectStyles };
