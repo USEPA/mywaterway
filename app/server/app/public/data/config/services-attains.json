@@ -1,9 +1,10 @@
 {
   "locatorUrl": "//geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
-  "wbd": "https://watersgeo.epa.gov/arcgis/rest/services/Support/HydrologicUnits/MapServer/6",
+  "wbd": "https://gispub.epa.gov/arcgis/rest/services/OW/HydrologicUnits/MapServer/6",
   "counties": "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_Counties/FeatureServer/0",
   "stateBoundaries": "https://enviroatlas.epa.gov/arcgis/rest/services/Supplemental/Reference_Boundaries/MapServer",
   "mappedWater": "https://watersgeo.epa.gov/arcgis/rest/services/NHDPlus/NHDPlus/MapServer",
+  "upstreamWatershed": "https://gispub.epa.gov/arcgis/rest/services/OW/CatchmentFabric/MapServer/2/",
   "nonprofits": "https://services7.arcgis.com/RozrT2Mi6zTs0s5F/arcgis/rest/services/Nonprofits_10_24_18/FeatureServer/0/",
   "tribal": "https://geopub.epa.gov/arcgis/rest/services/EMEF/tribal/MapServer",
   "congressional": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_116th_Congressional_Districts_all/FeatureServer",
@@ -302,6 +303,11 @@
       "urlLookup": "nonprofits",
       "wildcardUrl": "{urlLookup}*",
       "name": "ESRI services7 - Nonprofits"
+    },
+    {
+      "urlLookup": "upstreamWatershed",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "watersgeo - upstream watershed"
     },
     {
       "urlLookup": "wildScenicRivers",
