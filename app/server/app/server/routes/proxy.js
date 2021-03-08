@@ -1,6 +1,6 @@
 const { URL } = require('url');
 const express = require('express');
-const request = require('request');
+const axios = require('axios');
 const querystring = require('querystring');
 const config = require('../config/proxyConfig.json');
 const logger = require('../utilities/logger');
@@ -62,48 +62,26 @@ module.exports = function (app) {
       }
     }
 
-    request(
-      {
-        method: req.query.method,
-        headers: request_headers,
-        uri: parsedUrl,
-        timeout: 10000,
-      },
-      function (err, request_res, body) {
-        if (err) {
-          log.error(
-            logger.formatLogMsg(
-              metadataObj,
-              `Unsuccessful request. parsedUrl = ${parsedUrl}. Detailed error: ${err}`,
-            ),
-          );
-          if (res.headersSent) {
-            log.error(
-              logger.formatLogMsg(
-                metadataObj,
-                `Odd header already sent check = ${parsedUrl}. Detailed error: ${err}`,
-              ),
-            );
-          } else {
-            res.status(403).json({
-              message: 'Unsuccessful request. parsedUrl ' + parsedUrl,
-              'Detailed error': err,
-            });
-          }
-        }
-      },
-    )
-      .on('response', function (response) {
-        /* The EPA Terminology Services (TS) exposes sensitive 
+    function deleteTSHeaders(response) {
+      /* The EPA Terminology Services (TS) exposes sensitive 
         information about its underlying technology. While we 
         notified the TS Team about this, they have not had time 
         to address it with the product vendor. Based on this,
         we're going to programmatically remove them. */
-        delete response.headers['x-powered-by'];
-        delete response.headers['server'];
-        delete response.headers['x-aspnet-version'];
-        // end of EPA TS work around.
-        if (response.statusCode !== 200) {
+      delete response.headers['x-powered-by'];
+      delete response.headers['server'];
+      delete response.headers['x-aspnet-version'];
+      // end of EPA TS work around.
+    }
+
+    axios({
+      method: req.query.method,
+      url: parsedUrl,
+      headers: request_headers,
+      timeout: 10000,
+    })
+      .then((response) => {
+        if (response.status !== 200) {
           log.error(
             logger.formatLogMsg(
               metadataObj,
@@ -118,8 +96,35 @@ module.exports = function (app) {
             ),
           );
         }
+
+        deleteTSHeaders(response);
+        res
+          .status(response.status)
+          .header(response.headers)
+          .send(response.data);
       })
-      .pipe(res);
+      .catch((err) => {
+        log.error(
+          logger.formatLogMsg(
+            metadataObj,
+            `Unsuccessful request. parsedUrl = ${parsedUrl}. Detailed error: ${err}`,
+          ),
+        );
+        if (res.headersSent) {
+          log.error(
+            logger.formatLogMsg(
+              metadataObj,
+              `Odd header already sent check = ${parsedUrl}. Detailed error: ${err}`,
+            ),
+          );
+        }
+
+        deleteTSHeaders(err.response);
+        res
+          .status(err.response.status)
+          .header(err.response.headers)
+          .send(err.response.data);
+      });
   });
 
   app.use('/proxy', router);
