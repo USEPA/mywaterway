@@ -25,6 +25,9 @@
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
 
 import '@testing-library/cypress/add-commands';
+import { addMatchImageSnapshotCommand } from 'cypress-image-snapshot/command';
+
+addMatchImageSnapshotCommand();
 
 /**
  * This enables mocking the geolocation api. The default coordinates are
@@ -83,6 +86,29 @@ Cypress.Commands.add(
         force: true,
         dataTransfer: { files: [testFile], types: ['Files'] },
       });
+    });
+  },
+);
+
+/**
+ * This enables mocking the geolocation api. The default coordinates are
+ * for Washington DC.
+ *
+ * @param shouldFail (optional) - If set to true the mock location will fail
+ * @param latitude (optional) - The latitude to be returned by the mocked location call
+ * @param longitude (optional) - The longitude to be returned by the mocked location call
+ */
+Cypress.Commands.add(
+  'matchSnapshot',
+  {
+    prevSubject: 'element',
+  },
+  (subject, name, options) => {
+    cy.wrap(subject).matchImageSnapshot(`${Cypress.browser.family}-${name}`, {
+      comparisonMethod: 'ssim',
+      failureThresholdType: 'percent',
+      failureThreshold: 0.01,
+      ...options,
     });
   },
 );
