@@ -449,6 +449,7 @@ function IdentifiedIssues() {
   const toggleSwitch = (checkedSwitch: SwitchNames) => {
     // create a temporary object with the previous state
     const tempParameterToggleObject = { ...parameterToggleObject };
+    // const tempParameterToggleObject = parameterToggleObject;
 
     // set all paramters to On and show the issuesLayer
     const toggleOn = () => {
@@ -770,6 +771,9 @@ function IdentifiedIssues() {
                                             <FlexDiv>
                                               <TableSwitch>
                                                 <Switch
+                                                  ariaLabel={
+                                                    mappedParameterName
+                                                  }
                                                   checked={
                                                     parameterToggleObject[
                                                       mappedParameterName
