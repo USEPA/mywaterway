@@ -452,3 +452,20 @@ describe('Protect Tab', () => {
     );
   });
 });
+
+describe('Community Visual Regression Testing', () => {
+  it('Verify DC GIS data displays correctly', () => {
+    cy.visit('/community/dc/overview');
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    // this is needed as a workaround for the delay between the loading spinner
+    // disappearing and the waterbodies being drawn on the map
+    cy.wait(3000);
+
+    cy.get('#base-container').matchSnapshot('verify-dc-gis-display');
+  });
+});
