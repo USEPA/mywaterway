@@ -275,9 +275,15 @@ function convertDomainCode(fields, name, value) {
   return value;
 }
 
+// Escapes special characters for usage with regex
+function escapeRegex(str) {
+  return str.replace(/([.*+?^=!:${}()|\]\\])/g, '\\$1');
+}
+
 export {
   chunkArray,
   containsScriptTag,
+  escapeRegex,
   formatNumber,
   getExtensionFromPath,
   isHuc12,

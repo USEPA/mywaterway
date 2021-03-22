@@ -317,6 +317,11 @@ function IdentifiedIssues() {
   React.useEffect(() => {
     if (!window.gaTarget || cipSummary.status !== 'success') return;
 
+    if (!cipSummary.data?.items?.length > 0) {
+      setNullPollutedWaterbodies(true);
+      return;
+    }
+
     const {
       assessedCatchmentAreaSqMi,
       containImpairedWatersCatchmentAreaPercent,
@@ -649,7 +654,8 @@ function IdentifiedIssues() {
             <TabPanels>
               <TabPanel>
                 {cipSummary.status === 'fetching' && <LoadingSpinner />}
-                {cipSummary.status === 'failure' && (
+                {(cipSummary.status === 'failure' ||
+                  !cipSummary.data?.items) && (
                   <StyledErrorBox>
                     <p>{huc12SummaryError}</p>
                   </StyledErrorBox>
