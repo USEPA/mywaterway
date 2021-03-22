@@ -146,9 +146,14 @@ function WaterSystemSummary({ state }: Props) {
           if (item.primacy_agency_code !== state.code) return;
 
           const { pws_type_code, number_of_systems } = item;
-          if (pws_type_code === 'CWS') cwsCount = number_of_systems;
-          if (pws_type_code === 'NTNCWS') ntncwsCount = number_of_systems;
-          if (pws_type_code === 'TNCWS') tncwsCount = number_of_systems;
+          switch (pws_type_code) {
+            case 'CWS':
+              cwsCount = number_of_systems;
+            case 'NTNCWS':
+              ntncwsCount = number_of_systems;
+            case 'TNCWS':
+              tncwsCount = number_of_systems;
+          }
         });
 
         setSystemTypeRes({
