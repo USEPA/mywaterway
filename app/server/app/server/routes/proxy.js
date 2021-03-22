@@ -72,6 +72,9 @@ module.exports = function (app) {
       delete response.headers['server'];
       delete response.headers['x-aspnet-version'];
       // end of EPA TS work around.
+
+      // Disable cache for all proxy requests
+      response.headers['cache-control'] = 'no-cache';
     }
 
     axios({
