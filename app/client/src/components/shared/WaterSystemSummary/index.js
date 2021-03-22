@@ -149,10 +149,13 @@ function WaterSystemSummary({ state }: Props) {
           switch (pws_type_code) {
             case 'CWS':
               cwsCount = number_of_systems;
+              break;
             case 'NTNCWS':
               ntncwsCount = number_of_systems;
+              break;
             case 'TNCWS':
               tncwsCount = number_of_systems;
+              break;
           }
         });
 
