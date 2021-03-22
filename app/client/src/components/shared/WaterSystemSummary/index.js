@@ -105,6 +105,7 @@ type Props = {
 function WaterSystemSummary({ state }: Props) {
   const services = useServicesContext();
 
+  const [lastCountsCode, setLastCountsCode] = React.useState(null);
   const [systemTypeRes, setSystemTypeRes] = React.useState({
     status: 'fetching',
     data: {
@@ -114,6 +115,16 @@ function WaterSystemSummary({ state }: Props) {
     },
   });
   React.useEffect(() => {
+    if (
+      !state.code ||
+      lastCountsCode === state.code ||
+      services.status !== 'success'
+    ) {
+      return;
+    }
+
+    setLastCountsCode(state.code);
+
     fetchCheck(`${services.data.dwmaps.getGPRASystemCountsByType}${state.code}`)
       .then((res) => {
         if (!res || !res.items || res.items.length === 0) {
@@ -135,9 +146,17 @@ function WaterSystemSummary({ state }: Props) {
           if (item.primacy_agency_code !== state.code) return;
 
           const { pws_type_code, number_of_systems } = item;
-          if (pws_type_code === 'CWS') cwsCount = number_of_systems;
-          if (pws_type_code === 'NTNCWS') ntncwsCount = number_of_systems;
-          if (pws_type_code === 'TNCWS') tncwsCount = number_of_systems;
+          switch (pws_type_code) {
+            case 'CWS':
+              cwsCount = number_of_systems;
+              break;
+            case 'NTNCWS':
+              ntncwsCount = number_of_systems;
+              break;
+            case 'TNCWS':
+              tncwsCount = number_of_systems;
+              break;
+          }
         });
 
         setSystemTypeRes({
@@ -160,19 +179,30 @@ function WaterSystemSummary({ state }: Props) {
           },
         });
       });
-  }, [state, services]);
+  }, [state, services, lastCountsCode]);
 
   // fetch GPRA data
+  const [lastSummaryCode, setLastSummaryCode] = React.useState(null);
   const [gpraData, setGpraData] = React.useState({
     status: 'fetching',
     data: {},
   });
 
   React.useEffect(() => {
+    if (
+      !state.code ||
+      lastSummaryCode === state.code ||
+      services.status !== 'success'
+    ) {
+      return;
+    }
+
+    setLastSummaryCode(state.code);
+
     fetchCheck(`${services.data.dwmaps.getGPRASummary}${state.code}`)
       .then((res) => setGpraData({ status: 'success', data: res.items[0] }))
       .catch((err) => setGpraData({ status: 'failure', data: {} }));
-  }, [state, services]);
+  }, [state, services, lastSummaryCode]);
 
   return (
     <>
