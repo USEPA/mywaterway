@@ -776,6 +776,9 @@ function IdentifiedIssues() {
                                             <FlexDiv>
                                               <TableSwitch>
                                                 <Switch
+                                                  ariaLabel={
+                                                    mappedParameterName
+                                                  }
                                                   checked={
                                                     parameterToggleObject[
                                                       mappedParameterName
