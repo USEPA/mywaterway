@@ -996,7 +996,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                 rel="noopener noreferrer"
               >
                 <Icon className="fas fa-file-alt" aria-hidden="true" />
-                View Waterbody Report for 2018
+                View Waterbody Report for {mapReportingCycle}
               </a>
               &nbsp;&nbsp;
               <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
