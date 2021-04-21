@@ -125,7 +125,14 @@ function WaterbodyList({
                 feature={graphic}
                 fieldName={fieldName}
               />
-              <ViewOnMapButton feature={graphic} fieldName={fieldName} />
+              <ViewOnMapButton
+                feature={graphic}
+                fieldName={fieldName}
+                disabled={graphic.limited ? true : false}
+              />
+              {graphic.limited && (
+                <p>No map data available for this waterbody.</p>
+              )}
             </WaterbodyContent>
           );
 
@@ -133,9 +140,20 @@ function WaterbodyList({
             <AccordionItem
               key={index}
               title={<strong>{graphic.attributes.assessmentunitname}</strong>}
-              subTitle={`${getOrganizationLabel(graphic.attributes)} ${
-                graphic.attributes.assessmentunitidentifier
-              }`}
+              subTitle={
+                <>
+                  {`${getOrganizationLabel(graphic.attributes)} ${
+                    graphic.attributes.assessmentunitidentifier
+                  }`}
+
+                  {graphic.limited && (
+                    <>
+                      <br />
+                      No mapping data available.
+                    </>
+                  )}
+                </>
+              }
               icon={<WaterbodyIcon condition={condition} selected={false} />}
               mapIcon={icon}
               feature={graphic}

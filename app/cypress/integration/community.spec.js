@@ -451,4 +451,35 @@ describe('Protect Tab', () => {
       },
     );
   });
+
+  describe('HTTP Intercepts', () => {
+    beforeEach(() => {
+      cy.visit('/community');
+    });
+
+    it.only('Check that if GIS responds with empty features array we query and display data about the missing items.', () => {
+      cy.intercept(
+        'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/1/query',
+        {
+          statusCode: 200,
+          body: { features: [] },
+        },
+      );
+
+      // navigate to Protect tab of Community page
+      cy.findByPlaceholderText('Search by address', { exact: false }).type(
+        'DC',
+      );
+      cy.findByText('Go').click();
+
+      // wait for the web services to finish
+      cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+        'not.exist',
+      );
+
+      // Verify text explaining some waterbodies have no spatial data exists
+      cy.findByText('Some waterbodies are not visible on the map.');
+      cy.findByText('No mapping data available.');
+    });
+  });
 });

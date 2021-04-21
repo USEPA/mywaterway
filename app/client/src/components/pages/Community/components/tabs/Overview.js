@@ -67,6 +67,8 @@ function Overview() {
     watershed,
     visibleLayers,
     setVisibleLayers,
+    assessmentUnitCount,
+    waterbodyCountMismatch,
   } = React.useContext(LocationSearchContext);
 
   const {
@@ -244,12 +246,14 @@ function Overview() {
               <StyledNumber>
                 {cipSummary.status === 'failure'
                   ? 'N/A'
-                  : waterbodyCount.toLocaleString()}
+                  : assessmentUnitCount.toLocaleString()}
               </StyledNumber>
               <StyledLabel>Waterbodies</StyledLabel>
               <SwitchContainer>
                 <Switch
-                  checked={Boolean(waterbodyCount) && waterbodiesFilterEnabled}
+                  checked={
+                    Boolean(waterbodyCount) && waterbodiesFilterEnabled
+                  }
                   onChange={(checked) => {
                     setWaterbodiesFilterEnabled(!waterbodiesFilterEnabled);
 
@@ -351,6 +355,11 @@ function Overview() {
             {zeroAssessedWaterbodies(watershed)}
           </InfoBoxWithMargin>
         )}
+      {waterbodyCountMismatch && waterbodies && waterbodies.length > 0 && (
+        <InfoBoxWithMargin>
+          <p>Some waterbodies are not visible on the map.</p>
+        </InfoBoxWithMargin>
+      )}
       {cipSummary.status !== 'failure' && (
         <WaterbodyList
           waterbodies={waterbodies}
