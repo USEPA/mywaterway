@@ -267,9 +267,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             parameter.parameterStatusName === 'Cause' &&
             relevantAttainsMapping.value === parameterName
           );
-        });
-
-        console.log(parameterName, hasCause);
+        }); 
         return hasCause ? 'Cause' : null;
       }
 

@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
+import { StyledInfoBox } from 'components/shared/MessageBoxes';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import {
   AccordionList,
@@ -49,6 +50,11 @@ const WaterbodyContent = styled.div`
   button {
     margin-bottom: 0;
   }
+`;
+
+const InfoBoxWithMargin = styled(StyledInfoBox)`
+  margin: 1em;
+  text-align: center;
 `;
 
 // --- components ---
@@ -96,6 +102,12 @@ function WaterbodyList({
 
   return (
     <>
+      {/* check if any waterbodies have no spatial data */}
+      {sortedWaterbodies.some((waterbody) => waterbody.limited) && (
+        <InfoBoxWithMargin>
+          <p>Some waterbodies are not visible on the map.</p>
+        </InfoBoxWithMargin>
+      )}
       <Text>Waterbody Conditions:</Text>
       <Legend>
         <span>
