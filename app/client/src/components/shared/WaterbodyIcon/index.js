@@ -66,13 +66,17 @@ function WaterbodyIcon({ condition, selected = false }: Props) {
     );
   }
 
+  let ariaLabel = 'Condition Unknown';
+  if (condition === 'good') ariaLabel = 'Good';
+  if (condition === 'polluted') ariaLabel = 'Polluted';
+
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="26"
       height="26"
       viewBox="0 0 26 26"
-      aria-hidden="true"
+      aria-label={ariaLabel}
     >
       {shape}
     </svg>
