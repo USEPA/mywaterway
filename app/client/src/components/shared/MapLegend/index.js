@@ -464,7 +464,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
 
   // jsx
   const ejscreenLegend = () => {
-    const layerName = 'Environmental Justice';
+    const layerName = 'Demographic Indicators';
 
     if (additionalLegendInfo.status === 'fetching') return <LoadingSpinner />;
     if (additionalLegendInfo.status === 'failure') {

@@ -621,7 +621,7 @@ function MapWidgets({
     const uniqueParentItems = [];
     function defineActions(event) {
       const item = event.item;
-      if (!item.parent || item.parent.title === 'Environmental Justice') {
+      if (!item.parent || item.parent.title === 'Demographic Indicators') {
         //only add the item if it has not been added before
         if (!uniqueParentItems.includes(item.title)) {
           uniqueParentItems.push(item.title);

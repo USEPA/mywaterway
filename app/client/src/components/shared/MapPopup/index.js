@@ -55,7 +55,7 @@ function MapPopup({
   const hideTypes = ['Action', 'Change Location', 'Waterbody State Overview'];
 
   let typeTitle = type;
-  if (type === 'Environmental Justice') {
+  if (type === 'Demographic Indicators') {
     typeTitle += ` - ${feature.layer.title}`;
   }
 

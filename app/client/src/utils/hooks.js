@@ -1085,7 +1085,7 @@ function useSharedLayers() {
 
     const ejscreen = new GroupLayer({
       id: 'ejscreenLayer',
-      title: 'Environmental Justice',
+      title: 'Demographic Indicators',
       listMode: 'show',
       visible: false,
       layers: [

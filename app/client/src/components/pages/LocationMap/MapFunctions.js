@@ -609,7 +609,7 @@ export function getPopupContent({
 
   // EJSCREEN
   else if (attributes.T_OVR64PCT) {
-    type = 'Environmental Justice';
+    type = 'Demographic Indicators';
   }
 
   const content = (
