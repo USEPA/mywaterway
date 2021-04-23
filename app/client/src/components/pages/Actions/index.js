@@ -610,7 +610,12 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                   ) : (
                     <StickyBox offsetTop={20} offsetBottom={20}>
                       {infoBox}
-                      <div style={{ height: height - infoHeight - 70 }}>
+                      <div
+                        style={{
+                          height: height - infoHeight - 70,
+                          minHeight: '400px',
+                        }}
+                      >
                         <ActionsMap
                           layout="wide"
                           unitIds={unitIds}
