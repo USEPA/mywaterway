@@ -207,8 +207,8 @@ function Data({ ...props }: Props) {
           <GlossaryTerm term="Clean Water Act Section 319 Projects">
             Clean Water Act Section 319 Projects
           </GlossaryTerm>{' '}
-          ), Protect (Protection Projects). On the State page under Water
-          Stories.{' '}
+          ), Protect, Watershed Health and Protection (Protection Projects). On
+          the State page under Water Stories.{' '}
         </p>
       </Item>
 
@@ -288,6 +288,95 @@ function Data({ ...props }: Props) {
           Information from this database can be found on the Community page
           under the Overview tab (monitoring locations) and under the Monitoring
           tab after performing a search.
+        </p>
+      </Item>
+
+      <hr />
+
+      <Item>
+        <i className="fas fa-database" aria-hidden="true" />{' '}
+        <a
+          href="https://www.epa.gov/wsio"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Watershed Index Online (WSIO)
+        </a>
+        <p>
+          The Watershed Index Online (WSIO) is a free, publicly available data
+          library of watershed indicators and a decision-support tool, developed
+          by EPA, to assist resource managers, citizens, and other users with
+          evaluating, comparing, and prioritizing watersheds for a user-defined
+          purpose.
+        </p>
+        <br />
+        <Question>Where do I find WSIO data in How’s My Waterway?</Question>
+        <p>
+          Information from this database can be found on the Community page on
+          the protect tab under Watershed Health and Protection, Watershed
+          Health Scores.
+        </p>
+      </Item>
+
+      <hr />
+
+      <Item>
+        <i className="fas fa-database" aria-hidden="true" />{' '}
+        <a
+          href="https://www.rivers.gov/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Wild and Scenic Rivers
+        </a>
+        <p>
+          Data and GIS files on wild and scenic rivers can be found on the{' '}
+          <a
+            href="https://www.rivers.gov/mapping-gis.php"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            National Wild and Scenic Rivers System
+          </a>{' '}
+          website.
+        </p>
+        <br />
+        <Question>
+          Where do I find Wild and Scenic Rivers data in How’s My Waterway?
+        </Question>
+        <p>
+          Information from this database can be found on the Community page on
+          the protect tab under Watershed Health and Protection, Wild and Scenic
+          Rivers.
+        </p>
+      </Item>
+
+      <hr />
+
+      <Item>
+        <i className="fas fa-database" aria-hidden="true" />{' '}
+        <a
+          href="https://www.usgs.gov/core-science-systems/science-analytics-and-synthesis/gap/science/protected-areas"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Protected Areas
+        </a>
+        <p>
+          The Protected Areas Database (PAD-US) is America’s official national
+          inventory of U.S. terrestrial and marine protected areas that are
+          dedicated to the preservation of biological diversity and to other
+          natural, recreation and cultural uses, managed for these purposes
+          through legal or other effective means.
+        </p>
+        <br />
+        <Question>
+          Where do I find Wild and Protected Areas data in How’s My Waterway?
+        </Question>
+        <p>
+          Information from this database can be found on the Community page on
+          the protect tab under Watershed Health and Protection, Protected
+          Areas.
         </p>
       </Item>
     </Container>
