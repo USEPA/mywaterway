@@ -457,7 +457,7 @@ describe('Protect Tab', () => {
       cy.visit('/community');
     });
 
-    it.only('Check that if GIS responds with empty features array we query and display data about the missing items.', () => {
+    it('Check that if GIS responds with empty features array we query and display data about the missing items.', () => {
       cy.intercept(
         'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/1/query',
         {
@@ -479,7 +479,7 @@ describe('Protect Tab', () => {
 
       // Verify text explaining some waterbodies have no spatial data exists
       cy.findByText('Some waterbodies are not visible on the map.');
-      cy.findByText('No mapping data available.');
+      cy.findAllByText('No mapping data available.', { exact: false });
     });
   });
 });
