@@ -611,6 +611,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                     <StickyBox offsetTop={20} offsetBottom={20}>
                       {infoBox}
                       <div
+                        id="plan-summary-map"
                         style={{
                           height: height - infoHeight - 70,
                           minHeight: '400px',
