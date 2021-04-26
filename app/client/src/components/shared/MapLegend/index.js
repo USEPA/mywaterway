@@ -464,7 +464,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
 
   // jsx
   const ejscreenLegend = () => {
-    const layerName = 'Environmental Justice';
+    const layerName = 'Demographic Indicators';
 
     if (additionalLegendInfo.status === 'fetching') return <LoadingSpinner />;
     if (additionalLegendInfo.status === 'failure') {
@@ -485,7 +485,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
       'Less Than HS Education': {
         label: 'Percent Less than High School Education',
         glossary: (
-          <GlossaryTerm term="Percent Less than High School Education (Environmental Justice)">
+          <GlossaryTerm term="Percent Less than High School Education">
             Percent Less than High School Education
           </GlossaryTerm>
         ),
@@ -493,15 +493,13 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
       'Minority Population': {
         label: 'Percent Minority',
         glossary: (
-          <GlossaryTerm term="Percent Minority (Environmental Justice)">
-            Percent Minority
-          </GlossaryTerm>
+          <GlossaryTerm term="Percent Minority">Percent Minority</GlossaryTerm>
         ),
       },
       'Linguistically Isolated': {
         label: 'Percent in Linguistic Isolation',
         glossary: (
-          <GlossaryTerm term="Percent in Linguistic Isolation (Environmental Justice)">
+          <GlossaryTerm term="Percent in Linguistic Isolation">
             Percent in Linguistic Isolation
           </GlossaryTerm>
         ),
@@ -509,7 +507,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
       'Low Income': {
         label: 'Percent Low-Income',
         glossary: (
-          <GlossaryTerm term="Percent Low- Income (Environmental Justice)">
+          <GlossaryTerm term="Percent Low- Income">
             Percent Low-Income
           </GlossaryTerm>
         ),
@@ -517,7 +515,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
       'Over Age 64': {
         label: 'Percent over age 64',
         glossary: (
-          <GlossaryTerm term="Percent over age 64 (Environmental Justice)">
+          <GlossaryTerm term="Percent over age 64">
             Percent over age 64
           </GlossaryTerm>
         ),
@@ -525,7 +523,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
       'Under Age 5': {
         label: 'Percent under age 5',
         glossary: (
-          <GlossaryTerm term="Percent under age 5 (Environmental Justice)">
+          <GlossaryTerm term="Percent under age 5">
             Percent under age 5
           </GlossaryTerm>
         ),
@@ -533,7 +531,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
       'Demographic Index': {
         label: 'Demographic Index',
         glossary: (
-          <GlossaryTerm term="Demographic Index (Environmental Justice)">
+          <GlossaryTerm term="Demographic Index">
             Demographic Index
           </GlossaryTerm>
         ),
