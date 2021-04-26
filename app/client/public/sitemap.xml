@@ -2,26 +2,34 @@
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
         <loc>https://mywaterway.epa.gov/</loc>
+        <changefreq>weekly</changefreq>
     </url>
     <url>
         <loc>https://mywaterway.epa.gov/aquatic-life</loc>
+        <changefreq>weekly</changefreq>
     </url>
     <url>
         <loc>https://mywaterway.epa.gov/community</loc>
+        <changefreq>weekly</changefreq>
     </url>
     <url>
         <loc>https://mywaterway.epa.gov/drinking-water</loc>
+        <changefreq>weekly</changefreq>
     </url>
     <url>
         <loc>https://mywaterway.epa.gov/eating-fish</loc>
+        <changefreq>weekly</changefreq>
     </url>
     <url>
         <loc>https://mywaterway.epa.gov/national</loc>
+        <changefreq>weekly</changefreq>
     </url>
     <url>
         <loc>https://mywaterway.epa.gov/state</loc>
+        <changefreq>weekly</changefreq>
     </url>
     <url>
         <loc>https://mywaterway.epa.gov/swimming</loc>
+        <changefreq>weekly</changefreq>
     </url>
 </urlset>
