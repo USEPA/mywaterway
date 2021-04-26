@@ -1031,7 +1031,13 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                   ) : (
                     <StickyBox offsetTop={20} offsetBottom={20}>
                       {infoBox}
-                      <div style={{ height: height - infoHeight - 70 }}>
+                      <div
+                        id="waterbody-report-map"
+                        style={{
+                          height: height - infoHeight - 70,
+                          minHeight: '400px',
+                        }}
+                      >
                         <ActionsMap
                           layout="wide"
                           unitIds={unitIds}
