@@ -130,7 +130,7 @@ function updateCanonicalLink(huc12) {
 
 function resetCanonicalLink() {
   const canonicalLink = document.querySelector('[rel="canonical"]');
-  if (canonicalLink) canonicalLink.href = '';
+  if (canonicalLink) canonicalLink.href = window.location.href;
 }
 
 function removeJsonLD() {
