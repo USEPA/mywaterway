@@ -15,23 +15,23 @@ const Container = styled.div`
     line-height: 1.375;
   }
 
-  a {
-    display: block;
-    margin-bottom: 0.25rem;
-    font-size: 1.25em;
-    line-height: 1.125;
-  }
-
   @media (min-width: 30em) {
     padding: 2rem;
-
-    a {
-      font-size: 1.375em;
-    }
 
     hr {
       margin-top: 2rem;
     }
+  }
+`;
+
+const TitleLink = styled.a`
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 1.25em;
+  line-height: 1.125;
+
+  @media (min-width: 30em) {
+    font-size: 1.375em;
   }
 `;
 
@@ -116,14 +116,14 @@ function Data({ ...props }: Props) {
 
       <Item>
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <a
+        <TitleLink
           href="https://www.epa.gov/waterdata/attains"
           target="_blank"
           rel="noopener noreferrer"
         >
           Assessment, Total Maximum Daily Load Tracking and Implementation
           System (ATTAINS)
-        </a>
+        </TitleLink>
         <p>
           ATTAINS contains information on water quality assessments, impaired
           waters, and total maximum daily loads (TMDLs), through data submitted
@@ -147,9 +147,9 @@ function Data({ ...props }: Props) {
         </p>
         <SubLink>
           <Question>Impairment Category Filtering Tool:</Question>{' '}
-          <a href="attains" target="_blank" rel="noopener noreferrer">
+          <TitleLink href="attains" target="_blank" rel="noopener noreferrer">
             How ATTAINS data are grouped in How’s My Waterway
-          </a>
+          </TitleLink>
         </SubLink>
       </Item>
 
@@ -157,13 +157,13 @@ function Data({ ...props }: Props) {
 
       <Item>
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <a
+        <TitleLink
           href="https://echo.epa.gov/"
           target="_blank"
           rel="noopener noreferrer"
         >
           Enforcement and Compliance History Online (ECHO)
-        </a>
+        </TitleLink>
         <p>
           ECHO allows users to search for facilities in their community to
           assess their compliance with environmental regulations.
@@ -186,13 +186,13 @@ function Data({ ...props }: Props) {
 
       <Item>
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <a
+        <TitleLink
           href="https://iaspub.epa.gov/apex/grts/f?p=grts:95"
           target="_blank"
           rel="noopener noreferrer"
         >
           Grants Reporting and Tracking System (GRTS)
-        </a>
+        </TitleLink>
         <p>
           GRTS is the primary tool for management and oversight of the EPA’s
           Nonpoint Source (NPS) Pollution Control Program. Under Clean Water Act
@@ -216,13 +216,13 @@ function Data({ ...props }: Props) {
 
       <Item>
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <a
+        <TitleLink
           href="https://www.usgs.gov/core-science-systems/science-analytics-and-synthesis/gap/science/protected-areas"
           target="_blank"
           rel="noopener noreferrer"
         >
           Protected Areas
-        </a>
+        </TitleLink>
         <p>
           The Protected Areas Database (PAD-US) is America’s official national
           inventory of U.S. terrestrial and marine protected areas that are
@@ -245,13 +245,13 @@ function Data({ ...props }: Props) {
 
       <Item>
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <a
+        <TitleLink
           href="https://www.epa.gov/ground-water-and-drinking-water/safe-drinking-water-information-system-sdwis-federal-reporting"
           target="_blank"
           rel="noopener noreferrer"
         >
           Safe Drinking Water Information System (SDWIS)
-        </a>
+        </TitleLink>
         <p>
           The Safe Drinking Water Information System (SDWIS) contains
           information on public water systems, including monitoring,
@@ -273,13 +273,13 @@ function Data({ ...props }: Props) {
 
       <Item>
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <a
+        <TitleLink
           href="https://www.waterqualitydata.us/"
           target="_blank"
           rel="noopener noreferrer"
         >
           Water Quality Portal (WQP)
-        </a>
+        </TitleLink>
         <p>
           The Water Quality Portal (WQP) is a cooperative service sponsored by
           the United States Geological Survey (USGS), the Environmental
@@ -300,14 +300,14 @@ function Data({ ...props }: Props) {
 
       <Item>
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <a
+        <TitleLink
           href="https://www.epa.gov/waterdata/waters-watershed-assessment-tracking-environmental-results-system"
           target="_blank"
           rel="noopener noreferrer"
         >
           Watershed Assessment, Tracking &amp; Environmental Results System
           (WATERS)
-        </a>
+        </TitleLink>
         <p>
           A suite of web services that provide comprehensive information about
           the quality of the nation's surface water.
@@ -324,13 +324,13 @@ function Data({ ...props }: Props) {
 
       <Item>
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <a
+        <TitleLink
           href="https://www.epa.gov/wsio"
           target="_blank"
           rel="noopener noreferrer"
         >
           Watershed Index Online (WSIO)
-        </a>
+        </TitleLink>
         <p>
           The Watershed Index Online (WSIO) is a free, publicly available data
           library of watershed indicators and a decision-support tool, developed
@@ -351,13 +351,13 @@ function Data({ ...props }: Props) {
 
       <Item>
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <a
+        <TitleLink
           href="https://www.rivers.gov/"
           target="_blank"
           rel="noopener noreferrer"
         >
           Wild and Scenic Rivers
-        </a>
+        </TitleLink>
         <p>
           Data and GIS files on wild and scenic rivers can be found on the{' '}
           <a
