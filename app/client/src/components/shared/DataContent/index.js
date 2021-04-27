@@ -217,6 +217,35 @@ function Data({ ...props }: Props) {
       <Item>
         <i className="fas fa-database" aria-hidden="true" />{' '}
         <a
+          href="https://www.usgs.gov/core-science-systems/science-analytics-and-synthesis/gap/science/protected-areas"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Protected Areas
+        </a>
+        <p>
+          The Protected Areas Database (PAD-US) is America’s official national
+          inventory of U.S. terrestrial and marine protected areas that are
+          dedicated to the preservation of biological diversity and to other
+          natural, recreation and cultural uses, managed for these purposes
+          through legal or other effective means.
+        </p>
+        <br />
+        <Question>
+          Where do I find Wild and Protected Areas data in How’s My Waterway?
+        </Question>
+        <p>
+          Information from this database can be found on the Community page on
+          the protect tab under Watershed Health and Protection, Protected
+          Areas.
+        </p>
+      </Item>
+
+      <hr />
+
+      <Item>
+        <i className="fas fa-database" aria-hidden="true" />{' '}
+        <a
           href="https://www.epa.gov/ground-water-and-drinking-water/safe-drinking-water-information-system-sdwis-federal-reporting"
           target="_blank"
           rel="noopener noreferrer"
@@ -245,30 +274,6 @@ function Data({ ...props }: Props) {
       <Item>
         <i className="fas fa-database" aria-hidden="true" />{' '}
         <a
-          href="https://www.epa.gov/waterdata/waters-watershed-assessment-tracking-environmental-results-system"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Watershed Assessment, Tracking &amp; Environmental Results System
-          (WATERS)
-        </a>
-        <p>
-          A suite of web services that provide comprehensive information about
-          the quality of the nation's surface water.
-        </p>
-        <br />
-        <Question>Where do I find WATERS data in How’s My Waterway?</Question>
-        <p>
-          Information from WATERS supports the display of Watershed boundaries
-          on the map display.
-        </p>
-      </Item>
-
-      <hr />
-
-      <Item>
-        <i className="fas fa-database" aria-hidden="true" />{' '}
-        <a
           href="https://www.waterqualitydata.us/"
           target="_blank"
           rel="noopener noreferrer"
@@ -288,6 +293,30 @@ function Data({ ...props }: Props) {
           Information from this database can be found on the Community page
           under the Overview tab (monitoring locations) and under the Monitoring
           tab after performing a search.
+        </p>
+      </Item>
+
+      <hr />
+
+      <Item>
+        <i className="fas fa-database" aria-hidden="true" />{' '}
+        <a
+          href="https://www.epa.gov/waterdata/waters-watershed-assessment-tracking-environmental-results-system"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Watershed Assessment, Tracking &amp; Environmental Results System
+          (WATERS)
+        </a>
+        <p>
+          A suite of web services that provide comprehensive information about
+          the quality of the nation's surface water.
+        </p>
+        <br />
+        <Question>Where do I find WATERS data in How’s My Waterway?</Question>
+        <p>
+          Information from WATERS supports the display of Watershed boundaries
+          on the map display.
         </p>
       </Item>
 
@@ -348,35 +377,6 @@ function Data({ ...props }: Props) {
           Information from this database can be found on the Community page on
           the protect tab under Watershed Health and Protection, Wild and Scenic
           Rivers.
-        </p>
-      </Item>
-
-      <hr />
-
-      <Item>
-        <i className="fas fa-database" aria-hidden="true" />{' '}
-        <a
-          href="https://www.usgs.gov/core-science-systems/science-analytics-and-synthesis/gap/science/protected-areas"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Protected Areas
-        </a>
-        <p>
-          The Protected Areas Database (PAD-US) is America’s official national
-          inventory of U.S. terrestrial and marine protected areas that are
-          dedicated to the preservation of biological diversity and to other
-          natural, recreation and cultural uses, managed for these purposes
-          through legal or other effective means.
-        </p>
-        <br />
-        <Question>
-          Where do I find Wild and Protected Areas data in How’s My Waterway?
-        </Question>
-        <p>
-          Information from this database can be found on the Community page on
-          the protect tab under Watershed Health and Protection, Protected
-          Areas.
         </p>
       </Item>
     </Container>
