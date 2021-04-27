@@ -32,7 +32,7 @@ const ImageContainer = styled.div`
 `;
 
 const LegendContainer = styled.div`
-  width: 11.2rem;
+  width: 12rem;
   background-color: #fff;
   cursor: default;
 `;
@@ -483,48 +483,50 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     // maps the layer title to a text for a sentence
     const titleMap = {
       'Less Than HS Education': {
-        label: 'Percent Less than High School Education',
+        label: 'Less than High School Education',
         glossary: (
-          <GlossaryTerm term="Percent Less than High School Education">
-            Percent Less than High School Education
+          <GlossaryTerm term="Less than High School Education">
+            Less than High School Education
           </GlossaryTerm>
         ),
       },
       'Minority Population': {
-        label: 'Percent Minority',
+        label: 'Percent People of Color',
         glossary: (
-          <GlossaryTerm term="Percent Minority">Percent Minority</GlossaryTerm>
+          <GlossaryTerm term="Percent People of Color">
+            Percent People of Color
+          </GlossaryTerm>
         ),
       },
       'Linguistically Isolated': {
-        label: 'Percent in Linguistic Isolation',
+        label: 'Linguistic Isolation',
         glossary: (
-          <GlossaryTerm term="Percent in Linguistic Isolation">
-            Percent in Linguistic Isolation
+          <GlossaryTerm term="Linguistic Isolation">
+            Linguistic Isolation
           </GlossaryTerm>
         ),
       },
       'Low Income': {
         label: 'Percent Low-Income',
         glossary: (
-          <GlossaryTerm term="Percent Low- Income">
+          <GlossaryTerm term="Percent Low-Income">
             Percent Low-Income
           </GlossaryTerm>
         ),
       },
       'Over Age 64': {
-        label: 'Percent over age 64',
+        label: 'Individuals over age 64',
         glossary: (
-          <GlossaryTerm term="Percent over age 64">
-            Percent over age 64
+          <GlossaryTerm term="Individuals over age 64">
+            Individuals over age 64
           </GlossaryTerm>
         ),
       },
       'Under Age 5': {
-        label: 'Percent under age 5',
+        label: 'Individuals under age 5',
         glossary: (
-          <GlossaryTerm term="Percent under age 5">
-            Percent under age 5
+          <GlossaryTerm term="Individuals under age 5">
+            Individuals under age 5
           </GlossaryTerm>
         ),
       },
@@ -559,9 +561,16 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
 
     return (
       <MultiContainer>
-        <h3 className="esri-widget__heading esri-legend__service-label">
+        <GlossaryTerm
+          term={layerName}
+          className="esri-widget__heading esri-legend__service-label"
+          style={{
+            fontFamily:
+              '"Merriweather", "Georgia", "Cambria", "Times New Roman", "Times", serif',
+          }}
+        >
           {layerName}
-        </h3>
+        </GlossaryTerm>
         {subtitleParts.length > 0 && (
           <Subtitle>
             {subtitleParts.map((part, index) => {
