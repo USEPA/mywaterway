@@ -202,6 +202,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       id: 'upstreamWatershed',
       title: 'Upstream Watershed',
       listMode: 'hide',
+      visible: false,
     });
 
     setUpstreamLayer(upstreamLayer);
