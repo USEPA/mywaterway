@@ -2,9 +2,16 @@
 
 import React from 'react';
 import styled from 'styled-components';
+// components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import { LinkButton } from 'components/shared/LinkButton';
 // styles
 import { fonts } from 'styles/index.js';
+
+function scrollToItem(id: string) {
+  const item = document.getElementById(id);
+  if (item) item.scrollIntoView();
+}
 
 // --- styled components ---
 const Container = styled.div`
@@ -22,6 +29,18 @@ const Container = styled.div`
       margin-top: 2rem;
     }
   }
+`;
+
+const ContentsTitle = styled.h2`
+  padding: 0;
+  font-size: 16px;
+  font-weight: bold;
+  text-decoration: underline;
+`;
+
+const StyledLinkButton = styled(LinkButton)`
+  font-size: 16px;
+  font-weight: 400;
 `;
 
 const TitleLink = styled.a`
@@ -112,9 +131,62 @@ function Data({ ...props }: Props) {
 
       <hr />
 
+      <ContentsTitle>Contents</ContentsTitle>
+      <ul>
+        <li>
+          <StyledLinkButton onClick={() => scrollToItem('attains')}>
+            Assessment, Total Maximum Daily Load Tracking and Implementation
+            System (ATTAINS)
+          </StyledLinkButton>
+        </li>
+        <li>
+          <StyledLinkButton onClick={() => scrollToItem('echo')}>
+            Enforcement and Compliance History Online (ECHO)
+          </StyledLinkButton>
+        </li>
+        <li>
+          <StyledLinkButton onClick={() => scrollToItem('grts')}>
+            Grants Reporting and Tracking System (GRTS)
+          </StyledLinkButton>
+        </li>
+        <li>
+          <StyledLinkButton onClick={() => scrollToItem('protected-areas')}>
+            Protected Areas
+          </StyledLinkButton>
+        </li>
+        <li>
+          <StyledLinkButton onClick={() => scrollToItem('sdwis')}>
+            Safe Drinking Water Information System (SDWIS)
+          </StyledLinkButton>
+        </li>
+        <li>
+          <StyledLinkButton onClick={() => scrollToItem('wqp')}>
+            Water Quality Portal (WQP)
+          </StyledLinkButton>
+        </li>
+        <li>
+          <StyledLinkButton onClick={() => scrollToItem('waters')}>
+            Watershed Assessment, Tracking &amp; Environmental Results System
+            (WATERS)
+          </StyledLinkButton>
+        </li>
+        <li>
+          <StyledLinkButton onClick={() => scrollToItem('wsio')}>
+            Watershed Index Online (WSIO)
+          </StyledLinkButton>
+        </li>
+        <li>
+          <StyledLinkButton onClick={() => scrollToItem('wild-scenic-rivers')}>
+            Wild and Scenic Rivers
+          </StyledLinkButton>
+        </li>
+      </ul>
+
+      <hr />
+
       <em>Links below open in a new browser tab.</em>
 
-      <Item>
+      <Item id="attains">
         <i className="fas fa-database" aria-hidden="true" />{' '}
         <TitleLink
           href="https://www.epa.gov/waterdata/attains"
@@ -155,7 +227,7 @@ function Data({ ...props }: Props) {
 
       <hr />
 
-      <Item>
+      <Item id="echo">
         <i className="fas fa-database" aria-hidden="true" />{' '}
         <TitleLink
           href="https://echo.epa.gov/"
@@ -184,7 +256,7 @@ function Data({ ...props }: Props) {
 
       <hr />
 
-      <Item>
+      <Item id="grts">
         <i className="fas fa-database" aria-hidden="true" />{' '}
         <TitleLink
           href="https://iaspub.epa.gov/apex/grts/f?p=grts:95"
@@ -214,7 +286,7 @@ function Data({ ...props }: Props) {
 
       <hr />
 
-      <Item>
+      <Item id="protected-areas">
         <i className="fas fa-database" aria-hidden="true" />{' '}
         <TitleLink
           href="https://www.usgs.gov/core-science-systems/science-analytics-and-synthesis/gap/science/protected-areas"
@@ -243,7 +315,7 @@ function Data({ ...props }: Props) {
 
       <hr />
 
-      <Item>
+      <Item id="sdwis">
         <i className="fas fa-database" aria-hidden="true" />{' '}
         <TitleLink
           href="https://www.epa.gov/ground-water-and-drinking-water/safe-drinking-water-information-system-sdwis-federal-reporting"
@@ -271,7 +343,7 @@ function Data({ ...props }: Props) {
 
       <hr />
 
-      <Item>
+      <Item id="wqp">
         <i className="fas fa-database" aria-hidden="true" />{' '}
         <TitleLink
           href="https://www.waterqualitydata.us/"
@@ -298,7 +370,7 @@ function Data({ ...props }: Props) {
 
       <hr />
 
-      <Item>
+      <Item id="waters">
         <i className="fas fa-database" aria-hidden="true" />{' '}
         <TitleLink
           href="https://www.epa.gov/waterdata/waters-watershed-assessment-tracking-environmental-results-system"
@@ -322,7 +394,7 @@ function Data({ ...props }: Props) {
 
       <hr />
 
-      <Item>
+      <Item id="wsio">
         <i className="fas fa-database" aria-hidden="true" />{' '}
         <TitleLink
           href="https://www.epa.gov/wsio"
@@ -349,7 +421,7 @@ function Data({ ...props }: Props) {
 
       <hr />
 
-      <Item>
+      <Item id="wild-scenic-rivers">
         <i className="fas fa-database" aria-hidden="true" />{' '}
         <TitleLink
           href="https://www.rivers.gov/"
