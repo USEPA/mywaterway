@@ -657,6 +657,7 @@ function useSharedLayers() {
     GraphicsLayer,
     GroupLayer,
     MapImageLayer,
+    watchUtils,
   } = React.useContext(EsriModulesContext);
   const {
     setProtectedAreasLayer,
@@ -787,6 +788,29 @@ function useSharedLayers() {
     });
 
     setWsioHealthIndexLayer(wsioHealthIndexLayer);
+
+    // Toggles the shading of the watershed graphic based on
+    // whether or not the wsio layer is on or off
+    watchUtils.watch(
+      wsioHealthIndexLayer,
+      'visible',
+      (newVal, oldVal, propName, target) => {
+        // find the boundaries layer
+        wsioHealthIndexLayer.parent.layers.items.forEach((layer) => {
+          if (layer.id !== 'boundariesLayer') return;
+
+          // remove shading when wsio layer is on and add
+          // shading back in when wsio layer is off
+          const newGraphics = layer.graphics.clone();
+          newGraphics.forEach((graphic) => {
+            graphic.symbol.color.a = newVal ? 0 : 0.5;
+          });
+
+          // re-draw the graphics
+          layer.graphics = newGraphics;
+        });
+      },
+    );
 
     const protectedAreasLayer = new MapImageLayer({
       id: 'protectedAreasLayer',
