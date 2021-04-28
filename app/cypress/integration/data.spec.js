@@ -32,8 +32,13 @@ describe('Data page', () => {
     );
 
     // check the attains link
-    cy.findByText(
+    cy.findAllByText(
       'Assessment, Total Maximum Daily Load Tracking and Implementation System (ATTAINS)',
-    ).should('have.attr', 'href', 'https://www.epa.gov/waterdata/attains');
+    );
+    cy.findByText('ATTAINS Data/System').should(
+      'have.attr',
+      'href',
+      'https://www.epa.gov/waterdata/attains',
+    );
   });
 });
