@@ -2,9 +2,16 @@
 
 import React from 'react';
 import styled from 'styled-components';
+// components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import { LinkButton } from 'components/shared/LinkButton';
 // styles
 import { fonts } from 'styles/index.js';
+
+function scrollToItem(id: string) {
+  const item = document.getElementById(id);
+  if (item) item.scrollIntoView();
+}
 
 // --- styled components ---
 const Container = styled.div`
@@ -13,6 +20,14 @@ const Container = styled.div`
   p {
     padding-bottom: 0;
     line-height: 1.375;
+  }
+
+  ul {
+    padding-bottom: 0;
+  }
+
+  li {
+    margin-bottom: 0.25em;
   }
 
   @media (min-width: 30em) {
@@ -24,11 +39,22 @@ const Container = styled.div`
   }
 `;
 
-const TitleLink = styled.a`
-  display: block;
-  margin-bottom: 0.25rem;
-  font-size: 1.25em;
+const ContentsTitle = styled.p`
+  padding-bottom: 16px !important;
+  text-decoration: underline;
+`;
+
+const StyledLinkButton = styled(LinkButton)`
+  font-size: 16px;
+  font-weight: 400;
+  text-align: left;
+`;
+
+const Title = styled.h2`
+  display: inline;
   line-height: 1.125;
+  font-family: 'Source Sans Pro', 'Helvetica Neue', Helvetica, Roboto, Arial,
+    sans-serif;
 
   @media (min-width: 30em) {
     font-size: 1.375em;
@@ -55,18 +81,6 @@ const Item = styled.div`
   a,
   i {
     display: inline;
-  }
-`;
-
-const SubLink = styled.div`
-  font-size: 0.75em;
-  margin-top: 1rem;
-
-  strong {
-    display: inline-block;
-  }
-  a {
-    display: inline-block;
   }
 `;
 
@@ -112,18 +126,78 @@ function Data({ ...props }: Props) {
 
       <hr />
 
+      <ContentsTitle>
+        <strong>Contents</strong>
+      </ContentsTitle>
+      <ul>
+        <li>
+          <StyledLinkButton onClick={() => scrollToItem('attains')}>
+            Assessment, Total Maximum Daily Load Tracking and Implementation
+            System (ATTAINS)
+          </StyledLinkButton>
+        </li>
+        <li>
+          <StyledLinkButton onClick={() => scrollToItem('echo')}>
+            Enforcement and Compliance History Online (ECHO)
+          </StyledLinkButton>
+        </li>
+        <li>
+          <StyledLinkButton onClick={() => scrollToItem('grts')}>
+            Grants Reporting and Tracking System (GRTS)
+          </StyledLinkButton>
+        </li>
+        <li>
+          <StyledLinkButton onClick={() => scrollToItem('protected-areas')}>
+            Protected Areas
+          </StyledLinkButton>
+        </li>
+        <li>
+          <StyledLinkButton onClick={() => scrollToItem('sdwis')}>
+            Safe Drinking Water Information System (SDWIS)
+          </StyledLinkButton>
+        </li>
+        <li>
+          <StyledLinkButton onClick={() => scrollToItem('wqp')}>
+            Water Quality Portal (WQP)
+          </StyledLinkButton>
+        </li>
+        <li>
+          <StyledLinkButton onClick={() => scrollToItem('waters')}>
+            Watershed Assessment, Tracking &amp; Environmental Results System
+            (WATERS)
+          </StyledLinkButton>
+        </li>
+        <li>
+          <StyledLinkButton onClick={() => scrollToItem('wsio')}>
+            Watershed Index Online (WSIO)
+          </StyledLinkButton>
+        </li>
+        <li>
+          <StyledLinkButton onClick={() => scrollToItem('wild-scenic-rivers')}>
+            Wild and Scenic Rivers
+          </StyledLinkButton>
+        </li>
+      </ul>
+
+      <hr />
+
       <em>Links below open in a new browser tab.</em>
 
-      <Item>
+      <Item id="attains">
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <TitleLink
-          href="https://www.epa.gov/waterdata/attains"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <Title>
           Assessment, Total Maximum Daily Load Tracking and Implementation
           System (ATTAINS)
-        </TitleLink>
+        </Title>
+        <p>
+          <a
+            href="https://www.epa.gov/waterdata/attains"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            ATTAINS Data/System
+          </a>
+        </p>
         <p>
           ATTAINS contains information on water quality assessments, impaired
           waters, and total maximum daily loads (TMDLs), through data submitted
@@ -145,25 +219,30 @@ function Data({ ...props }: Props) {
           use?). It can also be found on the state page under the State Water
           Quality Overview and Advanced Search tabs.
         </p>
-        <SubLink>
-          <Question>Impairment Category Filtering Tool:</Question>{' '}
-          <TitleLink href="attains" target="_blank" rel="noopener noreferrer">
+        <br />
+        <Question>Impairment Category Filtering Tool:</Question>{' '}
+        <p>
+          <a href="attains" target="_blank" rel="noopener noreferrer">
             How ATTAINS data are grouped in How’s My Waterway
-          </TitleLink>
-        </SubLink>
+          </a>
+        </p>
+        <ScrollToTop />
       </Item>
 
       <hr />
 
-      <Item>
+      <Item id="echo">
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <TitleLink
-          href="https://echo.epa.gov/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Enforcement and Compliance History Online (ECHO)
-        </TitleLink>
+        <Title>Enforcement and Compliance History Online (ECHO)</Title>
+        <p>
+          <a
+            href="https://echo.epa.gov/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            ECHO Data/System
+          </a>
+        </p>
         <p>
           ECHO allows users to search for facilities in their community to
           assess their compliance with environmental regulations.
@@ -180,19 +259,23 @@ function Data({ ...props }: Props) {
           </GlossaryTerm>{' '}
           ).
         </p>
+        <ScrollToTop />
       </Item>
 
       <hr />
 
-      <Item>
+      <Item id="grts">
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <TitleLink
-          href="https://iaspub.epa.gov/apex/grts/f?p=grts:95"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Grants Reporting and Tracking System (GRTS)
-        </TitleLink>
+        <Title>Grants Reporting and Tracking System (GRTS)</Title>
+        <p>
+          <a
+            href="https://iaspub.epa.gov/apex/grts/f?p=grts:95"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            GRTS Data/System
+          </a>
+        </p>
         <p>
           GRTS is the primary tool for management and oversight of the EPA’s
           Nonpoint Source (NPS) Pollution Control Program. Under Clean Water Act
@@ -210,19 +293,23 @@ function Data({ ...props }: Props) {
           ), Protect, Watershed Health and Protection (Protection Projects). On
           the State page under Water Stories.{' '}
         </p>
+        <ScrollToTop />
       </Item>
 
       <hr />
 
-      <Item>
+      <Item id="protected-areas">
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <TitleLink
-          href="https://www.usgs.gov/core-science-systems/science-analytics-and-synthesis/gap/science/protected-areas"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Protected Areas
-        </TitleLink>
+        <Title>Protected Areas</Title>
+        <p>
+          <a
+            href="https://www.usgs.gov/core-science-systems/science-analytics-and-synthesis/gap/science/protected-areas"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Protected Areas Data/System
+          </a>
+        </p>
         <p>
           The Protected Areas Database (PAD-US) is America’s official national
           inventory of U.S. terrestrial and marine protected areas that are
@@ -239,19 +326,23 @@ function Data({ ...props }: Props) {
           the protect tab under Watershed Health and Protection, Protected
           Areas.
         </p>
+        <ScrollToTop />
       </Item>
 
       <hr />
 
-      <Item>
+      <Item id="sdwis">
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <TitleLink
-          href="https://www.epa.gov/ground-water-and-drinking-water/safe-drinking-water-information-system-sdwis-federal-reporting"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Safe Drinking Water Information System (SDWIS)
-        </TitleLink>
+        <Title>Safe Drinking Water Information System (SDWIS)</Title>
+        <p>
+          <a
+            href="https://www.epa.gov/ground-water-and-drinking-water/safe-drinking-water-information-system-sdwis-federal-reporting"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            SDWIS Data/System
+          </a>
+        </p>
         <p>
           The Safe Drinking Water Information System (SDWIS) contains
           information on public water systems, including monitoring,
@@ -267,19 +358,23 @@ function Data({ ...props }: Props) {
           under the Drinking Water topic (Drinking Water Information). On the
           National page under the National Drinking Water tab.
         </p>
+        <ScrollToTop />
       </Item>
 
       <hr />
 
-      <Item>
+      <Item id="wqp">
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <TitleLink
-          href="https://www.waterqualitydata.us/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Water Quality Portal (WQP)
-        </TitleLink>
+        <Title>Water Quality Portal (WQP)</Title>
+        <p>
+          <a
+            href="https://www.waterqualitydata.us/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            WQP Data/System
+          </a>
+        </p>
         <p>
           The Water Quality Portal (WQP) is a cooperative service sponsored by
           the United States Geological Survey (USGS), the Environmental
@@ -294,20 +389,26 @@ function Data({ ...props }: Props) {
           under the Overview tab (monitoring locations) and under the Monitoring
           tab after performing a search.
         </p>
+        <ScrollToTop />
       </Item>
 
       <hr />
 
-      <Item>
+      <Item id="waters">
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <TitleLink
-          href="https://www.epa.gov/waterdata/waters-watershed-assessment-tracking-environmental-results-system"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <Title>
           Watershed Assessment, Tracking &amp; Environmental Results System
           (WATERS)
-        </TitleLink>
+        </Title>
+        <p>
+          <a
+            href="https://www.epa.gov/waterdata/waters-watershed-assessment-tracking-environmental-results-system"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            WATERS Data/System
+          </a>
+        </p>
         <p>
           A suite of web services that provide comprehensive information about
           the quality of the nation's surface water.
@@ -318,19 +419,23 @@ function Data({ ...props }: Props) {
           Information from WATERS supports the display of Watershed boundaries
           on the map display.
         </p>
+        <ScrollToTop />
       </Item>
 
       <hr />
 
-      <Item>
+      <Item id="wsio">
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <TitleLink
-          href="https://www.epa.gov/wsio"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Watershed Index Online (WSIO)
-        </TitleLink>
+        <Title>Watershed Index Online (WSIO)</Title>
+        <p>
+          <a
+            href="https://www.epa.gov/wsio"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            WSIO Data/System
+          </a>
+        </p>
         <p>
           The Watershed Index Online (WSIO) is a free, publicly available data
           library of watershed indicators and a decision-support tool, developed
@@ -345,19 +450,23 @@ function Data({ ...props }: Props) {
           the protect tab under Watershed Health and Protection, Watershed
           Health Scores.
         </p>
+        <ScrollToTop />
       </Item>
 
       <hr />
 
-      <Item>
+      <Item id="wild-scenic-rivers">
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <TitleLink
-          href="https://www.rivers.gov/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Wild and Scenic Rivers
-        </TitleLink>
+        <Title>Wild and Scenic Rivers</Title>
+        <p>
+          <a
+            href="https://www.rivers.gov/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Wild and Scenic Rivers Data/System
+          </a>
+        </p>
         <p>
           Data and GIS files on wild and scenic rivers can be found on the{' '}
           <a
@@ -378,8 +487,34 @@ function Data({ ...props }: Props) {
           the protect tab under Watershed Health and Protection, Wild and Scenic
           Rivers.
         </p>
+        <ScrollToTop />
       </Item>
     </Container>
+  );
+}
+
+// --- styled components - ScrollToTop ---
+const ScrollToTopContainer = styled.div`
+  padding-top: 10px;
+  color: #0071bc;
+`;
+
+// --- components - ScrollToTop
+
+type ScrollToTopProps = {
+  id: string,
+};
+
+function ScrollToTop({ id }: Props) {
+  return (
+    <ScrollToTopContainer>
+      <div style={{ float: 'right' }}>
+        <i className="fas fa-arrow-up" aria-hidden="true"></i>
+        <StyledLinkButton onClick={() => scrollToItem('hmw-nav-bar')}>
+          Top of Page
+        </StyledLinkButton>
+      </div>
+    </ScrollToTopContainer>
   );
 }
 
