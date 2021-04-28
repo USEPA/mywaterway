@@ -22,6 +22,14 @@ const Container = styled.div`
     line-height: 1.375;
   }
 
+  ul {
+    padding-bottom: 0;
+  }
+
+  li {
+    margin-bottom: 0.25em;
+  }
+
   @media (min-width: 30em) {
     padding: 2rem;
 
@@ -41,6 +49,7 @@ const ContentsTitle = styled.h2`
 const StyledLinkButton = styled(LinkButton)`
   font-size: 16px;
   font-weight: 400;
+  text-align: left;
 `;
 
 const TitleLink = styled.a`
@@ -466,7 +475,7 @@ function Data({ ...props }: Props) {
 
 // --- styled components - ScrollToTop ---
 const ScrollToTopContainer = styled.div`
-  float: right;
+  padding-top: 10px;
   color: #0071bc;
 `;
 
@@ -479,10 +488,12 @@ type ScrollToTopProps = {
 function ScrollToTop({ id }: Props) {
   return (
     <ScrollToTopContainer>
-      <i className="fas fa-arrow-up"></i>
-      <StyledLinkButton onClick={() => scrollToItem('hmw-nav-bar')}>
-        Top of Page
-      </StyledLinkButton>
+      <div style={{ float: 'right' }}>
+        <i className="fas fa-arrow-up"></i>
+        <StyledLinkButton onClick={() => scrollToItem('hmw-nav-bar')}>
+          Top of Page
+        </StyledLinkButton>
+      </div>
     </ScrollToTopContainer>
   );
 }
