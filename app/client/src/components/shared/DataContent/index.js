@@ -223,6 +223,7 @@ function Data({ ...props }: Props) {
             How ATTAINS data are grouped in How’s My Waterway
           </TitleLink>
         </SubLink>
+        <ScrollToTop />
       </Item>
 
       <hr />
@@ -252,6 +253,7 @@ function Data({ ...props }: Props) {
           </GlossaryTerm>{' '}
           ).
         </p>
+        <ScrollToTop />
       </Item>
 
       <hr />
@@ -282,6 +284,7 @@ function Data({ ...props }: Props) {
           ), Protect, Watershed Health and Protection (Protection Projects). On
           the State page under Water Stories.{' '}
         </p>
+        <ScrollToTop />
       </Item>
 
       <hr />
@@ -311,6 +314,7 @@ function Data({ ...props }: Props) {
           the protect tab under Watershed Health and Protection, Protected
           Areas.
         </p>
+        <ScrollToTop />
       </Item>
 
       <hr />
@@ -339,6 +343,7 @@ function Data({ ...props }: Props) {
           under the Drinking Water topic (Drinking Water Information). On the
           National page under the National Drinking Water tab.
         </p>
+        <ScrollToTop />
       </Item>
 
       <hr />
@@ -366,6 +371,7 @@ function Data({ ...props }: Props) {
           under the Overview tab (monitoring locations) and under the Monitoring
           tab after performing a search.
         </p>
+        <ScrollToTop />
       </Item>
 
       <hr />
@@ -390,6 +396,7 @@ function Data({ ...props }: Props) {
           Information from WATERS supports the display of Watershed boundaries
           on the map display.
         </p>
+        <ScrollToTop />
       </Item>
 
       <hr />
@@ -417,6 +424,7 @@ function Data({ ...props }: Props) {
           the protect tab under Watershed Health and Protection, Watershed
           Health Scores.
         </p>
+        <ScrollToTop />
       </Item>
 
       <hr />
@@ -450,8 +458,32 @@ function Data({ ...props }: Props) {
           the protect tab under Watershed Health and Protection, Wild and Scenic
           Rivers.
         </p>
+        <ScrollToTop />
       </Item>
     </Container>
+  );
+}
+
+// --- styled components - ScrollToTop ---
+const ScrollToTopContainer = styled.div`
+  float: right;
+  color: #0071bc;
+`;
+
+// --- components - ScrollToTop
+
+type ScrollToTopProps = {
+  id: string,
+};
+
+function ScrollToTop({ id }: Props) {
+  return (
+    <ScrollToTopContainer>
+      <i className="fas fa-arrow-up"></i>
+      <StyledLinkButton onClick={() => scrollToItem('hmw-nav-bar')}>
+        Top of Page
+      </StyledLinkButton>
+    </ScrollToTopContainer>
   );
 }
 
