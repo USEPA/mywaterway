@@ -1108,6 +1108,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                 setAddress(newAddress); // preserve the user's search so it is displayed
                 setNoDataAvailable();
                 setErrorMessage(watersgeoError);
+                setMapLoading(false);
               });
           }
 
@@ -1155,6 +1156,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             .catch((err) => {
               console.error(err);
               setCountyBoundaries(null);
+              setMapLoading(false);
               setDrinkingWater({
                 data: [],
                 status: 'failure',
@@ -1173,6 +1175,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             setAddress(newAddress); // preserve the user's search so it is displayed
             setNoDataAvailable();
             setErrorMessage(geocodeError);
+            setMapLoading(false);
             return;
           }
 
