@@ -260,10 +260,12 @@ export default GlossaryPanel;
 // --- components ---
 type Props = {
   term: string,
+  className: string,
+  style: Object,
   children: Node,
 };
 
-function GlossaryTerm({ term, children }: Props) {
+function GlossaryTerm({ term, className, style, children }: Props) {
   const [status, setStatus] = React.useState('fetching');
 
   window.fetchGlossaryTerms.then((terms) => setStatus(terms.status));
@@ -277,6 +279,8 @@ function GlossaryTerm({ term, children }: Props) {
       data-disabled={status === 'fetching'}
       title="Click to define"
       tabIndex="0"
+      className={className}
+      style={style}
     >
       <TermIcon className={iconClassName} status={status} aria-hidden="true" />{' '}
       {children}
