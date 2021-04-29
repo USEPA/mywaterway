@@ -52,7 +52,7 @@ describe('Community Visual Regression Testing', () => {
     cy.get(mapId).matchSnapshot('dc-metals-impairment-categories');
   });
 
-  it.only('Verify shading of huc boundaries is turned off when wsio layer is on', () => {
+  it('Verify shading of huc boundaries is turned off when wsio layer is on', () => {
     cy.visit('/community/dc/protect');
 
     // wait for the web services to finish
