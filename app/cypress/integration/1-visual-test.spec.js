@@ -51,6 +51,39 @@ describe('Community Visual Regression Testing', () => {
     });
     cy.get(mapId).matchSnapshot('dc-metals-impairment-categories');
   });
+
+  it('Verify shading of huc boundaries is turned off when wsio layer is on', () => {
+    cy.visit('/community/dc/protect');
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    cy.get(mapId).matchSnapshot('verify-huc-boundary-shading');
+
+    // turn the wsio layer on
+    cy.get('input[aria-label="Watershed Health Scores"]').click({
+      force: true,
+    });
+
+    // this is needed as a workaround for the delay between the loading spinner
+    // disappearing and the waterbodies being drawn on the map
+    cy.wait(3000);
+
+    cy.get(mapId).matchSnapshot('verify-huc-boundary-wsio-no-shading');
+
+    // turn the wsio layer on
+    cy.get('input[aria-label="Watershed Health Scores"]').click({
+      force: true,
+    });
+
+    // this is needed as a workaround for the delay between the loading spinner
+    // disappearing and the waterbodies being drawn on the map
+    cy.wait(1000);
+
+    cy.get(mapId).matchSnapshot('verify-huc-boundary-shading');
+  });
 });
 
 describe('State Visual Regression Testing', () => {
