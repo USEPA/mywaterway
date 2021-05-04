@@ -286,21 +286,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           assessment.assessmentUnitIdentifier,
           allAssessmentUnits,
         );
-        console.warn('assessmentUnitName', assessmentUnitName);
-        console.warn(assessment.assessmentUnitIdentifier);
-        console.log(assessment);
-
-        if (assessment.assessmentUnitIdentifier === 'MD-02140205') {
-          console.log('>>>>>>>>>>>>>>>>>>>');
-          console.log(
-            getUseStatus(
-              'Fish and Shellfish Consumption',
-              stateCode,
-              assessment.useAttainments,
-            ),
-          );
-          console.log(assessment.useAttainments);
-        }
 
         const parameterList = [
           'algal_growth',
@@ -395,7 +380,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const handleOrphanedFeatures = React.useCallback(
     (res, attainsDomainsData) => {
-      console.log(res);
       const allAssessmentUnits = [];
       res.items.forEach((item) =>
         item.assessmentUnits.forEach((assessmentUnit) => {
@@ -421,15 +405,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       Promise.all(requests)
         .then((responses) => {
-          console.log('promise.all responses', responses);
           if (!responses || responses.length === 0) {
-            console.log('no response, error');
+            setOrphanFeatures({ features: [], status: 'error' });
+            return;
           }
 
           let orphans = [];
           responses.forEach((res) => {
             if (!res || !res.items || res.items.length === 0) {
-              console.log('error getting data');
+              setOrphanFeatures({ features: [], status: 'error' });
+              return;
             }
 
             const formatted = createUsefulOrphanFeature(
@@ -440,7 +425,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             orphans = orphans.concat(formatted);
           });
 
-          console.log('promise.all orphans', orphans);
           setOrphanFeatures({ features: orphans, status: 'success' });
         })
         .catch((err) => {
@@ -469,10 +453,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         ? getUniqueWaterbodies(allFeatures)
         : [];
 
-      console.log('allFeatures.length', allFeatures.length);
-      console.log('uniqueWaterbodies.length', uniqueWaterbodies.length);
-      console.log('assessmentUnitCount', assessmentUnitCount);
-
       if (uniqueWaterbodies.length === assessmentUnitCount) {
         setWaterbodyCountMismatch(false);
         return;
@@ -481,27 +461,17 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         if (waterbodyCountMismatch) return;
         if (assessmentUnitIDs.length === 0) return;
 
-        console.log('getAllFeatures().length', allFeatures.length);
-        console.log('uniqueWaterbodies.length', uniqueWaterbodies);
-        console.log('assessmentUnitCount', assessmentUnitCount);
-        console.log('assessmentUnitIDs', assessmentUnitIDs);
-
-        console.log('uniqueWaterbodies', uniqueWaterbodies);
         const gisIDs = uniqueWaterbodies.map(
           (feature) => feature.attributes.assessmentunitidentifier,
         );
-        console.log('gisIDs', gisIDs);
 
         const orphanIDs = assessmentUnitIDs.filter(
           (id) => !gisIDs.includes(id),
         );
-        console.log('orphanIDs', orphanIDs);
 
         if (orphanIDs.length === 0) return;
         setWaterbodyCountMismatch(true);
 
-        console.log('>>> mismatch encountered');
-        console.log('logging to GA');
         window.logToGa('send', 'exception', {
           exDescription: `huc12Summary service contained ${assessmentUnitCount} Assessment Unit IDs but the GIS service contained ${
             uniqueWaterbodies.length
@@ -519,7 +489,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         )
           .then((res) => {
             if (!res || res.length === 0) {
-              console.log('Error getting orphan data.');
+              setOrphanFeatures({ features: [], status: 'error' });
               return;
             }
 
@@ -531,10 +501,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
             fetchCheck(url)
               .then((res) => {
-                console.log('assessment service result', res);
-
                 if (!res || !res.items || res.items.length === 0) {
-                  console.log('Error getting orphan data.');
+                  setOrphanFeatures({ features: [], status: 'error' });
                   return;
                 }
 
@@ -715,7 +683,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       new QueryTask({ url: services.data.waterbodyService.lines })
         .execute(query)
         .then((res) => {
-          res.features.length = 0;
           setLinesData(res);
 
           const linesRenderer = {
@@ -1274,21 +1241,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         status: 'success',
         data: results,
       });
-
-      console.log(
-        'results.items[0].assessmentUnitCount',
-        results.items[0].assessmentUnitCount,
-      );
       setAssessmentUnitCount(results.items[0].assessmentUnitCount);
-
-      console.log('huc12summary:', results);
 
       const ids = results.items[0].assessmentUnits.map((item) => {
         return item.assessmentUnitId;
       });
 
       setAssessmentUnitIDs(ids);
-      console.log('assessment ids', ids);
 
       const filter = `assessmentunitidentifier in (${createQueryString(ids)})`;
 
