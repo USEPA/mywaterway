@@ -558,6 +558,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       this.setState({
         huc12: '',
         assessmentUnitCount: null,
+        assessmentUnitIDs: null,
         watershed: '',
         pointsData: null,
         linesData: null,
@@ -617,11 +618,12 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         {
           huc12: '',
           assessmentUnitCount: null,
+          assessmentUnitIDs: null,
           watershed: '',
           pointsData: [],
           linesData: [],
           areasData: [],
-          orphanFeatures: {features: [], status: 'fetching'},
+          orphanFeatures: { features: [], status: 'fetching' },
           waterbodyCountMismatch: null,
           countyBoundaries: '',
           monitoringLocations: {
