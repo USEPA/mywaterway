@@ -262,13 +262,17 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             (impairment) => impairment.value === parameterName,
           );
 
+          if (!relevantAttainsMapping || !relevantDomainMapping) {
+            return null;
+          }
+
           return (
             relevantAttainsMapping.parameterGroup ===
               relevantDomainMapping.context &&
             parameter.parameterStatusName === 'Cause' &&
             relevantAttainsMapping.value === parameterName
           );
-        }); 
+        });
         return hasCause ? 'Cause' : null;
       }
 
