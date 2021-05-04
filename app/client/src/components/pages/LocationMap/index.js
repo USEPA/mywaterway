@@ -50,6 +50,7 @@ import './mapStyles.css';
 import { getUniqueWaterbodies } from 'components/pages/LocationMap/MapFunctions';
 // data
 import { impairmentFields } from 'config/attainsToHmwMapping';
+import { parameterList } from 'config/attainsParameters';
 // errors
 import {
   geocodeError,
@@ -286,44 +287,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           assessment.assessmentUnitIdentifier,
           allAssessmentUnits,
         );
-
-        const parameterList = [
-          'algal_growth',
-          'ammonia',
-          'biotoxins',
-          'cause_unknown',
-          'cause_unknown_fish_kills',
-          'cause_unknown_impaired_biota',
-          'chlorine',
-          'dioxins',
-          'fish_consumption_advisory',
-          'flow_alterations',
-          'habitat_alterations',
-          'hydrologic_alteration',
-          'mercury',
-          'metals_other_than_mercury',
-          'noxious_aquatic_plants',
-          'nuisance_exotic_species',
-          'nuisance_native_species',
-          'nutrients',
-          'oil_and_grease',
-          'other_cause',
-          'oxygen_depletion',
-          'pathogens',
-          'pesticides',
-          'ph_acidity_caustic_conditions',
-          'polychlorinated_biphenyls_pcbs',
-          'radiation',
-          'sediment',
-          'solids_chlorides_sulfates',
-          'taste_color_and_odor',
-          'temperature',
-          'total_toxics',
-          'toxic_inorganics',
-          'toxic_organics',
-          'trash',
-          'turbidity',
-        ];
 
         function createParametersObject(parameterList) {
           const tempObject = {};
