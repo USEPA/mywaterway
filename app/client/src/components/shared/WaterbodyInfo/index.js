@@ -701,7 +701,12 @@ function WaterbodyInfo({
               <td>
                 <em>Monitoring Site ID:</em>
               </td>
-              <td>{attributes.MonitoringLocationIdentifier.split('-')[1]}</td>
+              <td>
+                {attributes.MonitoringLocationIdentifier.replace(
+                  `${attributes.OrganizationIdentifier}-`,
+                  '',
+                )}
+              </td>
             </tr>
             <tr>
               <td>
