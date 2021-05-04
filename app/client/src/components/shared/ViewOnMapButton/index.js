@@ -14,6 +14,10 @@ const Button = styled.button`
   &:focus {
     background-color: ${colors.navyBlue()};
   }
+  &:disabled {
+    opacity: 0.65;
+    cursor: default;
+  }
 `;
 
 // --- components ---
@@ -24,6 +28,7 @@ type Props = {
   layers: ?Array<Object>,
   customQuery: ?Function,
   onClick: ?Function,
+  disabled: boolean,
 };
 
 function ViewOnMapButton({
@@ -33,6 +38,7 @@ function ViewOnMapButton({
   layers,
   customQuery,
   onClick,
+  disabled = false,
 }: Props) {
   const {
     pointsLayer,
@@ -129,6 +135,7 @@ function ViewOnMapButton({
           getGeometry((feature) => viewClick(feature));
         }
       }}
+      disabled={disabled}
     >
       <i className="fas fa-map-marker-alt" aria-hidden="true" />
       &nbsp;&nbsp;View on Map

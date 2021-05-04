@@ -42,8 +42,9 @@ function useWaterbodyFeatures() {
     areasLayer,
     pointsData,
     pointsLayer,
-
     huc12,
+    waterbodyCountMismatch,
+    orphanFeatures,
   } = React.useContext(LocationSearchContext);
 
   const [features, setFeatures] = React.useState(null);
@@ -56,7 +57,16 @@ function useWaterbodyFeatures() {
     if (huc12 === '' && lastHuc12 !== '') setLastHuc12(huc12);
 
     // wait until waterbodies data is set in context
-    if (!linesData || !areasData || !pointsData) {
+    if (
+      !linesData ||
+      !areasData ||
+      !pointsData ||
+      waterbodyCountMismatch === null ||
+      (waterbodyCountMismatch === true &&
+        orphanFeatures &&
+        orphanFeatures.status !== 'error' &&
+        orphanFeatures.features.length === 0)
+    ) {
       if (features) setFeatures(null);
       return;
     }
@@ -64,7 +74,8 @@ function useWaterbodyFeatures() {
     if (
       linesLayer === 'error' ||
       areasLayer === 'error' ||
-      pointsLayer === 'error'
+      pointsLayer === 'error' ||
+      orphanFeatures.status === 'error'
     ) {
       if (!features || features.length !== 0) setFeatures([]);
       return;
@@ -84,6 +95,9 @@ function useWaterbodyFeatures() {
     if (pointsData.features && pointsData.features.length > 0) {
       featuresArray = featuresArray.concat(pointsData.features);
     }
+    if (orphanFeatures.status === 'success' && orphanFeatures.features.length > 0) {
+      featuresArray = featuresArray.concat(orphanFeatures.features);
+    }
     setFeatures(featuresArray);
   }, [
     linesData,
@@ -95,6 +109,8 @@ function useWaterbodyFeatures() {
     features,
     huc12,
     lastHuc12,
+    waterbodyCountMismatch,
+    orphanFeatures,
   ]);
 
   return features;
