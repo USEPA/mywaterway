@@ -6,13 +6,12 @@ import styled from 'styled-components';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
-import { StyledInfoBox } from 'components/shared/MessageBoxes';
+import { StyledInfoBox, StyledErrorBox } from 'components/shared/MessageBoxes';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import {
   AccordionList,
   AccordionItem,
 } from 'components/shared/Accordion/MapHighlight';
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // utilities
 import {
   createWaterbodySymbol,

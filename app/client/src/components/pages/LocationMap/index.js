@@ -15,6 +15,7 @@ import {
   createUniqueValueInfos,
   getPopupContent,
   getPopupTitle,
+  getUniqueWaterbodies,
 } from 'components/pages/LocationMap/MapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
 // styled components
@@ -46,8 +47,6 @@ import {
 } from 'utils/utils';
 // styles
 import './mapStyles.css';
-// utilities
-import { getUniqueWaterbodies } from 'components/pages/LocationMap/MapFunctions';
 // data
 import { impairmentFields } from 'config/attainsToHmwMapping';
 import { parameterList } from 'config/attainsParameters';
@@ -281,7 +280,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       const organizationName = res[0].organizationName;
       const cycleYear = res[0].reportingCycleText;
 
-      const formattedFeatures = res[0].assessments.map((assessment) => {
+      return res[0].assessments.map((assessment) => {
         const assessmentUnitName = matchAssessmentUnitName(
           assessment.assessmentUnitIdentifier,
           allAssessmentUnits,
@@ -340,7 +339,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           },
         };
       });
-      return formattedFeatures;
     },
     [stateNationalUses],
   );
