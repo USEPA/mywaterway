@@ -505,6 +505,8 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
             'Not enough information': categories.insufficentInfo,
             'Not Applicable': categories.otherObserved,
             Threatened: categories.ofConcern,
+            'Meeting threshold': categories.assessedGood,
+            'Not meeting threshold': categories.pollutants,
           };
 
           // allAssociatedActionIds will contain all parameters' associated action ids
