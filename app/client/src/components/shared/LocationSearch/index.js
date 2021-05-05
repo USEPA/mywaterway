@@ -480,6 +480,8 @@ function LocationSearch({ route, label }: Props) {
     setSuggestionsVisible(false);
     setCursor(-1);
 
+    newSearchTerm = newSearchTerm.replace(/[\n\r\t]/g, ' ');
+
     if (containsScriptTag(newSearchTerm)) {
       setErrorMessage(invalidSearchError);
       return;
