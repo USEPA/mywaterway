@@ -458,7 +458,7 @@ describe('HTTP Intercepts', () => {
     cy.visit('/community');
   });
 
-  it.only('Check that if GIS responds with empty features array we query and display data about the missing items.', () => {
+  it('Check that if GIS responds with empty features array we query and display data about the missing items.', () => {
     cy.intercept(
       'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/1/query',
       {
