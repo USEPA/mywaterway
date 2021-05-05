@@ -478,6 +478,6 @@ describe('HTTP Intercepts', () => {
 
     // Verify text explaining some waterbodies have no spatial data exists
     cy.findByText('Some waterbodies are not visible on the map.');
-    cy.findAllByText('No mapping data available.', { exact: false });
+    cy.findAllByText('[Waterbody not visible on map.]', { exact: false });
   });
 });

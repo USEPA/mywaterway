@@ -160,7 +160,7 @@ function WaterbodyList({
                   {graphic.limited && (
                     <>
                       <br />
-                      No mapping data available.
+                      [Waterbody not visible on map.]
                     </>
                   )}
                 </>
