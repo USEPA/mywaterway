@@ -458,7 +458,7 @@ describe('HTTP Intercepts', () => {
     cy.visit('/community');
   });
 
-  it('Check that if GIS responds with empty features array we query and display data about the missing items.', () => {
+  it.only('Check that if GIS responds with empty features array we query and display data about the missing items.', () => {
     cy.intercept(
       'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/1/query',
       {
@@ -478,6 +478,6 @@ describe('HTTP Intercepts', () => {
 
     // Verify text explaining some waterbodies have no spatial data exists
     cy.findByText('Some waterbodies are not visible on the map.');
-    cy.findAllByText('No mapping data available.', { exact: false });
+    cy.findAllByText('[Waterbody not visible on map.]', { exact: false });
   });
 });
