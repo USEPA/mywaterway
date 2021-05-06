@@ -6,6 +6,9 @@ describe('Community Visual Regression Testing', () => {
 
     // wait for the web services to finish
     cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'be.visible',
+    );
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
       'not.exist',
     );
 
@@ -20,6 +23,9 @@ describe('Community Visual Regression Testing', () => {
     cy.visit('/community/dc/identified-issues');
 
     // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'be.visible',
+    );
     cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
       'not.exist',
     );
@@ -57,8 +63,13 @@ describe('Community Visual Regression Testing', () => {
 
     // wait for the web services to finish
     cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'be.visible',
+    );
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
       'not.exist',
     );
+
+    cy.wait(3000);
 
     cy.get(mapId).matchSnapshot('verify-huc-boundary-shading');
 
@@ -100,7 +111,7 @@ describe('State Visual Regression Testing', () => {
     );
 
     // wait for animations to settle and check the assessed chart
-    cy.wait(1000);
+    cy.wait(2000);
     cy.get(assessedChartId).matchSnapshot(
       'verify-assessed-less-than-1-chart-display',
     );
