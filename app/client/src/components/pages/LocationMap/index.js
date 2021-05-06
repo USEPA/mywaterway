@@ -619,11 +619,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   ]);
 
   // popup template to be used for all waterbody sublayers
-  const popupTemplate = {
-    outFields: ['*'],
-    title: (feature) => getPopupTitle(feature.graphic.attributes),
-    content: (feature) => getPopupContent({ feature: feature.graphic }),
-  };
+  const popupTemplate = React.useMemo(() => {
+    return {
+      outFields: ['*'],
+      title: (feature) => getPopupTitle(feature.graphic.attributes),
+      content: (feature) => getPopupContent({ feature: feature.graphic }),
+    };
+  }, []);
 
   const handleMapServiceError = React.useCallback(
     (err) => {

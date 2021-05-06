@@ -156,6 +156,8 @@ function WaterSystemSummary({ state }: Props) {
             case 'TNCWS':
               tncwsCount = number_of_systems;
               break;
+            default:
+              break;
           }
         });
 
