@@ -194,10 +194,6 @@ function GlossaryPanel({ path }) {
     setGlossaryStatus,
   } = React.useContext(GlossaryContext);
 
-  function createGlossary(data) {
-    new Glossary(data);
-  }
-
   // initialize Glossary panel
   React.useEffect(() => {
     if (!window.fetchGlossaryTerms) return;
@@ -211,7 +207,11 @@ function GlossaryPanel({ path }) {
       // initialize the glossary
       window.fetchGlossaryTerms.then((terms) => {
         setGlossaryStatus(terms.status);
-        createGlossary(terms.data);
+        try {
+          new Glossary(terms.data);
+        } catch (err) {
+          console.error(err);
+        }
       });
     }
   });
