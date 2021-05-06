@@ -169,6 +169,15 @@ function Page({ children }: Props) {
   const [aboutDisplayed, setAboutDisplayed] = React.useState(false);
   React.useEffect(() => {
     function handleHistoryChange(ev) {
+      const origin = ev.target.origin;
+      if (
+        origin !== 'http://localhost:3000' &&
+        origin !== 'https://mywaterway-dev.app.cloud.gov' &&
+        origin !== 'https://mywaterway-stage.app.cloud.gov' &&
+        origin !== 'https://mywaterway.epa.gov'
+      ) {
+        return;
+      }
       if (window.location.pathname !== '/data') setDataDisplayed(false);
       if (window.location.pathname !== '/about') setAboutDisplayed(false);
     }
