@@ -1,5 +1,67 @@
 # Change Log
 
+## 2.0.5 (May 2021)
+
+### Added
+
+- Assessments missing from the GIS services are displayed in the Community tabs and accordion lists with all information except for spatial data.
+
+- Labels for screen readers on the Good/Polluted/Unknown icons to improve accessibility.
+
+- Renamed the Environmental Justice layer to Demographic Index.
+
+- Updated text and glossary links for the Demographic Index (formerly Environmental Justice) layer. 
+
+- Updated the canonical link so that it uses the current url for non-community search pages (i.e. homepage, community landing page, etc.), instead of being empty. 
+
+- The boundaries layer no longer has shading when the Watershed Health Index layer is turned on. 
+
+- Updated descriptions for each page so that search engines can display more accurate information.
+
+- Improved the usability of the data page by adding a table of contents that links to the corresponding item.
+
+- Added new entries to the data page (Watershed Index Online, Wild and Scenic Rivers, and Protected Areas).
+
+- Added an XML Sitemap and robots.txt file to the app.
+
+- Updated app dependencies.
+
+- Added automated visual testing.
+
+- Updated the watershed query and upstream watershed layer to pull from GISPUB instead of WATERSGEO.
+
+### Changed
+
+- Fixed issue with Glossary component while in full screen map mode where the map would get stuck in full screen and the page header would be shown.
+
+- Fixed multiple issues relating to IE11 support.
+
+- The Upstream Watershed is now correctly hidden in the map legend until the layer is displayed.
+
+- Fixed an issue with some monitoring locations only showing a small portion of the monitoring location id.
+
+- Fixed in issue with an infinite loading spinner when the gispub services are down.
+
+- Fixed an issue with the Waterbody Report and Plan Summary maps being to small to use with on smaller devices.
+
+- Fixed an issue with the Waterbody Report always saying 2018 in the more recent data suggestion box.
+
+- Fixed an issue with the Glossary component crashing. 
+
+- Fixed an issue with the switches on the Identified Issues tab not updating the map. Added a visual test for this particular issue.
+
+- Fixed an issue with regex syntax errors when using symbols in the community search box.
+
+- Fixed an issue with the GPRA service failing due to the state code not being passed in.
+
+- Resolved an "Incomplete or No Cache-control and Pragma HTTP Header Set" warning.
+
+- Fixed an issue where some waterbody reports would show a use as impaired but not list any causes.
+
+- Fixed an issue where using a tab character in the community search box would cause the app to jump back to the community home page when a user clicked on any other tab.
+
+- Fixed an issue with the legend not syncing correclty when navigating between the community home page and community details pages.
+
 ## 2.0.4 (February 2021)
 
 ### Added
