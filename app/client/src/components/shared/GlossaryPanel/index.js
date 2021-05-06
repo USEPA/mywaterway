@@ -207,7 +207,11 @@ function GlossaryPanel({ path }) {
       // initialize the glossary
       window.fetchGlossaryTerms.then((terms) => {
         setGlossaryStatus(terms.status);
-        new Glossary(terms.data);
+        try {
+          new Glossary(terms.data);
+        } catch (err) {
+          console.error(err);
+        }
       });
     }
   });
