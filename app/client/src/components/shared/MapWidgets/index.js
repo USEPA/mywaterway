@@ -135,29 +135,35 @@ function updateVisibleLayers(
     let layer = view.map.layers.items.find((layer) => layer.id === layerId);
     if (!layer) return;
 
-    // verify there is atleast one child layer visible before adding the layer
-    // to the legend
-    if (layer.layers) {
-      let anyVisible = false;
-      layer.layers.forEach((sublayer) => {
-        if (sublayer.visible) anyVisible = true;
-      });
-      if (!anyVisible) return;
-    }
-    if (layer.sublayers) {
-      let anyVisible = false;
-      layer.sublayers.forEach((sublayer) => {
-        if (sublayer.visible) anyVisible = true;
-      });
-      if (!anyVisible) return;
+    // Verify there is atleast one child layer visible before adding the layer
+    // to the legend. Ignoring the waterbodyLayer is a workaround to the waterbodyLayer
+    // not having any child layers when the layer is first created.
+    if (layerId !== 'waterbodyLayer') {
+      if (layer.layers) {
+        let anyVisible = false;
+        layer.layers.forEach((sublayer) => {
+          if (sublayer.visible) anyVisible = true;
+        });
+        if (!anyVisible) return;
+      }
+      if (layer.sublayers) {
+        let anyVisible = false;
+        layer.sublayers.forEach((sublayer) => {
+          if (sublayer.visible) anyVisible = true;
+        });
+        if (!anyVisible) return;
+      }
     }
 
     // add the layer if it is visible on the map. Boundaries and actions
     // waterbodies layers are handled separately here because it is always
     // hidden from the layer list widget, but still needs to be in the legend.
+    // The boundaries layer is entirely hidden from the community home page.
     if (
       (layer.visible && layer.listMode !== 'hide') ||
-      (layer.visible && layer.id === 'boundariesLayer') ||
+      (layer.visible &&
+        layer.id === 'boundariesLayer' &&
+        document.location.pathname !== '/community') ||
       (layer.visible && layer.id === 'actionsWaterbodies') ||
       (layer.visible && layer.id === 'upstreamWatershed')
     ) {
@@ -723,7 +729,7 @@ function MapWidgets({
 
     // hide/show layers based on the provided list of layers to show
     if (layers) {
-      layers.forEach((layer) => {
+      map.layers.forEach((layer) => {
         if (layerList.includes(layer.id)) {
           if (visibleLayers.hasOwnProperty(layer.id)) {
             layer.visible = visibleLayers[layer.id];
@@ -741,7 +747,7 @@ function MapWidgets({
         }
       });
     }
-  }, [layers, visibleLayers]);
+  }, [layers, visibleLayers, map]);
 
   // This code removes any layers that still have a listMode of hide.
   // This is a workaround for an ESRI bug. The operational items are
@@ -827,7 +833,13 @@ function MapWidgets({
   // watch for changes to upstream layer visibility and update visible layers accordingly
   React.useEffect(() => {
     updateVisibleLayers(view, hmwLegendNode, additionalLegendInfo);
-  }, [view, hmwLegendNode, upstreamLayerVisible, additionalLegendInfo]);
+  }, [
+    view,
+    hmwLegendNode,
+    upstreamLayerVisible,
+    additionalLegendInfo,
+    visibleLayers,
+  ]);
 
   // create upstream widget
   const [
