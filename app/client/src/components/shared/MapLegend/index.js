@@ -490,7 +490,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
 
     // maps the layer title to a text for a sentence
     const titleMap = {
-      'Less Than HS Education': {
+      'Less than High School Education': {
         label: 'Less than High School Education',
         glossary: (
           <GlossaryTerm term="Less than High School Education">
@@ -498,7 +498,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
           </GlossaryTerm>
         ),
       },
-      'Minority Population': {
+      'Percent People of Color': {
         label: 'Percent People of Color',
         glossary: (
           <GlossaryTerm term="Percent People of Color">
@@ -506,7 +506,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
           </GlossaryTerm>
         ),
       },
-      'Linguistically Isolated': {
+      'Linguistic Isolation': {
         label: 'Linguistic Isolation',
         glossary: (
           <GlossaryTerm term="Linguistic Isolation">
@@ -514,7 +514,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
           </GlossaryTerm>
         ),
       },
-      'Low Income': {
+      'Percent Low-Income': {
         label: 'Percent Low-Income',
         glossary: (
           <GlossaryTerm term="Percent Low-Income">
@@ -522,7 +522,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
           </GlossaryTerm>
         ),
       },
-      'Over Age 64': {
+      'Individuals over age 64': {
         label: 'Individuals over age 64',
         glossary: (
           <GlossaryTerm term="Individuals over age 64">
@@ -530,7 +530,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
           </GlossaryTerm>
         ),
       },
-      'Under Age 5': {
+      'Individuals under age 5': {
         label: 'Individuals under age 5',
         glossary: (
           <GlossaryTerm term="Individuals under age 5">

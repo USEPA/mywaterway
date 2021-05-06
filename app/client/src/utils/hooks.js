@@ -95,7 +95,10 @@ function useWaterbodyFeatures() {
     if (pointsData.features && pointsData.features.length > 0) {
       featuresArray = featuresArray.concat(pointsData.features);
     }
-    if (orphanFeatures.status === 'success' && orphanFeatures.features.length > 0) {
+    if (
+      orphanFeatures.status === 'success' &&
+      orphanFeatures.features.length > 0
+    ) {
       featuresArray = featuresArray.concat(orphanFeatures.features);
     }
     setFeatures(featuresArray);
@@ -1072,7 +1075,7 @@ function useSharedLayers() {
     const ejUnderAge5 = new FeatureLayer({
       id: 1,
       url: `${services.data.ejscreen}1`,
-      title: 'Under Age 5',
+      title: 'Individuals under age 5',
       outFields: ejOutFields,
       visible: false,
       popupTemplate: ejscreenPopupTemplate,
@@ -1081,7 +1084,7 @@ function useSharedLayers() {
     const ejOverAge64 = new FeatureLayer({
       id: 2,
       url: `${services.data.ejscreen}2`,
-      title: 'Over Age 64',
+      title: 'Individuals over age 64',
       outFields: ejOutFields,
       visible: false,
       popupTemplate: ejscreenPopupTemplate,
@@ -1090,7 +1093,7 @@ function useSharedLayers() {
     const ejLowIncome = new FeatureLayer({
       id: 3,
       url: `${services.data.ejscreen}3`,
-      title: 'Low Income',
+      title: 'Percent Low-Income',
       outFields: ejOutFields,
       visible: false,
       popupTemplate: ejscreenPopupTemplate,
@@ -1099,7 +1102,7 @@ function useSharedLayers() {
     const ejLinguistIsolated = new FeatureLayer({
       id: 4,
       url: `${services.data.ejscreen}4`,
-      title: 'Linguistically Isolated',
+      title: 'Linguistic Isolation',
       outFields: ejOutFields,
       visible: false,
       popupTemplate: ejscreenPopupTemplate,
@@ -1108,7 +1111,7 @@ function useSharedLayers() {
     const ejMinority = new FeatureLayer({
       id: 5,
       url: `${services.data.ejscreen}5`,
-      title: 'Minority Population',
+      title: 'Percent People of Color',
       outFields: ejOutFields,
       visible: false,
       popupTemplate: ejscreenPopupTemplate,
@@ -1117,7 +1120,7 @@ function useSharedLayers() {
     const ejLessThanHS = new FeatureLayer({
       id: 6,
       url: `${services.data.ejscreen}6`,
-      title: 'Less Than HS Education',
+      title: 'Less than High School Education',
       outFields: ejOutFields,
       visible: false,
       popupTemplate: ejscreenPopupTemplate,
