@@ -505,7 +505,7 @@ type ScrollToTopProps = {
   id: string,
 };
 
-function ScrollToTop({ id }: Props) {
+function ScrollToTop({ id }: ScrollToTopProps) {
   return (
     <ScrollToTopContainer>
       <div style={{ float: 'right' }}>
