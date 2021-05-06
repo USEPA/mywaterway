@@ -77,7 +77,15 @@ function MapLegend({ view, visibleLayers, additionalLegendInfo }: Props) {
   );
 
   // no legend data
-  if (filteredVisibleLayers.length === 0) return <></>;
+  if (filteredVisibleLayers.length === 0) {
+    return (
+      <Container>
+        <LegendContainer>
+          <UL>There are currently no items to display</UL>
+        </LegendContainer>
+      </Container>
+    );
+  }
 
   return (
     <Container>
