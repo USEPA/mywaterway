@@ -67,6 +67,7 @@ function Overview() {
     watershed,
     visibleLayers,
     setVisibleLayers,
+    assessmentUnitCount,
   } = React.useContext(LocationSearchContext);
 
   const {
@@ -244,12 +245,14 @@ function Overview() {
               <StyledNumber>
                 {cipSummary.status === 'failure'
                   ? 'N/A'
-                  : waterbodyCount.toLocaleString()}
+                  : assessmentUnitCount.toLocaleString()}
               </StyledNumber>
               <StyledLabel>Waterbodies</StyledLabel>
               <SwitchContainer>
                 <Switch
-                  checked={Boolean(waterbodyCount) && waterbodiesFilterEnabled}
+                  checked={
+                    Boolean(waterbodyCount) && waterbodiesFilterEnabled
+                  }
                   onChange={(checked) => {
                     setWaterbodiesFilterEnabled(!waterbodiesFilterEnabled);
 

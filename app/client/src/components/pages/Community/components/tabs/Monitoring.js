@@ -515,7 +515,10 @@ function Monitoring() {
                           Organization ID: {prop['OrganizationIdentifier']}
                           <br />
                           Monitoring Site ID:{' '}
-                          {prop['MonitoringLocationIdentifier'].split('-')[1]}
+                          {prop['MonitoringLocationIdentifier'].replace(
+                            `${prop['OrganizationIdentifier']}-`,
+                            '',
+                          )}
                           <br />
                           Monitoring Measurements:{' '}
                           {Number(prop['resultCount']).toLocaleString()}

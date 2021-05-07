@@ -701,7 +701,12 @@ function WaterbodyInfo({
               <td>
                 <em>Monitoring Site ID:</em>
               </td>
-              <td>{attributes.MonitoringLocationIdentifier.split('-')[1]}</td>
+              <td>
+                {attributes.MonitoringLocationIdentifier.replace(
+                  `${attributes.OrganizationIdentifier}-`,
+                  '',
+                )}
+              </td>
             </tr>
             <tr>
               <td>
@@ -1090,7 +1095,7 @@ function WaterbodyInfo({
   if (type === 'Alaska Native Village') return alaskaNativeVillageContent;
   if (type === 'Change Location') return changeLocationContent;
   if (type === 'Protected Areas') return protectedAreaContent;
-  if (type === 'Environmental Justice') return ejscreenContent;
+  if (type === 'Demographic Indicators') return ejscreenContent;
 
   return null;
 }

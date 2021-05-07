@@ -153,11 +153,6 @@ const ViewButtonContainer = styled.div`
   margin-left: 0.5em;
 `;
 
-const InfoBoxWithMargin = styled(StyledInfoBox)`
-  margin: 1em;
-  text-align: center;
-`;
-
 // --- components ---
 function Protect() {
   const services = useServicesContext();
