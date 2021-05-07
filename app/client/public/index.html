@@ -5,16 +5,13 @@
   <meta charset="utf-8" />
   <meta http-equiv="ImageToolbar" content="false" />
   <meta http-equiv="cleartype" content="on" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="HandheldFriendly" content="true" />
   <link rel="shortcut icon" href="https://www.epa.gov/sites/all/themes/epa/favicon.ico"
     type="image/vnd.microsoft.icon" />
   <meta name="MobileOptimized" content="width" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
   <!--googleon: all-->
-  <meta name="DC.description"
-    content="An application for learning the condition of local streams, lakes and other waters anywhere in the US... quickly and in plain language." />
-  <meta name="description"
-    content="An application for learning the condition of local streams, lakes and other waters anywhere in the US... quickly and in plain language." />
   <meta name="DC.title" content="How's My Waterway?" />
   <!--googleoff: snippet-->
   <meta name="keywords"
@@ -83,10 +80,36 @@
       attains: "How's My Waterway - ATTAINS"
     };
 
-    // update page title using mapping
+    const descriptionMapping = {
+      default: "An application for learning the condition of local streams, lakes and other waters anywhere in the US... quickly and in plain language.",
+      community: "Enter a location to learn about water quality in your community. Explore information about local stream conditions, watershed protection, restoration, drinking water and whether your waterways are suitable for swimming or eating fish and aquatic life.",
+      state: "Choose a state or territory to get a comprehensive picture of water quality statewide. Search for water conditions throughout your state with the advanced search tool.",
+      national: "Explore information about overall water quality in the United State and the basics of EPA’s drinking water program.",
+      'waterbody-report': "Use the waterbody report page to find information on individual waterbodies including uses, probable sources of impairments and plans to restore water quality. ",
+      'plan-summary': "The restoration plan summary page includes basic plan information, submitted documents, impairments addressed, and waters covered. ",
+    };
+
+    // update page title and description using mapping
     function setPageTitle(pathnameMapping) {
       const pageTitle = window.location.pathname.split('/')[1];
       document.title = pathnameMapping[pageTitle] || pathnameMapping.default;
+
+      // remove old description tags if necessary
+      let oldDescTag = document.querySelector("[name='description']");
+      if(oldDescTag) oldDescTag.remove();
+      let oldDcDescTag = document.querySelector("[name='DC.description']");
+      if(oldDcDescTag) oldDcDescTag.remove();
+
+      // create description tags
+      const descTag = document.createElement('meta');
+      descTag.setAttribute('name', 'description');
+      descTag.content = descriptionMapping[pageTitle] || descriptionMapping.default;
+      document.getElementsByTagName('head')[0].appendChild(descTag);
+
+      const dcDescTag = document.createElement('meta');
+      dcDescTag.setAttribute('name', 'DC.description');
+      dcDescTag.content = descriptionMapping[pageTitle] || descriptionMapping.default;
+      document.getElementsByTagName('head')[0].appendChild(dcDescTag);
     }
 
     setPageTitle(pathnameMapping); // set page title when page loads

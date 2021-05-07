@@ -1080,7 +1080,7 @@ function WaterQualityOverview({ ...props }: Props) {
 
                   <h4>EPA has defined three types of public water systems:</h4>
 
-                  {tab.id === 'drinking' && (
+                  {tab.id === 'drinking' && activeState.code && (
                     <WaterSystemSummary state={activeState} />
                   )}
 

@@ -4,6 +4,8 @@ import React from 'react';
 import styled from 'styled-components';
 // components
 import type { RouteProps } from 'routes.js';
+// contexts
+import { LocationSearchContext } from 'contexts/locationSearch';
 // styles
 import { fonts } from 'styles/index.js';
 // images
@@ -62,6 +64,14 @@ type Props = {
 
 // --- components ---
 function CommunityIntro({ ...props }: Props) {
+  const { setVisibleLayers } = React.useContext(LocationSearchContext);
+
+  // clear the community page layers when a user navigates to
+  // the community intro page
+  React.useEffect(() => {
+    setVisibleLayers({});
+  }, [setVisibleLayers]);
+
   return (
     <Container>
       <Text>

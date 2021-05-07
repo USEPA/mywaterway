@@ -130,7 +130,7 @@ function updateCanonicalLink(huc12) {
 
 function resetCanonicalLink() {
   const canonicalLink = document.querySelector('[rel="canonical"]');
-  if (canonicalLink) canonicalLink.href = '';
+  if (canonicalLink) canonicalLink.href = window.location.href;
 }
 
 function removeJsonLD() {
@@ -275,9 +275,15 @@ function convertDomainCode(fields, name, value) {
   return value;
 }
 
+// Escapes special characters for usage with regex
+function escapeRegex(str) {
+  return str.replace(/([.*+?^=!:${}()|\]\\])/g, '\\$1');
+}
+
 export {
   chunkArray,
   containsScriptTag,
+  escapeRegex,
   formatNumber,
   getExtensionFromPath,
   isHuc12,

@@ -609,7 +609,7 @@ export function getPopupContent({
 
   // EJSCREEN
   else if (attributes.T_OVR64PCT) {
-    type = 'Environmental Justice';
+    type = 'Demographic Indicators';
   }
 
   const content = (
@@ -638,6 +638,8 @@ export function getUniqueWaterbodies(waterbodies: Array<Object>) {
 
   const flags = {};
   return waterbodies.filter((waterbody) => {
+    if (!waterbody?.attributes) return false;
+
     const orgid = waterbody.attributes.organizationidentifier;
     const auid = waterbody.attributes.assessmentunitidentifier;
     const key = `${orgid}${auid}`;

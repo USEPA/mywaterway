@@ -6,12 +6,12 @@ import styled from 'styled-components';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
+import { StyledInfoBox, StyledErrorBox } from 'components/shared/MessageBoxes';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import {
   AccordionList,
   AccordionItem,
 } from 'components/shared/Accordion/MapHighlight';
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // utilities
 import {
   createWaterbodySymbol,
@@ -49,6 +49,11 @@ const WaterbodyContent = styled.div`
   button {
     margin-bottom: 0;
   }
+`;
+
+const InfoBoxWithMargin = styled(StyledInfoBox)`
+  margin: 1em;
+  text-align: center;
 `;
 
 // --- components ---
@@ -96,6 +101,12 @@ function WaterbodyList({
 
   return (
     <>
+      {/* check if any waterbodies have no spatial data */}
+      {sortedWaterbodies.some((waterbody) => waterbody.limited) && (
+        <InfoBoxWithMargin>
+          <p>Some waterbodies are not visible on the map.</p>
+        </InfoBoxWithMargin>
+      )}
       <Text>Waterbody Conditions:</Text>
       <Legend>
         <span>
@@ -125,7 +136,14 @@ function WaterbodyList({
                 feature={graphic}
                 fieldName={fieldName}
               />
-              <ViewOnMapButton feature={graphic} fieldName={fieldName} />
+              <ViewOnMapButton
+                feature={graphic}
+                fieldName={fieldName}
+                disabled={graphic.limited ? true : false}
+              />
+              {graphic.limited && (
+                <p>No map data available for this waterbody.</p>
+              )}
             </WaterbodyContent>
           );
 
@@ -133,9 +151,20 @@ function WaterbodyList({
             <AccordionItem
               key={index}
               title={<strong>{graphic.attributes.assessmentunitname}</strong>}
-              subTitle={`${getOrganizationLabel(graphic.attributes)} ${
-                graphic.attributes.assessmentunitidentifier
-              }`}
+              subTitle={
+                <>
+                  {`${getOrganizationLabel(graphic.attributes)} ${
+                    graphic.attributes.assessmentunitidentifier
+                  }`}
+
+                  {graphic.limited && (
+                    <>
+                      <br />
+                      [Waterbody not visible on map.]
+                    </>
+                  )}
+                </>
+              }
               icon={<WaterbodyIcon condition={condition} selected={false} />}
               mapIcon={icon}
               feature={graphic}
