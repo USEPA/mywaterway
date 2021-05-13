@@ -311,7 +311,7 @@ function SiteSpecific({
                 problems for the subset of those waters that were assessed.
               </Text>
 
-              <HighchartsContainer>
+              <HighchartsContainer id="hmw-site-specific-chart">
                 <HighchartsReact
                   highcharts={Highcharts}
                   options={{

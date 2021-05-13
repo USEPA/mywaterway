@@ -317,6 +317,11 @@ function IdentifiedIssues() {
   React.useEffect(() => {
     if (!window.gaTarget || cipSummary.status !== 'success') return;
 
+    if (!cipSummary.data?.items?.length > 0) {
+      setNullPollutedWaterbodies(true);
+      return;
+    }
+
     const {
       assessedCatchmentAreaSqMi,
       containImpairedWatersCatchmentAreaPercent,
@@ -448,8 +453,7 @@ function IdentifiedIssues() {
 
   const toggleSwitch = (checkedSwitch: SwitchNames) => {
     // create a temporary object with the previous state
-    // const tempParameterToggleObject = { ...parameterToggleObject };
-    const tempParameterToggleObject = parameterToggleObject;
+    const tempParameterToggleObject = { ...parameterToggleObject };
 
     // set all paramters to On and show the issuesLayer
     const toggleOn = () => {
@@ -650,7 +654,8 @@ function IdentifiedIssues() {
             <TabPanels>
               <TabPanel>
                 {cipSummary.status === 'fetching' && <LoadingSpinner />}
-                {cipSummary.status === 'failure' && (
+                {(cipSummary.status === 'failure' ||
+                  !cipSummary.data?.items) && (
                   <StyledErrorBox>
                     <p>{huc12SummaryError}</p>
                   </StyledErrorBox>
@@ -771,6 +776,9 @@ function IdentifiedIssues() {
                                             <FlexDiv>
                                               <TableSwitch>
                                                 <Switch
+                                                  ariaLabel={
+                                                    mappedParameterName
+                                                  }
                                                   checked={
                                                     parameterToggleObject[
                                                       mappedParameterName

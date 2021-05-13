@@ -12,7 +12,12 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
 import { useKeyPress } from 'utils/hooks';
-import { containsScriptTag, isHuc12, splitSuggestedSearch } from 'utils/utils';
+import {
+  containsScriptTag,
+  escapeRegex,
+  isHuc12,
+  splitSuggestedSearch,
+} from 'utils/utils';
 // styles
 import { colors } from 'styles/index.js';
 // errors
@@ -475,6 +480,8 @@ function LocationSearch({ route, label }: Props) {
     setSuggestionsVisible(false);
     setCursor(-1);
 
+    newSearchTerm = newSearchTerm.replace(/[\n\r\t]/g, ' ');
+
     if (containsScriptTag(newSearchTerm)) {
       setErrorMessage(invalidSearchError);
       return;
@@ -556,7 +563,7 @@ function LocationSearch({ route, label }: Props) {
                 }}
               >
                 {result.text
-                  .split(new RegExp(`(${inputText})`, 'gi'))
+                  .split(new RegExp(`(${escapeRegex(inputText)})`, 'gi'))
                   .map((part, textIndex) => {
                     if (part.toLowerCase() === inputText.toLowerCase()) {
                       return (
