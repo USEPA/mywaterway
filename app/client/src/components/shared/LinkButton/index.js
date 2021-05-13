@@ -4,19 +4,18 @@ import styled from 'styled-components';
 
 const LinkButton = styled.button`
   display: inline;
-  margin-bottom: 0;
-  margin-left: 0.25rem;
+  margin: 0;
   padding: 0;
   border: none;
   font-size: 87.5%;
-  text-decoration: underline;
+  text-decoration: none;
   color: #0071bc;
   background-color: transparent;
   cursor: pointer;
 
   &:hover,
   &:focus {
-    text-decoration: none;
+    text-decoration: underline;
     color: #4c2c92;
   }
 `;

@@ -169,6 +169,9 @@ function Page({ children }: Props) {
   const [aboutDisplayed, setAboutDisplayed] = React.useState(false);
   React.useEffect(() => {
     function handleHistoryChange(ev) {
+      if (ev.target.origin !== window.location.origin) {
+        return;
+      }
       if (window.location.pathname !== '/data') setDataDisplayed(false);
       if (window.location.pathname !== '/about') setAboutDisplayed(false);
     }

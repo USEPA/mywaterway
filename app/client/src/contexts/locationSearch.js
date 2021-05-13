@@ -17,6 +17,8 @@ type State = {
   searchText: string,
   lastSearchText: string,
   huc12: string,
+  assessmentUnitCount: ?number,
+  assessmentUnitIDs: Array<string>,
   watershed: string,
   address: string,
   assessmentUnitId: string,
@@ -53,6 +55,8 @@ type State = {
   linesData: Array<Object>,
   areasData: Array<Object>,
   pointsData: Array<Object>,
+  orphanFeatures: Array<Object>,
+  waterbodyCountMismatch: boolean,
   esriHelper: Object,
   pointsLayer: Object,
   linesLayer: Object,
@@ -92,6 +96,8 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     searchText: '',
     lastSearchText: '',
     huc12: '',
+    assessmentUnitCount: null,
+    assessmentUnitIDs: [],
     watershed: '',
     address: '',
     fishingInfo: { status: 'fetching', data: [] },
@@ -156,6 +162,8 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     linesData: null,
     areasData: null,
     pointsData: null,
+    orphanFeatures: { features: [], status: 'fetching' },
+    waterbodyCountMismatch: null,
     esriHelper: new EsriHelper(),
     FIPS: {
       stateCode: '',
@@ -221,6 +229,12 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     },
     setHuc12: (huc12) => {
       this.setState({ huc12 });
+    },
+    setAssessmentUnitCount: (assessmentUnitCount) => {
+      this.setState({ assessmentUnitCount });
+    },
+    setAssessmentUnitIDs: (assessmentUnitIDs) => {
+      this.setState({ assessmentUnitIDs });
     },
     setWatershed: (watershed) => {
       this.setState({ watershed });
@@ -353,6 +367,12 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     },
     setLinesData: (linesData) => {
       this.setState({ linesData });
+    },
+    setOrphanFeatures: (orphanFeatures) => {
+      this.setState({ orphanFeatures });
+    },
+    setWaterbodyCountMismatch: (waterbodyCountMismatch) => {
+      this.setState({ waterbodyCountMismatch });
     },
     setAreasData: (areasData) => {
       this.setState({ areasData });
@@ -537,10 +557,14 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     resetData: () => {
       this.setState({
         huc12: '',
+        assessmentUnitCount: null,
+        assessmentUnitIDs: null,
         watershed: '',
         pointsData: null,
         linesData: null,
         areasData: null,
+        orphanFeatures: { features: [], status: 'fetching' },
+        waterbodyCountMismatch: null,
         countyBoundaries: '',
         atHucBoundaries: false,
         hucBoundaries: '',
@@ -593,10 +617,14 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       this.setState(
         {
           huc12: '',
+          assessmentUnitCount: null,
+          assessmentUnitIDs: null,
           watershed: '',
           pointsData: [],
           linesData: [],
           areasData: [],
+          orphanFeatures: { features: [], status: 'fetching' },
+          waterbodyCountMismatch: null,
           countyBoundaries: '',
           monitoringLocations: {
             status: 'success',
