@@ -15,6 +15,7 @@ import {
   createUniqueValueInfos,
   getPopupContent,
   getPopupTitle,
+  getUniqueWaterbodies,
 } from 'components/pages/LocationMap/MapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
 // styled components
@@ -22,7 +23,10 @@ import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // contexts
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useServicesContext } from 'contexts/LookupFiles';
+import {
+  useServicesContext,
+  useStateNationalUsesContext,
+} from 'contexts/LookupFiles';
 // config
 import { esriApiUrl } from 'config/esriConfig';
 // helpers
@@ -43,6 +47,9 @@ import {
 } from 'utils/utils';
 // styles
 import './mapStyles.css';
+// data
+import { impairmentFields } from 'config/attainsToHmwMapping';
+import { parameterList } from 'config/attainsParameters';
 // errors
 import {
   geocodeError,
@@ -104,8 +111,18 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     countyBoundaries,
     statesData,
     homeWidget,
+    huc12,
     setHuc12,
+    assessmentUnitCount,
+    setAssessmentUnitCount,
+    assessmentUnitIDs,
+    setAssessmentUnitIDs,
+    orphanFeatures,
+    setOrphanFeatures,
     hucBoundaries,
+    areasData,
+    linesData,
+    pointsData,
     setAreasData,
     setLinesData,
     setPointsData,
@@ -151,9 +168,338 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setWsioHealthIndexData,
     setWildScenicRiversData,
     setProtectedAreasData,
+    getAllFeatures,
+    waterbodyCountMismatch,
+    setWaterbodyCountMismatch,
   } = React.useContext(LocationSearchContext);
 
+  const stateNationalUses = useStateNationalUsesContext();
+
   const [view, setView] = React.useState(null);
+
+  const createUsefulOrphanFeature = React.useCallback(
+    (res, allAssessmentUnits, attainsDomainsData) => {
+      // function that checks if any uses in an array of uses have a status that matches the 2nd paremeter
+      function checkStatus(uses, status) {
+        return uses.some((e) => e.status === status);
+      }
+
+      function getUseStatus(category, stateCode, useAttainments) {
+        if (stateNationalUses.status !== 'success') return null;
+        if (!stateCode) return null;
+
+        if (!useAttainments || useAttainments.length === 0) return null;
+
+        const relatedUses = [];
+        useAttainments.forEach((useAttainment) => {
+          const foundUse = stateNationalUses.data.find(
+            (use) =>
+              category === use.category &&
+              stateCode === use.state &&
+              useAttainment.useName === use.name,
+          );
+          if (!foundUse) return null;
+
+          foundUse.status = useAttainment.useAttainmentCodeName;
+          if (foundUse) relatedUses.push(foundUse);
+        });
+
+        if (relatedUses.length === 0) return null;
+
+        if (
+          checkStatus(relatedUses, 'Not Supporting') ||
+          checkStatus(relatedUses, 'Cause')
+        )
+          return 'Not Supporting';
+
+        if (
+          checkStatus(relatedUses, 'Fully Supporting') ||
+          checkStatus(relatedUses, 'Meeting Criteria')
+        )
+          return 'Fully Supporting';
+
+        return 'Insufficient Information';
+      }
+
+      function matchStateCodeToAssessment(
+        assessmentUnitIdentifier,
+        allAssessmentUnits,
+      ) {
+        const matchedAssessment = allAssessmentUnits.find(
+          (assessment) =>
+            assessment.assessmentUnitIdentifier === assessmentUnitIdentifier,
+        );
+        if (!matchedAssessment) return null;
+        if (matchedAssessment?.stateCode) return matchedAssessment.stateCode;
+      }
+
+      function matchAssessmentUnitName(
+        assessmentUnitIdentifier,
+        allAssessmentUnits,
+      ) {
+        const matchedAssessment = allAssessmentUnits.find(
+          (unit) => unit.assessmentUnitIdentifier === assessmentUnitIdentifier,
+        );
+
+        if (!matchedAssessment) return null;
+        if (matchedAssessment?.assessmentUnitName)
+          return matchedAssessment.assessmentUnitName;
+      }
+
+      function checkParameterStatus(
+        parameterName,
+        parameters,
+        impairmentFields,
+        attainsDomainsData,
+      ) {
+        const hasCause = parameters.some((parameter) => {
+          const relevantDomainMapping = attainsDomainsData.find(
+            (domain) => domain.name === parameter.parameterName,
+          );
+
+          const relevantAttainsMapping = impairmentFields.find(
+            (impairment) => impairment.value === parameterName,
+          );
+
+          if (!relevantAttainsMapping || !relevantDomainMapping) {
+            return null;
+          }
+
+          return (
+            relevantAttainsMapping.parameterGroup ===
+              relevantDomainMapping.context &&
+            parameter.parameterStatusName === 'Cause' &&
+            relevantAttainsMapping.value === parameterName
+          );
+        });
+        return hasCause ? 'Cause' : null;
+      }
+
+      const orgId = res[0].organizationIdentifier;
+      const orgType = res[0].organizationTypeText;
+      const organizationName = res[0].organizationName;
+      const cycleYear = res[0].reportingCycleText;
+
+      return res[0].assessments.map((assessment) => {
+        const assessmentUnitName = matchAssessmentUnitName(
+          assessment.assessmentUnitIdentifier,
+          allAssessmentUnits,
+        );
+
+        const stateCode = matchStateCodeToAssessment(
+          assessment.assessmentUnitIdentifier,
+          allAssessmentUnits,
+        );
+
+        function createParametersObject(parameterList) {
+          const tempObject = {};
+          parameterList.forEach((parameter) => {
+            tempObject[parameter] = checkParameterStatus(
+              parameter,
+              assessment.parameters,
+              impairmentFields,
+              attainsDomainsData,
+            );
+          });
+          return tempObject;
+        }
+        const parametersObject = createParametersObject(parameterList);
+
+        return {
+          limited: true,
+          attributes: {
+            organizationid: orgId,
+            assessmentunitidentifier: assessment.assessmentUnitIdentifier,
+            reportingcycle: cycleYear,
+            assessmentunitname: assessmentUnitName,
+            overallstatus: assessment.overallStatus,
+            orgtype: orgType,
+            organizationname: organizationName,
+            drinkingwater_use: getUseStatus(
+              'Drinking Water',
+              stateCode,
+              assessment.useAttainments,
+            ),
+            fishconsumption_use: getUseStatus(
+              'Fish and Shellfish Consumption',
+              stateCode,
+              assessment.useAttainments,
+            ),
+            ecological_use: getUseStatus(
+              'Ecological Life',
+              stateCode,
+              assessment.useAttainments,
+            ),
+            recreation_use: getUseStatus(
+              'Recreation',
+              stateCode,
+              assessment.useAttainments,
+            ),
+            ...parametersObject, // contains all parameters and their statuses
+          },
+        };
+      });
+    },
+    [stateNationalUses],
+  );
+
+  const handleOrphanedFeatures = React.useCallback(
+    (res, attainsDomainsData) => {
+      const allAssessmentUnits = [];
+      res.items.forEach((item) =>
+        item.assessmentUnits.forEach((assessmentUnit) => {
+          allAssessmentUnits.push(assessmentUnit);
+        }),
+      );
+
+      const requests = [];
+      res.items.forEach((item) => {
+        const orgId = item.organizationIdentifier;
+        const ids = item.assessmentUnits.map(
+          (assessment) => assessment.assessmentUnitIdentifier,
+        );
+
+        const url =
+          `${services.data.attains.serviceUrl}` +
+          `assessments?organizationId=${orgId}&assessmentUnitIdentifier=${ids.join(
+            ',',
+          )}`;
+
+        requests.push(fetchCheck(url));
+      });
+
+      Promise.all(requests)
+        .then((responses) => {
+          if (!responses || responses.length === 0) {
+            setOrphanFeatures({ features: [], status: 'error' });
+            return;
+          }
+
+          let orphans = [];
+          responses.forEach((res) => {
+            if (!res || !res.items || res.items.length === 0) {
+              setOrphanFeatures({ features: [], status: 'error' });
+              return;
+            }
+
+            const formatted = createUsefulOrphanFeature(
+              res.items,
+              allAssessmentUnits,
+              attainsDomainsData,
+            );
+            orphans = orphans.concat(formatted);
+          });
+
+          setOrphanFeatures({ features: orphans, status: 'success' });
+        })
+        .catch((err) => {
+          console.error(err);
+          setOrphanFeatures({ features: [], status: 'error' });
+        });
+    },
+    [createUsefulOrphanFeature, services, setOrphanFeatures],
+  );
+
+  // Check if the Huc12Summary service contains any Assessment IDs that are not included in the GIS (points/lines/areas) results.
+  // If so, query the individual missing assessment IDs using the ATTAINS assessments and assessmentUnits service
+  // to build a complete feature that can be displayed in the Community section,
+  // These features are marked by a custom attribute {... limited: true ...} and they lack spatial representation on the map.
+  const [checkedForOrphans, setCheckedForOrphans] = React.useState(false);
+  React.useEffect(() => {
+    if (stateNationalUses.status === 'fetching') {
+      return;
+    }
+
+    if (!checkedForOrphans && areasData && linesData && pointsData) {
+      setCheckedForOrphans(true);
+      const allFeatures = getAllFeatures();
+
+      const uniqueWaterbodies = allFeatures
+        ? getUniqueWaterbodies(allFeatures)
+        : [];
+
+      if (uniqueWaterbodies.length === assessmentUnitCount) {
+        setWaterbodyCountMismatch(false);
+        return;
+      }
+      if (uniqueWaterbodies.length < assessmentUnitCount) {
+        if (waterbodyCountMismatch) return;
+        if (assessmentUnitIDs.length === 0) return;
+
+        const gisIDs = uniqueWaterbodies.map(
+          (feature) => feature.attributes.assessmentunitidentifier,
+        );
+
+        const orphanIDs = assessmentUnitIDs.filter(
+          (id) => !gisIDs.includes(id),
+        );
+
+        if (orphanIDs.length === 0) return;
+        setWaterbodyCountMismatch(true);
+
+        window.logToGa('send', 'exception', {
+          exDescription: `huc12Summary service contained ${assessmentUnitCount} Assessment Unit IDs but the GIS service contained ${
+            uniqueWaterbodies.length
+          } features for HUC ${huc12}. Assessment Unit IDs not found in GIS service: (${orphanIDs.join(
+            ', ',
+          )})`,
+          exFatal: false,
+        });
+
+        setOrphanFeatures({ features: [], status: 'fetching' });
+
+        // fetch the ATTAINS Domains service Parameter Names so we can populate the Waterbody Parameters later on
+        fetchCheck(
+          `${services.data.attains.serviceUrl}domains?domainName=ParameterName`,
+        )
+          .then((res) => {
+            if (!res || res.length === 0) {
+              setOrphanFeatures({ features: [], status: 'error' });
+              return;
+            }
+
+            const attainsDomainsData = res;
+
+            const url =
+              `${services.data.attains.serviceUrl}` +
+              `assessmentUnits?assessmentUnitIdentifier=${orphanIDs.join(',')}`;
+
+            fetchCheck(url)
+              .then((res) => {
+                if (!res || !res.items || res.items.length === 0) {
+                  setOrphanFeatures({ features: [], status: 'error' });
+                  return;
+                }
+
+                handleOrphanedFeatures(res, attainsDomainsData);
+              })
+              .catch((err) => {
+                console.error(err);
+                setOrphanFeatures({ features: [], status: 'error' });
+              });
+          })
+          .catch((err) => {
+            console.error(err);
+            setOrphanFeatures({ features: [], status: 'error' });
+          });
+      }
+    }
+  }, [
+    huc12,
+    checkedForOrphans,
+    getAllFeatures,
+    areasData,
+    linesData,
+    pointsData,
+    assessmentUnitCount,
+    assessmentUnitIDs,
+    services,
+    handleOrphanedFeatures,
+    setOrphanFeatures,
+    waterbodyCountMismatch,
+    setWaterbodyCountMismatch,
+    stateNationalUses,
+  ]);
 
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
   const [communityMapLoadError, setCommunityMapLoadError] = React.useState(
@@ -202,6 +548,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       id: 'upstreamWatershed',
       title: 'Upstream Watershed',
       listMode: 'hide',
+      visible: false,
     });
 
     setUpstreamLayer(upstreamLayer);
@@ -272,11 +619,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   ]);
 
   // popup template to be used for all waterbody sublayers
-  const popupTemplate = {
-    outFields: ['*'],
-    title: (feature) => getPopupTitle(feature.graphic.attributes),
-    content: (feature) => getPopupContent({ feature: feature.graphic }),
-  };
+  const popupTemplate = React.useMemo(() => {
+    return {
+      outFields: ['*'],
+      title: (feature) => getPopupTitle(feature.graphic.attributes),
+      content: (feature) => getPopupContent({ feature: feature.graphic }),
+    };
+  }, []);
 
   const handleMapServiceError = React.useCallback(
     (err) => {
@@ -461,7 +810,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   // if any service fails, consider all of them failed and do not show any waterbody data
   const mapServiceFailure =
-    linesLayer === 'error' || areasLayer === 'error' || pointsLayer === 'error';
+    linesLayer === 'error' ||
+    areasLayer === 'error' ||
+    pointsLayer === 'error' ||
+    orphanFeatures.status === 'error';
 
   // Builds the waterbody layer once data has been fetched for all sub layers
   React.useEffect(() => {
@@ -857,18 +1209,29 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         status: 'success',
         data: results,
       });
+      setAssessmentUnitCount(results.items[0].assessmentUnitCount);
 
       const ids = results.items[0].assessmentUnits.map((item) => {
         return item.assessmentUnitId;
       });
 
+      setAssessmentUnitIDs(ids);
+
       const filter = `assessmentunitidentifier in (${createQueryString(ids)})`;
 
+      setCheckedForOrphans(false);
       retrieveLines(filter);
       retrievePoints(filter);
       retrieveAreas(filter);
     },
-    [retrieveAreas, retrieveLines, retrievePoints, setCipSummary],
+    [
+      retrieveAreas,
+      retrieveLines,
+      retrievePoints,
+      setCipSummary,
+      setAssessmentUnitCount,
+      setAssessmentUnitIDs,
+    ],
   );
 
   const processBoundariesData = React.useCallback(
@@ -1107,6 +1470,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                 setAddress(newAddress); // preserve the user's search so it is displayed
                 setNoDataAvailable();
                 setErrorMessage(watersgeoError);
+                setMapLoading(false);
               });
           }
 
@@ -1154,6 +1518,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             .catch((err) => {
               console.error(err);
               setCountyBoundaries(null);
+              setMapLoading(false);
               setDrinkingWater({
                 data: [],
                 status: 'failure',
@@ -1172,6 +1537,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             setAddress(newAddress); // preserve the user's search so it is displayed
             setNoDataAvailable();
             setErrorMessage(geocodeError);
+            setMapLoading(false);
             return;
           }
 

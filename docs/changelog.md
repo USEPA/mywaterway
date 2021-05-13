@@ -1,4 +1,56 @@
+
 # Change Log
+
+## 2.0.5 (May 2021)
+
+### Added
+
+- Labels to the Good/Polluted/Unknown icons to improve accessibility.
+
+- Improved the usability of the data page by adding a table of contents that links to the corresponding item.
+
+- Added new entries to the data page for Watershed Index Online, Wild and Scenic Rivers, and Protected Areas.
+
+
+### Changed
+
+
+- Assessments missing from the ATTAINS GIS service are now retrieved from the ATTAINS web service. Their information is included under the Community accordion along with Assessments from the GIS service. There is a note that mapping information is not available for those assessments.
+
+- Renamed the Environmental Justice layer to Demographic Index.
+
+- Updated text and glossary links for the Demographic Index (formerly Environmental Justice) layer. 
+
+- Updated the canonical link so that it uses the current url for non-community search pages (i.e., homepage, community landing page, etc.), instead of being empty. This is a Search Engine Optimization (SEO) technique to improve the application’s discoverability. 
+
+- Updated descriptions for each page so that search engines can display more accurate information.
+
+- Fixed issue with Glossary component while in full screen map mode where the map would get stuck in full screen and the page header would be shown.
+
+- To avoid color distortion, the Watershed boundary is no longer shaded when the Watershed Health Index layer is turned on.
+
+- Fixed multiple issues relating to Internet Explorer (IE11) support.
+
+- Fixed an issue with some monitoring locations only showing a small portion of the monitoring location id.
+
+- Fixed in issue with an infinite loading spinner when various EPA mapping services are unavailable.
+
+- Fixed an issue with the Waterbody Report and Plan Summary maps when the pages are viewed using smaller screen sizes.
+
+- Fixed an issue with the Waterbody Report which always saying 2018 in the more recent data suggestion box.
+
+- Fixed an issue with the switches on the Identified Issues tab not updating the map.
+
+- Fixed an issue around regex syntax errors when using symbols in the community search box.
+
+- Fixed an issue with the GPRA service call failing due to the state code not being passed in (i.e., when the state code was not available because of an ATTAINS web service issue).
+
+- Fixed an issue where some waterbody reports would show a use as impaired but not list any causes.
+
+- Fixed an issue where using a tab character in the community search box would cause the app to jump back to the community home page when a user clicked on any other tab.
+
+- Fixed an issue with the legend not syncing correctly when navigating between the community home page and community details pages.
+
 
 ## 2.0.4 (February 2021)
 

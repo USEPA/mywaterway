@@ -41,7 +41,7 @@ type Props = {
 
 function NavBar({ title, onBackClick = null }: Props) {
   return (
-    <Container>
+    <Container id="hmw-nav-bar">
       <Group>
         {onBackClick && (
           <BackButton onClick={(ev) => onBackClick(ev)}>

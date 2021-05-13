@@ -32,8 +32,79 @@ describe('Data page', () => {
     );
 
     // check the attains link
-    cy.findByText(
+    cy.findAllByText(
       'Assessment, Total Maximum Daily Load Tracking and Implementation System (ATTAINS)',
-    ).should('have.attr', 'href', 'https://www.epa.gov/waterdata/attains');
+    );
+    cy.findByText('ATTAINS Data/System').should(
+      'have.attr',
+      'href',
+      'https://www.epa.gov/waterdata/attains',
+    );
+  });
+
+  it('Test contents scrolling', () => {
+    function scrollTest(item) {
+      const padding = 2;
+
+      // press the item in table of contents
+      cy.get(`button:contains("${item}")`).click();
+
+      // verify the scroll worked
+      cy.get(`h2:contains("${item}")`)
+        .then((elm) => elm[0].offsetTop)
+        .then((offset) =>
+          cy
+            .window()
+            .its('scrollY')
+            .should('equal', offset + padding),
+        );
+    }
+
+    // go to the data page
+    cy.visit('/data');
+
+    // This is a workaround for the last item in the list. The last item does
+    // not scroll far enough for the item to be at the top of the screen.
+    // This adds some empty space to the bottom of the page/footer to ensure
+    // the window can scroll far enough that the item is at the top of the page.
+    cy.get('footer').within((elms) => {
+      const spacing = document.createElement('div');
+      spacing.style.height = '500px';
+      elms[0].appendChild(spacing);
+    });
+
+    // test scrolling
+    scrollTest(
+      'Assessment, Total Maximum Daily Load Tracking and Implementation System (ATTAINS)',
+    );
+    scrollTest('Enforcement and Compliance History Online (ECHO)');
+    scrollTest('Grants Reporting and Tracking System (GRTS)');
+    scrollTest('Protected Areas');
+    scrollTest('Safe Drinking Water Information System (SDWIS)');
+    scrollTest('Water Quality Portal (WQP)');
+    scrollTest(
+      'Watershed Assessment, Tracking & Environmental Results System (WATERS)',
+    );
+    scrollTest('Watershed Index Online (WSIO)');
+    scrollTest('Wild and Scenic Rivers');
+
+    // loop through and verify the "Top of Page" buttons all scroll to
+    // the nav bar
+    cy.get('button:contains("Top of Page")').then((buttons) => {
+      // loop through the "Top of Page" buttons
+      for (let i = 0; i < buttons.length; i++) {
+        // click the button
+        cy.wrap(buttons[i])
+          .then((elm) => elm.click())
+          .then(() => {
+            // verify the page scrolled to the nav bar
+            cy.get('#hmw-nav-bar')
+              .then((elm) => elm[0].offsetTop)
+              .then((offset) =>
+                cy.window().its('scrollY').should('equal', offset),
+              );
+          });
+      }
+    });
   });
 });

@@ -274,7 +274,7 @@ describe('Identified Issues Tab', () => {
     // switch to Dischargers tab of Identified Issues tab and check that the discharger accordion item exists and expands when clicked
     cy.findByText('Identified Issues').click();
     cy.findByTestId('hmw-dischargers').click();
-    cy.findByText('1178 CR LLC').click();
+    cy.findByText('MAPLEWOOD SUBDIV').click();
     cy.findByText('Compliance Status:');
   });
 });
@@ -450,5 +450,34 @@ describe('Protect Tab', () => {
         exact: false,
       },
     );
+  });
+});
+
+describe('HTTP Intercepts', () => {
+  beforeEach(() => {
+    cy.visit('/community');
+  });
+
+  it('Check that if GIS responds with empty features array we query and display data about the missing items.', () => {
+    cy.intercept(
+      'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/1/query',
+      {
+        statusCode: 200,
+        body: { features: [] },
+      },
+    );
+
+    // navigate to Protect tab of Community page
+    cy.findByPlaceholderText('Search by address', { exact: false }).type('DC');
+    cy.findByText('Go').click();
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    // Verify text explaining some waterbodies have no spatial data exists
+    cy.findByText('Some waterbodies are not visible on the map.');
+    cy.findAllByText('[Waterbody not visible on map.]', { exact: false });
   });
 });
