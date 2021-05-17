@@ -1207,7 +1207,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         status: 'success',
         data: results,
       });
-      setAssessmentUnitCount(results.items[0].assessmentUnitCount);
+      setAssessmentUnitCount(results.items[0].assessmentUnits.length);
 
       const ids = results.items[0].assessmentUnits.map((item) => {
         return item.assessmentUnitId;
