@@ -418,10 +418,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         ? getUniqueWaterbodies(allFeatures)
         : [];
 
-      if (uniqueWaterbodies.length === assessmentUnitCount) {
-        setWaterbodyCountMismatch(false);
-        return;
-      }
       if (uniqueWaterbodies.length < assessmentUnitCount) {
         if (waterbodyCountMismatch) return;
         if (assessmentUnitIDs.length === 0) return;
@@ -482,6 +478,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             console.error(err);
             setOrphanFeatures({ features: [], status: 'error' });
           });
+      } else {
+        setWaterbodyCountMismatch(false);
       }
     }
   }, [
