@@ -177,7 +177,81 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const [view, setView] = React.useState(null);
 
-  const createUsefulOrphanFeature = React.useCallback(
+  function matchStateCodeToAssessment(
+    assessmentUnitIdentifier,
+    allAssessmentUnits,
+  ) {
+    const matchedAssessment = allAssessmentUnits.find(
+      (assessment) =>
+        assessment.assessmentUnitIdentifier === assessmentUnitIdentifier,
+    );
+    if (!matchedAssessment) return null;
+    if (matchedAssessment?.stateCode) return matchedAssessment.stateCode;
+  }
+
+  function matchAssessmentUnitName(
+    assessmentUnitIdentifier,
+    allAssessmentUnits,
+  ) {
+    const matchedAssessment = allAssessmentUnits.find(
+      (unit) => unit.assessmentUnitIdentifier === assessmentUnitIdentifier,
+    );
+
+    if (!matchedAssessment) return 'Unknown';
+    if (matchedAssessment?.assessmentUnitName)
+      return matchedAssessment.assessmentUnitName;
+  }
+
+  // create features whose IDs and data are not found in the Assessment Units and/or Assessments services
+  const createSimpleOrphanFeatures = React.useCallback(
+    (
+      assessmentUnitServiceData,
+      idsWithNoAssessmentData,
+      allAssessmentUnits,
+    ) => {
+      if (!idsWithNoAssessmentData || idsWithNoAssessmentData.length === 0) {
+        return [];
+      }
+
+      return idsWithNoAssessmentData.map((id) => {
+        const assessmentUnitName = matchAssessmentUnitName(
+          id,
+          allAssessmentUnits,
+        );
+
+        const matchingItem = assessmentUnitServiceData.items.find((item) => {
+          return item.assessmentUnits.find(
+            (assessmentUnit) => assessmentUnit.assessmentUnitIdentifier === id,
+          );
+        });
+
+        const orgID = matchingItem && matchingItem.organizationIdentifier;
+        const orgName = matchingItem && matchingItem.organizationName;
+        const orgType = matchingItem && matchingItem.organizationTypeText;
+
+        return {
+          limited: true,
+          attributes: {
+            assessmentunitidentifier: id,
+            assessmentunitname: assessmentUnitName || 'Unknown',
+            organizationid: orgID,
+            reportingcycle: null,
+            overallstatus: 'Condition Unknown',
+            orgtype: orgType,
+            organizationname: orgName,
+            drinkingwater_use: null,
+            fishconsumption_use: null,
+            ecological_use: null,
+            recreation_use: null,
+          },
+        };
+      });
+    },
+    [],
+  );
+
+  // create a feature using data from ATTAINS Domains, Assessment Units, and Assessments services
+  const createDetailedOrphanFeatures = React.useCallback(
     (res, allAssessmentUnits, attainsDomainsData) => {
       // function that checks if any uses in an array of uses have a status that matches the 2nd paremeter
       function checkStatus(uses, status) {
@@ -219,31 +293,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           return 'Fully Supporting';
 
         return 'Insufficient Information';
-      }
-
-      function matchStateCodeToAssessment(
-        assessmentUnitIdentifier,
-        allAssessmentUnits,
-      ) {
-        const matchedAssessment = allAssessmentUnits.find(
-          (assessment) =>
-            assessment.assessmentUnitIdentifier === assessmentUnitIdentifier,
-        );
-        if (!matchedAssessment) return null;
-        if (matchedAssessment?.stateCode) return matchedAssessment.stateCode;
-      }
-
-      function matchAssessmentUnitName(
-        assessmentUnitIdentifier,
-        allAssessmentUnits,
-      ) {
-        const matchedAssessment = allAssessmentUnits.find(
-          (unit) => unit.assessmentUnitIdentifier === assessmentUnitIdentifier,
-        );
-
-        if (!matchedAssessment) return null;
-        if (matchedAssessment?.assessmentUnitName)
-          return matchedAssessment.assessmentUnitName;
       }
 
       function checkParameterStatus(
@@ -344,13 +393,35 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   const handleOrphanedFeatures = React.useCallback(
-    (res, attainsDomainsData) => {
+    (res, attainsDomainsData, missingAssessments) => {
       const allAssessmentUnits = [];
       res.items.forEach((item) =>
         item.assessmentUnits.forEach((assessmentUnit) => {
           allAssessmentUnits.push(assessmentUnit);
         }),
       );
+
+      // track how many of the missing assessments are in the Assessment Unit Service. if any are not in the service results, log the event
+      const allIdsInAssessmentUnitService = [];
+      allAssessmentUnits.forEach((item) => {
+        allIdsInAssessmentUnitService.push(item.assessmentUnitIdentifier);
+      });
+
+      const idsNotInAssessmentUnitService = missingAssessments.filter(
+        (id) => !allIdsInAssessmentUnitService.includes(id),
+      );
+
+      if (
+        idsNotInAssessmentUnitService &&
+        idsNotInAssessmentUnitService.length > 0
+      ) {
+        window.logToGa('send', 'exception', {
+          exDescription: `The Assessment Units service did not return data for the following assessment IDs ${idsNotInAssessmentUnitService.join(
+            ', ',
+          )}`,
+          exFatal: false,
+        });
+      }
 
       const requests = [];
       res.items.forEach((item) => {
@@ -370,7 +441,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       Promise.all(requests)
         .then((responses) => {
-          if (!responses || responses.length === 0) {
+          if (!responses) {
             setOrphanFeatures({ features: [], status: 'error' });
             return;
           }
@@ -382,14 +453,41 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               return;
             }
 
-            const formatted = createUsefulOrphanFeature(
+            const detailedFeatures = createDetailedOrphanFeatures(
               res.items,
               allAssessmentUnits,
               attainsDomainsData,
             );
-            orphans = orphans.concat(formatted);
+            orphans = orphans.concat(detailedFeatures);
           });
 
+          if (orphans.length !== missingAssessments.length) {
+            const idsFoundInAssessmentsService = orphans.map(
+              (orphan) => orphan.attributes.assessmentunitidentifier,
+            );
+
+            if (
+              idsFoundInAssessmentsService.length < missingAssessments.length
+            ) {
+              const idsWithNoAssessmentData = missingAssessments.filter(
+                (id) => !idsFoundInAssessmentsService.includes(id),
+              );
+
+              window.logToGa('send', 'exception', {
+                exDescription: `The Assessments and GIS services did not return data for the following assessment IDs ${idsWithNoAssessmentData.join(
+                  ', ',
+                )}`,
+                exFatal: false,
+              });
+
+              const simpleFeatures = createSimpleOrphanFeatures(
+                res,
+                idsWithNoAssessmentData,
+                allAssessmentUnits,
+              );
+              orphans = orphans.concat(simpleFeatures);
+            }
+          }
           setOrphanFeatures({ features: orphans, status: 'success' });
         })
         .catch((err) => {
@@ -397,7 +495,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           setOrphanFeatures({ features: [], status: 'error' });
         });
     },
-    [createUsefulOrphanFeature, services, setOrphanFeatures],
+    [
+      createDetailedOrphanFeatures,
+      createSimpleOrphanFeatures,
+      services,
+      setOrphanFeatures,
+    ],
   );
 
   // Check if the Huc12Summary service contains any Assessment IDs that are not included in the GIS (points/lines/areas) results.
@@ -466,8 +569,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                   setOrphanFeatures({ features: [], status: 'error' });
                   return;
                 }
-
-                handleOrphanedFeatures(res, attainsDomainsData);
+                handleOrphanedFeatures(res, attainsDomainsData, orphanIDs);
               })
               .catch((err) => {
                 console.error(err);
