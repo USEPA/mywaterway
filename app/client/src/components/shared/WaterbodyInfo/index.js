@@ -385,7 +385,7 @@ function WaterbodyInfo({
             )
           : ''}
 
-        {!onWaterbodyReportPage && (
+        {!onWaterbodyReportPage && attributes.organizationid ? (
           <div>
             <a
               rel="noopener noreferrer"
@@ -394,7 +394,7 @@ function WaterbodyInfo({
                 `/waterbody-report/` +
                 `${attributes.organizationid}/` +
                 `${attributes.assessmentunitidentifier}/` +
-                `${attributes.reportingcycle}`
+                `${attributes.reportingcycle || ''}`
               }
             >
               <Icon className="fas fa-file-alt" aria-hidden="true" />
@@ -403,6 +403,8 @@ function WaterbodyInfo({
             &nbsp;&nbsp;
             <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
           </div>
+        ) : (
+          <p>Unable to find a waterbody report for this waterbody.</p>
         )}
       </>
     );
