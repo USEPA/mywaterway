@@ -6,7 +6,7 @@ jobs:
   develop-branch:
     working_directory: ~/project/app # directory where steps will run
     docker:
-      - image: circleci/node:erbium-buster
+      - image: cimg/node:14.17.2
     environment:
       APP_NAME: mywaterway-dev
       APP_DOMAIN: app.cloud.gov
