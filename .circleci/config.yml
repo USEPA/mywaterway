@@ -20,8 +20,7 @@ jobs:
             sudo apt-get install python3.7
       - run:
           name: set python to python3
-          command: |
-            sudo apt-get install python-is-python3
+          command: 'sudo apt-get install python-is-python3'
       - run:
           name: check python version
           command: 'python --version'
