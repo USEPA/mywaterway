@@ -14,10 +14,11 @@ jobs:
       - checkout:
           path: ~/project
       - run:
-          name: install python 3.7
+          name: install python
           command: |
             sudo apt-get update
-            sudo apt-get install python3.7
+            sudo apt-get install python3.8
+            sudo apt-get install python3.8-venv
       - run:
           name: set python to python3
           command: 'sudo apt-get install python-is-python3'
@@ -103,10 +104,11 @@ jobs:
       - checkout:
           path: ~/project
       - run:
-          name: install python 3.7
+          name: install python
           command: |
             sudo apt-get update
-            sudo apt-get install python3.7
+            sudo apt-get install python3.8
+            sudo apt-get install python3.8-venv
       - run:
           name: set python to python3
           command: 'sudo apt-get install python-is-python3'
