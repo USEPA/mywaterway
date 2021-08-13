@@ -1,18 +1,30 @@
 
 version: 2.1
 orbs:
-  aws-s3: circleci/aws-s3@1.0.16
+  aws-s3: circleci/aws-s3@3.0
 jobs:
   develop-branch:
     working_directory: ~/project/app # directory where steps will run
     docker:
-      - image: circleci/node:erbium-buster
+      - image: cimg/node:14.17.5
     environment:
       APP_NAME: mywaterway-dev
       APP_DOMAIN: app.cloud.gov
     steps:
       - checkout:
           path: ~/project
+      - run:
+          name: install python
+          command: |
+            sudo apt-get update
+            sudo apt-get install python3.8
+            sudo apt-get install python3.8-venv
+      - run:
+          name: set python to python3
+          command: 'sudo apt-get install python-is-python3'
+      - run:
+          name: check python version
+          command: 'python --version'
       - run:
           name: update-npm
           command: 'sudo npm install -g npm@latest'
@@ -69,7 +81,6 @@ jobs:
           aws-region: CF_DEV_S3_REGION
           aws-secret-access-key: CF_DEV_S3_SECRET_KEY
           from: server/app/public/data
-          overwrite: true
           to: 's3://$CF_DEV_S3_BUCKET_ID/data'
       - run:
           name: Re-route green to blue and then remove blue
@@ -83,7 +94,7 @@ jobs:
   stage-branch:
     working_directory: ~/project/app # directory where steps will run
     docker:
-      - image: circleci/node:erbium-buster
+      - image: cimg/node:14.17.5
     environment:
       APP_NAME: mywaterway-stage
       APP_NAME_ATTAINS: mywaterway-attains
@@ -91,6 +102,18 @@ jobs:
     steps:
       - checkout:
           path: ~/project
+      - run:
+          name: install python
+          command: |
+            sudo apt-get update
+            sudo apt-get install python3.8
+            sudo apt-get install python3.8-venv
+      - run:
+          name: set python to python3
+          command: 'sudo apt-get install python-is-python3'
+      - run:
+          name: check python version
+          command: 'python --version'
       - run:
           name: update-npm
           command: 'sudo npm install -g npm@latest'
@@ -148,7 +171,6 @@ jobs:
           aws-region: CF_STAGE_S3_REGION
           aws-secret-access-key: CF_STAGE_S3_SECRET_KEY
           from: server/app/public/data
-          overwrite: true
           to: 's3://$CF_STAGE_S3_BUCKET_ID/data'
       - run:
           name: Re-route green to blue and then remove blue
@@ -191,7 +213,6 @@ jobs:
           aws-region: CF_ATTAINS_STAGE_S3_REGION
           aws-secret-access-key: CF_ATTAINS_STAGE_S3_SECRET_KEY
           from: server/app/public/data
-          overwrite: true
           to: 's3://$CF_ATTAINS_STAGE_S3_BUCKET_ID/data'
       - run:
           name: Re-route green to blue and then remove blue

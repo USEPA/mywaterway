@@ -23,8 +23,8 @@
     "monitoringLocationDetails": "https://www.waterqualitydata.us/provider/"
   },
   "echoNPDES": {
-    "getFacilities": "https://ofmpub.epa.gov/echo/cwa_rest_services.get_facilities",
-    "metadata": "https://ofmpub.epa.gov/echo/cwa_rest_services.metadata"
+    "getFacilities": "https://echodata.epa.gov/echo/cwa_rest_services.get_facilities",
+    "metadata": "https://echodata.epa.gov/echo/cwa_rest_services.metadata"
   },
   "dwmaps": {
     "getPWSHUC12": "https://ofmpub.epa.gov/apex/sfdw_rest/GetPWSWMHUC12/",
