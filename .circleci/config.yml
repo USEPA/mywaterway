@@ -6,7 +6,7 @@ jobs:
   develop-branch:
     working_directory: ~/project/app # directory where steps will run
     docker:
-      - image: circleci/node:14.17.5
+      - image: cimg/node:14.17.5
     environment:
       APP_NAME: mywaterway-dev
       APP_DOMAIN: app.cloud.gov
@@ -88,7 +88,7 @@ jobs:
   stage-branch:
     working_directory: ~/project/app # directory where steps will run
     docker:
-      - image: circleci/node:14.17.5
+      - image: cimg/node:14.17.5
     environment:
       APP_NAME: mywaterway-stage
       APP_NAME_ATTAINS: mywaterway-attains
