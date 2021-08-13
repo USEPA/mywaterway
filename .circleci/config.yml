@@ -19,11 +19,6 @@ jobs:
             sudo apt-get update
             sudo apt-get install python3.7
       - run:
-          name: "Switch to Python v3.7"
-          command: |
-            pyenv versions
-            pyenv global 3.7.0
-      - run:
           name: update-npm
           command: 'sudo npm install -g npm@latest'
       - run:
@@ -106,11 +101,6 @@ jobs:
           command: |
             sudo apt-get update
             sudo apt-get install python3.7
-      - run:
-          name: "Switch to Python v3.7"
-          command: |
-            pyenv versions
-            pyenv global 3.7.0
       - run:
           name: update-npm
           command: 'sudo npm install -g npm@latest'
