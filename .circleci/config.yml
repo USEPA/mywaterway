@@ -19,6 +19,13 @@ jobs:
             sudo apt-get update
             sudo apt-get install python3.7
       - run:
+          name: set python to python3
+          command: |
+            sudo apt-get install python-is-python3
+      - run:
+          name: check python version
+          command: 'python --version'
+      - run:
           name: update-npm
           command: 'sudo npm install -g npm@latest'
       - run:
@@ -101,6 +108,12 @@ jobs:
           command: |
             sudo apt-get update
             sudo apt-get install python3.7
+      - run:
+          name: set python to python3
+          command: 'sudo apt-get install python-is-python3'
+      - run:
+          name: check python version
+          command: 'python --version'
       - run:
           name: update-npm
           command: 'sudo npm install -g npm@latest'
