@@ -98,6 +98,8 @@
         height: auto;
         text-align: center;
         margin-bottom: 8px;
+        font-size: 15px;
+        font-weight: bold;
       }
       a img {
         border: 0;
@@ -140,18 +142,19 @@
           >How's My Waterway</a
         >
       </div>
-      Check out EPA's How's My Waterway tool today!
+      Explore water quality in your community!
       <form id="hmw-form" onsubmit="return verify(this);">
         <label>Enter a location:</label>
         <input
           type="text"
-          value="e.g.: city, state, zip"
+          name="wherestr"
+          value="e.g.: address, zip or place"
           onfocus="clearMe(this)"
           onblur="setdefault(this)"
           class="txt"
           id="hmw-location-input"
         />
-        <input type="submit" value="Search" class="btn" />
+        <input type="submit" value="Go" class="btn" />
       </form>
       <div style="clear: both; margin: 0; padding: 0"></div>
       <div style="clear: both; margin: 10px 0 0; width: 100%">
@@ -176,11 +179,14 @@
       function onSubmit(e) {
         e.preventDefault();
 
-        var elm = document.getElementById('hmw-location-input');
+        var form = document.getElementById('hmw-form');
+        if (verify(form)) {
+          var elm = document.getElementById('hmw-location-input');
 
-        var fullUrl = 'https://mywaterway.epa.gov/community/';
-        fullUrl = fullUrl + elm.value;
-        window.open(fullUrl, '_blank');
+          var fullUrl = 'https://mywaterway.epa.gov/community/';
+          fullUrl = fullUrl + elm.value;
+          window.open(fullUrl, '_blank');
+        }
       }
 
       var ele = document.getElementById('hmw-form');
