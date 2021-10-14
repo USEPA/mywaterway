@@ -1,8 +1,10 @@
 // @flow
 
 import React from 'react';
+import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import styled from 'styled-components';
 // components
+import { ContentTabs } from 'components/shared/ContentTabs';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Switch from 'components/shared/Switch';
@@ -13,6 +15,13 @@ import {
   AccordionList,
   AccordionItem,
 } from 'components/shared/Accordion/MapHighlight';
+// contexts
+import {
+  StyledMetrics,
+  StyledMetric,
+  StyledNumber,
+  StyledLabel,
+} from 'components/shared/KeyMetrics';
 // contexts
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -56,6 +65,10 @@ const Toggle = styled.div`
 
 const AccordionContent = styled.div`
   padding: 0.4375em 0.875em 0.875em;
+`;
+
+const SwitchContainer = styled.div`
+  margin-top: 0.5em;
 `;
 
 // --- components ---
@@ -388,161 +401,221 @@ function Monitoring() {
 
   return (
     <Container>
-      {monitoringLocations.status === 'fetching' && <LoadingSpinner />}
-
-      {monitoringLocations.status === 'failure' && (
-        <StyledErrorBox>
-          <p>{monitoringError}</p>
-        </StyledErrorBox>
-      )}
-
-      {monitoringLocations.status === 'success' && (
-        <>
-          {allMonitoringStations.length === 0 && (
-            <Text>
-              There are no Water Monitoring Locations in the {watershed}{' '}
-              watershed.
-            </Text>
-          )}
-
-          {allMonitoringStations.length > 0 && (
+      <StyledMetrics>
+        <StyledMetric>
+          {monitoringLocations.status === 'fetching' ? (
+            <LoadingSpinner />
+          ) : (
             <>
-              <Table className="table">
-                <thead>
-                  <tr>
-                    <th>
-                      <Toggle>
-                        <Switch
-                          checked={allToggled}
-                          onChange={(ev) => toggleSwitch('All')}
-                          ariaLabel="Toggle all monitoring locations"
-                        />
-                        <span>All Monitoring Locations</span>
-                      </Toggle>
-                    </th>
-                    <th>Count</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.values(monitoringStationGroups)
-                    .map((group) => {
-                      const { label, stations } = group;
+              <StyledNumber>
+                {monitoringLocations.status === 'failure'
+                  ? 'N/A'
+                  : `${monitoringLocations.data.features.length}`}
+              </StyledNumber>
+              <StyledLabel>Number of Monitoring Locations</StyledLabel>
+              <SwitchContainer>
+                <Switch
+                  checked={true}
+                  // onChange={() => toggleSwitch('Toggle Issues Layer')}
+                  disabled={false}
+                  ariaLabel="Toggle Issues Layer"
+                />
+              </SwitchContainer>
+            </>
+          )}
+        </StyledMetric>
+        <StyledMetric>
+          <StyledNumber>{0}</StyledNumber>
+          <StyledLabel>Placeholder</StyledLabel>
+          <SwitchContainer>
+            <Switch
+              checked={true}
+              // onChange={() => toggleSwitch('Toggle Dischargers Layer')}
+              // disabled={zeroDischargers}
+              // ariaLabel="Toggle Dischargers Layer"
+            />
+          </SwitchContainer>
+        </StyledMetric>
+      </StyledMetrics>
 
-                      // remove duplicates caused by a single monitoring station having multiple overlapping groupNames
-                      // like 'Inorganics, Major, Metals' and 'Inorganics, Minor, Metals'
-                      const uniqueStations = [...new Set(stations)];
+      <ContentTabs>
+        <Tabs>
+          <TabList>
+            <Tab>Monitoring Locations</Tab>
+            <Tab>Placeholder (Realtime Gages)</Tab>
+          </TabList>
 
-                      return (
-                        <tr key={label}>
-                          <td>
-                            <Toggle>
-                              <Switch
-                                checked={monitoringLocationToggles[label]}
-                                onChange={(ev) => toggleSwitch(label)}
-                                ariaLabel={`Toggle ${label}`}
-                              />
-                              <span>{label}</span>
-                            </Toggle>
-                          </td>
-                          <td>{uniqueStations.length.toLocaleString()}</td>
-                        </tr>
-                      );
-                    })
-                    .sort((a, b) => {
-                      // sort the switches with Other at the end
-                      if (a.key === 'Other') return 1;
-                      if (b.key === 'Other') return -1;
-                      return a.key > b.key ? 1 : -1;
-                    })}
-                </tbody>
-              </Table>
+          <TabPanels>
+            <TabPanel>
+              {monitoringLocations.status === 'fetching' && <LoadingSpinner />}
 
-              {/* 
+              {monitoringLocations.status === 'failure' && (
+                <StyledErrorBox>
+                  <p>{monitoringError}</p>
+                </StyledErrorBox>
+              )}
+
+              {monitoringLocations.status === 'success' && (
+                <>
+                  <p>
+                    View available monitoring locations in your local watershed
+                    or view by category.
+                  </p>
+                  {allMonitoringStations.length === 0 && (
+                    <Text>
+                      There are no Water Monitoring Locations in the {watershed}{' '}
+                      watershed.
+                    </Text>
+                  )}
+
+                  {allMonitoringStations.length > 0 && (
+                    <>
+                      <Table className="table">
+                        <thead>
+                          <tr>
+                            <th>
+                              <Toggle>
+                                <Switch
+                                  checked={allToggled}
+                                  onChange={(ev) => toggleSwitch('All')}
+                                  ariaLabel="Toggle all monitoring locations"
+                                />
+                                <span>All Monitoring Locations</span>
+                              </Toggle>
+                            </th>
+                            <th>Count</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {Object.values(monitoringStationGroups)
+                            .map((group) => {
+                              const { label, stations } = group;
+
+                              // remove duplicates caused by a single monitoring station having multiple overlapping groupNames
+                              // like 'Inorganics, Major, Metals' and 'Inorganics, Minor, Metals'
+                              const uniqueStations = [...new Set(stations)];
+
+                              return (
+                                <tr key={label}>
+                                  <td>
+                                    <Toggle>
+                                      <Switch
+                                        checked={
+                                          monitoringLocationToggles[label]
+                                        }
+                                        onChange={(ev) => toggleSwitch(label)}
+                                        ariaLabel={`Toggle ${label}`}
+                                      />
+                                      <span>{label}</span>
+                                    </Toggle>
+                                  </td>
+                                  <td>
+                                    {uniqueStations.length.toLocaleString()}
+                                  </td>
+                                </tr>
+                              );
+                            })
+                            .sort((a, b) => {
+                              // sort the switches with Other at the end
+                              if (a.key === 'Other') return 1;
+                              if (b.key === 'Other') return -1;
+                              return a.key > b.key ? 1 : -1;
+                            })}
+                        </tbody>
+                      </Table>
+
+                      {/* 
                   The expand and collapse buttons are disabled for this 
                   accordion to avoid a large number of web service calls.
                   Each accordion item performs a web service call to fill
                   in the data for a table. 
                 */}
-              <AccordionList
-                expandDisabled={true}
-                title={`Displaying ${displayLocations} of ${totalLocations} Water Monitoring Locations in the ${watershed} watershed.`}
-                onSortChange={(sortBy) => setSortBy(sortBy.value)}
-                sortOptions={[
-                  {
-                    value: 'MonitoringLocationName',
-                    label: 'Monitoring Location Name',
-                  },
-                  {
-                    value: 'OrganizationIdentifier',
-                    label: 'Organization ID',
-                  },
-                  {
-                    value: 'MonitoringLocationIdentifier',
-                    label: 'Monitoring Site ID',
-                  },
-                  {
-                    value: 'resultCount',
-                    label: 'Monitoring Measurements',
-                  },
-                ]}
-              >
-                {sortedMonitoringStations.map((item, index) => {
-                  const { properties: prop } = item;
+                      <AccordionList
+                        expandDisabled={true}
+                        title={`Displaying ${displayLocations} of ${totalLocations} Water Monitoring Locations in the ${watershed} watershed.`}
+                        onSortChange={(sortBy) => setSortBy(sortBy.value)}
+                        sortOptions={[
+                          {
+                            value: 'MonitoringLocationName',
+                            label: 'Monitoring Location Name',
+                          },
+                          {
+                            value: 'OrganizationIdentifier',
+                            label: 'Organization ID',
+                          },
+                          {
+                            value: 'MonitoringLocationIdentifier',
+                            label: 'Monitoring Site ID',
+                          },
+                          {
+                            value: 'resultCount',
+                            label: 'Monitoring Measurements',
+                          },
+                        ]}
+                      >
+                        {sortedMonitoringStations.map((item, index) => {
+                          const { properties: prop } = item;
 
-                  const feature = {
-                    geometry: {
-                      type: 'point', // autocasts as new Point()
-                      longitude: item.x,
-                      latitude: item.y,
-                    },
-                    symbol: {
-                      type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
-                      style: 'square',
-                    },
-                    attributes: prop,
-                  };
+                          const feature = {
+                            geometry: {
+                              type: 'point', // autocasts as new Point()
+                              longitude: item.x,
+                              latitude: item.y,
+                            },
+                            symbol: {
+                              type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
+                              style: 'square',
+                            },
+                            attributes: prop,
+                          };
 
-                  return (
-                    <AccordionItem
-                      key={index}
-                      title={
-                        <strong>
-                          {prop['MonitoringLocationName'] || 'Unknown'}
-                        </strong>
-                      }
-                      subTitle={
-                        <>
-                          Organization ID: {prop['OrganizationIdentifier']}
-                          <br />
-                          Monitoring Site ID:{' '}
-                          {prop['MonitoringLocationIdentifier'].replace(
-                            `${prop['OrganizationIdentifier']}-`,
-                            '',
-                          )}
-                          <br />
-                          Monitoring Measurements:{' '}
-                          {Number(prop['resultCount']).toLocaleString()}
-                        </>
-                      }
-                      feature={feature}
-                      idKey={'MonitoringLocationIdentifier'}
-                    >
-                      <AccordionContent>
-                        <WaterbodyInfo
-                          type={'Monitoring Location'}
-                          feature={feature}
-                          services={services}
-                        />
-                        <ViewOnMapButton feature={feature} />
-                      </AccordionContent>
-                    </AccordionItem>
-                  );
-                })}
-              </AccordionList>
-            </>
-          )}
-        </>
-      )}
+                          return (
+                            <AccordionItem
+                              key={index}
+                              title={
+                                <strong>
+                                  {prop['MonitoringLocationName'] || 'Unknown'}
+                                </strong>
+                              }
+                              subTitle={
+                                <>
+                                  Organization ID:{' '}
+                                  {prop['OrganizationIdentifier']}
+                                  <br />
+                                  Monitoring Site ID:{' '}
+                                  {prop['MonitoringLocationIdentifier'].replace(
+                                    `${prop['OrganizationIdentifier']}-`,
+                                    '',
+                                  )}{' '}
+                                  <br />
+                                  Monitoring Measurements:{' '}
+                                  {Number(prop['resultCount']).toLocaleString()}
+                                </>
+                              }
+                              feature={feature}
+                              idKey={'MonitoringLocationIdentifier'}
+                            >
+                              <AccordionContent>
+                                <WaterbodyInfo
+                                  type={'Monitoring Location'}
+                                  feature={feature}
+                                  services={services}
+                                />
+                                <ViewOnMapButton feature={feature} />
+                              </AccordionContent>
+                            </AccordionItem>
+                          );
+                        })}
+                      </AccordionList>
+                    </>
+                  )}
+                </>
+              )}
+            </TabPanel>
+            <TabPanel>Placeholder (Realtime Gages)</TabPanel>
+          </TabPanels>
+        </Tabs>
+      </ContentTabs>
     </Container>
   );
 }

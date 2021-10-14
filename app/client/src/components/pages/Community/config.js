@@ -179,10 +179,6 @@ const monitoringUpper = (
       Universities, volunteers and others also help detect water quality
       concerns.
     </p>
-    <p>
-      View available monitoring locations in your local watershed or view by
-      category.
-    </p>
     <Disclaimer>
       <p>
         The condition of a waterbody is dynamic and can change at any time, and
