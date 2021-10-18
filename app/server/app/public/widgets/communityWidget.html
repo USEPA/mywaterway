@@ -35,115 +35,114 @@
     <meta name="DC.language" content="en" />
     <!--googleoff: all-->
     <style type="text/css">
+      body {
+        display: flex;
+        flex-direction: column;
+        margin: 4px;
+        height: calc(100vh - 8px);
+      }
+
       .widget {
-        height: 100%;
-        min-height: 135px;
-        font-family: Verdana, Geneva, sans-serif;
-        font-size: 13px;
-        line-height: 14px;
-        background-image: url(http://localhost:9090/widgets/boating.jpg);
-        background-repeat: no-repeat;
-        background-size: 101% 101%;
-        color: #000;
-        font-weight: normal;
         position: relative;
         border: 3px solid #0059b2;
         border-radius: 10px;
+        height: 100%;
+        font-family: Verdana, Geneva, sans-serif;
+        font-size: 13px;
+        background-image: url(http://localhost:9090/widgets/boating.jpg);
+        background-position: center;
+        background-size: cover;
       }
 
-      .content {
-        background-image: linear-gradient(0deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 1));
+      .widget-content {
+        padding: 10px;
         border-radius: 7px;
-        padding-top: 10px;
-        padding-right: 10px;
-        padding-bottom: 5px;
-        padding-left: 10px;
+        height: calc(100% - 20px);
+        background-image: linear-gradient(to top,
+          rgba(255, 255, 255, 0.125),
+          rgba(255, 255, 255, 0.75),
+          rgba(255, 255, 255, 1)
+        );
       }
 
-      .txt {
-        margin: 0 5px 0 0;
-        width: calc(100% - 35px);
-        color: #999;
-        height: 24px;
-      }
-
-      .btn {
-        background-color: #044b8d;
-        border: 1px solid #cccccc;
-        color: #fff;
-        font-size: 15px;
-        font-weight: bold;
-      }
-
-      form {
-        display: block;
-        margin-top: 8px;
-        margin-bottom: 10px;
-      }
-
-      .hmw-input-div {
-        display: flex;
-      }
-
-      .placeholder {
-        color: #aaa;
-      }
-
-      label {
-        font-size: 14px;
-        color: #044B8D;
-        font-weight: bold;
-        margin: 10px 0px;
-        display: block;
-      }
-
-      .widget .title {
-        display: block;
-        height: auto;
-        text-align: center;
+      .widget-content h1 {
+        margin-top: 0;
         margin-bottom: 8px;
         font-size: 15px;
-        font-weight: bold;
+        text-align: center;
       }
-      
-      .title a {
+
+      .widget-content h1 a {
         text-decoration: none;
-        color: #044B8D;
+        color: #044b8d;
       }
 
-      a img {
-        border: 0;
+      .widget-content p {
+        margin-top: 0;
+        margin-bottom: 8px;
+        color: #333;
       }
 
-      body {
+      .widget-content label {
+        display: block;
+        margin-bottom: 3px;
+        font-weight: bold;
+        color: #044b8d;
+      }
+
+      .widget-input {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .widget-input input {
+        border: 1px solid #044b8d;
+        border-radius: 3px;
+      }
+
+      .widget-input input[type="text"] {
+        flex: 1;
+        padding: 4px;
         width: 100%;
-        height: 100vh;
-        display: flex;
-        flex-flow: column;
+        color: #999;
       }
 
-      .content-footer {
+      .widget-input input[type="submit"] {
+        margin-left: 6px;
+        padding: 4px 8px;
+        font-weight: bold;
+        text-shadow: 0 0 6px rgba(0, 0, 0, 0.375);
+        color: #fff;
+        background-color: #044b8d;
+      }
+
+      .widget-footer {
         display: flex;
+        align-items: flex-end;
         justify-content: space-between;
         position: absolute;
         bottom: 0;
-        width: 100%;
-        padding: 5px 0;
-        /* background-image: linear-gradient(0deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0)); */
-        border-radius: 7px;
+        width: calc(100% - 12px);
+        padding: 6px;
+      }
+
+      .widget-footer img {
+        height: 16px;
+        width: auto;
       }
     </style>
   </head>
   <body class="blank">
     <!-- Google Tag Manager -->
-    <noscript
-      ><iframe
+    <noscript>
+      <iframe
         src="//www.googletagmanager.com/ns.html?id=GTM-L8ZB"
         height="0"
         width="0"
-        style="display: none; visibility: hidden"
-      ></iframe
-    ></noscript>
+        style="display: none; visibility: hidden">
+      </iframe>
+    </noscript>
     <script>
       (function (w, d, s, l, i) {
         w[l] = w[l] || [];
@@ -157,94 +156,74 @@
       })(window, document, 'script', 'dataLayer', 'GTM-L8ZB');
     </script>
     <!-- End Google Tag Manager -->
-	<noscript>
-		<style type="text/css">
-			#hmw-form { 
-				visibility: hidden; 
-			}
-		</style>
-	</noscript>
+
+    <noscript>
+      <style>#hmw-form { visibility: hidden; }</style>
+    </noscript>
+
     <div class="widget">
-      <div class="content">
-        <div class="title">
-          <a href="https://mywaterway.epa.gov/" target="_blank"
-            >How's My Waterway</a
-          >
-        </div>
-        Explore water quality in your community!
+      <div class="widget-content">
+        <h1>
+          <a href="https://mywaterway.epa.gov/" target="_blank" rel="noopener noreferrer">
+            How’s My Waterway
+          </a>
+        </h1>
+
+        <p>Explore water quality in your community!</p>
+
         <form id="hmw-form">
-          <label>Enter a location:</label>
-          <div class="hmw-input-div">
+          <label for="hmw-location">Enter a location:</label>
+          <div class="widget-input">
             <input
+              id="hmw-location"
               type="text"
-              name="wherestr"
+              name="location"
               value="address, zip or place"
-              onfocus="clearMe(this)"
-              onblur="setdefault(this)"
-              class="txt"
-              id="hmw-location-input"
+              onfocus="clearDefault(this)"
+              onblur="setDefault(this)"
             />
-            <input type="submit" value="Go" class="btn" />
+            <input type="submit" value="Go" />
           </div>
         </form>
       </div>
-      <div style="clear: both; margin: 0; padding: 0"></div>
-      <div class="content-footer">
-        <div style="margin-left: 7px;">
-          <a href="https://www.epa.gov/waterdata/hows-my-waterway"
-            ><img
-              style="border: 0; margin: 0; padding: 0; float: left"
-              src="https://www.epa.gov/sites/production/files/2015-06/info.png"
-          /></a>
-        </div>
-        <div style="margin-right: 10px;">
-          <a href="https://www.epa.gov"
-            ><img
-              style="border: 0; margin: 0; padding: 0; float: left"
-              src="https://www.epa.gov/sites/production/files/2014-03/epa-logo.png"
-          /></a>
-        </div>
+
+      <div class="widget-footer">
+        <a href="https://www.epa.gov/waterdata/hows-my-waterway">
+          <img src="https://www.epa.gov/sites/production/files/2015-06/info.png" />
+        </a>
+        <a href="https://www.epa.gov">
+          <img src="https://www.epa.gov/sites/production/files/2014-03/epa-logo.png" />
+        </a>
       </div>
     </div>
-    </div>
-    <footer role="contentinfo"></footer>
-    <script type="text/javascript">
-      var ele = document.getElementById('hmw-form');
-      if (ele.addEventListener) {
-        ele.addEventListener('submit', onSubmit, false); //Modern browsers
-      } else if (ele.attachEvent) {
-        ele.attachEvent('onsubmit', onSubmit); //Old IE
+
+    <script>
+      var form = document.getElementById('hmw-form');
+
+      if (form.addEventListener) {
+        form.addEventListener('submit', onSubmit, false); //Modern browsers
+      } else if (form.attachEvent) {
+        form.attachEvent('onsubmit', onSubmit); //Old IE
       }
 
-      function onSubmit(e) {
-        e.preventDefault();
+      function onSubmit(ev) {
+        ev.preventDefault();
 
-        var form = document.getElementById('hmw-form');
-        if (verify(form)) {
-          var elm = document.getElementById('hmw-location-input');
-
-          var fullUrl = 'https://mywaterway.epa.gov/community/';
-          fullUrl = fullUrl + elm.value;
-          window.open(fullUrl, '_blank');
-        }
-      }
-
-      function verify(frm) {
-        if (frm.wherestr.value == frm.wherestr.defaultValue) {
+        if (form.location.value === form.location.defaultValue) {
           alert('Please input a location.');
-          return false;
-        } else {
-          return true;
+          return;
         }
+
+        var url = 'https://mywaterway.epa.gov/community/' + form.location.value;
+        window.open(url, '_blank');
       }
 
-      function clearMe(formfield) {
-        if (formfield.defaultValue == formfield.value) formfield.value = '';
+      function clearDefault(field) {
+        if (field.defaultValue === field.value) field.value = '';
       }
-      function setdefault(formfield) {
-        if (formfield.value == '') {
-          formfield.value = formfield.defaultValue;
-        }
+
+      function setDefault(field) {
+        if (field.value === '') field.value = field.defaultValue;
       }
     </script>
   </body>
