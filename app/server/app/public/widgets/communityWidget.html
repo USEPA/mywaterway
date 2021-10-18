@@ -36,44 +36,43 @@
     <!--googleoff: all-->
     <style type="text/css">
       .widget {
-        height: 225px;
-        width: 180px;
+        height: 100%;
+        min-height: 135px;
         font-family: Verdana, Geneva, sans-serif;
         font-size: 13px;
         line-height: 14px;
-        background-image: url(https://www.epa.gov/sites/production/files/2015-06/ef_bg2.png);
+        background-image: url(http://localhost:9090/widgets/boating.jpg);
         background-repeat: no-repeat;
-        padding-top: 10px;
-        padding-right: 10px;
-        padding-bottom: 5px;
-        padding-left: 10px;
+        background-size: 100% 100%;
         color: #000;
         font-weight: normal;
         position: relative;
         border: 3px solid #0059b2;
+        border-radius: 10px;
       }
+
+      .content {
+        background-image: linear-gradient(0deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.8));
+        border-radius: 7px;
+        padding-top: 10px;
+        padding-right: 10px;
+        padding-bottom: 5px;
+        padding-left: 10px;
+      }
+
       .txt {
-        display: block;
-        clear: both;
-        margin: 10px 0 0;
-        padding: 3px;
-        position: relative;
-        width: 174px;
+        margin: 0 5px 0 0;
+        width: calc(100% - 35px);
         color: #999;
+        height: 24px;
       }
 
       .btn {
         background-color: #044b8d;
         border: 1px solid #cccccc;
-        clear: both;
         color: #fff;
-        display: block;
-        float: left;
         font-size: 15px;
         font-weight: bold;
-        margin: 8px 0 0;
-        padding: 5px;
-        position: relative;
       }
 
       form {
@@ -81,13 +80,18 @@
         margin-top: 8px;
         margin-bottom: 10px;
       }
+
+      .hmw-input-div {
+        display: flex;
+      }
+
       .placeholder {
         color: #aaa;
       }
 
       label {
         font-size: 14px;
-        color: #093;
+        color: #044B8D;
         font-weight: bold;
         margin: 10px 0px;
         display: block;
@@ -101,8 +105,32 @@
         font-size: 15px;
         font-weight: bold;
       }
+      
+      .title a {
+        text-decoration: none;
+        color: #044B8D;
+      }
+
       a img {
         border: 0;
+      }
+
+      body {
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        flex-flow: column;
+      }
+
+      .content-footer {
+        display: flex;
+        justify-content: space-between;
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        padding: 5px 0;
+        background-image: linear-gradient(0deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0));
+        border-radius: 7px;
       }
     </style>
   </head>
@@ -137,42 +165,47 @@
 		</style>
 	</noscript>
     <div class="widget">
-      <div class="title">
-        <a href="https://mywaterway.epa.gov/" target="_blank"
-          >How's My Waterway</a
-        >
-      </div>
-      Explore water quality in your community!
-      <form id="hmw-form">
-        <label>Enter a location:</label>
-        <input
-          type="text"
-          name="wherestr"
-          value="e.g.: address, zip or place"
-          onfocus="clearMe(this)"
-          onblur="setdefault(this)"
-          class="txt"
-          id="hmw-location-input"
-        />
-        <input type="submit" value="Go" class="btn" />
-      </form>
-      <div style="clear: both; margin: 0; padding: 0"></div>
-      <div style="clear: both; margin: 10px 0 0; width: 100%">
-        <div style="float: left">
-          <a href="https://www.epa.gov"
-            ><img
-              style="border: 0; margin: 0; padding: 0; float: left"
-              src="https://www.epa.gov/sites/production/files/2014-03/epa-logo.png"
-          /></a>
+      <div class="content">
+        <div class="title">
+          <a href="https://mywaterway.epa.gov/" target="_blank"
+            >How's My Waterway</a
+          >
         </div>
-        <div style="width: 20px; float: right">
+        Explore water quality in your community!
+        <form id="hmw-form">
+          <label>Enter a location:</label>
+          <div class="hmw-input-div">
+            <input
+              type="text"
+              name="wherestr"
+              value="address, zip or place"
+              onfocus="clearMe(this)"
+              onblur="setdefault(this)"
+              class="txt"
+              id="hmw-location-input"
+            />
+            <input type="submit" value="Go" class="btn" />
+          </div>
+        </form>
+      </div>
+      <div style="clear: both; margin: 0; padding: 0"></div>
+      <div class="content-footer">
+        <div style="margin-left: 7px;">
           <a href="https://www.epa.gov/waterdata/hows-my-waterway"
             ><img
               style="border: 0; margin: 0; padding: 0; float: left"
               src="https://www.epa.gov/sites/production/files/2015-06/info.png"
           /></a>
         </div>
+        <div style="margin-right: 10px;">
+          <a href="https://www.epa.gov"
+            ><img
+              style="border: 0; margin: 0; padding: 0; float: left"
+              src="https://www.epa.gov/sites/production/files/2014-03/epa-logo.png"
+          /></a>
+        </div>
       </div>
+    </div>
     </div>
     <footer role="contentinfo"></footer>
     <script type="text/javascript">
