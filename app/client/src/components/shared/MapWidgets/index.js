@@ -260,6 +260,7 @@ function MapWidgets({
     setUpstreamExtent,
     setErrorMessage,
     getWatershed,
+    allWaterbodiesLayer,
     getAllWaterbodiesLayer,
     allWaterbodiesWidget,
     setAllWaterbodiesWidget,
@@ -1149,18 +1150,27 @@ function MapWidgets({
     if (!window.location.pathname.includes('/community')) {
       // hide all waterbodies widget on other pages
       allWaterbodiesWidget.style.display = 'none';
+      allWaterbodiesLayer.visible = false;
       return;
     }
 
     if (!huc12 || window.location.pathname === '/community') {
       // disable all waterbodies widget on community home or invalid searches
       setAllWaterbodiesWidgetDisabled(true);
+      allWaterbodiesLayer.visible = false;
       return;
     }
 
     // display and enable the all waterbodies widget
     setAllWaterbodiesWidgetDisabled(false);
-  }, [huc12, allWaterbodiesWidget, setAllWaterbodiesWidgetDisabled]);
+    if (allWaterbodiesLayerVisible) allWaterbodiesLayer.visible = true;
+  }, [
+    huc12,
+    allWaterbodiesLayer,
+    allWaterbodiesLayerVisible,
+    allWaterbodiesWidget,
+    setAllWaterbodiesWidgetDisabled,
+  ]);
 
   // disable the all waterbodies widget if on the community home page
   React.useEffect(() => {

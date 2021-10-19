@@ -155,7 +155,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     selWaterBodyLayer: '',
     wsioHealthIndexLayer: '',
     allWaterbodiesLayer: '',
-    allWaterbodiesLayerVisible: false,
+    allWaterbodiesLayerVisible: true,
     homeWidget: null,
     upstreamWidget: null,
     upstreamWidgetDisabled: false,
@@ -567,7 +567,6 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         mapView.extent = initialExtent;
 
         if (allWaterbodiesLayer) {
-          newState['allWaterbodiesLayerVisible'] = false;
           allWaterbodiesLayer.visible = false;
           allWaterbodiesLayer.listMode = 'hide';
         }
