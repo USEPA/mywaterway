@@ -260,7 +260,6 @@ function MapWidgets({
     setUpstreamExtent,
     setErrorMessage,
     getWatershed,
-    allWaterbodiesLayer,
     getAllWaterbodiesLayer,
     allWaterbodiesWidget,
     setAllWaterbodiesWidget,
