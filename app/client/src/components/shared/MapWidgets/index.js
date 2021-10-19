@@ -1215,9 +1215,9 @@ function MapWidgets({
     setAllWaterbodiesWidget(node); // store the widget in context so it can be shown or hidden later
     ReactDOM.render(
       <ShowAllWaterbodies
-        getAllWaterbodiesLayer={getAllWaterbodiesLayer}
-        getAllWaterbodiesWidgetDisabled={getAllWaterbodiesWidgetDisabled}
-        mapView={mapView}
+        getLayer={getAllWaterbodiesLayer}
+        getDisabled={getAllWaterbodiesWidgetDisabled}
+        view={mapView}
       />,
       node,
     );
@@ -1232,16 +1232,16 @@ function MapWidgets({
   ]);
 
   type allWaterbodiesProps = {
-    getAllWaterbodiesLayer: Function,
-    getAllWaterbodiesWidgetDisabled: Function,
-    mapView: Object,
+    getLayer: Function,
+    getDisabled: Function,
+    view: Object,
   };
 
   // Defines the show all waterbodies widget
   function ShowAllWaterbodies({
-    getAllWaterbodiesLayer,
-    getAllWaterbodiesWidgetDisabled,
-    mapView,
+    getLayer,
+    getDisabled,
+    view,
   }: allWaterbodiesProps) {
     const [firstLoad, setFirstLoad] = React.useState(true);
     const [hover, setHover] = React.useState(false);
@@ -1255,43 +1255,37 @@ function MapWidgets({
     if (firstLoad) {
       setFirstLoad(false);
 
-      watchUtils.watch(
-        mapView,
-        'updating',
-        (newVal, oldVal, propName, event) => {
-          setAllWaterbodiesLoading(newVal);
-        },
-      );
+      watchUtils.watch(view, 'updating', (newVal, oldVal, propName, event) => {
+        setAllWaterbodiesLoading(newVal);
+      });
     }
 
-    const allWaterbodiesWidgetDisabled = getAllWaterbodiesWidgetDisabled();
-    const allWaterbodiesLayer = getAllWaterbodiesLayer();
+    const widgetDisabled = getDisabled();
+    const layer = getLayer();
 
-    const title = allWaterbodiesWidgetDisabled
+    const title = widgetDisabled
       ? 'Surrounding Waterbodies Widget Not Available'
-      : allWaterbodiesLayer.visible
+      : layer.visible
       ? 'Hide Surrounding Waterbodies'
       : 'View Surrounding Waterbodies';
 
     return (
       <div
         title={title}
-        style={
-          !allWaterbodiesWidgetDisabled && hover ? divHoverStyle : divStyle
-        }
+        style={!widgetDisabled && hover ? divHoverStyle : divStyle}
         onMouseOver={() => setHover(true)}
         onMouseOut={() => setHover(false)}
         onClick={(ev) => {
           // if widget is disabled do nothing
-          if (allWaterbodiesWidgetDisabled) return;
+          if (widgetDisabled) return;
 
-          allWaterbodiesLayer.visible = !allWaterbodiesLayer.visible;
-          setAllWaterbodiesLayerVisible(allWaterbodiesLayer.visible);
+          layer.visible = !layer.visible;
+          setAllWaterbodiesLayerVisible(layer.visible);
         }}
       >
         <span
           className={
-            allWaterbodiesLoading && allWaterbodiesLayer?.visible
+            allWaterbodiesLoading && layer?.visible
               ? 'esri-icon-loading-indicator esri-rotating'
               : 'esri-icon-basemap'
           }

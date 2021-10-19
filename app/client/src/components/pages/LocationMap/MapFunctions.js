@@ -221,7 +221,7 @@ export function createWaterbodySymbol({
   }
 
   if (geometryType === 'polygon') {
-    const outline = selected
+    const polyOutline = selected
       ? { color: [0, 255, 255, alpha ? alpha.outline : 0.5], width: 3 }
       : null;
 
@@ -230,7 +230,7 @@ export function createWaterbodySymbol({
       color,
       width: 3,
       style: 'solid',
-      outline,
+      outline: polyOutline,
     };
   }
 }
