@@ -269,7 +269,6 @@ function MapWidgets({
     allWaterbodiesLayerVisible,
     setAllWaterbodiesLayerVisible,
     getAllWaterbodiesWidgetDisabled,
-    mapView,
   } = React.useContext(LocationSearchContext);
 
   const services = useServicesContext();
@@ -1208,7 +1207,7 @@ function MapWidgets({
     setAllWaterbodiesWidgetCreated, //
   ] = React.useState(false);
   React.useEffect(() => {
-    if (allWaterbodiesWidgetCreated || !mapView || !view || !view.ui) return;
+    if (allWaterbodiesWidgetCreated || !view || !view.ui) return;
 
     const node = document.createElement('div');
     view.ui.add(node, { position: 'top-right', index: 2 });
@@ -1217,7 +1216,7 @@ function MapWidgets({
       <ShowAllWaterbodies
         getLayer={getAllWaterbodiesLayer}
         getDisabled={getAllWaterbodiesWidgetDisabled}
-        view={mapView}
+        mapView={view}
       />,
       node,
     );
@@ -1226,7 +1225,6 @@ function MapWidgets({
     allWaterbodiesWidgetCreated,
     getAllWaterbodiesLayer,
     getAllWaterbodiesWidgetDisabled,
-    mapView,
     setAllWaterbodiesWidget,
     view,
   ]);
@@ -1234,14 +1232,14 @@ function MapWidgets({
   type allWaterbodiesProps = {
     getLayer: Function,
     getDisabled: Function,
-    view: Object,
+    mapView: Object,
   };
 
   // Defines the show all waterbodies widget
   function ShowAllWaterbodies({
     getLayer,
     getDisabled,
-    view,
+    mapView,
   }: allWaterbodiesProps) {
     const [firstLoad, setFirstLoad] = React.useState(true);
     const [hover, setHover] = React.useState(false);
@@ -1255,19 +1253,21 @@ function MapWidgets({
     if (firstLoad) {
       setFirstLoad(false);
 
-      watchUtils.watch(view, 'updating', (newVal, oldVal, propName, event) => {
-        setAllWaterbodiesLoading(newVal);
-      });
+      watchUtils.watch(
+        mapView,
+        'updating',
+        (newVal, oldVal, propName, event) => {
+          setAllWaterbodiesLoading(newVal);
+        },
+      );
     }
 
     const widgetDisabled = getDisabled();
     const layer = getLayer();
 
-    const title = widgetDisabled
-      ? 'Surrounding Waterbodies Widget Not Available'
-      : layer.visible
-      ? 'Hide Surrounding Waterbodies'
-      : 'View Surrounding Waterbodies';
+    let title = 'View Surrounding Waterbodies';
+    if (widgetDisabled) title = 'Surrounding Waterbodies Widget Not Available';
+    else if (layer.visible) title = 'Hide Surrounding Waterbodies';
 
     return (
       <div
