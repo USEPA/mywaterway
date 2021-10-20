@@ -138,6 +138,10 @@
         height: 16px;
         width: auto;
       }
+
+      #hmw-no-script-link {
+        display: none;
+      }
     </style>
   </head>
   <body class="blank">
@@ -167,7 +171,15 @@
     <!-- End Google Tag Manager -->
 
     <noscript>
-      <style>#hmw-form { visibility: hidden; }</style>
+      <style>
+        #hmw-form {
+          display: none;
+        }
+
+        #hmw-no-script-link {
+          display: block;
+        }
+      </style>
     </noscript>
 
     <div class="widget">
@@ -183,6 +195,15 @@
         </h1>
 
         <p>Explore water quality in your community!</p>
+
+        <a
+          id="hmw-no-script-link"
+          href="https://mywaterway.epa.gov/community"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Learn more
+        </a>
 
         <form id="hmw-form">
           <label for="hmw-location">Enter a location:</label>
