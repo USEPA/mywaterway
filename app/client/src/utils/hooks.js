@@ -1154,9 +1154,9 @@ function useSharedLayers() {
     };
 
     const alpha = {
-      base: 0.4,
-      poly: 0.3,
-      outline: 0.2,
+      base: 0.2,
+      poly: 0.1,
+      outline: 0.05,
     };
 
     // Build the feature layers that will make up the waterbody layer
