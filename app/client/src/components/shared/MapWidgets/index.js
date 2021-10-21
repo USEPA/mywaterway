@@ -1249,6 +1249,9 @@ function MapWidgets({
       false,
     );
 
+    const widgetDisabled = getDisabled();
+    const layer = getLayer();
+
     // create a watcher to control the loading spinner for the widget
     if (firstLoad) {
       setFirstLoad(false);
@@ -1257,13 +1260,14 @@ function MapWidgets({
         mapView,
         'updating',
         (newVal, oldVal, propName, event) => {
-          setAllWaterbodiesLoading(newVal);
+          if (layer?.minScale > mapView.scale) {
+            setAllWaterbodiesLoading(newVal);
+          } else {
+            setAllWaterbodiesLoading(false);
+          }
         },
       );
     }
-
-    const widgetDisabled = getDisabled();
-    const layer = getLayer();
 
     let title = 'View Surrounding Waterbodies';
     if (widgetDisabled) title = 'Surrounding Waterbodies Widget Not Available';
@@ -1296,6 +1300,34 @@ function MapWidgets({
       </div>
     );
   }
+
+  // Add a watcher to enable/disable the all waterbodies widget when the user
+  // zooms out to far for the layer's scale
+  const [
+    allWaterbodiesScaleWatcher,
+    setAllWaterbodiesScaleWatcher,
+  ] = React.useState(false);
+  React.useEffect(() => {
+    if (!allWaterbodiesWidget || allWaterbodiesScaleWatcher) return;
+
+    watchUtils.watch(view, 'scale', (newVal, oldVal, propName, event) => {
+      if (allWaterbodiesLayer?.minScale < newVal) {
+        allWaterbodiesWidget.style.opacity = '0.5';
+        allWaterbodiesWidget.style.cursor = 'default';
+      } else {
+        allWaterbodiesWidget.style.opacity = '1';
+        allWaterbodiesWidget.style.cursor = 'pointer';
+      }
+    });
+
+    setAllWaterbodiesScaleWatcher(true);
+  }, [
+    allWaterbodiesLayer,
+    allWaterbodiesScaleWatcher,
+    allWaterbodiesWidget,
+    watchUtils,
+    view,
+  ]);
 
   if (!addDataWidget) return null;
 

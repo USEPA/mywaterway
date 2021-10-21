@@ -1228,6 +1228,7 @@ function useSharedLayers() {
       title: 'All Waterbodies',
       listMode: 'hide',
       visible: true,
+      minScale,
     });
     allWaterbodiesLayer.addMany([areasLayer, linesLayer, pointsLayer]);
     setAllWaterbodiesLayer(allWaterbodiesLayer);
