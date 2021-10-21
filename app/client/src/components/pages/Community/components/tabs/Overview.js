@@ -16,6 +16,12 @@ import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import { infoBoxStyles, errorBoxStyles } from 'components/shared/MessageBoxes';
+import {
+  keyMetricsStyles,
+  keyMetricStyles,
+  keyMetricNumberStyles,
+  keyMetricLabelStyles,
+} from 'components/shared/KeyMetrics';
 // contexts
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -37,7 +43,6 @@ import {
 } from 'config/errorMessages';
 
 const containerStyles = css`
-  margin-top: 1em;
   padding: 1em;
 `;
 
@@ -51,6 +56,10 @@ const modifiedInfoBoxStyles = css`
   ${infoBoxStyles};
   margin-bottom: 1em;
   text-align: center;
+`;
+
+const switchContainerStyles = css`
+  margin-top: 0.5em;
 `;
 
 const toggleStyles = css`
@@ -313,6 +322,119 @@ function Overview() {
             {zeroAssessedWaterbodies(watershed)}
           </p>
         )}
+
+      <div css={keyMetricsStyles}>
+        <div css={keyMetricStyles}>
+          {(!waterbodyLayer || waterbodies === null) &&
+          cipSummary.status !== 'failure' ? (
+            <LoadingSpinner />
+          ) : (
+            <>
+              <span css={keyMetricNumberStyles}>
+                {cipSummary.status === 'failure'
+                  ? 'N/A'
+                  : (assessmentUnitCount &&
+                      assessmentUnitCount.toLocaleString()) ||
+                    '0'}
+              </span>
+              <p css={keyMetricLabelStyles}>Number of Waterbodies</p>
+              <div css={switchContainerStyles}>
+                <Switch
+                  checked={Boolean(waterbodyCount) && waterbodiesFilterEnabled}
+                  onChange={(checked) => {
+                    setWaterbodiesFilterEnabled(!waterbodiesFilterEnabled);
+
+                    // first check if layer exists and is not falsy
+                    updateVisibleLayers({
+                      key: 'waterbodyLayer',
+                      newValue: waterbodyLayer && !waterbodiesFilterEnabled,
+                    });
+                  }}
+                  disabled={!Boolean(waterbodyCount)}
+                  ariaLabel="Waterbodies"
+                />
+              </div>
+            </>
+          )}
+        </div>
+
+        <div css={keyMetricStyles}>
+          {!monitoringStationsLayer ||
+          monitoringLocations.status === 'fetching' ? (
+            <LoadingSpinner />
+          ) : (
+            <>
+              <span css={keyMetricNumberStyles}>
+                {monitoringLocations.status === 'failure'
+                  ? 'N/A'
+                  : (monitoringLocationCount &&
+                      monitoringLocationCount.toLocaleString()) ||
+                    '0'}
+              </span>
+              <p css={keyMetricLabelStyles}>Number of Monitoring Locations</p>
+              <div css={switchContainerStyles}>
+                <Switch
+                  checked={
+                    Boolean(monitoringLocationCount) &&
+                    monitoringLocationsFilterEnabled
+                  }
+                  onChange={(checked) => {
+                    setMonitoringLocationsFilterEnabled(
+                      !monitoringLocationsFilterEnabled,
+                    );
+
+                    // first check if layer exists and is not falsy
+                    updateVisibleLayers({
+                      key: 'monitoringStationsLayer',
+                      newValue:
+                        monitoringStationsLayer &&
+                        !monitoringLocationsFilterEnabled,
+                    });
+                  }}
+                  disabled={!Boolean(monitoringLocationCount)}
+                  ariaLabel="Monitoring Locations"
+                />
+              </div>
+            </>
+          )}
+        </div>
+
+        <div css={keyMetricStyles}>
+          {!dischargersLayer || permittedDischargers.status === 'fetching' ? (
+            <LoadingSpinner />
+          ) : (
+            <>
+              <span css={keyMetricNumberStyles}>
+                {permittedDischargers.status === 'failure'
+                  ? 'N/A'
+                  : (permittedDischargerCount &&
+                      permittedDischargerCount.toLocaleString()) ||
+                    '0'}
+              </span>
+              <p css={keyMetricLabelStyles}>Number of Permitted Dischargers</p>
+              <div css={switchContainerStyles}>
+                <Switch
+                  checked={
+                    Boolean(permittedDischargerCount) &&
+                    dischargersFilterEnabled
+                  }
+                  onChange={(checked) => {
+                    setDischargersFilterEnabled(!dischargersFilterEnabled);
+
+                    // first check if layer exists and is not falsy
+                    updateVisibleLayers({
+                      key: 'dischargersLayer',
+                      newValue: dischargersLayer && !dischargersFilterEnabled,
+                    });
+                  }}
+                  disabled={!Boolean(permittedDischargerCount)}
+                  ariaLabel="Permitted Dischargers"
+                />
+              </div>
+            </>
+          )}
+        </div>
+      </div>
 
       <ContentTabs>
         <Tabs>
