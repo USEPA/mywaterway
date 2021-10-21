@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 // components
 import {
   AccordionList,
@@ -12,17 +12,10 @@ import { ContentTabs } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Switch from 'components/shared/Switch';
 import WaterbodyList from 'components/shared/WaterbodyList';
-import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
-// styled components
-import {
-  StyledMetrics,
-  StyledMetric,
-  StyledNumber,
-  StyledLabel,
-} from 'components/shared/KeyMetrics';
+import { infoBoxStyles, errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -43,44 +36,41 @@ import {
   zeroAssessedWaterbodies,
 } from 'config/errorMessages';
 
-// --- styled components ---
-const Container = styled.div`
+const containerStyles = css`
   margin-top: 1em;
-
-  [data-reach-tab] {
-    color: black;
-    background-color: white;
-  }
-
-  [data-reach-tab][data-selected],
-  [data-reach-tab]:hover,
-  [data-reach-tab]:focus {
-    background-color: rgb(240, 246, 249);
-  }
+  padding: 1em;
 `;
 
-const SwitchContainer = styled.div`
-  margin-top: 0.5em;
-`;
-
-const ErrorBoxWithMargin = styled(StyledErrorBox)`
-  margin: 1em;
-`;
-
-const InfoBoxWithMargin = styled(StyledInfoBox)`
-  margin: 1em;
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles};
+  margin-bottom: 1em;
   text-align: center;
 `;
 
-const Text = styled.p`
+const modifiedInfoBoxStyles = css`
+  ${infoBoxStyles};
+  margin-bottom: 1em;
   text-align: center;
 `;
 
-const AccordionContent = styled.div`
+const toggleStyles = css`
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+
+  span {
+    margin-left: 0.5rem;
+  }
+`;
+
+const centeredTextStyles = css`
+  text-align: center;
+`;
+
+const accordionContentStyles = css`
   padding: 0.4375em 0.875em 0.875em;
 `;
 
-// --- components ---
 function Overview() {
   const { Graphic } = React.useContext(EsriModulesContext);
 
@@ -297,319 +287,177 @@ function Overview() {
   );
 
   return (
-    <Container>
+    <div css={containerStyles}>
       {cipSummary.status === 'failure' && (
-        <ErrorBoxWithMargin>
+        <div css={modifiedErrorBoxStyles}>
           <p>{huc12SummaryError}</p>
-        </ErrorBoxWithMargin>
+        </div>
       )}
+
       {monitoringLocations.status === 'failure' && (
-        <ErrorBoxWithMargin>
+        <div css={modifiedErrorBoxStyles}>
           <p>{monitoringError}</p>
-        </ErrorBoxWithMargin>
+        </div>
       )}
 
       {permittedDischargers.status === 'failure' && (
-        <ErrorBoxWithMargin>
+        <div css={modifiedErrorBoxStyles}>
           <p>{echoError}</p>
-        </ErrorBoxWithMargin>
+        </div>
       )}
-      {/* <StyledMetrics>
-        <StyledMetric>
-          {(!waterbodyLayer || waterbodies === null) &&
-          cipSummary.status !== 'failure' ? (
-            <LoadingSpinner />
-          ) : (
-            <>
-              <StyledNumber>
-                {cipSummary.status === 'failure'
-                  ? 'N/A'
-                  : assessmentUnitCount.toLocaleString()}
-              </StyledNumber>
-              <StyledLabel>Number of Waterbodies</StyledLabel>
-              <SwitchContainer>
-                <Switch
-                  checked={
-                    Boolean(waterbodyCount) && waterbodiesFilterEnabled
-                  }
-                  onChange={(checked) => {
-                    setWaterbodiesFilterEnabled(!waterbodiesFilterEnabled);
 
-                    // first check if layer exists and is not falsy
-                    updateVisibleLayers({
-                      key: 'waterbodyLayer',
-                      newValue: waterbodyLayer && !waterbodiesFilterEnabled,
-                    });
-                  }}
-                  disabled={!Boolean(waterbodyCount)}
-                  ariaLabel="Waterbodies"
-                />
-              </SwitchContainer>
-            </>
-          )}
-        </StyledMetric>
-
-        <StyledMetric>
-          {!monitoringStationsLayer ||
-          monitoringLocations.status === 'fetching' ? (
-            <LoadingSpinner />
-          ) : (
-            <>
-              <StyledNumber>
-                {monitoringLocations.status === 'failure'
-                  ? 'N/A'
-                  : (monitoringLocationCount &&
-                      monitoringLocationCount.toLocaleString()) ||
-                    0}
-              </StyledNumber>
-              <StyledLabel>Number of Monitoring Locations</StyledLabel>
-              <SwitchContainer>
-                <Switch
-                  checked={
-                    Boolean(monitoringLocationCount) &&
-                    monitoringLocationsFilterEnabled
-                  }
-                  onChange={(checked) => {
-                    setMonitoringLocationsFilterEnabled(
-                      !monitoringLocationsFilterEnabled,
-                    );
-
-                    // first check if layer exists and is not falsy
-                    updateVisibleLayers({
-                      key: 'monitoringStationsLayer',
-                      newValue:
-                        monitoringStationsLayer &&
-                        !monitoringLocationsFilterEnabled,
-                    });
-                  }}
-                  disabled={!Boolean(monitoringLocationCount)}
-                  ariaLabel="Monitoring Locations"
-                />
-              </SwitchContainer>
-            </>
-          )}
-        </StyledMetric>
-
-        <StyledMetric>
-          {!dischargersLayer || permittedDischargers.status === 'fetching' ? (
-            <LoadingSpinner />
-          ) : (
-            <>
-              <StyledNumber>
-                {permittedDischargers.status === 'failure'
-                  ? 'N/A'
-                  : (permittedDischargerCount &&
-                      permittedDischargerCount.toLocaleString()) ||
-                    0}
-              </StyledNumber>
-              <StyledLabel>Number of Permitted Dischargers</StyledLabel>
-              <SwitchContainer>
-                <Switch
-                  checked={
-                    Boolean(permittedDischargerCount) &&
-                    dischargersFilterEnabled
-                  }
-                  onChange={(checked) => {
-                    setDischargersFilterEnabled(!dischargersFilterEnabled);
-
-                    // first check if layer exists and is not falsy
-                    updateVisibleLayers({
-                      key: 'dischargersLayer',
-                      newValue: dischargersLayer && !dischargersFilterEnabled,
-                    });
-                  }}
-                  disabled={!Boolean(permittedDischargerCount)}
-                  ariaLabel="Permitted Dischargers"
-                />
-              </SwitchContainer>
-            </>
-          )}
-        </StyledMetric>
-      </StyledMetrics> */}
+      {cipSummary.status === 'success' &&
+        waterbodies !== null &&
+        waterbodyCount === 0 && (
+          <p css={modifiedInfoBoxStyles}>
+            {zeroAssessedWaterbodies(watershed)}
+          </p>
+        )}
 
       <ContentTabs>
         <Tabs>
           <TabList>
             <Tab>
-              <StyledMetric>
-                {(!waterbodyLayer || waterbodies === null) &&
-                cipSummary.status !== 'failure' ? (
-                  <LoadingSpinner />
-                ) : (
-                  <>
-                    <StyledNumber>
-                      {cipSummary.status === 'failure'
-                        ? 'N/A'
-                        : waterbodyCount.toLocaleString()}
-                    </StyledNumber>
-                    <StyledLabel>Number of Waterbodies</StyledLabel>
-                    <SwitchContainer>
-                      <Switch
-                        checked={
-                          Boolean(waterbodyCount) && waterbodiesFilterEnabled
-                        }
-                        onChange={(checked) => {
-                          setWaterbodiesFilterEnabled(
-                            !waterbodiesFilterEnabled,
-                          );
-
-                          // first check if layer exists and is not falsy
-                          setVisibleLayers({
-                            waterbodyLayer:
-                              waterbodyLayer && !waterbodiesFilterEnabled,
-                            monitoringStationsLayer:
-                              monitoringStationsLayer &&
-                              monitoringLocationsFilterEnabled,
-                            dischargersLayer:
-                              dischargersLayer && dischargersFilterEnabled,
-                          });
-                        }}
-                        disabled={!Boolean(waterbodyCount)}
-                        ariaLabel="Waterbodies"
-                      />
-                    </SwitchContainer>
-                  </>
-                )}
-              </StyledMetric>
+              {(!waterbodyLayer || waterbodies === null) &&
+              cipSummary.status !== 'failure' ? (
+                <>Waterbodies</>
+              ) : (
+                <>
+                  {cipSummary.status !== 'failure' && assessmentUnitCount && (
+                    <strong>{assessmentUnitCount.toLocaleString()}</strong>
+                  )}{' '}
+                  Waterbodies
+                </>
+              )}
             </Tab>
-            <Tab>
-              <StyledMetric>
-                {!monitoringStationsLayer ||
-                monitoringLocations.status === 'fetching' ? (
-                  <LoadingSpinner />
-                ) : (
-                  <>
-                    <StyledNumber>
-                      {monitoringLocations.status === 'failure'
-                        ? 'N/A'
-                        : (monitoringLocationCount &&
-                            monitoringLocationCount.toLocaleString()) ||
-                          0}
-                    </StyledNumber>
-                    <StyledLabel>Number of Monitoring Locations</StyledLabel>
-                    <SwitchContainer>
-                      <Switch
-                        checked={
-                          Boolean(monitoringLocationCount) &&
-                          monitoringLocationsFilterEnabled
-                        }
-                        onChange={(checked) => {
-                          setMonitoringLocationsFilterEnabled(
-                            !monitoringLocationsFilterEnabled,
-                          );
 
-                          // first check if layer exists and is not falsy
-                          setVisibleLayers({
-                            waterbodyLayer:
-                              waterbodyLayer && waterbodiesFilterEnabled,
-                            monitoringStationsLayer:
-                              monitoringStationsLayer &&
-                              !monitoringLocationsFilterEnabled,
-                            dischargersLayer:
-                              dischargersLayer && dischargersFilterEnabled,
-                          });
-                        }}
-                        disabled={!Boolean(monitoringLocationCount)}
-                        ariaLabel="Monitoring Locations"
-                      />
-                    </SwitchContainer>
-                  </>
-                )}
-              </StyledMetric>
+            <Tab>
+              {!monitoringStationsLayer ||
+              monitoringLocations.status === 'fetching' ? (
+                <>Monitoring Locations</>
+              ) : (
+                <>
+                  {monitoringLocations.status !== 'failure' &&
+                    monitoringLocationCount && (
+                      <strong>
+                        {monitoringLocationCount.toLocaleString() || '0'}
+                      </strong>
+                    )}{' '}
+                  Monitoring Locations
+                </>
+              )}
             </Tab>
-            <Tab>
-              <StyledMetric>
-                {!dischargersLayer ||
-                permittedDischargers.status === 'fetching' ? (
-                  <LoadingSpinner />
-                ) : (
-                  <>
-                    <StyledNumber>
-                      {permittedDischargers.status === 'failure'
-                        ? 'N/A'
-                        : (permittedDischargerCount &&
-                            permittedDischargerCount.toLocaleString()) ||
-                          0}
-                    </StyledNumber>
-                    <StyledLabel>Number of Permitted Dischargers</StyledLabel>
-                    <SwitchContainer>
-                      <Switch
-                        checked={
-                          Boolean(permittedDischargerCount) &&
-                          dischargersFilterEnabled
-                        }
-                        onChange={(checked) => {
-                          setDischargersFilterEnabled(
-                            !dischargersFilterEnabled,
-                          );
 
-                          // first check if layer exists and is not falsy
-                          setVisibleLayers({
-                            waterbodyLayer:
-                              waterbodyLayer && waterbodiesFilterEnabled,
-                            monitoringStationsLayer:
-                              monitoringStationsLayer &&
-                              monitoringLocationsFilterEnabled,
-                            dischargersLayer:
-                              dischargersLayer && !dischargersFilterEnabled,
-                          });
-                        }}
-                        disabled={!Boolean(permittedDischargerCount)}
-                        ariaLabel="Permitted Dischargers"
-                      />
-                    </SwitchContainer>
-                  </>
-                )}
-              </StyledMetric>
+            <Tab>
+              {!dischargersLayer ||
+              permittedDischargers.status === 'fetching' ? (
+                <>Permitted Dischargers</>
+              ) : (
+                <>
+                  {permittedDischargers.status !== 'failure' &&
+                    permittedDischargerCount && (
+                      <strong>
+                        {permittedDischargerCount.toLocaleString() || '0'}
+                      </strong>
+                    )}{' '}
+                  Permitted Dischargers
+                </>
+              )}
             </Tab>
           </TabList>
 
           <TabPanels>
             <TabPanel>
-              {cipSummary.status === 'success' &&
-                waterbodies !== null &&
-                waterbodyCount === 0 && (
-                  <InfoBoxWithMargin>
-                    {zeroAssessedWaterbodies(watershed)}
-                  </InfoBoxWithMargin>
-                )}
-              {cipSummary.status !== 'failure' && (
-                <WaterbodyList
-                  waterbodies={waterbodies}
-                  fieldName={null}
-                  title={`Overall condition of waterbodies in the ${watershed} watershed.`}
-                />
+              {waterbodies && (
+                <div css={toggleStyles}>
+                  <Switch
+                    checked={
+                      Boolean(waterbodyCount) && waterbodiesFilterEnabled
+                    }
+                    onChange={(checked) => {
+                      setWaterbodiesFilterEnabled(!waterbodiesFilterEnabled);
+
+                      // first check if layer exists and is not falsy
+                      setVisibleLayers({
+                        waterbodyLayer:
+                          waterbodyLayer && !waterbodiesFilterEnabled,
+                        monitoringStationsLayer:
+                          monitoringStationsLayer &&
+                          monitoringLocationsFilterEnabled,
+                        dischargersLayer:
+                          dischargersLayer && dischargersFilterEnabled,
+                      });
+                    }}
+                    disabled={!Boolean(waterbodyCount)}
+                    ariaLabel="Waterbodies"
+                  />
+                  <span>
+                    Display <strong>Waterbodies</strong> on map
+                  </span>
+                </div>
               )}
+
+              <hr />
+
+              <WaterbodyList
+                waterbodies={waterbodies}
+                fieldName={null}
+                title={`Overall condition of waterbodies in the ${watershed} watershed.`}
+              />
             </TabPanel>
+
             <TabPanel>
               {monitoringLocations.status === 'fetching' && <LoadingSpinner />}
 
               {monitoringLocations.status === 'failure' && (
-                <StyledErrorBox>
+                <div css={modifiedErrorBoxStyles}>
                   <p>{monitoringError}</p>
-                </StyledErrorBox>
+                </div>
               )}
 
               {monitoringLocations.status === 'success' && (
                 <>
                   {monitoringLocations.data.features.length === 0 && (
-                    <Text>
+                    <p css={centeredTextStyles}>
                       There are no Water Monitoring Locations in the {watershed}{' '}
                       watershed.
-                    </Text>
+                    </p>
                   )}
 
                   {monitoringLocations.data.features.length > 0 && (
                     <>
-                      {/* 
-                          The expand and collapse buttons are disabled for this 
-                          accordion to avoid a large number of web service calls.
-                          Each accordion item performs a web service call to fill
-                          in the data for a table. 
-                        */}
+                      <div css={toggleStyles}>
+                        <Switch
+                          checked={
+                            Boolean(monitoringLocationCount) &&
+                            monitoringLocationsFilterEnabled
+                          }
+                          onChange={(checked) => {
+                            setMonitoringLocationsFilterEnabled(
+                              !monitoringLocationsFilterEnabled,
+                            );
+
+                            // first check if layer exists and is not falsy
+                            updateVisibleLayers({
+                              key: 'monitoringStationsLayer',
+                              newValue:
+                                monitoringStationsLayer &&
+                                !monitoringLocationsFilterEnabled,
+                            });
+                          }}
+                          disabled={!Boolean(monitoringLocationCount)}
+                          ariaLabel="Monitoring Locations"
+                        />
+                        <span>
+                          Display <strong>Monitoring Locations</strong> on map
+                        </span>
+                      </div>
+
+                      <hr />
+
                       <AccordionList
-                        expandDisabled={true}
-                        title={`Displaying ${monitoringLocations.data.features.length} of ${monitoringLocations.data.features.length} Water Monitoring Locations in the ${watershed} watershed.`}
+                        expandDisabled={true} // disabled to avoid large number of web service calls
+                        title={`Water Monitoring Locations in the ${watershed} watershed.`}
                         onSortChange={(sortBy) => setSortBy(sortBy.value)}
                         sortOptions={[
                           {
@@ -673,14 +521,14 @@ function Overview() {
                               feature={feature}
                               idKey={'MonitoringLocationIdentifier'}
                             >
-                              <AccordionContent>
+                              <div css={accordionContentStyles}>
                                 <WaterbodyInfo
                                   type={'Monitoring Location'}
                                   feature={feature}
                                   services={services}
                                 />
                                 <ViewOnMapButton feature={feature} />
-                              </AccordionContent>
+                              </div>
                             </AccordionItem>
                           );
                         })}
@@ -690,60 +538,92 @@ function Overview() {
                 </>
               )}
             </TabPanel>
+
             <TabPanel>
               {permittedDischargers.status === 'fetching' && <LoadingSpinner />}
 
               {permittedDischargers.status === 'failure' && (
-                <StyledErrorBox>
+                <div css={modifiedErrorBoxStyles}>
                   <p>{echoError}</p>
-                </StyledErrorBox>
+                </div>
               )}
 
               {permittedDischargers.status === 'success' && (
                 <>
                   {permittedDischargers.data.Results.Facilities.length ===
                     0 && (
-                    <Text>
+                    <p css={centeredTextStyles}>
                       There are no dischargers in the {watershed} watershed.
-                    </Text>
+                    </p>
                   )}
-                  {permittedDischargers.data.Results.Facilities.length > 0 && (
-                    <AccordionList
-                      title={<>Dischargers in the {watershed} watershed.</>}
-                      onSortChange={(sortBy) => setSortDischBy(sortBy.value)}
-                      sortOptions={[
-                        {
-                          value: 'CWPName',
-                          label: 'Discharger Name',
-                        },
-                        {
-                          value: 'SourceID',
-                          label: 'NPDES ID',
-                        },
-                      ]}
-                    >
-                      {sortedDischargers.map((item, index) => {
-                        const feature = convertFacilityToGraphic(item);
 
-                        return (
-                          <AccordionItem
-                            key={index}
-                            title={
-                              <strong>{item['CWPName'] || 'Unknown'}</strong>
-                            }
-                            subTitle={`NPDES ID: ${item['SourceID']}`}
-                            feature={feature}
-                            idKey={'CWPName'}
-                          >
-                            <WaterbodyInfo
-                              type={'Permitted Discharger'}
+                  {permittedDischargers.data.Results.Facilities.length > 0 && (
+                    <>
+                      <div css={toggleStyles}>
+                        <Switch
+                          checked={
+                            Boolean(permittedDischargerCount) &&
+                            dischargersFilterEnabled
+                          }
+                          onChange={(checked) => {
+                            setDischargersFilterEnabled(
+                              !dischargersFilterEnabled,
+                            );
+
+                            // first check if layer exists and is not falsy
+                            updateVisibleLayers({
+                              key: 'dischargersLayer',
+                              newValue:
+                                dischargersLayer && !dischargersFilterEnabled,
+                            });
+                          }}
+                          disabled={!Boolean(permittedDischargerCount)}
+                          ariaLabel="Permitted Dischargers"
+                        />
+                        <span>
+                          Display <strong>Permitted Dischargers</strong> on map
+                        </span>
+                      </div>
+
+                      <hr />
+
+                      <AccordionList
+                        title={`Dischargers in the ${watershed} watershed.`}
+                        onSortChange={(sortBy) => setSortDischBy(sortBy.value)}
+                        sortOptions={[
+                          {
+                            value: 'CWPName',
+                            label: 'Discharger Name',
+                          },
+                          {
+                            value: 'SourceID',
+                            label: 'NPDES ID',
+                          },
+                        ]}
+                      >
+                        {sortedDischargers.map((item, index) => {
+                          const feature = convertFacilityToGraphic(item);
+
+                          return (
+                            <AccordionItem
+                              key={index}
+                              title={
+                                <strong>{item['CWPName'] || 'Unknown'}</strong>
+                              }
+                              subTitle={`NPDES ID: ${item['SourceID']}`}
                               feature={feature}
-                            />
-                            <ViewOnMapButton feature={feature} />
-                          </AccordionItem>
-                        );
-                      })}
-                    </AccordionList>
+                              idKey={'CWPName'}
+                            >
+                              <WaterbodyInfo
+                                type={'Permitted Discharger'}
+                                feature={feature}
+                              />
+                              <ViewOnMapButton feature={feature} />
+                            </AccordionItem>
+                          );
+                        })}
+                      </AccordionList>
+                    </>
                   )}
                 </>
               )}
@@ -751,7 +631,7 @@ function Overview() {
           </TabPanels>
         </Tabs>
       </ContentTabs>
-    </Container>
+    </div>
   );
 }
 
