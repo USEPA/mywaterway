@@ -1159,6 +1159,8 @@ function useSharedLayers() {
       outline: 0.05,
     };
 
+    const minScale = 577791;
+
     // Build the feature layers that will make up the waterbody layer
     const pointsRenderer = {
       type: 'unique-value',
@@ -1177,6 +1179,7 @@ function useSharedLayers() {
       outFields: ['*'],
       renderer: pointsRenderer,
       popupTemplate,
+      minScale,
     });
 
     const linesRenderer = {
@@ -1196,6 +1199,7 @@ function useSharedLayers() {
       outFields: ['*'],
       renderer: linesRenderer,
       popupTemplate,
+      minScale,
     });
 
     const areasRenderer = {
@@ -1215,6 +1219,7 @@ function useSharedLayers() {
       outFields: ['*'],
       renderer: areasRenderer,
       popupTemplate,
+      minScale,
     });
 
     // Make the waterbody layer into a single layer
