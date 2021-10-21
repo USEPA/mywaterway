@@ -331,11 +331,9 @@ function Overview() {
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {cipSummary.status === 'failure'
+                {cipSummary.status === 'failure' || !assessmentUnitCount
                   ? 'N/A'
-                  : (assessmentUnitCount &&
-                      assessmentUnitCount.toLocaleString()) ||
-                    '0'}
+                  : assessmentUnitCount.toLocaleString() || '0'}
               </span>
               <p css={keyMetricLabelStyles}>Number of Waterbodies</p>
               <div css={switchContainerStyles}>
@@ -365,11 +363,10 @@ function Overview() {
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {monitoringLocations.status === 'failure'
+                {monitoringLocations.status === 'failure' ||
+                !monitoringLocationCount
                   ? 'N/A'
-                  : (monitoringLocationCount &&
-                      monitoringLocationCount.toLocaleString()) ||
-                    '0'}
+                  : monitoringLocationCount.toLocaleString() || '0'}
               </span>
               <p css={keyMetricLabelStyles}>Number of Monitoring Locations</p>
               <div css={switchContainerStyles}>
@@ -405,11 +402,10 @@ function Overview() {
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {permittedDischargers.status === 'failure'
+                {permittedDischargers.status === 'failure' ||
+                !permittedDischargerCount
                   ? 'N/A'
-                  : (permittedDischargerCount &&
-                      permittedDischargerCount.toLocaleString()) ||
-                    '0'}
+                  : permittedDischargerCount.toLocaleString() || '0'}
               </span>
               <p css={keyMetricLabelStyles}>Number of Permitted Dischargers</p>
               <div css={switchContainerStyles}>
@@ -439,88 +435,13 @@ function Overview() {
       <ContentTabs>
         <Tabs>
           <TabList>
-            <Tab>
-              {(!waterbodyLayer || waterbodies === null) &&
-              cipSummary.status !== 'failure' ? (
-                <>Waterbodies</>
-              ) : (
-                <>
-                  {cipSummary.status !== 'failure' && assessmentUnitCount && (
-                    <strong>{assessmentUnitCount.toLocaleString()}</strong>
-                  )}{' '}
-                  Waterbodies
-                </>
-              )}
-            </Tab>
-
-            <Tab>
-              {!monitoringStationsLayer ||
-              monitoringLocations.status === 'fetching' ? (
-                <>Monitoring Locations</>
-              ) : (
-                <>
-                  {monitoringLocations.status !== 'failure' &&
-                    monitoringLocationCount && (
-                      <strong>
-                        {monitoringLocationCount.toLocaleString() || '0'}
-                      </strong>
-                    )}{' '}
-                  Monitoring Locations
-                </>
-              )}
-            </Tab>
-
-            <Tab>
-              {!dischargersLayer ||
-              permittedDischargers.status === 'fetching' ? (
-                <>Permitted Dischargers</>
-              ) : (
-                <>
-                  {permittedDischargers.status !== 'failure' &&
-                    permittedDischargerCount && (
-                      <strong>
-                        {permittedDischargerCount.toLocaleString() || '0'}
-                      </strong>
-                    )}{' '}
-                  Permitted Dischargers
-                </>
-              )}
-            </Tab>
+            <Tab>Waterbodies</Tab>
+            <Tab>Monitoring Locations</Tab>
+            <Tab>Permitted Dischargers</Tab>
           </TabList>
 
           <TabPanels>
             <TabPanel>
-              {waterbodies && (
-                <div css={toggleStyles}>
-                  <Switch
-                    checked={
-                      Boolean(waterbodyCount) && waterbodiesFilterEnabled
-                    }
-                    onChange={(checked) => {
-                      setWaterbodiesFilterEnabled(!waterbodiesFilterEnabled);
-
-                      // first check if layer exists and is not falsy
-                      setVisibleLayers({
-                        waterbodyLayer:
-                          waterbodyLayer && !waterbodiesFilterEnabled,
-                        monitoringStationsLayer:
-                          monitoringStationsLayer &&
-                          monitoringLocationsFilterEnabled,
-                        dischargersLayer:
-                          dischargersLayer && dischargersFilterEnabled,
-                      });
-                    }}
-                    disabled={!Boolean(waterbodyCount)}
-                    ariaLabel="Waterbodies"
-                  />
-                  <span>
-                    Display <strong>Waterbodies</strong> on map
-                  </span>
-                </div>
-              )}
-
-              <hr />
-
               <WaterbodyList
                 waterbodies={waterbodies}
                 fieldName={null}
@@ -547,115 +468,84 @@ function Overview() {
                   )}
 
                   {monitoringLocations.data.features.length > 0 && (
-                    <>
-                      <div css={toggleStyles}>
-                        <Switch
-                          checked={
-                            Boolean(monitoringLocationCount) &&
-                            monitoringLocationsFilterEnabled
-                          }
-                          onChange={(checked) => {
-                            setMonitoringLocationsFilterEnabled(
-                              !monitoringLocationsFilterEnabled,
-                            );
+                    <AccordionList
+                      expandDisabled={true} // disabled to avoid large number of web service calls
+                      title={`Water Monitoring Locations in the ${watershed} watershed.`}
+                      onSortChange={(sortBy) => setSortBy(sortBy.value)}
+                      sortOptions={[
+                        {
+                          value: 'MonitoringLocationName',
+                          label: 'Monitoring Location Name',
+                        },
+                        {
+                          value: 'OrganizationIdentifier',
+                          label: 'Organization ID',
+                        },
+                        {
+                          value: 'MonitoringLocationIdentifier',
+                          label: 'Monitoring Site ID',
+                        },
+                        {
+                          value: 'resultCount',
+                          label: 'Monitoring Measurements',
+                        },
+                      ]}
+                    >
+                      {sortedMonitoringStations.map((item, index) => {
+                        const { properties: prop } = item;
 
-                            // first check if layer exists and is not falsy
-                            updateVisibleLayers({
-                              key: 'monitoringStationsLayer',
-                              newValue:
-                                monitoringStationsLayer &&
-                                !monitoringLocationsFilterEnabled,
-                            });
-                          }}
-                          disabled={!Boolean(monitoringLocationCount)}
-                          ariaLabel="Monitoring Locations"
-                        />
-                        <span>
-                          Display <strong>Monitoring Locations</strong> on map
-                        </span>
-                      </div>
-
-                      <hr />
-
-                      <AccordionList
-                        expandDisabled={true} // disabled to avoid large number of web service calls
-                        title={`Water Monitoring Locations in the ${watershed} watershed.`}
-                        onSortChange={(sortBy) => setSortBy(sortBy.value)}
-                        sortOptions={[
-                          {
-                            value: 'MonitoringLocationName',
-                            label: 'Monitoring Location Name',
+                        const feature = {
+                          geometry: {
+                            type: 'point', // autocasts as new Point()
+                            longitude: item.x,
+                            latitude: item.y,
                           },
-                          {
-                            value: 'OrganizationIdentifier',
-                            label: 'Organization ID',
+                          symbol: {
+                            type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
+                            style: 'square',
                           },
-                          {
-                            value: 'MonitoringLocationIdentifier',
-                            label: 'Monitoring Site ID',
-                          },
-                          {
-                            value: 'resultCount',
-                            label: 'Monitoring Measurements',
-                          },
-                        ]}
-                      >
-                        {sortedMonitoringStations.map((item, index) => {
-                          const { properties: prop } = item;
+                          attributes: prop,
+                        };
 
-                          const feature = {
-                            geometry: {
-                              type: 'point', // autocasts as new Point()
-                              longitude: item.x,
-                              latitude: item.y,
-                            },
-                            symbol: {
-                              type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
-                              style: 'square',
-                            },
-                            attributes: prop,
-                          };
-
-                          return (
-                            <AccordionItem
-                              key={index}
-                              title={
-                                <strong>
-                                  {prop['MonitoringLocationName'] || 'Unknown'}
-                                </strong>
-                              }
-                              subTitle={
-                                <>
-                                  Organization ID:{' '}
-                                  {prop['OrganizationIdentifier']}
-                                  <br />
-                                  Monitoring Site ID:{' '}
-                                  {
-                                    prop['MonitoringLocationIdentifier'].split(
-                                      '-',
-                                    )[1]
-                                  }
-                                  <br />
-                                  Monitoring Measurements:{' '}
-                                  {Number(prop['resultCount']).toLocaleString()}
-                                </>
-                              }
-                              feature={feature}
-                              idKey={'MonitoringLocationIdentifier'}
-                            >
-                              <div css={accordionContentStyles}>
-                                <WaterbodyInfo
-                                  type={'Monitoring Location'}
-                                  feature={feature}
-                                  services={services}
-                                />
-                                <ViewOnMapButton feature={feature} />
-                              </div>
-                            </AccordionItem>
-                          );
-                        })}
-                      </AccordionList>
-                    </>
+                        return (
+                          <AccordionItem
+                            key={index}
+                            title={
+                              <strong>
+                                {prop['MonitoringLocationName'] || 'Unknown'}
+                              </strong>
+                            }
+                            subTitle={
+                              <>
+                                Organization ID:{' '}
+                                {prop['OrganizationIdentifier']}
+                                <br />
+                                Monitoring Site ID:{' '}
+                                {
+                                  prop['MonitoringLocationIdentifier'].split(
+                                    '-',
+                                  )[1]
+                                }
+                                <br />
+                                Monitoring Measurements:{' '}
+                                {Number(prop['resultCount']).toLocaleString()}
+                              </>
+                            }
+                            feature={feature}
+                            idKey={'MonitoringLocationIdentifier'}
+                          >
+                            <div css={accordionContentStyles}>
+                              <WaterbodyInfo
+                                type={'Monitoring Location'}
+                                feature={feature}
+                                services={services}
+                              />
+                              <ViewOnMapButton feature={feature} />
+                            </div>
+                          </AccordionItem>
+                        );
+                      })}
+                    </AccordionList>
                   )}
                 </>
               )}
@@ -680,72 +570,42 @@ function Overview() {
                   )}
 
                   {permittedDischargers.data.Results.Facilities.length > 0 && (
-                    <>
-                      <div css={toggleStyles}>
-                        <Switch
-                          checked={
-                            Boolean(permittedDischargerCount) &&
-                            dischargersFilterEnabled
-                          }
-                          onChange={(checked) => {
-                            setDischargersFilterEnabled(
-                              !dischargersFilterEnabled,
-                            );
+                    <AccordionList
+                      title={`Dischargers in the ${watershed} watershed.`}
+                      onSortChange={(sortBy) => setSortDischBy(sortBy.value)}
+                      sortOptions={[
+                        {
+                          value: 'CWPName',
+                          label: 'Discharger Name',
+                        },
+                        {
+                          value: 'SourceID',
+                          label: 'NPDES ID',
+                        },
+                      ]}
+                    >
+                      {sortedDischargers.map((item, index) => {
+                        const feature = convertFacilityToGraphic(item);
 
-                            // first check if layer exists and is not falsy
-                            updateVisibleLayers({
-                              key: 'dischargersLayer',
-                              newValue:
-                                dischargersLayer && !dischargersFilterEnabled,
-                            });
-                          }}
-                          disabled={!Boolean(permittedDischargerCount)}
-                          ariaLabel="Permitted Dischargers"
-                        />
-                        <span>
-                          Display <strong>Permitted Dischargers</strong> on map
-                        </span>
-                      </div>
-
-                      <hr />
-
-                      <AccordionList
-                        title={`Dischargers in the ${watershed} watershed.`}
-                        onSortChange={(sortBy) => setSortDischBy(sortBy.value)}
-                        sortOptions={[
-                          {
-                            value: 'CWPName',
-                            label: 'Discharger Name',
-                          },
-                          {
-                            value: 'SourceID',
-                            label: 'NPDES ID',
-                          },
-                        ]}
-                      >
-                        {sortedDischargers.map((item, index) => {
-                          const feature = convertFacilityToGraphic(item);
-
-                          return (
-                            <AccordionItem
-                              key={index}
-                              title={
-                                <strong>{item['CWPName'] || 'Unknown'}</strong>
-                              }
-                              subTitle={`NPDES ID: ${item['SourceID']}`}
+                        return (
+                          <AccordionItem
+                            key={index}
+                            title={
+                              <strong>{item['CWPName'] || 'Unknown'}</strong>
+                            }
+                            subTitle={`NPDES ID: ${item['SourceID']}`}
+                            feature={feature}
+                            idKey={'CWPName'}
+                          >
+                            <WaterbodyInfo
+                              type={'Permitted Discharger'}
                               feature={feature}
-                              idKey={'CWPName'}
-                            >
-                              <WaterbodyInfo
-                                type={'Permitted Discharger'}
-                                feature={feature}
-                              />
-                              <ViewOnMapButton feature={feature} />
-                            </AccordionItem>
-                          );
-                        })}
-                      </AccordionList>
-                    </>
+                            />
+                            <ViewOnMapButton feature={feature} />
+                          </AccordionItem>
+                        );
+                      })}
+                    </AccordionList>
                   )}
                 </>
               )}
