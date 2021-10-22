@@ -32,6 +32,7 @@ import { esriApiUrl } from 'config/esriConfig';
 // helpers
 import {
   useDynamicPopup,
+  useGeometryUtils,
   useSharedLayers,
   useWaterbodyHighlight,
   useWaterbodyFeatures,
@@ -746,9 +747,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [setCipSummary],
   );
 
+  const { cropGeometryToHuc } = useGeometryUtils();
+
   // Gets the lines data and builds the associated feature layer
   const retrieveLines = React.useCallback(
-    (filter) => {
+    (filter, boundaries) => {
       const query = new Query({
         returnGeometry: true,
         where: filter,
@@ -759,6 +762,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         .execute(query)
         .then((res) => {
           setLinesData(res);
+
+          const features = cropGeometryToHuc(
+            res.features,
+            boundaries.features[0].geometry,
+          );
 
           const linesRenderer = {
             type: 'unique-value',
@@ -777,7 +785,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             geometryType: res.geometryType,
             spatialReference: res.spatialReference,
             fields: res.fields,
-            source: res.features,
+            source: features,
             outFields: ['*'],
             renderer: linesRenderer,
             popupTemplate,
@@ -794,6 +802,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       FeatureLayer,
       Query,
       QueryTask,
+      cropGeometryToHuc,
       handleMapServiceError,
       popupTemplate,
       setLinesData,
@@ -804,7 +813,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   // Gets the areas data and builds the associated feature layer
   const retrieveAreas = React.useCallback(
-    (filter) => {
+    (filter, boundaries) => {
       const query = new Query({
         returnGeometry: true,
         where: filter,
@@ -815,6 +824,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         .execute(query)
         .then((res) => {
           setAreasData(res);
+
+          const features = cropGeometryToHuc(
+            res.features,
+            boundaries.features[0].geometry,
+          );
 
           const areasRenderer = {
             type: 'unique-value',
@@ -833,7 +847,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             geometryType: res.geometryType,
             spatialReference: res.spatialReference,
             fields: res.fields,
-            source: res.features,
+            source: features,
             outFields: ['*'],
             renderer: areasRenderer,
             popupTemplate,
@@ -850,6 +864,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       FeatureLayer,
       Query,
       QueryTask,
+      cropGeometryToHuc,
       handleMapServiceError,
       popupTemplate,
       setAreasData,
@@ -1307,7 +1322,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   const handleMapServices = React.useCallback(
-    (results) => {
+    (results, boundaries) => {
       // sort the parameters by highest percent to lowest
       results.items[0].summaryByParameterImpairments = results.items[0].summaryByParameterImpairments.sort(
         (a, b) => (a.catchmentSizePercent < b.catchmentSizePercent ? 1 : -1),
@@ -1327,9 +1342,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       const filter = `assessmentunitidentifier in (${createQueryString(ids)})`;
 
       setCheckedForOrphans(false);
-      retrieveLines(filter);
+      retrieveLines(filter, boundaries);
       retrievePoints(filter);
-      retrieveAreas(filter);
+      retrieveAreas(filter, boundaries);
 
       // for the all waterbodies layer hide waterbodies outside the selected huc
       if (allWaterbodiesLayer) {
@@ -1391,7 +1406,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       fetchCheck(
         `${services.data.attains.serviceUrl}huc12summary?huc=${huc12}`,
-      ).then(handleMapServices, handleMapServiceError);
+      ).then(
+        (res) => handleMapServices(res, boundaries),
+        handleMapServiceError,
+      );
     },
     [
       getFishingLinkData,

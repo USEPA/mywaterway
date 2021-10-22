@@ -1285,7 +1285,66 @@ function useKeyPress(targetKey: string, ref: Object) {
   return keyPressed;
 }
 
+// Custom hook that is used for performing GIS geometry functions, such as
+// cropping geometry.
+function useGeometryUtils() {
+  const { geometryEngine, Polygon } = React.useContext(EsriModulesContext);
+
+  // This results in no waterbodies extending outside of the hucGeometry.
+  // The arcgis difference function removes the parts of the waterbody that
+  // are inside of the huc12, which is opposite of what we need. To work around
+  // this we first draw a box around the extent of the huc and all waterbodies,
+  // then subtract the huc from this box. This results in a large box that has
+  // a hole in it that is in the shape of the huc. Finally we subtract this
+  // box from the waterbodies graphics.
+  const cropGeometryToHuc = function (resFeatures, hucGeometry) {
+    // start by getting the extend of the huc boundaries
+    let extent = hucGeometry.extent;
+
+    // add the extent of all of the waterbodies
+    const features = [];
+    resFeatures.forEach((feature) => {
+      extent.union(feature.geometry.extent);
+    });
+
+    // build geometry from the extent
+    const extentGeometry = new Polygon({
+      spatialReference: hucGeometry.spatialReference,
+      centroid: extent.center,
+      rings: [
+        [
+          [extent.xmin, extent.ymin],
+          [extent.xmin, extent.ymax],
+          [extent.xmax, extent.ymax],
+          [extent.xmax, extent.ymin],
+          [extent.xmin, extent.ymin],
+        ],
+      ],
+    });
+
+    // subtract the huc from the full extent
+    const subtractor = geometryEngine.difference(extentGeometry, hucGeometry);
+
+    // crop any geometry that extends beyond the huc 12
+    resFeatures.forEach((feature) => {
+      // crop the waterbodies that extend outside of the huc
+      const newGeometry = geometryEngine.difference(
+        feature.geometry,
+        subtractor,
+      );
+
+      feature.geometry = newGeometry ?? feature.geometry;
+      features.push(feature);
+    });
+
+    return features;
+  };
+
+  return { cropGeometryToHuc };
+}
+
 export {
+  useGeometryUtils,
   useSharedLayers,
   useWaterbodyFeatures,
   useWaterbodyFeaturesState,
