@@ -105,7 +105,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     //
     initialExtent,
     highlightOptions,
-    allWaterbodiesLayer,
     boundariesLayer,
     searchIconLayer,
     waterbodyLayer,
@@ -1330,19 +1329,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       retrieveLines(filter);
       retrievePoints(filter);
       retrieveAreas(filter);
-
-      // for the all waterbodies layer hide waterbodies outside the selected huc
-      if (allWaterbodiesLayer) {
-        const allFilter = `assessmentunitidentifier not in (${createQueryString(
-          ids,
-        )})`;
-        allWaterbodiesLayer.layers.items[0].definitionExpression = allFilter;
-        allWaterbodiesLayer.layers.items[1].definitionExpression = allFilter;
-        allWaterbodiesLayer.layers.items[2].definitionExpression = allFilter;
-      }
     },
     [
-      allWaterbodiesLayer,
       retrieveAreas,
       retrieveLines,
       retrievePoints,

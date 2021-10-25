@@ -283,6 +283,35 @@ function MapWidgets({
 
   const [mapEventHandlersSet, setMapEventHandlersSet] = React.useState(false);
 
+  const [popupWatcher, setPopupWatcher] = React.useState(null);
+  React.useEffect(() => {
+    if (!view || popupWatcher) return;
+
+    const watcher = watchUtils.watch(
+      view.popup,
+      'features',
+      (newVal, oldVal, propName, target) => {
+        const features = [];
+        const idsAdded = [];
+        newVal.forEach((item) => {
+          const id = item.attributes.assessmentunitidentifier;
+          const geometryType = item.geometry.type;
+          const idType = `${id}-${geometryType}`;
+          if (idsAdded.includes(idType)) return;
+
+          features.push(item);
+          idsAdded.push(idType);
+        });
+
+        if (features.length === view.popup.features.length) return;
+
+        view.popup.features = features;
+      },
+    );
+
+    setPopupWatcher(watcher);
+  }, [popupWatcher, view, watchUtils]);
+
   // add the layers to the map
   React.useEffect(() => {
     if (!layers || !map) return;
