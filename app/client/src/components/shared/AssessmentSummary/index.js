@@ -50,10 +50,6 @@ function summarizeAssessments(waterbodies: Array<Object>, fieldName: string) {
   return summary;
 }
 
-const containerStyles = css`
-  margin: 1em;
-`;
-
 const modifiedInfoBoxStyles = css`
   ${infoBoxStyles};
   margin-bottom: 1em;
@@ -79,16 +75,18 @@ function AssessmentSummary({ waterbodies, fieldName, usageName }: Props) {
   const glossaryUsageNames = ['aquatic life', 'fish and shellfish consumption'];
 
   return (
-    <div css={containerStyles}>
-      <p css={modifiedInfoBoxStyles}>
-        <strong>{summary.total.toLocaleString()}</strong> waterbodies have been
-        assessed for{' '}
-        {glossaryUsageNames.includes(usageName) ? (
-          <GlossaryTerm term={usageName}>{usageName}</GlossaryTerm>
-        ) : (
-          usageName
-        )}
-      </p>
+    <>
+      <div css={modifiedInfoBoxStyles}>
+        <p>
+          <strong>{summary.total.toLocaleString()}</strong> waterbodies have
+          been assessed for{' '}
+          {glossaryUsageNames.includes(usageName) ? (
+            <GlossaryTerm term={usageName}>{usageName}</GlossaryTerm>
+          ) : (
+            usageName
+          )}
+        </p>
+      </div>
 
       {summary.total > 0 && (
         <div css={keyMetricsStyles}>
@@ -116,7 +114,7 @@ function AssessmentSummary({ waterbodies, fieldName, usageName }: Props) {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 

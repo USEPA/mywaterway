@@ -62,16 +62,6 @@ const switchContainerStyles = css`
   margin-top: 0.5em;
 `;
 
-const toggleStyles = css`
-  display: flex;
-  align-items: center;
-  margin-bottom: 1rem;
-
-  span {
-    margin-left: 0.5rem;
-  }
-`;
-
 const centeredTextStyles = css`
   text-align: center;
 `;
