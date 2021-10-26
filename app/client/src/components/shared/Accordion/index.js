@@ -2,30 +2,29 @@
 
 import React from 'react';
 import type { Node } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import Select from 'react-select';
 // styles
 import { colors, reactSelectStyles } from 'styles/index.js';
 
-// --- styled components (AccordionList) ---
-const AccordionListContainer = styled.div`
+const accordionListContainerStyles = css`
   border-bottom: 1px solid #d8dfe2;
 `;
 
-const Columns = styled.div`
+const columnsStyles = css`
   display: flex;
   align-items: center;
   justify-content: flex-end;
 `;
 
-const SelectContainer = styled.div`
+const selectContainerStyles = css`
   display: flex;
   align-items: center;
   margin-bottom: 0.625em;
   width: 100%;
 `;
 
-const SelectLabel = styled.label`
+const selectLabelStyles = css`
   margin-right: 0.625rem;
   margin-bottom: 0;
   font-size: 0.875rem;
@@ -33,11 +32,11 @@ const SelectLabel = styled.label`
   white-space: nowrap;
 `;
 
-const StyledSelect = styled(Select)`
+const selectStyles = css`
   width: 100%;
 `;
 
-const ExpandButton = styled.button`
+const expandButtonStyles = css`
   margin-bottom: 0;
   margin-left: 0.625rem;
   padding: 0.5em;
@@ -48,7 +47,7 @@ const ExpandButton = styled.button`
   white-space: nowrap;
 `;
 
-const Title = styled.p`
+const titleStyles = css`
   padding: 0.625em 0.875em;
   border-top: 1px solid #d8dfe2;
   border-bottom: 1px solid #d8dfe2;
@@ -56,13 +55,12 @@ const Title = styled.p`
   background-color: #f0f6f9;
 `;
 
-// --- components (AccordionList) ---
 type AccordionListProps = {
   children: Node,
   className: string,
-  title: string,
+  title: Node,
   expandDisabled: boolean,
-  sortOptions: Array<{ value: string, label: string }>,
+  sortOptions: { value: string, label: string }[],
   onSortChange: Function,
 };
 
@@ -74,10 +72,9 @@ function AccordionList({
   sortOptions = [],
   onSortChange = () => {},
 }: AccordionListProps) {
-  const [
-    sortBy,
-    setSortBy, //
-  ] = React.useState(sortOptions.length > 0 ? sortOptions[0] : null);
+  const [sortBy, setSortBy] = React.useState(
+    sortOptions.length > 0 ? sortOptions[0] : null,
+  );
   const [allExpanded, setAllExpanded] = React.useState(false);
 
   const iconClass = allExpanded
@@ -90,12 +87,18 @@ function AccordionList({
   const uniqueID = Date.now() + Math.random();
 
   return (
-    <AccordionListContainer className={`hmw-accordions ${className}`}>
-      <Columns>
+    <div
+      css={accordionListContainerStyles}
+      className={`hmw-accordions ${className}`}
+    >
+      <div css={columnsStyles}>
         {sortOptions.length > 0 && (
-          <SelectContainer>
-            <SelectLabel htmlFor={`sort-by-${uniqueID}`}>Sort By:</SelectLabel>
-            <StyledSelect
+          <div css={selectContainerStyles}>
+            <label css={selectLabelStyles} htmlFor={`sort-by-${uniqueID}`}>
+              Sort By:
+            </label>
+            <Select
+              css={selectStyles}
               inputId={`sort-by-${uniqueID}`}
               isSearchable={false}
               options={sortOptions}
@@ -106,24 +109,27 @@ function AccordionList({
               }}
               styles={reactSelectStyles}
             />
-          </SelectContainer>
+          </div>
         )}
 
         {!expandDisabled && (
-          <ExpandButton onClick={(ev) => setAllExpanded(!allExpanded)}>
+          <button
+            css={expandButtonStyles}
+            onClick={(ev) => setAllExpanded(!allExpanded)}
+          >
             {buttonText}&nbsp;&nbsp;
             <i className={iconClass} aria-hidden="true" />
-          </ExpandButton>
+          </button>
         )}
-      </Columns>
+      </div>
 
-      {title && <Title>{title}</Title>}
+      {title && <p css={titleStyles}>{title}</p>}
 
       {/* implicitly pass 'allExpanded' prop down to children (AccordionItem's) */}
       {React.Children.map(children, (childElement) => {
         return React.cloneElement(childElement, { allExpanded });
       })}
-    </AccordionListContainer>
+    </div>
   );
 }
 
@@ -134,12 +140,11 @@ AccordionList.defaultProps = {
   onSortChange: () => {},
 };
 
-// --- styled components (AccordionItem) ---
-const AccordionItemContainer = styled.div`
+const accordionItemContainerStyles = css`
   border-top: 1px solid #d8dfe2;
 `;
 
-const Header = styled.header`
+const headerStyles = css`
   display: flex;
   flex-flow: row wrap;
   align-items: center;
@@ -161,17 +166,17 @@ const Header = styled.header`
   }
 `;
 
-const Icon = styled.div`
+const iconStyles = css`
   margin-right: 0.875em;
 `;
 
-const Text = styled.span`
+const textStyles = css`
   flex: 1;
   padding-bottom: 0;
   word-break: break-word;
 `;
 
-const Arrow = styled.i`
+const arrowStyles = css`
   font-size: 1.25em;
   color: #526571;
 `;
@@ -182,8 +187,8 @@ const colorMap = {
   selected: 'rgba(0, 123, 255, 0.25)',
 };
 
-// --- components (AccordionItem) ---
 type AccordionItemProps = {
+  children: Node,
   className: string,
   icon: ?Object,
   title: Node,
@@ -195,10 +200,10 @@ type AccordionItemProps = {
   idKey: ?string,
   allExpanded: boolean,
   highlightContent: ?boolean,
-  children: Node,
 };
 
 function AccordionItem({
+  children,
   className = '',
   icon,
   title,
@@ -210,7 +215,6 @@ function AccordionItem({
   idKey,
   allExpanded,
   highlightContent = true,
-  children,
 }: AccordionItemProps) {
   const [isOpen, setIsOpen] = React.useState(allExpanded);
 
@@ -236,17 +240,19 @@ function AccordionItem({
   };
 
   return (
-    <AccordionItemContainer
+    <div
+      css={accordionItemContainerStyles}
       className={`hmw-accordion ${className}`}
       onMouseEnter={(ev) => addHighlight()}
       onMouseLeave={(ev) => removeHighlight()}
       onFocus={(ev) => addHighlight()}
       onBlur={(ev) => removeHighlight()}
     >
-      <Header
+      <header
+        css={headerStyles}
         className="hmw-accordion-header"
-        tabIndex="0"
         style={{ backgroundColor }}
+        tabIndex="0"
         onClick={(ev) => {
           const newIsOpen = !isOpen;
           setIsOpen(newIsOpen);
@@ -260,9 +266,9 @@ function AccordionItem({
           }
         }}
       >
-        {icon && <Icon>{icon}</Icon>}
+        {icon && <div css={iconStyles}>{icon}</div>}
 
-        <Text>
+        <span css={textStyles}>
           {title}
           {subTitle && (
             <>
@@ -270,13 +276,14 @@ function AccordionItem({
               {subTitle}
             </>
           )}
-        </Text>
+        </span>
 
-        <Arrow
+        <i
+          css={arrowStyles}
           className={`fa fa-angle-${isOpen ? 'down' : 'right'}`}
           aria-hidden="true"
         />
-      </Header>
+      </header>
 
       <div
         style={
@@ -287,7 +294,7 @@ function AccordionItem({
       >
         {isOpen && children}
       </div>
-    </AccordionItemContainer>
+    </div>
   );
 }
 
