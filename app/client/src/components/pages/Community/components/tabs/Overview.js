@@ -86,8 +86,16 @@ function Overview() {
   } = React.useContext(LocationSearchContext);
 
   const [waterbodiesDisplayed, setWaterbodiesDisplayed] = useState(true);
-  const [monitorsDisplayed, setMonitorsDisplayed] = useState(false);
-  const [dischargersDisplayed, setDischargersDisplayed] = useState(false);
+
+  const [
+    monitoringLocationsDisplayed,
+    setMonitoringLocationsDisplayed,
+  ] = useState(false);
+
+  const [
+    permittedDischargersDisplayed,
+    setPermittedDischargersDisplayed,
+  ] = useState(false);
 
   const services = useServicesContext();
 
@@ -121,13 +129,10 @@ function Overview() {
   // draw the permitted dischargers on the map
   React.useEffect(() => {
     // wait until permitted dischargers data is set in context
-    if (
-      permittedDischargers.data['Results'] &&
-      permittedDischargers.data['Results']['Facilities']
-    ) {
+    if (permittedDischargers.data.Results?.Facilities) {
       plotFacilities({
         Graphic: Graphic,
-        facilities: permittedDischargers.data['Results']['Facilities'],
+        facilities: permittedDischargers.data.Results.Facilities,
         layer: dischargersLayer,
       });
     }
@@ -146,16 +151,18 @@ function Overview() {
     if (typeof waterbodyLayer === 'boolean') {
       setWaterbodiesDisplayed(waterbodyLayer);
     }
+
     if (typeof monitoringStationsLayer === 'boolean') {
-      setMonitorsDisplayed(monitoringStationsLayer);
+      setMonitoringLocationsDisplayed(monitoringStationsLayer);
     }
+
     if (typeof dischargersLayer === 'boolean') {
-      setDischargersDisplayed(dischargersLayer);
+      setPermittedDischargersDisplayed(dischargersLayer);
     }
   }, [
     visibleLayers,
-    setDischargersDisplayed,
-    setMonitorsDisplayed,
+    setPermittedDischargersDisplayed,
+    setMonitoringLocationsDisplayed,
     setWaterbodiesDisplayed,
   ]);
 
@@ -167,13 +174,6 @@ function Overview() {
     ({ key = null, newValue = null, useCurrentValue = false }) => {
       const newVisibleLayers = {};
 
-      if (monitoringLocations.status !== 'failure') {
-        newVisibleLayers['monitoringStationsLayer'] =
-          !monitoringStationsLayer || useCurrentValue
-            ? visibleLayers['monitoringStationsLayer']
-            : monitorsDisplayed;
-      }
-
       if (cipSummary.status !== 'failure') {
         newVisibleLayers['waterbodyLayer'] =
           !waterbodyLayer || useCurrentValue
@@ -181,14 +181,21 @@ function Overview() {
             : waterbodiesDisplayed;
       }
 
+      if (monitoringLocations.status !== 'failure') {
+        newVisibleLayers['monitoringStationsLayer'] =
+          !monitoringStationsLayer || useCurrentValue
+            ? visibleLayers['monitoringStationsLayer']
+            : monitoringLocationsDisplayed;
+      }
+
       if (permittedDischargers.status !== 'failure') {
         newVisibleLayers['dischargersLayer'] =
           !dischargersLayer || useCurrentValue
             ? visibleLayers['dischargersLayer']
-            : dischargersDisplayed;
+            : permittedDischargersDisplayed;
       }
 
-      if (newVisibleLayers.hasOwnProperty(key)) {
+      if (key && newVisibleLayers.hasOwnProperty(key)) {
         newVisibleLayers[key] = newValue;
       }
 
@@ -198,15 +205,15 @@ function Overview() {
       }
     },
     [
-      dischargersLayer,
-      dischargersDisplayed,
-      permittedDischargers,
-      monitoringLocations,
-      monitoringStationsLayer,
-      monitorsDisplayed,
-      waterbodyLayer,
-      waterbodiesDisplayed,
       cipSummary,
+      monitoringLocations,
+      permittedDischargers,
+      waterbodyLayer,
+      monitoringStationsLayer,
+      dischargersLayer,
+      waterbodiesDisplayed,
+      monitoringLocationsDisplayed,
+      permittedDischargersDisplayed,
       visibleLayers,
       setVisibleLayers,
     ],
@@ -223,66 +230,48 @@ function Overview() {
     updateVisibleLayers,
   ]);
 
-  const waterbodyCount = uniqueWaterbodies && uniqueWaterbodies.length;
-  const monitoringLocationCount =
-    monitoringLocations.data.features &&
-    monitoringLocations.data.features.length;
-  const permittedDischargerCount =
-    permittedDischargers.data.Results &&
-    permittedDischargers.data.Results.Facilities &&
-    permittedDischargers.data.Results.Facilities.length;
+  const totalWaterbodies = uniqueWaterbodies.length;
+  const totalMonitoringLocations = monitoringLocations.data.features?.length;
+  const totalPermittedDischargers =
+    permittedDischargers.data.Results?.Facilities.length;
 
-  const [sortBy, setSortBy] = React.useState('MonitoringLocationName');
-  const sortedMonitoringStations = monitoringLocations.data.features
+  const [
+    monitoringLocationsSortedBy,
+    setMonitoringLocationsSortedBy,
+  ] = useState('MonitoringLocationName');
+
+  const sortedMonitoringLocations = monitoringLocations.data.features
     ? monitoringLocations.data.features.sort((objA, objB) => {
         // sort resultCount (measurements) in descending order
-        if (sortBy === 'resultCount') {
-          return objB['properties'][sortBy] - objA['properties'][sortBy];
+        if (monitoringLocationsSortedBy === 'resultCount') {
+          return objB.properties.resultCount - objA.properties.resultCount;
         }
 
-        if (sortBy === 'MonitoringLocationIdentifier') {
-          const idA = objA['properties'][sortBy].split('-')[1];
-          const idB = objB['properties'][sortBy].split('-')[1];
-          return idA.localeCompare(idB);
+        if (monitoringLocationsSortedBy === 'MonitoringLocationIdentifier') {
+          const a = objA.properties.MonitoringLocationIdentifier.split('-')[1];
+          const b = objB.properties.MonitoringLocationIdentifier.split('-')[1];
+          return a.localeCompare(b);
         }
 
-        return objA['properties'][sortBy].localeCompare(
-          objB['properties'][sortBy],
+        return objA.properties[monitoringLocationsSortedBy].localeCompare(
+          objB.properties[monitoringLocationsSortedBy],
         );
       })
     : [];
 
-  const [sortDischBy, setSortDischBy] = React.useState('CWPName');
-  const sortedDischargers = permittedDischargers.data?.Results?.Facilities
-    ? permittedDischargers.data?.Results?.Facilities?.sort((objA, objB) => {
-        // sort resultCount (measurements) in descending order
-        if (sortDischBy === 'resultCount') {
-          return objB[sortDischBy] - objA[sortDischBy];
-        }
+  const [
+    permittedDischargersSortedBy,
+    setPermittedDischargersSortedBy,
+  ] = useState('CWPName');
 
-        if (sortDischBy === 'MonitoringLocationIdentifier') {
-          const idA = objA[sortDischBy].split('-')[1];
-          const idB = objB[sortDischBy].split('-')[1];
-          return idA.localeCompare(idB);
-        }
-
-        return objA[sortDischBy].localeCompare(objB[sortDischBy]);
+  /* prettier-ignore */
+  const sortedPermittedDischargers = permittedDischargers.data.Results?.Facilities
+    ? permittedDischargers.data.Results.Facilities.sort((objA, objB) => {
+        return objA[permittedDischargersSortedBy].localeCompare(
+          objB[permittedDischargersSortedBy],
+        );
       })
     : [];
-
-  const convertFacilityToGraphic = React.useCallback(
-    (facility: Object) => {
-      return new Graphic({
-        geometry: {
-          type: 'point', // autocasts as new Point()
-          longitude: facility['FacLong'],
-          latitude: facility['FacLat'],
-        },
-        attributes: facility,
-      });
-    },
-    [Graphic],
-  );
 
   return (
     <div css={containerStyles}>
@@ -306,7 +295,7 @@ function Overview() {
 
       {cipSummary.status === 'success' &&
         waterbodies !== null &&
-        waterbodyCount === 0 && (
+        totalWaterbodies === 0 && (
           <p css={modifiedInfoBoxStyles}>
             {zeroAssessedWaterbodies(watershed)}
           </p>
@@ -327,7 +316,7 @@ function Overview() {
               <p css={keyMetricLabelStyles}>Number of Waterbodies</p>
               <div css={switchContainerStyles}>
                 <Switch
-                  checked={Boolean(waterbodyCount) && waterbodiesDisplayed}
+                  checked={Boolean(totalWaterbodies) && waterbodiesDisplayed}
                   onChange={(checked) => {
                     setWaterbodiesDisplayed(!waterbodiesDisplayed);
 
@@ -337,7 +326,7 @@ function Overview() {
                       newValue: waterbodyLayer && !waterbodiesDisplayed,
                     });
                   }}
-                  disabled={!Boolean(waterbodyCount)}
+                  disabled={!Boolean(totalWaterbodies)}
                   ariaLabel="Waterbodies"
                 />
               </div>
@@ -353,26 +342,31 @@ function Overview() {
             <>
               <span css={keyMetricNumberStyles}>
                 {monitoringLocations.status === 'failure' ||
-                !monitoringLocationCount
+                !totalMonitoringLocations
                   ? 'N/A'
-                  : monitoringLocationCount.toLocaleString() || '0'}
+                  : totalMonitoringLocations || 0}
               </span>
               <p css={keyMetricLabelStyles}>Number of Monitoring Locations</p>
               <div css={switchContainerStyles}>
                 <Switch
                   checked={
-                    Boolean(monitoringLocationCount) && monitorsDisplayed
+                    Boolean(totalMonitoringLocations) &&
+                    monitoringLocationsDisplayed
                   }
                   onChange={(checked) => {
-                    setMonitorsDisplayed(!monitorsDisplayed);
+                    setMonitoringLocationsDisplayed(
+                      !monitoringLocationsDisplayed,
+                    );
 
                     // first check if layer exists and is not falsy
                     updateVisibleLayers({
                       key: 'monitoringStationsLayer',
-                      newValue: monitoringStationsLayer && !monitorsDisplayed,
+                      newValue:
+                        monitoringStationsLayer &&
+                        !monitoringLocationsDisplayed,
                     });
                   }}
-                  disabled={!Boolean(monitoringLocationCount)}
+                  disabled={!Boolean(totalMonitoringLocations)}
                   ariaLabel="Monitoring Locations"
                 />
               </div>
@@ -387,26 +381,30 @@ function Overview() {
             <>
               <span css={keyMetricNumberStyles}>
                 {permittedDischargers.status === 'failure' ||
-                !permittedDischargerCount
+                !totalPermittedDischargers
                   ? 'N/A'
-                  : permittedDischargerCount.toLocaleString() || '0'}
+                  : totalPermittedDischargers || 0}
               </span>
               <p css={keyMetricLabelStyles}>Number of Permitted Dischargers</p>
               <div css={switchContainerStyles}>
                 <Switch
                   checked={
-                    Boolean(permittedDischargerCount) && dischargersDisplayed
+                    Boolean(totalPermittedDischargers) &&
+                    permittedDischargersDisplayed
                   }
                   onChange={(checked) => {
-                    setDischargersDisplayed(!dischargersDisplayed);
+                    setPermittedDischargersDisplayed(
+                      !permittedDischargersDisplayed,
+                    );
 
                     // first check if layer exists and is not falsy
                     updateVisibleLayers({
                       key: 'dischargersLayer',
-                      newValue: dischargersLayer && !dischargersDisplayed,
+                      newValue:
+                        dischargersLayer && !permittedDischargersDisplayed,
                     });
                   }}
-                  disabled={!Boolean(permittedDischargerCount)}
+                  disabled={!Boolean(totalPermittedDischargers)}
                   ariaLabel="Permitted Dischargers"
                 />
               </div>
@@ -443,18 +441,20 @@ function Overview() {
 
               {monitoringLocations.status === 'success' && (
                 <>
-                  {monitoringLocations.data.features.length === 0 && (
+                  {totalMonitoringLocations === 0 && (
                     <p css={centeredTextStyles}>
                       There are no Water Monitoring Locations in the {watershed}{' '}
                       watershed.
                     </p>
                   )}
 
-                  {monitoringLocations.data.features.length > 0 && (
+                  {totalMonitoringLocations > 0 && (
                     <AccordionList
                       expandDisabled={true} // disabled to avoid large number of web service calls
                       title={`Water Monitoring Locations in the ${watershed} watershed.`}
-                      onSortChange={(sortBy) => setSortBy(sortBy.value)}
+                      onSortChange={(sortBy) => {
+                        setMonitoringLocationsSortedBy(sortBy.value);
+                      }}
                       sortOptions={[
                         {
                           value: 'MonitoringLocationName',
@@ -474,44 +474,36 @@ function Overview() {
                         },
                       ]}
                     >
-                      {sortedMonitoringStations.map((item, index) => {
-                        const { properties: prop } = item;
-
+                      {sortedMonitoringLocations.map((item, index) => {
+                        const id = item.properties.MonitoringLocationIdentifier;
+                        const name = item.properties.MonitoringLocationName;
+                        const orgId = item.properties.OrganizationIdentifier;
+                        const result = item.properties.resultCount;
                         const feature = {
                           geometry: {
-                            type: 'point', // autocasts as new Point()
+                            type: 'point',
                             longitude: item.x,
                             latitude: item.y,
                           },
                           symbol: {
-                            type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
+                            type: 'simple-marker',
                             style: 'square',
                           },
-                          attributes: prop,
+                          attributes: item.properties,
                         };
 
                         return (
                           <AccordionItem
                             key={index}
-                            title={
-                              <strong>
-                                {prop['MonitoringLocationName'] || 'Unknown'}
-                              </strong>
-                            }
+                            title={<strong>{name || 'Unknown'}</strong>}
                             subTitle={
                               <>
-                                Organization ID:{' '}
-                                {prop['OrganizationIdentifier']}
+                                Organization ID: {orgId}
                                 <br />
-                                Monitoring Site ID:{' '}
-                                {
-                                  prop['MonitoringLocationIdentifier'].split(
-                                    '-',
-                                  )[1]
-                                }
+                                Monitoring Site ID: {id.split('-')[1]}
                                 <br />
                                 Monitoring Measurements:{' '}
-                                {Number(prop['resultCount']).toLocaleString()}
+                                {Number(result).toLocaleString()}
                               </>
                             }
                             feature={feature}
@@ -545,17 +537,18 @@ function Overview() {
 
               {permittedDischargers.status === 'success' && (
                 <>
-                  {permittedDischargers.data.Results.Facilities.length ===
-                    0 && (
+                  {totalPermittedDischargers === 0 && (
                     <p css={centeredTextStyles}>
                       There are no dischargers in the {watershed} watershed.
                     </p>
                   )}
 
-                  {permittedDischargers.data.Results.Facilities.length > 0 && (
+                  {totalPermittedDischargers > 0 && (
                     <AccordionList
                       title={`Dischargers in the ${watershed} watershed.`}
-                      onSortChange={(sortBy) => setSortDischBy(sortBy.value)}
+                      onSortChange={(sortBy) => {
+                        setPermittedDischargersSortedBy(sortBy.value);
+                      }}
                       sortOptions={[
                         {
                           value: 'CWPName',
@@ -567,16 +560,23 @@ function Overview() {
                         },
                       ]}
                     >
-                      {sortedDischargers.map((item, index) => {
-                        const feature = convertFacilityToGraphic(item);
+                      {sortedPermittedDischargers.map((item, index) => {
+                        const id = item.SourceID;
+                        const name = item.CWPName;
+                        const feature = {
+                          geometry: {
+                            type: 'point',
+                            longitude: item.FacLong,
+                            latitude: item.FacLat,
+                          },
+                          attributes: item,
+                        };
 
                         return (
                           <AccordionItem
                             key={index}
-                            title={
-                              <strong>{item['CWPName'] || 'Unknown'}</strong>
-                            }
-                            subTitle={`NPDES ID: ${item['SourceID']}`}
+                            title={<strong>{name || 'Unknown'}</strong>}
+                            subTitle={<>NPDES ID: {id}</>}
                             feature={feature}
                             idKey={'CWPName'}
                           >

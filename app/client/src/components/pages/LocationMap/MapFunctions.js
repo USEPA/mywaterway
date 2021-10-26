@@ -633,8 +633,8 @@ export function getPopupContent({
   return contentContainer;
 }
 
-export function getUniqueWaterbodies(waterbodies: Array<Object>) {
-  if (!waterbodies) return null;
+export function getUniqueWaterbodies(waterbodies: Object[]) {
+  if (!waterbodies) return [];
 
   const flags = {};
   return waterbodies.filter((waterbody) => {
