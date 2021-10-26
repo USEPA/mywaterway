@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 // components
@@ -8,7 +8,6 @@ import {
   AccordionList,
   AccordionItem,
 } from 'components/shared/Accordion/MapHighlight';
-import { ContentTabs } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Switch from 'components/shared/Switch';
 import WaterbodyList from 'components/shared/WaterbodyList';
@@ -22,10 +21,10 @@ import {
   keyMetricNumberStyles,
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
+import { tabsStyles } from 'components/shared/ContentTabs';
 // contexts
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { OverviewFiltersContext } from 'contexts/OverviewFilters';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
@@ -86,14 +85,9 @@ function Overview() {
     assessmentUnitCount,
   } = React.useContext(LocationSearchContext);
 
-  const {
-    waterbodiesFilterEnabled,
-    monitoringLocationsFilterEnabled,
-    dischargersFilterEnabled,
-    setWaterbodiesFilterEnabled,
-    setMonitoringLocationsFilterEnabled,
-    setDischargersFilterEnabled,
-  } = React.useContext(OverviewFiltersContext);
+  const [waterbodiesDisplayed, setWaterbodiesDisplayed] = useState(true);
+  const [monitorsDisplayed, setMonitorsDisplayed] = useState(false);
+  const [dischargersDisplayed, setDischargersDisplayed] = useState(false);
 
   const services = useServicesContext();
 
@@ -150,43 +144,48 @@ function Overview() {
     } = visibleLayers;
 
     if (typeof waterbodyLayer === 'boolean') {
-      setWaterbodiesFilterEnabled(waterbodyLayer);
+      setWaterbodiesDisplayed(waterbodyLayer);
     }
     if (typeof monitoringStationsLayer === 'boolean') {
-      setMonitoringLocationsFilterEnabled(monitoringStationsLayer);
+      setMonitorsDisplayed(monitoringStationsLayer);
     }
     if (typeof dischargersLayer === 'boolean') {
-      setDischargersFilterEnabled(dischargersLayer);
+      setDischargersDisplayed(dischargersLayer);
     }
   }, [
     visibleLayers,
-    setDischargersFilterEnabled,
-    setMonitoringLocationsFilterEnabled,
-    setWaterbodiesFilterEnabled,
+    setDischargersDisplayed,
+    setMonitorsDisplayed,
+    setWaterbodiesDisplayed,
   ]);
 
-  // Updates the visible layers. This function also takes into account whether
-  // or not the underlying webservices failed.
+  /**
+   * Updates the visible layers. This function also takes into account whether
+   * or not the underlying webservices failed.
+   */
   const updateVisibleLayers = React.useCallback(
     ({ key = null, newValue = null, useCurrentValue = false }) => {
       const newVisibleLayers = {};
+
       if (monitoringLocations.status !== 'failure') {
         newVisibleLayers['monitoringStationsLayer'] =
           !monitoringStationsLayer || useCurrentValue
             ? visibleLayers['monitoringStationsLayer']
-            : monitoringLocationsFilterEnabled;
+            : monitorsDisplayed;
       }
+
       if (cipSummary.status !== 'failure') {
         newVisibleLayers['waterbodyLayer'] =
           !waterbodyLayer || useCurrentValue
             ? visibleLayers['waterbodyLayer']
-            : waterbodiesFilterEnabled;
+            : waterbodiesDisplayed;
       }
+
       if (permittedDischargers.status !== 'failure') {
         newVisibleLayers['dischargersLayer'] =
           !dischargersLayer || useCurrentValue
             ? visibleLayers['dischargersLayer']
-            : dischargersFilterEnabled;
+            : dischargersDisplayed;
       }
 
       if (newVisibleLayers.hasOwnProperty(key)) {
@@ -200,13 +199,13 @@ function Overview() {
     },
     [
       dischargersLayer,
-      dischargersFilterEnabled,
+      dischargersDisplayed,
       permittedDischargers,
       monitoringLocations,
       monitoringStationsLayer,
-      monitoringLocationsFilterEnabled,
+      monitorsDisplayed,
       waterbodyLayer,
-      waterbodiesFilterEnabled,
+      waterbodiesDisplayed,
       cipSummary,
       visibleLayers,
       setVisibleLayers,
@@ -328,14 +327,14 @@ function Overview() {
               <p css={keyMetricLabelStyles}>Number of Waterbodies</p>
               <div css={switchContainerStyles}>
                 <Switch
-                  checked={Boolean(waterbodyCount) && waterbodiesFilterEnabled}
+                  checked={Boolean(waterbodyCount) && waterbodiesDisplayed}
                   onChange={(checked) => {
-                    setWaterbodiesFilterEnabled(!waterbodiesFilterEnabled);
+                    setWaterbodiesDisplayed(!waterbodiesDisplayed);
 
                     // first check if layer exists and is not falsy
                     updateVisibleLayers({
                       key: 'waterbodyLayer',
-                      newValue: waterbodyLayer && !waterbodiesFilterEnabled,
+                      newValue: waterbodyLayer && !waterbodiesDisplayed,
                     });
                   }}
                   disabled={!Boolean(waterbodyCount)}
@@ -362,20 +361,15 @@ function Overview() {
               <div css={switchContainerStyles}>
                 <Switch
                   checked={
-                    Boolean(monitoringLocationCount) &&
-                    monitoringLocationsFilterEnabled
+                    Boolean(monitoringLocationCount) && monitorsDisplayed
                   }
                   onChange={(checked) => {
-                    setMonitoringLocationsFilterEnabled(
-                      !monitoringLocationsFilterEnabled,
-                    );
+                    setMonitorsDisplayed(!monitorsDisplayed);
 
                     // first check if layer exists and is not falsy
                     updateVisibleLayers({
                       key: 'monitoringStationsLayer',
-                      newValue:
-                        monitoringStationsLayer &&
-                        !monitoringLocationsFilterEnabled,
+                      newValue: monitoringStationsLayer && !monitorsDisplayed,
                     });
                   }}
                   disabled={!Boolean(monitoringLocationCount)}
@@ -401,16 +395,15 @@ function Overview() {
               <div css={switchContainerStyles}>
                 <Switch
                   checked={
-                    Boolean(permittedDischargerCount) &&
-                    dischargersFilterEnabled
+                    Boolean(permittedDischargerCount) && dischargersDisplayed
                   }
                   onChange={(checked) => {
-                    setDischargersFilterEnabled(!dischargersFilterEnabled);
+                    setDischargersDisplayed(!dischargersDisplayed);
 
                     // first check if layer exists and is not falsy
                     updateVisibleLayers({
                       key: 'dischargersLayer',
-                      newValue: dischargersLayer && !dischargersFilterEnabled,
+                      newValue: dischargersLayer && !dischargersDisplayed,
                     });
                   }}
                   disabled={!Boolean(permittedDischargerCount)}
@@ -422,11 +415,11 @@ function Overview() {
         </div>
       </div>
 
-      <ContentTabs>
+      <div css={tabsStyles}>
         <Tabs>
           <TabList>
             <Tab>Waterbodies</Tab>
-            <Tab>Monitoring Locations</Tab>
+            <Tab>Monitoring &amp; Sensors</Tab>
             <Tab>Permitted Dischargers</Tab>
           </TabList>
 
@@ -602,7 +595,7 @@ function Overview() {
             </TabPanel>
           </TabPanels>
         </Tabs>
-      </ContentTabs>
+      </div>
     </div>
   );
 }
