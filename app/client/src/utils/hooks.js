@@ -212,14 +212,15 @@ function useWaterbodyOnMap(
     setSelectedGraphic, //
   } = React.useContext(MapHighlightContext);
   const {
+    allWaterbodiesLayer,
     pointsLayer,
     linesLayer,
     areasLayer,
-    mapView, //
+    mapView,
   } = React.useContext(LocationSearchContext);
 
   const setRenderer = React.useCallback(
-    (layer, geometryType, attributeName) => {
+    (layer, geometryType, attributeName, alpha = null) => {
       const renderer = {
         type: 'unique-value',
         field: attributeName ? attributeName : 'overallstatus',
@@ -228,8 +229,9 @@ function useWaterbodyOnMap(
           condition: defaultCondition,
           selected: false,
           geometryType,
+          alpha,
         }),
-        uniqueValueInfos: createUniqueValueInfos(geometryType),
+        uniqueValueInfos: createUniqueValueInfos(geometryType, alpha),
       };
       layer.renderer = renderer;
 
@@ -253,6 +255,35 @@ function useWaterbodyOnMap(
     if (!areasLayer || areasLayer === 'error') return;
     setRenderer(areasLayer, 'polygon', attributeName);
   }, [areasLayer, attributeName, setRenderer]);
+
+  React.useEffect(() => {
+    if (!allWaterbodiesLayer || allWaterbodiesLayer === 'error') return;
+
+    const alpha = {
+      base: 0.2,
+      poly: 0.1,
+      outline: 0.05,
+    };
+
+    setRenderer(
+      allWaterbodiesLayer.layers.items[2],
+      'point',
+      attributeName,
+      alpha,
+    );
+    setRenderer(
+      allWaterbodiesLayer.layers.items[1],
+      'polyline',
+      attributeName,
+      alpha,
+    );
+    setRenderer(
+      allWaterbodiesLayer.layers.items[0],
+      'polygon',
+      attributeName,
+      alpha,
+    );
+  }, [allWaterbodiesLayer, attributeName, setRenderer]);
 }
 
 // custom hook that is used to highlight based on context. If the findOthers
