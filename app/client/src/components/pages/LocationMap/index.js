@@ -760,8 +760,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       new QueryTask({ url: services.data.waterbodyService.lines })
         .execute(query)
         .then((res) => {
-          setLinesData(res);
+          // build a list of features that still has the original uncropped
+          // geometry and set context
+          let originalFeatures = [];
+          res.features.forEach((item) => {
+            item['originalGeometry'] = item.geometry;
+            originalFeatures.push(item);
+          });
+          setLinesData({ features: originalFeatures });
 
+          // crop the waterbodies geometry to within the huc
           const features = cropGeometryToHuc(
             res.features,
             boundaries.features[0].geometry,
@@ -822,8 +830,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       new QueryTask({ url: services.data.waterbodyService.areas })
         .execute(query)
         .then((res) => {
-          setAreasData(res);
+          // build a list of features that still has the original uncropped
+          // geometry and set context
+          let originalFeatures = [];
+          res.features.forEach((item) => {
+            item['originalGeometry'] = item.geometry;
+            originalFeatures.push(item);
+          });
+          setAreasData({ features: originalFeatures });
 
+          // crop the waterbodies geometry to within the huc
           const features = cropGeometryToHuc(
             res.features,
             boundaries.features[0].geometry,
