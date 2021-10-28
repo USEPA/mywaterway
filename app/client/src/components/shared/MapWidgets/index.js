@@ -1326,66 +1326,6 @@ function MapWidgets({
     );
   }
 
-  // watch for location changes and disable/enable the all waterbodies widget
-  // accordingly widget should only be displayed on valid Community page location
-  React.useEffect(() => {
-    if (!allWaterbodiesWidget) return;
-
-    if (!window.location.pathname.includes('/community')) {
-      // hide all waterbodies widget on other pages
-      allWaterbodiesWidget.style.display = 'none';
-      allWaterbodiesLayer.visible = false;
-      return;
-    }
-
-    if (!huc12 || window.location.pathname === '/community') {
-      // disable all waterbodies widget on community home or invalid searches
-      setAllWaterbodiesWidgetDisabled(true);
-      allWaterbodiesLayer.visible = false;
-      return;
-    }
-
-    // display and enable the all waterbodies widget
-    setAllWaterbodiesWidgetDisabled(false);
-    if (allWaterbodiesLayerVisible) allWaterbodiesLayer.visible = true;
-  }, [
-    huc12,
-    allWaterbodiesLayer,
-    allWaterbodiesLayerVisible,
-    allWaterbodiesWidget,
-    setAllWaterbodiesWidgetDisabled,
-  ]);
-
-  // disable the all waterbodies widget if on the community home page
-  React.useEffect(() => {
-    if (
-      !allWaterbodiesWidget ||
-      !window.location.pathname.includes('/community')
-    ) {
-      return;
-    }
-
-    if (allWaterbodiesWidgetDisabled) {
-      allWaterbodiesWidget.style.opacity = '0.5';
-      allWaterbodiesWidget.style.cursor = 'default';
-    } else {
-      allWaterbodiesWidget.style.opacity = '1';
-      allWaterbodiesWidget.style.cursor = 'pointer';
-    }
-  }, [allWaterbodiesWidget, allWaterbodiesWidgetDisabled]);
-
-  // watch for changes to all waterbodies layer visibility and update visible
-  // layers accordingly
-  React.useEffect(() => {
-    updateVisibleLayers(view, hmwLegendNode, additionalLegendInfo);
-  }, [
-    view,
-    hmwLegendNode,
-    allWaterbodiesLayerVisible,
-    additionalLegendInfo,
-    visibleLayers,
-  ]);
-
   if (!addDataWidget) return null;
 
   const mapWidth = document
