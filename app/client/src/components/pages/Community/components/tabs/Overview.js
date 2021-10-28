@@ -93,17 +93,17 @@ function Overview() {
   const { Graphic } = React.useContext(EsriModulesContext);
 
   const {
+    cipSummary,
+    assessmentUnitCount, // TODO: determine if this is needed...
     monitoringStations,
     usgsStreamgages,
     permittedDischargers,
     waterbodyLayer,
     monitoringStationsLayer,
     dischargersLayer,
-    cipSummary,
     watershed,
     visibleLayers,
     setVisibleLayers,
-    assessmentUnitCount,
   } = React.useContext(LocationSearchContext);
 
   const [waterbodiesDisplayed, setWaterbodiesDisplayed] = useState(true);
@@ -244,8 +244,8 @@ function Overview() {
   React.useEffect(() => {
     updateVisibleLayers({ useCurrentValue: true });
   }, [
-    monitoringStations,
     cipSummary,
+    monitoringStations,
     permittedDischargers,
     visibleLayers,
     updateVisibleLayers,
@@ -299,9 +299,6 @@ function Overview() {
       })
     : [];
 
-  // TODO: use usgs streamgages data
-  console.log(usgsStreamgages);
-
   return (
     <div css={containerStyles}>
       {cipSummary.status === 'failure' && (
@@ -310,11 +307,12 @@ function Overview() {
         </div>
       )}
 
-      {monitoringStations.status === 'failure' && (
-        <div css={modifiedErrorBoxStyles}>
-          <p>{monitoringError}</p>
-        </div>
-      )}
+      {monitoringStations.status === 'failure' &&
+        usgsStreamgages.status === 'failure' && (
+          <div css={modifiedErrorBoxStyles}>
+            <p>{monitoringError}</p>
+          </div>
+        )}
 
       {permittedDischargers.status === 'failure' && (
         <div css={modifiedErrorBoxStyles}>
@@ -374,7 +372,7 @@ function Overview() {
                   ? 'N/A'
                   : totalMonitoringLocations || 0}
               </span>
-              <p css={keyMetricLabelStyles}>Monitoring Locations</p>
+              <p css={keyMetricLabelStyles}>Sample Locations</p>
               <div css={switchContainerStyles}>
                 <Switch
                   checked={
@@ -490,6 +488,37 @@ function Overview() {
                               <div css={toggleStyles}>
                                 <Switch
                                   checked={
+                                    false
+                                    // Boolean(totalMonitoringLocations) &&
+                                    // monitoringStationsDisplayed
+                                  }
+                                  onChange={(checked) => {
+                                    // setMonitoringStationsDisplayed(
+                                    //   !monitoringStationsDisplayed,
+                                    // );
+                                    // updateVisibleLayers({
+                                    //   key: 'monitoringStationsLayer',
+                                    //   newValue:
+                                    //     monitoringStationsLayer &&
+                                    //     !monitoringStationsDisplayed,
+                                    // });
+                                  }}
+                                  disabled={
+                                    true
+                                    // !Boolean(totalMonitoringLocations)
+                                  }
+                                  ariaLabel="Daily Stream Flow Conditions"
+                                />
+                                <span>Daily Stream Flow Conditions</span>
+                              </div>
+                            </td>
+                            <td>{/* totalMonitoringLocations */}</td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <div css={toggleStyles}>
+                                <Switch
+                                  checked={
                                     Boolean(totalMonitoringLocations) &&
                                     monitoringStationsDisplayed
                                   }
@@ -512,37 +541,6 @@ function Overview() {
                               </div>
                             </td>
                             <td>{totalMonitoringLocations}</td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <div css={toggleStyles}>
-                                <Switch
-                                  checked={
-                                    false
-                                    // Boolean(totalMonitoringLocations) &&
-                                    // monitoringStationsDisplayed
-                                  }
-                                  onChange={(checked) => {
-                                    // setMonitoringStationsDisplayed(
-                                    //   !monitoringStationsDisplayed,
-                                    // );
-                                    // updateVisibleLayers({
-                                    //   key: 'monitoringStationsLayer',
-                                    //   newValue:
-                                    //     monitoringStationsLayer &&
-                                    //     !monitoringStationsDisplayed,
-                                    // });
-                                  }}
-                                  disabled={
-                                    true
-                                    // !Boolean(totalMonitoringLocations)
-                                  }
-                                  ariaLabel="USGS Streamgages"
-                                />
-                                <span>USGS Streamgages</span>
-                              </div>
-                            </td>
-                            <td>{/* totalMonitoringLocations */}</td>
                           </tr>
                         </tbody>
                       </table>
@@ -572,6 +570,27 @@ function Overview() {
                           },
                         ]}
                       >
+                        {
+                          /* TODO: implement streamgages */
+                          usgsStreamgages.data.value.map((item, index) => {
+                            const id = item.properties.monitoringLocationNumber;
+                            const name = item.properties.monitoringLocationName;
+                            // const feature = {};
+
+                            return (
+                              <AccordionItem
+                                key={index}
+                                title={<strong>{name || 'Unknown'}</strong>}
+                                subTitle={<>Monitoring Location ID: {id}</>}
+                                feature={null}
+                                idKey={null}
+                              >
+                                <p>(Placeholder)</p>
+                              </AccordionItem>
+                            );
+                          })
+                        }
+
                         {sortedMonitoringStations.map((item, index) => {
                           const id =
                             item.properties.MonitoringLocationIdentifier;
