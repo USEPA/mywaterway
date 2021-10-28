@@ -52,6 +52,38 @@ function getMatchingFeatures(
   });
 }
 
+// Highlights the feature either by adding a graphic to the view.graphics
+// collection or by using the layerView.highlight function. The view.graphics
+// method is used if the feature has an "originalGeometry" attribute, which
+// indicates that this feature has been clipped and the highlighting should
+// use the full original feature.
+function highlightFeature({
+  mapView,
+  layer,
+  feature,
+  highlightOptions,
+  handles,
+  group,
+  callback = null,
+}) {
+  if (feature.originalGeometry) {
+    mapView.graphics.add({
+      ...feature,
+      geometry: feature.originalGeometry,
+      symbol: getHighlightSymbol(feature.originalGeometry, highlightOptions),
+    });
+  } else {
+    mapView
+      .whenLayerView(layer)
+      .then((layerView) => {
+        const highlightObject = layerView.highlight(feature);
+        handles.add(highlightObject, group);
+        if (callback) callback();
+      })
+      .catch((err) => console.error(err));
+  }
+}
+
 // custom hook that combines lines, area, and points features from context,
 // and returns the combined features
 function useWaterbodyFeatures() {
@@ -252,38 +284,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
   } = React.useContext(LocationSearchContext);
   const services = useServicesContext();
 
-  // Highlights the feature either by adding a graphic to the view.graphics
-  // collection or by using the layerView.highlight function. The view.graphics
-  // method is used if the feature has an "originalGeometry" attribute, which
-  // indicates that this feature has been clipped and the highlighting should
-  // use the full original feature.
-  function highlightFeature({
-    mapView,
-    layer,
-    feature,
-    highlightOptions,
-    handles,
-    group,
-    callback = null,
-  }) {
-    if (feature.originalGeometry) {
-      mapView.graphics.add({
-        ...feature,
-        geometry: feature.originalGeometry,
-        symbol: getHighlightSymbol(feature.originalGeometry, highlightOptions),
-      });
-    } else {
-      mapView
-        .whenLayerView(layer)
-        .then((layerView) => {
-          const highlightObject = layerView.highlight(feature);
-          handles.add(highlightObject, group);
-          if (callback) callback();
-        })
-        .catch((err) => console.error(err));
-    }
-  }
-
   // Handles zooming to a selected graphic when "View on Map" is clicked.
   React.useEffect(() => {
     if (
@@ -446,6 +446,17 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     // get the graphic from the layer so that we have geometry
     let graphicToHighlight = graphic;
+
+    // define the callback used for setting the highlight state cache
+    function highlightStateCallback() {
+      currentHighlight = graphic;
+      setHighlightState({
+        currentHighlight,
+        currentSelection,
+        cachedHighlights,
+      });
+    }
+
     // find the actual graphic on the layer
     if (layer.type === 'graphics') {
       for (const tempGraphic of layer.graphics.items) {
@@ -464,14 +475,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         highlightOptions,
         handles,
         group,
-        callback: () => {
-          currentHighlight = graphic;
-          setHighlightState({
-            currentHighlight,
-            currentSelection,
-            cachedHighlights,
-          });
-        },
+        callback: highlightStateCallback,
       });
     } else if (
       window.location.pathname.includes('community') &&
@@ -595,14 +599,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         highlightOptions,
         handles,
         group,
-        callback: () => {
-          currentHighlight = graphic;
-          setHighlightState({
-            currentHighlight,
-            currentSelection,
-            cachedHighlights,
-          });
-        },
+        callback: highlightStateCallback,
       });
     }
   }, [
