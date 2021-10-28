@@ -252,6 +252,38 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
   } = React.useContext(LocationSearchContext);
   const services = useServicesContext();
 
+  // Highlights the feature either by adding a graphic to the view.graphics
+  // collection or by using the layerView.highlight function. The view.graphics
+  // method is used if the feature has an "originalGeometry" attribute, which
+  // indicates that this feature has been clipped and the highlighting should
+  // use the full original feature.
+  function highlightFeature({
+    mapView,
+    layer,
+    feature,
+    highlightOptions,
+    handles,
+    group,
+    callback = null,
+  }) {
+    if (feature.originalGeometry) {
+      mapView.graphics.add({
+        ...feature,
+        geometry: feature.originalGeometry,
+        symbol: getHighlightSymbol(feature.originalGeometry, highlightOptions),
+      });
+    } else {
+      mapView
+        .whenLayerView(layer)
+        .then((layerView) => {
+          const highlightObject = layerView.highlight(feature);
+          handles.add(highlightObject, group);
+          if (callback) callback();
+        })
+        .catch((err) => console.error(err));
+    }
+  }
+
   // Handles zooming to a selected graphic when "View on Map" is clicked.
   React.useEffect(() => {
     if (
@@ -425,30 +457,22 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         }
       }
 
-      if (graphicToHighlight.originalGeometry) {
-        mapView.graphics.add({
-          ...graphicToHighlight,
-          geometry: graphicToHighlight.originalGeometry,
-          symbol: getHighlightSymbol(
-            graphicToHighlight.originalGeometry,
-            highlightOptions,
-          ),
-        });
-      } else {
-        mapView
-          .whenLayerView(layer)
-          .then((layerView) => {
-            const highlightObject = layerView.highlight(graphicToHighlight);
-            handles.add(highlightObject, group);
-            currentHighlight = graphic;
-            setHighlightState({
-              currentHighlight,
-              currentSelection,
-              cachedHighlights,
-            });
-          })
-          .catch((err) => console.error(err));
-      }
+      highlightFeature({
+        mapView,
+        layer,
+        feature: graphicToHighlight,
+        highlightOptions,
+        handles,
+        group,
+        callback: () => {
+          currentHighlight = graphic;
+          setHighlightState({
+            currentHighlight,
+            currentSelection,
+            cachedHighlights,
+          });
+        },
+      });
     } else if (
       window.location.pathname.includes('community') &&
       featureLayerType === 'waterbodyLayer' &&
@@ -465,24 +489,14 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       getMatchingFeatures(features, pointsData, graphicOrgId, graphicAuId);
 
       features.forEach((feature) => {
-        if (feature.originalGeometry) {
-          mapView.graphics.add({
-            ...feature,
-            geometry: feature.originalGeometry,
-            symbol: getHighlightSymbol(
-              feature.originalGeometry,
-              highlightOptions,
-            ),
-          });
-        } else {
-          mapView
-            .whenLayerView(feature.layer)
-            .then((layerView) => {
-              const highlightObject = layerView.highlight(feature);
-              handles.add(highlightObject, group);
-            })
-            .catch((err) => console.error(err));
-        }
+        highlightFeature({
+          mapView,
+          layer: feature.layer,
+          feature,
+          highlightOptions,
+          handles,
+          group,
+        });
       });
     } else if (
       layer.type === 'feature' &&
@@ -502,24 +516,14 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
       if (cachedHighlights[key]) {
         cachedHighlights[key].forEach((feature) => {
-          if (feature.originalGeometry) {
-            mapView.graphics.add({
-              ...feature,
-              geometry: feature.originalGeometry,
-              symbol: getHighlightSymbol(
-                feature.originalGeometry,
-                highlightOptions,
-              ),
-            });
-          } else {
-            mapView
-              .whenLayerView(feature.layer)
-              .then((layerView) => {
-                const highlightObject = layerView.highlight(feature);
-                handles.add(highlightObject, group);
-              })
-              .catch((err) => console.error(err));
-          }
+          highlightFeature({
+            mapView,
+            layer: feature.layer,
+            feature,
+            highlightOptions,
+            handles,
+            group,
+          });
         });
 
         currentHighlight = graphic;
@@ -559,24 +563,14 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
             response.features.forEach((feature) => {
               featuresToCache.push(feature);
-              if (feature.originalGeometry) {
-                mapView.graphics.add({
-                  ...feature,
-                  geometry: feature.originalGeometry,
-                  symbol: getHighlightSymbol(
-                    feature.originalGeometry,
-                    highlightOptions,
-                  ),
-                });
-              } else {
-                mapView
-                  .whenLayerView(feature.layer)
-                  .then((layerView) => {
-                    const highlightObject = layerView.highlight(feature);
-                    handles.add(highlightObject, group);
-                  })
-                  .catch((err) => console.error(err));
-              }
+              highlightFeature({
+                mapView,
+                layer: feature.layer,
+                feature,
+                highlightOptions,
+                handles,
+                group,
+              });
             });
 
             // build the new cachedHighlights object
@@ -594,30 +588,22 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         });
       }
     } else {
-      if (graphicToHighlight.originalGeometry) {
-        mapView.graphics.add({
-          ...graphicToHighlight,
-          geometry: graphicToHighlight.originalGeometry,
-          symbol: getHighlightSymbol(
-            graphicToHighlight.originalGeometry,
-            highlightOptions,
-          ),
-        });
-      } else {
-        mapView
-          .whenLayerView(layer)
-          .then((layerView) => {
-            const highlightObject = layerView.highlight(graphicToHighlight);
-            handles.add(highlightObject, group);
-            currentHighlight = graphic;
-            setHighlightState({
-              currentHighlight,
-              currentSelection,
-              cachedHighlights,
-            });
-          })
-          .catch((err) => console.error(err));
-      }
+      highlightFeature({
+        mapView,
+        layer,
+        feature: graphicToHighlight,
+        highlightOptions,
+        handles,
+        group,
+        callback: () => {
+          currentHighlight = graphic;
+          setHighlightState({
+            currentHighlight,
+            currentSelection,
+            cachedHighlights,
+          });
+        },
+      });
     }
   }, [
     mapView,
