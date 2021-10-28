@@ -59,29 +59,31 @@ function getMatchingFeatures(
 // use the full original feature.
 function highlightFeature({
   mapView,
-  layer,
-  feature,
+  features,
   highlightOptions,
   handles,
   group,
+  layer = null,
   callback = null,
 }) {
-  if (feature.originalGeometry) {
-    mapView.graphics.add({
-      ...feature,
-      geometry: feature.originalGeometry,
-      symbol: getHighlightSymbol(feature.originalGeometry, highlightOptions),
-    });
-  } else {
-    mapView
-      .whenLayerView(layer)
-      .then((layerView) => {
-        const highlightObject = layerView.highlight(feature);
-        handles.add(highlightObject, group);
-        if (callback) callback();
-      })
-      .catch((err) => console.error(err));
-  }
+  features.forEach((feature) => {
+    if (feature.originalGeometry) {
+      mapView.graphics.add({
+        ...feature,
+        geometry: feature.originalGeometry,
+        symbol: getHighlightSymbol(feature.originalGeometry, highlightOptions),
+      });
+    } else {
+      mapView
+        .whenLayerView(layer ?? feature.layer)
+        .then((layerView) => {
+          const highlightObject = layerView.highlight(feature);
+          handles.add(highlightObject, group);
+          if (callback) callback(feature);
+        })
+        .catch((err) => console.error(err));
+    }
+  });
 }
 
 // custom hook that combines lines, area, and points features from context,
@@ -471,7 +473,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       highlightFeature({
         mapView,
         layer,
-        feature: graphicToHighlight,
+        features: [graphicToHighlight],
         highlightOptions,
         handles,
         group,
@@ -492,15 +494,12 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       getMatchingFeatures(features, linesData, graphicOrgId, graphicAuId);
       getMatchingFeatures(features, pointsData, graphicOrgId, graphicAuId);
 
-      features.forEach((feature) => {
-        highlightFeature({
-          mapView,
-          layer: feature.layer,
-          feature,
-          highlightOptions,
-          handles,
-          group,
-        });
+      highlightFeature({
+        mapView,
+        features,
+        highlightOptions,
+        handles,
+        group,
       });
     } else if (
       layer.type === 'feature' &&
@@ -519,15 +518,12 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       }
 
       if (cachedHighlights[key]) {
-        cachedHighlights[key].forEach((feature) => {
-          highlightFeature({
-            mapView,
-            layer: feature.layer,
-            feature,
-            highlightOptions,
-            handles,
-            group,
-          });
+        highlightFeature({
+          mapView,
+          features: cachedHighlights[key],
+          highlightOptions,
+          handles,
+          group,
         });
 
         currentHighlight = graphic;
@@ -565,16 +561,15 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
           responses.forEach((response) => {
             if (!response || !response.features) return;
 
-            response.features.forEach((feature) => {
-              featuresToCache.push(feature);
-              highlightFeature({
-                mapView,
-                layer: feature.layer,
-                feature,
-                highlightOptions,
-                handles,
-                group,
-              });
+            highlightFeature({
+              mapView,
+              features: response.features,
+              highlightOptions,
+              handles,
+              group,
+              callback: (feature) => {
+                featuresToCache.push(feature);
+              },
             });
 
             // build the new cachedHighlights object
@@ -595,7 +590,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       highlightFeature({
         mapView,
         layer,
-        feature: graphicToHighlight,
+        features: [graphicToHighlight],
         highlightOptions,
         handles,
         group,
