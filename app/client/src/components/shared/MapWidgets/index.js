@@ -59,6 +59,7 @@ const zoomDependentLayers = [
 // which layer legends are visible.
 const orderedLayers = [
   'waterbodyLayer',
+  'allWaterbodiesLayer',
   'monitoringStationsLayer',
   'issuesLayer',
   'dischargersLayer',
@@ -165,7 +166,8 @@ function updateVisibleLayers(
         layer.id === 'boundariesLayer' &&
         document.location.pathname !== '/community') ||
       (layer.visible && layer.id === 'actionsWaterbodies') ||
-      (layer.visible && layer.id === 'upstreamWatershed')
+      (layer.visible && layer.id === 'upstreamWatershed') ||
+      (layer.visible && layer.id === 'allWaterbodiesLayer')
     ) {
       visibleLayers.push(layer);
     }
@@ -258,6 +260,15 @@ function MapWidgets({
     setUpstreamExtent,
     setErrorMessage,
     getWatershed,
+    allWaterbodiesLayer,
+    getAllWaterbodiesLayer,
+    allWaterbodiesWidget,
+    setAllWaterbodiesWidget,
+    allWaterbodiesWidgetDisabled,
+    setAllWaterbodiesWidgetDisabled,
+    allWaterbodiesLayerVisible,
+    setAllWaterbodiesLayerVisible,
+    getAllWaterbodiesWidgetDisabled,
   } = React.useContext(LocationSearchContext);
 
   const services = useServicesContext();
@@ -1267,9 +1278,6 @@ function MapWidgets({
       false,
     );
 
-    const widgetDisabled = getDisabled();
-    const layer = getLayer();
-
     // create a watcher to control the loading spinner for the widget
     if (firstLoad) {
       setFirstLoad(false);
@@ -1278,14 +1286,13 @@ function MapWidgets({
         mapView,
         'updating',
         (newVal, oldVal, propName, event) => {
-          if (layer?.minScale > mapView.scale) {
-            setAllWaterbodiesLoading(newVal);
-          } else {
-            setAllWaterbodiesLoading(false);
-          }
+          setAllWaterbodiesLoading(newVal);
         },
       );
     }
+
+    const widgetDisabled = getDisabled();
+    const layer = getLayer();
 
     let title = 'View Surrounding Waterbodies';
     if (widgetDisabled) title = 'Surrounding Waterbodies Widget Not Available';
@@ -1319,32 +1326,64 @@ function MapWidgets({
     );
   }
 
-  // Add a watcher to enable/disable the all waterbodies widget when the user
-  // zooms out to far for the layer's scale
-  const [
-    allWaterbodiesScaleWatcher,
-    setAllWaterbodiesScaleWatcher,
-  ] = React.useState(false);
+  // watch for location changes and disable/enable the all waterbodies widget
+  // accordingly widget should only be displayed on valid Community page location
   React.useEffect(() => {
-    if (!allWaterbodiesWidget || allWaterbodiesScaleWatcher) return;
+    if (!allWaterbodiesWidget) return;
 
-    watchUtils.watch(view, 'scale', (newVal, oldVal, propName, event) => {
-      if (allWaterbodiesLayer?.minScale < newVal) {
-        allWaterbodiesWidget.style.opacity = '0.5';
-        allWaterbodiesWidget.style.cursor = 'default';
-      } else {
-        allWaterbodiesWidget.style.opacity = '1';
-        allWaterbodiesWidget.style.cursor = 'pointer';
-      }
-    });
+    if (!window.location.pathname.includes('/community')) {
+      // hide all waterbodies widget on other pages
+      allWaterbodiesWidget.style.display = 'none';
+      allWaterbodiesLayer.visible = false;
+      return;
+    }
 
-    setAllWaterbodiesScaleWatcher(true);
+    if (!huc12 || window.location.pathname === '/community') {
+      // disable all waterbodies widget on community home or invalid searches
+      setAllWaterbodiesWidgetDisabled(true);
+      allWaterbodiesLayer.visible = false;
+      return;
+    }
+
+    // display and enable the all waterbodies widget
+    setAllWaterbodiesWidgetDisabled(false);
+    if (allWaterbodiesLayerVisible) allWaterbodiesLayer.visible = true;
   }, [
+    huc12,
     allWaterbodiesLayer,
-    allWaterbodiesScaleWatcher,
+    allWaterbodiesLayerVisible,
     allWaterbodiesWidget,
-    watchUtils,
+    setAllWaterbodiesWidgetDisabled,
+  ]);
+
+  // disable the all waterbodies widget if on the community home page
+  React.useEffect(() => {
+    if (
+      !allWaterbodiesWidget ||
+      !window.location.pathname.includes('/community')
+    ) {
+      return;
+    }
+
+    if (allWaterbodiesWidgetDisabled) {
+      allWaterbodiesWidget.style.opacity = '0.5';
+      allWaterbodiesWidget.style.cursor = 'default';
+    } else {
+      allWaterbodiesWidget.style.opacity = '1';
+      allWaterbodiesWidget.style.cursor = 'pointer';
+    }
+  }, [allWaterbodiesWidget, allWaterbodiesWidgetDisabled]);
+
+  // watch for changes to all waterbodies layer visibility and update visible
+  // layers accordingly
+  React.useEffect(() => {
+    updateVisibleLayers(view, hmwLegendNode, additionalLegendInfo);
+  }, [
     view,
+    hmwLegendNode,
+    allWaterbodiesLayerVisible,
+    additionalLegendInfo,
+    visibleLayers,
   ]);
 
   if (!addDataWidget) return null;
