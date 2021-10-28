@@ -69,11 +69,32 @@ const accordionContentStyles = css`
   padding: 0.4375em 0.875em 0.875em;
 `;
 
+const tableStyles = css`
+  thead {
+    background-color: #f0f6f9;
+  }
+
+  th:last-of-type,
+  td:last-of-type {
+    text-align: right;
+  }
+`;
+
+const toggleStyles = css`
+  display: flex;
+  align-items: center;
+
+  span {
+    margin-left: 0.5rem;
+  }
+`;
+
 function Overview() {
   const { Graphic } = React.useContext(EsriModulesContext);
 
   const {
-    monitoringLocations,
+    monitoringStations,
+    usgsStreamgages,
     permittedDischargers,
     waterbodyLayer,
     monitoringStationsLayer,
@@ -88,8 +109,8 @@ function Overview() {
   const [waterbodiesDisplayed, setWaterbodiesDisplayed] = useState(true);
 
   const [
-    monitoringLocationsDisplayed,
-    setMonitoringLocationsDisplayed,
+    monitoringStationsDisplayed,
+    setMonitoringStationsDisplayed,
   ] = useState(false);
 
   const [
@@ -112,10 +133,10 @@ function Overview() {
   // draw the monitoring stations on the map
   React.useEffect(() => {
     // wait until monitoring stations data is set in context
-    if (!monitoringLocations.data.features) return;
+    if (!monitoringStations.data.features) return;
     if (services.status === 'fetching') return;
 
-    const stations = monitoringLocations.data.features.map((station) => {
+    const stations = monitoringStations.data.features.map((station) => {
       return {
         x: station.geometry.coordinates[0],
         y: station.geometry.coordinates[1],
@@ -124,7 +145,7 @@ function Overview() {
     });
 
     plotStations(Graphic, stations, monitoringStationsLayer, services);
-  }, [monitoringLocations.data, Graphic, monitoringStationsLayer, services]);
+  }, [monitoringStations.data, Graphic, monitoringStationsLayer, services]);
 
   // draw the permitted dischargers on the map
   React.useEffect(() => {
@@ -153,7 +174,7 @@ function Overview() {
     }
 
     if (typeof monitoringStationsLayer === 'boolean') {
-      setMonitoringLocationsDisplayed(monitoringStationsLayer);
+      setMonitoringStationsDisplayed(monitoringStationsLayer);
     }
 
     if (typeof dischargersLayer === 'boolean') {
@@ -162,7 +183,7 @@ function Overview() {
   }, [
     visibleLayers,
     setPermittedDischargersDisplayed,
-    setMonitoringLocationsDisplayed,
+    setMonitoringStationsDisplayed,
     setWaterbodiesDisplayed,
   ]);
 
@@ -181,11 +202,11 @@ function Overview() {
             : waterbodiesDisplayed;
       }
 
-      if (monitoringLocations.status !== 'failure') {
+      if (monitoringStations.status !== 'failure') {
         newVisibleLayers['monitoringStationsLayer'] =
           !monitoringStationsLayer || useCurrentValue
             ? visibleLayers['monitoringStationsLayer']
-            : monitoringLocationsDisplayed;
+            : monitoringStationsDisplayed;
       }
 
       if (permittedDischargers.status !== 'failure') {
@@ -206,13 +227,13 @@ function Overview() {
     },
     [
       cipSummary,
-      monitoringLocations,
+      monitoringStations,
       permittedDischargers,
       waterbodyLayer,
       monitoringStationsLayer,
       dischargersLayer,
       waterbodiesDisplayed,
-      monitoringLocationsDisplayed,
+      monitoringStationsDisplayed,
       permittedDischargersDisplayed,
       visibleLayers,
       setVisibleLayers,
@@ -223,7 +244,7 @@ function Overview() {
   React.useEffect(() => {
     updateVisibleLayers({ useCurrentValue: true });
   }, [
-    monitoringLocations,
+    monitoringStations,
     cipSummary,
     permittedDischargers,
     visibleLayers,
@@ -231,17 +252,22 @@ function Overview() {
   ]);
 
   const totalWaterbodies = uniqueWaterbodies.length;
-  const totalMonitoringLocations = monitoringLocations.data.features?.length;
+
+  // TODO: rename totalMonitoringLocations to totalMonitoringStations ?
+  const totalMonitoringLocations = monitoringStations.data.features?.length;
+
   const totalPermittedDischargers =
     permittedDischargers.data.Results?.Facilities.length;
 
+  // TODO: determine if we'll display monitoring stations and streamgages together
+  // if not, maybe rename setMonitoringLocations... to setMonitoringStations ?
   const [
     monitoringLocationsSortedBy,
     setMonitoringLocationsSortedBy,
   ] = useState('MonitoringLocationName');
 
-  const sortedMonitoringLocations = monitoringLocations.data.features
-    ? monitoringLocations.data.features.sort((objA, objB) => {
+  const sortedMonitoringStations = monitoringStations.data.features
+    ? monitoringStations.data.features.sort((objA, objB) => {
         // sort resultCount (measurements) in descending order
         if (monitoringLocationsSortedBy === 'resultCount') {
           return objB.properties.resultCount - objA.properties.resultCount;
@@ -273,6 +299,9 @@ function Overview() {
       })
     : [];
 
+  // TODO: use usgs streamgages data
+  console.log(usgsStreamgages);
+
   return (
     <div css={containerStyles}>
       {cipSummary.status === 'failure' && (
@@ -281,7 +310,7 @@ function Overview() {
         </div>
       )}
 
-      {monitoringLocations.status === 'failure' && (
+      {monitoringStations.status === 'failure' && (
         <div css={modifiedErrorBoxStyles}>
           <p>{monitoringError}</p>
         </div>
@@ -313,14 +342,13 @@ function Overview() {
                   ? 'N/A'
                   : assessmentUnitCount.toLocaleString() || '0'}
               </span>
-              <p css={keyMetricLabelStyles}>Number of Waterbodies</p>
+              <p css={keyMetricLabelStyles}>Waterbodies</p>
               <div css={switchContainerStyles}>
                 <Switch
                   checked={Boolean(totalWaterbodies) && waterbodiesDisplayed}
                   onChange={(checked) => {
                     setWaterbodiesDisplayed(!waterbodiesDisplayed);
 
-                    // first check if layer exists and is not falsy
                     updateVisibleLayers({
                       key: 'waterbodyLayer',
                       newValue: waterbodyLayer && !waterbodiesDisplayed,
@@ -336,34 +364,32 @@ function Overview() {
 
         <div css={keyMetricStyles}>
           {!monitoringStationsLayer ||
-          monitoringLocations.status === 'fetching' ? (
+          monitoringStations.status === 'fetching' ? (
             <LoadingSpinner />
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {monitoringLocations.status === 'failure' ||
+                {monitoringStations.status === 'failure' ||
                 !totalMonitoringLocations
                   ? 'N/A'
                   : totalMonitoringLocations || 0}
               </span>
-              <p css={keyMetricLabelStyles}>Number of Monitoring Locations</p>
+              <p css={keyMetricLabelStyles}>Monitoring Locations</p>
               <div css={switchContainerStyles}>
                 <Switch
                   checked={
                     Boolean(totalMonitoringLocations) &&
-                    monitoringLocationsDisplayed
+                    monitoringStationsDisplayed
                   }
                   onChange={(checked) => {
-                    setMonitoringLocationsDisplayed(
-                      !monitoringLocationsDisplayed,
+                    setMonitoringStationsDisplayed(
+                      !monitoringStationsDisplayed,
                     );
 
-                    // first check if layer exists and is not falsy
                     updateVisibleLayers({
                       key: 'monitoringStationsLayer',
                       newValue:
-                        monitoringStationsLayer &&
-                        !monitoringLocationsDisplayed,
+                        monitoringStationsLayer && !monitoringStationsDisplayed,
                     });
                   }}
                   disabled={!Boolean(totalMonitoringLocations)}
@@ -385,7 +411,7 @@ function Overview() {
                   ? 'N/A'
                   : totalPermittedDischargers || 0}
               </span>
-              <p css={keyMetricLabelStyles}>Number of Permitted Dischargers</p>
+              <p css={keyMetricLabelStyles}>Permitted Dischargers</p>
               <div css={switchContainerStyles}>
                 <Switch
                   checked={
@@ -397,7 +423,6 @@ function Overview() {
                       !permittedDischargersDisplayed,
                     );
 
-                    // first check if layer exists and is not falsy
                     updateVisibleLayers({
                       key: 'dischargersLayer',
                       newValue:
@@ -431,15 +456,15 @@ function Overview() {
             </TabPanel>
 
             <TabPanel>
-              {monitoringLocations.status === 'fetching' && <LoadingSpinner />}
+              {monitoringStations.status === 'fetching' && <LoadingSpinner />}
 
-              {monitoringLocations.status === 'failure' && (
+              {monitoringStations.status === 'failure' && (
                 <div css={modifiedErrorBoxStyles}>
                   <p>{monitoringError}</p>
                 </div>
               )}
 
-              {monitoringLocations.status === 'success' && (
+              {monitoringStations.status === 'success' && (
                 <>
                   {totalMonitoringLocations === 0 && (
                     <p css={centeredTextStyles}>
@@ -449,78 +474,153 @@ function Overview() {
                   )}
 
                   {totalMonitoringLocations > 0 && (
-                    <AccordionList
-                      expandDisabled={true} // disabled to avoid large number of web service calls
-                      title={`Water Monitoring Locations in the ${watershed} watershed.`}
-                      onSortChange={(sortBy) => {
-                        setMonitoringLocationsSortedBy(sortBy.value);
-                      }}
-                      sortOptions={[
-                        {
-                          value: 'MonitoringLocationName',
-                          label: 'Monitoring Location Name',
-                        },
-                        {
-                          value: 'OrganizationIdentifier',
-                          label: 'Organization ID',
-                        },
-                        {
-                          value: 'MonitoringLocationIdentifier',
-                          label: 'Monitoring Site ID',
-                        },
-                        {
-                          value: 'resultCount',
-                          label: 'Monitoring Measurements',
-                        },
-                      ]}
-                    >
-                      {sortedMonitoringLocations.map((item, index) => {
-                        const id = item.properties.MonitoringLocationIdentifier;
-                        const name = item.properties.MonitoringLocationName;
-                        const orgId = item.properties.OrganizationIdentifier;
-                        const result = item.properties.resultCount;
-                        const feature = {
-                          geometry: {
-                            type: 'point',
-                            longitude: item.x,
-                            latitude: item.y,
-                          },
-                          symbol: {
-                            type: 'simple-marker',
-                            style: 'square',
-                          },
-                          attributes: item.properties,
-                        };
+                    <>
+                      <table css={tableStyles} className="table">
+                        <thead>
+                          <tr>
+                            <th>
+                              <span>Monitors &amp; Streams</span>
+                            </th>
+                            <th>Count</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>
+                              <div css={toggleStyles}>
+                                <Switch
+                                  checked={
+                                    Boolean(totalMonitoringLocations) &&
+                                    monitoringStationsDisplayed
+                                  }
+                                  onChange={(checked) => {
+                                    setMonitoringStationsDisplayed(
+                                      !monitoringStationsDisplayed,
+                                    );
 
-                        return (
-                          <AccordionItem
-                            key={index}
-                            title={<strong>{name || 'Unknown'}</strong>}
-                            subTitle={
-                              <>
-                                Organization ID: {orgId}
-                                <br />
-                                Monitoring Site ID: {id.split('-')[1]}
-                                <br />
-                                Monitoring Measurements:{' '}
-                                {Number(result).toLocaleString()}
-                              </>
-                            }
-                            feature={feature}
-                            idKey={'MonitoringLocationIdentifier'}
-                          >
-                            <div css={accordionContentStyles}>
-                              <WaterbodyInfo
-                                type={'Monitoring Location'}
-                                feature={feature}
-                                services={services}
-                              />
-                              <ViewOnMapButton feature={feature} />
-                            </div>
-                          </AccordionItem>
-                        );
-                      })}
-                    </AccordionList>
+                                    updateVisibleLayers({
+                                      key: 'monitoringStationsLayer',
+                                      newValue:
+                                        monitoringStationsLayer &&
+                                        !monitoringStationsDisplayed,
+                                    });
+                                  }}
+                                  disabled={!Boolean(totalMonitoringLocations)}
+                                  ariaLabel="Monitoring Stations"
+                                />
+                                <span>Monitoring Stations</span>
+                              </div>
+                            </td>
+                            <td>{totalMonitoringLocations}</td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <div css={toggleStyles}>
+                                <Switch
+                                  checked={
+                                    false
+                                    // Boolean(totalMonitoringLocations) &&
+                                    // monitoringStationsDisplayed
+                                  }
+                                  onChange={(checked) => {
+                                    // setMonitoringStationsDisplayed(
+                                    //   !monitoringStationsDisplayed,
+                                    // );
+                                    // updateVisibleLayers({
+                                    //   key: 'monitoringStationsLayer',
+                                    //   newValue:
+                                    //     monitoringStationsLayer &&
+                                    //     !monitoringStationsDisplayed,
+                                    // });
+                                  }}
+                                  disabled={
+                                    true
+                                    // !Boolean(totalMonitoringLocations)
+                                  }
+                                  ariaLabel="USGS Streamgages"
+                                />
+                                <span>USGS Streamgages</span>
+                              </div>
+                            </td>
+                            <td>{/* totalMonitoringLocations */}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+
+                      <AccordionList
+                        expandDisabled={true} // disabled to avoid large number of web service calls
+                        title={`Water Monitoring Locations in the ${watershed} watershed.`}
+                        onSortChange={(sortBy) => {
+                          setMonitoringLocationsSortedBy(sortBy.value);
+                        }}
+                        sortOptions={[
+                          {
+                            value: 'MonitoringLocationName',
+                            label: 'Monitoring Location Name',
+                          },
+                          {
+                            value: 'OrganizationIdentifier',
+                            label: 'Organization ID',
+                          },
+                          {
+                            value: 'MonitoringLocationIdentifier',
+                            label: 'Monitoring Site ID',
+                          },
+                          {
+                            value: 'resultCount',
+                            label: 'Monitoring Measurements',
+                          },
+                        ]}
+                      >
+                        {sortedMonitoringStations.map((item, index) => {
+                          const id =
+                            item.properties.MonitoringLocationIdentifier;
+                          const name = item.properties.MonitoringLocationName;
+                          const orgId = item.properties.OrganizationIdentifier;
+                          const result = item.properties.resultCount;
+                          const feature = {
+                            geometry: {
+                              type: 'point',
+                              longitude: item.x,
+                              latitude: item.y,
+                            },
+                            symbol: {
+                              type: 'simple-marker',
+                              style: 'square',
+                            },
+                            attributes: item.properties,
+                          };
+
+                          return (
+                            <AccordionItem
+                              key={index}
+                              title={<strong>{name || 'Unknown'}</strong>}
+                              subTitle={
+                                <>
+                                  Organization ID: {orgId}
+                                  <br />
+                                  Monitoring Site ID: {id.split('-')[1]}
+                                  <br />
+                                  Monitoring Measurements:{' '}
+                                  {Number(result).toLocaleString()}
+                                </>
+                              }
+                              feature={feature}
+                              idKey={'MonitoringLocationIdentifier'}
+                            >
+                              <div css={accordionContentStyles}>
+                                <WaterbodyInfo
+                                  type={'Monitoring Location'}
+                                  feature={feature}
+                                  services={services}
+                                />
+                                <ViewOnMapButton feature={feature} />
+                              </div>
+                            </AccordionItem>
+                          );
+                        })}
+                      </AccordionList>
+                    </>
                   )}
                 </>
               )}

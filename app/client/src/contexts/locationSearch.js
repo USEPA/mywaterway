@@ -11,7 +11,7 @@ type Props = {
 
 type Status = 'fetching' | 'success' | 'failure';
 
-type MonitoringLocationsData = {
+type MonitoringStationsData = {
   features: {
     geometry: {
       coordinates: [number, number],
@@ -39,6 +39,41 @@ type MonitoringLocationsData = {
     type: 'Feature',
   }[],
   type: 'FeatureCollection',
+};
+
+type UsgsStreamgageData = {
+  value: {
+    name: string,
+    properties: {
+      active: boolean,
+      agency: string,
+      hydrologicUnit: string,
+      monitoringLocationName: string,
+      monitoringLocationNumber: string,
+      monitoringLocationType: string,
+      monitoringLocationUrl: string,
+    },
+    Locations: {
+      location: {
+        coordinates: [number, number],
+        type: 'Point', // TODO: check if these are always Points?
+      },
+    }[],
+    Datastreams: {
+      description: string,
+      properties: {
+        ParameterCode: string,
+      },
+      unitOfMeasurement: {
+        name: string,
+        symbol: string,
+      },
+      Observations: {
+        phenomenonTime: string, // ISO format datetime
+        result: string, // number
+      }[],
+    }[],
+  }[],
 };
 
 type PermittedDischargersData = {
@@ -156,7 +191,8 @@ type State = {
   watershed: string,
   address: string,
   assessmentUnitId: string,
-  monitoringLocations: { status: Status, data: MonitoringLocationsData },
+  monitoringStations: { status: Status, data: MonitoringStationsData },
+  usgsStreamgages: { status: Status, data: UsgsStreamgageData },
   permittedDischargers: { status: Status, data: PermittedDischargersData },
   grts: Object,
   attainsPlans: Object,
@@ -237,7 +273,8 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     wildScenicRiversData: { status: 'fetching', data: [] },
     protectedAreasData: { status: 'fetching', data: [], fields: [] },
     assessmentUnitId: '',
-    monitoringLocations: { status: 'fetching', data: {} },
+    monitoringStations: { status: 'fetching', data: {} },
+    usgsStreamgages: { status: 'fetching', data: {} },
     permittedDischargers: { status: 'fetching', data: {} },
     grts: { status: 'fetching', data: [] },
     attainsPlans: { status: 'fetching', data: [] },
@@ -303,11 +340,17 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     setLastSearchText: (lastSearchText) => {
       this.setState({ lastSearchText });
     },
-    setMonitoringLocations: (monitoringLocations: {
+    setMonitoringStations: (monitoringStations: {
       status: Status,
-      data: MonitoringLocationsData,
+      data: MonitoringStationsData,
     }) => {
-      this.setState({ monitoringLocations });
+      this.setState({ monitoringStations });
+    },
+    setUsgsStreamgages: (usgsStreamgages: {
+      status: Status,
+      data: UsgsStreamgageData,
+    }) => {
+      this.setState({ usgsStreamgages });
     },
     setPermittedDischargers: (permittedDischargers: {
       status: Status,
@@ -677,7 +720,8 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         countyBoundaries: '',
         atHucBoundaries: false,
         hucBoundaries: '',
-        monitoringLocations: { status: 'fetching', data: {} },
+        monitoringStations: { status: 'fetching', data: {} },
+        usgsStreamgages: { status: 'fetching', data: {} },
         permittedDischargers: { status: 'fetching', data: {} },
         nonprofits: { status: 'fetching', data: [] },
         grts: { status: 'fetching', data: [] },
@@ -714,7 +758,8 @@ export class LocationSearchProvider extends React.Component<Props, State> {
           orphanFeatures: { status: 'fetching', features: [] },
           waterbodyCountMismatch: null,
           countyBoundaries: '',
-          monitoringLocations: { status: 'success', data: {} },
+          monitoringStations: { status: 'success', data: {} },
+          usgsStreamgages: { status: 'success', data: {} },
           permittedDischargers: { status: 'success', data: {} },
           nonprofits: { status: 'success', data: [] },
           grts: { status: 'success', data: [] },

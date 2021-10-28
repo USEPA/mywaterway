@@ -106,7 +106,7 @@ function Monitoring() {
   useWaterbodyOnMap();
 
   const {
-    monitoringLocations,
+    monitoringStations,
     monitoringGroups,
     showAllMonitoring,
     setMonitoringGroups,
@@ -143,7 +143,7 @@ function Monitoring() {
   const [sortBy, setSortBy] = React.useState('MonitoringLocationName');
 
   const storeMonitoringStations = React.useCallback(() => {
-    if (!monitoringLocations.data.features) {
+    if (!monitoringStations.data.features) {
       setAllMonitoringStations([]);
       return;
     }
@@ -155,7 +155,7 @@ function Monitoring() {
       Other: { label: 'Other', stations: [], toggled: true },
     };
 
-    monitoringLocations.data.features.forEach((feature) => {
+    monitoringStations.data.features.forEach((feature) => {
       const { geometry, properties } = feature;
 
       const {
@@ -168,8 +168,8 @@ function Monitoring() {
         properties,
         x: geometry.coordinates[0],
         y: geometry.coordinates[1],
-        // create a unique id, so we can check if the monitoring location has
-        // already been added to the display (since a monitoring location id
+        // create a unique id, so we can check if the monitoring station has
+        // already been added to the display (since a monitoring station id
         // isn't universally unique)
         uid: `${locId}/${name}/${orgId}`,
       };
@@ -219,7 +219,7 @@ function Monitoring() {
     if (!monitoringGroups) setMonitoringGroups(monitoringLocationToggles);
   }, [
     monitoringGroups,
-    monitoringLocations,
+    monitoringStations,
     setMonitoringGroups,
     showAllMonitoring,
   ]);
@@ -352,8 +352,8 @@ function Monitoring() {
       mounted.current = true;
     } else {
       // re-store monitoring stations if the data changes
-      if (monitoringLocations.data !== prevMonitoringLocationData) {
-        setPrevMonitoringLocationData(monitoringLocations.data);
+      if (monitoringStations.data !== prevMonitoringLocationData) {
+        setPrevMonitoringLocationData(monitoringStations.data);
         storeMonitoringStations();
       }
 
@@ -363,19 +363,19 @@ function Monitoring() {
       drawMap();
     }
   }, [
-    monitoringLocations,
+    monitoringStations,
     prevMonitoringLocationData,
     displayedMonitoringStations,
     drawMap,
     storeMonitoringStations,
   ]);
 
-  // clear the visible layers if the monitoring locations service failed
+  // clear the visible layers if the monitoring stations service failed
   React.useEffect(() => {
-    if (monitoringLocations.status !== 'failure') return;
+    if (monitoringStations.status !== 'failure') return;
 
     if (Object.keys(visibleLayers).length > 0) setVisibleLayers({});
-  }, [monitoringLocations, visibleLayers, setVisibleLayers]);
+  }, [monitoringStations, visibleLayers, setVisibleLayers]);
 
   const sortedMonitoringStations = displayedMonitoringStations
     ? displayedMonitoringStations.sort((objA, objB) => {
@@ -403,59 +403,39 @@ function Monitoring() {
     <Container>
       <StyledMetrics>
         <StyledMetric>
-          {monitoringLocations.status === 'fetching' ? (
+          {monitoringStations.status === 'fetching' ? (
             <LoadingSpinner />
           ) : (
             <>
               <StyledNumber>
-                {monitoringLocations.status === 'failure'
+                {monitoringStations.status === 'failure'
                   ? 'N/A'
-                  : `${monitoringLocations.data.features.length}`}
+                  : `${monitoringStations.data.features.length}`}
               </StyledNumber>
-              <StyledLabel>Number of Monitoring Locations</StyledLabel>
-              <SwitchContainer>
-                <Switch
-                  checked={true}
-                  // onChange={() => toggleSwitch('Toggle Issues Layer')}
-                  disabled={false}
-                  ariaLabel="Toggle Issues Layer"
-                />
-              </SwitchContainer>
+              <StyledLabel>Monitoring Locations</StyledLabel>
             </>
           )}
-        </StyledMetric>
-        <StyledMetric>
-          <StyledNumber>{0}</StyledNumber>
-          <StyledLabel>Placeholder</StyledLabel>
-          <SwitchContainer>
-            <Switch
-              checked={true}
-              // onChange={() => toggleSwitch('Toggle Dischargers Layer')}
-              // disabled={zeroDischargers}
-              // ariaLabel="Toggle Dischargers Layer"
-            />
-          </SwitchContainer>
         </StyledMetric>
       </StyledMetrics>
 
       <ContentTabs>
         <Tabs>
           <TabList>
-            <Tab>Monitoring Locations</Tab>
-            <Tab>Placeholder (Realtime Gages)</Tab>
+            <Tab>Monitoring Stations</Tab>
+            <Tab>USGS Streamgages</Tab>
           </TabList>
 
           <TabPanels>
             <TabPanel>
-              {monitoringLocations.status === 'fetching' && <LoadingSpinner />}
+              {monitoringStations.status === 'fetching' && <LoadingSpinner />}
 
-              {monitoringLocations.status === 'failure' && (
+              {monitoringStations.status === 'failure' && (
                 <StyledErrorBox>
                   <p>{monitoringError}</p>
                 </StyledErrorBox>
               )}
 
-              {monitoringLocations.status === 'success' && (
+              {monitoringStations.status === 'success' && (
                 <>
                   <p>
                     View available monitoring locations in your local watershed
@@ -524,14 +504,8 @@ function Monitoring() {
                         </tbody>
                       </Table>
 
-                      {/* 
-                  The expand and collapse buttons are disabled for this 
-                  accordion to avoid a large number of web service calls.
-                  Each accordion item performs a web service call to fill
-                  in the data for a table. 
-                */}
                       <AccordionList
-                        expandDisabled={true}
+                        expandDisabled={true} // disabled to avoid large number of web service calls
                         title={`Displaying ${displayLocations} of ${totalLocations} Water Monitoring Locations in the ${watershed} watershed.`}
                         onSortChange={(sortBy) => setSortBy(sortBy.value)}
                         sortOptions={[
@@ -612,7 +586,7 @@ function Monitoring() {
                 </>
               )}
             </TabPanel>
-            <TabPanel>Placeholder (Realtime Gages)</TabPanel>
+            <TabPanel>(Placeholder)</TabPanel>
           </TabPanels>
         </Tabs>
       </ContentTabs>

@@ -138,7 +138,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setHucBoundaries,
     setAtHucBoundaries,
     setMapView,
-    setMonitoringLocations,
+    setMonitoringStations,
+    setUsgsStreamgages,
     // setNonprofits,
     setPermittedDischargers,
     setWaterbodyLayer,
@@ -430,7 +431,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           (assessment) => assessment.assessmentUnitIdentifier,
         );
 
-        // if no IDs are found in the Assessment Units service, do not call the Assessments service. 
+        // if no IDs are found in the Assessment Units service, do not call the Assessments service.
         // the Assessments service will return ALL assessments in the organization if none are passed in
         if (!ids || ids.length === 0) {
           return;
@@ -737,10 +738,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     (err) => {
       setMapLoading(false);
       console.error(err);
-      setCipSummary({
-        data: [],
-        status: 'failure',
-      });
+      setCipSummary({ status: 'failure', data: {} });
     },
     [setCipSummary],
   );
@@ -925,10 +923,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   React.useEffect(() => {
     if (mapServiceFailure) {
       setMapLoading(false);
-      setCipSummary({
-        data: [],
-        status: 'failure',
-      });
+      setCipSummary({ status: 'failure', data: {} });
       return;
     }
 
@@ -977,7 +972,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // query geocode server for every new search
   const [mapLoading, setMapLoading] = React.useState(true);
 
-  const queryMonitoringLocationService = React.useCallback(
+  const queryMonitoringStationService = React.useCallback(
     (huc12) => {
       const url =
         `${services.data.waterQualityPortal.monitoringLocation}` +
@@ -985,20 +980,56 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       fetchCheck(url)
         .then((res) => {
-          setMonitoringLocations({
-            data: res,
-            status: 'success',
-          });
+          setMonitoringStations({ status: 'success', data: res });
         })
         .catch((err) => {
           console.error(err);
-          setMonitoringLocations({
-            data: [],
-            status: 'failure',
-          });
+          setMonitoringStations({ status: 'failure', data: {} });
         });
     },
-    [setMonitoringLocations, services],
+    [setMonitoringStations, services],
+  );
+
+  const queryUsgsStreamgageService = React.useCallback(
+    (huc12) => {
+      // TODO: move URL to the services.json file (files? check about services-attains.json)
+      const url = `https://labs.waterdata.usgs.gov/sta/v1.1/Things?
+        $select=
+          name,
+          properties/active,
+          properties/agency,
+          properties/monitoringLocationUrl,
+          properties/monitoringLocationName,
+          properties/monitoringLocationType,
+          properties/monitoringLocationNumber,
+          properties/hydrologicUnit
+        &$expand=
+          Locations($select=location),
+          Datastreams(
+            $select=
+              description,
+              properties/ParameterCode,
+              unitOfMeasurement/name,
+              unitOfMeasurement/symbol;
+            $expand=
+              Observations(
+                $select=phenomenonTime,result;
+                $top=1;
+                $orderBy=phenomenonTime desc
+              )
+          )
+        &$filter=properties/hydrologicUnit eq '${huc12}'`;
+
+      fetchCheck(url)
+        .then((res) => {
+          setUsgsStreamgages({ status: 'success', data: res });
+        })
+        .catch((err) => {
+          console.error(err);
+          setUsgsStreamgages({ status: 'failure', data: {} });
+        });
+    },
+    [setUsgsStreamgages],
   );
 
   const queryPermittedDischargersService = React.useCallback(
@@ -1035,25 +1066,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
           fetchCheck(url)
             .then((res) => {
-              setPermittedDischargers({
-                data: res,
-                status: 'success',
-              });
+              setPermittedDischargers({ status: 'success', data: res });
             })
             .catch((err) => {
               console.error(err);
-              setPermittedDischargers({
-                data: [],
-                status: 'failure',
-              });
+              setPermittedDischargers({ status: 'failure', data: {} });
             });
         })
         .catch((err) => {
           console.error(err);
-          setPermittedDischargers({
-            data: [],
-            status: 'failure',
-          });
+          setPermittedDischargers({ status: 'failure', data: {} });
         });
     },
     [setPermittedDischargers, services],
@@ -1311,10 +1333,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       results.items[0].summaryByParameterImpairments = results.items[0].summaryByParameterImpairments.sort(
         (a, b) => (a.catchmentSizePercent < b.catchmentSizePercent ? 1 : -1),
       );
-      setCipSummary({
-        status: 'success',
-        data: results,
-      });
+      setCipSummary({ status: 'success', data: results });
       setAssessmentUnitCount(results.items[0].assessmentUnits.length);
 
       const ids = results.items[0].assessmentUnits.map((item) => {
@@ -1406,7 +1425,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           let huc12Result = response.features[0].attributes.huc12;
           setHuc12(huc12Result);
           processBoundariesData(response);
-          queryMonitoringLocationService(huc12Result);
+          queryMonitoringStationService(huc12Result);
+          queryUsgsStreamgageService(huc12Result);
           queryPermittedDischargersService(huc12Result);
           queryGrtsHuc12(huc12Result);
           queryAttainsPlans(huc12Result);
@@ -1430,7 +1450,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       processBoundariesData,
       queryAttainsPlans,
       queryGrtsHuc12,
-      queryMonitoringLocationService,
+      queryMonitoringStationService,
+      queryUsgsStreamgageService,
       queryPermittedDischargersService,
       setHuc12,
       setNoDataAvailable,
