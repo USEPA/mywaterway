@@ -679,7 +679,6 @@ function useSharedLayers() {
     watchUtils,
   } = React.useContext(EsriModulesContext);
   const {
-    setAllWaterbodiesLayer,
     setProtectedAreasLayer,
     setProtectedAreasHighlightLayer,
     setWsioHealthIndexLayer,
@@ -1145,90 +1144,6 @@ function useSharedLayers() {
 
     // END - EJSCREEN layers
 
-    // START - All Waterbodies layers
-
-    const popupTemplate = {
-      title: getTitle,
-      content: getTemplate,
-      outFields: ['*'],
-    };
-
-    const alpha = {
-      base: 0.2,
-      poly: 0.1,
-      outline: 0.05,
-    };
-
-    // Build the feature layers that will make up the waterbody layer
-    const pointsRenderer = {
-      type: 'unique-value',
-      field: 'overallstatus',
-      fieldDelimiter: ', ',
-      defaultSymbol: createWaterbodySymbol({
-        condition: 'unassessed',
-        selected: false,
-        geometryType: 'point',
-        alpha,
-      }),
-      uniqueValueInfos: createUniqueValueInfos('point', alpha),
-    };
-    const pointsLayer = new FeatureLayer({
-      url: services.data.waterbodyService.points,
-      outFields: ['*'],
-      renderer: pointsRenderer,
-      popupTemplate,
-    });
-
-    const linesRenderer = {
-      type: 'unique-value',
-      field: 'overallstatus',
-      fieldDelimiter: ', ',
-      defaultSymbol: createWaterbodySymbol({
-        condition: 'unassessed',
-        selected: false,
-        geometryType: 'polyline',
-        alpha,
-      }),
-      uniqueValueInfos: createUniqueValueInfos('polyline', alpha),
-    };
-    const linesLayer = new FeatureLayer({
-      url: services.data.waterbodyService.lines,
-      outFields: ['*'],
-      renderer: linesRenderer,
-      popupTemplate,
-    });
-
-    const areasRenderer = {
-      type: 'unique-value',
-      field: 'overallstatus',
-      fieldDelimiter: ', ',
-      defaultSymbol: createWaterbodySymbol({
-        condition: 'unassessed',
-        selected: false,
-        geometryType: 'polygon',
-        alpha,
-      }),
-      uniqueValueInfos: createUniqueValueInfos('polygon', alpha),
-    };
-    const areasLayer = new FeatureLayer({
-      url: services.data.waterbodyService.areas,
-      outFields: ['*'],
-      renderer: areasRenderer,
-      popupTemplate,
-    });
-
-    // Make the waterbody layer into a single layer
-    const allWaterbodiesLayer = new GroupLayer({
-      id: 'allWaterbodiesLayer',
-      title: 'All Waterbodies',
-      listMode: 'hide',
-      visible: true,
-    });
-    allWaterbodiesLayer.addMany([areasLayer, linesLayer, pointsLayer]);
-    setAllWaterbodiesLayer(allWaterbodiesLayer);
-
-    // END - All Waterbodies layers
-
     return [
       ejscreen,
       wsioHealthIndexLayer,
@@ -1241,7 +1156,6 @@ function useSharedLayers() {
       mappedWaterLayer,
       countyLayer,
       watershedsLayer,
-      allWaterbodiesLayer,
     ];
   };
 }

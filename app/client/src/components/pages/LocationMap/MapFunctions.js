@@ -54,14 +54,7 @@ export function getWaterbodyCondition(
   }
 }
 
-export function createUniqueValueInfos(
-  geometryType: string,
-  alpha: {
-    base: number,
-    poly: number,
-    outline: number,
-  } | null,
-) {
+export function createUniqueValueInfos(geometryType: string) {
   return [
     {
       value: `Fully Supporting`,
@@ -69,7 +62,6 @@ export function createUniqueValueInfos(
         condition: 'good',
         selected: false,
         geometryType,
-        alpha,
       }),
     },
     {
@@ -78,7 +70,6 @@ export function createUniqueValueInfos(
         condition: 'polluted',
         selected: false,
         geometryType,
-        alpha,
       }),
     },
     {
@@ -87,7 +78,6 @@ export function createUniqueValueInfos(
         condition: 'unassessed',
         selected: false,
         geometryType,
-        alpha,
       }),
     },
     {
@@ -96,7 +86,6 @@ export function createUniqueValueInfos(
         condition: 'unassessed',
         selected: false,
         geometryType,
-        alpha,
       }),
     },
     {
@@ -105,7 +94,6 @@ export function createUniqueValueInfos(
         condition: 'good',
         selected: false,
         geometryType,
-        alpha,
       }),
     },
     {
@@ -114,7 +102,6 @@ export function createUniqueValueInfos(
         condition: 'polluted',
         selected: false,
         geometryType,
-        alpha,
       }),
     },
   ];
@@ -145,20 +132,14 @@ export function createWaterbodySymbol({
   condition,
   selected,
   geometryType = 'point',
-  alpha = null,
 }: {
   condition: 'good' | 'polluted' | 'unassessed' | 'hidden',
   selected: boolean,
   geometryType: string,
-  alpha: {
-    base: number,
-    poly: number,
-    outline: number,
-  } | null,
 }) {
   const outline = selected
-    ? { color: [0, 255, 255, alpha ? alpha.outline : 0.5], width: 1 }
-    : { color: [0, 0, 0, alpha ? alpha.outline : 1], width: 1 };
+    ? { color: [0, 255, 255, 0.5], width: 1 }
+    : { color: [0, 0, 0, 1], width: 1 };
 
   // from colors.highlightedPurple() and colors.purple()
   let color = selected ? { r: 84, g: 188, b: 236 } : { r: 107, g: 65, b: 149 };
@@ -173,10 +154,6 @@ export function createWaterbodySymbol({
 
   // for polygons, add transparency to the color so that lines can be seen
   if (geometryType === 'polygon') color.a = 0.75;
-  if (alpha) {
-    color.a = alpha.base;
-    if (geometryType === 'polygon') color.a = alpha.poly;
-  }
 
   let symbol = {
     type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
@@ -221,16 +198,14 @@ export function createWaterbodySymbol({
   }
 
   if (geometryType === 'polygon') {
-    const polyOutline = selected
-      ? { color: [0, 255, 255, alpha ? alpha.outline : 0.5], width: 3 }
-      : null;
+    const outline = selected ? { color: [0, 255, 255, 0.5], width: 3 } : null;
 
     return {
       type: 'simple-fill', // autocasts as SimpleFillSymbol()
       color,
       width: 3,
       style: 'solid',
-      outline: polyOutline,
+      outline,
     };
   }
 }
