@@ -1337,6 +1337,22 @@ function useGeometryUtils() {
       features.push(feature);
     });
 
+    // order the features by overall status
+    const sortBy = [
+      'Cause',
+      'Not Supporting',
+      'Insufficient Information',
+      'Not Assessed',
+      'Meeting Criteria',
+      'Fully Supporting',
+    ];
+    features.sort((a, b) => {
+      return (
+        sortBy.indexOf(a.attributes.overallstatus) -
+        sortBy.indexOf(b.attributes.overallstatus)
+      );
+    });
+
     return features;
   };
 
