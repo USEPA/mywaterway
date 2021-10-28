@@ -710,7 +710,6 @@ function useSharedLayers() {
     watchUtils,
   } = React.useContext(EsriModulesContext);
   const {
-    setAllWaterbodiesLayer,
     setProtectedAreasLayer,
     setProtectedAreasHighlightLayer,
     setWsioHealthIndexLayer,
@@ -1278,7 +1277,6 @@ function useSharedLayers() {
       mappedWaterLayer,
       countyLayer,
       watershedsLayer,
-      allWaterbodiesLayer,
     ];
   };
 }

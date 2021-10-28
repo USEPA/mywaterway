@@ -281,7 +281,7 @@ function WaterbodyInfo({
     );
   };
 
-  const baseWaterbodyContent = () => {
+  const waterbodyContent = () => {
     let useLabel = 'Waterbody';
 
     // Get the waterbody condition field (drinkingwater_use, recreation_use, etc.)
@@ -411,15 +411,6 @@ function WaterbodyInfo({
   };
 
   // jsx
-  const waterbodyContent = (
-    <>
-      {baseWaterbodyContent()}
-
-      {renderChangeWatershed()}
-    </>
-  );
-
-  // jsx
   const waterbodyStateContent = (
     <>
       {labelValue(
@@ -428,7 +419,7 @@ function WaterbodyInfo({
       )}
       {labelValue('TMDL', attributes.hastmdl === 'Y' ? 'Yes' : 'No')}
 
-      {baseWaterbodyContent()}
+      {waterbodyContent()}
     </>
   );
 
@@ -1088,7 +1079,7 @@ function WaterbodyInfo({
 
   if (!attributes) return null;
 
-  if (type === 'Waterbody') return waterbodyContent;
+  if (type === 'Waterbody') return waterbodyContent();
   if (type === 'Permitted Discharger') return dischargerContent;
   if (type === 'Monitoring Location Map Popup') {
     return monitoringMapPopupContent();

@@ -59,7 +59,6 @@ const zoomDependentLayers = [
 // which layer legends are visible.
 const orderedLayers = [
   'waterbodyLayer',
-  'allWaterbodiesLayer',
   'monitoringStationsLayer',
   'issuesLayer',
   'dischargersLayer',
@@ -166,8 +165,7 @@ function updateVisibleLayers(
         layer.id === 'boundariesLayer' &&
         document.location.pathname !== '/community') ||
       (layer.visible && layer.id === 'actionsWaterbodies') ||
-      (layer.visible && layer.id === 'upstreamWatershed') ||
-      (layer.visible && layer.id === 'allWaterbodiesLayer')
+      (layer.visible && layer.id === 'upstreamWatershed')
     ) {
       visibleLayers.push(layer);
     }
@@ -260,15 +258,6 @@ function MapWidgets({
     setUpstreamExtent,
     setErrorMessage,
     getWatershed,
-    allWaterbodiesLayer,
-    getAllWaterbodiesLayer,
-    allWaterbodiesWidget,
-    setAllWaterbodiesWidget,
-    allWaterbodiesWidgetDisabled,
-    setAllWaterbodiesWidgetDisabled,
-    allWaterbodiesLayerVisible,
-    setAllWaterbodiesLayerVisible,
-    getAllWaterbodiesWidgetDisabled,
   } = React.useContext(LocationSearchContext);
 
   const services = useServicesContext();
