@@ -256,7 +256,7 @@ function MapMouseEvents({ map, view }: Props) {
         'highlight',
         'providers',
       ];
-      if (!result.graphic.layer?.hasOwnProperty('id')) return null;
+      if (!result.graphic.layer?.id) return null;
       if (attr.name && excludedLayers.indexOf(attr.name) !== -1) return null;
       if (excludedLayers.indexOf(result.graphic.layer.id) !== -1) return null;
 
