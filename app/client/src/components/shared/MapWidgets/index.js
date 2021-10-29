@@ -262,12 +262,8 @@ function MapWidgets({
     getWatershed,
     allWaterbodiesLayer,
     getAllWaterbodiesLayer,
-    allWaterbodiesWidget,
-    setAllWaterbodiesWidget,
     allWaterbodiesWidgetDisabled,
     setAllWaterbodiesWidgetDisabled,
-    allWaterbodiesLayerVisible,
-    setAllWaterbodiesLayerVisible,
     getAllWaterbodiesWidgetDisabled,
   } = React.useContext(LocationSearchContext);
 
@@ -1169,6 +1165,12 @@ function MapWidgets({
       services.data.upstreamWatershed,
     ],
   );
+
+  const [allWaterbodiesWidget, setAllWaterbodiesWidget] = React.useState(null);
+  const [
+    allWaterbodiesLayerVisible,
+    setAllWaterbodiesLayerVisible,
+  ] = React.useState(true);
 
   // watch for location changes and disable/enable the all waterbodies widget
   // accordingly widget should only be displayed on valid Community page location
