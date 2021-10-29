@@ -158,14 +158,15 @@ function useWaterbodyOnMap(
     setSelectedGraphic, //
   } = React.useContext(MapHighlightContext);
   const {
+    allWaterbodiesLayer,
     pointsLayer,
     linesLayer,
     areasLayer,
-    mapView, //
+    mapView,
   } = React.useContext(LocationSearchContext);
 
   const setRenderer = React.useCallback(
-    (layer, geometryType, attributeName) => {
+    (layer, geometryType, alpha = null) => {
       const renderer = {
         type: 'unique-value',
         field: attributeName ? attributeName : 'overallstatus',
@@ -174,31 +175,52 @@ function useWaterbodyOnMap(
           condition: defaultCondition,
           selected: false,
           geometryType,
+          alpha,
         }),
-        uniqueValueInfos: createUniqueValueInfos(geometryType),
+        uniqueValueInfos: createUniqueValueInfos(geometryType, alpha),
       };
       layer.renderer = renderer;
 
       // close popup and clear highlights when the renderer changes
       closePopup({ mapView, setHighlightedGraphic, setSelectedGraphic });
     },
-    [defaultCondition, mapView, setHighlightedGraphic, setSelectedGraphic],
+    [
+      attributeName,
+      defaultCondition,
+      mapView,
+      setHighlightedGraphic,
+      setSelectedGraphic,
+    ],
   );
 
   React.useEffect(() => {
     if (!pointsLayer || pointsLayer === 'error') return;
-    setRenderer(pointsLayer, 'point', attributeName);
-  }, [pointsLayer, attributeName, setRenderer]);
+    setRenderer(pointsLayer, 'point');
+  }, [pointsLayer, setRenderer]);
 
   React.useEffect(() => {
     if (!linesLayer || linesLayer === 'error') return;
-    setRenderer(linesLayer, 'polyline', attributeName);
-  }, [linesLayer, attributeName, setRenderer]);
+    setRenderer(linesLayer, 'polyline');
+  }, [linesLayer, setRenderer]);
 
   React.useEffect(() => {
     if (!areasLayer || areasLayer === 'error') return;
-    setRenderer(areasLayer, 'polygon', attributeName);
-  }, [areasLayer, attributeName, setRenderer]);
+    setRenderer(areasLayer, 'polygon');
+  }, [areasLayer, setRenderer]);
+
+  React.useEffect(() => {
+    if (!allWaterbodiesLayer || allWaterbodiesLayer === 'error') return;
+
+    const alpha = {
+      base: 0.2,
+      poly: 0.1,
+      outline: 0.05,
+    };
+
+    setRenderer(allWaterbodiesLayer.layers.items[2], 'point', alpha);
+    setRenderer(allWaterbodiesLayer.layers.items[1], 'polyline', alpha);
+    setRenderer(allWaterbodiesLayer.layers.items[0], 'polygon', alpha);
+  }, [allWaterbodiesLayer, setRenderer]);
 }
 
 // custom hook that is used to highlight based on context. If the findOthers
@@ -679,6 +701,7 @@ function useSharedLayers() {
     watchUtils,
   } = React.useContext(EsriModulesContext);
   const {
+    setAllWaterbodiesLayer,
     setProtectedAreasLayer,
     setProtectedAreasHighlightLayer,
     setWsioHealthIndexLayer,
@@ -1144,6 +1167,96 @@ function useSharedLayers() {
 
     // END - EJSCREEN layers
 
+    // START - All Waterbodies layers
+
+    const popupTemplate = {
+      title: getTitle,
+      content: getTemplate,
+      outFields: ['*'],
+    };
+
+    const alpha = {
+      base: 0.2,
+      poly: 0.1,
+      outline: 0.05,
+    };
+
+    const minScale = 577791;
+
+    // Build the feature layers that will make up the waterbody layer
+    const pointsRenderer = {
+      type: 'unique-value',
+      field: 'overallstatus',
+      fieldDelimiter: ', ',
+      defaultSymbol: createWaterbodySymbol({
+        condition: 'unassessed',
+        selected: false,
+        geometryType: 'point',
+        alpha,
+      }),
+      uniqueValueInfos: createUniqueValueInfos('point', alpha),
+    };
+    const pointsLayer = new FeatureLayer({
+      url: services.data.waterbodyService.points,
+      outFields: ['*'],
+      renderer: pointsRenderer,
+      popupTemplate,
+      minScale,
+    });
+
+    const linesRenderer = {
+      type: 'unique-value',
+      field: 'overallstatus',
+      fieldDelimiter: ', ',
+      defaultSymbol: createWaterbodySymbol({
+        condition: 'unassessed',
+        selected: false,
+        geometryType: 'polyline',
+        alpha,
+      }),
+      uniqueValueInfos: createUniqueValueInfos('polyline', alpha),
+    };
+    const linesLayer = new FeatureLayer({
+      url: services.data.waterbodyService.lines,
+      outFields: ['*'],
+      renderer: linesRenderer,
+      popupTemplate,
+      minScale,
+    });
+
+    const areasRenderer = {
+      type: 'unique-value',
+      field: 'overallstatus',
+      fieldDelimiter: ', ',
+      defaultSymbol: createWaterbodySymbol({
+        condition: 'unassessed',
+        selected: false,
+        geometryType: 'polygon',
+        alpha,
+      }),
+      uniqueValueInfos: createUniqueValueInfos('polygon', alpha),
+    };
+    const areasLayer = new FeatureLayer({
+      url: services.data.waterbodyService.areas,
+      outFields: ['*'],
+      renderer: areasRenderer,
+      popupTemplate,
+      minScale,
+    });
+
+    // Make the waterbody layer into a single layer
+    const allWaterbodiesLayer = new GroupLayer({
+      id: 'allWaterbodiesLayer',
+      title: 'All Waterbodies',
+      listMode: 'hide',
+      visible: true,
+      minScale,
+    });
+    allWaterbodiesLayer.addMany([areasLayer, linesLayer, pointsLayer]);
+    setAllWaterbodiesLayer(allWaterbodiesLayer);
+
+    // END - All Waterbodies layers
+
     return [
       ejscreen,
       wsioHealthIndexLayer,
@@ -1156,6 +1269,7 @@ function useSharedLayers() {
       mappedWaterLayer,
       countyLayer,
       watershedsLayer,
+      allWaterbodiesLayer,
     ];
   };
 }

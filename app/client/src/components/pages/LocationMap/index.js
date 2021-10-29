@@ -430,7 +430,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           (assessment) => assessment.assessmentUnitIdentifier,
         );
 
-        // if no IDs are found in the Assessment Units service, do not call the Assessments service. 
+        // if no IDs are found in the Assessment Units service, do not call the Assessments service.
         // the Assessments service will return ALL assessments in the organization if none are passed in
         if (!ids || ids.length === 0) {
           return;
