@@ -1323,7 +1323,7 @@ function MapWidgets({
       >
         <span
           className={
-            allWaterbodiesLoading && layer?.visible
+            allWaterbodiesLoading && !widgetDisabled && layer?.visible
               ? 'esri-icon-loading-indicator esri-rotating'
               : 'esri-icon-basemap'
           }
