@@ -1327,9 +1327,7 @@ function MapWidgets({
               ? 'esri-icon-loading-indicator esri-rotating'
               : 'esri-icon-basemap'
           }
-          style={
-            !upstreamWidgetDisabled && hover ? buttonHoverStyle : buttonStyle
-          }
+          style={!widgetDisabled && hover ? buttonHoverStyle : buttonStyle}
         />
       </div>
     );
