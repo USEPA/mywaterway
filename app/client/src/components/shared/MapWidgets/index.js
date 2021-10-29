@@ -996,7 +996,7 @@ function MapWidgets({
           className={
             upstreamLoading
               ? 'esri-icon-loading-indicator esri-rotating'
-              : 'esri-icon esri-icon-maps'
+              : 'esri-icon esri-icon-overview-arrow-top-left'
           }
           style={
             !upstreamWidgetDisabled && hover ? buttonHoverStyle : buttonStyle
@@ -1325,7 +1325,7 @@ function MapWidgets({
           className={
             allWaterbodiesLoading && !widgetDisabled && layer?.visible
               ? 'esri-icon-loading-indicator esri-rotating'
-              : 'esri-icon-basemap'
+              : 'esri-icon-maps'
           }
           style={!widgetDisabled && hover ? buttonHoverStyle : buttonStyle}
         />
