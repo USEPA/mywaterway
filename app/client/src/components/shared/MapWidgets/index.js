@@ -262,12 +262,8 @@ function MapWidgets({
     getWatershed,
     allWaterbodiesLayer,
     getAllWaterbodiesLayer,
-    allWaterbodiesWidget,
-    setAllWaterbodiesWidget,
     allWaterbodiesWidgetDisabled,
     setAllWaterbodiesWidgetDisabled,
-    allWaterbodiesLayerVisible,
-    setAllWaterbodiesLayerVisible,
     getAllWaterbodiesWidgetDisabled,
   } = React.useContext(LocationSearchContext);
 
@@ -1000,7 +996,7 @@ function MapWidgets({
           className={
             upstreamLoading
               ? 'esri-icon-loading-indicator esri-rotating'
-              : 'esri-icon esri-icon-maps'
+              : 'esri-icon esri-icon-overview-arrow-top-left'
           }
           style={
             !upstreamWidgetDisabled && hover ? buttonHoverStyle : buttonStyle
@@ -1170,6 +1166,12 @@ function MapWidgets({
     ],
   );
 
+  const [allWaterbodiesWidget, setAllWaterbodiesWidget] = React.useState(null);
+  const [
+    allWaterbodiesLayerVisible,
+    setAllWaterbodiesLayerVisible,
+  ] = React.useState(true);
+
   // watch for location changes and disable/enable the all waterbodies widget
   // accordingly widget should only be displayed on valid Community page location
   React.useEffect(() => {
@@ -1289,6 +1291,13 @@ function MapWidgets({
           setAllWaterbodiesLoading(newVal);
         },
       );
+
+      watchUtils.watch(mapView, 'scale', (newVal, oldVal, propName, event) => {
+        const widgetDisabled = newVal >= allWaterbodiesLayer.minScale;
+        if (widgetDisabled !== getAllWaterbodiesWidgetDisabled()) {
+          setAllWaterbodiesWidgetDisabled(widgetDisabled);
+        }
+      });
     }
 
     const widgetDisabled = getDisabled();
@@ -1314,13 +1323,11 @@ function MapWidgets({
       >
         <span
           className={
-            allWaterbodiesLoading && layer?.visible
+            allWaterbodiesLoading && !widgetDisabled && layer?.visible
               ? 'esri-icon-loading-indicator esri-rotating'
-              : 'esri-icon-basemap'
+              : 'esri-icon-maps'
           }
-          style={
-            !upstreamWidgetDisabled && hover ? buttonHoverStyle : buttonStyle
-          }
+          style={!widgetDisabled && hover ? buttonHoverStyle : buttonStyle}
         />
       </div>
     );

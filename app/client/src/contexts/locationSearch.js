@@ -46,11 +46,9 @@ type State = {
   selWaterBodyLayer: Object,
   wsioHealthIndexLayer: Object,
   allWaterbodiesLayer: Object,
-  allWaterbodiesLayerVisible: boolean,
   homeWidget: Object,
   upstreamWidget: Object,
   upstreamWidgetDisabled: boolean,
-  allWaterbodiesWidget: Object,
   allWaterbodiesWidgetDisabled: boolean,
   hucBoundaries: Object,
   atHucBoundaries: boolean,
@@ -155,11 +153,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     selWaterBodyLayer: '',
     wsioHealthIndexLayer: '',
     allWaterbodiesLayer: '',
-    allWaterbodiesLayerVisible: true,
     homeWidget: null,
     upstreamWidget: null,
     upstreamWidgetDisabled: false,
-    allWaterbodiesWidget: null,
     allWaterbodiesWidgetDisabled: false,
     visibleLayers: {},
     basemap: {},
@@ -346,9 +342,6 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     setAllWaterbodiesLayer: (allWaterbodiesLayer) => {
       this.setState({ allWaterbodiesLayer });
     },
-    setAllWaterbodiesLayerVisible: (allWaterbodiesLayerVisible) => {
-      this.setState({ allWaterbodiesLayerVisible });
-    },
     setPointsLayer: (pointsLayer) => {
       this.setState({ pointsLayer });
     },
@@ -375,9 +368,6 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     },
     setUpstreamWidget: (upstreamWidget) => {
       this.setState({ upstreamWidget });
-    },
-    setAllWaterbodiesWidget: (allWaterbodiesWidget) => {
-      this.setState({ allWaterbodiesWidget });
     },
     setAllWaterbodiesWidgetDisabled: (allWaterbodiesWidgetDisabled) => {
       this.setState({ allWaterbodiesWidgetDisabled });
