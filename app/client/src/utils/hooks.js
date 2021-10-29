@@ -166,7 +166,7 @@ function useWaterbodyOnMap(
   } = React.useContext(LocationSearchContext);
 
   const setRenderer = React.useCallback(
-    (layer, geometryType, attributeName, alpha = null) => {
+    (layer, geometryType, alpha = null) => {
       const renderer = {
         type: 'unique-value',
         field: attributeName ? attributeName : 'overallstatus',
@@ -184,23 +184,29 @@ function useWaterbodyOnMap(
       // close popup and clear highlights when the renderer changes
       closePopup({ mapView, setHighlightedGraphic, setSelectedGraphic });
     },
-    [defaultCondition, mapView, setHighlightedGraphic, setSelectedGraphic],
+    [
+      attributeName,
+      defaultCondition,
+      mapView,
+      setHighlightedGraphic,
+      setSelectedGraphic,
+    ],
   );
 
   React.useEffect(() => {
     if (!pointsLayer || pointsLayer === 'error') return;
-    setRenderer(pointsLayer, 'point', attributeName);
-  }, [pointsLayer, attributeName, setRenderer]);
+    setRenderer(pointsLayer, 'point');
+  }, [pointsLayer, setRenderer]);
 
   React.useEffect(() => {
     if (!linesLayer || linesLayer === 'error') return;
-    setRenderer(linesLayer, 'polyline', attributeName);
-  }, [linesLayer, attributeName, setRenderer]);
+    setRenderer(linesLayer, 'polyline');
+  }, [linesLayer, setRenderer]);
 
   React.useEffect(() => {
     if (!areasLayer || areasLayer === 'error') return;
-    setRenderer(areasLayer, 'polygon', attributeName);
-  }, [areasLayer, attributeName, setRenderer]);
+    setRenderer(areasLayer, 'polygon');
+  }, [areasLayer, setRenderer]);
 
   React.useEffect(() => {
     if (!allWaterbodiesLayer || allWaterbodiesLayer === 'error') return;
@@ -211,25 +217,10 @@ function useWaterbodyOnMap(
       outline: 0.05,
     };
 
-    setRenderer(
-      allWaterbodiesLayer.layers.items[2],
-      'point',
-      attributeName,
-      alpha,
-    );
-    setRenderer(
-      allWaterbodiesLayer.layers.items[1],
-      'polyline',
-      attributeName,
-      alpha,
-    );
-    setRenderer(
-      allWaterbodiesLayer.layers.items[0],
-      'polygon',
-      attributeName,
-      alpha,
-    );
-  }, [allWaterbodiesLayer, attributeName, setRenderer]);
+    setRenderer(allWaterbodiesLayer.layers.items[2], 'point', alpha);
+    setRenderer(allWaterbodiesLayer.layers.items[1], 'polyline', alpha);
+    setRenderer(allWaterbodiesLayer.layers.items[0], 'polygon', alpha);
+  }, [allWaterbodiesLayer, setRenderer]);
 }
 
 // custom hook that is used to highlight based on context. If the findOthers
