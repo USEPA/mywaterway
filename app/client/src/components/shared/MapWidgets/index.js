@@ -1293,9 +1293,9 @@ function MapWidgets({
       );
 
       watchUtils.watch(mapView, 'scale', (newVal, oldVal, propName, event) => {
-        const widgetDisabled = newVal >= allWaterbodiesLayer.minScale;
-        if (widgetDisabled !== getAllWaterbodiesWidgetDisabled()) {
-          setAllWaterbodiesWidgetDisabled(widgetDisabled);
+        const newWidgetDisabledVal = newVal >= allWaterbodiesLayer.minScale;
+        if (newWidgetDisabledVal !== getAllWaterbodiesWidgetDisabled()) {
+          setAllWaterbodiesWidgetDisabled(newWidgetDisabledVal);
         }
       });
     }
