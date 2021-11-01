@@ -290,6 +290,7 @@ const tabs = [
     upper: monitoringUpper,
     lower: <Monitoring />,
     layers: {
+      dischargersLayer: false,
       monitoringStationsLayer: true,
       waterbodyLayer: false,
     },

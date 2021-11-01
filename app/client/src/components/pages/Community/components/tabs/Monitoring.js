@@ -18,7 +18,10 @@ import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
-import { plotStations } from 'components/pages/LocationMap/MapFunctions';
+import {
+  plotFacilities,
+  plotStations,
+} from 'components/pages/LocationMap/MapFunctions';
 import { useWaterbodyOnMap } from 'utils/hooks';
 // data
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
@@ -97,6 +100,8 @@ function Monitoring() {
     monitoringGroups,
     showAllMonitoring,
     setMonitoringGroups,
+    dischargersLayer,
+    permittedDischargers,
     monitoringStationsLayer,
     setShowAllMonitoring,
     watershed,
@@ -363,6 +368,21 @@ function Monitoring() {
 
     if (Object.keys(visibleLayers).length > 0) setVisibleLayers({});
   }, [monitoringLocations, visibleLayers, setVisibleLayers]);
+
+  // draw the permitted dischargers on the map
+  React.useEffect(() => {
+    // wait until permitted dischargers data is set in context
+    if (
+      permittedDischargers.data['Results'] &&
+      permittedDischargers.data['Results']['Facilities']
+    ) {
+      plotFacilities({
+        Graphic,
+        facilities: permittedDischargers.data['Results']['Facilities'],
+        layer: dischargersLayer,
+      });
+    }
+  }, [permittedDischargers.data, Graphic, dischargersLayer]);
 
   const sortedMonitoringStations = displayedMonitoringStations
     ? displayedMonitoringStations.sort((objA, objB) => {
