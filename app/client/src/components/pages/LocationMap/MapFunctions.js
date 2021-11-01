@@ -824,3 +824,20 @@ export function gradientIcon({ id, stops }) {
     </table>
   );
 }
+
+// Gets the highlight symbol styles based on the provided geometry.
+export function getHighlightSymbol(geometry, color) {
+  let symbol: Object = { color };
+  if (geometry.type === 'polyline') {
+    symbol['type'] = 'simple-line';
+    symbol['width'] = 5;
+  } else if (geometry.type === 'polygon') {
+    symbol['type'] = 'simple-fill';
+    symbol['outline'] = { color, width: 2 };
+  } else if (geometry.type === 'point' || geometry.type === 'multipoint') {
+    symbol['type'] = 'simple-marker';
+    symbol['outline'] = { color, width: 2 };
+  }
+
+  return symbol;
+}
