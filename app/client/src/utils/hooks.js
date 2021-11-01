@@ -71,7 +71,10 @@ function highlightFeature({
       mapView.graphics.add({
         ...feature,
         geometry: feature.originalGeometry,
-        symbol: getHighlightSymbol(feature.originalGeometry, highlightOptions),
+        symbol: getHighlightSymbol(
+          feature.originalGeometry,
+          highlightOptions.color,
+        ),
       });
     } else {
       mapView
