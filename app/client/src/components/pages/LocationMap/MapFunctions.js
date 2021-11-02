@@ -117,6 +117,24 @@ export function createUniqueValueInfos(
         alpha,
       }),
     },
+    {
+      value: `Y`,
+      symbol: createWaterbodySymbol({
+        condition: 'nostatus',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `N`,
+      symbol: createWaterbodySymbol({
+        condition: 'hidden',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
   ];
 }
 
@@ -147,7 +165,7 @@ export function createWaterbodySymbol({
   geometryType = 'point',
   alpha = null,
 }: {
-  condition: 'good' | 'polluted' | 'unassessed' | 'hidden',
+  condition: 'good' | 'polluted' | 'unassessed' | 'nostatus' | 'hidden',
   selected: boolean,
   geometryType: string,
   alpha: {
@@ -169,6 +187,9 @@ export function createWaterbodySymbol({
   if (condition === 'polluted') {
     // from colors.highlightedRed() and colors.red()
     color = selected ? { r: 124, g: 157, b: 173 } : { r: 203, g: 34, b: 62 };
+  }
+  if (condition === 'nostatus') {
+    color = selected ? { r: 93, g: 153, b: 227 } : { r: 0, g: 123, b: 255 };
   }
 
   // for polygons, add transparency to the color so that lines can be seen
@@ -194,7 +215,7 @@ export function createWaterbodySymbol({
   }
 
   if (geometryType === 'point') {
-    if (condition === 'good') {
+    if (condition === 'good' || condition === 'nostatus') {
       symbol.style = 'circle';
     }
 

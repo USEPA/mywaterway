@@ -81,10 +81,6 @@ const accordionContentStyles = css`
   }
 `;
 
-const noSwitchHeaderStyles = css`
-  margin-left: 48px;
-`;
-
 const styledSwitchStyles = css`
   margin-right: 10px;
   pointer-events: all;
@@ -159,7 +155,7 @@ function Protect() {
   const services = useServicesContext();
 
   // draw the waterbody on the map
-  useWaterbodyOnMap();
+  useWaterbodyOnMap('hasprotectionplan');
 
   const { setSelectedGraphic } = React.useContext(MapHighlightContext);
   const { Query, QueryTask, SimpleFillSymbol } = React.useContext(
@@ -213,6 +209,10 @@ function Protect() {
     wildScenicRiversDisplayed,
     setWildScenicRiversDisplayed,
   ] = React.useState(false);
+
+  const [waterbodyLayerDisplayed, setWaterbodyLayerDisplayed] = React.useState(
+    false,
+  );
 
   // Updates the visible layers. This function also takes into account whether
   // or not the underlying webservices failed.
@@ -296,10 +296,15 @@ function Protect() {
     if (protectedAreasDisplayed !== visibleLayers['protectedAreasLayer']) {
       setProtectedAreasDisplayed(visibleLayers['protectedAreasLayer']);
     }
+
+    if (waterbodyLayerDisplayed !== visibleLayers['waterbodyLayer']) {
+      setWaterbodyLayerDisplayed(visibleLayers['waterbodyLayer']);
+    }
   }, [
     healthScoresDisplayed,
     wildScenicRiversDisplayed,
     protectedAreasDisplayed,
+    waterbodyLayerDisplayed,
     visibleLayers,
   ]);
 
@@ -333,6 +338,14 @@ function Protect() {
     updateVisibleLayers({
       key: 'protectedAreasLayer',
       newValue: !protectedAreasDisplayed,
+    });
+  }
+
+  function onWaterbodyLayerToggle() {
+    setWaterbodyLayerDisplayed(!waterbodyLayerDisplayed);
+    updateVisibleLayers({
+      key: 'waterbodyLayer',
+      newValue: !waterbodyLayerDisplayed,
     });
   }
 
@@ -1026,9 +1039,23 @@ function Protect() {
                 <AccordionItem
                   highlightContent={false}
                   title={
-                    <strong css={noSwitchHeaderStyles}>
-                      Protection Projects
-                    </strong>
+                    <label css={labelStyles}>
+                      <div
+                        css={styledSwitchStyles}
+                        onClick={(ev) => ev.stopPropagation()}
+                      >
+                        <Switch
+                          checked={
+                            waterbodyLayerDisplayed &&
+                            cipSummary.status === 'success'
+                          }
+                          onChange={onWaterbodyLayerToggle}
+                          disabled={cipSummary.status === 'failure'}
+                          ariaLabel="Protection Projects"
+                        />
+                      </div>
+                      <strong>Protection Projects</strong>
+                    </label>
                   }
                 >
                   <div css={accordionContentStyles}>
