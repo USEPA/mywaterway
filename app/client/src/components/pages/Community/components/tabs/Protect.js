@@ -3,6 +3,7 @@
 import React from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 // components
 import { ContentTabs } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -57,22 +58,22 @@ function convertStateCode(stateCode: string, stateData: Array<Object>) {
 }
 
 // --- styled components ---
-const Container = styled.div`
+const containerStyles = css`
   padding: 1em;
 `;
 
-const List = styled.ul`
+const listStyles = css`
   padding-bottom: 1.5rem;
 `;
 
-const Heading = styled.h2`
+const headingStyles = css`
   margin-bottom: 0.25rem;
   padding-bottom: 0;
   font-family: ${fonts.primary};
   font-size: 1.375em;
 `;
 
-const AccordionContent = styled.div`
+const accordionContentStyles = css`
   padding: 0.875em;
 
   p:last-of-type {
@@ -80,17 +81,17 @@ const AccordionContent = styled.div`
   }
 `;
 
-const NoSwitchHeader = styled.strong`
+const noSwitchHeaderStyles = css`
   margin-left: 48px;
 `;
 
-const StyledSwitch = styled.div`
+const styledSwitchStyles = css`
   margin-right: 10px;
   pointer-events: all;
   display: flex;
 `;
 
-const Label = styled.label`
+const labelStyles = css`
   display: flex;
   align-items: center;
   margin: 0;
@@ -102,34 +103,34 @@ const Label = styled.label`
   }
 `;
 
-const Feature = styled.div`
+const featureStyles = css`
   &:hover {
     background-color: #f0f6f9;
   }
 `;
 
-const FeatureTitle = styled.p`
+const featureTitleStyles = css`
   padding: 0.75rem;
 `;
 
-const NewTabDisclaimer = styled.div`
+const newTabDisclaimerStyles = css`
   display: inline-block;
 `;
 
-const WatershedContainer = styled.div`
+const watershedContainerStyles = css`
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
 `;
 
-const GradientInnerContainer = styled.div`
+const gradientInnerContainerStyles = css`
   align-items: center;
   display: flex;
   flex-direction: column;
 `;
 
-const GradientHeaderFooter = styled.div`
+const gradientHeaderFooterStyles = css`
   text-align: center;
 `;
 
@@ -141,15 +142,15 @@ const ErrorBox = styled(StyledErrorBox)`
   }
 `;
 
-const InlineBlockWrapper = styled.div`
+const inlineBlockWrapperStyles = css`
   display: inline-block;
 `;
 
-const WsioQuestionContainer = styled.div`
+const wsioQuestionContainerStyles = css`
   padding-bottom: 0.875rem;
 `;
 
-const ViewButtonContainer = styled.div`
+const viewButtonContainerStyles = css`
   margin-left: 0.5em;
 `;
 
@@ -359,7 +360,7 @@ function Protect() {
   ]);
 
   return (
-    <Container>
+    <div css={containerStyles}>
       <ContentTabs>
         <Tabs
           onChange={(index) => {
@@ -398,8 +399,11 @@ function Protect() {
                     });
                   }}
                   title={
-                    <Label>
-                      <StyledSwitch onClick={(ev) => ev.stopPropagation()}>
+                    <label css={labelStyles}>
+                      <div
+                        css={styledSwitchStyles}
+                        onClick={(ev) => ev.stopPropagation()}
+                      >
                         <Switch
                           checked={
                             healthScoresDisplayed &&
@@ -409,12 +413,12 @@ function Protect() {
                           disabled={wsioHealthIndexData.status === 'failure'}
                           ariaLabel="Watershed Health Scores"
                         />
-                      </StyledSwitch>
+                      </div>
                       <strong>Watershed Health Scores</strong>
-                    </Label>
+                    </label>
                   }
                 >
-                  <AccordionContent>
+                  <div css={accordionContentStyles}>
                     {wsioHealthIndexData.status === 'failure' && (
                       <ErrorBox>
                         <p>{wsioHealthIndexError}</p>
@@ -432,7 +436,7 @@ function Protect() {
                       )}
                     {wsioHealthIndexData.status === 'success' &&
                       wsioHealthIndexData.data.length > 0 && (
-                        <WatershedContainer>
+                        <div css={watershedContainerStyles}>
                           <div style={{ flex: '3 1 220px' }}>
                             <table className="table">
                               <tbody>
@@ -483,10 +487,10 @@ function Protect() {
                           <div
                             style={{ flex: '1 1 0', margin: '0 0 10px 10px' }}
                           >
-                            <GradientInnerContainer>
-                              <GradientHeaderFooter>
+                            <div css={gradientInnerContainerStyles}>
+                              <div css={gradientHeaderFooterStyles}>
                                 More Healthy
-                              </GradientHeaderFooter>
+                              </div>
                               <div style={{ marginLeft: '25px' }}>
                                 {gradientIcon({
                                   id: 'health-index-horizontal-gradient',
@@ -511,25 +515,25 @@ function Protect() {
                                   ],
                                 })}
                               </div>
-                              <GradientHeaderFooter>
+                              <div css={gradientHeaderFooterStyles}>
                                 Less Healthy
-                              </GradientHeaderFooter>
-                            </GradientInnerContainer>
+                              </div>
+                            </div>
                           </div>
-                        </WatershedContainer>
+                        </div>
                       )}
 
-                    <WsioQuestionContainer>
-                      <InlineBlockWrapper>
+                    <div css={wsioQuestionContainerStyles}>
+                      <div css={inlineBlockWrapperStyles}>
                         <p>
                           <strong>
                             Where might the healthier watersheds be located in
                             your state?
                           </strong>
                         </p>
-                      </InlineBlockWrapper>
+                      </div>
 
-                      <InlineBlockWrapper>
+                      <div css={inlineBlockWrapperStyles}>
                         <ShowLessMore
                           charLimit={0}
                           text={
@@ -562,18 +566,18 @@ function Protect() {
                             </>
                           }
                         />
-                      </InlineBlockWrapper>
-                    </WsioQuestionContainer>
+                      </div>
+                    </div>
 
-                    <WsioQuestionContainer>
-                      <InlineBlockWrapper>
+                    <div css={wsioQuestionContainerStyles}>
+                      <div css={inlineBlockWrapperStyles}>
                         <p>
                           <strong>
                             Why is the Watershed Health Index valuable?
                           </strong>
                         </p>
-                      </InlineBlockWrapper>
-                      <InlineBlockWrapper>
+                      </div>
+                      <div css={inlineBlockWrapperStyles}>
                         <ShowLessMore
                           charLimit={0}
                           text={
@@ -606,8 +610,8 @@ function Protect() {
                             </>
                           }
                         />
-                      </InlineBlockWrapper>
-                    </WsioQuestionContainer>
+                      </div>
+                    </div>
 
                     <p>
                       <a
@@ -620,7 +624,7 @@ function Protect() {
                       </a>{' '}
                       (opens new browser tab)
                     </p>
-                  </AccordionContent>
+                  </div>
                 </AccordionItem>
 
                 <AccordionItem
@@ -637,8 +641,11 @@ function Protect() {
                     });
                   }}
                   title={
-                    <Label>
-                      <StyledSwitch onClick={(ev) => ev.stopPropagation()}>
+                    <label css={labelStyles}>
+                      <div
+                        css={styledSwitchStyles}
+                        onClick={(ev) => ev.stopPropagation()}
+                      >
                         <Switch
                           checked={
                             wildScenicRiversDisplayed &&
@@ -648,12 +655,12 @@ function Protect() {
                           disabled={wildScenicRiversData.status === 'failure'}
                           ariaLabel="Wild and Scenic Rivers"
                         />
-                      </StyledSwitch>
+                      </div>
                       <strong>Wild and Scenic Rivers</strong>
-                    </Label>
+                    </label>
                   }
                 >
-                  <AccordionContent>
+                  <div css={accordionContentStyles}>
                     {infoToggleChecked && (
                       <p>
                         The{' '}
@@ -787,7 +794,7 @@ function Protect() {
                               </tbody>
                             </table>
 
-                            <ViewButtonContainer>
+                            <div css={viewButtonContainerStyles}>
                               <ViewOnMapButton
                                 layers={[wildScenicRiversLayer]}
                                 feature={item}
@@ -802,11 +809,11 @@ function Protect() {
                                   });
                                 }}
                               />
-                            </ViewButtonContainer>
+                            </div>
                           </FeatureItem>
                         );
                       })}
-                  </AccordionContent>
+                  </div>
                 </AccordionItem>
 
                 <AccordionItem
@@ -823,8 +830,11 @@ function Protect() {
                     });
                   }}
                   title={
-                    <Label>
-                      <StyledSwitch onClick={(ev) => ev.stopPropagation()}>
+                    <label css={labelStyles}>
+                      <div
+                        css={styledSwitchStyles}
+                        onClick={(ev) => ev.stopPropagation()}
+                      >
                         <Switch
                           checked={
                             protectedAreasDisplayed &&
@@ -834,12 +844,12 @@ function Protect() {
                           disabled={protectedAreasData.status === 'failure'}
                           ariaLabel="Protected Areas"
                         />
-                      </StyledSwitch>
+                      </div>
                       <strong>Protected Areas</strong>
-                    </Label>
+                    </label>
                   }
                 >
-                  <AccordionContent>
+                  <div css={accordionContentStyles}>
                     {infoToggleChecked && (
                       <>
                         <p>
@@ -955,7 +965,7 @@ function Protect() {
                                   </tbody>
                                 </table>
 
-                                <ViewButtonContainer>
+                                <div css={viewButtonContainerStyles}>
                                   <ViewOnMapButton
                                     layers={[protectedAreasLayer]}
                                     feature={item}
@@ -1004,20 +1014,24 @@ function Protect() {
                                       });
                                     }}
                                   />
-                                </ViewButtonContainer>
+                                </div>
                               </AccordionItem>
                             );
                           })}
                         </AccordionList>
                       )}
-                  </AccordionContent>
+                  </div>
                 </AccordionItem>
 
                 <AccordionItem
                   highlightContent={false}
-                  title={<NoSwitchHeader>Protection Projects</NoSwitchHeader>}
+                  title={
+                    <strong css={noSwitchHeaderStyles}>
+                      Protection Projects
+                    </strong>
+                  }
                 >
-                  <AccordionContent>
+                  <div css={accordionContentStyles}>
                     {grts.status === 'fetching' && <LoadingSpinner />}
 
                     {grts.status === 'failure' && (
@@ -1121,9 +1135,9 @@ function Protect() {
                                             Open Project Summary
                                           </a>
                                           &nbsp;&nbsp;
-                                          <NewTabDisclaimer>
+                                          <div css={newTabDisclaimerStyles}>
                                             (opens new browser tab)
-                                          </NewTabDisclaimer>
+                                          </div>
                                         </td>
                                       </tr>
 
@@ -1170,7 +1184,7 @@ function Protect() {
                         )}
                       </>
                     )}
-                  </AccordionContent>
+                  </div>
                 </AccordionItem>
               </AccordionList>
             </TabPanel>
@@ -1180,8 +1194,8 @@ function Protect() {
               </p>
               <p>Get quick tips for protecting water in your:</p>
 
-              <Heading>Community</Heading>
-              <List>
+              <h2 css={headingStyles}>Community</h2>
+              <ul css={listStyles}>
                 <li>Contribute to local water cleanup efforts.</li>
                 <li>Find a watershed protection organization to support.</li>
                 <li>Volunteer to help monitor water quality.</li>
@@ -1194,10 +1208,10 @@ function Protect() {
                   awareness about the importance of watershed protection.
                 </li>
                 <li>See how your state is protecting your waters.</li>
-              </List>
+              </ul>
 
-              <Heading>School</Heading>
-              <List>
+              <h2 css={headingStyles}>School</h2>
+              <ul css={listStyles}>
                 <li>Adopt your watershed.</li>
                 <li>
                   Teach students about watershed protection by showing the
@@ -1213,10 +1227,10 @@ function Protect() {
                     Find other ways to make a difference in your school.
                   </a>
                 </li>
-              </List>
+              </ul>
 
-              <Heading>Yard</Heading>
-              <List>
+              <h2 css={headingStyles}>Yard</h2>
+              <ul css={listStyles}>
                 <li>
                   <a
                     href="https://www.epa.gov/nutrientpollution/what-you-can-do-your-yard"
@@ -1254,10 +1268,10 @@ function Protect() {
                     Find other ways to make a difference in your yard.
                   </a>
                 </li>
-              </List>
+              </ul>
 
-              <Heading>Home</Heading>
-              <List>
+              <h2 css={headingStyles}>Home</h2>
+              <ul css={listStyles}>
                 <li>Choose phosphate-free soaps and detergents.</li>
                 <li>Pick up after your pet.</li>
                 <li>
@@ -1271,12 +1285,12 @@ function Protect() {
                 </li>
                 <li>Wash your car on your lawn or in commercial car washes.</li>
                 <li>Find other ways to make a difference in your home.</li>
-              </List>
+              </ul>
             </TabPanel>
           </TabPanels>
         </Tabs>
       </ContentTabs>
-    </Container>
+    </div>
   );
 }
 
@@ -1301,16 +1315,17 @@ function FeatureItem({ feature, title, children }: FeatureItemProps) {
   };
 
   return (
-    <Feature
+    <div
+      css={featureStyles}
       onMouseEnter={(ev) => addHighlight()}
       onMouseLeave={(ev) => removeHighlight()}
       onFocus={(ev) => addHighlight()}
       onBlur={(ev) => removeHighlight()}
     >
-      {title && <FeatureTitle>{title}</FeatureTitle>}
+      {title && <p css={featureTitleStyles}>{title}</p>}
 
       {children}
-    </Feature>
+    </div>
   );
 }
 
