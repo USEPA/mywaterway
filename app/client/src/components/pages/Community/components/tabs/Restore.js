@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 // components
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import { ContentTabs } from 'components/shared/ContentTabs';
@@ -29,15 +29,15 @@ import {
 } from 'config/errorMessages';
 
 // --- styled components ---
-const Container = styled.div`
+const containerStyles = css`
   padding: 1em;
 `;
 
-const Text = styled.p`
+const textStyles = css`
   text-align: center;
 `;
 
-const NewTabDisclaimer = styled.div`
+const newTabDisclaimerStyles = css`
   display: inline-block;
 `;
 
@@ -70,7 +70,7 @@ function Restore() {
       : [];
 
   return (
-    <Container>
+    <div css={containerStyles}>
       <StyledMetrics>
         <StyledMetric>
           {grts.status === 'fetching' ? (
@@ -119,13 +119,13 @@ function Restore() {
                 {grts.status === 'success' && (
                   <>
                     {sortedGrtsData.length === 0 && (
-                      <Text>
+                      <p css={textStyles}>
                         There are no{' '}
                         <GlossaryTerm term="Clean Water Act Section 319 Projects">
                           Clean Water Act Section 319
                         </GlossaryTerm>{' '}
                         projects in the {watershed} watershed.
-                      </Text>
+                      </p>
                     )}
                     {sortedGrtsData.length > 0 && (
                       <>
@@ -213,9 +213,9 @@ function Restore() {
                                           Open Project Summary
                                         </a>
                                         &nbsp;&nbsp;
-                                        <NewTabDisclaimer>
+                                        <div css={newTabDisclaimerStyles}>
                                           (opens new browser tab)
-                                        </NewTabDisclaimer>
+                                        </div>
                                       </td>
                                     </tr>
                                     <tr>
@@ -279,13 +279,13 @@ function Restore() {
                 {attainsPlans.status === 'success' && (
                   <>
                     {sortedAttainsPlanData.length === 0 && (
-                      <Text>
+                      <p css={textStyles}>
                         There are no EPA funded{' '}
                         <GlossaryTerm term="Restoration plan">
                           restoration plans
                         </GlossaryTerm>{' '}
                         in the {watershed} watershed.
-                      </Text>
+                      </p>
                     )}
                     {sortedAttainsPlanData.length > 0 && (
                       <>
@@ -351,9 +351,9 @@ function Restore() {
                                             Open Plan Summary
                                           </a>
                                           &nbsp;&nbsp;
-                                          <NewTabDisclaimer>
+                                          <div css={newTabDisclaimerStyles}>
                                             (opens new browser tab)
-                                          </NewTabDisclaimer>
+                                          </div>
                                         </td>
                                       </tr>
                                     )}
@@ -372,7 +372,7 @@ function Restore() {
           </TabPanels>
         </Tabs>
       </ContentTabs>
-    </Container>
+    </div>
   );
 }
 
