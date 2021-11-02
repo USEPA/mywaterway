@@ -231,6 +231,20 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   );
 
   // jsx
+  const usgsStreamgagesLegend = (
+    <LI>
+      <ImageContainer>
+        {circleIcon({
+          color: colors.yellow, // TODO: change color
+          strokeWidth: 1,
+          stroke: '#000000',
+        })}
+      </ImageContainer>
+      <LegendLabel>USGS Streamgages</LegendLabel>
+    </LI>
+  );
+
+  // jsx
   const dischargersLegend = (
     <LI>
       <ImageContainer>{diamondIcon({ color: colors.orange })}</ImageContainer>
@@ -606,6 +620,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   if (layer.id === 'waterbodyLayer') return waterbodyLegend;
   if (layer.id === 'issuesLayer') return issuesLegend;
   if (layer.id === 'monitoringStationsLayer') return monitoringStationsLegend;
+  if (layer.id === 'usgsStreamgagesLayer') return usgsStreamgagesLegend;
   if (layer.id === 'dischargersLayer') return dischargersLegend;
   if (layer.id === 'nonprofitsLayer') return nonprofitsLegend;
   if (layer.id === 'providersLayer') return providersLegend;

@@ -31,6 +31,7 @@ import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
 import {
   plotFacilities,
   plotStations,
+  plotGages,
   getUniqueWaterbodies,
 } from 'components/pages/LocationMap/MapFunctions';
 // errors
@@ -100,6 +101,7 @@ function Overview() {
     permittedDischargers,
     waterbodyLayer,
     monitoringStationsLayer,
+    usgsStreamgagesLayer,
     dischargersLayer,
     watershed,
     visibleLayers,
@@ -112,6 +114,10 @@ function Overview() {
     monitoringStationsDisplayed,
     setMonitoringStationsDisplayed,
   ] = useState(false);
+
+  const [usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed] = useState(
+    false,
+  );
 
   const [
     permittedDischargersDisplayed,
@@ -132,9 +138,9 @@ function Overview() {
 
   // draw the monitoring stations on the map
   React.useEffect(() => {
-    // wait until monitoring stations data is set in context
-    if (!monitoringStations.data.features) return;
     if (services.status === 'fetching') return;
+    if (!monitoringStations.data.features) return;
+    if (!usgsStreamgages.data.value) return;
 
     const stations = monitoringStations.data.features.map((station) => {
       return {
@@ -145,11 +151,27 @@ function Overview() {
     });
 
     plotStations(Graphic, stations, monitoringStationsLayer, services);
-  }, [monitoringStations.data, Graphic, monitoringStationsLayer, services]);
+
+    const gages = usgsStreamgages.data.value.map((gage) => {
+      return {
+        x: gage.Locations[0].location.coordinates[0],
+        y: gage.Locations[0].location.coordinates[1],
+        properties: gage.properties,
+      };
+    });
+
+    plotGages(Graphic, gages, usgsStreamgagesLayer);
+  }, [
+    Graphic,
+    monitoringStations.data,
+    usgsStreamgages.data,
+    monitoringStationsLayer,
+    usgsStreamgagesLayer,
+    services,
+  ]);
 
   // draw the permitted dischargers on the map
   React.useEffect(() => {
-    // wait until permitted dischargers data is set in context
     if (permittedDischargers.data.Results?.Facilities) {
       plotFacilities({
         Graphic: Graphic,
@@ -163,61 +185,61 @@ function Overview() {
   // used for when the user toggles layers in full screen mode and then
   // exist full screen.
   React.useEffect(() => {
-    const {
-      waterbodyLayer,
-      monitoringStationsLayer,
-      dischargersLayer,
-    } = visibleLayers;
-
-    if (typeof waterbodyLayer === 'boolean') {
-      setWaterbodiesDisplayed(waterbodyLayer);
+    if (typeof visibleLayers.waterbodyLayer === 'boolean') {
+      setWaterbodiesDisplayed(visibleLayers.waterbodyLayer);
     }
 
-    if (typeof monitoringStationsLayer === 'boolean') {
-      setMonitoringStationsDisplayed(monitoringStationsLayer);
+    if (typeof visibleLayers.monitoringStationsLayer === 'boolean') {
+      setMonitoringStationsDisplayed(visibleLayers.monitoringStationsLayer);
     }
 
-    if (typeof dischargersLayer === 'boolean') {
-      setPermittedDischargersDisplayed(dischargersLayer);
+    if (typeof visibleLayers.usgsStreamgagesLayer === 'boolean') {
+      setUsgsStreamgagesDisplayed(visibleLayers.usgsStreamgagesLayer);
     }
-  }, [
-    visibleLayers,
-    setPermittedDischargersDisplayed,
-    setMonitoringStationsDisplayed,
-    setWaterbodiesDisplayed,
-  ]);
+
+    if (typeof visibleLayers.dischargersLayer === 'boolean') {
+      setPermittedDischargersDisplayed(visibleLayers.dischargersLayer);
+    }
+  }, [visibleLayers]);
 
   /**
    * Updates the visible layers. This function also takes into account whether
    * or not the underlying webservices failed.
    */
   const updateVisibleLayers = React.useCallback(
-    ({ key = null, newValue = null, useCurrentValue = false }) => {
+    ({ key = null, value = null, useCurrentValue = false }) => {
       const newVisibleLayers = {};
 
       if (cipSummary.status !== 'failure') {
-        newVisibleLayers['waterbodyLayer'] =
+        newVisibleLayers.waterbodyLayer =
           !waterbodyLayer || useCurrentValue
-            ? visibleLayers['waterbodyLayer']
+            ? visibleLayers.waterbodyLayer
             : waterbodiesDisplayed;
       }
 
       if (monitoringStations.status !== 'failure') {
-        newVisibleLayers['monitoringStationsLayer'] =
+        newVisibleLayers.monitoringStationsLayer =
           !monitoringStationsLayer || useCurrentValue
-            ? visibleLayers['monitoringStationsLayer']
+            ? visibleLayers.monitoringStationsLayer
             : monitoringStationsDisplayed;
       }
 
+      if (usgsStreamgages.status !== 'failure') {
+        newVisibleLayers.usgsStreamgagesLayer =
+          !usgsStreamgagesLayer || useCurrentValue
+            ? visibleLayers.usgsStreamgagesLayer
+            : usgsStreamgagesDisplayed;
+      }
+
       if (permittedDischargers.status !== 'failure') {
-        newVisibleLayers['dischargersLayer'] =
+        newVisibleLayers.dischargersLayer =
           !dischargersLayer || useCurrentValue
-            ? visibleLayers['dischargersLayer']
+            ? visibleLayers.dischargersLayer
             : permittedDischargersDisplayed;
       }
 
       if (key && newVisibleLayers.hasOwnProperty(key)) {
-        newVisibleLayers[key] = newValue;
+        newVisibleLayers[key] = value;
       }
 
       // set the visible layers if something changed
@@ -228,12 +250,15 @@ function Overview() {
     [
       cipSummary,
       monitoringStations,
+      usgsStreamgages,
       permittedDischargers,
       waterbodyLayer,
       monitoringStationsLayer,
+      usgsStreamgagesLayer,
       dischargersLayer,
       waterbodiesDisplayed,
       monitoringStationsDisplayed,
+      usgsStreamgagesDisplayed,
       permittedDischargersDisplayed,
       visibleLayers,
       setVisibleLayers,
@@ -246,6 +271,7 @@ function Overview() {
   }, [
     cipSummary,
     monitoringStations,
+    usgsStreamgages,
     permittedDischargers,
     visibleLayers,
     updateVisibleLayers,
@@ -255,6 +281,8 @@ function Overview() {
 
   // TODO: rename totalMonitoringLocations to totalMonitoringStations ?
   const totalMonitoringLocations = monitoringStations.data.features?.length;
+
+  const totalUsgsStreamgages = usgsStreamgages.data.value?.length;
 
   const totalPermittedDischargers =
     permittedDischargers.data.Results?.Facilities.length;
@@ -349,7 +377,7 @@ function Overview() {
 
                     updateVisibleLayers({
                       key: 'waterbodyLayer',
-                      newValue: waterbodyLayer && !waterbodiesDisplayed,
+                      value: waterbodyLayer && !waterbodiesDisplayed,
                     });
                   }}
                   disabled={!Boolean(totalWaterbodies)}
@@ -386,7 +414,7 @@ function Overview() {
 
                     updateVisibleLayers({
                       key: 'monitoringStationsLayer',
-                      newValue:
+                      value:
                         monitoringStationsLayer && !monitoringStationsDisplayed,
                     });
                   }}
@@ -423,8 +451,7 @@ function Overview() {
 
                     updateVisibleLayers({
                       key: 'dischargersLayer',
-                      newValue:
-                        dischargersLayer && !permittedDischargersDisplayed,
+                      value: dischargersLayer && !permittedDischargersDisplayed,
                     });
                   }}
                   disabled={!Boolean(totalPermittedDischargers)}
@@ -488,31 +515,28 @@ function Overview() {
                               <div css={toggleStyles}>
                                 <Switch
                                   checked={
-                                    false
-                                    // Boolean(totalMonitoringLocations) &&
-                                    // monitoringStationsDisplayed
+                                    Boolean(totalUsgsStreamgages) &&
+                                    usgsStreamgagesDisplayed
                                   }
                                   onChange={(checked) => {
-                                    // setMonitoringStationsDisplayed(
-                                    //   !monitoringStationsDisplayed,
-                                    // );
-                                    // updateVisibleLayers({
-                                    //   key: 'monitoringStationsLayer',
-                                    //   newValue:
-                                    //     monitoringStationsLayer &&
-                                    //     !monitoringStationsDisplayed,
-                                    // });
+                                    setUsgsStreamgagesDisplayed(
+                                      !usgsStreamgagesDisplayed,
+                                    );
+
+                                    updateVisibleLayers({
+                                      key: 'usgsStreamgagesLayer',
+                                      value:
+                                        usgsStreamgagesLayer &&
+                                        !usgsStreamgagesDisplayed,
+                                    });
                                   }}
-                                  disabled={
-                                    true
-                                    // !Boolean(totalMonitoringLocations)
-                                  }
+                                  disabled={!Boolean(totalUsgsStreamgages)}
                                   ariaLabel="Daily Stream Flow Conditions"
                                 />
                                 <span>Daily Stream Flow Conditions</span>
                               </div>
                             </td>
-                            <td>{/* totalMonitoringLocations */}</td>
+                            <td>{totalUsgsStreamgages}</td>
                           </tr>
                           <tr>
                             <td>
@@ -529,7 +553,7 @@ function Overview() {
 
                                     updateVisibleLayers({
                                       key: 'monitoringStationsLayer',
-                                      newValue:
+                                      value:
                                         monitoringStationsLayer &&
                                         !monitoringStationsDisplayed,
                                     });
@@ -570,26 +594,27 @@ function Overview() {
                           },
                         ]}
                       >
-                        {
-                          /* TODO: implement streamgages */
+                        {/*
                           usgsStreamgages.data.value.map((item, index) => {
-                            const id = item.properties.monitoringLocationNumber;
-                            const name = item.properties.monitoringLocationName;
-                            // const feature = {};
+                          const id = item.properties.monitoringLocationNumber;
+                          const name = item.properties.monitoringLocationName;
+                          // const feature = {};
 
-                            return (
-                              <AccordionItem
-                                key={index}
-                                title={<strong>{name || 'Unknown'}</strong>}
-                                subTitle={<>Monitoring Location ID: {id}</>}
-                                feature={null}
-                                idKey={null}
-                              >
-                                <p>(Placeholder)</p>
-                              </AccordionItem>
-                            );
-                          })
-                        }
+                          return (
+                            <AccordionItem
+                              key={index}
+                              title={<strong>{name || 'Unknown'}</strong>}
+                              subTitle={<>Monitoring Location ID: {id}</>}
+                              feature={feature}
+                              idKey={null}
+                            >
+                              <div css={accordionContentStyles}>
+                                <ViewOnMapButton feature={feature} />
+                              </div>
+                            </AccordionItem>
+                          );
+                        })
+                        */}
 
                         {sortedMonitoringStations.map((item, index) => {
                           const id =

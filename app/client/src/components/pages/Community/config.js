@@ -240,6 +240,7 @@ const tabs = [
     layers: {
       waterbodyLayer: true,
       monitoringStationsLayer: false,
+      usgsStreamgagesLayer: false,
       dischargersLayer: false,
     },
   },

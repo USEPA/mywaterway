@@ -205,6 +205,7 @@ type State = {
   waterbodyLayer: Object,
   issuesLayer: Object,
   monitoringStationsLayer: Object,
+  usgsStreamgagesLayer: Object,
   dischargersLayer: Object,
   nonprofitsLayer: Object,
   wildScenicRiversLayer: Object,
@@ -286,6 +287,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     waterbodyLayer: '',
     issuesLayer: '',
     monitoringStationsLayer: '',
+    usgsStreamgagesLayer: '',
     dischargersLayer: '',
     nonprofitsLayer: '',
     wildScenicRiversLayer: '',
@@ -451,6 +453,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     setMonitoringStationsLayer: (monitoringStationsLayer) => {
       this.setState({ monitoringStationsLayer });
     },
+    setUsgsStreamgagesLayer: (usgsStreamgagesLayer) => {
+      this.setState({ usgsStreamgagesLayer });
+    },
     setDischargersLayer: (dischargersLayer) => {
       this.setState({ dischargersLayer });
     },
@@ -606,6 +611,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         boundariesLayer,
         searchIconLayer,
         monitoringStationsLayer,
+        usgsStreamgagesLayer,
         upstreamLayer,
         dischargersLayer,
         nonprofitsLayer,
@@ -663,6 +669,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         searchIconLayer.graphics.removeAll();
       }
       if (monitoringStationsLayer) monitoringStationsLayer.graphics.removeAll();
+      if (usgsStreamgagesLayer) usgsStreamgagesLayer.graphics.removeAll();
       if (dischargersLayer) dischargersLayer.graphics.removeAll();
       if (nonprofitsLayer) nonprofitsLayer.graphics.removeAll();
       if (wsioHealthIndexLayer) {

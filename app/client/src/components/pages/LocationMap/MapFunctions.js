@@ -256,6 +256,38 @@ export function plotStations(
   });
 }
 
+// plot USGS Streamgages on map
+export function plotGages(Graphic: any, gages: Object[], layer: any) {
+  if (!gages || !layer) return;
+
+  layer.graphics.removeAll();
+
+  gages.forEach((gage) => {
+    gage.properties.fullPopup = false;
+    layer.graphics.add(
+      new Graphic({
+        geometry: {
+          type: 'point',
+          longitude: gage.x,
+          latitude: gage.y,
+        },
+        symbol: {
+          type: 'simple-marker',
+          style: 'circle',
+          color: colors.yellow, // TODO: change color
+        },
+        attributes: gage.properties,
+        // popupTemplate: {
+        //   title: getPopupTitle(gage.properties),
+        //   content: getPopupContent({
+        //     feature: { attributes: gage.properties },
+        //   }),
+        // },
+      }),
+    );
+  });
+}
+
 // plot issues on map
 export function plotIssues(Graphic: any, features: Array<Object>, layer: any) {
   if (!features || !layer) return;

@@ -145,6 +145,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setWaterbodyLayer,
     setIssuesLayer,
     setMonitoringStationsLayer,
+    setUsgsStreamgagesLayer,
     setUpstreamLayer,
     setDischargersLayer,
     setNonprofitsLayer,
@@ -668,6 +669,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setMonitoringStationsLayer(monitoringStationsLayer);
 
+    const usgsStreamgagesLayer = new GraphicsLayer({
+      id: 'usgsStreamgagesLayer',
+      title: 'USGS Streamgages',
+      listMode: 'hide',
+    });
+
+    setUsgsStreamgagesLayer(usgsStreamgagesLayer);
+
     const issuesLayer = new GraphicsLayer({
       id: 'issuesLayer',
       title: 'Identified Issues',
@@ -698,6 +707,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       boundariesLayer,
       upstreamLayer,
       monitoringStationsLayer,
+      usgsStreamgagesLayer,
       issuesLayer,
       dischargersLayer,
       nonprofitsLayer,
@@ -717,6 +727,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setIssuesLayer,
     setLayers,
     setMonitoringStationsLayer,
+    setUsgsStreamgagesLayer,
     setUpstreamLayer,
     setNonprofitsLayer,
     setProvidersLayer,
@@ -993,32 +1004,31 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const queryUsgsStreamgageService = React.useCallback(
     (huc12) => {
       // TODO: move URL to the services.json file (files? check about services-attains.json)
-      const url = `https://labs.waterdata.usgs.gov/sta/v1.1/Things?
-        $select=
-          name,
-          properties/active,
-          properties/agency,
-          properties/monitoringLocationUrl,
-          properties/monitoringLocationName,
-          properties/monitoringLocationType,
-          properties/monitoringLocationNumber,
-          properties/hydrologicUnit
-        &$expand=
-          Locations($select=location),
-          Datastreams(
-            $select=
-              description,
-              properties/ParameterCode,
-              unitOfMeasurement/name,
-              unitOfMeasurement/symbol;
-            $expand=
-              Observations(
-                $select=phenomenonTime,result;
-                $top=1;
-                $orderBy=phenomenonTime desc
-              )
-          )
-        &$filter=properties/hydrologicUnit eq '${huc12}'`;
+      const url =
+        `https://labs.waterdata.usgs.gov/sta/v1.1/Things?` +
+        /**/ `$select=name,` +
+        /*  */ `properties/active,` +
+        /*  */ `properties/agency,` +
+        /*  */ `properties/monitoringLocationUrl,` +
+        /*  */ `properties/monitoringLocationName,` +
+        /*  */ `properties/monitoringLocationType,` +
+        /*  */ `properties/monitoringLocationNumber,` +
+        /*  */ `properties/hydrologicUnit&` +
+        /**/ `$expand=` +
+        /*  */ `Locations($select=location),` +
+        /*  */ `Datastreams(` +
+        /*    */ `$select=description,` +
+        /*      */ `properties/ParameterCode,` +
+        /*      */ `unitOfMeasurement/name,` +
+        /*      */ `unitOfMeasurement/symbol;` +
+        /*    */ `$expand=` +
+        /*      */ `Observations(` +
+        /*        */ `$select=phenomenonTime,result;` +
+        /*        */ `$top=1;` +
+        /*        */ `$orderBy=phenomenonTime desc` +
+        /*      */ `)` +
+        /*  */ `)&` +
+        /**/ `$filter=properties/hydrologicUnit eq '${huc12}'`;
 
       fetchCheck(url)
         .then((res) => {

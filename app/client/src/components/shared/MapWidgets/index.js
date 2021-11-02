@@ -60,6 +60,7 @@ const zoomDependentLayers = [
 const orderedLayers = [
   'waterbodyLayer',
   'monitoringStationsLayer',
+  'usgsStreamgagesLayer',
   'issuesLayer',
   'dischargersLayer',
   'nonprofitsLayer',
@@ -717,6 +718,7 @@ function MapWidgets({
     const layerList = [
       'dischargersLayer',
       'monitoringStationsLayer',
+      'usgsStreamgagesLayer',
       'nonprofitsLayer',
       'providersLayer',
       'waterbodyLayer',
