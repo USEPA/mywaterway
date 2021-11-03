@@ -3,7 +3,7 @@
 import React from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import styled from 'styled-components';
-import Query from '@arcgis/core/tasks/support/Query';
+import Query from '@arcgis/core/rest/support/Query';
 import QueryTask from '@arcgis/core/tasks/QueryTask';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 // components

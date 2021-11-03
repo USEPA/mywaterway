@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { useWindowSize } from '@reach/window-size';
 import Select, { createFilter } from 'react-select';
 import { CellMeasurer, CellMeasurerCache, List } from 'react-virtualized';
-import Query from '@arcgis/core/tasks/support/Query';
+import Query from '@arcgis/core/rest/support/Query';
 import QueryTask from '@arcgis/core/tasks/QueryTask';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
