@@ -4,12 +4,15 @@ import React from 'react';
 import styled from 'styled-components';
 import { useDropzone } from 'react-dropzone';
 import { DialogOverlay, DialogContent } from '@reach/dialog';
+import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import Field from '@arcgis/core/layers/support/Field';
+import Graphic from '@arcgis/core/Graphic';
+import * as rendererJsonUtils from '@arcgis/core/renderers/support/jsonUtils';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { StyledErrorBox, StyledNoteBox } from 'components/shared/MessageBoxes';
 // contexts
 import { AddDataWidgetContext } from 'contexts/AddDataWidget';
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utils
 import { fetchPostFile, fetchPostForm } from 'utils/fetchUtils';
@@ -224,16 +227,6 @@ function FilePanel() {
     AddDataWidgetContext,
   );
   const { mapView } = React.useContext(LocationSearchContext);
-  const {
-    FeatureLayer,
-    FeatureSet,
-    Field,
-    Graphic,
-    Geoprocessor,
-    KMLLayer,
-    rendererJsonUtils,
-    SpatialReference,
-  } = React.useContext(EsriModulesContext);
 
   const [generalizeFeatures, setGeneralizeFeatures] = React.useState(false);
   const [analyzeResponse, setAnalyzeResponse] = React.useState<any>(null);
@@ -413,20 +406,7 @@ function FilePanel() {
         console.error(err);
         setUploadStatus('failure');
       });
-  }, [
-    // esri modules
-    FeatureSet,
-    Field,
-    Geoprocessor,
-    Graphic,
-    SpatialReference,
-
-    // app
-    generalizeFeatures,
-    analyzeResponse,
-    file,
-    mapView,
-  ]);
+  }, [generalizeFeatures, analyzeResponse, file, mapView]);
 
   // add features to the map as feature layers. This is only for reference layer
   // types. This is so users can view popups but not edit the features.
@@ -522,13 +502,6 @@ function FilePanel() {
 
     setUploadStatus('success');
   }, [
-    // esri modules
-    FeatureLayer,
-    Field,
-    Graphic,
-    rendererJsonUtils,
-
-    // app
     generateResponse,
     featuresAdded,
     file,
@@ -583,7 +556,7 @@ function FilePanel() {
       console.error('File Read Error: ', ex);
       setUploadStatus('file-read-error');
     }
-  }, [KMLLayer, mapView, file]);
+  }, [mapView, file]);
 
   const filename = file?.file?.name ? file.file.name : '';
 

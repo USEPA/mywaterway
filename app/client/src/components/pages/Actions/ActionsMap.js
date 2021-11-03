@@ -1,6 +1,14 @@
 import React from 'react';
 import { Map } from '@esri/react-arcgis';
 import styled from 'styled-components';
+import Graphic from '@arcgis/core/Graphic';
+import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+import Query from '@arcgis/core/tasks/support/Query';
+import QueryTask from '@arcgis/core/tasks/QueryTask';
+import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
+import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
+import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
+import Viewpoint from '@arcgis/core/Viewpoint';
 // components
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import MapWidgets from 'components/shared/MapWidgets';
@@ -9,7 +17,6 @@ import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
 // styled components
 import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes';
 // contexts
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // config
@@ -40,13 +47,12 @@ const Container = styled.div`
 
 // --- components ---
 type Props = {
-  esriModules: Object, // passed from EsriModulesContext.Consumer
   layout: 'narrow' | 'wide' | 'fullscreen',
   unitIds: Array<string>,
   onLoad: ?Function,
 };
 
-function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
+function ActionsMap({ layout, unitIds, onLoad }: Props) {
   const {
     initialExtent,
     highlightOptions,
@@ -72,8 +78,6 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
   React.useEffect(() => {
     if (!getSharedLayers || layersInitialized) return;
 
-    const { GraphicsLayer } = esriModules;
-
     let localActionsLayer = actionsLayer;
     if (!actionsLayer) {
       localActionsLayer = new GraphicsLayer({
@@ -88,13 +92,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
     setLayers([...getSharedLayers(), localActionsLayer]);
 
     setLayersInitialized(true);
-  }, [
-    esriModules,
-    actionsLayer,
-    setActionsLayer,
-    getSharedLayers,
-    layersInitialized,
-  ]);
+  }, [actionsLayer, setActionsLayer, getSharedLayers, layersInitialized]);
 
   const [fetchStatus, setFetchStatus] = React.useState('');
 
@@ -107,15 +105,6 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
     if (fetchStatus) return; // only do a fetch if there is no status
 
     function plotAssessments(unitIds: Array<string>) {
-      const {
-        QueryTask,
-        Query,
-        SimpleLineSymbol,
-        SimpleFillSymbol,
-        SimpleMarkerSymbol,
-        Graphic,
-      } = esriModules;
-
       setFetchStatus('fetching');
       actionsLayer.graphics.removeAll();
 
@@ -283,7 +272,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
     }
 
     if (Object.keys(unitIds).length > 0) plotAssessments(unitIds);
-  }, [unitIds, actionsLayer, fetchStatus, esriModules, onLoad, services]);
+  }, [unitIds, actionsLayer, fetchStatus, onLoad, services]);
 
   // Scrolls to the map when switching layouts
   React.useEffect(() => {
@@ -315,8 +304,6 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
       return;
     }
 
-    const { Viewpoint } = esriModules;
-
     let zoomParams = actionsLayer.graphics;
     if (
       actionsLayer.graphics.length === 1 &&
@@ -339,7 +326,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
     });
 
     setMapLoading(false);
-  }, [fetchStatus, mapView, actionsLayer, esriModules, homeWidget]);
+  }, [fetchStatus, mapView, actionsLayer, homeWidget]);
 
   // check for browser compatibility with map
   if (!browserIsCompatibleWithArcGIS() && !actionsMapLoadError) {
@@ -405,9 +392,7 @@ function ActionsMap({ esriModules, layout, unitIds, onLoad }: Props) {
 export default function ActionsMapContainer({ ...props }: Props) {
   return (
     <MapErrorBoundary>
-      <EsriModulesContext.Consumer>
-        {(esriModules) => <ActionsMap esriModules={esriModules} {...props} />}
-      </EsriModulesContext.Consumer>
+      <ActionsMap {...props} />}
     </MapErrorBoundary>
   );
 }
