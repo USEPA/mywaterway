@@ -43,6 +43,7 @@
     "prettier": "2.2.1"
   },
   "dependencies": {
+    "@arcgis/core": "4.21.2",
     "@esri/react-arcgis": "5.1.0",
     "@gouch/to-title-case": "2.2.1",
     "@reach/dialog": "0.15.0",
@@ -50,7 +51,7 @@
     "@reach/tabs": "0.15.0",
     "@reach/window-size": "0.15.0",
     "eslint-config-react-app": "6.0.0",
-    "esri-loader": "3.1.0",
+    "esri-loader": "3.3.0",
     "glossary-panel": "github:Eastern-Research-Group/glossary",
     "highcharts": "9.1.0",
     "highcharts-react-official": "3.0.0",
