@@ -1,5 +1,4 @@
 import React from 'react';
-import EsriHelper from 'utils/EsriHelper';
 import { navigate } from '@reach/router';
 import { resetCanonicalLink, removeJsonLD } from 'utils/utils';
 
@@ -59,7 +58,6 @@ type State = {
   pointsData: Array<Object>,
   orphanFeatures: Array<Object>,
   waterbodyCountMismatch: boolean,
-  esriHelper: Object,
   pointsLayer: Object,
   linesLayer: Object,
   areasLayer: Object,
@@ -168,7 +166,6 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     pointsData: null,
     orphanFeatures: { features: [], status: 'fetching' },
     waterbodyCountMismatch: null,
-    esriHelper: new EsriHelper(),
     FIPS: {
       stateCode: '',
       countyCode: '',
