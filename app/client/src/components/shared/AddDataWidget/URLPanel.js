@@ -3,12 +3,17 @@
 import React from 'react';
 import styled from 'styled-components';
 import Select from 'react-select';
+import CSVLayer from '@arcgis/core/layers/CSVLayer';
+import GeoRSSLayer from '@arcgis/core/layers/GeoRSSLayer';
+import KMLLayer from '@arcgis/core/layers/KMLLayer';
+import Layer from '@arcgis/core/layers/Layer';
+import WMSLayer from '@arcgis/core/layers/WMSLayer';
+// import WMTSLayer from '@arcgis/core/layers/WMTSLayer'; // not yet supported in the 4.X API
 // components
 import { LinkButton } from 'components/shared/LinkButton';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { StyledErrorBox, StyledNoteBox } from 'components/shared/MessageBoxes';
 // contexts
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { AddDataWidgetContext } from 'contexts/AddDataWidget';
 // config
@@ -74,14 +79,6 @@ function URLPanel() {
     AddDataWidgetContext,
   );
   const { mapView } = React.useContext(LocationSearchContext);
-  const {
-    CSVLayer,
-    GeoRSSLayer,
-    KMLLayer,
-    Layer,
-    WMSLayer,
-    //WMTSLayer, // not yet supported in the 4.X API
-  } = React.useContext(EsriModulesContext);
 
   // filters
   const [

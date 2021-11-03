@@ -3,11 +3,14 @@
 import React from 'react';
 import styled from 'styled-components';
 import Select from 'react-select';
+import Layer from '@arcgis/core/layers/Layer';
+import Portal from '@arcgis/core/portal/Portal';
+import PortalItem from '@arcgis/core/portal/PortalItem';
+import * as watchUtils from '@arcgis/core/core/watchUtils';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // contexts
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { AddDataWidgetContext } from 'contexts/AddDataWidget';
 // config
@@ -161,7 +164,6 @@ const NewTabDisclaimer = styled.em`
 
 // --- components (SearchPanel) ---
 function SearchPanel() {
-  const { Portal } = React.useContext(EsriModulesContext);
   const {
     pageNumber,
     setPageNumber,
@@ -282,7 +284,6 @@ function SearchPanel() {
         setSearchResults({ status: 'failure', data: null });
       });
   }, [
-    Portal,
     location,
     search,
     setSearchResults,
@@ -331,7 +332,7 @@ function SearchPanel() {
         console.error(err);
         setSearchResults({ status: 'failure', data: null });
       });
-  }, [Portal, pageNumber, lastPageNumber, searchResults, setSearchResults]);
+  }, [pageNumber, lastPageNumber, searchResults, setSearchResults]);
 
   const [showFilterOptions, setShowFilterOptions] = React.useState(false);
 
@@ -695,9 +696,6 @@ type ResultCardProps = {
 };
 
 function ResultCard({ result }: ResultCardProps) {
-  const { Layer, PortalItem, watchUtils } = React.useContext(
-    EsriModulesContext,
-  );
   const { widgetLayers, setWidgetLayers } = React.useContext(
     AddDataWidgetContext,
   );
