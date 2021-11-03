@@ -31,7 +31,6 @@ import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
 // styled components
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // contexts
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useServicesContext,
@@ -2051,9 +2050,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 export default function LocationMapContainer({ ...props }: Props) {
   return (
     <MapErrorBoundary>
-      <EsriModulesContext.Consumer>
-        {(esriModules) => <LocationMap esriModules={esriModules} {...props} />}
-      </EsriModulesContext.Consumer>
+      <LocationMap {...props} />}
     </MapErrorBoundary>
   );
 }
