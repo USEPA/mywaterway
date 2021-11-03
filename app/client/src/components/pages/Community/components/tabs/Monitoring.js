@@ -67,10 +67,6 @@ const AccordionContent = styled.div`
   padding: 0.4375em 0.875em 0.875em;
 `;
 
-const SwitchContainer = styled.div`
-  margin-top: 0.5em;
-`;
-
 // --- components ---
 type MonitoringLocationData = {
   type: 'FeatureCollection',

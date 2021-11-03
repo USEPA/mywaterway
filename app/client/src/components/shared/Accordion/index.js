@@ -150,6 +150,7 @@ const headerStyles = css`
   align-items: center;
   justify-content: space-between;
   padding: 0.75em 0.875em;
+  line-height: 1.125;
   cursor: pointer;
 
   &:hover,
@@ -174,6 +175,10 @@ const textStyles = css`
   flex: 1;
   padding-bottom: 0;
   word-break: break-word;
+`;
+
+const subtitleStyles = css`
+  font-size: 0.8125em;
 `;
 
 const arrowStyles = css`
@@ -273,7 +278,7 @@ function AccordionItem({
           {subTitle && (
             <>
               <br />
-              {subTitle}
+              <span css={subtitleStyles}>{subTitle}</span>
             </>
           )}
         </span>

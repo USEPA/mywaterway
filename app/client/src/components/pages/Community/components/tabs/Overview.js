@@ -90,6 +90,10 @@ const toggleStyles = css`
   }
 `;
 
+const iconStyles = css`
+  margin-right: 5px;
+`;
+
 function Overview() {
   const { Graphic } = React.useContext(EsriModulesContext);
 
@@ -295,6 +299,8 @@ function Overview() {
     totalMonitoringStations && totalUsgsStreamgages
       ? totalMonitoringStations + totalUsgsStreamgages
       : null;
+
+  const displayedMonitoringLocations = []; // TODO: displayed monitoring stations and usgs streamgages
 
   const totalPermittedDischargers =
     permittedDischargers.data.Results?.Facilities.length;
@@ -583,7 +589,16 @@ function Overview() {
 
                         <AccordionList
                           expandDisabled={true} // disabled to avoid large number of web service calls
-                          title={`Water Monitoring Locations in the ${watershed} watershed.`}
+                          title={
+                            <>
+                              <strong>
+                                {displayedMonitoringLocations.length}
+                              </strong>{' '}
+                              of <strong>{totalMonitoringLocations}</strong>{' '}
+                              Water Monitoring Locations in the{' '}
+                              <em>{watershed}</em> watershed.
+                            </>
+                          }
                           onSortChange={(sortBy) => {
                             setMonitoringLocationsSortedBy(sortBy.value);
                           }}
@@ -606,11 +621,15 @@ function Overview() {
                             },
                           ]}
                         >
-                          {usgsStreamgages.data.value.map((item, index) => {
-                            const { properties } = item;
+                          {usgsStreamgages.data.value.map((gage, gageIdx) => {
+                            const { properties, Datastreams } = gage;
                             const id = properties.monitoringLocationNumber;
+                            const url = properties.monitoringLocationUrl;
                             const name = properties.monitoringLocationName;
+                            const type = properties.monitoringLocationType;
+                            const org = properties.agency;
                             const orgId = properties.agencyCode;
+
                             // const feature = {
                             //   geometry: {
                             //     type: 'point',
@@ -626,18 +645,102 @@ function Overview() {
 
                             return (
                               <AccordionItem
-                                key={index}
+                                key={gageIdx}
                                 title={<strong>{name || 'Unknown'}</strong>}
                                 subTitle={
                                   <>
-                                    Organization ID: {orgId}
+                                    <em>Organization ID:</em>&nbsp;&nbsp;{orgId}
                                     <br />
-                                    Monitoring Site ID: {id}
+                                    <em>Monitoring Site ID:</em>&nbsp;&nbsp;{id}
                                   </>
                                 }
                               >
                                 <div css={accordionContentStyles}>
-                                  <p>(Placeholder)</p>
+                                  <table className="table">
+                                    <tbody>
+                                      <tr>
+                                        <td>
+                                          <em>Organization:</em>
+                                        </td>
+                                        <td>{org}</td>
+                                      </tr>
+                                      <tr>
+                                        <td>
+                                          <em>Location Name:</em>
+                                        </td>
+                                        <td>{name}</td>
+                                      </tr>
+                                      <tr>
+                                        <td>
+                                          <em>Monitoring Location Type:</em>
+                                        </td>
+                                        <td>{type}</td>
+                                      </tr>
+                                      <tr>
+                                        <td>
+                                          <em>Monitoring Site ID:</em>
+                                        </td>
+                                        <td>{id}</td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                  <table css={tableStyles} className="table">
+                                    <thead>
+                                      <tr>
+                                        <th>Parameter</th>
+                                        <th>Latest Measurement</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {Datastreams.map((data, dataIdx) => {
+                                        const {
+                                          Observations,
+                                          properties,
+                                          unitOfMeasurement,
+                                        } = data;
+
+                                        const measurement =
+                                          Observations[0].result;
+
+                                        const time = new Date(
+                                          Observations[0].phenomenonTime,
+                                        ).toLocaleString();
+
+                                        const unit = unitOfMeasurement.symbol;
+                                        const unitInfo = unitOfMeasurement.name;
+
+                                        return (
+                                          <tr key={dataIdx}>
+                                            <td>{properties.ParameterCode}</td>
+                                            <td>
+                                              {measurement}&nbsp;
+                                              <span title={unitInfo}>
+                                                {unit}
+                                              </span>
+                                              <br />
+                                              <small>
+                                                <em>{time}</em>
+                                              </small>
+                                            </td>
+                                          </tr>
+                                        );
+                                      })}
+                                    </tbody>
+                                  </table>
+                                  <a
+                                    rel="noopener noreferrer"
+                                    target="_blank"
+                                    href={url}
+                                  >
+                                    <i
+                                      css={iconStyles}
+                                      className="fas fa-info-circle"
+                                      aria-hidden="true"
+                                    />
+                                    More Information
+                                  </a>
+                                  &nbsp;&nbsp;
+                                  <small>(opens new browser tab)</small>
                                 </div>
                               </AccordionItem>
                             );
@@ -668,11 +771,13 @@ function Overview() {
                                 title={<strong>{name || 'Unknown'}</strong>}
                                 subTitle={
                                   <>
-                                    Organization ID: {orgId}
+                                    <em>Organization ID:</em>&nbsp;&nbsp;{orgId}
                                     <br />
-                                    Monitoring Site ID: {id.split('-')[1]}
+                                    <em>Monitoring Site ID:</em>&nbsp;&nbsp;
+                                    {id.split('-')[1]}
                                     <br />
-                                    Monitoring Measurements:{' '}
+                                    <em>Monitoring Measurements:</em>
+                                    &nbsp;&nbsp;
                                     {Number(result).toLocaleString()}
                                   </>
                                 }

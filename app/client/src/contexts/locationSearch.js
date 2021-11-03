@@ -57,7 +57,7 @@ type UsgsStreamgageData = {
     Locations: {
       location: {
         coordinates: [number, number],
-        type: 'Point', // TODO: check if these are always Points?
+        type: 'Point',
       },
     }[],
     Datastreams: {
