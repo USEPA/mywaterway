@@ -3,6 +3,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
+import Graphic from '@arcgis/core/Graphic';
 // components
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import MapPopup from 'components/shared/MapPopup';
@@ -243,7 +244,6 @@ export function isIE() {
 
 // plot monitoring stations on map
 export function plotStations(
-  Graphic: any,
   stations: Array<Object>,
   layer: any,
   services: Object,
@@ -282,7 +282,7 @@ export function plotStations(
 }
 
 // plot issues on map
-export function plotIssues(Graphic: any, features: Array<Object>, layer: any) {
+export function plotIssues(features: Array<Object>, layer: any) {
   if (!features || !layer) return;
 
   // clear the layer
@@ -315,11 +315,7 @@ export function plotIssues(Graphic: any, features: Array<Object>, layer: any) {
 }
 
 // plot wild and scenic rivers on map
-export function plotWildScenicRivers(
-  Graphic: any,
-  features: Array<Object>,
-  layer: any,
-) {
+export function plotWildScenicRivers(features: Array<Object>, layer: any) {
   if (!features || !layer) return;
 
   // clear the layer
@@ -351,11 +347,9 @@ export function plotWildScenicRivers(
 
 // plot facilities on map
 export function plotFacilities({
-  Graphic,
   facilities,
   layer,
 }: {
-  Graphic: any,
   facilities: Array<Object>,
   layer: any,
 }) {

@@ -3,6 +3,7 @@
 import React from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import styled from 'styled-components';
+import Graphic from '@arcgis/core/Graphic';
 // components
 import { ContentTabs } from 'components/shared/ContentTabs';
 import {
@@ -26,7 +27,6 @@ import {
   StyledLabel,
 } from 'components/shared/KeyMetrics';
 // contexts
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
@@ -100,8 +100,6 @@ const IntroDiv = styled.div`
 
 // --- components ---
 function IdentifiedIssues() {
-  const { Graphic } = React.useContext(EsriModulesContext);
-
   const { infoToggleChecked } = React.useContext(CommunityTabsContext);
 
   const {
@@ -156,29 +154,25 @@ function IdentifiedIssues() {
     [permittedDischargers, permittedDischargersData],
   );
 
-  const convertFacilityToGraphic = React.useCallback(
-    (facility: Object) => {
-      return new Graphic({
-        geometry: {
-          type: 'point', // autocasts as new Point()
-          longitude: facility['FacLong'],
-          latitude: facility['FacLat'],
-        },
-        attributes: facility,
-      });
-    },
-    [Graphic],
-  );
+  const convertFacilityToGraphic = (facility: Object) => {
+    return new Graphic({
+      geometry: {
+        type: 'point', // autocasts as new Point()
+        longitude: facility['FacLong'],
+        latitude: facility['FacLat'],
+      },
+      attributes: facility,
+    });
+  };
 
   const checkDischargersToDisplay = React.useCallback(() => {
     if (!dischargersLayer || !showDischargersLayer) return;
 
     plotFacilities({
-      Graphic: Graphic,
       facilities: violatingFacilities,
       layer: dischargersLayer,
     });
-  }, [dischargersLayer, Graphic, showDischargersLayer, violatingFacilities]);
+  }, [dischargersLayer, showDischargersLayer, violatingFacilities]);
 
   // translate scientific parameter names
   const getMappedParameterName = (
@@ -224,10 +218,9 @@ function IdentifiedIssues() {
           });
         }
       });
-      plotIssues(Graphic, Array.from(waterbodiesToShow), issuesLayer);
+      plotIssues(Array.from(waterbodiesToShow), issuesLayer);
     }
   }, [
-    Graphic,
     getAllFeatures,
     issuesLayer,
     parameterToggleObject,

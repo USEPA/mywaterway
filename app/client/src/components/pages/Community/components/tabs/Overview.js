@@ -16,7 +16,6 @@ import {
   StyledLabel,
 } from 'components/shared/KeyMetrics';
 // contexts
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { OverviewFiltersContext } from 'contexts/OverviewFilters';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -55,8 +54,6 @@ const InfoBoxWithMargin = styled(StyledInfoBox)`
 
 // --- components ---
 function Overview() {
-  const { Graphic } = React.useContext(EsriModulesContext);
-
   const {
     monitoringLocations,
     permittedDischargers,
@@ -105,8 +102,8 @@ function Overview() {
       };
     });
 
-    plotStations(Graphic, stations, monitoringStationsLayer, services);
-  }, [monitoringLocations.data, Graphic, monitoringStationsLayer, services]);
+    plotStations(stations, monitoringStationsLayer, services);
+  }, [monitoringLocations.data, monitoringStationsLayer, services]);
 
   // draw the permitted dischargers on the map
   React.useEffect(() => {
@@ -116,12 +113,11 @@ function Overview() {
       permittedDischargers.data['Results']['Facilities']
     ) {
       plotFacilities({
-        Graphic: Graphic,
         facilities: permittedDischargers.data['Results']['Facilities'],
         layer: dischargersLayer,
       });
     }
-  }, [permittedDischargers.data, Graphic, dischargersLayer]);
+  }, [permittedDischargers.data, dischargersLayer]);
 
   // Syncs the toggles with the visible layers on the map. Mainly
   // used for when the user toggles layers in full screen mode and then
@@ -250,9 +246,7 @@ function Overview() {
               <StyledLabel>Waterbodies</StyledLabel>
               <SwitchContainer>
                 <Switch
-                  checked={
-                    Boolean(waterbodyCount) && waterbodiesFilterEnabled
-                  }
+                  checked={Boolean(waterbodyCount) && waterbodiesFilterEnabled}
                   onChange={(checked) => {
                     setWaterbodiesFilterEnabled(!waterbodiesFilterEnabled);
 

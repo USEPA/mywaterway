@@ -14,7 +14,6 @@ import {
   AccordionItem,
 } from 'components/shared/Accordion/MapHighlight';
 // contexts
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
@@ -88,8 +87,6 @@ type StationGroups = {
 };
 
 function Monitoring() {
-  const { Graphic } = React.useContext(EsriModulesContext);
-
   const services = useServicesContext();
 
   // draw the waterbody on the map
@@ -242,7 +239,6 @@ function Monitoring() {
     }
 
     plotStations(
-      Graphic,
       tempDisplayedMonitoringStations,
       monitoringStationsLayer,
       services,
@@ -265,7 +261,6 @@ function Monitoring() {
     displayedMonitoringStations,
     allMonitoringStations,
     allToggled,
-    Graphic,
     monitoringLocationToggles,
     monitoringStationGroups,
     monitoringStationsLayer,
@@ -377,12 +372,11 @@ function Monitoring() {
       permittedDischargers.data['Results']['Facilities']
     ) {
       plotFacilities({
-        Graphic,
         facilities: permittedDischargers.data['Results']['Facilities'],
         layer: dischargersLayer,
       });
     }
-  }, [permittedDischargers.data, Graphic, dischargersLayer]);
+  }, [permittedDischargers.data, dischargersLayer]);
 
   const sortedMonitoringStations = displayedMonitoringStations
     ? displayedMonitoringStations.sort((objA, objB) => {
