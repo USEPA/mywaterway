@@ -1,7 +1,11 @@
 import React from 'react';
+import Point from '@arcgis/core/geometry/Point';
+import Query from '@arcgis/core/rest/support/Query';
+import QueryTask from '@arcgis/core/tasks/QueryTask';
+import SpatialReference from '@arcgis/core/geometry/SpatialReference';
+import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // contexts
 import { MapHighlightContext } from 'contexts/MapHighlight';
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // config
@@ -28,14 +32,6 @@ function MapMouseEvents({ map, view }: Props) {
   const { getHucBoundaries, resetData, protectedAreasLayer } = React.useContext(
     LocationSearchContext,
   );
-
-  const {
-    SpatialReference,
-    Point,
-    webMercatorUtils,
-    Query,
-    QueryTask,
-  } = React.useContext(EsriModulesContext);
 
   const handleMapClick = React.useCallback(
     (event, view) => {
@@ -148,14 +144,9 @@ function MapMouseEvents({ map, view }: Props) {
         .catch((err) => console.error(err));
     },
     [
-      Point,
-      Query,
-      QueryTask,
       resetData,
-      SpatialReference.WQGS84,
       getHucBoundaries,
       setSelectedGraphic,
-      webMercatorUtils,
       services,
       protectedAreasLayer,
     ],

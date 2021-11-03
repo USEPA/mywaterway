@@ -1,10 +1,20 @@
 // @flow
 
 import React from 'react';
+import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
+import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+import GroupLayer from '@arcgis/core/layers/GroupLayer';
+import Handles from '@arcgis/core/core/Handles';
+import MapImageLayer from '@arcgis/core/layers/MapImageLayer';
+import Point from '@arcgis/core/geometry/Point';
+import Polygon from '@arcgis/core/geometry/Polygon';
+import Query from '@arcgis/core/rest/support/Query';
+import QueryTask from '@arcgis/core/tasks/QueryTask';
+import * as watchUtils from '@arcgis/core/core/watchUtils';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { MapHighlightContext } from 'contexts/MapHighlight';
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import {
@@ -284,7 +294,6 @@ function useWaterbodyOnMap(
 // parameter is true, this will also attempt to highlight waterbodies on
 // other layers that have the same organization id and assessment unit id.
 function useWaterbodyHighlight(findOthers: boolean = true) {
-  const { Handles, Point, Query } = React.useContext(EsriModulesContext);
   const {
     highlightedGraphic,
     selectedGraphic, //
@@ -342,7 +351,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     mapView.goTo(params).then(() => {
       openPopup(mapView, selectedGraphic, dynamicPopupFields, services);
     });
-  }, [Point, mapView, selectedGraphic, services]);
+  }, [mapView, selectedGraphic, services]);
 
   // Initializes a handles object for more efficient handling of highlight handlers
   const [handles, setHandles] = React.useState(null);
@@ -350,7 +359,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     if (handles) return;
 
     setHandles(new Handles());
-  }, [handles, Handles]);
+  }, [handles]);
 
   // Clears the cache when users change searches. This is to fix issues
   // with layer mismatch in ArcGIS API 4.14+
@@ -638,7 +647,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     issuesLayer,
     actionsLayer,
     findOthers,
-    Query,
     handles,
     wildScenicRiversLayer,
     protectedAreasLayer,
@@ -661,7 +669,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
 function useDynamicPopup() {
   const services = useServicesContext();
-  const { Query, QueryTask } = React.useContext(EsriModulesContext);
   const { getHucBoundaries, getMapView, resetData } = React.useContext(
     LocationSearchContext,
   );
@@ -784,13 +791,6 @@ function useDynamicPopup() {
 
 function useSharedLayers() {
   const services = useServicesContext();
-  const {
-    FeatureLayer,
-    GraphicsLayer,
-    GroupLayer,
-    MapImageLayer,
-    watchUtils,
-  } = React.useContext(EsriModulesContext);
   const {
     setAllWaterbodiesLayer,
     setProtectedAreasLayer,
@@ -1401,8 +1401,6 @@ function useKeyPress(targetKey: string, ref: Object) {
 // Custom hook that is used for performing GIS geometry functions, such as
 // cropping geometry.
 function useGeometryUtils() {
-  const { geometryEngine, Polygon } = React.useContext(EsriModulesContext);
-
   // This results in no waterbodies extending outside of the hucGeometry.
   // The arcgis difference function removes the parts of the waterbody that
   // are inside of the huc12, which is opposite of what we need. To work around

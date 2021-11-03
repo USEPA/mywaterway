@@ -5,6 +5,9 @@ import type { Node } from 'react';
 import styled from 'styled-components';
 import StickyBox from 'react-sticky-box';
 import { Map } from '@esri/react-arcgis';
+import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import GroupLayer from '@arcgis/core/layers/GroupLayer';
+import Viewpoint from '@arcgis/core/Viewpoint';
 // components
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import MapWidgets from 'components/shared/MapWidgets';
@@ -19,7 +22,6 @@ import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
 // styled components
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // contexts
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { MapHighlightContext } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -67,10 +69,6 @@ function StateMap({
   const [view, setView] = React.useState(null);
 
   const { selectedGraphic } = React.useContext(MapHighlightContext);
-
-  const { FeatureLayer, GroupLayer, Viewpoint } = React.useContext(
-    EsriModulesContext,
-  );
 
   const {
     highlightOptions,
@@ -187,8 +185,6 @@ function StateMap({
 
     setLayersInitialized(true);
   }, [
-    FeatureLayer,
-    GroupLayer,
     getSharedLayers,
     setAreasLayer,
     setLinesLayer,
@@ -293,7 +289,6 @@ function StateMap({
       });
     }
   }, [
-    Viewpoint,
     filter,
     lastFilter,
     pointsLayer,
@@ -453,9 +448,7 @@ function StateMap({
 export default function StateMapContainer({ ...props }: Props) {
   return (
     <MapErrorBoundary>
-      <EsriModulesContext.Consumer>
-        {(esriModules) => <StateMap esriModules={esriModules} {...props} />}
-      </EsriModulesContext.Consumer>
+      <StateMap {...props} />}
     </MapErrorBoundary>
   );
 }
