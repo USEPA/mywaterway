@@ -5,6 +5,16 @@ import type { Node } from 'react';
 import styled from 'styled-components';
 import StickyBox from 'react-sticky-box';
 import { Map } from '@esri/react-arcgis';
+import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import Graphic from '@arcgis/core/Graphic';
+import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+import GroupLayer from '@arcgis/core/layers/GroupLayer';
+import Locator from '@arcgis/core/tasks/Locator';
+import PictureMarkerSymbol from '@arcgis/core/symbols/PictureMarkerSymbol';
+import Query from '@arcgis/core/tasks/support/Query';
+import QueryTask from '@arcgis/core/tasks/QueryTask';
+import SpatialReference from '@arcgis/core/geometry/SpatialReference';
+import Viewpoint from '@arcgis/core/Viewpoint';
 // components
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import mapPin from 'components/pages/Community/images/pin.png';
@@ -83,20 +93,6 @@ type Props = {
 
 function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const services = useServicesContext();
-
-  const {
-    FeatureLayer,
-    GraphicsLayer,
-    GroupLayer,
-    Graphic,
-    Locator,
-    PictureMarkerSymbol,
-    Point,
-    Query,
-    QueryTask,
-    SpatialReference,
-    Viewpoint,
-  } = React.useContext(EsriModulesContext);
 
   const {
     searchText,
@@ -706,8 +702,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setLayersInitialized(true);
   }, [
-    FeatureLayer,
-    GraphicsLayer,
     getSharedLayers,
     getTemplate,
     getTitle,
@@ -806,9 +800,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
     },
     [
-      FeatureLayer,
-      Query,
-      QueryTask,
       cropGeometryToHuc,
       handleMapServiceError,
       popupTemplate,
@@ -876,9 +867,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
     },
     [
-      FeatureLayer,
-      Query,
-      QueryTask,
       cropGeometryToHuc,
       handleMapServiceError,
       popupTemplate,
@@ -934,9 +922,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
     },
     [
-      FeatureLayer,
-      Query,
-      QueryTask,
       handleMapServiceError,
       popupTemplate,
       setPointsData,
@@ -999,7 +984,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     linesLayer,
     pointsLayer,
     mapServiceFailure,
-    GroupLayer,
     setWaterbodyLayer,
     setLayers,
     setCipSummary,
@@ -1263,7 +1247,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
         });
     },
-    [services, Query, QueryTask, setWildScenicRiversData],
+    [services, setWildScenicRiversData],
   );
 
   const getProtectedAreas = React.useCallback(
@@ -1333,7 +1317,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
         });
     },
-    [services, Query, QueryTask, setProtectedAreasData, setDynamicPopupFields],
+    [services, setProtectedAreasData, setDynamicPopupFields],
   );
 
   const handleMapServices = React.useCallback(
@@ -1504,17 +1488,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       locator.outSpatialReference = SpatialReference.WebMercator;
 
       // Parse the search text to see if it is from a non-esri search suggestion
-      const { searchPart, coordinatesPart } = splitSuggestedSearch(
-        Point,
-        searchText,
-      );
+      const { searchPart, coordinatesPart } = splitSuggestedSearch(searchText);
 
       // Check if the search text contains coordinates.
       // First see if coordinates are part of a non-esri suggestion and
       // then see if the full text is coordinates
       let point = coordinatesPart
         ? coordinatesPart
-        : getPointFromCoordinates(Point, searchText);
+        : getPointFromCoordinates(searchText);
 
       let getCandidates;
       if (point === null) {
@@ -1707,13 +1688,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
     },
     [
-      Graphic,
-      Locator,
-      PictureMarkerSymbol,
-      Point,
-      Query,
-      QueryTask,
-      SpatialReference.WebMercator,
       handleHUC12,
       searchIconLayer,
       setAddress,
@@ -1773,8 +1747,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       }
     },
     [
-      Query,
-      QueryTask,
       processGeocodeServerResults,
       setNoDataAvailable,
       setErrorMessage,
@@ -1858,9 +1830,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   }, [
     view,
     hucBoundaries,
-    Graphic,
     boundariesLayer.graphics,
-    Viewpoint,
     setCurrentExtent,
     setAtHucBoundaries,
     homeWidget,

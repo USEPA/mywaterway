@@ -337,10 +337,7 @@ function LocationSearch({ route, label }: Props) {
     if (!searchWidget) return;
 
     // Remove coordinates if search text was from non-esri suggestions
-    searchWidget.searchTerm = splitSuggestedSearch(
-      Point,
-      searchText,
-    ).searchPart;
+    searchWidget.searchTerm = splitSuggestedSearch(searchText).searchPart;
   }, [Point, searchWidget, searchText]);
 
   // Updates the search widget sources whenever the user selects a source.
@@ -662,7 +659,7 @@ function LocationSearch({ route, label }: Props) {
     nodeClearButton.click();
   }, [clearEnterPress]);
 
-  const searchTerm = splitSuggestedSearch(Point, searchText).searchPart;
+  const searchTerm = splitSuggestedSearch(searchText).searchPart;
 
   // Detect clicks outside of the search input and search suggestions list.
   // This is used for closing the suggestions list when the user clicks outside.
