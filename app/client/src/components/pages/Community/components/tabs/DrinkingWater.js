@@ -3,6 +3,9 @@
 import React from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import styled from 'styled-components';
+import Graphic from '@arcgis/core/Graphic';
+import Polygon from '@arcgis/core/geometry/Polygon';
+import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
@@ -15,7 +18,6 @@ import { StyledErrorBox, StyledNoteBox } from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Switch from 'components/shared/Switch';
 // contexts
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
@@ -219,10 +221,6 @@ const Text = styled.p`
 
 // --- components ---
 function DrinkingWater() {
-  const { Graphic, Polygon, SimpleFillSymbol } = React.useContext(
-    EsriModulesContext,
-  );
-
   const { infoToggleChecked } = React.useContext(CommunityTabsContext);
 
   const {
@@ -277,7 +275,7 @@ function DrinkingWater() {
     setCountyGraphic(graphic);
     providersLayer.graphics.removeAll();
     providersLayer.graphics.add(graphic);
-  }, [providersLayer, countyBoundaries, Graphic, Polygon, SimpleFillSymbol]);
+  }, [providersLayer, countyBoundaries]);
 
   // toggle map layers' visibility when a tab changes
   React.useEffect(() => {
