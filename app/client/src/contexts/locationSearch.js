@@ -47,6 +47,7 @@ type UsgsStreamgageData = {
     properties: {
       active: boolean,
       agency: string,
+      agencyCode: string,
       hydrologicUnit: string,
       monitoringLocationName: string,
       monitoringLocationNumber: string,

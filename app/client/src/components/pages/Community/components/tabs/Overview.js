@@ -607,44 +607,59 @@ function Overview() {
                           ]}
                         >
                           {usgsStreamgages.data.value.map((item, index) => {
-                            const id = item.properties.monitoringLocationNumber;
-                            const name = item.properties.monitoringLocationName;
-                            const feature = {};
+                            const { properties } = item;
+                            const id = properties.monitoringLocationNumber;
+                            const name = properties.monitoringLocationName;
+                            const orgId = properties.agencyCode;
+                            // const feature = {
+                            //   geometry: {
+                            //     type: 'point',
+                            //     longitude: Locations[0].location.coordinates[0],
+                            //     latitude: Locations[0].location.coordinates[1],
+                            //   },
+                            //   symbol: {
+                            //     type: 'simple-marker',
+                            //     style: 'circle',
+                            //   },
+                            //   attributes: properties,
+                            // };
 
                             return (
                               <AccordionItem
                                 key={index}
                                 title={<strong>{name || 'Unknown'}</strong>}
-                                subTitle={<>Monitoring Location ID: {id}</>}
-                                feature={feature}
-                                idKey={null}
+                                subTitle={
+                                  <>
+                                    Organization ID: {orgId}
+                                    <br />
+                                    Monitoring Site ID: {id}
+                                  </>
+                                }
                               >
                                 <div css={accordionContentStyles}>
-                                  (Placeholder)
-                                  {/* <ViewOnMapButton feature={feature} /> */}
+                                  <p>(Placeholder)</p>
                                 </div>
                               </AccordionItem>
                             );
                           })}
 
                           {sortedMonitoringStations.map((item, index) => {
-                            const id =
-                              item.properties.MonitoringLocationIdentifier;
-                            const name = item.properties.MonitoringLocationName;
-                            const orgId =
-                              item.properties.OrganizationIdentifier;
-                            const result = item.properties.resultCount;
+                            const { properties, x, y } = item;
+                            const id = properties.MonitoringLocationIdentifier;
+                            const name = properties.MonitoringLocationName;
+                            const orgId = properties.OrganizationIdentifier;
+                            const result = properties.resultCount;
                             const feature = {
                               geometry: {
                                 type: 'point',
-                                longitude: item.x,
-                                latitude: item.y,
+                                longitude: x,
+                                latitude: y,
                               },
                               symbol: {
                                 type: 'simple-marker',
                                 style: 'square',
                               },
-                              attributes: item.properties,
+                              attributes: properties,
                             };
 
                             return (

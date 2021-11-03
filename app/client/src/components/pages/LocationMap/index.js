@@ -1009,6 +1009,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         /**/ `$select=name,` +
         /*  */ `properties/active,` +
         /*  */ `properties/agency,` +
+        /*  */ `properties/agencyCode,` +
         /*  */ `properties/monitoringLocationUrl,` +
         /*  */ `properties/monitoringLocationName,` +
         /*  */ `properties/monitoringLocationType,` +
