@@ -4,15 +4,20 @@ import React from 'react';
 import type { Node } from 'react';
 import { navigate } from '@reach/router';
 import styled from 'styled-components';
+import esriConfig from '@arcgis/core/config';
 // components
 import NavBar from 'components/shared/NavBar';
 import DataContent from 'components/shared/DataContent';
 import AboutContent from 'components/shared/AboutContent';
-import LoadingSpinner from 'components/shared/LoadingSpinner';
 import GlossaryPanel from 'components/shared/GlossaryPanel';
 // contexts
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { GlossaryContext } from 'contexts/Glossary';
+import { useServicesContext } from 'contexts/LookupFiles';
+// utilities
+import {
+  getEnvironmentString,
+  logCallToGoogleAnalytics,
+} from 'utils/fetchUtils';
 // styles
 import { colors, fonts } from 'styles/index.js';
 // images
@@ -161,8 +166,9 @@ type Props = {
 };
 
 function Page({ children }: Props) {
-  const { modulesLoaded } = React.useContext(EsriModulesContext);
   const { initialized, glossaryStatus } = React.useContext(GlossaryContext);
+
+  const services = useServicesContext();
 
   // handles hiding of the data page when the user clicks the browser's back button
   const [dataDisplayed, setDataDisplayed] = React.useState(false);
@@ -185,6 +191,80 @@ function Page({ children }: Props) {
 
   const pathParts = window.location.pathname.split('/');
   const pageName = pathParts.length > 1 ? pathParts[1] : '';
+
+  // setup esri interceptors for logging to google analytics
+  const [interceptorsInitialized, setInterceptorsInitialized] = React.useState(
+    false,
+  );
+  React.useEffect(() => {
+    if (interceptorsInitialized) return;
+
+    var callId = 0;
+    var callDurations = {};
+
+    // intercept esri calls to gispub
+    const urls = [
+      services.data.waterbodyService.points,
+      services.data.waterbodyService.lines,
+      services.data.waterbodyService.areas,
+      services.data.waterbodyService.summary,
+      services.data.wbd,
+      services.data.mappedWater,
+      services.data.locatorUrl,
+    ];
+    esriConfig.request.interceptors.push({
+      urls,
+
+      // Workaround for ESRI CORS cacheing issue, when switching between
+      // environments.
+      before: function (params) {
+        // if this environment has a phony variable use it
+        const envString = getEnvironmentString();
+        if (envString) {
+          params.requestOptions.query[envString] = 1;
+        }
+
+        // add the callId to the query so we can tie the response back
+        params.requestOptions.query['callId'] = callId;
+
+        // add the call's start time to the dictionary
+        callDurations[callId] = performance.now();
+
+        // increment the callId
+        callId = callId + 1;
+      },
+
+      // Log esri api calls to Google Analytics
+      after: function (response) {
+        // get the execution time for the call
+        const callId = response.requestOptions.query.callId;
+        const startTime = callDurations[callId];
+
+        logCallToGoogleAnalytics(response.url, 200, startTime);
+
+        // delete the execution time from the dictionary
+        delete callDurations[callId];
+      },
+
+      error: function (error) {
+        // get the execution time for the call
+        const details = error.details;
+        const callId = details.requestOptions.query.callId;
+        const startTime = callDurations[callId];
+
+        logCallToGoogleAnalytics(
+          details.url,
+          details.httpStatus ? details.httpStatus : error.message,
+          startTime,
+        );
+
+        // delete the execution time from the dictionary
+        delete callDurations[callId];
+      },
+    });
+
+    setInterceptorsInitialized(true);
+  }, [interceptorsInitialized, services]);
 
   return (
     <>
@@ -265,41 +345,35 @@ function Page({ children }: Props) {
         </Container>
       </Banner>
 
-      {!modulesLoaded ? (
-        <LoadingSpinner />
-      ) : (
+      {aboutDisplayed && (
         <>
-          {aboutDisplayed && (
-            <>
-              <NavBar
-                title="About"
-                onBackClick={(ev) => setAboutDisplayed(false)}
-              />
-              <AboutContent />
-            </>
-          )}
-
-          {dataDisplayed && (
-            <>
-              <NavBar
-                title="About the Data"
-                onBackClick={(ev) => setDataDisplayed(false)}
-              />
-              <DataContent />
-            </>
-          )}
-
-          {/* always render Page's children, just toggle the display property
-            depending on the state of 'dataDisplayed' */}
-          <div
-            style={{
-              display: dataDisplayed || aboutDisplayed ? 'none' : 'block',
-            }}
-          >
-            {children}
-          </div>
+          <NavBar
+            title="About"
+            onBackClick={(ev) => setAboutDisplayed(false)}
+          />
+          <AboutContent />
         </>
       )}
+
+      {dataDisplayed && (
+        <>
+          <NavBar
+            title="About the Data"
+            onBackClick={(ev) => setDataDisplayed(false)}
+          />
+          <DataContent />
+        </>
+      )}
+
+      {/* always render Page's children, just toggle the display property
+        depending on the state of 'dataDisplayed' */}
+      <div
+        style={{
+          display: dataDisplayed || aboutDisplayed ? 'none' : 'block',
+        }}
+      >
+        {children}
+      </div>
     </>
   );
 }
