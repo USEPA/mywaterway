@@ -305,8 +305,6 @@ function Overview() {
   const totalPermittedDischargers =
     permittedDischargers.data.Results?.Facilities.length;
 
-  // TODO: determine if we'll display monitoring stations and streamgages together
-  // if not, maybe rename setMonitoringLocations... to setMonitoringStations ?
   const [
     monitoringLocationsSortedBy,
     setMonitoringLocationsSortedBy,
@@ -344,6 +342,336 @@ function Overview() {
         );
       })
     : [];
+
+  // --- tab contents ---
+  const waterbodiesTabContents = (
+    <WaterbodyList
+      waterbodies={waterbodies}
+      fieldName={null}
+      title={`Overall condition of waterbodies in the ${watershed} watershed.`}
+    />
+  );
+
+  const monitoringLocationsTabContents = (
+    <>
+      {totalMonitoringLocations === 0 && (
+        <p css={centeredTextStyles}>
+          There are no Water Monitoring Locations in the {watershed} watershed.
+        </p>
+      )}
+
+      {totalMonitoringLocations && totalMonitoringLocations > 0 && (
+        <>
+          <table css={tableStyles} className="table">
+            <thead>
+              <tr>
+                <th>
+                  <span>Monitors &amp; Streams</span>
+                </th>
+                <th>Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div css={toggleStyles}>
+                    <Switch
+                      checked={
+                        Boolean(totalUsgsStreamgages) &&
+                        usgsStreamgagesDisplayed
+                      }
+                      onChange={(checked) => {
+                        setUsgsStreamgagesDisplayed(!usgsStreamgagesDisplayed);
+                        updateVisibleLayers({
+                          key: 'usgsStreamgagesLayer',
+                          value:
+                            usgsStreamgagesLayer && !usgsStreamgagesDisplayed,
+                        });
+                      }}
+                      disabled={!Boolean(totalUsgsStreamgages)}
+                      ariaLabel="Daily Stream Flow Conditions"
+                    />
+                    <span>Daily Stream Flow Conditions</span>
+                  </div>
+                </td>
+                <td>{totalUsgsStreamgages}</td>
+              </tr>
+              <tr>
+                <td>
+                  <div css={toggleStyles}>
+                    <Switch
+                      checked={
+                        Boolean(totalMonitoringStations) &&
+                        monitoringStationsDisplayed
+                      }
+                      onChange={(checked) => {
+                        setMonitoringStationsDisplayed(
+                          !monitoringStationsDisplayed,
+                        );
+                        updateVisibleLayers({
+                          key: 'monitoringStationsLayer',
+                          value:
+                            monitoringStationsLayer &&
+                            !monitoringStationsDisplayed,
+                        });
+                      }}
+                      disabled={!Boolean(totalMonitoringStations)}
+                      ariaLabel="Monitoring Stations"
+                    />
+                    <span>Monitoring Stations</span>
+                  </div>
+                </td>
+                <td>{totalMonitoringStations}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <AccordionList
+            expandDisabled={true} // disabled to avoid large number of web service calls
+            title={
+              <>
+                <strong>{displayedMonitoringLocations.length}</strong> of{' '}
+                <strong>{totalMonitoringLocations}</strong> Water Monitoring
+                Locations in the <em>{watershed}</em> watershed.
+              </>
+            }
+            onSortChange={(sortBy) => {
+              setMonitoringLocationsSortedBy(sortBy.value);
+            }}
+            sortOptions={[
+              {
+                value: 'MonitoringLocationName',
+                label: 'Monitoring Location Name',
+              },
+              {
+                value: 'OrganizationIdentifier',
+                label: 'Organization ID',
+              },
+              {
+                value: 'MonitoringLocationIdentifier',
+                label: 'Monitoring Site ID',
+              },
+              {
+                value: 'resultCount',
+                label: 'Monitoring Measurements',
+              },
+            ]}
+          >
+            {usgsStreamgages.data.value.map((gage, gageIndex) => {
+              const id = gage.properties.monitoringLocationNumber;
+              const url = gage.properties.monitoringLocationUrl;
+              const name = gage.properties.monitoringLocationName;
+              const type = gage.properties.monitoringLocationType;
+              const org = gage.properties.agency;
+              const orgId = gage.properties.agencyCode;
+              // const feature = {
+              //   geometry: {
+              //     type: 'point',
+              //     longitude: Locations[0].location.coordinates[0],
+              //     latitude: Locations[0].location.coordinates[1],
+              //   },
+              //   symbol: {
+              //     type: 'simple-marker',
+              //     style: 'circle',
+              //   },
+              //   attributes: properties,
+              // };
+              return (
+                <AccordionItem
+                  key={gageIndex}
+                  title={<strong>{name || 'Unknown'}</strong>}
+                  subTitle={
+                    <>
+                      <em>Organization ID:</em>&nbsp;&nbsp;{orgId}
+                      <br />
+                      <em>Monitoring Site ID:</em>&nbsp;&nbsp;{id}
+                    </>
+                  }
+                >
+                  <div css={accordionContentStyles}>
+                    <table className="table">
+                      <tbody>
+                        <tr>
+                          <td>
+                            <em>Organization:</em>
+                          </td>
+                          <td>{org}</td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <em>Location Name:</em>
+                          </td>
+                          <td>{name}</td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <em>Monitoring Location Type:</em>
+                          </td>
+                          <td>{type}</td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <em>Monitoring Site ID:</em>
+                          </td>
+                          <td>{id}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <table css={tableStyles} className="table">
+                      <thead>
+                        <tr>
+                          <th>Parameter</th>
+                          <th>Latest Measurement</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {gage.Datastreams.map((data, dataIndex) => {
+                          const measurement = data.Observations[0].result;
+                          const time = new Date(
+                            data.Observations[0].phenomenonTime,
+                          ).toLocaleString();
+                          const unit = data.unitOfMeasurement.symbol;
+                          const unitInfo = data.unitOfMeasurement.name;
+                          return (
+                            <tr key={dataIndex}>
+                              <td>{data.properties.ParameterCode}</td>
+                              <td>
+                                {measurement}&nbsp;
+                                <span title={unitInfo}>{unit}</span>
+                                <br />
+                                <small>
+                                  <em>{time}</em>
+                                </small>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                    <a rel="noopener noreferrer" target="_blank" href={url}>
+                      <i
+                        css={iconStyles}
+                        className="fas fa-info-circle"
+                        aria-hidden="true"
+                      />
+                      More Information
+                    </a>
+                    &nbsp;&nbsp;
+                    <small>(opens new browser tab)</small>
+                  </div>
+                </AccordionItem>
+              );
+            })}
+
+            {sortedMonitoringStations.map((station, stationIndex) => {
+              const id = station.properties.MonitoringLocationIdentifier;
+              const name = station.properties.MonitoringLocationName;
+              const orgId = station.properties.OrganizationIdentifier;
+              const result = station.properties.resultCount;
+              const feature = {
+                geometry: {
+                  type: 'point',
+                  longitude: station.x,
+                  latitude: station.y,
+                },
+                symbol: {
+                  type: 'simple-marker',
+                  style: 'square',
+                },
+                attributes: station.properties,
+              };
+              return (
+                <AccordionItem
+                  key={stationIndex}
+                  title={<strong>{name || 'Unknown'}</strong>}
+                  subTitle={
+                    <>
+                      <em>Organization ID:</em>&nbsp;&nbsp;{orgId}
+                      <br />
+                      <em>Monitoring Site ID:</em>&nbsp;&nbsp;
+                      {id.split('-')[1]}
+                      <br />
+                      <em>Monitoring Measurements:</em>
+                      &nbsp;&nbsp;
+                      {Number(result).toLocaleString()}
+                    </>
+                  }
+                  feature={feature}
+                  idKey={'MonitoringLocationIdentifier'}
+                >
+                  <div css={accordionContentStyles}>
+                    <WaterbodyInfo
+                      type={'Monitoring Location'}
+                      feature={feature}
+                      services={services}
+                    />
+                    <ViewOnMapButton feature={feature} />
+                  </div>
+                </AccordionItem>
+              );
+            })}
+          </AccordionList>
+        </>
+      )}
+    </>
+  );
+
+  const permittedDischargersTabContents = (
+    <>
+      {totalPermittedDischargers === 0 && (
+        <p css={centeredTextStyles}>
+          There are no dischargers in the {watershed} watershed.
+        </p>
+      )}
+
+      {totalPermittedDischargers > 0 && (
+        <AccordionList
+          title={`Dischargers in the ${watershed} watershed.`}
+          onSortChange={(sortBy) => {
+            setPermittedDischargersSortedBy(sortBy.value);
+          }}
+          sortOptions={[
+            {
+              value: 'CWPName',
+              label: 'Discharger Name',
+            },
+            {
+              value: 'SourceID',
+              label: 'NPDES ID',
+            },
+          ]}
+        >
+          {sortedPermittedDischargers.map((discharger, dischargerIndex) => {
+            const id = discharger.SourceID;
+            const name = discharger.CWPName;
+            const feature = {
+              geometry: {
+                type: 'point',
+                longitude: discharger.FacLong,
+                latitude: discharger.FacLat,
+              },
+              attributes: discharger,
+            };
+            return (
+              <AccordionItem
+                key={dischargerIndex}
+                title={<strong>{name || 'Unknown'}</strong>}
+                subTitle={<>NPDES ID: {id}</>}
+                feature={feature}
+                idKey={'CWPName'}
+              >
+                <WaterbodyInfo
+                  type={'Permitted Discharger'}
+                  feature={feature}
+                />
+                <ViewOnMapButton feature={feature} />
+              </AccordionItem>
+            );
+          })}
+        </AccordionList>
+      )}
+    </>
+  );
 
   return (
     <div css={containerStyles}>
@@ -392,7 +720,6 @@ function Overview() {
                   checked={Boolean(totalWaterbodies) && waterbodiesDisplayed}
                   onChange={(checked) => {
                     setWaterbodiesDisplayed(!waterbodiesDisplayed);
-
                     updateVisibleLayers({
                       key: 'waterbodyLayer',
                       value: waterbodyLayer && !waterbodiesDisplayed,
@@ -463,7 +790,6 @@ function Overview() {
                     setPermittedDischargersDisplayed(
                       !permittedDischargersDisplayed,
                     );
-
                     updateVisibleLayers({
                       key: 'dischargersLayer',
                       value: dischargersLayer && !permittedDischargersDisplayed,
@@ -487,13 +813,7 @@ function Overview() {
           </TabList>
 
           <TabPanels>
-            <TabPanel>
-              <WaterbodyList
-                waterbodies={waterbodies}
-                fieldName={null}
-                title={`Overall condition of waterbodies in the ${watershed} watershed.`}
-              />
-            </TabPanel>
+            <TabPanel>{waterbodiesTabContents}</TabPanel>
 
             <TabPanel>
               {(monitoringStations.status === 'fetching' ||
@@ -507,299 +827,8 @@ function Overview() {
                 )}
 
               {monitoringStations.status === 'success' &&
-                usgsStreamgages.status === 'success' && (
-                  <>
-                    {totalMonitoringLocations === 0 && (
-                      <p css={centeredTextStyles}>
-                        There are no Water Monitoring Locations in the{' '}
-                        {watershed} watershed.
-                      </p>
-                    )}
-
-                    {totalMonitoringLocations && totalMonitoringLocations > 0 && (
-                      <>
-                        <table css={tableStyles} className="table">
-                          <thead>
-                            <tr>
-                              <th>
-                                <span>Monitors &amp; Streams</span>
-                              </th>
-                              <th>Count</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td>
-                                <div css={toggleStyles}>
-                                  <Switch
-                                    checked={
-                                      Boolean(totalUsgsStreamgages) &&
-                                      usgsStreamgagesDisplayed
-                                    }
-                                    onChange={(checked) => {
-                                      setUsgsStreamgagesDisplayed(
-                                        !usgsStreamgagesDisplayed,
-                                      );
-
-                                      updateVisibleLayers({
-                                        key: 'usgsStreamgagesLayer',
-                                        value:
-                                          usgsStreamgagesLayer &&
-                                          !usgsStreamgagesDisplayed,
-                                      });
-                                    }}
-                                    disabled={!Boolean(totalUsgsStreamgages)}
-                                    ariaLabel="Daily Stream Flow Conditions"
-                                  />
-                                  <span>Daily Stream Flow Conditions</span>
-                                </div>
-                              </td>
-                              <td>{totalUsgsStreamgages}</td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <div css={toggleStyles}>
-                                  <Switch
-                                    checked={
-                                      Boolean(totalMonitoringStations) &&
-                                      monitoringStationsDisplayed
-                                    }
-                                    onChange={(checked) => {
-                                      setMonitoringStationsDisplayed(
-                                        !monitoringStationsDisplayed,
-                                      );
-
-                                      updateVisibleLayers({
-                                        key: 'monitoringStationsLayer',
-                                        value:
-                                          monitoringStationsLayer &&
-                                          !monitoringStationsDisplayed,
-                                      });
-                                    }}
-                                    disabled={!Boolean(totalMonitoringStations)}
-                                    ariaLabel="Monitoring Stations"
-                                  />
-                                  <span>Monitoring Stations</span>
-                                </div>
-                              </td>
-                              <td>{totalMonitoringStations}</td>
-                            </tr>
-                          </tbody>
-                        </table>
-
-                        <AccordionList
-                          expandDisabled={true} // disabled to avoid large number of web service calls
-                          title={
-                            <>
-                              <strong>
-                                {displayedMonitoringLocations.length}
-                              </strong>{' '}
-                              of <strong>{totalMonitoringLocations}</strong>{' '}
-                              Water Monitoring Locations in the{' '}
-                              <em>{watershed}</em> watershed.
-                            </>
-                          }
-                          onSortChange={(sortBy) => {
-                            setMonitoringLocationsSortedBy(sortBy.value);
-                          }}
-                          sortOptions={[
-                            {
-                              value: 'MonitoringLocationName',
-                              label: 'Monitoring Location Name',
-                            },
-                            {
-                              value: 'OrganizationIdentifier',
-                              label: 'Organization ID',
-                            },
-                            {
-                              value: 'MonitoringLocationIdentifier',
-                              label: 'Monitoring Site ID',
-                            },
-                            {
-                              value: 'resultCount',
-                              label: 'Monitoring Measurements',
-                            },
-                          ]}
-                        >
-                          {usgsStreamgages.data.value.map((gage, gageIdx) => {
-                            const { properties, Datastreams } = gage;
-                            const id = properties.monitoringLocationNumber;
-                            const url = properties.monitoringLocationUrl;
-                            const name = properties.monitoringLocationName;
-                            const type = properties.monitoringLocationType;
-                            const org = properties.agency;
-                            const orgId = properties.agencyCode;
-
-                            // const feature = {
-                            //   geometry: {
-                            //     type: 'point',
-                            //     longitude: Locations[0].location.coordinates[0],
-                            //     latitude: Locations[0].location.coordinates[1],
-                            //   },
-                            //   symbol: {
-                            //     type: 'simple-marker',
-                            //     style: 'circle',
-                            //   },
-                            //   attributes: properties,
-                            // };
-
-                            return (
-                              <AccordionItem
-                                key={gageIdx}
-                                title={<strong>{name || 'Unknown'}</strong>}
-                                subTitle={
-                                  <>
-                                    <em>Organization ID:</em>&nbsp;&nbsp;{orgId}
-                                    <br />
-                                    <em>Monitoring Site ID:</em>&nbsp;&nbsp;{id}
-                                  </>
-                                }
-                              >
-                                <div css={accordionContentStyles}>
-                                  <table className="table">
-                                    <tbody>
-                                      <tr>
-                                        <td>
-                                          <em>Organization:</em>
-                                        </td>
-                                        <td>{org}</td>
-                                      </tr>
-                                      <tr>
-                                        <td>
-                                          <em>Location Name:</em>
-                                        </td>
-                                        <td>{name}</td>
-                                      </tr>
-                                      <tr>
-                                        <td>
-                                          <em>Monitoring Location Type:</em>
-                                        </td>
-                                        <td>{type}</td>
-                                      </tr>
-                                      <tr>
-                                        <td>
-                                          <em>Monitoring Site ID:</em>
-                                        </td>
-                                        <td>{id}</td>
-                                      </tr>
-                                    </tbody>
-                                  </table>
-                                  <table css={tableStyles} className="table">
-                                    <thead>
-                                      <tr>
-                                        <th>Parameter</th>
-                                        <th>Latest Measurement</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {Datastreams.map((data, dataIdx) => {
-                                        const {
-                                          Observations,
-                                          properties,
-                                          unitOfMeasurement,
-                                        } = data;
-
-                                        const measurement =
-                                          Observations[0].result;
-
-                                        const time = new Date(
-                                          Observations[0].phenomenonTime,
-                                        ).toLocaleString();
-
-                                        const unit = unitOfMeasurement.symbol;
-                                        const unitInfo = unitOfMeasurement.name;
-
-                                        return (
-                                          <tr key={dataIdx}>
-                                            <td>{properties.ParameterCode}</td>
-                                            <td>
-                                              {measurement}&nbsp;
-                                              <span title={unitInfo}>
-                                                {unit}
-                                              </span>
-                                              <br />
-                                              <small>
-                                                <em>{time}</em>
-                                              </small>
-                                            </td>
-                                          </tr>
-                                        );
-                                      })}
-                                    </tbody>
-                                  </table>
-                                  <a
-                                    rel="noopener noreferrer"
-                                    target="_blank"
-                                    href={url}
-                                  >
-                                    <i
-                                      css={iconStyles}
-                                      className="fas fa-info-circle"
-                                      aria-hidden="true"
-                                    />
-                                    More Information
-                                  </a>
-                                  &nbsp;&nbsp;
-                                  <small>(opens new browser tab)</small>
-                                </div>
-                              </AccordionItem>
-                            );
-                          })}
-
-                          {sortedMonitoringStations.map((item, index) => {
-                            const { properties, x, y } = item;
-                            const id = properties.MonitoringLocationIdentifier;
-                            const name = properties.MonitoringLocationName;
-                            const orgId = properties.OrganizationIdentifier;
-                            const result = properties.resultCount;
-                            const feature = {
-                              geometry: {
-                                type: 'point',
-                                longitude: x,
-                                latitude: y,
-                              },
-                              symbol: {
-                                type: 'simple-marker',
-                                style: 'square',
-                              },
-                              attributes: properties,
-                            };
-
-                            return (
-                              <AccordionItem
-                                key={index}
-                                title={<strong>{name || 'Unknown'}</strong>}
-                                subTitle={
-                                  <>
-                                    <em>Organization ID:</em>&nbsp;&nbsp;{orgId}
-                                    <br />
-                                    <em>Monitoring Site ID:</em>&nbsp;&nbsp;
-                                    {id.split('-')[1]}
-                                    <br />
-                                    <em>Monitoring Measurements:</em>
-                                    &nbsp;&nbsp;
-                                    {Number(result).toLocaleString()}
-                                  </>
-                                }
-                                feature={feature}
-                                idKey={'MonitoringLocationIdentifier'}
-                              >
-                                <div css={accordionContentStyles}>
-                                  <WaterbodyInfo
-                                    type={'Monitoring Location'}
-                                    feature={feature}
-                                    services={services}
-                                  />
-                                  <ViewOnMapButton feature={feature} />
-                                </div>
-                              </AccordionItem>
-                            );
-                          })}
-                        </AccordionList>
-                      </>
-                    )}
-                  </>
-                )}
+                usgsStreamgages.status === 'success' &&
+                monitoringLocationsTabContents}
             </TabPanel>
 
             <TabPanel>
@@ -811,63 +840,8 @@ function Overview() {
                 </div>
               )}
 
-              {permittedDischargers.status === 'success' && (
-                <>
-                  {totalPermittedDischargers === 0 && (
-                    <p css={centeredTextStyles}>
-                      There are no dischargers in the {watershed} watershed.
-                    </p>
-                  )}
-
-                  {totalPermittedDischargers > 0 && (
-                    <AccordionList
-                      title={`Dischargers in the ${watershed} watershed.`}
-                      onSortChange={(sortBy) => {
-                        setPermittedDischargersSortedBy(sortBy.value);
-                      }}
-                      sortOptions={[
-                        {
-                          value: 'CWPName',
-                          label: 'Discharger Name',
-                        },
-                        {
-                          value: 'SourceID',
-                          label: 'NPDES ID',
-                        },
-                      ]}
-                    >
-                      {sortedPermittedDischargers.map((item, index) => {
-                        const id = item.SourceID;
-                        const name = item.CWPName;
-                        const feature = {
-                          geometry: {
-                            type: 'point',
-                            longitude: item.FacLong,
-                            latitude: item.FacLat,
-                          },
-                          attributes: item,
-                        };
-
-                        return (
-                          <AccordionItem
-                            key={index}
-                            title={<strong>{name || 'Unknown'}</strong>}
-                            subTitle={<>NPDES ID: {id}</>}
-                            feature={feature}
-                            idKey={'CWPName'}
-                          >
-                            <WaterbodyInfo
-                              type={'Permitted Discharger'}
-                              feature={feature}
-                            />
-                            <ViewOnMapButton feature={feature} />
-                          </AccordionItem>
-                        );
-                      })}
-                    </AccordionList>
-                  )}
-                </>
-              )}
+              {permittedDischargers.status === 'success' &&
+                permittedDischargersTabContents}
             </TabPanel>
           </TabPanels>
         </Tabs>
