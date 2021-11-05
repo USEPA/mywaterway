@@ -288,6 +288,13 @@ function MapWidgets({
         newVal.forEach((item) => {
           const id = item.attributes?.assessmentunitidentifier;
           const geometryType = item.geometry?.type;
+
+          // exit early if the feature is not a waterbody
+          if (!id || !geometryType) {
+            features.push(item);
+            return;
+          }
+
           const idType = `${id}-${geometryType}`;
           if (idsAdded.includes(idType)) return;
 
