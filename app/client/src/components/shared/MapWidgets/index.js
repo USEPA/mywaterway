@@ -286,8 +286,8 @@ function MapWidgets({
         const features = [];
         const idsAdded = [];
         newVal.forEach((item) => {
-          const id = item.attributes.assessmentunitidentifier;
-          const geometryType = item.geometry.type;
+          const id = item.attributes?.assessmentunitidentifier;
+          const geometryType = item.geometry?.type;
           const idType = `${id}-${geometryType}`;
           if (idsAdded.includes(idType)) return;
 
