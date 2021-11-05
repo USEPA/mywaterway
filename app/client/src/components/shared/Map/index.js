@@ -21,18 +21,10 @@ const mapContainerStyles = css`
 type Props = {
   layers: Object,
   startingExtent?: Object,
-  onLoad?: Function,
-  onFail?: Function,
   children?: Node,
 };
 
-function HmwMap({
-  layers = null,
-  startingExtent = null,
-  onLoad = null,
-  onFail = null,
-  children,
-}: Props) {
+function HmwMap({ layers = null, startingExtent = null, children }: Props) {
   const {
     initialExtent,
     highlightOptions,
@@ -61,15 +53,12 @@ function HmwMap({
     });
     setMapView(view);
 
-    if (onLoad) onLoad(newMap, view);
-
     setMapInitialized(true);
   }, [
     mapInitialized,
     getBasemap,
     highlightOptions,
     initialExtent,
-    onLoad,
     startingExtent,
     setMapView,
   ]);

@@ -347,19 +347,7 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
 
   return (
     <Container data-testid="hmw-actions-map">
-      <Map
-        layers={layers}
-        onFail={(err: Any) => {
-          console.error(err);
-          setActionsMapLoadError(true);
-          window.logToGa('send', 'exception', {
-            exDescription: `${
-              window.location.pathname.split('/')[1]
-            } map failed to load - ${err}`,
-            exFatal: false,
-          });
-        }}
-      />
+      <Map layers={layers} />
       {mapView && mapLoading && <MapLoadingSpinner />}
     </Container>
   );

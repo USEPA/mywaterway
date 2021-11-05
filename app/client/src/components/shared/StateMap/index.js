@@ -67,7 +67,6 @@ function StateMap({
 
   const {
     mapView,
-    setMapView,
     setWaterbodyLayer,
     setVisibleLayers,
 
@@ -379,15 +378,6 @@ function StateMap({
             spatialReference: { wkid: 102100 },
           }}
           layers={layers}
-          onFail={(err) => {
-            console.error(err);
-            setStateMapLoadError(true);
-            setMapView(null);
-            window.logToGa('send', 'exception', {
-              exDescription: `State map failed to load - ${err}`,
-              exFatal: false,
-            });
-          }}
         />
         {mapView && mapLoading && <MapLoadingSpinner />}
       </Container>

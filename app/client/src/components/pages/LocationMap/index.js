@@ -128,7 +128,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setHucBoundaries,
     setAtHucBoundaries,
     mapView,
-    setMapView,
     setMonitoringLocations,
     // setNonprofits,
     setPermittedDischargers,
@@ -1979,18 +1978,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               : windowHeight - searchTextHeight - 3 * mapPadding,
         }}
       >
-        <Map
-          layers={layers}
-          onFail={(err) => {
-            console.error(err);
-            setCommunityMapLoadError(true);
-            setMapView(null);
-            window.logToGa('send', 'exception', {
-              exDescription: `Community map failed to load - ${err}`,
-              exFatal: false,
-            });
-          }}
-        />
+        <Map layers={layers} />
         {mapView && mapLoading && <MapLoadingSpinner />}
       </Container>
     </>
