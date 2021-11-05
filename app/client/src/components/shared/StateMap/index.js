@@ -4,14 +4,12 @@ import React from 'react';
 import type { Node } from 'react';
 import styled from 'styled-components';
 import StickyBox from 'react-sticky-box';
-import { Map } from '@esri/react-arcgis';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import Viewpoint from '@arcgis/core/Viewpoint';
 // components
+import Map from 'components/shared/Map';
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
-import MapWidgets from 'components/shared/MapWidgets';
-import MapMouseEvents from 'components/shared/MapMouseEvents';
 import {
   createWaterbodySymbol,
   createUniqueValueInfos,
@@ -25,8 +23,6 @@ import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { MapHighlightContext } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
-// config
-import { esriApiUrl } from 'config/esriConfig';
 // helpers
 import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
 import { browserIsCompatibleWithArcGIS } from 'utils/utils';
@@ -66,12 +62,11 @@ function StateMap({
   children,
 }: Props) {
   const services = useServicesContext();
-  const [view, setView] = React.useState(null);
 
   const { selectedGraphic } = React.useContext(MapHighlightContext);
 
   const {
-    highlightOptions,
+    mapView,
     setMapView,
     setWaterbodyLayer,
     setVisibleLayers,
@@ -86,7 +81,6 @@ function StateMap({
 
     homeWidget,
     resetData,
-    getBasemap,
   } = React.useContext(LocationSearchContext);
 
   const [layers, setLayers] = React.useState(null);
@@ -212,7 +206,7 @@ function StateMap({
     // query geocode server for every new search
     if (
       filter !== lastFilter &&
-      view &&
+      mapView &&
       pointsLayer &&
       linesLayer &&
       areasLayer &&
@@ -265,7 +259,7 @@ function StateMap({
                   };
                 }
 
-                view.goTo(zoomParams).then(() => {
+                mapView.goTo(zoomParams).then(() => {
                   // only show the waterbody layer after everything has loaded to
                   // cut down on unnecessary service calls
                   waterbodyLayer.listMode = 'hide-children';
@@ -294,7 +288,7 @@ function StateMap({
     pointsLayer,
     linesLayer,
     areasLayer,
-    view,
+    mapView,
     homeWidget,
     homeWidgetSet,
     selectedGraphic,
@@ -377,51 +371,25 @@ function StateMap({
         }
       >
         <Map
-          style={{ position: 'absolute' }}
-          loaderOptions={{ url: esriApiUrl }}
-          mapProperties={{ basemap: getBasemap() }}
-          viewProperties={{
-            extent: {
-              xmin: -13873570.722124241,
-              ymin: 2886242.8013031036,
-              xmax: -7474874.210317273,
-              ymax: 6271485.909996087,
-              spatialReference: { wkid: 102100 },
-            },
-            highlightOptions,
+          startingExtent={{
+            xmin: -13873570.722124241,
+            ymin: 2886242.8013031036,
+            xmax: -7474874.210317273,
+            ymax: 6271485.909996087,
+            spatialReference: { wkid: 102100 },
           }}
           layers={layers}
-          onLoad={(map, view) => {
-            setView(view);
-            setMapView(view);
-          }}
           onFail={(err) => {
             console.error(err);
             setStateMapLoadError(true);
-            setView(null);
             setMapView(null);
             window.logToGa('send', 'exception', {
               exDescription: `State map failed to load - ${err}`,
               exFatal: false,
             });
           }}
-        >
-          {/* manually passing map and view props to Map component's         */}
-          {/* children to satisfy flow, but map and view props are auto      */}
-          {/* passed from Map component to its children by react-arcgis      */}
-          <MapWidgets
-            map={null}
-            view={null}
-            layers={layers}
-            scrollToComponent="statemap"
-          />
-
-          {/* manually passing map and view props to Map component's         */}
-          {/* children to satisfy flow, but map and view props are auto      */}
-          {/* passed from Map component to its children by react-arcgis      */}
-          <MapMouseEvents map={null} view={null} />
-        </Map>
-        {view && mapLoading && <MapLoadingSpinner />}
+        />
+        {mapView && mapLoading && <MapLoadingSpinner />}
       </Container>
 
       {/* The StateMap's children is a footer */}
@@ -448,7 +416,7 @@ function StateMap({
 export default function StateMapContainer({ ...props }: Props) {
   return (
     <MapErrorBoundary>
-      <StateMap {...props} />}
+      <StateMap {...props} />
     </MapErrorBoundary>
   );
 }

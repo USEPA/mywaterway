@@ -4,7 +4,6 @@ import React from 'react';
 import type { Node } from 'react';
 import styled from 'styled-components';
 import StickyBox from 'react-sticky-box';
-import { Map } from '@esri/react-arcgis';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
@@ -16,10 +15,9 @@ import QueryTask from '@arcgis/core/tasks/QueryTask';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import Viewpoint from '@arcgis/core/Viewpoint';
 // components
+import Map from 'components/shared/Map';
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import mapPin from 'components/pages/Community/images/pin.png';
-import MapWidgets from 'components/shared/MapWidgets';
-import MapMouseEvents from 'components/shared/MapMouseEvents';
 import {
   createWaterbodySymbol,
   createUniqueValueInfos,
@@ -36,8 +34,6 @@ import {
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
-// config
-import { esriApiUrl } from 'config/esriConfig';
 // helpers
 import {
   useDynamicPopup,
@@ -99,8 +95,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setLastSearchText,
     setCurrentExtent,
     //
-    initialExtent,
-    highlightOptions,
     boundariesLayer,
     searchIconLayer,
     waterbodyLayer,
@@ -133,6 +127,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setFishingInfo,
     setHucBoundaries,
     setAtHucBoundaries,
+    mapView,
     setMapView,
     setMonitoringLocations,
     // setNonprofits,
@@ -151,7 +146,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setNoDataAvailable,
     FIPS,
     setFIPS,
-    getBasemap,
     layers,
     setLayers,
     pointsLayer,
@@ -170,8 +164,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   } = React.useContext(LocationSearchContext);
 
   const stateNationalUses = useStateNationalUsesContext();
-
-  const [view, setView] = React.useState(null);
 
   function matchStateCodeToAssessment(
     assessmentUnitIdentifier,
@@ -1782,7 +1774,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   React.useEffect(() => {
     if (
-      !view ||
+      !mapView ||
       !hucBoundaries ||
       !hucBoundaries.features ||
       !hucBoundaries.features[0]
@@ -1820,14 +1812,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setCurrentExtent(currentViewpoint);
 
     homeWidget.viewpoint = currentViewpoint;
-    view.popup.close();
+    mapView.popup.close();
 
     // zoom to the graphic, and update the home widget, and close any popups
-    view.goTo(graphic).then(function () {
+    mapView.goTo(graphic).then(function () {
       setAtHucBoundaries(true);
     });
   }, [
-    view,
+    mapView,
     hucBoundaries,
     boundariesLayer.graphics,
     setCurrentExtent,
@@ -1988,45 +1980,18 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         }}
       >
         <Map
-          style={{ position: 'absolute' }}
-          loaderOptions={{ url: esriApiUrl }}
-          mapProperties={{ basemap: getBasemap() }}
-          viewProperties={{
-            extent: initialExtent,
-            highlightOptions,
-          }}
           layers={layers}
-          onLoad={(map, view) => {
-            setView(view);
-            setMapView(view);
-          }}
           onFail={(err) => {
             console.error(err);
             setCommunityMapLoadError(true);
-            setView(null);
             setMapView(null);
             window.logToGa('send', 'exception', {
               exDescription: `Community map failed to load - ${err}`,
               exFatal: false,
             });
           }}
-        >
-          {/* manually passing map and view props to Map component's         */}
-          {/* children to satisfy flow, but map and view props are auto      */}
-          {/* passed from Map component to its children by react-arcgis      */}
-          <MapWidgets
-            map={null}
-            view={null}
-            layers={layers}
-            scrollToComponent="locationmap"
-          />
-
-          {/* manually passing map and view props to Map component's         */}
-          {/* children to satisfy flow, but map and view props are auto      */}
-          {/* passed from Map component to its children by react-arcgis      */}
-          <MapMouseEvents map={null} view={null} />
-        </Map>
-        {view && mapLoading && <MapLoadingSpinner />}
+        />
+        {mapView && mapLoading && <MapLoadingSpinner />}
       </Container>
     </>
   );
@@ -2050,7 +2015,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 export default function LocationMapContainer({ ...props }: Props) {
   return (
     <MapErrorBoundary>
-      <LocationMap {...props} />}
+      <LocationMap {...props} />
     </MapErrorBoundary>
   );
 }

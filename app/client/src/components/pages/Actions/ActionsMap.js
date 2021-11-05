@@ -1,5 +1,4 @@
 import React from 'react';
-import { Map } from '@esri/react-arcgis';
 import styled from 'styled-components';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
@@ -10,17 +9,14 @@ import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import Viewpoint from '@arcgis/core/Viewpoint';
 // components
+import Map from 'components/shared/Map';
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
-import MapWidgets from 'components/shared/MapWidgets';
-import MapMouseEvents from 'components/shared/MapMouseEvents';
 import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
 // styled components
 import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
-// config
-import { esriApiUrl } from 'config/esriConfig';
 // helpers
 import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
 import { browserIsCompatibleWithArcGIS } from 'utils/utils';
@@ -54,14 +50,10 @@ type Props = {
 
 function ActionsMap({ layout, unitIds, onLoad }: Props) {
   const {
-    initialExtent,
-    highlightOptions,
     actionsLayer,
     homeWidget,
     mapView,
     setActionsLayer,
-    setMapView,
-    getBasemap,
   } = React.useContext(LocationSearchContext);
 
   const [layers, setLayers] = React.useState(null);
@@ -356,13 +348,7 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
   return (
     <Container data-testid="hmw-actions-map">
       <Map
-        style={{ position: 'absolute' }}
-        loaderOptions={{ url: esriApiUrl }}
-        mapProperties={{ basemap: getBasemap() }}
-        viewProperties={{ extent: initialExtent, highlightOptions }}
-        onLoad={(map: Any, view: Any) => {
-          setMapView(view);
-        }}
+        layers={layers}
         onFail={(err: Any) => {
           console.error(err);
           setActionsMapLoadError(true);
@@ -373,17 +359,7 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
             exFatal: false,
           });
         }}
-      >
-        {/* manually passing map and view props to Map component's     */}
-        {/* children to satisfy flow, but map and view props are auto  */}
-        {/* passed from Map component to its children by react-arcgis  */}
-        <MapWidgets map={null} view={null} layers={layers} />
-
-        {/* manually passing map and view props to Map component's         */}
-        {/* children to satisfy flow, but map and view props are auto      */}
-        {/* passed from Map component to its children by react-arcgis      */}
-        <MapMouseEvents map={null} view={null} />
-      </Map>
+      />
       {mapView && mapLoading && <MapLoadingSpinner />}
     </Container>
   );
@@ -392,7 +368,7 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
 export default function ActionsMapContainer({ ...props }: Props) {
   return (
     <MapErrorBoundary>
-      <ActionsMap {...props} />}
+      <ActionsMap {...props} />
     </MapErrorBoundary>
   );
 }

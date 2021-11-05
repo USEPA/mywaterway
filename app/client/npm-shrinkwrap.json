@@ -8800,11 +8800,6 @@
         }
       }
     },
-    "esri-loader": {
-      "version": "3.3.0",
-      "resolved": "https://registry.npmjs.org/esri-loader/-/esri-loader-3.3.0.tgz",
-      "integrity": "sha512-ptg11ANOVFJ/VPSQWNBHRo62Gkq82Z7c6Wu0ZFDxplm4lAs97kQ+6GRkLQPnWXE6jpHK2XEIW3Pq1iMBPMsdgg=="
-    },
     "estraverse": {
       "version": "4.3.0",
       "resolved": "https://registry.npmjs.org/estraverse/-/estraverse-4.3.0.tgz",

@@ -51,7 +51,6 @@
     "@reach/tabs": "0.15.0",
     "@reach/window-size": "0.15.0",
     "eslint-config-react-app": "6.0.0",
-    "esri-loader": "3.3.0",
     "glossary-panel": "github:Eastern-Research-Group/glossary",
     "highcharts": "9.1.0",
     "highcharts-react-official": "3.0.0",

@@ -517,7 +517,7 @@ function MapWidgets({
       if (difference < 0 || !rnd?.current) return;
 
       let mapRect = document
-        .getElementById('base-container')
+        .getElementById('hmw-map-container')
         .getBoundingClientRect();
       let awdRect = document
         .getElementById('add-data-widget')
@@ -1316,7 +1316,7 @@ function MapWidgets({
   if (!addDataWidget) return null;
 
   const mapWidth = document
-    .getElementById('base-container')
+    .getElementById('hmw-map-container')
     .getBoundingClientRect().width;
 
   const viewportWidth = window.innerWidth;
