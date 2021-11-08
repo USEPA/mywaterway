@@ -272,7 +272,9 @@ type Props = {
 function GlossaryTerm({ term, className, style, children }: Props) {
   const [status, setStatus] = React.useState('fetching');
 
-  window.fetchGlossaryTerms.then((terms) => setStatus(terms.status));
+  if (window.fetchGlossaryTerms) {
+    window.fetchGlossaryTerms.then((terms) => setStatus(terms.status));
+  }
 
   const iconClassName =
     status === 'fetching' ? 'fas fa-spinner fa-pulse' : 'fas fa-book';
