@@ -261,6 +261,7 @@ function MapWidgets({
     allWaterbodiesWidgetDisabled,
     setAllWaterbodiesWidgetDisabled,
     getAllWaterbodiesWidgetDisabled,
+    setMapView,
   } = React.useContext(LocationSearchContext);
 
   const services = useServicesContext();
@@ -813,6 +814,7 @@ function MapWidgets({
         scrollToComponent={scrollToComponent}
         fullscreenActive={getFullscreenActive}
         setFullscreenActive={setFullscreenActive}
+        mapViewSetter={setMapView}
       />,
       node,
     );
@@ -822,6 +824,7 @@ function MapWidgets({
     setFullscreenActive,
     scrollToComponent,
     view,
+    setMapView,
     fullScreenWidgetCreated,
   ]);
 
@@ -1422,12 +1425,14 @@ type ExpandeCollapseProps = {
   scrollToComponent: string,
   fullscreenActive: boolean,
   setFullscreenActive: Function,
+  mapViewSetter: Function,
 };
 
 function ExpandCollapse({
   scrollToComponent,
   fullscreenActive,
   setFullscreenActive,
+  mapViewSetter,
 }: ExpandeCollapseProps) {
   const [hover, setHover] = React.useState(false);
 
@@ -1451,6 +1456,8 @@ function ExpandCollapse({
 
         // Toggle fullscreen mode
         setFullscreenActive(!fullscreenActive());
+
+        mapViewSetter(null);
       }}
     >
       <span
