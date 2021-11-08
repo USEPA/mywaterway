@@ -42,6 +42,7 @@ function HmwMap({ layers = null, startingExtent = null, children }: Props) {
 
     const newMap = new Map({
       basemap: getBasemap(),
+      layers: [],
     });
     setMap(newMap);
 
@@ -62,13 +63,6 @@ function HmwMap({ layers = null, startingExtent = null, children }: Props) {
     startingExtent,
     setMapView,
   ]);
-
-  // Update the layers property
-  React.useEffect(() => {
-    if (!map) return;
-
-    map.layers = layers;
-  }, [map, layers]);
 
   return (
     <>
