@@ -52,7 +52,7 @@ function getMatchingFeatures(
   organizationid,
   assessmentunitidentifier,
 ) {
-  layerData.features.forEach((feature) => {
+  layerData?.features?.forEach((feature) => {
     if (
       feature.attributes.organizationid === organizationid &&
       feature.attributes.assessmentunitidentifier === assessmentunitidentifier
