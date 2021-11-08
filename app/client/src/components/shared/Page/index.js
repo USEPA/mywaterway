@@ -237,20 +237,20 @@ function Page({ children }: Props) {
       // Log esri api calls to Google Analytics
       after: function (response) {
         // get the execution time for the call
-        const callId = response.requestOptions.query.callId;
-        const startTime = callDurations[callId];
+        const callIdResponse = response.requestOptions.query.callId;
+        const startTime = callDurations[callIdResponse];
 
         logCallToGoogleAnalytics(response.url, 200, startTime);
 
         // delete the execution time from the dictionary
-        delete callDurations[callId];
+        delete callDurations[callIdResponse];
       },
 
       error: function (error) {
         // get the execution time for the call
         const details = error.details;
-        const callId = details.requestOptions.query.callId;
-        const startTime = callDurations[callId];
+        const callIdResponse = details.requestOptions.query.callId;
+        const startTime = callDurations[callIdResponse];
 
         logCallToGoogleAnalytics(
           details.url,
@@ -259,7 +259,7 @@ function Page({ children }: Props) {
         );
 
         // delete the execution time from the dictionary
-        delete callDurations[callId];
+        delete callDurations[callIdResponse];
       },
     });
 
