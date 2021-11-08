@@ -1928,10 +1928,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     const content = document.querySelector(`[data-content="locationmap"]`);
     if (content) {
       let pos = content.getBoundingClientRect();
-      window.scrollTo(
-        pos.left + window.pageXOffset,
-        pos.top + window.pageYOffset,
-      );
+      window.scrollTo(pos.left + window.scrollX, pos.top + window.scrollY);
     }
   }, [layout, windowHeight]);
 

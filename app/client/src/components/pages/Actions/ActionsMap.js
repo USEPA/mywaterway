@@ -276,10 +276,7 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
     if (content) {
       let pos = content.getBoundingClientRect();
 
-      window.scrollTo(
-        pos.left + window.pageXOffset,
-        pos.top + window.pageYOffset,
-      );
+      window.scrollTo(pos.left + window.scrollX, pos.top + window.scrollY);
     }
   }, [layout]);
 

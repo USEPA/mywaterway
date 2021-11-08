@@ -312,10 +312,7 @@ function StateMap({
 
       if (mapContent) {
         let pos = mapContent.getBoundingClientRect();
-        window.scrollTo(
-          pos.left + window.pageXOffset,
-          pos.top + window.pageYOffset,
-        );
+        window.scrollTo(pos.left + window.scrollX, pos.top + window.scrollY);
       }
     }
     // if in normal layout, display the inputs above the map
