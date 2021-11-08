@@ -562,15 +562,6 @@ export function getPopupContent({
     type = 'Permitted Discharger';
   }
 
-  // monitoring location popup
-  else if (
-    attributes &&
-    attributes.MonitoringLocationName &&
-    attributes.fullPopup === false
-  ) {
-    type = 'Monitoring Location Map Popup';
-  }
-
   // monitoring location accordion
   else if (attributes && attributes.MonitoringLocationName) {
     type = 'Monitoring Location';

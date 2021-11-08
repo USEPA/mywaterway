@@ -513,7 +513,7 @@ function WaterbodyInfo({
     data: [],
   });
   React.useEffect(() => {
-    if (type !== 'Monitoring Location') return;
+    if (type !== 'Monitoring Location' || !attributes.fullPopup) return;
 
     const wqpUrl =
       `${services.data.waterQualityPortal.monitoringLocation}` +
@@ -595,13 +595,7 @@ function WaterbodyInfo({
           data: [],
         });
       });
-  }, [
-    attributes.MonitoringLocationIdentifier,
-    attributes.ProviderName,
-    type,
-    services,
-    setSelected,
-  ]);
+  }, [attributes, type, services, setSelected]);
 
   const monitoringContent = () => {
     const buildFilter = (
@@ -880,11 +874,6 @@ function WaterbodyInfo({
     );
   };
 
-  // Default popup for monitoring popups, when opened a listener will populate the popup with everything the Listview item has
-  const monitoringMapPopupContent = () => {
-    return <>No data available.</>;
-  };
-
   // jsx
   const nonprofitContent = (
     <>
@@ -1090,9 +1079,6 @@ function WaterbodyInfo({
 
   if (type === 'Waterbody') return waterbodyContent;
   if (type === 'Permitted Discharger') return dischargerContent;
-  if (type === 'Monitoring Location Map Popup') {
-    return monitoringMapPopupContent();
-  }
   if (type === 'Monitoring Location') return monitoringContent();
   if (type === 'Nonprofit') return nonprofitContent;
   if (type === 'Waterbody State Overview') return waterbodyStateContent;
