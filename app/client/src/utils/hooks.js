@@ -10,6 +10,7 @@ import { useServicesContext } from 'contexts/LookupFiles';
 import {
   createWaterbodySymbol,
   createUniqueValueInfos,
+  createUniqueValueInfosRestore,
   getPopupContent,
   getPopupTitle,
   getHighlightSymbol,
@@ -236,6 +237,18 @@ function useWaterbodyOnMap(
         }),
         uniqueValueInfos: createUniqueValueInfos(geometryType, alpha),
       };
+
+      // for the restore tab use 3 fields for the unique value renderer
+      if (attributeName === 'restoreTab') {
+        renderer.field = 'hasalternativeplan';
+        renderer.field2 = 'hastmdl';
+        renderer.field3 = 'has4bplan';
+        renderer.uniqueValueInfos = createUniqueValueInfosRestore(
+          geometryType,
+          alpha,
+        );
+      }
+
       layer.renderer = renderer;
 
       // close popup and clear highlights when the renderer changes

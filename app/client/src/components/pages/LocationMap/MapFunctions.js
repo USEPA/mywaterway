@@ -138,6 +138,90 @@ export function createUniqueValueInfos(
   ];
 }
 
+export function createUniqueValueInfosRestore(
+  geometryType: string,
+  alpha: {
+    base: number,
+    poly: number,
+    outline: number,
+  } | null,
+) {
+  return [
+    {
+      value: `N, N, N`,
+      symbol: createWaterbodySymbol({
+        condition: 'hidden',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `N, N, Y`,
+      symbol: createWaterbodySymbol({
+        condition: 'nostatus',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `N, Y, N`,
+      symbol: createWaterbodySymbol({
+        condition: 'nostatus',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `N, Y, Y`,
+      symbol: createWaterbodySymbol({
+        condition: 'nostatus',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `Y, N, N`,
+      symbol: createWaterbodySymbol({
+        condition: 'nostatus',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `Y, N, Y`,
+      symbol: createWaterbodySymbol({
+        condition: 'nostatus',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `Y, Y, N`,
+      symbol: createWaterbodySymbol({
+        condition: 'nostatus',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `Y, Y, Y`,
+      symbol: createWaterbodySymbol({
+        condition: 'hidden',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+  ];
+}
+
 // utility function to create an ESRI MarkerSymbol for a Waterbody
 export function createWaterbodySymbolSvg({
   condition,

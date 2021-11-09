@@ -9,6 +9,7 @@ import { ContentTabs } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import Switch from 'components/shared/Switch';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 // styled components
 import {
@@ -21,7 +22,8 @@ import {
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { getUrlFromMarkup, getTitleFromMarkup } from 'components/shared/Regex';
-import { useWaterbodyOnMap } from 'utils/hooks';
+import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
+import { getUniqueWaterbodies } from 'components/pages/LocationMap/MapFunctions';
 // errors
 import {
   restoreNonpointSourceError,
@@ -41,14 +43,74 @@ const newTabDisclaimerStyles = css`
   display: inline-block;
 `;
 
+const switchContainerStyles = css`
+  margin-top: 0.5em;
+`;
+
 // --- components ---
 function Restore() {
-  const { attainsPlans, grts, watershed } = React.useContext(
-    LocationSearchContext,
-  );
+  const {
+    attainsPlans,
+    cipSummary,
+    grts,
+    visibleLayers,
+    setVisibleLayers,
+    watershed,
+    waterbodyLayer,
+  } = React.useContext(LocationSearchContext);
+
+  // set the waterbody features
+  const waterbodies = useWaterbodyFeatures();
+
+  const uniqueWaterbodies = waterbodies
+    ? getUniqueWaterbodies(waterbodies)
+    : [];
 
   // draw the waterbody on the map
-  useWaterbodyOnMap();
+  useWaterbodyOnMap('restoreTab');
+
+  const [restoreLayerEnabled, setRestoreLayerEnabled] = React.useState(true);
+
+  // Syncs the toggles with the visible layers on the map. Mainly
+  // used for when the user toggles layers in full screen mode and then
+  // exist full screen.
+  React.useEffect(() => {
+    const { waterbodyLayer } = visibleLayers;
+
+    if (typeof waterbodyLayer === 'boolean') {
+      setRestoreLayerEnabled(waterbodyLayer);
+    }
+  }, [visibleLayers]);
+
+  // Updates the visible layers. This function also takes into account whether
+  // or not the underlying webservices failed.
+  const updateVisibleLayers = React.useCallback(
+    ({ key = null, newValue = null, useCurrentValue = false }) => {
+      const newVisibleLayers = {};
+      if (cipSummary.status !== 'failure') {
+        newVisibleLayers['waterbodyLayer'] =
+          !waterbodyLayer || useCurrentValue
+            ? visibleLayers['waterbodyLayer']
+            : restoreLayerEnabled;
+      }
+
+      if (newVisibleLayers.hasOwnProperty(key)) {
+        newVisibleLayers[key] = newValue;
+      }
+
+      // set the visible layers if something changed
+      if (JSON.stringify(visibleLayers) !== JSON.stringify(newVisibleLayers)) {
+        setVisibleLayers(newVisibleLayers);
+      }
+    },
+    [
+      waterbodyLayer,
+      restoreLayerEnabled,
+      cipSummary,
+      visibleLayers,
+      setVisibleLayers,
+    ],
+  );
 
   const sortedGrtsData =
     grts.data.items && grts.data.items.length > 0
@@ -68,6 +130,8 @@ function Restore() {
           return objA['actionName'].localeCompare(objB['actionName']);
         })
       : [];
+
+  const waterbodyCount = uniqueWaterbodies && uniqueWaterbodies.length;
 
   return (
     <div css={containerStyles}>
@@ -95,6 +159,22 @@ function Restore() {
             </StyledNumber>
           )}
           <StyledLabel>Plans</StyledLabel>
+          <switchContainerStyles>
+            <Switch
+              checked={Boolean(waterbodyCount) && restoreLayerEnabled}
+              onChange={(checked) => {
+                setRestoreLayerEnabled(!restoreLayerEnabled);
+
+                // first check if layer exists and is not falsy
+                updateVisibleLayers({
+                  key: 'waterbodyLayer',
+                  newValue: waterbodyLayer && !restoreLayerEnabled,
+                });
+              }}
+              disabled={!Boolean(waterbodyCount)}
+              ariaLabel="Waterbodies"
+            />
+          </switchContainerStyles>
         </StyledMetric>
       </StyledMetrics>
 
