@@ -120,25 +120,21 @@ function WaterbodyList({
 
             let status = null;
             // ensure the key exists prior to deciding to highlight
-            if (
-              graphic &&
-              graphic.attributes &&
-              graphic.attributes['assessmentunitidentifier']
-            ) {
+            if (graphic?.attributes['assessmentunitidentifier']) {
               const id = graphic.attributes['assessmentunitidentifier'];
 
-              const isSelected =
-                selectedGraphic && selectedGraphic.attributes
-                  ? selectedGraphic.attributes['assessmentunitidentifier'] ===
-                    id
-                  : false;
+              let isSelected = false;
+              if (selectedGraphic?.attributes) {
+                isSelected =
+                  selectedGraphic.attributes['assessmentunitidentifier'] === id;
+              }
 
-              const isHighlighted =
-                highlightedGraphic && highlightedGraphic.attributes
-                  ? highlightedGraphic.attributes[
-                      'assessmentunitidentifier'
-                    ] === id
-                  : false;
+              let isHighlighted = false;
+              if (highlightedGraphic?.attributes) {
+                isHighlighted =
+                  highlightedGraphic.attributes['assessmentunitidentifier'] ===
+                  id;
+              }
 
               if (isSelected) status = 'selected';
               else if (isHighlighted && !isSelected) status = 'highlighted';
@@ -147,17 +143,17 @@ function WaterbodyList({
             // get the type of symbol for creating a unique key, since it is currently
             // possible for the assessmentunitid and objectid to be duplicated across
             // layers.
-            const type = getTypeFromAttributes(graphic);
+            const symbolType = getTypeFromAttributes(graphic);
 
             return (
               <AccordionItem
                 key={
-                  type +
+                  symbolType +
                   graphic.attributes.organizationid +
                   graphic.attributes.assessmentunitidentifier
                 }
                 index={
-                  type +
+                  symbolType +
                   graphic.attributes.organizationid +
                   graphic.attributes.assessmentunitidentifier
                 }
