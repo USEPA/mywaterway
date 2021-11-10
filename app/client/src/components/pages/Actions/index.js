@@ -1,6 +1,7 @@
 // @flow
 
 import React from 'react';
+import styled from 'styled-components';
 import { css } from 'styled-components/macro';
 import WindowSize from '@reach/window-size';
 import StickyBox from 'react-sticky-box';
@@ -172,7 +173,7 @@ function getWaterbodyData(
 }
 
 // --- styled components ---
-const errorBoxStyles = css`
+const ErrorBox = styled(StyledErrorBox)`
   margin: 1rem;
   text-align: center;
 `;
@@ -534,11 +535,9 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
         <NavBar title={<>Plan Summary</>} />
 
         <div css={splitLayoutContainerStyles}>
-          <div css={errorBoxStyles}>
-            <StyledErrorBox>
-              <p>{noActionsAvailableCombo(orgId, actionId)}</p>
-            </StyledErrorBox>
-          </div>
+          <ErrorBox>
+            <p>{noActionsAvailableCombo(orgId, actionId)}</p>
+          </ErrorBox>
         </div>
       </Page>
     );
@@ -550,11 +549,9 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
         <NavBar title={<>Plan Summary</>} />
 
         <div css={splitLayoutContainerStyles}>
-          <div css={errorBoxStyles}>
-            <StyledErrorBox>
-              <p>{actionsError}</p>
-            </StyledErrorBox>
-          </div>
+          <ErrorBox>
+            <p>{actionsError}</p>
+          </ErrorBox>
         </div>
       </Page>
     );
