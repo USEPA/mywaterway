@@ -27,7 +27,6 @@ import {
   boxStyles,
   boxHeadingStyles,
   boxSectionStyles,
-  inlineBoxSectionStyles,
 } from 'components/shared/Box';
 // contexts
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
@@ -176,6 +175,15 @@ function getWaterbodyData(
 const errorBoxStyles = css`
   margin: 1rem;
   text-align: center;
+`;
+
+const inlineBoxSectionStyles = css`
+  ${boxSectionStyles}
+  padding-top: 0;
+
+  * {
+    display: inline-block;
+  }
 `;
 
 const introStyles = css`

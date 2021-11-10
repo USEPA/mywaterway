@@ -110,15 +110,6 @@ const boxSectionStyles = css`
   padding: 0.4375rem 0.875rem;
 `;
 
-const inlineBoxSectionStyles = css`
-  ${boxSectionStyles}
-  padding-top: 0;
-
-  * {
-    display: inline-block;
-  }
-`;
-
 export {
   StyledBox, // TODO: remove
   StyledBoxHeading, // TODO: remove
@@ -126,5 +117,4 @@ export {
   boxStyles,
   boxHeadingStyles,
   boxSectionStyles,
-  inlineBoxSectionStyles,
 };
