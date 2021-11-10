@@ -15,6 +15,7 @@ import ActionsMap from './ActionsMap';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import MapVisibilityButton from 'components/shared/MapVisibilityButton';
+import VirtualizedList from 'components/shared/VirtualizedList';
 // styled components
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import {
@@ -522,6 +523,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
     </StyledBox>
   );
 
+  const [expandedRows, setExpandedRows] = React.useState([]);
   if (loading) {
     return (
       <Page>
@@ -682,59 +684,85 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                     <StyledBoxSection>
                       {waters.length > 0 && (
                         <Accordions>
-                          {waters.map((water) => {
-                            const {
-                              assessmentUnitIdentifier,
-                              assessmentUnitName,
-                            } = water;
+                          <VirtualizedList
+                            items={waters}
+                            expandedRowsSetter={setExpandedRows}
+                            renderer={({ index, resizeCell, allExpanded }) => {
+                              const water = waters[index];
+                              const {
+                                assessmentUnitIdentifier,
+                                assessmentUnitName,
+                              } = water;
 
-                            const waterbodyData = getWaterbodyData(
-                              mapLayer,
-                              orgId,
-                              assessmentUnitIdentifier,
-                            );
-                            const waterbodyReportingCycle = waterbodyData
-                              ? waterbodyData.attributes.reportingcycle
-                              : null;
+                              const waterbodyData = getWaterbodyData(
+                                mapLayer,
+                                orgId,
+                                assessmentUnitIdentifier,
+                              );
+                              const waterbodyReportingCycle = waterbodyData
+                                ? waterbodyData.attributes.reportingcycle
+                                : null;
 
-                            return (
-                              <AccordionItem
-                                key={assessmentUnitIdentifier}
-                                title={
-                                  <strong>
-                                    {assessmentUnitName || 'Name not provided'}
-                                  </strong>
-                                }
-                                subTitle={`${getOrganizationLabel(
-                                  waterbodyData?.attributes,
-                                )} ${assessmentUnitIdentifier}`}
-                              >
-                                <AccordionContent>
-                                  {unitIds[assessmentUnitIdentifier] &&
-                                    unitIds[assessmentUnitIdentifier](
-                                      waterbodyReportingCycle,
-                                      waterbodyData ? true : false,
-                                    )}
+                              return (
+                                <AccordionItem
+                                  key={assessmentUnitIdentifier}
+                                  title={
+                                    <strong>
+                                      {assessmentUnitName ||
+                                        'Name not provided'}
+                                    </strong>
+                                  }
+                                  subTitle={`${getOrganizationLabel(
+                                    waterbodyData?.attributes,
+                                  )} ${assessmentUnitIdentifier}`}
+                                  allExpanded={
+                                    allExpanded || expandedRows.includes(index)
+                                  }
+                                  onChange={() => {
+                                    // ensure the cell is sized appropriately
+                                    resizeCell();
 
-                                  <p>
-                                    {waterbodyData && (
-                                      <ViewOnMapButton
-                                        feature={{
-                                          attributes: {
-                                            assessmentunitidentifier: assessmentUnitIdentifier,
-                                            organizationid: orgId,
-                                            fieldName: 'hmw-extra-content',
-                                          },
-                                        }}
-                                        layers={[mapLayer.layer]}
-                                        fieldName="hmw-extra-content"
-                                      />
-                                    )}
-                                  </p>
-                                </AccordionContent>
-                              </AccordionItem>
-                            );
-                          })}
+                                    // add the item to the expandedRows array so the accordion item
+                                    // will stay expanded when the user scrolls or highlights map items
+                                    if (expandedRows.includes(index)) {
+                                      setExpandedRows(
+                                        expandedRows.filter(
+                                          (item) => item !== index,
+                                        ),
+                                      );
+                                    } else
+                                      setExpandedRows(
+                                        expandedRows.concat(index),
+                                      );
+                                  }}
+                                >
+                                  <AccordionContent>
+                                    {unitIds[assessmentUnitIdentifier] &&
+                                      unitIds[assessmentUnitIdentifier](
+                                        waterbodyReportingCycle,
+                                        waterbodyData ? true : false,
+                                      )}
+
+                                    <p>
+                                      {waterbodyData && (
+                                        <ViewOnMapButton
+                                          feature={{
+                                            attributes: {
+                                              assessmentunitidentifier: assessmentUnitIdentifier,
+                                              organizationid: orgId,
+                                              fieldName: 'hmw-extra-content',
+                                            },
+                                          }}
+                                          layers={[mapLayer.layer]}
+                                          fieldName="hmw-extra-content"
+                                        />
+                                      )}
+                                    </p>
+                                  </AccordionContent>
+                                </AccordionItem>
+                              );
+                            }}
+                          />
                         </Accordions>
                       )}
                     </StyledBoxSection>
