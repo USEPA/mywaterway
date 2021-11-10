@@ -3,6 +3,7 @@
 import React from 'react';
 import WindowSize from '@reach/window-size';
 import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import StickyBox from 'react-sticky-box';
 // components
 import type { RouteProps } from 'routes.js';
@@ -14,16 +15,16 @@ import ActionsMap from 'components/pages/Actions/ActionsMap';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import MapVisibilityButton from 'components/shared/MapVisibilityButton';
 // styled components
-import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes';
+import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes'; // TODO - Replace this with css after "feature/panel-changes-mockup" is merged
 import {
-  StyledContainer,
-  StyledColumns,
-  StyledColumn,
+  splitLayoutContainerStyles,
+  splitLayoutColumnsStyles,
+  splitLayoutColumnStyles,
 } from 'components/shared/SplitLayout';
 import {
-  StyledBox,
-  StyledBoxHeading,
-  StyledBoxSection,
+  boxStyles,
+  boxHeadingStyles,
+  boxSectionStyles,
 } from 'components/shared/Box';
 // contexts
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
@@ -43,7 +44,9 @@ function filterActions(actions, orgId) {
 }
 
 // --- styled components ---
-const Container = styled(StyledContainer)`
+const containerStyles = css`
+  ${splitLayoutContainerStyles}
+
   table {
     margin-top: 0.75rem;
     margin-bottom: 0.75rem;
@@ -66,7 +69,7 @@ const Container = styled(StyledContainer)`
   }
 `;
 
-const InfoBoxContainer = styled.div`
+const infoBoxContainerStyles = css`
   padding: 1.5em;
   padding-bottom: 0;
 `;
@@ -80,7 +83,8 @@ const ErrorBox = styled(StyledErrorBox)`
   text-align: center;
 `;
 
-const InfoBoxHeading = styled(StyledBoxHeading)`
+const infoBoxHeadingStyles = css`
+  ${boxHeadingStyles}
   display: flex;
   align-items: center;
 
@@ -102,7 +106,9 @@ const InfoBoxHeading = styled(StyledBoxHeading)`
   }
 `;
 
-const InlineBoxSection = styled(StyledBoxSection)`
+const inlineBoxSectionStyles = css`
+  ${boxSectionStyles}
+
   /* loading icon */
   svg {
     display: inline-block;
@@ -119,26 +125,22 @@ const InlineBoxSection = styled(StyledBoxSection)`
   }
 `;
 
-const Rationale = styled.p`
+const rationaleStyles = css`
   margin-top: 0 !important;
 `;
 
-const Accordions = styled(AccordionList)`
-  border-bottom: none;
-`;
-
-const AccordionContent = styled.div`
+const accordionContentStyles = css`
   padding: 0.4375em 0.875em 0.875em;
 `;
 
-const UseName = styled.span`
+const useNameStyles = css`
   display: flex;
   align-items: center;
   justify-content: space-between;
   line-height: 1.125;
 `;
 
-const UseStatus = styled.span`
+const useStatusStyles = css`
   flex-shrink: 0; /* prevent wrapping on whitespace */
   display: inline-block;
   margin-top: 0 !important;
@@ -152,11 +154,11 @@ const UseStatus = styled.span`
   user-select: none;
 `;
 
-const Text = styled.p`
+const textStyles = css`
   padding-bottom: 1.5em !important; /* match ul padding-bottom */
 `;
 
-const ParameterCategory = styled.p`
+const parameterCategoryStyles = css`
   margin-top: 0 !important;
   padding-bottom: 0.375em !important;
   font-style: italic;
@@ -165,26 +167,26 @@ const ParameterCategory = styled.p`
   font-weight: bold;
 `;
 
-const Parameter = styled.li`
+const parameterStyles = css`
   border-bottom: 1px dotted #eee;
   &:last-of-type {
     border-bottom: none;
   }
 `;
 
-const DateCell = styled.td`
+const dateCellStyles = css`
   white-space: nowrap;
 `;
 
-const Locations = styled.ul`
+const locationsStyles = css`
   padding-bottom: 0;
 `;
 
-const Icon = styled.i`
+const iconStyles = css`
   margin-right: 5px;
 `;
 
-const NewTabDisclaimer = styled.div`
+const newTabDisclaimerStyles = css`
   display: inline-block;
 `;
 
@@ -788,8 +790,8 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
   }, []);
 
   const infoBox = (
-    <StyledBox ref={measuredRef}>
-      <InfoBoxHeading>
+    <div css={boxStyles} ref={measuredRef}>
+      <h2 css={infoBoxHeadingStyles}>
         {waterbodyStatus.status === 'fetching' && <LoadingSpinner />}
 
         {waterbodyStatus.status === 'success' && (
@@ -812,9 +814,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
             <strong>Assessment Unit ID:</strong> {auId}
           </small>
         </span>
-      </InfoBoxHeading>
+      </h2>
 
-      <InlineBoxSection>
+      <div css={inlineBoxSectionStyles}>
         <h3>Waterbody Condition:</h3>
         {waterbodyStatus.status === 'fetching' && <LoadingSpinner />}
         {waterbodyStatus.status === 'failure' && (
@@ -825,9 +827,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         {waterbodyStatus.status === 'success' && (
           <p>&nbsp; {waterbodyStatus.data.condition}</p>
         )}
-      </InlineBoxSection>
+      </div>
 
-      <InlineBoxSection>
+      <div css={inlineBoxSectionStyles}>
         <h3>Existing Plans for Restoration:</h3>
         {waterbodyStatus.status === 'fetching' && <LoadingSpinner />}
 
@@ -839,9 +841,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         {waterbodyStatus.status === 'success' && (
           <p>&nbsp; {waterbodyStatus.data.planForRestoration}</p>
         )}
-      </InlineBoxSection>
+      </div>
 
-      <InlineBoxSection>
+      <div css={inlineBoxSectionStyles}>
         <h3>303(d) Listed:</h3>
         {waterbodyStatus.status === 'fetching' && <LoadingSpinner />}
         {waterbodyStatus.status === 'failure' && (
@@ -852,9 +854,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         {waterbodyStatus.status === 'success' && (
           <p>&nbsp; {waterbodyStatus.data.listed303d}</p>
         )}
-      </InlineBoxSection>
+      </div>
 
-      <InlineBoxSection>
+      <div css={inlineBoxSectionStyles}>
         <h3>Year Reported:</h3>
         {reportingCycleFetch.status === 'fetching' && <LoadingSpinner />}
         {reportingCycleFetch.status === 'failure' && (
@@ -865,9 +867,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         {reportingCycleFetch.status === 'success' && (
           <p>&nbsp; {reportingCycleFetch.year}</p>
         )}
-      </InlineBoxSection>
+      </div>
 
-      <InlineBoxSection>
+      <div css={inlineBoxSectionStyles}>
         <h3>Organization Name (ID):&nbsp;</h3>
         {reportingCycleFetch.status === 'fetching' && <LoadingSpinner />}
         {reportingCycleFetch.status === 'failure' && (
@@ -880,9 +882,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
             {organizationName.name} ({orgId})
           </p>
         )}
-      </InlineBoxSection>
+      </div>
 
-      <StyledBoxSection>
+      <div css={boxSectionStyles}>
         <h3>What type of water is this?</h3>
         {waterbodyTypes.status === 'fetching' && <LoadingSpinner />}
         {waterbodyTypes.status === 'failure' && (
@@ -906,9 +908,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                 ))}
           </>
         )}
-      </StyledBoxSection>
+      </div>
 
-      <StyledBoxSection>
+      <div css={boxSectionStyles}>
         <h3>Where is this water located?</h3>
         {waterbodyLocation.status === 'fetching' && <LoadingSpinner />}
 
@@ -921,8 +923,8 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         {waterbodyLocation.status === 'success' && (
           <p>{waterbodyLocation.text}</p>
         )}
-      </StyledBoxSection>
-    </StyledBox>
+      </div>
+    </div>
   );
 
   if (noWaterbodies) {
@@ -930,7 +932,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
       <Page>
         <NavBar title={<>Plan Summary</>} />
 
-        <Container>
+        <div css={containerStyles}>
           <PageErrorBox>
             <p>
               No waterbodies available for the provided Organization ID:{' '}
@@ -938,7 +940,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
               <strong>{auId}</strong>.
             </p>
           </PageErrorBox>
-        </Container>
+        </div>
       </Page>
     );
   }
@@ -948,7 +950,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
       <Page>
         <NavBar title={<>Plan Summary</>} />
 
-        <Container>
+        <div css={containerStyles}>
           <PageErrorBox>
             <p>
               Assessment{' '}
@@ -959,7 +961,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
               {reportingCycle ? ` for ${reportingCycle}` : ''}.
             </p>
           </PageErrorBox>
-        </Container>
+        </div>
       </Page>
     );
   }
@@ -986,9 +988,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
     <Page>
       <NavBar title={'Waterbody Report'} />
 
-      <Container data-content="container">
+      <div css={containerStyles} data-content="container">
         {mapReportingCycle > reportingCycle && (
-          <InfoBoxContainer>
+          <div css={infoBoxContainerStyles}>
             <StyledInfoBox>
               There is more recent data available for this waterbody. Please use
               the following link to view the latest information:{' '}
@@ -997,19 +999,23 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Icon className="fas fa-file-alt" aria-hidden="true" />
+                <i
+                  css={iconStyles}
+                  className="fas fa-file-alt"
+                  aria-hidden="true"
+                />
                 View Waterbody Report for {mapReportingCycle}
               </a>
               &nbsp;&nbsp;
-              <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
+              <div css={newTabDisclaimerStyles}>(opens new browser tab)</div>
             </StyledInfoBox>
-          </InfoBoxContainer>
+          </div>
         )}
         <WindowSize>
           {({ width, height }) => {
             return (
-              <StyledColumns>
-                <StyledColumn>
+              <div css={splitLayoutColumnsStyles}>
+                <div css={splitLayoutColumnStyles}>
                   {width < 960 ? (
                     <>
                       {infoBox}
@@ -1048,27 +1054,27 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                       </div>
                     </StickyBox>
                   )}
-                </StyledColumn>
+                </div>
 
-                <StyledColumn>
+                <div css={splitLayoutColumnStyles}>
                   {decisionRationale && (
-                    <StyledBox>
-                      <StyledBoxHeading>Decision Rationale</StyledBoxHeading>
-                      <StyledBoxSection>
-                        <Rationale>{decisionRationale}</Rationale>
-                      </StyledBoxSection>
-                    </StyledBox>
+                    <div css={boxStyles}>
+                      <h2 css={boxHeadingStyles}>Decision Rationale</h2>
+                      <div css={boxSectionStyles}>
+                        <p css={rationaleStyles}>{decisionRationale}</p>
+                      </div>
+                    </div>
                   )}
 
-                  <StyledBox>
-                    <StyledBoxHeading>
+                  <div css={boxStyles}>
+                    <h2 css={boxHeadingStyles}>
                       Assessment Information{' '}
                       {reportingCycleFetch.status === 'success' && (
                         <>from {reportingCycleFetch.year}</>
                       )}
-                    </StyledBoxHeading>
+                    </h2>
 
-                    <StyledBoxSection>
+                    <div css={boxSectionStyles}>
                       <h3>What is this water used for?</h3>
                       {waterbodyUses.status === 'fetching' && (
                         <LoadingSpinner />
@@ -1085,38 +1091,39 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                               No evaluated uses provided for this waterbody.
                             </p>
                           ) : (
-                            <Accordions>
+                            <AccordionList>
                               {waterbodyUses.data
                                 .sort((a, b) => a.name.localeCompare(b.name))
                                 .map((use) => (
                                   <AccordionItem
                                     key={use.name}
                                     title={
-                                      <UseName>
+                                      <span css={useNameStyles}>
                                         <strong>
                                           {titleCaseWithExceptions(use.name)}
                                         </strong>
-                                        <UseStatus
+                                        <span
+                                          css={useStatusStyles}
                                           textColor={use.status.textColor}
                                           bgColor={use.status.bgColor}
                                         >
                                           {use.status.text}
-                                        </UseStatus>
-                                      </UseName>
+                                        </span>
+                                      </span>
                                     }
                                   >
                                     <WaterbodyUse categories={use.categories} />
                                   </AccordionItem>
                                 ))}
-                            </Accordions>
+                            </AccordionList>
                           )}
                         </>
                       )}
-                    </StyledBoxSection>
+                    </div>
 
                     <hr />
 
-                    <StyledBoxSection>
+                    <div css={boxSectionStyles}>
                       <h3>
                         Probable sources contributing to impairment
                         {reportingCycleFetch.status === 'success' &&
@@ -1162,15 +1169,15 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                           )}
                         </>
                       )}
-                    </StyledBoxSection>
-                  </StyledBox>
+                    </div>
+                  </div>
 
-                  <StyledBox>
-                    <StyledBoxHeading>
+                  <div css={boxStyles}>
+                    <h2 css={boxHeadingStyles}>
                       Plans to Restore Water Quality
-                    </StyledBoxHeading>
+                    </h2>
 
-                    <StyledBoxSection>
+                    <div css={boxSectionStyles}>
                       <h3>
                         What plans are in place to protect or restore water
                         quality?
@@ -1233,7 +1240,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                                           )}
                                         </td>
                                         <td>{action.type}</td>
-                                        <DateCell>{action.date}</DateCell>
+                                        <td css={dateCellStyles}>
+                                          {action.date}
+                                        </td>
                                       </tr>
                                     ))}
                                 </tbody>
@@ -1242,8 +1251,8 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                           )}
                         </>
                       )}
-                    </StyledBoxSection>
-                  </StyledBox>
+                    </div>
+                  </div>
 
                   {/*
                   (monitoringLocations.status === 'fetching' ||
@@ -1257,10 +1266,10 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                     // TODO: replace `false & (` with commented out conditions above
                     // whenever Water Monitoring section is ready to be displayed
                     false && (
-                      <StyledBox>
-                        <StyledBoxHeading>Water Monitoring</StyledBoxHeading>
+                      <div css={boxStyles}>
+                        <h2 css={boxHeadingStyles}>Water Monitoring</h2>
 
-                        <StyledBoxSection>
+                        <div css={boxSectionStyles}>
                           <h3>Does this water have monitoring locations?</h3>
                           {monitoringLocations.status === 'fetching' && (
                             <LoadingSpinner />
@@ -1273,7 +1282,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                             </ErrorBox>
                           )}
                           {monitoringLocations.status === 'success' && (
-                            <Locations>
+                            <ul css={locationsStyles}>
                               {monitoringLocations.data.map((location) => {
                                 const { orgId, locId, name, url } = location;
                                 return (
@@ -1294,18 +1303,18 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                                   </li>
                                 );
                               })}
-                            </Locations>
+                            </ul>
                           )}
-                        </StyledBoxSection>
-                      </StyledBox>
+                        </div>
+                      </div>
                     )
                   }
-                </StyledColumn>
-              </StyledColumns>
+                </div>
+              </div>
             );
           }}
         </WindowSize>
-      </Container>
+      </div>
     </Page>
   );
 }
@@ -1338,11 +1347,11 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
     categories.ofConcern.length === 0;
 
   return (
-    <AccordionContent>
+    <div css={accordionContentStyles}>
       <h4>Impairments Evaluated</h4>
 
       {pollutants.length === 0 && (
-        <Text>No impairments evaluated for this use.</Text>
+        <p css={textStyles}>No impairments evaluated for this use.</p>
       )}
 
       {pollutants.length > 0 && (
@@ -1375,14 +1384,14 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
           <React.Fragment key={category}>
             {parameters[category].length > 0 && (
               <>
-                <ParameterCategory>{category}</ParameterCategory>
+                <p css={parameterCategoryStyles}>{category}</p>
                 <ul>
                   {parameters[category]
                     .sort((a, b) => a.name.localeCompare(b.name))
                     .map((parameter) => (
-                      <Parameter key={parameter.name}>
+                      <li css={parameterStyles} key={parameter.name}>
                         {titleCaseWithExceptions(parameter.name)}
-                      </Parameter>
+                      </li>
                     ))}
                 </ul>
               </>
@@ -1390,7 +1399,7 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
           </React.Fragment>
         ))
       )}
-    </AccordionContent>
+    </div>
   );
 }
 
