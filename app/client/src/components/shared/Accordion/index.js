@@ -8,10 +8,6 @@ import Select from 'react-select';
 import { colors, reactSelectStyles } from 'styles/index.js';
 
 // --- styled components (AccordionList) ---
-const AccordionListContainer = styled.div`
-  border-bottom: 1px solid #d8dfe2;
-`;
-
 const Columns = styled.div`
   display: flex;
   align-items: center;
@@ -90,7 +86,7 @@ function AccordionList({
   const uniqueID = Date.now() + Math.random();
 
   return (
-    <AccordionListContainer className={`hmw-accordions ${className}`}>
+    <div className={`hmw-accordions ${className}`}>
       <Columns>
         {sortOptions.length > 0 && (
           <SelectContainer>
@@ -123,7 +119,7 @@ function AccordionList({
       {React.Children.map(children, (childElement) => {
         return React.cloneElement(childElement, { allExpanded });
       })}
-    </AccordionListContainer>
+    </div>
   );
 }
 
