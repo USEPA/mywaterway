@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import WindowSize from '@reach/window-size';
 import StickyBox from 'react-sticky-box';
 // components
@@ -17,16 +17,17 @@ import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import MapVisibilityButton from 'components/shared/MapVisibilityButton';
 import VirtualizedList from 'components/shared/VirtualizedList';
 // styled components
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { StyledErrorBox } from 'components/shared/MessageBoxes'; // TODO - Replace this with css after "feature/panel-changes-mockup" is merged
 import {
-  StyledContainer,
-  StyledColumns,
-  StyledColumn,
+  splitLayoutContainerStyles,
+  splitLayoutColumnsStyles,
+  splitLayoutColumnStyles,
 } from 'components/shared/SplitLayout';
 import {
-  StyledBox,
-  StyledBoxHeading,
-  StyledBoxSection,
+  boxStyles,
+  boxHeadingStyles,
+  boxSectionStyles,
+  inlineBoxSectionStyles,
 } from 'components/shared/Box';
 // contexts
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
@@ -172,44 +173,26 @@ function getWaterbodyData(
 }
 
 // --- styled components ---
-const Container = styled(StyledContainer)`
-  ul {
-    padding-bottom: 0;
-  }
-`;
-
-const ErrorBox = styled(StyledErrorBox)`
+const errorBoxStyles = css`
   margin: 1rem;
   text-align: center;
 `;
 
-const InlineBoxSection = styled(StyledBoxSection)`
-  padding-top: 0;
-
-  * {
-    display: inline-block;
-  }
-`;
-
-const Intro = styled.p`
+const introStyles = css`
   margin-top: 0 !important;
   padding-bottom: 0.4375em !important;
 `;
 
-const Icon = styled.i`
+const iconStyles = css`
   margin-right: 5px;
 `;
 
-const Accordions = styled(AccordionList)`
-  border-bottom: none;
+const ulStyles = css`
+  padding-bottom: 0;
 `;
 
-const AccordionContent = styled.div`
+const accordionContentStyles = css`
   padding: 0.4375em 0.875em 0.875em;
-
-  ul {
-    padding-bottom: 0;
-  }
 
   li {
     margin-bottom: 0.875em;
@@ -229,15 +212,15 @@ const AccordionContent = styled.div`
   }
 `;
 
-const NewTabDisclaimerItalic = styled.em`
+const newTabDisclaimerItalicStyles = css`
   padding: 0.4375rem 0.875rem;
 `;
 
-const NewTabDisclaimerDiv = styled.div`
+const newTabDisclaimerDivStyles = css`
   display: inline-block;
 `;
 
-const TextBottomMargin = styled.p`
+const textBottomMarginStyles = css`
   margin-bottom: 0.5em !important;
 `;
 
@@ -357,15 +340,15 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
         return (
           <>
             {organizationName && orgId && (
-              <TextBottomMargin>
+              <p css={textBottomMarginStyles}>
                 <strong>Organization Name (ID):&nbsp;</strong>
                 {organizationName} ({orgId})
-              </TextBottomMargin>
+              </p>
             )}
             {hasTmdlData && (
               <>
                 <strong>Associated Impairments: </strong>
-                <ul>
+                <ul css={ulStyles}>
                   {associatedPollutants
                     .sort((a, b) =>
                       a.pollutantName.localeCompare(b.pollutantName),
@@ -422,7 +405,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
             {!hasTmdlData && (
               <>
                 <strong>Parameters Addressed: </strong>
-                <ul>
+                <ul css={ulStyles}>
                   {parameters
                     .sort((a, b) =>
                       a.parameterName.localeCompare(b.parameterName),
@@ -445,13 +428,17 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <Icon className="fas fa-file-alt" aria-hidden="true" />
+                  <i
+                    css={iconStyles}
+                    className="fas fa-file-alt"
+                    aria-hidden="true"
+                  />
                   View Waterbody Report
                 </a>
                 &nbsp;&nbsp;
-                <NewTabDisclaimerDiv>
+                <div css={newTabDisclaimerDivStyles}>
                   (opens new browser tab)
-                </NewTabDisclaimerDiv>
+                </div>
               </div>
             )}
           </>
@@ -472,39 +459,39 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
   }, []);
 
   const infoBox = (
-    <StyledBox ref={measuredRef}>
-      <StyledBoxHeading>
+    <div css={boxStyles} ref={measuredRef}>
+      <h2 css={boxHeadingStyles}>
         Plan Information <br />
         <small>
           <strong>ID:</strong> {actionId}
         </small>
-      </StyledBoxHeading>
+      </h2>
 
-      <StyledBoxSection>
-        <Intro>
+      <div css={boxSectionStyles}>
+        <p css={introStyles}>
           This page reflects information provided to EPA by the state on plans
           in place to restore water quality. These plans could include a{' '}
           <GlossaryTerm term="TMDL">TMDL</GlossaryTerm> and/or a watershed
           restoration plan.
-        </Intro>
-      </StyledBoxSection>
+        </p>
+      </div>
 
-      <InlineBoxSection>
+      <div css={inlineBoxSectionStyles}>
         <h3>Name:&nbsp;</h3>
         <p>{actionName}</p>
-      </InlineBoxSection>
+      </div>
 
-      <InlineBoxSection>
+      <div css={inlineBoxSectionStyles}>
         <h3>Completed:&nbsp;</h3>
         <p>{completionDate}</p>
-      </InlineBoxSection>
+      </div>
 
-      <InlineBoxSection>
+      <div css={inlineBoxSectionStyles}>
         <h3>Type:&nbsp;</h3>
         <p>{actionTypeCode}</p>
-      </InlineBoxSection>
+      </div>
 
-      <InlineBoxSection>
+      <div css={inlineBoxSectionStyles}>
         <h3>Status:&nbsp;</h3>
         <p>
           {/* if Action type is not a TMDL, change 'EPA Final Action' to 'Final */}
@@ -512,15 +499,15 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
             ? 'Final'
             : actionStatusCode}
         </p>
-      </InlineBoxSection>
+      </div>
 
-      <InlineBoxSection>
+      <div css={inlineBoxSectionStyles}>
         <h3>Organization Name (ID):&nbsp;</h3>
         <p>
           {organizationName} ({orgId})
         </p>
-      </InlineBoxSection>
-    </StyledBox>
+      </div>
+    </div>
   );
 
   const [expandedRows, setExpandedRows] = React.useState([]);
@@ -538,11 +525,13 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
       <Page>
         <NavBar title={<>Plan Summary</>} />
 
-        <Container>
-          <ErrorBox>
-            <p>{noActionsAvailableCombo(orgId, actionId)}</p>
-          </ErrorBox>
-        </Container>
+        <div css={splitLayoutContainerStyles}>
+          <div css={errorBoxStyles}>
+            <StyledErrorBox>
+              <p>{noActionsAvailableCombo(orgId, actionId)}</p>
+            </StyledErrorBox>
+          </div>
+        </div>
       </Page>
     );
   }
@@ -552,11 +541,13 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
       <Page>
         <NavBar title={<>Plan Summary</>} />
 
-        <Container>
-          <ErrorBox>
-            <p>{actionsError}</p>
-          </ErrorBox>
-        </Container>
+        <div css={splitLayoutContainerStyles}>
+          <div css={errorBoxStyles}>
+            <StyledErrorBox>
+              <p>{actionsError}</p>
+            </StyledErrorBox>
+          </div>
+        </div>
       </Page>
     );
   }
@@ -583,12 +574,12 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
     <Page>
       <NavBar title="Plan Summary" />
 
-      <Container data-content="container">
+      <div css={splitLayoutContainerStyles} data-content="container">
         <WindowSize>
           {({ width, height }) => {
             return (
-              <StyledColumns>
-                <StyledColumn>
+              <div css={splitLayoutColumnsStyles}>
+                <div css={splitLayoutColumnStyles}>
                   {width < 960 ? (
                     <>
                       {infoBox}
@@ -627,18 +618,18 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                       </div>
                     </StickyBox>
                   )}
-                </StyledColumn>
+                </div>
 
-                <StyledColumn>
-                  <StyledBox>
-                    <StyledBoxHeading>Associated Documents</StyledBoxHeading>
+                <div css={splitLayoutColumnStyles}>
+                  <div css={boxStyles}>
+                    <h2 css={boxHeadingStyles}>Associated Documents</h2>
                     {documents.length > 0 && (
-                      <NewTabDisclaimerItalic>
+                      <em css={newTabDisclaimerItalicStyles}>
                         Links below open in a new browser tab.
-                      </NewTabDisclaimerItalic>
+                      </em>
                     )}
-                    <StyledBoxSection>
-                      <ul>
+                    <div css={boxSectionStyles}>
+                      <ul css={ulStyles}>
                         {documents.length === 0 && (
                           <li>No documents are available</li>
                         )}
@@ -656,15 +647,15 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                             </li>
                           ))}
                       </ul>
-                    </StyledBoxSection>
-                  </StyledBox>
+                    </div>
+                  </div>
 
                   {actionTypeCode === 'TMDL' && (
-                    <StyledBox>
-                      <StyledBoxHeading>Impairments Addressed</StyledBoxHeading>
+                    <div css={boxStyles}>
+                      <h2 css={boxHeadingStyles}>Impairments Addressed</h2>
 
-                      <StyledBoxSection>
-                        <ul>
+                      <div css={boxSectionStyles}>
+                        <ul css={ulStyles}>
                           {pollutants.length === 0 && (
                             <li>No impairments are addressed</li>
                           )}
@@ -674,16 +665,16 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                               <li key={pollutant}>{pollutant}</li>
                             ))}
                         </ul>
-                      </StyledBoxSection>
-                    </StyledBox>
+                      </div>
+                    </div>
                   )}
 
-                  <StyledBox>
-                    <StyledBoxHeading>Waters Covered</StyledBoxHeading>
+                  <div css={boxStyles}>
+                    <h2 css={boxHeadingStyles}>Waters Covered</h2>
 
-                    <StyledBoxSection>
+                    <div css={boxSectionStyles}>
                       {waters.length > 0 && (
-                        <Accordions>
+                        <AccordionList>
                           <VirtualizedList
                             items={waters}
                             expandedRowsSetter={setExpandedRows}
@@ -736,7 +727,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                                       );
                                   }}
                                 >
-                                  <AccordionContent>
+                                  <div css={accordionContentStyles}>
                                     {unitIds[assessmentUnitIdentifier] &&
                                       unitIds[assessmentUnitIdentifier](
                                         waterbodyReportingCycle,
@@ -758,21 +749,21 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                                         />
                                       )}
                                     </p>
-                                  </AccordionContent>
+                                  </div>
                                 </AccordionItem>
                               );
                             }}
                           />
-                        </Accordions>
+                        </AccordionList>
                       )}
-                    </StyledBoxSection>
-                  </StyledBox>
-                </StyledColumn>
-              </StyledColumns>
+                    </div>
+                  </div>
+                </div>
+              </div>
             );
           }}
         </WindowSize>
-      </Container>
+      </div>
     </Page>
   );
 }

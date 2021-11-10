@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
@@ -19,13 +19,13 @@ import {
 import { MapHighlightContext } from 'contexts/MapHighlight';
 
 // --- styled components ---
-const Text = styled.p`
+const textStyles = css`
   margin: 1em;
   padding-bottom: 0;
   font-weight: bold;
 `;
 
-const Legend = styled.div`
+const legendStyles = css`
   margin: 1em;
   display: flex;
   flex-flow: row wrap;
@@ -37,7 +37,7 @@ const Legend = styled.div`
   }
 `;
 
-const WaterbodyContent = styled.div`
+const waterbodyContentStyles = css`
   padding: 0.875em;
 
   button {
@@ -79,7 +79,7 @@ function WaterbodyList({
 
   if (loading || !waterbodies) return <LoadingSpinner />;
   if (!loading && waterbodies && waterbodies.length <= 0) {
-    return <Text>No waterbodies found.</Text>;
+    return <p css={textStyles}>No waterbodies found.</p>;
   }
 
   waterbodies.sort((objA, objB) => {
@@ -88,8 +88,8 @@ function WaterbodyList({
 
   return (
     <>
-      <Text>Waterbody Conditions:</Text>
-      <Legend>
+      <p css={textStyles}>Waterbody Conditions:</p>
+      <div css={legendStyles}>
         <span>
           <WaterbodyIcon condition={'good'} selected={false} />
           &nbsp;Good
@@ -102,7 +102,7 @@ function WaterbodyList({
           <WaterbodyIcon condition={'unassessed'} selected={false} />
           &nbsp;Condition Unknown
         </span>
-      </Legend>
+      </div>
       <AccordionList
         sortOptions={[
           { value: 'assessmentunitname', label: 'Waterbody Name' },
@@ -183,13 +183,13 @@ function WaterbodyList({
                   } else setExpandedRows(expandedRows.concat(index));
                 }}
               >
-                <WaterbodyContent>
+                <div css={waterbodyContentStyles}>
                   <WaterbodyInfo
                     type={'Waterbody State Overview'}
                     feature={graphic}
                   />
                   <ViewOnMapButton feature={graphic} />
-                </WaterbodyContent>
+                </div>
               </AccordionItem>
             );
           }}
