@@ -41,6 +41,8 @@ import {
   huc12SummaryError,
   zeroAssessedWaterbodies,
 } from 'config/errorMessages';
+// styles
+import { colors } from 'styles/index.js';
 
 const containerStyles = css`
   padding: 1em;
@@ -88,6 +90,11 @@ const toggleStyles = css`
   span {
     margin-left: 0.5rem;
   }
+`;
+
+const datetimeStyles = css`
+  font-style: italic;
+  color: ${colors.gray9};
 `;
 
 const iconStyles = css`
@@ -141,7 +148,6 @@ function Overview() {
 
   const services = useServicesContext();
 
-  // set the waterbody features
   const waterbodies = useWaterbodyFeatures();
 
   const uniqueWaterbodies = waterbodies
@@ -527,21 +533,19 @@ function Overview() {
                       <tbody>
                         {gage.Datastreams.map((data, dataIndex) => {
                           const measurement = data.Observations[0].result;
-                          const time = new Date(
+                          const datetime = new Date(
                             data.Observations[0].phenomenonTime,
                           ).toLocaleString();
-                          const unit = data.unitOfMeasurement.symbol;
-                          const unitInfo = data.unitOfMeasurement.name;
+                          const unitAbbr = data.unitOfMeasurement.symbol;
+                          const unitName = data.unitOfMeasurement.name;
                           return (
                             <tr key={dataIndex}>
-                              <td>{data.properties.ParameterCode}</td>
+                              <td>{data.description.split(' / USGS-')[0]}</td>
                               <td>
-                                {measurement}&nbsp;
-                                <span title={unitInfo}>{unit}</span>
+                                <strong>{measurement}</strong>&nbsp;
+                                <small title={unitName}>{unitAbbr}</small>
                                 <br />
-                                <small>
-                                  <em>{time}</em>
-                                </small>
+                                <small css={datetimeStyles}>{datetime}</small>
                               </td>
                             </tr>
                           );
