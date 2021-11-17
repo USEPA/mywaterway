@@ -1446,7 +1446,7 @@ function useGeometryUtils() {
         subtractor,
       );
 
-      feature.geometry = newGeometry ?? feature.geometry;
+      feature.geometry = newGeometry;
       features.push(feature);
     });
 
