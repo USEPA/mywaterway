@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 // components
@@ -102,7 +102,7 @@ const iconStyles = css`
 `;
 
 function Overview() {
-  const { Graphic } = React.useContext(EsriModulesContext);
+  const { Graphic } = useContext(EsriModulesContext);
 
   const {
     cipSummary,
@@ -117,7 +117,7 @@ function Overview() {
     watershed,
     visibleLayers,
     setVisibleLayers,
-  } = React.useContext(LocationSearchContext);
+  } = useContext(LocationSearchContext);
 
   const [waterbodiesDisplayed, setWaterbodiesDisplayed] = useState(true);
 
@@ -331,26 +331,25 @@ function Overview() {
   const totalPermittedDischargers =
     permittedDischargers.data.Results?.Facilities.length;
 
-  const [
-    monitoringLocationsSortedBy,
-    setMonitoringLocationsSortedBy,
-  ] = useState('MonitoringLocationName');
+  const [sampleLocationsSortedBy, setSampleLocationsSortedBy] = useState(
+    'MonitoringLocationName',
+  );
 
   const sortedMonitoringStations = monitoringStations.data.features
     ? monitoringStations.data.features.sort((objA, objB) => {
         // sort resultCount (measurements) in descending order
-        if (monitoringLocationsSortedBy === 'resultCount') {
+        if (sampleLocationsSortedBy === 'resultCount') {
           return objB.properties.resultCount - objA.properties.resultCount;
         }
 
-        if (monitoringLocationsSortedBy === 'MonitoringLocationIdentifier') {
+        if (sampleLocationsSortedBy === 'MonitoringLocationIdentifier') {
           const a = objA.properties.MonitoringLocationIdentifier.split('-')[1];
           const b = objB.properties.MonitoringLocationIdentifier.split('-')[1];
           return a.localeCompare(b);
         }
 
-        return objA.properties[monitoringLocationsSortedBy].localeCompare(
-          objB.properties[monitoringLocationsSortedBy],
+        return objA.properties[sampleLocationsSortedBy].localeCompare(
+          objB.properties[sampleLocationsSortedBy],
         );
       })
     : [];
@@ -462,7 +461,7 @@ function Overview() {
               </>
             }
             onSortChange={(sortBy) => {
-              setMonitoringLocationsSortedBy(sortBy.value);
+              setSampleLocationsSortedBy(sortBy.value);
             }}
             sortOptions={[
               {
@@ -490,18 +489,6 @@ function Overview() {
               const type = gage.properties.monitoringLocationType;
               const org = gage.properties.agency;
               const orgId = gage.properties.agencyCode;
-              // const feature = {
-              //   geometry: {
-              //     type: 'point',
-              //     longitude: Locations[0].location.coordinates[0],
-              //     latitude: Locations[0].location.coordinates[1],
-              //   },
-              //   symbol: {
-              //     type: 'simple-marker',
-              //     style: 'circle',
-              //   },
-              //   attributes: properties,
-              // };
               return (
                 <AccordionItem
                   key={gageIndex}
