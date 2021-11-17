@@ -121,6 +121,10 @@ function Overview() {
 
   const [waterbodiesDisplayed, setWaterbodiesDisplayed] = useState(true);
 
+  const [sampleLocationsDisplayed, setSampleLocationsDisplayed] = useState(
+    false,
+  );
+
   const [
     monitoringStationsDisplayed,
     setMonitoringStationsDisplayed,
@@ -135,16 +139,24 @@ function Overview() {
     setPermittedDischargersDisplayed,
   ] = useState(false);
 
-  const [
-    monitoringLocationsDisplayed,
-    setMonitoringLocationsDisplayed,
-  ] = useState(false);
-
+  // when the "Sample Locations" switch is turned on or off, the "Daily Stream
+  // Flow Conditions" and "Monitoring Stations" switches will be turned on/off
   useEffect(() => {
-    // TODO: determine how monitoring stations and usgs streamgages switches are
-    // toggled whenever the 'monitoringLocationsDisplayed' switch is true
-    console.log(monitoringLocationsDisplayed);
-  }, [monitoringLocationsDisplayed]);
+    setUsgsStreamgagesDisplayed(sampleLocationsDisplayed);
+    setMonitoringStationsDisplayed(sampleLocationsDisplayed);
+  }, [sampleLocationsDisplayed]);
+
+  // if either of the "Daily Stream Flow Conditions" or "Monitoring Stations"
+  // switches are turned on, or if both switches are turned off, keep the
+  // "Sample Locations" switch in sync
+  useEffect(() => {
+    if (usgsStreamgagesDisplayed || monitoringStationsDisplayed) {
+      setSampleLocationsDisplayed(true);
+    }
+    if (!usgsStreamgagesDisplayed && !monitoringStationsDisplayed) {
+      setSampleLocationsDisplayed(false);
+    }
+  }, [usgsStreamgagesDisplayed, monitoringStationsDisplayed]);
 
   const services = useServicesContext();
 
@@ -178,10 +190,18 @@ function Overview() {
     if (!usgsStreamgages.data.value) return;
 
     const gages = usgsStreamgages.data.value.map((gage) => {
+      // TODO: determine if there's a better way to isolate gage height measurements
+      const gageHeight = gage.Datastreams.find((data) => {
+        return data.properties.ParameterCode === '00065';
+      })?.Observations[0].result;
+
       return {
         x: gage.Locations[0].location.coordinates[0],
         y: gage.Locations[0].location.coordinates[1],
-        properties: gage.properties,
+        properties: {
+          ...gage.properties,
+          gageHeight: Number(gageHeight) || 0,
+        },
       };
     });
 
@@ -283,7 +303,7 @@ function Overview() {
     ],
   );
 
-  // Updates visible layers based on webservice statuses.
+  // update visible layers based on webservice statuses.
   useEffect(() => {
     updateVisibleLayers({ useCurrentValue: true });
   }, [
@@ -301,12 +321,12 @@ function Overview() {
 
   const totalUsgsStreamgages = usgsStreamgages.data.value?.length;
 
-  const totalMonitoringLocations =
+  const totalSampleLocations =
     totalMonitoringStations && totalUsgsStreamgages
       ? totalMonitoringStations + totalUsgsStreamgages
       : null;
 
-  const displayedMonitoringLocations = []; // TODO: displayed monitoring stations and usgs streamgages
+  const displayedSampleLocations = []; // TODO: displayed monitoring stations and usgs streamgages
 
   const totalPermittedDischargers =
     permittedDischargers.data.Results?.Facilities.length;
@@ -360,13 +380,13 @@ function Overview() {
 
   const monitoringLocationsTabContents = (
     <>
-      {totalMonitoringLocations === 0 && (
+      {totalSampleLocations === 0 && (
         <p css={centeredTextStyles}>
           There are no Water Monitoring Locations in the {watershed} watershed.
         </p>
       )}
 
-      {totalMonitoringLocations && totalMonitoringLocations > 0 && (
+      {totalSampleLocations && totalSampleLocations > 0 && (
         <>
           <table css={tableStyles} className="table">
             <thead>
@@ -436,8 +456,8 @@ function Overview() {
             expandDisabled={true} // disabled to avoid large number of web service calls
             title={
               <>
-                <strong>{displayedMonitoringLocations.length}</strong> of{' '}
-                <strong>{totalMonitoringLocations}</strong> Water Monitoring
+                <strong>{displayedSampleLocations.length}</strong> of{' '}
+                <strong>{totalSampleLocations}</strong> Water Monitoring
                 Locations in the <em>{watershed}</em> watershed.
               </>
             }
@@ -748,23 +768,20 @@ function Overview() {
               <span css={keyMetricNumberStyles}>
                 {monitoringStations.status === 'failure' ||
                 usgsStreamgages.status === 'failure' ||
-                !totalMonitoringLocations
+                !totalSampleLocations
                   ? 'N/A'
-                  : totalMonitoringLocations || 0}
+                  : totalSampleLocations || 0}
               </span>
               <p css={keyMetricLabelStyles}>Sample Locations</p>
               <div css={switchContainerStyles}>
                 <Switch
                   checked={
-                    Boolean(totalMonitoringLocations) &&
-                    monitoringLocationsDisplayed
+                    Boolean(totalSampleLocations) && sampleLocationsDisplayed
                   }
                   onChange={(checked) => {
-                    setMonitoringLocationsDisplayed(
-                      !monitoringLocationsDisplayed,
-                    );
+                    setSampleLocationsDisplayed(!sampleLocationsDisplayed);
                   }}
-                  disabled={!Boolean(totalMonitoringLocations)}
+                  disabled={!Boolean(totalSampleLocations)}
                   ariaLabel="Sample Locations"
                 />
               </div>
