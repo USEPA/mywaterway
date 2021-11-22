@@ -341,14 +341,12 @@ function Overview() {
                     setSampleLocationsDisplayed(!sampleLocationsDisplayed);
                     setUsgsStreamgagesDisplayed(!sampleLocationsDisplayed);
                     setMonitoringStationsDisplayed(!sampleLocationsDisplayed);
-                    // TODO: update updateVisibleLayers function to take more than one layer? ("key" argument)
-                    updateVisibleLayers({
-                      key: 'usgsStreamgagesLayer',
-                      value: !sampleLocationsDisplayed,
-                    });
-                    updateVisibleLayers({
-                      key: 'monitoringStationsLayer',
-                      value: sampleLocationsDisplayed,
+                    setVisibleLayers({
+                      usgsStreamgagesLayer: !sampleLocationsDisplayed,
+                      monitoringStationsLayer: !sampleLocationsDisplayed,
+                      // NOTE: no change for the following layers:
+                      waterbodyLayer: waterbodiesDisplayed,
+                      dischargersLayer: permittedDischargersDisplayed,
                     });
                   }}
                   disabled={!Boolean(totalSampleLocations)}
