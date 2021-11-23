@@ -241,13 +241,11 @@ function Overview() {
 
   const totalWaterbodies = uniqueWaterbodies.length;
 
-  const totalMonitoringStations = monitoringStations.data.features?.length;
-
-  const totalUsgsStreamgages = usgsStreamgages.data.value?.length;
-
   const totalSampleLocations =
-    totalMonitoringStations && totalUsgsStreamgages
-      ? totalMonitoringStations + totalUsgsStreamgages
+    monitoringStations.data.features?.length &&
+    usgsStreamgages.data.value?.length
+      ? monitoringStations.data.features.length +
+        usgsStreamgages.data.value.length
       : null;
 
   const totalPermittedDischargers =
@@ -409,10 +407,6 @@ function Overview() {
 
             <TabPanel>
               <SampleLocationsTab
-                monitoringStations
-                totalMonitoringStations={totalMonitoringStations}
-                totalUsgsStreamgages={totalUsgsStreamgages}
-                totalSampleLocations={totalSampleLocations}
                 setSampleLocationsDisplayed={setSampleLocationsDisplayed}
                 monitoringStationsDisplayed={monitoringStationsDisplayed}
                 setMonitoringStationsDisplayed={setMonitoringStationsDisplayed}
@@ -451,9 +445,6 @@ function WaterbodiesTab() {
 }
 
 function SampleLocationsTab({
-  totalMonitoringStations,
-  totalUsgsStreamgages,
-  totalSampleLocations,
   setSampleLocationsDisplayed,
   monitoringStationsDisplayed,
   setMonitoringStationsDisplayed,
@@ -529,28 +520,77 @@ function SampleLocationsTab({
     setSampleLocationsDisplayed,
   ]);
 
+  const normalizedUsgsStreamgages = usgsStreamgages.data.value
+    ? usgsStreamgages.data.value.map((gage) => ({
+        sampleType: 'USGS Streamgage',
+        siteId: gage.properties.monitoringLocationNumber,
+        orgId: gage.properties.agencyCode,
+        orgName: gage.properties.agency,
+        locationLongitude: gage.Locations[0].location.coordinates[0],
+        locationLatitude: gage.Locations[0].location.coordinates[1],
+        locationName: gage.properties.monitoringLocationName,
+        locationType: gage.properties.monitoringLocationType,
+        locationUrl: gage.properties.monitoringLocationUrl,
+        // usgs streamgage specific properties:
+        streamGageMeasurements: gage.Datastreams.map((data) => ({
+          parameter: data.description.split(' / USGS-')[0],
+          measurement: data.Observations[0].result,
+          datetime: new Date(
+            data.Observations[0].phenomenonTime,
+          ).toLocaleString(),
+          unitAbbr: data.unitOfMeasurement.symbol,
+          unitName: data.unitOfMeasurement.name,
+        })),
+      }))
+    : [];
+
+  const normalizedMonitoringStations = monitoringStations.data.features
+    ? monitoringStations.data.features.map((station) => ({
+        sampleType: 'Monitoring Station',
+        siteId: station.properties.MonitoringLocationIdentifier.split('-')[1],
+        orgId: station.properties.OrganizationIdentifier,
+        orgName: station.properties.OrganizationFormalName,
+        locationLongitude: station.x,
+        locationLatitude: station.y,
+        locationName: station.properties.MonitoringLocationName,
+        locationType: station.properties.MonitoringLocationTypeName,
+        locationUrl:
+          `${services.data.waterQualityPortal.monitoringLocationDetails}` +
+          `${station.properties.ProviderName}/` +
+          `${station.properties.OrganizationIdentifier}/` +
+          `${station.properties.MonitoringLocationIdentifier}/`,
+        // monitoring station specific properties:
+        stationTotalSamples: station.properties.activityCount,
+        stationTotalMeasurements: station.properties.resultCount,
+        stationCharacteristicGroups: [].map((data) => ({
+          groupName: '',
+          totalMeasurements: '',
+        })),
+      }))
+    : [];
+
+  const allSampleLocations = [
+    ...normalizedUsgsStreamgages,
+    ...normalizedMonitoringStations,
+  ];
+
   const [sampleLocationsSortedBy, setSampleLocationsSortedBy] = useState(
-    'MonitoringLocationName',
+    'locationName',
   );
 
-  const sortedMonitoringStations = monitoringStations.data.features
-    ? monitoringStations.data.features.sort((objA, objB) => {
-        // sort resultCount (measurements) in descending order
-        if (sampleLocationsSortedBy === 'resultCount') {
-          return objB.properties.resultCount - objA.properties.resultCount;
-        }
+  const sortedSampleLocations = allSampleLocations.sort((a, b) => {
+    if (sampleLocationsSortedBy === 'stationTotalMeasurements') {
+      return (
+        (b.stationTotalMeasurements || 0) - (a.stationTotalMeasurements || 0)
+      );
+    }
 
-        if (sampleLocationsSortedBy === 'MonitoringLocationIdentifier') {
-          const a = objA.properties.MonitoringLocationIdentifier.split('-')[1];
-          const b = objB.properties.MonitoringLocationIdentifier.split('-')[1];
-          return a.localeCompare(b);
-        }
+    if (sampleLocationsSortedBy === 'siteId') {
+      return a.siteId.localeCompare(b.siteId);
+    }
 
-        return objA.properties[sampleLocationsSortedBy].localeCompare(
-          objB.properties[sampleLocationsSortedBy],
-        );
-      })
-    : [];
+    return a[sampleLocationsSortedBy].localeCompare(b[sampleLocationsSortedBy]);
+  });
 
   const displayedSampleLocations = []; // TODO: displayed monitoring stations and usgs streamgages
 
@@ -578,14 +618,14 @@ function SampleLocationsTab({
   ) {
     return (
       <>
-        {totalSampleLocations === 0 && (
+        {allSampleLocations.length === 0 && (
           <p css={centeredTextStyles}>
             There are no Water Monitoring Locations in the {watershed}{' '}
             watershed.
           </p>
         )}
 
-        {totalSampleLocations && totalSampleLocations > 0 && (
+        {allSampleLocations.length > 0 && (
           <>
             <table css={tableStyles} className="table">
               <thead>
@@ -602,7 +642,7 @@ function SampleLocationsTab({
                     <div css={toggleStyles}>
                       <Switch
                         checked={
-                          Boolean(totalUsgsStreamgages) &&
+                          normalizedUsgsStreamgages.length > 0 &&
                           usgsStreamgagesDisplayed
                         }
                         onChange={(checked) => {
@@ -615,20 +655,20 @@ function SampleLocationsTab({
                             value: !usgsStreamgagesDisplayed,
                           });
                         }}
-                        disabled={!Boolean(totalUsgsStreamgages)}
+                        disabled={normalizedUsgsStreamgages.length === 0}
                         ariaLabel="Daily Stream Flow Conditions"
                       />
                       <span>Daily Stream Flow Conditions</span>
                     </div>
                   </td>
-                  <td>{totalUsgsStreamgages}</td>
+                  <td>{normalizedUsgsStreamgages.length}</td>
                 </tr>
                 <tr>
                   <td>
                     <div css={toggleStyles}>
                       <Switch
                         checked={
-                          Boolean(totalMonitoringStations) &&
+                          normalizedMonitoringStations.length > 0 &&
                           monitoringStationsDisplayed
                         }
                         onChange={(checked) => {
@@ -641,13 +681,13 @@ function SampleLocationsTab({
                             value: !monitoringStationsDisplayed,
                           });
                         }}
-                        disabled={!Boolean(totalMonitoringStations)}
+                        disabled={normalizedMonitoringStations.length === 0}
                         ariaLabel="Monitoring Stations"
                       />
                       <span>Monitoring Stations</span>
                     </div>
                   </td>
-                  <td>{totalMonitoringStations}</td>
+                  <td>{normalizedMonitoringStations.length}</td>
                 </tr>
               </tbody>
             </table>
@@ -657,50 +697,66 @@ function SampleLocationsTab({
               title={
                 <>
                   <strong>{displayedSampleLocations.length}</strong> of{' '}
-                  <strong>{totalSampleLocations}</strong> Water Monitoring
+                  <strong>{allSampleLocations.length}</strong> Water Monitoring
                   Locations in the <em>{watershed}</em> watershed.
                 </>
               }
-              onSortChange={(sortBy) => {
-                setSampleLocationsSortedBy(sortBy.value);
-              }}
+              onSortChange={({ value }) => setSampleLocationsSortedBy(value)}
               sortOptions={[
                 {
-                  value: 'MonitoringLocationName',
                   label: 'Monitoring Location Name',
+                  value: 'locationName',
                 },
                 {
-                  value: 'OrganizationIdentifier',
                   label: 'Organization ID',
+                  value: 'orgId',
                 },
                 {
-                  value: 'MonitoringLocationIdentifier',
                   label: 'Monitoring Site ID',
+                  value: 'siteId',
                 },
                 {
-                  value: 'resultCount',
                   label: 'Monitoring Measurements',
+                  value: 'stationTotalMeasurements',
                 },
               ]}
             >
-              {usgsStreamgages.data.value.map((gage, gageIndex) => {
-                const id = gage.properties.monitoringLocationNumber;
-                const url = gage.properties.monitoringLocationUrl;
-                const name = gage.properties.monitoringLocationName;
-                const type = gage.properties.monitoringLocationType;
-                const org = gage.properties.agency;
-                const orgId = gage.properties.agencyCode;
+              {sortedSampleLocations.map((item, index) => {
+                const feature = {
+                  geometry: {
+                    type: 'point',
+                    longitude: item.locationLongitude,
+                    latitude: item.locationLatitude,
+                  },
+                  symbol: {
+                    type: 'simple-marker',
+                    style: 'square',
+                  },
+                  attributes: item, // TODO: update <AccordionItem>, <WaterbodyInfo>, and <ViewOnMapButton>'s use of feature.attributes
+                };
+
                 return (
                   <AccordionItem
-                    key={gageIndex}
-                    title={<strong>{name || 'Unknown'}</strong>}
+                    key={index}
+                    title={<strong>{item.locationName || 'Unknown'}</strong>}
                     subTitle={
                       <>
-                        <em>Organization ID:</em>&nbsp;&nbsp;{orgId}
+                        <em>Sample Type:</em>&nbsp;&nbsp;{item.sampleType}
                         <br />
-                        <em>Monitoring Site ID:</em>&nbsp;&nbsp;{id}
+                        <em>Organization ID:</em>&nbsp;&nbsp;{item.orgId}
+                        <br />
+                        <em>Monitoring Site ID:</em>&nbsp;&nbsp;{item.siteId}
+                        {item.sampleType === 'Monitoring Station' && (
+                          <>
+                            <br />
+                            <em>Monitoring Measurements:</em>&nbsp;&nbsp;
+                            {item.stationTotalMeasurements}
+                          </>
+                        )}
                       </>
                     }
+                    feature={feature} // TODO: revisit
+                    idKey={'MonitoringLocationIdentifier'} // TODO: revisit
                   >
                     <div css={accordionContentStyles}>
                       <table className="table">
@@ -709,115 +765,83 @@ function SampleLocationsTab({
                             <td>
                               <em>Organization:</em>
                             </td>
-                            <td>{org}</td>
+                            <td>{item.orgName}</td>
                           </tr>
                           <tr>
                             <td>
                               <em>Location Name:</em>
                             </td>
-                            <td>{name}</td>
+                            <td>{item.locationName}</td>
                           </tr>
                           <tr>
                             <td>
                               <em>Monitoring Location Type:</em>
                             </td>
-                            <td>{type}</td>
+                            <td>{item.locationType}</td>
                           </tr>
                           <tr>
                             <td>
                               <em>Monitoring Site ID:</em>
                             </td>
-                            <td>{id}</td>
+                            <td>{item.siteId}</td>
                           </tr>
                         </tbody>
                       </table>
-                      <table css={tableStyles} className="table">
-                        <thead>
-                          <tr>
-                            <th>Parameter</th>
-                            <th>Latest Measurement</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {gage.Datastreams.map((data, dataIndex) => {
-                            const measurement = data.Observations[0].result;
-                            const datetime = new Date(
-                              data.Observations[0].phenomenonTime,
-                            ).toLocaleString();
-                            const unitAbbr = data.unitOfMeasurement.symbol;
-                            const unitName = data.unitOfMeasurement.name;
-                            return (
-                              <tr key={dataIndex}>
-                                <td>{data.description.split(' / USGS-')[0]}</td>
-                                <td>
-                                  <strong>{measurement}</strong>&nbsp;
-                                  <small title={unitName}>{unitAbbr}</small>
-                                  <br />
-                                  <small css={datetimeStyles}>{datetime}</small>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                      <a rel="noopener noreferrer" target="_blank" href={url}>
-                        <i
-                          css={iconStyles}
-                          className="fas fa-info-circle"
-                          aria-hidden="true"
-                        />
-                        More Information
-                      </a>
-                      &nbsp;&nbsp;
-                      <small>(opens new browser tab)</small>
-                    </div>
-                  </AccordionItem>
-                );
-              })}
 
-              {sortedMonitoringStations.map((station, stationIndex) => {
-                const id = station.properties.MonitoringLocationIdentifier;
-                const name = station.properties.MonitoringLocationName;
-                const orgId = station.properties.OrganizationIdentifier;
-                const result = station.properties.resultCount;
-                const feature = {
-                  geometry: {
-                    type: 'point',
-                    longitude: station.x,
-                    latitude: station.y,
-                  },
-                  symbol: {
-                    type: 'simple-marker',
-                    style: 'square',
-                  },
-                  attributes: station.properties,
-                };
-                return (
-                  <AccordionItem
-                    key={stationIndex}
-                    title={<strong>{name || 'Unknown'}</strong>}
-                    subTitle={
-                      <>
-                        <em>Organization ID:</em>&nbsp;&nbsp;{orgId}
-                        <br />
-                        <em>Monitoring Site ID:</em>&nbsp;&nbsp;
-                        {id.split('-')[1]}
-                        <br />
-                        <em>Monitoring Measurements:</em>
-                        &nbsp;&nbsp;
-                        {Number(result).toLocaleString()}
-                      </>
-                    }
-                    feature={feature}
-                    idKey={'MonitoringLocationIdentifier'}
-                  >
-                    <div css={accordionContentStyles}>
-                      <WaterbodyInfo
-                        type={'Monitoring Location'}
-                        feature={feature}
-                        services={services}
-                      />
-                      <ViewOnMapButton feature={feature} />
+                      {item.sampleType === 'USGS Streamgage' && (
+                        <>
+                          <table css={tableStyles} className="table">
+                            <thead>
+                              <tr>
+                                <th>Parameter</th>
+                                <th>Latest Measurement</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {item.streamGageMeasurements.map((data, idx) => (
+                                <tr key={idx}>
+                                  <td>{data.parameter}</td>
+                                  <td>
+                                    <strong>{data.measurement}</strong>&nbsp;
+                                    <small title={data.unitName}>
+                                      {data.unitAbbr}
+                                    </small>
+                                    <br />
+                                    <small css={datetimeStyles}>
+                                      {data.datetime}
+                                    </small>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                          <a
+                            rel="noopener noreferrer"
+                            target="_blank"
+                            href={item.locationUrl}
+                          >
+                            <i
+                              css={iconStyles}
+                              className="fas fa-info-circle"
+                              aria-hidden="true"
+                            />
+                            More Information
+                          </a>
+                          &nbsp;&nbsp;
+                          <small>(opens new browser tab)</small>
+                        </>
+                      )}
+
+                      {item.sampleType === 'Monitoring Station' && (
+                        <>
+                          <WaterbodyInfo
+                            type="Monitoring Location"
+                            feature={feature}
+                            services={services}
+                          />
+                          <ViewOnMapButton feature={feature} />
+                        </>
+                      )}
                     </div>
                   </AccordionItem>
                 );
