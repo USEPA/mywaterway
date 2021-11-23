@@ -562,6 +562,7 @@ function SampleLocationsTab({
         // monitoring station specific properties:
         stationTotalSamples: station.properties.activityCount,
         stationTotalMeasurements: station.properties.resultCount,
+        // TODO
         stationCharacteristicGroups: [].map((data) => ({
           groupName: '',
           totalMeasurements: '',
@@ -592,7 +593,12 @@ function SampleLocationsTab({
     return a[sampleLocationsSortedBy].localeCompare(b[sampleLocationsSortedBy]);
   });
 
-  const displayedSampleLocations = []; // TODO: displayed monitoring stations and usgs streamgages
+  const filteredSampleLocations = sortedSampleLocations.filter((item) => {
+    const displayedTypes = [];
+    if (usgsStreamgagesDisplayed) displayedTypes.push('USGS Streamgage');
+    if (monitoringStationsDisplayed) displayedTypes.push('Monitoring Station');
+    return displayedTypes.includes(item.sampleType);
+  });
 
   if (
     monitoringStations.status === 'fetching' ||
@@ -696,7 +702,7 @@ function SampleLocationsTab({
               expandDisabled={true} // disabled to avoid large number of web service calls
               title={
                 <>
-                  <strong>{displayedSampleLocations.length}</strong> of{' '}
+                  <strong>{filteredSampleLocations.length}</strong> of{' '}
                   <strong>{allSampleLocations.length}</strong> Water Monitoring
                   Locations in the <em>{watershed}</em> watershed.
                 </>
@@ -721,7 +727,7 @@ function SampleLocationsTab({
                 },
               ]}
             >
-              {sortedSampleLocations.map((item, index) => {
+              {filteredSampleLocations.map((item, index) => {
                 const feature = {
                   geometry: {
                     type: 'point',
