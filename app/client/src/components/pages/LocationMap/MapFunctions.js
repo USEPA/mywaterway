@@ -3,11 +3,34 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { css } from 'styled-components/macro';
 // components
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
-import MapPopup from 'components/shared/MapPopup';
+import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 // styles
 import { colors } from 'styles/index.js';
+
+const popupContainerStyles = css`
+  margin: 0;
+  overflow-y: auto;
+
+  .esri-feature & p {
+    padding-bottom: 0;
+  }
+`;
+
+const popupContentStyles = css`
+  margin-top: 0.5rem;
+  margin-left: 0.625em;
+`;
+
+const popupTitleStyles = css`
+  margin-bottom: 0;
+  padding: 0.45em 0.625em !important;
+  font-size: 0.8125em;
+  font-weight: bold;
+  background-color: #f0f6f9;
+`;
 
 const waterbodyStatuses = {
   good: { condition: 'good', label: 'Good' },
@@ -230,24 +253,25 @@ export function plotStations(
 
   // put graphics on the layer
   stations.forEach((station) => {
-    station.properties.fullPopup = false;
+    station.fullPopup = false;
+
     layer.graphics.add(
       new Graphic({
         geometry: {
-          type: 'point', // autocasts as new Point()
-          longitude: station.x,
-          latitude: station.y,
+          type: 'point',
+          longitude: station.locationLongitude,
+          latitude: station.locationLatitude,
         },
         symbol: {
-          type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
+          type: 'simple-marker',
           style: 'square',
           color: colors.lightPurple(),
         },
-        attributes: station.properties,
+        attributes: station,
         popupTemplate: {
-          title: getPopupTitle(station.properties),
+          title: getPopupTitle(station),
           content: getPopupContent({
-            feature: { attributes: station.properties },
+            feature: { attributes: station },
             services,
           }),
         },
@@ -263,26 +287,30 @@ export function plotGages(Graphic: any, gages: Object[], layer: any) {
   layer.graphics.removeAll();
 
   gages.forEach((gage) => {
-    gage.properties.fullPopup = false;
+    // TODO: determine if there's a better way to isolate gage height measurements
+    const gageHeight = gage.streamGageMeasurements.find((data) => {
+      return data.parameterCode === '00065';
+    })?.measurement;
+
     layer.graphics.add(
       new Graphic({
         geometry: {
           type: 'point',
-          longitude: gage.x,
-          latitude: gage.y,
+          longitude: gage.locationLongitude,
+          latitude: gage.locationLatitude,
         },
         symbol: {
           type: 'simple-marker',
           style: 'circle',
           color: colors.yellow, // TODO: change color
         },
-        attributes: gage.properties,
-        // popupTemplate: {
-        //   title: getPopupTitle(gage.properties),
-        //   content: getPopupContent({
-        //     feature: { attributes: gage.properties },
-        //   }),
-        // },
+        attributes: gage,
+        popupTemplate: {
+          title: getPopupTitle(gage),
+          content: getPopupContent({
+            feature: { attributes: gage },
+          }),
+        },
       }),
     );
   });
@@ -403,9 +431,13 @@ export const openPopup = (
   services: Object,
 ) => {
   // tell the getPopupContent function to use the full popup version that includes the service call
-  if (feature.attributes && feature.attributes.MonitoringLocationName) {
+  if (
+    feature.attributes &&
+    feature.attributes.sampleType === 'Monitoring Station'
+  ) {
     feature.attributes.fullPopup = true;
   }
+
   const fieldName = feature.attributes && feature.attributes.fieldName;
 
   // set the popup template
@@ -478,9 +510,12 @@ export function getPopupTitle(attributes: Object) {
     title = attributes.CWPName;
   }
 
-  // monitoring location
-  else if (attributes.MonitoringLocationName) {
-    title = attributes.MonitoringLocationName;
+  // sample location
+  else if (
+    attributes.sampleType === 'Monitoring Station' ||
+    attributes.sampleType === 'USGS Streamgage'
+  ) {
+    title = attributes.locationName;
   }
 
   // protect tab teal nonprofits
@@ -575,18 +610,14 @@ export function getPopupContent({
     type = 'Permitted Discharger';
   }
 
-  // monitoring location popup
-  else if (
-    attributes &&
-    attributes.MonitoringLocationName &&
-    attributes.fullPopup === false
-  ) {
-    type = 'Monitoring Location Map Popup';
-  }
-
-  // monitoring location accordion
-  else if (attributes && attributes.MonitoringLocationName) {
-    type = 'Monitoring Location';
+  // monitoring location
+  else if (attributes && attributes.sampleType === 'Monitoring Station') {
+    type =
+      attributes.fullPopup === false
+        ? // monitoring location popup
+          'Monitoring Location Map Popup'
+        : // monitoring location accordion
+          'Monitoring Location';
   }
 
   // protect tab teal nonprofits
@@ -645,16 +676,31 @@ export function getPopupContent({
   }
 
   const content = (
-    <MapPopup
-      type={type}
-      feature={feature}
-      fieldName={fieldName}
-      extraContent={extraContent}
-      getClickedHuc={getClickedHuc}
-      resetData={resetData}
-      services={services}
-      fields={fields}
-    />
+    <div css={popupContainerStyles}>
+      {(type !== 'Action' ||
+        'Change Location' ||
+        'Waterbody State Overview') && (
+        <p css={popupTitleStyles}>
+          {type === 'Demographic Indicators'
+            ? `${type} - ${feature.layer.title}`
+            : type}
+        </p>
+      )}
+
+      <div css={popupContentStyles}>
+        <WaterbodyInfo
+          type={type}
+          feature={feature}
+          fieldName={fieldName}
+          isPopup={true}
+          extraContent={extraContent}
+          getClickedHuc={getClickedHuc}
+          resetData={resetData}
+          services={services}
+          fields={fields}
+        />
+      </div>
+    </div>
   );
 
   // wrap the content for esri

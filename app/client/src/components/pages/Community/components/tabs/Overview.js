@@ -464,45 +464,6 @@ function SampleLocationsTab({
 
   const services = useServicesContext();
 
-  // draw the monitoring stations on the map
-  useEffect(() => {
-    if (services.status === 'fetching') return;
-    if (!monitoringStations.data.features) return;
-
-    const stations = monitoringStations.data.features.map((station) => {
-      return {
-        x: station.geometry.coordinates[0],
-        y: station.geometry.coordinates[1],
-        properties: station.properties,
-      };
-    });
-
-    plotStations(Graphic, stations, monitoringStationsLayer, services);
-  }, [Graphic, monitoringStations.data, monitoringStationsLayer, services]);
-
-  // draw the usgs streamgages on the map
-  useEffect(() => {
-    if (!usgsStreamgages.data.value) return;
-
-    const gages = usgsStreamgages.data.value.map((gage) => {
-      // TODO: determine if there's a better way to isolate gage height measurements
-      const gageHeight = gage.Datastreams.find((data) => {
-        return data.properties.ParameterCode === '00065';
-      })?.Observations[0].result;
-
-      return {
-        x: gage.Locations[0].location.coordinates[0],
-        y: gage.Locations[0].location.coordinates[1],
-        properties: {
-          ...gage.properties,
-          gageHeight: Number(gageHeight) || 0,
-        },
-      };
-    });
-
-    plotGages(Graphic, gages, usgsStreamgagesLayer);
-  }, [Graphic, usgsStreamgages.data, usgsStreamgagesLayer]);
-
   // if either of the "Daily Stream Flow Conditions" or "Monitoring Stations"
   // switches are turned on, or if both switches are turned off, keep the
   // "Sample Locations" switch in sync
@@ -520,58 +481,85 @@ function SampleLocationsTab({
     setSampleLocationsDisplayed,
   ]);
 
-  const normalizedUsgsStreamgages = usgsStreamgages.data.value
-    ? usgsStreamgages.data.value.map((gage) => ({
-        sampleType: 'USGS Streamgage',
-        siteId: gage.properties.monitoringLocationNumber,
-        orgId: gage.properties.agencyCode,
-        orgName: gage.properties.agency,
-        locationLongitude: gage.Locations[0].location.coordinates[0],
-        locationLatitude: gage.Locations[0].location.coordinates[1],
-        locationName: gage.properties.monitoringLocationName,
-        locationType: gage.properties.monitoringLocationType,
-        locationUrl: gage.properties.monitoringLocationUrl,
-        // usgs streamgage specific properties:
-        streamGageMeasurements: gage.Datastreams.map((data) => ({
-          parameter: data.description.split(' / USGS-')[0],
-          measurement: data.Observations[0].result,
-          datetime: new Date(
-            data.Observations[0].phenomenonTime,
-          ).toLocaleString(),
-          unitAbbr: data.unitOfMeasurement.symbol,
-          unitName: data.unitOfMeasurement.name,
-        })),
-      }))
-    : [];
+  const [normalizedUsgsStreamgages, setNormalizedUsgsStreamgages] = useState(
+    [],
+  );
 
-  const normalizedMonitoringStations = monitoringStations.data.features
-    ? monitoringStations.data.features.map((station) => ({
-        sampleType: 'Monitoring Station',
-        siteId: station.properties.MonitoringLocationIdentifier,
-        orgId: station.properties.OrganizationIdentifier,
-        orgName: station.properties.OrganizationFormalName,
-        locationLongitude: station.x,
-        locationLatitude: station.y,
-        locationName: station.properties.MonitoringLocationName,
-        locationType: station.properties.MonitoringLocationTypeName,
-        // TODO: explore if the built up locationUrl below is ever different from
-        // `station.properties.siteUrl`. from a quick test, they seem the same
-        locationUrl:
-          `${services.data.waterQualityPortal.monitoringLocationDetails}` +
-          `${station.properties.ProviderName}/` +
-          `${station.properties.OrganizationIdentifier}/` +
-          `${station.properties.MonitoringLocationIdentifier}/`,
-        // monitoring station specific properties:
-        stationProviderName: station.properties.ProviderName,
-        stationTotalSamples: station.properties.activityCount,
-        stationTotalMeasurements: station.properties.resultCount,
-        // TODO
-        stationCharacteristicGroups: [].map((data) => ({
-          groupName: '',
-          totalMeasurements: '',
-        })),
-      }))
-    : [];
+  // normalize USGS streamgages data with monitoring stations data,
+  // and draw them on the map
+  useEffect(() => {
+    if (!usgsStreamgages.data.value) return;
+
+    const gages = usgsStreamgages.data.value.map((gage) => ({
+      sampleType: 'USGS Streamgage',
+      siteId: gage.properties.monitoringLocationNumber,
+      orgId: gage.properties.agencyCode,
+      orgName: gage.properties.agency,
+      locationLongitude: gage.Locations[0].location.coordinates[0],
+      locationLatitude: gage.Locations[0].location.coordinates[1],
+      locationName: gage.properties.monitoringLocationName,
+      locationType: gage.properties.monitoringLocationType,
+      locationUrl: gage.properties.monitoringLocationUrl,
+      // usgs streamgage specific properties:
+      streamGageMeasurements: gage.Datastreams.map((data) => ({
+        parameterDescription: data.description.split(' / USGS-')[0],
+        parameterCode: data.properties.ParameterCode,
+        measurement: data.Observations[0].result,
+        datetime: new Date(
+          data.Observations[0].phenomenonTime,
+        ).toLocaleString(),
+        unitAbbr: data.unitOfMeasurement.symbol,
+        unitName: data.unitOfMeasurement.name,
+      })),
+    }));
+
+    setNormalizedUsgsStreamgages(gages);
+
+    plotGages(Graphic, gages, usgsStreamgagesLayer);
+  }, [Graphic, usgsStreamgages.data, usgsStreamgagesLayer]);
+
+  const [
+    normalizedMonitoringStations,
+    setNormalizedMonitoringStations,
+  ] = useState([]);
+
+  // normalize monitoring stations data with USGS streamgages data,
+  // and draw them on the map
+  useEffect(() => {
+    if (services.status === 'fetching') return;
+    if (!monitoringStations.data.features) return;
+
+    const stations = monitoringStations.data.features.map((station) => ({
+      sampleType: 'Monitoring Station',
+      siteId: station.properties.MonitoringLocationIdentifier,
+      orgId: station.properties.OrganizationIdentifier,
+      orgName: station.properties.OrganizationFormalName,
+      locationLongitude: station.geometry.coordinates[0],
+      locationLatitude: station.geometry.coordinates[1],
+      locationName: station.properties.MonitoringLocationName,
+      locationType: station.properties.MonitoringLocationTypeName,
+      // TODO: explore if the built up locationUrl below is ever different from
+      // `station.properties.siteUrl`. from a quick test, they seem the same
+      locationUrl:
+        `${services.data.waterQualityPortal.monitoringLocationDetails}` +
+        `${station.properties.ProviderName}/` +
+        `${station.properties.OrganizationIdentifier}/` +
+        `${station.properties.MonitoringLocationIdentifier}/`,
+      // monitoring station specific properties:
+      stationProviderName: station.properties.ProviderName,
+      stationTotalSamples: station.properties.activityCount,
+      stationTotalMeasurements: station.properties.resultCount,
+      // TODO
+      stationCharacteristicGroups: [].map((data) => ({
+        groupName: '',
+        totalMeasurements: '',
+      })),
+    }));
+
+    setNormalizedMonitoringStations(stations);
+
+    plotStations(Graphic, stations, monitoringStationsLayer, services);
+  }, [Graphic, monitoringStations.data, monitoringStationsLayer, services]);
 
   const allSampleLocations = [
     ...normalizedUsgsStreamgages,
@@ -741,7 +729,7 @@ function SampleLocationsTab({
                     type: 'simple-marker',
                     style: 'square',
                   },
-                  attributes: item, // TODO: update <ViewOnMapButton>'s use of feature.attributes
+                  attributes: item,
                 };
 
                 return (
@@ -769,37 +757,39 @@ function SampleLocationsTab({
                     idKey="siteId"
                   >
                     <div css={accordionContentStyles}>
-                      <table className="table">
-                        <tbody>
-                          <tr>
-                            <td>
-                              <em>Organization:</em>
-                            </td>
-                            <td>{item.orgName}</td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <em>Location Name:</em>
-                            </td>
-                            <td>{item.locationName}</td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <em>Monitoring Location Type:</em>
-                            </td>
-                            <td>{item.locationType}</td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <em>Monitoring Site ID:</em>
-                            </td>
-                            <td>{item.siteId.replace(`${item.orgId}-`, '')}</td>
-                          </tr>
-                        </tbody>
-                      </table>
-
                       {item.sampleType === 'USGS Streamgage' && (
                         <>
+                          <table className="table">
+                            <tbody>
+                              <tr>
+                                <td>
+                                  <em>Organization:</em>
+                                </td>
+                                <td>{item.orgName}</td>
+                              </tr>
+                              <tr>
+                                <td>
+                                  <em>Location Name:</em>
+                                </td>
+                                <td>{item.locationName}</td>
+                              </tr>
+                              <tr>
+                                <td>
+                                  <em>Monitoring Location Type:</em>
+                                </td>
+                                <td>{item.locationType}</td>
+                              </tr>
+                              <tr>
+                                <td>
+                                  <em>Monitoring Site ID:</em>
+                                </td>
+                                <td>
+                                  {item.siteId.replace(`${item.orgId}-`, '')}
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+
                           <table css={tableStyles} className="table">
                             <thead>
                               <tr>
@@ -810,7 +800,7 @@ function SampleLocationsTab({
                             <tbody>
                               {item.streamGageMeasurements.map((data, idx) => (
                                 <tr key={idx}>
-                                  <td>{data.parameter}</td>
+                                  <td>{data.parameterDescription}</td>
                                   <td>
                                     <strong>{data.measurement}</strong>&nbsp;
                                     <small title={data.unitName}>
@@ -825,33 +815,35 @@ function SampleLocationsTab({
                               ))}
                             </tbody>
                           </table>
-                          <a
-                            rel="noopener noreferrer"
-                            target="_blank"
-                            href={item.locationUrl}
-                          >
-                            <i
-                              css={iconStyles}
-                              className="fas fa-info-circle"
-                              aria-hidden="true"
-                            />
-                            More Information
-                          </a>
-                          &nbsp;&nbsp;
-                          <small>(opens new browser tab)</small>
+
+                          <div>
+                            <a
+                              rel="noopener noreferrer"
+                              target="_blank"
+                              href={item.locationUrl}
+                            >
+                              <i
+                                css={iconStyles}
+                                className="fas fa-info-circle"
+                                aria-hidden="true"
+                              />
+                              More Information
+                            </a>
+                            &nbsp;&nbsp;
+                            <small>(opens new browser tab)</small>
+                          </div>
                         </>
                       )}
 
                       {item.sampleType === 'Monitoring Station' && (
-                        <>
-                          <WaterbodyInfo
-                            type="Monitoring Location"
-                            feature={feature}
-                            services={services}
-                          />
-                          <ViewOnMapButton feature={feature} />
-                        </>
+                        <WaterbodyInfo
+                          type="Monitoring Location"
+                          feature={feature}
+                          services={services}
+                        />
                       )}
+
+                      <ViewOnMapButton feature={feature} />
                     </div>
                   </AccordionItem>
                 );
@@ -936,7 +928,7 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
               },
             ]}
           >
-            {sortedPermittedDischargers.map((discharger, dischargerIndex) => {
+            {sortedPermittedDischargers.map((discharger, index) => {
               const id = discharger.SourceID;
               const name = discharger.CWPName;
               const feature = {
@@ -949,14 +941,14 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
               };
               return (
                 <AccordionItem
-                  key={dischargerIndex}
+                  key={index}
                   title={<strong>{name || 'Unknown'}</strong>}
                   subTitle={<>NPDES ID: {id}</>}
                   feature={feature}
                   idKey="CWPName"
                 >
                   <WaterbodyInfo
-                    type={'Permitted Discharger'}
+                    type="Permitted Discharger"
                     feature={feature}
                   />
                   <ViewOnMapButton feature={feature} />
