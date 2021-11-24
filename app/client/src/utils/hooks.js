@@ -217,6 +217,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     areasLayer, //part of waterbody group layer
     issuesLayer,
     monitoringStationsLayer,
+    usgsStreamgagesLayer,
     dischargersLayer,
     nonprofitsLayer,
     upstreamLayer,
@@ -352,8 +353,10 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       featureLayerType = 'waterbodyLayer';
     } else if (attributes.CWPName) {
       layer = dischargersLayer;
-    } else if (attributes.MonitoringLocationIdentifier) {
+    } else if (attributes.sampleType === 'Monitoring Station') {
       layer = monitoringStationsLayer;
+    } else if (attributes.sampleType === 'USGS Streamgage') {
+      layer = usgsStreamgagesLayer;
     } else if (attributes.type === 'nonprofit') {
       layer = nonprofitsLayer;
     } else if (attributes.xwalk_huc12) {
@@ -523,6 +526,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     pointsLayer,
     dischargersLayer,
     monitoringStationsLayer,
+    usgsStreamgagesLayer,
     nonprofitsLayer,
     upstreamLayer,
     issuesLayer,
