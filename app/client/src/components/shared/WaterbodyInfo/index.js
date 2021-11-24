@@ -73,7 +73,7 @@ const iconStyles = css`
   margin-right: 5px;
 `;
 
-const datetimeStyles = css`
+const additionalTextStyles = css`
   font-style: italic;
   color: ${colors.gray9};
 `;
@@ -623,12 +623,16 @@ function WaterbodyInfo({
           <tbody>
             {attributes.streamGageMeasurements.map((data, index) => (
               <tr key={index}>
-                <td>{data.parameterDescription}</td>
+                <td>
+                  {data.parameterDescription}
+                  <br />
+                  <small css={additionalTextStyles}>{data.parameterCode}</small>
+                </td>
                 <td>
                   <strong>{data.measurement}</strong>&nbsp;
                   <small title={data.unitName}>{data.unitAbbr}</small>
                   <br />
-                  <small css={datetimeStyles}>{data.datetime}</small>
+                  <small css={additionalTextStyles}>{data.datetime}</small>
                 </td>
               </tr>
             ))}
