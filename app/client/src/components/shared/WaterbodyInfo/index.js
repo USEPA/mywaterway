@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { navigate } from '@reach/router';
 // components
@@ -124,7 +124,7 @@ type Props = {
   fieldName: ?string,
   isPopup: boolean,
   extraContent: ?Object,
-  location: ?Object,
+  getClickedHuc: ?Function,
   resetData: ?Function,
   services: ?Object,
   fields: ?Object,
@@ -142,32 +142,25 @@ function WaterbodyInfo({
   fields,
 }: Props) {
   // Gets the response of what huc was clicked, if provided.
-  const [clickedHuc, setClickedHuc] = React.useState({
-    status: 'none',
-    data: null,
-  });
-  React.useEffect(() => {
+  const [clickedHuc, setClickedHuc] = useState<{
+    status: 'none' | 'fetching' | 'success' | 'failure',
+    data: { huc12: any, watershed: any } | null,
+  }>({ status: 'none', data: null });
+
+  useEffect(() => {
     if (!getClickedHuc || clickedHuc.status !== 'none') return;
 
-    setClickedHuc({
-      status: 'fetching',
-      data: null,
-    });
+    setClickedHuc({ status: 'fetching', data: null });
 
     getClickedHuc
-      .then((res) => {
-        setClickedHuc(res);
-      })
+      .then((res) => setClickedHuc(res))
       .catch((err) => {
         console.error(err);
-        setClickedHuc({
-          status: 'failure',
-          data: null,
-        });
+        setClickedHuc({ status: 'failure', data: null });
       });
   }, [getClickedHuc, clickedHuc]);
 
-  const attributes = feature.attributes;
+  const { attributes } = feature;
 
   const labelValue = (label, value, icon = null) => {
     if (isPopup) {
@@ -508,76 +501,62 @@ function WaterbodyInfo({
 
     const wqpUrl =
       `${services.data.waterQualityPortal.monitoringLocation}` +
-      `search?mimeType=geojson&zip=no&siteid=` +
-      `${attributes.MonitoringLocationIdentifier}`;
+      `search?mimeType=geojson&zip=no&siteid=${attributes.siteId}`;
 
     fetchCheck(wqpUrl)
       .then((res) => {
-        const fieldName = 'characteristicGroupResultCount';
-
         // get the feature where the provider matches this stations provider
         // default to the first feature
-        let groups = res.features[0].properties[fieldName];
-        res.features.forEach((feature) => {
-          if (feature.properties.ProviderName === attributes.ProviderName) {
-            groups = feature.properties[fieldName];
+        let stationGroups =
+          res.features[0].properties.characteristicGroupResultCount;
+
+        res.features.forEach(({ properties }) => {
+          if (properties.ProviderName === attributes.stationProviderName) {
+            stationGroups = properties.characteristicGroupResultCount;
           }
         });
 
-        const monitoringStationGroups = {
-          Other: { characteristicGroups: [], resultCount: 0 },
-        };
+        const groups = { Other: { characteristicGroups: [], resultCount: 0 } };
 
         characteristicGroupMappings.forEach((mapping) => {
-          for (const groupName in groups) {
+          for (const groupName in stationGroups) {
             if (
               mapping.groupNames.includes(groupName) &&
-              !monitoringStationGroups[
-                mapping.label
-              ]?.characteristicGroups.includes(groupName)
+              !groups[mapping.label]?.characteristicGroups.includes(groupName)
             ) {
               // push to existing group
-              if (monitoringStationGroups[mapping.label]) {
-                monitoringStationGroups[
-                  mapping.label
-                ].characteristicGroups.push(groupName);
-                monitoringStationGroups[mapping.label].resultCount +=
-                  groups[groupName];
+              if (groups[mapping.label]) {
+                groups[mapping.label].characteristicGroups.push(groupName);
+                groups[mapping.label].resultCount += stationGroups[groupName];
               }
               // create a new group
               else {
-                monitoringStationGroups[mapping.label] = {
+                groups[mapping.label] = {
                   characteristicGroups: [groupName],
-                  resultCount: groups[groupName],
+                  resultCount: stationGroups[groupName],
                 };
               }
             }
             // push to Other
             else if (
               !checkIfGroupInMapping(groupName) &&
-              !monitoringStationGroups['Other'].characteristicGroups.includes(
-                groupName,
-              )
+              !groups['Other'].characteristicGroups.includes(groupName)
             ) {
-              monitoringStationGroups['Other'].characteristicGroups.push(
-                groupName,
-              );
-              monitoringStationGroups['Other'].resultCount += groups[groupName];
+              groups['Other'].characteristicGroups.push(groupName);
+              groups['Other'].resultCount += stationGroups[groupName];
             }
           }
         });
 
         setMonitoringLocation({
           status: 'success',
-          data: monitoringStationGroups,
+          data: groups,
         });
 
         // initialize all options in selected to true
-        const newSelected = {};
-        Object.keys(monitoringStationGroups).forEach((key) => {
-          newSelected[key] = true;
-        });
-        setSelected(newSelected);
+        const selectedGroups = {};
+        Object.keys(groups).forEach((key) => (selectedGroups[key] = true));
+        setSelected(selectedGroups);
       })
       .catch((err) => {
         console.error(err);
@@ -587,47 +566,43 @@ function WaterbodyInfo({
         });
       });
   }, [
-    attributes.MonitoringLocationIdentifier,
-    attributes.ProviderName,
+    attributes.siteId,
+    attributes.stationProviderName,
     type,
     services,
     setSelected,
   ]);
 
   const monitoringContent = () => {
-    const buildFilter = (
-      selectedNames: Object,
-      monitoringLocationData: Object,
-    ) => {
+    function buildFilter(selectedNames, monitoringLocationData) {
       // build up filter text for the given table
       let filter = '';
 
       for (const name in selectedNames) {
         if (selectedNames[name]) {
-          const joinedGroupnames =
+          filter +=
             '&characteristicType=' +
             monitoringLocationData[name].characteristicGroups.join(
               '&characteristicType=',
             );
-          filter += joinedGroupnames;
         }
       }
 
       setCharGroupFilters(filter);
-    };
+    }
 
-    //Toggle an individual row and call the provided onChange event handler
-    const toggleRow = (mappedGroup: string, monitoringLocationData: Object) => {
-      const newSelected = Object.assign({}, selected);
+    // toggle an individual row and call the provided onChange event handler
+    function toggleRow(mappedGroup: string, monitoringLocationData: Object) {
+      const selectedGroups = { ...selected };
 
-      newSelected[mappedGroup] = !selected[mappedGroup];
+      selectedGroups[mappedGroup] = !selected[mappedGroup];
 
-      buildFilter(newSelected, monitoringLocationData);
-      setSelected(newSelected);
+      buildFilter(selectedGroups, monitoringLocationData);
+      setSelected(selectedGroups);
 
       // find the number of toggles currently true
       let numberSelected = 0;
-      Object.values(newSelected).forEach((value) => {
+      Object.values(selectedGroups).forEach((value) => {
         if (value) numberSelected++;
       });
 
@@ -648,24 +623,24 @@ function WaterbodyInfo({
       else {
         setSelectAll(2);
       }
-    };
+    }
 
-    //Toggle all rows and call the provided onChange event handler
-    const toggleSelectAll = () => {
-      let newSelected = {};
+    // toggle all rows and call the provided onChange event handler
+    function toggleAllCheckboxes() {
+      let selectedGroups = {};
 
       if (Object.keys(monitoringLocation.data).length > 0) {
         const newValue = selectAll === 0 ? true : false;
 
         Object.keys(monitoringLocation.data).forEach((key) => {
-          newSelected[key] = newValue;
+          selectedGroups[key] = newValue;
         });
       }
 
-      setSelected(newSelected);
+      setSelected(selectedGroups);
       setSelectAll(selectAll === 0 ? 1 : 0);
       setCharGroupFilters('');
-    };
+    }
 
     // if a user has filtered out certain characteristic groups for
     // a given table, that'll be used as additional query string
@@ -673,8 +648,7 @@ function WaterbodyInfo({
     // (see setCharGroupFilters in Table's onChange handler)
     const downloadUrl =
       `${services.data.waterQualityPortal.resultSearch}zip=no&siteid=` +
-      `${attributes.MonitoringLocationIdentifier}&providers=` +
-      `${attributes.ProviderName}` +
+      `${attributes.siteId}&providers=${attributes.stationProviderName}` +
       `${charGroupFilters}`;
 
     return (
@@ -685,50 +659,47 @@ function WaterbodyInfo({
               <td>
                 <em>Organization:</em>
               </td>
-              <td>{attributes.OrganizationFormalName}</td>
+              <td>{attributes.orgName}</td>
             </tr>
             <tr>
               <td>
                 <em>Location Name:</em>
               </td>
-              <td>{attributes.MonitoringLocationName}</td>
+              <td>{attributes.locationName}</td>
             </tr>
             <tr>
               <td>
                 <em>Monitoring Location Type:</em>
               </td>
-              <td>{attributes.MonitoringLocationTypeName}</td>
+              <td>{attributes.locationType}</td>
             </tr>
             <tr>
               <td>
                 <em>Monitoring Site ID:</em>
               </td>
-              <td>
-                {attributes.MonitoringLocationIdentifier.replace(
-                  `${attributes.OrganizationIdentifier}-`,
-                  '',
-                )}
-              </td>
+              <td>{attributes.siteId.replace(`${attributes.orgId}-`, '')}</td>
             </tr>
             <tr>
               <td>
                 <em>
-                  <GlossaryTerm term={'Monitoring Samples'}>
+                  <GlossaryTerm term="Monitoring Samples">
                     Monitoring Samples:
                   </GlossaryTerm>
                 </em>
               </td>
-              <td>{Number(attributes.activityCount).toLocaleString()}</td>
+              <td>{Number(attributes.stationTotalSamples).toLocaleString()}</td>
             </tr>
             <tr>
               <td>
                 <em>
-                  <GlossaryTerm term={'Monitoring Measurements'}>
+                  <GlossaryTerm term="Monitoring Measurements">
                     Monitoring Measurements:
                   </GlossaryTerm>
                 </em>
               </td>
-              <td>{Number(attributes.resultCount).toLocaleString()}</td>
+              <td>
+                {Number(attributes.stationTotalMeasurements).toLocaleString()}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -736,6 +707,7 @@ function WaterbodyInfo({
         <p>
           <strong>Download Monitoring Data:</strong>
         </p>
+
         {monitoringLocation.status === 'fetching' && <LoadingSpinner />}
 
         {monitoringLocation.status === 'failure' && (
@@ -762,23 +734,21 @@ function WaterbodyInfo({
                           className="checkbox"
                           checked={selectAll === 1}
                           ref={(input) => {
-                            if (input) {
-                              input.indeterminate = selectAll === 2;
-                            }
+                            if (input) input.indeterminate = selectAll === 2;
                           }}
-                          onChange={toggleSelectAll}
+                          onChange={(ev) => toggleAllCheckboxes()}
                         />
                       </CheckBoxContainer>
                     </th>
                     <th>
-                      <GlossaryTerm term={'Characteristic Group'}>
+                      <GlossaryTerm term="Characteristic Group">
                         Characteristic Group
-                      </GlossaryTerm>{' '}
+                      </GlossaryTerm>
                     </th>
                     <th>
-                      <GlossaryTerm term={'Monitoring Measurements'}>
+                      <GlossaryTerm term="Monitoring Measurements">
                         Number of Measurements
-                      </GlossaryTerm>{' '}
+                      </GlossaryTerm>
                     </th>
                   </tr>
                 </thead>
@@ -803,9 +773,9 @@ function WaterbodyInfo({
                               checked={
                                 selected[key] === true || selectAll === 1
                               }
-                              onChange={() =>
-                                toggleRow(key, monitoringLocation.data)
-                              }
+                              onChange={(ev) => {
+                                toggleRow(key, monitoringLocation.data);
+                              }}
                             />
                           </CheckBoxContainer>
                         </td>
@@ -840,15 +810,7 @@ function WaterbodyInfo({
           <a
             rel="noopener noreferrer"
             target="_blank"
-            href={
-              services.data.waterQualityPortal.monitoringLocationDetails +
-              attributes.ProviderName +
-              '/' +
-              attributes.OrganizationIdentifier +
-              '/' +
-              attributes.MonitoringLocationIdentifier +
-              '/'
-            }
+            href={attributes.locationUrl}
           >
             <Icon className="fas fa-info-circle" aria-hidden="true" />
             More Information

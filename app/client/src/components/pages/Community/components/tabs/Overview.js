@@ -547,19 +547,22 @@ function SampleLocationsTab({
   const normalizedMonitoringStations = monitoringStations.data.features
     ? monitoringStations.data.features.map((station) => ({
         sampleType: 'Monitoring Station',
-        siteId: station.properties.MonitoringLocationIdentifier.split('-')[1],
+        siteId: station.properties.MonitoringLocationIdentifier,
         orgId: station.properties.OrganizationIdentifier,
         orgName: station.properties.OrganizationFormalName,
         locationLongitude: station.x,
         locationLatitude: station.y,
         locationName: station.properties.MonitoringLocationName,
         locationType: station.properties.MonitoringLocationTypeName,
+        // TODO: explore if the built up locationUrl below is ever different from
+        // `station.properties.siteUrl`. from a quick test, they seem the same
         locationUrl:
           `${services.data.waterQualityPortal.monitoringLocationDetails}` +
           `${station.properties.ProviderName}/` +
           `${station.properties.OrganizationIdentifier}/` +
           `${station.properties.MonitoringLocationIdentifier}/`,
         // monitoring station specific properties:
+        stationProviderName: station.properties.ProviderName,
         stationTotalSamples: station.properties.activityCount,
         stationTotalMeasurements: station.properties.resultCount,
         // TODO
@@ -738,7 +741,7 @@ function SampleLocationsTab({
                     type: 'simple-marker',
                     style: 'square',
                   },
-                  attributes: item, // TODO: update <AccordionItem>, <WaterbodyInfo>, and <ViewOnMapButton>'s use of feature.attributes
+                  attributes: item, // TODO: update <ViewOnMapButton>'s use of feature.attributes
                 };
 
                 return (
@@ -751,7 +754,8 @@ function SampleLocationsTab({
                         <br />
                         <em>Organization ID:</em>&nbsp;&nbsp;{item.orgId}
                         <br />
-                        <em>Monitoring Site ID:</em>&nbsp;&nbsp;{item.siteId}
+                        <em>Monitoring Site ID:</em>&nbsp;&nbsp;
+                        {item.siteId.replace(`${item.orgId}-`, '')}
                         {item.sampleType === 'Monitoring Station' && (
                           <>
                             <br />
@@ -761,8 +765,8 @@ function SampleLocationsTab({
                         )}
                       </>
                     }
-                    feature={feature} // TODO: revisit
-                    idKey={'MonitoringLocationIdentifier'} // TODO: revisit
+                    feature={feature}
+                    idKey="siteId"
                   >
                     <div css={accordionContentStyles}>
                       <table className="table">
@@ -789,7 +793,7 @@ function SampleLocationsTab({
                             <td>
                               <em>Monitoring Site ID:</em>
                             </td>
-                            <td>{item.siteId}</td>
+                            <td>{item.siteId.replace(`${item.orgId}-`, '')}</td>
                           </tr>
                         </tbody>
                       </table>
@@ -949,7 +953,7 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
                   title={<strong>{name || 'Unknown'}</strong>}
                   subTitle={<>NPDES ID: {id}</>}
                   feature={feature}
-                  idKey={'CWPName'}
+                  idKey="CWPName"
                 >
                   <WaterbodyInfo
                     type={'Permitted Discharger'}
