@@ -1,12 +1,12 @@
 // @flow
 
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import { navigate } from '@reach/router';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
@@ -48,71 +48,62 @@ function renderLink(label, link) {
   );
 }
 
-//
-const CheckBox = styled.input`
-  -webkit-appearance: checkbox;
-  appearance: checkbox;
-  transform: scale(1.2);
-`;
-
-const CheckBoxContainer = styled.div`
-  padding-top: 2px;
-  padding-left: 1px;
-`;
-
-const DownloadLinks = styled.div`
-  margin-top: 0.5em;
-
-  a {
-    margin-left: 0.5em;
-  }
-`;
-
-const Icon = styled.i`
-  margin-right: 5px;
-`;
-
-const IconValue = styled.span`
-  display: inline-block;
-`;
-
-const Table = styled.table`
+const tableStyles = css`
   th:last-of-type,
   td:last-of-type {
     text-align: right;
   }
 `;
 
-const TextBottomPadding = styled.p`
+const checkboxStyles = css`
+  appearance: checkbox;
+  transform: scale(1.2);
+`;
+
+const linkStyles = css`
+  margin-left: 0.5em;
+`;
+
+const iconStyles = css`
+  margin-right: 5px;
+`;
+
+const popupIconStyles = css`
+  display: inline-block;
+`;
+
+const textStyles = css`
   padding-bottom: 0.5em;
 `;
 
-const NewTabDisclaimer = styled.div`
+const disclaimerStyles = css`
   display: inline-block;
   padding-bottom: 1.5em;
 `;
 
-const ButtonContainer = styled.div`
+const buttonsContainer = css`
   text-align: center;
+
+  button {
+    margin: 0 0.75em 1.5em;
+    font-size: 0.9375em;
+  }
 `;
 
-const ChangeLocationButton = styled.button`
-  font-size: 0.9375em;
+const primaryButtonStyles = css`
   color: ${colors.white()};
   background-color: ${colors.blue()};
 `;
 
-const CancelChangeLocationButton = styled.button`
-  margin-right: 15px;
-  font-size: 0.9375em;
+const secondaryButtonStyles = css`
   background-color: lightgray;
 `;
 
-const ScenicRiverImageContainer = styled.div`
+const imageContainerStyles = css`
   padding: 1rem;
 `;
 
-const ScenicRiverImage = styled.img`
+const imageStyles = css`
   width: 100%;
   height: auto;
 `;
@@ -162,15 +153,15 @@ function WaterbodyInfo({
 
   const { attributes } = feature;
 
-  const labelValue = (label, value, icon = null) => {
+  function labelValue(label, value, icon = null) {
     if (isPopup) {
       return (
         <p>
           <strong>{label}: </strong>
           {icon ? (
-            <IconValue>
+            <span css={popupIconStyles}>
               {icon} {value}
-            </IconValue>
+            </span>
           ) : (
             value
           )}
@@ -179,12 +170,12 @@ function WaterbodyInfo({
     }
 
     return (
-      <TextBottomPadding>
+      <p css={textStyles}>
         <strong>{label}: </strong>
         {value}
-      </TextBottomPadding>
+      </p>
     );
-  };
+  }
 
   const renderChangeWatershed = () => {
     if (!clickedHuc) return null;
@@ -203,22 +194,26 @@ function WaterbodyInfo({
               <br />
             </>
           )}
+
           {labelValue('WATERSHED', `${watershed} (${huc12})`)}
-          <ButtonContainer>
+
+          <div css={buttonsContainer}>
             {type === 'Change Location' && (
-              <CancelChangeLocationButton
+              <button
+                css={secondaryButtonStyles}
                 title=""
                 className="btn"
                 onClick={(ev) => {
                   if (!feature?.view) return;
-
                   feature.view.popup.close();
                 }}
               >
                 No
-              </CancelChangeLocationButton>
+              </button>
             )}
-            <ChangeLocationButton
+
+            <button
+              css={primaryButtonStyles}
               title="Change to this location"
               className="btn"
               onClick={(ev) => {
@@ -244,8 +239,8 @@ function WaterbodyInfo({
               }}
             >
               Yes
-            </ChangeLocationButton>
-          </ButtonContainer>
+            </button>
+          </div>
         </>
       );
     }
@@ -317,10 +312,10 @@ function WaterbodyInfo({
     return (
       <>
         {reportingCycle && (
-          <TextBottomPadding>
+          <p css={textStyles}>
             <strong>Year Last Reported: </strong>
             {reportingCycle}
-          </TextBottomPadding>
+          </p>
         )}
 
         {labelValue(
@@ -333,10 +328,10 @@ function WaterbodyInfo({
         )}
 
         {attributes?.organizationid && attributes?.organizationname && (
-          <TextBottomPadding>
+          <p css={textStyles}>
             <strong>Organization Name (ID): </strong>
-            {`${attributes.organizationname} (${attributes.organizationid})`}
-          </TextBottomPadding>
+            {attributes.organizationname} ({attributes.organizationid})
+          </p>
         )}
 
         {useLabel === 'Waterbody' && (
@@ -390,11 +385,15 @@ function WaterbodyInfo({
                 `${attributes.reportingcycle || ''}`
               }
             >
-              <Icon className="fas fa-file-alt" aria-hidden="true" />
+              <i
+                css={iconStyles}
+                className="fas fa-file-alt"
+                aria-hidden="true"
+              />
               View Waterbody Report
             </a>
             &nbsp;&nbsp;
-            <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
+            <div css={disclaimerStyles}>(opens new browser tab)</div>
           </div>
         ) : (
           <p>Unable to find a waterbody report for this waterbody.</p>
@@ -463,6 +462,7 @@ function WaterbodyInfo({
           </tr>
         </tbody>
       </table>
+
       <div>
         <a
           href={
@@ -472,11 +472,11 @@ function WaterbodyInfo({
           target="_blank"
           rel="noopener noreferrer"
         >
-          <Icon className="fas fa-file-alt" aria-hidden="true" />
+          <i css={iconStyles} className="fas fa-file-alt" aria-hidden="true" />
           <span>Facility Report</span>
         </a>
         &nbsp;&nbsp;
-        <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
+        <div css={disclaimerStyles}>(opens new browser tab)</div>
       </div>
     </>
   );
@@ -645,7 +645,7 @@ function WaterbodyInfo({
     // if a user has filtered out certain characteristic groups for
     // a given table, that'll be used as additional query string
     // parameters in the download URL string
-    // (see setCharGroupFilters in Table's onChange handler)
+    // (see setCharGroupFilters in table's onChange handler)
     const downloadUrl =
       `${services.data.waterQualityPortal.resultSearch}zip=no&siteid=` +
       `${attributes.siteId}&providers=${attributes.stationProviderName}` +
@@ -711,9 +711,9 @@ function WaterbodyInfo({
         {monitoringLocation.status === 'fetching' && <LoadingSpinner />}
 
         {monitoringLocation.status === 'failure' && (
-          <StyledErrorBox>
+          <div css={errorBoxStyles}>
             <p>{monitoringError}</p>
-          </StyledErrorBox>
+          </div>
         )}
 
         {monitoringLocation.status === 'success' && (
@@ -721,24 +721,24 @@ function WaterbodyInfo({
             {Object.keys(monitoringLocation.data).length === 0 && (
               <p>No data available for this monitoring location.</p>
             )}
+
             {Object.keys(monitoringLocation.data).length > 0 && (
-              <Table className="table">
+              <table css={tableStyles} className="table">
                 <thead>
                   <tr>
                     <th
                       style={{ textAlign: 'center', verticalAlign: 'middle' }}
                     >
-                      <CheckBoxContainer>
-                        <CheckBox
-                          type="checkbox"
-                          className="checkbox"
-                          checked={selectAll === 1}
-                          ref={(input) => {
-                            if (input) input.indeterminate = selectAll === 2;
-                          }}
-                          onChange={(ev) => toggleAllCheckboxes()}
-                        />
-                      </CheckBoxContainer>
+                      <input
+                        css={checkboxStyles}
+                        type="checkbox"
+                        className="checkbox"
+                        checked={selectAll === 1}
+                        ref={(input) => {
+                          if (input) input.indeterminate = selectAll === 2;
+                        }}
+                        onChange={(ev) => toggleAllCheckboxes()}
+                      />
                     </th>
                     <th>
                       <GlossaryTerm term="Characteristic Group">
@@ -766,18 +766,15 @@ function WaterbodyInfo({
                             verticalAlign: 'middle',
                           }}
                         >
-                          <CheckBoxContainer>
-                            <CheckBox
-                              type="checkbox"
-                              className="checkbox"
-                              checked={
-                                selected[key] === true || selectAll === 1
-                              }
-                              onChange={(ev) => {
-                                toggleRow(key, monitoringLocation.data);
-                              }}
-                            />
-                          </CheckBoxContainer>
+                          <input
+                            css={checkboxStyles}
+                            type="checkbox"
+                            className="checkbox"
+                            checked={selected[key] === true || selectAll === 1}
+                            onChange={(ev) => {
+                              toggleRow(key, monitoringLocation.data);
+                            }}
+                          />
                         </td>
                         <td>{key}</td>
                         <td>
@@ -789,45 +786,61 @@ function WaterbodyInfo({
                     );
                   })}
                 </tbody>
-              </Table>
+              </table>
             )}
           </>
         )}
-        <DownloadLinks>
-          <p>
-            <strong>Data Download Format:</strong>
-            <a href={`${downloadUrl}&mimeType=xlsx`}>
-              <Icon className="fas fa-file-excel" aria-hidden="true" />
-              xls
-            </a>
-            <a href={`${downloadUrl}&mimeType=csv`}>
-              <Icon className="fas fa-file-csv" aria-hidden="true" />
-              csv
-            </a>
-          </p>
-        </DownloadLinks>
+
+        <p>
+          <strong>Data Download Format:</strong>
+          <a css={linkStyles} href={`${downloadUrl}&mimeType=xlsx`}>
+            <i
+              css={iconStyles}
+              className="fas fa-file-excel"
+              aria-hidden="true"
+            />
+            xls
+          </a>
+          <a css={linkStyles} href={`${downloadUrl}&mimeType=csv`}>
+            <i
+              css={iconStyles}
+              className="fas fa-file-csv"
+              aria-hidden="true"
+            />
+            csv
+          </a>
+        </p>
+
         <div>
           <a
             rel="noopener noreferrer"
             target="_blank"
             href={attributes.locationUrl}
           >
-            <Icon className="fas fa-info-circle" aria-hidden="true" />
+            <i
+              css={iconStyles}
+              className="fas fa-info-circle"
+              aria-hidden="true"
+            />
             More Information
           </a>
           &nbsp;&nbsp;
-          <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
+          <div css={disclaimerStyles}>(opens new browser tab)</div>
           <br />
           <a
             rel="noopener noreferrer"
             target="_blank"
             href="https://www.waterqualitydata.us/portal_userguide/"
           >
-            <Icon className="fas fa-book-open" aria-hidden="true" />
+            <i
+              css={iconStyles}
+              className="fas fa-book-open"
+              aria-hidden="true"
+            />
             Water Quality Portal User Guide
           </a>
           &nbsp;&nbsp;
-          <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
+          <div css={disclaimerStyles}>(opens new browser tab)</div>
         </div>
       </>
     );
@@ -907,16 +920,15 @@ function WaterbodyInfo({
   const wildScenicRiversContent = (
     <>
       {attributes.PhotoLink && attributes.PhotoCredit && (
-        <>
-          <ScenicRiverImageContainer>
-            <ScenicRiverImage
-              src={attributes.PhotoLink}
-              alt="Wild and Scenic River"
-            ></ScenicRiverImage>
-            <br />
-            <em>Photo Credit: {attributes.PhotoCredit}</em>
-          </ScenicRiverImageContainer>
-        </>
+        <div css={imageContainerStyles}>
+          <img
+            css={imageStyles}
+            src={attributes.PhotoLink}
+            alt="Wild and Scenic River"
+          />
+          <br />
+          <em>Photo Credit: {attributes.PhotoCredit}</em>
+        </div>
       )}
       <p>
         <strong>Agency: </strong>
@@ -929,10 +941,14 @@ function WaterbodyInfo({
       </p>
       <div>
         <a rel="noopener noreferrer" target="_blank" href={attributes.WEBLINK}>
-          <Icon className="fas fa-info-circle" aria-hidden="true" />
+          <i
+            css={iconStyles}
+            className="fas fa-info-circle"
+            aria-hidden="true"
+          />
           More Information
         </a>{' '}
-        <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
+        <div css={disclaimerStyles}>(opens new browser tab)</div>
       </div>
     </>
   );
@@ -970,6 +986,7 @@ function WaterbodyInfo({
           </tr>
         </tbody>
       </table>
+
       {renderChangeWatershed()}
     </>
   );
@@ -1028,6 +1045,7 @@ function WaterbodyInfo({
       {labelValue('Percent Individuals Under 5', attributes.T_UNDR5PCT)}
 
       {labelValue('Percent Individuals Over 64', attributes.T_OVR64PCT)}
+
       {renderChangeWatershed()}
     </>
   );
