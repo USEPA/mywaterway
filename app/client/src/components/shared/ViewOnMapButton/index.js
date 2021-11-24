@@ -1,19 +1,21 @@
 // @flow
 
-import React from 'react';
-import styled from 'styled-components';
+import React, { useContext } from 'react';
+import { css } from 'styled-components/macro';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { MapHighlightContext } from 'contexts/MapHighlight';
 // styles
 import { colors } from 'styles/index.js';
 
-// --- styled components ---
-const Button = styled.button`
+const buttonStyles = css`
+  margin-bottom: 0;
+
   &:hover,
   &:focus {
     background-color: ${colors.navyBlue()};
   }
+
   &:disabled {
     opacity: 0.65;
     cursor: default;
@@ -44,24 +46,22 @@ function ViewOnMapButton({
     pointsLayer,
     linesLayer,
     areasLayer, //
-  } = React.useContext(LocationSearchContext);
+  } = useContext(LocationSearchContext);
 
-  const { setSelectedGraphic } = React.useContext(MapHighlightContext);
+  const { setSelectedGraphic } = useContext(MapHighlightContext);
 
-  function viewClick(feature: Object) {
+  function viewClick(feature) {
     // update context with the new selected graphic
-    feature.attributes['zoom'] = true;
-    feature.attributes['fieldName'] =
+    feature.attributes.zoom = true;
+    feature.attributes.fieldName =
       !fieldName && feature.attributes.assessmentunitidentifier
         ? 'Waterbody'
         : fieldName;
+
     setSelectedGraphic(feature);
   }
 
-  const {
-    organizationid: orgId,
-    assessmentunitidentifier: auId,
-  } = feature.attributes;
+  const { organizationid, assessmentunitidentifier } = feature.attributes;
 
   // Get the geometry by querying all of the feature layers.
   // The layers are processed in order of decreasing level of detail.
@@ -76,12 +76,13 @@ function ViewOnMapButton({
     // no additional layers will be queried.
     function queryLayers(index = 0) {
       const layer = searchLayers[index];
+
       if (layer.type === 'feature') {
         const params = layer.createQuery();
         params.returnGeometry = true;
         params.where = idField
           ? `${idField} = '${feature.attributes[idField]}'`
-          : `organizationid = '${orgId}' And assessmentunitidentifier = '${auId}'`;
+          : `organizationid = '${organizationid}' And assessmentunitidentifier = '${assessmentunitidentifier}'`;
         params.outFields = ['*'];
         layer
           .queryFeatures(params)
@@ -97,7 +98,9 @@ function ViewOnMapButton({
             }
           })
           .catch((err) => console.error(err));
-      } else if (layer.type === 'graphics') {
+      }
+
+      if (layer.type === 'graphics') {
         const { organizationid } = feature.attributes;
 
         for (const graphic of layer.graphics.items) {
@@ -107,7 +110,10 @@ function ViewOnMapButton({
             graphic &&
             graphic.attributes &&
             graphic.attributes.assessmentunitidentifier;
-          if (graphicOrgId === organizationid && graphicAuId === auId) {
+          if (
+            graphicOrgId === organizationid &&
+            graphicAuId === assessmentunitidentifier
+          ) {
             callback(graphic);
             return;
           }
@@ -122,11 +128,13 @@ function ViewOnMapButton({
   }
 
   return (
-    <Button
+    <button
+      css={buttonStyles}
       onClick={(ev) => {
         if (onClick) onClick();
 
         if (!feature) return;
+
         if (feature.geometry) {
           viewClick(feature);
         } else if (customQuery) {
@@ -139,7 +147,7 @@ function ViewOnMapButton({
     >
       <i className="fas fa-map-marker-alt" aria-hidden="true" />
       &nbsp;&nbsp;View on Map
-    </Button>
+    </button>
   );
 }
 

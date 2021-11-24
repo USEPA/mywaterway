@@ -41,8 +41,6 @@ import {
   huc12SummaryError,
   zeroAssessedWaterbodies,
 } from 'config/errorMessages';
-// styles
-import { colors } from 'styles/index.js';
 
 const containerStyles = css`
   padding: 1em;
@@ -90,15 +88,6 @@ const toggleStyles = css`
   span {
     margin-left: 0.5rem;
   }
-`;
-
-const datetimeStyles = css`
-  font-style: italic;
-  color: ${colors.gray9};
-`;
-
-const iconStyles = css`
-  margin-right: 5px;
 `;
 
 function Overview() {
@@ -758,86 +747,16 @@ function SampleLocationsTab({
                   >
                     <div css={accordionContentStyles}>
                       {item.sampleType === 'USGS Streamgage' && (
-                        <>
-                          <table className="table">
-                            <tbody>
-                              <tr>
-                                <td>
-                                  <em>Organization:</em>
-                                </td>
-                                <td>{item.orgName}</td>
-                              </tr>
-                              <tr>
-                                <td>
-                                  <em>Location Name:</em>
-                                </td>
-                                <td>{item.locationName}</td>
-                              </tr>
-                              <tr>
-                                <td>
-                                  <em>Monitoring Location Type:</em>
-                                </td>
-                                <td>{item.locationType}</td>
-                              </tr>
-                              <tr>
-                                <td>
-                                  <em>Monitoring Site ID:</em>
-                                </td>
-                                <td>
-                                  {item.siteId.replace(`${item.orgId}-`, '')}
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-
-                          <table css={tableStyles} className="table">
-                            <thead>
-                              <tr>
-                                <th>Parameter</th>
-                                <th>Latest Measurement</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {item.streamGageMeasurements.map((data, idx) => (
-                                <tr key={idx}>
-                                  <td>{data.parameterDescription}</td>
-                                  <td>
-                                    <strong>{data.measurement}</strong>&nbsp;
-                                    <small title={data.unitName}>
-                                      {data.unitAbbr}
-                                    </small>
-                                    <br />
-                                    <small css={datetimeStyles}>
-                                      {data.datetime}
-                                    </small>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-
-                          <div>
-                            <a
-                              rel="noopener noreferrer"
-                              target="_blank"
-                              href={item.locationUrl}
-                            >
-                              <i
-                                css={iconStyles}
-                                className="fas fa-info-circle"
-                                aria-hidden="true"
-                              />
-                              More Information
-                            </a>
-                            &nbsp;&nbsp;
-                            <small>(opens new browser tab)</small>
-                          </div>
-                        </>
+                        <WaterbodyInfo
+                          type="USGS Streamgage"
+                          feature={feature}
+                          services={services}
+                        />
                       )}
 
                       {item.sampleType === 'Monitoring Station' && (
                         <WaterbodyInfo
-                          type="Monitoring Location"
+                          type="Monitoring Station"
                           feature={feature}
                           services={services}
                         />

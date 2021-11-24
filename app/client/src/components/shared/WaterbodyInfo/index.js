@@ -68,6 +68,11 @@ const iconStyles = css`
   margin-right: 5px;
 `;
 
+const datetimeStyles = css`
+  font-style: italic;
+  color: ${colors.gray9};
+`;
+
 const popupIconStyles = css`
   display: inline-block;
 `;
@@ -393,7 +398,7 @@ function WaterbodyInfo({
               View Waterbody Report
             </a>
             &nbsp;&nbsp;
-            <div css={disclaimerStyles}>(opens new browser tab)</div>
+            <small css={disclaimerStyles}>(opens new browser tab)</small>
           </div>
         ) : (
           <p>Unable to find a waterbody report for this waterbody.</p>
@@ -465,10 +470,7 @@ function WaterbodyInfo({
 
       <div>
         <a
-          href={
-            `https://echo.epa.gov/detailed-facility-report` +
-            `?fid=${attributes.RegistryID}`
-          }
+          href={`https://echo.epa.gov/detailed-facility-report?fid=${attributes.RegistryID}`}
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -476,7 +478,7 @@ function WaterbodyInfo({
           <span>Facility Report</span>
         </a>
         &nbsp;&nbsp;
-        <div css={disclaimerStyles}>(opens new browser tab)</div>
+        <small css={disclaimerStyles}>(opens new browser tab)</small>
       </div>
     </>
   );
@@ -496,8 +498,9 @@ function WaterbodyInfo({
     status: 'fetching',
     data: [],
   });
-  React.useEffect(() => {
-    if (type !== 'Monitoring Location') return;
+
+  useEffect(() => {
+    if (type !== 'Monitoring Station') return;
 
     const wqpUrl =
       `${services.data.waterQualityPortal.monitoringLocation}` +
@@ -573,7 +576,81 @@ function WaterbodyInfo({
     setSelected,
   ]);
 
-  const monitoringContent = () => {
+  function usgsStreamgageContent() {
+    return (
+      <>
+        <table className="table">
+          <tbody>
+            <tr>
+              <td>
+                <em>Organization:</em>
+              </td>
+              <td>{attributes.orgName}</td>
+            </tr>
+            <tr>
+              <td>
+                <em>Location Name:</em>
+              </td>
+              <td>{attributes.locationName}</td>
+            </tr>
+            <tr>
+              <td>
+                <em>Monitoring Location Type:</em>
+              </td>
+              <td>{attributes.locationType}</td>
+            </tr>
+            <tr>
+              <td>
+                <em>Monitoring Site ID:</em>
+              </td>
+              <td>{attributes.siteId.replace(`${attributes.orgId}-`, '')}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <table css={tableStyles} className="table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Latest Measurement</th>
+            </tr>
+          </thead>
+          <tbody>
+            {attributes.streamGageMeasurements.map((data, idx) => (
+              <tr key={idx}>
+                <td>{data.parameterDescription}</td>
+                <td>
+                  <strong>{data.measurement}</strong>&nbsp;
+                  <small title={data.unitName}>{data.unitAbbr}</small>
+                  <br />
+                  <small css={datetimeStyles}>{data.datetime}</small>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div>
+          <a
+            rel="noopener noreferrer"
+            target="_blank"
+            href={attributes.locationUrl}
+          >
+            <i
+              css={iconStyles}
+              className="fas fa-info-circle"
+              aria-hidden="true"
+            />
+            More Information
+          </a>
+          &nbsp;&nbsp;
+          <small css={disclaimerStyles}>(opens new browser tab)</small>
+        </div>
+      </>
+    );
+  }
+
+  function monitoringStationContent() {
     function buildFilter(selectedNames, monitoringLocationData) {
       // build up filter text for the given table
       let filter = '';
@@ -825,7 +902,7 @@ function WaterbodyInfo({
             More Information
           </a>
           &nbsp;&nbsp;
-          <div css={disclaimerStyles}>(opens new browser tab)</div>
+          <small css={disclaimerStyles}>(opens new browser tab)</small>
           <br />
           <a
             rel="noopener noreferrer"
@@ -840,16 +917,19 @@ function WaterbodyInfo({
             Water Quality Portal User Guide
           </a>
           &nbsp;&nbsp;
-          <div css={disclaimerStyles}>(opens new browser tab)</div>
+          <small css={disclaimerStyles}>(opens new browser tab)</small>
         </div>
       </>
     );
-  };
+  }
 
-  // Default popup for monitoring popups, when opened a listener will populate the popup with everything the Listview item has
-  const monitoringMapPopupContent = () => {
-    return <>No data available.</>;
-  };
+  function monitoringStationMapPopupContent() {
+    return (
+      // default popup for monitoring map popups. when opened a listener
+      // will populate the popup with everything the listview item has
+      <>No data available.</>
+    );
+  }
 
   // jsx
   const nonprofitContent = (
@@ -947,8 +1027,9 @@ function WaterbodyInfo({
             aria-hidden="true"
           />
           More Information
-        </a>{' '}
-        <div css={disclaimerStyles}>(opens new browser tab)</div>
+        </a>
+        &nbsp;&nbsp;
+        <small css={disclaimerStyles}>(opens new browser tab)</small>
       </div>
     </>
   );
@@ -1061,10 +1142,11 @@ function WaterbodyInfo({
 
   if (type === 'Waterbody') return waterbodyContent();
   if (type === 'Permitted Discharger') return dischargerContent;
-  if (type === 'Monitoring Location Map Popup') {
-    return monitoringMapPopupContent();
+  if (type === 'USGS Streamgage') return usgsStreamgageContent();
+  if (type === 'Monitoring Station') return monitoringStationContent();
+  if (type === 'Monitoring Station Map Popup') {
+    return monitoringStationMapPopupContent();
   }
-  if (type === 'Monitoring Location') return monitoringContent();
   if (type === 'Nonprofit') return nonprofitContent;
   if (type === 'Waterbody State Overview') return waterbodyStateContent;
   if (type === 'Action') return actionContent;

@@ -567,7 +567,7 @@ function Monitoring() {
                             >
                               <AccordionContent>
                                 <WaterbodyInfo
-                                  type={'Monitoring Location'}
+                                  type="Monitoring Station"
                                   feature={feature}
                                   services={services}
                                 />

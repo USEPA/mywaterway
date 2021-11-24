@@ -610,14 +610,17 @@ export function getPopupContent({
     type = 'Permitted Discharger';
   }
 
-  // monitoring location
+  // usgs streamgage
+  else if (attributes && attributes.sampleType === 'USGS Streamgage') {
+    type = 'USGS Streamgage';
+  }
+
+  // monitoring station
   else if (attributes && attributes.sampleType === 'Monitoring Station') {
     type =
       attributes.fullPopup === false
-        ? // monitoring location popup
-          'Monitoring Location Map Popup'
-        : // monitoring location accordion
-          'Monitoring Location';
+        ? 'Monitoring Station Map Popup' /* map popup */
+        : 'Monitoring Station' /* accordion */;
   }
 
   // protect tab teal nonprofits
