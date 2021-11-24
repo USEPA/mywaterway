@@ -55,6 +55,11 @@ const tableStyles = css`
   }
 `;
 
+const checkboxCellStyles = css`
+  text-align: center;
+  vertical-align: middle;
+`;
+
 const checkboxStyles = css`
   appearance: checkbox;
   transform: scale(1.2);
@@ -616,8 +621,8 @@ function WaterbodyInfo({
             </tr>
           </thead>
           <tbody>
-            {attributes.streamGageMeasurements.map((data, idx) => (
-              <tr key={idx}>
+            {attributes.streamGageMeasurements.map((data, index) => (
+              <tr key={index}>
                 <td>{data.parameterDescription}</td>
                 <td>
                   <strong>{data.measurement}</strong>&nbsp;
@@ -803,9 +808,7 @@ function WaterbodyInfo({
               <table css={tableStyles} className="table">
                 <thead>
                   <tr>
-                    <th
-                      style={{ textAlign: 'center', verticalAlign: 'middle' }}
-                    >
+                    <th css={checkboxCellStyles}>
                       <input
                         css={checkboxStyles}
                         type="checkbox"
@@ -832,17 +835,13 @@ function WaterbodyInfo({
                 <tbody>
                   {Object.keys(monitoringLocation.data).map((key, index) => {
                     // ignore groups with 0 results
-                    if (monitoringLocation.data[key].resultCount === 0)
+                    if (monitoringLocation.data[key].resultCount === 0) {
                       return null;
+                    }
 
                     return (
                       <tr key={index}>
-                        <td
-                          style={{
-                            textAlign: 'center',
-                            verticalAlign: 'middle',
-                          }}
-                        >
+                        <td css={checkboxCellStyles}>
                           <input
                             css={checkboxStyles}
                             type="checkbox"

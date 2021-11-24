@@ -538,11 +538,6 @@ function SampleLocationsTab({
       stationProviderName: station.properties.ProviderName,
       stationTotalSamples: station.properties.activityCount,
       stationTotalMeasurements: station.properties.resultCount,
-      // TODO
-      stationCharacteristicGroups: [].map((data) => ({
-        groupName: '',
-        totalMeasurements: '',
-      })),
     }));
 
     setNormalizedMonitoringStations(stations);
