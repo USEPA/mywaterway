@@ -284,35 +284,33 @@ export function plotStations(
 export function plotGages(Graphic: any, gages: Object[], layer: any) {
   if (!gages || !layer) return;
 
-  layer.graphics.removeAll();
-
-  gages.forEach((gage) => {
+  const graphics = gages.map((gage) => {
     // TODO: determine if there's a better way to isolate gage height measurements
     const gageHeight = gage.streamGageMeasurements.find((data) => {
       return data.parameterCode === '00065';
     })?.measurement;
 
-    layer.graphics.add(
-      new Graphic({
-        geometry: {
-          type: 'point',
-          longitude: gage.locationLongitude,
-          latitude: gage.locationLatitude,
-        },
-        symbol: {
-          type: 'simple-marker',
-          style: 'circle',
-          color: colors.yellow, // TODO: change color
-        },
-        attributes: gage,
-        popupTemplate: {
-          title: getPopupTitle(gage),
-          content: getPopupContent({
-            feature: { attributes: gage },
-          }),
-        },
-      }),
-    );
+    return new Graphic({
+      geometry: {
+        type: 'point',
+        longitude: gage.locationLongitude,
+        latitude: gage.locationLatitude,
+      },
+      attributes: { gageHeight, ...gage },
+      popupTemplate: {
+        title: getPopupTitle(gage),
+        content: getPopupContent({
+          feature: { attributes: { gageHeight, ...gage } },
+        }),
+      },
+    });
+  });
+
+  layer.queryFeatures().then((featureSet) => {
+    layer.applyEdits({
+      deleteFeatures: featureSet.features,
+      addFeatures: graphics,
+    });
   });
 }
 

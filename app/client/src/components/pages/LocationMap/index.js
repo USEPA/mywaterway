@@ -57,6 +57,8 @@ import {
   watersgeoError,
   esriMapLoadingFailure,
 } from 'config/errorMessages';
+// styles
+import { colors } from 'styles/index.js';
 
 // turns an array into a string for the service queries
 function createQueryString(array) {
@@ -669,10 +671,43 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setMonitoringStationsLayer(monitoringStationsLayer);
 
-    const usgsStreamgagesLayer = new GraphicsLayer({
+    const usgsStreamgagesLayer = new FeatureLayer({
       id: 'usgsStreamgagesLayer',
+      fields: [
+        { name: 'ObjectID', type: 'oid' },
+        { name: 'gageHeight', type: 'string' },
+        // TODO: add other fields here...
+      ],
+      // NOTE: initial graphic below will be replaced with UGSG streamgages
+      source: [
+        new Graphic({
+          geometry: { type: 'point', longitude: -98.5795, latitude: 39.8283 },
+          attributes: { ObjectID: 1 },
+        }),
+      ],
       title: 'USGS Streamgages',
       listMode: 'hide',
+      renderer: {
+        type: 'simple',
+        symbol: {
+          type: 'simple-marker',
+          style: 'circle',
+          color: colors.gray6,
+        },
+        visualVariables: [
+          {
+            type: 'color',
+            field: 'gageHeight',
+            stops: [
+              { value: '1', color: '#2b83ba' },
+              { value: '2', color: '#abdda4' },
+              { value: '3', color: '#ffffbf' },
+              { value: '4', color: '#fdae61' },
+              { value: '5', color: '#d7191c' },
+            ],
+          },
+        ],
+      },
     });
 
     setUsgsStreamgagesLayer(usgsStreamgagesLayer);
@@ -718,6 +753,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   }, [
     FeatureLayer,
     GraphicsLayer,
+    Graphic,
     getSharedLayers,
     getTemplate,
     getTitle,
