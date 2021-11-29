@@ -126,9 +126,11 @@ function Restore() {
 
   const sortedAttainsPlanData =
     attainsPlans.data.items && attainsPlans.data.items.length > 0
-      ? attainsPlans.data.items.sort((objA, objB) => {
-          return objA['actionName'].localeCompare(objB['actionName']);
-        })
+      ? attainsPlans.data.items
+          .filter((item) => item.actionTypeCode !== 'Protection Approach')
+          .sort((objA, objB) => {
+            return objA['actionName'].localeCompare(objB['actionName']);
+          })
       : [];
 
   const waterbodyCount = uniqueWaterbodies && uniqueWaterbodies.length;
@@ -159,7 +161,7 @@ function Restore() {
             </StyledNumber>
           )}
           <StyledLabel>Plans</StyledLabel>
-          <switchContainerStyles>
+          <div css={switchContainerStyles}>
             <Switch
               checked={Boolean(waterbodyCount) && restoreLayerEnabled}
               onChange={(checked) => {
@@ -174,7 +176,7 @@ function Restore() {
               disabled={!Boolean(waterbodyCount)}
               ariaLabel="Waterbodies"
             />
-          </switchContainerStyles>
+          </div>
         </StyledMetric>
       </StyledMetrics>
 
