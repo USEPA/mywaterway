@@ -676,7 +676,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       fields: [
         { name: 'ObjectID', type: 'oid' },
         { name: 'gageHeight', type: 'string' },
-        // TODO: add other fields here...
+        { name: 'sampleType', type: 'string' },
+        { name: 'siteId', type: 'string' },
+        { name: 'orgId', type: 'string' },
+        { name: 'orgName', type: 'string' },
+        { name: 'locationLongitude', type: 'single' },
+        { name: 'locationLatitude', type: 'single' },
+        { name: 'locationName', type: 'string' },
+        { name: 'locationType', type: 'string' },
+        { name: 'locationUrl', type: 'string' },
+        { name: 'streamGageMeasurements', type: 'blob' },
       ],
       // NOTE: initial graphic below will be replaced with UGSG streamgages
       source: [
@@ -692,7 +701,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         symbol: {
           type: 'simple-marker',
           style: 'circle',
-          color: colors.gray6,
+          color: colors.grayc,
         },
         visualVariables: [
           {

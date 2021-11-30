@@ -248,10 +248,8 @@ export function plotStations(
 ) {
   if (!stations || !layer) return;
 
-  // clear the layer
   layer.graphics.removeAll();
 
-  // put graphics on the layer
   stations.forEach((station) => {
     station.fullPopup = false;
 
@@ -311,6 +309,11 @@ export function plotGages(Graphic: any, gages: Object[], layer: any) {
       deleteFeatures: featureSet.features,
       addFeatures: graphics,
     });
+    // .then((editsResults) => {
+    //   layer.queryFeatures().then((featureSet) => {
+    //     console.log(featureSet.features);
+    //   });
+    // });
   });
 }
 

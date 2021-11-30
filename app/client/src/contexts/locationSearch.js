@@ -32,7 +32,6 @@ type MonitoringStationsData = {
       characteristicGroupResultCount: {
         Physical: number,
       },
-      fullPopup: boolean,
       resultCount: string,
       siteUrl: string,
     },
@@ -670,7 +669,13 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         searchIconLayer.graphics.removeAll();
       }
       if (monitoringStationsLayer) monitoringStationsLayer.graphics.removeAll();
-      if (usgsStreamgagesLayer) usgsStreamgagesLayer.graphics.removeAll();
+      if (usgsStreamgagesLayer) {
+        usgsStreamgagesLayer.queryFeatures().then((featureSet) => {
+          usgsStreamgagesLayer.applyEdits({
+            deleteFeatures: featureSet.features,
+          });
+        });
+      }
       if (dischargersLayer) dischargersLayer.graphics.removeAll();
       if (nonprofitsLayer) nonprofitsLayer.graphics.removeAll();
       if (wsioHealthIndexLayer) {
