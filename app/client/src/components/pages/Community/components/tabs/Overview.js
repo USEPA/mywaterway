@@ -708,10 +708,6 @@ function SampleLocationsTab({
                     longitude: item.locationLongitude,
                     latitude: item.locationLatitude,
                   },
-                  symbol: {
-                    type: 'simple-marker',
-                    style: 'square',
-                  },
                   attributes: item,
                 };
 

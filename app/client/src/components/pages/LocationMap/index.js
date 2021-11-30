@@ -673,6 +673,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     const usgsStreamgagesLayer = new FeatureLayer({
       id: 'usgsStreamgagesLayer',
+      title: 'USGS Streamgages',
+      listMode: 'hide',
       fields: [
         { name: 'ObjectID', type: 'oid' },
         { name: 'gageHeight', type: 'string' },
@@ -687,6 +689,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         { name: 'locationUrl', type: 'string' },
         { name: 'streamGageMeasurements', type: 'blob' },
       ],
+      outFields: ['*'],
       // NOTE: initial graphic below will be replaced with UGSG streamgages
       source: [
         new Graphic({
@@ -694,8 +697,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           attributes: { ObjectID: 1 },
         }),
       ],
-      title: 'USGS Streamgages',
-      listMode: 'hide',
       renderer: {
         type: 'simple',
         symbol: {
