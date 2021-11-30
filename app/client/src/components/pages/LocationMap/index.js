@@ -701,7 +701,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         symbol: {
           type: 'simple-marker',
           style: 'circle',
-          size: '32px',
           color: colors.grayc,
         },
         visualVariables: [
@@ -723,12 +722,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         {
           symbol: {
             type: 'text',
-            color: 'white',
-            haloColor: [0, 0, 0, 0.5],
-            haloSize: '0.75px',
-            font: { size: 8, weight: 'bold' },
+            yoffset: '-3px',
+            font: { size: 10, weight: 'bold' },
           },
-          labelPlacement: 'center-center',
+          labelPlacement: 'above-center',
           labelExpressionInfo: {
             expression: '$feature.gageHeight',
           },
