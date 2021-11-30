@@ -276,6 +276,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     currentSelection: null,
     cachedHighlights: {},
   });
+
   React.useEffect(() => {
     setHighlightState({
       currentHighlight: null,
@@ -304,6 +305,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     // verify that we have a graphic before continuing
     if (!graphic || !graphic.attributes) {
       handles.remove(group);
+
       if (protectedAreasHighlightLayer) {
         protectedAreasHighlightLayer.removeAll();
       }
@@ -318,6 +320,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
           cachedHighlights,
         });
       }
+
       return;
     }
 
@@ -330,7 +333,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     // set the currentSelection if it changed
     if (!selectionEqual) currentSelection = selectedGraphic;
 
-    const attributes = graphic.attributes;
+    const { attributes } = graphic;
 
     // figure out what layer we the graphic belongs to
     let layer = null;
@@ -373,23 +376,16 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     // get organizationid and assessmentunitidentifier to figure out if the
     // selected waterbody changed.
-    const graphicOrgId =
-      graphic && graphic.attributes && graphic.attributes.organizationid;
-    const graphicAuId =
-      graphic &&
-      graphic.attributes &&
-      graphic.attributes.assessmentunitidentifier;
-    const selectedGraphicOrgId =
-      selectedGraphic &&
-      selectedGraphic.attributes &&
-      selectedGraphic.attributes.organizationid;
+    const graphicOrgId = graphic?.attributes?.organizationid;
+    const graphicAuId = graphic?.attributes?.assessmentunitidentifier;
+
+    const selectedGraphicOrgId = selectedGraphic?.attributes?.organizationid;
     const selectedGraphicAuId =
-      selectedGraphic &&
-      selectedGraphic.attributes &&
-      selectedGraphic.attributes.assessmentunitidentifier;
+      selectedGraphic?.attributes?.assessmentunitidentifier;
 
     // get the graphic from the layer so that we have geometry
     let graphicToHighlight = graphic;
+
     // find the actual graphic on the layer
     if (layer.type === 'graphics') {
       for (const tempGraphic of layer.graphics.items) {
@@ -414,7 +410,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
           });
         })
         .catch((err) => console.error(err));
-    } else if (
+    }
+    //
+    else if (
       layer.type === 'feature' &&
       (findOthers ||
         (graphicOrgId === selectedGraphicOrgId &&
@@ -422,12 +420,22 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     ) {
       let key = '';
       let where = '';
+
       if (featureLayerType === 'waterbodyLayer') {
         key = `${graphicOrgId} - ${graphicAuId}`;
         where = `organizationid = '${graphicOrgId}' And assessmentunitidentifier = '${graphicAuId}'`;
-      } else if (featureLayerType === 'wildScenicRivers') {
+      }
+
+      if (featureLayerType === 'wildScenicRivers') {
         key = attributes.GlobalID;
         where = `GlobalID = '${key}'`;
+      }
+
+      if (layer === monitoringStationsLayer || layer === usgsStreamgagesLayer) {
+        const orgId = graphic?.attributes?.orgId || '';
+        const siteId = graphic?.attributes?.siteId || '';
+        key = `${orgId} - ${siteId}`;
+        where = `orgId = '${orgId}' And siteId = '${siteId}'`;
       }
 
       if (cachedHighlights[key]) {
@@ -442,12 +450,15 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         });
 
         currentHighlight = graphic;
+
         setHighlightState({
           currentHighlight,
           currentSelection,
           cachedHighlights,
         });
-      } else {
+      }
+
+      if (!cachedHighlights[key]) {
         if (!key || !where) return;
 
         const query = new Query({
@@ -501,7 +512,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
           });
         });
       }
-    } else {
+    }
+    //
+    else {
       mapView
         .whenLayerView(layer)
         .then((layerView) => {
