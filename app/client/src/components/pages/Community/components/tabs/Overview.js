@@ -231,8 +231,7 @@ function Overview() {
   const totalWaterbodies = uniqueWaterbodies.length;
 
   const totalSampleLocations =
-    monitoringStations.data.features?.length &&
-    usgsStreamgages.data.value?.length
+    monitoringStations.data.features && usgsStreamgages.data.value
       ? monitoringStations.data.features.length +
         usgsStreamgages.data.value.length
       : null;
