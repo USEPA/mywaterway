@@ -151,6 +151,24 @@ const viewButtonContainerStyles = css`
   margin-left: 0.5em;
 `;
 
+const tableStyles = css`
+  thead {
+    background-color: #f0f6f9;
+  }
+  th:last-of-type,
+  td:last-of-type {
+    text-align: right;
+  }
+`;
+
+const toggleStyles = css`
+  display: flex;
+  align-items: center;
+  span {
+    margin-left: 0.5rem;
+  }
+`;
+
 // --- components ---
 function Protect() {
   const services = useServicesContext();
@@ -256,6 +274,16 @@ function Protect() {
 
   const sortedProtectionProjects = allProtectionProjects.sort((objA, objB) => {
     return objA['title'].localeCompare(objB['title']);
+  });
+
+  const [attainsDataDisplayed, setAttainsDataDisplayed] = React.useState(true);
+  const [grtsDataDisplayed, setGrtsDataDisplayed] = React.useState(true);
+
+  const filteredProtectionProjects = sortedProtectionProjects.filter((item) => {
+    const displayedTypes = [];
+    if (attainsDataDisplayed) displayedTypes.push('attains');
+    if (grtsDataDisplayed) displayedTypes.push('grts');
+    return displayedTypes.includes(item.source);
   });
 
   const [
@@ -1101,6 +1129,21 @@ function Protect() {
 
                 <AccordionItem
                   highlightContent={false}
+                  onChange={(isOpen) => {
+                    if (
+                      !isOpen ||
+                      (attainsPlans.status === 'failure' &&
+                        grts.status === 'failure')
+                    ) {
+                      return;
+                    }
+
+                    setWaterbodyLayerDisplayed(true);
+                    updateVisibleLayers({
+                      key: 'waterbodyLayer',
+                      newValue: true,
+                    });
+                  }}
                   title={
                     <label css={labelStyles}>
                       <div
@@ -1156,7 +1199,67 @@ function Protect() {
                                 {watershed} watershed.
                               </p>
 
-                              {sortedProtectionProjects.map((item, index) => {
+                              <table css={tableStyles} className="table">
+                                <thead>
+                                  <tr>
+                                    <th>
+                                      <span>Type</span>
+                                    </th>
+                                    <th>Count</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr>
+                                    <td>
+                                      <div css={toggleStyles}>
+                                        <Switch
+                                          checked={
+                                            normalizedAttainsProjects.length >
+                                              0 && attainsDataDisplayed
+                                          }
+                                          onChange={(checked) => {
+                                            setAttainsDataDisplayed(
+                                              !attainsDataDisplayed,
+                                            );
+                                          }}
+                                          disabled={
+                                            normalizedAttainsProjects.length ===
+                                            0
+                                          }
+                                          ariaLabel="Attains Plans"
+                                        />
+                                        <span>Attains Plans</span>
+                                      </div>
+                                    </td>
+                                    <td>{normalizedAttainsProjects.length}</td>
+                                  </tr>
+                                  <tr>
+                                    <td>
+                                      <div css={toggleStyles}>
+                                        <Switch
+                                          checked={
+                                            normalizedGrtsProjects.length > 0 &&
+                                            grtsDataDisplayed
+                                          }
+                                          onChange={(checked) => {
+                                            setGrtsDataDisplayed(
+                                              !grtsDataDisplayed,
+                                            );
+                                          }}
+                                          disabled={
+                                            normalizedGrtsProjects.length === 0
+                                          }
+                                          ariaLabel="GRTS Projects"
+                                        />
+                                        <span>GRTS Projects</span>
+                                      </div>
+                                    </td>
+                                    <td>{normalizedGrtsProjects.length}</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+
+                              {filteredProtectionProjects.map((item, index) => {
                                 const url = getUrlFromMarkup(item.project_link);
                                 const protectionPlans =
                                   item.watershed_plans &&
