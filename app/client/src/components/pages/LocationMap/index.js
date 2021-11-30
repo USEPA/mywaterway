@@ -701,6 +701,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         symbol: {
           type: 'simple-marker',
           style: 'circle',
+          size: '32px',
           color: colors.grayc,
         },
         visualVariables: [
@@ -708,6 +709,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             type: 'color',
             field: 'gageHeight',
             stops: [
+              // TODO: determine the correct mapping of gageHeight values to colors
               { value: '1', color: '#2b83ba' },
               { value: '2', color: '#abdda4' },
               { value: '3', color: '#ffffbf' },
@@ -717,6 +719,21 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           },
         ],
       },
+      labelingInfo: [
+        {
+          symbol: {
+            type: 'text',
+            color: 'white',
+            haloColor: [0, 0, 0, 0.5],
+            haloSize: '0.75px',
+            font: { size: 8, weight: 'bold' },
+          },
+          labelPlacement: 'center-center',
+          labelExpressionInfo: {
+            expression: '$feature.gageHeight',
+          },
+        },
+      ],
     });
 
     setUsgsStreamgagesLayer(usgsStreamgagesLayer);
