@@ -295,12 +295,6 @@ export function plotGages(Graphic: any, gages: Object[], layer: any) {
         latitude: gage.locationLatitude,
       },
       attributes: { gageHeight, ...gage },
-      popupTemplate: {
-        title: getPopupTitle(gage),
-        content: getPopupContent({
-          feature: { attributes: { gageHeight, ...gage } },
-        }),
-      },
     });
   });
 

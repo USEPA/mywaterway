@@ -732,6 +732,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           },
         },
       ],
+      popupTemplate: {
+        outFields: ['*'],
+        title: (feature) => getPopupTitle(feature.graphic.attributes),
+        content: (feature) => getPopupContent({ feature: feature.graphic }),
+      },
     });
 
     setUsgsStreamgagesLayer(usgsStreamgagesLayer);
