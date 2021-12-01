@@ -553,7 +553,7 @@ function SampleLocationsTab({
     'locationName',
   );
 
-  const sortedSampleLocations = allSampleLocations.sort((a, b) => {
+  const sortedSampleLocations = [...allSampleLocations].sort((a, b) => {
     if (sampleLocationsSortedBy === 'stationTotalMeasurements') {
       return (
         (b.stationTotalMeasurements || 0) - (a.stationTotalMeasurements || 0)
