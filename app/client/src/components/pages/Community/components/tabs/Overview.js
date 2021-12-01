@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 // components
@@ -151,7 +151,7 @@ function Overview() {
    * Updates the visible layers. This function also takes into account whether
    * or not the underlying webservices failed.
    */
-  const updateVisibleLayers = React.useCallback(
+  const updateVisibleLayers = useCallback(
     ({ key = null, value = null, useCurrentValue = false }) => {
       const layers = {};
 
@@ -229,6 +229,8 @@ function Overview() {
     : [];
 
   const totalWaterbodies = uniqueWaterbodies.length;
+  // console.log(cipSummary.data.items?.[0].assessmentUnits?.length);
+  // const assessmentUnitCount = cipSummary.data.items?.[0].assessmentUnits?.length;
 
   const totalSampleLocations =
     monitoringStations.data.features && usgsStreamgages.data.value

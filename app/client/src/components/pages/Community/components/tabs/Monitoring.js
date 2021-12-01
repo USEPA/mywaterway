@@ -430,7 +430,7 @@ function Monitoring() {
                   ? 'N/A'
                   : `${monitoringStations.data.features.length}`}
               </span>
-              <p css={keyMetricLabelStyles}>Monitoring Locations</p>
+              <p css={keyMetricLabelStyles}>Sample Locations</p>
             </>
           )}
         </div>
@@ -440,7 +440,7 @@ function Monitoring() {
         <Tabs>
           <TabList>
             <Tab>Monitoring Stations</Tab>
-            <Tab>USGS Streamgages</Tab>
+            <Tab>Daily Stream Flow Conditions</Tab>
           </TabList>
 
           <TabPanels>
