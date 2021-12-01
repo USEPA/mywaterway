@@ -12,15 +12,17 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
 import { getWaterbodyCondition } from 'components/pages/LocationMap/MapFunctions';
 import {
-  formatNumber,
   convertAgencyCode,
   convertDomainCode,
+  formatNumber,
+  getSelectedCommunityTab,
+  titleCaseWithExceptions,
 } from 'utils/utils';
 import { fetchCheck } from 'utils/fetchUtils';
 // data
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // errors
-import { monitoringError } from 'config/errorMessages';
+import { monitoringError, waterbodyReportError } from 'config/errorMessages';
 // styles
 import { colors } from 'styles/index.js';
 
@@ -115,6 +117,15 @@ const ScenicRiverImageContainer = styled.div`
 const ScenicRiverImage = styled.img`
   width: 100%;
   height: auto;
+`;
+
+const DateCell = styled.td`
+  white-space: nowrap;
+`;
+
+const ProjectsContainer = styled.div`
+  margin-right: 0.625em;
+  margin-bottom: 0.5rem;
 `;
 
 // --- components ---
@@ -1086,9 +1097,153 @@ function WaterbodyInfo({
   // This content is filled in from the getPopupContent function in MapFunctions.
   const actionContent = <>{extraContent}</>;
 
+  // Fetch monitoring location data
+  const [attainsProjects, setAttainsProjects] = React.useState({
+    status: 'fetching',
+    data: [],
+  });
+  React.useEffect(() => {
+    if (!attributes.fullPopup) return;
+    if (type !== 'Restoration Plans' && type !== 'Protection Plans') return;
+
+    const auId = attributes.assessmentunitidentifier;
+    const url =
+      services.data.attains.serviceUrl +
+      `actions?assessmentUnitIdentifier=${auId}` +
+      `&organizationIdentifier=${attributes.organizationid}` +
+      `&summarize=Y`;
+
+    fetchCheck(url)
+      .then((res) => {
+        let attainsProjectsData = [];
+
+        if (res.items.length > 0) {
+          attainsProjectsData = res.items[0].actions.map((action) => {
+            const pollutants = action
+              ? action.parameters.map((p) =>
+                  titleCaseWithExceptions(p.parameterName),
+                )
+              : [];
+
+            return {
+              id: action.actionIdentifier,
+              orgId: attributes.organizationid,
+              name: action.actionName,
+              pollutants,
+              type: action.actionTypeCode,
+              date: action.completionDate,
+            };
+          });
+        }
+
+        setAttainsProjects({
+          status: 'success',
+          data: attainsProjectsData,
+        });
+      })
+      .catch((err) => {
+        console.error(err);
+        setAttainsProjects({
+          status: 'failure',
+          data: [],
+        });
+      });
+  }, [
+    attributes.assessmentunitidentifier,
+    attributes.fullPopup,
+    attributes.organizationid,
+    type,
+    services,
+  ]);
+
+  // jsx
+  const projectContent = () => {
+    const communityTab = getSelectedCommunityTab();
+
+    const projects = attainsProjects.data.filter((project) => {
+      return (
+        (communityTab === 'restore' &&
+          project.type !== 'Protection Approach') ||
+        (communityTab === 'protect' && project.type === 'Protection Approach')
+      );
+    });
+
+    return (
+      <>
+        <ProjectsContainer>
+          {(attainsProjects.status === 'fetching' ||
+            attainsProjects.status === 'pending') && <LoadingSpinner />}
+          {attainsProjects.status === 'failure' && (
+            <StyledErrorBox>
+              <p>{waterbodyReportError('Plans')}</p>
+            </StyledErrorBox>
+          )}
+          {attainsProjects.status === 'success' && (
+            <>
+              {projects.length === 0 ? (
+                <p>No plans for this waterbody.</p>
+              ) : (
+                <>
+                  <em>Links below open in a new browser tab.</em>
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>Plan</th>
+                        <th>Impairments</th>
+                        <th>Type</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {projects
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .map((action, index) => {
+                          return (
+                            <tr key={index}>
+                              <td>
+                                <a
+                                  href={`/plan-summary/${action.orgId}/${action.id}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  {titleCaseWithExceptions(action.name)}
+                                </a>
+                              </td>
+                              <td>
+                                {action.pollutants.length === 0 && (
+                                  <>No impairments found.</>
+                                )}
+                                {action.pollutants.length > 0 && (
+                                  <>
+                                    {action.pollutants
+                                      .sort((a, b) => a.localeCompare(b))
+                                      .join(', ')}
+                                  </>
+                                )}
+                              </td>
+                              <td>{action.type}</td>
+                              <DateCell>{action.date}</DateCell>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </>
+              )}
+            </>
+          )}
+        </ProjectsContainer>
+
+        {renderChangeWatershed()}
+      </>
+    );
+  };
+
   if (!attributes) return null;
 
   if (type === 'Waterbody') return waterbodyContent;
+  if (type === 'Restoration Plans') return projectContent();
+  if (type === 'Protection Plans') return projectContent();
   if (type === 'Permitted Discharger') return dischargerContent;
   if (type === 'Monitoring Location Map Popup') {
     return monitoringMapPopupContent();

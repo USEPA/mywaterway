@@ -8,6 +8,8 @@ import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import MapPopup from 'components/shared/MapPopup';
 // styles
 import { colors } from 'styles/index.js';
+// utilities
+import { getSelectedCommunityTab } from 'utils/utils';
 
 const waterbodyStatuses = {
   good: { condition: 'good', label: 'Good' },
@@ -663,9 +665,13 @@ export function getPopupContent({
 
   // line, area, point for waterbody
   else if (attributes && attributes.assessmentunitname) {
-    type = document.location.pathname.includes('advanced-search')
-      ? 'Waterbody State Overview'
-      : 'Waterbody';
+    const communityTab = getSelectedCommunityTab();
+    const pathname = document.location.pathname;
+
+    type = 'Waterbody';
+    if (pathname.includes('advanced-search')) type = 'Waterbody State Overview';
+    if (communityTab === 'restore') type = 'Restoration Plans';
+    if (communityTab === 'protect') type = 'Protection Plans';
   }
 
   // discharger

@@ -7,9 +7,11 @@ import { useServicesContext } from 'contexts/LookupFiles';
 // config
 import {
   getPopupContent,
-  getPopupTitle,
   graphicComparison,
 } from 'components/pages/LocationMap/MapFunctions';
+// utilities
+import { useDynamicPopup } from 'utils/hooks';
+import { getSelectedCommunityTab } from 'utils/utils';
 
 // --- components ---
 type Props = {
@@ -36,6 +38,8 @@ function MapMouseEvents({ map, view }: Props) {
     Query,
     QueryTask,
   } = React.useContext(EsriModulesContext);
+
+  const getDynamicPopup = useDynamicPopup();
 
   const handleMapClick = React.useCallback(
     (event, view) => {
@@ -214,15 +218,21 @@ function MapMouseEvents({ map, view }: Props) {
     });
 
     view.popup.watch('selectedFeature', (graphic) => {
+      const communityTab = getSelectedCommunityTab();
+
       // check if monitoring station is clicked, load the popup and call the waterqualitydata service
       if (
         graphic &&
         graphic.layer &&
-        graphic.layer.id === 'monitoringStationsLayer' &&
+        (graphic.layer.id === 'monitoringStationsLayer' ||
+          ((graphic.layer.parent?.id === 'waterbodyLayer' ||
+            graphic.layer.parent?.id === 'allWaterbodiesLayer') &&
+            (communityTab === 'restore' || communityTab === 'protect'))) &&
         graphic.attributes &&
-        graphic.attributes.fullPopup === false
+        (!graphic.attributes.fullPopup ||
+          graphic.attributes.fullPopup === false)
       ) {
-        loadMonitoringLocation(graphic, services);
+        loadMonitoringLocation(graphic, getDynamicPopup);
       }
 
       // set the view highlight options to 0 fill opacity if upstream watershed is selected
@@ -239,7 +249,14 @@ function MapMouseEvents({ map, view }: Props) {
     });
 
     setInitialized(true);
-  }, [view, handleMapClick, setHighlightedGraphic, initialized, services]);
+  }, [
+    getDynamicPopup,
+    handleMapClick,
+    initialized,
+    services,
+    setHighlightedGraphic,
+    view,
+  ]);
 
   function getGraphicFromResponse(res: Object) {
     if (!res.results || res.results.length === 0) return null;
@@ -269,12 +286,14 @@ function MapMouseEvents({ map, view }: Props) {
     return match[0] ? match[0].graphic : null;
   }
 
-  const loadMonitoringLocation = (graphic, servicesParam) => {
+  const loadMonitoringLocation = (graphic, getDynamicPopup) => {
+    const { getTitle, getTemplate } = getDynamicPopup();
+
     // tell the getPopupContent function to use the full popup version that includes the service call
     graphic.attributes.fullPopup = true;
     graphic.popupTemplate = {
-      title: getPopupTitle(graphic.attributes),
-      content: getPopupContent({ feature: graphic, services: servicesParam }),
+      title: getTitle,
+      content: getTemplate,
     };
   };
 

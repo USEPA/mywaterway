@@ -775,6 +775,7 @@ function useDynamicPopup() {
         return getPopupContent({
           feature: graphic.graphic,
           fields,
+          services,
         });
       }
 
@@ -783,6 +784,7 @@ function useDynamicPopup() {
         fields,
         getClickedHuc: getClickedHuc(location),
         resetData,
+        services,
       });
     }
 

@@ -730,9 +730,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     return {
       outFields: ['*'],
       title: (feature) => getPopupTitle(feature.graphic.attributes),
-      content: (feature) => getPopupContent({ feature: feature.graphic }),
+      content: (feature) =>
+        getPopupContent({ feature: feature.graphic, services }),
     };
-  }, []);
+  }, [services]);
 
   const handleMapServiceError = React.useCallback(
     (err) => {
