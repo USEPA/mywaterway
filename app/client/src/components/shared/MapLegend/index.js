@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import PinIcon from 'components/shared/Icons/PinIcon';
@@ -14,7 +14,6 @@ import { legendUnavailableError } from 'config/errorMessages';
 // styles
 import { colors } from 'styles/index.js';
 
-// --- styled components ---
 const Container = styled.div`
   padding: 10px;
   background-color: white;
@@ -60,6 +59,21 @@ const MultiContainer = styled.div`
 
 const Subtitle = styled.div`
   padding: 6px 0;
+`;
+
+const ruleStyles = css`
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+`;
+
+const layerLabelStyles = css`
+  margin-bottom: 0.25rem;
+  font-size: 0.75rem;
+`;
+
+const layerItemStyles = css`
+  display: flex;
+  align-items: center;
 `;
 
 const ignoreLayers = ['mappedWaterLayer', 'watershedsLayer', 'searchIconLayer'];
@@ -232,16 +246,43 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
 
   // jsx
   const usgsStreamgagesLegend = (
-    <LI>
-      <ImageContainer>
-        {circleIcon({
-          color: colors.yellow, // TODO: change color
-          strokeWidth: 1,
-          stroke: '#000000',
-        })}
-      </ImageContainer>
-      <LegendLabel>USGS Streamgages</LegendLabel>
-    </LI>
+    <li>
+      <hr css={ruleStyles} />
+      <div css={layerLabelStyles}>Daily Streamflow Conditions</div>
+      <div css={layerItemStyles}>
+        <ImageContainer>{circleIcon({ color: '#ea2c38' })}</ImageContainer>
+        <LegendLabel>All-time low</LegendLabel>
+      </div>
+      <div css={layerItemStyles}>
+        <ImageContainer>{circleIcon({ color: '#b54246' })}</ImageContainer>
+        <LegendLabel>Much below normal</LegendLabel>
+      </div>
+      <div css={layerItemStyles}>
+        <ImageContainer>{circleIcon({ color: '#eaae3f' })}</ImageContainer>
+        <LegendLabel>Below normal</LegendLabel>
+      </div>
+      <div css={layerItemStyles}>
+        <ImageContainer>{circleIcon({ color: '#32f242' })}</ImageContainer>
+        <LegendLabel>Normal</LegendLabel>
+      </div>
+      <div css={layerItemStyles}>
+        <ImageContainer>{circleIcon({ color: '#56d7da' })}</ImageContainer>
+        <LegendLabel>Above normal</LegendLabel>
+      </div>
+      <div css={layerItemStyles}>
+        <ImageContainer>{circleIcon({ color: '#2639f6' })}</ImageContainer>
+        <LegendLabel>Much above normal</LegendLabel>
+      </div>
+      <div css={layerItemStyles}>
+        <ImageContainer>{circleIcon({ color: '#22296e' })}</ImageContainer>
+        <LegendLabel>All-time high</LegendLabel>
+      </div>
+      <div css={layerItemStyles}>
+        <ImageContainer>{circleIcon({ color: '#989fa2' })}</ImageContainer>
+        <LegendLabel>Measurement unavailable</LegendLabel>
+      </div>
+      <hr css={ruleStyles} />
+    </li>
   );
 
   // jsx
@@ -271,11 +312,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
       </LI>
       <LI>
         <ImageContainer>
-          {squareIcon({
-            color: '#CBCBCB',
-            strokeWidth: 3,
-            stroke: '#ffff00',
-          })}
+          {squareIcon({ color: '#CBCBCB', strokeWidth: 3, stroke: '#ffff00' })}
         </ImageContainer>
         <LegendLabel>Providers</LegendLabel>
       </LI>
@@ -342,21 +379,13 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     <>
       <LI>
         <ImageContainer>
-          {squareIcon({
-            color: 'rgb(154, 154, 154)',
-            strokeWidth: 1,
-            stroke: '#6e6e6e',
-          })}
+          {squareIcon({ color: 'rgb(154, 154, 154)', stroke: '#6e6e6e' })}
         </ImageContainer>
         <LegendLabel>Tribal Lands</LegendLabel>
       </LI>
       <LI>
         <ImageContainer>
-          {circleIcon({
-            color: 'rgb(158, 0, 124)',
-            strokeWidth: 1,
-            stroke: '#000000',
-          })}
+          {circleIcon({ color: 'rgb(158, 0, 124)' })}
         </ImageContainer>
         <LegendLabel>Alaska Native Villages</LegendLabel>
       </LI>
@@ -432,11 +461,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   const upstreamLegend = (
     <LI>
       <ImageContainer>
-        {squareIcon({
-          color: 'rgb(31, 184, 255, 0.2)',
-          strokeWidth: 2,
-          stroke: '#000000',
-        })}
+        {squareIcon({ color: 'rgb(31, 184, 255, 0.2)', strokeWidth: 2 })}
       </ImageContainer>
       <LegendLabel>Upstream Watershed</LegendLabel>
     </LI>
