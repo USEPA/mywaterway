@@ -1069,9 +1069,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const queryUsgsStreamgageService = React.useCallback(
     (huc12) => {
-      // TODO: move URL to the services.json file (files? check about services-attains.json)
       const url =
-        `https://labs.waterdata.usgs.gov/sta/v1.1/Things?` +
+        `${services.data.usgsSensorThingsAPI}?` +
         /**/ `$select=name,` +
         /*  */ `properties/active,` +
         /*  */ `properties/agency,` +
