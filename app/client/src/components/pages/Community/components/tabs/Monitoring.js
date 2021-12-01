@@ -2,26 +2,25 @@
 
 import React from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 // components
-import { ContentTabs } from 'components/shared/ContentTabs';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import {
   AccordionList,
   AccordionItem,
 } from 'components/shared/Accordion/MapHighlight';
-// contexts
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import {
-  StyledMetrics,
-  StyledMetric,
-  StyledNumber,
-  StyledLabel,
+  keyMetricsStyles,
+  keyMetricStyles,
+  keyMetricNumberStyles,
+  keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
+import { tabsStyles } from 'components/shared/ContentTabs';
 // contexts
 import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -34,16 +33,24 @@ import { characteristicGroupMappings } from 'config/characteristicGroupMappings'
 // errors
 import { monitoringError } from 'config/errorMessages';
 
-// --- styled components ---
-const Container = styled.div`
+const containerStyles = css`
   padding: 1em;
 `;
 
-const Text = styled.p`
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles};
   text-align: center;
 `;
 
-const Table = styled.table`
+const centeredTextStyles = css`
+  text-align: center;
+`;
+
+const accordionContentStyles = css`
+  padding: 0.4375em 0.875em 0.875em;
+`;
+
+const tableStyles = css`
   thead {
     background-color: #f0f6f9;
   }
@@ -54,7 +61,7 @@ const Table = styled.table`
   }
 `;
 
-const Toggle = styled.div`
+const toggleStyles = css`
   display: flex;
   align-items: center;
 
@@ -63,11 +70,6 @@ const Toggle = styled.div`
   }
 `;
 
-const AccordionContent = styled.div`
-  padding: 0.4375em 0.875em 0.875em;
-`;
-
-// --- components ---
 type MonitoringLocationData = {
   type: 'FeatureCollection',
   features: Array<{
@@ -416,25 +418,25 @@ function Monitoring() {
   const displayLocations = sortedMonitoringStations.length.toLocaleString();
 
   return (
-    <Container>
-      <StyledMetrics>
-        <StyledMetric>
+    <div css={containerStyles}>
+      <div css={keyMetricsStyles}>
+        <div css={keyMetricStyles}>
           {monitoringStations.status === 'fetching' ? (
             <LoadingSpinner />
           ) : (
             <>
-              <StyledNumber>
+              <span css={keyMetricNumberStyles}>
                 {monitoringStations.status === 'failure'
                   ? 'N/A'
                   : `${monitoringStations.data.features.length}`}
-              </StyledNumber>
-              <StyledLabel>Monitoring Locations</StyledLabel>
+              </span>
+              <p css={keyMetricLabelStyles}>Monitoring Locations</p>
             </>
           )}
-        </StyledMetric>
-      </StyledMetrics>
+        </div>
+      </div>
 
-      <ContentTabs>
+      <div css={tabsStyles}>
         <Tabs>
           <TabList>
             <Tab>Monitoring Stations</Tab>
@@ -446,9 +448,9 @@ function Monitoring() {
               {monitoringStations.status === 'fetching' && <LoadingSpinner />}
 
               {monitoringStations.status === 'failure' && (
-                <StyledErrorBox>
+                <div css={modifiedErrorBoxStyles}>
                   <p>{monitoringError}</p>
-                </StyledErrorBox>
+                </div>
               )}
 
               {monitoringStations.status === 'success' && (
@@ -459,26 +461,26 @@ function Monitoring() {
                   </p>
 
                   {allMonitoringStations.length === 0 && (
-                    <Text>
+                    <p css={centeredTextStyles}>
                       There are no Water Monitoring Locations in the {watershed}{' '}
                       watershed.
-                    </Text>
+                    </p>
                   )}
 
                   {allMonitoringStations.length > 0 && (
                     <>
-                      <Table className="table">
+                      <table css={tableStyles} className="table">
                         <thead>
                           <tr>
                             <th>
-                              <Toggle>
+                              <div css={toggleStyles}>
                                 <Switch
                                   checked={allToggled}
                                   onChange={(ev) => toggleSwitch('All')}
                                   ariaLabel="Toggle all monitoring locations"
                                 />
                                 <span>All Monitoring Locations</span>
-                              </Toggle>
+                              </div>
                             </th>
                             <th>Count</th>
                           </tr>
@@ -495,7 +497,7 @@ function Monitoring() {
                               return (
                                 <tr key={group.label}>
                                   <td>
-                                    <Toggle>
+                                    <div css={toggleStyles}>
                                       <Switch
                                         checked={
                                           monitoringLocationToggles[group.label]
@@ -506,7 +508,7 @@ function Monitoring() {
                                         ariaLabel={`Toggle ${group.label}`}
                                       />
                                       <span>{group.label}</span>
-                                    </Toggle>
+                                    </div>
                                   </td>
                                   <td>
                                     {uniqueStations.length.toLocaleString()}
@@ -521,7 +523,7 @@ function Monitoring() {
                               return a.key > b.key ? 1 : -1;
                             })}
                         </tbody>
-                      </Table>
+                      </table>
 
                       <AccordionList
                         expandDisabled={true} // disabled to avoid large number of web service calls
@@ -585,14 +587,14 @@ function Monitoring() {
                               feature={feature}
                               idKey="siteId"
                             >
-                              <AccordionContent>
+                              <div css={accordionContentStyles}>
                                 <WaterbodyInfo
                                   type="Monitoring Station"
                                   feature={feature}
                                   services={services}
                                 />
                                 <ViewOnMapButton feature={feature} />
-                              </AccordionContent>
+                              </div>
                             </AccordionItem>
                           );
                         })}
@@ -605,8 +607,8 @@ function Monitoring() {
             <TabPanel>(Placeholder)</TabPanel>
           </TabPanels>
         </Tabs>
-      </ContentTabs>
-    </Container>
+      </div>
+    </div>
   );
 }
 
