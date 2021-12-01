@@ -492,10 +492,11 @@ function SampleLocationsTab({
       streamGageMeasurements: gage.Datastreams.map((data) => ({
         parameterDescription: data.description.split(' / USGS-')[0],
         parameterCode: data.properties.ParameterCode,
-        measurement: data.Observations[0].result,
-        datetime: new Date(
-          data.Observations[0].phenomenonTime,
-        ).toLocaleString(),
+        // TODO: determine if we should display parameters missing measurements
+        measurement: data.Observations[0]?.result || '---',
+        datetime: data.Observations[0]?.phenomenonTime
+          ? new Date(data.Observations[0]?.phenomenonTime).toLocaleString()
+          : '',
         unitAbbr: data.unitOfMeasurement.symbol,
         unitName: data.unitOfMeasurement.name,
       })),
