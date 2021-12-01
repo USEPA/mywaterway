@@ -78,9 +78,18 @@ type MonitoringLocationData = {
 };
 
 type Station = {
-  properties: Object,
-  x: number,
-  y: number,
+  sampleType: 'Monitoring Station',
+  siteId: string,
+  orgId: string,
+  orgName: string,
+  locationLongitude: number,
+  locationLatitude: number,
+  locationName: string,
+  locationType: string,
+  locationUrl: string,
+  stationProviderName: string,
+  stationTotalSamples: number,
+  stationTotalMeasurements: number,
   uid: string,
 };
 
@@ -88,7 +97,7 @@ type StationGroups = {
   [label: string]: {
     label: string,
     groupName: string,
-    stations: Array<Station>,
+    stations: Station[],
     toggled: boolean,
   },
 };
@@ -136,7 +145,7 @@ function Monitoring() {
 
   const [allToggled, setAllToggled] = React.useState(true);
 
-  const [sortBy, setSortBy] = React.useState('MonitoringLocationName');
+  const [sortBy, setSortBy] = React.useState('locationName');
 
   const storeMonitoringStations = React.useCallback(() => {
     if (!monitoringStations.data.features) {
@@ -151,43 +160,57 @@ function Monitoring() {
       Other: { label: 'Other', stations: [], toggled: true },
     };
 
-    monitoringStations.data.features.forEach((feature) => {
-      const { geometry, properties } = feature;
-
-      const {
-        MonitoringLocationIdentifier: locId,
-        ProviderName: name,
-        OrganizationIdentifier: orgId,
-      } = properties;
-
-      const station = {
-        properties,
-        x: geometry.coordinates[0],
-        y: geometry.coordinates[1],
+    monitoringStations.data.features.forEach((station) => {
+      const monitoringStation = {
+        sampleType: 'Monitoring Station',
+        siteId: station.properties.MonitoringLocationIdentifier,
+        orgId: station.properties.OrganizationIdentifier,
+        orgName: station.properties.OrganizationFormalName,
+        locationLongitude: station.geometry.coordinates[0],
+        locationLatitude: station.geometry.coordinates[1],
+        locationName: station.properties.MonitoringLocationName,
+        locationType: station.properties.MonitoringLocationTypeName,
+        // TODO: explore if the built up locationUrl below is ever different from
+        // `station.properties.siteUrl`. from a quick test, they seem the same
+        locationUrl:
+          `${services.data.waterQualityPortal.monitoringLocationDetails}` +
+          `${station.properties.ProviderName}/` +
+          `${station.properties.OrganizationIdentifier}/` +
+          `${station.properties.MonitoringLocationIdentifier}/`,
+        // monitoring station specific properties:
+        stationProviderName: station.properties.ProviderName,
+        stationTotalSamples: station.properties.activityCount,
+        stationTotalMeasurements: station.properties.resultCount,
         // create a unique id, so we can check if the monitoring station has
         // already been added to the display (since a monitoring station id
         // isn't universally unique)
-        uid: `${locId}/${name}/${orgId}`,
+        uid:
+          `${station.properties.MonitoringLocationIdentifier}/` +
+          `${station.properties.ProviderName}/` +
+          `${station.properties.OrganizationIdentifier}`,
       };
 
-      allMonitoringStations.push(station);
+      allMonitoringStations.push(monitoringStation);
 
       // build up the monitoringLocationToggles and monitoringStationGroups
       let groupAdded = false;
+
       characteristicGroupMappings.forEach((mapping) => {
         monitoringLocationToggles[mapping.label] = true;
 
-        for (const group in properties.characteristicGroupResultCount) {
+        for (const group in station.properties.characteristicGroupResultCount) {
           // if characteristic group exists in switch config object
           if (mapping.groupNames.includes(group)) {
             // if switch group (w/ label key) already exists, add the stations to it
             if (monitoringStationGroups[mapping.label]) {
-              monitoringStationGroups[mapping.label].stations.push(station);
+              monitoringStationGroups[mapping.label].stations.push(
+                monitoringStation,
+              );
               // else, create the group (w/ label key) and add the station
             } else {
               monitoringStationGroups[mapping.label] = {
                 label: mapping.label,
-                stations: [station],
+                stations: [monitoringStation],
                 toggled: true,
               };
             }
@@ -198,7 +221,8 @@ function Monitoring() {
 
       // if characteristic group didn't exist in switch config object,
       // add the station to the 'Other' group
-      if (!groupAdded) monitoringStationGroups['Other'].stations.push(station);
+      if (!groupAdded)
+        monitoringStationGroups['Other'].stations.push(monitoringStation);
     });
 
     if (monitoringGroups) {
@@ -214,6 +238,7 @@ function Monitoring() {
 
     if (!monitoringGroups) setMonitoringGroups(monitoringLocationToggles);
   }, [
+    services,
     monitoringGroups,
     monitoringStations,
     setMonitoringGroups,
@@ -374,21 +399,16 @@ function Monitoring() {
   }, [monitoringStations, visibleLayers, setVisibleLayers]);
 
   const sortedMonitoringStations = displayedMonitoringStations
-    ? displayedMonitoringStations.sort((objA, objB) => {
-        // sort resultCount (measurements) in descending order
-        if (sortBy === 'resultCount') {
-          return objB['properties'][sortBy] - objA['properties'][sortBy];
+    ? displayedMonitoringStations.sort((a, b) => {
+        if (sortBy === 'stationTotalMeasurements') {
+          return b.stationTotalMeasurements - a.stationTotalMeasurements;
         }
 
-        if (sortBy === 'MonitoringLocationIdentifier') {
-          const idA = objA['properties'][sortBy].split('-')[1];
-          const idB = objB['properties'][sortBy].split('-')[1];
-          return idA.localeCompare(idB);
+        if (sortBy === 'siteId') {
+          return a.siteId.localeCompare(b.siteId);
         }
 
-        return objA['properties'][sortBy].localeCompare(
-          objB['properties'][sortBy],
-        );
+        return a[sortBy].localeCompare(b[sortBy]);
       })
     : [];
 
@@ -437,6 +457,7 @@ function Monitoring() {
                     View available monitoring locations in your local watershed
                     or view by category.
                   </p>
+
                   {allMonitoringStations.length === 0 && (
                     <Text>
                       There are no Water Monitoring Locations in the {watershed}{' '}
@@ -465,24 +486,26 @@ function Monitoring() {
                         <tbody>
                           {Object.values(monitoringStationGroups)
                             .map((group) => {
-                              const { label, stations } = group;
-
                               // remove duplicates caused by a single monitoring station having multiple overlapping groupNames
                               // like 'Inorganics, Major, Metals' and 'Inorganics, Minor, Metals'
-                              const uniqueStations = [...new Set(stations)];
+                              const uniqueStations = [
+                                ...new Set(group.stations),
+                              ];
 
                               return (
-                                <tr key={label}>
+                                <tr key={group.label}>
                                   <td>
                                     <Toggle>
                                       <Switch
                                         checked={
-                                          monitoringLocationToggles[label]
+                                          monitoringLocationToggles[group.label]
                                         }
-                                        onChange={(ev) => toggleSwitch(label)}
-                                        ariaLabel={`Toggle ${label}`}
+                                        onChange={(ev) =>
+                                          toggleSwitch(group.label)
+                                        }
+                                        ariaLabel={`Toggle ${group.label}`}
                                       />
-                                      <span>{label}</span>
+                                      <span>{group.label}</span>
                                     </Toggle>
                                   </td>
                                   <td>
@@ -502,41 +525,41 @@ function Monitoring() {
 
                       <AccordionList
                         expandDisabled={true} // disabled to avoid large number of web service calls
-                        title={`Displaying ${displayLocations} of ${totalLocations} Water Monitoring Locations in the ${watershed} watershed.`}
-                        onSortChange={(sortBy) => setSortBy(sortBy.value)}
+                        title={
+                          <>
+                            <strong>{displayLocations}</strong> of{' '}
+                            <strong>{totalLocations}</strong> Water Monitoring
+                            Locations in the <em>{watershed}</em> watershed.
+                          </>
+                        }
+                        onSortChange={({ value }) => setSortBy(value)}
                         sortOptions={[
                           {
-                            value: 'MonitoringLocationName',
                             label: 'Monitoring Location Name',
+                            value: 'locationName',
                           },
                           {
-                            value: 'OrganizationIdentifier',
                             label: 'Organization ID',
+                            value: 'orgId',
                           },
                           {
-                            value: 'MonitoringLocationIdentifier',
                             label: 'Monitoring Site ID',
+                            value: 'siteId',
                           },
                           {
-                            value: 'resultCount',
                             label: 'Monitoring Measurements',
+                            value: 'stationTotalMeasurements',
                           },
                         ]}
                       >
                         {sortedMonitoringStations.map((item, index) => {
-                          const { properties: prop } = item;
-
                           const feature = {
                             geometry: {
-                              type: 'point', // autocasts as new Point()
-                              longitude: item.x,
-                              latitude: item.y,
+                              type: 'point',
+                              longitude: item.locationLongitude,
+                              latitude: item.locationLatitude,
                             },
-                            symbol: {
-                              type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
-                              style: 'square',
-                            },
-                            attributes: prop,
+                            attributes: item,
                           };
 
                           return (
@@ -544,26 +567,23 @@ function Monitoring() {
                               key={index}
                               title={
                                 <strong>
-                                  {prop['MonitoringLocationName'] || 'Unknown'}
+                                  {item.locationName || 'Unknown'}
                                 </strong>
                               }
                               subTitle={
                                 <>
-                                  Organization ID:{' '}
-                                  {prop['OrganizationIdentifier']}
+                                  <em>Organization ID:</em>&nbsp;&nbsp;
+                                  {item.orgId}
                                   <br />
-                                  Monitoring Site ID:{' '}
-                                  {prop['MonitoringLocationIdentifier'].replace(
-                                    `${prop['OrganizationIdentifier']}-`,
-                                    '',
-                                  )}{' '}
+                                  <em>Monitoring Site ID:</em>&nbsp;&nbsp;
+                                  {item.siteId.replace(`${item.orgId}-`, '')}
                                   <br />
-                                  Monitoring Measurements:{' '}
-                                  {Number(prop['resultCount']).toLocaleString()}
+                                  <em>Monitoring Measurements:</em>&nbsp;&nbsp;
+                                  {item.stationTotalMeasurements}
                                 </>
                               }
                               feature={feature}
-                              idKey={'MonitoringLocationIdentifier'}
+                              idKey="siteId"
                             >
                               <AccordionContent>
                                 <WaterbodyInfo
