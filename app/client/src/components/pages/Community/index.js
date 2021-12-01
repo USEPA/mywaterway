@@ -50,13 +50,6 @@ const RightColumn = styled.div`
   width: calc(100% + 2.5em);
   line-height: 1.25;
 
-  /*
-  TODO: scope this to just the gray tabs within an overview tab's lower section
-  [data-reach-tabs] [data-reach-tab-panel] {
-    min-height: calc(100vh - 2em);
-  }
-  */
-
   @media (min-width: 960px) {
     margin-left: 0;
     width: 50%;

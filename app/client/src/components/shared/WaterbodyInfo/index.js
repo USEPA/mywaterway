@@ -57,7 +57,7 @@ const tableStyles = css`
 
 const checkboxCellStyles = css`
   text-align: center;
-  vertical-align: middle;
+  vertical-align: middle !important;
 `;
 
 const checkboxStyles = css`

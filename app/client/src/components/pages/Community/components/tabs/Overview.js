@@ -229,8 +229,6 @@ function Overview() {
     : [];
 
   const totalWaterbodies = uniqueWaterbodies.length;
-  // console.log(cipSummary.data.items?.[0].assessmentUnits?.length);
-  // const assessmentUnitCount = cipSummary.data.items?.[0].assessmentUnits?.length;
 
   const totalSampleLocations =
     monitoringStations.data.features && usgsStreamgages.data.value
@@ -794,9 +792,9 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
 
   /* prettier-ignore */
   const sortedPermittedDischargers = permittedDischargers.data.Results?.Facilities
-    ? permittedDischargers.data.Results.Facilities.sort((objA, objB) => {
-        return objA[permittedDischargersSortedBy].localeCompare(
-          objB[permittedDischargersSortedBy],
+    ? permittedDischargers.data.Results.Facilities.sort((a, b) => {
+        return a[permittedDischargersSortedBy].localeCompare(
+          b[permittedDischargersSortedBy],
         );
       })
     : [];
@@ -824,7 +822,7 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
 
         {totalPermittedDischargers > 0 && (
           <AccordionList
-            title={`Dischargers in the ${watershed} watershed.`}
+            title={<>Dischargers in the {watershed} watershed.</>}
             onSortChange={(sortBy) => {
               setPermittedDischargersSortedBy(sortBy.value);
             }}
@@ -858,11 +856,14 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
                   feature={feature}
                   idKey="CWPName"
                 >
-                  <WaterbodyInfo
-                    type="Permitted Discharger"
-                    feature={feature}
-                  />
-                  <ViewOnMapButton feature={feature} />
+                  <div css={accordionContentStyles}>
+                    <WaterbodyInfo
+                      type="Permitted Discharger"
+                      feature={feature}
+                    />
+
+                    <ViewOnMapButton feature={feature} />
+                  </div>
                 </AccordionItem>
               );
             })}
