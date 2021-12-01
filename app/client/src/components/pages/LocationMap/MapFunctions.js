@@ -77,7 +77,14 @@ export function getWaterbodyCondition(
   }
 }
 
-export function createUniqueValueInfos(geometryType: string) {
+export function createUniqueValueInfos(
+  geometryType: string,
+  alpha: {
+    base: number,
+    poly: number,
+    outline: number,
+  } | null,
+) {
   return [
     {
       value: `Fully Supporting`,
@@ -85,6 +92,7 @@ export function createUniqueValueInfos(geometryType: string) {
         condition: 'good',
         selected: false,
         geometryType,
+        alpha,
       }),
     },
     {
@@ -93,6 +101,7 @@ export function createUniqueValueInfos(geometryType: string) {
         condition: 'polluted',
         selected: false,
         geometryType,
+        alpha,
       }),
     },
     {
@@ -101,6 +110,7 @@ export function createUniqueValueInfos(geometryType: string) {
         condition: 'unassessed',
         selected: false,
         geometryType,
+        alpha,
       }),
     },
     {
@@ -109,6 +119,7 @@ export function createUniqueValueInfos(geometryType: string) {
         condition: 'unassessed',
         selected: false,
         geometryType,
+        alpha,
       }),
     },
     {
@@ -117,6 +128,7 @@ export function createUniqueValueInfos(geometryType: string) {
         condition: 'good',
         selected: false,
         geometryType,
+        alpha,
       }),
     },
     {
@@ -125,6 +137,7 @@ export function createUniqueValueInfos(geometryType: string) {
         condition: 'polluted',
         selected: false,
         geometryType,
+        alpha,
       }),
     },
   ];
@@ -155,14 +168,20 @@ export function createWaterbodySymbol({
   condition,
   selected,
   geometryType = 'point',
+  alpha = null,
 }: {
   condition: 'good' | 'polluted' | 'unassessed' | 'hidden',
   selected: boolean,
   geometryType: string,
+  alpha: {
+    base: number,
+    poly: number,
+    outline: number,
+  } | null,
 }) {
   const outline = selected
-    ? { color: [0, 255, 255, 0.5], width: 1 }
-    : { color: [0, 0, 0, 1], width: 1 };
+    ? { color: [0, 255, 255, alpha ? alpha.outline : 0.5], width: 1 }
+    : { color: [0, 0, 0, alpha ? alpha.outline : 1], width: 1 };
 
   // from colors.highlightedPurple() and colors.purple()
   let color = selected ? { r: 84, g: 188, b: 236 } : { r: 107, g: 65, b: 149 };
@@ -177,6 +196,10 @@ export function createWaterbodySymbol({
 
   // for polygons, add transparency to the color so that lines can be seen
   if (geometryType === 'polygon') color.a = 0.75;
+  if (alpha) {
+    color.a = alpha.base;
+    if (geometryType === 'polygon') color.a = alpha.poly;
+  }
 
   let symbol = {
     type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
@@ -221,14 +244,16 @@ export function createWaterbodySymbol({
   }
 
   if (geometryType === 'polygon') {
-    const outline = selected ? { color: [0, 255, 255, 0.5], width: 3 } : null;
+    const polyOutline = selected
+      ? { color: [0, 255, 255, alpha ? alpha.outline : 0.5], width: 3 }
+      : null;
 
     return {
       type: 'simple-fill', // autocasts as SimpleFillSymbol()
       color,
       width: 3,
       style: 'solid',
-      outline,
+      outline: polyOutline,
     };
   }
 }
@@ -874,4 +899,21 @@ export function gradientIcon({ id, stops }) {
       </tbody>
     </table>
   );
+}
+
+// Gets the highlight symbol styles based on the provided geometry.
+export function getHighlightSymbol(geometry, color) {
+  let symbol: Object = { color };
+  if (geometry.type === 'polyline') {
+    symbol['type'] = 'simple-line';
+    symbol['width'] = 5;
+  } else if (geometry.type === 'polygon') {
+    symbol['type'] = 'simple-fill';
+    symbol['outline'] = { color, width: 2 };
+  } else if (geometry.type === 'point' || geometry.type === 'multipoint') {
+    symbol['type'] = 'simple-marker';
+    symbol['outline'] = { color, width: 2 };
+  }
+
+  return symbol;
 }

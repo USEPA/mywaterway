@@ -91,10 +91,21 @@ function MapLegend({ view, visibleLayers, additionalLegendInfo }: Props) {
     );
   }
 
+  let waterbodyLayerAdded = false;
+
   return (
     <div css={containerStyles}>
       <ul css={listStyles}>
         {filteredVisibleLayers.map((layer, index) => {
+          if (
+            layer.visible &&
+            (layer.id === 'waterbodyLayer' ||
+              layer.id === 'allWaterbodiesLayer')
+          ) {
+            if (waterbodyLayerAdded) return null;
+            waterbodyLayerAdded = true;
+          }
+
           return (
             <MapLegendContent
               key={index}
@@ -709,6 +720,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   };
 
   if (layer.id === 'waterbodyLayer') return waterbodyLegend;
+  if (layer.id === 'allWaterbodiesLayer') return waterbodyLegend;
   if (layer.id === 'issuesLayer') return issuesLegend;
   if (layer.id === 'monitoringStationsLayer') return monitoringStationsLegend;
   if (layer.id === 'usgsStreamgagesLayer') return usgsStreamgagesLegend;

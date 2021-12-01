@@ -228,7 +228,6 @@ function FilePanel() {
     FeatureLayer,
     FeatureSet,
     Field,
-    geometryJsonUtils,
     Graphic,
     Geoprocessor,
     KMLLayer,
@@ -418,7 +417,6 @@ function FilePanel() {
     // esri modules
     FeatureSet,
     Field,
-    geometryJsonUtils,
     Geoprocessor,
     Graphic,
     SpatialReference,
@@ -527,7 +525,6 @@ function FilePanel() {
     // esri modules
     FeatureLayer,
     Field,
-    geometryJsonUtils,
     Graphic,
     rendererJsonUtils,
 

@@ -12,6 +12,7 @@ import {
   createUniqueValueInfos,
   getPopupContent,
   getPopupTitle,
+  getHighlightSymbol,
   graphicComparison,
   openPopup,
   shallowCompare,
@@ -30,6 +31,62 @@ function closePopup({ mapView, setHighlightedGraphic, setSelectedGraphic }) {
 
   // close the popup
   if (mapView) mapView.popup.close();
+}
+
+// Gets all features in the layer that match the provided organizationid and
+// assessmentunitidentifier. Any features found are added to the provided
+// features array.
+function getMatchingFeatures(
+  features,
+  layerData,
+  organizationid,
+  assessmentunitidentifier,
+) {
+  layerData.features.forEach((feature) => {
+    if (
+      feature.attributes.organizationid === organizationid &&
+      feature.attributes.assessmentunitidentifier === assessmentunitidentifier
+    ) {
+      features.push(feature);
+    }
+  });
+}
+
+// Highlights the feature either by adding a graphic to the view.graphics
+// collection or by using the layerView.highlight function. The view.graphics
+// method is used if the feature has an "originalGeometry" attribute, which
+// indicates that this feature has been clipped and the highlighting should
+// use the full original feature.
+function highlightFeature({
+  mapView,
+  features,
+  highlightOptions,
+  handles,
+  group,
+  layer = null,
+  callback = null,
+}) {
+  features.forEach((feature) => {
+    if (feature.originalGeometry) {
+      mapView.graphics.add({
+        ...feature,
+        geometry: feature.originalGeometry,
+        symbol: getHighlightSymbol(
+          feature.originalGeometry,
+          highlightOptions.color,
+        ),
+      });
+    } else {
+      mapView
+        .whenLayerView(layer ?? feature.layer)
+        .then((layerView) => {
+          const highlightObject = layerView.highlight(feature);
+          handles.add(highlightObject, group);
+          if (callback) callback(feature);
+        })
+        .catch((err) => console.error(err));
+    }
+  });
 }
 
 // custom hook that combines lines, area, and points features from context,
@@ -158,14 +215,15 @@ function useWaterbodyOnMap(
     setSelectedGraphic, //
   } = React.useContext(MapHighlightContext);
   const {
+    allWaterbodiesLayer,
     pointsLayer,
     linesLayer,
     areasLayer,
-    mapView, //
+    mapView,
   } = React.useContext(LocationSearchContext);
 
   const setRenderer = React.useCallback(
-    (layer, geometryType, attributeName) => {
+    (layer, geometryType, alpha = null) => {
       const renderer = {
         type: 'unique-value',
         field: attributeName ? attributeName : 'overallstatus',
@@ -174,31 +232,52 @@ function useWaterbodyOnMap(
           condition: defaultCondition,
           selected: false,
           geometryType,
+          alpha,
         }),
-        uniqueValueInfos: createUniqueValueInfos(geometryType),
+        uniqueValueInfos: createUniqueValueInfos(geometryType, alpha),
       };
       layer.renderer = renderer;
 
       // close popup and clear highlights when the renderer changes
       closePopup({ mapView, setHighlightedGraphic, setSelectedGraphic });
     },
-    [defaultCondition, mapView, setHighlightedGraphic, setSelectedGraphic],
+    [
+      attributeName,
+      defaultCondition,
+      mapView,
+      setHighlightedGraphic,
+      setSelectedGraphic,
+    ],
   );
 
   React.useEffect(() => {
     if (!pointsLayer || pointsLayer === 'error') return;
-    setRenderer(pointsLayer, 'point', attributeName);
-  }, [pointsLayer, attributeName, setRenderer]);
+    setRenderer(pointsLayer, 'point');
+  }, [pointsLayer, setRenderer]);
 
   React.useEffect(() => {
     if (!linesLayer || linesLayer === 'error') return;
-    setRenderer(linesLayer, 'polyline', attributeName);
-  }, [linesLayer, attributeName, setRenderer]);
+    setRenderer(linesLayer, 'polyline');
+  }, [linesLayer, setRenderer]);
 
   React.useEffect(() => {
     if (!areasLayer || areasLayer === 'error') return;
-    setRenderer(areasLayer, 'polygon', attributeName);
-  }, [areasLayer, attributeName, setRenderer]);
+    setRenderer(areasLayer, 'polygon');
+  }, [areasLayer, setRenderer]);
+
+  React.useEffect(() => {
+    if (!allWaterbodiesLayer || allWaterbodiesLayer === 'error') return;
+
+    const alpha = {
+      base: 0.2,
+      poly: 0.1,
+      outline: 0.05,
+    };
+
+    setRenderer(allWaterbodiesLayer.layers.items[2], 'point', alpha);
+    setRenderer(allWaterbodiesLayer.layers.items[1], 'polyline', alpha);
+    setRenderer(allWaterbodiesLayer.layers.items[0], 'polygon', alpha);
+  }, [allWaterbodiesLayer, setRenderer]);
 }
 
 // custom hook that is used to highlight based on context. If the findOthers
@@ -226,6 +305,10 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     wildScenicRiversLayer,
     protectedAreasLayer,
     protectedAreasHighlightLayer,
+    highlightOptions,
+    pointsData,
+    linesData,
+    areasData,
   } = React.useContext(LocationSearchContext);
   const services = useServicesContext();
 
@@ -242,7 +325,8 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     }
 
     // get the parameters for the zoom call
-    const geometry = selectedGraphic.geometry;
+    const geometry =
+      selectedGraphic.originalGeometry ?? selectedGraphic.geometry;
     let params = geometry;
     if (!geometry.extent && geometry.longitude && geometry.latitude) {
       params = {
@@ -305,6 +389,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     // verify that we have a graphic before continuing
     if (!graphic || !graphic.attributes) {
       handles.remove(group);
+      mapView.graphics.removeAll();
 
       if (protectedAreasHighlightLayer) {
         protectedAreasHighlightLayer.removeAll();
@@ -370,6 +455,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     // remove the highlights
     handles.remove(group);
+    mapView.graphics.removeAll();
     if (protectedAreasHighlightLayer) {
       protectedAreasHighlightLayer.removeAll();
     }
@@ -386,6 +472,16 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     // get the graphic from the layer so that we have geometry
     let graphicToHighlight = graphic;
 
+    // define the callback used for setting the highlight state cache
+    function highlightStateCallback() {
+      currentHighlight = graphic;
+      setHighlightState({
+        currentHighlight,
+        currentSelection,
+        cachedHighlights,
+      });
+    }
+
     // find the actual graphic on the layer
     if (layer.type === 'graphics') {
       for (const tempGraphic of layer.graphics.items) {
@@ -397,19 +493,38 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         }
       }
 
-      mapView
-        .whenLayerView(layer)
-        .then((layerView) => {
-          const highlightObject = layerView.highlight(graphicToHighlight);
-          handles.add(highlightObject, group);
-          currentHighlight = graphic;
-          setHighlightState({
-            currentHighlight,
-            currentSelection,
-            cachedHighlights,
-          });
-        })
-        .catch((err) => console.error(err));
+      highlightFeature({
+        mapView,
+        layer,
+        features: [graphicToHighlight],
+        highlightOptions,
+        handles,
+        group,
+        callback: highlightStateCallback,
+      });
+    }
+    //
+    else if (
+      window.location.pathname.includes('community') &&
+      featureLayerType === 'waterbodyLayer' &&
+      layer.type === 'feature' &&
+      (findOthers ||
+        (graphicOrgId === selectedGraphicOrgId &&
+          graphicAuId === selectedGraphicAuId))
+    ) {
+      // get features across all layers that have the same organizationid and assessmentunitid
+      const features = [];
+      getMatchingFeatures(features, areasData, graphicOrgId, graphicAuId);
+      getMatchingFeatures(features, linesData, graphicOrgId, graphicAuId);
+      getMatchingFeatures(features, pointsData, graphicOrgId, graphicAuId);
+
+      highlightFeature({
+        mapView,
+        features,
+        highlightOptions,
+        handles,
+        group,
+      });
     }
     //
     else if (
@@ -439,14 +554,12 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       }
 
       if (cachedHighlights[key]) {
-        cachedHighlights[key].forEach((feature) => {
-          mapView
-            .whenLayerView(feature.layer)
-            .then((layerView) => {
-              const highlightObject = layerView.highlight(feature);
-              handles.add(highlightObject, group);
-            })
-            .catch((err) => console.error(err));
+        highlightFeature({
+          mapView,
+          features: cachedHighlights[key],
+          highlightOptions,
+          handles,
+          group,
         });
 
         currentHighlight = graphic;
@@ -487,15 +600,13 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
           responses.forEach((response) => {
             if (!response || !response.features) return;
 
-            response.features.forEach((feature) => {
-              featuresToCache.push(feature);
-              mapView
-                .whenLayerView(feature.layer)
-                .then((layerView) => {
-                  const highlightObject = layerView.highlight(feature);
-                  handles.add(highlightObject, group);
-                })
-                .catch((err) => console.error(err));
+            highlightFeature({
+              mapView,
+              features: response.features,
+              highlightOptions,
+              handles,
+              group,
+              callback: (feature) => featuresToCache.push(feature),
             });
 
             // build the new cachedHighlights object
@@ -515,24 +626,21 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     }
     //
     else {
-      mapView
-        .whenLayerView(layer)
-        .then((layerView) => {
-          const highlightObject = layerView.highlight(graphicToHighlight);
-          handles.add(highlightObject, group);
-          currentHighlight = graphic;
-          setHighlightState({
-            currentHighlight,
-            currentSelection,
-            cachedHighlights,
-          });
-        })
-        .catch((err) => console.error(err));
+      highlightFeature({
+        mapView,
+        layer,
+        features: [graphicToHighlight],
+        highlightOptions,
+        handles,
+        group,
+        callback: highlightStateCallback,
+      });
     }
   }, [
     mapView,
     highlightedGraphic,
     selectedGraphic,
+    highlightOptions,
     highlightState,
     areasLayer,
     linesLayer,
@@ -550,6 +658,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     wildScenicRiversLayer,
     protectedAreasLayer,
     protectedAreasHighlightLayer,
+    pointsData,
+    linesData,
+    areasData,
   ]);
 
   // Closes the popup and clears highlights whenever the tab changes
@@ -696,6 +807,7 @@ function useSharedLayers() {
     watchUtils,
   } = React.useContext(EsriModulesContext);
   const {
+    setAllWaterbodiesLayer,
     setProtectedAreasLayer,
     setProtectedAreasHighlightLayer,
     setWsioHealthIndexLayer,
@@ -1161,6 +1273,96 @@ function useSharedLayers() {
 
     // END - EJSCREEN layers
 
+    // START - All Waterbodies layers
+
+    const popupTemplate = {
+      title: getTitle,
+      content: getTemplate,
+      outFields: ['*'],
+    };
+
+    const alpha = {
+      base: 0.2,
+      poly: 0.1,
+      outline: 0.05,
+    };
+
+    const minScale = 577791;
+
+    // Build the feature layers that will make up the waterbody layer
+    const pointsRenderer = {
+      type: 'unique-value',
+      field: 'overallstatus',
+      fieldDelimiter: ', ',
+      defaultSymbol: createWaterbodySymbol({
+        condition: 'unassessed',
+        selected: false,
+        geometryType: 'point',
+        alpha,
+      }),
+      uniqueValueInfos: createUniqueValueInfos('point', alpha),
+    };
+    const pointsLayer = new FeatureLayer({
+      url: services.data.waterbodyService.points,
+      outFields: ['*'],
+      renderer: pointsRenderer,
+      popupTemplate,
+      minScale,
+    });
+
+    const linesRenderer = {
+      type: 'unique-value',
+      field: 'overallstatus',
+      fieldDelimiter: ', ',
+      defaultSymbol: createWaterbodySymbol({
+        condition: 'unassessed',
+        selected: false,
+        geometryType: 'polyline',
+        alpha,
+      }),
+      uniqueValueInfos: createUniqueValueInfos('polyline', alpha),
+    };
+    const linesLayer = new FeatureLayer({
+      url: services.data.waterbodyService.lines,
+      outFields: ['*'],
+      renderer: linesRenderer,
+      popupTemplate,
+      minScale,
+    });
+
+    const areasRenderer = {
+      type: 'unique-value',
+      field: 'overallstatus',
+      fieldDelimiter: ', ',
+      defaultSymbol: createWaterbodySymbol({
+        condition: 'unassessed',
+        selected: false,
+        geometryType: 'polygon',
+        alpha,
+      }),
+      uniqueValueInfos: createUniqueValueInfos('polygon', alpha),
+    };
+    const areasLayer = new FeatureLayer({
+      url: services.data.waterbodyService.areas,
+      outFields: ['*'],
+      renderer: areasRenderer,
+      popupTemplate,
+      minScale,
+    });
+
+    // Make the waterbody layer into a single layer
+    const allWaterbodiesLayer = new GroupLayer({
+      id: 'allWaterbodiesLayer',
+      title: 'All Waterbodies',
+      listMode: 'hide',
+      visible: true,
+      minScale,
+    });
+    allWaterbodiesLayer.addMany([areasLayer, linesLayer, pointsLayer]);
+    setAllWaterbodiesLayer(allWaterbodiesLayer);
+
+    // END - All Waterbodies layers
+
     return [
       ejscreen,
       wsioHealthIndexLayer,
@@ -1173,6 +1375,7 @@ function useSharedLayers() {
       mappedWaterLayer,
       countyLayer,
       watershedsLayer,
+      allWaterbodiesLayer,
     ];
   };
 }
@@ -1210,7 +1413,82 @@ function useKeyPress(targetKey: string, ref: Object) {
   return keyPressed;
 }
 
+// Custom hook that is used for performing GIS geometry functions, such as
+// cropping geometry.
+function useGeometryUtils() {
+  const { geometryEngine, Polygon } = React.useContext(EsriModulesContext);
+
+  // This results in no waterbodies extending outside of the hucGeometry.
+  // The arcgis difference function removes the parts of the waterbody that
+  // are inside of the huc12, which is opposite of what we need. To work around
+  // this we first draw a box around the extent of the huc and all waterbodies,
+  // then subtract the huc from this box. This results in a large box that has
+  // a hole in it that is in the shape of the huc. Finally we subtract this
+  // box from the waterbodies graphics.
+  const cropGeometryToHuc = function (resFeatures, hucGeometry) {
+    // start by getting the extend of the huc boundaries
+    let extent = hucGeometry.extent;
+
+    // add the extent of all of the waterbodies
+    const features = [];
+    resFeatures.forEach((feature) => {
+      extent.union(feature.geometry.extent);
+    });
+
+    // build geometry from the extent
+    const extentGeometry = new Polygon({
+      spatialReference: hucGeometry.spatialReference,
+      centroid: extent.center,
+      rings: [
+        [
+          [extent.xmin, extent.ymin],
+          [extent.xmin, extent.ymax],
+          [extent.xmax, extent.ymax],
+          [extent.xmax, extent.ymin],
+          [extent.xmin, extent.ymin],
+        ],
+      ],
+    });
+
+    // subtract the huc from the full extent
+    const subtractor = geometryEngine.difference(extentGeometry, hucGeometry);
+
+    // crop any geometry that extends beyond the huc 12
+    resFeatures.forEach((feature) => {
+      // crop the waterbodies that extend outside of the huc
+      const newGeometry = geometryEngine.difference(
+        feature.geometry,
+        subtractor,
+      );
+
+      feature.geometry = newGeometry;
+      features.push(feature);
+    });
+
+    // order the features by overall status
+    const sortBy = [
+      'Cause',
+      'Not Supporting',
+      'Insufficient Information',
+      'Not Assessed',
+      'Meeting Criteria',
+      'Fully Supporting',
+    ];
+    features.sort((a, b) => {
+      return (
+        sortBy.indexOf(a.attributes.overallstatus) -
+        sortBy.indexOf(b.attributes.overallstatus)
+      );
+    });
+
+    return features;
+  };
+
+  return { cropGeometryToHuc };
+}
+
 export {
+  useGeometryUtils,
   useSharedLayers,
   useWaterbodyFeatures,
   useWaterbodyFeaturesState,
