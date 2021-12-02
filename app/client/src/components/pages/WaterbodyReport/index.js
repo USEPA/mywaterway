@@ -1274,9 +1274,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                               </p>
                             </ErrorBox>
                           )}
-                          {monitoringLocations.status === 'success' && (
+                          {monitoringStations.status === 'success' && (
                             <ul css={locationsStyles}>
-                              {monitoringLocations.data.map((location) => {
+                              {monitoringStations.data.map((location) => {
                                 const { orgId, locId, name, url } = location;
                                 return (
                                   <li key={locId}>
