@@ -582,6 +582,10 @@ function SampleLocationsTab({
     return <LoadingSpinner />;
   }
 
+  // TODO: check with EPA if they want to use the same error message for both
+  // web services (how this is currently implemented) or have unique error
+  // messages for each (which would mean removing the block below, and adding
+  // in conditional rendering of both error messages in the success block below)
   if (
     monitoringStations.status === 'failure' &&
     usgsStreamgages.status === 'failure'
@@ -594,7 +598,7 @@ function SampleLocationsTab({
   }
 
   if (
-    monitoringStations.status === 'success' &&
+    monitoringStations.status === 'success' ||
     usgsStreamgages.status === 'success'
   ) {
     return (
