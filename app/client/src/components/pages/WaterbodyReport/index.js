@@ -1245,13 +1245,6 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                     </StyledBoxSection>
                   </StyledBox>
 
-                  {/*
-                  (monitoringStations.status === 'fetching' ||
-                    monitoringStations.status === 'failure' ||
-                    (monitoringStations.status === 'success' &&
-                      monitoringStations.data.length > 0)) && (
-                  */}
-
                   {
                     // NOTE: Water Monitoring section not ready as of 11/21/19
                     // TODO: replace `false & (` with commented out conditions above
