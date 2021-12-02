@@ -1,12 +1,12 @@
 // @flow
 
 import React from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
-import { StyledInfoBox, StyledErrorBox } from 'components/shared/MessageBoxes';
+import { infoBoxStyles, errorBoxStyles } from 'components/shared/MessageBoxes';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import {
   AccordionList,
@@ -24,18 +24,17 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 // errors
 import { huc12SummaryError } from 'config/errorMessages';
 
-// --- styled components ---
-const Text = styled.p`
-  margin: 1em;
+const paragraphStyles = css`
+  margin-bottom: 0.5em;
   padding-bottom: 0;
   font-weight: bold;
 `;
 
-const Legend = styled.div`
-  margin: 1em;
+const legendItemsStyles = css`
   display: flex;
   flex-flow: row wrap;
   justify-content: space-between;
+  margin-bottom: 1em;
 
   span {
     display: flex;
@@ -43,7 +42,7 @@ const Legend = styled.div`
   }
 `;
 
-const WaterbodyContent = styled.div`
+const waterbodyItemStyles = css`
   padding: 0.875em;
 
   button {
@@ -51,8 +50,15 @@ const WaterbodyContent = styled.div`
   }
 `;
 
-const InfoBoxWithMargin = styled(StyledInfoBox)`
-  margin: 1em;
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles};
+  margin-bottom: 1em;
+  text-align: center;
+`;
+
+const modifiedInfoBoxStyles = css`
+  ${infoBoxStyles};
+  margin-bottom: 1em;
   text-align: center;
 `;
 
@@ -61,26 +67,19 @@ type Props = {
   waterbodies: Array<Object>,
   title: string,
   fieldName: ?string,
-  type: string,
-  sortBy: string,
 };
 
-function WaterbodyList({
-  waterbodies,
-  title,
-  fieldName,
-  type = 'Waterbody',
-  sortBy = 'assessmentunitname',
-}: Props) {
+function WaterbodyList({ waterbodies, title, fieldName }: Props) {
   const { cipSummary } = React.useContext(LocationSearchContext);
 
   // if huc12summaryservice is down
-  if (cipSummary.status === 'failure')
+  if (cipSummary.status === 'failure') {
     return (
-      <StyledErrorBox>
+      <div css={modifiedErrorBoxStyles}>
         <p>{huc12SummaryError}</p>
-      </StyledErrorBox>
+      </div>
     );
+  }
 
   if (!waterbodies) return <LoadingSpinner />;
 
@@ -91,8 +90,8 @@ function WaterbodyList({
         'hidden',
     )
     .sort((objA, objB) => {
-      return objA['attributes'][sortBy].localeCompare(
-        objB['attributes'][sortBy],
+      return objA.attributes.assessmentunitname.localeCompare(
+        objB.attributes.assessmentunitname,
       );
     });
 
@@ -103,49 +102,33 @@ function WaterbodyList({
     <>
       {/* check if any waterbodies have no spatial data */}
       {sortedWaterbodies.some((waterbody) => waterbody.limited) && (
-        <InfoBoxWithMargin>
-          <p>Some waterbodies are not visible on the map.</p>
-        </InfoBoxWithMargin>
+        <p css={modifiedInfoBoxStyles}>
+          Some waterbodies are not visible on the map.
+        </p>
       )}
-      <Text>Waterbody Conditions:</Text>
-      <Legend>
+
+      <p css={paragraphStyles}>Waterbody Conditions:</p>
+
+      <div css={legendItemsStyles}>
         <span>
-          <WaterbodyIcon condition={'good'} selected={false} />
+          <WaterbodyIcon condition="good" selected={false} />
           &nbsp;Good
         </span>
         <span>
-          <WaterbodyIcon condition={'polluted'} selected={false} />
+          <WaterbodyIcon condition="polluted" selected={false} />
           &nbsp;Impaired
         </span>
         <span>
-          <WaterbodyIcon condition={'unassessed'} selected={false} />
+          <WaterbodyIcon condition="unassessed" selected={false} />
           &nbsp;Condition Unknown
         </span>
-      </Legend>
+      </div>
 
       <AccordionList title={title}>
         {sortedWaterbodies.map((graphic, index) => {
           /* prettier-ignore */
           const condition = getWaterbodyCondition(graphic.attributes, fieldName).condition;
           const icon = createWaterbodySymbol({ condition, selected: true });
-
-          const waterbodyContent = (
-            <WaterbodyContent>
-              <WaterbodyInfo
-                type={type}
-                feature={graphic}
-                fieldName={fieldName}
-              />
-              <ViewOnMapButton
-                feature={graphic}
-                fieldName={fieldName}
-                disabled={graphic.limited ? true : false}
-              />
-              {graphic.limited && (
-                <p>No map data available for this waterbody.</p>
-              )}
-            </WaterbodyContent>
-          );
 
           return (
             <AccordionItem
@@ -170,7 +153,23 @@ function WaterbodyList({
               feature={graphic}
               idKey={'assessmentunitidentifier'}
             >
-              {waterbodyContent}
+              <div css={waterbodyItemStyles}>
+                <WaterbodyInfo
+                  type="Waterbody"
+                  feature={graphic}
+                  fieldName={fieldName}
+                />
+
+                <ViewOnMapButton
+                  feature={graphic}
+                  fieldName={fieldName}
+                  disabled={graphic.limited ? true : false}
+                />
+
+                {graphic.limited && (
+                  <p>No map data available for this waterbody.</p>
+                )}
+              </div>
             </AccordionItem>
           );
         })}

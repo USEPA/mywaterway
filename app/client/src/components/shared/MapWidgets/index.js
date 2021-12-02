@@ -61,6 +61,7 @@ const orderedLayers = [
   'waterbodyLayer',
   'allWaterbodiesLayer',
   'monitoringStationsLayer',
+  'usgsStreamgagesLayer',
   'issuesLayer',
   'dischargersLayer',
   'nonprofitsLayer',
@@ -753,6 +754,7 @@ function MapWidgets({
     const layerList = [
       'dischargersLayer',
       'monitoringStationsLayer',
+      'usgsStreamgagesLayer',
       'nonprofitsLayer',
       'providersLayer',
       'waterbodyLayer',

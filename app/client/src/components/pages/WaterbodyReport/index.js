@@ -215,7 +215,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
     status: 'fetching',
     data: [],
   });
-  const [monitoringLocations, setMonitoringLocations] = React.useState({
+  const [monitoringStations, setMonitoringStations] = React.useState({
     status: 'fetching',
     data: [],
   });
@@ -261,7 +261,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
 
         // return early if no monitoring stations were returned
         if (monitoringStations.length === 0) {
-          setMonitoringLocations({ status: 'success', data: [] });
+          setMonitoringStations({ status: 'success', data: [] });
           return;
         }
 
@@ -309,10 +309,10 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
               return { orgId, locId, name, url };
             });
 
-            setMonitoringLocations({ status: 'success', data: locations });
+            setMonitoringStations({ status: 'success', data: locations });
           },
           (err) => {
-            setMonitoringLocations({ status: 'failure', data: [] });
+            setMonitoringStations({ status: 'failure', data: [] });
             console.error(err);
           },
         );
@@ -1254,13 +1254,6 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                     </div>
                   </div>
 
-                  {/*
-                  (monitoringLocations.status === 'fetching' ||
-                    monitoringLocations.status === 'failure' ||
-                    (monitoringLocations.status === 'success' &&
-                      monitoringLocations.data.length > 0)) && (
-                  */}
-
                   {
                     // NOTE: Water Monitoring section not ready as of 11/21/19
                     // TODO: replace `false & (` with commented out conditions above
@@ -1271,10 +1264,10 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
 
                         <div css={boxSectionStyles}>
                           <h3>Does this water have monitoring locations?</h3>
-                          {monitoringLocations.status === 'fetching' && (
+                          {monitoringStations.status === 'fetching' && (
                             <LoadingSpinner />
                           )}
-                          {monitoringLocations.status === 'failure' && (
+                          {monitoringStations.status === 'failure' && (
                             <ErrorBox>
                               <p>
                                 {waterbodyReportError('Monitoring location')}

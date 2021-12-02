@@ -22,6 +22,7 @@
     "monitoringLocation": "https://www.waterqualitydata.us/data/summary/monitoringlocation/",
     "monitoringLocationDetails": "https://www.waterqualitydata.us/provider/"
   },
+  "usgsSensorThingsAPI": "https://labs.waterdata.usgs.gov/sta/v1.1/Things",
   "echoNPDES": {
     "getFacilities": "https://echodata.epa.gov/echo/cwa_rest_services.get_facilities",
     "metadata": "https://echodata.epa.gov/echo/cwa_rest_services.metadata"
@@ -188,6 +189,11 @@
       "urlLookup": "waterQualityPortal.stationSearch",
       "wildcardUrl": "{urlLookup}*",
       "name": "wqp - station search"
+    },
+    {
+      "urlLookup": "usgsSensorThingsAPI",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "usgs – SensorThings API"
     },
     {
       "urlLookup": "glossaryURL",
