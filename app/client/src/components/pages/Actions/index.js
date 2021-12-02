@@ -171,15 +171,14 @@ function getWaterbodyData(
   return assessmentIndex === -1 ? null : graphics.items[assessmentIndex];
 }
 
-// --- styled components ---
-const errorBoxModStyles = css`
+const modifiedErrorBoxStyles = css`
   ${errorBoxStyles}
   margin: 1rem;
   text-align: center;
 `;
 
-const inlineBoxSectionStyles = css`
-  ${boxSectionStyles}
+const inlineBoxStyles = css`
+  ${boxSectionStyles};
   padding-top: 0;
 
   * {
@@ -187,7 +186,7 @@ const inlineBoxSectionStyles = css`
   }
 `;
 
-const introStyles = css`
+const introTextStyles = css`
   margin-top: 0 !important;
   padding-bottom: 0.4375em !important;
 `;
@@ -196,7 +195,7 @@ const iconStyles = css`
   margin-right: 5px;
 `;
 
-const ulStyles = css`
+const listStyles = css`
   padding-bottom: 0;
 `;
 
@@ -221,10 +220,6 @@ const accordionContentStyles = css`
   }
 `;
 
-const newTabDisclaimerItalicStyles = css`
-  padding: 0.4375rem 0.875rem;
-`;
-
 const newTabDisclaimerDivStyles = css`
   display: inline-block;
 `;
@@ -233,7 +228,6 @@ const textBottomMarginStyles = css`
   margin-bottom: 0.5em !important;
 `;
 
-// --- components ---
 type Props = {
   ...RouteProps,
   fullscreen: Object, // passed from FullscreenContext.Consumer
@@ -297,10 +291,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
               } = processAssessmentUnitData(data, action);
 
               // Get a sorted list of pollutants and waters
-              const {
-                pollutants,
-                waters, //
-              } = getPollutantsWaters(action, orgId);
+              const { pollutants, waters } = getPollutantsWaters(action, orgId);
 
               // set the state variables
               setLoading(false);
@@ -357,7 +348,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
             {hasTmdlData && (
               <>
                 <strong>Associated Impairments: </strong>
-                <ul css={ulStyles}>
+                <ul css={listStyles}>
                   {associatedPollutants
                     .sort((a, b) =>
                       a.pollutantName.localeCompare(b.pollutantName),
@@ -414,7 +405,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
             {!hasTmdlData && (
               <>
                 <strong>Parameters Addressed: </strong>
-                <ul css={ulStyles}>
+                <ul css={listStyles}>
                   {parameters
                     .sort((a, b) =>
                       a.parameterName.localeCompare(b.parameterName),
@@ -477,7 +468,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
       </h2>
 
       <div css={boxSectionStyles}>
-        <p css={introStyles}>
+        <p css={introTextStyles}>
           This page reflects information provided to EPA by the state on plans
           in place to restore water quality. These plans could include a{' '}
           <GlossaryTerm term="TMDL">TMDL</GlossaryTerm> and/or a watershed
@@ -485,22 +476,22 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
         </p>
       </div>
 
-      <div css={inlineBoxSectionStyles}>
+      <div css={inlineBoxStyles}>
         <h3>Name:&nbsp;</h3>
         <p>{actionName}</p>
       </div>
 
-      <div css={inlineBoxSectionStyles}>
+      <div css={inlineBoxStyles}>
         <h3>Completed:&nbsp;</h3>
         <p>{completionDate}</p>
       </div>
 
-      <div css={inlineBoxSectionStyles}>
+      <div css={inlineBoxStyles}>
         <h3>Type:&nbsp;</h3>
         <p>{actionTypeCode}</p>
       </div>
 
-      <div css={inlineBoxSectionStyles}>
+      <div css={inlineBoxStyles}>
         <h3>Status:&nbsp;</h3>
         <p>
           {/* if Action type is not a TMDL, change 'EPA Final Action' to 'Final */}
@@ -510,7 +501,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
         </p>
       </div>
 
-      <div css={inlineBoxSectionStyles}>
+      <div css={inlineBoxStyles}>
         <h3>Organization Name (ID):&nbsp;</h3>
         <p>
           {organizationName} ({orgId})
@@ -532,10 +523,10 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
   if (noActions) {
     return (
       <Page>
-        <NavBar title={<>Plan Summary</>} />
+        <NavBar title="Plan Summary" />
 
         <div css={splitLayoutContainerStyles}>
-          <div css={errorBoxModStyles}>
+          <div css={modifiedErrorBoxStyles}>
             <p>{noActionsAvailableCombo(orgId, actionId)}</p>
           </div>
         </div>
@@ -546,10 +537,10 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
   if (error) {
     return (
       <Page>
-        <NavBar title={<>Plan Summary</>} />
+        <NavBar title="Plan Summary" />
 
         <div css={splitLayoutContainerStyles}>
-          <div css={errorBoxModStyles}>
+          <div css={modifiedErrorBoxStyles}>
             <p>{actionsError}</p>
           </div>
         </div>
@@ -629,12 +620,14 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                   <div css={boxStyles}>
                     <h2 css={boxHeadingStyles}>Associated Documents</h2>
                     {documents.length > 0 && (
-                      <em css={newTabDisclaimerItalicStyles}>
-                        Links below open in a new browser tab.
-                      </em>
+                      <div css={[boxSectionStyles, { paddingBottom: 0 }]}>
+                        <p css={introTextStyles}>
+                          <em>Links below open in a new browser tab.</em>
+                        </p>
+                      </div>
                     )}
                     <div css={boxSectionStyles}>
-                      <ul css={ulStyles}>
+                      <ul css={listStyles}>
                         {documents.length === 0 && (
                           <li>No documents are available</li>
                         )}
@@ -660,7 +653,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                       <h2 css={boxHeadingStyles}>Impairments Addressed</h2>
 
                       <div css={boxSectionStyles}>
-                        <ul css={ulStyles}>
+                        <ul css={listStyles}>
                           {pollutants.length === 0 && (
                             <li>No impairments are addressed</li>
                           )}
@@ -685,32 +678,33 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                             expandedRowsSetter={setExpandedRows}
                             renderer={({ index, resizeCell, allExpanded }) => {
                               const water = waters[index];
-                              const {
-                                assessmentUnitIdentifier,
-                                assessmentUnitName,
-                              } = water;
+
+                              const auId = water.assessmentUnitIdentifier;
+                              const name = water.assessmentUnitName;
 
                               const waterbodyData = getWaterbodyData(
                                 mapLayer,
                                 orgId,
-                                assessmentUnitIdentifier,
+                                auId,
                               );
+
                               const waterbodyReportingCycle = waterbodyData
                                 ? waterbodyData.attributes.reportingcycle
                                 : null;
 
+                              const orgLabel = getOrganizationLabel(
+                                waterbodyData?.attributes,
+                              );
+
                               return (
                                 <AccordionItem
-                                  key={assessmentUnitIdentifier}
+                                  key={auId}
                                   title={
                                     <strong>
-                                      {assessmentUnitName ||
-                                        'Name not provided'}
+                                      {name || 'Name not provided'}
                                     </strong>
                                   }
-                                  subTitle={`${getOrganizationLabel(
-                                    waterbodyData?.attributes,
-                                  )} ${assessmentUnitIdentifier}`}
+                                  subTitle={`${orgLabel} ${auId}`}
                                   allExpanded={
                                     allExpanded || expandedRows.includes(index)
                                   }
@@ -733,8 +727,8 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                                   }}
                                 >
                                   <div css={accordionContentStyles}>
-                                    {unitIds[assessmentUnitIdentifier] &&
-                                      unitIds[assessmentUnitIdentifier](
+                                    {unitIds[auId] &&
+                                      unitIds[auId](
                                         waterbodyReportingCycle,
                                         waterbodyData ? true : false,
                                       )}
@@ -744,7 +738,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                                         <ViewOnMapButton
                                           feature={{
                                             attributes: {
-                                              assessmentunitidentifier: assessmentUnitIdentifier,
+                                              assessmentunitidentifier: auId,
                                               organizationid: orgId,
                                               fieldName: 'hmw-extra-content',
                                             },

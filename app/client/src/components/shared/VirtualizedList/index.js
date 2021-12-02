@@ -9,7 +9,6 @@ import {
   WindowScroller,
 } from 'react-virtualized';
 
-// --- components ---
 type Props = {
   items: Array<Object>,
   renderer: Function,
@@ -66,30 +65,28 @@ function VirtualizedList({
   }
 
   return (
-    <>
-      <WindowScroller ref={windowScrollRef}>
-        {({ height, isScrolling, onChildScroll, scrollTop }) => (
-          <AutoSizer disableHeight>
-            {({ width }) => (
-              <List
-                ref={listRef}
-                autoHeight
-                deferredMeasurementCache={cache}
-                height={height}
-                width={width}
-                scrollTop={scrollTop}
-                isScrolling={isScrolling}
-                onScroll={onChildScroll}
-                rowCount={items.length}
-                rowHeight={cache.rowHeight}
-                rowRenderer={rowRenderer}
-                overscanRowCount={10}
-              />
-            )}
-          </AutoSizer>
-        )}
-      </WindowScroller>
-    </>
+    <WindowScroller ref={windowScrollRef}>
+      {({ height, isScrolling, onChildScroll, scrollTop }) => (
+        <AutoSizer disableHeight>
+          {({ width }) => (
+            <List
+              ref={listRef}
+              autoHeight
+              deferredMeasurementCache={cache}
+              height={height}
+              width={width}
+              scrollTop={scrollTop}
+              isScrolling={isScrolling}
+              onScroll={onChildScroll}
+              rowCount={items.length}
+              rowHeight={cache.rowHeight}
+              rowRenderer={rowRenderer}
+              overscanRowCount={10}
+            />
+          )}
+        </AutoSizer>
+      )}
+    </WindowScroller>
   );
 }
 

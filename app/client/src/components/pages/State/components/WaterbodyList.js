@@ -18,7 +18,6 @@ import {
 // contexts
 import { MapHighlightContext } from 'contexts/MapHighlight';
 
-// --- styled components ---
 const textStyles = css`
   margin: 1em;
   padding-bottom: 0;
@@ -45,7 +44,6 @@ const waterbodyContentStyles = css`
   }
 `;
 
-// --- components ---
 type Props = {
   waterbodies: Array<Object>,
   type: string,
@@ -115,29 +113,35 @@ function WaterbodyList({
           expandedRowsSetter={setExpandedRows}
           renderer={({ index, resizeCell, allExpanded }) => {
             const graphic = waterbodies[index];
-            /* prettier-ignore */
-            const condition = getWaterbodyCondition(graphic.attributes, fieldName, true).condition;
+
+            const condition = getWaterbodyCondition(
+              graphic.attributes,
+              fieldName,
+              true,
+            ).condition;
 
             let status = null;
             // ensure the key exists prior to deciding to highlight
-            if (graphic?.attributes['assessmentunitidentifier']) {
-              const id = graphic.attributes['assessmentunitidentifier'];
+            if (graphic?.attributes.assessmentunitidentifier) {
+              const id = graphic.attributes.assessmentunitidentifier;
 
               let isSelected = false;
               if (selectedGraphic?.attributes) {
                 isSelected =
-                  selectedGraphic.attributes['assessmentunitidentifier'] === id;
+                  selectedGraphic.attributes.assessmentunitidentifier === id;
               }
 
               let isHighlighted = false;
               if (highlightedGraphic?.attributes) {
                 isHighlighted =
-                  highlightedGraphic.attributes['assessmentunitidentifier'] ===
-                  id;
+                  highlightedGraphic.attributes.assessmentunitidentifier === id;
               }
 
-              if (isSelected) status = 'selected';
-              else if (isHighlighted && !isSelected) status = 'highlighted';
+              if (isSelected) {
+                status = 'selected';
+              } else if (isHighlighted && !isSelected) {
+                status = 'highlighted';
+              }
             }
 
             // get the type of symbol for creating a unique key, since it is currently
@@ -145,25 +149,19 @@ function WaterbodyList({
             // layers.
             const symbolType = getTypeFromAttributes(graphic);
 
+            const orgId = graphic.attributes.organizationid;
+            const auId = graphic.attributes.assessmentunitidentifier;
+            const name = graphic.attributes.assessmentunitname;
+
             return (
               <AccordionItem
-                key={
-                  symbolType +
-                  graphic.attributes.organizationid +
-                  graphic.attributes.assessmentunitidentifier
-                }
-                index={
-                  symbolType +
-                  graphic.attributes.organizationid +
-                  graphic.attributes.assessmentunitidentifier
-                }
-                title={<strong>{graphic.attributes.assessmentunitname}</strong>}
-                subTitle={`${getOrganizationLabel(graphic.attributes)} ${
-                  graphic.attributes.assessmentunitidentifier
-                }`}
+                key={symbolType + orgId + auId}
+                index={symbolType + orgId + auId}
+                title={<strong>{name}</strong>}
+                subTitle={`${getOrganizationLabel(graphic.attributes)} ${auId}`}
                 icon={<WaterbodyIcon condition={condition} selected={false} />}
                 feature={graphic}
-                idKey={'assessmentunitidentifier'}
+                idKey="assessmentunitidentifier"
                 status={status}
                 allExpanded={allExpanded || expandedRows.includes(index)}
                 onChange={() => {
@@ -181,7 +179,7 @@ function WaterbodyList({
               >
                 <div css={waterbodyContentStyles}>
                   <WaterbodyInfo
-                    type={'Waterbody State Overview'}
+                    type="Waterbody State Overview"
                     feature={graphic}
                   />
                   <ViewOnMapButton feature={graphic} />
