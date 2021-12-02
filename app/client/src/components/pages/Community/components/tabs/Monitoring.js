@@ -192,6 +192,9 @@ function Monitoring() {
           `${station.properties.MonitoringLocationIdentifier}/` +
           `${station.properties.ProviderName}/` +
           `${station.properties.OrganizationIdentifier}`,
+        characteristicGroupResultCount: JSON.stringify(
+          station.properties.characteristicGroupResultCount,
+        ),
       };
 
       allMonitoringStations.push(monitoringStation);

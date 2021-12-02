@@ -626,10 +626,7 @@ export function getPopupContent({
 
   // monitoring station
   else if (attributes && attributes.sampleType === 'Monitoring Station') {
-    type =
-      attributes.fullPopup === false
-        ? 'Monitoring Station Map Popup' /* map popup */
-        : 'Monitoring Station' /* accordion */;
+    type = 'Monitoring Station';
   }
 
   // protect tab teal nonprofits

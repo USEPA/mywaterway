@@ -6,7 +6,6 @@ import { navigate } from '@reach/router';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
@@ -16,11 +15,8 @@ import {
   convertAgencyCode,
   convertDomainCode,
 } from 'utils/utils';
-import { fetchCheck } from 'utils/fetchUtils';
 // data
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
-// errors
-import { monitoringError } from 'config/errorMessages';
 // styles
 import { colors } from 'styles/index.js';
 
@@ -507,83 +503,6 @@ function WaterbodyInfo({
   const [selected, setSelected] = React.useState({});
   const [selectAll, setSelectAll] = React.useState(1);
 
-  // Fetch monitoring location data
-  const [monitoringLocation, setMonitoringLocation] = React.useState({
-    status: 'fetching',
-    data: [],
-  });
-
-  useEffect(() => {
-    if (type !== 'Monitoring Station' || !attributes.fullPopup) return;
-
-    const wqpUrl =
-      `${services.data.waterQualityPortal.monitoringLocation}` +
-      `search?mimeType=geojson&zip=no&siteid=${attributes.siteId}`;
-
-    fetchCheck(wqpUrl)
-      .then((res) => {
-        // get the feature where the provider matches this stations provider
-        // default to the first feature
-        let stationGroups =
-          res.features[0].properties.characteristicGroupResultCount;
-
-        res.features.forEach(({ properties }) => {
-          if (properties.ProviderName === attributes.stationProviderName) {
-            stationGroups = properties.characteristicGroupResultCount;
-          }
-        });
-
-        const groups = { Other: { characteristicGroups: [], resultCount: 0 } };
-
-        characteristicGroupMappings.forEach((mapping) => {
-          for (const groupName in stationGroups) {
-            if (
-              mapping.groupNames.includes(groupName) &&
-              !groups[mapping.label]?.characteristicGroups.includes(groupName)
-            ) {
-              // push to existing group
-              if (groups[mapping.label]) {
-                groups[mapping.label].characteristicGroups.push(groupName);
-                groups[mapping.label].resultCount += stationGroups[groupName];
-              }
-              // create a new group
-              else {
-                groups[mapping.label] = {
-                  characteristicGroups: [groupName],
-                  resultCount: stationGroups[groupName],
-                };
-              }
-            }
-            // push to Other
-            else if (
-              !checkIfGroupInMapping(groupName) &&
-              !groups['Other'].characteristicGroups.includes(groupName)
-            ) {
-              groups['Other'].characteristicGroups.push(groupName);
-              groups['Other'].resultCount += stationGroups[groupName];
-            }
-          }
-        });
-
-        setMonitoringLocation({
-          status: 'success',
-          data: groups,
-        });
-
-        // initialize all options in selected to true
-        const selectedGroups = {};
-        Object.keys(groups).forEach((key) => (selectedGroups[key] = true));
-        setSelected(selectedGroups);
-      })
-      .catch((err) => {
-        console.error(err);
-        setMonitoringLocation({
-          status: 'failure',
-          data: [],
-        });
-      });
-  }, [attributes, type, services, setSelected]);
-
   function usgsStreamgageContent() {
     return (
       <>
@@ -663,6 +582,40 @@ function WaterbodyInfo({
   }
 
   function monitoringStationContent() {
+    const stationGroups = JSON.parse(attributes.characteristicGroupResultCount);
+
+    const groups = { Other: { characteristicGroups: [], resultCount: 0 } };
+
+    characteristicGroupMappings.forEach((mapping) => {
+      for (const groupName in stationGroups) {
+        if (
+          mapping.groupNames.includes(groupName) &&
+          !groups[mapping.label]?.characteristicGroups.includes(groupName)
+        ) {
+          // push to existing group
+          if (groups[mapping.label]) {
+            groups[mapping.label].characteristicGroups.push(groupName);
+            groups[mapping.label].resultCount += stationGroups[groupName];
+          }
+          // create a new group
+          else {
+            groups[mapping.label] = {
+              characteristicGroups: [groupName],
+              resultCount: stationGroups[groupName],
+            };
+          }
+        }
+        // push to Other
+        else if (
+          !checkIfGroupInMapping(groupName) &&
+          !groups['Other'].characteristicGroups.includes(groupName)
+        ) {
+          groups['Other'].characteristicGroups.push(groupName);
+          groups['Other'].resultCount += stationGroups[groupName];
+        }
+      }
+    });
+
     function buildFilter(selectedNames, monitoringLocationData) {
       // build up filter text for the given table
       let filter = '';
@@ -718,10 +671,10 @@ function WaterbodyInfo({
     function toggleAllCheckboxes() {
       let selectedGroups = {};
 
-      if (Object.keys(monitoringLocation.data).length > 0) {
+      if (Object.keys(groups).length > 0) {
         const newValue = selectAll === 0 ? true : false;
 
-        Object.keys(monitoringLocation.data).forEach((key) => {
+        Object.keys(groups).forEach((key) => {
           selectedGroups[key] = newValue;
         });
       }
@@ -796,84 +749,66 @@ function WaterbodyInfo({
         <p>
           <strong>Download Monitoring Data:</strong>
         </p>
-
-        {monitoringLocation.status === 'fetching' && <LoadingSpinner />}
-
-        {monitoringLocation.status === 'failure' && (
-          <div css={errorBoxStyles}>
-            <p>{monitoringError}</p>
-          </div>
+        {Object.keys(groups).length === 0 && (
+          <p>No data available for this monitoring location.</p>
         )}
 
-        {monitoringLocation.status === 'success' && (
-          <>
-            {Object.keys(monitoringLocation.data).length === 0 && (
-              <p>No data available for this monitoring location.</p>
-            )}
+        {Object.keys(groups).length > 0 && (
+          <table css={tableStyles} className="table">
+            <thead>
+              <tr>
+                <th css={checkboxCellStyles}>
+                  <input
+                    css={checkboxStyles}
+                    type="checkbox"
+                    className="checkbox"
+                    checked={selectAll === 1}
+                    ref={(input) => {
+                      if (input) input.indeterminate = selectAll === 2;
+                    }}
+                    onChange={(ev) => toggleAllCheckboxes()}
+                  />
+                </th>
+                <th>
+                  <GlossaryTerm term="Characteristic Group">
+                    Characteristic Group
+                  </GlossaryTerm>
+                </th>
+                <th>
+                  <GlossaryTerm term="Monitoring Measurements">
+                    Number of Measurements
+                  </GlossaryTerm>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.keys(groups).map((key, index) => {
+                // ignore groups with 0 results
+                if (groups[key].resultCount === 0) {
+                  return null;
+                }
 
-            {Object.keys(monitoringLocation.data).length > 0 && (
-              <table css={tableStyles} className="table">
-                <thead>
-                  <tr>
-                    <th css={checkboxCellStyles}>
+                return (
+                  <tr key={index}>
+                    <td css={checkboxCellStyles}>
                       <input
                         css={checkboxStyles}
                         type="checkbox"
                         className="checkbox"
-                        checked={selectAll === 1}
-                        ref={(input) => {
-                          if (input) input.indeterminate = selectAll === 2;
+                        checked={selected[key] === true || selectAll === 1}
+                        onChange={(ev) => {
+                          toggleRow(key, groups);
                         }}
-                        onChange={(ev) => toggleAllCheckboxes()}
                       />
-                    </th>
-                    <th>
-                      <GlossaryTerm term="Characteristic Group">
-                        Characteristic Group
-                      </GlossaryTerm>
-                    </th>
-                    <th>
-                      <GlossaryTerm term="Monitoring Measurements">
-                        Number of Measurements
-                      </GlossaryTerm>
-                    </th>
+                    </td>
+                    <td>{key}</td>
+                    <td>{groups[key].resultCount.toLocaleString()}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {Object.keys(monitoringLocation.data).map((key, index) => {
-                    // ignore groups with 0 results
-                    if (monitoringLocation.data[key].resultCount === 0) {
-                      return null;
-                    }
-
-                    return (
-                      <tr key={index}>
-                        <td css={checkboxCellStyles}>
-                          <input
-                            css={checkboxStyles}
-                            type="checkbox"
-                            className="checkbox"
-                            checked={selected[key] === true || selectAll === 1}
-                            onChange={(ev) => {
-                              toggleRow(key, monitoringLocation.data);
-                            }}
-                          />
-                        </td>
-                        <td>{key}</td>
-                        <td>
-                          {monitoringLocation.data[
-                            key
-                          ].resultCount.toLocaleString()}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            )}
-          </>
+                );
+              })}
+            </tbody>
+          </table>
         )}
-
         <p>
           <strong>Data Download Format:</strong>
           <a css={linkStyles} href={`${downloadUrl}&mimeType=xlsx`}>
@@ -893,7 +828,6 @@ function WaterbodyInfo({
             csv
           </a>
         </p>
-
         <div>
           <a
             rel="noopener noreferrer"

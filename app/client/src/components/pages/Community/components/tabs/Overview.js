@@ -536,6 +536,9 @@ function SampleLocationsTab({
       stationProviderName: station.properties.ProviderName,
       stationTotalSamples: station.properties.activityCount,
       stationTotalMeasurements: station.properties.resultCount,
+      characteristicGroupResultCount: JSON.stringify(
+        station.properties.characteristicGroupResultCount,
+      ),
     }));
 
     setNormalizedMonitoringStations(stations);
