@@ -883,7 +883,6 @@ function DrinkingWater() {
                 <WaterbodyList
                   waterbodies={waterbodies}
                   fieldName="drinkingwater_use"
-                  usageName="Drinking Water Use"
                   title={`Waterbodies assessed as potential future sources of drinking water in the ${watershed} watershed.`}
                 />
               </>

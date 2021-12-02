@@ -296,6 +296,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     areasLayer, //part of waterbody group layer
     issuesLayer,
     monitoringStationsLayer,
+    usgsStreamgagesLayer,
     dischargersLayer,
     nonprofitsLayer,
     upstreamLayer,
@@ -359,6 +360,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     currentSelection: null,
     cachedHighlights: {},
   });
+
   React.useEffect(() => {
     setHighlightState({
       currentHighlight: null,
@@ -388,6 +390,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     if (!graphic || !graphic.attributes) {
       handles.remove(group);
       mapView.graphics.removeAll();
+
       if (protectedAreasHighlightLayer) {
         protectedAreasHighlightLayer.removeAll();
       }
@@ -402,6 +405,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
           cachedHighlights,
         });
       }
+
       return;
     }
 
@@ -414,7 +418,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     // set the currentSelection if it changed
     if (!selectionEqual) currentSelection = selectedGraphic;
 
-    const attributes = graphic.attributes;
+    const { attributes } = graphic;
 
     // figure out what layer we the graphic belongs to
     let layer = null;
@@ -437,8 +441,10 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       featureLayerType = 'waterbodyLayer';
     } else if (attributes.CWPName) {
       layer = dischargersLayer;
-    } else if (attributes.MonitoringLocationIdentifier) {
+    } else if (attributes.sampleType === 'Monitoring Station') {
       layer = monitoringStationsLayer;
+    } else if (attributes.sampleType === 'USGS Streamgage') {
+      layer = usgsStreamgagesLayer;
     } else if (attributes.type === 'nonprofit') {
       layer = nonprofitsLayer;
     } else if (attributes.xwalk_huc12) {
@@ -456,20 +462,12 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     // get organizationid and assessmentunitidentifier to figure out if the
     // selected waterbody changed.
-    const graphicOrgId =
-      graphic && graphic.attributes && graphic.attributes.organizationid;
-    const graphicAuId =
-      graphic &&
-      graphic.attributes &&
-      graphic.attributes.assessmentunitidentifier;
-    const selectedGraphicOrgId =
-      selectedGraphic &&
-      selectedGraphic.attributes &&
-      selectedGraphic.attributes.organizationid;
+    const graphicOrgId = graphic?.attributes?.organizationid;
+    const graphicAuId = graphic?.attributes?.assessmentunitidentifier;
+
+    const selectedGraphicOrgId = selectedGraphic?.attributes?.organizationid;
     const selectedGraphicAuId =
-      selectedGraphic &&
-      selectedGraphic.attributes &&
-      selectedGraphic.attributes.assessmentunitidentifier;
+      selectedGraphic?.attributes?.assessmentunitidentifier;
 
     // get the graphic from the layer so that we have geometry
     let graphicToHighlight = graphic;
@@ -504,7 +502,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         group,
         callback: highlightStateCallback,
       });
-    } else if (
+    }
+    //
+    else if (
       window.location.pathname.includes('community') &&
       featureLayerType === 'waterbodyLayer' &&
       layer.type === 'feature' &&
@@ -512,8 +512,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         (graphicOrgId === selectedGraphicOrgId &&
           graphicAuId === selectedGraphicAuId))
     ) {
-      // get features across all layers that have the same organizationid
-      // and assessmentunitid
+      // get features across all layers that have the same organizationid and assessmentunitid
       const features = [];
       getMatchingFeatures(features, areasData, graphicOrgId, graphicAuId);
       getMatchingFeatures(features, linesData, graphicOrgId, graphicAuId);
@@ -526,7 +525,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         handles,
         group,
       });
-    } else if (
+    }
+    //
+    else if (
       layer.type === 'feature' &&
       (findOthers ||
         (graphicOrgId === selectedGraphicOrgId &&
@@ -534,12 +535,22 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     ) {
       let key = '';
       let where = '';
+
       if (featureLayerType === 'waterbodyLayer') {
         key = `${graphicOrgId} - ${graphicAuId}`;
         where = `organizationid = '${graphicOrgId}' And assessmentunitidentifier = '${graphicAuId}'`;
-      } else if (featureLayerType === 'wildScenicRivers') {
+      }
+
+      if (featureLayerType === 'wildScenicRivers') {
         key = attributes.GlobalID;
         where = `GlobalID = '${key}'`;
+      }
+
+      if (layer === monitoringStationsLayer || layer === usgsStreamgagesLayer) {
+        const orgId = graphic?.attributes?.orgId || '';
+        const siteId = graphic?.attributes?.siteId || '';
+        key = `${orgId} - ${siteId}`;
+        where = `orgId = '${orgId}' And siteId = '${siteId}'`;
       }
 
       if (cachedHighlights[key]) {
@@ -552,12 +563,15 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         });
 
         currentHighlight = graphic;
+
         setHighlightState({
           currentHighlight,
           currentSelection,
           cachedHighlights,
         });
-      } else {
+      }
+
+      if (!cachedHighlights[key]) {
         if (!key || !where) return;
 
         const query = new Query({
@@ -592,9 +606,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
               highlightOptions,
               handles,
               group,
-              callback: (feature) => {
-                featuresToCache.push(feature);
-              },
+              callback: (feature) => featuresToCache.push(feature),
             });
 
             // build the new cachedHighlights object
@@ -611,7 +623,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
           });
         });
       }
-    } else {
+    }
+    //
+    else {
       highlightFeature({
         mapView,
         layer,
@@ -633,6 +647,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     pointsLayer,
     dischargersLayer,
     monitoringStationsLayer,
+    usgsStreamgagesLayer,
     nonprofitsLayer,
     upstreamLayer,
     issuesLayer,
