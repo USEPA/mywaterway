@@ -1,7 +1,6 @@
 // @flow
 
 import React from 'react';
-import styled from 'styled-components';
 import { css } from 'styled-components/macro';
 import WindowSize from '@reach/window-size';
 import StickyBox from 'react-sticky-box';
@@ -18,7 +17,7 @@ import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import MapVisibilityButton from 'components/shared/MapVisibilityButton';
 import VirtualizedList from 'components/shared/VirtualizedList';
 // styled components
-import { StyledErrorBox } from 'components/shared/MessageBoxes'; // TODO - Replace this with css after "feature/panel-changes-mockup" is merged
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import {
   splitLayoutContainerStyles,
   splitLayoutColumnsStyles,
@@ -173,7 +172,8 @@ function getWaterbodyData(
 }
 
 // --- styled components ---
-const ErrorBox = styled(StyledErrorBox)`
+const errorBoxModStyles = css`
+  ${errorBoxStyles}
   margin: 1rem;
   text-align: center;
 `;
@@ -535,9 +535,9 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
         <NavBar title={<>Plan Summary</>} />
 
         <div css={splitLayoutContainerStyles}>
-          <ErrorBox>
+          <div css={errorBoxModStyles}>
             <p>{noActionsAvailableCombo(orgId, actionId)}</p>
-          </ErrorBox>
+          </div>
         </div>
       </Page>
     );
@@ -549,9 +549,9 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
         <NavBar title={<>Plan Summary</>} />
 
         <div css={splitLayoutContainerStyles}>
-          <ErrorBox>
+          <div css={errorBoxModStyles}>
             <p>{actionsError}</p>
-          </ErrorBox>
+          </div>
         </div>
       </Page>
     );

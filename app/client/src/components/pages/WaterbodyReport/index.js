@@ -2,7 +2,6 @@
 
 import React from 'react';
 import WindowSize from '@reach/window-size';
-import styled from 'styled-components';
 import { css } from 'styled-components/macro';
 import StickyBox from 'react-sticky-box';
 // components
@@ -15,7 +14,7 @@ import ActionsMap from 'components/pages/Actions/ActionsMap';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import MapVisibilityButton from 'components/shared/MapVisibilityButton';
 // styled components
-import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes'; // TODO - Replace this with css after "feature/panel-changes-mockup" is merged
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import {
   splitLayoutContainerStyles,
   splitLayoutColumnsStyles,
@@ -74,12 +73,14 @@ const infoBoxContainerStyles = css`
   padding-bottom: 0;
 `;
 
-const PageErrorBox = styled(StyledErrorBox)`
+const pageErrorBoxStyles = css`
+  ${errorBoxStyles}
   margin: 1rem;
   text-align: center;
 `;
 
-const ErrorBox = styled(StyledErrorBox)`
+const errorBoxModStyles = css`
+  ${errorBoxStyles}
   text-align: center;
 `;
 
@@ -820,9 +821,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         <h3>Waterbody Condition:</h3>
         {waterbodyStatus.status === 'fetching' && <LoadingSpinner />}
         {waterbodyStatus.status === 'failure' && (
-          <ErrorBox>
+          <div css={errorBoxModStyles}>
             <p>{waterbodyReportError('Assessment')}</p>
-          </ErrorBox>
+          </div>
         )}
         {waterbodyStatus.status === 'success' && (
           <p>&nbsp; {waterbodyStatus.data.condition}</p>
@@ -834,9 +835,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         {waterbodyStatus.status === 'fetching' && <LoadingSpinner />}
 
         {waterbodyStatus.status === 'failure' && (
-          <ErrorBox>
+          <div css={errorBoxModStyles}>
             <p>{waterbodyReportError('Assessment')}</p>
-          </ErrorBox>
+          </div>
         )}
         {waterbodyStatus.status === 'success' && (
           <p>&nbsp; {waterbodyStatus.data.planForRestoration}</p>
@@ -847,9 +848,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         <h3>303(d) Listed:</h3>
         {waterbodyStatus.status === 'fetching' && <LoadingSpinner />}
         {waterbodyStatus.status === 'failure' && (
-          <ErrorBox>
+          <div css={errorBoxModStyles}>
             <p>{waterbodyReportError('Assessment')}</p>
-          </ErrorBox>
+          </div>
         )}
         {waterbodyStatus.status === 'success' && (
           <p>&nbsp; {waterbodyStatus.data.listed303d}</p>
@@ -860,9 +861,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         <h3>Year Reported:</h3>
         {reportingCycleFetch.status === 'fetching' && <LoadingSpinner />}
         {reportingCycleFetch.status === 'failure' && (
-          <ErrorBox>
+          <div css={errorBoxModStyles}>
             <p>{waterbodyReportError('Assessment')}</p>
-          </ErrorBox>
+          </div>
         )}
         {reportingCycleFetch.status === 'success' && (
           <p>&nbsp; {reportingCycleFetch.year}</p>
@@ -873,9 +874,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         <h3>Organization Name (ID):&nbsp;</h3>
         {reportingCycleFetch.status === 'fetching' && <LoadingSpinner />}
         {reportingCycleFetch.status === 'failure' && (
-          <ErrorBox>
+          <div css={errorBoxModStyles}>
             <p>{waterbodyReportError('Assessment')}</p>
-          </ErrorBox>
+          </div>
         )}
         {reportingCycleFetch.status === 'success' && (
           <p>
@@ -888,9 +889,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         <h3>What type of water is this?</h3>
         {waterbodyTypes.status === 'fetching' && <LoadingSpinner />}
         {waterbodyTypes.status === 'failure' && (
-          <ErrorBox>
+          <div css={errorBoxModStyles}>
             <p>{waterbodyReportError('Assessment unit')}</p>
-          </ErrorBox>
+          </div>
         )}
 
         {waterbodyTypes.status === 'success' && (
@@ -915,9 +916,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         {waterbodyLocation.status === 'fetching' && <LoadingSpinner />}
 
         {waterbodyLocation.status === 'failure' && (
-          <ErrorBox>
+          <div css={errorBoxModStyles}>
             <p>{waterbodyReportError('Assessment unit')}</p>
-          </ErrorBox>
+          </div>
         )}
 
         {waterbodyLocation.status === 'success' && (
@@ -933,13 +934,13 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         <NavBar title={<>Plan Summary</>} />
 
         <div css={containerStyles}>
-          <PageErrorBox>
+          <div css={pageErrorBoxStyles}>
             <p>
               No waterbodies available for the provided Organization ID:{' '}
               <strong>{orgId}</strong> and Assessment Unit ID:{' '}
               <strong>{auId}</strong>.
             </p>
-          </PageErrorBox>
+          </div>
         </div>
       </Page>
     );
@@ -951,7 +952,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         <NavBar title={<>Plan Summary</>} />
 
         <div css={containerStyles}>
-          <PageErrorBox>
+          <div css={pageErrorBoxStyles}>
             <p>
               Assessment{' '}
               <strong>
@@ -960,7 +961,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
               has no data available
               {reportingCycle ? ` for ${reportingCycle}` : ''}.
             </p>
-          </PageErrorBox>
+          </div>
         </div>
       </Page>
     );
@@ -991,7 +992,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
       <div css={containerStyles} data-content="container">
         {mapReportingCycle > reportingCycle && (
           <div css={infoBoxContainerStyles}>
-            <StyledInfoBox>
+            <div css={infoBoxStyles}>
               There is more recent data available for this waterbody. Please use
               the following link to view the latest information:{' '}
               <a
@@ -1008,7 +1009,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
               </a>
               &nbsp;&nbsp;
               <div css={newTabDisclaimerStyles}>(opens new browser tab)</div>
-            </StyledInfoBox>
+            </div>
           </div>
         )}
         <WindowSize>
@@ -1080,9 +1081,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                         <LoadingSpinner />
                       )}
                       {waterbodyUses.status === 'failure' && (
-                        <ErrorBox>
+                        <div css={errorBoxModStyles}>
                           <p>{waterbodyReportError('Assessment')}</p>
-                        </ErrorBox>
+                        </div>
                       )}
                       {waterbodyUses.status === 'success' && (
                         <>
@@ -1134,9 +1135,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                         <LoadingSpinner />
                       )}
                       {waterbodySources.status === 'failure' && (
-                        <ErrorBox>
+                        <div css={errorBoxModStyles}>
                           <p>{waterbodyReportError('Assessment')}</p>
-                        </ErrorBox>
+                        </div>
                       )}
                       {waterbodySources.status === 'success' && (
                         <>
@@ -1187,9 +1188,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                         <LoadingSpinner />
                       )}
                       {waterbodyActions.status === 'failure' && (
-                        <ErrorBox>
+                        <div css={errorBoxModStyles}>
                           <p>{waterbodyReportError('Plans')}</p>
-                        </ErrorBox>
+                        </div>
                       )}
                       {waterbodyActions.status === 'success' && (
                         <>
@@ -1268,11 +1269,11 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                             <LoadingSpinner />
                           )}
                           {monitoringStations.status === 'failure' && (
-                            <ErrorBox>
+                            <div css={errorBoxModStyles}>
                               <p>
                                 {waterbodyReportError('Monitoring location')}
                               </p>
-                            </ErrorBox>
+                            </div>
                           )}
                           {monitoringStations.status === 'success' && (
                             <ul css={locationsStyles}>
