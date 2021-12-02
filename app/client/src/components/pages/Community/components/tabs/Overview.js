@@ -230,10 +230,11 @@ function Overview() {
 
   const totalWaterbodies = uniqueWaterbodies.length;
 
+  const totalMonitoringStations = monitoringStations.data.features?.length || 0;
+  const totalUsgsStreamgages = usgsStreamgages.data.value?.length || 0;
   const totalSampleLocations =
-    monitoringStations.data.features && usgsStreamgages.data.value
-      ? monitoringStations.data.features.length +
-        usgsStreamgages.data.value.length
+    monitoringStations.data.features || usgsStreamgages.data.value
+      ? totalMonitoringStations + totalUsgsStreamgages
       : null;
 
   const totalPermittedDischargers =
@@ -276,9 +277,9 @@ function Overview() {
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {cipSummary.status === 'failure' || !assessmentUnitCount
-                  ? 'N/A'
-                  : assessmentUnitCount.toLocaleString() || '0'}
+                {Boolean(assessmentUnitCount) && cipSummary.status === 'success'
+                  ? assessmentUnitCount.toLocaleString()
+                  : 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Waterbodies</p>
               <div css={switchContainerStyles}>
@@ -309,11 +310,11 @@ function Overview() {
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {monitoringStations.status === 'failure' ||
-                usgsStreamgages.status === 'failure' ||
-                !totalSampleLocations
-                  ? 'N/A'
-                  : totalSampleLocations || 0}
+                {Boolean(totalSampleLocations) &&
+                (monitoringStations.status === 'success' ||
+                  usgsStreamgages.status === 'success')
+                  ? totalSampleLocations
+                  : 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Sample Locations</p>
               <div css={switchContainerStyles}>
@@ -349,10 +350,10 @@ function Overview() {
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {permittedDischargers.status === 'failure' ||
-                !totalPermittedDischargers
-                  ? 'N/A'
-                  : totalPermittedDischargers || 0}
+                {Boolean(totalPermittedDischargers) &&
+                permittedDischargers.status === 'success'
+                  ? totalPermittedDischargers
+                  : 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Permitted Dischargers</p>
               <div css={switchContainerStyles}>
