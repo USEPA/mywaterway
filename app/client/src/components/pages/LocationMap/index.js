@@ -128,12 +128,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setHucBoundaries,
     setAtHucBoundaries,
     mapView,
-    setMonitoringLocations,
+    setMonitoringStations,
+    setUsgsStreamgages,
     // setNonprofits,
     setPermittedDischargers,
     setWaterbodyLayer,
     setIssuesLayer,
     setMonitoringStationsLayer,
+    setUsgsStreamgagesLayer,
     setUpstreamLayer,
     setDischargersLayer,
     setNonprofitsLayer,
@@ -654,6 +656,79 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setMonitoringStationsLayer(monitoringStationsLayer);
 
+    const usgsStreamgagesLayer = new FeatureLayer({
+      id: 'usgsStreamgagesLayer',
+      title: 'USGS Streamgages',
+      listMode: 'hide',
+      fields: [
+        { name: 'ObjectID', type: 'oid' },
+        { name: 'gageHeight', type: 'string' },
+        { name: 'sampleType', type: 'string' },
+        { name: 'siteId', type: 'string' },
+        { name: 'orgId', type: 'string' },
+        { name: 'orgName', type: 'string' },
+        { name: 'locationLongitude', type: 'single' },
+        { name: 'locationLatitude', type: 'single' },
+        { name: 'locationName', type: 'string' },
+        { name: 'locationType', type: 'string' },
+        { name: 'locationUrl', type: 'string' },
+        { name: 'streamGageMeasurements', type: 'blob' },
+      ],
+      outFields: ['*'],
+      // NOTE: initial graphic below will be replaced with UGSG streamgages
+      source: [
+        new Graphic({
+          geometry: { type: 'point', longitude: -98.5795, latitude: 39.8283 },
+          attributes: { ObjectID: 1 },
+        }),
+      ],
+      renderer: {
+        type: 'simple',
+        symbol: {
+          type: 'simple-marker',
+          style: 'circle',
+          color: '#989fa2',
+        },
+        visualVariables: [
+          {
+            type: 'color',
+            field: 'gageHeight',
+            stops: [
+              // TODO: determine how to map of gage height values to NWD streamflow percentile stops
+              // (National Water Dashboard: https://dashboard.waterdata.usgs.gov/app/nwd/?aoi=default)
+              { value: '0', color: '#ea2c38' }, // All-time low for this day  (0th percentile, minimum)
+              { value: '1', color: '#b54246' }, // Much below normal          (<10th percentile)
+              { value: '2', color: '#eaae3f' }, // Below normal               (10th – 24th percentile)
+              { value: '3', color: '#32f242' }, // Normal                     (25th – 75th percentile)
+              { value: '4', color: '#56d7da' }, // Above normal               (76th – 90th percentile)
+              { value: '5', color: '#2639f6' }, // Much above normal          (>90th percentile)
+              { value: '6', color: '#22296e' }, // All-time high for this day (100th percentile, maximum)
+            ],
+          },
+        ],
+      },
+      labelingInfo: [
+        {
+          symbol: {
+            type: 'text',
+            yoffset: '-3px',
+            font: { size: 10, weight: 'bold' },
+          },
+          labelPlacement: 'above-center',
+          labelExpressionInfo: {
+            expression: '$feature.gageHeight',
+          },
+        },
+      ],
+      popupTemplate: {
+        outFields: ['*'],
+        title: (feature) => getPopupTitle(feature.graphic.attributes),
+        content: (feature) => getPopupContent({ feature: feature.graphic }),
+      },
+    });
+
+    setUsgsStreamgagesLayer(usgsStreamgagesLayer);
+
     const issuesLayer = new GraphicsLayer({
       id: 'issuesLayer',
       title: 'Identified Issues',
@@ -684,6 +759,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       boundariesLayer,
       upstreamLayer,
       monitoringStationsLayer,
+      usgsStreamgagesLayer,
       issuesLayer,
       dischargersLayer,
       nonprofitsLayer,
@@ -701,6 +777,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setIssuesLayer,
     setLayers,
     setMonitoringStationsLayer,
+    setUsgsStreamgagesLayer,
     setUpstreamLayer,
     setNonprofitsLayer,
     setProvidersLayer,
@@ -722,10 +799,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     (err) => {
       setMapLoading(false);
       console.error(err);
-      setCipSummary({
-        data: [],
-        status: 'failure',
-      });
+      setCipSummary({ status: 'failure', data: {} });
     },
     [setCipSummary],
   );
@@ -931,10 +1005,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   React.useEffect(() => {
     if (mapServiceFailure) {
       setMapLoading(false);
-      setCipSummary({
-        data: [],
-        status: 'failure',
-      });
+      setCipSummary({ status: 'failure', data: {} });
       return;
     }
 
@@ -982,7 +1053,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // query geocode server for every new search
   const [mapLoading, setMapLoading] = React.useState(true);
 
-  const queryMonitoringLocationService = React.useCallback(
+  const queryMonitoringStationService = React.useCallback(
     (huc12) => {
       const url =
         `${services.data.waterQualityPortal.monitoringLocation}` +
@@ -990,20 +1061,55 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       fetchCheck(url)
         .then((res) => {
-          setMonitoringLocations({
-            data: res,
-            status: 'success',
-          });
+          setMonitoringStations({ status: 'success', data: res });
         })
         .catch((err) => {
           console.error(err);
-          setMonitoringLocations({
-            data: [],
-            status: 'failure',
-          });
+          setMonitoringStations({ status: 'failure', data: {} });
         });
     },
-    [setMonitoringLocations, services],
+    [setMonitoringStations, services],
+  );
+
+  const queryUsgsStreamgageService = React.useCallback(
+    (huc12) => {
+      const url =
+        `${services.data.usgsSensorThingsAPI}?` +
+        /**/ `$select=name,` +
+        /*  */ `properties/active,` +
+        /*  */ `properties/agency,` +
+        /*  */ `properties/agencyCode,` +
+        /*  */ `properties/monitoringLocationUrl,` +
+        /*  */ `properties/monitoringLocationName,` +
+        /*  */ `properties/monitoringLocationType,` +
+        /*  */ `properties/monitoringLocationNumber,` +
+        /*  */ `properties/hydrologicUnit&` +
+        /**/ `$expand=` +
+        /*  */ `Locations($select=location),` +
+        /*  */ `Datastreams(` +
+        /*    */ `$select=description,` +
+        /*      */ `properties/ParameterCode,` +
+        /*      */ `unitOfMeasurement/name,` +
+        /*      */ `unitOfMeasurement/symbol;` +
+        /*    */ `$expand=` +
+        /*      */ `Observations(` +
+        /*        */ `$select=phenomenonTime,result;` +
+        /*        */ `$top=1;` +
+        /*        */ `$orderBy=phenomenonTime desc` +
+        /*      */ `)` +
+        /*  */ `)&` +
+        /**/ `$filter=properties/hydrologicUnit eq '${huc12}'`;
+
+      fetchCheck(url)
+        .then((res) => {
+          setUsgsStreamgages({ status: 'success', data: res });
+        })
+        .catch((err) => {
+          console.error(err);
+          setUsgsStreamgages({ status: 'failure', data: {} });
+        });
+    },
+    [services, setUsgsStreamgages],
   );
 
   const queryPermittedDischargersService = React.useCallback(
@@ -1040,25 +1146,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
           fetchCheck(url)
             .then((res) => {
-              setPermittedDischargers({
-                data: res,
-                status: 'success',
-              });
+              setPermittedDischargers({ status: 'success', data: res });
             })
             .catch((err) => {
               console.error(err);
-              setPermittedDischargers({
-                data: [],
-                status: 'failure',
-              });
+              setPermittedDischargers({ status: 'failure', data: {} });
             });
         })
         .catch((err) => {
           console.error(err);
-          setPermittedDischargers({
-            data: [],
-            status: 'failure',
-          });
+          setPermittedDischargers({ status: 'failure', data: {} });
         });
     },
     [setPermittedDischargers, services],
@@ -1316,10 +1413,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       results.items[0].summaryByParameterImpairments = results.items[0].summaryByParameterImpairments.sort(
         (a, b) => (a.catchmentSizePercent < b.catchmentSizePercent ? 1 : -1),
       );
-      setCipSummary({
-        status: 'success',
-        data: results,
-      });
+      setCipSummary({ status: 'success', data: results });
       setAssessmentUnitCount(results.items[0].assessmentUnits.length);
 
       const ids = results.items[0].assessmentUnits.map((item) => {
@@ -1414,7 +1508,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           let huc12Result = response.features[0].attributes.huc12;
           setHuc12(huc12Result);
           processBoundariesData(response);
-          queryMonitoringLocationService(huc12Result);
+          queryMonitoringStationService(huc12Result);
+          queryUsgsStreamgageService(huc12Result);
           queryPermittedDischargersService(huc12Result);
           queryGrtsHuc12(huc12Result);
           queryAttainsPlans(huc12Result);
@@ -1438,7 +1533,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       processBoundariesData,
       queryAttainsPlans,
       queryGrtsHuc12,
-      queryMonitoringLocationService,
+      queryMonitoringStationService,
+      queryUsgsStreamgageService,
       queryPermittedDischargersService,
       setHuc12,
       setNoDataAvailable,

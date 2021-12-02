@@ -397,7 +397,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                           <em>Permits: </em>
 
                           {permits.length === 0 ? (
-                            <>No permits found.</>
+                            <>Not specified.</>
                           ) : (
                             permits.map((permit, index) => (
                               <React.Fragment key={index}>

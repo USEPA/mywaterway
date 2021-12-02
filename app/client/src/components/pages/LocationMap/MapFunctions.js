@@ -3,12 +3,35 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { css } from 'styled-components/macro';
 import Graphic from '@arcgis/core/Graphic';
 // components
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
-import MapPopup from 'components/shared/MapPopup';
+import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 // styles
 import { colors } from 'styles/index.js';
+
+const popupContainerStyles = css`
+  margin: 0;
+  overflow-y: auto;
+
+  .esri-feature & p {
+    padding-bottom: 0;
+  }
+`;
+
+const popupContentStyles = css`
+  margin-top: 0.5rem;
+  margin-left: 0.625em;
+`;
+
+const popupTitleStyles = css`
+  margin-bottom: 0;
+  padding: 0.45em 0.625em !important;
+  font-size: 0.8125em;
+  font-weight: bold;
+  background-color: #f0f6f9;
+`;
 
 const waterbodyStatuses = {
   good: { condition: 'good', label: 'Good' },
@@ -250,34 +273,61 @@ export function plotStations(
 ) {
   if (!stations || !layer) return;
 
-  // clear the layer
   layer.graphics.removeAll();
 
-  // put graphics on the layer
   stations.forEach((station) => {
-    station.properties.fullPopup = false;
+    station.fullPopup = false;
+    // put graphics on the layer
     layer.graphics.add(
       new Graphic({
         geometry: {
-          type: 'point', // autocasts as new Point()
-          longitude: station.x,
-          latitude: station.y,
+          type: 'point',
+          longitude: station.locationLongitude,
+          latitude: station.locationLatitude,
         },
         symbol: {
-          type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
+          type: 'simple-marker',
           style: 'square',
           color: colors.lightPurple(),
         },
-        attributes: station.properties,
+        attributes: station,
         popupTemplate: {
-          title: getPopupTitle(station.properties),
+          title: getPopupTitle(station),
           content: getPopupContent({
-            feature: { attributes: station.properties },
+            feature: { attributes: station },
             services,
           }),
         },
       }),
     );
+  });
+}
+
+// plot issues on map
+export function plotGages(gages: Object[], layer: any) {
+  if (!gages || !layer) return;
+
+  const graphics = gages.map((gage) => {
+    // TODO: determine if there's a better way to isolate gage height measurements
+    const gageHeight = gage.streamGageMeasurements.find((data) => {
+      return data.parameterCode === '00065';
+    })?.measurement;
+
+    return new Graphic({
+      geometry: {
+        type: 'point',
+        longitude: gage.locationLongitude,
+        latitude: gage.locationLatitude,
+      },
+      attributes: { gageHeight, ...gage },
+    });
+  });
+
+  layer.queryFeatures().then((featureSet) => {
+    layer.applyEdits({
+      deleteFeatures: featureSet.features,
+      addFeatures: graphics,
+    });
   });
 }
 
@@ -390,9 +440,13 @@ export const openPopup = (
   services: Object,
 ) => {
   // tell the getPopupContent function to use the full popup version that includes the service call
-  if (feature.attributes && feature.attributes.MonitoringLocationName) {
+  if (
+    feature.attributes &&
+    feature.attributes.sampleType === 'Monitoring Station'
+  ) {
     feature.attributes.fullPopup = true;
   }
+
   const fieldName = feature.attributes && feature.attributes.fieldName;
 
   // set the popup template
@@ -466,8 +520,11 @@ export function getPopupTitle(attributes: Object) {
   }
 
   // monitoring location
-  else if (attributes.MonitoringLocationName) {
-    title = attributes.MonitoringLocationName;
+  else if (
+    attributes.sampleType === 'Monitoring Station' ||
+    attributes.sampleType === 'USGS Streamgage'
+  ) {
+    title = attributes.locationName;
   }
 
   // protect tab teal nonprofits
@@ -562,9 +619,17 @@ export function getPopupContent({
     type = 'Permitted Discharger';
   }
 
-  // monitoring location accordion
-  else if (attributes && attributes.MonitoringLocationName) {
-    type = 'Monitoring Location';
+  // usgs streamgage
+  else if (attributes && attributes.sampleType === 'USGS Streamgage') {
+    type = 'USGS Streamgage';
+  }
+
+  // monitoring station
+  else if (attributes && attributes.sampleType === 'Monitoring Station') {
+    type =
+      attributes.fullPopup === false
+        ? 'Monitoring Station Map Popup' /* map popup */
+        : 'Monitoring Station' /* accordion */;
   }
 
   // protect tab teal nonprofits
@@ -623,16 +688,31 @@ export function getPopupContent({
   }
 
   const content = (
-    <MapPopup
-      type={type}
-      feature={feature}
-      fieldName={fieldName}
-      extraContent={extraContent}
-      getClickedHuc={getClickedHuc}
-      resetData={resetData}
-      services={services}
-      fields={fields}
-    />
+    <div css={popupContainerStyles}>
+      {(type !== 'Action' ||
+        'Change Location' ||
+        'Waterbody State Overview') && (
+        <p css={popupTitleStyles}>
+          {type === 'Demographic Indicators'
+            ? `${type} - ${feature.layer.title}`
+            : type}
+        </p>
+      )}
+
+      <div css={popupContentStyles}>
+        <WaterbodyInfo
+          type={type}
+          feature={feature}
+          fieldName={fieldName}
+          isPopup={true}
+          extraContent={extraContent}
+          getClickedHuc={getClickedHuc}
+          resetData={resetData}
+          services={services}
+          fields={fields}
+        />
+      </div>
+    </div>
   );
 
   // wrap the content for esri
@@ -643,8 +723,8 @@ export function getPopupContent({
   return contentContainer;
 }
 
-export function getUniqueWaterbodies(waterbodies: Array<Object>) {
-  if (!waterbodies) return null;
+export function getUniqueWaterbodies(waterbodies: Object[]) {
+  if (!waterbodies) return [];
 
   const flags = {};
   return waterbodies.filter((waterbody) => {

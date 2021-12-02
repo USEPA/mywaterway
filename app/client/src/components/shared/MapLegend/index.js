@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import PinIcon from 'components/shared/Icons/PinIcon';
@@ -14,52 +14,58 @@ import { legendUnavailableError } from 'config/errorMessages';
 // styles
 import { colors } from 'styles/index.js';
 
-// --- styled components ---
-const Container = styled.div`
-  padding: 10px;
+const containerStyles = css`
+  width: 240px;
+  padding: 8px;
   background-color: white;
+  cursor: default;
 
   .esri-feature & p {
     padding-bottom: 0 !important;
   }
 `;
 
-const ImageContainer = styled.div`
-  width: 26px;
-  height: 26px;
-  margin-left: -0.25rem;
-  margin-right: 0.25rem;
-`;
-
-const LegendContainer = styled.div`
-  width: 12rem;
-  background-color: #fff;
-  cursor: default;
-`;
-
-const UL = styled.ul`
+const listStyles = css`
   margin: 0;
-  padding: 0.1875rem 0 0.25rem 0.625rem;
+  padding: 0 0.25rem;
   list-style: none;
+
+  li {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    margin-bottom: 0.25rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid #eee;
+
+    &:last-of-type {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+  }
 `;
 
-const LI = styled.li`
+const legendItemStyles = css`
   display: flex;
   align-items: center;
 `;
 
-const LegendLabel = styled.span`
+const imageContainerStyles = css`
+  width: 26px;
+  height: 26px;
+  margin-right: 0.25rem;
+`;
+
+const labelStyles = css`
   display: inline-block;
   padding-right: 0.625rem;
   font-size: 0.75rem;
 `;
 
-const MultiContainer = styled.div`
-  padding-top: 12px;
-`;
-
-const Subtitle = styled.div`
-  padding: 6px 0;
+const layerLabelStyles = css`
+  margin-bottom: 0.25rem;
+  font-size: 0.75rem;
 `;
 
 const ignoreLayers = ['mappedWaterLayer', 'watershedsLayer', 'searchIconLayer'];
@@ -79,41 +85,38 @@ function MapLegend({ view, visibleLayers, additionalLegendInfo }: Props) {
   // no legend data
   if (filteredVisibleLayers.length === 0) {
     return (
-      <Container>
-        <LegendContainer>
-          <UL>There are currently no items to display</UL>
-        </LegendContainer>
-      </Container>
+      <div css={containerStyles}>
+        <ul css={listStyles}>There are currently no items to display</ul>
+      </div>
     );
   }
 
   let waterbodyLayerAdded = false;
 
   return (
-    <Container>
-      <LegendContainer>
-        <UL>
-          {filteredVisibleLayers.map((layer, index) => {
-            if (
-              layer.visible &&
-              (layer.id === 'waterbodyLayer' ||
-                layer.id === 'allWaterbodiesLayer')
-            ) {
-              if (waterbodyLayerAdded) return null;
-              waterbodyLayerAdded = true;
-            }
-            return (
-              <MapLegendContent
-                key={index}
-                view={view}
-                layer={layer}
-                additionalLegendInfo={additionalLegendInfo}
-              />
-            );
-          })}
-        </UL>
-      </LegendContainer>
-    </Container>
+    <div css={containerStyles}>
+      <ul css={listStyles}>
+        {filteredVisibleLayers.map((layer, index) => {
+          if (
+            layer.visible &&
+            (layer.id === 'waterbodyLayer' ||
+              layer.id === 'allWaterbodiesLayer')
+          ) {
+            if (waterbodyLayerAdded) return null;
+            waterbodyLayerAdded = true;
+          }
+
+          return (
+            <MapLegendContent
+              key={index}
+              view={view}
+              layer={layer}
+              additionalLegendInfo={additionalLegendInfo}
+            />
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 
@@ -197,98 +200,204 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   // jsx
   const waterbodyLegend = (
     <>
-      <LI>
-        <ImageContainer>
-          <WaterbodyIcon condition="good" selected={false} />
-        </ImageContainer>
-        <LegendLabel>Waterbody: Good</LegendLabel>
-      </LI>
-      <LI>
-        <ImageContainer>
-          <WaterbodyIcon condition="polluted" selected={false} />
-        </ImageContainer>
-        <LegendLabel>Waterbody: Impaired</LegendLabel>
-      </LI>
-      <LI>
-        <ImageContainer>
-          <WaterbodyIcon condition="unassessed" selected={false} />
-        </ImageContainer>
-        <LegendLabel>Waterbody: Condition Unknown</LegendLabel>
-      </LI>
+      <li>
+        <div css={legendItemStyles}>
+          <div css={imageContainerStyles}>
+            <WaterbodyIcon condition="good" selected={false} />
+          </div>
+          <span css={labelStyles}>Waterbody: Good</span>
+        </div>
+      </li>
+
+      <li>
+        <div css={legendItemStyles}>
+          <div css={imageContainerStyles}>
+            <WaterbodyIcon condition="polluted" selected={false} />
+          </div>
+          <span css={labelStyles}>Waterbody: Impaired</span>
+        </div>
+      </li>
+
+      <li>
+        <div css={legendItemStyles}>
+          <div css={imageContainerStyles}>
+            <WaterbodyIcon condition="unassessed" selected={false} />
+          </div>
+          <span css={labelStyles}>Waterbody: Condition Unknown</span>
+        </div>
+      </li>
     </>
   );
 
   // jsx
   const issuesLegend = (
-    <>
-      <LI>
-        <ImageContainer>
+    <li>
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>
           <WaterbodyIcon condition="polluted" selected={false} />
-        </ImageContainer>
-        <LegendLabel>Waterbody: Impaired</LegendLabel>
-      </LI>
-    </>
+        </div>
+        <span css={labelStyles}>Waterbody: Impaired</span>
+      </div>
+    </li>
   );
 
   // jsx
   const monitoringStationsLegend = (
-    <LI>
-      <ImageContainer>
-        {squareIcon({ color: colors.lightPurple() })}
-      </ImageContainer>
-      <LegendLabel>Monitoring Station</LegendLabel>
-    </LI>
+    <li>
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>
+          {squareIcon({ color: colors.lightPurple() })}
+        </div>
+        <span css={labelStyles}>Monitoring Station</span>
+      </div>
+    </li>
+  );
+
+  // jsx
+  const usgsStreamgagesLegend = (
+    <li>
+      <div css={layerLabelStyles}>Daily Streamflow Conditions:</div>
+
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>{circleIcon({ color: '#ea2c38' })}</div>
+        <span css={labelStyles}>All-time low</span>
+      </div>
+
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>{circleIcon({ color: '#b54246' })}</div>
+        <span css={labelStyles}>Much below normal</span>
+      </div>
+
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>{circleIcon({ color: '#eaae3f' })}</div>
+        <span css={labelStyles}>Below normal</span>
+      </div>
+
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>{circleIcon({ color: '#32f242' })}</div>
+        <span css={labelStyles}>Normal</span>
+      </div>
+
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>{circleIcon({ color: '#56d7da' })}</div>
+        <span css={labelStyles}>Above normal</span>
+      </div>
+
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>{circleIcon({ color: '#2639f6' })}</div>
+        <span css={labelStyles}>Much above normal</span>
+      </div>
+
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>{circleIcon({ color: '#22296e' })}</div>
+        <span css={labelStyles}>All-time high</span>
+      </div>
+
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>{circleIcon({ color: '#989fa2' })}</div>
+        <span css={labelStyles}>Measurement unavailable</span>
+      </div>
+    </li>
   );
 
   // jsx
   const dischargersLegend = (
-    <LI>
-      <ImageContainer>{diamondIcon({ color: colors.orange })}</ImageContainer>
-      <LegendLabel>Permitted Discharger</LegendLabel>
-    </LI>
+    <li>
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>
+          {diamondIcon({ color: colors.orange })}
+        </div>
+        <span css={labelStyles}>Permitted Discharger</span>
+      </div>
+    </li>
   );
 
   // jsx
   const nonprofitsLegend = (
-    <LI>
-      <ImageContainer>{squareIcon({ color: '#8b6573' })}</ImageContainer>
-      <LegendLabel>Nonprofit</LegendLabel>
-    </LI>
+    <li>
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>{squareIcon({ color: '#8b6573' })}</div>
+        <span css={labelStyles}>Nonprofit</span>
+      </div>
+    </li>
   );
 
   // jsx
   const providersLegend = (
     <>
-      <LI>
-        <ImageContainer>
-          <PinIcon />
-        </ImageContainer>
-        <LegendLabel>Searched Location</LegendLabel>
-      </LI>
-      <LI>
-        <ImageContainer>
-          {squareIcon({
-            color: '#CBCBCB',
-            strokeWidth: 3,
-            stroke: '#ffff00',
-          })}
-        </ImageContainer>
-        <LegendLabel>Providers</LegendLabel>
-      </LI>
+      <li>
+        <div css={legendItemStyles}>
+          <div css={imageContainerStyles}>
+            <PinIcon />
+          </div>
+          <span css={labelStyles}>Searched Location</span>
+        </div>
+      </li>
+
+      <li>
+        <div css={legendItemStyles}>
+          <div css={imageContainerStyles}>
+            {squareIcon({
+              color: '#CBCBCB',
+              strokeWidth: 3,
+              stroke: '#ffff00',
+            })}
+          </div>
+          <span css={labelStyles}>Providers</span>
+        </div>
+      </li>
     </>
   );
 
   // jsx
   const boundariesLegend = (
     <>
-      <LI>
-        <ImageContainer>
-          <PinIcon />
-        </ImageContainer>
-        <LegendLabel>Searched Location</LegendLabel>
-      </LI>
-      <LI>
-        <ImageContainer>
+      <li>
+        <div css={legendItemStyles}>
+          <div css={imageContainerStyles}>
+            <PinIcon />
+          </div>
+          <span css={labelStyles}>Searched Location</span>
+        </div>
+      </li>
+
+      <li>
+        <div css={legendItemStyles}>
+          <div css={imageContainerStyles}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="26"
+              height="26"
+              viewBox="0 0 26 26"
+              aria-hidden="true"
+            >
+              <rect x="0" y="12" width="10" height="3" fill="#000" />
+              <rect x="16" y="12" width="10" height="3" fill="#000" />
+            </svg>
+          </div>
+          <span css={labelStyles}>HUC12 Boundaries</span>
+        </div>
+      </li>
+    </>
+  );
+
+  // jsx
+  const actionsWaterbodiesLegend = (
+    <li>
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>
+          {squareIcon({ color: 'rgb(0, 123, 255)', strokeWidth: 0 })}
+        </div>
+        <span css={labelStyles}>Waterbody</span>
+      </div>
+    </li>
+  );
+
+  // jsx
+  const congressionalDistrictsLegend = (
+    <li>
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="26"
@@ -296,153 +405,130 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
             viewBox="0 0 26 26"
             aria-hidden="true"
           >
-            <rect x="0" y="12" width="10" height="3" fill="#000" />
-            <rect x="16" y="12" width="10" height="3" fill="#000" />
+            <rect x="0" y="12" width="26" height="3" fill="#FF00C5" />
           </svg>
-        </ImageContainer>
-        <LegendLabel>HUC12 Boundaries</LegendLabel>
-      </LI>
-    </>
-  );
-
-  // jsx
-  const actionsWaterbodiesLegend = (
-    <LI>
-      <ImageContainer>
-        {squareIcon({ color: 'rgb(0, 123, 255)', strokeWidth: 0 })}
-      </ImageContainer>
-      <LegendLabel>Waterbody</LegendLabel>
-    </LI>
-  );
-
-  // jsx
-  const congressionalDistrictsLegend = (
-    <LI>
-      <ImageContainer>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="26"
-          height="26"
-          viewBox="0 0 26 26"
-          aria-hidden="true"
-        >
-          <rect x="0" y="12" width="26" height="3" fill="#FF00C5" />
-        </svg>
-      </ImageContainer>
-      <LegendLabel>Congressional Districts</LegendLabel>
-    </LI>
+        </div>
+        <span css={labelStyles}>Congressional Districts</span>
+      </div>
+    </li>
   );
 
   // jsx
   const tribalLegend = (
     <>
-      <LI>
-        <ImageContainer>
-          {squareIcon({
-            color: 'rgb(154, 154, 154)',
-            strokeWidth: 1,
-            stroke: '#6e6e6e',
-          })}
-        </ImageContainer>
-        <LegendLabel>Tribal Lands</LegendLabel>
-      </LI>
-      <LI>
-        <ImageContainer>
-          {circleIcon({
-            color: 'rgb(158, 0, 124)',
-            strokeWidth: 1,
-            stroke: '#000000',
-          })}
-        </ImageContainer>
-        <LegendLabel>Alaska Native Villages</LegendLabel>
-      </LI>
+      <li>
+        <div css={legendItemStyles}>
+          <div css={imageContainerStyles}>
+            {squareIcon({ color: 'rgb(154, 154, 154)', stroke: '#6e6e6e' })}
+          </div>
+          <span css={labelStyles}>Tribal Lands</span>
+        </div>
+      </li>
+
+      <li>
+        <div css={legendItemStyles}>
+          <div css={imageContainerStyles}>
+            {circleIcon({ color: 'rgb(158, 0, 124)' })}
+          </div>
+          <span css={labelStyles}>Alaska Native Villages</span>
+        </div>
+      </li>
     </>
   );
 
   // jsx
   const healthIndexLegend = (
-    <LI>
-      <ImageContainer>
-        {squareIcon({ color: 'rgb(54, 140, 225)', strokeWidth: 0 })}
-      </ImageContainer>
-      <LegendLabel>State Watershed Health Index Layer</LegendLabel>
-      {gradientIcon({
-        id: 'health-index-gradient',
-        stops: [
-          { label: '1', color: 'rgb(10, 8, 145)' },
-          { label: '0.75', color: 'rgb(30, 61, 181)' },
-          { label: '0.5', color: 'rgb(54, 140, 225)' },
-          { label: '0.25', color: 'rgb(124, 187, 234)' },
-          { label: '0', color: 'rgb(180, 238, 239)' },
-        ],
-      })}
-    </LI>
+    <li>
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>
+          {squareIcon({ color: 'rgb(54, 140, 225)', strokeWidth: 0 })}
+        </div>
+        <span css={labelStyles}>State Watershed Health Index Layer</span>
+        {gradientIcon({
+          id: 'health-index-gradient',
+          stops: [
+            { label: '1', color: 'rgb(10, 8, 145)' },
+            { label: '0.75', color: 'rgb(30, 61, 181)' },
+            { label: '0.5', color: 'rgb(54, 140, 225)' },
+            { label: '0.25', color: 'rgb(124, 187, 234)' },
+            { label: '0', color: 'rgb(180, 238, 239)' },
+          ],
+        })}
+      </div>
+    </li>
   );
 
   const wildScenicRiversLegend = (
-    <LI>
-      <ImageContainer>
-        {squareIcon({ color: 'rgb(0, 123, 255)' })}
-      </ImageContainer>
-      <LegendLabel>Wild and Scenic Rivers</LegendLabel>
-    </LI>
+    <li>
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>
+          {squareIcon({ color: 'rgb(0, 123, 255)' })}
+        </div>
+        <span css={labelStyles}>Wild and Scenic Rivers</span>
+      </div>
+    </li>
   );
 
   // jsx
   const countyLegend = (
-    <LI>
-      <ImageContainer>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="26"
-          height="26"
-          viewBox="0 0 26 26"
-          aria-hidden="true"
-        >
-          <rect x="0" y="12" width="26" height="3" fill="#FBA45D" />
-        </svg>
-      </ImageContainer>
-      <LegendLabel>County</LegendLabel>
-    </LI>
+    <li>
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="26"
+            height="26"
+            viewBox="0 0 26 26"
+            aria-hidden="true"
+          >
+            <rect x="0" y="12" width="26" height="3" fill="#FBA45D" />
+          </svg>
+        </div>
+        <span css={labelStyles}>County</span>
+      </div>
+    </li>
   );
 
   // jsx
   const stateBoundariesLegend = (
-    <LI>
-      <ImageContainer>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="26"
-          height="26"
-          viewBox="0 0 26 26"
-          aria-hidden="true"
-        >
-          <rect x="0" y="12" width="26" height="3" fill="#000" />
-        </svg>
-      </ImageContainer>
-      <LegendLabel>State</LegendLabel>
-    </LI>
+    <li>
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="26"
+            height="26"
+            viewBox="0 0 26 26"
+            aria-hidden="true"
+          >
+            <rect x="0" y="12" width="26" height="3" fill="#000" />
+          </svg>
+        </div>
+        <span css={labelStyles}>State</span>
+      </div>
+    </li>
   );
 
   // jsx
   const upstreamLegend = (
-    <LI>
-      <ImageContainer>
-        {squareIcon({
-          color: 'rgb(31, 184, 255, 0.2)',
-          strokeWidth: 2,
-          stroke: '#000000',
-        })}
-      </ImageContainer>
-      <LegendLabel>Upstream Watershed</LegendLabel>
-    </LI>
+    <li>
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>
+          {squareIcon({ color: 'rgb(31, 184, 255, 0.2)', strokeWidth: 2 })}
+        </div>
+        <span css={labelStyles}>Upstream Watershed</span>
+      </div>
+    </li>
   );
 
   // jsx
   const protectedAreasLegend = () => {
     const layerName = 'Protected Areas';
 
-    if (additionalLegendInfo.status === 'fetching') return <LoadingSpinner />;
+    if (additionalLegendInfo.status === 'fetching') {
+      return <LoadingSpinner />;
+    }
+
     if (additionalLegendInfo.status === 'failure') {
       return (
         <StyledErrorBox>{legendUnavailableError(layerName)}</StyledErrorBox>
@@ -451,6 +537,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
 
     const padLegend =
       additionalLegendInfo.data['protectedAreasLayer']?.layers?.[0]?.legend;
+
     if (!padLegend) {
       return (
         <StyledErrorBox>{legendUnavailableError(layerName)}</StyledErrorBox>
@@ -458,25 +545,36 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     }
 
     return (
-      <MultiContainer>
-        <h3 className="esri-widget__heading esri-legend__service-label">
-          {layerName}
-        </h3>
-        <Subtitle>Protection Category</Subtitle>
-        {padLegend.map((item, index) => {
-          return (
-            <LI key={index}>
-              <ImageContainer>
-                <img
-                  src={`data:image/png;base64,${item.imageData}`}
-                  alt={item.label}
-                />
-              </ImageContainer>
-              <LegendLabel>{item.label}</LegendLabel>
-            </LI>
-          );
-        })}
-      </MultiContainer>
+      <li>
+        <div css={layerLabelStyles}>{layerName}</div>
+
+        <div css={[layerLabelStyles, { fontStyle: 'italic' }]}>
+          Protection Category:
+        </div>
+
+        <ul css={{ paddingLeft: 0 }}>
+          {padLegend.map((item, index) => {
+            return (
+              <li key={index}>
+                <div css={legendItemStyles}>
+                  <div
+                    css={[
+                      imageContainerStyles,
+                      { width: '20px', height: '20px' },
+                    ]}
+                  >
+                    <img
+                      src={`data:image/png;base64,${item.imageData}`}
+                      alt={item.label}
+                    />
+                  </div>
+                  <span css={labelStyles}>{item.label}</span>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </li>
     );
   };
 
@@ -578,7 +676,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     });
 
     return (
-      <MultiContainer>
+      <li>
         <GlossaryTerm
           term={layerName}
           className="esri-widget__heading esri-legend__service-label"
@@ -589,27 +687,35 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
         >
           {layerName}
         </GlossaryTerm>
+
         {subtitleParts.length > 0 && (
-          <Subtitle>
+          <div css={[layerLabelStyles, { marginBottom: '0.5rem' }]}>
             {subtitleParts.map((part, index) => {
               return <div key={index}>{part.glossary}</div>;
             })}
-          </Subtitle>
+          </div>
         )}
-        {legend.map((item, index) => {
-          return (
-            <LI key={index}>
-              <ImageContainer>
-                <img
-                  src={`data:image/png;base64,${item.imageData}`}
-                  alt={item.label.replace('%ile', '%')}
-                />
-              </ImageContainer>
-              <LegendLabel>{item.label.replace('%ile', '%')}</LegendLabel>
-            </LI>
-          );
-        })}
-      </MultiContainer>
+
+        <ul css={{ paddingLeft: 0 }}>
+          {legend.map((item, index) => {
+            return (
+              <li key={index}>
+                <div css={legendItemStyles}>
+                  <div css={imageContainerStyles}>
+                    <img
+                      src={`data:image/png;base64,${item.imageData}`}
+                      alt={item.label.replace('%ile', '%')}
+                    />
+                  </div>
+                  <span css={labelStyles}>
+                    {item.label.replace('%ile', '%')}
+                  </span>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </li>
     );
   };
 
@@ -617,6 +723,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   if (layer.id === 'allWaterbodiesLayer') return waterbodyLegend;
   if (layer.id === 'issuesLayer') return issuesLegend;
   if (layer.id === 'monitoringStationsLayer') return monitoringStationsLegend;
+  if (layer.id === 'usgsStreamgagesLayer') return usgsStreamgagesLegend;
   if (layer.id === 'dischargersLayer') return dischargersLegend;
   if (layer.id === 'nonprofitsLayer') return nonprofitsLegend;
   if (layer.id === 'providersLayer') return providersLegend;
