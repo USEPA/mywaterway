@@ -315,7 +315,7 @@ function Overview() {
                   ? totalSampleLocations
                   : 'N/A'}
               </span>
-              <p css={keyMetricLabelStyles}>Sample Locations</p>
+              <p css={keyMetricLabelStyles}>Monitoring Stations</p>
               <div css={switchContainerStyles}>
                 <Switch
                   checked={
@@ -336,7 +336,7 @@ function Overview() {
                     });
                   }}
                   disabled={!Boolean(totalSampleLocations)}
-                  ariaLabel="Sample Locations"
+                  ariaLabel="Monitoring Stations"
                 />
               </div>
             </>
@@ -450,9 +450,9 @@ function SampleLocationsTab({
 
   const services = useServicesContext();
 
-  // if either of the "Daily Stream Flow Conditions" or "Monitoring Stations"
+  // if either of the "Daily Stream Flow Conditions" or "Sample Locations"
   // switches are turned on, or if both switches are turned off, keep the
-  // "Sample Locations" switch in sync
+  // "Monitoring Stations" switch in sync
   useEffect(() => {
     if (usgsStreamgagesDisplayed || monitoringStationsDisplayed) {
       setSampleLocationsDisplayed(true);
@@ -668,9 +668,9 @@ function SampleLocationsTab({
                           });
                         }}
                         disabled={normalizedMonitoringStations.length === 0}
-                        ariaLabel="Monitoring Stations"
+                        ariaLabel="Sample Locations"
                       />
-                      <span>Monitoring Stations</span>
+                      <span>Sample Locations</span>
                     </div>
                   </td>
                   <td>{normalizedMonitoringStations.length}</td>

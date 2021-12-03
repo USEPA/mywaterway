@@ -447,7 +447,7 @@ function Monitoring() {
                   ? 'N/A'
                   : `${monitoringStations.data.features.length}`}
               </span>
-              <p css={keyMetricLabelStyles}>Sample Locations</p>
+              <p css={keyMetricLabelStyles}>Monitoring Stations</p>
             </>
           )}
         </div>
@@ -456,7 +456,7 @@ function Monitoring() {
       <div css={tabsStyles}>
         <Tabs>
           <TabList>
-            <Tab>Monitoring Stations</Tab>
+            <Tab>Sample Locations</Tab>
             <Tab>Daily Stream Flow Conditions</Tab>
           </TabList>
 

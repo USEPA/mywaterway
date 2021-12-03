@@ -650,7 +650,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     const monitoringStationsLayer = new GraphicsLayer({
       id: 'monitoringStationsLayer',
-      title: 'Monitoring Stations',
+      title: 'Sample Locations',
       listMode: 'hide',
     });
 
