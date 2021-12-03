@@ -185,6 +185,9 @@ function Monitoring() {
         stationProviderName: station.properties.ProviderName,
         stationTotalSamples: station.properties.activityCount,
         stationTotalMeasurements: station.properties.resultCount,
+        stationTotalsByCategory: JSON.stringify(
+          station.properties.characteristicGroupResultCount,
+        ),
         // create a unique id, so we can check if the monitoring station has
         // already been added to the display (since a monitoring station id
         // isn't universally unique)
@@ -192,9 +195,6 @@ function Monitoring() {
           `${station.properties.MonitoringLocationIdentifier}/` +
           `${station.properties.ProviderName}/` +
           `${station.properties.OrganizationIdentifier}`,
-        characteristicGroupResultCount: JSON.stringify(
-          station.properties.characteristicGroupResultCount,
-        ),
       };
 
       allMonitoringStations.push(monitoringStation);

@@ -582,7 +582,7 @@ function WaterbodyInfo({
   }
 
   function monitoringStationContent() {
-    const stationGroups = JSON.parse(attributes.characteristicGroupResultCount);
+    const stationGroups = JSON.parse(attributes.stationTotalsByCategory);
 
     const groups = { Other: { characteristicGroups: [], resultCount: 0 } };
 
