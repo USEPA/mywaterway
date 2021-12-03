@@ -276,8 +276,6 @@ export function plotStations(
   layer.graphics.removeAll();
 
   stations.forEach((station) => {
-    station.fullPopup = false;
-    // put graphics on the layer
     layer.graphics.add(
       new Graphic({
         geometry: {
@@ -303,7 +301,7 @@ export function plotStations(
   });
 }
 
-// plot issues on map
+// plot usgs streamgages on map
 export function plotGages(gages: Object[], layer: any) {
   if (!gages || !layer) return;
 
@@ -439,14 +437,6 @@ export const openPopup = (
   fields: Object,
   services: Object,
 ) => {
-  // tell the getPopupContent function to use the full popup version that includes the service call
-  if (
-    feature.attributes &&
-    feature.attributes.sampleType === 'Monitoring Station'
-  ) {
-    feature.attributes.fullPopup = true;
-  }
-
   const fieldName = feature.attributes && feature.attributes.fieldName;
 
   // set the popup template
@@ -519,7 +509,7 @@ export function getPopupTitle(attributes: Object) {
     title = attributes.CWPName;
   }
 
-  // monitoring location
+  // monitoring station
   else if (
     attributes.sampleType === 'Monitoring Station' ||
     attributes.sampleType === 'USGS Streamgage'

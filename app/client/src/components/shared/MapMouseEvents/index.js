@@ -11,7 +11,6 @@ import { useServicesContext } from 'contexts/LookupFiles';
 // config
 import {
   getPopupContent,
-  getPopupTitle,
   graphicComparison,
 } from 'components/pages/LocationMap/MapFunctions';
 
@@ -205,17 +204,6 @@ function MapMouseEvents({ map, view }: Props) {
     });
 
     view.popup.watch('selectedFeature', (graphic) => {
-      // check if monitoring station is clicked, load the popup and call the waterqualitydata service
-      if (
-        graphic &&
-        graphic.layer &&
-        graphic.layer.id === 'monitoringStationsLayer' &&
-        graphic.attributes &&
-        graphic.attributes.fullPopup === false
-      ) {
-        loadMonitoringLocation(graphic, services);
-      }
-
       // set the view highlight options to 0 fill opacity if upstream watershed is selected
       if (graphic?.layer?.id === 'upstreamWatershed') {
         view.highlightOptions.fillOpacity = 0;
@@ -259,15 +247,6 @@ function MapMouseEvents({ map, view }: Props) {
 
     return match[0] ? match[0].graphic : null;
   }
-
-  const loadMonitoringLocation = (graphic, servicesParam) => {
-    // tell the getPopupContent function to use the full popup version that includes the service call
-    graphic.attributes.fullPopup = true;
-    graphic.popupTemplate = {
-      title: getPopupTitle(graphic.attributes),
-      content: getPopupContent({ feature: graphic, services: servicesParam }),
-    };
-  };
 
   return null;
 }
