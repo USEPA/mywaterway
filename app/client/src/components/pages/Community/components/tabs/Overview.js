@@ -23,7 +23,6 @@ import {
 } from 'components/shared/KeyMetrics';
 import { tabsStyles } from 'components/shared/ContentTabs';
 // contexts
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
@@ -441,8 +440,6 @@ function SampleLocationsTab({
   setUsgsStreamgagesDisplayed,
   updateVisibleLayers,
 }) {
-  const { Graphic } = useContext(EsriModulesContext);
-
   const {
     monitoringStations,
     usgsStreamgages,
@@ -505,8 +502,8 @@ function SampleLocationsTab({
 
     setNormalizedUsgsStreamgages(gages);
 
-    plotGages(Graphic, gages, usgsStreamgagesLayer);
-  }, [Graphic, usgsStreamgages.data, usgsStreamgagesLayer]);
+    plotGages(gages, usgsStreamgagesLayer);
+  }, [usgsStreamgages.data, usgsStreamgagesLayer]);
 
   const [
     normalizedMonitoringStations,
@@ -539,12 +536,15 @@ function SampleLocationsTab({
       stationProviderName: station.properties.ProviderName,
       stationTotalSamples: station.properties.activityCount,
       stationTotalMeasurements: station.properties.resultCount,
+      stationTotalsByCategory: JSON.stringify(
+        station.properties.characteristicGroupResultCount,
+      ),
     }));
 
     setNormalizedMonitoringStations(stations);
 
-    plotStations(Graphic, stations, monitoringStationsLayer, services);
-  }, [Graphic, monitoringStations.data, monitoringStationsLayer, services]);
+    plotStations(stations, monitoringStationsLayer, services);
+  }, [monitoringStations.data, monitoringStationsLayer, services]);
 
   const allSampleLocations = [
     ...normalizedUsgsStreamgages,
@@ -774,8 +774,6 @@ function SampleLocationsTab({
 }
 
 function PermittedDischargersTab({ totalPermittedDischargers }) {
-  const { Graphic } = useContext(EsriModulesContext);
-
   const { permittedDischargers, dischargersLayer, watershed } = useContext(
     LocationSearchContext,
   );
@@ -784,12 +782,11 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
   useEffect(() => {
     if (permittedDischargers.data.Results?.Facilities) {
       plotFacilities({
-        Graphic: Graphic,
         facilities: permittedDischargers.data.Results.Facilities,
         layer: dischargersLayer,
       });
     }
-  }, [permittedDischargers.data, Graphic, dischargersLayer]);
+  }, [permittedDischargers.data, dischargersLayer]);
 
   const [
     permittedDischargersSortedBy,

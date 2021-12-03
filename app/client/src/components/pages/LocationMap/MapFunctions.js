@@ -4,6 +4,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { css } from 'styled-components/macro';
+import Graphic from '@arcgis/core/Graphic';
 // components
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
@@ -266,7 +267,6 @@ export function isIE() {
 
 // plot monitoring stations on map
 export function plotStations(
-  Graphic: any,
   stations: Array<Object>,
   layer: any,
   services: Object,
@@ -276,8 +276,6 @@ export function plotStations(
   layer.graphics.removeAll();
 
   stations.forEach((station) => {
-    station.fullPopup = false;
-
     layer.graphics.add(
       new Graphic({
         geometry: {
@@ -303,8 +301,8 @@ export function plotStations(
   });
 }
 
-// plot USGS Streamgages on map
-export function plotGages(Graphic: any, gages: Object[], layer: any) {
+// plot usgs streamgages on map
+export function plotGages(gages: Object[], layer: any) {
   if (!gages || !layer) return;
 
   const graphics = gages.map((gage) => {
@@ -332,7 +330,7 @@ export function plotGages(Graphic: any, gages: Object[], layer: any) {
 }
 
 // plot issues on map
-export function plotIssues(Graphic: any, features: Array<Object>, layer: any) {
+export function plotIssues(features: Array<Object>, layer: any) {
   if (!features || !layer) return;
 
   // clear the layer
@@ -365,11 +363,7 @@ export function plotIssues(Graphic: any, features: Array<Object>, layer: any) {
 }
 
 // plot wild and scenic rivers on map
-export function plotWildScenicRivers(
-  Graphic: any,
-  features: Array<Object>,
-  layer: any,
-) {
+export function plotWildScenicRivers(features: Array<Object>, layer: any) {
   if (!features || !layer) return;
 
   // clear the layer
@@ -401,11 +395,9 @@ export function plotWildScenicRivers(
 
 // plot facilities on map
 export function plotFacilities({
-  Graphic,
   facilities,
   layer,
 }: {
-  Graphic: any,
   facilities: Array<Object>,
   layer: any,
 }) {
@@ -445,14 +437,6 @@ export const openPopup = (
   fields: Object,
   services: Object,
 ) => {
-  // tell the getPopupContent function to use the full popup version that includes the service call
-  if (
-    feature.attributes &&
-    feature.attributes.sampleType === 'Monitoring Station'
-  ) {
-    feature.attributes.fullPopup = true;
-  }
-
   const fieldName = feature.attributes && feature.attributes.fieldName;
 
   // set the popup template
@@ -525,7 +509,7 @@ export function getPopupTitle(attributes: Object) {
     title = attributes.CWPName;
   }
 
-  // sample location
+  // monitoring station
   else if (
     attributes.sampleType === 'Monitoring Station' ||
     attributes.sampleType === 'USGS Streamgage'
@@ -632,10 +616,7 @@ export function getPopupContent({
 
   // monitoring station
   else if (attributes && attributes.sampleType === 'Monitoring Station') {
-    type =
-      attributes.fullPopup === false
-        ? 'Monitoring Station Map Popup' /* map popup */
-        : 'Monitoring Station' /* accordion */;
+    type = 'Monitoring Station';
   }
 
   // protect tab teal nonprofits

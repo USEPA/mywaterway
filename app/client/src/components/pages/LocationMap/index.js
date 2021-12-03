@@ -4,12 +4,20 @@ import React from 'react';
 import type { Node } from 'react';
 import styled from 'styled-components';
 import StickyBox from 'react-sticky-box';
-import { Map } from '@esri/react-arcgis';
+import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import Graphic from '@arcgis/core/Graphic';
+import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+import GroupLayer from '@arcgis/core/layers/GroupLayer';
+import Locator from '@arcgis/core/tasks/Locator';
+import PictureMarkerSymbol from '@arcgis/core/symbols/PictureMarkerSymbol';
+import Query from '@arcgis/core/rest/support/Query';
+import QueryTask from '@arcgis/core/tasks/QueryTask';
+import SpatialReference from '@arcgis/core/geometry/SpatialReference';
+import Viewpoint from '@arcgis/core/Viewpoint';
 // components
+import Map from 'components/shared/Map';
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import mapPin from 'components/pages/Community/images/pin.png';
-import MapWidgets from 'components/shared/MapWidgets';
-import MapMouseEvents from 'components/shared/MapMouseEvents';
 import {
   createWaterbodySymbol,
   createUniqueValueInfos,
@@ -21,14 +29,11 @@ import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
 // styled components
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // contexts
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
-// config
-import { esriApiUrl } from 'config/esriConfig';
 // helpers
 import {
   useDynamicPopup,
@@ -85,27 +90,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const services = useServicesContext();
 
   const {
-    FeatureLayer,
-    GraphicsLayer,
-    GroupLayer,
-    Graphic,
-    Locator,
-    PictureMarkerSymbol,
-    Point,
-    Query,
-    QueryTask,
-    SpatialReference,
-    Viewpoint,
-  } = React.useContext(EsriModulesContext);
-
-  const {
     searchText,
     lastSearchText,
     setLastSearchText,
     setCurrentExtent,
     //
-    initialExtent,
-    highlightOptions,
     boundariesLayer,
     searchIconLayer,
     waterbodyLayer,
@@ -138,7 +127,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setFishingInfo,
     setHucBoundaries,
     setAtHucBoundaries,
-    setMapView,
+    mapView,
     setMonitoringStations,
     setUsgsStreamgages,
     // setNonprofits,
@@ -158,7 +147,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setNoDataAvailable,
     FIPS,
     setFIPS,
-    getBasemap,
     layers,
     setLayers,
     pointsLayer,
@@ -177,8 +165,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   } = React.useContext(LocationSearchContext);
 
   const stateNationalUses = useStateNationalUsesContext();
-
-  const [view, setView] = React.useState(null);
 
   function matchStateCodeToAssessment(
     assessmentUnitIdentifier,
@@ -782,9 +768,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setLayersInitialized(true);
   }, [
-    FeatureLayer,
-    GraphicsLayer,
-    Graphic,
     getSharedLayers,
     getTemplate,
     getTitle,
@@ -881,9 +864,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
     },
     [
-      FeatureLayer,
-      Query,
-      QueryTask,
       cropGeometryToHuc,
       handleMapServiceError,
       popupTemplate,
@@ -951,9 +931,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
     },
     [
-      FeatureLayer,
-      Query,
-      QueryTask,
       cropGeometryToHuc,
       handleMapServiceError,
       popupTemplate,
@@ -1009,9 +986,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
     },
     [
-      FeatureLayer,
-      Query,
-      QueryTask,
       handleMapServiceError,
       popupTemplate,
       setPointsData,
@@ -1071,7 +1045,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     linesLayer,
     pointsLayer,
     mapServiceFailure,
-    GroupLayer,
     setWaterbodyLayer,
     setLayers,
     setCipSummary,
@@ -1361,7 +1334,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
         });
     },
-    [services, Query, QueryTask, setWildScenicRiversData],
+    [services, setWildScenicRiversData],
   );
 
   const getProtectedAreas = React.useCallback(
@@ -1431,7 +1404,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
         });
     },
-    [services, Query, QueryTask, setProtectedAreasData, setDynamicPopupFields],
+    [services, setProtectedAreasData, setDynamicPopupFields],
   );
 
   const handleMapServices = React.useCallback(
@@ -1601,17 +1574,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       locator.outSpatialReference = SpatialReference.WebMercator;
 
       // Parse the search text to see if it is from a non-esri search suggestion
-      const { searchPart, coordinatesPart } = splitSuggestedSearch(
-        Point,
-        searchText,
-      );
+      const { searchPart, coordinatesPart } = splitSuggestedSearch(searchText);
 
       // Check if the search text contains coordinates.
       // First see if coordinates are part of a non-esri suggestion and
       // then see if the full text is coordinates
       let point = coordinatesPart
         ? coordinatesPart
-        : getPointFromCoordinates(Point, searchText);
+        : getPointFromCoordinates(searchText);
 
       let getCandidates;
       if (point === null) {
@@ -1804,13 +1774,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
     },
     [
-      Graphic,
-      Locator,
-      PictureMarkerSymbol,
-      Point,
-      Query,
-      QueryTask,
-      SpatialReference.WebMercator,
       handleHUC12,
       searchIconLayer,
       setAddress,
@@ -1870,8 +1833,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       }
     },
     [
-      Query,
-      QueryTask,
       processGeocodeServerResults,
       setNoDataAvailable,
       setErrorMessage,
@@ -1908,7 +1869,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   React.useEffect(() => {
     if (
-      !view ||
+      !mapView ||
       !hucBoundaries ||
       !hucBoundaries.features ||
       !hucBoundaries.features[0]
@@ -1946,18 +1907,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setCurrentExtent(currentViewpoint);
 
     homeWidget.viewpoint = currentViewpoint;
-    view.popup.close();
+    mapView.popup.close();
 
     // zoom to the graphic, and update the home widget, and close any popups
-    view.goTo(graphic).then(function () {
+    mapView.goTo(graphic).then(function () {
       setAtHucBoundaries(true);
     });
   }, [
-    view,
+    mapView,
     hucBoundaries,
-    Graphic,
     boundariesLayer.graphics,
-    Viewpoint,
     setCurrentExtent,
     setAtHucBoundaries,
     homeWidget,
@@ -2065,10 +2024,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     const content = document.querySelector(`[data-content="locationmap"]`);
     if (content) {
       let pos = content.getBoundingClientRect();
-      window.scrollTo(
-        pos.left + window.pageXOffset,
-        pos.top + window.pageYOffset,
-      );
+      window.scrollTo(pos.left + window.scrollX, pos.top + window.scrollY);
     }
   }, [layout, windowHeight]);
 
@@ -2115,46 +2071,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               : windowHeight - searchTextHeight - 3 * mapPadding,
         }}
       >
-        <Map
-          style={{ position: 'absolute' }}
-          loaderOptions={{ url: esriApiUrl }}
-          mapProperties={{ basemap: getBasemap() }}
-          viewProperties={{
-            extent: initialExtent,
-            highlightOptions,
-          }}
-          layers={layers}
-          onLoad={(map, view) => {
-            setView(view);
-            setMapView(view);
-          }}
-          onFail={(err) => {
-            console.error(err);
-            setCommunityMapLoadError(true);
-            setView(null);
-            setMapView(null);
-            window.logToGa('send', 'exception', {
-              exDescription: `Community map failed to load - ${err}`,
-              exFatal: false,
-            });
-          }}
-        >
-          {/* manually passing map and view props to Map component's         */}
-          {/* children to satisfy flow, but map and view props are auto      */}
-          {/* passed from Map component to its children by react-arcgis      */}
-          <MapWidgets
-            map={null}
-            view={null}
-            layers={layers}
-            scrollToComponent="locationmap"
-          />
-
-          {/* manually passing map and view props to Map component's         */}
-          {/* children to satisfy flow, but map and view props are auto      */}
-          {/* passed from Map component to its children by react-arcgis      */}
-          <MapMouseEvents map={null} view={null} />
-        </Map>
-        {view && mapLoading && <MapLoadingSpinner />}
+        <Map layers={layers} />
+        {mapView && mapLoading && <MapLoadingSpinner />}
       </Container>
     </>
   );
@@ -2178,9 +2096,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 export default function LocationMapContainer({ ...props }: Props) {
   return (
     <MapErrorBoundary>
-      <EsriModulesContext.Consumer>
-        {(esriModules) => <LocationMap esriModules={esriModules} {...props} />}
-      </EsriModulesContext.Consumer>
+      <LocationMap {...props} />
     </MapErrorBoundary>
   );
 }

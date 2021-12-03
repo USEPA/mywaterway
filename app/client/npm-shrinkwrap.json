@@ -4,6 +4,26 @@
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
+    "@a11y/focus-trap": {
+      "version": "1.0.5",
+      "resolved": "https://registry.npmjs.org/@a11y/focus-trap/-/focus-trap-1.0.5.tgz",
+      "integrity": "sha512-3JOd6g+BALysWS8LNf0qdB8ltR651H/RCLAvUmfS0LIHwHO579XfjZUIZbURYiAZrcbp1CBAq4QZ2YwKNQZ1hw=="
+    },
+    "@arcgis/core": {
+      "version": "4.21.2",
+      "resolved": "https://registry.npmjs.org/@arcgis/core/-/core-4.21.2.tgz",
+      "integrity": "sha512-L3Rc84wOFsMcljrydVKc1jkgYQSO+ru4Kgr7tCsK+YLVGWNeggLRh2XeGNIuXOEklaMxdWIBZ+Kw9424K+JQyw==",
+      "requires": {
+        "@esri/arcgis-html-sanitizer": "~2.7.0",
+        "@esri/calcite-colors": "~6.0.1",
+        "@esri/calcite-components": "1.0.0-beta.62",
+        "@popperjs/core": "~2.9.3",
+        "focus-trap": "~6.6.1",
+        "luxon": "~2.0.2",
+        "moment": "~2.29.1",
+        "sortablejs": "~1.14.0"
+      }
+    },
     "@babel/code-frame": {
       "version": "7.8.3",
       "resolved": "https://registry.npmjs.org/@babel/code-frame/-/code-frame-7.8.3.tgz",
@@ -3044,6 +3064,67 @@
         }
       }
     },
+    "@esri/arcgis-html-sanitizer": {
+      "version": "2.7.0",
+      "resolved": "https://registry.npmjs.org/@esri/arcgis-html-sanitizer/-/arcgis-html-sanitizer-2.7.0.tgz",
+      "integrity": "sha512-T3D2Gn5n7Wsu3YmsPtw9F2HmxI2McebkYHOAo9D7HF6bHBcca0GpBsDaRgYTmQ68ABOsAIIvbFfBY6aDyyHYbw==",
+      "requires": {
+        "lodash.isplainobject": "^4.0.6",
+        "xss": "^1.0.9"
+      }
+    },
+    "@esri/calcite-colors": {
+      "version": "6.0.1",
+      "resolved": "https://registry.npmjs.org/@esri/calcite-colors/-/calcite-colors-6.0.1.tgz",
+      "integrity": "sha512-iGUIIpeMCJSTDGw4ZsxLwwxkml0QzOUJTtysjRryGbhSt183NEtwWKS+yQO19utXQz5LbQWjoav6x6CsawElkw=="
+    },
+    "@esri/calcite-components": {
+      "version": "1.0.0-beta.62",
+      "resolved": "https://registry.npmjs.org/@esri/calcite-components/-/calcite-components-1.0.0-beta.62.tgz",
+      "integrity": "sha512-GCDIX6TKgjAc3MZ/nKZIheCEH2a1vsM+B1cldczEXgOqGeGP+sOgGuJRV6PzbpoYnvAvklsGpXjgVKNnkacIFw==",
+      "requires": {
+        "@a11y/focus-trap": "1.0.5",
+        "@popperjs/core": "2.9.3",
+        "@stencil/core": "2.6.0",
+        "@types/color": "3.0.2",
+        "color": "4.0.1",
+        "lodash-es": "4.17.21",
+        "sortablejs": "1.14.0"
+      },
+      "dependencies": {
+        "color": {
+          "version": "4.0.1",
+          "resolved": "https://registry.npmjs.org/color/-/color-4.0.1.tgz",
+          "integrity": "sha512-rpZjOKN5O7naJxkH2Rx1sZzzBgaiWECc6BYXjeCE6kF0kcASJYbUq02u7JqIHwCb/j3NhV+QhRL2683aICeGZA==",
+          "requires": {
+            "color-convert": "^2.0.1",
+            "color-string": "^1.6.0"
+          }
+        },
+        "color-convert": {
+          "version": "2.0.1",
+          "resolved": "https://registry.npmjs.org/color-convert/-/color-convert-2.0.1.tgz",
+          "integrity": "sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ==",
+          "requires": {
+            "color-name": "~1.1.4"
+          }
+        },
+        "color-name": {
+          "version": "1.1.4",
+          "resolved": "https://registry.npmjs.org/color-name/-/color-name-1.1.4.tgz",
+          "integrity": "sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA=="
+        },
+        "color-string": {
+          "version": "1.6.0",
+          "resolved": "https://registry.npmjs.org/color-string/-/color-string-1.6.0.tgz",
+          "integrity": "sha512-c/hGS+kRWJutUBEngKKmk4iH3sD59MBkoxVapS/0wgpCz2u7XsNloxknyvBhzwEs1IbV36D9PwqLPJ2DTu3vMA==",
+          "requires": {
+            "color-name": "^1.0.0",
+            "simple-swizzle": "^0.2.2"
+          }
+        }
+      }
+    },
     "@esri/react-arcgis": {
       "version": "5.1.0",
       "resolved": "https://registry.npmjs.org/@esri/react-arcgis/-/react-arcgis-5.1.0.tgz",
@@ -3788,6 +3869,11 @@
         }
       }
     },
+    "@popperjs/core": {
+      "version": "2.9.3",
+      "resolved": "https://registry.npmjs.org/@popperjs/core/-/core-2.9.3.tgz",
+      "integrity": "sha512-xDu17cEfh7Kid/d95kB6tZsLOmSWKCZKtprnhVepjsSaCij+lM3mItSJDuuHDMbCWTh8Ejmebwb+KONcCJ0eXQ=="
+    },
     "@reach/auto-id": {
       "version": "0.15.0",
       "resolved": "https://registry.npmjs.org/@reach/auto-id/-/auto-id-0.15.0.tgz",
@@ -3977,6 +4063,11 @@
       "requires": {
         "@sinonjs/commons": "^1.7.0"
       }
+    },
+    "@stencil/core": {
+      "version": "2.6.0",
+      "resolved": "https://registry.npmjs.org/@stencil/core/-/core-2.6.0.tgz",
+      "integrity": "sha512-QsxWayZyusnqSZrlCl81R71rA3KqFjVVQSH4E0rGN15F1GdQaFonKlHLyCOLKLig1zzC+DQkLLiUuocexuvdeQ=="
     },
     "@surma/rollup-plugin-off-main-thread": {
       "version": "1.4.2",
@@ -4464,6 +4555,27 @@
       "requires": {
         "@babel/types": "^7.3.0"
       }
+    },
+    "@types/color": {
+      "version": "3.0.2",
+      "resolved": "https://registry.npmjs.org/@types/color/-/color-3.0.2.tgz",
+      "integrity": "sha512-INiJl6sfNn8iyC5paxVzqiVUEj2boIlFki02uRTAkKwAj++7aAF+ZfEv/XrIeBa0XI/fTZuDHW8rEEcEVnON+Q==",
+      "requires": {
+        "@types/color-convert": "*"
+      }
+    },
+    "@types/color-convert": {
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/@types/color-convert/-/color-convert-2.0.0.tgz",
+      "integrity": "sha512-m7GG7IKKGuJUXvkZ1qqG3ChccdIM/qBBo913z+Xft0nKCX4hAU/IxKwZBU4cpRZ7GS5kV4vOblUkILtSShCPXQ==",
+      "requires": {
+        "@types/color-name": "*"
+      }
+    },
+    "@types/color-name": {
+      "version": "1.1.1",
+      "resolved": "https://registry.npmjs.org/@types/color-name/-/color-name-1.1.1.tgz",
+      "integrity": "sha512-rr+OQyAjxze7GgWrSaJwydHStIhHq2lvY3BOC2Mj7KnzI7XK0Uw1TOOdI9lDoajEbSWLiYgoo4f1R51erQfhPQ=="
     },
     "@types/eslint": {
       "version": "7.2.10",
@@ -7143,6 +7255,11 @@
       "resolved": "https://registry.npmjs.org/cssesc/-/cssesc-3.0.0.tgz",
       "integrity": "sha512-/Tb/JcjK111nNScGob5MNtsntNM1aCNUDipB/TkwZFhyDrrE47SOx/18wF2bbjgc3ZzCSKW1T5nt5EbFoAz/Vg=="
     },
+    "cssfilter": {
+      "version": "0.0.10",
+      "resolved": "https://registry.npmjs.org/cssfilter/-/cssfilter-0.0.10.tgz",
+      "integrity": "sha1-xtJnJjKi5cg+AT5oZKQs6N79IK4="
+    },
     "cssnano": {
       "version": "4.1.11",
       "resolved": "https://registry.npmjs.org/cssnano/-/cssnano-4.1.11.tgz",
@@ -8683,11 +8800,6 @@
         }
       }
     },
-    "esri-loader": {
-      "version": "3.1.0",
-      "resolved": "https://registry.npmjs.org/esri-loader/-/esri-loader-3.1.0.tgz",
-      "integrity": "sha512-TwC9hDZxDWScXPt0nAz90aFJ10+X4Jh+cJTB2tbtWEzqibEEO50xLDkcQ0N+EHv9aRWRRxrSQssH+meqgM9sBg=="
-    },
     "estraverse": {
       "version": "4.3.0",
       "resolved": "https://registry.npmjs.org/estraverse/-/estraverse-4.3.0.tgz",
@@ -9304,6 +9416,14 @@
       "integrity": "sha512-/LFZOIo82WDsyyv7h7oc0MJF9ACOvDRdx9rWPZ2pgMfNWu/z8hQDBtOchuB/0BVLmuFOZjV02YwUVzNsWx/EzA==",
       "requires": {
         "tslib": "^1.9.3"
+      }
+    },
+    "focus-trap": {
+      "version": "6.6.1",
+      "resolved": "https://registry.npmjs.org/focus-trap/-/focus-trap-6.6.1.tgz",
+      "integrity": "sha512-x9BWuAeF5UrfWuYKJ3jYrjcVYSYptS9CqtxH5IH7lPlZrMsaugKeAa0HtoZSBZe5DmeTMx2m0qY464ZMzqarzw==",
+      "requires": {
+        "tabbable": "^5.2.1"
       }
     },
     "follow-redirects": {
@@ -13003,6 +13123,11 @@
       "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.20.tgz",
       "integrity": "sha512-PlhdFcillOINfeV7Ni6oF1TAEayyZBoZ8bcshTHqOYJYlrqzRK5hagpagky5o4HfCzzd1TRkXPMFq6cKk9rGmA=="
     },
+    "lodash-es": {
+      "version": "4.17.21",
+      "resolved": "https://registry.npmjs.org/lodash-es/-/lodash-es-4.17.21.tgz",
+      "integrity": "sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw=="
+    },
     "lodash._reinterpolate": {
       "version": "3.0.0",
       "resolved": "https://registry.npmjs.org/lodash._reinterpolate/-/lodash._reinterpolate-3.0.0.tgz",
@@ -13022,6 +13147,11 @@
       "version": "4.4.0",
       "resolved": "https://registry.npmjs.org/lodash.flatten/-/lodash.flatten-4.4.0.tgz",
       "integrity": "sha1-8xwiIlqWMtK7+OSt2+8kCqdlph8="
+    },
+    "lodash.isplainobject": {
+      "version": "4.0.6",
+      "resolved": "https://registry.npmjs.org/lodash.isplainobject/-/lodash.isplainobject-4.0.6.tgz",
+      "integrity": "sha1-fFJqUtibRcRcxpC4gWO+BJf1UMs="
     },
     "lodash.memoize": {
       "version": "4.1.2",
@@ -13162,6 +13292,11 @@
       "requires": {
         "yallist": "^4.0.0"
       }
+    },
+    "luxon": {
+      "version": "2.0.2",
+      "resolved": "https://registry.npmjs.org/luxon/-/luxon-2.0.2.tgz",
+      "integrity": "sha512-ZRioYLCgRHrtTORaZX1mx+jtxKtKuI5ZDvHNAmqpUzGqSrR+tL4FVLn/CUGMA3h0+AKD1MAxGI5GnCqR5txNqg=="
     },
     "magic-string": {
       "version": "0.25.7",
@@ -13487,6 +13622,11 @@
       "requires": {
         "minimist": "^1.2.5"
       }
+    },
+    "moment": {
+      "version": "2.29.1",
+      "resolved": "https://registry.npmjs.org/moment/-/moment-2.29.1.tgz",
+      "integrity": "sha512-kHmoybcPV8Sqy59DwNDY3Jefr64lK/by/da0ViFcuA4DH0vQg5Q6Ze5VimxkfQNSC+Mls/Kx53s7TjP1RhFEDQ=="
     },
     "move-concurrently": {
       "version": "1.0.1",
@@ -17547,6 +17687,11 @@
         "is-plain-obj": "^1.0.0"
       }
     },
+    "sortablejs": {
+      "version": "1.14.0",
+      "resolved": "https://registry.npmjs.org/sortablejs/-/sortablejs-1.14.0.tgz",
+      "integrity": "sha512-pBXvQCs5/33fdN1/39pPL0NZF20LeRbLQ5jtnheIPN9JQAaufGjKdWduZn4U7wCtVuzKhmRkI0DFYHYRbB2H1w=="
+    },
     "source-list-map": {
       "version": "2.0.1",
       "resolved": "https://registry.npmjs.org/source-list-map/-/source-list-map-2.0.1.tgz",
@@ -18072,6 +18217,11 @@
       "version": "3.2.4",
       "resolved": "https://registry.npmjs.org/symbol-tree/-/symbol-tree-3.2.4.tgz",
       "integrity": "sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw=="
+    },
+    "tabbable": {
+      "version": "5.2.1",
+      "resolved": "https://registry.npmjs.org/tabbable/-/tabbable-5.2.1.tgz",
+      "integrity": "sha512-40pEZ2mhjaZzK0BnI+QGNjJO8UYx9pP5v7BGe17SORTO0OEuuaAwQTkAp8whcZvqon44wKFOikD+Al11K3JICQ=="
     },
     "table": {
       "version": "6.6.0",
@@ -20324,6 +20474,22 @@
       "version": "2.2.0",
       "resolved": "https://registry.npmjs.org/xmlchars/-/xmlchars-2.2.0.tgz",
       "integrity": "sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw=="
+    },
+    "xss": {
+      "version": "1.0.10",
+      "resolved": "https://registry.npmjs.org/xss/-/xss-1.0.10.tgz",
+      "integrity": "sha512-qmoqrRksmzqSKvgqzN0055UFWY7OKx1/9JWeRswwEVX9fCG5jcYRxa/A2DHcmZX6VJvjzHRQ2STeeVcQkrmLSw==",
+      "requires": {
+        "commander": "^2.20.3",
+        "cssfilter": "0.0.10"
+      },
+      "dependencies": {
+        "commander": {
+          "version": "2.20.3",
+          "resolved": "https://registry.npmjs.org/commander/-/commander-2.20.3.tgz",
+          "integrity": "sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ=="
+        }
+      }
     },
     "xtend": {
       "version": "4.0.2",

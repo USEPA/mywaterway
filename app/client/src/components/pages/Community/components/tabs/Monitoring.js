@@ -22,7 +22,6 @@ import {
 } from 'components/shared/KeyMetrics';
 import { tabsStyles } from 'components/shared/ContentTabs';
 // contexts
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
@@ -108,8 +107,6 @@ type StationGroups = {
 };
 
 function Monitoring() {
-  const { Graphic } = React.useContext(EsriModulesContext);
-
   const services = useServicesContext();
 
   // draw the waterbody on the map
@@ -188,6 +185,9 @@ function Monitoring() {
         stationProviderName: station.properties.ProviderName,
         stationTotalSamples: station.properties.activityCount,
         stationTotalMeasurements: station.properties.resultCount,
+        stationTotalsByCategory: JSON.stringify(
+          station.properties.characteristicGroupResultCount,
+        ),
         // create a unique id, so we can check if the monitoring station has
         // already been added to the display (since a monitoring station id
         // isn't universally unique)
@@ -278,7 +278,6 @@ function Monitoring() {
     }
 
     plotStations(
-      Graphic,
       tempDisplayedMonitoringStations,
       monitoringStationsLayer,
       services,
@@ -301,7 +300,6 @@ function Monitoring() {
     displayedMonitoringStations,
     allMonitoringStations,
     allToggled,
-    Graphic,
     monitoringLocationToggles,
     monitoringStationGroups,
     monitoringStationsLayer,
@@ -413,12 +411,11 @@ function Monitoring() {
       permittedDischargers.data['Results']['Facilities']
     ) {
       plotFacilities({
-        Graphic,
         facilities: permittedDischargers.data['Results']['Facilities'],
         layer: dischargersLayer,
       });
     }
-  }, [permittedDischargers.data, Graphic, dischargersLayer]);
+  }, [permittedDischargers.data, dischargersLayer]);
 
   const sortedMonitoringStations = displayedMonitoringStations
     ? displayedMonitoringStations.sort((a, b) => {
