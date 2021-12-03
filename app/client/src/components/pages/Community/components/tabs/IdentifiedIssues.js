@@ -154,17 +154,6 @@ function IdentifiedIssues() {
     [permittedDischargers, permittedDischargersData],
   );
 
-  const convertFacilityToGraphic = (facility: Object) => {
-    return new Graphic({
-      geometry: {
-        type: 'point', // autocasts as new Point()
-        longitude: facility['FacLong'],
-        latitude: facility['FacLat'],
-      },
-      attributes: facility,
-    });
-  };
-
   const checkDischargersToDisplay = React.useCallback(() => {
     if (!dischargersLayer || !showDischargersLayer) return;
 
@@ -839,20 +828,27 @@ function IdentifiedIssues() {
                         }
                       >
                         {violatingFacilities.map((item, index) => {
-                          const feature = convertFacilityToGraphic(item);
+                          const feature = new Graphic({
+                            geometry: {
+                              type: 'point',
+                              longitude: item.FacLong,
+                              latitude: item.FacLat,
+                            },
+                            attributes: item,
+                          });
 
                           return (
                             <AccordionItem
                               key={index}
                               title={
-                                <strong>{item['CWPName'] || 'Unknown'}</strong>
+                                <strong>{item.CWPName || 'Unknown'}</strong>
                               }
-                              subTitle={`NPDES ID: ${item['SourceID']}`}
+                              subTitle={`NPDES ID: ${item.SourceID}`}
                               feature={feature}
-                              idKey={'CWPName'}
+                              idKey="CWPName"
                             >
                               <WaterbodyInfo
-                                type={'Permitted Discharger'}
+                                type="Permitted Discharger"
                                 feature={feature}
                               />
                               <ViewOnMapButton feature={feature} />
