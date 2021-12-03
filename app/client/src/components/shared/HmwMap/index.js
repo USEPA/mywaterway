@@ -65,17 +65,14 @@ function HmwMap({ layers = null, startingExtent = null, children }: Props) {
   ]);
 
   return (
-    <>
-      <div id="hmw-map-container" css={mapContainerStyles} />
-
+    <div id="hmw-map-container" css={mapContainerStyles}>
       {map && mapView && (
         <>
           <MapWidgets map={map} view={mapView} layers={layers} />
-
           <MapMouseEvents map={map} view={mapView} />
         </>
       )}
-    </>
+    </div>
   );
 }
 
