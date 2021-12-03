@@ -15,7 +15,7 @@ import QueryTask from '@arcgis/core/tasks/QueryTask';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import Viewpoint from '@arcgis/core/Viewpoint';
 // components
-import HmwMap from 'components/shared/HmwMap';
+import Map from 'components/shared/Map';
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import mapPin from 'components/pages/Community/images/pin.png';
 import {
@@ -2071,7 +2071,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               : windowHeight - searchTextHeight - 3 * mapPadding,
         }}
       >
-        <HmwMap layers={layers} />
+        <Map layers={layers} />
         {mapView && mapLoading && <MapLoadingSpinner />}
       </Container>
     </>

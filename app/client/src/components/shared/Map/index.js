@@ -1,57 +1,57 @@
 // @flow
 
-import React from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import type { Node } from 'react';
 import { css } from 'styled-components/macro';
-import Map from '@arcgis/core/Map';
+import EsriMap from '@arcgis/core/Map';
 import MapView from '@arcgis/core/views/MapView';
 import MapWidgets from 'components/shared/MapWidgets';
 import MapMouseEvents from 'components/shared/MapMouseEvents';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 
-// --- styled components ---
 const mapContainerStyles = css`
   position: absolute;
   width: 100%;
   height: 100%;
 `;
 
-// --- components ---
 type Props = {
   layers: Object,
   startingExtent?: Object,
   children?: Node,
 };
 
-function HmwMap({ layers = null, startingExtent = null, children }: Props) {
+function Map({ layers = null, startingExtent = null, children }: Props) {
   const {
     initialExtent,
     highlightOptions,
     getBasemap,
     mapView,
     setMapView,
-  } = React.useContext(LocationSearchContext);
+  } = useContext(LocationSearchContext);
 
-  const [map, setMap] = React.useState(null);
+  const [map, setMap] = useState(null);
 
-  // Initialize the map
-  const [mapInitialized, setMapInitialized] = React.useState(false);
-  React.useEffect(() => {
+  const [mapInitialized, setMapInitialized] = useState(false);
+
+  useEffect(() => {
     if (mapInitialized) return;
 
-    const newMap = new Map({
+    const esriMap = new EsriMap({
       basemap: getBasemap(),
       layers: [],
     });
-    setMap(newMap);
+
+    setMap(esriMap);
 
     const view = new MapView({
       container: 'hmw-map-container',
-      map: newMap,
+      map: esriMap,
       extent: startingExtent ?? initialExtent,
       highlightOptions,
     });
+
     setMapView(view);
 
     setMapInitialized(true);
@@ -76,4 +76,4 @@ function HmwMap({ layers = null, startingExtent = null, children }: Props) {
   );
 }
 
-export default HmwMap;
+export default Map;

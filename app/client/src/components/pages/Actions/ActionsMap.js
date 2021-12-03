@@ -9,7 +9,7 @@ import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import Viewpoint from '@arcgis/core/Viewpoint';
 // components
-import HmwMap from 'components/shared/HmwMap';
+import Map from 'components/shared/Map';
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
 // styled components
@@ -344,7 +344,7 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
 
   return (
     <Container data-testid="hmw-actions-map">
-      <HmwMap layers={layers} />
+      <Map layers={layers} />
       {mapView && mapLoading && <MapLoadingSpinner />}
     </Container>
   );

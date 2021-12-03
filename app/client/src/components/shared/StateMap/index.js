@@ -8,7 +8,7 @@ import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import Viewpoint from '@arcgis/core/Viewpoint';
 // components
-import HmwMap from 'components/shared/HmwMap';
+import Map from 'components/shared/Map';
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import {
   createWaterbodySymbol,
@@ -366,7 +366,7 @@ function StateMap({
               }
         }
       >
-        <HmwMap
+        <Map
           startingExtent={{
             xmin: -13873570.722124241,
             ymin: 2886242.8013031036,
