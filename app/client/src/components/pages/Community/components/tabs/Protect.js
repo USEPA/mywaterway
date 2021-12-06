@@ -274,14 +274,14 @@ function Protect() {
     ...normalizedAttainsProjects,
   ];
 
-  const sortedProtectionProjects = allProtectionProjects.sort((objA, objB) => {
+  allProtectionProjects.sort((objA, objB) => {
     return objA['title'].localeCompare(objB['title']);
   });
 
   const [attainsDataDisplayed, setAttainsDataDisplayed] = useState(true);
   const [grtsDataDisplayed, setGrtsDataDisplayed] = useState(true);
 
-  const filteredProtectionProjects = sortedProtectionProjects.filter((item) => {
+  const filteredProtectionProjects = allProtectionProjects.filter((item) => {
     const displayedTypes = [];
     if (attainsDataDisplayed) displayedTypes.push('attains');
     if (grtsDataDisplayed) displayedTypes.push('grts');
@@ -1184,14 +1184,14 @@ function Protect() {
                       (attainsPlans.status === 'success' ||
                         grts.status === 'success') && (
                         <>
-                          {sortedProtectionProjects.length === 0 && (
+                          {allProtectionProjects.length === 0 && (
                             <div css={infoBoxModStyles}>
                               There are no EPA funded protection projects in the{' '}
                               {watershed} watershed.
                             </div>
                           )}
 
-                          {sortedProtectionProjects.length > 0 && (
+                          {allProtectionProjects.length > 0 && (
                             <>
                               <p>
                                 EPA funded protection projects in the{' '}
