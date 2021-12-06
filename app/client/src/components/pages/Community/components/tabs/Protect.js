@@ -4,7 +4,9 @@ import React from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import styled from 'styled-components';
 import { css } from 'styled-components/macro';
-// components
+import Query from '@arcgis/core/rest/support/Query';
+import QueryTask from '@arcgis/core/tasks/QueryTask';
+import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';// components
 import { ContentTabs } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
@@ -15,7 +17,6 @@ import { gradientIcon } from 'components/pages/LocationMap/MapFunctions';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 // contexts
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { MapHighlightContext } from 'contexts/MapHighlight';
@@ -177,9 +178,6 @@ function Protect() {
   useWaterbodyOnMap('hasprotectionplan');
 
   const { setSelectedGraphic } = React.useContext(MapHighlightContext);
-  const { Query, QueryTask, SimpleFillSymbol } = React.useContext(
-    EsriModulesContext,
-  );
   const {
     mapView,
     attainsPlans,

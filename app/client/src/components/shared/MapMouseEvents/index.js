@@ -1,7 +1,11 @@
 import React from 'react';
+import Point from '@arcgis/core/geometry/Point';
+import Query from '@arcgis/core/rest/support/Query';
+import QueryTask from '@arcgis/core/tasks/QueryTask';
+import SpatialReference from '@arcgis/core/geometry/SpatialReference';
+import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // contexts
 import { MapHighlightContext } from 'contexts/MapHighlight';
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // config
@@ -11,7 +15,6 @@ import {
 } from 'components/pages/LocationMap/MapFunctions';
 // utilities
 import { useDynamicPopup } from 'utils/hooks';
-import { getSelectedCommunityTab } from 'utils/utils';
 
 // --- components ---
 type Props = {
@@ -30,14 +33,6 @@ function MapMouseEvents({ map, view }: Props) {
   const { getHucBoundaries, resetData, protectedAreasLayer } = React.useContext(
     LocationSearchContext,
   );
-
-  const {
-    SpatialReference,
-    Point,
-    webMercatorUtils,
-    Query,
-    QueryTask,
-  } = React.useContext(EsriModulesContext);
 
   const getDynamicPopup = useDynamicPopup();
 
@@ -152,14 +147,9 @@ function MapMouseEvents({ map, view }: Props) {
         .catch((err) => console.error(err));
     },
     [
-      Point,
-      Query,
-      QueryTask,
       resetData,
-      SpatialReference.WQGS84,
       getHucBoundaries,
       setSelectedGraphic,
-      webMercatorUtils,
       services,
       protectedAreasLayer,
     ],
@@ -218,23 +208,6 @@ function MapMouseEvents({ map, view }: Props) {
     });
 
     view.popup.watch('selectedFeature', (graphic) => {
-      const communityTab = getSelectedCommunityTab();
-
-      // check if monitoring station is clicked, load the popup and call the waterqualitydata service
-      if (
-        graphic &&
-        graphic.layer &&
-        (graphic.layer.id === 'monitoringStationsLayer' ||
-          ((graphic.layer.parent?.id === 'waterbodyLayer' ||
-            graphic.layer.parent?.id === 'allWaterbodiesLayer') &&
-            (communityTab === 'restore' || communityTab === 'protect'))) &&
-        graphic.attributes &&
-        (!graphic.attributes.fullPopup ||
-          graphic.attributes.fullPopup === false)
-      ) {
-        loadMonitoringLocation(graphic, getDynamicPopup);
-      }
-
       // set the view highlight options to 0 fill opacity if upstream watershed is selected
       if (graphic?.layer?.id === 'upstreamWatershed') {
         view.highlightOptions.fillOpacity = 0;
@@ -285,17 +258,6 @@ function MapMouseEvents({ map, view }: Props) {
 
     return match[0] ? match[0].graphic : null;
   }
-
-  const loadMonitoringLocation = (graphic, getDynamicPopup) => {
-    const { getTitle, getTemplate } = getDynamicPopup();
-
-    // tell the getPopupContent function to use the full popup version that includes the service call
-    graphic.attributes.fullPopup = true;
-    graphic.popupTemplate = {
-      title: getTitle,
-      content: getTemplate,
-    };
-  };
 
   return null;
 }

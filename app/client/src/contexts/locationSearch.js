@@ -1,5 +1,4 @@
 import React from 'react';
-import EsriHelper from 'utils/EsriHelper';
 import { navigate } from '@reach/router';
 import { resetCanonicalLink, removeJsonLD } from 'utils/utils';
 
@@ -7,6 +6,175 @@ export const LocationSearchContext = React.createContext();
 
 type Props = {
   children: Node,
+};
+
+type Status = 'fetching' | 'success' | 'failure';
+
+type MonitoringStationsData = {
+  features: {
+    geometry: {
+      coordinates: [number, number],
+      type: 'Point',
+    },
+    properties: {
+      CountyName: string,
+      HUCEightDigitCode: string,
+      MonitoringLocationIdentifier: string,
+      MonitoringLocationName: string,
+      MonitoringLocationTypeName: string,
+      OrganizationFormalName: string,
+      OrganizationIdentifier: string,
+      ProviderName: string,
+      ResolvedMonitoringLocationTypeName: string,
+      StateName: string,
+      activityCount: string,
+      characteristicGroupResultCount: {
+        Physical: number,
+      },
+      resultCount: string,
+      siteUrl: string,
+    },
+    type: 'Feature',
+  }[],
+  type: 'FeatureCollection',
+};
+
+type UsgsStreamgageData = {
+  value: {
+    name: string,
+    properties: {
+      active: boolean,
+      agency: string,
+      agencyCode: string,
+      hydrologicUnit: string,
+      monitoringLocationName: string,
+      monitoringLocationNumber: string,
+      monitoringLocationType: string,
+      monitoringLocationUrl: string,
+    },
+    Locations: {
+      location: {
+        coordinates: [number, number],
+        type: 'Point',
+      },
+    }[],
+    Datastreams: {
+      description: string,
+      properties: {
+        ParameterCode: string,
+      },
+      unitOfMeasurement: {
+        name: string,
+        symbol: string,
+      },
+      Observations: {
+        phenomenonTime: string, // ISO format datetime
+        result: string, // number
+      }[],
+    }[],
+  }[],
+};
+
+type PermittedDischargersData = {
+  Results: {
+    BadSystemIDs: null,
+    BioCVRows: string,
+    BioV3Rows: string,
+    CVRows: string,
+    FEARows: string,
+    Facilities: {
+      CWPFormalEaCnt: string,
+      CWPInspectionCount: string,
+      CWPName: string,
+      CWPPermitStatusDesc: string,
+      CWPQtrsWithNC: string,
+      CWPSNCStatus: null,
+      CWPStatus: string,
+      CWPViolStatus: string,
+      E90Exceeds1yr: string,
+      FacLat: string,
+      FacLong: string,
+      RegistryID: string,
+      SourceID: string,
+    }[],
+    INSPRows: string,
+    IndianCountryRows: string,
+    InfFEARows: string,
+    Message: string,
+    PageNo: string,
+    QueryID: string,
+    QueryRows: string,
+    SVRows: string,
+    TotalPenalties: string,
+    V3Rows: string,
+    Version: string,
+  },
+};
+
+type Huc12SummaryData = {
+  count: number,
+  items: {
+    assessedCatchmentAreaPercent: number,
+    assessedCatchmentAreaSqMi: number,
+    assessedGoodCatchmentAreaPercent: number,
+    assessedGoodCatchmentAreaSqMi: number,
+    assessedUnknownCatchmentAreaPercent: number,
+    assessedUnknownCatchmentAreaSqMi: number,
+    assessmentUnitCount: number,
+    assessmentUnits: {
+      assessmentUnitId: string,
+    }[],
+    containImpairedWatersCatchmentAreaPercent: number,
+    containImpairedWatersCatchmentAreaSqMi: number,
+    containRestorationCatchmentAreaPercent: number,
+    containRestorationCatchmentAreaSqMi: number,
+    huc12: string,
+    summaryByIRCategory: {
+      assessmentUnitCount: number,
+      catchmentSizePercent: number,
+      catchmentSizeSqMi: number,
+      epaIRCategoryName: string,
+    }[],
+    summaryByParameterImpairments: {
+      assessmentUnitCount: number,
+      catchmentSizePercent: number,
+      catchmentSizeSqMi: number,
+      parameterGroupName: string,
+    }[],
+    summaryByUse: {
+      useAttainmentSummary: {
+        assessmentUnitCount: number,
+        catchmentSizePercent: number,
+        catchmentSizeSqMi: number,
+        useAttainment: string,
+      }[],
+      useGroupName: string,
+      useName: string,
+    }[],
+    summaryByUseGroup: {
+      useAttainmentSummary: {
+        assessmentUnitCount: number,
+        catchmentSizePercent: number,
+        catchmentSizeSqMi: number,
+        useAttainment: string,
+      }[],
+      useGroupName: string,
+    }[],
+    summaryRestorationPlans: {
+      assessmentUnitCount: number,
+      catchmentSizePercent: number,
+      catchmentSizeSqMi: number,
+      summaryTypeName: string,
+    }[],
+    summaryVisionRestorationPlans: {
+      assessmentUnitCount: number,
+      catchmentSizePercent: number,
+      catchmentSizeSqMi: number,
+      summaryTypeName: string,
+    }[],
+    totalCatchmentAreaSqMi: number,
+    totalHucAreaSqMi: number,
+  }[],
 };
 
 type State = {
@@ -22,12 +190,13 @@ type State = {
   watershed: string,
   address: string,
   assessmentUnitId: string,
-  monitoringLocations: Object,
-  permittedDischargers: Object,
+  monitoringStations: { status: Status, data: MonitoringStationsData },
+  usgsStreamgages: { status: Status, data: UsgsStreamgageData },
+  permittedDischargers: { status: Status, data: PermittedDischargersData },
   grts: Object,
   attainsPlans: Object,
   drinkingWater: Object,
-  cipSummary: Object,
+  cipSummary: { status: Status, data: Huc12SummaryData },
   nonprofits: Object,
   mapView: Object,
   layers: Object[],
@@ -35,6 +204,7 @@ type State = {
   waterbodyLayer: Object,
   issuesLayer: Object,
   monitoringStationsLayer: Object,
+  usgsStreamgagesLayer: Object,
   dischargersLayer: Object,
   nonprofitsLayer: Object,
   wildScenicRiversLayer: Object,
@@ -59,7 +229,6 @@ type State = {
   pointsData: Array<Object>,
   orphanFeatures: Array<Object>,
   waterbodyCountMismatch: boolean,
-  esriHelper: Object,
   pointsLayer: Object,
   linesLayer: Object,
   areasLayer: Object,
@@ -91,10 +260,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     },
     currentExtent: '',
     upstreamExtent: '',
-    highlightOptions: {
-      color: '#32C5FD',
-      fillOpacity: 1,
-    },
+    highlightOptions: { color: '#32C5FD', fillOpacity: 1 },
     searchText: '',
     lastSearchText: '',
     huc12: '',
@@ -108,39 +274,20 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     wildScenicRiversData: { status: 'fetching', data: [] },
     protectedAreasData: { status: 'fetching', data: [], fields: [] },
     assessmentUnitId: '',
-    monitoringLocations: {
-      status: 'fetching',
-      data: [],
-    },
-    permittedDischargers: {
-      status: 'fetching',
-      data: [],
-    },
-    grts: {
-      status: 'fetching',
-      data: [],
-    },
-    attainsPlans: {
-      status: 'fetching',
-      data: [],
-    },
-    drinkingWater: {
-      status: 'fetching',
-      data: [],
-    },
-    cipSummary: {
-      status: 'fetching',
-      data: [],
-    },
-    nonprofits: {
-      status: 'fetching',
-      data: [],
-    },
+    monitoringStations: { status: 'fetching', data: {} },
+    usgsStreamgages: { status: 'fetching', data: {} },
+    permittedDischargers: { status: 'fetching', data: {} },
+    grts: { status: 'fetching', data: [] },
+    attainsPlans: { status: 'fetching', data: [] },
+    drinkingWater: { status: 'fetching', data: [] },
+    cipSummary: { status: 'fetching', data: {} },
+    nonprofits: { status: 'fetching', data: [] },
     mapView: '',
     layers: [],
     waterbodyLayer: '',
     issuesLayer: '',
     monitoringStationsLayer: '',
+    usgsStreamgagesLayer: '',
     dischargersLayer: '',
     nonprofitsLayer: '',
     wildScenicRiversLayer: '',
@@ -166,14 +313,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     linesData: null,
     areasData: null,
     pointsData: null,
-    orphanFeatures: { features: [], status: 'fetching' },
+    orphanFeatures: { status: 'fetching', features: [] },
     waterbodyCountMismatch: null,
-    esriHelper: new EsriHelper(),
-    FIPS: {
-      stateCode: '',
-      countyCode: '',
-      status: 'fetching',
-    },
+    FIPS: { status: 'fetching', stateCode: '', countyCode: '' },
 
     pointsLayer: '',
     linesLayer: '',
@@ -201,13 +343,25 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     setLastSearchText: (lastSearchText) => {
       this.setState({ lastSearchText });
     },
-    setMonitoringLocations: (monitoringLocations) => {
-      this.setState({ monitoringLocations });
+    setMonitoringStations: (monitoringStations: {
+      status: Status,
+      data: MonitoringStationsData,
+    }) => {
+      this.setState({ monitoringStations });
     },
-    setPermittedDischargers: (permittedDischargers) => {
+    setUsgsStreamgages: (usgsStreamgages: {
+      status: Status,
+      data: UsgsStreamgageData,
+    }) => {
+      this.setState({ usgsStreamgages });
+    },
+    setPermittedDischargers: (permittedDischargers: {
+      status: Status,
+      data: PermittedDischargersData,
+    }) => {
       this.setState({ permittedDischargers });
     },
-    setNonprofits: (nonprofits) => {
+    setNonprofits: (nonprofits: Object) => {
       this.setState({ nonprofits });
     },
     setHucBoundaries: (hucBoundaries) => {
@@ -305,6 +459,9 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     },
     setMonitoringStationsLayer: (monitoringStationsLayer) => {
       this.setState({ monitoringStationsLayer });
+    },
+    setUsgsStreamgagesLayer: (usgsStreamgagesLayer) => {
+      this.setState({ usgsStreamgagesLayer });
     },
     setDischargersLayer: (dischargersLayer) => {
       this.setState({ dischargersLayer });
@@ -405,11 +562,8 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     setDrinkingWater: (drinkingWater) => {
       this.setState({ drinkingWater });
     },
-    setCipSummary: (cipSummary) => {
+    setCipSummary: (cipSummary: { status: Status, data: Huc12SummaryData }) => {
       this.setState({ cipSummary });
-    },
-    setCipSummaryStatus: (cipSummaryStatus) => {
-      this.setState({ cipSummaryStatus });
     },
     setShowAllMonitoring: (showAllMonitoring) => {
       this.setState({ showAllMonitoring });
@@ -470,6 +624,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         boundariesLayer,
         searchIconLayer,
         monitoringStationsLayer,
+        usgsStreamgagesLayer,
         upstreamLayer,
         dischargersLayer,
         nonprofitsLayer,
@@ -528,6 +683,13 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         searchIconLayer.graphics.removeAll();
       }
       if (monitoringStationsLayer) monitoringStationsLayer.graphics.removeAll();
+      if (usgsStreamgagesLayer) {
+        usgsStreamgagesLayer.queryFeatures().then((featureSet) => {
+          usgsStreamgagesLayer.applyEdits({
+            deleteFeatures: featureSet.features,
+          });
+        });
+      }
       if (dischargersLayer) dischargersLayer.graphics.removeAll();
       if (nonprofitsLayer) nonprofitsLayer.graphics.removeAll();
       if (wsioHealthIndexLayer) {
@@ -585,39 +747,19 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         pointsData: null,
         linesData: null,
         areasData: null,
-        orphanFeatures: { features: [], status: 'fetching' },
+        orphanFeatures: { status: 'fetching', features: [] },
         waterbodyCountMismatch: null,
         countyBoundaries: '',
         atHucBoundaries: false,
         hucBoundaries: '',
-        monitoringLocations: {
-          status: 'fetching',
-          data: [],
-        },
-        permittedDischargers: {
-          status: 'fetching',
-          data: [],
-        },
-        nonprofits: {
-          status: 'fetching',
-          data: [],
-        },
-        grts: {
-          status: 'fetching',
-          data: [],
-        },
-        attainsPlans: {
-          status: 'fetching',
-          data: [],
-        },
-        cipSummary: {
-          status: 'fetching',
-          data: [],
-        },
-        drinkingWater: {
-          status: 'fetching',
-          data: [],
-        },
+        monitoringStations: { status: 'fetching', data: {} },
+        usgsStreamgages: { status: 'fetching', data: {} },
+        permittedDischargers: { status: 'fetching', data: {} },
+        nonprofits: { status: 'fetching', data: [] },
+        grts: { status: 'fetching', data: [] },
+        attainsPlans: { status: 'fetching', data: [] },
+        cipSummary: { status: 'fetching', data: {} },
+        drinkingWater: { status: 'fetching', data: [] },
       });
 
       // remove map content
@@ -645,37 +787,17 @@ export class LocationSearchProvider extends React.Component<Props, State> {
           pointsData: [],
           linesData: [],
           areasData: [],
-          orphanFeatures: { features: [], status: 'fetching' },
+          orphanFeatures: { status: 'fetching', features: [] },
           waterbodyCountMismatch: null,
           countyBoundaries: '',
-          monitoringLocations: {
-            status: 'success',
-            data: [],
-          },
-          permittedDischargers: {
-            status: 'success',
-            data: [],
-          },
-          nonprofits: {
-            status: 'success',
-            data: [],
-          },
-          grts: {
-            status: 'success',
-            data: [],
-          },
-          attainsPlans: {
-            status: 'success',
-            data: [],
-          },
-          cipSummary: {
-            status: 'success',
-            data: [],
-          },
-          drinkingWater: {
-            status: 'success',
-            data: [],
-          },
+          monitoringStations: { status: 'success', data: {} },
+          usgsStreamgages: { status: 'success', data: {} },
+          permittedDischargers: { status: 'success', data: {} },
+          nonprofits: { status: 'success', data: [] },
+          grts: { status: 'success', data: [] },
+          attainsPlans: { status: 'success', data: [] },
+          cipSummary: { status: 'success', data: {} },
+          drinkingWater: { status: 'success', data: [] },
           visibleLayers: {},
         },
         () => navigate('/community'),
@@ -685,6 +807,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       this.state.resetMap(true);
     },
   };
+
   render() {
     return (
       <LocationSearchContext.Provider value={this.state}>

@@ -1,5 +1,7 @@
 // @flow
 
+import Point from '@arcgis/core/geometry/Point';
+
 // utility function to split up an array into chunks of a designated length
 function chunkArray(array: any, chunkLength: number): Array<Array<any>> {
   const chunks = [];
@@ -145,7 +147,7 @@ function createMarkup(message) {
 
 // Determines if the input text is a string representing coordinates.
 // If so the coordinates are converted to an Esri Point object.
-function getPointFromCoordinates(Point, text) {
+function getPointFromCoordinates(text) {
   const regex = /^(-?\d+(\.\d*)?)[\s,]+(-?\d+(\.\d*)?)$/;
   let point = null;
   if (regex.test(text)) {
@@ -164,13 +166,13 @@ function getPointFromCoordinates(Point, text) {
 // Determines if the input text is a string that contains coordinates.
 // The return value is an object containing the esri point for the coordinates (coordinatesPart)
 // and any remaining text (searchPart).
-function splitSuggestedSearch(Point, text) {
+function splitSuggestedSearch(text) {
   // split search
   const parts = text.split('|');
 
   // get the coordinates part (is last item)
   const tempCoords = parts[parts.length - 1];
-  const coordinatesPart = getPointFromCoordinates(Point, tempCoords);
+  const coordinatesPart = getPointFromCoordinates(tempCoords);
 
   // remove the coordinates part from initial array
   let coordinatesString = '';

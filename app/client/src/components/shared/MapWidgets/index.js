@@ -4,11 +4,22 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Rnd } from 'react-rnd';
 import styled from 'styled-components';
+import BasemapGallery from '@arcgis/core/widgets/BasemapGallery';
+import Expand from '@arcgis/core/widgets/Expand';
+import Graphic from '@arcgis/core/Graphic';
+import Home from '@arcgis/core/widgets/Home';
+import LayerList from '@arcgis/core/widgets/LayerList';
+import Legend from '@arcgis/core/widgets/Legend';
+import PortalBasemapsSource from '@arcgis/core/widgets/BasemapGallery/support/PortalBasemapsSource';
+import Query from '@arcgis/core/rest/support/Query';
+import QueryTask from '@arcgis/core/tasks/QueryTask';
+import ScaleBar from '@arcgis/core/widgets/ScaleBar';
+import Viewpoint from '@arcgis/core/Viewpoint';
+import * as watchUtils from '@arcgis/core/core/watchUtils';
 // components
 import AddDataWidget from 'components/shared/AddDataWidget';
 import MapLegend from 'components/shared/MapLegend';
 // contexts
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { AddDataWidgetContext } from 'contexts/AddDataWidget';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { FullscreenContext } from 'contexts/Fullscreen';
@@ -61,6 +72,7 @@ const orderedLayers = [
   'waterbodyLayer',
   'allWaterbodiesLayer',
   'monitoringStationsLayer',
+  'usgsStreamgagesLayer',
   'issuesLayer',
   'dischargersLayer',
   'nonprofitsLayer',
@@ -217,21 +229,6 @@ function MapWidgets({
   onHomeWidgetRendered = () => {},
 }: Props) {
   const {
-    Home,
-    PortalBasemapsSource,
-    BasemapGallery,
-    LayerList,
-    Expand,
-    watchUtils,
-    ScaleBar,
-    Query,
-    QueryTask,
-    Viewpoint,
-    Graphic,
-    Legend,
-  } = React.useContext(EsriModulesContext);
-
-  const {
     addDataWidgetVisible,
     setAddDataWidgetVisible,
     widgetLayers,
@@ -265,6 +262,7 @@ function MapWidgets({
     allWaterbodiesWidgetDisabled,
     setAllWaterbodiesWidgetDisabled,
     getAllWaterbodiesWidgetDisabled,
+    setMapView,
   } = React.useContext(LocationSearchContext);
 
   const services = useServicesContext();
@@ -290,8 +288,15 @@ function MapWidgets({
         const features = [];
         const idsAdded = [];
         newVal.forEach((item) => {
-          const id = item.attributes.assessmentunitidentifier;
-          const geometryType = item.geometry.type;
+          const id = item.attributes?.assessmentunitidentifier;
+          const geometryType = item.geometry?.type;
+
+          // exit early if the feature is not a waterbody
+          if (!id || !geometryType) {
+            features.push(item);
+            return;
+          }
+
           const idType = `${id}-${geometryType}`;
           if (idsAdded.includes(idType)) return;
 
@@ -306,7 +311,7 @@ function MapWidgets({
     );
 
     setPopupWatcher(watcher);
-  }, [popupWatcher, view, watchUtils]);
+  }, [popupWatcher, view]);
 
   // add the layers to the map
   React.useEffect(() => {
@@ -414,7 +419,7 @@ function MapWidgets({
     // so it can modify it as needed (e.g. update the viewpoint)
     onHomeWidgetRendered(newHomeWidget);
     setHomeWidget(newHomeWidget);
-  }, [Home, onHomeWidgetRendered, setHomeWidget, view, homeWidget]);
+  }, [onHomeWidgetRendered, setHomeWidget, view, homeWidget]);
 
   // Creates and adds the scale bar widget to the map
   const [scaleBar, setScaleBar] = React.useState(null);
@@ -427,7 +432,7 @@ function MapWidgets({
     });
     view.ui.add(newScaleBar, { position: 'bottom-left', index: 1 });
     setScaleBar(newScaleBar);
-  }, [ScaleBar, view, scaleBar]);
+  }, [view, scaleBar]);
 
   // manages which layers are visible in the legend
   const legendTemp = document.createElement('div');
@@ -458,12 +463,12 @@ function MapWidgets({
     });
     view.ui.add(newLegend, { position: 'bottom-left', index: 0 });
     setLegend(newLegend);
-  }, [Expand, view, legend, legendNode]);
+  }, [view, legend, legendNode]);
 
   // Create the layer list toolbar widget
   const [esriLegend, setEsriLegend] = React.useState(null);
   React.useEffect(() => {
-    if (!view || !Legend || esriLegend) return;
+    if (!view || esriLegend) return;
 
     // create the layer list using the same styles and structure as the
     // esri version.
@@ -474,7 +479,7 @@ function MapWidgets({
     });
 
     setEsriLegend(tempLegend);
-  }, [Legend, view, esriLegend, esriLegendNode]);
+  }, [view, esriLegend, esriLegendNode]);
 
   // Update the list of layers in the esri portion of the legend widget
   React.useEffect(() => {
@@ -521,7 +526,7 @@ function MapWidgets({
       if (difference < 0 || !rnd?.current) return;
 
       let mapRect = document
-        .getElementById('base-container')
+        .getElementById('hmw-map-container')
         .getBoundingClientRect();
       let awdRect = document
         .getElementById('add-data-widget')
@@ -714,16 +719,7 @@ function MapWidgets({
 
     view.ui.add(expandWidget, { position: 'top-right', index: 0 });
     setLayerListWidget(layerlist);
-  }, [
-    BasemapGallery,
-    Expand,
-    LayerList,
-    PortalBasemapsSource,
-    hmwLegendNode,
-    view,
-    layerListWidget,
-    additionalLegendInfo,
-  ]);
+  }, [hmwLegendNode, view, layerListWidget, additionalLegendInfo]);
 
   // Sets up the zoom event handler that is used for determining if layers
   // should be visible at the current zoom level.
@@ -744,7 +740,7 @@ function MapWidgets({
     });
 
     setMapEventHandlersSet(true);
-  }, [watchUtils, view, mapEventHandlersSet, basemap, setBasemap, map]);
+  }, [view, mapEventHandlersSet, basemap, setBasemap, map]);
 
   React.useEffect(() => {
     if (!layers || layers.length === 0) return;
@@ -753,6 +749,7 @@ function MapWidgets({
     const layerList = [
       'dischargersLayer',
       'monitoringStationsLayer',
+      'usgsStreamgagesLayer',
       'nonprofitsLayer',
       'providersLayer',
       'waterbodyLayer',
@@ -819,6 +816,7 @@ function MapWidgets({
         scrollToComponent={scrollToComponent}
         fullscreenActive={getFullscreenActive}
         setFullscreenActive={setFullscreenActive}
+        mapViewSetter={setMapView}
       />,
       node,
     );
@@ -828,6 +826,7 @@ function MapWidgets({
     setFullscreenActive,
     scrollToComponent,
     view,
+    setMapView,
     fullScreenWidgetCreated,
   ]);
 
@@ -1156,14 +1155,7 @@ function MapWidgets({
           setUpstreamLayer(upstreamLayer);
         });
     },
-    [
-      view,
-      Query,
-      QueryTask,
-      Viewpoint,
-      Graphic,
-      services.data.upstreamWatershed,
-    ],
+    [view, services.data.upstreamWatershed],
   );
 
   const [allWaterbodiesWidget, setAllWaterbodiesWidget] = React.useState(null);
@@ -1336,7 +1328,7 @@ function MapWidgets({
   if (!addDataWidget) return null;
 
   const mapWidth = document
-    .getElementById('base-container')
+    .getElementById('hmw-map-container')
     .getBoundingClientRect().width;
 
   const viewportWidth = window.innerWidth;
@@ -1435,12 +1427,14 @@ type ExpandeCollapseProps = {
   scrollToComponent: string,
   fullscreenActive: boolean,
   setFullscreenActive: Function,
+  mapViewSetter: Function,
 };
 
 function ExpandCollapse({
   scrollToComponent,
   fullscreenActive,
   setFullscreenActive,
+  mapViewSetter,
 }: ExpandeCollapseProps) {
   const [hover, setHover] = React.useState(false);
 
@@ -1464,6 +1458,8 @@ function ExpandCollapse({
 
         // Toggle fullscreen mode
         setFullscreenActive(!fullscreenActive());
+
+        mapViewSetter(null);
       }}
     >
       <span

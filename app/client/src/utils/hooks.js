@@ -1,10 +1,20 @@
 // @flow
 
 import React from 'react';
+import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
+import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+import GroupLayer from '@arcgis/core/layers/GroupLayer';
+import Handles from '@arcgis/core/core/Handles';
+import MapImageLayer from '@arcgis/core/layers/MapImageLayer';
+import Point from '@arcgis/core/geometry/Point';
+import Polygon from '@arcgis/core/geometry/Polygon';
+import Query from '@arcgis/core/rest/support/Query';
+import QueryTask from '@arcgis/core/tasks/QueryTask';
+import * as watchUtils from '@arcgis/core/core/watchUtils';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { MapHighlightContext } from 'contexts/MapHighlight';
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import {
@@ -43,7 +53,7 @@ function getMatchingFeatures(
   organizationid,
   assessmentunitidentifier,
 ) {
-  layerData.features.forEach((feature) => {
+  layerData?.features?.forEach((feature) => {
     if (
       feature.attributes.organizationid === organizationid &&
       feature.attributes.assessmentunitidentifier === assessmentunitidentifier
@@ -297,7 +307,6 @@ function useWaterbodyOnMap(
 // parameter is true, this will also attempt to highlight waterbodies on
 // other layers that have the same organization id and assessment unit id.
 function useWaterbodyHighlight(findOthers: boolean = true) {
-  const { Handles, Point, Query } = React.useContext(EsriModulesContext);
   const {
     highlightedGraphic,
     selectedGraphic, //
@@ -309,6 +318,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     areasLayer, //part of waterbody group layer
     issuesLayer,
     monitoringStationsLayer,
+    usgsStreamgagesLayer,
     dischargersLayer,
     nonprofitsLayer,
     upstreamLayer,
@@ -355,7 +365,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     mapView.goTo(params).then(() => {
       openPopup(mapView, selectedGraphic, dynamicPopupFields, services);
     });
-  }, [Point, mapView, selectedGraphic, services]);
+  }, [mapView, selectedGraphic, services]);
 
   // Initializes a handles object for more efficient handling of highlight handlers
   const [handles, setHandles] = React.useState(null);
@@ -363,7 +373,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     if (handles) return;
 
     setHandles(new Handles());
-  }, [handles, Handles]);
+  }, [handles]);
 
   // Clears the cache when users change searches. This is to fix issues
   // with layer mismatch in ArcGIS API 4.14+
@@ -372,6 +382,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     currentSelection: null,
     cachedHighlights: {},
   });
+
   React.useEffect(() => {
     setHighlightState({
       currentHighlight: null,
@@ -401,6 +412,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     if (!graphic || !graphic.attributes) {
       handles.remove(group);
       mapView.graphics.removeAll();
+
       if (protectedAreasHighlightLayer) {
         protectedAreasHighlightLayer.removeAll();
       }
@@ -415,6 +427,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
           cachedHighlights,
         });
       }
+
       return;
     }
 
@@ -427,7 +440,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     // set the currentSelection if it changed
     if (!selectionEqual) currentSelection = selectedGraphic;
 
-    const attributes = graphic.attributes;
+    const { attributes } = graphic;
 
     // figure out what layer we the graphic belongs to
     let layer = null;
@@ -450,8 +463,10 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       featureLayerType = 'waterbodyLayer';
     } else if (attributes.CWPName) {
       layer = dischargersLayer;
-    } else if (attributes.MonitoringLocationIdentifier) {
+    } else if (attributes.sampleType === 'Monitoring Station') {
       layer = monitoringStationsLayer;
+    } else if (attributes.sampleType === 'USGS Streamgage') {
+      layer = usgsStreamgagesLayer;
     } else if (attributes.type === 'nonprofit') {
       layer = nonprofitsLayer;
     } else if (attributes.xwalk_huc12) {
@@ -469,20 +484,12 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     // get organizationid and assessmentunitidentifier to figure out if the
     // selected waterbody changed.
-    const graphicOrgId =
-      graphic && graphic.attributes && graphic.attributes.organizationid;
-    const graphicAuId =
-      graphic &&
-      graphic.attributes &&
-      graphic.attributes.assessmentunitidentifier;
-    const selectedGraphicOrgId =
-      selectedGraphic &&
-      selectedGraphic.attributes &&
-      selectedGraphic.attributes.organizationid;
+    const graphicOrgId = graphic?.attributes?.organizationid;
+    const graphicAuId = graphic?.attributes?.assessmentunitidentifier;
+
+    const selectedGraphicOrgId = selectedGraphic?.attributes?.organizationid;
     const selectedGraphicAuId =
-      selectedGraphic &&
-      selectedGraphic.attributes &&
-      selectedGraphic.attributes.assessmentunitidentifier;
+      selectedGraphic?.attributes?.assessmentunitidentifier;
 
     // get the graphic from the layer so that we have geometry
     let graphicToHighlight = graphic;
@@ -517,7 +524,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         group,
         callback: highlightStateCallback,
       });
-    } else if (
+    }
+    //
+    else if (
       window.location.pathname.includes('community') &&
       featureLayerType === 'waterbodyLayer' &&
       layer.type === 'feature' &&
@@ -525,8 +534,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         (graphicOrgId === selectedGraphicOrgId &&
           graphicAuId === selectedGraphicAuId))
     ) {
-      // get features across all layers that have the same organizationid
-      // and assessmentunitid
+      // get features across all layers that have the same organizationid and assessmentunitid
       const features = [];
       getMatchingFeatures(features, areasData, graphicOrgId, graphicAuId);
       getMatchingFeatures(features, linesData, graphicOrgId, graphicAuId);
@@ -539,7 +547,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         handles,
         group,
       });
-    } else if (
+    }
+    //
+    else if (
       layer.type === 'feature' &&
       (findOthers ||
         (graphicOrgId === selectedGraphicOrgId &&
@@ -547,12 +557,22 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     ) {
       let key = '';
       let where = '';
+
       if (featureLayerType === 'waterbodyLayer') {
         key = `${graphicOrgId} - ${graphicAuId}`;
         where = `organizationid = '${graphicOrgId}' And assessmentunitidentifier = '${graphicAuId}'`;
-      } else if (featureLayerType === 'wildScenicRivers') {
+      }
+
+      if (featureLayerType === 'wildScenicRivers') {
         key = attributes.GlobalID;
         where = `GlobalID = '${key}'`;
+      }
+
+      if (layer === monitoringStationsLayer || layer === usgsStreamgagesLayer) {
+        const orgId = graphic?.attributes?.orgId || '';
+        const siteId = graphic?.attributes?.siteId || '';
+        key = `${orgId} - ${siteId}`;
+        where = `orgId = '${orgId}' And siteId = '${siteId}'`;
       }
 
       if (cachedHighlights[key]) {
@@ -565,12 +585,15 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         });
 
         currentHighlight = graphic;
+
         setHighlightState({
           currentHighlight,
           currentSelection,
           cachedHighlights,
         });
-      } else {
+      }
+
+      if (!cachedHighlights[key]) {
         if (!key || !where) return;
 
         const query = new Query({
@@ -605,9 +628,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
               highlightOptions,
               handles,
               group,
-              callback: (feature) => {
-                featuresToCache.push(feature);
-              },
+              callback: (feature) => featuresToCache.push(feature),
             });
 
             // build the new cachedHighlights object
@@ -624,7 +645,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
           });
         });
       }
-    } else {
+    }
+    //
+    else {
       highlightFeature({
         mapView,
         layer,
@@ -646,12 +669,12 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     pointsLayer,
     dischargersLayer,
     monitoringStationsLayer,
+    usgsStreamgagesLayer,
     nonprofitsLayer,
     upstreamLayer,
     issuesLayer,
     actionsLayer,
     findOthers,
-    Query,
     handles,
     wildScenicRiversLayer,
     protectedAreasLayer,
@@ -674,7 +697,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
 function useDynamicPopup() {
   const services = useServicesContext();
-  const { Query, QueryTask } = React.useContext(EsriModulesContext);
   const { getHucBoundaries, getMapView, resetData } = React.useContext(
     LocationSearchContext,
   );
@@ -799,13 +821,6 @@ function useDynamicPopup() {
 
 function useSharedLayers() {
   const services = useServicesContext();
-  const {
-    FeatureLayer,
-    GraphicsLayer,
-    GroupLayer,
-    MapImageLayer,
-    watchUtils,
-  } = React.useContext(EsriModulesContext);
   const {
     setAllWaterbodiesLayer,
     setProtectedAreasLayer,
@@ -1416,8 +1431,6 @@ function useKeyPress(targetKey: string, ref: Object) {
 // Custom hook that is used for performing GIS geometry functions, such as
 // cropping geometry.
 function useGeometryUtils() {
-  const { geometryEngine, Polygon } = React.useContext(EsriModulesContext);
-
   // This results in no waterbodies extending outside of the hucGeometry.
   // The arcgis difference function removes the parts of the waterbody that
   // are inside of the huc12, which is opposite of what we need. To work around
@@ -1461,7 +1474,7 @@ function useGeometryUtils() {
         subtractor,
       );
 
-      feature.geometry = newGeometry ?? feature.geometry;
+      feature.geometry = newGeometry;
       features.push(feature);
     });
 
