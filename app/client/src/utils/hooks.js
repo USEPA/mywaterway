@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
@@ -113,12 +113,12 @@ function useWaterbodyFeatures() {
     huc12,
     waterbodyCountMismatch,
     orphanFeatures,
-  } = React.useContext(LocationSearchContext);
+  } = useContext(LocationSearchContext);
 
-  const [features, setFeatures] = React.useState(null);
+  const [features, setFeatures] = useState(null);
 
-  const [lastHuc12, setLastHuc12] = React.useState(null);
-  React.useEffect(() => {
+  const [lastHuc12, setLastHuc12] = useState(null);
+  useEffect(() => {
     // Ensure the lastHuc12 is reset when huc12 is reset.
     // This is to prevent issues of searching for the same huc
     // causing the waterbodies data to never load in.
@@ -190,11 +190,11 @@ function useWaterbodyFeatures() {
 // custom hook that combines lines, area, and points features from context,
 // and returns the combined features
 function useWaterbodyFeaturesState() {
-  const { waterbodyData } = React.useContext(LocationSearchContext);
+  const { waterbodyData } = useContext(LocationSearchContext);
 
-  const [features, setFeatures] = React.useState(null);
+  const [features, setFeatures] = useState(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // if features has already been set, don't set again
     if (waterbodyData && features) return;
 
@@ -224,16 +224,16 @@ function useWaterbodyOnMap(
   const {
     setHighlightedGraphic,
     setSelectedGraphic, //
-  } = React.useContext(MapHighlightContext);
+  } = useContext(MapHighlightContext);
   const {
     allWaterbodiesLayer,
     pointsLayer,
     linesLayer,
     areasLayer,
     mapView,
-  } = React.useContext(LocationSearchContext);
+  } = useContext(LocationSearchContext);
 
-  const setRenderer = React.useCallback(
+  const setRenderer = useCallback(
     (layer, geometryType, alpha = null) => {
       const renderer = {
         type: 'unique-value',
@@ -273,22 +273,22 @@ function useWaterbodyOnMap(
     ],
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!pointsLayer || pointsLayer === 'error') return;
     setRenderer(pointsLayer, 'point');
   }, [pointsLayer, setRenderer]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!linesLayer || linesLayer === 'error') return;
     setRenderer(linesLayer, 'polyline');
   }, [linesLayer, setRenderer]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!areasLayer || areasLayer === 'error') return;
     setRenderer(areasLayer, 'polygon');
   }, [areasLayer, setRenderer]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!allWaterbodiesLayer || allWaterbodiesLayer === 'error') return;
 
     const alpha = {
@@ -310,7 +310,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
   const {
     highlightedGraphic,
     selectedGraphic, //
-  } = React.useContext(MapHighlightContext);
+  } = useContext(MapHighlightContext);
   const {
     mapView,
     pointsLayer, //part of waterbody group layer
@@ -331,11 +331,11 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     pointsData,
     linesData,
     areasData,
-  } = React.useContext(LocationSearchContext);
+  } = useContext(LocationSearchContext);
   const services = useServicesContext();
 
   // Handles zooming to a selected graphic when "View on Map" is clicked.
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       !mapView ||
       !selectedGraphic ||
@@ -368,8 +368,8 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
   }, [mapView, selectedGraphic, services]);
 
   // Initializes a handles object for more efficient handling of highlight handlers
-  const [handles, setHandles] = React.useState(null);
-  React.useEffect(() => {
+  const [handles, setHandles] = useState(null);
+  useEffect(() => {
     if (handles) return;
 
     setHandles(new Handles());
@@ -377,13 +377,13 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
   // Clears the cache when users change searches. This is to fix issues
   // with layer mismatch in ArcGIS API 4.14+
-  const [highlightState, setHighlightState] = React.useState({
+  const [highlightState, setHighlightState] = useState({
     currentHighlight: null,
     currentSelection: null,
     cachedHighlights: {},
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     setHighlightState({
       currentHighlight: null,
       currentSelection: null,
@@ -392,7 +392,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
   }, [huc12]);
 
   // do the highlighting
-  React.useEffect(() => {
+  useEffect(() => {
     if (!mapView || !handles) return;
 
     // use selected if there is not a highlighted graphic
@@ -685,19 +685,19 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
   ]);
 
   // Closes the popup and clears highlights whenever the tab changes
-  const { visibleLayers } = React.useContext(LocationSearchContext);
+  const { visibleLayers } = useContext(LocationSearchContext);
   const {
     setHighlightedGraphic,
     setSelectedGraphic, //
-  } = React.useContext(MapHighlightContext);
-  React.useEffect(() => {
+  } = useContext(MapHighlightContext);
+  useEffect(() => {
     closePopup({ mapView, setHighlightedGraphic, setSelectedGraphic });
   }, [mapView, setHighlightedGraphic, setSelectedGraphic, visibleLayers]);
 }
 
 function useDynamicPopup() {
   const services = useServicesContext();
-  const { getHucBoundaries, getMapView, resetData } = React.useContext(
+  const { getHucBoundaries, getMapView, resetData } = useContext(
     LocationSearchContext,
   );
 
@@ -827,7 +827,7 @@ function useSharedLayers() {
     setProtectedAreasHighlightLayer,
     setWsioHealthIndexLayer,
     setWildScenicRiversLayer,
-  } = React.useContext(LocationSearchContext);
+  } = useContext(LocationSearchContext);
 
   const getDynamicPopup = useDynamicPopup();
   const { getTitle, getTemplate } = getDynamicPopup();
@@ -1398,7 +1398,7 @@ function useSharedLayers() {
 // Custom hook that is used for handling key presses. This can be used for
 // navigating lists with a keyboard.
 function useKeyPress(targetKey: string, ref: Object) {
-  const [keyPressed, setKeyPressed] = React.useState(false);
+  const [keyPressed, setKeyPressed] = useState(false);
 
   function downHandler({ key }: { key: string }) {
     if (key === targetKey) {
@@ -1412,7 +1412,7 @@ function useKeyPress(targetKey: string, ref: Object) {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!ref?.current?.addEventListener) return;
     const tempRef = ref.current;
 

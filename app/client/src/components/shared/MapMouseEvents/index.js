@@ -1,4 +1,4 @@
-import React from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import Point from '@arcgis/core/geometry/Point';
 import Query from '@arcgis/core/rest/support/Query';
 import QueryTask from '@arcgis/core/tasks/QueryTask';
@@ -28,15 +28,15 @@ function MapMouseEvents({ map, view }: Props) {
   const {
     setHighlightedGraphic,
     setSelectedGraphic, //
-  } = React.useContext(MapHighlightContext);
+  } = useContext(MapHighlightContext);
 
-  const { getHucBoundaries, resetData, protectedAreasLayer } = React.useContext(
+  const { getHucBoundaries, resetData, protectedAreasLayer } = useContext(
     LocationSearchContext,
   );
 
   const getDynamicPopup = useDynamicPopup();
 
-  const handleMapClick = React.useCallback(
+  const handleMapClick = useCallback(
     (event, view) => {
       // get the point location of the user's click
       const point = new Point({
@@ -156,8 +156,8 @@ function MapMouseEvents({ map, view }: Props) {
   );
 
   // Sets up the map mouse events when the component initializes
-  const [initialized, setInitialized] = React.useState(false);
-  React.useEffect(() => {
+  const [initialized, setInitialized] = useState(false);
+  useEffect(() => {
     if (initialized || services.status === 'fetching') return;
 
     // These global scoped variables are used to prevent flickering that is caused

@@ -514,9 +514,9 @@ function WaterbodyInfo({
     );
   }
 
-  const [charGroupFilters, setCharGroupFilters] = React.useState('');
-  const [selected, setSelected] = React.useState({});
-  const [selectAll, setSelectAll] = React.useState(1);
+  const [charGroupFilters, setCharGroupFilters] = useState('');
+  const [selected, setSelected] = useState({});
+  const [selectAll, setSelectAll] = useState(1);
 
   function usgsStreamgageContent() {
     return (

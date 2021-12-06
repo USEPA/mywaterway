@@ -1,11 +1,12 @@
 // @flow
 
-import React from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 import Query from '@arcgis/core/rest/support/Query';
 import QueryTask from '@arcgis/core/tasks/QueryTask';
-import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol'; // components
+import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
+// components
 import { ContentTabs } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
@@ -183,7 +184,7 @@ function Protect() {
   // draw the waterbody on the map
   useWaterbodyOnMap('hasprotectionplan');
 
-  const { setSelectedGraphic } = React.useContext(MapHighlightContext);
+  const { setSelectedGraphic } = useContext(MapHighlightContext);
   const {
     mapView,
     attainsPlans,
@@ -203,16 +204,14 @@ function Protect() {
     protectedAreasHighlightLayer,
     waterbodyLayer,
     cipSummary,
-  } = React.useContext(LocationSearchContext);
+  } = useContext(LocationSearchContext);
 
-  const { infoToggleChecked } = React.useContext(CommunityTabsContext);
+  const { infoToggleChecked } = useContext(CommunityTabsContext);
 
-  const [normalizedGrtsProjects, setNormalizedGrtsProjects] = React.useState(
-    [],
-  );
+  const [normalizedGrtsProjects, setNormalizedGrtsProjects] = useState([]);
 
   // normalize grts projects data with attains plans data
-  React.useEffect(() => {
+  useEffect(() => {
     if (grts.status === 'fetching' || grts.data.items.length === 0) return;
 
     const grtsProjects = grts.data.items
@@ -239,13 +238,12 @@ function Protect() {
     setNormalizedGrtsProjects(grtsProjects);
   }, [grts]);
 
-  const [
-    normalizedAttainsProjects,
-    setNormalizedAttainsProjects,
-  ] = React.useState([]);
+  const [normalizedAttainsProjects, setNormalizedAttainsProjects] = useState(
+    [],
+  );
 
   // normalize attains plans data with grts projects data
-  React.useEffect(() => {
+  useEffect(() => {
     if (attainsPlans.status === 'fetching') return;
     if (attainsPlans.data.items.length === 0) return;
 
@@ -280,8 +278,8 @@ function Protect() {
     return objA['title'].localeCompare(objB['title']);
   });
 
-  const [attainsDataDisplayed, setAttainsDataDisplayed] = React.useState(true);
-  const [grtsDataDisplayed, setGrtsDataDisplayed] = React.useState(true);
+  const [attainsDataDisplayed, setAttainsDataDisplayed] = useState(true);
+  const [grtsDataDisplayed, setGrtsDataDisplayed] = useState(true);
 
   const filteredProtectionProjects = sortedProtectionProjects.filter((item) => {
     const displayedTypes = [];
@@ -293,25 +291,22 @@ function Protect() {
   const [
     healthScoresDisplayed,
     setHealthScoresDisplayed, //
-  ] = React.useState(true);
+  ] = useState(true);
 
   const [
     protectedAreasDisplayed,
     setProtectedAreasDisplayed, //
-  ] = React.useState(false);
+  ] = useState(false);
 
-  const [
-    wildScenicRiversDisplayed,
-    setWildScenicRiversDisplayed,
-  ] = React.useState(false);
-
-  const [waterbodyLayerDisplayed, setWaterbodyLayerDisplayed] = React.useState(
+  const [wildScenicRiversDisplayed, setWildScenicRiversDisplayed] = useState(
     false,
   );
 
+  const [waterbodyLayerDisplayed, setWaterbodyLayerDisplayed] = useState(false);
+
   // Updates the visible layers. This function also takes into account whether
   // or not the underlying webservices failed.
-  const updateVisibleLayers = React.useCallback(
+  const updateVisibleLayers = useCallback(
     ({ key = null, newValue = null, useCurrentValue = false }) => {
       const newVisibleLayers = {};
       if (wsioHealthIndexData.status !== 'failure') {
@@ -366,7 +361,7 @@ function Protect() {
   );
 
   // Updates visible layers based on webservice statuses.
-  React.useEffect(() => {
+  useEffect(() => {
     updateVisibleLayers({ useCurrentValue: true });
   }, [
     wsioHealthIndexData,
@@ -376,10 +371,10 @@ function Protect() {
     updateVisibleLayers,
   ]);
 
-  const [tabIndex, setTabIndex] = React.useState(null);
+  const [tabIndex, setTabIndex] = useState(null);
 
   // toggle the switches setting when the map layer's visibility changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (healthScoresDisplayed !== visibleLayers['wsioHealthIndexLayer']) {
       setHealthScoresDisplayed(visibleLayers['wsioHealthIndexLayer']);
     }
@@ -444,8 +439,8 @@ function Protect() {
     });
   }
 
-  const [selectedFeature, setSelectedFeature] = React.useState(null);
-  React.useEffect(() => {
+  const [selectedFeature, setSelectedFeature] = useState(null);
+  useEffect(() => {
     if (!mapView || !selectedFeature) return;
 
     // add it to the highlight layer
@@ -1567,8 +1562,8 @@ type FeatureItemProps = {
 };
 
 function FeatureItem({ feature, title, children }: FeatureItemProps) {
-  const { mapView } = React.useContext(LocationSearchContext);
-  const { setHighlightedGraphic } = React.useContext(MapHighlightContext);
+  const { mapView } = useContext(LocationSearchContext);
+  const { setHighlightedGraphic } = useContext(MapHighlightContext);
 
   const addHighlight = () => {
     if (!feature || !mapView) return;

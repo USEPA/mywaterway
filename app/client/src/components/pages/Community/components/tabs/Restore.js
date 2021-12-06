@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 // components
@@ -57,7 +57,7 @@ function Restore() {
     setVisibleLayers,
     watershed,
     waterbodyLayer,
-  } = React.useContext(LocationSearchContext);
+  } = useContext(LocationSearchContext);
 
   // set the waterbody features
   const waterbodies = useWaterbodyFeatures();
@@ -69,12 +69,12 @@ function Restore() {
   // draw the waterbody on the map
   useWaterbodyOnMap('restoreTab');
 
-  const [restoreLayerEnabled, setRestoreLayerEnabled] = React.useState(true);
+  const [restoreLayerEnabled, setRestoreLayerEnabled] = useState(true);
 
   // Syncs the toggles with the visible layers on the map. Mainly
   // used for when the user toggles layers in full screen mode and then
   // exist full screen.
-  React.useEffect(() => {
+  useEffect(() => {
     const { waterbodyLayer } = visibleLayers;
 
     if (typeof waterbodyLayer === 'boolean') {
@@ -84,7 +84,7 @@ function Restore() {
 
   // Updates the visible layers. This function also takes into account whether
   // or not the underlying webservices failed.
-  const updateVisibleLayers = React.useCallback(
+  const updateVisibleLayers = useCallback(
     ({ key = null, newValue = null, useCurrentValue = false }) => {
       const newVisibleLayers = {};
       if (cipSummary.status !== 'failure') {
