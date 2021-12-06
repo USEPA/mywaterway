@@ -2,15 +2,14 @@
 
 import React from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import styled from 'styled-components';
 import { css } from 'styled-components/macro';
 import Query from '@arcgis/core/rest/support/Query';
 import QueryTask from '@arcgis/core/tasks/QueryTask';
-import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';// components
+import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol'; // components
 import { ContentTabs } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
-import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 import Switch from 'components/shared/Switch';
 import { gradientIcon } from 'components/pages/LocationMap/MapFunctions';
@@ -59,7 +58,6 @@ function convertStateCode(stateCode: string, stateData: Array<Object>) {
   return stateNames.slice(0, -1).join(', ') + ' and ' + stateNames.slice(-1);
 }
 
-// --- styled components ---
 const containerStyles = css`
   padding: 1em;
 `;
@@ -132,12 +130,20 @@ const gradientHeaderFooterStyles = css`
   text-align: center;
 `;
 
-const ErrorBox = styled(StyledErrorBox)`
+const errorBoxModStyles = css`
+  ${errorBoxStyles}
   text-align: center;
+  margin-bottom: 0.875em;
 
   p {
     padding-bottom: 0 !important;
   }
+`;
+
+const infoBoxModStyles = css`
+  ${infoBoxStyles}
+
+  margin-bottom: 0.875em;
 `;
 
 const inlineBlockWrapperStyles = css`
@@ -522,19 +528,19 @@ function Protect() {
                 >
                   <div css={accordionContentStyles}>
                     {wsioHealthIndexData.status === 'failure' && (
-                      <ErrorBox>
+                      <div css={errorBoxModStyles}>
                         <p>{wsioHealthIndexError}</p>
-                      </ErrorBox>
+                      </div>
                     )}
                     {wsioHealthIndexData.status === 'fetching' && (
                       <LoadingSpinner />
                     )}
                     {wsioHealthIndexData.status === 'success' &&
                       wsioHealthIndexData.data.length === 0 && (
-                        <StyledInfoBox style={{ marginBottom: '0.875em' }}>
+                        <div css={infoBoxModStyles}>
                           No Watershed Health Score data available for the{' '}
                           {watershed} watershed.
-                        </StyledInfoBox>
+                        </div>
                       )}
                     {wsioHealthIndexData.status === 'success' &&
                       wsioHealthIndexData.data.length > 0 && (
@@ -787,9 +793,9 @@ function Protect() {
                     )}
 
                     {wildScenicRiversData.status === 'failure' && (
-                      <ErrorBox>
+                      <div css={errorBoxModStyles}>
                         <p>{wildScenicRiversError}</p>
-                      </ErrorBox>
+                      </div>
                     )}
 
                     {wildScenicRiversData.status === 'fetching' && (
@@ -798,10 +804,10 @@ function Protect() {
 
                     {wildScenicRiversData.status === 'success' &&
                       wildScenicRiversData.data.length === 0 && (
-                        <StyledInfoBox>
+                        <div css={infoBoxModStyles}>
                           No Wild and Scenic River data available in the{' '}
                           {watershed} watershed.
-                        </StyledInfoBox>
+                        </div>
                       )}
 
                     {wildScenicRiversData.status === 'success' &&
@@ -981,9 +987,9 @@ function Protect() {
                     )}
 
                     {protectedAreasData.status === 'failure' && (
-                      <ErrorBox>
+                      <div css={errorBoxModStyles}>
                         <p>{protectedAreasDatabaseError}</p>
-                      </ErrorBox>
+                      </div>
                     )}
 
                     {protectedAreasData.status === 'fetching' && (
@@ -992,10 +998,10 @@ function Protect() {
 
                     {protectedAreasData.status === 'success' &&
                       protectedAreasData.data.length === 0 && (
-                        <StyledInfoBox>
+                        <div css={infoBoxModStyles}>
                           No Protected Areas Database data available for the{' '}
                           {watershed} watershed.
-                        </StyledInfoBox>
+                        </div>
                       )}
 
                     {protectedAreasData.status === 'success' &&
@@ -1167,15 +1173,15 @@ function Protect() {
                       attainsPlans.status === 'fetching') && <LoadingSpinner />}
 
                     {attainsPlans.status === 'failure' && (
-                      <ErrorBox>
+                      <div css={errorBoxModStyles}>
                         <p>{restorationPlanError}</p>
-                      </ErrorBox>
+                      </div>
                     )}
 
                     {grts.status === 'failure' && (
-                      <ErrorBox>
+                      <div css={errorBoxModStyles}>
                         <p>{protectNonpointSourceError}</p>
-                      </ErrorBox>
+                      </div>
                     )}
 
                     {attainsPlans.status !== 'fetching' &&
@@ -1184,10 +1190,10 @@ function Protect() {
                         grts.status === 'success') && (
                         <>
                           {sortedProtectionProjects.length === 0 && (
-                            <StyledInfoBox>
+                            <div css={infoBoxModStyles}>
                               There are no EPA funded protection projects in the{' '}
                               {watershed} watershed.
-                            </StyledInfoBox>
+                            </div>
                           )}
 
                           {sortedProtectionProjects.length > 0 && (

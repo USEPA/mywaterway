@@ -18,22 +18,10 @@ const Box = styled.div`
   }
 `;
 
-const StyledTextBox = styled(Box)`
-  border-color: #ded9d9;
-  color: #444;
-  background-color: #f9f9f9;
-`;
-
 const StyledInfoBox = styled(Box)`
   border-color: #bee5eb;
   color: #0c5460;
   background-color: #d1ecf1;
-`;
-
-const StyledSuccessBox = styled(Box)`
-  border-color: #c3e6cb;
-  color: #155724;
-  background-color: #d4edda;
 `;
 
 const StyledErrorBox = styled(Box)`
@@ -100,9 +88,7 @@ const noteBoxStyles = css`
 `;
 
 export {
-  StyledTextBox, // TODO: remove (not used at all)
   StyledInfoBox, // TODO: remove
-  StyledSuccessBox, // TODO: remove (not used at all)
   StyledErrorBox, // TODO: remove
   StyledNoteBox, // TODO: remove
   textBoxStyles,
