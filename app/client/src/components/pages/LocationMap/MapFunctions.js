@@ -512,7 +512,7 @@ export function getPopupTitle(attributes: Object) {
   // monitoring station
   else if (
     attributes.monitoringType === 'Sample Location' ||
-    attributes.monitoringType === 'USGS Streamgage'
+    attributes.monitoringType === 'Daily Water Conditions'
   ) {
     title = attributes.locationName;
   }
@@ -610,8 +610,11 @@ export function getPopupContent({
   }
 
   // usgs streamgage
-  else if (attributes && attributes.monitoringType === 'USGS Streamgage') {
-    type = 'USGS Streamgage';
+  else if (
+    attributes &&
+    attributes.monitoringType === 'Daily Water Conditions'
+  ) {
+    type = 'Daily Water Conditions';
   }
 
   // monitoring station

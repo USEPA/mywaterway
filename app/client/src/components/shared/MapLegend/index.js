@@ -256,7 +256,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   // jsx
   const usgsStreamgagesLegend = (
     <li>
-      <div css={layerLabelStyles}>Daily Streamflow Conditions:</div>
+      <div css={layerLabelStyles}>Daily Water Conditions:</div>
 
       <div css={legendItemStyles}>
         <div css={imageContainerStyles}>{circleIcon({ color: '#ea2c38' })}</div>

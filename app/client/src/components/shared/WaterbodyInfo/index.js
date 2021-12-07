@@ -503,7 +503,7 @@ function WaterbodyInfo({
   const [selected, setSelected] = React.useState({});
   const [selectAll, setSelectAll] = React.useState(1);
 
-  function usgsStreamgageContent() {
+  function dailyWaterConditionsContent() {
     return (
       <>
         <table className="table">
@@ -1074,7 +1074,7 @@ function WaterbodyInfo({
 
   if (type === 'Waterbody') return waterbodyContent;
   if (type === 'Permitted Discharger') return dischargerContent;
-  if (type === 'USGS Streamgage') return usgsStreamgageContent();
+  if (type === 'Daily Water Conditions') return dailyWaterConditionsContent();
   if (type === 'Sample Location') return sampleLocationContent();
   if (type === 'Nonprofit') return nonprofitContent;
   if (type === 'Waterbody State Overview') return waterbodyStateContent;

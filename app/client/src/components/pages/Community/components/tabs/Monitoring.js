@@ -460,7 +460,7 @@ function Monitoring() {
         <Tabs>
           <TabList>
             <Tab>Sample Locations</Tab>
-            <Tab>Daily Stream Flow Conditions</Tab>
+            <Tab>Daily Water Conditions</Tab>
           </TabList>
 
           <TabPanels>

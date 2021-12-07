@@ -461,9 +461,9 @@ function MonitoringStationsTab({
 
   const services = useServicesContext();
 
-  // if either of the "Daily Stream Flow Conditions" or "Sample Locations"
-  // switches are turned on, or if both switches are turned off, keep the
-  // "Monitoring Stations" switch in sync
+  // if either of the "Daily Water Conditions" or "Sample Locations" switches
+  // are turned on, or if both switches are turned off, keep the "Monitoring
+  // Stations" switch in sync
   useEffect(() => {
     if (usgsStreamgagesDisplayed || monitoringLocationsDisplayed) {
       setMonitoringStationsDisplayed(true);
@@ -488,7 +488,7 @@ function MonitoringStationsTab({
     if (!usgsStreamgages.data.value) return;
 
     const gages = usgsStreamgages.data.value.map((gage) => ({
-      monitoringType: 'USGS Streamgage',
+      monitoringType: 'Daily Water Conditions',
       siteId: gage.properties.monitoringLocationNumber,
       orgId: gage.properties.agencyCode,
       orgName: gage.properties.agency,
@@ -584,7 +584,7 @@ function MonitoringStationsTab({
 
   const filteredMonitoringStations = sortedMonitoringStations.filter((item) => {
     const displayedTypes = [];
-    if (usgsStreamgagesDisplayed) displayedTypes.push('USGS Streamgage');
+    if (usgsStreamgagesDisplayed) displayedTypes.push('Daily Water Conditions');
     if (monitoringLocationsDisplayed) displayedTypes.push('Sample Location');
     return displayedTypes.includes(item.monitoringType);
   });
@@ -655,9 +655,9 @@ function MonitoringStationsTab({
                           });
                         }}
                         disabled={normalizedUsgsStreamgages.length === 0}
-                        ariaLabel="Daily Stream Flow Conditions"
+                        ariaLabel="Daily Water Conditions"
                       />
-                      <span>Daily Stream Flow Conditions</span>
+                      <span>Daily Water Conditions</span>
                     </div>
                   </td>
                   <td>{normalizedUsgsStreamgages.length}</td>
@@ -756,9 +756,9 @@ function MonitoringStationsTab({
                     idKey="siteId"
                   >
                     <div css={accordionContentStyles}>
-                      {item.monitoringType === 'USGS Streamgage' && (
+                      {item.monitoringType === 'Daily Water Conditions' && (
                         <WaterbodyInfo
-                          type="USGS Streamgage"
+                          type="Daily Water Conditions"
                           feature={feature}
                           services={services}
                         />
