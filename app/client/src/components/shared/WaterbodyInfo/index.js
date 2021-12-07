@@ -173,6 +173,8 @@ function WaterbodyInfo({
   }, [getClickedHuc, clickedHuc]);
 
   const { attributes } = feature;
+  const onWaterbodyReportPage =
+    window.location.pathname.indexOf('waterbody-report') !== -1;
 
   function labelValue(label, value, icon = null) {
     if (isPopup) {
@@ -290,6 +292,36 @@ function WaterbodyInfo({
     );
   };
 
+  const waterbodyReportLink = (
+    <>
+      {!onWaterbodyReportPage && attributes.organizationid ? (
+        <div>
+          <a
+            rel="noopener noreferrer"
+            target="_blank"
+            href={
+              `/waterbody-report/` +
+              `${attributes.organizationid}/` +
+              `${attributes.assessmentunitidentifier}/` +
+              `${attributes.reportingcycle || ''}`
+            }
+          >
+            <i
+              css={iconStyles}
+              className="fas fa-file-alt"
+              aria-hidden="true"
+            />
+            View Waterbody Report
+          </a>
+          &nbsp;&nbsp;
+          <small css={disclaimerStyles}>(opens new browser tab)</small>
+        </div>
+      ) : (
+        <p>Unable to find a waterbody report for this waterbody.</p>
+      )}
+    </>
+  );
+
   const baseWaterbodyContent = () => {
     let useLabel = 'Waterbody';
 
@@ -312,9 +344,6 @@ function WaterbodyInfo({
 
     // Be sure to use null for the field on non use specific panels (i.e. overview, state page, etc.)
     if (useLabel === 'Waterbody') field = null;
-
-    const onWaterbodyReportPage =
-      window.location.pathname.indexOf('waterbody-report') !== -1;
 
     const useBasedCondition = getWaterbodyCondition(attributes, field);
 
@@ -394,31 +423,7 @@ function WaterbodyInfo({
             )
           : ''}
 
-        {!onWaterbodyReportPage && attributes.organizationid ? (
-          <div>
-            <a
-              rel="noopener noreferrer"
-              target="_blank"
-              href={
-                `/waterbody-report/` +
-                `${attributes.organizationid}/` +
-                `${attributes.assessmentunitidentifier}/` +
-                `${attributes.reportingcycle || ''}`
-              }
-            >
-              <i
-                css={iconStyles}
-                className="fas fa-file-alt"
-                aria-hidden="true"
-              />
-              View Waterbody Report
-            </a>
-            &nbsp;&nbsp;
-            <small css={disclaimerStyles}>(opens new browser tab)</small>
-          </div>
-        ) : (
-          <p>Unable to find a waterbody report for this waterbody.</p>
-        )}
+        {waterbodyReportLink}
       </>
     );
   };
@@ -1217,6 +1222,8 @@ function WaterbodyInfo({
             </>
           )}
         </div>
+
+        {waterbodyReportLink}
 
         {renderChangeWatershed()}
       </>
