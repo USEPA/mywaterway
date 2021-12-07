@@ -128,13 +128,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setHucBoundaries,
     setAtHucBoundaries,
     mapView,
-    setMonitoringStations,
+    setMonitoringLocations,
     setUsgsStreamgages,
     // setNonprofits,
     setPermittedDischargers,
     setWaterbodyLayer,
     setIssuesLayer,
-    setMonitoringStationsLayer,
+    setMonitoringLocationsLayer,
     setUsgsStreamgagesLayer,
     setUpstreamLayer,
     setDischargersLayer,
@@ -648,13 +648,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setUpstreamLayer(upstreamLayer);
 
-    const monitoringStationsLayer = new GraphicsLayer({
-      id: 'monitoringStationsLayer',
+    const monitoringLocationsLayer = new GraphicsLayer({
+      id: 'monitoringLocationsLayer',
       title: 'Sample Locations',
       listMode: 'hide',
     });
 
-    setMonitoringStationsLayer(monitoringStationsLayer);
+    setMonitoringLocationsLayer(monitoringLocationsLayer);
 
     const usgsStreamgagesLayer = new FeatureLayer({
       id: 'usgsStreamgagesLayer',
@@ -758,7 +758,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       providersLayer,
       boundariesLayer,
       upstreamLayer,
-      monitoringStationsLayer,
+      monitoringLocationsLayer,
       usgsStreamgagesLayer,
       issuesLayer,
       dischargersLayer,
@@ -776,7 +776,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setDischargersLayer,
     setIssuesLayer,
     setLayers,
-    setMonitoringStationsLayer,
+    setMonitoringLocationsLayer,
     setUsgsStreamgagesLayer,
     setUpstreamLayer,
     setNonprofitsLayer,
@@ -1061,14 +1061,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       fetchCheck(url)
         .then((res) => {
-          setMonitoringStations({ status: 'success', data: res });
+          setMonitoringLocations({ status: 'success', data: res });
         })
         .catch((err) => {
           console.error(err);
-          setMonitoringStations({ status: 'failure', data: {} });
+          setMonitoringLocations({ status: 'failure', data: {} });
         });
     },
-    [setMonitoringStations, services],
+    [setMonitoringLocations, services],
   );
 
   const queryUsgsStreamgageService = React.useCallback(

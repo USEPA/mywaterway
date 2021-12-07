@@ -239,7 +239,7 @@ const tabs = [
     lower: <Overview />,
     layers: {
       waterbodyLayer: true,
-      monitoringStationsLayer: false,
+      monitoringLocationsLayer: false,
       usgsStreamgagesLayer: false,
       dischargersLayer: false,
     },
@@ -288,7 +288,7 @@ const tabs = [
     lower: <Monitoring />,
     layers: {
       dischargersLayer: false,
-      monitoringStationsLayer: true,
+      monitoringLocationsLayer: true,
       waterbodyLayer: false,
     },
   },

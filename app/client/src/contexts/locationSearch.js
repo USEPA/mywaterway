@@ -10,7 +10,7 @@ type Props = {
 
 type Status = 'fetching' | 'success' | 'failure';
 
-type MonitoringStationsData = {
+type MonitoringLocationsData = {
   features: {
     geometry: {
       coordinates: [number, number],
@@ -190,7 +190,7 @@ type State = {
   watershed: string,
   address: string,
   assessmentUnitId: string,
-  monitoringStations: { status: Status, data: MonitoringStationsData },
+  monitoringLocations: { status: Status, data: MonitoringLocationsData },
   usgsStreamgages: { status: Status, data: UsgsStreamgageData },
   permittedDischargers: { status: Status, data: PermittedDischargersData },
   grts: Object,
@@ -203,7 +203,7 @@ type State = {
   basemap: Object,
   waterbodyLayer: Object,
   issuesLayer: Object,
-  monitoringStationsLayer: Object,
+  monitoringLocationsLayer: Object,
   usgsStreamgagesLayer: Object,
   dischargersLayer: Object,
   nonprofitsLayer: Object,
@@ -274,7 +274,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     wildScenicRiversData: { status: 'fetching', data: [] },
     protectedAreasData: { status: 'fetching', data: [], fields: [] },
     assessmentUnitId: '',
-    monitoringStations: { status: 'fetching', data: {} },
+    monitoringLocations: { status: 'fetching', data: {} },
     usgsStreamgages: { status: 'fetching', data: {} },
     permittedDischargers: { status: 'fetching', data: {} },
     grts: { status: 'fetching', data: [] },
@@ -286,7 +286,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     layers: [],
     waterbodyLayer: '',
     issuesLayer: '',
-    monitoringStationsLayer: '',
+    monitoringLocationsLayer: '',
     usgsStreamgagesLayer: '',
     dischargersLayer: '',
     nonprofitsLayer: '',
@@ -343,11 +343,11 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     setLastSearchText: (lastSearchText) => {
       this.setState({ lastSearchText });
     },
-    setMonitoringStations: (monitoringStations: {
+    setMonitoringLocations: (monitoringLocations: {
       status: Status,
-      data: MonitoringStationsData,
+      data: MonitoringLocationsData,
     }) => {
-      this.setState({ monitoringStations });
+      this.setState({ monitoringLocations });
     },
     setUsgsStreamgages: (usgsStreamgages: {
       status: Status,
@@ -457,8 +457,8 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     setIssuesLayer: (issuesLayer) => {
       this.setState({ issuesLayer });
     },
-    setMonitoringStationsLayer: (monitoringStationsLayer) => {
-      this.setState({ monitoringStationsLayer });
+    setMonitoringLocationsLayer: (monitoringLocationsLayer) => {
+      this.setState({ monitoringLocationsLayer });
     },
     setUsgsStreamgagesLayer: (usgsStreamgagesLayer) => {
       this.setState({ usgsStreamgagesLayer });
@@ -623,7 +623,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         providersLayer,
         boundariesLayer,
         searchIconLayer,
-        monitoringStationsLayer,
+        monitoringLocationsLayer,
         usgsStreamgagesLayer,
         upstreamLayer,
         dischargersLayer,
@@ -682,7 +682,8 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         searchIconLayer.visible = false;
         searchIconLayer.graphics.removeAll();
       }
-      if (monitoringStationsLayer) monitoringStationsLayer.graphics.removeAll();
+      if (monitoringLocationsLayer)
+        monitoringLocationsLayer.graphics.removeAll();
       if (usgsStreamgagesLayer) {
         usgsStreamgagesLayer.queryFeatures().then((featureSet) => {
           usgsStreamgagesLayer.applyEdits({
@@ -752,7 +753,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         countyBoundaries: '',
         atHucBoundaries: false,
         hucBoundaries: '',
-        monitoringStations: { status: 'fetching', data: {} },
+        monitoringLocations: { status: 'fetching', data: {} },
         usgsStreamgages: { status: 'fetching', data: {} },
         permittedDischargers: { status: 'fetching', data: {} },
         nonprofits: { status: 'fetching', data: [] },
@@ -790,7 +791,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
           orphanFeatures: { status: 'fetching', features: [] },
           waterbodyCountMismatch: null,
           countyBoundaries: '',
-          monitoringStations: { status: 'success', data: {} },
+          monitoringLocations: { status: 'success', data: {} },
           usgsStreamgages: { status: 'success', data: {} },
           permittedDischargers: { status: 'success', data: {} },
           nonprofits: { status: 'success', data: [] },
