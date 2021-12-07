@@ -9,6 +9,8 @@ import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import { gradientIcon } from 'components/pages/LocationMap/MapFunctions';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+// utils
+import { getSelectedCommunityTab } from 'utils/utils';
 // errors
 import { legendUnavailableError } from 'config/errorMessages';
 // styles
@@ -719,8 +721,16 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     );
   };
 
-  if (layer.id === 'waterbodyLayer') return waterbodyLegend;
-  if (layer.id === 'allWaterbodiesLayer') return waterbodyLegend;
+  const selectedTab = getSelectedCommunityTab();
+  const isRestoreProtect =
+    selectedTab === 'restore' || selectedTab === 'protect';
+
+  if (layer.id === 'waterbodyLayer') {
+    return isRestoreProtect ? actionsWaterbodiesLegend : waterbodyLegend;
+  }
+  if (layer.id === 'allWaterbodiesLayer') {
+    return isRestoreProtect ? actionsWaterbodiesLegend : waterbodyLegend;
+  }
   if (layer.id === 'issuesLayer') return issuesLegend;
   if (layer.id === 'monitoringStationsLayer') return monitoringStationsLegend;
   if (layer.id === 'usgsStreamgagesLayer') return usgsStreamgagesLegend;
