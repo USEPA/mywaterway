@@ -511,8 +511,8 @@ export function getPopupTitle(attributes: Object) {
 
   // monitoring station
   else if (
-    attributes.sampleType === 'Sample Location' ||
-    attributes.sampleType === 'USGS Streamgage'
+    attributes.monitoringType === 'Sample Location' ||
+    attributes.monitoringType === 'USGS Streamgage'
   ) {
     title = attributes.locationName;
   }
@@ -610,12 +610,12 @@ export function getPopupContent({
   }
 
   // usgs streamgage
-  else if (attributes && attributes.sampleType === 'USGS Streamgage') {
+  else if (attributes && attributes.monitoringType === 'USGS Streamgage') {
     type = 'USGS Streamgage';
   }
 
   // monitoring station
-  else if (attributes && attributes.sampleType === 'Sample Location') {
+  else if (attributes && attributes.monitoringType === 'Sample Location') {
     type = 'Sample Location';
   }
 

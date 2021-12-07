@@ -82,7 +82,7 @@ type MonitoringLocationData = {
 };
 
 type Station = {
-  sampleType: 'Sample Location',
+  monitoringType: 'Sample Location',
   siteId: string,
   orgId: string,
   orgName: string,
@@ -169,7 +169,7 @@ function Monitoring() {
 
     monitoringLocations.data.features.forEach((station) => {
       const monitoringLocation = {
-        sampleType: 'Sample Location',
+        monitoringType: 'Sample Location',
         siteId: station.properties.MonitoringLocationIdentifier,
         orgId: station.properties.OrganizationIdentifier,
         orgName: station.properties.OrganizationFormalName,

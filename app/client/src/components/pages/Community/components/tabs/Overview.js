@@ -488,7 +488,7 @@ function MonitoringStationsTab({
     if (!usgsStreamgages.data.value) return;
 
     const gages = usgsStreamgages.data.value.map((gage) => ({
-      sampleType: 'USGS Streamgage',
+      monitoringType: 'USGS Streamgage',
       siteId: gage.properties.monitoringLocationNumber,
       orgId: gage.properties.agencyCode,
       orgName: gage.properties.agency,
@@ -528,7 +528,7 @@ function MonitoringStationsTab({
     if (!monitoringLocations.data.features) return;
 
     const stations = monitoringLocations.data.features.map((station) => ({
-      sampleType: 'Sample Location',
+      monitoringType: 'Sample Location',
       siteId: station.properties.MonitoringLocationIdentifier,
       orgId: station.properties.OrganizationIdentifier,
       orgName: station.properties.OrganizationFormalName,
@@ -586,7 +586,7 @@ function MonitoringStationsTab({
     const displayedTypes = [];
     if (usgsStreamgagesDisplayed) displayedTypes.push('USGS Streamgage');
     if (monitoringLocationsDisplayed) displayedTypes.push('Sample Location');
-    return displayedTypes.includes(item.sampleType);
+    return displayedTypes.includes(item.monitoringType);
   });
 
   if (
@@ -736,13 +736,14 @@ function MonitoringStationsTab({
                     title={<strong>{item.locationName || 'Unknown'}</strong>}
                     subTitle={
                       <>
-                        <em>Sample Type:</em>&nbsp;&nbsp;{item.sampleType}
+                        <em>Monitoring Type:</em>&nbsp;&nbsp;
+                        {item.monitoringType}
                         <br />
                         <em>Organization ID:</em>&nbsp;&nbsp;{item.orgId}
                         <br />
                         <em>Monitoring Site ID:</em>&nbsp;&nbsp;
                         {item.siteId.replace(`${item.orgId}-`, '')}
-                        {item.sampleType === 'Sample Location' && (
+                        {item.monitoringType === 'Sample Location' && (
                           <>
                             <br />
                             <em>Monitoring Measurements:</em>&nbsp;&nbsp;
@@ -755,7 +756,7 @@ function MonitoringStationsTab({
                     idKey="siteId"
                   >
                     <div css={accordionContentStyles}>
-                      {item.sampleType === 'USGS Streamgage' && (
+                      {item.monitoringType === 'USGS Streamgage' && (
                         <WaterbodyInfo
                           type="USGS Streamgage"
                           feature={feature}
@@ -763,7 +764,7 @@ function MonitoringStationsTab({
                         />
                       )}
 
-                      {item.sampleType === 'Sample Location' && (
+                      {item.monitoringType === 'Sample Location' && (
                         <WaterbodyInfo
                           type="Sample Location"
                           feature={feature}

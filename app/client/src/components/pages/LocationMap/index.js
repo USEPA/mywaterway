@@ -663,7 +663,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       fields: [
         { name: 'ObjectID', type: 'oid' },
         { name: 'gageHeight', type: 'string' },
-        { name: 'sampleType', type: 'string' },
+        { name: 'monitoringType', type: 'string' },
         { name: 'siteId', type: 'string' },
         { name: 'orgId', type: 'string' },
         { name: 'orgName', type: 'string' },
