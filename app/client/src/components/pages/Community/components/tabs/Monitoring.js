@@ -97,7 +97,7 @@ type Station = {
   uid: string,
 };
 
-type StationGroups = {
+type MonitoringLocationGroups = {
   [label: string]: {
     label: string,
     groupName: string,
@@ -136,9 +136,10 @@ function Monitoring() {
     setMonitoringLocationToggles,
   ] = React.useState({});
 
-  const [monitoringStationGroups, setMonitoringStationGroups] = React.useState(
-    {},
-  );
+  const [
+    monitoringLocationGroups,
+    setMonitoringLocationGroups,
+  ] = React.useState({});
 
   const [allMonitoringLocations, setAllMonitoringLocations] = React.useState(
     [],
@@ -162,12 +163,12 @@ function Monitoring() {
     // build up monitoring stations, toggles, and groups
     let allMonitoringLocations = [];
     let monitoringLocationToggles = {};
-    let monitoringStationGroups: StationGroups = {
+    let monitoringLocationGroups: MonitoringLocationGroups = {
       Other: { label: 'Other', stations: [], toggled: true },
     };
 
     monitoringLocations.data.features.forEach((station) => {
-      const monitoringStation = {
+      const monitoringLocation = {
         sampleType: 'Monitoring Station',
         siteId: station.properties.MonitoringLocationIdentifier,
         orgId: station.properties.OrganizationIdentifier,
@@ -199,9 +200,9 @@ function Monitoring() {
           `${station.properties.OrganizationIdentifier}`,
       };
 
-      allMonitoringLocations.push(monitoringStation);
+      allMonitoringLocations.push(monitoringLocation);
 
-      // build up the monitoringLocationToggles and monitoringStationGroups
+      // build up the monitoringLocationToggles and monitoringLocationGroups
       let groupAdded = false;
 
       characteristicGroupMappings.forEach((mapping) => {
@@ -211,15 +212,15 @@ function Monitoring() {
           // if characteristic group exists in switch config object
           if (mapping.groupNames.includes(group)) {
             // if switch group (w/ label key) already exists, add the stations to it
-            if (monitoringStationGroups[mapping.label]) {
-              monitoringStationGroups[mapping.label].stations.push(
-                monitoringStation,
+            if (monitoringLocationGroups[mapping.label]) {
+              monitoringLocationGroups[mapping.label].stations.push(
+                monitoringLocation,
               );
               // else, create the group (w/ label key) and add the station
             } else {
-              monitoringStationGroups[mapping.label] = {
+              monitoringLocationGroups[mapping.label] = {
                 label: mapping.label,
-                stations: [monitoringStation],
+                stations: [monitoringLocation],
                 toggled: true,
               };
             }
@@ -231,7 +232,7 @@ function Monitoring() {
       // if characteristic group didn't exist in switch config object,
       // add the station to the 'Other' group
       if (!groupAdded)
-        monitoringStationGroups['Other'].stations.push(monitoringStation);
+        monitoringLocationGroups['Other'].stations.push(monitoringLocation);
     });
 
     if (monitoringGroups) {
@@ -242,7 +243,7 @@ function Monitoring() {
 
     setAllMonitoringLocations(allMonitoringLocations);
     setDisplayedMonitoringLocations(allMonitoringLocations);
-    setMonitoringStationGroups(monitoringStationGroups);
+    setMonitoringLocationGroups(monitoringLocationGroups);
     setAllToggled(showAllMonitoring);
 
     if (!monitoringGroups) setMonitoringGroups(monitoringLocationToggles);
@@ -264,8 +265,8 @@ function Monitoring() {
       tempDisplayedMonitoringLocations = allMonitoringLocations;
     } else {
       // var use intentional for IE support
-      for (var key in monitoringStationGroups) {
-        const group = monitoringStationGroups[key];
+      for (var key in monitoringLocationGroups) {
+        const group = monitoringLocationGroups[key];
         // if the location is toggled
         if (monitoringLocationToggles[group.label]) {
           group.stations.forEach((station) => {
@@ -303,7 +304,7 @@ function Monitoring() {
     allMonitoringLocations,
     allToggled,
     monitoringLocationToggles,
-    monitoringStationGroups,
+    monitoringLocationGroups,
     monitoringLocationsLayer,
     services,
   ]);
@@ -505,7 +506,7 @@ function Monitoring() {
                           </tr>
                         </thead>
                         <tbody>
-                          {Object.values(monitoringStationGroups)
+                          {Object.values(monitoringLocationGroups)
                             .map((group) => {
                               // remove duplicates caused by a single monitoring station having multiple overlapping groupNames
                               // like 'Inorganics, Major, Metals' and 'Inorganics, Minor, Metals'
