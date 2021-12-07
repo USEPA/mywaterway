@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import WindowSize from '@reach/window-size';
 import StickyBox from 'react-sticky-box';
 // components
@@ -15,17 +15,18 @@ import ActionsMap from './ActionsMap';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import MapVisibilityButton from 'components/shared/MapVisibilityButton';
+import VirtualizedList from 'components/shared/VirtualizedList';
 // styled components
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import {
-  StyledContainer,
-  StyledColumns,
-  StyledColumn,
+  splitLayoutContainerStyles,
+  splitLayoutColumnsStyles,
+  splitLayoutColumnStyles,
 } from 'components/shared/SplitLayout';
 import {
-  StyledBox,
-  StyledBoxHeading,
-  StyledBoxSection,
+  boxStyles,
+  boxHeadingStyles,
+  boxSectionStyles,
 } from 'components/shared/Box';
 // contexts
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
@@ -170,19 +171,14 @@ function getWaterbodyData(
   return assessmentIndex === -1 ? null : graphics.items[assessmentIndex];
 }
 
-// --- styled components ---
-const Container = styled(StyledContainer)`
-  ul {
-    padding-bottom: 0;
-  }
-`;
-
-const ErrorBox = styled(StyledErrorBox)`
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles}
   margin: 1rem;
   text-align: center;
 `;
 
-const InlineBoxSection = styled(StyledBoxSection)`
+const inlineBoxStyles = css`
+  ${boxSectionStyles};
   padding-top: 0;
 
   * {
@@ -190,25 +186,21 @@ const InlineBoxSection = styled(StyledBoxSection)`
   }
 `;
 
-const Intro = styled.p`
+const introTextStyles = css`
   margin-top: 0 !important;
   padding-bottom: 0.4375em !important;
 `;
 
-const Icon = styled.i`
+const iconStyles = css`
   margin-right: 5px;
 `;
 
-const Accordions = styled(AccordionList)`
-  border-bottom: none;
+const listStyles = css`
+  padding-bottom: 0;
 `;
 
-const AccordionContent = styled.div`
+const accordionContentStyles = css`
   padding: 0.4375em 0.875em 0.875em;
-
-  ul {
-    padding-bottom: 0;
-  }
 
   li {
     margin-bottom: 0.875em;
@@ -228,19 +220,14 @@ const AccordionContent = styled.div`
   }
 `;
 
-const NewTabDisclaimerItalic = styled.em`
-  padding: 0.4375rem 0.875rem;
-`;
-
-const NewTabDisclaimerDiv = styled.div`
+const newTabDisclaimerDivStyles = css`
   display: inline-block;
 `;
 
-const TextBottomMargin = styled.p`
+const textBottomMarginStyles = css`
   margin-bottom: 0.5em !important;
 `;
 
-// --- components ---
 type Props = {
   ...RouteProps,
   fullscreen: Object, // passed from FullscreenContext.Consumer
@@ -304,10 +291,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
               } = processAssessmentUnitData(data, action);
 
               // Get a sorted list of pollutants and waters
-              const {
-                pollutants,
-                waters, //
-              } = getPollutantsWaters(action, orgId);
+              const { pollutants, waters } = getPollutantsWaters(action, orgId);
 
               // set the state variables
               setLoading(false);
@@ -356,15 +340,15 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
         return (
           <>
             {organizationName && orgId && (
-              <TextBottomMargin>
+              <p css={textBottomMarginStyles}>
                 <strong>Organization Name (ID):&nbsp;</strong>
                 {organizationName} ({orgId})
-              </TextBottomMargin>
+              </p>
             )}
             {hasTmdlData && (
               <>
                 <strong>Associated Impairments: </strong>
-                <ul>
+                <ul css={listStyles}>
                   {associatedPollutants
                     .sort((a, b) =>
                       a.pollutantName.localeCompare(b.pollutantName),
@@ -421,7 +405,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
             {!hasTmdlData && (
               <>
                 <strong>Parameters Addressed: </strong>
-                <ul>
+                <ul css={listStyles}>
                   {parameters
                     .sort((a, b) =>
                       a.parameterName.localeCompare(b.parameterName),
@@ -444,13 +428,17 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <Icon className="fas fa-file-alt" aria-hidden="true" />
+                  <i
+                    css={iconStyles}
+                    className="fas fa-file-alt"
+                    aria-hidden="true"
+                  />
                   View Waterbody Report
                 </a>
                 &nbsp;&nbsp;
-                <NewTabDisclaimerDiv>
+                <div css={newTabDisclaimerDivStyles}>
                   (opens new browser tab)
-                </NewTabDisclaimerDiv>
+                </div>
               </div>
             )}
           </>
@@ -471,39 +459,39 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
   }, []);
 
   const infoBox = (
-    <StyledBox ref={measuredRef}>
-      <StyledBoxHeading>
+    <div css={boxStyles} ref={measuredRef}>
+      <h2 css={boxHeadingStyles}>
         Plan Information <br />
         <small>
           <strong>ID:</strong> {actionId}
         </small>
-      </StyledBoxHeading>
+      </h2>
 
-      <StyledBoxSection>
-        <Intro>
+      <div css={boxSectionStyles}>
+        <p css={introTextStyles}>
           This page reflects information provided to EPA by the state on plans
           in place to restore water quality. These plans could include a{' '}
           <GlossaryTerm term="TMDL">TMDL</GlossaryTerm> and/or a watershed
           restoration plan.
-        </Intro>
-      </StyledBoxSection>
+        </p>
+      </div>
 
-      <InlineBoxSection>
+      <div css={inlineBoxStyles}>
         <h3>Name:&nbsp;</h3>
         <p>{actionName}</p>
-      </InlineBoxSection>
+      </div>
 
-      <InlineBoxSection>
+      <div css={inlineBoxStyles}>
         <h3>Completed:&nbsp;</h3>
         <p>{completionDate}</p>
-      </InlineBoxSection>
+      </div>
 
-      <InlineBoxSection>
+      <div css={inlineBoxStyles}>
         <h3>Type:&nbsp;</h3>
         <p>{actionTypeCode}</p>
-      </InlineBoxSection>
+      </div>
 
-      <InlineBoxSection>
+      <div css={inlineBoxStyles}>
         <h3>Status:&nbsp;</h3>
         <p>
           {/* if Action type is not a TMDL, change 'EPA Final Action' to 'Final */}
@@ -511,17 +499,18 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
             ? 'Final'
             : actionStatusCode}
         </p>
-      </InlineBoxSection>
+      </div>
 
-      <InlineBoxSection>
+      <div css={inlineBoxStyles}>
         <h3>Organization Name (ID):&nbsp;</h3>
         <p>
           {organizationName} ({orgId})
         </p>
-      </InlineBoxSection>
-    </StyledBox>
+      </div>
+    </div>
   );
 
+  const [expandedRows, setExpandedRows] = React.useState([]);
   if (loading) {
     return (
       <Page>
@@ -534,13 +523,13 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
   if (noActions) {
     return (
       <Page>
-        <NavBar title={<>Plan Summary</>} />
+        <NavBar title="Plan Summary" />
 
-        <Container>
-          <ErrorBox>
+        <div css={splitLayoutContainerStyles}>
+          <div css={modifiedErrorBoxStyles}>
             <p>{noActionsAvailableCombo(orgId, actionId)}</p>
-          </ErrorBox>
-        </Container>
+          </div>
+        </div>
       </Page>
     );
   }
@@ -548,13 +537,13 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
   if (error) {
     return (
       <Page>
-        <NavBar title={<>Plan Summary</>} />
+        <NavBar title="Plan Summary" />
 
-        <Container>
-          <ErrorBox>
+        <div css={splitLayoutContainerStyles}>
+          <div css={modifiedErrorBoxStyles}>
             <p>{actionsError}</p>
-          </ErrorBox>
-        </Container>
+          </div>
+        </div>
       </Page>
     );
   }
@@ -581,12 +570,12 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
     <Page>
       <NavBar title="Plan Summary" />
 
-      <Container data-content="container">
+      <div css={splitLayoutContainerStyles} data-content="container">
         <WindowSize>
           {({ width, height }) => {
             return (
-              <StyledColumns>
-                <StyledColumn>
+              <div css={splitLayoutColumnsStyles}>
+                <div css={splitLayoutColumnStyles}>
                   {width < 960 ? (
                     <>
                       {infoBox}
@@ -625,18 +614,20 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                       </div>
                     </StickyBox>
                   )}
-                </StyledColumn>
+                </div>
 
-                <StyledColumn>
-                  <StyledBox>
-                    <StyledBoxHeading>Associated Documents</StyledBoxHeading>
+                <div css={splitLayoutColumnStyles}>
+                  <div css={boxStyles}>
+                    <h2 css={boxHeadingStyles}>Associated Documents</h2>
                     {documents.length > 0 && (
-                      <NewTabDisclaimerItalic>
-                        Links below open in a new browser tab.
-                      </NewTabDisclaimerItalic>
+                      <div css={[boxSectionStyles, { paddingBottom: 0 }]}>
+                        <p css={introTextStyles}>
+                          <em>Links below open in a new browser tab.</em>
+                        </p>
+                      </div>
                     )}
-                    <StyledBoxSection>
-                      <ul>
+                    <div css={boxSectionStyles}>
+                      <ul css={listStyles}>
                         {documents.length === 0 && (
                           <li>No documents are available</li>
                         )}
@@ -654,15 +645,15 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                             </li>
                           ))}
                       </ul>
-                    </StyledBoxSection>
-                  </StyledBox>
+                    </div>
+                  </div>
 
                   {actionTypeCode === 'TMDL' && (
-                    <StyledBox>
-                      <StyledBoxHeading>Impairments Addressed</StyledBoxHeading>
+                    <div css={boxStyles}>
+                      <h2 css={boxHeadingStyles}>Impairments Addressed</h2>
 
-                      <StyledBoxSection>
-                        <ul>
+                      <div css={boxSectionStyles}>
+                        <ul css={listStyles}>
                           {pollutants.length === 0 && (
                             <li>No impairments are addressed</li>
                           )}
@@ -672,79 +663,106 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                               <li key={pollutant}>{pollutant}</li>
                             ))}
                         </ul>
-                      </StyledBoxSection>
-                    </StyledBox>
+                      </div>
+                    </div>
                   )}
 
-                  <StyledBox>
-                    <StyledBoxHeading>Waters Covered</StyledBoxHeading>
+                  <div css={boxStyles}>
+                    <h2 css={boxHeadingStyles}>Waters Covered</h2>
 
-                    <StyledBoxSection>
+                    <div css={boxSectionStyles}>
                       {waters.length > 0 && (
-                        <Accordions>
-                          {waters.map((water) => {
-                            const {
-                              assessmentUnitIdentifier,
-                              assessmentUnitName,
-                            } = water;
+                        <AccordionList>
+                          <VirtualizedList
+                            items={waters}
+                            expandedRowsSetter={setExpandedRows}
+                            renderer={({ index, resizeCell, allExpanded }) => {
+                              const water = waters[index];
 
-                            const waterbodyData = getWaterbodyData(
-                              mapLayer,
-                              orgId,
-                              assessmentUnitIdentifier,
-                            );
-                            const waterbodyReportingCycle = waterbodyData
-                              ? waterbodyData.attributes.reportingcycle
-                              : null;
+                              const auId = water.assessmentUnitIdentifier;
+                              const name = water.assessmentUnitName;
 
-                            return (
-                              <AccordionItem
-                                key={assessmentUnitIdentifier}
-                                title={
-                                  <strong>
-                                    {assessmentUnitName || 'Name not provided'}
-                                  </strong>
-                                }
-                                subTitle={`${getOrganizationLabel(
-                                  waterbodyData?.attributes,
-                                )} ${assessmentUnitIdentifier}`}
-                              >
-                                <AccordionContent>
-                                  {unitIds[assessmentUnitIdentifier] &&
-                                    unitIds[assessmentUnitIdentifier](
-                                      waterbodyReportingCycle,
-                                      waterbodyData ? true : false,
-                                    )}
+                              const waterbodyData = getWaterbodyData(
+                                mapLayer,
+                                orgId,
+                                auId,
+                              );
 
-                                  <p>
-                                    {waterbodyData && (
-                                      <ViewOnMapButton
-                                        feature={{
-                                          attributes: {
-                                            assessmentunitidentifier: assessmentUnitIdentifier,
-                                            organizationid: orgId,
-                                            fieldName: 'hmw-extra-content',
-                                          },
-                                        }}
-                                        layers={[mapLayer.layer]}
-                                        fieldName="hmw-extra-content"
-                                      />
-                                    )}
-                                  </p>
-                                </AccordionContent>
-                              </AccordionItem>
-                            );
-                          })}
-                        </Accordions>
+                              const waterbodyReportingCycle = waterbodyData
+                                ? waterbodyData.attributes.reportingcycle
+                                : null;
+
+                              const orgLabel = getOrganizationLabel(
+                                waterbodyData?.attributes,
+                              );
+
+                              return (
+                                <AccordionItem
+                                  key={auId}
+                                  title={
+                                    <strong>
+                                      {name || 'Name not provided'}
+                                    </strong>
+                                  }
+                                  subTitle={`${orgLabel} ${auId}`}
+                                  allExpanded={
+                                    allExpanded || expandedRows.includes(index)
+                                  }
+                                  onChange={() => {
+                                    // ensure the cell is sized appropriately
+                                    resizeCell();
+
+                                    // add the item to the expandedRows array so the accordion item
+                                    // will stay expanded when the user scrolls or highlights map items
+                                    if (expandedRows.includes(index)) {
+                                      setExpandedRows(
+                                        expandedRows.filter(
+                                          (item) => item !== index,
+                                        ),
+                                      );
+                                    } else
+                                      setExpandedRows(
+                                        expandedRows.concat(index),
+                                      );
+                                  }}
+                                >
+                                  <div css={accordionContentStyles}>
+                                    {unitIds[auId] &&
+                                      unitIds[auId](
+                                        waterbodyReportingCycle,
+                                        waterbodyData ? true : false,
+                                      )}
+
+                                    <p>
+                                      {waterbodyData && (
+                                        <ViewOnMapButton
+                                          feature={{
+                                            attributes: {
+                                              assessmentunitidentifier: auId,
+                                              organizationid: orgId,
+                                              fieldName: 'hmw-extra-content',
+                                            },
+                                          }}
+                                          layers={[mapLayer.layer]}
+                                          fieldName="hmw-extra-content"
+                                        />
+                                      )}
+                                    </p>
+                                  </div>
+                                </AccordionItem>
+                              );
+                            }}
+                          />
+                        </AccordionList>
                       )}
-                    </StyledBoxSection>
-                  </StyledBox>
-                </StyledColumn>
-              </StyledColumns>
+                    </div>
+                  </div>
+                </div>
+              </div>
             );
           }}
         </WindowSize>
-      </Container>
+      </div>
     </Page>
   );
 }
