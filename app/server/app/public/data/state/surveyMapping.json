@@ -3927,5 +3927,27 @@
         "categoryCode_color": "#20800c"
       }
     ]
+  },
+  {
+    "state": "CT",
+    "organizationIdentifier": "CT_DEP01",
+    "year": "2018",
+    "subPopulationCode": "Wadeable Streams",
+    "waterTypeGroupCode": "STREAM/CREEK/RIVER",
+    "surveyUseCode": "Aquatic Life",
+    "categoryCodeMapping": [
+      {
+        "surveyCategoryCode": "Not Supporting",
+        "categoryCode_label": "Not Supporting",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "surveyCategoryCode": "Fully Supporting",
+        "categoryCode_label": "Fully Supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      }
+    ]
   }
 ]
