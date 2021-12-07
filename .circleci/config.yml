@@ -7,6 +7,7 @@ jobs:
     working_directory: ~/project/app # directory where steps will run
     docker:
       - image: cimg/node:14.17.5
+    resource_class: large
     environment:
       APP_NAME: mywaterway-dev
       APP_DOMAIN: app.cloud.gov
@@ -95,6 +96,7 @@ jobs:
     working_directory: ~/project/app # directory where steps will run
     docker:
       - image: cimg/node:14.17.5
+    resource_class: large
     environment:
       APP_NAME: mywaterway-stage
       APP_NAME_ATTAINS: mywaterway-attains
