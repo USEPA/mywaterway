@@ -511,8 +511,8 @@ export function getPopupTitle(attributes: Object) {
 
   // monitoring station
   else if (
-    attributes.sampleType === 'Monitoring Station' ||
-    attributes.sampleType === 'USGS Streamgage'
+    attributes.monitoringType === 'Sample Location' ||
+    attributes.monitoringType === 'Daily Water Conditions'
   ) {
     title = attributes.locationName;
   }
@@ -610,13 +610,16 @@ export function getPopupContent({
   }
 
   // usgs streamgage
-  else if (attributes && attributes.sampleType === 'USGS Streamgage') {
-    type = 'USGS Streamgage';
+  else if (
+    attributes &&
+    attributes.monitoringType === 'Daily Water Conditions'
+  ) {
+    type = 'Daily Water Conditions';
   }
 
   // monitoring station
-  else if (attributes && attributes.sampleType === 'Monitoring Station') {
-    type = 'Monitoring Station';
+  else if (attributes && attributes.monitoringType === 'Sample Location') {
+    type = 'Sample Location';
   }
 
   // protect tab teal nonprofits

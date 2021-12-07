@@ -304,7 +304,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     linesLayer, //part of waterbody group layer
     areasLayer, //part of waterbody group layer
     issuesLayer,
-    monitoringStationsLayer,
+    monitoringLocationsLayer,
     usgsStreamgagesLayer,
     dischargersLayer,
     nonprofitsLayer,
@@ -450,9 +450,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       featureLayerType = 'waterbodyLayer';
     } else if (attributes.CWPName) {
       layer = dischargersLayer;
-    } else if (attributes.sampleType === 'Monitoring Station') {
-      layer = monitoringStationsLayer;
-    } else if (attributes.sampleType === 'USGS Streamgage') {
+    } else if (attributes.monitoringType === 'Sample Location') {
+      layer = monitoringLocationsLayer;
+    } else if (attributes.monitoringType === 'Daily Water Conditions') {
       layer = usgsStreamgagesLayer;
     } else if (attributes.type === 'nonprofit') {
       layer = nonprofitsLayer;
@@ -555,7 +555,10 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         where = `GlobalID = '${key}'`;
       }
 
-      if (layer === monitoringStationsLayer || layer === usgsStreamgagesLayer) {
+      if (
+        layer === monitoringLocationsLayer ||
+        layer === usgsStreamgagesLayer
+      ) {
         const orgId = graphic?.attributes?.orgId || '';
         const siteId = graphic?.attributes?.siteId || '';
         key = `${orgId} - ${siteId}`;
@@ -655,7 +658,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     linesLayer,
     pointsLayer,
     dischargersLayer,
-    monitoringStationsLayer,
+    monitoringLocationsLayer,
     usgsStreamgagesLayer,
     nonprofitsLayer,
     upstreamLayer,

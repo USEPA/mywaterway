@@ -71,7 +71,7 @@ const zoomDependentLayers = [
 const orderedLayers = [
   'waterbodyLayer',
   'allWaterbodiesLayer',
-  'monitoringStationsLayer',
+  'monitoringLocationsLayer',
   'usgsStreamgagesLayer',
   'issuesLayer',
   'dischargersLayer',
@@ -748,7 +748,7 @@ function MapWidgets({
     //build a list of layers that we care about
     const layerList = [
       'dischargersLayer',
-      'monitoringStationsLayer',
+      'monitoringLocationsLayer',
       'usgsStreamgagesLayer',
       'nonprofitsLayer',
       'providersLayer',

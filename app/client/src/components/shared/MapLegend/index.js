@@ -242,13 +242,13 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   );
 
   // jsx
-  const monitoringStationsLegend = (
+  const monitoringLocationsLegend = (
     <li>
       <div css={legendItemStyles}>
         <div css={imageContainerStyles}>
           {squareIcon({ color: colors.lightPurple() })}
         </div>
-        <span css={labelStyles}>Monitoring Station</span>
+        <span css={labelStyles}>Sample Location</span>
       </div>
     </li>
   );
@@ -256,7 +256,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   // jsx
   const usgsStreamgagesLegend = (
     <li>
-      <div css={layerLabelStyles}>Daily Streamflow Conditions:</div>
+      <div css={layerLabelStyles}>Daily Water Conditions:</div>
 
       <div css={legendItemStyles}>
         <div css={imageContainerStyles}>{circleIcon({ color: '#ea2c38' })}</div>
@@ -722,7 +722,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   if (layer.id === 'waterbodyLayer') return waterbodyLegend;
   if (layer.id === 'allWaterbodiesLayer') return waterbodyLegend;
   if (layer.id === 'issuesLayer') return issuesLegend;
-  if (layer.id === 'monitoringStationsLayer') return monitoringStationsLegend;
+  if (layer.id === 'monitoringLocationsLayer') return monitoringLocationsLegend;
   if (layer.id === 'usgsStreamgagesLayer') return usgsStreamgagesLegend;
   if (layer.id === 'dischargersLayer') return dischargersLegend;
   if (layer.id === 'nonprofitsLayer') return nonprofitsLegend;

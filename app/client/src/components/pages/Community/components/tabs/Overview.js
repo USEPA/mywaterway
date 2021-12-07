@@ -93,11 +93,11 @@ function Overview() {
   const {
     cipSummary,
     assessmentUnitCount, // TODO: determine if this is needed...
-    monitoringStations,
+    monitoringLocations,
     usgsStreamgages,
     permittedDischargers,
     waterbodyLayer,
-    monitoringStationsLayer,
+    monitoringLocationsLayer,
     usgsStreamgagesLayer,
     dischargersLayer,
     watershed,
@@ -108,17 +108,18 @@ function Overview() {
   const [waterbodiesDisplayed, setWaterbodiesDisplayed] = useState(true);
 
   const [
-    monitoringStationsDisplayed,
-    setMonitoringStationsDisplayed,
+    monitoringLocationsDisplayed,
+    setMonitoringLocationsDisplayed,
   ] = useState(false);
 
   const [usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed] = useState(
     false,
   );
 
-  const [sampleLocationsDisplayed, setSampleLocationsDisplayed] = useState(
-    false,
-  );
+  const [
+    monitoringStationsDisplayed,
+    setMonitoringStationsDisplayed,
+  ] = useState(false);
 
   const [
     permittedDischargersDisplayed,
@@ -133,8 +134,8 @@ function Overview() {
       setWaterbodiesDisplayed(visibleLayers.waterbodyLayer);
     }
 
-    if (typeof visibleLayers.monitoringStationsLayer === 'boolean') {
-      setMonitoringStationsDisplayed(visibleLayers.monitoringStationsLayer);
+    if (typeof visibleLayers.monitoringLocationsLayer === 'boolean') {
+      setMonitoringLocationsDisplayed(visibleLayers.monitoringLocationsLayer);
     }
 
     if (typeof visibleLayers.usgsStreamgagesLayer === 'boolean') {
@@ -161,11 +162,11 @@ function Overview() {
             : waterbodiesDisplayed;
       }
 
-      if (monitoringStations.status !== 'failure') {
-        layers.monitoringStationsLayer =
-          !monitoringStationsLayer || useCurrentValue
-            ? visibleLayers.monitoringStationsLayer
-            : monitoringStationsDisplayed;
+      if (monitoringLocations.status !== 'failure') {
+        layers.monitoringLocationsLayer =
+          !monitoringLocationsLayer || useCurrentValue
+            ? visibleLayers.monitoringLocationsLayer
+            : monitoringLocationsDisplayed;
       }
 
       if (usgsStreamgages.status !== 'failure') {
@@ -193,15 +194,15 @@ function Overview() {
     },
     [
       cipSummary,
-      monitoringStations,
+      monitoringLocations,
       usgsStreamgages,
       permittedDischargers,
       waterbodyLayer,
-      monitoringStationsLayer,
+      monitoringLocationsLayer,
       usgsStreamgagesLayer,
       dischargersLayer,
       waterbodiesDisplayed,
-      monitoringStationsDisplayed,
+      monitoringLocationsDisplayed,
       usgsStreamgagesDisplayed,
       permittedDischargersDisplayed,
       visibleLayers,
@@ -214,7 +215,7 @@ function Overview() {
     updateVisibleLayers({ useCurrentValue: true });
   }, [
     cipSummary,
-    monitoringStations,
+    monitoringLocations,
     usgsStreamgages,
     permittedDischargers,
     visibleLayers,
@@ -229,11 +230,14 @@ function Overview() {
 
   const totalWaterbodies = uniqueWaterbodies.length;
 
-  const totalMonitoringStations = monitoringStations.data.features?.length || 0;
+  const totalMonitoringLocations =
+    monitoringLocations.data.features?.length || 0;
+
   const totalUsgsStreamgages = usgsStreamgages.data.value?.length || 0;
-  const totalSampleLocations =
-    monitoringStations.data.features || usgsStreamgages.data.value
-      ? totalMonitoringStations + totalUsgsStreamgages
+
+  const totalMonitoringStations =
+    monitoringLocations.data.features || usgsStreamgages.data.value
+      ? totalMonitoringLocations + totalUsgsStreamgages
       : null;
 
   const totalPermittedDischargers =
@@ -247,7 +251,7 @@ function Overview() {
         </div>
       )}
 
-      {monitoringStations.status === 'failure' &&
+      {monitoringLocations.status === 'failure' &&
         usgsStreamgages.status === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
             <p>{monitoringError}</p>
@@ -301,42 +305,47 @@ function Overview() {
         </div>
 
         <div css={keyMetricStyles}>
-          {!monitoringStationsLayer ||
+          {!monitoringLocationsLayer ||
           !usgsStreamgagesLayer ||
-          monitoringStations.status === 'fetching' ||
+          monitoringLocations.status === 'fetching' ||
           usgsStreamgages.status === 'fetching' ? (
             <LoadingSpinner />
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {Boolean(totalSampleLocations) &&
-                (monitoringStations.status === 'success' ||
+                {Boolean(totalMonitoringStations) &&
+                (monitoringLocations.status === 'success' ||
                   usgsStreamgages.status === 'success')
-                  ? totalSampleLocations
+                  ? totalMonitoringStations
                   : 'N/A'}
               </span>
-              <p css={keyMetricLabelStyles}>Sample Locations</p>
+              <p css={keyMetricLabelStyles}>Monitoring Stations</p>
               <div css={switchContainerStyles}>
                 <Switch
                   checked={
-                    Boolean(totalSampleLocations) && sampleLocationsDisplayed
+                    Boolean(totalMonitoringStations) &&
+                    monitoringStationsDisplayed
                   }
                   onChange={(checked) => {
                     if (!usgsStreamgagesLayer) return;
-                    if (!monitoringStationsLayer) return;
-                    setSampleLocationsDisplayed(!sampleLocationsDisplayed);
-                    setUsgsStreamgagesDisplayed(!sampleLocationsDisplayed);
-                    setMonitoringStationsDisplayed(!sampleLocationsDisplayed);
+                    if (!monitoringLocationsLayer) return;
+                    setMonitoringStationsDisplayed(
+                      !monitoringStationsDisplayed,
+                    );
+                    setUsgsStreamgagesDisplayed(!monitoringStationsDisplayed);
+                    setMonitoringLocationsDisplayed(
+                      !monitoringStationsDisplayed,
+                    );
                     setVisibleLayers({
-                      usgsStreamgagesLayer: !sampleLocationsDisplayed,
-                      monitoringStationsLayer: !sampleLocationsDisplayed,
+                      usgsStreamgagesLayer: !monitoringStationsDisplayed,
+                      monitoringLocationsLayer: !monitoringStationsDisplayed,
                       // NOTE: no change for the following layers:
                       waterbodyLayer: waterbodiesDisplayed,
                       dischargersLayer: permittedDischargersDisplayed,
                     });
                   }}
-                  disabled={!Boolean(totalSampleLocations)}
-                  ariaLabel="Sample Locations"
+                  disabled={!Boolean(totalMonitoringStations)}
+                  ariaLabel="Monitoring Stations"
                 />
               </div>
             </>
@@ -394,10 +403,12 @@ function Overview() {
             </TabPanel>
 
             <TabPanel>
-              <SampleLocationsTab
-                setSampleLocationsDisplayed={setSampleLocationsDisplayed}
-                monitoringStationsDisplayed={monitoringStationsDisplayed}
+              <MonitoringStationsTab
                 setMonitoringStationsDisplayed={setMonitoringStationsDisplayed}
+                monitoringLocationsDisplayed={monitoringLocationsDisplayed}
+                setMonitoringLocationsDisplayed={
+                  setMonitoringLocationsDisplayed
+                }
                 usgsStreamgagesDisplayed={usgsStreamgagesDisplayed}
                 setUsgsStreamgagesDisplayed={setUsgsStreamgagesDisplayed}
                 updateVisibleLayers={updateVisibleLayers}
@@ -432,39 +443,39 @@ function WaterbodiesTab() {
   );
 }
 
-function SampleLocationsTab({
-  setSampleLocationsDisplayed,
-  monitoringStationsDisplayed,
+function MonitoringStationsTab({
   setMonitoringStationsDisplayed,
+  monitoringLocationsDisplayed,
+  setMonitoringLocationsDisplayed,
   usgsStreamgagesDisplayed,
   setUsgsStreamgagesDisplayed,
   updateVisibleLayers,
 }) {
   const {
-    monitoringStations,
+    monitoringLocations,
     usgsStreamgages,
-    monitoringStationsLayer,
+    monitoringLocationsLayer,
     usgsStreamgagesLayer,
     watershed,
   } = useContext(LocationSearchContext);
 
   const services = useServicesContext();
 
-  // if either of the "Daily Stream Flow Conditions" or "Monitoring Stations"
-  // switches are turned on, or if both switches are turned off, keep the
-  // "Sample Locations" switch in sync
+  // if either of the "Daily Water Conditions" or "Sample Locations" switches
+  // are turned on, or if both switches are turned off, keep the "Monitoring
+  // Stations" switch in sync
   useEffect(() => {
-    if (usgsStreamgagesDisplayed || monitoringStationsDisplayed) {
-      setSampleLocationsDisplayed(true);
+    if (usgsStreamgagesDisplayed || monitoringLocationsDisplayed) {
+      setMonitoringStationsDisplayed(true);
     }
 
-    if (!usgsStreamgagesDisplayed && !monitoringStationsDisplayed) {
-      setSampleLocationsDisplayed(false);
+    if (!usgsStreamgagesDisplayed && !monitoringLocationsDisplayed) {
+      setMonitoringStationsDisplayed(false);
     }
   }, [
     usgsStreamgagesDisplayed,
-    monitoringStationsDisplayed,
-    setSampleLocationsDisplayed,
+    monitoringLocationsDisplayed,
+    setMonitoringStationsDisplayed,
   ]);
 
   const [normalizedUsgsStreamgages, setNormalizedUsgsStreamgages] = useState(
@@ -477,7 +488,7 @@ function SampleLocationsTab({
     if (!usgsStreamgages.data.value) return;
 
     const gages = usgsStreamgages.data.value.map((gage) => ({
-      sampleType: 'USGS Streamgage',
+      monitoringType: 'Daily Water Conditions',
       siteId: gage.properties.monitoringLocationNumber,
       orgId: gage.properties.agencyCode,
       orgName: gage.properties.agency,
@@ -506,18 +517,18 @@ function SampleLocationsTab({
   }, [usgsStreamgages.data, usgsStreamgagesLayer]);
 
   const [
-    normalizedMonitoringStations,
-    setNormalizedMonitoringStations,
+    normalizedMonitoringLocations,
+    setNormalizedMonitoringLocations,
   ] = useState([]);
 
   // normalize monitoring stations data with USGS streamgages data,
   // and draw them on the map
   useEffect(() => {
     if (services.status === 'fetching') return;
-    if (!monitoringStations.data.features) return;
+    if (!monitoringLocations.data.features) return;
 
-    const stations = monitoringStations.data.features.map((station) => ({
-      sampleType: 'Monitoring Station',
+    const stations = monitoringLocations.data.features.map((station) => ({
+      monitoringType: 'Sample Location',
       siteId: station.properties.MonitoringLocationIdentifier,
       orgId: station.properties.OrganizationIdentifier,
       orgName: station.properties.OrganizationFormalName,
@@ -541,43 +552,45 @@ function SampleLocationsTab({
       ),
     }));
 
-    setNormalizedMonitoringStations(stations);
+    setNormalizedMonitoringLocations(stations);
 
-    plotStations(stations, monitoringStationsLayer, services);
-  }, [monitoringStations.data, monitoringStationsLayer, services]);
+    plotStations(stations, monitoringLocationsLayer, services);
+  }, [monitoringLocations.data, monitoringLocationsLayer, services]);
 
-  const allSampleLocations = [
+  const allMonitoringStations = [
     ...normalizedUsgsStreamgages,
-    ...normalizedMonitoringStations,
+    ...normalizedMonitoringLocations,
   ];
 
-  const [sampleLocationsSortedBy, setSampleLocationsSortedBy] = useState(
+  const [monitoringStationsSortedBy, setMonitoringStationsSortedBy] = useState(
     'locationName',
   );
 
-  const sortedSampleLocations = [...allSampleLocations].sort((a, b) => {
-    if (sampleLocationsSortedBy === 'stationTotalMeasurements') {
+  const sortedMonitoringStations = [...allMonitoringStations].sort((a, b) => {
+    if (monitoringStationsSortedBy === 'stationTotalMeasurements') {
       return (
         (b.stationTotalMeasurements || 0) - (a.stationTotalMeasurements || 0)
       );
     }
 
-    if (sampleLocationsSortedBy === 'siteId') {
+    if (monitoringStationsSortedBy === 'siteId') {
       return a.siteId.localeCompare(b.siteId);
     }
 
-    return a[sampleLocationsSortedBy].localeCompare(b[sampleLocationsSortedBy]);
+    return a[monitoringStationsSortedBy].localeCompare(
+      b[monitoringStationsSortedBy],
+    );
   });
 
-  const filteredSampleLocations = sortedSampleLocations.filter((item) => {
+  const filteredMonitoringStations = sortedMonitoringStations.filter((item) => {
     const displayedTypes = [];
-    if (usgsStreamgagesDisplayed) displayedTypes.push('USGS Streamgage');
-    if (monitoringStationsDisplayed) displayedTypes.push('Monitoring Station');
-    return displayedTypes.includes(item.sampleType);
+    if (usgsStreamgagesDisplayed) displayedTypes.push('Daily Water Conditions');
+    if (monitoringLocationsDisplayed) displayedTypes.push('Sample Location');
+    return displayedTypes.includes(item.monitoringType);
   });
 
   if (
-    monitoringStations.status === 'fetching' ||
+    monitoringLocations.status === 'fetching' ||
     usgsStreamgages.status === 'fetching'
   ) {
     return <LoadingSpinner />;
@@ -588,7 +601,7 @@ function SampleLocationsTab({
   // messages for each (which would mean removing the block below, and adding
   // in conditional rendering of both error messages in the success block below)
   if (
-    monitoringStations.status === 'failure' &&
+    monitoringLocations.status === 'failure' &&
     usgsStreamgages.status === 'failure'
   ) {
     return (
@@ -599,19 +612,19 @@ function SampleLocationsTab({
   }
 
   if (
-    monitoringStations.status === 'success' ||
+    monitoringLocations.status === 'success' ||
     usgsStreamgages.status === 'success'
   ) {
     return (
       <>
-        {allSampleLocations.length === 0 && (
+        {allMonitoringStations.length === 0 && (
           <p css={centeredTextStyles}>
             There are no Water Monitoring Locations in the {watershed}{' '}
             watershed.
           </p>
         )}
 
-        {allSampleLocations.length > 0 && (
+        {allMonitoringStations.length > 0 && (
           <>
             <table css={tableStyles} className="table">
               <thead>
@@ -642,9 +655,9 @@ function SampleLocationsTab({
                           });
                         }}
                         disabled={normalizedUsgsStreamgages.length === 0}
-                        ariaLabel="Daily Stream Flow Conditions"
+                        ariaLabel="Daily Water Conditions"
                       />
-                      <span>Daily Stream Flow Conditions</span>
+                      <span>Daily Water Conditions</span>
                     </div>
                   </td>
                   <td>{normalizedUsgsStreamgages.length}</td>
@@ -654,26 +667,26 @@ function SampleLocationsTab({
                     <div css={toggleStyles}>
                       <Switch
                         checked={
-                          normalizedMonitoringStations.length > 0 &&
-                          monitoringStationsDisplayed
+                          normalizedMonitoringLocations.length > 0 &&
+                          monitoringLocationsDisplayed
                         }
                         onChange={(checked) => {
-                          if (!monitoringStationsLayer) return;
-                          setMonitoringStationsDisplayed(
-                            !monitoringStationsDisplayed,
+                          if (!monitoringLocationsLayer) return;
+                          setMonitoringLocationsDisplayed(
+                            !monitoringLocationsDisplayed,
                           );
                           updateVisibleLayers({
-                            key: 'monitoringStationsLayer',
-                            value: !monitoringStationsDisplayed,
+                            key: 'monitoringLocationsLayer',
+                            value: !monitoringLocationsDisplayed,
                           });
                         }}
-                        disabled={normalizedMonitoringStations.length === 0}
-                        ariaLabel="Monitoring Stations"
+                        disabled={normalizedMonitoringLocations.length === 0}
+                        ariaLabel="Sample Locations"
                       />
-                      <span>Monitoring Stations</span>
+                      <span>Sample Locations</span>
                     </div>
                   </td>
-                  <td>{normalizedMonitoringStations.length}</td>
+                  <td>{normalizedMonitoringLocations.length}</td>
                 </tr>
               </tbody>
             </table>
@@ -682,12 +695,12 @@ function SampleLocationsTab({
               expandDisabled={true} // disabled to avoid large number of web service calls
               title={
                 <>
-                  <strong>{filteredSampleLocations.length}</strong> of{' '}
-                  <strong>{allSampleLocations.length}</strong> Water Monitoring
-                  Locations in the <em>{watershed}</em> watershed.
+                  <strong>{filteredMonitoringStations.length}</strong> of{' '}
+                  <strong>{allMonitoringStations.length}</strong> Water
+                  Monitoring Locations in the <em>{watershed}</em> watershed.
                 </>
               }
-              onSortChange={({ value }) => setSampleLocationsSortedBy(value)}
+              onSortChange={({ value }) => setMonitoringStationsSortedBy(value)}
               sortOptions={[
                 {
                   label: 'Monitoring Location Name',
@@ -707,7 +720,7 @@ function SampleLocationsTab({
                 },
               ]}
             >
-              {filteredSampleLocations.map((item, index) => {
+              {filteredMonitoringStations.map((item, index) => {
                 const feature = {
                   geometry: {
                     type: 'point',
@@ -723,13 +736,14 @@ function SampleLocationsTab({
                     title={<strong>{item.locationName || 'Unknown'}</strong>}
                     subTitle={
                       <>
-                        <em>Sample Type:</em>&nbsp;&nbsp;{item.sampleType}
+                        <em>Monitoring Type:</em>&nbsp;&nbsp;
+                        {item.monitoringType}
                         <br />
                         <em>Organization ID:</em>&nbsp;&nbsp;{item.orgId}
                         <br />
                         <em>Monitoring Site ID:</em>&nbsp;&nbsp;
                         {item.siteId.replace(`${item.orgId}-`, '')}
-                        {item.sampleType === 'Monitoring Station' && (
+                        {item.monitoringType === 'Sample Location' && (
                           <>
                             <br />
                             <em>Monitoring Measurements:</em>&nbsp;&nbsp;
@@ -742,17 +756,17 @@ function SampleLocationsTab({
                     idKey="siteId"
                   >
                     <div css={accordionContentStyles}>
-                      {item.sampleType === 'USGS Streamgage' && (
+                      {item.monitoringType === 'Daily Water Conditions' && (
                         <WaterbodyInfo
-                          type="USGS Streamgage"
+                          type="Daily Water Conditions"
                           feature={feature}
                           services={services}
                         />
                       )}
 
-                      {item.sampleType === 'Monitoring Station' && (
+                      {item.monitoringType === 'Sample Location' && (
                         <WaterbodyInfo
-                          type="Monitoring Station"
+                          type="Sample Location"
                           feature={feature}
                           services={services}
                         />
