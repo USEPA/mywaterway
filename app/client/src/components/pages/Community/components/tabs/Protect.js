@@ -204,6 +204,7 @@ function Protect() {
     protectedAreasHighlightLayer,
     waterbodyLayer,
     cipSummary,
+    allWaterbodiesLayer,
   } = useContext(LocationSearchContext);
 
   const { infoToggleChecked } = useContext(CommunityTabsContext);
@@ -408,7 +409,14 @@ function Protect() {
     : null;
 
   function onWsioToggle(checked, ev, id) {
-    setHealthScoresDisplayed(!healthScoresDisplayed);
+    const newValue = !healthScoresDisplayed;
+    if (newValue) {
+      allWaterbodiesLayer.visible = false;
+    } else {
+      allWaterbodiesLayer.visible = initialAllWaterbodiesVisibility;
+    }
+
+    setHealthScoresDisplayed(newValue);
     updateVisibleLayers({
       key: 'wsioHealthIndexLayer',
       newValue: !healthScoresDisplayed,
@@ -461,6 +469,41 @@ function Protect() {
     protectedAreasHighlightLayer,
     setSelectedGraphic,
   ]);
+
+  // Initialize the allWaterbodiesLayer visibility. This will be used to reset
+  // the allWaterbodiesLayer visibility when the user leaves this tab.
+  const [
+    initialAllWaterbodiesVisibility,
+    setInitialAllWaterbodiesVisibility,
+  ] = useState(false);
+  useEffect(() => {
+    if (!allWaterbodiesLayer) return;
+
+    setInitialAllWaterbodiesVisibility(allWaterbodiesLayer.visible);
+  }, [allWaterbodiesLayer]);
+
+  ///////// Workaround Start /////////
+  // Workaround to making a cleanup function that is really only called when the
+  // component unmounts.
+
+  // This sets a componentWillUnmount ref trigger when the component unmounts.
+  const componentWillUnmount = React.useRef(false);
+  useEffect(() => {
+    return function cleanup() {
+      componentWillUnmount.current = true;
+    };
+  }, []);
+
+  // This runs the cleanup code after the componentWillUnmount ref is triggered.
+  useEffect(() => {
+    return function cleanup() {
+      if (!componentWillUnmount?.current) return;
+
+      allWaterbodiesLayer.visible = initialAllWaterbodiesVisibility;
+    };
+  }, [allWaterbodiesLayer, initialAllWaterbodiesVisibility]);
+
+  ///////// Workaround End /////////
 
   return (
     <div css={containerStyles}>
