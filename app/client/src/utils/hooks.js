@@ -450,7 +450,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       featureLayerType = 'waterbodyLayer';
     } else if (attributes.CWPName) {
       layer = dischargersLayer;
-    } else if (attributes.sampleType === 'Monitoring Station') {
+    } else if (attributes.sampleType === 'Sample Location') {
       layer = monitoringLocationsLayer;
     } else if (attributes.sampleType === 'USGS Streamgage') {
       layer = usgsStreamgagesLayer;

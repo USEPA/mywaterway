@@ -581,7 +581,7 @@ function WaterbodyInfo({
     );
   }
 
-  function monitoringStationContent() {
+  function sampleLocationContent() {
     const stationGroups = JSON.parse(attributes.stationTotalsByCategory);
 
     const groups = { Other: { characteristicGroups: [], resultCount: 0 } };
@@ -1075,7 +1075,7 @@ function WaterbodyInfo({
   if (type === 'Waterbody') return waterbodyContent;
   if (type === 'Permitted Discharger') return dischargerContent;
   if (type === 'USGS Streamgage') return usgsStreamgageContent();
-  if (type === 'Monitoring Station') return monitoringStationContent();
+  if (type === 'Sample Location') return sampleLocationContent();
   if (type === 'Nonprofit') return nonprofitContent;
   if (type === 'Waterbody State Overview') return waterbodyStateContent;
   if (type === 'Action') return actionContent;

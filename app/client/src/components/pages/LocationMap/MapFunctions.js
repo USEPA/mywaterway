@@ -511,7 +511,7 @@ export function getPopupTitle(attributes: Object) {
 
   // monitoring station
   else if (
-    attributes.sampleType === 'Monitoring Station' ||
+    attributes.sampleType === 'Sample Location' ||
     attributes.sampleType === 'USGS Streamgage'
   ) {
     title = attributes.locationName;
@@ -615,8 +615,8 @@ export function getPopupContent({
   }
 
   // monitoring station
-  else if (attributes && attributes.sampleType === 'Monitoring Station') {
-    type = 'Monitoring Station';
+  else if (attributes && attributes.sampleType === 'Sample Location') {
+    type = 'Sample Location';
   }
 
   // protect tab teal nonprofits

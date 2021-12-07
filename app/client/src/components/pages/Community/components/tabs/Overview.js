@@ -528,7 +528,7 @@ function MonitoringStationsTab({
     if (!monitoringLocations.data.features) return;
 
     const stations = monitoringLocations.data.features.map((station) => ({
-      sampleType: 'Monitoring Station',
+      sampleType: 'Sample Location',
       siteId: station.properties.MonitoringLocationIdentifier,
       orgId: station.properties.OrganizationIdentifier,
       orgName: station.properties.OrganizationFormalName,
@@ -585,7 +585,7 @@ function MonitoringStationsTab({
   const filteredMonitoringStations = sortedMonitoringStations.filter((item) => {
     const displayedTypes = [];
     if (usgsStreamgagesDisplayed) displayedTypes.push('USGS Streamgage');
-    if (monitoringLocationsDisplayed) displayedTypes.push('Monitoring Station');
+    if (monitoringLocationsDisplayed) displayedTypes.push('Sample Location');
     return displayedTypes.includes(item.sampleType);
   });
 
@@ -742,7 +742,7 @@ function MonitoringStationsTab({
                         <br />
                         <em>Monitoring Site ID:</em>&nbsp;&nbsp;
                         {item.siteId.replace(`${item.orgId}-`, '')}
-                        {item.sampleType === 'Monitoring Station' && (
+                        {item.sampleType === 'Sample Location' && (
                           <>
                             <br />
                             <em>Monitoring Measurements:</em>&nbsp;&nbsp;
@@ -763,9 +763,9 @@ function MonitoringStationsTab({
                         />
                       )}
 
-                      {item.sampleType === 'Monitoring Station' && (
+                      {item.sampleType === 'Sample Location' && (
                         <WaterbodyInfo
-                          type="Monitoring Station"
+                          type="Sample Location"
                           feature={feature}
                           services={services}
                         />

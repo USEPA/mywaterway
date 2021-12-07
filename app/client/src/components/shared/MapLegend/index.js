@@ -248,7 +248,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
         <div css={imageContainerStyles}>
           {squareIcon({ color: colors.lightPurple() })}
         </div>
-        <span css={labelStyles}>Monitoring Station</span>
+        <span css={labelStyles}>Sample Location</span>
       </div>
     </li>
   );

@@ -82,7 +82,7 @@ type MonitoringLocationData = {
 };
 
 type Station = {
-  sampleType: 'Monitoring Station',
+  sampleType: 'Sample Location',
   siteId: string,
   orgId: string,
   orgName: string,
@@ -169,7 +169,7 @@ function Monitoring() {
 
     monitoringLocations.data.features.forEach((station) => {
       const monitoringLocation = {
-        sampleType: 'Monitoring Station',
+        sampleType: 'Sample Location',
         siteId: station.properties.MonitoringLocationIdentifier,
         orgId: station.properties.OrganizationIdentifier,
         orgName: station.properties.OrganizationFormalName,
@@ -609,7 +609,7 @@ function Monitoring() {
                             >
                               <div css={accordionContentStyles}>
                                 <WaterbodyInfo
-                                  type="Monitoring Station"
+                                  type="Sample Location"
                                   feature={feature}
                                   services={services}
                                 />
