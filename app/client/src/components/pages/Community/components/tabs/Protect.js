@@ -61,6 +61,7 @@ function convertStateCode(stateCode: string, stateData: Array<Object>) {
 
 const containerStyles = css`
   padding: 1em;
+  line-height: 1.25em;
 `;
 
 const listStyles = css`
@@ -76,13 +77,9 @@ const headingStyles = css`
 
 const accordionContentStyles = css`
   padding: 0.875em;
-
-  p:last-of-type {
-    padding-bottom: 0.875rem;
-  }
 `;
 
-const styledSwitchStyles = css`
+const switchStyles = css`
   margin-right: 10px;
   pointer-events: all;
   display: flex;
@@ -110,52 +107,58 @@ const featureTitleStyles = css`
   padding: 0.75rem;
 `;
 
-const newTabDisclaimerStyles = css`
+const disclaimerStyles = css`
   display: inline-block;
 `;
 
-const watershedContainerStyles = css`
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles};
+  margin-bottom: 1em;
+  text-align: center;
+`;
+
+const modifiedInfoBoxStyles = css`
+  ${infoBoxStyles}
+  margin-bottom: 1em;
+  text-align: center;
+`;
+
+const questionContainerStyles = css`
+  button {
+    margin-bottom: 1em;
+  }
+
+  p {
+    padding-bottom: 1em;
+  }
+
+  ul,
+  ol,
+  li {
+    padding-bottom: 0.5em;
+  }
+`;
+
+const questionStyles = css`
+  display: inline-block;
+  padding-bottom: 1em;
+  font-weight: bold;
+`;
+
+const watershedAccordionStyles = css`
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
 `;
 
-const gradientInnerContainerStyles = css`
-  align-items: center;
+const watershedGradientStyles = css`
   display: flex;
+  align-items: center;
   flex-direction: column;
 `;
 
-const gradientHeaderFooterStyles = css`
-  text-align: center;
-`;
-
-const errorBoxModStyles = css`
-  ${errorBoxStyles}
-  text-align: center;
-  margin-bottom: 0.875em;
-
-  p {
-    padding-bottom: 0 !important;
-  }
-`;
-
-const infoBoxModStyles = css`
-  ${infoBoxStyles}
-
-  margin-bottom: 0.875em;
-`;
-
-const inlineBlockWrapperStyles = css`
-  display: inline-block;
-`;
-
-const wsioQuestionContainerStyles = css`
-  padding-bottom: 0.875rem;
-`;
-
-const viewButtonContainerStyles = css`
+const buttonContainerStyles = css`
   margin-left: 0.5em;
 `;
 
@@ -163,6 +166,7 @@ const tableStyles = css`
   thead {
     background-color: #f0f6f9;
   }
+
   th:last-of-type,
   td:last-of-type {
     text-align: right;
@@ -172,12 +176,12 @@ const tableStyles = css`
 const toggleStyles = css`
   display: flex;
   align-items: center;
+
   span {
     margin-left: 0.5rem;
   }
 `;
 
-// --- components ---
 function Protect() {
   const services = useServicesContext();
 
@@ -547,7 +551,7 @@ function Protect() {
                   title={
                     <label css={labelStyles}>
                       <div
-                        css={styledSwitchStyles}
+                        css={switchStyles}
                         onClick={(ev) => ev.stopPropagation()}
                       >
                         <Switch
@@ -566,24 +570,27 @@ function Protect() {
                 >
                   <div css={accordionContentStyles}>
                     {wsioHealthIndexData.status === 'failure' && (
-                      <div css={errorBoxModStyles}>
+                      <div css={modifiedErrorBoxStyles}>
                         <p>{wsioHealthIndexError}</p>
                       </div>
                     )}
+
                     {wsioHealthIndexData.status === 'fetching' && (
                       <LoadingSpinner />
                     )}
+
                     {wsioHealthIndexData.status === 'success' &&
                       wsioHealthIndexData.data.length === 0 && (
-                        <div css={infoBoxModStyles}>
+                        <div css={modifiedInfoBoxStyles}>
                           No Watershed Health Score data available for the{' '}
                           {watershed} watershed.
                         </div>
                       )}
+
                     {wsioHealthIndexData.status === 'success' &&
                       wsioHealthIndexData.data.length > 0 && (
-                        <div css={watershedContainerStyles}>
-                          <div style={{ flex: '3 1 220px' }}>
+                        <div css={watershedAccordionStyles}>
+                          <div css={{ flex: '3 1 220px' }}>
                             <table className="table">
                               <tbody>
                                 <tr>
@@ -608,6 +615,7 @@ function Protect() {
                                       statesData.status === 'fetching') && (
                                       <LoadingSpinner />
                                     )}
+
                                     {wsioHealthIndexData.status === 'success' &&
                                       statesData.status === 'success' &&
                                       convertStateCode(
@@ -630,18 +638,21 @@ function Protect() {
                               </tbody>
                             </table>
                           </div>
-                          <div
-                            style={{ flex: '1 1 0', margin: '0 0 10px 10px' }}
-                          >
-                            <div css={gradientInnerContainerStyles}>
-                              <div css={gradientHeaderFooterStyles}>
+
+                          <div css={{ flex: '1 1 0', margin: '0 0 10px 10px' }}>
+                            <div css={watershedGradientStyles}>
+                              <div css={{ textAlign: 'center' }}>
                                 More Healthy
                               </div>
-                              <div style={{ marginLeft: '25px' }}>
+
+                              <div css={{ marginLeft: '25px' }}>
                                 {gradientIcon({
                                   id: 'health-index-horizontal-gradient',
                                   stops: [
-                                    { label: '1', color: 'rgb(10, 8, 145)' },
+                                    {
+                                      label: '1',
+                                      color: 'rgb(10, 8, 145)',
+                                    },
                                     {
                                       label: '0.75',
                                       color: 'rgb(30, 61, 181)',
@@ -661,7 +672,7 @@ function Protect() {
                                   ],
                                 })}
                               </div>
-                              <div css={gradientHeaderFooterStyles}>
+                              <div css={{ textAlign: 'center' }}>
                                 Less Healthy
                               </div>
                             </div>
@@ -669,94 +680,81 @@ function Protect() {
                         </div>
                       )}
 
-                    <div css={wsioQuestionContainerStyles}>
-                      <div css={inlineBlockWrapperStyles}>
-                        <p>
-                          <strong>
-                            Where might the healthier watersheds be located in
-                            your state?
-                          </strong>
-                        </p>
-                      </div>
+                    <div css={questionContainerStyles}>
+                      <p css={questionStyles}>
+                        Where might the healthier watersheds be located in your
+                        state?
+                      </p>
 
-                      <div css={inlineBlockWrapperStyles}>
-                        <ShowLessMore
-                          charLimit={0}
-                          text={
-                            <>
-                              <p>
-                                The Watershed Health Index, from the Preliminary
-                                Healthy Watersheds Assessment (PHWA), is a score
-                                of <strong>watershed health</strong> across the
-                                United States.
-                              </p>
-                              <ul>
-                                <li>
-                                  The map to the left shows watershed health,
-                                  characterized by the presence of natural land
-                                  cover that supports hydrologic and geomorphic
-                                  processes within their natural range of
-                                  variation, good water quality, and habitats of
-                                  sufficient size and connectivity to support
-                                  healthy, native aquatic and riparian
-                                  biological communities.
-                                </li>
-                                <li>
-                                  Each Watershed Health Index score is relative
-                                  to the scores of watersheds across the state.
-                                  A watershed that straddles more than one state
-                                  is scored only in the state in which its
-                                  majority area resides.
-                                </li>
-                              </ul>
-                            </>
-                          }
-                        />
-                      </div>
+                      <ShowLessMore
+                        charLimit={0}
+                        text={
+                          <>
+                            <p>
+                              The Watershed Health Index, from the Preliminary
+                              Healthy Watersheds Assessment (PHWA), is a score
+                              of <strong>watershed health</strong> across the
+                              United States.
+                            </p>
+
+                            <ul>
+                              <li>
+                                The map to the left shows watershed health,
+                                characterized by the presence of natural land
+                                cover that supports hydrologic and geomorphic
+                                processes within their natural range of
+                                variation, good water quality, and habitats of
+                                sufficient size and connectivity to support
+                                healthy, native aquatic and riparian biological
+                                communities.
+                              </li>
+                              <li>
+                                Each Watershed Health Index score is relative to
+                                the scores of watersheds across the state. A
+                                watershed that straddles more than one state is
+                                scored only in the state in which its majority
+                                area resides.
+                              </li>
+                            </ul>
+                          </>
+                        }
+                      />
                     </div>
 
-                    <div css={wsioQuestionContainerStyles}>
-                      <div css={inlineBlockWrapperStyles}>
-                        <p>
-                          <strong>
-                            Why is the Watershed Health Index valuable?
-                          </strong>
-                        </p>
-                      </div>
-                      <div css={inlineBlockWrapperStyles}>
-                        <ShowLessMore
-                          charLimit={0}
-                          text={
-                            <>
-                              <ul>
-                                <li>
-                                  Raises awareness of where the healthier
-                                  watersheds may occur.
-                                </li>
-                                <li>
-                                  Provides an initial dataset upon which others
-                                  can build better watershed condition
-                                  information.
-                                </li>
-                                <li>
-                                  Improves communication and coordination among
-                                  watershed management partners by providing
-                                  nationally consistent measures of watershed
-                                  health.
-                                </li>
-                                <li>
-                                  Provides a basis to promote high quality
-                                  waters protection.
-                                </li>
-                                <li>
-                                  Supports efforts to prioritize, protect and
-                                  maintain high quality waters.
-                                </li>
-                              </ul>
-                            </>
-                          }
-                        />
-                      </div>
+                    <div css={questionContainerStyles}>
+                      <p css={questionStyles}>
+                        Why is the Watershed Health Index valuable?
+                      </p>
+
+                      <ShowLessMore
+                        charLimit={0}
+                        text={
+                          <ul>
+                            <li>
+                              Raises awareness of where the healthier watersheds
+                              may occur.
+                            </li>
+                            <li>
+                              Provides an initial dataset upon which others can
+                              build better watershed condition information.
+                            </li>
+                            <li>
+                              Improves communication and coordination among
+                              watershed management partners by providing
+                              nationally consistent measures of watershed
+                              health.
+                            </li>
+                            <li>
+                              Provides a basis to promote high quality waters
+                              protection.
+                            </li>
+                            <li>
+                              Supports efforts to prioritize, protect and
+                              maintain high quality waters.
+                            </li>
+                          </ul>
+                        }
+                      />
                     </div>
 
                     <p>
@@ -768,7 +766,9 @@ function Protect() {
                         <i className="fas fa-info-circle" aria-hidden="true" />{' '}
                         More Information
                       </a>{' '}
-                      (opens new browser tab)
+                      <small css={disclaimerStyles}>
+                        (opens new browser tab)
+                      </small>
                     </p>
                   </div>
                 </AccordionItem>
@@ -789,7 +789,7 @@ function Protect() {
                   title={
                     <label css={labelStyles}>
                       <div
-                        css={styledSwitchStyles}
+                        css={switchStyles}
                         onClick={(ev) => ev.stopPropagation()}
                       >
                         <Switch
@@ -817,21 +817,24 @@ function Protect() {
                         >
                           National Wild and Scenic Rivers System{' '}
                         </a>{' '}
-                        (opens new browser tab) was created by Congress in 1968
-                        to preserve certain rivers with outstanding natural,
-                        cultural, and recreational values in a free-flowing
-                        condition for the enjoyment of present and future
-                        generations. The Act is notable for safeguarding the
-                        special character of these rivers, while also
-                        recognizing the potential for their appropriate use and
-                        development. It encourages river management that crosses
-                        political boundaries and promotes public participation
-                        in developing goals for river protection.
+                        <small css={disclaimerStyles}>
+                          (opens new browser tab)
+                        </small>{' '}
+                        was created by Congress in 1968 to preserve certain
+                        rivers with outstanding natural, cultural, and
+                        recreational values in a free-flowing condition for the
+                        enjoyment of present and future generations. The Act is
+                        notable for safeguarding the special character of these
+                        rivers, while also recognizing the potential for their
+                        appropriate use and development. It encourages river
+                        management that crosses political boundaries and
+                        promotes public participation in developing goals for
+                        river protection.
                       </p>
                     )}
 
                     {wildScenicRiversData.status === 'failure' && (
-                      <div css={errorBoxModStyles}>
+                      <div css={modifiedErrorBoxStyles}>
                         <p>{wildScenicRiversError}</p>
                       </div>
                     )}
@@ -842,7 +845,7 @@ function Protect() {
 
                     {wildScenicRiversData.status === 'success' &&
                       wildScenicRiversData.data.length === 0 && (
-                        <div css={infoBoxModStyles}>
+                        <div css={modifiedInfoBoxStyles}>
                           No Wild and Scenic River data available in the{' '}
                           {watershed} watershed.
                         </div>
@@ -930,7 +933,9 @@ function Protect() {
                                         >
                                           More information
                                         </a>{' '}
-                                        (opens new browser tab)
+                                        <small css={disclaimerStyles}>
+                                          (opens new browser tab)
+                                        </small>
                                       </>
                                     ) : (
                                       'Not available.'
@@ -940,7 +945,7 @@ function Protect() {
                               </tbody>
                             </table>
 
-                            <div css={viewButtonContainerStyles}>
+                            <div css={buttonContainerStyles}>
                               <ViewOnMapButton
                                 layers={[wildScenicRiversLayer]}
                                 feature={item}
@@ -978,7 +983,7 @@ function Protect() {
                   title={
                     <label css={labelStyles}>
                       <div
-                        css={styledSwitchStyles}
+                        css={switchStyles}
                         onClick={(ev) => ev.stopPropagation()}
                       >
                         <Switch
@@ -1019,13 +1024,15 @@ function Protect() {
                             />{' '}
                             More Information
                           </a>{' '}
-                          (opens new browser tab)
+                          <small css={disclaimerStyles}>
+                            (opens new browser tab)
+                          </small>
                         </p>
                       </>
                     )}
 
                     {protectedAreasData.status === 'failure' && (
-                      <div css={errorBoxModStyles}>
+                      <div css={modifiedErrorBoxStyles}>
                         <p>{protectedAreasDatabaseError}</p>
                       </div>
                     )}
@@ -1036,7 +1043,7 @@ function Protect() {
 
                     {protectedAreasData.status === 'success' &&
                       protectedAreasData.data.length === 0 && (
-                        <div css={infoBoxModStyles}>
+                        <div css={modifiedInfoBoxStyles}>
                           No Protected Areas Database data available for the{' '}
                           {watershed} watershed.
                         </div>
@@ -1111,7 +1118,7 @@ function Protect() {
                                   </tbody>
                                 </table>
 
-                                <div css={viewButtonContainerStyles}>
+                                <div css={buttonContainerStyles}>
                                   <ViewOnMapButton
                                     layers={[protectedAreasLayer]}
                                     feature={item}
@@ -1189,7 +1196,7 @@ function Protect() {
                   title={
                     <label css={labelStyles}>
                       <div
-                        css={styledSwitchStyles}
+                        css={switchStyles}
                         onClick={(ev) => ev.stopPropagation()}
                       >
                         <Switch
@@ -1211,13 +1218,13 @@ function Protect() {
                       attainsPlans.status === 'fetching') && <LoadingSpinner />}
 
                     {attainsPlans.status === 'failure' && (
-                      <div css={errorBoxModStyles}>
+                      <div css={modifiedErrorBoxStyles}>
                         <p>{restorationPlanError}</p>
                       </div>
                     )}
 
                     {grts.status === 'failure' && (
-                      <div css={errorBoxModStyles}>
+                      <div css={modifiedErrorBoxStyles}>
                         <p>{protectNonpointSourceError}</p>
                       </div>
                     )}
@@ -1228,7 +1235,7 @@ function Protect() {
                         grts.status === 'success') && (
                         <>
                           {allProtectionProjects.length === 0 && (
-                            <div css={infoBoxModStyles}>
+                            <div css={modifiedInfoBoxStyles}>
                               There are no EPA funded protection projects in the{' '}
                               {watershed} watershed.
                             </div>
@@ -1238,7 +1245,7 @@ function Protect() {
                             <>
                               <p>
                                 EPA funded protection projects in the{' '}
-                                {watershed} watershed.
+                                <em>{watershed}</em> watershed.
                               </p>
 
                               <table css={tableStyles} className="table">
@@ -1382,11 +1389,9 @@ function Protect() {
                                                     Open Project Summary
                                                   </a>
                                                   &nbsp;&nbsp;
-                                                  <div
-                                                    css={newTabDisclaimerStyles}
-                                                  >
+                                                  <small css={disclaimerStyles}>
                                                     (opens new browser tab)
-                                                  </div>
+                                                  </small>
                                                 </>
                                               )}
                                             </td>
@@ -1470,11 +1475,9 @@ function Protect() {
                                                   Open Plan Summary
                                                 </a>
                                                 &nbsp;&nbsp;
-                                                <div
-                                                  css={newTabDisclaimerStyles}
-                                                >
+                                                <small css={disclaimerStyles}>
                                                   (opens new browser tab)
-                                                </div>
+                                                </small>
                                               </td>
                                             </tr>
                                           )}
