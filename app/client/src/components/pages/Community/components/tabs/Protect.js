@@ -224,11 +224,11 @@ function Protect() {
         title: project.prj_title,
         id: project.prj_seq,
         pollutants: project.pollutants,
-        total_319_funds: project.total_319_funds,
-        project_start_date: project.project_start_date,
+        total319Funds: project.total_319_funds,
+        projectStartDate: project.project_start_date,
         status: project.status,
-        project_link: project.project_link,
-        watershed_plans: project.watershed_plans,
+        projectLink: project.project_link,
+        watershedPlans: project.watershed_plans,
         completionDate: '',
         documents: [],
         organizationIdentifier: '',
@@ -256,11 +256,11 @@ function Protect() {
         title: plan.actionName,
         id: plan.actionIdentifier,
         pollutants: plan.associatedPollutants,
-        total_319_funds: '',
-        project_start_date: '',
+        total319Funds: '',
+        projectStartDate: '',
         status: plan.actionStatusCode,
-        project_link: '',
-        watershed_plans: '',
+        projectLink: '',
+        watershedPlans: '',
         completionDate: plan.completionDate,
         actionTypeCode: plan.actionTypeCode,
         organizationId: plan.organizationIdentifier,
@@ -1302,20 +1302,18 @@ function Protect() {
                               </table>
 
                               {filteredProtectionProjects.map((item, index) => {
-                                const url = getUrlFromMarkup(item.project_link);
+                                const url = getUrlFromMarkup(item.projectLink);
                                 const protectionPlans =
-                                  item.watershed_plans &&
+                                  item.watershedPlans &&
                                   // break string into pieces separated by commas and map over them
-                                  item.watershed_plans
-                                    .split(',')
-                                    .map((plan) => {
-                                      const markup =
-                                        plan.split('</a>')[0] + '</a>';
-                                      const title = getTitleFromMarkup(markup);
-                                      const planUrl = getUrlFromMarkup(markup);
-                                      if (!title || !planUrl) return false;
-                                      return { url: planUrl, title: title };
-                                    });
+                                  item.watershedPlans.split(',').map((plan) => {
+                                    const markup =
+                                      plan.split('</a>')[0] + '</a>';
+                                    const title = getTitleFromMarkup(markup);
+                                    const planUrl = getUrlFromMarkup(markup);
+                                    if (!title || !planUrl) return false;
+                                    return { url: planUrl, title: title };
+                                  });
                                 // remove any plans with missing titles or urls
                                 const filteredProtectionPlans =
                                   protectionPlans &&
@@ -1353,13 +1351,13 @@ function Protect() {
                                             <td>
                                               <em>Total Funds:</em>
                                             </td>
-                                            <td>{item.total_319_funds}</td>
+                                            <td>{item.total319Funds}</td>
                                           </tr>
                                           <tr>
                                             <td>
                                               <em>Project Start Date:</em>
                                             </td>
-                                            <td>{item.project_start_date}</td>
+                                            <td>{item.projectStartDate}</td>
                                           </tr>
                                           <tr>
                                             <td>
