@@ -120,7 +120,7 @@ const imageStyles = css`
   height: auto;
 `;
 
-const dateCellStyles = css`
+const dateStyles = css`
   white-space: nowrap;
 `;
 
@@ -284,6 +284,7 @@ function WaterbodyInfo({
       ));
 
     if (pollutionCategories.length === 0) return null;
+
     return (
       <>
         <strong>{label}: </strong>
@@ -292,35 +293,28 @@ function WaterbodyInfo({
     );
   };
 
-  const waterbodyReportLink = (
-    <>
-      {!onWaterbodyReportPage && attributes.organizationid ? (
-        <div>
-          <a
-            rel="noopener noreferrer"
-            target="_blank"
-            href={
-              `/waterbody-report/` +
-              `${attributes.organizationid}/` +
-              `${attributes.assessmentunitidentifier}/` +
-              `${attributes.reportingcycle || ''}`
-            }
-          >
-            <i
-              css={iconStyles}
-              className="fas fa-file-alt"
-              aria-hidden="true"
-            />
-            View Waterbody Report
-          </a>
-          &nbsp;&nbsp;
-          <small css={disclaimerStyles}>(opens new browser tab)</small>
-        </div>
-      ) : (
-        <p>Unable to find a waterbody report for this waterbody.</p>
-      )}
-    </>
-  );
+  const waterbodyReportLink =
+    !onWaterbodyReportPage && attributes.organizationid ? (
+      <div>
+        <a
+          rel="noopener noreferrer"
+          target="_blank"
+          href={
+            `/waterbody-report/` +
+            `${attributes.organizationid}/` +
+            `${attributes.assessmentunitidentifier}/` +
+            `${attributes.reportingcycle || ''}`
+          }
+        >
+          <i css={iconStyles} className="fas fa-file-alt" aria-hidden="true" />
+          View Waterbody Report
+        </a>
+        &nbsp;&nbsp;
+        <small css={disclaimerStyles}>(opens new browser tab)</small>
+      </div>
+    ) : (
+      <p>Unable to find a waterbody report for this waterbody.</p>
+    );
 
   const baseWaterbodyContent = () => {
     let useLabel = 'Waterbody';
@@ -1211,7 +1205,7 @@ function WaterbodyInfo({
                                 )}
                               </td>
                               <td>{action.type}</td>
-                              <td css={dateCellStyles}>{action.date}</td>
+                              <td css={dateStyles}>{action.date}</td>
                             </tr>
                           );
                         })}
