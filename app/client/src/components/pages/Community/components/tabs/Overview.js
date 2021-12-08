@@ -36,6 +36,7 @@ import {
 // errors
 import {
   echoError,
+  streamgagesError,
   monitoringError,
   huc12SummaryError,
   zeroAssessedWaterbodies,
@@ -251,9 +252,10 @@ function Overview() {
         </div>
       )}
 
-      {monitoringLocations.status === 'failure' &&
-        usgsStreamgages.status === 'failure' && (
+      {usgsStreamgages.status === 'failure' &&
+        monitoringLocations.status === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
+            <p>{streamgagesError}</p>
             <p>{monitoringError}</p>
           </div>
         )}
@@ -606,21 +608,6 @@ function MonitoringAndSensorsTab({
     return <LoadingSpinner />;
   }
 
-  // TODO: check with EPA if they want to use the same error message for both
-  // web services (how this is currently implemented) or have unique error
-  // messages for each (which would mean removing the block below, and adding
-  // in conditional rendering of both error messages in the success block below)
-  if (
-    monitoringLocations.status === 'failure' &&
-    usgsStreamgages.status === 'failure'
-  ) {
-    return (
-      <div css={modifiedErrorBoxStyles}>
-        <p>{monitoringError}</p>
-      </div>
-    );
-  }
-
   if (
     monitoringLocations.status === 'success' ||
     usgsStreamgages.status === 'success'
@@ -635,6 +622,18 @@ function MonitoringAndSensorsTab({
 
         {allMonitoringAndSensors.length > 0 && (
           <>
+            {usgsStreamgages.status === 'failure' && (
+              <div css={modifiedErrorBoxStyles}>
+                <p>{streamgagesError}</p>
+              </div>
+            )}
+
+            {monitoringLocations.status === 'failure' && (
+              <div css={modifiedErrorBoxStyles}>
+                <p>{monitoringError}</p>
+              </div>
+            )}
+
             <table css={tableStyles} className="table">
               <thead>
                 <tr>
