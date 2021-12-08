@@ -10,15 +10,21 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
 import { getWaterbodyCondition } from 'components/pages/LocationMap/MapFunctions';
+import { fetchCheck } from 'utils/fetchUtils';
 import {
-  formatNumber,
   convertAgencyCode,
   convertDomainCode,
+  formatNumber,
+  getSelectedCommunityTab,
+  titleCaseWithExceptions,
 } from 'utils/utils';
 // data
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
+// errors
+import { waterbodyReportError } from 'config/errorMessages';
 // styles
 import { colors } from 'styles/index.js';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 
 function bool(value) {
   // Return 'Yes' for truthy values and non-zero strings
@@ -114,6 +120,15 @@ const imageStyles = css`
   height: auto;
 `;
 
+const dateStyles = css`
+  white-space: nowrap;
+`;
+
+const projectsContainerStyles = css`
+  margin-right: 0.625em;
+  margin-bottom: 0.5rem;
+`;
+
 // --- components ---
 type Props = {
   type: string,
@@ -158,6 +173,8 @@ function WaterbodyInfo({
   }, [getClickedHuc, clickedHuc]);
 
   const { attributes } = feature;
+  const onWaterbodyReportPage =
+    window.location.pathname.indexOf('waterbody-report') !== -1;
 
   function labelValue(label, value, icon = null) {
     if (isPopup) {
@@ -267,6 +284,7 @@ function WaterbodyInfo({
       ));
 
     if (pollutionCategories.length === 0) return null;
+
     return (
       <>
         <strong>{label}: </strong>
@@ -274,6 +292,29 @@ function WaterbodyInfo({
       </>
     );
   };
+
+  const waterbodyReportLink =
+    !onWaterbodyReportPage && attributes.organizationid ? (
+      <div>
+        <a
+          rel="noopener noreferrer"
+          target="_blank"
+          href={
+            `/waterbody-report/` +
+            `${attributes.organizationid}/` +
+            `${attributes.assessmentunitidentifier}/` +
+            `${attributes.reportingcycle || ''}`
+          }
+        >
+          <i css={iconStyles} className="fas fa-file-alt" aria-hidden="true" />
+          View Waterbody Report
+        </a>
+        &nbsp;&nbsp;
+        <small css={disclaimerStyles}>(opens new browser tab)</small>
+      </div>
+    ) : (
+      <p>Unable to find a waterbody report for this waterbody.</p>
+    );
 
   const baseWaterbodyContent = () => {
     let useLabel = 'Waterbody';
@@ -297,9 +338,6 @@ function WaterbodyInfo({
 
     // Be sure to use null for the field on non use specific panels (i.e. overview, state page, etc.)
     if (useLabel === 'Waterbody') field = null;
-
-    const onWaterbodyReportPage =
-      window.location.pathname.indexOf('waterbody-report') !== -1;
 
     const useBasedCondition = getWaterbodyCondition(attributes, field);
 
@@ -379,31 +417,7 @@ function WaterbodyInfo({
             )
           : ''}
 
-        {!onWaterbodyReportPage && attributes.organizationid ? (
-          <div>
-            <a
-              rel="noopener noreferrer"
-              target="_blank"
-              href={
-                `/waterbody-report/` +
-                `${attributes.organizationid}/` +
-                `${attributes.assessmentunitidentifier}/` +
-                `${attributes.reportingcycle || ''}`
-              }
-            >
-              <i
-                css={iconStyles}
-                className="fas fa-file-alt"
-                aria-hidden="true"
-              />
-              View Waterbody Report
-            </a>
-            &nbsp;&nbsp;
-            <small css={disclaimerStyles}>(opens new browser tab)</small>
-          </div>
-        ) : (
-          <p>Unable to find a waterbody report for this waterbody.</p>
-        )}
+        {waterbodyReportLink}
       </>
     );
   };
@@ -499,9 +513,9 @@ function WaterbodyInfo({
     );
   }
 
-  const [charGroupFilters, setCharGroupFilters] = React.useState('');
-  const [selected, setSelected] = React.useState({});
-  const [selectAll, setSelectAll] = React.useState(1);
+  const [charGroupFilters, setCharGroupFilters] = useState('');
+  const [selected, setSelected] = useState({});
+  const [selectAll, setSelectAll] = useState(1);
 
   function dailyWaterConditionsContent() {
     return (
@@ -560,7 +574,6 @@ function WaterbodyInfo({
             ))}
           </tbody>
         </table>
-
         <div>
           <a
             rel="noopener noreferrer"
@@ -585,7 +598,7 @@ function WaterbodyInfo({
     const stationGroups = JSON.parse(attributes.stationTotalsByCategory);
 
     const groups = { Other: { characteristicGroups: [], resultCount: 0 } };
-
+    // get the feature where the provider matches this stations provider
     characteristicGroupMappings.forEach((mapping) => {
       for (const groupName in stationGroups) {
         if (
@@ -617,7 +630,6 @@ function WaterbodyInfo({
     });
 
     function buildFilter(selectedNames, monitoringLocationData) {
-      // build up filter text for the given table
       let filter = '';
 
       for (const name in selectedNames) {
@@ -633,7 +645,7 @@ function WaterbodyInfo({
       setCharGroupFilters(filter);
     }
 
-    // toggle an individual row and call the provided onChange event handler
+    //Toggle an individual row and call the provided onChange event handler
     function toggleRow(mappedGroup: string, monitoringLocationData: Object) {
       const selectedGroups = { ...selected };
 
@@ -667,7 +679,7 @@ function WaterbodyInfo({
       }
     }
 
-    // toggle all rows and call the provided onChange event handler
+    //Toggle all rows and call the provided onChange event handler
     function toggleAllCheckboxes() {
       let selectedGroups = {};
 
@@ -687,7 +699,7 @@ function WaterbodyInfo({
     // if a user has filtered out certain characteristic groups for
     // a given table, that'll be used as additional query string
     // parameters in the download URL string
-    // (see setCharGroupFilters in table's onChange handler)
+    // (see setCharGroupFilters in Table's onChange handler)
     const downloadUrl =
       `${services.data.waterQualityPortal.resultSearch}zip=no&siteid=` +
       `${attributes.siteId}&providers=${attributes.stationProviderName}` +
@@ -863,7 +875,7 @@ function WaterbodyInfo({
     );
   }
 
-  // jsx
+  // Default popup for monitoring popups, when opened a listener will populate the popup with everything the Listview item has
   const nonprofitContent = (
     <>
       {labelValue('Address', attributes.Address || 'No address found.')}
@@ -1070,9 +1082,153 @@ function WaterbodyInfo({
   // This content is filled in from the getPopupContent function in MapFunctions.
   const actionContent = <>{extraContent}</>;
 
+  // Fetch attains projects data
+  const [attainsProjects, setAttainsProjects] = useState({
+    status: 'fetching',
+    data: [],
+  });
+  useEffect(() => {
+    if (type !== 'Restoration Plans' && type !== 'Protection Plans') return;
+
+    const auId = attributes.assessmentunitidentifier;
+    const url =
+      services.data.attains.serviceUrl +
+      `actions?assessmentUnitIdentifier=${auId}` +
+      `&organizationIdentifier=${attributes.organizationid}` +
+      `&summarize=Y`;
+
+    fetchCheck(url)
+      .then((res) => {
+        let attainsProjectsData = [];
+
+        if (res.items.length > 0) {
+          attainsProjectsData = res.items[0].actions.map((action) => {
+            const pollutants = action
+              ? action.parameters.map((p) =>
+                  titleCaseWithExceptions(p.parameterName),
+                )
+              : [];
+
+            return {
+              id: action.actionIdentifier,
+              orgId: attributes.organizationid,
+              name: action.actionName,
+              pollutants,
+              type: action.actionTypeCode,
+              date: action.completionDate,
+            };
+          });
+        }
+
+        setAttainsProjects({
+          status: 'success',
+          data: attainsProjectsData,
+        });
+      })
+      .catch((err) => {
+        console.error(err);
+        setAttainsProjects({
+          status: 'failure',
+          data: [],
+        });
+      });
+  }, [
+    attributes.assessmentunitidentifier,
+    attributes.organizationid,
+    type,
+    services,
+  ]);
+
+  // jsx
+  const projectContent = () => {
+    const communityTab = getSelectedCommunityTab();
+
+    const projects = attainsProjects.data.filter((project) => {
+      return (
+        (communityTab === 'restore' &&
+          project.type !== 'Protection Approach') ||
+        (communityTab === 'protect' && project.type === 'Protection Approach')
+      );
+    });
+
+    return (
+      <>
+        <div css={projectsContainerStyles}>
+          {(attainsProjects.status === 'fetching' ||
+            attainsProjects.status === 'pending') && <LoadingSpinner />}
+          {attainsProjects.status === 'failure' && (
+            <div css={errorBoxStyles}>
+              <p>{waterbodyReportError('Plans')}</p>
+            </div>
+          )}
+          {attainsProjects.status === 'success' && (
+            <>
+              {projects.length === 0 ? (
+                <p>No plans for this waterbody.</p>
+              ) : (
+                <>
+                  <em>Links below open in a new browser tab.</em>
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>Plan</th>
+                        <th>Impairments</th>
+                        <th>Type</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {projects
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .map((action, index) => {
+                          return (
+                            <tr key={index}>
+                              <td>
+                                <a
+                                  href={`/plan-summary/${action.orgId}/${action.id}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  {titleCaseWithExceptions(action.name)}
+                                </a>
+                              </td>
+                              <td>
+                                {action.pollutants.length === 0 && (
+                                  <>No impairments found.</>
+                                )}
+                                {action.pollutants.length > 0 && (
+                                  <>
+                                    {action.pollutants
+                                      .sort((a, b) => a.localeCompare(b))
+                                      .join(', ')}
+                                  </>
+                                )}
+                              </td>
+                              <td>{action.type}</td>
+                              <td css={dateStyles}>{action.date}</td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </>
+              )}
+            </>
+          )}
+        </div>
+
+        {waterbodyReportLink}
+
+        {renderChangeWatershed()}
+      </>
+    );
+  };
+
   if (!attributes) return null;
 
   if (type === 'Waterbody') return waterbodyContent;
+  if (type === 'Restoration Plans') return projectContent();
+  if (type === 'Protection Plans') return projectContent();
   if (type === 'Permitted Discharger') return dischargerContent;
   if (type === 'Daily Water Conditions') return dailyWaterConditionsContent();
   if (type === 'Sample Location') return sampleLocationContent();

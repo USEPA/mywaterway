@@ -282,6 +282,17 @@ function escapeRegex(str) {
   return str.replace(/([.*+?^=!:${}()|\]\\])/g, '\\$1');
 }
 
+// Gets the selected community tab from the url
+function getSelectedCommunityTab() {
+  const pathParts = window.location.pathname.substring(1).split('/');
+  let selectedCommunityTab = '';
+  if (pathParts.length === 3 && pathParts[0] === 'community') {
+    selectedCommunityTab = pathParts[2];
+  }
+
+  return selectedCommunityTab.toLowerCase();
+}
+
 export {
   chunkArray,
   containsScriptTag,
@@ -302,4 +313,5 @@ export {
   browserIsCompatibleWithArcGIS,
   convertAgencyCode,
   convertDomainCode,
+  getSelectedCommunityTab,
 };

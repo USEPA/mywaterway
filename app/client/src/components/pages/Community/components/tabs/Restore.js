@@ -1,14 +1,15 @@
 // @flow
 
-import React from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 // components
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import { ContentTabs } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import Switch from 'components/shared/Switch';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 // styled components
 import {
@@ -21,56 +22,115 @@ import {
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { getUrlFromMarkup, getTitleFromMarkup } from 'components/shared/Regex';
-import { useWaterbodyOnMap } from 'utils/hooks';
+import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
+import { getUniqueWaterbodies } from 'components/pages/LocationMap/MapFunctions';
 // errors
 import {
   restoreNonpointSourceError,
   restorationPlanError,
 } from 'config/errorMessages';
 
-// --- styled components ---
-const Container = styled.div`
+const containerStyles = css`
   padding: 1em;
+  line-height: 1.25em;
 `;
 
-const Text = styled.p`
+const textStyles = css`
   text-align: center;
 `;
 
-const NewTabDisclaimer = styled.div`
+const disclaimerStyles = css`
   display: inline-block;
 `;
 
-// --- components ---
+const switchContainerStyles = css`
+  margin-top: 0.5em;
+`;
+
 function Restore() {
-  const { attainsPlans, grts, watershed } = React.useContext(
-    LocationSearchContext,
-  );
+  const {
+    attainsPlans,
+    cipSummary,
+    grts,
+    visibleLayers,
+    setVisibleLayers,
+    watershed,
+    waterbodyLayer,
+  } = useContext(LocationSearchContext);
+
+  // set the waterbody features
+  const waterbodies = useWaterbodyFeatures();
+
+  const uniqueWaterbodies = waterbodies
+    ? getUniqueWaterbodies(waterbodies)
+    : [];
 
   // draw the waterbody on the map
-  useWaterbodyOnMap();
+  useWaterbodyOnMap('restoreTab');
+
+  const [restoreLayerEnabled, setRestoreLayerEnabled] = useState(true);
+
+  // Syncs the toggles with the visible layers on the map. Mainly
+  // used for when the user toggles layers in full screen mode and then
+  // exist full screen.
+  useEffect(() => {
+    const { waterbodyLayer } = visibleLayers;
+
+    if (typeof waterbodyLayer === 'boolean') {
+      setRestoreLayerEnabled(waterbodyLayer);
+    }
+  }, [visibleLayers]);
+
+  // Updates the visible layers. This function also takes into account whether
+  // or not the underlying webservices failed.
+  const updateVisibleLayers = useCallback(
+    ({ key = null, newValue = null, useCurrentValue = false }) => {
+      const newVisibleLayers = {};
+      if (cipSummary.status !== 'failure') {
+        newVisibleLayers['waterbodyLayer'] =
+          !waterbodyLayer || useCurrentValue
+            ? visibleLayers['waterbodyLayer']
+            : restoreLayerEnabled;
+      }
+
+      if (newVisibleLayers.hasOwnProperty(key)) {
+        newVisibleLayers[key] = newValue;
+      }
+
+      // set the visible layers if something changed
+      if (JSON.stringify(visibleLayers) !== JSON.stringify(newVisibleLayers)) {
+        setVisibleLayers(newVisibleLayers);
+      }
+    },
+    [
+      waterbodyLayer,
+      restoreLayerEnabled,
+      cipSummary,
+      visibleLayers,
+      setVisibleLayers,
+    ],
+  );
 
   const sortedGrtsData =
     grts.data.items && grts.data.items.length > 0
       ? grts.data.items
-          .sort((objA, objB) => {
-            return objA['prj_title'].localeCompare(objB['prj_title']);
+          .sort((a, b) => a.prj_title.localeCompare(b.prj_title))
+          .filter((project) => {
+            return !project.ws_protect_ind || project.ws_protect_ind === 'N';
           })
-          .filter(
-            (project) =>
-              !project.ws_protect_ind || project.ws_protect_ind === 'N',
-          )
       : [];
 
   const sortedAttainsPlanData =
     attainsPlans.data.items && attainsPlans.data.items.length > 0
-      ? attainsPlans.data.items.sort((objA, objB) => {
-          return objA['actionName'].localeCompare(objB['actionName']);
-        })
+      ? attainsPlans.data.items
+          .filter((item) => item.actionTypeCode !== 'Protection Approach')
+          .sort((a, b) => a.actionName.localeCompare(b.actionName))
       : [];
 
+  const waterbodyCount = uniqueWaterbodies && uniqueWaterbodies.length;
+
   return (
-    <Container>
+    <div css={containerStyles}>
       <StyledMetrics>
         <StyledMetric>
           {grts.status === 'fetching' ? (
@@ -95,6 +155,22 @@ function Restore() {
             </StyledNumber>
           )}
           <StyledLabel>Plans</StyledLabel>
+          <div css={switchContainerStyles}>
+            <Switch
+              checked={Boolean(waterbodyCount) && restoreLayerEnabled}
+              onChange={(checked) => {
+                setRestoreLayerEnabled(!restoreLayerEnabled);
+
+                // first check if layer exists and is not falsy
+                updateVisibleLayers({
+                  key: 'waterbodyLayer',
+                  newValue: waterbodyLayer && !restoreLayerEnabled,
+                });
+              }}
+              disabled={!Boolean(waterbodyCount)}
+              ariaLabel="Waterbodies"
+            />
+          </div>
         </StyledMetric>
       </StyledMetrics>
 
@@ -119,14 +195,15 @@ function Restore() {
                 {grts.status === 'success' && (
                   <>
                     {sortedGrtsData.length === 0 && (
-                      <Text>
+                      <p css={textStyles}>
                         There are no{' '}
                         <GlossaryTerm term="Clean Water Act Section 319 Projects">
                           Clean Water Act Section 319
                         </GlossaryTerm>{' '}
-                        projects in the {watershed} watershed.
-                      </Text>
+                        projects in the <em>{watershed}</em> watershed.
+                      </p>
                     )}
+
                     {sortedGrtsData.length > 0 && (
                       <>
                         <AccordionList
@@ -136,17 +213,17 @@ function Restore() {
                               <GlossaryTerm term="Clean Water Act Section 319 Projects">
                                 Clean Water Act Section 319
                               </GlossaryTerm>{' '}
-                              that benefit waterbodies in the {watershed}{' '}
-                              watershed.
+                              that benefit waterbodies in the{' '}
+                              <em>{watershed}</em> watershed.
                             </>
                           }
                         >
                           {sortedGrtsData.map((item, index) => {
-                            const url = getUrlFromMarkup(item['project_link']);
+                            const url = getUrlFromMarkup(item.project_link);
                             const documents =
-                              item['watershed_plans'] &&
+                              item.watershed_plans &&
                               // break string into pieces separated by commas and map over them
-                              item['watershed_plans'].split(',').map((plan) => {
+                              item.watershed_plans.split(',').map((plan) => {
                                 const markup = plan.split('</a>')[0] + '</a>';
                                 const title = getTitleFromMarkup(markup);
                                 const planUrl = getUrlFromMarkup(markup);
@@ -164,12 +241,10 @@ function Restore() {
                               <AccordionItem
                                 key={index}
                                 title={
-                                  <strong>
-                                    {item['prj_title'] || 'Unknown'}
-                                  </strong>
+                                  <strong>{item.prj_title || 'Unknown'}</strong>
                                 }
                                 subTitle={`ID:  ${
-                                  item['prj_seq'] || 'Unknown ID'
+                                  item.prj_seq || 'Unknown ID'
                                 }`}
                               >
                                 <table className="table">
@@ -179,26 +254,26 @@ function Restore() {
                                         <td>
                                           <em>Impairments:</em>
                                         </td>
-                                        <td>{item['pollutants']}</td>
+                                        <td>{item.pollutants}</td>
                                       </tr>
                                     )}
                                     <tr>
                                       <td>
                                         <em>Total Funds:</em>
                                       </td>
-                                      <td>{item['total_319_funds']}</td>
+                                      <td>{item.total_319_funds}</td>
                                     </tr>
                                     <tr>
                                       <td>
                                         <em>Project Start Date:</em>
                                       </td>
-                                      <td>{item['project_start_date']}</td>
+                                      <td>{item.project_start_date}</td>
                                     </tr>
                                     <tr>
                                       <td>
                                         <em>Project Status:</em>
                                       </td>
-                                      <td>{item['status']}</td>
+                                      <td>{item.status}</td>
                                     </tr>
                                     <tr>
                                       <td>
@@ -213,9 +288,9 @@ function Restore() {
                                           Open Project Summary
                                         </a>
                                         &nbsp;&nbsp;
-                                        <NewTabDisclaimer>
+                                        <small css={disclaimerStyles}>
                                           (opens new browser tab)
-                                        </NewTabDisclaimer>
+                                        </small>
                                       </td>
                                     </tr>
                                     <tr>
@@ -279,91 +354,88 @@ function Restore() {
                 {attainsPlans.status === 'success' && (
                   <>
                     {sortedAttainsPlanData.length === 0 && (
-                      <Text>
+                      <p css={textStyles}>
                         There are no EPA funded{' '}
                         <GlossaryTerm term="Restoration plan">
                           restoration plans
                         </GlossaryTerm>{' '}
-                        in the {watershed} watershed.
-                      </Text>
+                        in the <em>{watershed}</em> watershed.
+                      </p>
                     )}
+
                     {sortedAttainsPlanData.length > 0 && (
-                      <>
-                        <AccordionList
-                          title={
-                            <>
-                              <GlossaryTerm term="Restoration plan">
-                                Restoration plans
-                              </GlossaryTerm>{' '}
-                              in the {watershed} watershed.
-                            </>
-                          }
-                        >
-                          {sortedAttainsPlanData.map((item, index) => {
-                            return (
-                              <AccordionItem
-                                key={index}
-                                title={
-                                  <strong>
-                                    {item['actionName'] || 'Unknown'}
-                                  </strong>
-                                }
-                                subTitle={`ID: ${item['actionIdentifier']}`}
-                              >
-                                <table className="table">
-                                  <tbody>
+                      <AccordionList
+                        title={
+                          <>
+                            <GlossaryTerm term="Restoration plan">
+                              Restoration plans
+                            </GlossaryTerm>{' '}
+                            in the <em>{watershed}</em> watershed.
+                          </>
+                        }
+                      >
+                        {sortedAttainsPlanData.map((item, index) => {
+                          return (
+                            <AccordionItem
+                              key={index}
+                              title={
+                                <strong>{item.actionName || 'Unknown'}</strong>
+                              }
+                              subTitle={`ID: ${item.actionIdentifier}`}
+                            >
+                              <table className="table">
+                                <tbody>
+                                  <tr>
+                                    <td>
+                                      <em>Plan Type:</em>
+                                    </td>
+                                    <td>{item.actionTypeCode}</td>
+                                  </tr>
+                                  <tr>
+                                    <td>
+                                      <em>Status:</em>
+                                    </td>
+                                    <td>
+                                      {/* if Action type is not a TMDL, change 'EPA Final Action' to 'Final */}
+                                      {item.actionTypeCode !== 'TMDL' &&
+                                      item.actionStatusCode ===
+                                        'EPA Final Action'
+                                        ? 'Final'
+                                        : item.actionStatusCode}
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>
+                                      <em>Completion Date:</em>
+                                    </td>
+                                    <td>{item.completionDate}</td>
+                                  </tr>
+                                  {item.actionIdentifier && (
                                     <tr>
                                       <td>
-                                        <em>Plan Type:</em>
-                                      </td>
-                                      <td>{item['actionTypeCode']}</td>
-                                    </tr>
-                                    <tr>
-                                      <td>
-                                        <em>Status:</em>
+                                        <em>Plan Details:</em>
                                       </td>
                                       <td>
-                                        {/* if Action type is not a TMDL, change 'EPA Final Action' to 'Final */}
-                                        {item['actionTypeCode'] !== 'TMDL' &&
-                                        item['actionStatusCode'] ===
-                                          'EPA Final Action'
-                                          ? 'Final'
-                                          : item['actionStatusCode']}
+                                        <a
+                                          href={`/plan-summary/${item.organizationId}/${item.actionIdentifier}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                        >
+                                          Open Plan Summary
+                                        </a>
+                                        &nbsp;&nbsp;
+                                        <small css={disclaimerStyles}>
+                                          (opens new browser tab)
+                                        </small>
                                       </td>
                                     </tr>
-                                    <tr>
-                                      <td>
-                                        <em>Completion Date:</em>
-                                      </td>
-                                      <td>{item['completionDate']}</td>
-                                    </tr>
-                                    {item['actionIdentifier'] && (
-                                      <tr>
-                                        <td>
-                                          <em>Plan Details:</em>
-                                        </td>
-                                        <td>
-                                          <a
-                                            href={`/plan-summary/${item['organizationId']}/${item['actionIdentifier']}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                          >
-                                            Open Plan Summary
-                                          </a>
-                                          &nbsp;&nbsp;
-                                          <NewTabDisclaimer>
-                                            (opens new browser tab)
-                                          </NewTabDisclaimer>
-                                        </td>
-                                      </tr>
-                                    )}
-                                  </tbody>
-                                </table>
-                              </AccordionItem>
-                            );
-                          })}
-                        </AccordionList>
-                      </>
+                                  )}
+                                </tbody>
+                              </table>
+                            </AccordionItem>
+                          );
+                        })}
+                      </AccordionList>
                     )}
                   </>
                 )}
@@ -372,7 +444,7 @@ function Restore() {
           </TabPanels>
         </Tabs>
       </ContentTabs>
-    </Container>
+    </div>
   );
 }
 

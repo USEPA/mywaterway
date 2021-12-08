@@ -307,7 +307,7 @@ const tabs = [
     upper: restoreUpper,
     lower: <Restore />,
     layers: {
-      waterbodyLayer: false,
+      waterbodyLayer: true,
     },
   },
   {

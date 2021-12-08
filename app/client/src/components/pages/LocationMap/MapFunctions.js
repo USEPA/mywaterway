@@ -10,6 +10,8 @@ import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 // styles
 import { colors } from 'styles/index.js';
+// utilities
+import { getSelectedCommunityTab } from 'utils/utils';
 
 const popupContainerStyles = css`
   margin: 0;
@@ -141,6 +143,108 @@ export function createUniqueValueInfos(
         alpha,
       }),
     },
+    {
+      value: `Y`,
+      symbol: createWaterbodySymbol({
+        condition: 'nostatus',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `N`,
+      symbol: createWaterbodySymbol({
+        condition: 'hidden',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+  ];
+}
+
+export function createUniqueValueInfosRestore(
+  geometryType: string,
+  alpha: {
+    base: number,
+    poly: number,
+    outline: number,
+  } | null,
+) {
+  return [
+    {
+      value: `N, N, N`,
+      symbol: createWaterbodySymbol({
+        condition: 'hidden',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `N, N, Y`,
+      symbol: createWaterbodySymbol({
+        condition: 'nostatus',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `N, Y, N`,
+      symbol: createWaterbodySymbol({
+        condition: 'nostatus',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `N, Y, Y`,
+      symbol: createWaterbodySymbol({
+        condition: 'nostatus',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `Y, N, N`,
+      symbol: createWaterbodySymbol({
+        condition: 'nostatus',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `Y, N, Y`,
+      symbol: createWaterbodySymbol({
+        condition: 'nostatus',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `Y, Y, N`,
+      symbol: createWaterbodySymbol({
+        condition: 'nostatus',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `Y, Y, Y`,
+      symbol: createWaterbodySymbol({
+        condition: 'hidden',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
   ];
 }
 
@@ -171,7 +275,7 @@ export function createWaterbodySymbol({
   geometryType = 'point',
   alpha = null,
 }: {
-  condition: 'good' | 'polluted' | 'unassessed' | 'hidden',
+  condition: 'good' | 'polluted' | 'unassessed' | 'nostatus' | 'hidden',
   selected: boolean,
   geometryType: string,
   alpha: {
@@ -193,6 +297,9 @@ export function createWaterbodySymbol({
   if (condition === 'polluted') {
     // from colors.highlightedRed() and colors.red()
     color = selected ? { r: 124, g: 157, b: 173 } : { r: 203, g: 34, b: 62 };
+  }
+  if (condition === 'nostatus') {
+    color = selected ? { r: 93, g: 153, b: 227 } : { r: 0, g: 123, b: 255 };
   }
 
   // for polygons, add transparency to the color so that lines can be seen
@@ -218,7 +325,7 @@ export function createWaterbodySymbol({
   }
 
   if (geometryType === 'point') {
-    if (condition === 'good') {
+    if (condition === 'good' || condition === 'nostatus') {
       symbol.style = 'circle';
     }
 
@@ -599,9 +706,13 @@ export function getPopupContent({
 
   // line, area, point for waterbody
   else if (attributes && attributes.assessmentunitname) {
-    type = document.location.pathname.includes('advanced-search')
-      ? 'Waterbody State Overview'
-      : 'Waterbody';
+    const communityTab = getSelectedCommunityTab();
+    const pathname = document.location.pathname;
+
+    type = 'Waterbody';
+    if (pathname.includes('advanced-search')) type = 'Waterbody State Overview';
+    if (communityTab === 'restore') type = 'Restoration Plans';
+    if (communityTab === 'protect') type = 'Protection Plans';
   }
 
   // discharger
