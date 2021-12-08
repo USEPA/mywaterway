@@ -594,9 +594,15 @@ function MonitoringAndSensorsTab({
   const filteredMonitoringAndSensors = sortedMonitoringAndSensors.filter(
     (item) => {
       const displayedTypes = [];
-      if (usgsStreamgagesDisplayed)
+
+      if (usgsStreamgagesDisplayed) {
         displayedTypes.push('Daily Water Conditions');
-      if (monitoringLocationsDisplayed) displayedTypes.push('Sample Location');
+      }
+
+      if (monitoringLocationsDisplayed) {
+        displayedTypes.push('Sample Location');
+      }
+
       return displayedTypes.includes(item.monitoringType);
     },
   );
@@ -616,7 +622,8 @@ function MonitoringAndSensorsTab({
       <>
         {allMonitoringAndSensors.length === 0 && (
           <p css={centeredTextStyles}>
-            There are no locations with data in the {watershed} watershed.
+            There are no locations with data in the <em>{watershed}</em>{' '}
+            watershed.
           </p>
         )}
 
@@ -843,13 +850,17 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
       <>
         {totalPermittedDischargers === 0 && (
           <p css={centeredTextStyles}>
-            There are no dischargers in the {watershed} watershed.
+            There are no dischargers in the <em>{watershed}</em> watershed.
           </p>
         )}
 
         {totalPermittedDischargers > 0 && (
           <AccordionList
-            title={<>Dischargers in the {watershed} watershed.</>}
+            title={
+              <>
+                Dischargers in the <em>{watershed}</em> watershed.
+              </>
+            }
             onSortChange={(sortBy) => {
               setPermittedDischargersSortedBy(sortBy.value);
             }}
