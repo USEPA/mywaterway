@@ -498,17 +498,19 @@ function MonitoringStationsTab({
       locationType: gage.properties.monitoringLocationType,
       locationUrl: gage.properties.monitoringLocationUrl,
       // usgs streamgage specific properties:
-      streamGageMeasurements: gage.Datastreams.map((data) => ({
-        parameterDescription: data.description.split(' / USGS-')[0],
-        parameterCode: data.properties.ParameterCode,
-        // TODO: determine if we should display parameters missing measurements
-        measurement: data.Observations[0]?.result || '---',
-        datetime: data.Observations[0]?.phenomenonTime
-          ? new Date(data.Observations[0]?.phenomenonTime).toLocaleString()
-          : '',
-        unitAbbr: data.unitOfMeasurement.symbol,
-        unitName: data.unitOfMeasurement.name,
-      })),
+      streamGageMeasurements: gage.Datastreams.filter(
+        (data) => data.Observations.length > 0,
+      ).map((data) => {
+        const observation = data.Observations[0];
+        return {
+          parameterDescription: data.description.split(' / USGS-')[0],
+          parameterCode: data.properties.ParameterCode,
+          measurement: observation.result,
+          datetime: new Date(observation.phenomenonTime).toLocaleString(),
+          unitAbbr: data.unitOfMeasurement.symbol,
+          unitName: data.unitOfMeasurement.name,
+        };
+      }),
     }));
 
     setNormalizedUsgsStreamgages(gages);
