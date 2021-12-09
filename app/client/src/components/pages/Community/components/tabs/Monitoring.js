@@ -82,7 +82,7 @@ type MonitoringLocationData = {
 };
 
 type Station = {
-  sampleType: 'Monitoring Station',
+  monitoringType: 'Sample Location',
   siteId: string,
   orgId: string,
   orgName: string,
@@ -97,7 +97,7 @@ type Station = {
   uid: string,
 };
 
-type StationGroups = {
+type MonitoringLocationGroups = {
   [label: string]: {
     label: string,
     groupName: string,
@@ -113,13 +113,13 @@ function Monitoring() {
   useWaterbodyOnMap();
 
   const {
-    monitoringStations,
+    monitoringLocations,
     monitoringGroups,
     showAllMonitoring,
     setMonitoringGroups,
     dischargersLayer,
     permittedDischargers,
-    monitoringStationsLayer,
+    monitoringLocationsLayer,
     setShowAllMonitoring,
     watershed,
     visibleLayers,
@@ -136,37 +136,40 @@ function Monitoring() {
     setMonitoringLocationToggles,
   ] = React.useState({});
 
-  const [monitoringStationGroups, setMonitoringStationGroups] = React.useState(
-    {},
+  const [
+    monitoringLocationGroups,
+    setMonitoringLocationGroups,
+  ] = React.useState({});
+
+  const [allMonitoringLocations, setAllMonitoringLocations] = React.useState(
+    [],
   );
 
-  const [allMonitoringStations, setAllMonitoringStations] = React.useState([]);
-
   const [
-    displayedMonitoringStations,
-    setDisplayedMonitoringStations,
+    displayedMonitoringLocations,
+    setDisplayedMonitoringLocations,
   ] = React.useState([]);
 
   const [allToggled, setAllToggled] = React.useState(true);
 
   const [sortBy, setSortBy] = React.useState('locationName');
 
-  const storeMonitoringStations = React.useCallback(() => {
-    if (!monitoringStations.data.features) {
-      setAllMonitoringStations([]);
+  const storeMonitoringLocations = React.useCallback(() => {
+    if (!monitoringLocations.data.features) {
+      setAllMonitoringLocations([]);
       return;
     }
 
     // build up monitoring stations, toggles, and groups
-    let allMonitoringStations = [];
+    let allMonitoringLocations = [];
     let monitoringLocationToggles = {};
-    let monitoringStationGroups: StationGroups = {
+    let monitoringLocationGroups: MonitoringLocationGroups = {
       Other: { label: 'Other', stations: [], toggled: true },
     };
 
-    monitoringStations.data.features.forEach((station) => {
-      const monitoringStation = {
-        sampleType: 'Monitoring Station',
+    monitoringLocations.data.features.forEach((station) => {
+      const monitoringLocation = {
+        monitoringType: 'Sample Location',
         siteId: station.properties.MonitoringLocationIdentifier,
         orgId: station.properties.OrganizationIdentifier,
         orgName: station.properties.OrganizationFormalName,
@@ -197,9 +200,9 @@ function Monitoring() {
           `${station.properties.OrganizationIdentifier}`,
       };
 
-      allMonitoringStations.push(monitoringStation);
+      allMonitoringLocations.push(monitoringLocation);
 
-      // build up the monitoringLocationToggles and monitoringStationGroups
+      // build up the monitoringLocationToggles and monitoringLocationGroups
       let groupAdded = false;
 
       characteristicGroupMappings.forEach((mapping) => {
@@ -209,15 +212,15 @@ function Monitoring() {
           // if characteristic group exists in switch config object
           if (mapping.groupNames.includes(group)) {
             // if switch group (w/ label key) already exists, add the stations to it
-            if (monitoringStationGroups[mapping.label]) {
-              monitoringStationGroups[mapping.label].stations.push(
-                monitoringStation,
+            if (monitoringLocationGroups[mapping.label]) {
+              monitoringLocationGroups[mapping.label].stations.push(
+                monitoringLocation,
               );
               // else, create the group (w/ label key) and add the station
             } else {
-              monitoringStationGroups[mapping.label] = {
+              monitoringLocationGroups[mapping.label] = {
                 label: mapping.label,
-                stations: [monitoringStation],
+                stations: [monitoringLocation],
                 toggled: true,
               };
             }
@@ -229,7 +232,7 @@ function Monitoring() {
       // if characteristic group didn't exist in switch config object,
       // add the station to the 'Other' group
       if (!groupAdded)
-        monitoringStationGroups['Other'].stations.push(monitoringStation);
+        monitoringLocationGroups['Other'].stations.push(monitoringLocation);
     });
 
     if (monitoringGroups) {
@@ -238,39 +241,39 @@ function Monitoring() {
       setMonitoringLocationToggles(monitoringLocationToggles);
     }
 
-    setAllMonitoringStations(allMonitoringStations);
-    setDisplayedMonitoringStations(allMonitoringStations);
-    setMonitoringStationGroups(monitoringStationGroups);
+    setAllMonitoringLocations(allMonitoringLocations);
+    setDisplayedMonitoringLocations(allMonitoringLocations);
+    setMonitoringLocationGroups(monitoringLocationGroups);
     setAllToggled(showAllMonitoring);
 
     if (!monitoringGroups) setMonitoringGroups(monitoringLocationToggles);
   }, [
     services,
     monitoringGroups,
-    monitoringStations,
+    monitoringLocations,
     setMonitoringGroups,
     showAllMonitoring,
   ]);
 
   const drawMap = React.useCallback(() => {
-    if (allMonitoringStations.length === 0) return;
+    if (allMonitoringLocations.length === 0) return;
     if (services.status === 'fetching') return;
     const addedStationUids = [];
-    let tempDisplayedMonitoringStations = [];
+    let tempDisplayedMonitoringLocations = [];
 
     if (allToggled) {
-      tempDisplayedMonitoringStations = allMonitoringStations;
+      tempDisplayedMonitoringLocations = allMonitoringLocations;
     } else {
       // var use intentional for IE support
-      for (var key in monitoringStationGroups) {
-        const group = monitoringStationGroups[key];
+      for (var key in monitoringLocationGroups) {
+        const group = monitoringLocationGroups[key];
         // if the location is toggled
         if (monitoringLocationToggles[group.label]) {
           group.stations.forEach((station) => {
             // add the station to the display, if it has not already been added
             if (!addedStationUids.includes(station.uid)) {
               addedStationUids.push(station.uid);
-              tempDisplayedMonitoringStations.push(station);
+              tempDisplayedMonitoringLocations.push(station);
             }
           });
         }
@@ -278,31 +281,31 @@ function Monitoring() {
     }
 
     plotStations(
-      tempDisplayedMonitoringStations,
-      monitoringStationsLayer,
+      tempDisplayedMonitoringLocations,
+      monitoringLocationsLayer,
       services,
     );
 
-    if (tempDisplayedMonitoringStations.length === 0) {
-      setDisplayedMonitoringStations([]);
+    if (tempDisplayedMonitoringLocations.length === 0) {
+      setDisplayedMonitoringLocations([]);
       return;
     }
 
     if (
-      displayedMonitoringStations.length ===
-      tempDisplayedMonitoringStations.length
+      displayedMonitoringLocations.length ===
+      tempDisplayedMonitoringLocations.length
     ) {
       return;
     }
 
-    setDisplayedMonitoringStations(tempDisplayedMonitoringStations);
+    setDisplayedMonitoringLocations(tempDisplayedMonitoringLocations);
   }, [
-    displayedMonitoringStations,
-    allMonitoringStations,
+    displayedMonitoringLocations,
+    allMonitoringLocations,
     allToggled,
     monitoringLocationToggles,
-    monitoringStationGroups,
-    monitoringStationsLayer,
+    monitoringLocationGroups,
+    monitoringLocationsLayer,
     services,
   ]);
 
@@ -319,7 +322,7 @@ function Monitoring() {
           }
 
           setShowAllMonitoring(true);
-          monitoringStationsLayer.visible = true;
+          monitoringLocationsLayer.visible = true;
         } else {
           // toggle everything off
           setAllToggled(false);
@@ -328,12 +331,12 @@ function Monitoring() {
           }
 
           setShowAllMonitoring(false);
-          monitoringStationsLayer.visible = false;
+          monitoringLocationsLayer.visible = false;
         }
       }
       // just one of the categories was changed
       else {
-        monitoringStationsLayer.visible = true;
+        monitoringLocationsLayer.visible = true;
         toggleGroups[groupLabel] = !monitoringLocationToggles[groupLabel];
 
         // if all other switches are toggled on, toggle the 'All' switch on
@@ -354,7 +357,7 @@ function Monitoring() {
       drawMap();
     },
     [
-      monitoringStationsLayer,
+      monitoringLocationsLayer,
       allToggled,
       drawMap,
       monitoringLocationToggles,
@@ -367,9 +370,9 @@ function Monitoring() {
   const [componentMounted, setComponentMounted] = React.useState(false);
   React.useEffect(() => {
     if (componentMounted) return;
-    storeMonitoringStations();
+    storeMonitoringLocations();
     setComponentMounted(true);
-  }, [componentMounted, storeMonitoringStations]);
+  }, [componentMounted, storeMonitoringLocations]);
 
   // emulate componentdidupdate
   const mounted = React.useRef();
@@ -378,30 +381,30 @@ function Monitoring() {
       mounted.current = true;
     } else {
       // re-store monitoring stations if the data changes
-      if (monitoringStations.data !== prevMonitoringLocationData) {
-        setPrevMonitoringLocationData(monitoringStations.data);
-        storeMonitoringStations();
+      if (monitoringLocations.data !== prevMonitoringLocationData) {
+        setPrevMonitoringLocationData(monitoringLocations.data);
+        storeMonitoringLocations();
       }
 
-      // return early if displayedMonitoringStations hasn't yet been set
-      if (displayedMonitoringStations.length === 0) return;
+      // return early if displayedMonitoringLocations hasn't yet been set
+      if (displayedMonitoringLocations.length === 0) return;
 
       drawMap();
     }
   }, [
-    monitoringStations,
+    monitoringLocations,
     prevMonitoringLocationData,
-    displayedMonitoringStations,
+    displayedMonitoringLocations,
     drawMap,
-    storeMonitoringStations,
+    storeMonitoringLocations,
   ]);
 
   // clear the visible layers if the monitoring stations service failed
   React.useEffect(() => {
-    if (monitoringStations.status !== 'failure') return;
+    if (monitoringLocations.status !== 'failure') return;
 
     if (Object.keys(visibleLayers).length > 0) setVisibleLayers({});
-  }, [monitoringStations, visibleLayers, setVisibleLayers]);
+  }, [monitoringLocations, visibleLayers, setVisibleLayers]);
 
   // draw the permitted dischargers on the map
   React.useEffect(() => {
@@ -417,8 +420,8 @@ function Monitoring() {
     }
   }, [permittedDischargers.data, dischargersLayer]);
 
-  const sortedMonitoringStations = displayedMonitoringStations
-    ? displayedMonitoringStations.sort((a, b) => {
+  const sortedMonitoringLocations = displayedMonitoringLocations
+    ? displayedMonitoringLocations.sort((a, b) => {
         if (sortBy === 'stationTotalMeasurements') {
           return b.stationTotalMeasurements - a.stationTotalMeasurements;
         }
@@ -431,23 +434,23 @@ function Monitoring() {
       })
     : [];
 
-  const totalLocations = allMonitoringStations.length.toLocaleString();
-  const displayLocations = sortedMonitoringStations.length.toLocaleString();
+  const totalLocations = allMonitoringLocations.length.toLocaleString();
+  const displayLocations = sortedMonitoringLocations.length.toLocaleString();
 
   return (
     <div css={containerStyles}>
       <div css={keyMetricsStyles}>
         <div css={keyMetricStyles}>
-          {monitoringStations.status === 'fetching' ? (
+          {monitoringLocations.status === 'fetching' ? (
             <LoadingSpinner />
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {monitoringStations.status === 'failure'
+                {monitoringLocations.status === 'failure'
                   ? 'N/A'
-                  : `${monitoringStations.data.features.length}`}
+                  : `${monitoringLocations.data.features.length}`}
               </span>
-              <p css={keyMetricLabelStyles}>Sample Locations</p>
+              <p css={keyMetricLabelStyles}>Monitoring Stations</p>
             </>
           )}
         </div>
@@ -456,35 +459,35 @@ function Monitoring() {
       <div css={tabsStyles}>
         <Tabs>
           <TabList>
-            <Tab>Monitoring Stations</Tab>
-            <Tab>Daily Stream Flow Conditions</Tab>
+            <Tab>Sample Locations</Tab>
+            <Tab>Daily Water Conditions</Tab>
           </TabList>
 
           <TabPanels>
             <TabPanel>
-              {monitoringStations.status === 'fetching' && <LoadingSpinner />}
+              {monitoringLocations.status === 'fetching' && <LoadingSpinner />}
 
-              {monitoringStations.status === 'failure' && (
+              {monitoringLocations.status === 'failure' && (
                 <div css={modifiedErrorBoxStyles}>
                   <p>{monitoringError}</p>
                 </div>
               )}
 
-              {monitoringStations.status === 'success' && (
+              {monitoringLocations.status === 'success' && (
                 <>
                   <p>
                     View available monitoring locations in your local watershed
                     or view by category.
                   </p>
 
-                  {allMonitoringStations.length === 0 && (
+                  {allMonitoringLocations.length === 0 && (
                     <p css={centeredTextStyles}>
                       There are no Water Monitoring Locations in the {watershed}{' '}
                       watershed.
                     </p>
                   )}
 
-                  {allMonitoringStations.length > 0 && (
+                  {allMonitoringLocations.length > 0 && (
                     <>
                       <table css={tableStyles} className="table">
                         <thead>
@@ -503,7 +506,7 @@ function Monitoring() {
                           </tr>
                         </thead>
                         <tbody>
-                          {Object.values(monitoringStationGroups)
+                          {Object.values(monitoringLocationGroups)
                             .map((group) => {
                               // remove duplicates caused by a single monitoring station having multiple overlapping groupNames
                               // like 'Inorganics, Major, Metals' and 'Inorganics, Minor, Metals'
@@ -571,7 +574,7 @@ function Monitoring() {
                           },
                         ]}
                       >
-                        {sortedMonitoringStations.map((item, index) => {
+                        {sortedMonitoringLocations.map((item, index) => {
                           const feature = {
                             geometry: {
                               type: 'point',
@@ -606,7 +609,7 @@ function Monitoring() {
                             >
                               <div css={accordionContentStyles}>
                                 <WaterbodyInfo
-                                  type="Monitoring Station"
+                                  type="Sample Location"
                                   feature={feature}
                                   services={services}
                                 />

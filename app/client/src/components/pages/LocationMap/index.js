@@ -1,6 +1,12 @@
 // @flow
 
-import React from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import type { Node } from 'react';
 import styled from 'styled-components';
 import StickyBox from 'react-sticky-box';
@@ -128,13 +134,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setHucBoundaries,
     setAtHucBoundaries,
     mapView,
-    setMonitoringStations,
+    setMonitoringLocations,
     setUsgsStreamgages,
     // setNonprofits,
     setPermittedDischargers,
     setWaterbodyLayer,
     setIssuesLayer,
-    setMonitoringStationsLayer,
+    setMonitoringLocationsLayer,
     setUsgsStreamgagesLayer,
     setUpstreamLayer,
     setDischargersLayer,
@@ -162,7 +168,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     getAllFeatures,
     waterbodyCountMismatch,
     setWaterbodyCountMismatch,
-  } = React.useContext(LocationSearchContext);
+  } = useContext(LocationSearchContext);
 
   const stateNationalUses = useStateNationalUsesContext();
 
@@ -192,7 +198,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   }
 
   // create features whose IDs and data are not found in the Assessment Units and/or Assessments services
-  const createSimpleOrphanFeatures = React.useCallback(
+  const createSimpleOrphanFeatures = useCallback(
     (
       assessmentUnitServiceData,
       idsWithNoAssessmentData,
@@ -240,7 +246,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   // create a feature using data from ATTAINS Domains, Assessment Units, and Assessments services
-  const createDetailedOrphanFeatures = React.useCallback(
+  const createDetailedOrphanFeatures = useCallback(
     (res, allAssessmentUnits, attainsDomainsData) => {
       // function that checks if any uses in an array of uses have a status that matches the 2nd paremeter
       function checkStatus(uses, status) {
@@ -381,7 +387,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [stateNationalUses],
   );
 
-  const handleOrphanedFeatures = React.useCallback(
+  const handleOrphanedFeatures = useCallback(
     (res, attainsDomainsData, missingAssessments) => {
       const allAssessmentUnits = [];
       res.items.forEach((item) =>
@@ -502,8 +508,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // If so, query the individual missing assessment IDs using the ATTAINS assessments and assessmentUnits service
   // to build a complete feature that can be displayed in the Community section,
   // These features are marked by a custom attribute {... limited: true ...} and they lack spatial representation on the map.
-  const [checkedForOrphans, setCheckedForOrphans] = React.useState(false);
-  React.useEffect(() => {
+  const [checkedForOrphans, setCheckedForOrphans] = useState(false);
+  useEffect(() => {
     if (stateNationalUses.status === 'fetching') {
       return;
     }
@@ -597,9 +603,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   ]);
 
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
-  const [communityMapLoadError, setCommunityMapLoadError] = React.useState(
-    false,
-  );
+  const [communityMapLoadError, setCommunityMapLoadError] = useState(false);
 
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
@@ -608,8 +612,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const { getTitle, getTemplate, setDynamicPopupFields } = getDynamicPopup();
 
   // Builds the layers that have no dependencies
-  const [layersInitialized, setLayersInitialized] = React.useState(false);
-  React.useEffect(() => {
+  const [layersInitialized, setLayersInitialized] = useState(false);
+  useEffect(() => {
     if (!getSharedLayers || layersInitialized) return;
 
     if (layers.length > 0) return;
@@ -648,13 +652,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setUpstreamLayer(upstreamLayer);
 
-    const monitoringStationsLayer = new GraphicsLayer({
-      id: 'monitoringStationsLayer',
-      title: 'Monitoring Stations',
+    const monitoringLocationsLayer = new GraphicsLayer({
+      id: 'monitoringLocationsLayer',
+      title: 'Sample Locations',
       listMode: 'hide',
     });
 
-    setMonitoringStationsLayer(monitoringStationsLayer);
+    setMonitoringLocationsLayer(monitoringLocationsLayer);
 
     const usgsStreamgagesLayer = new FeatureLayer({
       id: 'usgsStreamgagesLayer',
@@ -663,7 +667,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       fields: [
         { name: 'ObjectID', type: 'oid' },
         { name: 'gageHeight', type: 'string' },
-        { name: 'sampleType', type: 'string' },
+        { name: 'monitoringType', type: 'string' },
         { name: 'siteId', type: 'string' },
         { name: 'orgId', type: 'string' },
         { name: 'orgName', type: 'string' },
@@ -758,7 +762,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       providersLayer,
       boundariesLayer,
       upstreamLayer,
-      monitoringStationsLayer,
+      monitoringLocationsLayer,
       usgsStreamgagesLayer,
       issuesLayer,
       dischargersLayer,
@@ -776,7 +780,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setDischargersLayer,
     setIssuesLayer,
     setLayers,
-    setMonitoringStationsLayer,
+    setMonitoringLocationsLayer,
     setUsgsStreamgagesLayer,
     setUpstreamLayer,
     setNonprofitsLayer,
@@ -787,15 +791,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   ]);
 
   // popup template to be used for all waterbody sublayers
-  const popupTemplate = React.useMemo(() => {
+  const popupTemplate = useMemo(() => {
     return {
       outFields: ['*'],
       title: (feature) => getPopupTitle(feature.graphic.attributes),
-      content: (feature) => getPopupContent({ feature: feature.graphic }),
+      content: (feature) =>
+        getPopupContent({ feature: feature.graphic, services }),
     };
-  }, []);
+  }, [services]);
 
-  const handleMapServiceError = React.useCallback(
+  const handleMapServiceError = useCallback(
     (err) => {
       setMapLoading(false);
       console.error(err);
@@ -807,7 +812,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const { cropGeometryToHuc } = useGeometryUtils();
 
   // Gets the lines data and builds the associated feature layer
-  const retrieveLines = React.useCallback(
+  const retrieveLines = useCallback(
     (filter, boundaries) => {
       const query = new Query({
         returnGeometry: true,
@@ -874,7 +879,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   // Gets the areas data and builds the associated feature layer
-  const retrieveAreas = React.useCallback(
+  const retrieveAreas = useCallback(
     (filter, boundaries) => {
       const query = new Query({
         returnGeometry: true,
@@ -941,7 +946,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   // Gets the points data and builds the associated feature layer
-  const retrievePoints = React.useCallback(
+  const retrievePoints = useCallback(
     (filter) => {
       const query = new Query({
         returnGeometry: true,
@@ -1002,7 +1007,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     orphanFeatures.status === 'error';
 
   // Builds the waterbody layer once data has been fetched for all sub layers
-  React.useEffect(() => {
+  useEffect(() => {
     if (mapServiceFailure) {
       setMapLoading(false);
       setCipSummary({ status: 'failure', data: {} });
@@ -1051,9 +1056,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   ]);
 
   // query geocode server for every new search
-  const [mapLoading, setMapLoading] = React.useState(true);
+  const [mapLoading, setMapLoading] = useState(true);
 
-  const queryMonitoringStationService = React.useCallback(
+  const queryMonitoringStationService = useCallback(
     (huc12) => {
       const url =
         `${services.data.waterQualityPortal.monitoringLocation}` +
@@ -1061,17 +1066,17 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       fetchCheck(url)
         .then((res) => {
-          setMonitoringStations({ status: 'success', data: res });
+          setMonitoringLocations({ status: 'success', data: res });
         })
         .catch((err) => {
           console.error(err);
-          setMonitoringStations({ status: 'failure', data: {} });
+          setMonitoringLocations({ status: 'failure', data: {} });
         });
     },
-    [setMonitoringStations, services],
+    [setMonitoringLocations, services],
   );
 
-  const queryUsgsStreamgageService = React.useCallback(
+  const queryUsgsStreamgageService = useCallback(
     (huc12) => {
       const url =
         `${services.data.usgsSensorThingsAPI}?` +
@@ -1112,7 +1117,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [services, setUsgsStreamgages],
   );
 
-  const queryPermittedDischargersService = React.useCallback(
+  const queryPermittedDischargersService = useCallback(
     (huc12) => {
       fetchCheck(services.data.echoNPDES.metadata)
         .then((res) => {
@@ -1161,7 +1166,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [setPermittedDischargers, services],
   );
 
-  const queryGrtsHuc12 = React.useCallback(
+  const queryGrtsHuc12 = useCallback(
     (huc12) => {
       fetchCheck(`${services.data.grts.getGRTSHUC12}${huc12}`)
         .then((res) => {
@@ -1183,7 +1188,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   // Runs a query to get the plans for the selected huc.
   // Note: The actions page will attempt to look up the organization id.
-  const queryAttainsPlans = React.useCallback(
+  const queryAttainsPlans = useCallback(
     (huc12) => {
       // get the plans for the selected huc
       fetchCheck(
@@ -1207,13 +1212,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [setAttainsPlans, services],
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (mapServiceFailure) {
       setMapLoading(false);
     }
   }, [mapServiceFailure]);
 
-  const getFishingLinkData = React.useCallback(
+  const getFishingLinkData = useCallback(
     (states) => {
       setFishingInfo({ status: 'fetching', data: [] });
 
@@ -1254,7 +1259,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [setFishingInfo, services],
   );
 
-  const getWsioHealthIndexData = React.useCallback(
+  const getWsioHealthIndexData = useCallback(
     (huc12) => {
       const url =
         `${services.data.wsio}/query?where=HUC12_TEXT%3D%27${huc12}%27` +
@@ -1290,7 +1295,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [setWsioHealthIndexData, services],
   );
 
-  const getWildScenicRivers = React.useCallback(
+  const getWildScenicRivers = useCallback(
     (boundaries) => {
       if (
         !boundaries ||
@@ -1337,7 +1342,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [services, setWildScenicRiversData],
   );
 
-  const getProtectedAreas = React.useCallback(
+  const getProtectedAreas = useCallback(
     (boundaries) => {
       if (
         !boundaries ||
@@ -1407,7 +1412,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [services, setProtectedAreasData, setDynamicPopupFields],
   );
 
-  const handleMapServices = React.useCallback(
+  const handleMapServices = useCallback(
     (results, boundaries) => {
       // sort the parameters by highest percent to lowest
       results.items[0].summaryByParameterImpairments = results.items[0].summaryByParameterImpairments.sort(
@@ -1439,7 +1444,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     ],
   );
 
-  const processBoundariesData = React.useCallback(
+  const processBoundariesData = useCallback(
     (boundaries) => {
       let huc12 = boundaries.features[0].attributes.huc12;
 
@@ -1498,8 +1503,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     ],
   );
 
-  const [hucResponse, setHucResponse] = React.useState(null);
-  const handleHUC12 = React.useCallback(
+  const [hucResponse, setHucResponse] = useState(null);
+  const handleHUC12 = useCallback(
     (response) => {
       setHucResponse(response);
 
@@ -1542,7 +1547,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     ],
   );
 
-  const processGeocodeServerResults = React.useCallback(
+  const processGeocodeServerResults = useCallback(
     (searchText, hucRes = null) => {
       const renderMapAndZoomTo = (longitude, latitude, callback) => {
         const location = {
@@ -1786,7 +1791,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     ],
   );
 
-  const queryGeocodeServer = React.useCallback(
+  const queryGeocodeServer = useCallback(
     (searchText) => {
       searchText = searchText.trim();
 
@@ -1840,7 +1845,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     ],
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (layers.length === 0 || searchText === lastSearchText) return;
 
     resetData();
@@ -1860,14 +1865,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   ]);
 
   // reset map when searchText is cleared (when navigating away from '/community')
-  React.useEffect(() => {
+  useEffect(() => {
     if (!searchText) {
       setHuc12('');
       setMapLoading(false);
     }
   }, [searchText, setHuc12]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       !mapView ||
       !hucBoundaries ||
@@ -1922,8 +1927,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     homeWidget,
   ]);
 
-  const [location, setLocation] = React.useState(null);
-  React.useEffect(() => {
+  const [location, setLocation] = useState(null);
+  useEffect(() => {
     if (!countyBoundaries || !hucResponse || !location) return;
 
     if (
@@ -2016,7 +2021,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   //     });
   // };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (layout !== 'fullscreen') return;
 
     // scroll community content into view
@@ -2029,8 +2034,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   }, [layout, windowHeight]);
 
   // calculate height of div holding searchText
-  const [searchTextHeight, setSearchTextHeight] = React.useState(0);
-  const measuredRef = React.useCallback((node) => {
+  const [searchTextHeight, setSearchTextHeight] = useState(0);
+  const measuredRef = useCallback((node) => {
     if (!node) return;
     setSearchTextHeight(node.getBoundingClientRect().height);
   }, []);
@@ -2038,7 +2043,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // Used for shutting off the loading spinner after the waterbodyLayer is
   // added to the map and the view stops updating.
   const waterbodyFeatures = useWaterbodyFeatures();
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       (!waterbodyLayer || waterbodyFeatures === null) &&
       cipSummary.status !== 'failure'
