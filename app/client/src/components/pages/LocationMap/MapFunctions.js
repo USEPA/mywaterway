@@ -3,7 +3,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { css } from 'styled-components/macro';
 import Graphic from '@arcgis/core/Graphic';
 // components
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
@@ -12,28 +11,6 @@ import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 import { colors } from 'styles/index.js';
 // utilities
 import { getSelectedCommunityTab } from 'utils/utils';
-
-const popupContainerStyles = css`
-  margin: 0;
-  overflow-y: auto;
-
-  .esri-feature & p {
-    padding-bottom: 0;
-  }
-`;
-
-const popupContentStyles = css`
-  margin-top: 0.5rem;
-  margin-left: 0.625em;
-`;
-
-const popupTitleStyles = css`
-  margin-bottom: 0;
-  padding: 0.45em 0.625em !important;
-  font-size: 0.8125em;
-  font-weight: bold;
-  background-color: #f0f6f9;
-`;
 
 const waterbodyStatuses = {
   good: { condition: 'good', label: 'Good' },
@@ -789,31 +766,17 @@ export function getPopupContent({
   }
 
   const content = (
-    <div css={popupContainerStyles}>
-      {(type !== 'Action' ||
-        'Change Location' ||
-        'Waterbody State Overview') && (
-        <p css={popupTitleStyles}>
-          {type === 'Demographic Indicators'
-            ? `${type} - ${feature.layer.title}`
-            : type}
-        </p>
-      )}
-
-      <div css={popupContentStyles}>
-        <WaterbodyInfo
-          type={type}
-          feature={feature}
-          fieldName={fieldName}
-          isPopup={true}
-          extraContent={extraContent}
-          getClickedHuc={getClickedHuc}
-          resetData={resetData}
-          services={services}
-          fields={fields}
-        />
-      </div>
-    </div>
+    <WaterbodyInfo
+      type={type}
+      feature={feature}
+      fieldName={fieldName}
+      isPopup={true}
+      extraContent={extraContent}
+      getClickedHuc={getClickedHuc}
+      resetData={resetData}
+      services={services}
+      fields={fields}
+    />
   );
 
   // wrap the content for esri
