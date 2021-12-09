@@ -517,7 +517,7 @@ function WaterbodyInfo({
   const [selected, setSelected] = useState({});
   const [selectAll, setSelectAll] = useState(1);
 
-  function dailyWaterConditionsContent() {
+  function usgsStreamgagesContent() {
     return (
       <>
         <table className="table">
@@ -536,7 +536,7 @@ function WaterbodyInfo({
             </tr>
             <tr>
               <td>
-                <em>Monitoring Location Type:</em>
+                <em>Water Type:</em>
               </td>
               <td>{attributes.locationType}</td>
             </tr>
@@ -594,7 +594,7 @@ function WaterbodyInfo({
     );
   }
 
-  function sampleLocationContent() {
+  function monitoringLocationsContent() {
     const stationGroups = JSON.parse(attributes.stationTotalsByCategory);
 
     const groups = { Other: { characteristicGroups: [], resultCount: 0 } };
@@ -723,7 +723,7 @@ function WaterbodyInfo({
             </tr>
             <tr>
               <td>
-                <em>Monitoring Location Type:</em>
+                <em>Water Type:</em>
               </td>
               <td>{attributes.locationType}</td>
             </tr>
@@ -1230,8 +1230,8 @@ function WaterbodyInfo({
   if (type === 'Restoration Plans') return projectContent();
   if (type === 'Protection Plans') return projectContent();
   if (type === 'Permitted Discharger') return dischargerContent;
-  if (type === 'Daily Water Conditions') return dailyWaterConditionsContent();
-  if (type === 'Sample Location') return sampleLocationContent();
+  if (type === 'Daily Water Conditions') return usgsStreamgagesContent();
+  if (type === 'Sample Location') return monitoringLocationsContent();
   if (type === 'Nonprofit') return nonprofitContent;
   if (type === 'Waterbody State Overview') return waterbodyStateContent;
   if (type === 'Action') return actionContent;
