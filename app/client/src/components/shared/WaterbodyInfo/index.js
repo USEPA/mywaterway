@@ -1119,7 +1119,7 @@ function WaterbodyInfo({
                   <table className="table">
                     <thead>
                       <tr>
-                        <th>Plan</th>
+                        <th>Plan (ID)</th>
                         <th>Impairments</th>
                         <th>Type</th>
                         <th>Date</th>
@@ -1137,7 +1137,8 @@ function WaterbodyInfo({
                                   target="_blank"
                                   rel="noopener noreferrer"
                                 >
-                                  {titleCaseWithExceptions(action.name)}
+                                  {titleCaseWithExceptions(action.name)} (
+                                  {action.id})
                                 </a>
                               </td>
                               <td>
