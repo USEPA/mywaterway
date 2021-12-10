@@ -251,6 +251,28 @@ function WaterbodyInfo({
     );
   };
 
+  const getTypeTitle = () => {
+    const typesToSkip = [
+      'Action',
+      'Change Location',
+      'Waterbody State Overview',
+    ];
+    if (typesToSkip.includes(type)) return null;
+
+    let title = type;
+    if (type === 'Demographic Indicators') {
+      title = `${type} - ${feature.layer.title}`;
+    }
+    if (type === 'Restoration Plans') {
+      title = 'Restoration Plans for this Waterbody';
+    }
+    if (type === 'Protection Plans') {
+      title = 'Protection Plans for this Waterbody';
+    }
+
+    return <p css={popupTitleStyles}>{title}</p>;
+  };
+
   const waterbodyReportLink =
     !onWaterbodyReportPage && attributes.organizationid ? (
       <div>
@@ -1233,15 +1255,7 @@ function WaterbodyInfo({
           </>
         )}
 
-        {type !== 'Action' &&
-          type !== 'Change Location' &&
-          type !== 'Waterbody State Overview' && (
-            <p css={popupTitleStyles}>
-              {type === 'Demographic Indicators'
-                ? `${type} - ${feature.layer.title}`
-                : type}
-            </p>
-          )}
+        {getTypeTitle()}
 
         <div css={popupContentStyles}>{content}</div>
       </div>
