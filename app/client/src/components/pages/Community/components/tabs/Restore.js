@@ -375,6 +375,15 @@ function Restore() {
                         }
                       >
                         {sortedAttainsPlanData.map((item, index) => {
+                          let planType = item.actionTypeCode;
+                          if (
+                            planType === 'TMDL' ||
+                            planType === '4B Restoration Approach' ||
+                            planType === 'Alternative Restoration Approach'
+                          ) {
+                            planType = 'Restoration Plan: ' + planType;
+                          }
+
                           return (
                             <AccordionItem
                               key={index}
@@ -389,7 +398,7 @@ function Restore() {
                                     <td>
                                       <em>Plan Type:</em>
                                     </td>
-                                    <td>{item.actionTypeCode}</td>
+                                    <td>{planType}</td>
                                   </tr>
                                   <tr>
                                     <td>

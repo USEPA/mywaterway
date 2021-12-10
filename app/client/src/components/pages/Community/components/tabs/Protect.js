@@ -1250,12 +1250,6 @@ function Protect() {
                                     {item.source === 'grts' && (
                                       <table className="table">
                                         <tbody>
-                                          <tr>
-                                            <td>
-                                              <em>Plan Type:</em>
-                                            </td>
-                                            <td>CWA section 303(d)</td>
-                                          </tr>
                                           {item.pollutants && (
                                             <tr>
                                               <td>
