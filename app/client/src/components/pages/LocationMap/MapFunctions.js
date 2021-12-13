@@ -685,11 +685,15 @@ export function getPopupContent({
   else if (attributes && attributes.assessmentunitname) {
     const communityTab = getSelectedCommunityTab();
     const pathname = document.location.pathname;
+    const isAllWaterbodiesLayer =
+      feature.layer?.parent?.id === 'allWaterbodiesLayer';
 
     type = 'Waterbody';
     if (pathname.includes('advanced-search')) type = 'Waterbody State Overview';
-    if (communityTab === 'restore') type = 'Restoration Plans';
-    if (communityTab === 'protect') type = 'Protection Plans';
+    if (!isAllWaterbodiesLayer) {
+      if (communityTab === 'restore') type = 'Restoration Plans';
+      if (communityTab === 'protect') type = 'Protection Plans';
+    }
   }
 
   // discharger
