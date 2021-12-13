@@ -166,7 +166,7 @@ function Protect() {
   const services = useServicesContext();
 
   // draw the waterbody on the map
-  useWaterbodyOnMap('hasprotectionplan');
+  useWaterbodyOnMap('hasprotectionplan', 'overallstatus');
 
   const { setSelectedGraphic } = useContext(MapHighlightContext);
   const {

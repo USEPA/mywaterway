@@ -66,7 +66,7 @@ function Restore() {
     : [];
 
   // draw the waterbody on the map
-  useWaterbodyOnMap('restoreTab');
+  useWaterbodyOnMap('restoreTab', 'overallstatus');
 
   const [restoreLayerEnabled, setRestoreLayerEnabled] = useState(true);
 

@@ -219,6 +219,7 @@ function useWaterbodyFeaturesState() {
 // draws waterbodies on the map
 function useWaterbodyOnMap(
   attributeName: string = '',
+  allWaterbodiesAttribute: string = '',
   defaultCondition: string = 'hidden',
 ) {
   const {
@@ -234,10 +235,10 @@ function useWaterbodyOnMap(
   } = useContext(LocationSearchContext);
 
   const setRenderer = useCallback(
-    (layer, geometryType, alpha = null) => {
+    (layer, geometryType, attribute, alpha = null) => {
       const renderer = {
         type: 'unique-value',
-        field: attributeName ? attributeName : 'overallstatus',
+        field: attribute ? attribute : 'overallstatus',
         fieldDelimiter: ', ',
         defaultSymbol: createWaterbodySymbol({
           condition: defaultCondition,
@@ -249,7 +250,7 @@ function useWaterbodyOnMap(
       };
 
       // for the restore tab use 3 fields for the unique value renderer
-      if (attributeName === 'restoreTab') {
+      if (attribute === 'restoreTab') {
         renderer.field = 'hasalternativeplan';
         renderer.field2 = 'hastmdl';
         renderer.field3 = 'has4bplan';
@@ -264,29 +265,23 @@ function useWaterbodyOnMap(
       // close popup and clear highlights when the renderer changes
       closePopup({ mapView, setHighlightedGraphic, setSelectedGraphic });
     },
-    [
-      attributeName,
-      defaultCondition,
-      mapView,
-      setHighlightedGraphic,
-      setSelectedGraphic,
-    ],
+    [defaultCondition, mapView, setHighlightedGraphic, setSelectedGraphic],
   );
 
   useEffect(() => {
     if (!pointsLayer || pointsLayer === 'error') return;
-    setRenderer(pointsLayer, 'point');
-  }, [pointsLayer, setRenderer]);
+    setRenderer(pointsLayer, 'point', attributeName);
+  }, [attributeName, pointsLayer, setRenderer]);
 
   useEffect(() => {
     if (!linesLayer || linesLayer === 'error') return;
-    setRenderer(linesLayer, 'polyline');
-  }, [linesLayer, setRenderer]);
+    setRenderer(linesLayer, 'polyline', attributeName);
+  }, [attributeName, linesLayer, setRenderer]);
 
   useEffect(() => {
     if (!areasLayer || areasLayer === 'error') return;
-    setRenderer(areasLayer, 'polygon');
-  }, [areasLayer, setRenderer]);
+    setRenderer(areasLayer, 'polygon', attributeName);
+  }, [attributeName, areasLayer, setRenderer]);
 
   useEffect(() => {
     if (!allWaterbodiesLayer || allWaterbodiesLayer === 'error') return;
@@ -297,10 +292,20 @@ function useWaterbodyOnMap(
       outline: 0.05,
     };
 
-    setRenderer(allWaterbodiesLayer.layers.items[2], 'point', alpha);
-    setRenderer(allWaterbodiesLayer.layers.items[1], 'polyline', alpha);
-    setRenderer(allWaterbodiesLayer.layers.items[0], 'polygon', alpha);
-  }, [allWaterbodiesLayer, setRenderer]);
+    const layers = allWaterbodiesLayer.layers;
+    const attribute = allWaterbodiesAttribute
+      ? allWaterbodiesAttribute
+      : attributeName;
+
+    setRenderer(layers.items[2], 'point', attribute, alpha);
+    setRenderer(layers.items[1], 'polyline', attribute, alpha);
+    setRenderer(layers.items[0], 'polygon', attribute, alpha);
+  }, [
+    allWaterbodiesAttribute,
+    attributeName,
+    allWaterbodiesLayer,
+    setRenderer,
+  ]);
 }
 
 // custom hook that is used to highlight based on context. If the findOthers
