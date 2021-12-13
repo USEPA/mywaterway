@@ -377,7 +377,6 @@ function Protect() {
     : null;
 
   function onWsioToggle(newValue) {
-    // const newValue = !healthScoresDisplayed;
     if (newValue) {
       allWaterbodiesLayer.visible = false;
     } else {
