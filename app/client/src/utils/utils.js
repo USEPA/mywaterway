@@ -293,6 +293,11 @@ function getSelectedCommunityTab() {
   return selectedCommunityTab.toLowerCase();
 }
 
+// Normalizes string for comparisons.
+function normalizeString(str: string) {
+  return str.trim().toUpperCase();
+}
+
 export {
   chunkArray,
   containsScriptTag,
@@ -314,4 +319,5 @@ export {
   convertAgencyCode,
   convertDomainCode,
   getSelectedCommunityTab,
+  normalizeString,
 };
