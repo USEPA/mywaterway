@@ -376,8 +376,8 @@ function Protect() {
     ? Math.round(wsioData.phwa_health_ndx_st_2016 * 100) / 100
     : null;
 
-  function onWsioToggle(checked, ev, id) {
-    const newValue = !healthScoresDisplayed;
+  function onWsioToggle(newValue) {
+    // const newValue = !healthScoresDisplayed;
     if (newValue) {
       allWaterbodiesLayer.visible = false;
     } else {
@@ -387,7 +387,7 @@ function Protect() {
     setHealthScoresDisplayed(newValue);
     updateVisibleLayers({
       key: 'wsioHealthIndexLayer',
-      newValue: !healthScoresDisplayed,
+      newValue,
     });
   }
 
@@ -506,11 +506,7 @@ function Protect() {
                       return;
                     }
 
-                    setHealthScoresDisplayed(true);
-                    updateVisibleLayers({
-                      key: 'wsioHealthIndexLayer',
-                      newValue: true,
-                    });
+                    onWsioToggle(true);
                   }}
                   title={
                     <label css={labelStyles}>
@@ -523,7 +519,7 @@ function Protect() {
                             healthScoresDisplayed &&
                             wsioHealthIndexData.status === 'success'
                           }
-                          onChange={onWsioToggle}
+                          onChange={() => onWsioToggle(!healthScoresDisplayed)}
                           disabled={wsioHealthIndexData.status === 'failure'}
                           ariaLabel="Watershed Health Scores"
                         />
