@@ -8,7 +8,7 @@
   "nonprofits": "https://services7.arcgis.com/RozrT2Mi6zTs0s5F/arcgis/rest/services/Nonprofits_10_24_18/FeatureServer/0/",
   "tribal": "https://geopub.epa.gov/arcgis/rest/services/EMEF/tribal/MapServer",
   "congressional": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_116th_Congressional_Districts_all/FeatureServer",
-  "wsio": "https://gispub.epa.gov/arcgis/rest/services/r4/wsio/MapServer/0",
+  "wsio": "https://gispub.epa.gov/arcgis/rest/services/r4/wsio_2020/MapServer/0",
   "waterbodyService": {
     "points": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/0",
     "lines": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/1",
@@ -28,14 +28,14 @@
     "metadata": "https://echodata.epa.gov/echo/cwa_rest_services.metadata"
   },
   "dwmaps": {
-    "getPWSHUC12": "https://ofmpub.epa.gov/apex/sfdw_rest/GetPWSWMHUC12/",
-    "GetPWSWMHUC12FIPS": "https://ofmpub.epa.gov/apex/sfdw_rest/GetPWSWMHUC12FIPS/",
-    "getGPRASummary": "https://ofmpub.epa.gov/apex/sfdw_rest/GetGPRASummary/",
-    "getGPRASystemCountsByType": "https://ofmpub.epa.gov/apex/sfdw_rest/GetGPRASystemCountsByType/"
+    "getPWSHUC12": "https://sdwis.epa.gov/ords/sfdw_rest/sfdw_rest/GetPWSWMHUC12/",
+    "GetPWSWMHUC12FIPS": "https://sdwis.epa.gov/ords/sfdw_rest/sfdw_rest/GetPWSWMHUC12FIPS/",
+    "getGPRASummary": "https://sdwis.epa.gov/ords/sfdw_rest/sfdw_rest/GetGPRASummary/",
+    "getGPRASystemCountsByType": "https://sdwis.epa.gov/ords/sfdw_rest/sfdw_rest/GetGPRASystemCountsByType/"
   },
   "grts": {
-    "getGRTSHUC12": "https://ofmpub.epa.gov/apex/grts_rest/grts_rest_apex/GetProjectsByHUC12/",
-    "getSSByState": "https://ofmpub.epa.gov/apex/grts_rest/grts_rest_apex/GetSSByState/"
+    "getGRTSHUC12": "https://grts.epa.gov/ords/grts_rest/grts_rest_apex/GetProjectsByHUC12/",
+    "getSSByState": "https://grts.epa.gov/ords/grts_rest/grts_rest_apex/GetSSByState/"
   },
   "attains": {
     "serviceUrlDev": "http://54.209.48.156/attains-public/api/",
