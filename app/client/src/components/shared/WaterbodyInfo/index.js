@@ -124,9 +124,15 @@ const buttonsContainer = css`
   }
 `;
 
-const primaryButtonStyles = css`
+const buttonStyles = css`
   color: ${colors.white()};
   background-color: ${colors.blue()};
+
+  &:hover,
+  &:focus {
+    color: ${colors.white()};
+    background-color: ${colors.navyBlue()};
+  }
 `;
 
 const imageContainerStyles = css`
@@ -148,7 +154,7 @@ const projectsContainerStyles = css`
 `;
 
 const changeWatershedContainerStyles = css`
-  ${popupContentStyles}
+  ${popupContentStyles};
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1219,7 +1225,7 @@ function WaterbodyInfo({
 
                   <div css={buttonsContainer}>
                     <button
-                      css={primaryButtonStyles}
+                      css={buttonStyles}
                       title="Change to this location"
                       className="btn"
                       onClick={(ev) => {
