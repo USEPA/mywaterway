@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import styled from 'styled-components';
 import Graphic from '@arcgis/core/Graphic';
@@ -221,7 +221,7 @@ const Text = styled.p`
 
 // --- components ---
 function DrinkingWater() {
-  const { infoToggleChecked } = React.useContext(CommunityTabsContext);
+  const { infoToggleChecked } = useContext(CommunityTabsContext);
 
   const {
     waterbodyLayer,
@@ -236,7 +236,7 @@ function DrinkingWater() {
     drinkingWaterTabIndex,
     setDrinkingWaterTabIndex,
     currentExtent,
-  } = React.useContext(LocationSearchContext);
+  } = useContext(LocationSearchContext);
 
   // set the waterbody features
   const waterbodies = useWaterbodyFeatures();
@@ -245,8 +245,8 @@ function DrinkingWater() {
   useWaterbodyOnMap('drinkingwater_use');
 
   // draw the drinking water providers (county) on the map
-  const [countyGraphic, setCountyGraphic] = React.useState(null);
-  React.useEffect(() => {
+  const [countyGraphic, setCountyGraphic] = useState(null);
+  useEffect(() => {
     if (
       !countyBoundaries ||
       !countyBoundaries.features ||
@@ -278,7 +278,7 @@ function DrinkingWater() {
   }, [providersLayer, countyBoundaries]);
 
   // toggle map layers' visibility when a tab changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (!boundariesLayer || !waterbodyLayer || !providersLayer) return;
 
     if (drinkingWaterTabIndex === 0) {
@@ -314,9 +314,9 @@ function DrinkingWater() {
 
   // set map zoom when switching to or from providers subtab
   // (as zoom is different for that subtab)
-  const [previousTabIndex, setPreviousTabIndex] = React.useState(null);
-  const [mapZoom, setMapZoom] = React.useState(null);
-  React.useEffect(() => {
+  const [previousTabIndex, setPreviousTabIndex] = useState(null);
+  const [mapZoom, setMapZoom] = useState(null);
+  useEffect(() => {
     if (!mapView || !countyGraphic || !atHucBoundaries) {
       setMapZoom(null); // reset the mapZoom if there is no countyGraphic
       return;
@@ -352,14 +352,14 @@ function DrinkingWater() {
 
   // create mapZoomRef, and keep it in sync with mapZoom state,
   // so it can be used in resetMapZoom() cleanup function below
-  const mapZoomRef = React.useRef();
-  React.useEffect(() => {
+  const mapZoomRef = useRef();
+  useEffect(() => {
     mapZoomRef.current = mapZoom;
   }, [mapZoom]);
 
   // conditionally reset the zoom level when this component unmounts
   // (i.e. changing to another Community tab, like Swimming, Overview, etc.)
-  React.useEffect(() => {
+  useEffect(() => {
     if (!mapView || !mapZoomRef) return;
 
     return function resetMapZoom() {
@@ -368,11 +368,9 @@ function DrinkingWater() {
   }, [mapView, mapZoomRef]);
 
   // toggles for surface/ground water withdrawers
-  const [groundWaterDisplayed, setGroundWaterDisplayed] = React.useState(true);
-  const [surfaceWaterDisplayed, setSurfaceWaterDisplayed] = React.useState(
-    true,
-  );
-  const [bothDisplayed, setBothDisplayed] = React.useState(true);
+  const [groundWaterDisplayed, setGroundWaterDisplayed] = useState(true);
+  const [surfaceWaterDisplayed, setSurfaceWaterDisplayed] = useState(true);
+  const [bothDisplayed, setBothDisplayed] = useState(true);
 
   // sort drinking water data into providers and withdrawers via presence of 'huc12' property
   const providers = [];
@@ -466,13 +464,11 @@ function DrinkingWater() {
     county = countyBoundaries.features[0].attributes.NAME;
   }
 
-  const [providersSortBy, setProvidersSortBy] = React.useState('population');
-  const [withdrawersSortBy, setWithdrawersSortBy] = React.useState(
-    'population',
-  );
+  const [providersSortBy, setProvidersSortBy] = useState('population');
+  const [withdrawersSortBy, setWithdrawersSortBy] = useState('population');
 
   // on new search, reset the sortBy option. fixes issue where useState sort order did not match Accordion sort
-  React.useEffect(() => {
+  useEffect(() => {
     setProvidersSortBy('population');
     setWithdrawersSortBy('population');
   }, [atHucBoundaries]);
@@ -649,7 +645,12 @@ function DrinkingWater() {
 
                       {providers.length > 0 && (
                         <AccordionList
-                          title={`Public water systems serving ${county} County.`}
+                          title={
+                            <>
+                              <strong>{providers.length}</strong> public water
+                              systems serving <em>{county}</em> county.
+                            </>
+                          }
                           onSortChange={(sortBy) =>
                             setProvidersSortBy(sortBy.value)
                           }
@@ -823,7 +824,15 @@ function DrinkingWater() {
                           </Table>
 
                           <AccordionList
-                            title={`Below are ${displayedWithdrawers.length} of ${totalWithdrawersCount} Public water systems withdrawing water from the ${watershed} watershed.`}
+                            title={
+                              <>
+                                Below are{' '}
+                                <strong>{displayedWithdrawers.length}</strong>{' '}
+                                of <strong>{totalWithdrawersCount}</strong>{' '}
+                                public water systems withdrawing water from the{' '}
+                                <em>{watershed}</em> watershed.
+                              </>
+                            }
                             onSortChange={(sortBy) =>
                               setWithdrawersSortBy(sortBy.value)
                             }
@@ -881,7 +890,12 @@ function DrinkingWater() {
                 <WaterbodyList
                   waterbodies={waterbodies}
                   fieldName="drinkingwater_use"
-                  title={`Waterbodies assessed as potential future sources of drinking water in the ${watershed} watershed.`}
+                  title={
+                    <>
+                      Waterbodies assessed as potential future sources of
+                      drinking water in the <em>{watershed}</em> watershed.
+                    </>
+                  }
                 />
               </>
             </TabPanel>
