@@ -560,9 +560,10 @@ function WaterbodyInfo({
             {attributes.streamGageMeasurements.map((data, index) => (
               <tr key={index}>
                 <td>
-                  {data.parameterDescription}
-                  <br />
-                  <small css={additionalTextStyles}>{data.parameterCode}</small>
+                  {data.parameterName}&nbsp;&nbsp;
+                  <small css={additionalTextStyles}>
+                    ({data.parameterCode})
+                  </small>
                 </td>
                 <td>
                   <strong>{data.measurement}</strong>&nbsp;

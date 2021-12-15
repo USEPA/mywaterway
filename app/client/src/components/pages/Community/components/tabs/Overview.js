@@ -41,6 +41,8 @@ import {
   huc12SummaryError,
   zeroAssessedWaterbodies,
 } from 'config/errorMessages';
+// config
+import { usgsStaParameters } from 'config/usgsStaParameters';
 
 const containerStyles = css`
   padding: 1em;
@@ -502,19 +504,43 @@ function MonitoringAndSensorsTab({
       locationType: gage.properties.monitoringLocationType,
       locationUrl: gage.properties.monitoringLocationUrl,
       // usgs streamgage specific properties:
-      streamGageMeasurements: gage.Datastreams.filter(
-        (data) => data.Observations.length > 0,
-      ).map((data) => {
-        const observation = data.Observations[0];
-        return {
-          parameterDescription: data.description.split(' / USGS-')[0],
-          parameterCode: data.properties.ParameterCode,
-          measurement: observation.result,
-          datetime: new Date(observation.phenomenonTime).toLocaleString(),
-          unitAbbr: data.unitOfMeasurement.symbol,
-          unitName: data.unitOfMeasurement.name,
-        };
-      }),
+      streamGageMeasurements: [...gage.Datastreams]
+        .filter((data) => data.Observations.length > 0)
+        .filter((data) => {
+          const { ParameterCode, WebDescription } = data.properties;
+          return ParameterCode === '00065' // gage height
+            ? WebDescription === 'NAVD88'
+              ? true
+              : false
+            : true;
+        })
+        .map((data) => {
+          const observation = data.Observations[0];
+          const parameterCode = data.properties.ParameterCode;
+          const parameterDesc = data.description.split(' / USGS-')[0];
+          const parameterUnit = data.unitOfMeasurement;
+
+          const matchedParam = usgsStaParameters.find((item) => {
+            return item.staParameterCode === parameterCode;
+          });
+
+          return {
+            parameterOrder: matchedParam?.hmwOrder || 0,
+            parameterName: matchedParam?.hmwName || parameterDesc,
+            parameterCode,
+            measurement: observation.result,
+            datetime: new Date(observation.phenomenonTime).toLocaleString(),
+            unitAbbr: matchedParam?.hmwUnits || parameterUnit.symbol,
+            unitName: parameterUnit.name,
+          };
+        })
+        .sort((a, b) => {
+          // sort paramaters by order (only matched params have an order set)
+          if (a.parameterOrder < b.parameterOrder) return 1;
+          if (a.parameterOrder > b.parameterOrder) return -1;
+          // sort remaining (non-matched) paramaters alphabetically
+          return a.parameterName.localeCompare(b.parameterName);
+        }),
     }));
 
     setNormalizedUsgsStreamgages(gages);
