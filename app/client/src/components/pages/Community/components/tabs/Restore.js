@@ -66,7 +66,7 @@ function Restore() {
     : [];
 
   // draw the waterbody on the map
-  useWaterbodyOnMap('restoreTab');
+  useWaterbodyOnMap('restoreTab', 'overallstatus');
 
   const [restoreLayerEnabled, setRestoreLayerEnabled] = useState(true);
 
@@ -129,6 +129,16 @@ function Restore() {
 
   const waterbodyCount = uniqueWaterbodies && uniqueWaterbodies.length;
 
+  const setRestoreLayerVisibility = (visible) => {
+    setRestoreLayerEnabled(visible);
+
+    // first check if layer exists and is not falsy
+    updateVisibleLayers({
+      key: 'waterbodyLayer',
+      newValue: waterbodyLayer && visible,
+    });
+  };
+
   return (
     <div css={containerStyles}>
       <StyledMetrics>
@@ -159,13 +169,7 @@ function Restore() {
             <Switch
               checked={Boolean(waterbodyCount) && restoreLayerEnabled}
               onChange={(checked) => {
-                setRestoreLayerEnabled(!restoreLayerEnabled);
-
-                // first check if layer exists and is not falsy
-                updateVisibleLayers({
-                  key: 'waterbodyLayer',
-                  newValue: waterbodyLayer && !restoreLayerEnabled,
-                });
+                setRestoreLayerVisibility(!restoreLayerEnabled);
               }}
               disabled={!Boolean(waterbodyCount)}
               ariaLabel="Waterbodies"
@@ -175,7 +179,11 @@ function Restore() {
       </StyledMetrics>
 
       <ContentTabs>
-        <Tabs>
+        <Tabs
+          onChange={(index) => {
+            if (index === 1) setRestoreLayerVisibility(true);
+          }}
+        >
           <TabList>
             <Tab>Clean Water Act Section 319 Projects</Tab>
             <Tab>Restoration Plans</Tab>
@@ -375,6 +383,15 @@ function Restore() {
                         }
                       >
                         {sortedAttainsPlanData.map((item, index) => {
+                          let planType = item.actionTypeCode;
+                          if (
+                            planType === 'TMDL' ||
+                            planType === '4B Restoration Approach' ||
+                            planType === 'Alternative Restoration Approach'
+                          ) {
+                            planType = 'Restoration Plan: ' + planType;
+                          }
+
                           return (
                             <AccordionItem
                               key={index}
@@ -389,7 +406,7 @@ function Restore() {
                                     <td>
                                       <em>Plan Type:</em>
                                     </td>
-                                    <td>{item.actionTypeCode}</td>
+                                    <td>{planType}</td>
                                   </tr>
                                   <tr>
                                     <td>

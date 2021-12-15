@@ -162,31 +162,11 @@ const buttonContainerStyles = css`
   margin-left: 0.5em;
 `;
 
-const tableStyles = css`
-  thead {
-    background-color: #f0f6f9;
-  }
-
-  th:last-of-type,
-  td:last-of-type {
-    text-align: right;
-  }
-`;
-
-const toggleStyles = css`
-  display: flex;
-  align-items: center;
-
-  span {
-    margin-left: 0.5rem;
-  }
-`;
-
 function Protect() {
   const services = useServicesContext();
 
   // draw the waterbody on the map
-  useWaterbodyOnMap('hasprotectionplan');
+  useWaterbodyOnMap('hasprotectionplan', 'overallstatus');
 
   const { setSelectedGraphic } = useContext(MapHighlightContext);
   const {
@@ -281,16 +261,6 @@ function Protect() {
 
   allProtectionProjects.sort((objA, objB) => {
     return objA['title'].localeCompare(objB['title']);
-  });
-
-  const [attainsDataDisplayed, setAttainsDataDisplayed] = useState(true);
-  const [grtsDataDisplayed, setGrtsDataDisplayed] = useState(true);
-
-  const filteredProtectionProjects = allProtectionProjects.filter((item) => {
-    const displayedTypes = [];
-    if (attainsDataDisplayed) displayedTypes.push('attains');
-    if (grtsDataDisplayed) displayedTypes.push('grts');
-    return displayedTypes.includes(item.source);
   });
 
   const [healthScoresDisplayed, setHealthScoresDisplayed] = useState(true);
@@ -406,8 +376,7 @@ function Protect() {
     ? Math.round(wsioData.phwa_health_ndx_st_2016 * 100) / 100
     : null;
 
-  function onWsioToggle(checked, ev, id) {
-    const newValue = !healthScoresDisplayed;
+  function onWsioToggle(newValue) {
     if (newValue) {
       allWaterbodiesLayer.visible = false;
     } else {
@@ -417,7 +386,7 @@ function Protect() {
     setHealthScoresDisplayed(newValue);
     updateVisibleLayers({
       key: 'wsioHealthIndexLayer',
-      newValue: !healthScoresDisplayed,
+      newValue,
     });
   }
 
@@ -536,11 +505,7 @@ function Protect() {
                       return;
                     }
 
-                    setHealthScoresDisplayed(true);
-                    updateVisibleLayers({
-                      key: 'wsioHealthIndexLayer',
-                      newValue: true,
-                    });
+                    onWsioToggle(true);
                   }}
                   title={
                     <label css={labelStyles}>
@@ -553,7 +518,7 @@ function Protect() {
                             healthScoresDisplayed &&
                             wsioHealthIndexData.status === 'success'
                           }
-                          onChange={onWsioToggle}
+                          onChange={() => onWsioToggle(!healthScoresDisplayed)}
                           disabled={wsioHealthIndexData.status === 'failure'}
                           ariaLabel="Watershed Health Scores"
                         />
@@ -1242,67 +1207,7 @@ function Protect() {
                                 <em>{watershed}</em> watershed.
                               </p>
 
-                              <table css={tableStyles} className="table">
-                                <thead>
-                                  <tr>
-                                    <th>
-                                      <span>Type</span>
-                                    </th>
-                                    <th>Count</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  <tr>
-                                    <td>
-                                      <div css={toggleStyles}>
-                                        <Switch
-                                          checked={
-                                            normalizedAttainsProjects.length >
-                                              0 && attainsDataDisplayed
-                                          }
-                                          onChange={(checked) => {
-                                            setAttainsDataDisplayed(
-                                              !attainsDataDisplayed,
-                                            );
-                                          }}
-                                          disabled={
-                                            normalizedAttainsProjects.length ===
-                                            0
-                                          }
-                                          ariaLabel="Attains Plans"
-                                        />
-                                        <span>Attains Plans</span>
-                                      </div>
-                                    </td>
-                                    <td>{normalizedAttainsProjects.length}</td>
-                                  </tr>
-                                  <tr>
-                                    <td>
-                                      <div css={toggleStyles}>
-                                        <Switch
-                                          checked={
-                                            normalizedGrtsProjects.length > 0 &&
-                                            grtsDataDisplayed
-                                          }
-                                          onChange={(checked) => {
-                                            setGrtsDataDisplayed(
-                                              !grtsDataDisplayed,
-                                            );
-                                          }}
-                                          disabled={
-                                            normalizedGrtsProjects.length === 0
-                                          }
-                                          ariaLabel="GRTS Projects"
-                                        />
-                                        <span>GRTS Projects</span>
-                                      </div>
-                                    </td>
-                                    <td>{normalizedGrtsProjects.length}</td>
-                                  </tr>
-                                </tbody>
-                              </table>
-
-                              {filteredProtectionProjects.map((item, index) => {
+                              {allProtectionProjects.map((item, index) => {
                                 const url = getUrlFromMarkup(item.projectLink);
                                 const protectionPlans =
                                   item.watershedPlans &&

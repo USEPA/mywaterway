@@ -50,6 +50,28 @@ function renderLink(label, link) {
   );
 }
 
+const popupContainerStyles = css`
+  margin: 0;
+  overflow-y: auto;
+
+  .esri-feature & p {
+    padding-bottom: 0;
+  }
+`;
+
+const popupContentStyles = css`
+  margin-top: 0.5rem;
+  margin-left: 0.625em;
+`;
+
+const popupTitleStyles = css`
+  margin-bottom: 0;
+  padding: 0.45em 0.625em !important;
+  font-size: 0.8125em;
+  font-weight: bold;
+  background-color: #f0f6f9;
+`;
+
 const tableStyles = css`
   th:last-of-type,
   td:last-of-type {
@@ -97,18 +119,20 @@ const buttonsContainer = css`
   text-align: center;
 
   button {
-    margin: 0 0.75em 1.5em;
+    margin: 0 0.75em;
     font-size: 0.9375em;
   }
 `;
 
-const primaryButtonStyles = css`
+const buttonStyles = css`
   color: ${colors.white()};
   background-color: ${colors.blue()};
-`;
 
-const secondaryButtonStyles = css`
-  background-color: lightgray;
+  &:hover,
+  &:focus {
+    color: ${colors.white()};
+    background-color: ${colors.navyBlue()};
+  }
 `;
 
 const imageContainerStyles = css`
@@ -129,7 +153,18 @@ const projectsContainerStyles = css`
   margin-bottom: 0.5rem;
 `;
 
-// --- components ---
+const changeWatershedContainerStyles = css`
+  ${popupContentStyles};
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+
+  p {
+    padding-bottom: 0;
+  }
+`;
+
 type Props = {
   type: string,
   feature: ?Object,
@@ -200,77 +235,6 @@ function WaterbodyInfo({
     );
   }
 
-  const renderChangeWatershed = () => {
-    if (!clickedHuc) return null;
-    if (clickedHuc.status === 'no-data') return <p>No Data</p>;
-    if (clickedHuc.status === 'fetching') return <LoadingSpinner />;
-    if (clickedHuc.status === 'failure') return <p>Web service error</p>;
-    if (clickedHuc.status === 'success') {
-      const huc12 = clickedHuc.data.huc12;
-      const watershed = clickedHuc.data.watershed;
-      return (
-        <>
-          {type !== 'Change Location' && (
-            <>
-              <hr />
-              <strong>Change to this location?</strong>
-              <br />
-            </>
-          )}
-
-          {labelValue('WATERSHED', `${watershed} (${huc12})`)}
-
-          <div css={buttonsContainer}>
-            {type === 'Change Location' && (
-              <button
-                css={secondaryButtonStyles}
-                title=""
-                className="btn"
-                onClick={(ev) => {
-                  if (!feature?.view) return;
-                  feature.view.popup.close();
-                }}
-              >
-                No
-              </button>
-            )}
-
-            <button
-              css={primaryButtonStyles}
-              title="Change to this location"
-              className="btn"
-              onClick={(ev) => {
-                // Clear all data before navigating.
-                // The main reason for this is better performance
-                // when doing a huc search by clicking on the state map. The app
-                // will attempt to use all of the loaded state data, then clear it
-                // then load the huc. This could take a long time if the state
-                // has a lot of waterbodies.
-                if (resetData) resetData();
-
-                let baseRoute = `/community/${huc12}`;
-
-                // community will attempt to stay on the same tab
-                // if available, stay on the same tab otherwise go to overview
-                let urlParts = window.location.pathname.split('/');
-                if (urlParts.includes('community') && urlParts.length > 3) {
-                  navigate(`${baseRoute}/${urlParts[3]}`);
-                  return;
-                }
-
-                navigate(`${baseRoute}/overview`);
-              }}
-            >
-              Yes
-            </button>
-          </div>
-        </>
-      );
-    }
-
-    return null;
-  };
-
   const waterbodyPollutionCategories = (label: string) => {
     const pollutionCategories = impairmentFields
       .filter((field) => attributes[field.value] === 'Cause')
@@ -291,6 +255,28 @@ function WaterbodyInfo({
         <ul>{pollutionCategories}</ul>
       </>
     );
+  };
+
+  const getTypeTitle = () => {
+    const typesToSkip = [
+      'Action',
+      'Change Location',
+      'Waterbody State Overview',
+    ];
+    if (typesToSkip.includes(type)) return null;
+
+    let title = type;
+    if (type === 'Demographic Indicators') {
+      title = `${type} - ${feature.layer.title}`;
+    }
+    if (type === 'Restoration Plans') {
+      title = 'Restoration Plans for this Waterbody';
+    }
+    if (type === 'Protection Plans') {
+      title = 'Protection Plans for this Waterbody';
+    }
+
+    return <p css={popupTitleStyles}>{title}</p>;
   };
 
   const waterbodyReportLink =
@@ -421,15 +407,6 @@ function WaterbodyInfo({
       </>
     );
   };
-
-  // jsx
-  const waterbodyContent = (
-    <>
-      {baseWaterbodyContent()}
-
-      {renderChangeWatershed()}
-    </>
-  );
 
   // jsx
   const waterbodyStateContent = (
@@ -899,8 +876,6 @@ function WaterbodyInfo({
           <br />
           {attributes.CDFIPS} - {attributes.NAME}
         </p>
-
-        {renderChangeWatershed()}
       </>
     );
   };
@@ -914,20 +889,12 @@ function WaterbodyInfo({
           <br />
           {attributes.CNTY_FIPS} - {attributes.NAME}
         </p>
-
-        {renderChangeWatershed()}
       </>
     );
   };
 
   // jsx
-  const tribeContent = (
-    <>
-      {labelValue('Tribe Name', attributes.TRIBE_NAME)}
-
-      {renderChangeWatershed()}
-    </>
-  );
+  const tribeContent = labelValue('Tribe Name', attributes.TRIBE_NAME);
 
   // jsx
   const upstreamWatershedContent = (
@@ -936,8 +903,6 @@ function WaterbodyInfo({
         'Area',
         attributes.areasqkm && `${formatNumber(attributes.areasqkm)} sq. km.`,
       )}
-
-      {renderChangeWatershed()}
     </>
   );
 
@@ -1012,18 +977,13 @@ function WaterbodyInfo({
           </tr>
         </tbody>
       </table>
-
-      {renderChangeWatershed()}
     </>
   );
 
   // jsx
-  const alaskaNativeVillageContent = (
-    <>
-      {labelValue('Village Name', attributes.NAME)}
-
-      {renderChangeWatershed()}
-    </>
+  const alaskaNativeVillageContent = labelValue(
+    'Village Name',
+    attributes.NAME,
   );
 
   // jsx
@@ -1048,7 +1008,6 @@ function WaterbodyInfo({
         'Public Access',
         convertDomainCode(fields, 'Access', attributes.Access),
       )}
-      {renderChangeWatershed()}
     </>
   );
 
@@ -1071,13 +1030,8 @@ function WaterbodyInfo({
       {labelValue('Percent Individuals Under 5', attributes.T_UNDR5PCT)}
 
       {labelValue('Percent Individuals Over 64', attributes.T_OVR64PCT)}
-
-      {renderChangeWatershed()}
     </>
   );
-
-  // jsx
-  const changeLocationContent = renderChangeWatershed();
 
   // jsx
   // This content is filled in from the getPopupContent function in MapFunctions.
@@ -1172,7 +1126,7 @@ function WaterbodyInfo({
                   <table className="table">
                     <thead>
                       <tr>
-                        <th>Plan</th>
+                        <th>Plan (ID)</th>
                         <th>Impairments</th>
                         <th>Type</th>
                         <th>Date</th>
@@ -1190,7 +1144,8 @@ function WaterbodyInfo({
                                   target="_blank"
                                   rel="noopener noreferrer"
                                 >
-                                  {titleCaseWithExceptions(action.name)}
+                                  {titleCaseWithExceptions(action.name)} (
+                                  {action.id})
                                 </a>
                               </td>
                               <td>
@@ -1219,35 +1174,103 @@ function WaterbodyInfo({
         </div>
 
         {waterbodyReportLink}
-
-        {renderChangeWatershed()}
       </>
     );
   };
 
   if (!attributes) return null;
 
-  if (type === 'Waterbody') return waterbodyContent;
-  if (type === 'Restoration Plans') return projectContent();
-  if (type === 'Protection Plans') return projectContent();
-  if (type === 'Permitted Discharger') return dischargerContent;
-  if (type === 'Daily Water Conditions') return usgsStreamgagesContent();
-  if (type === 'Sample Location') return monitoringLocationsContent();
-  if (type === 'Nonprofit') return nonprofitContent;
-  if (type === 'Waterbody State Overview') return waterbodyStateContent;
-  if (type === 'Action') return actionContent;
-  if (type === 'County') return countyContent();
-  if (type === 'Congressional District') return congressionalDistrictContent();
-  if (type === 'Tribe') return tribeContent;
-  if (type === 'Upstream Watershed') return upstreamWatershedContent;
-  if (type === 'Wild and Scenic Rivers') return wildScenicRiversContent;
-  if (type === 'State Watershed Health Index') return wsioContent;
-  if (type === 'Alaska Native Village') return alaskaNativeVillageContent;
-  if (type === 'Change Location') return changeLocationContent;
-  if (type === 'Protected Areas') return protectedAreaContent;
-  if (type === 'Demographic Indicators') return ejscreenContent;
+  let content = null;
+  if (type === 'Waterbody') content = baseWaterbodyContent();
+  if (type === 'Restoration Plans') content = projectContent();
+  if (type === 'Protection Plans') content = projectContent();
+  if (type === 'Permitted Discharger') content = dischargerContent;
+  if (type === 'Daily Water Conditions') content = usgsStreamgagesContent();
+  if (type === 'Sample Location') content = monitoringLocationsContent();
+  if (type === 'Nonprofit') content = nonprofitContent;
+  if (type === 'Waterbody State Overview') content = waterbodyStateContent;
+  if (type === 'Action') content = actionContent;
+  if (type === 'County') content = countyContent();
+  if (type === 'Tribe') content = tribeContent;
+  if (type === 'Upstream Watershed') content = upstreamWatershedContent;
+  if (type === 'Wild and Scenic Rivers') content = wildScenicRiversContent;
+  if (type === 'State Watershed Health Index') content = wsioContent;
+  if (type === 'Alaska Native Village') content = alaskaNativeVillageContent;
+  if (type === 'Protected Areas') content = protectedAreaContent;
+  if (type === 'Demographic Indicators') content = ejscreenContent;
+  if (type === 'Congressional District') {
+    content = congressionalDistrictContent();
+  }
 
-  return null;
+  if (isPopup) {
+    const huc12 = clickedHuc?.data?.huc12;
+    const watershed = clickedHuc?.data?.watershed;
+
+    content = (
+      <div css={popupContainerStyles}>
+        {clickedHuc && (
+          <>
+            {clickedHuc.status === 'no-data' && <p>No Data</p>}
+            {clickedHuc.status === 'fetching' && <LoadingSpinner />}
+            {clickedHuc.status === 'failure' && <p>Web service error</p>}
+            {clickedHuc.status === 'success' && (
+              <>
+                {type !== 'Change Location' && (
+                  <p css={popupTitleStyles}>Change to this location?</p>
+                )}
+
+                <div css={changeWatershedContainerStyles}>
+                  <div>
+                    {labelValue('WATERSHED', `${watershed} (${huc12})`)}
+                  </div>
+
+                  <div css={buttonsContainer}>
+                    <button
+                      css={buttonStyles}
+                      title="Change to this location"
+                      className="btn"
+                      onClick={(ev) => {
+                        // Clear all data before navigating.
+                        // The main reason for this is better performance
+                        // when doing a huc search by clicking on the state map. The app
+                        // will attempt to use all of the loaded state data, then clear it
+                        // then load the huc. This could take a long time if the state
+                        // has a lot of waterbodies.
+                        if (resetData) resetData();
+
+                        let baseRoute = `/community/${huc12}`;
+
+                        // community will attempt to stay on the same tab
+                        // if available, stay on the same tab otherwise go to overview
+                        let urlParts = window.location.pathname.split('/');
+                        if (
+                          urlParts.includes('community') &&
+                          urlParts.length > 3
+                        ) {
+                          navigate(`${baseRoute}/${urlParts[3]}`);
+                          return;
+                        }
+
+                        navigate(`${baseRoute}/overview`);
+                      }}
+                    >
+                      Yes
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </>
+        )}
+
+        {getTypeTitle()}
+
+        <div css={popupContentStyles}>{content}</div>
+      </div>
+    );
+  }
+
+  return content;
 }
 
 export default WaterbodyInfo;
