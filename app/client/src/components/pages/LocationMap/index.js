@@ -691,25 +691,27 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         symbol: {
           type: 'simple-marker',
           style: 'circle',
-          color: '#989fa2',
+          color: '#fffe00', // '#989fa2'
         },
-        visualVariables: [
-          {
-            type: 'color',
-            field: 'gageHeight',
-            stops: [
-              // TODO: determine how to map of gage height values to NWD streamflow percentile stops
-              // (National Water Dashboard: https://dashboard.waterdata.usgs.gov/app/nwd/?aoi=default)
-              { value: '0', color: '#ea2c38' }, // All-time low for this day  (0th percentile, minimum)
-              { value: '1', color: '#b54246' }, // Much below normal          (<10th percentile)
-              { value: '2', color: '#eaae3f' }, // Below normal               (10th – 24th percentile)
-              { value: '3', color: '#32f242' }, // Normal                     (25th – 75th percentile)
-              { value: '4', color: '#56d7da' }, // Above normal               (76th – 90th percentile)
-              { value: '5', color: '#2639f6' }, // Much above normal          (>90th percentile)
-              { value: '6', color: '#22296e' }, // All-time high for this day (100th percentile, maximum)
-            ],
-          },
-        ],
+        // NOTE: rendering all streamgages in a single color until we can set
+        //       color stops from data returned in USGS STA web service
+        // visualVariables: [
+        //   {
+        //     type: 'color',
+        //     field: 'gageHeight',
+        //     stops: [
+        //       // TODO: determine how to map of gage height values to NWD streamflow percentile stops
+        //       // (National Water Dashboard: https://dashboard.waterdata.usgs.gov/app/nwd/?aoi=default)
+        //       { value: '0', color: '#ea2c38' }, // All-time low for this day  (0th percentile, minimum)
+        //       { value: '1', color: '#b54246' }, // Much below normal          (<10th percentile)
+        //       { value: '2', color: '#eaae3f' }, // Below normal               (10th – 24th percentile)
+        //       { value: '3', color: '#32f242' }, // Normal                     (25th – 75th percentile)
+        //       { value: '4', color: '#56d7da' }, // Above normal               (76th – 90th percentile)
+        //       { value: '5', color: '#2639f6' }, // Much above normal          (>90th percentile)
+        //       { value: '6', color: '#22296e' }, // All-time high for this day (100th percentile, maximum)
+        //     ],
+        //   },
+        // ],
       },
       labelingInfo: [
         {
