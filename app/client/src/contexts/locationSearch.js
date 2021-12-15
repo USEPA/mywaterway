@@ -609,7 +609,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     // default basemap is gray but use basemap in context if it exists
     getBasemap: () => {
       return Object.keys(this.state.basemap).length === 0
-        ? 'gray'
+        ? 'gray-vector'
         : this.state.basemap;
     },
 

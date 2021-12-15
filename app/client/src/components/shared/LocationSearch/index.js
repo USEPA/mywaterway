@@ -185,7 +185,7 @@ function LocationSearch({ route, label }: Props) {
       placeholder,
       sources: [
         {
-          locator: new Locator({ url: services.data.locatorUrl }),
+          url: services.data.locatorUrl,
           countryCode: 'USA',
           searchFields: ['Loc_name'],
           suggestionTemplate: '{Loc_name}',
@@ -254,8 +254,7 @@ function LocationSearch({ route, label }: Props) {
       sources: [
         {
           layer: new FeatureLayer({
-            url:
-              'https://gispub.epa.gov/arcgis/rest/services/OW/HydrologicUnits/MapServer/19',
+            url: 'https://gispub.epa.gov/arcgis/rest/services/OW/HydrologicUnits/MapServer/19',
             listMode: 'hide',
           }),
           searchFields: ['name', 'huc12'],
@@ -763,9 +762,8 @@ function LocationSearch({ route, label }: Props) {
                         setSelectedSource(source);
                         setSourcesVisible(false);
 
-                        const searchInput = document.getElementById(
-                          'hmw-search-input',
-                        );
+                        const searchInput =
+                          document.getElementById('hmw-search-input');
                         if (searchInput) searchInput.focus();
                       }}
                     >
