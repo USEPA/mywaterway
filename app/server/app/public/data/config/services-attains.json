@@ -15,7 +15,7 @@
     "areas": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/2",
     "summary": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/4"
   },
-  "glossaryURL": "https://etss.epa.gov/synaptica_rest_services/api/savedreport/terms/HMW_Test_Schedule",
+  "glossaryURL": "https://etss.epa.gov/synaptica_rest_services/api/savedreport/terms/HMWGlossary",
   "waterQualityPortal": {
     "stationSearch": "https://www.waterqualitydata.us/data/Station/search?",
     "resultSearch": "https://www.waterqualitydata.us/data/Result/search?",
