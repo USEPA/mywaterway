@@ -1094,6 +1094,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         /*  */ `Datastreams(` +
         /*    */ `$select=description,` +
         /*      */ `properties/ParameterCode,` +
+        /*      */ `properties/WebDescription,` +
         /*      */ `unitOfMeasurement/name,` +
         /*      */ `unitOfMeasurement/symbol;` +
         /*    */ `$expand=` +

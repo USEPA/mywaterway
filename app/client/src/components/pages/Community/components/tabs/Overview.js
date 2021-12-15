@@ -506,6 +506,14 @@ function MonitoringAndSensorsTab({
       // usgs streamgage specific properties:
       streamGageMeasurements: [...gage.Datastreams]
         .filter((data) => data.Observations.length > 0)
+        .filter((data) => {
+          const { ParameterCode, WebDescription } = data.properties;
+          return ParameterCode === '00065' // gage height
+            ? WebDescription === 'NAVD88'
+              ? true
+              : false
+            : true;
+        })
         .map((data) => {
           const observation = data.Observations[0];
           const parameterCode = data.properties.ParameterCode;
