@@ -84,6 +84,7 @@ function ViewOnMapButton({
           ? `${idField} = '${feature.attributes[idField]}'`
           : `organizationid = '${organizationid}' And assessmentunitidentifier = '${assessmentunitidentifier}'`;
         params.outFields = ['*'];
+        params.outSpatialReference = 102100;
         layer
           .queryFeatures(params)
           .then((res) => {
