@@ -1,6 +1,12 @@
 // @flow
 
-import React from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 // components
@@ -124,37 +130,27 @@ function Monitoring() {
     watershed,
     visibleLayers,
     setVisibleLayers,
-  } = React.useContext(LocationSearchContext);
+  } = useContext(LocationSearchContext);
 
-  const [
-    prevMonitoringLocationData,
-    setPrevMonitoringLocationData,
-  ] = React.useState<MonitoringLocationData>({});
+  const [prevMonitoringLocationData, setPrevMonitoringLocationData] =
+    useState<MonitoringLocationData>({});
 
-  const [
-    monitoringLocationToggles,
-    setMonitoringLocationToggles,
-  ] = React.useState({});
-
-  const [
-    monitoringLocationGroups,
-    setMonitoringLocationGroups,
-  ] = React.useState({});
-
-  const [allMonitoringLocations, setAllMonitoringLocations] = React.useState(
-    [],
+  const [monitoringLocationToggles, setMonitoringLocationToggles] = useState(
+    {},
   );
 
-  const [
-    displayedMonitoringLocations,
-    setDisplayedMonitoringLocations,
-  ] = React.useState([]);
+  const [monitoringLocationGroups, setMonitoringLocationGroups] = useState({});
 
-  const [allToggled, setAllToggled] = React.useState(true);
+  const [allMonitoringLocations, setAllMonitoringLocations] = useState([]);
 
-  const [sortBy, setSortBy] = React.useState('locationName');
+  const [displayedMonitoringLocations, setDisplayedMonitoringLocations] =
+    useState([]);
 
-  const storeMonitoringLocations = React.useCallback(() => {
+  const [allToggled, setAllToggled] = useState(true);
+
+  const [sortBy, setSortBy] = useState('locationName');
+
+  const storeMonitoringLocations = useCallback(() => {
     if (!monitoringLocations.data.features) {
       setAllMonitoringLocations([]);
       return;
@@ -255,7 +251,7 @@ function Monitoring() {
     showAllMonitoring,
   ]);
 
-  const drawMap = React.useCallback(() => {
+  const drawMap = useCallback(() => {
     if (allMonitoringLocations.length === 0) return;
     if (services.status === 'fetching') return;
     const addedStationUids = [];
@@ -309,7 +305,7 @@ function Monitoring() {
     services,
   ]);
 
-  const toggleSwitch = React.useCallback(
+  const toggleSwitch = useCallback(
     (groupLabel: string) => {
       const toggleGroups = monitoringLocationToggles;
 
@@ -367,16 +363,16 @@ function Monitoring() {
   );
 
   // emulate componentdidmount
-  const [componentMounted, setComponentMounted] = React.useState(false);
-  React.useEffect(() => {
+  const [componentMounted, setComponentMounted] = useState(false);
+  useEffect(() => {
     if (componentMounted) return;
     storeMonitoringLocations();
     setComponentMounted(true);
   }, [componentMounted, storeMonitoringLocations]);
 
   // emulate componentdidupdate
-  const mounted = React.useRef();
-  React.useEffect(() => {
+  const mounted = useRef();
+  useEffect(() => {
     if (!mounted.current) {
       mounted.current = true;
     } else {
@@ -400,14 +396,14 @@ function Monitoring() {
   ]);
 
   // clear the visible layers if the monitoring stations service failed
-  React.useEffect(() => {
+  useEffect(() => {
     if (monitoringLocations.status !== 'failure') return;
 
     if (Object.keys(visibleLayers).length > 0) setVisibleLayers({});
   }, [monitoringLocations, visibleLayers, setVisibleLayers]);
 
   // draw the permitted dischargers on the map
-  React.useEffect(() => {
+  useEffect(() => {
     // wait until permitted dischargers data is set in context
     if (
       permittedDischargers.data['Results'] &&
@@ -550,8 +546,8 @@ function Monitoring() {
                         title={
                           <>
                             <strong>{displayLocations}</strong> of{' '}
-                            <strong>{totalLocations}</strong> Water Monitoring
-                            Locations in the <em>{watershed}</em> watershed.
+                            <strong>{totalLocations}</strong> water monitoring
+                            locations in the <em>{watershed}</em> watershed.
                           </>
                         }
                         onSortChange={({ value }) => setSortBy(value)}

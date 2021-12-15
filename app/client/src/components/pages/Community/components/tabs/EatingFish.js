@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { Fragment, useContext } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
@@ -50,9 +50,9 @@ function addSerialComma(index: number, arrayLength: number) {
 }
 
 function EatingFish() {
-  const { infoToggleChecked } = React.useContext(CommunityTabsContext);
+  const { infoToggleChecked } = useContext(CommunityTabsContext);
 
-  const { watershed, fishingInfo, statesData } = React.useContext(
+  const { watershed, fishingInfo, statesData } = useContext(
     LocationSearchContext,
   );
 
@@ -72,7 +72,7 @@ function EatingFish() {
             {fishingInfo.status === 'success' ? (
               <>
                 {fishingInfo.data.map((state, index, array) => (
-                  <React.Fragment key={index}>
+                  <Fragment key={index}>
                     {addSerialComma(index, array.length)}
                     <a
                       href={state.url}
@@ -81,7 +81,7 @@ function EatingFish() {
                     >
                       {convertStateCode(state.stateCode, statesData.data)}
                     </a>
-                  </React.Fragment>
+                  </Fragment>
                 ))}
                 .{' '}
                 <a
@@ -129,7 +129,12 @@ function EatingFish() {
       <WaterbodyList
         waterbodies={waterbodies}
         fieldName="fishconsumption_use"
-        title={`Waterbodies assessed for fish and shellfish consumption in the ${watershed} watershed.`}
+        title={
+          <>
+            Waterbodies assessed for fish and shellfish consumption in the{' '}
+            <em>{watershed}</em> watershed.
+          </>
+        }
       />
     </div>
   );
