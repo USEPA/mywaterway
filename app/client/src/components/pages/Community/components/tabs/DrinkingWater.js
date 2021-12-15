@@ -826,7 +826,6 @@ function DrinkingWater() {
                           <AccordionList
                             title={
                               <>
-                                Below are{' '}
                                 <strong>{displayedWithdrawers.length}</strong>{' '}
                                 of <strong>{totalWithdrawersCount}</strong>{' '}
                                 public water systems withdrawing water from the{' '}
