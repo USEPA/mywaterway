@@ -46,10 +46,11 @@ import {
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
-import { getTypeFromAttributes } from 'components/pages/LocationMap/MapFunctions';
+import {
+  getOrganizationLabel,
+  getTypeFromAttributes,
+} from 'components/pages/LocationMap/MapFunctions';
 import { chunkArray } from 'utils/utils';
-// utilities
-import { getOrganizationLabel } from 'components/pages/LocationMap/MapFunctions';
 // styles
 import { colors } from 'styles/index.js';
 // errors
