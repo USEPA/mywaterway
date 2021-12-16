@@ -12,6 +12,7 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
+import { summarizeAssessments } from 'utils/utils';
 // errors
 import { huc12SummaryError } from 'config/errorMessages';
 
@@ -34,6 +35,8 @@ function Swimming() {
   // draw the waterbody (swimming) on the map
   useWaterbodyOnMap('recreation_use');
 
+  const summary = summarizeAssessments(waterbodies, 'recreation_use');
+
   return (
     <div css={containerStyles}>
       {cipSummary.status === 'failure' && (
@@ -55,8 +58,9 @@ function Swimming() {
             fieldName="recreation_use"
             title={
               <>
-                Waterbodies assessed for swimming and boating in the{' '}
-                <em>{watershed}</em> watershed.
+                <strong>{summary.total.toLocaleString()}</strong> waterbodies
+                assessed for swimming and boating in the <em>{watershed}</em>{' '}
+                watershed.
               </>
             }
           />

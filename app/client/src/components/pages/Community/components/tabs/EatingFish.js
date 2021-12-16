@@ -13,6 +13,7 @@ import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
+import { summarizeAssessments } from 'utils/utils';
 
 const containerStyles = css`
   padding: 1em;
@@ -59,6 +60,8 @@ function EatingFish() {
   const waterbodies = useWaterbodyFeatures();
 
   useWaterbodyOnMap('fishconsumption_use');
+
+  const summary = summarizeAssessments(waterbodies, 'fishconsumption_use');
 
   return (
     <div css={containerStyles}>
@@ -131,7 +134,8 @@ function EatingFish() {
         fieldName="fishconsumption_use"
         title={
           <>
-            Waterbodies assessed for fish and shellfish consumption in the{' '}
+            <strong>{summary.total.toLocaleString()}</strong> waterbodies
+            assessed for fish and shellfish consumption in the{' '}
             <em>{watershed}</em> watershed.
           </>
         }
