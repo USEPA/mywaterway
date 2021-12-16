@@ -28,10 +28,9 @@
     "metadata": "https://echodata.epa.gov/echo/cwa_rest_services.metadata"
   },
   "dwmaps": {
-    "getPWSHUC12": "https://sdwis.epa.gov/ords/sfdw_rest/sfdw_rest/GetPWSWMHUC12/",
-    "GetPWSWMHUC12FIPS": "https://sdwis.epa.gov/ords/sfdw_rest/sfdw_rest/GetPWSWMHUC12FIPS/",
-    "getGPRASummary": "https://sdwis.epa.gov/ords/sfdw_rest/sfdw_rest/GetGPRASummary/",
-    "getGPRASystemCountsByType": "https://sdwis.epa.gov/ords/sfdw_rest/sfdw_rest/GetGPRASystemCountsByType/"
+    "GetPWSWMHUC12FIPS": "https://sdwis.epa.gov/ords/sfdw_rest/sfdw_rest/sfdw_rest/GetPWSWMHUC12FIPS/",
+    "getGPRASummary": "https://sdwis.epa.gov/ords/sfdw_rest/sfdw_rest/sfdw_rest/GetGPRASummary/",
+    "getGPRASystemCountsByType": "https://sdwis.epa.gov/ords/sfdw_rest/sfdw_rest/sfdw_rest/GetGPRASystemCountsByType/"
   },
   "grts": {
     "getGRTSHUC12": "https://grts.epa.gov/ords/grts_rest/grts_rest_apex/GetProjectsByHUC12/",
@@ -134,16 +133,6 @@
       "urlLookup": "dwmaps.getGPRASystemCountsByType",
       "wildcardUrl": "{urlLookup}*",
       "name": "ofmpub - GPRA system counts by type"
-    },
-    {
-      "urlLookup": "dwmaps.getPWSHUC12",
-      "wildcardUrl": "{urlLookup}*/ZCzc/ZCzc",
-      "name": "ofmpub - drinking water withdrawers"
-    },
-    {
-      "urlLookup": "dwmaps.getPWSHUC12",
-      "wildcardUrl": "{urlLookup}*",
-      "name": "ofmpub - drinking water providers"
     },
     {
       "urlLookup": "dwmaps.GetPWSWMHUC12FIPS",
