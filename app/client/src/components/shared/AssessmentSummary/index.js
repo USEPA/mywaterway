@@ -14,41 +14,8 @@ import {
 import { infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
-
-function summarizeAssessments(waterbodies: Array<Object>, fieldName: string) {
-  const summary = {
-    total: 0,
-    unassessed: 0,
-    'Not Supporting': 0,
-    'Fully Supporting': 0,
-    'Insufficient Information': 0,
-    'Not Assessed': 0,
-    'Not Applicable': 0,
-  };
-
-  // ids will contain unique assessment unit id's of each waterbody,
-  // to ensure we don't count a unique waterbody more than once
-  const ids = [];
-
-  waterbodies.forEach((graphic) => {
-    const field = graphic.attributes[fieldName];
-    const { assessmentunitidentifier: id } = graphic.attributes;
-
-    if (!field || field === 'X') {
-      summary['Not Applicable']++;
-    } else {
-      if (ids.indexOf(id) === -1) {
-        ids.push(id);
-        if (field === 'Not Supporting' || field === 'Fully Supporting') {
-          summary.total++;
-        }
-        summary[field]++;
-      }
-    }
-  });
-
-  return summary;
-}
+// utils
+import { summarizeAssessments } from 'utils/utils';
 
 const modifiedInfoBoxStyles = css`
   ${infoBoxStyles};
