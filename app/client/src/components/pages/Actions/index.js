@@ -241,6 +241,11 @@ const textBottomMarginStyles = css`
   margin-bottom: 0.5em !important;
 `;
 
+const strongBottomMarginStyles = css`
+  display: block;
+  margin-bottom: 0.25em !important;
+`;
+
 type Props = {
   ...RouteProps,
   fullscreen: Object, // passed from FullscreenContext.Consumer
@@ -259,8 +264,9 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
     layer: null,
   });
 
-  const { selectedGraphic, highlightedGraphic } =
-    useContext(MapHighlightContext);
+  const { selectedGraphic, highlightedGraphic } = useContext(
+    MapHighlightContext,
+  );
 
   // fetch action data from the attains 'actions' web service
   const [organizationName, setOrganizationName] = useState('');
@@ -338,8 +344,11 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
     const unitIds = {};
 
     waters.forEach((water) => {
-      const { assessmentUnitIdentifier, associatedPollutants, parameters } =
-        water;
+      const {
+        assessmentUnitIdentifier,
+        associatedPollutants,
+        parameters,
+      } = water;
 
       const content = (reportingCycle, hasWaterbody) => {
         const assessmentUrl =
@@ -358,9 +367,11 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                 {organizationName} ({orgId})
               </p>
             )}
-            {hasTmdlData && (
+            {hasTmdlData && associatedPollutants.length > 0 && (
               <>
-                <strong>Associated Impairments: </strong>
+                <strong css={strongBottomMarginStyles}>
+                  Associated Impairments:{' '}
+                </strong>
                 <ul css={listStyles}>
                   {associatedPollutants
                     .sort((a, b) =>
@@ -415,9 +426,11 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                 </ul>
               </>
             )}
-            {!hasTmdlData && (
+            {!hasTmdlData && parameters.length > 0 && (
               <>
-                <strong>Parameters Addressed: </strong>
+                <strong css={strongBottomMarginStyles}>
+                  Parameters Addressed:{' '}
+                </strong>
                 <ul css={listStyles}>
                   {parameters
                     .sort((a, b) =>
