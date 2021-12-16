@@ -148,8 +148,8 @@ function getPollutantsWaters(action: Object, orgId: string) {
   });
 
   return {
-    pollutants: pollutants.sort((a, b) => a.localeCompare(b)),
-    waters: sortedWaters,
+    sortedPollutants: pollutants.sort((a, b) => a.localeCompare(b)),
+    sortedWaters,
   };
 }
 
@@ -291,7 +291,10 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
               } = processAssessmentUnitData(data, action);
 
               // Get a sorted list of pollutants and waters
-              const { pollutants, waters } = getPollutantsWaters(action, orgId);
+              const { sortedPollutants, sortedWaters } = getPollutantsWaters(
+                action,
+                orgId,
+              );
 
               // set the state variables
               setLoading(false);
@@ -304,8 +307,8 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                   a.documentName.localeCompare(b.documentName),
                 ),
               );
-              setPollutants(pollutants);
-              setWaters(waters);
+              setPollutants(sortedPollutants);
+              setWaters(sortedWaters);
             })
             .catch(onError);
         }
