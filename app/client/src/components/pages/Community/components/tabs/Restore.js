@@ -360,8 +360,15 @@ function Restore() {
                       >
                         {sortedAttainsPlanData.map((item, index) => {
                           let planType = item.actionTypeCode;
+                          if (planType === 'TMDL') {
+                            planType = (
+                              <>
+                                Restoration Plan:{' '}
+                                <GlossaryTerm term="TMDL">TMDL</GlossaryTerm>
+                              </>
+                            );
+                          }
                           if (
-                            planType === 'TMDL' ||
                             planType === '4B Restoration Approach' ||
                             planType === 'Alternative Restoration Approach'
                           ) {
