@@ -565,12 +565,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               `assessmentUnits?assessmentUnitIdentifier=${orphanIDs.join(',')}`;
 
             fetchCheck(url)
-              .then((res) => {
-                if (!res || !res.items || res.items.length === 0) {
+              .then((resUnits) => {
+                if (
+                  !resUnits ||
+                  !resUnits.items ||
+                  resUnits.items.length === 0
+                ) {
                   setOrphanFeatures({ features: [], status: 'error' });
                   return;
                 }
-                handleOrphanedFeatures(res, attainsDomainsData, orphanIDs);
+                handleOrphanedFeatures(resUnits, attainsDomainsData, orphanIDs);
               })
               .catch((err) => {
                 console.error(err);
