@@ -1986,43 +1986,45 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     services,
   ]);
 
-  // const queryNonprofits = (boundaries) => {
-  //   if (
-  //     !boundariesLayer ||
-  //     !boundaries.features ||
-  //     boundaries.features.length === 0
-  //   ) {
-  //     setNonprofits({
-  //       data: [],
-  //       status: 'success',
-  //     });
-  //     return;
-  //   }
+  /* TODO - Add this code back in when EPA decides to bring back Nonprofits data
+  const queryNonprofits = (boundaries) => {
+    if (
+      !boundariesLayer ||
+      !boundaries.features ||
+      boundaries.features.length === 0
+    ) {
+      setNonprofits({
+        data: [],
+        status: 'success',
+      });
+      return;
+    }
 
-  //   const query = new Query({
-  //     geometry: boundaries.features[0].geometry,
-  //     returnGeometry: true,
-  //     spatialReference: 4326,
-  //     outFields: ['*'],
-  //   });
+    const query = new Query({
+      geometry: boundaries.features[0].geometry,
+      returnGeometry: true,
+      spatialReference: 4326,
+      outFields: ['*'],
+    });
 
-  //   new QueryTask({ url: nonprofits })
-  //     .execute(query)
-  //     .then((res) => {
-  //       console.log('nonprofits data: ', res);
-  //       setNonprofits({
-  //         data: res,
-  //         status: 'success'
-  //       });
-  //     })
-  //     .catch((err) => {
-  //       console.error(err);
-  //       setNonprofits({
-  //         data: [],
-  //         status: 'failure'
-  //       });
-  //     });
-  // };
+    new QueryTask({ url: nonprofits })
+      .execute(query)
+      .then((res) => {
+        console.log('nonprofits data: ', res);
+        setNonprofits({
+          data: res,
+          status: 'success'
+        });
+      })
+      .catch((err) => {
+        console.error(err);
+        setNonprofits({
+          data: [],
+          status: 'failure'
+        });
+      });
+  };
+  */
 
   useEffect(() => {
     if (layout !== 'fullscreen') return;
