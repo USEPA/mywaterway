@@ -9,7 +9,6 @@ import { ContentTabs } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
-import Switch from 'components/shared/Switch';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 // styled components
 import {
@@ -22,8 +21,7 @@ import {
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { getUrlFromMarkup, getTitleFromMarkup } from 'components/shared/Regex';
-import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
-import { getUniqueWaterbodies } from 'components/pages/LocationMap/MapFunctions';
+import { useWaterbodyOnMap } from 'utils/hooks';
 // errors
 import {
   restoreNonpointSourceError,
@@ -43,10 +41,6 @@ const disclaimerStyles = css`
   display: inline-block;
 `;
 
-const switchContainerStyles = css`
-  margin-top: 0.5em;
-`;
-
 function Restore() {
   const {
     attainsPlans,
@@ -57,13 +51,6 @@ function Restore() {
     watershed,
     waterbodyLayer,
   } = useContext(LocationSearchContext);
-
-  // set the waterbody features
-  const waterbodies = useWaterbodyFeatures();
-
-  const uniqueWaterbodies = waterbodies
-    ? getUniqueWaterbodies(waterbodies)
-    : [];
 
   // draw the waterbody on the map
   useWaterbodyOnMap('restoreTab', 'overallstatus');
@@ -127,8 +114,6 @@ function Restore() {
           .sort((a, b) => a.actionName.localeCompare(b.actionName))
       : [];
 
-  const waterbodyCount = uniqueWaterbodies && uniqueWaterbodies.length;
-
   const setRestoreLayerVisibility = (visible) => {
     setRestoreLayerEnabled(visible);
 
@@ -165,16 +150,6 @@ function Restore() {
             </StyledNumber>
           )}
           <StyledLabel>Plans</StyledLabel>
-          <div css={switchContainerStyles}>
-            <Switch
-              checked={Boolean(waterbodyCount) && restoreLayerEnabled}
-              onChange={(checked) => {
-                setRestoreLayerVisibility(!restoreLayerEnabled);
-              }}
-              disabled={!Boolean(waterbodyCount)}
-              ariaLabel="Waterbodies"
-            />
-          </div>
         </StyledMetric>
       </StyledMetrics>
 
@@ -182,6 +157,7 @@ function Restore() {
         <Tabs
           onChange={(index) => {
             if (index === 1) setRestoreLayerVisibility(true);
+            else setRestoreLayerVisibility(false);
           }}
         >
           <TabList>
