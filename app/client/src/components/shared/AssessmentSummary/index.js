@@ -19,11 +19,11 @@ function summarizeAssessments(waterbodies: Array<Object>, fieldName: string) {
   const summary = {
     total: 0,
     unassessed: 0,
-    not_supporting: 0,
-    fully_supporting: 0,
-    insufficient_info: 0,
-    not_assessed: 0,
-    not_applicable: 0,
+    'Not Supporting': 0,
+    'Fully Supporting': 0,
+    'Insufficient Information': 0,
+    'Not Assessed': 0,
+    'Not Applicable': 0,
   };
 
   // ids will contain unique assessment unit id's of each waterbody,
@@ -35,11 +35,11 @@ function summarizeAssessments(waterbodies: Array<Object>, fieldName: string) {
     const { assessmentunitidentifier: id } = graphic.attributes;
 
     if (!field || field === 'X') {
-      summary.not_applicable++;
+      summary['Not Applicable']++;
     } else {
       if (ids.indexOf(id) === -1) {
         ids.push(id);
-        if (field === 'not_supporting' || field === 'fully_supporting') {
+        if (field === 'Not Supporting' || field === 'Fully Supporting') {
           summary.total++;
         }
         summary[field]++;
@@ -92,13 +92,13 @@ function AssessmentSummary({ waterbodies, fieldName, usageName }: Props) {
         <div css={keyMetricsStyles}>
           <div css={keyMetricStyles}>
             <span css={keyMetricNumberStyles}>
-              {summary.fully_supporting.toLocaleString()}
+              {summary['Fully Supporting'].toLocaleString()}
             </span>
             <p css={keyMetricLabelStyles}>Good</p>
           </div>
           <div css={keyMetricStyles}>
             <span css={keyMetricNumberStyles}>
-              {summary.not_supporting.toLocaleString()}
+              {summary['Not Supporting'].toLocaleString()}
             </span>
             <p css={keyMetricLabelStyles}>Impaired</p>
           </div>
@@ -106,8 +106,8 @@ function AssessmentSummary({ waterbodies, fieldName, usageName }: Props) {
             <span css={keyMetricNumberStyles}>
               {(
                 summary.unassessed +
-                summary.insufficient_info +
-                summary.not_assessed
+                summary['Insufficient Information'] +
+                summary['Not Assessed']
               ).toLocaleString()}
             </span>
             <p css={keyMetricLabelStyles}>Condition Unknown</p>
