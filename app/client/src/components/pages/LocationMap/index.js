@@ -448,14 +448,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           }
 
           let orphans = [];
-          responses.forEach((res) => {
-            if (!res || !res.items || res.items.length === 0) {
+          responses.forEach((response) => {
+            if (!response || !response.items || response.items.length === 0) {
               setOrphanFeatures({ features: [], status: 'error' });
               return;
             }
 
             const detailedFeatures = createDetailedOrphanFeatures(
-              res.items,
+              response.items,
               allAssessmentUnits,
               attainsDomainsData,
             );
