@@ -811,118 +811,129 @@ function Protect() {
                       )}
 
                     {wildScenicRiversData.status === 'success' &&
-                      wildScenicRiversData.data.length > 0 &&
-                      wildScenicRiversData.data.map((item) => {
-                        const attributes = item.attributes;
-                        return (
-                          <FeatureItem
-                            key={attributes.GlobalID}
-                            feature={item}
-                            title={
-                              <strong>
-                                River Name: {attributes.WSR_RIVER_SHORTNAME}
-                              </strong>
-                            }
-                          >
-                            <table className="table">
-                              <tbody>
-                                <tr>
-                                  <td>
-                                    <em>Agency</em>
-                                  </td>
-                                  <td>
-                                    {convertAgencyCode(attributes.AGENCY)}
-                                  </td>
-                                </tr>
+                      wildScenicRiversData.data.length > 0 && (
+                        <>
+                          <div css={modifiedInfoBoxStyles}>
+                            <strong>
+                              {wildScenicRiversData.data.length.toLocaleString()}
+                            </strong>{' '}
+                            wild and scenic rivers in the <em>{watershed}</em>{' '}
+                            watershed.
+                          </div>
 
-                                <tr>
-                                  <td>
-                                    <em>Management Plan</em>
-                                  </td>
-                                  <td>
-                                    {attributes.MANAGEMENT_PLAN === 'Y'
-                                      ? 'Yes'
-                                      : 'No'}
-                                  </td>
-                                </tr>
-
-                                <tr>
-                                  <td>
-                                    <em>Managing Entities</em>
-                                  </td>
-                                  <td>
-                                    {convertAgencyCode(
-                                      attributes.MANAGING_ENTITIES,
-                                    )}
-                                  </td>
-                                </tr>
-
-                                <tr>
-                                  <td>
-                                    <em>Public Law Name</em>
-                                  </td>
-                                  <td>{attributes.PUBLIC_LAW_NAME}</td>
-                                </tr>
-
-                                <tr>
-                                  <td>
-                                    <em>State</em>
-                                  </td>
-                                  <td>{attributes.STATE}</td>
-                                </tr>
-
-                                <tr>
-                                  <td>
-                                    <em>River Category</em>
-                                  </td>
-                                  <td>{attributes.RiverCategory}</td>
-                                </tr>
-
-                                <tr>
-                                  <td>
-                                    <em>Website</em>
-                                  </td>
-                                  <td>
-                                    {attributes.WEBLINK ? (
-                                      <>
-                                        <a
-                                          href={attributes.WEBLINK}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                        >
-                                          More information
-                                        </a>{' '}
-                                        <small css={disclaimerStyles}>
-                                          (opens new browser tab)
-                                        </small>
-                                      </>
-                                    ) : (
-                                      'Not available.'
-                                    )}
-                                  </td>
-                                </tr>
-                              </tbody>
-                            </table>
-
-                            <div css={buttonContainerStyles}>
-                              <ViewOnMapButton
-                                layers={[wildScenicRiversLayer]}
+                          {wildScenicRiversData.data.map((item) => {
+                            const attributes = item.attributes;
+                            return (
+                              <FeatureItem
+                                key={attributes.GlobalID}
                                 feature={item}
-                                idField={'GlobalID'}
-                                onClick={() => {
-                                  if (wildScenicRiversDisplayed) return;
+                                title={
+                                  <strong>
+                                    River Name: {attributes.WSR_RIVER_SHORTNAME}
+                                  </strong>
+                                }
+                              >
+                                <table className="table">
+                                  <tbody>
+                                    <tr>
+                                      <td>
+                                        <em>Agency</em>
+                                      </td>
+                                      <td>
+                                        {convertAgencyCode(attributes.AGENCY)}
+                                      </td>
+                                    </tr>
 
-                                  setWildScenicRiversDisplayed(true);
-                                  updateVisibleLayers({
-                                    key: 'wildScenicRiversLayer',
-                                    newValue: true,
-                                  });
-                                }}
-                              />
-                            </div>
-                          </FeatureItem>
-                        );
-                      })}
+                                    <tr>
+                                      <td>
+                                        <em>Management Plan</em>
+                                      </td>
+                                      <td>
+                                        {attributes.MANAGEMENT_PLAN === 'Y'
+                                          ? 'Yes'
+                                          : 'No'}
+                                      </td>
+                                    </tr>
+
+                                    <tr>
+                                      <td>
+                                        <em>Managing Entities</em>
+                                      </td>
+                                      <td>
+                                        {convertAgencyCode(
+                                          attributes.MANAGING_ENTITIES,
+                                        )}
+                                      </td>
+                                    </tr>
+
+                                    <tr>
+                                      <td>
+                                        <em>Public Law Name</em>
+                                      </td>
+                                      <td>{attributes.PUBLIC_LAW_NAME}</td>
+                                    </tr>
+
+                                    <tr>
+                                      <td>
+                                        <em>State</em>
+                                      </td>
+                                      <td>{attributes.STATE}</td>
+                                    </tr>
+
+                                    <tr>
+                                      <td>
+                                        <em>River Category</em>
+                                      </td>
+                                      <td>{attributes.RiverCategory}</td>
+                                    </tr>
+
+                                    <tr>
+                                      <td>
+                                        <em>Website</em>
+                                      </td>
+                                      <td>
+                                        {attributes.WEBLINK ? (
+                                          <>
+                                            <a
+                                              href={attributes.WEBLINK}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                            >
+                                              More information
+                                            </a>{' '}
+                                            <small css={disclaimerStyles}>
+                                              (opens new browser tab)
+                                            </small>
+                                          </>
+                                        ) : (
+                                          'Not available.'
+                                        )}
+                                      </td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+
+                                <div css={buttonContainerStyles}>
+                                  <ViewOnMapButton
+                                    layers={[wildScenicRiversLayer]}
+                                    feature={item}
+                                    idField={'GlobalID'}
+                                    onClick={() => {
+                                      if (wildScenicRiversDisplayed) return;
+
+                                      setWildScenicRiversDisplayed(true);
+                                      updateVisibleLayers({
+                                        key: 'wildScenicRiversLayer',
+                                        newValue: true,
+                                      });
+                                    }}
+                                  />
+                                </div>
+                              </FeatureItem>
+                            );
+                          })}
+                        </>
+                      )}
                   </div>
                 </AccordionItem>
 
@@ -1010,7 +1021,17 @@ function Protect() {
 
                     {protectedAreasData.status === 'success' &&
                       protectedAreasData.data.length > 0 && (
-                        <AccordionList>
+                        <AccordionList
+                          title={
+                            <>
+                              <strong>
+                                {protectedAreasData.data.length.toLocaleString()}
+                              </strong>{' '}
+                              protected areas in the <em>{watershed}</em>{' '}
+                              watershed.
+                            </>
+                          }
+                        >
                           {protectedAreasData.data.map((item) => {
                             const attributes = item.attributes;
                             const fields = protectedAreasData.fields;
@@ -1202,10 +1223,13 @@ function Protect() {
 
                           {allProtectionProjects.length > 0 && (
                             <>
-                              <p>
+                              <div css={modifiedInfoBoxStyles}>
+                                <strong>
+                                  {allProtectionProjects.length.toLocaleString()}
+                                </strong>{' '}
                                 EPA funded protection projects in the{' '}
                                 <em>{watershed}</em> watershed.
-                              </p>
+                              </div>
 
                               {allProtectionProjects.map((item, index) => {
                                 const url = getUrlFromMarkup(item.projectLink);
