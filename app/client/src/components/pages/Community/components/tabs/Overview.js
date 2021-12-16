@@ -446,8 +446,9 @@ function WaterbodiesTab() {
       fieldName={null}
       title={
         <>
-          <strong>{waterbodies?.length}</strong> overall condition of
-          waterbodies in the <em>{watershed}</em> watershed.
+          Overall condition of{' '}
+          <strong>{waterbodies?.length.toLocaleString()}</strong> waterbodies in
+          the <em>{watershed}</em> watershed.
         </>
       }
     />
