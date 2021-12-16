@@ -225,7 +225,11 @@ const accordionContentStyles = css`
 
   button {
     margin-bottom: 0.25em;
+  }
+`;
 
+const paragraphContentStyles = css`
+  button {
     &:hover,
     &:focus {
       background-color: ${colors.navyBlue()};
@@ -801,7 +805,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                                         graphic ? true : false,
                                       )}
 
-                                    <p>
+                                    <p css={paragraphContentStyles}>
                                       {graphic && (
                                         <ViewOnMapButton
                                           feature={{
