@@ -247,7 +247,7 @@ function Protect() {
         watershedPlans: '',
         completionDate: plan.completionDate,
         actionTypeCode: plan.actionTypeCode,
-        organizationId: plan.organizationIdentifier,
+        organizationId: plan.organizationId,
       });
     });
 
