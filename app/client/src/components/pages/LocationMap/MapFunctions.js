@@ -660,8 +660,8 @@ export function getPopupTitle(attributes: Object) {
   }
 
   // WSIO Health Index
-  else if (attributes.phwa_health_ndx_st_2016) {
-    title = attributes.name_huc12;
+  else if (attributes.PHWA_HEALTH_NDX_ST) {
+    title = attributes.NAME_HUC12;
   }
 
   // Protected areas
@@ -774,7 +774,7 @@ export function getPopupContent({
   }
 
   // WSIO Health Index
-  else if (attributes.phwa_health_ndx_st_2016) {
+  else if (attributes.PHWA_HEALTH_NDX_ST) {
     type = 'State Watershed Health Index';
   }
 
