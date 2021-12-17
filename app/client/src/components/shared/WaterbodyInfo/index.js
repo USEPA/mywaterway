@@ -495,9 +495,9 @@ function WaterbodyInfo({
   const [selectAll, setSelectAll] = useState(1);
 
   function usgsStreamgagesContent() {
-    function MeasurementTableRow({ data }) {
+    function MeasurementTableRow({ data, index }) {
       return (
-        <tr key={data.parameterCode}>
+        <tr key={index}>
           <td>
             {data.parameterName}&nbsp;&nbsp;
             <small css={additionalTextStyles}>({data.parameterCode})</small>
@@ -589,8 +589,8 @@ function WaterbodyInfo({
           <tbody>
             {primaryMeasurements
               .sort((a, b) => a.parameterOrder - b.parameterOrder)
-              .map((data) => (
-                <MeasurementTableRow data={data} />
+              .map((data, index) => (
+                <MeasurementTableRow data={data} index={index} />
               ))}
 
             {/* TODO: move secondary measurements into show/hide button */}
@@ -601,8 +601,8 @@ function WaterbodyInfo({
 
             {secondaryMeasurements
               .sort((a, b) => a.parameterName.localeCompare(b.parameterName))
-              .map((data) => (
-                <MeasurementTableRow data={data} />
+              .map((data, index) => (
+                <MeasurementTableRow data={data} index={index} />
               ))}
           </tbody>
         </table>
