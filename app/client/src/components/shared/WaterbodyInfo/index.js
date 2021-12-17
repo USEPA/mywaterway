@@ -582,7 +582,7 @@ function WaterbodyInfo({
         <table css={tableStyles} className="table">
           <thead>
             <tr>
-              <th>Parameter</th>
+              <th>Category</th>
               <th>Latest Measurement</th>
             </tr>
           </thead>
