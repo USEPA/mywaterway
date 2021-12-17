@@ -676,7 +676,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         { name: 'locationName', type: 'string' },
         { name: 'locationType', type: 'string' },
         { name: 'locationUrl', type: 'string' },
-        { name: 'streamGageMeasurements', type: 'blob' },
+        { name: 'streamgageMeasurements', type: 'blob' },
       ],
       outFields: ['*'],
       // NOTE: initial graphic below will be replaced with UGSG streamgages

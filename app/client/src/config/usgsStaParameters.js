@@ -31,14 +31,14 @@ export const usgsStaParameters = [
     staParameterCode: '00400',
     staDescription: 'pH',
     hmwName: 'Acidity (pH)',
-    hmwUnits: '',
+    hmwUnits: ' ',
     hmwOrder: 5,
   },
   {
     staParameterCode: '00095',
     staDescription: 'Specific cond at 25C',
     hmwName: 'Saltiness (Specific Conductance)',
-    hmwUnits: 'uS/cm²',
+    hmwUnits: 'μS/cm²',
     hmwOrder: 6,
   },
   {

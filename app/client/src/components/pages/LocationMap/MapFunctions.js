@@ -390,10 +390,14 @@ export function plotGages(gages: Object[], layer: any) {
   if (!gages || !layer) return;
 
   const graphics = gages.map((gage) => {
-    // TODO: determine if there's a better way to isolate gage height measurements
-    const gageHeight = gage.streamGageMeasurements.find((data) => {
-      return data.parameterCode === '00065';
-    })?.measurement;
+    const gageHeightMeasurements = gage.streamgageMeasurements.primary.filter(
+      (d) => d.parameterCode === '00065',
+    );
+
+    const gageHeight =
+      gageHeightMeasurements.length === 1
+        ? gageHeightMeasurements[0]?.measurement
+        : null;
 
     return new Graphic({
       geometry: {

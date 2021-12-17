@@ -110,17 +110,24 @@ function Overview() {
 
   const [waterbodiesDisplayed, setWaterbodiesDisplayed] = useState(true);
 
-  const [monitoringLocationsDisplayed, setMonitoringLocationsDisplayed] =
-    useState(false);
+  const [
+    monitoringLocationsDisplayed,
+    setMonitoringLocationsDisplayed,
+  ] = useState(false);
 
-  const [usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed] =
-    useState(false);
+  const [usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed] = useState(
+    false,
+  );
 
-  const [monitoringAndSensorsDisplayed, setMonitoringAndSensorsDisplayed] =
-    useState(false);
+  const [
+    monitoringAndSensorsDisplayed,
+    setMonitoringAndSensorsDisplayed,
+  ] = useState(false);
 
-  const [permittedDischargersDisplayed, setPermittedDischargersDisplayed] =
-    useState(false);
+  const [
+    permittedDischargersDisplayed,
+    setPermittedDischargersDisplayed,
+  ] = useState(false);
 
   // Syncs the toggles with the visible layers on the map. Mainly
   // used for when the user toggles layers in full screen mode and then
@@ -491,38 +498,22 @@ function MonitoringAndSensorsTab({
   useEffect(() => {
     if (!usgsStreamgages.data.value) return;
 
-    const gages = usgsStreamgages.data.value.map((gage) => ({
-      monitoringType: 'Daily Water Conditions',
-      siteId: gage.properties.monitoringLocationNumber,
-      orgId: gage.properties.agencyCode,
-      orgName: gage.properties.agency,
-      locationLongitude: gage.Locations[0].location.coordinates[0],
-      locationLatitude: gage.Locations[0].location.coordinates[1],
-      locationName: gage.properties.monitoringLocationName,
-      locationType: gage.properties.monitoringLocationType,
-      locationUrl: gage.properties.monitoringLocationUrl,
-      // usgs streamgage specific properties:
-      streamGageMeasurements: [...gage.Datastreams]
-        .filter((data) => data.Observations.length > 0)
-        .filter((data) => {
-          const { ParameterCode, WebDescription } = data.properties;
-          return ParameterCode === '00065' // gage height
-            ? WebDescription === 'NAVD88'
-              ? true
-              : false
-            : true;
-        })
-        .map((data) => {
-          const observation = data.Observations[0];
-          const parameterCode = data.properties.ParameterCode;
-          const parameterDesc = data.description.split(' / USGS-')[0];
-          const parameterUnit = data.unitOfMeasurement;
+    const gages = usgsStreamgages.data.value.map((gage) => {
+      const streamgageMeasurements = { primary: [], secondary: [] };
 
-          const matchedParam = usgsStaParameters.find((item) => {
-            return item.staParameterCode === parameterCode;
+      [...gage.Datastreams]
+        .filter((item) => item.Observations.length > 0)
+        .forEach((item) => {
+          const observation = item.Observations[0];
+          const parameterCode = item.properties.ParameterCode;
+          const parameterDesc = item.description.split(' / USGS-')[0];
+          const parameterUnit = item.unitOfMeasurement;
+
+          const matchedParam = usgsStaParameters.find((p) => {
+            return p.staParameterCode === parameterCode;
           });
 
-          return {
+          const data = {
             parameterOrder: matchedParam?.hmwOrder || 0,
             parameterName: matchedParam?.hmwName || parameterDesc,
             parameterCode,
@@ -531,23 +522,38 @@ function MonitoringAndSensorsTab({
             unitAbbr: matchedParam?.hmwUnits || parameterUnit.symbol,
             unitName: parameterUnit.name,
           };
-        })
-        .sort((a, b) => {
-          // sort paramaters by order (only matched params have an order set)
-          if (a.parameterOrder < b.parameterOrder) return 1;
-          if (a.parameterOrder > b.parameterOrder) return -1;
-          // sort remaining (non-matched) paramaters alphabetically
-          return a.parameterName.localeCompare(b.parameterName);
-        }),
-    }));
+
+          if (Boolean(matchedParam)) {
+            streamgageMeasurements.primary.push(data);
+          } else {
+            streamgageMeasurements.secondary.push(data);
+          }
+        });
+
+      return {
+        monitoringType: 'Daily Water Conditions',
+        siteId: gage.properties.monitoringLocationNumber,
+        orgId: gage.properties.agencyCode,
+        orgName: gage.properties.agency,
+        locationLongitude: gage.Locations[0].location.coordinates[0],
+        locationLatitude: gage.Locations[0].location.coordinates[1],
+        locationName: gage.properties.monitoringLocationName,
+        locationType: gage.properties.monitoringLocationType,
+        locationUrl: gage.properties.monitoringLocationUrl,
+        // usgs streamgage specific properties:
+        streamgageMeasurements,
+      };
+    });
 
     setNormalizedUsgsStreamgages(gages);
 
     plotGages(gages, usgsStreamgagesLayer);
   }, [usgsStreamgages.data, usgsStreamgagesLayer]);
 
-  const [normalizedMonitoringLocations, setNormalizedMonitoringLocations] =
-    useState([]);
+  const [
+    normalizedMonitoringLocations,
+    setNormalizedMonitoringLocations,
+  ] = useState([]);
 
   // normalize monitoring stations data with USGS streamgages data,
   // and draw them on the map
@@ -590,8 +596,10 @@ function MonitoringAndSensorsTab({
     ...normalizedMonitoringLocations,
   ];
 
-  const [monitoringAndSensorsSortedBy, setMonitoringAndSensorsSortedBy] =
-    useState('locationName');
+  const [
+    monitoringAndSensorsSortedBy,
+    setMonitoringAndSensorsSortedBy,
+  ] = useState('locationName');
 
   const sortedMonitoringAndSensors = [...allMonitoringAndSensors].sort(
     (a, b) => {
@@ -839,8 +847,10 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
     }
   }, [permittedDischargers.data, dischargersLayer]);
 
-  const [permittedDischargersSortedBy, setPermittedDischargersSortedBy] =
-    useState('CWPName');
+  const [
+    permittedDischargersSortedBy,
+    setPermittedDischargersSortedBy,
+  ] = useState('CWPName');
 
   /* prettier-ignore */
   const sortedPermittedDischargers = permittedDischargers.data.Results?.Facilities

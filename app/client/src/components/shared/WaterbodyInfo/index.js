@@ -495,6 +495,59 @@ function WaterbodyInfo({
   const [selectAll, setSelectAll] = useState(1);
 
   function usgsStreamgagesContent() {
+    function MeasurementTableRow({ data }) {
+      return (
+        <tr key={data.parameterCode}>
+          <td>
+            {data.parameterName}&nbsp;&nbsp;
+            <small css={additionalTextStyles}>({data.parameterCode})</small>
+          </td>
+          <td>
+            {data.multiple ? (
+              <>
+                <em>multiple measurements</em>
+                <br />
+                <small css={additionalTextStyles}>
+                  see “More Information” link below
+                </small>
+              </>
+            ) : (
+              <>
+                <strong>{data.measurement}</strong>
+                &nbsp;
+                <small title={data.unitName}>{data.unitAbbr}</small>
+                <br />
+                <small css={additionalTextStyles}>{data.datetime}</small>
+              </>
+            )}
+          </td>
+        </tr>
+      );
+    }
+
+    function addUniqueMeasurement(measurement, array) {
+      const measurementAlreadyAdded = array.find((m) => {
+        return m.parameterCode === measurement.parameterCode;
+      });
+
+      if (measurementAlreadyAdded) {
+        measurementAlreadyAdded.multiple = true;
+      } else {
+        array.push({ ...measurement });
+      }
+    }
+
+    const primaryMeasurements = [];
+    const secondaryMeasurements = [];
+
+    attributes.streamgageMeasurements.primary.forEach((measurement) => {
+      addUniqueMeasurement(measurement, primaryMeasurements);
+    });
+
+    attributes.streamgageMeasurements.secondary.forEach((measurement) => {
+      addUniqueMeasurement(measurement, secondaryMeasurements);
+    });
+
     return (
       <>
         <table className="table">
@@ -534,22 +587,23 @@ function WaterbodyInfo({
             </tr>
           </thead>
           <tbody>
-            {attributes.streamGageMeasurements.map((data, index) => (
-              <tr key={index}>
-                <td>
-                  {data.parameterName}&nbsp;&nbsp;
-                  <small css={additionalTextStyles}>
-                    ({data.parameterCode})
-                  </small>
-                </td>
-                <td>
-                  <strong>{data.measurement}</strong>&nbsp;
-                  <small title={data.unitName}>{data.unitAbbr}</small>
-                  <br />
-                  <small css={additionalTextStyles}>{data.datetime}</small>
-                </td>
-              </tr>
-            ))}
+            {primaryMeasurements
+              .sort((a, b) => a.parameterOrder - b.parameterOrder)
+              .map((data) => (
+                <MeasurementTableRow data={data} />
+              ))}
+
+            {/* TODO: move secondary measurements into show/hide button */}
+            <tr>
+              <td>----------------</td>
+              <td>----------------</td>
+            </tr>
+
+            {secondaryMeasurements
+              .sort((a, b) => a.parameterName.localeCompare(b.parameterName))
+              .map((data) => (
+                <MeasurementTableRow data={data} />
+              ))}
           </tbody>
         </table>
         <div>
