@@ -18,7 +18,12 @@ import {
   useWaterTypeOptionsContext,
 } from 'contexts/LookupFiles';
 // utilities
-import { formatNumber, titleCase, titleCaseWithExceptions } from 'utils/utils';
+import {
+  formatNumber,
+  normalizeString,
+  titleCase,
+  titleCaseWithExceptions,
+} from 'utils/utils';
 // styles
 import { fonts, colors, reactSelectStyles } from 'styles/index.js';
 // errors
@@ -138,9 +143,9 @@ function SurveyResults({
     // find the stressor/categoryCode combo in stressorMapping if surveyMapping.js
     for (const stressorMap of mapping) {
       if (
-        stressorMap.stressor.toUpperCase() === stressor.toUpperCase() &&
-        stressorMap.surveyCategoryCode.toUpperCase() ===
-          surveyCategoryCode.toUpperCase()
+        normalizeString(stressorMap.stressor) === normalizeString(stressor) &&
+        normalizeString(stressorMap.surveyCategoryCode) ===
+          normalizeString(surveyCategoryCode)
       ) {
         return stressorMap;
       }
@@ -154,8 +159,8 @@ function SurveyResults({
     // find the surveyCategoryCode in categoryCodeMapping if surveyMapping.js
     for (const categoryMap of mapping) {
       if (
-        categoryMap.surveyCategoryCode.toUpperCase() ===
-        surveyCategoryCode.toUpperCase()
+        normalizeString(categoryMap.surveyCategoryCode) ===
+        normalizeString(surveyCategoryCode)
       ) {
         return categoryMap;
       }
@@ -191,7 +196,7 @@ function SurveyResults({
         let categoryMapping = null;
         let stressorMapping = null;
         for (const mapping of surveyMapping.data) {
-          let useSelectedUpper = useSelected.toUpperCase();
+          let useSelectedUpper = normalizeString(useSelected);
           let topicUseSelected = topicUses[useSelectedUpper];
           surveyUseSelected =
             topicUseSelected &&
@@ -210,14 +215,14 @@ function SurveyResults({
             mapSubPop &&
             mapSurveyUse &&
             waterTypeOptions.data[waterType] &&
-            mapOrgId.toUpperCase() === organizationId.toUpperCase() &&
-            mapSubPop.toUpperCase() === selectedSubPop.toUpperCase() &&
+            normalizeString(mapOrgId) === normalizeString(organizationId) &&
+            normalizeString(mapSubPop) === normalizeString(selectedSubPop) &&
             waterTypeOptions.data[waterType].includes(mapWaterGroup) &&
-            (mapSurveyUse.toUpperCase() === useSelected.toUpperCase() ||
+            (normalizeString(mapSurveyUse) === normalizeString(useSelected) ||
               (topicUseSelected &&
                 topicUseSelected.surveyuseCode &&
-                mapSurveyUse.toUpperCase() ===
-                  topicUseSelected.surveyuseCode.toUpperCase()))
+                normalizeString(mapSurveyUse) ===
+                  normalizeString(topicUseSelected.surveyuseCode)))
           ) {
             stressorMapping = mapping['stressorMapping'];
             categoryMapping = mapping['categoryCodeMapping'];
@@ -227,9 +232,9 @@ function SurveyResults({
 
         let confidenceLvlSet = false;
         waterGroup.surveyWaterGroupUseParameters.forEach((param) => {
-          let useSelectedUpper = useSelected.toUpperCase();
+          let useSelectedUpper = normalizeString(useSelected);
           let topicUseSelected = topicUses[useSelectedUpper];
-          let paramSurveyUseCode = param.surveyUseCode.toUpperCase();
+          let paramSurveyUseCode = normalizeString(param.surveyUseCode);
 
           // check the useCode
           if (
@@ -237,7 +242,7 @@ function SurveyResults({
             !topicUseSelected.hasOwnProperty('surveyuseCode') ||
             (paramSurveyUseCode !== useSelectedUpper &&
               paramSurveyUseCode !==
-                topicUseSelected.surveyuseCode.toUpperCase())
+                normalizeString(topicUseSelected.surveyuseCode))
           ) {
             return;
           }

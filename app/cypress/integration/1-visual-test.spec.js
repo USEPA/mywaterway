@@ -1,5 +1,5 @@
 describe('Community Visual Regression Testing', () => {
-  const mapId = '#base-container';
+  const mapId = '#hmw-map-container';
 
   it('Verify DC GIS data displays correctly', () => {
     cy.visit('/community/dc/overview');

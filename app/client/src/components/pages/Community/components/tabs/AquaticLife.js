@@ -1,7 +1,7 @@
 // @flow
 
-import React from 'react';
-import styled from 'styled-components';
+import React, { useContext } from 'react';
+import { css } from 'styled-components/macro';
 // components
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 import AssessmentSummary from 'components/shared/AssessmentSummary';
@@ -11,21 +11,20 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
 
-// --- styled components ---
-const Container = styled.div`
-  padding: 0 1em 1em;
+const containerStyles = css`
+  padding: 1em;
 `;
 
 // --- components ---
 function AquaticLife() {
-  const { watershed } = React.useContext(LocationSearchContext);
+  const { watershed } = useContext(LocationSearchContext);
 
   const waterbodies = useWaterbodyFeatures();
 
   useWaterbodyOnMap('ecological_use');
 
   return (
-    <Container>
+    <div css={containerStyles}>
       <AssessmentSummary
         waterbodies={waterbodies}
         fieldName="ecological_use"
@@ -35,10 +34,14 @@ function AquaticLife() {
       <WaterbodyList
         waterbodies={waterbodies}
         fieldName="ecological_use"
-        usageName="Aquatic Life"
-        title={`Waterbodies assessed for aquatic life in the ${watershed} watershed.`}
+        title={
+          <>
+            Waterbodies assessed for aquatic life in the <em>{watershed}</em>{' '}
+            watershed.
+          </>
+        }
       />
-    </Container>
+    </div>
   );
 }
 

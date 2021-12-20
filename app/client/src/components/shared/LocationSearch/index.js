@@ -4,10 +4,14 @@ import React from 'react';
 import { navigate } from '@reach/router';
 import styled from 'styled-components';
 import { isIE } from 'components/pages/LocationMap/MapFunctions';
+import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import Locator from '@arcgis/core/tasks/Locator';
+import Point from '@arcgis/core/geometry/Point';
+import Search from '@arcgis/core/widgets/Search';
+import * as watchUtils from '@arcgis/core/core/watchUtils';
 // components
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // contexts
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
@@ -164,9 +168,6 @@ function LocationSearch({ route, label }: Props) {
   const sourceEnterPress = useKeyPress('Enter', sourceList);
   const clearButton = React.createRef();
   const clearEnterPress = useKeyPress('Enter', clearButton);
-  const { FeatureLayer, Locator, Point, Search, watchUtils } = React.useContext(
-    EsriModulesContext,
-  );
   const { searchText, watershed, huc12 } = React.useContext(
     LocationSearchContext,
   );
@@ -321,27 +322,15 @@ function LocationSearch({ route, label }: Props) {
     );
 
     setSearchWidget(search);
-  }, [
-    FeatureLayer,
-    Locator,
-    Search,
-    watchUtils,
-    searchWidget,
-    services,
-    searchText,
-    allSources,
-  ]);
+  }, [searchWidget, services, searchText, allSources]);
 
   // Initialize the esri search widget value with the search text.
   React.useEffect(() => {
     if (!searchWidget) return;
 
     // Remove coordinates if search text was from non-esri suggestions
-    searchWidget.searchTerm = splitSuggestedSearch(
-      Point,
-      searchText,
-    ).searchPart;
-  }, [Point, searchWidget, searchText]);
+    searchWidget.searchTerm = splitSuggestedSearch(searchText).searchPart;
+  }, [searchWidget, searchText]);
 
   // Updates the search widget sources whenever the user selects a source.
   const [sourcesVisible, setSourcesVisible] = React.useState(false);
@@ -662,7 +651,7 @@ function LocationSearch({ route, label }: Props) {
     nodeClearButton.click();
   }, [clearEnterPress]);
 
-  const searchTerm = splitSuggestedSearch(Point, searchText).searchPart;
+  const searchTerm = splitSuggestedSearch(searchText).searchPart;
 
   // Detect clicks outside of the search input and search suggestions list.
   // This is used for closing the suggestions list when the user clicks outside.

@@ -1,7 +1,7 @@
 // @flow
 
-import React from 'react';
-import styled from 'styled-components';
+import React, { Fragment, useContext } from 'react';
+import { css } from 'styled-components/macro';
 // components
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 import AssessmentSummary from 'components/shared/AssessmentSummary';
@@ -13,6 +13,22 @@ import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
+
+const containerStyles = css`
+  padding: 1em;
+`;
+
+const textStyles = css`
+  position: relative;
+  top: -1em;
+  margin-bottom: 1em;
+`;
+
+const paragraphStyles = css`
+  margin-top: 0;
+  padding-bottom: 0;
+  line-height: 1.25;
+`;
 
 // given a state code like AL and an array of state objects from attains states service,
 // returns the full name of the state
@@ -33,34 +49,22 @@ function addSerialComma(index: number, arrayLength: number) {
   if (index === arrayLength - 1) return ' and ';
 }
 
-// --- styled components ---
-const Container = styled.div`
-  padding: 0 1em 1em;
-`;
-
-const Disclaimer = styled(DisclaimerModal)`
-  bottom: 1.25rem;
-`;
-
-// --- components ---
 function EatingFish() {
-  const { infoToggleChecked } = React.useContext(CommunityTabsContext);
+  const { infoToggleChecked } = useContext(CommunityTabsContext);
 
-  const {
-    watershed,
-    fishingInfo,
-    statesData, //
-  } = React.useContext(LocationSearchContext);
+  const { watershed, fishingInfo, statesData } = useContext(
+    LocationSearchContext,
+  );
 
   const waterbodies = useWaterbodyFeatures();
 
   useWaterbodyOnMap('fishconsumption_use');
 
   return (
-    <Container>
+    <div css={containerStyles}>
       {infoToggleChecked && (
-        <>
-          <p>
+        <div css={textStyles}>
+          <p css={paragraphStyles}>
             Eating fish and shellfish caught in impaired waters can pose health
             risks. For the {watershed} watershed, be sure to look for posted
             fish advisories or consult your local or state environmental health
@@ -68,7 +72,7 @@ function EatingFish() {
             {fishingInfo.status === 'success' ? (
               <>
                 {fishingInfo.data.map((state, index, array) => (
-                  <React.Fragment key={index}>
+                  <Fragment key={index}>
                     {addSerialComma(index, array.length)}
                     <a
                       href={state.url}
@@ -77,7 +81,7 @@ function EatingFish() {
                     >
                       {convertStateCode(state.stateCode, statesData.data)}
                     </a>
-                  </React.Fragment>
+                  </Fragment>
                 ))}
                 .{' '}
                 <a
@@ -90,19 +94,20 @@ function EatingFish() {
                 </a>
               </>
             ) : (
-              'your state.'
+              <>your state.</>
             )}
             <ShowLessMore
               charLimit={0}
               text={`
-                        The information in How’s My Waterway about the safety of
-                        eating fish caught recreationally should only be
-                        considered as general reference. Please consult with your
-                        state for local or state-wide fish advisories.
-                      `}
+                  The information in How’s My Waterway about the safety of eating
+                  fish caught recreationally should only be considered as general
+                  reference. Please consult with your state for local or state-wide
+                  fish advisories.
+              `}
             />
           </p>
-          <Disclaimer>
+
+          <DisclaimerModal>
             <p>
               Users of this application should not rely on information relating
               to environmental laws and regulations posted on this application.
@@ -111,8 +116,8 @@ function EatingFish() {
               regulations. In addition, EPA cannot attest to the accuracy of
               data provided by organizations outside of the federal government.
             </p>
-          </Disclaimer>
-        </>
+          </DisclaimerModal>
+        </div>
       )}
 
       <AssessmentSummary
@@ -124,10 +129,14 @@ function EatingFish() {
       <WaterbodyList
         waterbodies={waterbodies}
         fieldName="fishconsumption_use"
-        usageName="Fish and Shellfish Consumption"
-        title={`Waterbodies assessed for fish and shellfish consumption in the ${watershed} watershed.`}
+        title={
+          <>
+            Waterbodies assessed for fish and shellfish consumption in the{' '}
+            <em>{watershed}</em> watershed.
+          </>
+        }
       />
-    </Container>
+    </div>
   );
 }
 

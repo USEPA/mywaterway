@@ -1,8 +1,15 @@
 // @flow
 
-import React from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import styled from 'styled-components';
+import Graphic from '@arcgis/core/Graphic';
 // components
 import { ContentTabs } from 'components/shared/ContentTabs';
 import {
@@ -26,7 +33,6 @@ import {
   StyledLabel,
 } from 'components/shared/KeyMetrics';
 // contexts
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
@@ -100,9 +106,7 @@ const IntroDiv = styled.div`
 
 // --- components ---
 function IdentifiedIssues() {
-  const { Graphic } = React.useContext(EsriModulesContext);
-
-  const { infoToggleChecked } = React.useContext(CommunityTabsContext);
+  const { infoToggleChecked } = useContext(CommunityTabsContext);
 
   const {
     permittedDischargers,
@@ -118,24 +122,21 @@ function IdentifiedIssues() {
     setShowAllPolluted,
     cipSummary,
     watershed,
-  } = React.useContext(LocationSearchContext);
+  } = useContext(LocationSearchContext);
 
-  const [
-    permittedDischargersData,
-    setPermittedDischargersData,
-  ] = React.useState({});
+  const [permittedDischargersData, setPermittedDischargersData] = useState({});
 
-  const [parameterToggleObject, setParameterToggleObject] = React.useState({});
+  const [parameterToggleObject, setParameterToggleObject] = useState({});
 
-  const [violatingFacilities, setStateViolatingFacilities] = React.useState([]);
+  const [violatingFacilities, setStateViolatingFacilities] = useState([]);
 
-  const [showAllParameters, setShowAllParameters] = React.useState(false);
+  const [showAllParameters, setShowAllParameters] = useState(false);
 
-  const [showIssuesLayer, setShowIssuesLayer] = React.useState(true);
+  const [showIssuesLayer, setShowIssuesLayer] = useState(true);
 
-  const [showDischargersLayer, setShowDischargersLayer] = React.useState(true);
+  const [showDischargersLayer, setShowDischargersLayer] = useState(true);
 
-  const setViolatingFacilities = React.useCallback(
+  const setViolatingFacilities = useCallback(
     (data: Object) => {
       if (!data || !data['Results'] || !data['Results']['Facilities']) return;
       const violatingFacilities = data['Results']['Facilities'].filter(
@@ -156,29 +157,14 @@ function IdentifiedIssues() {
     [permittedDischargers, permittedDischargersData],
   );
 
-  const convertFacilityToGraphic = React.useCallback(
-    (facility: Object) => {
-      return new Graphic({
-        geometry: {
-          type: 'point', // autocasts as new Point()
-          longitude: facility['FacLong'],
-          latitude: facility['FacLat'],
-        },
-        attributes: facility,
-      });
-    },
-    [Graphic],
-  );
-
-  const checkDischargersToDisplay = React.useCallback(() => {
+  const checkDischargersToDisplay = useCallback(() => {
     if (!dischargersLayer || !showDischargersLayer) return;
 
     plotFacilities({
-      Graphic: Graphic,
       facilities: violatingFacilities,
       layer: dischargersLayer,
     });
-  }, [dischargersLayer, Graphic, showDischargersLayer, violatingFacilities]);
+  }, [dischargersLayer, showDischargersLayer, violatingFacilities]);
 
   // translate scientific parameter names
   const getMappedParameterName = (
@@ -195,7 +181,7 @@ function IdentifiedIssues() {
     return filteredFields.label;
   };
 
-  const checkWaterbodiesToDisplay = React.useCallback(() => {
+  const checkWaterbodiesToDisplay = useCallback(() => {
     const waterbodiesToShow = new Set(); // set to prevent duplicates
     const features = getAllFeatures();
 
@@ -224,10 +210,9 @@ function IdentifiedIssues() {
           });
         }
       });
-      plotIssues(Graphic, Array.from(waterbodiesToShow), issuesLayer);
+      plotIssues(Array.from(waterbodiesToShow), issuesLayer);
     }
   }, [
-    Graphic,
     getAllFeatures,
     issuesLayer,
     parameterToggleObject,
@@ -236,8 +221,8 @@ function IdentifiedIssues() {
   ]);
 
   // emulate componentdidmount
-  const [componentMounted, setComponentMounted] = React.useState(false);
-  React.useEffect(() => {
+  const [componentMounted, setComponentMounted] = useState(false);
+  useEffect(() => {
     if (componentMounted) return;
     setComponentMounted(true);
     setShowAllParameters(showAllPolluted);
@@ -266,8 +251,8 @@ function IdentifiedIssues() {
   ]);
 
   // emulate componentdidupdate
-  const mounted = React.useRef();
-  React.useEffect(() => {
+  const mounted = useRef();
+  useEffect(() => {
     if (!mounted.current) {
       mounted.current = true;
     } else {
@@ -307,14 +292,10 @@ function IdentifiedIssues() {
 
   // check the data quality and log a non-fatal exception to Google Analytics
   // if necessary
-  const [
-    emptyCategoriesWithPercent,
-    setEmptyCategoriesWithPercent,
-  ] = React.useState(false);
-  const [nullPollutedWaterbodies, setNullPollutedWaterbodies] = React.useState(
-    false,
-  );
-  React.useEffect(() => {
+  const [emptyCategoriesWithPercent, setEmptyCategoriesWithPercent] =
+    useState(false);
+  const [nullPollutedWaterbodies, setNullPollutedWaterbodies] = useState(false);
+  useEffect(() => {
     if (!window.gaTarget || cipSummary.status !== 'success') return;
 
     if (!cipSummary.data?.items?.length > 0) {
@@ -362,7 +343,7 @@ function IdentifiedIssues() {
 
   // Updates the visible layers. This function also takes into account whether
   // or not the underlying webservices failed.
-  const updateVisibleLayers = React.useCallback(
+  const updateVisibleLayers = useCallback(
     ({ key = null, newValue = null, useCurrentValue = false }) => {
       const newVisibleLayers = {};
       if (cipSummary.status !== 'failure') {
@@ -400,7 +381,7 @@ function IdentifiedIssues() {
   );
 
   // Updates visible layers based on webservice statuses.
-  React.useEffect(() => {
+  useEffect(() => {
     updateVisibleLayers({ useCurrentValue: true });
   }, [cipSummary, permittedDischargers, visibleLayers, updateVisibleLayers]);
 
@@ -513,9 +494,8 @@ function IdentifiedIssues() {
     }
     // one of the parameters is switched
     else {
-      tempParameterToggleObject[checkedSwitch] = !parameterToggleObject[
-        checkedSwitch
-      ];
+      tempParameterToggleObject[checkedSwitch] =
+        !parameterToggleObject[checkedSwitch];
 
       checkIfAllSwitchesToggled(cipSummary.data, tempParameterToggleObject);
     }
@@ -763,10 +743,11 @@ function IdentifiedIssues() {
                                         ),
                                       );
 
-                                      const mappedParameterName = getMappedParameterName(
-                                        impairmentFields,
-                                        param['parameterGroupName'],
-                                      );
+                                      const mappedParameterName =
+                                        getMappedParameterName(
+                                          impairmentFields,
+                                          param['parameterGroupName'],
+                                        );
                                       // if service contains a parameter we have no mapping for
                                       if (!mappedParameterName) return false;
 
@@ -841,25 +822,32 @@ function IdentifiedIssues() {
                             <GlossaryTerm term="Effluent">
                               effluent
                             </GlossaryTerm>{' '}
-                            violations in the {watershed} watershed.
+                            violations in the <em>{watershed}</em> watershed.
                           </>
                         }
                       >
                         {violatingFacilities.map((item, index) => {
-                          const feature = convertFacilityToGraphic(item);
+                          const feature = new Graphic({
+                            geometry: {
+                              type: 'point',
+                              longitude: item.FacLong,
+                              latitude: item.FacLat,
+                            },
+                            attributes: item,
+                          });
 
                           return (
                             <AccordionItem
                               key={index}
                               title={
-                                <strong>{item['CWPName'] || 'Unknown'}</strong>
+                                <strong>{item.CWPName || 'Unknown'}</strong>
                               }
-                              subTitle={`NPDES ID: ${item['SourceID']}`}
+                              subTitle={`NPDES ID: ${item.SourceID}`}
                               feature={feature}
-                              idKey={'CWPName'}
+                              idKey="CWPName"
                             >
                               <WaterbodyInfo
-                                type={'Permitted Discharger'}
+                                type="Permitted Discharger"
                                 feature={feature}
                               />
                               <ViewOnMapButton feature={feature} />
