@@ -759,11 +759,16 @@ function MonitoringAndSensorsTab({
                   label: 'Monitoring Site ID',
                   value: 'siteId',
                 },
-                {
-                  label: 'Monitoring Measurements',
-                  value: 'stationTotalMeasurements',
-                },
-              ]}
+              ].concat(
+                monitoringLocationsDisplayed
+                  ? [
+                      {
+                        label: 'Monitoring Measurements',
+                        value: 'stationTotalMeasurements',
+                      },
+                    ]
+                  : [],
+              )}
             >
               {filteredMonitoringAndSensors.map((item, index) => {
                 const feature = {
