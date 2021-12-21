@@ -10,7 +10,7 @@ export function getUrlFromMarkup(markup: string) {
 export function getTitleFromMarkup(markup: string) {
   // match on text between brackets i.e. <a ...>Match</a>
   const match = markup.match(/>.*?</i);
-  if (!match) return false;
+  if (!match) return '';
   // remove > and < surrounding the text
   return match[0].slice(1, -1);
 }
