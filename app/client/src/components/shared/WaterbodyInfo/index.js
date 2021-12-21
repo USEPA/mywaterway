@@ -1239,7 +1239,7 @@ function WaterbodyInfo({
   if (type === 'Restoration Plans') content = projectContent();
   if (type === 'Protection Plans') content = projectContent();
   if (type === 'Permitted Discharger') content = dischargerContent;
-  if (type === 'Daily Water Conditions') content = usgsStreamgagesContent();
+  if (type === 'Current Water Conditions') content = usgsStreamgagesContent();
   if (type === 'Sample Location') content = monitoringLocationsContent();
   if (type === 'Nonprofit') content = nonprofitContent;
   if (type === 'Waterbody State Overview') content = waterbodyStateContent;

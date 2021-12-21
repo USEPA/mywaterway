@@ -132,8 +132,10 @@ function Monitoring() {
     setVisibleLayers,
   } = useContext(LocationSearchContext);
 
-  const [prevMonitoringLocationData, setPrevMonitoringLocationData] =
-    useState<MonitoringLocationData>({});
+  const [
+    prevMonitoringLocationData,
+    setPrevMonitoringLocationData,
+  ] = useState<MonitoringLocationData>({});
 
   const [monitoringLocationToggles, setMonitoringLocationToggles] = useState(
     {},
@@ -143,8 +145,10 @@ function Monitoring() {
 
   const [allMonitoringLocations, setAllMonitoringLocations] = useState([]);
 
-  const [displayedMonitoringLocations, setDisplayedMonitoringLocations] =
-    useState([]);
+  const [
+    displayedMonitoringLocations,
+    setDisplayedMonitoringLocations,
+  ] = useState([]);
 
   const [allToggled, setAllToggled] = useState(true);
 
@@ -456,7 +460,7 @@ function Monitoring() {
         <Tabs>
           <TabList>
             <Tab>Sample Locations</Tab>
-            <Tab>Daily Water Conditions</Tab>
+            <Tab>Current Water Conditions</Tab>
           </TabList>
 
           <TabPanels>

@@ -472,7 +472,7 @@ function MonitoringAndSensorsTab({
 
   const services = useServicesContext();
 
-  // if either of the "Daily Water Conditions" or "Sample Locations" switches
+  // if either of the "Current Water Conditions" or "Sample Locations" switches
   // are turned on, or if both switches are turned off, keep the "Monitoring
   // Stations" switch in sync
   useEffect(() => {
@@ -531,7 +531,7 @@ function MonitoringAndSensorsTab({
         });
 
       return {
-        monitoringType: 'Daily Water Conditions',
+        monitoringType: 'Current Water Conditions',
         siteId: gage.properties.monitoringLocationNumber,
         orgId: gage.properties.agencyCode,
         orgName: gage.properties.agency,
@@ -624,7 +624,7 @@ function MonitoringAndSensorsTab({
       const displayedTypes = [];
 
       if (usgsStreamgagesDisplayed) {
-        displayedTypes.push('Daily Water Conditions');
+        displayedTypes.push('Current Water Conditions');
       }
 
       if (monitoringLocationsDisplayed) {
@@ -698,9 +698,9 @@ function MonitoringAndSensorsTab({
                           });
                         }}
                         disabled={normalizedUsgsStreamgages.length === 0}
-                        ariaLabel="Daily Water Conditions"
+                        ariaLabel="Current Water Conditions"
                       />
-                      <span>Daily Water Conditions</span>
+                      <span>Current Water Conditions</span>
                     </div>
                   </td>
                   <td>{normalizedUsgsStreamgages.length}</td>
@@ -801,9 +801,9 @@ function MonitoringAndSensorsTab({
                     idKey="siteId"
                   >
                     <div css={accordionContentStyles}>
-                      {item.monitoringType === 'Daily Water Conditions' && (
+                      {item.monitoringType === 'Current Water Conditions' && (
                         <WaterbodyInfo
-                          type="Daily Water Conditions"
+                          type="Current Water Conditions"
                           feature={feature}
                           services={services}
                         />

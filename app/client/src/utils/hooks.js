@@ -470,7 +470,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       layer = dischargersLayer;
     } else if (attributes.monitoringType === 'Sample Location') {
       layer = monitoringLocationsLayer;
-    } else if (attributes.monitoringType === 'Daily Water Conditions') {
+    } else if (attributes.monitoringType === 'Current Water Conditions') {
       layer = usgsStreamgagesLayer;
     } else if (attributes.type === 'nonprofit') {
       layer = nonprofitsLayer;
