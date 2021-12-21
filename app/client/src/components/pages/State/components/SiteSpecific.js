@@ -268,9 +268,12 @@ function SiteSpecific({
   const responsiveBarChartHeight =
     barChartData.length === 1 ? 75 : barChartData.length * 60;
 
-  let responsiveBarChartFontSize = '15px';
-  if (window.innerWidth < 450) responsiveBarChartFontSize = '11.5px';
-  if (window.innerWidth < 350) responsiveBarChartFontSize = '10px';
+  const responsiveBarChartFontSize =
+    window.innerWidth < 350
+      ? '10px'
+      : window.innerWidth < 450
+      ? '11.5px'
+      : '15px';
 
   return (
     <>
