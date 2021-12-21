@@ -1364,6 +1364,15 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         return;
       }
 
+      function onError(error) {
+        console.error(error);
+        setProtectedAreasData({
+          data: [],
+          fields: [],
+          status: 'failure',
+        });
+      }
+
       fetchCheck(`${services.data.protectedAreasDatabase}0?f=json`)
         .then((layerInfo) => {
           const query = new Query({
@@ -1398,23 +1407,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                 status: 'success',
               });
             })
-            .catch((err) => {
-              console.error(err);
-              setProtectedAreasData({
-                data: [],
-                fields: [],
-                status: 'failure',
-              });
-            });
+            .catch(onError);
         })
-        .catch((err) => {
-          console.error(err);
-          setProtectedAreasData({
-            data: [],
-            fields: [],
-            status: 'failure',
-          });
-        });
+        .catch(onError);
     },
     [services, setProtectedAreasData, setDynamicPopupFields],
   );
