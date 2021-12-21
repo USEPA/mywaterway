@@ -669,6 +669,11 @@ function MonitoringAndSensorsTab({
               </div>
             )}
 
+            <p>
+              Find out about current water conditions at sensor locations and
+              explore sample data from water quality monitoring locations.
+            </p>
+
             <table css={tableStyles} className="table">
               <thead>
                 <tr>
