@@ -327,6 +327,12 @@ function Restore() {
 
             <TabPanel>
               <>
+                <p>
+                  View all restoration plans for the selected watershed in the
+                  list below. Find out which plans are in place to restore each
+                  waterbody shown on the map.
+                </p>
+
                 {attainsPlans.status === 'fetching' && <LoadingSpinner />}
 
                 {attainsPlans.status === 'failure' && (
@@ -368,11 +374,25 @@ function Restore() {
                               </>
                             );
                           }
-                          if (
-                            planType === '4B Restoration Approach' ||
-                            planType === 'Alternative Restoration Approach'
-                          ) {
-                            planType = 'Restoration Plan: ' + planType;
+                          if (planType === '4B Restoration Approach') {
+                            planType = (
+                              <>
+                                Restoration Plan:{' '}
+                                <GlossaryTerm term="4B Restoration Approach">
+                                  4B Restoration Approach
+                                </GlossaryTerm>
+                              </>
+                            );
+                          }
+                          if (planType === 'Alternative Restoration Approach') {
+                            planType = (
+                              <>
+                                Restoration Plan:{' '}
+                                <GlossaryTerm term="Alternative Restoration Approach">
+                                  Alternative Restoration Approach
+                                </GlossaryTerm>
+                              </>
+                            );
                           }
 
                           return (
