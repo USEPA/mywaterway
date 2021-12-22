@@ -1,6 +1,13 @@
 // @flow
 
-import React from 'react';
+import React, {
+  createRef,
+  Fragment,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { navigate } from '@reach/router';
 import styled from 'styled-components';
 import { isIE } from 'components/pages/LocationMap/MapFunctions';
@@ -158,22 +165,20 @@ type Props = {
 
 function LocationSearch({ route, label }: Props) {
   const services = useServicesContext();
-  const searchBox = React.createRef();
+  const searchBox = createRef();
   const downPress = useKeyPress('ArrowDown', searchBox);
   const upPress = useKeyPress('ArrowUp', searchBox);
   const enterPress = useKeyPress('Enter', searchBox);
-  const sourceList = React.createRef();
+  const sourceList = createRef();
   const sourceDownPress = useKeyPress('ArrowDown', sourceList);
   const sourceUpPress = useKeyPress('ArrowUp', sourceList);
   const sourceEnterPress = useKeyPress('Enter', sourceList);
-  const clearButton = React.createRef();
+  const clearButton = createRef();
   const clearEnterPress = useKeyPress('Enter', clearButton);
-  const { searchText, watershed, huc12 } = React.useContext(
-    LocationSearchContext,
-  );
+  const { searchText, watershed, huc12 } = useContext(LocationSearchContext);
 
   const placeholder = 'Search by address, zip code, or place...';
-  const [allSources] = React.useState([
+  const [allSources] = useState([
     {
       type: 'default',
       name: 'All',
@@ -185,7 +190,7 @@ function LocationSearch({ route, label }: Props) {
       placeholder,
       sources: [
         {
-          locator: new Locator({ url: services.data.locatorUrl }),
+          url: services.data.locatorUrl,
           countryCode: 'USA',
           searchFields: ['Loc_name'],
           suggestionTemplate: '{Loc_name}',
@@ -254,8 +259,7 @@ function LocationSearch({ route, label }: Props) {
       sources: [
         {
           layer: new FeatureLayer({
-            url:
-              'https://gispub.epa.gov/arcgis/rest/services/OW/HydrologicUnits/MapServer/19',
+            url: 'https://gispub.epa.gov/arcgis/rest/services/OW/HydrologicUnits/MapServer/19',
             listMode: 'hide',
           }),
           searchFields: ['name', 'huc12'],
@@ -270,23 +274,23 @@ function LocationSearch({ route, label }: Props) {
   ]);
 
   // geolocating state for updating the 'Use My Location' button
-  const [geolocating, setGeolocating] = React.useState(false);
+  const [geolocating, setGeolocating] = useState(false);
 
   // geolocationError state for disabling the 'Use My Location' button
-  const [geolocationError, setGeolocationError] = React.useState(false);
+  const [geolocationError, setGeolocationError] = useState(false);
 
   // initialize inputText from searchText context
-  const [inputText, setInputText] = React.useState(searchText);
+  const [inputText, setInputText] = useState(searchText);
 
   // update inputText whenever searchText changes (i.e. Form onSubmit)
-  React.useEffect(() => setInputText(searchText), [searchText]);
+  useEffect(() => setInputText(searchText), [searchText]);
 
-  const [errorMessage, setErrorMessage] = React.useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Initialize the esri search widget
-  const [searchWidget, setSearchWidget] = React.useState(null);
-  const [suggestions, setSuggestions] = React.useState([]);
-  React.useEffect(() => {
+  const [searchWidget, setSearchWidget] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
+  useEffect(() => {
     if (searchWidget) return;
 
     const sources = [];
@@ -325,7 +329,7 @@ function LocationSearch({ route, label }: Props) {
   }, [searchWidget, services, searchText, allSources]);
 
   // Initialize the esri search widget value with the search text.
-  React.useEffect(() => {
+  useEffect(() => {
     if (!searchWidget) return;
 
     // Remove coordinates if search text was from non-esri suggestions
@@ -333,10 +337,10 @@ function LocationSearch({ route, label }: Props) {
   }, [searchWidget, searchText]);
 
   // Updates the search widget sources whenever the user selects a source.
-  const [sourcesVisible, setSourcesVisible] = React.useState(false);
-  const [selectedSource, setSelectedSource] = React.useState(allSources[0]);
-  const [suggestionsVisible, setSuggestionsVisible] = React.useState(false);
-  React.useEffect(() => {
+  const [sourcesVisible, setSourcesVisible] = useState(false);
+  const [selectedSource, setSelectedSource] = useState(allSources[0]);
+  const [suggestionsVisible, setSuggestionsVisible] = useState(false);
+  useEffect(() => {
     if (!searchWidget) return;
 
     const sources = [];
@@ -362,9 +366,9 @@ function LocationSearch({ route, label }: Props) {
 
   // filter the suggestions down to just sources that have results
   // and combine grouped sources
-  const [filteredSuggestions, setFilteredSuggestions] = React.useState([]);
-  const [resultsCombined, setResultsCombined] = React.useState([]);
-  React.useEffect(() => {
+  const [filteredSuggestions, setFilteredSuggestions] = useState([]);
+  const [resultsCombined, setResultsCombined] = useState([]);
+  useEffect(() => {
     const newFilteredSuggestions = [];
     const newResultsCombined = [];
 
@@ -420,10 +424,10 @@ function LocationSearch({ route, label }: Props) {
     setResultsCombined(newResultsCombined);
   }, [allSources, suggestions]);
 
-  const [cursor, setCursor] = React.useState(-1);
+  const [cursor, setCursor] = useState(-1);
 
   // Handle arrow down key press (search input)
-  React.useEffect(() => {
+  useEffect(() => {
     if (resultsCombined.length > 0 && downPress) {
       setCursor((prevState) => {
         const newIndex =
@@ -440,7 +444,7 @@ function LocationSearch({ route, label }: Props) {
   }, [resultsCombined, downPress]);
 
   // Handle arrow up key press (search input)
-  React.useEffect(() => {
+  useEffect(() => {
     if (resultsCombined.length > 0 && upPress) {
       setCursor((prevState) => {
         const newIndex =
@@ -457,7 +461,7 @@ function LocationSearch({ route, label }: Props) {
   }, [resultsCombined, upPress]);
 
   // Handle enter key press (search input)
-  React.useEffect(() => {
+  useEffect(() => {
     if (resultsCombined.length === 0 || !enterPress) return;
     if (cursor < 0 || cursor > resultsCombined.length) return;
     if (resultsCombined[cursor].text)
@@ -560,9 +564,9 @@ function LocationSearch({ route, label }: Props) {
                       );
                     } else {
                       return (
-                        <React.Fragment key={`text-key-${textIndex}`}>
+                        <Fragment key={`text-key-${textIndex}`}>
                           {part}
-                        </React.Fragment>
+                        </Fragment>
                       );
                     }
                   })}
@@ -574,10 +578,10 @@ function LocationSearch({ route, label }: Props) {
     );
   }
 
-  const [sourceCursor, setSourceCursor] = React.useState(-1);
+  const [sourceCursor, setSourceCursor] = useState(-1);
 
   // Handle arrow down key press (sources list)
-  React.useEffect(() => {
+  useEffect(() => {
     if (allSources.length > 0 && sourceDownPress) {
       setSourceCursor((prevState) => {
         const newIndex = prevState < allSources.length - 1 ? prevState + 1 : 0;
@@ -593,7 +597,7 @@ function LocationSearch({ route, label }: Props) {
   }, [allSources, sourceDownPress]);
 
   // Handle arrow up key press (sources list)
-  React.useEffect(() => {
+  useEffect(() => {
     if (allSources.length > 0 && sourceUpPress) {
       setSourceCursor((prevState) => {
         const newIndex = prevState > 0 ? prevState - 1 : allSources.length - 1;
@@ -609,7 +613,7 @@ function LocationSearch({ route, label }: Props) {
   }, [allSources, sourceUpPress]);
 
   // Handle enter key press (sources list)
-  React.useEffect(() => {
+  useEffect(() => {
     if (!sourceEnterPress) return;
 
     // determine if the sources menu is visible
@@ -644,7 +648,7 @@ function LocationSearch({ route, label }: Props) {
   }, [allSources, sourceCursor, sourceEnterPress]);
 
   // Handle enter key press (clear button)
-  React.useEffect(() => {
+  useEffect(() => {
     if (!clearEnterPress) return;
 
     const nodeClearButton = document.getElementById('search-input-clear');
@@ -655,8 +659,8 @@ function LocationSearch({ route, label }: Props) {
 
   // Detect clicks outside of the search input and search suggestions list.
   // This is used for closing the suggestions list when the user clicks outside.
-  const suggestionsRef = React.useRef();
-  React.useEffect(() => {
+  const suggestionsRef = useRef();
+  useEffect(() => {
     function handleClickOutside(event) {
       if (
         suggestionsRef.current &&
@@ -763,9 +767,8 @@ function LocationSearch({ route, label }: Props) {
                         setSelectedSource(source);
                         setSourcesVisible(false);
 
-                        const searchInput = document.getElementById(
-                          'hmw-search-input',
-                        );
+                        const searchInput =
+                          document.getElementById('hmw-search-input');
                         if (searchInput) searchInput.focus();
                       }}
                     >
