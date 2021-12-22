@@ -509,6 +509,12 @@ function MonitoringAndSensorsTab({
           const parameterDesc = item.description.split(' / USGS-')[0];
           const parameterUnit = item.unitOfMeasurement;
 
+          let measurement = observation.result;
+          // convert measurements recorded in celsius to fahrenheit
+          if (['00010', '00020', '85583'].includes(parameterCode)) {
+            measurement = measurement * (9 / 5) + 32;
+          }
+
           const matchedParam = usgsStaParameters.find((p) => {
             return p.staParameterCode === parameterCode;
           });
@@ -518,7 +524,7 @@ function MonitoringAndSensorsTab({
             parameterOrder: matchedParam?.hmwOrder || 0,
             parameterName: matchedParam?.hmwName || parameterDesc,
             parameterCode,
-            measurement: observation.result,
+            measurement,
             datetime: new Date(observation.phenomenonTime).toLocaleString(),
             unitAbbr: matchedParam?.hmwUnits || parameterUnit.symbol,
             unitName: parameterUnit.name,
