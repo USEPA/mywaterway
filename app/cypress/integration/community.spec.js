@@ -93,6 +93,7 @@ describe('Community page search', () => {
     const search = '020700100103';
     cy.findByPlaceholderText('Search by address', { exact: false }).type(
       search,
+      { force: true },
     );
     cy.findByText('Go').click();
     cy.url().should('include', `/community/${search}/overview`);
