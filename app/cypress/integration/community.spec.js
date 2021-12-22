@@ -353,13 +353,27 @@ describe('Protect Tab', () => {
       'not.exist',
     );
 
-    // check that the Protection Projects in the Protect tab contains a project
+    // check that the Protection Projects in the Protect tab contains a GRTS project
     cy.findByText('Protect').click();
     cy.findByText('Watershed Health and Protection').click();
     cy.get('.hmw-accordion').then((elms) => {
       cy.wrap(elms[3]).click();
     });
     cy.findByText('Cypress Creek WPP Imp - Years 1-3');
+
+    // navigate to Protect tab of Community page
+    cy.findByPlaceholderText('Search by address', { exact: false })
+      .clear()
+      .type('040302020807');
+    cy.findByText('Go').click();
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    // check that the Protection Projects in the Protect tab contains a ATTAINS project
+    cy.findByText('Upper Fox Wolf TMDL as Protection Plan');
   });
 
   it('Check that a message is displayed for a location with no Protection Projects', () => {
@@ -466,16 +480,18 @@ describe('HTTP Intercepts', () => {
 
   it('Check that if GIS responds with empty features array we query and display data about the missing items.', () => {
     cy.intercept(
-      'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/1/query',
+      'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/1/query?f=json&outFields=*',
       {
         statusCode: 200,
         body: { features: [] },
       },
-    );
+    ).as('attains-lines');
 
     // navigate to Protect tab of Community page
     cy.findByPlaceholderText('Search by address', { exact: false }).type('DC');
     cy.findByText('Go').click();
+
+    cy.wait('@attains-lines', { timeout: 120000 });
 
     // wait for the web services to finish
     cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
