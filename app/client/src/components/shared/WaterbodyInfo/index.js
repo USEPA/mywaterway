@@ -1348,7 +1348,14 @@ function UsgsStreamgageParameter({ data, index }) {
   return (
     <tr key={index}>
       <td>
-        {data.parameterName}&nbsp;&nbsp;
+        {data.parameterCategory === 'primary' ? (
+          <GlossaryTerm term={data.parameterName}>
+            {data.parameterName}
+          </GlossaryTerm>
+        ) : (
+          data.parameterName
+        )}
+        &nbsp;&nbsp;
         <small css={additionalTextStyles}>({data.parameterCode})</small>
       </td>
       <td>
