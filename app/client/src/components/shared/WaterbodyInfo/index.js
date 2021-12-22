@@ -1283,7 +1283,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
           </tr>
         </thead>
         <tbody>
-          {primaryMeasurements
+          {[...primaryMeasurements]
             .sort((a, b) => a.parameterOrder - b.parameterOrder)
             .map((data, index) => (
               <UsgsStreamgageParameter data={data} index={index} />
@@ -1317,7 +1317,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
               </tr>
 
               {secondaryMeasurementsShown &&
-                secondaryMeasurements
+                [...secondaryMeasurements]
                   .sort((a, b) =>
                     a.parameterName.localeCompare(b.parameterName),
                   )
