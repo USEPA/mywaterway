@@ -4,17 +4,14 @@ describe('Community Visual Regression Testing', () => {
   it('Verify DC GIS data displays correctly', () => {
     cy.visit('/community/dc/overview');
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'be.visible',
-    );
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.debouncedWait({
+      url: 'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/2/query?f=pbf*',
+      waitTimeout: 120000,
+    });
 
     // this is needed as a workaround for the delay between the loading spinner
     // disappearing and the waterbodies being drawn on the map
-    cy.wait(3000);
+    cy.wait(5000);
 
     cy.get(mapId).matchSnapshot('verify-dc-gis-display');
   });
@@ -22,13 +19,14 @@ describe('Community Visual Regression Testing', () => {
   it('Verify the switches on Identified Issues correctly update the GIS data', () => {
     cy.visit('/community/dc/identified-issues');
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'be.visible',
-    );
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.debouncedWait({
+      url: 'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/2/query?f=pbf*',
+      waitTimeout: 120000,
+    });
+
+    // this is needed as a workaround for the delay between the loading spinner
+    // disappearing and the waterbodies being drawn on the map
+    cy.wait(5000);
 
     // test all impairment categories on
     cy.get(mapId).matchSnapshot('dc-all-impairment-categories');
@@ -61,13 +59,10 @@ describe('Community Visual Regression Testing', () => {
   it('Verify shading of huc boundaries is turned off when wsio layer is on', () => {
     cy.visit('/community/dc/protect');
 
-    // wait for the web services to finish
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'be.visible',
-    );
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
-      'not.exist',
-    );
+    cy.debouncedWait({
+      url: 'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/2/query?f=pbf*',
+      waitTimeout: 120000,
+    });
 
     cy.wait(3000);
 
