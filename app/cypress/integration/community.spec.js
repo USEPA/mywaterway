@@ -279,7 +279,7 @@ describe('Identified Issues Tab', () => {
   });
 });
 
-describe.only('Monitoring Tab', () => {
+describe('Monitoring Tab', () => {
   beforeEach(() => {
     cy.visit('/community');
   });
