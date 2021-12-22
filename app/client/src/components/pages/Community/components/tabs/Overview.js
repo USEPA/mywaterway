@@ -514,6 +514,7 @@ function MonitoringAndSensorsTab({
           });
 
           const data = {
+            parameterCategory: matchedParam?.hmwCategory || 'exclude',
             parameterOrder: matchedParam?.hmwOrder || 0,
             parameterName: matchedParam?.hmwName || parameterDesc,
             parameterCode,
@@ -523,9 +524,11 @@ function MonitoringAndSensorsTab({
             unitName: parameterUnit.name,
           };
 
-          if (Boolean(matchedParam)) {
+          if (data.parameterCategory === 'primary') {
             streamgageMeasurements.primary.push(data);
-          } else {
+          }
+
+          if (data.parameterCategory === 'secondary') {
             streamgageMeasurements.secondary.push(data);
           }
         });
