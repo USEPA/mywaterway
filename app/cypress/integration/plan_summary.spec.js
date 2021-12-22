@@ -39,13 +39,18 @@ describe('Plan Summary (Actions) page', () => {
 
     cy.visit(`/plan-summary/${orgId}/${actionId}`);
 
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
     cy.findByText('No map data is available.');
   });
 
   it('The "View Waterbody Report" link should navigate to a waterbody report page', () => {
     const orgId = '21AWIC';
     const actionId = '40958';
-    const reportingCycle = '2018';
+    const reportingCycle = '2020';
 
     cy.visit(`/plan-summary/${orgId}/${actionId}`);
 
