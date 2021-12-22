@@ -2,8 +2,8 @@ describe('Add Data Widget', () => {
   const adwId = '#add-data-widget';
   const dropzoneId = 'tots-dropzone';
 
-  beforeEach(() => {
-    cy.visit('/community');
+  function openWidget(path = '/community') {
+    cy.visit(path);
 
     // wait for the web services to finish
     cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
@@ -16,13 +16,17 @@ describe('Add Data Widget', () => {
     cy.get('div[title="Add Data Widget"]').then((button) => button.click());
 
     cy.get(adwId).should('be.visible');
+  }
+
+  beforeEach(() => {
+    openWidget();
   });
 
   it('Verify disclaimer modal works', () => {
     const disclaimerText =
       'EPA cannot attest to the accuracy of data provided by organizations outside of the federal government.';
 
-    cy.findByText('Disclaimer').click();
+    cy.findByText('DISCLAIMER').click();
 
     // verify the disclaimer text is visible
     cy.findByText(disclaimerText).should('be.visible');
@@ -128,6 +132,8 @@ describe('Add Data Widget', () => {
   it('Test URL feature', () => {
     const urlSuccess = 'The layer was successfully added to the map';
 
+    openWidget('/community/dc');
+
     cy.get(adwId).within(($adw) => {
       function runUrlTests(layer, layerTitle) {
         cy.findByText(layer);
@@ -198,7 +204,7 @@ describe('Add Data Widget', () => {
 
       // run tests for a csv file
       runUrlTests(
-        'http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.csv',
+        'https://developers.arcgis.com/javascript/latest/sample-code/layers-csv/live/earthquakes.csv',
         null,
       );
 
