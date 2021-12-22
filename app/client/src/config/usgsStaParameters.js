@@ -66,7 +66,7 @@ export const usgsStaParameters = [
   {
     staParameterCode: '00045',
     staDescription: 'Precipitation',
-    hmwCategory: 'primary',
+    hmwCategory: 'exclude', // NOTE: was 'primary' but precipitation data is being pulled from a separate web service
     hmwOrder: 5,
     hmwName: 'Rainfall',
     hmwUnits: 'in',
@@ -162,7 +162,7 @@ export const usgsStaParameters = [
   {
     staParameterCode: '00193',
     staDescription: 'Precipitation, defined period',
-    hmwCategory: 'secondary',
+    hmwCategory: 'exclude',
     hmwOrder: null,
     hmwName: 'Rainfall',
     hmwUnits: 'in',
@@ -538,7 +538,7 @@ export const usgsStaParameters = [
   {
     staParameterCode: '72192',
     staDescription: 'Precipitation, cumul',
-    hmwCategory: 'secondary',
+    hmwCategory: 'exclude',
     hmwOrder: null,
     hmwName: 'Rainfall',
     hmwUnits: 'in',
@@ -546,7 +546,7 @@ export const usgsStaParameters = [
   {
     staParameterCode: '72194',
     staDescription: 'Precipitation, cumul',
-    hmwCategory: 'secondary',
+    hmwCategory: 'exclude',
     hmwOrder: null,
     hmwName: 'Rainfall',
     hmwUnits: 'mm',
@@ -754,7 +754,7 @@ export const usgsStaParameters = [
   {
     staParameterCode: '99772',
     staDescription: 'Precipitation',
-    hmwCategory: 'secondary',
+    hmwCategory: 'exclude',
     hmwOrder: null,
     hmwName: 'Rainfall',
     hmwUnits: 'mm',
