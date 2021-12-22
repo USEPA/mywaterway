@@ -103,7 +103,7 @@ describe('State Visual Regression Testing', () => {
   const waterTypeId = '#water-type-swimming';
 
   it('Verify state waters assessed chart', () => {
-    cy.visit('/state/AL/water-quality-overview');
+    cy.visit('/state/AK/water-quality-overview');
 
     // wait for the web services to finish
     cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
@@ -116,6 +116,7 @@ describe('State Visual Regression Testing', () => {
       'verify-assessed-less-than-1-chart-display',
     );
 
+    cy.visit('/state/AL/water-quality-overview');
     // Select the "Rivers and Streams" water type
     cy.get(waterTypeId).within(($el) => {
       cy.wrap($el).click();
@@ -123,7 +124,7 @@ describe('State Visual Regression Testing', () => {
     });
 
     // wait for animations to settle and check the assessed chart
-    cy.wait(1000);
+    cy.wait(2000);
     cy.get(assessedChartId).matchSnapshot('verify-assessed-chart-display');
   });
 
