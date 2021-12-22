@@ -279,7 +279,7 @@ describe('Identified Issues Tab', () => {
   });
 });
 
-describe('Monitoring Tab', () => {
+describe.only('Monitoring Tab', () => {
   beforeEach(() => {
     cy.visit('/community');
   });
@@ -315,7 +315,9 @@ describe('Monitoring Tab', () => {
     );
 
     // check that there are no items displayed in accordion
-    cy.findByText('Displaying 0', { exact: false });
+    cy.findByTestId('monitoring-accordion-title').contains('0 of 96', {
+      exact: false,
+    });
 
     // check that clicking the Toggle All switch again toggles all switches back on
     cy.findByLabelText('Toggle all monitoring locations').click({

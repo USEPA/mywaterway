@@ -126,29 +126,21 @@ function Monitoring() {
     setVisibleLayers,
   } = React.useContext(LocationSearchContext);
 
-  const [
-    prevMonitoringLocationData,
-    setPrevMonitoringLocationData,
-  ] = React.useState<MonitoringLocationData>({});
+  const [prevMonitoringLocationData, setPrevMonitoringLocationData] =
+    React.useState<MonitoringLocationData>({});
 
-  const [
-    monitoringLocationToggles,
-    setMonitoringLocationToggles,
-  ] = React.useState({});
+  const [monitoringLocationToggles, setMonitoringLocationToggles] =
+    React.useState({});
 
-  const [
-    monitoringLocationGroups,
-    setMonitoringLocationGroups,
-  ] = React.useState({});
+  const [monitoringLocationGroups, setMonitoringLocationGroups] =
+    React.useState({});
 
   const [allMonitoringLocations, setAllMonitoringLocations] = React.useState(
     [],
   );
 
-  const [
-    displayedMonitoringLocations,
-    setDisplayedMonitoringLocations,
-  ] = React.useState([]);
+  const [displayedMonitoringLocations, setDisplayedMonitoringLocations] =
+    React.useState([]);
 
   const [allToggled, setAllToggled] = React.useState(true);
 
@@ -548,11 +540,11 @@ function Monitoring() {
                       <AccordionList
                         expandDisabled={true} // disabled to avoid large number of web service calls
                         title={
-                          <>
+                          <div data-testid="monitoring-accordion-title">
                             <strong>{displayLocations}</strong> of{' '}
                             <strong>{totalLocations}</strong> Water Monitoring
                             Locations in the <em>{watershed}</em> watershed.
-                          </>
+                          </div>
                         }
                         onSortChange={({ value }) => setSortBy(value)}
                         sortOptions={[
