@@ -50,6 +50,28 @@ function renderLink(label, link) {
   );
 }
 
+const popupContainerStyles = css`
+  margin: 0;
+  overflow-y: auto;
+
+  .esri-feature & p {
+    padding-bottom: 0;
+  }
+`;
+
+const popupContentStyles = css`
+  margin-top: 0.5rem;
+  margin-left: 0.625em;
+`;
+
+const popupTitleStyles = css`
+  margin-bottom: 0;
+  padding: 0.45em 0.625em !important;
+  font-size: 0.8125em;
+  font-weight: bold;
+  background-color: #f0f6f9;
+`;
+
 const tableStyles = css`
   th:last-of-type,
   td:last-of-type {
@@ -75,6 +97,15 @@ const iconStyles = css`
   margin-right: 5px;
 `;
 
+const moreLessRowStyles = css`
+  padding-left: 0 !important;
+  text-align: left !important;
+
+  button {
+    margin-bottom: 0;
+  }
+`;
+
 const additionalTextStyles = css`
   font-style: italic;
   color: ${colors.gray9};
@@ -97,18 +128,20 @@ const buttonsContainer = css`
   text-align: center;
 
   button {
-    margin: 0 0.75em 1.5em;
+    margin: 0 0.75em;
     font-size: 0.9375em;
   }
 `;
 
-const primaryButtonStyles = css`
+const buttonStyles = css`
   color: ${colors.white()};
   background-color: ${colors.blue()};
-`;
 
-const secondaryButtonStyles = css`
-  background-color: lightgray;
+  &:hover,
+  &:focus {
+    color: ${colors.white()};
+    background-color: ${colors.navyBlue()};
+  }
 `;
 
 const imageContainerStyles = css`
@@ -129,7 +162,18 @@ const projectsContainerStyles = css`
   margin-bottom: 0.5rem;
 `;
 
-// --- components ---
+const changeWatershedContainerStyles = css`
+  ${popupContentStyles};
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+
+  p {
+    padding-bottom: 0;
+  }
+`;
+
 type Props = {
   type: string,
   feature: ?Object,
@@ -200,77 +244,6 @@ function WaterbodyInfo({
     );
   }
 
-  const renderChangeWatershed = () => {
-    if (!clickedHuc) return null;
-    if (clickedHuc.status === 'no-data') return <p>No Data</p>;
-    if (clickedHuc.status === 'fetching') return <LoadingSpinner />;
-    if (clickedHuc.status === 'failure') return <p>Web service error</p>;
-    if (clickedHuc.status === 'success') {
-      const huc12 = clickedHuc.data.huc12;
-      const watershed = clickedHuc.data.watershed;
-      return (
-        <>
-          {type !== 'Change Location' && (
-            <>
-              <hr />
-              <strong>Change to this location?</strong>
-              <br />
-            </>
-          )}
-
-          {labelValue('WATERSHED', `${watershed} (${huc12})`)}
-
-          <div css={buttonsContainer}>
-            {type === 'Change Location' && (
-              <button
-                css={secondaryButtonStyles}
-                title=""
-                className="btn"
-                onClick={(ev) => {
-                  if (!feature?.view) return;
-                  feature.view.popup.close();
-                }}
-              >
-                No
-              </button>
-            )}
-
-            <button
-              css={primaryButtonStyles}
-              title="Change to this location"
-              className="btn"
-              onClick={(ev) => {
-                // Clear all data before navigating.
-                // The main reason for this is better performance
-                // when doing a huc search by clicking on the state map. The app
-                // will attempt to use all of the loaded state data, then clear it
-                // then load the huc. This could take a long time if the state
-                // has a lot of waterbodies.
-                if (resetData) resetData();
-
-                let baseRoute = `/community/${huc12}`;
-
-                // community will attempt to stay on the same tab
-                // if available, stay on the same tab otherwise go to overview
-                let urlParts = window.location.pathname.split('/');
-                if (urlParts.includes('community') && urlParts.length > 3) {
-                  navigate(`${baseRoute}/${urlParts[3]}`);
-                  return;
-                }
-
-                navigate(`${baseRoute}/overview`);
-              }}
-            >
-              Yes
-            </button>
-          </div>
-        </>
-      );
-    }
-
-    return null;
-  };
-
   const waterbodyPollutionCategories = (label: string) => {
     const pollutionCategories = impairmentFields
       .filter((field) => attributes[field.value] === 'Cause')
@@ -291,6 +264,28 @@ function WaterbodyInfo({
         <ul>{pollutionCategories}</ul>
       </>
     );
+  };
+
+  const getTypeTitle = () => {
+    const typesToSkip = [
+      'Action',
+      'Change Location',
+      'Waterbody State Overview',
+    ];
+    if (typesToSkip.includes(type)) return null;
+
+    let title = type;
+    if (type === 'Demographic Indicators') {
+      title = `${type} - ${feature.layer.title}`;
+    }
+    if (type === 'Restoration Plans') {
+      title = 'Restoration Plans for this Waterbody';
+    }
+    if (type === 'Protection Plans') {
+      title = 'Protection Plans for this Waterbody';
+    }
+
+    return <p css={popupTitleStyles}>{title}</p>;
   };
 
   const waterbodyReportLink =
@@ -423,15 +418,6 @@ function WaterbodyInfo({
   };
 
   // jsx
-  const waterbodyContent = (
-    <>
-      {baseWaterbodyContent()}
-
-      {renderChangeWatershed()}
-    </>
-  );
-
-  // jsx
   const waterbodyStateContent = (
     <>
       {labelValue(
@@ -516,83 +502,6 @@ function WaterbodyInfo({
   const [charGroupFilters, setCharGroupFilters] = useState('');
   const [selected, setSelected] = useState({});
   const [selectAll, setSelectAll] = useState(1);
-
-  function usgsStreamgagesContent() {
-    return (
-      <>
-        <table className="table">
-          <tbody>
-            <tr>
-              <td>
-                <em>Organization:</em>
-              </td>
-              <td>{attributes.orgName}</td>
-            </tr>
-            <tr>
-              <td>
-                <em>Location Name:</em>
-              </td>
-              <td>{attributes.locationName}</td>
-            </tr>
-            <tr>
-              <td>
-                <em>Water Type:</em>
-              </td>
-              <td>{attributes.locationType}</td>
-            </tr>
-            <tr>
-              <td>
-                <em>Monitoring Site ID:</em>
-              </td>
-              <td>{attributes.siteId.replace(`${attributes.orgId}-`, '')}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <table css={tableStyles} className="table">
-          <thead>
-            <tr>
-              <th>Parameter</th>
-              <th>Latest Measurement</th>
-            </tr>
-          </thead>
-          <tbody>
-            {attributes.streamGageMeasurements.map((data, index) => (
-              <tr key={index}>
-                <td>
-                  {data.parameterDescription}
-                  <br />
-                  <small css={additionalTextStyles}>{data.parameterCode}</small>
-                </td>
-                <td>
-                  <strong>{data.measurement}</strong>&nbsp;
-                  <small title={data.unitName}>{data.unitAbbr}</small>
-                  <br />
-                  <small css={additionalTextStyles}>{data.datetime}</small>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div>
-          <a
-            rel="noopener noreferrer"
-            target="_blank"
-            href={attributes.locationUrl}
-          >
-            <i
-              css={iconStyles}
-              className="fas fa-info-circle"
-              aria-hidden="true"
-            />
-            More Information
-          </a>
-          &nbsp;&nbsp;
-          <small css={disclaimerStyles}>(opens new browser tab)</small>
-        </div>
-      </>
-    );
-  }
 
   function monitoringLocationsContent() {
     const stationGroups = JSON.parse(attributes.stationTotalsByCategory);
@@ -898,8 +807,6 @@ function WaterbodyInfo({
           <br />
           {attributes.CDFIPS} - {attributes.NAME}
         </p>
-
-        {renderChangeWatershed()}
       </>
     );
   };
@@ -913,20 +820,12 @@ function WaterbodyInfo({
           <br />
           {attributes.CNTY_FIPS} - {attributes.NAME}
         </p>
-
-        {renderChangeWatershed()}
       </>
     );
   };
 
   // jsx
-  const tribeContent = (
-    <>
-      {labelValue('Tribe Name', attributes.TRIBE_NAME)}
-
-      {renderChangeWatershed()}
-    </>
-  );
+  const tribeContent = labelValue('Tribe Name', attributes.TRIBE_NAME);
 
   // jsx
   const upstreamWatershedContent = (
@@ -935,8 +834,6 @@ function WaterbodyInfo({
         'Area',
         attributes.areasqkm && `${formatNumber(attributes.areasqkm)} sq. km.`,
       )}
-
-      {renderChangeWatershed()}
     </>
   );
 
@@ -1009,18 +906,13 @@ function WaterbodyInfo({
           </tr>
         </tbody>
       </table>
-
-      {renderChangeWatershed()}
     </>
   );
 
   // jsx
-  const alaskaNativeVillageContent = (
-    <>
-      {labelValue('Village Name', attributes.NAME)}
-
-      {renderChangeWatershed()}
-    </>
+  const alaskaNativeVillageContent = labelValue(
+    'Village Name',
+    attributes.NAME,
   );
 
   // jsx
@@ -1045,7 +937,6 @@ function WaterbodyInfo({
         'Public Access',
         convertDomainCode(fields, 'Access', attributes.Access),
       )}
-      {renderChangeWatershed()}
     </>
   );
 
@@ -1068,13 +959,8 @@ function WaterbodyInfo({
       {labelValue('Percent Individuals Under 5', attributes.T_UNDR5PCT)}
 
       {labelValue('Percent Individuals Over 64', attributes.T_OVR64PCT)}
-
-      {renderChangeWatershed()}
     </>
   );
-
-  // jsx
-  const changeLocationContent = renderChangeWatershed();
 
   // jsx
   // This content is filled in from the getPopupContent function in MapFunctions.
@@ -1169,7 +1055,7 @@ function WaterbodyInfo({
                   <table className="table">
                     <thead>
                       <tr>
-                        <th>Plan</th>
+                        <th>Plan (ID)</th>
                         <th>Impairments</th>
                         <th>Type</th>
                         <th>Date</th>
@@ -1187,7 +1073,8 @@ function WaterbodyInfo({
                                   target="_blank"
                                   rel="noopener noreferrer"
                                 >
-                                  {titleCaseWithExceptions(action.name)}
+                                  {titleCaseWithExceptions(action.name)} (
+                                  {action.id})
                                 </a>
                               </td>
                               <td>
@@ -1216,35 +1103,280 @@ function WaterbodyInfo({
         </div>
 
         {waterbodyReportLink}
-
-        {renderChangeWatershed()}
       </>
     );
   };
 
   if (!attributes) return null;
 
-  if (type === 'Waterbody') return waterbodyContent;
-  if (type === 'Restoration Plans') return projectContent();
-  if (type === 'Protection Plans') return projectContent();
-  if (type === 'Permitted Discharger') return dischargerContent;
-  if (type === 'Daily Water Conditions') return usgsStreamgagesContent();
-  if (type === 'Sample Location') return monitoringLocationsContent();
-  if (type === 'Nonprofit') return nonprofitContent;
-  if (type === 'Waterbody State Overview') return waterbodyStateContent;
-  if (type === 'Action') return actionContent;
-  if (type === 'County') return countyContent();
-  if (type === 'Congressional District') return congressionalDistrictContent();
-  if (type === 'Tribe') return tribeContent;
-  if (type === 'Upstream Watershed') return upstreamWatershedContent;
-  if (type === 'Wild and Scenic Rivers') return wildScenicRiversContent;
-  if (type === 'State Watershed Health Index') return wsioContent;
-  if (type === 'Alaska Native Village') return alaskaNativeVillageContent;
-  if (type === 'Change Location') return changeLocationContent;
-  if (type === 'Protected Areas') return protectedAreaContent;
-  if (type === 'Demographic Indicators') return ejscreenContent;
+  let content = null;
+  if (type === 'Waterbody') content = baseWaterbodyContent();
+  if (type === 'Restoration Plans') content = projectContent();
+  if (type === 'Protection Plans') content = projectContent();
+  if (type === 'Permitted Discharger') content = dischargerContent;
+  if (type === 'Current Water Conditions') {
+    content = <UsgsStreamgagesContent feature={feature} />;
+  }
+  if (type === 'Sample Location') content = monitoringLocationsContent();
+  if (type === 'Nonprofit') content = nonprofitContent;
+  if (type === 'Waterbody State Overview') content = waterbodyStateContent;
+  if (type === 'Action') content = actionContent;
+  if (type === 'County') content = countyContent();
+  if (type === 'Tribe') content = tribeContent;
+  if (type === 'Upstream Watershed') content = upstreamWatershedContent;
+  if (type === 'Wild and Scenic Rivers') content = wildScenicRiversContent;
+  if (type === 'State Watershed Health Index') content = wsioContent;
+  if (type === 'Alaska Native Village') content = alaskaNativeVillageContent;
+  if (type === 'Protected Areas') content = protectedAreaContent;
+  if (type === 'Demographic Indicators') content = ejscreenContent;
+  if (type === 'Congressional District') {
+    content = congressionalDistrictContent();
+  }
 
-  return null;
+  if (isPopup) {
+    const huc12 = clickedHuc?.data?.huc12;
+    const watershed = clickedHuc?.data?.watershed;
+
+    content = (
+      <div css={popupContainerStyles}>
+        {clickedHuc && (
+          <>
+            {clickedHuc.status === 'no-data' && <p>No Data</p>}
+            {clickedHuc.status === 'fetching' && <LoadingSpinner />}
+            {clickedHuc.status === 'failure' && <p>Web service error</p>}
+            {clickedHuc.status === 'success' && (
+              <>
+                {type !== 'Change Location' && (
+                  <p css={popupTitleStyles}>Change to this location?</p>
+                )}
+
+                <div css={changeWatershedContainerStyles}>
+                  <div>
+                    {labelValue('WATERSHED', `${watershed} (${huc12})`)}
+                  </div>
+
+                  <div css={buttonsContainer}>
+                    <button
+                      css={buttonStyles}
+                      title="Change to this location"
+                      className="btn"
+                      onClick={(ev) => {
+                        // Clear all data before navigating.
+                        // The main reason for this is better performance
+                        // when doing a huc search by clicking on the state map. The app
+                        // will attempt to use all of the loaded state data, then clear it
+                        // then load the huc. This could take a long time if the state
+                        // has a lot of waterbodies.
+                        if (resetData) resetData();
+
+                        let baseRoute = `/community/${huc12}`;
+
+                        // community will attempt to stay on the same tab
+                        // if available, stay on the same tab otherwise go to overview
+                        let urlParts = window.location.pathname.split('/');
+                        if (
+                          urlParts.includes('community') &&
+                          urlParts.length > 3
+                        ) {
+                          navigate(`${baseRoute}/${urlParts[3]}`);
+                          return;
+                        }
+
+                        navigate(`${baseRoute}/overview`);
+                      }}
+                    >
+                      Yes
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </>
+        )}
+
+        {getTypeTitle()}
+
+        <div css={popupContentStyles}>{content}</div>
+      </div>
+    );
+  }
+
+  return content;
+}
+
+function UsgsStreamgagesContent({ feature }: { feature: Object }) {
+  const {
+    streamgageMeasurements,
+    orgName,
+    locationName,
+    locationType,
+    siteId,
+    orgId,
+    locationUrl,
+  } = feature.attributes;
+
+  const [secondaryMeasurementsShown, setSecondaryMeasurementsShown] = useState(
+    false,
+  );
+
+  function addUniqueMeasurement(measurement, array) {
+    const measurementAlreadyAdded = array.find((m) => {
+      return m.parameterCode === measurement.parameterCode;
+    });
+
+    if (measurementAlreadyAdded) {
+      measurementAlreadyAdded.multiple = true;
+    } else {
+      array.push({ ...measurement });
+    }
+  }
+
+  const primaryMeasurements = [];
+  const secondaryMeasurements = [];
+
+  streamgageMeasurements.primary.forEach((measurement) => {
+    addUniqueMeasurement(measurement, primaryMeasurements);
+  });
+
+  streamgageMeasurements.secondary.forEach((measurement) => {
+    addUniqueMeasurement(measurement, secondaryMeasurements);
+  });
+
+  return (
+    <>
+      <table className="table">
+        <tbody>
+          <tr>
+            <td>
+              <em>Organization:</em>
+            </td>
+            <td>{orgName}</td>
+          </tr>
+          <tr>
+            <td>
+              <em>Location Name:</em>
+            </td>
+            <td>{locationName}</td>
+          </tr>
+          <tr>
+            <td>
+              <em>Water Type:</em>
+            </td>
+            <td>{locationType}</td>
+          </tr>
+          <tr>
+            <td>
+              <em>Monitoring Site ID:</em>
+            </td>
+            <td>{siteId.replace(`${orgId}-`, '')}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table css={tableStyles} className="table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Latest Measurement</th>
+          </tr>
+        </thead>
+        <tbody>
+          {[...primaryMeasurements]
+            .sort((a, b) => a.parameterOrder - b.parameterOrder)
+            .map((data, index) => (
+              <UsgsStreamgageParameter data={data} index={index} />
+            ))}
+
+          {secondaryMeasurements.length > 0 && (
+            <>
+              <tr>
+                <td css={moreLessRowStyles} colSpan={2}>
+                  <button
+                    css={buttonStyles}
+                    onClick={(ev) => {
+                      setSecondaryMeasurementsShown(
+                        !secondaryMeasurementsShown,
+                      );
+                    }}
+                  >
+                    {secondaryMeasurementsShown ? (
+                      <>
+                        <i className="fas fa-angle-down" aria-hidden="true" />
+                        &nbsp;&nbsp;Show less categories
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-angle-right" aria-hidden="true" />
+                        &nbsp;&nbsp;Show more categories
+                      </>
+                    )}
+                  </button>
+                </td>
+              </tr>
+
+              {secondaryMeasurementsShown &&
+                [...secondaryMeasurements]
+                  .sort((a, b) =>
+                    a.parameterName.localeCompare(b.parameterName),
+                  )
+                  .map((data, index) => (
+                    <UsgsStreamgageParameter data={data} index={index} />
+                  ))}
+            </>
+          )}
+        </tbody>
+      </table>
+      <div>
+        <a rel="noopener noreferrer" target="_blank" href={locationUrl}>
+          <i
+            css={iconStyles}
+            className="fas fa-info-circle"
+            aria-hidden="true"
+          />
+          More Information
+        </a>
+        &nbsp;&nbsp;
+        <small css={disclaimerStyles}>(opens new browser tab)</small>
+      </div>
+    </>
+  );
+}
+
+function UsgsStreamgageParameter({ data, index }) {
+  return (
+    <tr key={index}>
+      <td>
+        {data.parameterCategory === 'primary' ? (
+          <GlossaryTerm term={data.parameterName}>
+            {data.parameterName}
+          </GlossaryTerm>
+        ) : (
+          data.parameterName
+        )}
+        &nbsp;&nbsp;
+        <small css={additionalTextStyles}>({data.parameterCode})</small>
+      </td>
+      <td>
+        {data.multiple ? (
+          <>
+            <em>multiple measurements</em>
+            <br />
+            <small css={additionalTextStyles}>
+              see “More Information” link below
+            </small>
+          </>
+        ) : (
+          <>
+            <strong>{data.measurement}</strong>
+            &nbsp;
+            <small title={data.unitName}>{data.unitAbbr}</small>
+            <br />
+            <small css={additionalTextStyles}>{data.datetime}</small>
+          </>
+        )}
+      </td>
+    </tr>
+  );
 }
 
 export default WaterbodyInfo;

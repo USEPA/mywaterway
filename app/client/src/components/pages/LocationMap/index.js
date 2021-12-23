@@ -448,14 +448,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           }
 
           let orphans = [];
-          responses.forEach((res) => {
-            if (!res || !res.items || res.items.length === 0) {
+          responses.forEach((response) => {
+            if (!response || !response.items || response.items.length === 0) {
               setOrphanFeatures({ features: [], status: 'error' });
               return;
             }
 
             const detailedFeatures = createDetailedOrphanFeatures(
-              res.items,
+              response.items,
               allAssessmentUnits,
               attainsDomainsData,
             );
@@ -565,12 +565,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               `assessmentUnits?assessmentUnitIdentifier=${orphanIDs.join(',')}`;
 
             fetchCheck(url)
-              .then((res) => {
-                if (!res || !res.items || res.items.length === 0) {
+              .then((resUnits) => {
+                if (
+                  !resUnits ||
+                  !resUnits.items ||
+                  resUnits.items.length === 0
+                ) {
                   setOrphanFeatures({ features: [], status: 'error' });
                   return;
                 }
-                handleOrphanedFeatures(res, attainsDomainsData, orphanIDs);
+                handleOrphanedFeatures(resUnits, attainsDomainsData, orphanIDs);
               })
               .catch((err) => {
                 console.error(err);
@@ -676,7 +680,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         { name: 'locationName', type: 'string' },
         { name: 'locationType', type: 'string' },
         { name: 'locationUrl', type: 'string' },
-        { name: 'streamGageMeasurements', type: 'blob' },
+        { name: 'streamgageMeasurements', type: 'blob' },
       ],
       outFields: ['*'],
       // NOTE: initial graphic below will be replaced with UGSG streamgages
@@ -691,25 +695,27 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         symbol: {
           type: 'simple-marker',
           style: 'circle',
-          color: '#989fa2',
+          color: '#fffe00', // '#989fa2'
         },
-        visualVariables: [
-          {
-            type: 'color',
-            field: 'gageHeight',
-            stops: [
-              // TODO: determine how to map of gage height values to NWD streamflow percentile stops
-              // (National Water Dashboard: https://dashboard.waterdata.usgs.gov/app/nwd/?aoi=default)
-              { value: '0', color: '#ea2c38' }, // All-time low for this day  (0th percentile, minimum)
-              { value: '1', color: '#b54246' }, // Much below normal          (<10th percentile)
-              { value: '2', color: '#eaae3f' }, // Below normal               (10th – 24th percentile)
-              { value: '3', color: '#32f242' }, // Normal                     (25th – 75th percentile)
-              { value: '4', color: '#56d7da' }, // Above normal               (76th – 90th percentile)
-              { value: '5', color: '#2639f6' }, // Much above normal          (>90th percentile)
-              { value: '6', color: '#22296e' }, // All-time high for this day (100th percentile, maximum)
-            ],
-          },
-        ],
+        // NOTE: rendering all streamgages in a single color until we can set
+        //       color stops from data returned in USGS STA web service
+        // visualVariables: [
+        //   {
+        //     type: 'color',
+        //     field: 'gageHeight',
+        //     stops: [
+        //       // TODO: determine how to map of gage height values to NWD streamflow percentile stops
+        //       // (National Water Dashboard: https://dashboard.waterdata.usgs.gov/app/nwd/?aoi=default)
+        //       { value: '0', color: '#ea2c38' }, // All-time low for this day  (0th percentile, minimum)
+        //       { value: '1', color: '#b54246' }, // Much below normal          (<10th percentile)
+        //       { value: '2', color: '#eaae3f' }, // Below normal               (10th – 24th percentile)
+        //       { value: '3', color: '#32f242' }, // Normal                     (25th – 75th percentile)
+        //       { value: '4', color: '#56d7da' }, // Above normal               (76th – 90th percentile)
+        //       { value: '5', color: '#2639f6' }, // Much above normal          (>90th percentile)
+        //       { value: '6', color: '#22296e' }, // All-time high for this day (100th percentile, maximum)
+        //     ],
+        //   },
+        // ],
       },
       labelingInfo: [
         {
@@ -1059,10 +1065,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const [mapLoading, setMapLoading] = useState(true);
 
   const queryMonitoringStationService = useCallback(
-    (huc12) => {
+    (huc12Param) => {
       const url =
         `${services.data.waterQualityPortal.monitoringLocation}` +
-        `search?mimeType=geojson&zip=no&huc=${huc12}`;
+        `search?mimeType=geojson&zip=no&huc=${huc12Param}`;
 
       fetchCheck(url)
         .then((res) => {
@@ -1077,7 +1083,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   const queryUsgsStreamgageService = useCallback(
-    (huc12) => {
+    (huc12Param) => {
       const url =
         `${services.data.usgsSensorThingsAPI}?` +
         /**/ `$select=name,` +
@@ -1094,6 +1100,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         /*  */ `Datastreams(` +
         /*    */ `$select=description,` +
         /*      */ `properties/ParameterCode,` +
+        /*      */ `properties/WebDescription,` +
         /*      */ `unitOfMeasurement/name,` +
         /*      */ `unitOfMeasurement/symbol;` +
         /*    */ `$expand=` +
@@ -1103,7 +1110,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         /*        */ `$orderBy=phenomenonTime desc` +
         /*      */ `)` +
         /*  */ `)&` +
-        /**/ `$filter=properties/hydrologicUnit eq '${huc12}'`;
+        /**/ `$filter=properties/hydrologicUnit eq '${huc12Param}'`;
 
       fetchCheck(url)
         .then((res) => {
@@ -1118,7 +1125,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   const queryPermittedDischargersService = useCallback(
-    (huc12) => {
+    (huc12Param) => {
       fetchCheck(services.data.echoNPDES.metadata)
         .then((res) => {
           // Columns to return from Echo
@@ -1145,7 +1152,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
 
           const url =
-            `${services.data.echoNPDES.getFacilities}?output=JSON&tablelist=Y&p_wbd=${huc12}` +
+            `${services.data.echoNPDES.getFacilities}?output=JSON&tablelist=Y&p_wbd=${huc12Param}` +
             `&p_act=Y&p_ptype=NPD&responseset=5000` +
             `&qcolumns=${columnIds.join(',')}`;
 
@@ -1167,8 +1174,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   const queryGrtsHuc12 = useCallback(
-    (huc12) => {
-      fetchCheck(`${services.data.grts.getGRTSHUC12}${huc12}`)
+    (huc12Param) => {
+      fetchCheck(`${services.data.grts.getGRTSHUC12}${huc12Param}`)
         .then((res) => {
           setGrts({
             data: res,
@@ -1189,10 +1196,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // Runs a query to get the plans for the selected huc.
   // Note: The actions page will attempt to look up the organization id.
   const queryAttainsPlans = useCallback(
-    (huc12) => {
+    (huc12Param) => {
       // get the plans for the selected huc
       fetchCheck(
-        `${services.data.attains.serviceUrl}plans?huc=${huc12}&summarize=Y`,
+        `${services.data.attains.serviceUrl}plans?huc=${huc12Param}&summarize=Y`,
         120000,
       )
         .then((res) => {
@@ -1260,9 +1267,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   const getWsioHealthIndexData = useCallback(
-    (huc12) => {
+    (huc12Param) => {
       const url =
-        `${services.data.wsio}/query?where=HUC12_TEXT%3D%27${huc12}%27` +
+        `${services.data.wsio}/query?where=HUC12_TEXT%3D%27${huc12Param}%27` +
         '&outFields=HUC12_TEXT%2CSTATES_ALL%2CPHWA_HEALTH_NDX_ST&returnGeometry=false&f=json';
 
       setWsioHealthIndexData({
@@ -1357,6 +1364,15 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         return;
       }
 
+      function onError(error) {
+        console.error(error);
+        setProtectedAreasData({
+          data: [],
+          fields: [],
+          status: 'failure',
+        });
+      }
+
       fetchCheck(`${services.data.protectedAreasDatabase}0?f=json`)
         .then((layerInfo) => {
           const query = new Query({
@@ -1391,23 +1407,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                 status: 'success',
               });
             })
-            .catch((err) => {
-              console.error(err);
-              setProtectedAreasData({
-                data: [],
-                fields: [],
-                status: 'failure',
-              });
-            });
+            .catch(onError);
         })
-        .catch((err) => {
-          console.error(err);
-          setProtectedAreasData({
-            data: [],
-            fields: [],
-            status: 'failure',
-          });
-        });
+        .catch(onError);
     },
     [services, setProtectedAreasData, setDynamicPopupFields],
   );
@@ -1446,7 +1448,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const processBoundariesData = useCallback(
     (boundaries) => {
-      let huc12 = boundaries.features[0].attributes.huc12;
+      let huc12Param = boundaries.features[0].attributes.huc12;
 
       setHucBoundaries(boundaries);
       // queryNonprofits(boundaries); // re-add when EPA approves RiverNetwork service for HMW
@@ -1458,7 +1460,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       getFishingLinkData(boundaries.features[0].attributes.states);
 
       // get wsio health index data for the current huc
-      getWsioHealthIndexData(huc12);
+      getWsioHealthIndexData(huc12Param);
 
       // get Scenic River data for current huc boundaries
       getWildScenicRivers(boundaries);
@@ -1482,7 +1484,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       }
 
       fetchCheck(
-        `${services.data.attains.serviceUrl}huc12summary?huc=${huc12}`,
+        `${services.data.attains.serviceUrl}huc12summary?huc=${huc12Param}`,
       ).then(
         (res) => handleMapServices(res, boundaries),
         handleMapServiceError,
@@ -1983,43 +1985,45 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     services,
   ]);
 
-  // const queryNonprofits = (boundaries) => {
-  //   if (
-  //     !boundariesLayer ||
-  //     !boundaries.features ||
-  //     boundaries.features.length === 0
-  //   ) {
-  //     setNonprofits({
-  //       data: [],
-  //       status: 'success',
-  //     });
-  //     return;
-  //   }
+  /* TODO - Add this code back in when EPA decides to bring back Nonprofits data
+  const queryNonprofits = (boundaries) => {
+    if (
+      !boundariesLayer ||
+      !boundaries.features ||
+      boundaries.features.length === 0
+    ) {
+      setNonprofits({
+        data: [],
+        status: 'success',
+      });
+      return;
+    }
 
-  //   const query = new Query({
-  //     geometry: boundaries.features[0].geometry,
-  //     returnGeometry: true,
-  //     spatialReference: 4326,
-  //     outFields: ['*'],
-  //   });
+    const query = new Query({
+      geometry: boundaries.features[0].geometry,
+      returnGeometry: true,
+      spatialReference: 4326,
+      outFields: ['*'],
+    });
 
-  //   new QueryTask({ url: nonprofits })
-  //     .execute(query)
-  //     .then((res) => {
-  //       console.log('nonprofits data: ', res);
-  //       setNonprofits({
-  //         data: res,
-  //         status: 'success'
-  //       });
-  //     })
-  //     .catch((err) => {
-  //       console.error(err);
-  //       setNonprofits({
-  //         data: [],
-  //         status: 'failure'
-  //       });
-  //     });
-  // };
+    new QueryTask({ url: nonprofits })
+      .execute(query)
+      .then((res) => {
+        console.log('nonprofits data: ', res);
+        setNonprofits({
+          data: res,
+          status: 'success'
+        });
+      })
+      .catch((err) => {
+        console.error(err);
+        setNonprofits({
+          data: [],
+          status: 'failure'
+        });
+      });
+  };
+  */
 
   useEffect(() => {
     if (layout !== 'fullscreen') return;

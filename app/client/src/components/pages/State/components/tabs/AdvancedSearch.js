@@ -750,7 +750,7 @@ function AdvancedSearch({ ...props }: Props) {
     setNewDisplayOptions(newDisplayOptions);
   }, [parameterFilter, useFilter]);
 
-  useWaterbodyOnMap(selectedDisplayOption.value, 'unassessed');
+  useWaterbodyOnMap(selectedDisplayOption.value, '', 'unassessed');
 
   // jsx
   const filterControls = (
