@@ -94,7 +94,7 @@ function titleCaseWithExceptions(string: string) {
 // Determines whether or not the input string is a HUC12 or not.
 // Returns true if the string is a HUC12 and false if not.
 function isHuc12(string: string) {
-  return /^[0-9]{12}$/.test(string);
+  return /^\d{12}$/.test(string);
 }
 
 function createSchema(huc12, watershed) {
