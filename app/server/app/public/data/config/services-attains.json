@@ -15,7 +15,7 @@
     "areas": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/2",
     "summary": "https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/4"
   },
-  "glossaryURL": "https://etss.epa.gov/synaptica_rest_services/api/vocabs/name/HMW%20Glossary/terms/full",
+  "glossaryURL": "https://etss.epa.gov/synaptica_rest_services/api/savedreport/terms/HMWGlossary",
   "waterQualityPortal": {
     "stationSearch": "https://www.waterqualitydata.us/data/Station/search?",
     "resultSearch": "https://www.waterqualitydata.us/data/Result/search?",
@@ -28,14 +28,13 @@
     "metadata": "https://echodata.epa.gov/echo/cwa_rest_services.metadata"
   },
   "dwmaps": {
-    "getPWSHUC12": "https://ofmpub.epa.gov/apex/sfdw_rest/GetPWSWMHUC12/",
-    "GetPWSWMHUC12FIPS": "https://ofmpub.epa.gov/apex/sfdw_rest/GetPWSWMHUC12FIPS/",
-    "getGPRASummary": "https://ofmpub.epa.gov/apex/sfdw_rest/GetGPRASummary/",
-    "getGPRASystemCountsByType": "https://ofmpub.epa.gov/apex/sfdw_rest/GetGPRASystemCountsByType/"
+    "GetPWSWMHUC12FIPS": "https://sdwis.epa.gov/ords/sfdw_rest/sfdw_rest/sfdw_rest/GetPWSWMHUC12FIPS/",
+    "getGPRASummary": "https://sdwis.epa.gov/ords/sfdw_rest/sfdw_rest/sfdw_rest/GetGPRASummary/",
+    "getGPRASystemCountsByType": "https://sdwis.epa.gov/ords/sfdw_rest/sfdw_rest/sfdw_rest/GetGPRASystemCountsByType/"
   },
   "grts": {
-    "getGRTSHUC12": "https://ofmpub.epa.gov/apex/grts_rest/grts_rest_apex/GetProjectsByHUC12/",
-    "getSSByState": "https://ofmpub.epa.gov/apex/grts_rest/grts_rest_apex/GetSSByState/"
+    "getGRTSHUC12": "https://grts.epa.gov/ords/grts_rest/grts_rest_apex/GetProjectsByHUC12/",
+    "getSSByState": "https://grts.epa.gov/ords/grts_rest/grts_rest_apex/GetSSByState/"
   },
   "attains": {
     "serviceUrlDev": "http://54.209.48.156/attains-public/api/",
@@ -134,16 +133,6 @@
       "urlLookup": "dwmaps.getGPRASystemCountsByType",
       "wildcardUrl": "{urlLookup}*",
       "name": "ofmpub - GPRA system counts by type"
-    },
-    {
-      "urlLookup": "dwmaps.getPWSHUC12",
-      "wildcardUrl": "{urlLookup}*/ZCzc/ZCzc",
-      "name": "ofmpub - drinking water withdrawers"
-    },
-    {
-      "urlLookup": "dwmaps.getPWSHUC12",
-      "wildcardUrl": "{urlLookup}*",
-      "name": "ofmpub - drinking water providers"
     },
     {
       "urlLookup": "dwmaps.GetPWSWMHUC12FIPS",

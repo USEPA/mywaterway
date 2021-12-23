@@ -50,15 +50,15 @@ function ViewOnMapButton({
 
   const { setSelectedGraphic } = useContext(MapHighlightContext);
 
-  function viewClick(feature) {
+  function viewClick(featureParam) {
     // update context with the new selected graphic
-    feature.attributes.zoom = true;
-    feature.attributes.fieldName =
-      !fieldName && feature.attributes.assessmentunitidentifier
+    featureParam.attributes.zoom = true;
+    featureParam.attributes.fieldName =
+      !fieldName && featureParam.attributes.assessmentunitidentifier
         ? 'Waterbody'
         : fieldName;
 
-    setSelectedGraphic(feature);
+    setSelectedGraphic(featureParam);
   }
 
   const { organizationid, assessmentunitidentifier } = feature.attributes;
@@ -102,8 +102,6 @@ function ViewOnMapButton({
       }
 
       if (layer.type === 'graphics') {
-        const { organizationid } = feature.attributes;
-
         for (const graphic of layer.graphics.items) {
           const graphicOrgId =
             graphic && graphic.attributes && graphic.attributes.organizationid;

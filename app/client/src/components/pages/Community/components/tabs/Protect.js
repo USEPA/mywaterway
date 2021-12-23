@@ -374,7 +374,7 @@ function Protect() {
       : null;
 
   const wsioScore = wsioData
-    ? Math.round(wsioData.phwa_health_ndx_st_2016 * 100) / 100
+    ? Math.round(wsioData.phwaHealthNdxSt * 100) / 100
     : null;
 
   function onWsioToggle(newValue) {
@@ -1218,7 +1218,7 @@ function Protect() {
                                       plan.split('</a>')[0] + '</a>';
                                     const title = getTitleFromMarkup(markup);
                                     const planUrl = getUrlFromMarkup(markup);
-                                    if (!title || !planUrl) return false;
+                                    if (!title || !planUrl) return null;
                                     return { url: planUrl, title: title };
                                   });
                                 // remove any plans with missing titles or urls

@@ -206,7 +206,7 @@ function Restore() {
                                 const markup = plan.split('</a>')[0] + '</a>';
                                 const title = getTitleFromMarkup(markup);
                                 const planUrl = getUrlFromMarkup(markup);
-                                if (!title || !planUrl) return false;
+                                if (!title || !planUrl) return null;
                                 return { url: planUrl, title: title };
                               });
                             // remove any documents with missing titles or urls

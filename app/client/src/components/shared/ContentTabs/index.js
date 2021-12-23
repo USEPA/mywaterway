@@ -38,35 +38,35 @@ const ContentTabs = styled.div`
     color: white;
     background-color: #526571;
     /* fake borders so it doesn't interfere with tab width */
-    box-shadow: ${`${left}, ${right}, ${bottom('transparent')}`};
+    box-shadow: ${left}, ${right}, ${bottom('transparent')};
 
     &[data-selected],
     &:hover,
     &:focus {
       z-index: 1;
       background-color: ${colors.slate()};
-      box-shadow: ${`${left}, ${right}, ${bottom('#51d2c2')}`};
+      box-shadow: ${left}, ${right}, ${bottom('#51d2c2')};
     }
 
     /* no left border on first tab */
     &:first-of-type {
-      box-shadow: ${`${right}, ${bottom('transparent')}`};
+      box-shadow: ${right}, ${bottom('transparent')};
 
       &[data-selected],
       &:hover,
       &:focus {
-        box-shadow: ${`${right}, ${bottom('#51d2c2')}`};
+        box-shadow: ${right}, ${bottom('#51d2c2')};
       }
     }
 
     /* no right border on last tab */
     &:last-of-type {
-      box-shadow: ${`${left}, ${bottom('transparent')}`};
+      box-shadow: ${left}, ${bottom('transparent')};
 
       &[data-selected],
       &:hover,
       &:focus {
-        box-shadow: ${`${left}, ${bottom('#51d2c2')}`};
+        box-shadow: ${left}, ${bottom('#51d2c2')};
       }
     }
   }
@@ -99,35 +99,35 @@ const tabsStyles = css`
     color: white;
     background-color: #526571;
     /* fake borders so it doesn't interfere with tab width */
-    box-shadow: ${`${left}, ${right}, ${bottom('transparent')}`};
+    box-shadow: ${left}, ${right}, ${bottom('transparent')};
 
     &[data-selected],
     &:hover,
     &:focus {
       z-index: 1;
       background-color: ${colors.slate()};
-      box-shadow: ${`${left}, ${right}, ${bottom('#51d2c2')}`};
+      box-shadow: ${left}, ${right}, ${bottom('#51d2c2')};
     }
 
     /* no left border on first tab */
     &:first-of-type {
-      box-shadow: ${`${right}, ${bottom('transparent')}`};
+      box-shadow: ${right}, ${bottom('transparent')};
 
       &[data-selected],
       &:hover,
       &:focus {
-        box-shadow: ${`${right}, ${bottom('#51d2c2')}`};
+        box-shadow: ${right}, ${bottom('#51d2c2')};
       }
     }
 
     /* no right border on last tab */
     &:last-of-type {
-      box-shadow: ${`${left}, ${bottom('transparent')}`};
+      box-shadow: ${left}, ${bottom('transparent')};
 
       &[data-selected],
       &:hover,
       &:focus {
-        box-shadow: ${`${left}, ${bottom('#51d2c2')}`};
+        box-shadow: ${left}, ${bottom('#51d2c2')};
       }
     }
   }
