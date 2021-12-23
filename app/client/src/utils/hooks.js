@@ -852,7 +852,7 @@ function useSharedLayers() {
     // define the color ramp renderer
     const wsioHealthIndexRenderer = {
       type: 'class-breaks',
-      field: 'phwa_health_ndx_st_2016',
+      field: 'PHWA_HEALTH_NDX_ST',
       classBreakInfos: [
         {
           minValue: 0,
@@ -942,7 +942,7 @@ function useSharedLayers() {
       id: 'wsioHealthIndexLayer',
       url: services.data.wsio,
       title: 'State Watershed Health Index',
-      outFields: ['HUC12_TEXT', 'STATES2013', 'phwa_health_ndx_st_2016'],
+      outFields: ['HUC12_TEXT', 'STATES_ALL', 'PHWA_HEALTH_NDX_ST'],
       renderer: wsioHealthIndexRenderer,
       listMode: 'show',
       visible: false,
@@ -950,10 +950,10 @@ function useSharedLayers() {
         title: getTitle,
         content: getTemplate,
         outFields: [
-          'phwa_health_ndx_st_2016',
-          'huc12_text',
-          'name_huc12',
-          'states2013',
+          'PHWA_HEALTH_NDX_ST',
+          'HUC12_TEXT',
+          'NAME_HUC12',
+          'STATES_ALL',
         ],
       },
     });

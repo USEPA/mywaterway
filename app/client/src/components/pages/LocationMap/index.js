@@ -1270,7 +1270,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     (huc12Param) => {
       const url =
         `${services.data.wsio}/query?where=HUC12_TEXT%3D%27${huc12Param}%27` +
-        '&outFields=HUC12_TEXT%2Cstates2013%2Cphwa_health_ndx_st_2016&returnGeometry=false&f=json';
+        '&outFields=HUC12_TEXT%2CSTATES_ALL%2CPHWA_HEALTH_NDX_ST&returnGeometry=false&f=json';
 
       setWsioHealthIndexData({
         data: [],
@@ -1285,8 +1285,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           }
 
           const healthIndexData = res.features.map((feature) => ({
-            states: feature.attributes.states2013,
-            phwa_health_ndx_st_2016: feature.attributes.phwa_health_ndx_st_2016,
+            states: feature.attributes.STATES_ALL,
+            phwaHealthNdxSt: feature.attributes.PHWA_HEALTH_NDX_ST,
           }));
 
           setWsioHealthIndexData({

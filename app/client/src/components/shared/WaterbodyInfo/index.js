@@ -884,27 +884,25 @@ function WaterbodyInfo({
             <td>
               <em>Watershed Name:</em>
             </td>
-            <td>{attributes.name_huc12}</td>
+            <td>{attributes.NAME_HUC12}</td>
           </tr>
           <tr>
             <td>
               <em>Watershed:</em>
             </td>
-            <td>{attributes.huc12_text}</td>
+            <td>{attributes.HUC12_TEXT}</td>
           </tr>
           <tr>
             <td>
               <em>State:</em>
             </td>
-            <td>{attributes.states2013}</td>
+            <td>{attributes.STATES_ALL}</td>
           </tr>
           <tr>
             <td>
               <em>Watershed Health Score:</em>
             </td>
-            <td>
-              ({Math.round(attributes.phwa_health_ndx_st_2016 * 100) / 100})
-            </td>
+            <td>({Math.round(attributes.PHWA_HEALTH_NDX_ST * 100) / 100})</td>
           </tr>
         </tbody>
       </table>
