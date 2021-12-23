@@ -16,6 +16,7 @@ import Switch from 'components/shared/Switch';
 import { gradientIcon } from 'components/pages/LocationMap/MapFunctions';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
@@ -247,7 +248,7 @@ function Protect() {
         watershedPlans: '',
         completionDate: plan.completionDate,
         actionTypeCode: plan.actionTypeCode,
-        organizationId: plan.organizationIdentifier,
+        organizationId: plan.organizationId,
       });
     });
 
@@ -1339,7 +1340,11 @@ function Protect() {
                                             <td>
                                               <em>Plan Type:</em>
                                             </td>
-                                            <td>{item.actionTypeCode}</td>
+                                            <td>
+                                              <GlossaryTerm term="Protection Approach">
+                                                Protection Approach
+                                              </GlossaryTerm>
+                                            </td>
                                           </tr>
                                           <tr>
                                             <td>
