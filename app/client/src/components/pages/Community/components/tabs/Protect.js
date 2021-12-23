@@ -374,7 +374,7 @@ function Protect() {
       : null;
 
   const wsioScore = wsioData
-    ? Math.round(wsioData.phwa_health_ndx_st_2016 * 100) / 100
+    ? Math.round(wsioData.phwaHealthNdxSt * 100) / 100
     : null;
 
   function onWsioToggle(newValue) {

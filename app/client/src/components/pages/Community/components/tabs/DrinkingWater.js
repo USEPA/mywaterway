@@ -441,13 +441,13 @@ function DrinkingWater() {
       }
 
       // surface water withdrawer
-      else if (item.water_type_calc.toLowerCase() === 'surface water') {
+      else if (item.water_type_calc?.toLowerCase() === 'surface water') {
         totalWithdrawersCount++;
         surfaceWaterCount++;
         if (surfaceWaterDisplayed) displayedWithdrawers.push(item);
       }
       // ground water withdrawer
-      else if (item.water_type_calc.toLowerCase() === 'ground water') {
+      else if (item.water_type_calc?.toLowerCase() === 'ground water') {
         totalWithdrawersCount++;
         groundWaterCount++;
         if (groundWaterDisplayed) displayedWithdrawers.push(item);
