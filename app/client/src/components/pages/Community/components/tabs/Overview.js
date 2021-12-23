@@ -584,7 +584,7 @@ function MonitoringAndSensorsTab({
           parameterCategory: 'primary',
           parameterOrder: 5,
           parameterName: 'Total Daily Rainfall',
-          parameterCode: 'USGS Daily Value',
+          parameterCode: '00045 (USGS Daily Value)',
           measurement: observation.value,
           datetime: new Date(observation.dateTime).toLocaleDateString(),
           unitAbbr: 'in',
