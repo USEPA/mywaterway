@@ -64,7 +64,7 @@ describe('Community Visual Regression Testing', () => {
       waitTimeout: 120000,
     });
 
-    cy.wait(3000);
+    cy.wait(5000);
 
     cy.get(mapId).matchSnapshot('verify-huc-boundary-shading');
 
