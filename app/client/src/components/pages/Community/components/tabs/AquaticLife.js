@@ -10,6 +10,7 @@ import WaterbodyList from 'components/shared/WaterbodyList';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
+import { summarizeAssessments } from 'utils/utils';
 
 const containerStyles = css`
   padding: 1em;
@@ -22,6 +23,8 @@ function AquaticLife() {
   const waterbodies = useWaterbodyFeatures();
 
   useWaterbodyOnMap('ecological_use');
+
+  const summary = summarizeAssessments(waterbodies, 'ecological_use');
 
   return (
     <div css={containerStyles}>
@@ -36,8 +39,8 @@ function AquaticLife() {
         fieldName="ecological_use"
         title={
           <>
-            Waterbodies assessed for aquatic life in the <em>{watershed}</em>{' '}
-            watershed.
+            <strong>{summary.total.toLocaleString()}</strong> waterbodies
+            assessed for aquatic life in the <em>{watershed}</em> watershed.
           </>
         }
       />

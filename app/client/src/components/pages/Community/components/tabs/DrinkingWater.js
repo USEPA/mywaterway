@@ -22,6 +22,7 @@ import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
+import { summarizeAssessments } from 'utils/utils';
 // errors
 import { countyError, withdrawerError } from 'config/errorMessages';
 import { colors } from 'styles';
@@ -243,6 +244,8 @@ function DrinkingWater() {
 
   // draw the waterbody (drinking water sources) on the map
   useWaterbodyOnMap('drinkingwater_use');
+
+  const summary = summarizeAssessments(waterbodies, 'recreation_use');
 
   // draw the drinking water providers (county) on the map
   const [countyGraphic, setCountyGraphic] = useState(null);
@@ -891,7 +894,8 @@ function DrinkingWater() {
                   fieldName="drinkingwater_use"
                   title={
                     <>
-                      Waterbodies assessed as potential future sources of
+                      <strong>{summary.total.toLocaleString()}</strong>{' '}
+                      waterbodies assessed as potential future sources of
                       drinking water in the <em>{watershed}</em> watershed.
                     </>
                   }
