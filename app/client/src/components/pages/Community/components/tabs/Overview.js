@@ -446,8 +446,9 @@ function WaterbodiesTab() {
       fieldName={null}
       title={
         <>
-          Overall condition of waterbodies in the <em>{watershed}</em>{' '}
-          watershed.
+          Overall condition of{' '}
+          <strong>{waterbodies?.length.toLocaleString()}</strong> waterbodies in
+          the <em>{watershed}</em> watershed.
         </>
       }
     />
@@ -905,7 +906,8 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
           <AccordionList
             title={
               <>
-                Dischargers in the <em>{watershed}</em> watershed.
+                <strong>{totalPermittedDischargers}</strong> permitted
+                dischargers in the <em>{watershed}</em> watershed.
               </>
             }
             onSortChange={(sortBy) => {
