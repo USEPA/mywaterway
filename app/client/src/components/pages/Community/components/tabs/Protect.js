@@ -160,7 +160,9 @@ const watershedGradientStyles = css`
 `;
 
 const buttonContainerStyles = css`
-  margin-left: 0.5em;
+  margin-top: -0.25rem;
+  padding-bottom: 0.75rem;
+  padding-left: 0.75rem;
 `;
 
 function Protect() {
@@ -268,8 +270,9 @@ function Protect() {
 
   const [protectedAreasDisplayed, setProtectedAreasDisplayed] = useState(false);
 
-  const [wildScenicRiversDisplayed, setWildScenicRiversDisplayed] =
-    useState(false);
+  const [wildScenicRiversDisplayed, setWildScenicRiversDisplayed] = useState(
+    false,
+  );
 
   const [waterbodyLayerDisplayed, setWaterbodyLayerDisplayed] = useState(false);
 
@@ -439,8 +442,10 @@ function Protect() {
 
   // Initialize the allWaterbodiesLayer visibility. This will be used to reset
   // the allWaterbodiesLayer visibility when the user leaves this tab.
-  const [initialAllWaterbodiesVisibility, setInitialAllWaterbodiesVisibility] =
-    useState(false);
+  const [
+    initialAllWaterbodiesVisibility,
+    setInitialAllWaterbodiesVisibility,
+  ] = useState(false);
   useEffect(() => {
     if (!allWaterbodiesLayer) return;
 
