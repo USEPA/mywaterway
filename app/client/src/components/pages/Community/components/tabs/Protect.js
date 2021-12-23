@@ -267,9 +267,8 @@ function Protect() {
 
   const [protectedAreasDisplayed, setProtectedAreasDisplayed] = useState(false);
 
-  const [wildScenicRiversDisplayed, setWildScenicRiversDisplayed] = useState(
-    false,
-  );
+  const [wildScenicRiversDisplayed, setWildScenicRiversDisplayed] =
+    useState(false);
 
   const [waterbodyLayerDisplayed, setWaterbodyLayerDisplayed] = useState(false);
 
@@ -439,10 +438,8 @@ function Protect() {
 
   // Initialize the allWaterbodiesLayer visibility. This will be used to reset
   // the allWaterbodiesLayer visibility when the user leaves this tab.
-  const [
-    initialAllWaterbodiesVisibility,
-    setInitialAllWaterbodiesVisibility,
-  ] = useState(false);
+  const [initialAllWaterbodiesVisibility, setInitialAllWaterbodiesVisibility] =
+    useState(false);
   useEffect(() => {
     if (!allWaterbodiesLayer) return;
 
@@ -541,8 +538,10 @@ function Protect() {
                     {wsioHealthIndexData.status === 'success' &&
                       wsioHealthIndexData.data.length === 0 && (
                         <div css={modifiedInfoBoxStyles}>
-                          No Watershed Health Score data available for the{' '}
-                          {watershed} watershed.
+                          <p>
+                            No Watershed Health Score data available for the{' '}
+                            {watershed} watershed.
+                          </p>
                         </div>
                       )}
 
@@ -805,8 +804,10 @@ function Protect() {
                     {wildScenicRiversData.status === 'success' &&
                       wildScenicRiversData.data.length === 0 && (
                         <div css={modifiedInfoBoxStyles}>
-                          No Wild and Scenic River data available in the{' '}
-                          {watershed} watershed.
+                          <p>
+                            No Wild and Scenic River data available in the{' '}
+                            {watershed} watershed.
+                          </p>
                         </div>
                       )}
 
@@ -814,11 +815,13 @@ function Protect() {
                       wildScenicRiversData.data.length > 0 && (
                         <>
                           <div css={modifiedInfoBoxStyles}>
-                            <strong>
-                              {wildScenicRiversData.data.length.toLocaleString()}
-                            </strong>{' '}
-                            wild and scenic rivers in the <em>{watershed}</em>{' '}
-                            watershed.
+                            <p>
+                              <strong>
+                                {wildScenicRiversData.data.length.toLocaleString()}
+                              </strong>{' '}
+                              wild and scenic rivers in the <em>{watershed}</em>{' '}
+                              watershed.
+                            </p>
                           </div>
 
                           {wildScenicRiversData.data.map((item) => {
@@ -1014,8 +1017,10 @@ function Protect() {
                     {protectedAreasData.status === 'success' &&
                       protectedAreasData.data.length === 0 && (
                         <div css={modifiedInfoBoxStyles}>
-                          No Protected Areas Database data available for the{' '}
-                          {watershed} watershed.
+                          <p>
+                            No Protected Areas Database data available for the{' '}
+                            {watershed} watershed.
+                          </p>
                         </div>
                       )}
 
@@ -1216,19 +1221,23 @@ function Protect() {
                         <>
                           {allProtectionProjects.length === 0 && (
                             <div css={modifiedInfoBoxStyles}>
-                              There are no EPA funded protection projects in the{' '}
-                              {watershed} watershed.
+                              <p>
+                                There are no EPA funded protection projects in
+                                the {watershed} watershed.
+                              </p>
                             </div>
                           )}
 
                           {allProtectionProjects.length > 0 && (
                             <>
                               <div css={modifiedInfoBoxStyles}>
-                                <strong>
-                                  {allProtectionProjects.length.toLocaleString()}
-                                </strong>{' '}
-                                EPA funded protection projects in the{' '}
-                                <em>{watershed}</em> watershed.
+                                <p>
+                                  <strong>
+                                    {allProtectionProjects.length.toLocaleString()}
+                                  </strong>{' '}
+                                  EPA funded protection projects in the{' '}
+                                  <em>{watershed}</em> watershed.
+                                </p>
                               </div>
 
                               {allProtectionProjects.map((item, index) => {
