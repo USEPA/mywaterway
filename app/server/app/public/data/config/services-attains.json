@@ -23,6 +23,7 @@
     "monitoringLocationDetails": "https://www.waterqualitydata.us/provider/"
   },
   "usgsSensorThingsAPI": "https://labs.waterdata.usgs.gov/sta/v1.1/Things",
+  "usgsDailyValues": "https://waterservices.usgs.gov/nwis/dv/",
   "echoNPDES": {
     "getFacilities": "https://echodata.epa.gov/echo/cwa_rest_services.get_facilities",
     "metadata": "https://echodata.epa.gov/echo/cwa_rest_services.metadata"
@@ -183,6 +184,11 @@
       "urlLookup": "usgsSensorThingsAPI",
       "wildcardUrl": "{urlLookup}*",
       "name": "usgs – SensorThings API"
+    },
+    {
+      "urlLookup": "usgsDailyValues",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "usgs – daily values"
     },
     {
       "urlLookup": "glossaryURL",

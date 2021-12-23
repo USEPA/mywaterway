@@ -66,9 +66,9 @@ export const usgsStaParameters = [
   {
     staParameterCode: '00045',
     staDescription: 'Precipitation',
-    hmwCategory: 'exclude', // NOTE: was 'primary' but precipitation data is being pulled from a separate web service
+    hmwCategory: 'exclude', // NOTE: was 'primary' but precipitation data is being pulled from usgsDailyValues web service
     hmwOrder: 5,
-    hmwName: 'Rainfall',
+    hmwName: 'Total Daily Rainfall',
     hmwUnits: 'in',
   },
   {
@@ -164,7 +164,7 @@ export const usgsStaParameters = [
     staDescription: 'Precipitation, defined period',
     hmwCategory: 'exclude',
     hmwOrder: null,
-    hmwName: 'Rainfall',
+    hmwName: 'Total Daily Rainfall',
     hmwUnits: 'in',
   },
   {
@@ -540,7 +540,7 @@ export const usgsStaParameters = [
     staDescription: 'Precipitation, cumul',
     hmwCategory: 'exclude',
     hmwOrder: null,
-    hmwName: 'Rainfall',
+    hmwName: 'Total Daily Rainfall',
     hmwUnits: 'in',
   },
   {
@@ -548,7 +548,7 @@ export const usgsStaParameters = [
     staDescription: 'Precipitation, cumul',
     hmwCategory: 'exclude',
     hmwOrder: null,
-    hmwName: 'Rainfall',
+    hmwName: 'Total Daily Rainfall',
     hmwUnits: 'mm',
   },
   {
@@ -756,7 +756,7 @@ export const usgsStaParameters = [
     staDescription: 'Precipitation',
     hmwCategory: 'exclude',
     hmwOrder: null,
-    hmwName: 'Rainfall',
+    hmwName: 'Total Daily Rainfall',
     hmwUnits: 'mm',
   },
   {

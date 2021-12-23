@@ -466,6 +466,7 @@ function MonitoringAndSensorsTab({
   const {
     monitoringLocations,
     usgsStreamgages,
+    usgsDailyPrecipitation,
     monitoringLocationsLayer,
     usgsStreamgagesLayer,
     watershed,
@@ -559,6 +560,39 @@ function MonitoringAndSensorsTab({
 
     plotGages(gages, usgsStreamgagesLayer);
   }, [usgsStreamgages.data, usgsStreamgagesLayer]);
+
+  // add precipitation data (fetched from usgsDailyValues web service) to each
+  // streamgage if it exists for that particular location
+  useEffect(() => {
+    if (!usgsDailyPrecipitation.data.value) return;
+    if (normalizedUsgsStreamgages.length === 0) return;
+
+    const streamgageNames = normalizedUsgsStreamgages.map((gage) => {
+      return gage.locationName;
+    });
+
+    usgsDailyPrecipitation.data.value?.timeSeries.forEach((site) => {
+      const { siteName } = site.sourceInfo;
+      const observation = site.values[0].value[0];
+
+      if (streamgageNames.includes(siteName)) {
+        const streamgage = normalizedUsgsStreamgages.find((gage) => {
+          return gage.locationName === siteName;
+        });
+
+        streamgage.streamgageMeasurements.primary.push({
+          parameterCategory: 'primary',
+          parameterOrder: 5,
+          parameterName: 'Total Daily Rainfall',
+          parameterCode: 'USGS Daily Value',
+          measurement: observation.value,
+          datetime: new Date(observation.dateTime).toLocaleDateString(),
+          unitAbbr: 'in',
+          unitName: 'inches',
+        });
+      }
+    });
+  }, [usgsDailyPrecipitation, normalizedUsgsStreamgages]);
 
   const [
     normalizedMonitoringLocations,
