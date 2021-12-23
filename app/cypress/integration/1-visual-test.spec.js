@@ -90,6 +90,30 @@ describe('Community Visual Regression Testing', () => {
 
     cy.get(mapId).matchSnapshot('verify-huc-boundary-shading');
   });
+
+  it('Verify "View on Map" button works', () => {
+    cy.visit('/community/dc/overview');
+
+    cy.debouncedWait({
+      url: 'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/2/query?f=pbf*',
+      waitTimeout: 120000,
+    });
+
+    cy.wait(3000);
+
+    cy.findByText('ANATF - Anacostia River Tidal Fresh').click();
+
+    cy.findByText('View on Map').click();
+
+    cy.get(mapId).within(($el) => {
+      cy.findByText(
+        'ANATF - Anacostia River Tidal Fresh (State Waterbody ID: MD-ANATF-02140205)',
+      );
+
+      cy.findByText('Maryland (MDE_EASP)');
+    });
+    cy.get(mapId).matchSnapshot('verify-view-on-map-button-waterbody-popup');
+  });
 });
 
 describe('State Visual Regression Testing', () => {
