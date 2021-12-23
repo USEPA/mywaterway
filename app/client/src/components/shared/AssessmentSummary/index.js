@@ -14,41 +14,8 @@ import {
 import { infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
-
-function summarizeAssessments(waterbodies: Array<Object>, fieldName: string) {
-  const summary = {
-    total: 0,
-    unassessed: 0,
-    not_supporting: 0,
-    fully_supporting: 0,
-    insufficient_info: 0,
-    not_assessed: 0,
-    not_applicable: 0,
-  };
-
-  // ids will contain unique assessment unit id's of each waterbody,
-  // to ensure we don't count a unique waterbody more than once
-  const ids = [];
-
-  waterbodies.forEach((graphic) => {
-    const field = graphic.attributes[fieldName];
-    const { assessmentunitidentifier: id } = graphic.attributes;
-
-    if (!field || field === 'X') {
-      summary.not_applicable++;
-    } else {
-      if (ids.indexOf(id) === -1) {
-        ids.push(id);
-        if (field === 'not_supporting' || field === 'fully_supporting') {
-          summary.total++;
-        }
-        summary[field]++;
-      }
-    }
-  });
-
-  return summary;
-}
+// utils
+import { summarizeAssessments } from 'utils/utils';
 
 const modifiedInfoBoxStyles = css`
   ${infoBoxStyles};
@@ -92,13 +59,13 @@ function AssessmentSummary({ waterbodies, fieldName, usageName }: Props) {
         <div css={keyMetricsStyles}>
           <div css={keyMetricStyles}>
             <span css={keyMetricNumberStyles}>
-              {summary.fully_supporting.toLocaleString()}
+              {summary['Fully Supporting'].toLocaleString()}
             </span>
             <p css={keyMetricLabelStyles}>Good</p>
           </div>
           <div css={keyMetricStyles}>
             <span css={keyMetricNumberStyles}>
-              {summary.not_supporting.toLocaleString()}
+              {summary['Not Supporting'].toLocaleString()}
             </span>
             <p css={keyMetricLabelStyles}>Impaired</p>
           </div>
@@ -106,8 +73,8 @@ function AssessmentSummary({ waterbodies, fieldName, usageName }: Props) {
             <span css={keyMetricNumberStyles}>
               {(
                 summary.unassessed +
-                summary.insufficient_info +
-                summary.not_assessed
+                summary['Insufficient Information'] +
+                summary['Not Assessed']
               ).toLocaleString()}
             </span>
             <p css={keyMetricLabelStyles}>Condition Unknown</p>

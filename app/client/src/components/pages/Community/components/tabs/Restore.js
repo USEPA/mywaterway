@@ -188,6 +188,9 @@ function Restore() {
                         <AccordionList
                           title={
                             <>
+                              <strong>
+                                {sortedGrtsData.length.toLocaleString()}
+                              </strong>{' '}
                               EPA Funded grants under the{' '}
                               <GlossaryTerm term="Clean Water Act Section 319 Projects">
                                 Clean Water Act Section 319
@@ -352,6 +355,9 @@ function Restore() {
                       <AccordionList
                         title={
                           <>
+                            <strong>
+                              {sortedAttainsPlanData.length.toLocaleString()}
+                            </strong>{' '}
                             <GlossaryTerm term="Restoration plan">
                               Restoration plans
                             </GlossaryTerm>{' '}
