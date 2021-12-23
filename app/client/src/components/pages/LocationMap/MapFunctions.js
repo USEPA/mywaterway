@@ -3,7 +3,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { css } from 'styled-components/macro';
 import Graphic from '@arcgis/core/Graphic';
 // components
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
@@ -12,28 +11,6 @@ import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 import { colors } from 'styles/index.js';
 // utilities
 import { getSelectedCommunityTab } from 'utils/utils';
-
-const popupContainerStyles = css`
-  margin: 0;
-  overflow-y: auto;
-
-  .esri-feature & p {
-    padding-bottom: 0;
-  }
-`;
-
-const popupContentStyles = css`
-  margin-top: 0.5rem;
-  margin-left: 0.625em;
-`;
-
-const popupTitleStyles = css`
-  margin-bottom: 0;
-  padding: 0.45em 0.625em !important;
-  font-size: 0.8125em;
-  font-weight: bold;
-  background-color: #f0f6f9;
-`;
 
 const waterbodyStatuses = {
   good: { condition: 'good', label: 'Good' },
@@ -413,10 +390,14 @@ export function plotGages(gages: Object[], layer: any) {
   if (!gages || !layer) return;
 
   const graphics = gages.map((gage) => {
-    // TODO: determine if there's a better way to isolate gage height measurements
-    const gageHeight = gage.streamGageMeasurements.find((data) => {
-      return data.parameterCode === '00065';
-    })?.measurement;
+    const gageHeightMeasurements = gage.streamgageMeasurements.primary.filter(
+      (d) => d.parameterCode === '00065',
+    );
+
+    const gageHeight =
+      gageHeightMeasurements.length === 1
+        ? gageHeightMeasurements[0]?.measurement
+        : null;
 
     return new Graphic({
       geometry: {
@@ -619,7 +600,7 @@ export function getPopupTitle(attributes: Object) {
   // monitoring station
   else if (
     attributes.monitoringType === 'Sample Location' ||
-    attributes.monitoringType === 'Daily Water Conditions'
+    attributes.monitoringType === 'Current Water Conditions'
   ) {
     title = attributes.locationName;
   }
@@ -708,11 +689,15 @@ export function getPopupContent({
   else if (attributes && attributes.assessmentunitname) {
     const communityTab = getSelectedCommunityTab();
     const pathname = document.location.pathname;
+    const isAllWaterbodiesLayer =
+      feature.layer?.parent?.id === 'allWaterbodiesLayer';
 
     type = 'Waterbody';
     if (pathname.includes('advanced-search')) type = 'Waterbody State Overview';
-    if (communityTab === 'restore') type = 'Restoration Plans';
-    if (communityTab === 'protect') type = 'Protection Plans';
+    if (!isAllWaterbodiesLayer) {
+      if (communityTab === 'restore') type = 'Restoration Plans';
+      if (communityTab === 'protect') type = 'Protection Plans';
+    }
   }
 
   // discharger
@@ -723,9 +708,9 @@ export function getPopupContent({
   // usgs streamgage
   else if (
     attributes &&
-    attributes.monitoringType === 'Daily Water Conditions'
+    attributes.monitoringType === 'Current Water Conditions'
   ) {
-    type = 'Daily Water Conditions';
+    type = 'Current Water Conditions';
   }
 
   // monitoring station
@@ -789,31 +774,17 @@ export function getPopupContent({
   }
 
   const content = (
-    <div css={popupContainerStyles}>
-      {(type !== 'Action' ||
-        'Change Location' ||
-        'Waterbody State Overview') && (
-        <p css={popupTitleStyles}>
-          {type === 'Demographic Indicators'
-            ? `${type} - ${feature.layer.title}`
-            : type}
-        </p>
-      )}
-
-      <div css={popupContentStyles}>
-        <WaterbodyInfo
-          type={type}
-          feature={feature}
-          fieldName={fieldName}
-          isPopup={true}
-          extraContent={extraContent}
-          getClickedHuc={getClickedHuc}
-          resetData={resetData}
-          services={services}
-          fields={fields}
-        />
-      </div>
-    </div>
+    <WaterbodyInfo
+      type={type}
+      feature={feature}
+      fieldName={fieldName}
+      isPopup={true}
+      extraContent={extraContent}
+      getClickedHuc={getClickedHuc}
+      resetData={resetData}
+      services={services}
+      fields={fields}
+    />
   );
 
   // wrap the content for esri

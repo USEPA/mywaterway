@@ -62,6 +62,7 @@ type UsgsStreamgageData = {
       description: string,
       properties: {
         ParameterCode: string,
+        WebDescription: string,
       },
       unitOfMeasurement: {
         name: string,

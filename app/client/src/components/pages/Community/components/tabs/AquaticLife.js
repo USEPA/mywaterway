@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useContext } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
@@ -17,7 +17,7 @@ const containerStyles = css`
 
 // --- components ---
 function AquaticLife() {
-  const { watershed } = React.useContext(LocationSearchContext);
+  const { watershed } = useContext(LocationSearchContext);
 
   const waterbodies = useWaterbodyFeatures();
 
@@ -34,7 +34,12 @@ function AquaticLife() {
       <WaterbodyList
         waterbodies={waterbodies}
         fieldName="ecological_use"
-        title={`Waterbodies assessed for aquatic life in the ${watershed} watershed.`}
+        title={
+          <>
+            Waterbodies assessed for aquatic life in the <em>{watershed}</em>{' '}
+            watershed.
+          </>
+        }
       />
     </div>
   );

@@ -1,6 +1,12 @@
 // @flow
 
-import React from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import styled from 'styled-components';
 import Graphic from '@arcgis/core/Graphic';
@@ -100,7 +106,7 @@ const IntroDiv = styled.div`
 
 // --- components ---
 function IdentifiedIssues() {
-  const { infoToggleChecked } = React.useContext(CommunityTabsContext);
+  const { infoToggleChecked } = useContext(CommunityTabsContext);
 
   const {
     permittedDischargers,
@@ -116,24 +122,21 @@ function IdentifiedIssues() {
     setShowAllPolluted,
     cipSummary,
     watershed,
-  } = React.useContext(LocationSearchContext);
+  } = useContext(LocationSearchContext);
 
-  const [
-    permittedDischargersData,
-    setPermittedDischargersData,
-  ] = React.useState({});
+  const [permittedDischargersData, setPermittedDischargersData] = useState({});
 
-  const [parameterToggleObject, setParameterToggleObject] = React.useState({});
+  const [parameterToggleObject, setParameterToggleObject] = useState({});
 
-  const [violatingFacilities, setStateViolatingFacilities] = React.useState([]);
+  const [violatingFacilities, setStateViolatingFacilities] = useState([]);
 
-  const [showAllParameters, setShowAllParameters] = React.useState(false);
+  const [showAllParameters, setShowAllParameters] = useState(false);
 
-  const [showIssuesLayer, setShowIssuesLayer] = React.useState(true);
+  const [showIssuesLayer, setShowIssuesLayer] = useState(true);
 
-  const [showDischargersLayer, setShowDischargersLayer] = React.useState(true);
+  const [showDischargersLayer, setShowDischargersLayer] = useState(true);
 
-  const setViolatingFacilities = React.useCallback(
+  const setViolatingFacilities = useCallback(
     (data: Object) => {
       if (!data || !data['Results'] || !data['Results']['Facilities']) return;
       const violatingFacilities = data['Results']['Facilities'].filter(
@@ -154,7 +157,7 @@ function IdentifiedIssues() {
     [permittedDischargers, permittedDischargersData],
   );
 
-  const checkDischargersToDisplay = React.useCallback(() => {
+  const checkDischargersToDisplay = useCallback(() => {
     if (!dischargersLayer || !showDischargersLayer) return;
 
     plotFacilities({
@@ -178,7 +181,7 @@ function IdentifiedIssues() {
     return filteredFields.label;
   };
 
-  const checkWaterbodiesToDisplay = React.useCallback(() => {
+  const checkWaterbodiesToDisplay = useCallback(() => {
     const waterbodiesToShow = new Set(); // set to prevent duplicates
     const features = getAllFeatures();
 
@@ -218,8 +221,8 @@ function IdentifiedIssues() {
   ]);
 
   // emulate componentdidmount
-  const [componentMounted, setComponentMounted] = React.useState(false);
-  React.useEffect(() => {
+  const [componentMounted, setComponentMounted] = useState(false);
+  useEffect(() => {
     if (componentMounted) return;
     setComponentMounted(true);
     setShowAllParameters(showAllPolluted);
@@ -248,8 +251,8 @@ function IdentifiedIssues() {
   ]);
 
   // emulate componentdidupdate
-  const mounted = React.useRef();
-  React.useEffect(() => {
+  const mounted = useRef();
+  useEffect(() => {
     if (!mounted.current) {
       mounted.current = true;
     } else {
@@ -289,14 +292,10 @@ function IdentifiedIssues() {
 
   // check the data quality and log a non-fatal exception to Google Analytics
   // if necessary
-  const [
-    emptyCategoriesWithPercent,
-    setEmptyCategoriesWithPercent,
-  ] = React.useState(false);
-  const [nullPollutedWaterbodies, setNullPollutedWaterbodies] = React.useState(
-    false,
-  );
-  React.useEffect(() => {
+  const [emptyCategoriesWithPercent, setEmptyCategoriesWithPercent] =
+    useState(false);
+  const [nullPollutedWaterbodies, setNullPollutedWaterbodies] = useState(false);
+  useEffect(() => {
     if (!window.gaTarget || cipSummary.status !== 'success') return;
 
     if (!cipSummary.data?.items?.length > 0) {
@@ -344,7 +343,7 @@ function IdentifiedIssues() {
 
   // Updates the visible layers. This function also takes into account whether
   // or not the underlying webservices failed.
-  const updateVisibleLayers = React.useCallback(
+  const updateVisibleLayers = useCallback(
     ({ key = null, newValue = null, useCurrentValue = false }) => {
       const newVisibleLayers = {};
       if (cipSummary.status !== 'failure') {
@@ -382,7 +381,7 @@ function IdentifiedIssues() {
   );
 
   // Updates visible layers based on webservice statuses.
-  React.useEffect(() => {
+  useEffect(() => {
     updateVisibleLayers({ useCurrentValue: true });
   }, [cipSummary, permittedDischargers, visibleLayers, updateVisibleLayers]);
 
@@ -495,9 +494,8 @@ function IdentifiedIssues() {
     }
     // one of the parameters is switched
     else {
-      tempParameterToggleObject[checkedSwitch] = !parameterToggleObject[
-        checkedSwitch
-      ];
+      tempParameterToggleObject[checkedSwitch] =
+        !parameterToggleObject[checkedSwitch];
 
       checkIfAllSwitchesToggled(cipSummary.data, tempParameterToggleObject);
     }
@@ -745,10 +743,11 @@ function IdentifiedIssues() {
                                         ),
                                       );
 
-                                      const mappedParameterName = getMappedParameterName(
-                                        impairmentFields,
-                                        param['parameterGroupName'],
-                                      );
+                                      const mappedParameterName =
+                                        getMappedParameterName(
+                                          impairmentFields,
+                                          param['parameterGroupName'],
+                                        );
                                       // if service contains a parameter we have no mapping for
                                       if (!mappedParameterName) return false;
 
@@ -823,7 +822,7 @@ function IdentifiedIssues() {
                             <GlossaryTerm term="Effluent">
                               effluent
                             </GlossaryTerm>{' '}
-                            violations in the {watershed} watershed.
+                            violations in the <em>{watershed}</em> watershed.
                           </>
                         }
                       >

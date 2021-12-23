@@ -258,7 +258,15 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   // jsx
   const usgsStreamgagesLegend = (
     <li>
-      <div css={layerLabelStyles}>Daily Water Conditions:</div>
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>{circleIcon({ color: '#fffe00' })}</div>
+        <span css={labelStyles}>Current Water Conditions</span>
+      </div>
+    </li>
+
+    /*
+    <li>
+      <div css={layerLabelStyles}>Current Water Conditions:</div>
 
       <div css={legendItemStyles}>
         <div css={imageContainerStyles}>{circleIcon({ color: '#ea2c38' })}</div>
@@ -300,6 +308,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
         <span css={labelStyles}>Measurement unavailable</span>
       </div>
     </li>
+    */
   );
 
   // jsx

@@ -9,7 +9,6 @@ import { ContentTabs } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
-import Switch from 'components/shared/Switch';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 // styled components
 import {
@@ -22,8 +21,7 @@ import {
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { getUrlFromMarkup, getTitleFromMarkup } from 'components/shared/Regex';
-import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
-import { getUniqueWaterbodies } from 'components/pages/LocationMap/MapFunctions';
+import { useWaterbodyOnMap } from 'utils/hooks';
 // errors
 import {
   restoreNonpointSourceError,
@@ -43,10 +41,6 @@ const disclaimerStyles = css`
   display: inline-block;
 `;
 
-const switchContainerStyles = css`
-  margin-top: 0.5em;
-`;
-
 function Restore() {
   const {
     attainsPlans,
@@ -58,15 +52,8 @@ function Restore() {
     waterbodyLayer,
   } = useContext(LocationSearchContext);
 
-  // set the waterbody features
-  const waterbodies = useWaterbodyFeatures();
-
-  const uniqueWaterbodies = waterbodies
-    ? getUniqueWaterbodies(waterbodies)
-    : [];
-
   // draw the waterbody on the map
-  useWaterbodyOnMap('restoreTab');
+  useWaterbodyOnMap('restoreTab', 'overallstatus');
 
   const [restoreLayerEnabled, setRestoreLayerEnabled] = useState(true);
 
@@ -127,7 +114,15 @@ function Restore() {
           .sort((a, b) => a.actionName.localeCompare(b.actionName))
       : [];
 
-  const waterbodyCount = uniqueWaterbodies && uniqueWaterbodies.length;
+  const setRestoreLayerVisibility = (visible) => {
+    setRestoreLayerEnabled(visible);
+
+    // first check if layer exists and is not falsy
+    updateVisibleLayers({
+      key: 'waterbodyLayer',
+      newValue: waterbodyLayer && visible,
+    });
+  };
 
   return (
     <div css={containerStyles}>
@@ -155,27 +150,11 @@ function Restore() {
             </StyledNumber>
           )}
           <StyledLabel>Plans</StyledLabel>
-          <div css={switchContainerStyles}>
-            <Switch
-              checked={Boolean(waterbodyCount) && restoreLayerEnabled}
-              onChange={(checked) => {
-                setRestoreLayerEnabled(!restoreLayerEnabled);
-
-                // first check if layer exists and is not falsy
-                updateVisibleLayers({
-                  key: 'waterbodyLayer',
-                  newValue: waterbodyLayer && !restoreLayerEnabled,
-                });
-              }}
-              disabled={!Boolean(waterbodyCount)}
-              ariaLabel="Waterbodies"
-            />
-          </div>
         </StyledMetric>
       </StyledMetrics>
 
       <ContentTabs>
-        <Tabs>
+        <Tabs onChange={(index) => setRestoreLayerVisibility(index === 1)}>
           <TabList>
             <Tab>Clean Water Act Section 319 Projects</Tab>
             <Tab>Restoration Plans</Tab>
@@ -343,6 +322,12 @@ function Restore() {
 
             <TabPanel>
               <>
+                <p>
+                  View all restoration plans for the selected watershed in the
+                  list below. Find out which plans are in place to restore each
+                  waterbody shown on the map.
+                </p>
+
                 {attainsPlans.status === 'fetching' && <LoadingSpinner />}
 
                 {attainsPlans.status === 'failure' && (
@@ -375,6 +360,36 @@ function Restore() {
                         }
                       >
                         {sortedAttainsPlanData.map((item, index) => {
+                          let planType = item.actionTypeCode;
+                          if (planType === 'TMDL') {
+                            planType = (
+                              <>
+                                Restoration Plan:{' '}
+                                <GlossaryTerm term="TMDL">TMDL</GlossaryTerm>
+                              </>
+                            );
+                          }
+                          if (planType === '4B Restoration Approach') {
+                            planType = (
+                              <>
+                                Restoration Plan:{' '}
+                                <GlossaryTerm term="4B Restoration Approach">
+                                  4B Restoration Approach
+                                </GlossaryTerm>
+                              </>
+                            );
+                          }
+                          if (planType === 'Alternative Restoration Approach') {
+                            planType = (
+                              <>
+                                Restoration Plan:{' '}
+                                <GlossaryTerm term="Alternative Restoration Approach">
+                                  Alternative Restoration Approach
+                                </GlossaryTerm>
+                              </>
+                            );
+                          }
+
                           return (
                             <AccordionItem
                               key={index}
@@ -389,7 +404,7 @@ function Restore() {
                                     <td>
                                       <em>Plan Type:</em>
                                     </td>
-                                    <td>{item.actionTypeCode}</td>
+                                    <td>{planType}</td>
                                   </tr>
                                   <tr>
                                     <td>

@@ -41,6 +41,8 @@ import {
   huc12SummaryError,
   zeroAssessedWaterbodies,
 } from 'config/errorMessages';
+// config
+import { usgsStaParameters } from 'config/usgsStaParameters';
 
 const containerStyles = css`
   padding: 1em;
@@ -442,7 +444,12 @@ function WaterbodiesTab() {
     <WaterbodyList
       waterbodies={waterbodies}
       fieldName={null}
-      title={`Overall condition of waterbodies in the ${watershed} watershed.`}
+      title={
+        <>
+          Overall condition of waterbodies in the <em>{watershed}</em>{' '}
+          watershed.
+        </>
+      }
     />
   );
 }
@@ -465,7 +472,7 @@ function MonitoringAndSensorsTab({
 
   const services = useServicesContext();
 
-  // if either of the "Daily Water Conditions" or "Sample Locations" switches
+  // if either of the "Current Water Conditions" or "Sample Locations" switches
   // are turned on, or if both switches are turned off, keep the "Monitoring
   // Stations" switch in sync
   useEffect(() => {
@@ -491,31 +498,61 @@ function MonitoringAndSensorsTab({
   useEffect(() => {
     if (!usgsStreamgages.data.value) return;
 
-    const gages = usgsStreamgages.data.value.map((gage) => ({
-      monitoringType: 'Daily Water Conditions',
-      siteId: gage.properties.monitoringLocationNumber,
-      orgId: gage.properties.agencyCode,
-      orgName: gage.properties.agency,
-      locationLongitude: gage.Locations[0].location.coordinates[0],
-      locationLatitude: gage.Locations[0].location.coordinates[1],
-      locationName: gage.properties.monitoringLocationName,
-      locationType: gage.properties.monitoringLocationType,
-      locationUrl: gage.properties.monitoringLocationUrl,
-      // usgs streamgage specific properties:
-      streamGageMeasurements: gage.Datastreams.filter(
-        (data) => data.Observations.length > 0,
-      ).map((data) => {
-        const observation = data.Observations[0];
-        return {
-          parameterDescription: data.description.split(' / USGS-')[0],
-          parameterCode: data.properties.ParameterCode,
-          measurement: observation.result,
-          datetime: new Date(observation.phenomenonTime).toLocaleString(),
-          unitAbbr: data.unitOfMeasurement.symbol,
-          unitName: data.unitOfMeasurement.name,
-        };
-      }),
-    }));
+    const gages = usgsStreamgages.data.value.map((gage) => {
+      const streamgageMeasurements = { primary: [], secondary: [] };
+
+      [...gage.Datastreams]
+        .filter((item) => item.Observations.length > 0)
+        .forEach((item) => {
+          const observation = item.Observations[0];
+          const parameterCode = item.properties.ParameterCode;
+          const parameterDesc = item.description.split(' / USGS-')[0];
+          const parameterUnit = item.unitOfMeasurement;
+
+          let measurement = observation.result;
+          // convert measurements recorded in celsius to fahrenheit
+          if (['00010', '00020', '85583'].includes(parameterCode)) {
+            measurement = measurement * (9 / 5) + 32;
+          }
+
+          const matchedParam = usgsStaParameters.find((p) => {
+            return p.staParameterCode === parameterCode;
+          });
+
+          const data = {
+            parameterCategory: matchedParam?.hmwCategory || 'exclude',
+            parameterOrder: matchedParam?.hmwOrder || 0,
+            parameterName: matchedParam?.hmwName || parameterDesc,
+            parameterCode,
+            measurement,
+            datetime: new Date(observation.phenomenonTime).toLocaleString(),
+            unitAbbr: matchedParam?.hmwUnits || parameterUnit.symbol,
+            unitName: parameterUnit.name,
+          };
+
+          if (data.parameterCategory === 'primary') {
+            streamgageMeasurements.primary.push(data);
+          }
+
+          if (data.parameterCategory === 'secondary') {
+            streamgageMeasurements.secondary.push(data);
+          }
+        });
+
+      return {
+        monitoringType: 'Current Water Conditions',
+        siteId: gage.properties.monitoringLocationNumber,
+        orgId: gage.properties.agencyCode,
+        orgName: gage.properties.agency,
+        locationLongitude: gage.Locations[0].location.coordinates[0],
+        locationLatitude: gage.Locations[0].location.coordinates[1],
+        locationName: gage.properties.monitoringLocationName,
+        locationType: gage.properties.monitoringLocationType,
+        locationUrl: gage.properties.monitoringLocationUrl,
+        // usgs streamgage specific properties:
+        streamgageMeasurements,
+      };
+    });
 
     setNormalizedUsgsStreamgages(gages);
 
@@ -596,7 +633,7 @@ function MonitoringAndSensorsTab({
       const displayedTypes = [];
 
       if (usgsStreamgagesDisplayed) {
-        displayedTypes.push('Daily Water Conditions');
+        displayedTypes.push('Current Water Conditions');
       }
 
       if (monitoringLocationsDisplayed) {
@@ -641,6 +678,11 @@ function MonitoringAndSensorsTab({
               </div>
             )}
 
+            <p>
+              Find out about current water conditions at sensor locations and
+              explore sample data from water quality monitoring locations.
+            </p>
+
             <table css={tableStyles} className="table">
               <thead>
                 <tr>
@@ -670,9 +712,9 @@ function MonitoringAndSensorsTab({
                           });
                         }}
                         disabled={normalizedUsgsStreamgages.length === 0}
-                        ariaLabel="Daily Water Conditions"
+                        ariaLabel="Current Water Conditions"
                       />
-                      <span>Daily Water Conditions</span>
+                      <span>Current Water Conditions</span>
                     </div>
                   </td>
                   <td>{normalizedUsgsStreamgages.length}</td>
@@ -731,11 +773,16 @@ function MonitoringAndSensorsTab({
                   label: 'Monitoring Site ID',
                   value: 'siteId',
                 },
-                {
-                  label: 'Monitoring Measurements',
-                  value: 'stationTotalMeasurements',
-                },
-              ]}
+              ].concat(
+                monitoringLocationsDisplayed
+                  ? [
+                      {
+                        label: 'Monitoring Measurements',
+                        value: 'stationTotalMeasurements',
+                      },
+                    ]
+                  : [],
+              )}
             >
               {filteredMonitoringAndSensors.map((item, index) => {
                 const feature = {
@@ -773,9 +820,9 @@ function MonitoringAndSensorsTab({
                     idKey="siteId"
                   >
                     <div css={accordionContentStyles}>
-                      {item.monitoringType === 'Daily Water Conditions' && (
+                      {item.monitoringType === 'Current Water Conditions' && (
                         <WaterbodyInfo
-                          type="Daily Water Conditions"
+                          type="Current Water Conditions"
                           feature={feature}
                           services={services}
                         />
