@@ -271,9 +271,9 @@ function Overview() {
       {cipSummary.status === 'success' &&
         waterbodies !== null &&
         totalWaterbodies === 0 && (
-          <p css={modifiedInfoBoxStyles}>
-            {zeroAssessedWaterbodies(watershed)}
-          </p>
+          <div css={modifiedInfoBoxStyles}>
+            <p>{zeroAssessedWaterbodies(watershed)}</p>
+          </div>
         )}
 
       <div css={keyMetricsStyles}>

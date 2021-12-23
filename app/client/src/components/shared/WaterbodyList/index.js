@@ -102,9 +102,9 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
     <>
       {/* check if any waterbodies have no spatial data */}
       {sortedWaterbodies.some((waterbody) => waterbody.limited) && (
-        <p css={modifiedInfoBoxStyles}>
-          Some waterbodies are not visible on the map.
-        </p>
+        <div css={modifiedInfoBoxStyles}>
+          <p>Some waterbodies are not visible on the map.</p>
+        </div>
       )}
 
       <p css={paragraphStyles}>Waterbody Conditions:</p>
