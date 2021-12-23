@@ -74,8 +74,9 @@ const StyledLinkButton = styled(LinkButton)`
 
 // --- components (URLPanel) ---
 function URLPanel() {
-  const { widgetLayers, setWidgetLayers } =
-    React.useContext(AddDataWidgetContext);
+  const { widgetLayers, setWidgetLayers } = React.useContext(
+    AddDataWidgetContext,
+  );
   const { mapView } = React.useContext(LocationSearchContext);
 
   // filters
