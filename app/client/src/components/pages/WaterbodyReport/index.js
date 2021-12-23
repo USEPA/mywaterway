@@ -215,7 +215,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
     status: 'fetching',
     data: [],
   });
-  const [monitoringStations, setMonitoringStations] = React.useState({
+  const [monitoringLocations, setMonitoringLocations] = React.useState({
     status: 'fetching',
     data: [],
   });
@@ -261,7 +261,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
 
         // return early if no monitoring stations were returned
         if (monitoringStations.length === 0) {
-          setMonitoringStations({ status: 'success', data: [] });
+          setMonitoringLocations({ status: 'success', data: [] });
           return;
         }
 
@@ -309,10 +309,10 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
               return { orgId, locId, name, url };
             });
 
-            setMonitoringStations({ status: 'success', data: locations });
+            setMonitoringLocations({ status: 'success', data: locations });
           },
           (err) => {
-            setMonitoringStations({ status: 'failure', data: [] });
+            setMonitoringLocations({ status: 'failure', data: [] });
             console.error(err);
           },
         );
@@ -1265,19 +1265,19 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
 
                         <div css={boxSectionStyles}>
                           <h3>Does this water have monitoring locations?</h3>
-                          {monitoringStations.status === 'fetching' && (
+                          {monitoringLocations.status === 'fetching' && (
                             <LoadingSpinner />
                           )}
-                          {monitoringStations.status === 'failure' && (
+                          {monitoringLocations.status === 'failure' && (
                             <div css={modifiedErrorBoxStyles}>
                               <p>
                                 {waterbodyReportError('Monitoring location')}
                               </p>
                             </div>
                           )}
-                          {monitoringStations.status === 'success' && (
+                          {monitoringLocations.status === 'success' && (
                             <ul css={locationsStyles}>
-                              {monitoringStations.data.map((location) => {
+                              {monitoringLocations.data.map((location) => {
                                 const { orgId, locId, name, url } = location;
                                 return (
                                   <li key={locId}>
