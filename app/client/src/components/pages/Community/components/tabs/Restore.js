@@ -154,12 +154,7 @@ function Restore() {
       </StyledMetrics>
 
       <ContentTabs>
-        <Tabs
-          onChange={(index) => {
-            if (index === 1) setRestoreLayerVisibility(true);
-            else setRestoreLayerVisibility(false);
-          }}
-        >
+        <Tabs onChange={(index) => setRestoreLayerVisibility(index === 1)}>
           <TabList>
             <Tab>Clean Water Act Section 319 Projects</Tab>
             <Tab>Restoration Plans</Tab>
