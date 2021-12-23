@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useContext } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import AssessmentSummary from 'components/shared/AssessmentSummary';
@@ -26,7 +26,7 @@ const modifiedErrorBoxStyles = css`
 `;
 
 function Swimming() {
-  const { watershed, cipSummary } = React.useContext(LocationSearchContext);
+  const { watershed, cipSummary } = useContext(LocationSearchContext);
 
   // set the waterbody features
   const waterbodies = useWaterbodyFeatures();
@@ -53,7 +53,12 @@ function Swimming() {
           <WaterbodyList
             waterbodies={waterbodies}
             fieldName="recreation_use"
-            title={`Waterbodies assessed for swimming and boating in the ${watershed} watershed.`}
+            title={
+              <>
+                Waterbodies assessed for swimming and boating in the{' '}
+                <em>{watershed}</em> watershed.
+              </>
+            }
           />
         </>
       )}

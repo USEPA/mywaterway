@@ -1,6 +1,12 @@
 // @flow
 
-import React from 'react';
+import React, {
+  Fragment,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import { css } from 'styled-components/macro';
 import WindowSize from '@reach/window-size';
 import StickyBox from 'react-sticky-box';
@@ -9,7 +15,10 @@ import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
 import NavBar from 'components/shared/NavBar';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
-import { AccordionList, AccordionItem } from 'components/shared/Accordion';
+import {
+  AccordionList,
+  AccordionItem,
+} from 'components/shared/Accordion/MapHighlight';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import ActionsMap from './ActionsMap';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -30,13 +39,18 @@ import {
 } from 'components/shared/Box';
 // contexts
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
-import { MapHighlightProvider } from 'contexts/MapHighlight';
+import {
+  MapHighlightContext,
+  MapHighlightProvider,
+} from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
+import {
+  getOrganizationLabel,
+  getTypeFromAttributes,
+} from 'components/pages/LocationMap/MapFunctions';
 import { chunkArray } from 'utils/utils';
-// utilities
-import { getOrganizationLabel } from 'components/pages/LocationMap/MapFunctions';
 // styles
 import { colors } from 'styles/index.js';
 // errors
@@ -153,7 +167,7 @@ function getPollutantsWaters(action: Object, orgId: string) {
   };
 }
 
-function getWaterbodyData(
+function getWaterbodyGraphic(
   mapLayer: Object,
   orgId: string,
   assessmentUnitIdentifier: string,
@@ -212,7 +226,11 @@ const accordionContentStyles = css`
 
   button {
     margin-bottom: 0.25em;
+  }
+`;
 
+const paragraphContentStyles = css`
+  button {
     &:hover,
     &:focus {
       background-color: ${colors.navyBlue()};
@@ -228,6 +246,11 @@ const textBottomMarginStyles = css`
   margin-bottom: 0.5em !important;
 `;
 
+const strongBottomMarginStyles = css`
+  display: block;
+  margin-bottom: 0.25em !important;
+`;
+
 type Props = {
   ...RouteProps,
   fullscreen: Object, // passed from FullscreenContext.Consumer
@@ -238,24 +261,28 @@ type Props = {
 function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
   const services = useServicesContext();
 
-  const [loading, setLoading] = React.useState(true);
-  const [noActions, setNoActions] = React.useState(false);
-  const [error, setError] = React.useState(false);
-  const [mapLayer, setMapLayer] = React.useState({
+  const [loading, setLoading] = useState(true);
+  const [noActions, setNoActions] = useState(false);
+  const [error, setError] = useState(false);
+  const [mapLayer, setMapLayer] = useState({
     status: 'fetching',
     layer: null,
   });
 
+  const { selectedGraphic, highlightedGraphic } = useContext(
+    MapHighlightContext,
+  );
+
   // fetch action data from the attains 'actions' web service
-  const [organizationName, setOrganizationName] = React.useState('');
-  const [actionName, setActionName] = React.useState('');
-  const [completionDate, setCompletionDate] = React.useState('');
-  const [actionTypeCode, setActionTypeCode] = React.useState('');
-  const [actionStatusCode, setActionStatusCode] = React.useState('');
-  const [documents, setDocuments] = React.useState([]);
-  const [pollutants, setPollutants] = React.useState([]);
-  const [waters, setWaters] = React.useState([]);
-  React.useEffect(() => {
+  const [organizationName, setOrganizationName] = useState('');
+  const [actionName, setActionName] = useState('');
+  const [completionDate, setCompletionDate] = useState('');
+  const [actionTypeCode, setActionTypeCode] = useState('');
+  const [actionStatusCode, setActionStatusCode] = useState('');
+  const [documents, setDocuments] = useState([]);
+  const [pollutants, setPollutants] = useState([]);
+  const [waters, setWaters] = useState([]);
+  useEffect(() => {
     const url =
       services.data.attains.serviceUrl +
       `actions?ActionIdentifier=${actionId}` +
@@ -315,8 +342,8 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
 
   // Builds the unitIds dictionary that is used for determining what
   // waters to display on the screen and what the content will be.
-  const [unitIds, setUnitIds] = React.useState({});
-  React.useEffect(() => {
+  const [unitIds, setUnitIds] = useState({});
+  useEffect(() => {
     if (waters.length === 0) return;
 
     const unitIds = {};
@@ -345,9 +372,11 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                 {organizationName} ({orgId})
               </p>
             )}
-            {hasTmdlData && (
+            {hasTmdlData && associatedPollutants.length > 0 && (
               <>
-                <strong>Associated Impairments: </strong>
+                <strong css={strongBottomMarginStyles}>
+                  Associated Impairments:{' '}
+                </strong>
                 <ul css={listStyles}>
                   {associatedPollutants
                     .sort((a, b) =>
@@ -384,7 +413,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                             <>Not specified.</>
                           ) : (
                             permits.map((permit, index) => (
-                              <React.Fragment key={index}>
+                              <Fragment key={index}>
                                 <a
                                   href={echoUrl + permit.NPDESIdentifier}
                                   target="_blank"
@@ -393,7 +422,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                                   {permit.NPDESIdentifier}
                                 </a>
                                 {index === permits.length - 1 ? '' : ', '}
-                              </React.Fragment>
+                              </Fragment>
                             ))
                           )}
                         </li>
@@ -402,9 +431,11 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                 </ul>
               </>
             )}
-            {!hasTmdlData && (
+            {!hasTmdlData && parameters.length > 0 && (
               <>
-                <strong>Parameters Addressed: </strong>
+                <strong css={strongBottomMarginStyles}>
+                  Parameters Addressed:{' '}
+                </strong>
                 <ul css={listStyles}>
                   {parameters
                     .sort((a, b) =>
@@ -452,8 +483,8 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
   }, [waters, actionTypeCode, orgId, organizationName]);
 
   // calculate height of div holding actions info
-  const [infoHeight, setInfoHeight] = React.useState(0);
-  const measuredRef = React.useCallback((node) => {
+  const [infoHeight, setInfoHeight] = useState(0);
+  const measuredRef = useCallback((node) => {
     if (!node) return;
     setInfoHeight(node.getBoundingClientRect().height);
   }, []);
@@ -510,7 +541,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
     </div>
   );
 
-  const [expandedRows, setExpandedRows] = React.useState([]);
+  const [expandedRows, setExpandedRows] = useState([]);
   if (loading) {
     return (
       <Page>
@@ -672,7 +703,9 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
 
                     <div css={boxSectionStyles}>
                       {waters.length > 0 && (
-                        <AccordionList>
+                        <AccordionList
+                          expandDisabled={true} // disabled to avoid large number of web service calls
+                        >
                           <VirtualizedList
                             items={waters}
                             expandedRowsSetter={setExpandedRows}
@@ -682,29 +715,69 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                               const auId = water.assessmentUnitIdentifier;
                               const name = water.assessmentUnitName;
 
-                              const waterbodyData = getWaterbodyData(
+                              const graphic = getWaterbodyGraphic(
                                 mapLayer,
                                 orgId,
                                 auId,
                               );
 
-                              const waterbodyReportingCycle = waterbodyData
-                                ? waterbodyData.attributes.reportingcycle
+                              // get the type of symbol for creating a unique key, since it is currently
+                              // possible for the assessmentunitid and objectid to be duplicated across
+                              // layers.
+                              const symbolType = graphic
+                                ? getTypeFromAttributes(graphic)
+                                : '';
+
+                              let status = null;
+                              // ensure the key exists prior to deciding to highlight
+                              if (
+                                graphic?.attributes.assessmentunitidentifier
+                              ) {
+                                const id =
+                                  graphic.attributes.assessmentunitidentifier;
+
+                                let isSelected = false;
+                                if (selectedGraphic?.attributes) {
+                                  isSelected =
+                                    selectedGraphic.attributes
+                                      .assessmentunitidentifier === id;
+                                }
+
+                                let isHighlighted = false;
+                                if (highlightedGraphic?.attributes) {
+                                  isHighlighted =
+                                    highlightedGraphic.attributes
+                                      .assessmentunitidentifier === id;
+                                }
+
+                                if (isSelected) {
+                                  status = 'selected';
+                                } else if (isHighlighted && !isSelected) {
+                                  status = 'highlighted';
+                                }
+                              }
+
+                              const waterbodyReportingCycle = graphic
+                                ? graphic.attributes.reportingcycle
                                 : null;
 
                               const orgLabel = getOrganizationLabel(
-                                waterbodyData?.attributes,
+                                graphic?.attributes,
                               );
 
                               return (
                                 <AccordionItem
-                                  key={auId}
+                                  key={symbolType + orgId + auId}
+                                  index={symbolType + orgId + auId}
                                   title={
                                     <strong>
                                       {name || 'Name not provided'}
                                     </strong>
                                   }
                                   subTitle={`${orgLabel} ${auId}`}
+                                  feature={graphic}
+                                  idKey="assessmentunitidentifier"
+                                  status={status}
                                   allExpanded={
                                     allExpanded || expandedRows.includes(index)
                                   }
@@ -730,11 +803,11 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                                     {unitIds[auId] &&
                                       unitIds[auId](
                                         waterbodyReportingCycle,
-                                        waterbodyData ? true : false,
+                                        graphic ? true : false,
                                       )}
 
-                                    <p>
-                                      {waterbodyData && (
+                                    <p css={paragraphContentStyles}>
+                                      {graphic && (
                                         <ViewOnMapButton
                                           feature={{
                                             attributes: {
