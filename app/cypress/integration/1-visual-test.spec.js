@@ -11,7 +11,7 @@ describe('Community Visual Regression Testing', () => {
 
     // this is needed as a workaround for the delay between the loading spinner
     // disappearing and the waterbodies being drawn on the map
-    cy.wait(5000);
+    cy.wait(7000);
 
     cy.get(mapId).matchSnapshot('verify-dc-gis-display');
   });
@@ -26,7 +26,7 @@ describe('Community Visual Regression Testing', () => {
 
     // this is needed as a workaround for the delay between the loading spinner
     // disappearing and the waterbodies being drawn on the map
-    cy.wait(5000);
+    cy.wait(7000);
 
     // test all impairment categories on
     cy.get(mapId).matchSnapshot('dc-all-impairment-categories');
@@ -64,7 +64,7 @@ describe('Community Visual Regression Testing', () => {
       waitTimeout: 120000,
     });
 
-    cy.wait(5000);
+    cy.wait(7000);
 
     cy.get(mapId).matchSnapshot('verify-huc-boundary-shading');
 
@@ -130,7 +130,7 @@ describe('State Visual Regression Testing', () => {
     );
 
     // wait for animations to settle and check the assessed chart
-    cy.wait(2000);
+    cy.wait(7000);
     cy.get(assessedChartId).matchSnapshot(
       'verify-assessed-less-than-1-chart-display',
     );
@@ -143,7 +143,7 @@ describe('State Visual Regression Testing', () => {
     });
 
     // wait for animations to settle and check the assessed chart
-    cy.wait(2000);
+    cy.wait(7000);
     cy.get(assessedChartId).matchSnapshot('verify-assessed-chart-display');
   });
 
@@ -162,7 +162,7 @@ describe('State Visual Regression Testing', () => {
     });
 
     // wait for animations to settle and check the assessed chart
-    cy.wait(2000);
+    cy.wait(7000);
     cy.get(surveysChartId).matchSnapshot('verify-surveys-chart-display');
   });
 });
