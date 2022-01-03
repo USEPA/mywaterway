@@ -385,7 +385,7 @@ function DrinkingWater() {
   if (drinkingWater.data) {
     // handle providers separately
     const allProviders = drinkingWater.data.filter(
-      (system) => !system.hasOwnProperty('huc12'),
+      (system) => !system.hasOwnProperty('huc12') || !system.huc12,
     );
     allProviders.forEach((provider) => providers.push(provider));
 
