@@ -390,8 +390,8 @@ function DrinkingWater() {
     allProviders.forEach((provider) => providers.push(provider));
 
     // find all withdrawers
-    const allWithdrawers = drinkingWater.data.filter((system) =>
-      system.hasOwnProperty('huc12'),
+    const allWithdrawers = drinkingWater.data.filter(
+      (system) => system.hasOwnProperty('huc12') && system.huc12,
     );
 
     // find duplicate withdrawers based on pwsid
