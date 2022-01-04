@@ -24,7 +24,7 @@
     "Courtney Myers <courtney.myers@erg.com>"
   ],
   "engines": {
-    "node": "14.x"
+    "node": "16.x"
   },
   "main": "src/index.js",
   "scripts": {
@@ -39,7 +39,7 @@
     "@cypress/instrument-cra": "1.4.0",
     "flow-bin": "0.168.0",
     "husky": "7.0.4",
-    "lint-staged": "12.1.3",
+    "lint-staged": "12.1.5",
     "prettier": "2.5.1"
   },
   "dependencies": {
