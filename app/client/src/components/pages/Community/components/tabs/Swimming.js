@@ -58,9 +58,9 @@ function Swimming() {
             fieldName="recreation_use"
             title={
               <>
-                <strong>{summary.total.toLocaleString()}</strong> waterbodies
-                assessed for swimming and boating in the <em>{watershed}</em>{' '}
-                watershed.
+                <strong>{summary.total.toLocaleString()}</strong>{' '}
+                {summary.total === 1 ? 'waterbody' : 'waterbodies'} assessed for
+                swimming and boating in the <em>{watershed}</em> watershed.
               </>
             }
           />
