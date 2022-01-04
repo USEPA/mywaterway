@@ -245,7 +245,7 @@ function DrinkingWater() {
   // draw the waterbody (drinking water sources) on the map
   useWaterbodyOnMap('drinkingwater_use');
 
-  const summary = summarizeAssessments(waterbodies, 'recreation_use');
+  const summary = summarizeAssessments(waterbodies, 'drinkingwater_use');
 
   // draw the drinking water providers (county) on the map
   const [countyGraphic, setCountyGraphic] = useState(null);
@@ -651,7 +651,8 @@ function DrinkingWater() {
                           title={
                             <>
                               <strong>{providers.length}</strong> public water
-                              systems serving <em>{county}</em> county.
+                              system{providers.length === 1 ? '' : 's'} serving{' '}
+                              <em>{county}</em> county.
                             </>
                           }
                           onSortChange={(sortBy) =>
@@ -895,8 +896,9 @@ function DrinkingWater() {
                   title={
                     <>
                       <strong>{summary.total.toLocaleString()}</strong>{' '}
-                      waterbodies assessed as potential future sources of
-                      drinking water in the <em>{watershed}</em> watershed.
+                      {summary.total === 1 ? 'waterbody' : 'waterbodies'}{' '}
+                      assessed as potential future sources of drinking water in
+                      the <em>{watershed}</em> watershed.
                     </>
                   }
                 />
