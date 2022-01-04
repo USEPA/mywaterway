@@ -110,24 +110,17 @@ function Overview() {
 
   const [waterbodiesDisplayed, setWaterbodiesDisplayed] = useState(true);
 
-  const [
-    monitoringLocationsDisplayed,
-    setMonitoringLocationsDisplayed,
-  ] = useState(false);
+  const [monitoringLocationsDisplayed, setMonitoringLocationsDisplayed] =
+    useState(false);
 
-  const [usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed] = useState(
-    false,
-  );
+  const [usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed] =
+    useState(false);
 
-  const [
-    monitoringAndSensorsDisplayed,
-    setMonitoringAndSensorsDisplayed,
-  ] = useState(false);
+  const [monitoringAndSensorsDisplayed, setMonitoringAndSensorsDisplayed] =
+    useState(false);
 
-  const [
-    permittedDischargersDisplayed,
-    setPermittedDischargersDisplayed,
-  ] = useState(false);
+  const [permittedDischargersDisplayed, setPermittedDischargersDisplayed] =
+    useState(false);
 
   // Syncs the toggles with the visible layers on the map. Mainly
   // used for when the user toggles layers in full screen mode and then
@@ -466,6 +459,7 @@ function MonitoringAndSensorsTab({
   const {
     monitoringLocations,
     usgsStreamgages,
+    usgsDailyPrecipitation,
     monitoringLocationsLayer,
     usgsStreamgagesLayer,
     watershed,
@@ -560,10 +554,44 @@ function MonitoringAndSensorsTab({
     plotGages(gages, usgsStreamgagesLayer);
   }, [usgsStreamgages.data, usgsStreamgagesLayer]);
 
-  const [
-    normalizedMonitoringLocations,
-    setNormalizedMonitoringLocations,
-  ] = useState([]);
+  // add precipitation data (fetched from usgsDailyValues web service) to each
+  // streamgage if it exists for that particular location and replot the
+  // streamgages on the map
+  useEffect(() => {
+    if (!usgsDailyPrecipitation.data.value) return;
+    if (normalizedUsgsStreamgages.length === 0) return;
+
+    const streamgageNames = normalizedUsgsStreamgages.map((gage) => {
+      return gage.locationName;
+    });
+
+    usgsDailyPrecipitation.data.value?.timeSeries.forEach((site) => {
+      const { siteName } = site.sourceInfo;
+      const observation = site.values[0].value[0];
+
+      if (streamgageNames.includes(siteName)) {
+        const streamgage = normalizedUsgsStreamgages.find((gage) => {
+          return gage.locationName === siteName;
+        });
+
+        streamgage.streamgageMeasurements.primary.push({
+          parameterCategory: 'primary',
+          parameterOrder: 5,
+          parameterName: 'Total Daily Rainfall',
+          parameterCode: '00045 (USGS Daily Value)',
+          measurement: observation.value,
+          datetime: new Date(observation.dateTime).toLocaleDateString(),
+          unitAbbr: 'in',
+          unitName: 'inches',
+        });
+      }
+    });
+
+    plotGages(normalizedUsgsStreamgages, usgsStreamgagesLayer);
+  }, [usgsDailyPrecipitation, normalizedUsgsStreamgages, usgsStreamgagesLayer]);
+
+  const [normalizedMonitoringLocations, setNormalizedMonitoringLocations] =
+    useState([]);
 
   // normalize monitoring stations data with USGS streamgages data,
   // and draw them on the map
@@ -606,10 +634,8 @@ function MonitoringAndSensorsTab({
     ...normalizedMonitoringLocations,
   ];
 
-  const [
-    monitoringAndSensorsSortedBy,
-    setMonitoringAndSensorsSortedBy,
-  ] = useState('locationName');
+  const [monitoringAndSensorsSortedBy, setMonitoringAndSensorsSortedBy] =
+    useState('locationName');
 
   const sortedMonitoringAndSensors = [...allMonitoringAndSensors].sort(
     (a, b) => {
@@ -867,10 +893,8 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
     }
   }, [permittedDischargers.data, dischargersLayer]);
 
-  const [
-    permittedDischargersSortedBy,
-    setPermittedDischargersSortedBy,
-  ] = useState('CWPName');
+  const [permittedDischargersSortedBy, setPermittedDischargersSortedBy] =
+    useState('CWPName');
 
   /* prettier-ignore */
   const sortedPermittedDischargers = permittedDischargers.data.Results?.Facilities

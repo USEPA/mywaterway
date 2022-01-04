@@ -1353,8 +1353,8 @@ function UsgsStreamgageParameter({ data, index }) {
         ) : (
           data.parameterName
         )}
-        &nbsp;&nbsp;
-        <small css={additionalTextStyles}>({data.parameterCode})</small>
+        <br />
+        <small css={additionalTextStyles}>{data.parameterCode}</small>
       </td>
       <td>
         {data.multiple ? (

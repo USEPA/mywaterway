@@ -136,6 +136,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     mapView,
     setMonitoringLocations,
     setUsgsStreamgages,
+    setUsgsDailyPrecipitation,
     // setNonprofits,
     setPermittedDischargers,
     setWaterbodyLayer,
@@ -1124,6 +1125,24 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [services, setUsgsStreamgages],
   );
 
+  const queryUsgsDailyValuesService = useCallback(
+    (huc12Param) => {
+      const url =
+        `${services.data.usgsDailyValues}?format=json&siteStatus=active` +
+        `&parameterCd=00045&statCd=00006&huc=${huc12Param.substring(0, 8)}`;
+
+      fetchCheck(url)
+        .then((res) => {
+          setUsgsDailyPrecipitation({ status: 'success', data: res });
+        })
+        .catch((err) => {
+          console.error(err);
+          setUsgsDailyPrecipitation({ status: 'failure', data: {} });
+        });
+    },
+    [services, setUsgsDailyPrecipitation],
+  );
+
   const queryPermittedDischargersService = useCallback(
     (huc12Param) => {
       fetchCheck(services.data.echoNPDES.metadata)
@@ -1517,6 +1536,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           processBoundariesData(response);
           queryMonitoringStationService(huc12Result);
           queryUsgsStreamgageService(huc12Result);
+          queryUsgsDailyValuesService(huc12Result);
           queryPermittedDischargersService(huc12Result);
           queryGrtsHuc12(huc12Result);
           queryAttainsPlans(huc12Result);
@@ -1542,6 +1562,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       queryGrtsHuc12,
       queryMonitoringStationService,
       queryUsgsStreamgageService,
+      queryUsgsDailyValuesService,
       queryPermittedDischargersService,
       setHuc12,
       setNoDataAvailable,
