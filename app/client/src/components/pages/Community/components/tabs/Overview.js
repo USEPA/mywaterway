@@ -438,11 +438,11 @@ function WaterbodiesTab() {
       waterbodies={waterbodies}
       fieldName={null}
       title={
-        <>
+        <div data-testid="overview-waterbodies-accordion-title">
           Overall condition of{' '}
           <strong>{waterbodies?.length.toLocaleString()}</strong> waterbodies in
           the <em>{watershed}</em> watershed.
-        </>
+        </div>
       }
     />
   );

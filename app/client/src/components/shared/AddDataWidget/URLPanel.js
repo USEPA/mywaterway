@@ -261,7 +261,7 @@ function URLPanel() {
           {urlType.value === 'CSV' && (
             <div>
               <p>
-                http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.csv
+                https://developers.arcgis.com/javascript/latest/sample-code/layers-csv/live/earthquakes.csv
               </p>
             </div>
           )}
