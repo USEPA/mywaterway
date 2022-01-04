@@ -110,24 +110,17 @@ function Overview() {
 
   const [waterbodiesDisplayed, setWaterbodiesDisplayed] = useState(true);
 
-  const [
-    monitoringLocationsDisplayed,
-    setMonitoringLocationsDisplayed,
-  ] = useState(false);
+  const [monitoringLocationsDisplayed, setMonitoringLocationsDisplayed] =
+    useState(false);
 
-  const [usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed] = useState(
-    false,
-  );
+  const [usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed] =
+    useState(false);
 
-  const [
-    monitoringAndSensorsDisplayed,
-    setMonitoringAndSensorsDisplayed,
-  ] = useState(false);
+  const [monitoringAndSensorsDisplayed, setMonitoringAndSensorsDisplayed] =
+    useState(false);
 
-  const [
-    permittedDischargersDisplayed,
-    setPermittedDischargersDisplayed,
-  ] = useState(false);
+  const [permittedDischargersDisplayed, setPermittedDischargersDisplayed] =
+    useState(false);
 
   // Syncs the toggles with the visible layers on the map. Mainly
   // used for when the user toggles layers in full screen mode and then
@@ -562,7 +555,8 @@ function MonitoringAndSensorsTab({
   }, [usgsStreamgages.data, usgsStreamgagesLayer]);
 
   // add precipitation data (fetched from usgsDailyValues web service) to each
-  // streamgage if it exists for that particular location
+  // streamgage if it exists for that particular location and replot the
+  // streamgages on the map
   useEffect(() => {
     if (!usgsDailyPrecipitation.data.value) return;
     if (normalizedUsgsStreamgages.length === 0) return;
@@ -592,12 +586,12 @@ function MonitoringAndSensorsTab({
         });
       }
     });
-  }, [usgsDailyPrecipitation, normalizedUsgsStreamgages]);
 
-  const [
-    normalizedMonitoringLocations,
-    setNormalizedMonitoringLocations,
-  ] = useState([]);
+    plotGages(normalizedUsgsStreamgages, usgsStreamgagesLayer);
+  }, [usgsDailyPrecipitation, normalizedUsgsStreamgages, usgsStreamgagesLayer]);
+
+  const [normalizedMonitoringLocations, setNormalizedMonitoringLocations] =
+    useState([]);
 
   // normalize monitoring stations data with USGS streamgages data,
   // and draw them on the map
@@ -640,10 +634,8 @@ function MonitoringAndSensorsTab({
     ...normalizedMonitoringLocations,
   ];
 
-  const [
-    monitoringAndSensorsSortedBy,
-    setMonitoringAndSensorsSortedBy,
-  ] = useState('locationName');
+  const [monitoringAndSensorsSortedBy, setMonitoringAndSensorsSortedBy] =
+    useState('locationName');
 
   const sortedMonitoringAndSensors = [...allMonitoringAndSensors].sort(
     (a, b) => {
@@ -901,10 +893,8 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
     }
   }, [permittedDischargers.data, dischargersLayer]);
 
-  const [
-    permittedDischargersSortedBy,
-    setPermittedDischargersSortedBy,
-  ] = useState('CWPName');
+  const [permittedDischargersSortedBy, setPermittedDischargersSortedBy] =
+    useState('CWPName');
 
   /* prettier-ignore */
   const sortedPermittedDischargers = permittedDischargers.data.Results?.Facilities
