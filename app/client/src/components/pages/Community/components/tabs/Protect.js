@@ -270,9 +270,8 @@ function Protect() {
 
   const [protectedAreasDisplayed, setProtectedAreasDisplayed] = useState(false);
 
-  const [wildScenicRiversDisplayed, setWildScenicRiversDisplayed] = useState(
-    false,
-  );
+  const [wildScenicRiversDisplayed, setWildScenicRiversDisplayed] =
+    useState(false);
 
   const [waterbodyLayerDisplayed, setWaterbodyLayerDisplayed] = useState(false);
 
@@ -442,10 +441,8 @@ function Protect() {
 
   // Initialize the allWaterbodiesLayer visibility. This will be used to reset
   // the allWaterbodiesLayer visibility when the user leaves this tab.
-  const [
-    initialAllWaterbodiesVisibility,
-    setInitialAllWaterbodiesVisibility,
-  ] = useState(false);
+  const [initialAllWaterbodiesVisibility, setInitialAllWaterbodiesVisibility] =
+    useState(false);
   useEffect(() => {
     if (!allWaterbodiesLayer) return;
 
@@ -825,8 +822,11 @@ function Protect() {
                               <strong>
                                 {wildScenicRiversData.data.length.toLocaleString()}
                               </strong>{' '}
-                              wild and scenic rivers in the <em>{watershed}</em>{' '}
-                              watershed.
+                              wild and scenic river
+                              {wildScenicRiversData.data.length === 1
+                                ? ''
+                                : 's'}{' '}
+                              in the <em>{watershed}</em> watershed.
                             </p>
                           </div>
 
@@ -1038,8 +1038,11 @@ function Protect() {
                               <strong>
                                 {protectedAreasData.data.length.toLocaleString()}
                               </strong>{' '}
-                              protected areas in the <em>{watershed}</em>{' '}
-                              watershed.
+                              protected area
+                              {protectedAreasData.data.length === 1
+                                ? ''
+                                : 's'}{' '}
+                              in the <em>{watershed}</em> watershed.
                             </>
                           }
                         >
@@ -1241,8 +1244,11 @@ function Protect() {
                                   <strong>
                                     {allProtectionProjects.length.toLocaleString()}
                                   </strong>{' '}
-                                  EPA funded protection projects in the{' '}
-                                  <em>{watershed}</em> watershed.
+                                  EPA funded protection project
+                                  {allProtectionProjects.length === 1
+                                    ? ''
+                                    : 's'}{' '}
+                                  in the <em>{watershed}</em> watershed.
                                 </p>
                               </div>
 
