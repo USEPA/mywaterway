@@ -191,7 +191,8 @@ function Restore() {
                               <strong>
                                 {sortedGrtsData.length.toLocaleString()}
                               </strong>{' '}
-                              EPA Funded grants under the{' '}
+                              EPA Funded grant
+                              {sortedGrtsData.length === 1 ? '' : 's'} under the{' '}
                               <GlossaryTerm term="Clean Water Act Section 319 Projects">
                                 Clean Water Act Section 319
                               </GlossaryTerm>{' '}
@@ -359,7 +360,8 @@ function Restore() {
                               {sortedAttainsPlanData.length.toLocaleString()}
                             </strong>{' '}
                             <GlossaryTerm term="Restoration plan">
-                              Restoration plans
+                              Restoration plan
+                              {sortedAttainsPlanData.length === 1 ? '' : 's'}
                             </GlossaryTerm>{' '}
                             in the <em>{watershed}</em> watershed.
                           </>
