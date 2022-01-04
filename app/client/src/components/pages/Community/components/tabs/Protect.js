@@ -822,10 +822,10 @@ function Protect() {
                               <strong>
                                 {wildScenicRiversData.data.length.toLocaleString()}
                               </strong>{' '}
-                              wild and scenic river
+                              wild and scenic{' '}
                               {wildScenicRiversData.data.length === 1
-                                ? ''
-                                : 's'}{' '}
+                                ? 'river'
+                                : 'rivers'}{' '}
                               in the <em>{watershed}</em> watershed.
                             </p>
                           </div>
@@ -1038,10 +1038,10 @@ function Protect() {
                               <strong>
                                 {protectedAreasData.data.length.toLocaleString()}
                               </strong>{' '}
-                              protected area
+                              protected{' '}
                               {protectedAreasData.data.length === 1
-                                ? ''
-                                : 's'}{' '}
+                                ? 'area'
+                                : 'areas'}{' '}
                               in the <em>{watershed}</em> watershed.
                             </>
                           }
@@ -1244,10 +1244,10 @@ function Protect() {
                                   <strong>
                                     {allProtectionProjects.length.toLocaleString()}
                                   </strong>{' '}
-                                  EPA funded protection project
+                                  EPA funded protection{' '}
                                   {allProtectionProjects.length === 1
-                                    ? ''
-                                    : 's'}{' '}
+                                    ? 'project'
+                                    : 'projects'}{' '}
                                   in the <em>{watershed}</em> watershed.
                                 </p>
                               </div>

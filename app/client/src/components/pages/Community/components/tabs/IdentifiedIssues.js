@@ -821,9 +821,10 @@ function IdentifiedIssues() {
                             <strong>
                               {violatingFacilities.length.toLocaleString()}
                             </strong>{' '}
-                            discharger
-                            {violatingFacilities.length === 1 ? '' : 's'} with
-                            significant{' '}
+                            {violatingFacilities.length === 1
+                              ? 'discharger'
+                              : 'dischargers'}{' '}
+                            with significant{' '}
                             <GlossaryTerm term="Effluent">
                               effluent
                             </GlossaryTerm>{' '}

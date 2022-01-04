@@ -931,9 +931,9 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
           <AccordionList
             title={
               <>
-                <strong>{totalPermittedDischargers}</strong> permitted
-                discharger{totalPermittedDischargers === 1 ? '' : 's'} in the{' '}
-                <em>{watershed}</em> watershed.
+                <strong>{totalPermittedDischargers}</strong> permitted{' '}
+                {totalPermittedDischargers === 1 ? 'discharger' : 'dischargers'}{' '}
+                in the <em>{watershed}</em> watershed.
               </>
             }
             onSortChange={(sortBy) => {

@@ -650,9 +650,9 @@ function DrinkingWater() {
                         <AccordionList
                           title={
                             <>
-                              <strong>{providers.length}</strong> public water
-                              system{providers.length === 1 ? '' : 's'} serving{' '}
-                              <em>{county}</em> county.
+                              <strong>{providers.length}</strong> public water{' '}
+                              {providers.length === 1 ? 'system' : 'systems'}{' '}
+                              serving <em>{county}</em> county.
                             </>
                           }
                           onSortChange={(sortBy) =>
