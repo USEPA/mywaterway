@@ -440,8 +440,9 @@ function WaterbodiesTab() {
       title={
         <div data-testid="overview-waterbodies-accordion-title">
           Overall condition of{' '}
-          <strong>{waterbodies?.length.toLocaleString()}</strong> waterbodies in
-          the <em>{watershed}</em> watershed.
+          <strong>{waterbodies?.length.toLocaleString()}</strong>{' '}
+          {waterbodies?.length === 1 ? 'waterbody' : 'waterbodies'} in the{' '}
+          <em>{watershed}</em> watershed.
         </div>
       }
     />
@@ -930,8 +931,9 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
           <AccordionList
             title={
               <>
-                <strong>{totalPermittedDischargers}</strong> permitted
-                dischargers in the <em>{watershed}</em> watershed.
+                <strong>{totalPermittedDischargers}</strong> permitted{' '}
+                {totalPermittedDischargers === 1 ? 'discharger' : 'dischargers'}{' '}
+                in the <em>{watershed}</em> watershed.
               </>
             }
             onSortChange={(sortBy) => {

@@ -39,8 +39,9 @@ function AquaticLife() {
         fieldName="ecological_use"
         title={
           <>
-            <strong>{summary.total.toLocaleString()}</strong> waterbodies
-            assessed for aquatic life in the <em>{watershed}</em> watershed.
+            <strong>{summary.total.toLocaleString()}</strong>{' '}
+            {summary.total === 1 ? 'waterbody' : 'waterbodies'} assessed for
+            aquatic life in the <em>{watershed}</em> watershed.
           </>
         }
       />

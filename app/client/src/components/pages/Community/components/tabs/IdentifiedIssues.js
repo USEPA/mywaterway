@@ -292,9 +292,8 @@ function IdentifiedIssues() {
 
   // check the data quality and log a non-fatal exception to Google Analytics
   // if necessary
-  const [emptyCategoriesWithPercent, setEmptyCategoriesWithPercent] = useState(
-    false,
-  );
+  const [emptyCategoriesWithPercent, setEmptyCategoriesWithPercent] =
+    useState(false);
   const [nullPollutedWaterbodies, setNullPollutedWaterbodies] = useState(false);
   useEffect(() => {
     if (!window.gaTarget || cipSummary.status !== 'success') return;
@@ -495,9 +494,8 @@ function IdentifiedIssues() {
     }
     // one of the parameters is switched
     else {
-      tempParameterToggleObject[checkedSwitch] = !parameterToggleObject[
-        checkedSwitch
-      ];
+      tempParameterToggleObject[checkedSwitch] =
+        !parameterToggleObject[checkedSwitch];
 
       checkIfAllSwitchesToggled(cipSummary.data, tempParameterToggleObject);
     }
@@ -745,10 +743,11 @@ function IdentifiedIssues() {
                                         ),
                                       );
 
-                                      const mappedParameterName = getMappedParameterName(
-                                        impairmentFields,
-                                        param['parameterGroupName'],
-                                      );
+                                      const mappedParameterName =
+                                        getMappedParameterName(
+                                          impairmentFields,
+                                          param['parameterGroupName'],
+                                        );
                                       // if service contains a parameter we have no mapping for
                                       if (!mappedParameterName) return false;
 
@@ -822,7 +821,10 @@ function IdentifiedIssues() {
                             <strong>
                               {violatingFacilities.length.toLocaleString()}
                             </strong>{' '}
-                            dischargers with significant{' '}
+                            {violatingFacilities.length === 1
+                              ? 'discharger'
+                              : 'dischargers'}{' '}
+                            with significant{' '}
                             <GlossaryTerm term="Effluent">
                               effluent
                             </GlossaryTerm>{' '}
