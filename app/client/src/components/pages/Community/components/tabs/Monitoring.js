@@ -130,10 +130,8 @@ function Monitoring() {
     setVisibleLayers,
   } = useContext(LocationSearchContext);
 
-  const [
-    prevMonitoringLocationData,
-    setPrevMonitoringLocationData,
-  ] = useState<MonitoringLocationData>({});
+  const [prevMonitoringLocationData, setPrevMonitoringLocationData] =
+    useState<MonitoringLocationData>({});
 
   const [monitoringLocationToggles, setMonitoringLocationToggles] = useState(
     {},
@@ -143,10 +141,8 @@ function Monitoring() {
 
   const [allMonitoringLocations, setAllMonitoringLocations] = useState([]);
 
-  const [
-    displayedMonitoringLocations,
-    setDisplayedMonitoringLocations,
-  ] = useState([]);
+  const [displayedMonitoringLocations, setDisplayedMonitoringLocations] =
+    useState([]);
 
   const [allToggled, setAllToggled] = useState(true);
 
@@ -448,7 +444,7 @@ function Monitoring() {
                   ? 'N/A'
                   : `${monitoringLocations.data.features.length}`}
               </span>
-              <p css={keyMetricLabelStyles}>Monitoring Stations</p>
+              <p css={keyMetricLabelStyles}>Monitoring Sample Locations</p>
             </>
           )}
         </div>
@@ -464,14 +460,9 @@ function Monitoring() {
 
       {monitoringLocations.status === 'success' && (
         <>
-          <p>
-            View available monitoring locations in your local watershed or view
-            by category.
-          </p>
-
           {allMonitoringLocations.length === 0 && (
             <p css={centeredTextStyles}>
-              There are no Water Monitoring Locations in the {watershed}{' '}
+              There are no monitoring sample locations in the {watershed}{' '}
               watershed.
             </p>
           )}
@@ -488,7 +479,7 @@ function Monitoring() {
                           onChange={(ev) => toggleSwitch('All')}
                           ariaLabel="Toggle all monitoring locations"
                         />
-                        <span>All Monitoring Locations</span>
+                        <span>All Monitoring Sample Locations</span>
                       </div>
                     </th>
                     <th>Count</th>
@@ -531,14 +522,14 @@ function Monitoring() {
                 title={
                   <div data-testid="monitoring-accordion-title">
                     <strong>{displayLocations}</strong> of{' '}
-                    <strong>{totalLocations}</strong> water monitoring locations
-                    in the <em>{watershed}</em> watershed.
+                    <strong>{totalLocations}</strong> water monitoring sample
+                    locations in the <em>{watershed}</em> watershed.
                   </div>
                 }
                 onSortChange={({ value }) => setSortBy(value)}
                 sortOptions={[
                   {
-                    label: 'Monitoring Location Name',
+                    label: 'Monitoring Sample Location Name',
                     value: 'locationName',
                   },
                   {
