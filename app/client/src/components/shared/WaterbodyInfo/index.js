@@ -1229,7 +1229,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
     locationUrl,
   } = feature.attributes;
 
-  const [secondaryMeasurementsShown, setSecondaryMeasurementsShown] =
+  const [additionalMeasurementsShown, setAdditionalMeasurementsShown] =
     useState(false);
 
   function addUniqueMeasurement(measurement, array) {
@@ -1267,6 +1267,11 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
       <UsgsStreamgageParameter data={data} index={index} />
     ));
 
+  const sortedMeasurements = [
+    ...sortedPrimaryMeasurements,
+    ...sortedSecondaryMeasurements,
+  ];
+
   return (
     <>
       <table className="table">
@@ -1298,8 +1303,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
         </tbody>
       </table>
 
-      {sortedPrimaryMeasurements.length === 0 &&
-      secondaryMeasurements.length === 0 ? (
+      {sortedMeasurements.length === 0 ? (
         <p css={noMeasurementDataStyles}>No data available.</p>
       ) : (
         <table css={tableStyles} className="table">
@@ -1310,48 +1314,41 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
             </tr>
           </thead>
           <tbody>
-            {sortedPrimaryMeasurements}
-
-            {sortedSecondaryMeasurements.length > 0 && (
+            {sortedMeasurements.length < 10 ? (
+              <>{sortedMeasurements}</>
+            ) : (
               <>
-                {sortedPrimaryMeasurements.length === 0 ? (
-                  <>{sortedSecondaryMeasurements}</>
-                ) : (
-                  <>
-                    <tr>
-                      <td css={moreLessRowStyles} colSpan={2}>
-                        <button
-                          css={buttonStyles}
-                          onClick={(ev) => {
-                            setSecondaryMeasurementsShown(
-                              !secondaryMeasurementsShown,
-                            );
-                          }}
-                        >
-                          {secondaryMeasurementsShown ? (
-                            <>
-                              <i
-                                className="fas fa-angle-down"
-                                aria-hidden="true"
-                              />
-                              &nbsp;&nbsp;Show less categories
-                            </>
-                          ) : (
-                            <>
-                              <i
-                                className="fas fa-angle-right"
-                                aria-hidden="true"
-                              />
-                              &nbsp;&nbsp;Show more categories
-                            </>
-                          )}
-                        </button>
-                      </td>
-                    </tr>
+                {sortedMeasurements.slice(0, 10)}
 
-                    {secondaryMeasurementsShown && sortedSecondaryMeasurements}
-                  </>
-                )}
+                <tr>
+                  <td css={moreLessRowStyles} colSpan={2}>
+                    <button
+                      css={buttonStyles}
+                      onClick={(ev) => {
+                        setAdditionalMeasurementsShown(
+                          !additionalMeasurementsShown,
+                        );
+                      }}
+                    >
+                      {additionalMeasurementsShown ? (
+                        <>
+                          <i className="fas fa-angle-down" aria-hidden="true" />
+                          &nbsp;&nbsp;Show less categories
+                        </>
+                      ) : (
+                        <>
+                          <i
+                            className="fas fa-angle-right"
+                            aria-hidden="true"
+                          />
+                          &nbsp;&nbsp;Show more categories
+                        </>
+                      )}
+                    </button>
+                  </td>
+                </tr>
+
+                {additionalMeasurementsShown && sortedMeasurements.slice(10)}
               </>
             )}
           </tbody>
