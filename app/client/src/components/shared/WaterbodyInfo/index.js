@@ -101,8 +101,13 @@ const moreLessRowStyles = css`
   padding-left: 0 !important;
   text-align: left !important;
 
-  button {
+  button,
+  button:hover,
+  button:focus {
     margin-bottom: 0;
+    padding: 0.5em;
+    color: currentColor;
+    background-color: transparent;
   }
 `;
 
@@ -172,6 +177,13 @@ const changeWatershedContainerStyles = css`
   p {
     padding-bottom: 0;
   }
+`;
+
+const noMeasurementDataStyles = css`
+  padding-top: 0.75rem;
+  border-top: 1px solid #dee2e6;
+  font-style: italic;
+  text-align: center;
 `;
 
 type Props = {
@@ -389,8 +401,10 @@ function WaterbodyInfo({
                 </thead>
                 <tbody>
                   {useFields.map((field, index) => {
-                    const value = getWaterbodyCondition(attributes, field.value)
-                      .label;
+                    const value = getWaterbodyCondition(
+                      attributes,
+                      field.value,
+                    ).label;
 
                     if (value === 'Not Applicable') return null;
                     return (
@@ -1215,9 +1229,8 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
     locationUrl,
   } = feature.attributes;
 
-  const [secondaryMeasurementsShown, setSecondaryMeasurementsShown] = useState(
-    false,
-  );
+  const [secondaryMeasurementsShown, setSecondaryMeasurementsShown] =
+    useState(false);
 
   function addUniqueMeasurement(measurement, array) {
     const measurementAlreadyAdded = array.find((m) => {
@@ -1241,6 +1254,18 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
   streamgageMeasurements.secondary.forEach((measurement) => {
     addUniqueMeasurement(measurement, secondaryMeasurements);
   });
+
+  const sortedPrimaryMeasurements = [...primaryMeasurements]
+    .sort((a, b) => a.parameterOrder - b.parameterOrder)
+    .map((data, index) => (
+      <UsgsStreamgageParameter data={data} index={index} />
+    ));
+
+  const sortedSecondaryMeasurements = [...secondaryMeasurements]
+    .sort((a, b) => a.parameterName.localeCompare(b.parameterName))
+    .map((data, index) => (
+      <UsgsStreamgageParameter data={data} index={index} />
+    ));
 
   return (
     <>
@@ -1273,59 +1298,66 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
         </tbody>
       </table>
 
-      <table css={tableStyles} className="table">
-        <thead>
-          <tr>
-            <th>Category</th>
-            <th>Latest Measurement</th>
-          </tr>
-        </thead>
-        <tbody>
-          {[...primaryMeasurements]
-            .sort((a, b) => a.parameterOrder - b.parameterOrder)
-            .map((data, index) => (
-              <UsgsStreamgageParameter data={data} index={index} />
-            ))}
+      {sortedPrimaryMeasurements.length === 0 &&
+      secondaryMeasurements.length === 0 ? (
+        <p css={noMeasurementDataStyles}>No data available.</p>
+      ) : (
+        <table css={tableStyles} className="table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Latest Measurement</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedPrimaryMeasurements}
 
-          {secondaryMeasurements.length > 0 && (
-            <>
-              <tr>
-                <td css={moreLessRowStyles} colSpan={2}>
-                  <button
-                    css={buttonStyles}
-                    onClick={(ev) => {
-                      setSecondaryMeasurementsShown(
-                        !secondaryMeasurementsShown,
-                      );
-                    }}
-                  >
-                    {secondaryMeasurementsShown ? (
-                      <>
-                        <i className="fas fa-angle-down" aria-hidden="true" />
-                        &nbsp;&nbsp;Show less categories
-                      </>
-                    ) : (
-                      <>
-                        <i className="fas fa-angle-right" aria-hidden="true" />
-                        &nbsp;&nbsp;Show more categories
-                      </>
-                    )}
-                  </button>
-                </td>
-              </tr>
+            {sortedSecondaryMeasurements.length > 0 && (
+              <>
+                {sortedPrimaryMeasurements.length === 0 ? (
+                  <>{sortedSecondaryMeasurements}</>
+                ) : (
+                  <>
+                    <tr>
+                      <td css={moreLessRowStyles} colSpan={2}>
+                        <button
+                          css={buttonStyles}
+                          onClick={(ev) => {
+                            setSecondaryMeasurementsShown(
+                              !secondaryMeasurementsShown,
+                            );
+                          }}
+                        >
+                          {secondaryMeasurementsShown ? (
+                            <>
+                              <i
+                                className="fas fa-angle-down"
+                                aria-hidden="true"
+                              />
+                              &nbsp;&nbsp;Show less categories
+                            </>
+                          ) : (
+                            <>
+                              <i
+                                className="fas fa-angle-right"
+                                aria-hidden="true"
+                              />
+                              &nbsp;&nbsp;Show more categories
+                            </>
+                          )}
+                        </button>
+                      </td>
+                    </tr>
 
-              {secondaryMeasurementsShown &&
-                [...secondaryMeasurements]
-                  .sort((a, b) =>
-                    a.parameterName.localeCompare(b.parameterName),
-                  )
-                  .map((data, index) => (
-                    <UsgsStreamgageParameter data={data} index={index} />
-                  ))}
-            </>
-          )}
-        </tbody>
-      </table>
+                    {secondaryMeasurementsShown && sortedSecondaryMeasurements}
+                  </>
+                )}
+              </>
+            )}
+          </tbody>
+        </table>
+      )}
+
       <div>
         <a rel="noopener noreferrer" target="_blank" href={locationUrl}>
           <i
@@ -1354,7 +1386,9 @@ function UsgsStreamgageParameter({ data, index }) {
           data.parameterName
         )}
         <br />
-        <small css={additionalTextStyles}>{data.parameterCode}</small>
+        <small css={additionalTextStyles}>
+          {data.parameterCode} &ndash; {data.parameterUsgsName}
+        </small>
       </td>
       <td>
         {data.multiple ? (
