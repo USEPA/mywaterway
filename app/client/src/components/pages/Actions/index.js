@@ -269,9 +269,8 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
     layer: null,
   });
 
-  const { selectedGraphic, highlightedGraphic } = useContext(
-    MapHighlightContext,
-  );
+  const { selectedGraphic, highlightedGraphic } =
+    useContext(MapHighlightContext);
 
   // fetch action data from the attains 'actions' web service
   const [organizationName, setOrganizationName] = useState('');
@@ -352,11 +351,8 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
     const unitIds = {};
 
     waters.forEach((water) => {
-      const {
-        assessmentUnitIdentifier,
-        associatedPollutants,
-        parameters,
-      } = water;
+      const { assessmentUnitIdentifier, associatedPollutants, parameters } =
+        water;
 
       const content = (reportingCycle, hasWaterbody) => {
         const assessmentUrl =
@@ -492,6 +488,42 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
     setInfoHeight(node.getBoundingClientRect().height);
   }, []);
 
+  let planType = actionTypeCode;
+  if (planType === 'TMDL') {
+    planType = (
+      <>
+        Restoration Plan: <GlossaryTerm term="TMDL">TMDL</GlossaryTerm>
+      </>
+    );
+  }
+  if (planType === '4B Restoration Approach') {
+    planType = (
+      <>
+        Restoration Plan:{' '}
+        <GlossaryTerm term="4B Restoration Approach">
+          4B Restoration Approach
+        </GlossaryTerm>
+      </>
+    );
+  }
+  if (planType === 'Alternative Restoration Approach') {
+    planType = (
+      <>
+        Restoration Plan:{' '}
+        <GlossaryTerm term="Alternative Restoration Approach">
+          Alternative Restoration Approach
+        </GlossaryTerm>
+      </>
+    );
+  }
+  if (planType === 'Protection Approach') {
+    planType = (
+      <GlossaryTerm term="Protection Approach">
+        Protection Approach
+      </GlossaryTerm>
+    );
+  }
+
   const infoBox = (
     <div css={boxStyles} ref={measuredRef}>
       <h2 css={boxHeadingStyles}>
@@ -522,7 +554,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
 
       <div css={inlineBoxStyles}>
         <h3>Type:&nbsp;</h3>
-        <p>{actionTypeCode}</p>
+        <p>{planType}</p>
       </div>
 
       <div css={inlineBoxStyles}>
