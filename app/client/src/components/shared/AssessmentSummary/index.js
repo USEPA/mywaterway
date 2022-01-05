@@ -45,9 +45,9 @@ function AssessmentSummary({ waterbodies, fieldName, usageName }: Props) {
     <>
       <div css={modifiedInfoBoxStyles}>
         <p>
+          There {summary.total === 1 ? 'is' : 'are'}{' '}
           <strong>{summary.total.toLocaleString()}</strong>{' '}
-          {summary.total === 1 ? 'waterbody has' : 'waterbodies have'} been
-          assessed for{' '}
+          {summary.total === 1 ? 'waterbody' : 'waterbodies'} assessed for{' '}
           {glossaryUsageNames.includes(usageName) ? (
             <GlossaryTerm term={usageName}>{usageName}</GlossaryTerm>
           ) : (

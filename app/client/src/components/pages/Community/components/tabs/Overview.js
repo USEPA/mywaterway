@@ -933,6 +933,7 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
           <AccordionList
             title={
               <>
+                There {totalPermittedDischargers === 1 ? 'is' : 'are'}{' '}
                 <strong>{totalPermittedDischargers}</strong> permitted{' '}
                 {totalPermittedDischargers === 1 ? 'discharger' : 'dischargers'}{' '}
                 in the <em>{watershed}</em> watershed.

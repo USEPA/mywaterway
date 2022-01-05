@@ -818,6 +818,8 @@ function IdentifiedIssues() {
                       <AccordionList
                         title={
                           <>
+                            There{' '}
+                            {violatingFacilities.length === 1 ? 'is' : 'are'}{' '}
                             <strong>
                               {violatingFacilities.length.toLocaleString()}
                             </strong>{' '}

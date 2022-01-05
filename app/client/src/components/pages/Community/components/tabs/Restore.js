@@ -188,6 +188,7 @@ function Restore() {
                         <AccordionList
                           title={
                             <>
+                              There {sortedGrtsData.length === 1 ? 'is' : 'are'}{' '}
                               <strong>
                                 {sortedGrtsData.length.toLocaleString()}
                               </strong>{' '}
@@ -357,6 +358,8 @@ function Restore() {
                       <AccordionList
                         title={
                           <>
+                            There{' '}
+                            {sortedAttainsPlanData.length === 1 ? 'is' : 'are'}{' '}
                             <strong>
                               {sortedAttainsPlanData.length.toLocaleString()}
                             </strong>{' '}
