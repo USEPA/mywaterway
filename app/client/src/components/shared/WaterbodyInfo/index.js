@@ -389,8 +389,10 @@ function WaterbodyInfo({
                 </thead>
                 <tbody>
                   {useFields.map((field, index) => {
-                    const value = getWaterbodyCondition(attributes, field.value)
-                      .label;
+                    const value = getWaterbodyCondition(
+                      attributes,
+                      field.value,
+                    ).label;
 
                     if (value === 'Not Applicable') return null;
                     return (
@@ -1215,9 +1217,8 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
     locationUrl,
   } = feature.attributes;
 
-  const [secondaryMeasurementsShown, setSecondaryMeasurementsShown] = useState(
-    false,
-  );
+  const [secondaryMeasurementsShown, setSecondaryMeasurementsShown] =
+    useState(false);
 
   function addUniqueMeasurement(measurement, array) {
     const measurementAlreadyAdded = array.find((m) => {
@@ -1354,7 +1355,9 @@ function UsgsStreamgageParameter({ data, index }) {
           data.parameterName
         )}
         <br />
-        <small css={additionalTextStyles}>{data.parameterCode}</small>
+        <small css={additionalTextStyles}>
+          {data.parameterCode} &ndash; {data.parameterUsgsName}
+        </small>
       </td>
       <td>
         {data.multiple ? (
