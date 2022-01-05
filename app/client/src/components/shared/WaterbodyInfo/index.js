@@ -179,13 +179,6 @@ const changeWatershedContainerStyles = css`
   }
 `;
 
-const noMeasurementDataStyles = css`
-  padding-top: 0.75rem;
-  border-top: 1px solid #dee2e6;
-  font-style: italic;
-  text-align: center;
-`;
-
 type Props = {
   type: string,
   feature: ?Object,
@@ -1303,57 +1296,57 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
         </tbody>
       </table>
 
-      {sortedMeasurements.length === 0 ? (
-        <p css={noMeasurementDataStyles}>No data available.</p>
-      ) : (
-        <table css={tableStyles} className="table">
-          <thead>
+      <table css={tableStyles} className="table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Latest Measurement</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sortedMeasurements.length === 0 ? (
             <tr>
-              <th>Category</th>
-              <th>Latest Measurement</th>
+              <td>
+                <em>No data available.</em>
+              </td>
+              <td>&nbsp;</td>
             </tr>
-          </thead>
-          <tbody>
-            {sortedMeasurements.length < 10 ? (
-              <>{sortedMeasurements}</>
-            ) : (
-              <>
-                {sortedMeasurements.slice(0, 10)}
+          ) : sortedMeasurements.length < 10 ? (
+            <>{sortedMeasurements}</>
+          ) : (
+            <>
+              {sortedMeasurements.slice(0, 10)}
 
-                <tr>
-                  <td css={moreLessRowStyles} colSpan={2}>
-                    <button
-                      css={buttonStyles}
-                      onClick={(ev) => {
-                        setAdditionalMeasurementsShown(
-                          !additionalMeasurementsShown,
-                        );
-                      }}
-                    >
-                      {additionalMeasurementsShown ? (
-                        <>
-                          <i className="fas fa-angle-down" aria-hidden="true" />
-                          &nbsp;&nbsp;Show less categories
-                        </>
-                      ) : (
-                        <>
-                          <i
-                            className="fas fa-angle-right"
-                            aria-hidden="true"
-                          />
-                          &nbsp;&nbsp;Show more categories
-                        </>
-                      )}
-                    </button>
-                  </td>
-                </tr>
+              <tr>
+                <td css={moreLessRowStyles} colSpan={2}>
+                  <button
+                    css={buttonStyles}
+                    onClick={(ev) => {
+                      setAdditionalMeasurementsShown(
+                        !additionalMeasurementsShown,
+                      );
+                    }}
+                  >
+                    {additionalMeasurementsShown ? (
+                      <>
+                        <i className="fas fa-angle-down" aria-hidden="true" />
+                        &nbsp;&nbsp;Show less categories
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-angle-right" aria-hidden="true" />
+                        &nbsp;&nbsp;Show more categories
+                      </>
+                    )}
+                  </button>
+                </td>
+              </tr>
 
-                {additionalMeasurementsShown && sortedMeasurements.slice(10)}
-              </>
-            )}
-          </tbody>
-        </table>
-      )}
+              {additionalMeasurementsShown && sortedMeasurements.slice(10)}
+            </>
+          )}
+        </tbody>
+      </table>
 
       <div>
         <a rel="noopener noreferrer" target="_blank" href={locationUrl}>
