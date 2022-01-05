@@ -488,41 +488,19 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
     setInfoHeight(node.getBoundingClientRect().height);
   }, []);
 
-  let planType = actionTypeCode;
-  if (planType === 'TMDL') {
-    planType = (
-      <>
-        Restoration Plan: <GlossaryTerm term="TMDL">TMDL</GlossaryTerm>
-      </>
-    );
-  }
-  if (planType === '4B Restoration Approach') {
-    planType = (
+  const planType =
+    actionTypeCode === 'TMDL' ||
+    actionTypeCode === '4B Restoration Approach' ||
+    actionTypeCode === 'Alternative Restoration Approach' ? (
       <>
         Restoration Plan:{' '}
-        <GlossaryTerm term="4B Restoration Approach">
-          4B Restoration Approach
-        </GlossaryTerm>
+        <GlossaryTerm term={actionTypeCode}>{actionTypeCode}</GlossaryTerm>
       </>
+    ) : actionTypeCode === 'Protection Approach' ? (
+      <GlossaryTerm term={actionTypeCode}>{actionTypeCode}</GlossaryTerm>
+    ) : (
+      actionTypeCode
     );
-  }
-  if (planType === 'Alternative Restoration Approach') {
-    planType = (
-      <>
-        Restoration Plan:{' '}
-        <GlossaryTerm term="Alternative Restoration Approach">
-          Alternative Restoration Approach
-        </GlossaryTerm>
-      </>
-    );
-  }
-  if (planType === 'Protection Approach') {
-    planType = (
-      <GlossaryTerm term="Protection Approach">
-        Protection Approach
-      </GlossaryTerm>
-    );
-  }
 
   const infoBox = (
     <div css={boxStyles} ref={measuredRef}>
