@@ -264,9 +264,9 @@ function Overview() {
       {cipSummary.status === 'success' &&
         waterbodies !== null &&
         totalWaterbodies === 0 && (
-          <p css={modifiedInfoBoxStyles}>
-            {zeroAssessedWaterbodies(watershed)}
-          </p>
+          <div css={modifiedInfoBoxStyles}>
+            <p>{zeroAssessedWaterbodies(watershed)}</p>
+          </div>
         )}
 
       <div css={keyMetricsStyles}>
@@ -438,10 +438,12 @@ function WaterbodiesTab() {
       waterbodies={waterbodies}
       fieldName={null}
       title={
-        <>
-          Overall condition of waterbodies in the <em>{watershed}</em>{' '}
-          watershed.
-        </>
+        <div data-testid="overview-waterbodies-accordion-title">
+          Overall condition of{' '}
+          <strong>{waterbodies?.length.toLocaleString()}</strong>{' '}
+          {waterbodies?.length === 1 ? 'waterbody' : 'waterbodies'} in the{' '}
+          <em>{watershed}</em> watershed.
+        </div>
       }
     />
   );
@@ -458,6 +460,7 @@ function MonitoringAndSensorsTab({
   const {
     monitoringLocations,
     usgsStreamgages,
+    usgsDailyPrecipitation,
     monitoringLocationsLayer,
     usgsStreamgagesLayer,
     watershed,
@@ -465,7 +468,7 @@ function MonitoringAndSensorsTab({
 
   const services = useServicesContext();
 
-  // if either of the "Daily Water Conditions" or "Sample Locations" switches
+  // if either of the "Current Water Conditions" or "Sample Locations" switches
   // are turned on, or if both switches are turned off, keep the "Monitoring
   // Stations" switch in sync
   useEffect(() => {
@@ -491,60 +494,102 @@ function MonitoringAndSensorsTab({
   useEffect(() => {
     if (!usgsStreamgages.data.value) return;
 
-    const gages = usgsStreamgages.data.value.map((gage) => ({
-      monitoringType: 'Daily Water Conditions',
-      siteId: gage.properties.monitoringLocationNumber,
-      orgId: gage.properties.agencyCode,
-      orgName: gage.properties.agency,
-      locationLongitude: gage.Locations[0].location.coordinates[0],
-      locationLatitude: gage.Locations[0].location.coordinates[1],
-      locationName: gage.properties.monitoringLocationName,
-      locationType: gage.properties.monitoringLocationType,
-      locationUrl: gage.properties.monitoringLocationUrl,
-      // usgs streamgage specific properties:
-      streamGageMeasurements: [...gage.Datastreams]
-        .filter((data) => data.Observations.length > 0)
-        .filter((data) => {
-          const { ParameterCode, WebDescription } = data.properties;
-          return ParameterCode === '00065' // gage height
-            ? WebDescription === 'NAVD88'
-              ? true
-              : false
-            : true;
-        })
-        .map((data) => {
-          const observation = data.Observations[0];
-          const parameterCode = data.properties.ParameterCode;
-          const parameterDesc = data.description.split(' / USGS-')[0];
-          const parameterUnit = data.unitOfMeasurement;
+    const gages = usgsStreamgages.data.value.map((gage) => {
+      const streamgageMeasurements = { primary: [], secondary: [] };
 
-          const matchedParam = usgsStaParameters.find((item) => {
-            return item.staParameterCode === parameterCode;
+      [...gage.Datastreams]
+        .filter((item) => item.Observations.length > 0)
+        .forEach((item) => {
+          const observation = item.Observations[0];
+          const parameterCode = item.properties.ParameterCode;
+          const parameterDesc = item.description.split(' / USGS-')[0];
+          const parameterUnit = item.unitOfMeasurement;
+
+          let measurement = observation.result;
+          // convert measurements recorded in celsius to fahrenheit
+          if (['00010', '00020', '85583'].includes(parameterCode)) {
+            measurement = measurement * (9 / 5) + 32;
+          }
+
+          const matchedParam = usgsStaParameters.find((p) => {
+            return p.staParameterCode === parameterCode;
           });
 
-          return {
+          const data = {
+            parameterCategory: matchedParam?.hmwCategory || 'exclude',
             parameterOrder: matchedParam?.hmwOrder || 0,
             parameterName: matchedParam?.hmwName || parameterDesc,
             parameterCode,
-            measurement: observation.result,
+            measurement,
             datetime: new Date(observation.phenomenonTime).toLocaleString(),
             unitAbbr: matchedParam?.hmwUnits || parameterUnit.symbol,
             unitName: parameterUnit.name,
           };
-        })
-        .sort((a, b) => {
-          // sort paramaters by order (only matched params have an order set)
-          if (a.parameterOrder < b.parameterOrder) return 1;
-          if (a.parameterOrder > b.parameterOrder) return -1;
-          // sort remaining (non-matched) paramaters alphabetically
-          return a.parameterName.localeCompare(b.parameterName);
-        }),
-    }));
+
+          if (data.parameterCategory === 'primary') {
+            streamgageMeasurements.primary.push(data);
+          }
+
+          if (data.parameterCategory === 'secondary') {
+            streamgageMeasurements.secondary.push(data);
+          }
+        });
+
+      return {
+        monitoringType: 'Current Water Conditions',
+        siteId: gage.properties.monitoringLocationNumber,
+        orgId: gage.properties.agencyCode,
+        orgName: gage.properties.agency,
+        locationLongitude: gage.Locations[0].location.coordinates[0],
+        locationLatitude: gage.Locations[0].location.coordinates[1],
+        locationName: gage.properties.monitoringLocationName,
+        locationType: gage.properties.monitoringLocationType,
+        locationUrl: gage.properties.monitoringLocationUrl,
+        // usgs streamgage specific properties:
+        streamgageMeasurements,
+      };
+    });
 
     setNormalizedUsgsStreamgages(gages);
 
     plotGages(gages, usgsStreamgagesLayer);
   }, [usgsStreamgages.data, usgsStreamgagesLayer]);
+
+  // add precipitation data (fetched from usgsDailyValues web service) to each
+  // streamgage if it exists for that particular location and replot the
+  // streamgages on the map
+  useEffect(() => {
+    if (!usgsDailyPrecipitation.data.value) return;
+    if (normalizedUsgsStreamgages.length === 0) return;
+
+    const streamgageNames = normalizedUsgsStreamgages.map((gage) => {
+      return gage.locationName;
+    });
+
+    usgsDailyPrecipitation.data.value?.timeSeries.forEach((site) => {
+      const { siteName } = site.sourceInfo;
+      const observation = site.values[0].value[0];
+
+      if (streamgageNames.includes(siteName)) {
+        const streamgage = normalizedUsgsStreamgages.find((gage) => {
+          return gage.locationName === siteName;
+        });
+
+        streamgage.streamgageMeasurements.primary.push({
+          parameterCategory: 'primary',
+          parameterOrder: 5,
+          parameterName: 'Total Daily Rainfall',
+          parameterCode: '00045 (USGS Daily Value)',
+          measurement: observation.value,
+          datetime: new Date(observation.dateTime).toLocaleDateString(),
+          unitAbbr: 'in',
+          unitName: 'inches',
+        });
+      }
+    });
+
+    plotGages(normalizedUsgsStreamgages, usgsStreamgagesLayer);
+  }, [usgsDailyPrecipitation, normalizedUsgsStreamgages, usgsStreamgagesLayer]);
 
   const [normalizedMonitoringLocations, setNormalizedMonitoringLocations] =
     useState([]);
@@ -616,7 +661,7 @@ function MonitoringAndSensorsTab({
       const displayedTypes = [];
 
       if (usgsStreamgagesDisplayed) {
-        displayedTypes.push('Daily Water Conditions');
+        displayedTypes.push('Current Water Conditions');
       }
 
       if (monitoringLocationsDisplayed) {
@@ -661,6 +706,11 @@ function MonitoringAndSensorsTab({
               </div>
             )}
 
+            <p>
+              Find out about current water conditions at sensor locations and
+              explore sample data from water quality monitoring locations.
+            </p>
+
             <table css={tableStyles} className="table">
               <thead>
                 <tr>
@@ -690,9 +740,9 @@ function MonitoringAndSensorsTab({
                           });
                         }}
                         disabled={normalizedUsgsStreamgages.length === 0}
-                        ariaLabel="Daily Water Conditions"
+                        ariaLabel="Current Water Conditions"
                       />
-                      <span>Daily Water Conditions</span>
+                      <span>Current Water Conditions</span>
                     </div>
                   </td>
                   <td>{normalizedUsgsStreamgages.length}</td>
@@ -751,11 +801,16 @@ function MonitoringAndSensorsTab({
                   label: 'Monitoring Site ID',
                   value: 'siteId',
                 },
-                {
-                  label: 'Monitoring Measurements',
-                  value: 'stationTotalMeasurements',
-                },
-              ]}
+              ].concat(
+                monitoringLocationsDisplayed
+                  ? [
+                      {
+                        label: 'Monitoring Measurements',
+                        value: 'stationTotalMeasurements',
+                      },
+                    ]
+                  : [],
+              )}
             >
               {filteredMonitoringAndSensors.map((item, index) => {
                 const feature = {
@@ -793,9 +848,9 @@ function MonitoringAndSensorsTab({
                     idKey="siteId"
                   >
                     <div css={accordionContentStyles}>
-                      {item.monitoringType === 'Daily Water Conditions' && (
+                      {item.monitoringType === 'Current Water Conditions' && (
                         <WaterbodyInfo
-                          type="Daily Water Conditions"
+                          type="Current Water Conditions"
                           feature={feature}
                           services={services}
                         />
@@ -876,7 +931,9 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
           <AccordionList
             title={
               <>
-                Dischargers in the <em>{watershed}</em> watershed.
+                <strong>{totalPermittedDischargers}</strong> permitted{' '}
+                {totalPermittedDischargers === 1 ? 'discharger' : 'dischargers'}{' '}
+                in the <em>{watershed}</em> watershed.
               </>
             }
             onSortChange={(sortBy) => {

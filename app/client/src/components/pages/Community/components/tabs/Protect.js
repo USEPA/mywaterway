@@ -16,6 +16,7 @@ import Switch from 'components/shared/Switch';
 import { gradientIcon } from 'components/pages/LocationMap/MapFunctions';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
@@ -159,7 +160,9 @@ const watershedGradientStyles = css`
 `;
 
 const buttonContainerStyles = css`
-  margin-left: 0.5em;
+  margin-top: -0.25rem;
+  padding-bottom: 0.75rem;
+  padding-left: 0.75rem;
 `;
 
 function Protect() {
@@ -247,7 +250,7 @@ function Protect() {
         watershedPlans: '',
         completionDate: plan.completionDate,
         actionTypeCode: plan.actionTypeCode,
-        organizationId: plan.organizationIdentifier,
+        organizationId: plan.organizationId,
       });
     });
 
@@ -267,9 +270,8 @@ function Protect() {
 
   const [protectedAreasDisplayed, setProtectedAreasDisplayed] = useState(false);
 
-  const [wildScenicRiversDisplayed, setWildScenicRiversDisplayed] = useState(
-    false,
-  );
+  const [wildScenicRiversDisplayed, setWildScenicRiversDisplayed] =
+    useState(false);
 
   const [waterbodyLayerDisplayed, setWaterbodyLayerDisplayed] = useState(false);
 
@@ -373,7 +375,7 @@ function Protect() {
       : null;
 
   const wsioScore = wsioData
-    ? Math.round(wsioData.phwa_health_ndx_st_2016 * 100) / 100
+    ? Math.round(wsioData.phwaHealthNdxSt * 100) / 100
     : null;
 
   function onWsioToggle(newValue) {
@@ -439,10 +441,8 @@ function Protect() {
 
   // Initialize the allWaterbodiesLayer visibility. This will be used to reset
   // the allWaterbodiesLayer visibility when the user leaves this tab.
-  const [
-    initialAllWaterbodiesVisibility,
-    setInitialAllWaterbodiesVisibility,
-  ] = useState(false);
+  const [initialAllWaterbodiesVisibility, setInitialAllWaterbodiesVisibility] =
+    useState(false);
   useEffect(() => {
     if (!allWaterbodiesLayer) return;
 
@@ -541,8 +541,10 @@ function Protect() {
                     {wsioHealthIndexData.status === 'success' &&
                       wsioHealthIndexData.data.length === 0 && (
                         <div css={modifiedInfoBoxStyles}>
-                          No Watershed Health Score data available for the{' '}
-                          {watershed} watershed.
+                          <p>
+                            No Watershed Health Score data available for the{' '}
+                            {watershed} watershed.
+                          </p>
                         </div>
                       )}
 
@@ -805,124 +807,142 @@ function Protect() {
                     {wildScenicRiversData.status === 'success' &&
                       wildScenicRiversData.data.length === 0 && (
                         <div css={modifiedInfoBoxStyles}>
-                          No Wild and Scenic River data available in the{' '}
-                          {watershed} watershed.
+                          <p>
+                            No Wild and Scenic River data available in the{' '}
+                            {watershed} watershed.
+                          </p>
                         </div>
                       )}
 
                     {wildScenicRiversData.status === 'success' &&
-                      wildScenicRiversData.data.length > 0 &&
-                      wildScenicRiversData.data.map((item) => {
-                        const attributes = item.attributes;
-                        return (
-                          <FeatureItem
-                            key={attributes.GlobalID}
-                            feature={item}
-                            title={
+                      wildScenicRiversData.data.length > 0 && (
+                        <>
+                          <div css={modifiedInfoBoxStyles}>
+                            <p>
                               <strong>
-                                River Name: {attributes.WSR_RIVER_SHORTNAME}
-                              </strong>
-                            }
-                          >
-                            <table className="table">
-                              <tbody>
-                                <tr>
-                                  <td>
-                                    <em>Agency</em>
-                                  </td>
-                                  <td>
-                                    {convertAgencyCode(attributes.AGENCY)}
-                                  </td>
-                                </tr>
+                                {wildScenicRiversData.data.length.toLocaleString()}
+                              </strong>{' '}
+                              wild and scenic{' '}
+                              {wildScenicRiversData.data.length === 1
+                                ? 'river'
+                                : 'rivers'}{' '}
+                              in the <em>{watershed}</em> watershed.
+                            </p>
+                          </div>
 
-                                <tr>
-                                  <td>
-                                    <em>Management Plan</em>
-                                  </td>
-                                  <td>
-                                    {attributes.MANAGEMENT_PLAN === 'Y'
-                                      ? 'Yes'
-                                      : 'No'}
-                                  </td>
-                                </tr>
-
-                                <tr>
-                                  <td>
-                                    <em>Managing Entities</em>
-                                  </td>
-                                  <td>
-                                    {convertAgencyCode(
-                                      attributes.MANAGING_ENTITIES,
-                                    )}
-                                  </td>
-                                </tr>
-
-                                <tr>
-                                  <td>
-                                    <em>Public Law Name</em>
-                                  </td>
-                                  <td>{attributes.PUBLIC_LAW_NAME}</td>
-                                </tr>
-
-                                <tr>
-                                  <td>
-                                    <em>State</em>
-                                  </td>
-                                  <td>{attributes.STATE}</td>
-                                </tr>
-
-                                <tr>
-                                  <td>
-                                    <em>River Category</em>
-                                  </td>
-                                  <td>{attributes.RiverCategory}</td>
-                                </tr>
-
-                                <tr>
-                                  <td>
-                                    <em>Website</em>
-                                  </td>
-                                  <td>
-                                    {attributes.WEBLINK ? (
-                                      <>
-                                        <a
-                                          href={attributes.WEBLINK}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                        >
-                                          More information
-                                        </a>{' '}
-                                        <small css={disclaimerStyles}>
-                                          (opens new browser tab)
-                                        </small>
-                                      </>
-                                    ) : (
-                                      'Not available.'
-                                    )}
-                                  </td>
-                                </tr>
-                              </tbody>
-                            </table>
-
-                            <div css={buttonContainerStyles}>
-                              <ViewOnMapButton
-                                layers={[wildScenicRiversLayer]}
+                          {wildScenicRiversData.data.map((item) => {
+                            const attributes = item.attributes;
+                            return (
+                              <FeatureItem
+                                key={attributes.GlobalID}
                                 feature={item}
-                                idField={'GlobalID'}
-                                onClick={() => {
-                                  if (wildScenicRiversDisplayed) return;
+                                title={
+                                  <strong>
+                                    River Name: {attributes.WSR_RIVER_SHORTNAME}
+                                  </strong>
+                                }
+                              >
+                                <table className="table">
+                                  <tbody>
+                                    <tr>
+                                      <td>
+                                        <em>Agency</em>
+                                      </td>
+                                      <td>
+                                        {convertAgencyCode(attributes.AGENCY)}
+                                      </td>
+                                    </tr>
 
-                                  setWildScenicRiversDisplayed(true);
-                                  updateVisibleLayers({
-                                    key: 'wildScenicRiversLayer',
-                                    newValue: true,
-                                  });
-                                }}
-                              />
-                            </div>
-                          </FeatureItem>
-                        );
-                      })}
+                                    <tr>
+                                      <td>
+                                        <em>Management Plan</em>
+                                      </td>
+                                      <td>
+                                        {attributes.MANAGEMENT_PLAN === 'Y'
+                                          ? 'Yes'
+                                          : 'No'}
+                                      </td>
+                                    </tr>
+
+                                    <tr>
+                                      <td>
+                                        <em>Managing Entities</em>
+                                      </td>
+                                      <td>
+                                        {convertAgencyCode(
+                                          attributes.MANAGING_ENTITIES,
+                                        )}
+                                      </td>
+                                    </tr>
+
+                                    <tr>
+                                      <td>
+                                        <em>Public Law Name</em>
+                                      </td>
+                                      <td>{attributes.PUBLIC_LAW_NAME}</td>
+                                    </tr>
+
+                                    <tr>
+                                      <td>
+                                        <em>State</em>
+                                      </td>
+                                      <td>{attributes.STATE}</td>
+                                    </tr>
+
+                                    <tr>
+                                      <td>
+                                        <em>River Category</em>
+                                      </td>
+                                      <td>{attributes.RiverCategory}</td>
+                                    </tr>
+
+                                    <tr>
+                                      <td>
+                                        <em>Website</em>
+                                      </td>
+                                      <td>
+                                        {attributes.WEBLINK ? (
+                                          <>
+                                            <a
+                                              href={attributes.WEBLINK}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                            >
+                                              More information
+                                            </a>{' '}
+                                            <small css={disclaimerStyles}>
+                                              (opens new browser tab)
+                                            </small>
+                                          </>
+                                        ) : (
+                                          'Not available.'
+                                        )}
+                                      </td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+
+                                <div css={buttonContainerStyles}>
+                                  <ViewOnMapButton
+                                    layers={[wildScenicRiversLayer]}
+                                    feature={item}
+                                    idField={'GlobalID'}
+                                    onClick={() => {
+                                      if (wildScenicRiversDisplayed) return;
+
+                                      setWildScenicRiversDisplayed(true);
+                                      updateVisibleLayers({
+                                        key: 'wildScenicRiversLayer',
+                                        newValue: true,
+                                      });
+                                    }}
+                                  />
+                                </div>
+                              </FeatureItem>
+                            );
+                          })}
+                        </>
+                      )}
                   </div>
                 </AccordionItem>
 
@@ -1003,14 +1023,29 @@ function Protect() {
                     {protectedAreasData.status === 'success' &&
                       protectedAreasData.data.length === 0 && (
                         <div css={modifiedInfoBoxStyles}>
-                          No Protected Areas Database data available for the{' '}
-                          {watershed} watershed.
+                          <p>
+                            No Protected Areas Database data available for the{' '}
+                            {watershed} watershed.
+                          </p>
                         </div>
                       )}
 
                     {protectedAreasData.status === 'success' &&
                       protectedAreasData.data.length > 0 && (
-                        <AccordionList>
+                        <AccordionList
+                          title={
+                            <>
+                              <strong>
+                                {protectedAreasData.data.length.toLocaleString()}
+                              </strong>{' '}
+                              protected{' '}
+                              {protectedAreasData.data.length === 1
+                                ? 'area'
+                                : 'areas'}{' '}
+                              in the <em>{watershed}</em> watershed.
+                            </>
+                          }
+                        >
                           {protectedAreasData.data.map((item) => {
                             const attributes = item.attributes;
                             const fields = protectedAreasData.fields;
@@ -1195,17 +1230,27 @@ function Protect() {
                         <>
                           {allProtectionProjects.length === 0 && (
                             <div css={modifiedInfoBoxStyles}>
-                              There are no EPA funded protection projects in the{' '}
-                              {watershed} watershed.
+                              <p>
+                                There are no EPA funded protection projects in
+                                the {watershed} watershed.
+                              </p>
                             </div>
                           )}
 
                           {allProtectionProjects.length > 0 && (
                             <>
-                              <p>
-                                EPA funded protection projects in the{' '}
-                                <em>{watershed}</em> watershed.
-                              </p>
+                              <div css={modifiedInfoBoxStyles}>
+                                <p>
+                                  <strong>
+                                    {allProtectionProjects.length.toLocaleString()}
+                                  </strong>{' '}
+                                  EPA funded protection{' '}
+                                  {allProtectionProjects.length === 1
+                                    ? 'project'
+                                    : 'projects'}{' '}
+                                  in the <em>{watershed}</em> watershed.
+                                </p>
+                              </div>
 
                               {allProtectionProjects.map((item, index) => {
                                 const url = getUrlFromMarkup(item.projectLink);
@@ -1217,7 +1262,7 @@ function Protect() {
                                       plan.split('</a>')[0] + '</a>';
                                     const title = getTitleFromMarkup(markup);
                                     const planUrl = getUrlFromMarkup(markup);
-                                    if (!title || !planUrl) return false;
+                                    if (!title || !planUrl) return null;
                                     return { url: planUrl, title: title };
                                   });
                                 // remove any plans with missing titles or urls
@@ -1339,7 +1384,11 @@ function Protect() {
                                             <td>
                                               <em>Plan Type:</em>
                                             </td>
-                                            <td>{item.actionTypeCode}</td>
+                                            <td>
+                                              <GlossaryTerm term="Protection Approach">
+                                                Protection Approach
+                                              </GlossaryTerm>
+                                            </td>
                                           </tr>
                                           <tr>
                                             <td>

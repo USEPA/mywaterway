@@ -76,6 +76,53 @@ type UsgsStreamgageData = {
   }[],
 };
 
+type UsgsDailyPrecipitationData = {
+  declaredType: 'org.cuahsi.waterml.TimeSeriesResponseType',
+  globalScope: true,
+  name: 'ns1:timeSeriesResponseType',
+  nil: false,
+  scope: 'javax.xml.bind.JAXBElement$GlobalScope',
+  typeSubstituted: false,
+  value: {
+    queryInfo: Object,
+    timeSeries: {
+      name: string,
+      sourceInfo: {
+        siteName: string,
+        siteCode: [
+          {
+            agencyCode: string,
+            network: string,
+            value: string, // number
+          },
+        ],
+        timeZoneInfo: Object,
+        geoLocation: Object,
+        note: [],
+        siteType: [],
+        siteProperty: Object[],
+      },
+      values: {
+        censorCode: [],
+        method: [Object],
+        offset: [],
+        qualifier: [Object],
+        qualityControlLevel: [],
+        sample: [],
+        source: [],
+        value: [
+          {
+            dateTime: string, // ISO format datetime
+            qualifiers: ['P'],
+            value: string, // number
+          },
+        ],
+      }[],
+      variable: Object,
+    }[],
+  },
+};
+
 type PermittedDischargersData = {
   Results: {
     BadSystemIDs: null,
@@ -193,6 +240,7 @@ type State = {
   assessmentUnitId: string,
   monitoringLocations: { status: Status, data: MonitoringLocationsData },
   usgsStreamgages: { status: Status, data: UsgsStreamgageData },
+  usgsDailyPrecipitation: { status: Status, data: UsgsDailyPrecipitationData },
   permittedDischargers: { status: Status, data: PermittedDischargersData },
   grts: Object,
   attainsPlans: Object,
@@ -277,6 +325,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     assessmentUnitId: '',
     monitoringLocations: { status: 'fetching', data: {} },
     usgsStreamgages: { status: 'fetching', data: {} },
+    usgsDailyPrecipitation: { status: 'fetching', data: {} },
     permittedDischargers: { status: 'fetching', data: {} },
     grts: { status: 'fetching', data: [] },
     attainsPlans: { status: 'fetching', data: [] },
@@ -355,6 +404,12 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       data: UsgsStreamgageData,
     }) => {
       this.setState({ usgsStreamgages });
+    },
+    setUsgsDailyPrecipitation: (usgsDailyPrecipitation: {
+      status: Status,
+      data: UsgsDailyPrecipitationData,
+    }) => {
+      this.setState({ usgsDailyPrecipitation });
     },
     setPermittedDischargers: (permittedDischargers: {
       status: Status,
@@ -610,7 +665,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     // default basemap is gray but use basemap in context if it exists
     getBasemap: () => {
       return Object.keys(this.state.basemap).length === 0
-        ? 'gray'
+        ? 'gray-vector'
         : this.state.basemap;
     },
 
@@ -756,6 +811,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         hucBoundaries: '',
         monitoringLocations: { status: 'fetching', data: {} },
         usgsStreamgages: { status: 'fetching', data: {} },
+        usgsDailyPrecipitation: { status: 'fetching', data: {} },
         permittedDischargers: { status: 'fetching', data: {} },
         nonprofits: { status: 'fetching', data: [] },
         grts: { status: 'fetching', data: [] },
@@ -794,6 +850,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
           countyBoundaries: '',
           monitoringLocations: { status: 'success', data: {} },
           usgsStreamgages: { status: 'success', data: {} },
+          usgsDailyPrecipitation: { status: 'fetching', data: {} },
           permittedDischargers: { status: 'success', data: {} },
           nonprofits: { status: 'success', data: [] },
           grts: { status: 'success', data: [] },

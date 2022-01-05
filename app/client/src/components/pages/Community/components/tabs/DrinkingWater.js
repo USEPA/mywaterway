@@ -22,6 +22,7 @@ import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
+import { summarizeAssessments } from 'utils/utils';
 // errors
 import { countyError, withdrawerError } from 'config/errorMessages';
 import { colors } from 'styles';
@@ -244,6 +245,8 @@ function DrinkingWater() {
   // draw the waterbody (drinking water sources) on the map
   useWaterbodyOnMap('drinkingwater_use');
 
+  const summary = summarizeAssessments(waterbodies, 'drinkingwater_use');
+
   // draw the drinking water providers (county) on the map
   const [countyGraphic, setCountyGraphic] = useState(null);
   useEffect(() => {
@@ -381,15 +384,11 @@ function DrinkingWater() {
   let bothCount = 0;
   if (drinkingWater.data) {
     // handle providers separately
-    const allProviders = drinkingWater.data.filter(
-      (system) => !system.hasOwnProperty('huc12'),
-    );
+    const allProviders = drinkingWater.data.filter((system) => !system.huc12);
     allProviders.forEach((provider) => providers.push(provider));
 
     // find all withdrawers
-    const allWithdrawers = drinkingWater.data.filter((system) =>
-      system.hasOwnProperty('huc12'),
-    );
+    const allWithdrawers = drinkingWater.data.filter((system) => system.huc12);
 
     // find duplicate withdrawers based on pwsid
     const lookup = allWithdrawers.reduce((a, e) => {
@@ -441,13 +440,13 @@ function DrinkingWater() {
       }
 
       // surface water withdrawer
-      else if (item.water_type_calc.toLowerCase() === 'surface water') {
+      else if (item.water_type_calc?.toLowerCase() === 'surface water') {
         totalWithdrawersCount++;
         surfaceWaterCount++;
         if (surfaceWaterDisplayed) displayedWithdrawers.push(item);
       }
       // ground water withdrawer
-      else if (item.water_type_calc.toLowerCase() === 'ground water') {
+      else if (item.water_type_calc?.toLowerCase() === 'ground water') {
         totalWithdrawersCount++;
         groundWaterCount++;
         if (groundWaterDisplayed) displayedWithdrawers.push(item);
@@ -647,8 +646,9 @@ function DrinkingWater() {
                         <AccordionList
                           title={
                             <>
-                              <strong>{providers.length}</strong> public water
-                              systems serving <em>{county}</em> county.
+                              <strong>{providers.length}</strong> public water{' '}
+                              {providers.length === 1 ? 'system' : 'systems'}{' '}
+                              serving <em>{county}</em> county.
                             </>
                           }
                           onSortChange={(sortBy) =>
@@ -891,8 +891,10 @@ function DrinkingWater() {
                   fieldName="drinkingwater_use"
                   title={
                     <>
-                      Waterbodies assessed as potential future sources of
-                      drinking water in the <em>{watershed}</em> watershed.
+                      <strong>{summary.total.toLocaleString()}</strong>{' '}
+                      {summary.total === 1 ? 'waterbody' : 'waterbodies'}{' '}
+                      assessed as potential future sources of drinking water in
+                      the <em>{watershed}</em> watershed.
                     </>
                   }
                 />

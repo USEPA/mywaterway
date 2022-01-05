@@ -818,7 +818,13 @@ function IdentifiedIssues() {
                       <AccordionList
                         title={
                           <>
-                            Dischargers with significant{' '}
+                            <strong>
+                              {violatingFacilities.length.toLocaleString()}
+                            </strong>{' '}
+                            {violatingFacilities.length === 1
+                              ? 'discharger'
+                              : 'dischargers'}{' '}
+                            with significant{' '}
                             <GlossaryTerm term="Effluent">
                               effluent
                             </GlossaryTerm>{' '}

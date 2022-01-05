@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import { globalHistory } from '@reach/router';
 // styles
 import { colors } from 'styles/index.js';
@@ -14,21 +14,23 @@ import { createMarkup } from 'utils/utils';
 type Props = {};
 
 // --- styled components ---
-const Banner = styled.div`
-  background-color: ${(props) => props.backgroundColor};
-  color: ${(props) => props.color};
-  width: 100%;
-  margin: 0 auto;
-  padding: 10px 5px;
-  text-align: center;
+const bannerStyles = (color, backgroundColor) => {
+  return css`
+    background-color: ${backgroundColor};
+    color: ${color};
+    width: 100%;
+    margin: 0 auto;
+    padding: 10px 5px;
+    text-align: center;
 
-  p {
-    padding: 0;
-    margin: 0;
-  }
-`;
+    p {
+      padding: 0;
+      margin: 0;
+    }
+  `;
+};
 
-const Separator = styled.hr`
+const separatorStyles = css`
   margin: 0;
   background-color: ${colors.gray9};
 `;
@@ -62,11 +64,11 @@ function AlertMessage({ ...props }: Props) {
 
     // create a banner that applies to all pages
     const allPagesBanner = data && data['all'] && (
-      <Banner
-        color={data['all'].color}
-        backgroundColor={data['all'].backgroundColor}
+      <div
+        css={bannerStyles(data['all'].color, data['all'].backgroundColor)}
         dangerouslySetInnerHTML={createMarkup(data['all'].message)}
-      ></Banner>
+        data-testid="all-pages-notifications-banner"
+      ></div>
     );
 
     // parse page name out of url:
@@ -74,11 +76,11 @@ function AlertMessage({ ...props }: Props) {
     const page = pathname.split('/')[1];
 
     const specificPageBanner = data && Object.keys(data).includes(page) && (
-      <Banner
-        color={data[page].color}
-        backgroundColor={data[page].backgroundColor}
+      <div
+        css={bannerStyles(data['all'].color, data['all'].backgroundColor)}
         dangerouslySetInnerHTML={createMarkup(data[page].message)}
-      ></Banner>
+        data-testid="specific-page-notifications-banner"
+      ></div>
     );
 
     return (
@@ -86,7 +88,7 @@ function AlertMessage({ ...props }: Props) {
         {allPagesBanner}
 
         {/* if both banners have content render a HR element between them. */}
-        {allPagesBanner && specificPageBanner && <Separator />}
+        {allPagesBanner && specificPageBanner && <hr css={separatorStyles} />}
 
         {specificPageBanner}
       </>

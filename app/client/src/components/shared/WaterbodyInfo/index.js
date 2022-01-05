@@ -97,6 +97,15 @@ const iconStyles = css`
   margin-right: 5px;
 `;
 
+const moreLessRowStyles = css`
+  padding-left: 0 !important;
+  text-align: left !important;
+
+  button {
+    margin-bottom: 0;
+  }
+`;
+
 const additionalTextStyles = css`
   font-style: italic;
   color: ${colors.gray9};
@@ -494,84 +503,6 @@ function WaterbodyInfo({
   const [selected, setSelected] = useState({});
   const [selectAll, setSelectAll] = useState(1);
 
-  function usgsStreamgagesContent() {
-    return (
-      <>
-        <table className="table">
-          <tbody>
-            <tr>
-              <td>
-                <em>Organization:</em>
-              </td>
-              <td>{attributes.orgName}</td>
-            </tr>
-            <tr>
-              <td>
-                <em>Location Name:</em>
-              </td>
-              <td>{attributes.locationName}</td>
-            </tr>
-            <tr>
-              <td>
-                <em>Water Type:</em>
-              </td>
-              <td>{attributes.locationType}</td>
-            </tr>
-            <tr>
-              <td>
-                <em>Monitoring Site ID:</em>
-              </td>
-              <td>{attributes.siteId.replace(`${attributes.orgId}-`, '')}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <table css={tableStyles} className="table">
-          <thead>
-            <tr>
-              <th>Parameter</th>
-              <th>Latest Measurement</th>
-            </tr>
-          </thead>
-          <tbody>
-            {attributes.streamGageMeasurements.map((data, index) => (
-              <tr key={index}>
-                <td>
-                  {data.parameterName}&nbsp;&nbsp;
-                  <small css={additionalTextStyles}>
-                    ({data.parameterCode})
-                  </small>
-                </td>
-                <td>
-                  <strong>{data.measurement}</strong>&nbsp;
-                  <small title={data.unitName}>{data.unitAbbr}</small>
-                  <br />
-                  <small css={additionalTextStyles}>{data.datetime}</small>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div>
-          <a
-            rel="noopener noreferrer"
-            target="_blank"
-            href={attributes.locationUrl}
-          >
-            <i
-              css={iconStyles}
-              className="fas fa-info-circle"
-              aria-hidden="true"
-            />
-            More Information
-          </a>
-          &nbsp;&nbsp;
-          <small css={disclaimerStyles}>(opens new browser tab)</small>
-        </div>
-      </>
-    );
-  }
-
   function monitoringLocationsContent() {
     const stationGroups = JSON.parse(attributes.stationTotalsByCategory);
 
@@ -953,27 +884,25 @@ function WaterbodyInfo({
             <td>
               <em>Watershed Name:</em>
             </td>
-            <td>{attributes.name_huc12}</td>
+            <td>{attributes.NAME_HUC12}</td>
           </tr>
           <tr>
             <td>
               <em>Watershed:</em>
             </td>
-            <td>{attributes.huc12_text}</td>
+            <td>{attributes.HUC12_TEXT}</td>
           </tr>
           <tr>
             <td>
               <em>State:</em>
             </td>
-            <td>{attributes.states2013}</td>
+            <td>{attributes.STATES_ALL}</td>
           </tr>
           <tr>
             <td>
               <em>Watershed Health Score:</em>
             </td>
-            <td>
-              ({Math.round(attributes.phwa_health_ndx_st_2016 * 100) / 100})
-            </td>
+            <td>({Math.round(attributes.PHWA_HEALTH_NDX_ST * 100) / 100})</td>
           </tr>
         </tbody>
       </table>
@@ -1185,7 +1114,9 @@ function WaterbodyInfo({
   if (type === 'Restoration Plans') content = projectContent();
   if (type === 'Protection Plans') content = projectContent();
   if (type === 'Permitted Discharger') content = dischargerContent;
-  if (type === 'Daily Water Conditions') content = usgsStreamgagesContent();
+  if (type === 'Current Water Conditions') {
+    content = <UsgsStreamgagesContent feature={feature} />;
+  }
   if (type === 'Sample Location') content = monitoringLocationsContent();
   if (type === 'Nonprofit') content = nonprofitContent;
   if (type === 'Waterbody State Overview') content = waterbodyStateContent;
@@ -1271,6 +1202,181 @@ function WaterbodyInfo({
   }
 
   return content;
+}
+
+function UsgsStreamgagesContent({ feature }: { feature: Object }) {
+  const {
+    streamgageMeasurements,
+    orgName,
+    locationName,
+    locationType,
+    siteId,
+    orgId,
+    locationUrl,
+  } = feature.attributes;
+
+  const [secondaryMeasurementsShown, setSecondaryMeasurementsShown] = useState(
+    false,
+  );
+
+  function addUniqueMeasurement(measurement, array) {
+    const measurementAlreadyAdded = array.find((m) => {
+      return m.parameterCode === measurement.parameterCode;
+    });
+
+    if (measurementAlreadyAdded) {
+      measurementAlreadyAdded.multiple = true;
+    } else {
+      array.push({ ...measurement });
+    }
+  }
+
+  const primaryMeasurements = [];
+  const secondaryMeasurements = [];
+
+  streamgageMeasurements.primary.forEach((measurement) => {
+    addUniqueMeasurement(measurement, primaryMeasurements);
+  });
+
+  streamgageMeasurements.secondary.forEach((measurement) => {
+    addUniqueMeasurement(measurement, secondaryMeasurements);
+  });
+
+  return (
+    <>
+      <table className="table">
+        <tbody>
+          <tr>
+            <td>
+              <em>Organization:</em>
+            </td>
+            <td>{orgName}</td>
+          </tr>
+          <tr>
+            <td>
+              <em>Location Name:</em>
+            </td>
+            <td>{locationName}</td>
+          </tr>
+          <tr>
+            <td>
+              <em>Water Type:</em>
+            </td>
+            <td>{locationType}</td>
+          </tr>
+          <tr>
+            <td>
+              <em>Monitoring Site ID:</em>
+            </td>
+            <td>{siteId.replace(`${orgId}-`, '')}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table css={tableStyles} className="table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Latest Measurement</th>
+          </tr>
+        </thead>
+        <tbody>
+          {[...primaryMeasurements]
+            .sort((a, b) => a.parameterOrder - b.parameterOrder)
+            .map((data, index) => (
+              <UsgsStreamgageParameter data={data} index={index} />
+            ))}
+
+          {secondaryMeasurements.length > 0 && (
+            <>
+              <tr>
+                <td css={moreLessRowStyles} colSpan={2}>
+                  <button
+                    css={buttonStyles}
+                    onClick={(ev) => {
+                      setSecondaryMeasurementsShown(
+                        !secondaryMeasurementsShown,
+                      );
+                    }}
+                  >
+                    {secondaryMeasurementsShown ? (
+                      <>
+                        <i className="fas fa-angle-down" aria-hidden="true" />
+                        &nbsp;&nbsp;Show less categories
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-angle-right" aria-hidden="true" />
+                        &nbsp;&nbsp;Show more categories
+                      </>
+                    )}
+                  </button>
+                </td>
+              </tr>
+
+              {secondaryMeasurementsShown &&
+                [...secondaryMeasurements]
+                  .sort((a, b) =>
+                    a.parameterName.localeCompare(b.parameterName),
+                  )
+                  .map((data, index) => (
+                    <UsgsStreamgageParameter data={data} index={index} />
+                  ))}
+            </>
+          )}
+        </tbody>
+      </table>
+      <div>
+        <a rel="noopener noreferrer" target="_blank" href={locationUrl}>
+          <i
+            css={iconStyles}
+            className="fas fa-info-circle"
+            aria-hidden="true"
+          />
+          More Information
+        </a>
+        &nbsp;&nbsp;
+        <small css={disclaimerStyles}>(opens new browser tab)</small>
+      </div>
+    </>
+  );
+}
+
+function UsgsStreamgageParameter({ data, index }) {
+  return (
+    <tr key={index}>
+      <td>
+        {data.parameterCategory === 'primary' ? (
+          <GlossaryTerm term={data.parameterName}>
+            {data.parameterName}
+          </GlossaryTerm>
+        ) : (
+          data.parameterName
+        )}
+        <br />
+        <small css={additionalTextStyles}>{data.parameterCode}</small>
+      </td>
+      <td>
+        {data.multiple ? (
+          <>
+            <em>multiple measurements</em>
+            <br />
+            <small css={additionalTextStyles}>
+              see “More Information” link below
+            </small>
+          </>
+        ) : (
+          <>
+            <strong>{data.measurement}</strong>
+            &nbsp;
+            <small title={data.unitName}>{data.unitAbbr}</small>
+            <br />
+            <small css={additionalTextStyles}>{data.datetime}</small>
+          </>
+        )}
+      </td>
+    </tr>
+  );
 }
 
 export default WaterbodyInfo;

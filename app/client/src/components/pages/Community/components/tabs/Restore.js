@@ -9,7 +9,6 @@ import { ContentTabs } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
-import Switch from 'components/shared/Switch';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 // styled components
 import {
@@ -22,8 +21,7 @@ import {
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { getUrlFromMarkup, getTitleFromMarkup } from 'components/shared/Regex';
-import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
-import { getUniqueWaterbodies } from 'components/pages/LocationMap/MapFunctions';
+import { useWaterbodyOnMap } from 'utils/hooks';
 // errors
 import {
   restoreNonpointSourceError,
@@ -43,10 +41,6 @@ const disclaimerStyles = css`
   display: inline-block;
 `;
 
-const switchContainerStyles = css`
-  margin-top: 0.5em;
-`;
-
 function Restore() {
   const {
     attainsPlans,
@@ -57,13 +51,6 @@ function Restore() {
     watershed,
     waterbodyLayer,
   } = useContext(LocationSearchContext);
-
-  // set the waterbody features
-  const waterbodies = useWaterbodyFeatures();
-
-  const uniqueWaterbodies = waterbodies
-    ? getUniqueWaterbodies(waterbodies)
-    : [];
 
   // draw the waterbody on the map
   useWaterbodyOnMap('restoreTab', 'overallstatus');
@@ -127,8 +114,6 @@ function Restore() {
           .sort((a, b) => a.actionName.localeCompare(b.actionName))
       : [];
 
-  const waterbodyCount = uniqueWaterbodies && uniqueWaterbodies.length;
-
   const setRestoreLayerVisibility = (visible) => {
     setRestoreLayerEnabled(visible);
 
@@ -165,25 +150,11 @@ function Restore() {
             </StyledNumber>
           )}
           <StyledLabel>Plans</StyledLabel>
-          <div css={switchContainerStyles}>
-            <Switch
-              checked={Boolean(waterbodyCount) && restoreLayerEnabled}
-              onChange={(checked) => {
-                setRestoreLayerVisibility(!restoreLayerEnabled);
-              }}
-              disabled={!Boolean(waterbodyCount)}
-              ariaLabel="Waterbodies"
-            />
-          </div>
         </StyledMetric>
       </StyledMetrics>
 
       <ContentTabs>
-        <Tabs
-          onChange={(index) => {
-            if (index === 1) setRestoreLayerVisibility(true);
-          }}
-        >
+        <Tabs onChange={(index) => setRestoreLayerVisibility(index === 1)}>
           <TabList>
             <Tab>Clean Water Act Section 319 Projects</Tab>
             <Tab>Restoration Plans</Tab>
@@ -217,7 +188,12 @@ function Restore() {
                         <AccordionList
                           title={
                             <>
-                              EPA Funded grants under the{' '}
+                              <strong>
+                                {sortedGrtsData.length.toLocaleString()}
+                              </strong>{' '}
+                              EPA Funded{' '}
+                              {sortedGrtsData.length === 1 ? 'grant' : 'grants'}{' '}
+                              under the{' '}
                               <GlossaryTerm term="Clean Water Act Section 319 Projects">
                                 Clean Water Act Section 319
                               </GlossaryTerm>{' '}
@@ -235,7 +211,7 @@ function Restore() {
                                 const markup = plan.split('</a>')[0] + '</a>';
                                 const title = getTitleFromMarkup(markup);
                                 const planUrl = getUrlFromMarkup(markup);
-                                if (!title || !planUrl) return false;
+                                if (!title || !planUrl) return null;
                                 return { url: planUrl, title: title };
                               });
                             // remove any documents with missing titles or urls
@@ -351,6 +327,12 @@ function Restore() {
 
             <TabPanel>
               <>
+                <p>
+                  View all restoration plans for the selected watershed in the
+                  list below. Find out which plans are in place to restore each
+                  waterbody shown on the map.
+                </p>
+
                 {attainsPlans.status === 'fetching' && <LoadingSpinner />}
 
                 {attainsPlans.status === 'failure' && (
@@ -375,8 +357,14 @@ function Restore() {
                       <AccordionList
                         title={
                           <>
+                            <strong>
+                              {sortedAttainsPlanData.length.toLocaleString()}
+                            </strong>{' '}
                             <GlossaryTerm term="Restoration plan">
-                              Restoration plans
+                              Restoration{' '}
+                              {sortedAttainsPlanData.length === 1
+                                ? 'plan'
+                                : 'plans'}
                             </GlossaryTerm>{' '}
                             in the <em>{watershed}</em> watershed.
                           </>
@@ -384,12 +372,33 @@ function Restore() {
                       >
                         {sortedAttainsPlanData.map((item, index) => {
                           let planType = item.actionTypeCode;
-                          if (
-                            planType === 'TMDL' ||
-                            planType === '4B Restoration Approach' ||
-                            planType === 'Alternative Restoration Approach'
-                          ) {
-                            planType = 'Restoration Plan: ' + planType;
+                          if (planType === 'TMDL') {
+                            planType = (
+                              <>
+                                Restoration Plan:{' '}
+                                <GlossaryTerm term="TMDL">TMDL</GlossaryTerm>
+                              </>
+                            );
+                          }
+                          if (planType === '4B Restoration Approach') {
+                            planType = (
+                              <>
+                                Restoration Plan:{' '}
+                                <GlossaryTerm term="4B Restoration Approach">
+                                  4B Restoration Approach
+                                </GlossaryTerm>
+                              </>
+                            );
+                          }
+                          if (planType === 'Alternative Restoration Approach') {
+                            planType = (
+                              <>
+                                Restoration Plan:{' '}
+                                <GlossaryTerm term="Alternative Restoration Approach">
+                                  Alternative Restoration Approach
+                                </GlossaryTerm>
+                              </>
+                            );
                           }
 
                           return (

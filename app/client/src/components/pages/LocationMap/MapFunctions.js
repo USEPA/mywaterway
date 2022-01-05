@@ -390,10 +390,14 @@ export function plotGages(gages: Object[], layer: any) {
   if (!gages || !layer) return;
 
   const graphics = gages.map((gage) => {
-    // TODO: determine if there's a better way to isolate gage height measurements
-    const gageHeight = gage.streamGageMeasurements.find((data) => {
-      return data.parameterCode === '00065';
-    })?.measurement;
+    const gageHeightMeasurements = gage.streamgageMeasurements.primary.filter(
+      (d) => d.parameterCode === '00065',
+    );
+
+    const gageHeight =
+      gageHeightMeasurements.length === 1
+        ? gageHeightMeasurements[0]?.measurement
+        : null;
 
     return new Graphic({
       geometry: {
@@ -596,7 +600,7 @@ export function getPopupTitle(attributes: Object) {
   // monitoring station
   else if (
     attributes.monitoringType === 'Sample Location' ||
-    attributes.monitoringType === 'Daily Water Conditions'
+    attributes.monitoringType === 'Current Water Conditions'
   ) {
     title = attributes.locationName;
   }
@@ -637,8 +641,8 @@ export function getPopupTitle(attributes: Object) {
   }
 
   // WSIO Health Index
-  else if (attributes.phwa_health_ndx_st_2016) {
-    title = attributes.name_huc12;
+  else if (attributes.PHWA_HEALTH_NDX_ST) {
+    title = attributes.NAME_HUC12;
   }
 
   // Protected areas
@@ -704,9 +708,9 @@ export function getPopupContent({
   // usgs streamgage
   else if (
     attributes &&
-    attributes.monitoringType === 'Daily Water Conditions'
+    attributes.monitoringType === 'Current Water Conditions'
   ) {
-    type = 'Daily Water Conditions';
+    type = 'Current Water Conditions';
   }
 
   // monitoring station
@@ -755,7 +759,7 @@ export function getPopupContent({
   }
 
   // WSIO Health Index
-  else if (attributes.phwa_health_ndx_st_2016) {
+  else if (attributes.PHWA_HEALTH_NDX_ST) {
     type = 'State Watershed Health Index';
   }
 
