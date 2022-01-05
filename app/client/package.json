@@ -67,11 +67,6 @@
     "smoothscroll-polyfill": "0.4.4",
     "styled-components": "5.3.3"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
   "lint-staged": {
     "src/**/*.{js,json,css,md}": "prettier --write",
     "../cypress/**/*.js": "prettier --write"
