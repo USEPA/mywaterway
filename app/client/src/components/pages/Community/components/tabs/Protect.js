@@ -819,6 +819,10 @@ function Protect() {
                         <>
                           <div css={modifiedInfoBoxStyles}>
                             <p>
+                              There{' '}
+                              {wildScenicRiversData.data.length === 1
+                                ? 'is'
+                                : 'are'}{' '}
                               <strong>
                                 {wildScenicRiversData.data.length.toLocaleString()}
                               </strong>{' '}
@@ -1035,6 +1039,10 @@ function Protect() {
                         <AccordionList
                           title={
                             <>
+                              There{' '}
+                              {protectedAreasData.data.length === 1
+                                ? 'is'
+                                : 'are'}{' '}
                               <strong>
                                 {protectedAreasData.data.length.toLocaleString()}
                               </strong>{' '}
@@ -1241,6 +1249,10 @@ function Protect() {
                             <>
                               <div css={modifiedInfoBoxStyles}>
                                 <p>
+                                  There{' '}
+                                  {allProtectionProjects.length === 1
+                                    ? 'is'
+                                    : 'are'}{' '}
                                   <strong>
                                     {allProtectionProjects.length.toLocaleString()}
                                   </strong>{' '}

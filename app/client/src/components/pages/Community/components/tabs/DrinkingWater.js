@@ -646,6 +646,7 @@ function DrinkingWater() {
                         <AccordionList
                           title={
                             <>
+                              There {providers.length === 1 ? 'is' : 'are'}{' '}
                               <strong>{providers.length}</strong> public water{' '}
                               {providers.length === 1 ? 'system' : 'systems'}{' '}
                               serving <em>{county}</em> county.
@@ -891,6 +892,7 @@ function DrinkingWater() {
                   fieldName="drinkingwater_use"
                   title={
                     <>
+                      There {summary.total === 1 ? 'is' : 'are'}{' '}
                       <strong>{summary.total.toLocaleString()}</strong>{' '}
                       {summary.total === 1 ? 'waterbody' : 'waterbodies'}{' '}
                       assessed as potential future sources of drinking water in
