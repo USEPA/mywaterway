@@ -113,7 +113,7 @@ const moreLessRowStyles = css`
 
 const additionalTextStyles = css`
   font-style: italic;
-  color: ${colors.gray9};
+  color: ${colors.gray6};
 `;
 
 const popupIconStyles = css`
@@ -1393,7 +1393,7 @@ function UsgsStreamgageParameter({ data, index }) {
       <td>
         {data.multiple ? (
           <>
-            <em>multiple measurements</em>
+            <em>multiple measurements found</em>
             <br />
             <small css={additionalTextStyles}>
               see “More Information” link below
