@@ -1250,6 +1250,18 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
     addUniqueMeasurement(measurement, secondaryMeasurements);
   });
 
+  const sortedPrimaryMeasurements = [...primaryMeasurements]
+    .sort((a, b) => a.parameterOrder - b.parameterOrder)
+    .map((data, index) => (
+      <UsgsStreamgageParameter data={data} index={index} />
+    ));
+
+  const sortedSecondaryMeasurements = [...secondaryMeasurements]
+    .sort((a, b) => a.parameterName.localeCompare(b.parameterName))
+    .map((data, index) => (
+      <UsgsStreamgageParameter data={data} index={index} />
+    ));
+
   return (
     <>
       <table className="table">
@@ -1281,7 +1293,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
         </tbody>
       </table>
 
-      {primaryMeasurements.length === 0 &&
+      {sortedPrimaryMeasurements.length === 0 &&
       secondaryMeasurements.length === 0 ? (
         <p css={noMeasurementDataStyles}>No data available.</p>
       ) : (
@@ -1293,50 +1305,48 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
             </tr>
           </thead>
           <tbody>
-            {[...primaryMeasurements]
-              .sort((a, b) => a.parameterOrder - b.parameterOrder)
-              .map((data, index) => (
-                <UsgsStreamgageParameter data={data} index={index} />
-              ))}
+            {sortedPrimaryMeasurements}
 
-            {secondaryMeasurements.length > 0 && (
+            {sortedSecondaryMeasurements.length > 0 && (
               <>
-                <tr>
-                  <td css={moreLessRowStyles} colSpan={2}>
-                    <button
-                      css={buttonStyles}
-                      onClick={(ev) => {
-                        setSecondaryMeasurementsShown(
-                          !secondaryMeasurementsShown,
-                        );
-                      }}
-                    >
-                      {secondaryMeasurementsShown ? (
-                        <>
-                          <i className="fas fa-angle-down" aria-hidden="true" />
-                          &nbsp;&nbsp;Show less categories
-                        </>
-                      ) : (
-                        <>
-                          <i
-                            className="fas fa-angle-right"
-                            aria-hidden="true"
-                          />
-                          &nbsp;&nbsp;Show more categories
-                        </>
-                      )}
-                    </button>
-                  </td>
-                </tr>
+                {sortedPrimaryMeasurements.length === 0 ? (
+                  <>{sortedSecondaryMeasurements}</>
+                ) : (
+                  <>
+                    <tr>
+                      <td css={moreLessRowStyles} colSpan={2}>
+                        <button
+                          css={buttonStyles}
+                          onClick={(ev) => {
+                            setSecondaryMeasurementsShown(
+                              !secondaryMeasurementsShown,
+                            );
+                          }}
+                        >
+                          {secondaryMeasurementsShown ? (
+                            <>
+                              <i
+                                className="fas fa-angle-down"
+                                aria-hidden="true"
+                              />
+                              &nbsp;&nbsp;Show less categories
+                            </>
+                          ) : (
+                            <>
+                              <i
+                                className="fas fa-angle-right"
+                                aria-hidden="true"
+                              />
+                              &nbsp;&nbsp;Show more categories
+                            </>
+                          )}
+                        </button>
+                      </td>
+                    </tr>
 
-                {secondaryMeasurementsShown &&
-                  [...secondaryMeasurements]
-                    .sort((a, b) => {
-                      return a.parameterName.localeCompare(b.parameterName);
-                    })
-                    .map((data, index) => (
-                      <UsgsStreamgageParameter data={data} index={index} />
-                    ))}
+                    {secondaryMeasurementsShown && sortedSecondaryMeasurements}
+                  </>
+                )}
               </>
             )}
           </tbody>
