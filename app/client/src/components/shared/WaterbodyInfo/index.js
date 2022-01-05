@@ -101,8 +101,13 @@ const moreLessRowStyles = css`
   padding-left: 0 !important;
   text-align: left !important;
 
-  button {
+  button,
+  button:hover,
+  button:focus {
     margin-bottom: 0;
+    padding: 0.5em;
+    color: currentColor;
+    background-color: transparent;
   }
 `;
 
