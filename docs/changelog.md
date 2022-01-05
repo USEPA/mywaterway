@@ -1,6 +1,47 @@
 
 # Change Log
 
+## 2.1.0 (January 2022)
+
+### Added
+
+- Added USGS stream gages to the Overview panel of the Community page. 
+
+- Added list of Monitoring data to the Overview panel of the Community page.
+
+- Added list of Discharger data to the Overview panel of the Community page.
+
+- Added Surrounding Waterbodies widget to the Community page, which allows the user to view waterbodies surrounding the currently selected HUC.
+
+- Added a How's My Waterway widget that can be embedded to websites outside of How's My Waterway. This widget can be found [here](https://www.epa.gov/developers/data-data-products-hows-my-waterway-widget).
+
+- Added GIS data to the map of the Restoration Plans tab on the Restore panel of the Community page.
+
+- Added GIS data to the map of the Protection Projects section on the Protect panel of the Community page.
+
+
+### Changed
+
+
+- Updated the waterbodies layer on the community tab, such that the waterbodies are clipped to the selected HUC.
+
+- Updated the mapping widget to use ArcGIS JavaScript API version 4.22. This improves performance of loading the app and data on the Advanced Search tab of the State page.
+
+- Updated the Glossary component to point to a cached report of the glossary terms to improve reliability of the Glossary component.
+
+- Updated the Monitoring panel of the Community page, such that the Permitted Dischargers layer is available in the layer list widget.
+
+- Improved performance of the Plan Summary page, especially for plans with a large number of associated waterbodies.
+
+- Updated the survey data of the State page (i.e., updated the stateNationalUses.json and surveyMapping.json files).
+
+- Updated the popups such that the "Change to this location" section is at the top of the popup. 
+
+- Fixed an issue of map/list highlighting not working on the Plan Summary page.
+
+- Updated accordions on the Community page to have counts listed in the headers. 
+
+
 ## 2.0.5 (May 2021)
 
 ### Added
