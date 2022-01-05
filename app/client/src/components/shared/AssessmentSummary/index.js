@@ -47,8 +47,8 @@ function AssessmentSummary({ waterbodies, fieldName, usageName }: Props) {
         <p>
           There {summary.total === 1 ? 'is' : 'are'}{' '}
           <strong>{summary.total.toLocaleString()}</strong>{' '}
-          {summary.total === 1 ? 'waterbody has' : 'waterbodies have'} been
-          assessed for{' '}
+          {summary.total === 1 ? 'waterbody that has' : 'waterbodies that have'}{' '}
+          been assessed for{' '}
           {glossaryUsageNames.includes(usageName) ? (
             <GlossaryTerm term={usageName}>{usageName}</GlossaryTerm>
           ) : (
