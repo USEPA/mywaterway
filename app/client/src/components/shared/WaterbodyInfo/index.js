@@ -1251,13 +1251,13 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
   const sortedPrimaryMeasurements = [...primaryMeasurements]
     .sort((a, b) => a.parameterOrder - b.parameterOrder)
     .map((data, index) => (
-      <UsgsStreamgageParameter data={data} index={index} />
+      <UsgsStreamgageParameter url={locationUrl} data={data} index={index} />
     ));
 
   const sortedSecondaryMeasurements = [...secondaryMeasurements]
     .sort((a, b) => a.parameterName.localeCompare(b.parameterName))
     .map((data, index) => (
-      <UsgsStreamgageParameter data={data} index={index} />
+      <UsgsStreamgageParameter url={locationUrl} data={data} index={index} />
     ));
 
   const sortedMeasurements = [
@@ -1364,7 +1364,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
   );
 }
 
-function UsgsStreamgageParameter({ data, index }) {
+function UsgsStreamgageParameter({ url, data, index }) {
   return (
     <tr key={index}>
       <td>
@@ -1386,7 +1386,11 @@ function UsgsStreamgageParameter({ data, index }) {
             <em>multiple measurements found</em>
             <br />
             <small css={additionalTextStyles}>
-              see “More Information” link below
+              <a rel="noopener noreferrer" target="_blank" href={url}>
+                More Information
+              </a>
+              &nbsp;&nbsp;
+              <span>(opens new browser tab)</span>
             </small>
           </>
         ) : (
