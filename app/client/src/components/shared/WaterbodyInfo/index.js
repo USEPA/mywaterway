@@ -1383,13 +1383,13 @@ function UsgsStreamgageParameter({ url, data, index }) {
       <td>
         {data.multiple ? (
           <>
-            <em>multiple measurements found</em>
+            <em>multiple&nbsp;measurements&nbsp;found</em>
             <br />
             <small css={additionalTextStyles}>
               <a rel="noopener noreferrer" target="_blank" href={url}>
                 More Information
               </a>
-              &nbsp;&nbsp;
+              <br />
               <span>(opens new browser tab)</span>
             </small>
           </>
