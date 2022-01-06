@@ -269,9 +269,8 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
     layer: null,
   });
 
-  const { selectedGraphic, highlightedGraphic } = useContext(
-    MapHighlightContext,
-  );
+  const { selectedGraphic, highlightedGraphic } =
+    useContext(MapHighlightContext);
 
   // fetch action data from the attains 'actions' web service
   const [organizationName, setOrganizationName] = useState('');
@@ -352,11 +351,8 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
     const unitIds = {};
 
     waters.forEach((water) => {
-      const {
-        assessmentUnitIdentifier,
-        associatedPollutants,
-        parameters,
-      } = water;
+      const { assessmentUnitIdentifier, associatedPollutants, parameters } =
+        water;
 
       const content = (reportingCycle, hasWaterbody) => {
         const assessmentUrl =
@@ -492,6 +488,20 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
     setInfoHeight(node.getBoundingClientRect().height);
   }, []);
 
+  const planType =
+    actionTypeCode === 'TMDL' ||
+    actionTypeCode === '4B Restoration Approach' ||
+    actionTypeCode === 'Alternative Restoration Approach' ? (
+      <>
+        Restoration Plan:{' '}
+        <GlossaryTerm term={actionTypeCode}>{actionTypeCode}</GlossaryTerm>
+      </>
+    ) : actionTypeCode === 'Protection Approach' ? (
+      <GlossaryTerm term={actionTypeCode}>{actionTypeCode}</GlossaryTerm>
+    ) : (
+      actionTypeCode
+    );
+
   const infoBox = (
     <div css={boxStyles} ref={measuredRef}>
       <h2 css={boxHeadingStyles}>
@@ -522,7 +532,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
 
       <div css={inlineBoxStyles}>
         <h3>Type:&nbsp;</h3>
-        <p>{actionTypeCode}</p>
+        <p>{planType}</p>
       </div>
 
       <div css={inlineBoxStyles}>
