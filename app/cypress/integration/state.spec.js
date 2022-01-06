@@ -46,6 +46,11 @@ describe('State page links', () => {
   it('Clicking the “EXIT” link opens a new tab with https://www.epa.gov/home/exit-epa', () => {
     const linkText = 'EXIT';
 
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
     cy.findByText('More Information for').click();
 
     // since Cypress doesn't support multiple tabs, we'll do the next best thing

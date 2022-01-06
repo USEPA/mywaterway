@@ -1,15 +1,29 @@
 // @flow
 
-import React from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import type { Node } from 'react';
 import styled from 'styled-components';
 import StickyBox from 'react-sticky-box';
-import { Map } from '@esri/react-arcgis';
+import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import Graphic from '@arcgis/core/Graphic';
+import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+import GroupLayer from '@arcgis/core/layers/GroupLayer';
+import Locator from '@arcgis/core/tasks/Locator';
+import PictureMarkerSymbol from '@arcgis/core/symbols/PictureMarkerSymbol';
+import Query from '@arcgis/core/rest/support/Query';
+import QueryTask from '@arcgis/core/tasks/QueryTask';
+import SpatialReference from '@arcgis/core/geometry/SpatialReference';
+import Viewpoint from '@arcgis/core/Viewpoint';
 // components
+import Map from 'components/shared/Map';
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import mapPin from 'components/pages/Community/images/pin.png';
-import MapWidgets from 'components/shared/MapWidgets';
-import MapMouseEvents from 'components/shared/MapMouseEvents';
 import {
   createWaterbodySymbol,
   createUniqueValueInfos,
@@ -21,17 +35,15 @@ import MapErrorBoundary from 'components/shared/ErrorBoundary/MapErrorBoundary';
 // styled components
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // contexts
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
-// config
-import { esriApiUrl } from 'config/esriConfig';
 // helpers
 import {
   useDynamicPopup,
+  useGeometryUtils,
   useSharedLayers,
   useWaterbodyHighlight,
   useWaterbodyFeatures,
@@ -84,27 +96,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const services = useServicesContext();
 
   const {
-    FeatureLayer,
-    GraphicsLayer,
-    GroupLayer,
-    Graphic,
-    Locator,
-    PictureMarkerSymbol,
-    Point,
-    Query,
-    QueryTask,
-    SpatialReference,
-    Viewpoint,
-  } = React.useContext(EsriModulesContext);
-
-  const {
     searchText,
     lastSearchText,
     setLastSearchText,
     setCurrentExtent,
     //
-    initialExtent,
-    highlightOptions,
     boundariesLayer,
     searchIconLayer,
     waterbodyLayer,
@@ -137,13 +133,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setFishingInfo,
     setHucBoundaries,
     setAtHucBoundaries,
-    setMapView,
+    mapView,
     setMonitoringLocations,
+    setUsgsStreamgages,
+    setUsgsDailyPrecipitation,
     // setNonprofits,
     setPermittedDischargers,
     setWaterbodyLayer,
     setIssuesLayer,
-    setMonitoringStationsLayer,
+    setMonitoringLocationsLayer,
+    setUsgsStreamgagesLayer,
     setUpstreamLayer,
     setDischargersLayer,
     setNonprofitsLayer,
@@ -155,7 +154,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setNoDataAvailable,
     FIPS,
     setFIPS,
-    getBasemap,
     layers,
     setLayers,
     pointsLayer,
@@ -171,11 +169,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     getAllFeatures,
     waterbodyCountMismatch,
     setWaterbodyCountMismatch,
-  } = React.useContext(LocationSearchContext);
+  } = useContext(LocationSearchContext);
 
   const stateNationalUses = useStateNationalUsesContext();
-
-  const [view, setView] = React.useState(null);
 
   function matchStateCodeToAssessment(
     assessmentUnitIdentifier,
@@ -203,7 +199,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   }
 
   // create features whose IDs and data are not found in the Assessment Units and/or Assessments services
-  const createSimpleOrphanFeatures = React.useCallback(
+  const createSimpleOrphanFeatures = useCallback(
     (
       assessmentUnitServiceData,
       idsWithNoAssessmentData,
@@ -251,7 +247,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   // create a feature using data from ATTAINS Domains, Assessment Units, and Assessments services
-  const createDetailedOrphanFeatures = React.useCallback(
+  const createDetailedOrphanFeatures = useCallback(
     (res, allAssessmentUnits, attainsDomainsData) => {
       // function that checks if any uses in an array of uses have a status that matches the 2nd paremeter
       function checkStatus(uses, status) {
@@ -392,7 +388,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [stateNationalUses],
   );
 
-  const handleOrphanedFeatures = React.useCallback(
+  const handleOrphanedFeatures = useCallback(
     (res, attainsDomainsData, missingAssessments) => {
       const allAssessmentUnits = [];
       res.items.forEach((item) =>
@@ -430,7 +426,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           (assessment) => assessment.assessmentUnitIdentifier,
         );
 
-        // if no IDs are found in the Assessment Units service, do not call the Assessments service. 
+        // if no IDs are found in the Assessment Units service, do not call the Assessments service.
         // the Assessments service will return ALL assessments in the organization if none are passed in
         if (!ids || ids.length === 0) {
           return;
@@ -453,14 +449,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           }
 
           let orphans = [];
-          responses.forEach((res) => {
-            if (!res || !res.items || res.items.length === 0) {
+          responses.forEach((response) => {
+            if (!response || !response.items || response.items.length === 0) {
               setOrphanFeatures({ features: [], status: 'error' });
               return;
             }
 
             const detailedFeatures = createDetailedOrphanFeatures(
-              res.items,
+              response.items,
               allAssessmentUnits,
               attainsDomainsData,
             );
@@ -513,8 +509,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // If so, query the individual missing assessment IDs using the ATTAINS assessments and assessmentUnits service
   // to build a complete feature that can be displayed in the Community section,
   // These features are marked by a custom attribute {... limited: true ...} and they lack spatial representation on the map.
-  const [checkedForOrphans, setCheckedForOrphans] = React.useState(false);
-  React.useEffect(() => {
+  const [checkedForOrphans, setCheckedForOrphans] = useState(false);
+  useEffect(() => {
     if (stateNationalUses.status === 'fetching') {
       return;
     }
@@ -570,12 +566,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               `assessmentUnits?assessmentUnitIdentifier=${orphanIDs.join(',')}`;
 
             fetchCheck(url)
-              .then((res) => {
-                if (!res || !res.items || res.items.length === 0) {
+              .then((resUnits) => {
+                if (
+                  !resUnits ||
+                  !resUnits.items ||
+                  resUnits.items.length === 0
+                ) {
                   setOrphanFeatures({ features: [], status: 'error' });
                   return;
                 }
-                handleOrphanedFeatures(res, attainsDomainsData, orphanIDs);
+                handleOrphanedFeatures(resUnits, attainsDomainsData, orphanIDs);
               })
               .catch((err) => {
                 console.error(err);
@@ -608,9 +608,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   ]);
 
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
-  const [communityMapLoadError, setCommunityMapLoadError] = React.useState(
-    false,
-  );
+  const [communityMapLoadError, setCommunityMapLoadError] = useState(false);
 
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
@@ -619,8 +617,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const { getTitle, getTemplate, setDynamicPopupFields } = getDynamicPopup();
 
   // Builds the layers that have no dependencies
-  const [layersInitialized, setLayersInitialized] = React.useState(false);
-  React.useEffect(() => {
+  const [layersInitialized, setLayersInitialized] = useState(false);
+  useEffect(() => {
     if (!getSharedLayers || layersInitialized) return;
 
     if (layers.length > 0) return;
@@ -659,13 +657,88 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setUpstreamLayer(upstreamLayer);
 
-    const monitoringStationsLayer = new GraphicsLayer({
-      id: 'monitoringStationsLayer',
-      title: 'Monitoring Stations',
+    const monitoringLocationsLayer = new GraphicsLayer({
+      id: 'monitoringLocationsLayer',
+      title: 'Sample Locations',
       listMode: 'hide',
     });
 
-    setMonitoringStationsLayer(monitoringStationsLayer);
+    setMonitoringLocationsLayer(monitoringLocationsLayer);
+
+    const usgsStreamgagesLayer = new FeatureLayer({
+      id: 'usgsStreamgagesLayer',
+      title: 'USGS Streamgages',
+      listMode: 'hide',
+      fields: [
+        { name: 'ObjectID', type: 'oid' },
+        { name: 'gageHeight', type: 'string' },
+        { name: 'monitoringType', type: 'string' },
+        { name: 'siteId', type: 'string' },
+        { name: 'orgId', type: 'string' },
+        { name: 'orgName', type: 'string' },
+        { name: 'locationLongitude', type: 'single' },
+        { name: 'locationLatitude', type: 'single' },
+        { name: 'locationName', type: 'string' },
+        { name: 'locationType', type: 'string' },
+        { name: 'locationUrl', type: 'string' },
+        { name: 'streamgageMeasurements', type: 'blob' },
+      ],
+      outFields: ['*'],
+      // NOTE: initial graphic below will be replaced with UGSG streamgages
+      source: [
+        new Graphic({
+          geometry: { type: 'point', longitude: -98.5795, latitude: 39.8283 },
+          attributes: { ObjectID: 1 },
+        }),
+      ],
+      renderer: {
+        type: 'simple',
+        symbol: {
+          type: 'simple-marker',
+          style: 'circle',
+          color: '#fffe00', // '#989fa2'
+        },
+        // NOTE: rendering all streamgages in a single color until we can set
+        //       color stops from data returned in USGS STA web service
+        // visualVariables: [
+        //   {
+        //     type: 'color',
+        //     field: 'gageHeight',
+        //     stops: [
+        //       // TODO: determine how to map of gage height values to NWD streamflow percentile stops
+        //       // (National Water Dashboard: https://dashboard.waterdata.usgs.gov/app/nwd/?aoi=default)
+        //       { value: '0', color: '#ea2c38' }, // All-time low for this day  (0th percentile, minimum)
+        //       { value: '1', color: '#b54246' }, // Much below normal          (<10th percentile)
+        //       { value: '2', color: '#eaae3f' }, // Below normal               (10th – 24th percentile)
+        //       { value: '3', color: '#32f242' }, // Normal                     (25th – 75th percentile)
+        //       { value: '4', color: '#56d7da' }, // Above normal               (76th – 90th percentile)
+        //       { value: '5', color: '#2639f6' }, // Much above normal          (>90th percentile)
+        //       { value: '6', color: '#22296e' }, // All-time high for this day (100th percentile, maximum)
+        //     ],
+        //   },
+        // ],
+      },
+      labelingInfo: [
+        {
+          symbol: {
+            type: 'text',
+            yoffset: '-3px',
+            font: { size: 10, weight: 'bold' },
+          },
+          labelPlacement: 'above-center',
+          labelExpressionInfo: {
+            expression: '$feature.gageHeight',
+          },
+        },
+      ],
+      popupTemplate: {
+        outFields: ['*'],
+        title: (feature) => getPopupTitle(feature.graphic.attributes),
+        content: (feature) => getPopupContent({ feature: feature.graphic }),
+      },
+    });
+
+    setUsgsStreamgagesLayer(usgsStreamgagesLayer);
 
     const issuesLayer = new GraphicsLayer({
       id: 'issuesLayer',
@@ -696,7 +769,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       providersLayer,
       boundariesLayer,
       upstreamLayer,
-      monitoringStationsLayer,
+      monitoringLocationsLayer,
+      usgsStreamgagesLayer,
       issuesLayer,
       dischargersLayer,
       nonprofitsLayer,
@@ -705,8 +779,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setLayersInitialized(true);
   }, [
-    FeatureLayer,
-    GraphicsLayer,
     getSharedLayers,
     getTemplate,
     getTitle,
@@ -715,7 +787,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setDischargersLayer,
     setIssuesLayer,
     setLayers,
-    setMonitoringStationsLayer,
+    setMonitoringLocationsLayer,
+    setUsgsStreamgagesLayer,
     setUpstreamLayer,
     setNonprofitsLayer,
     setProvidersLayer,
@@ -725,29 +798,29 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   ]);
 
   // popup template to be used for all waterbody sublayers
-  const popupTemplate = React.useMemo(() => {
+  const popupTemplate = useMemo(() => {
     return {
       outFields: ['*'],
       title: (feature) => getPopupTitle(feature.graphic.attributes),
-      content: (feature) => getPopupContent({ feature: feature.graphic }),
+      content: (feature) =>
+        getPopupContent({ feature: feature.graphic, services }),
     };
-  }, []);
+  }, [services]);
 
-  const handleMapServiceError = React.useCallback(
+  const handleMapServiceError = useCallback(
     (err) => {
       setMapLoading(false);
       console.error(err);
-      setCipSummary({
-        data: [],
-        status: 'failure',
-      });
+      setCipSummary({ status: 'failure', data: {} });
     },
     [setCipSummary],
   );
 
+  const { cropGeometryToHuc } = useGeometryUtils();
+
   // Gets the lines data and builds the associated feature layer
-  const retrieveLines = React.useCallback(
-    (filter) => {
+  const retrieveLines = useCallback(
+    (filter, boundaries) => {
       const query = new Query({
         returnGeometry: true,
         where: filter,
@@ -757,7 +830,20 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       new QueryTask({ url: services.data.waterbodyService.lines })
         .execute(query)
         .then((res) => {
-          setLinesData(res);
+          // build a list of features that still has the original uncropped
+          // geometry and set context
+          let originalFeatures = [];
+          res.features.forEach((item) => {
+            item['originalGeometry'] = item.geometry;
+            originalFeatures.push(item);
+          });
+          setLinesData({ features: originalFeatures });
+
+          // crop the waterbodies geometry to within the huc
+          const features = cropGeometryToHuc(
+            res.features,
+            boundaries.features[0].geometry,
+          );
 
           const linesRenderer = {
             type: 'unique-value',
@@ -776,7 +862,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             geometryType: res.geometryType,
             spatialReference: res.spatialReference,
             fields: res.fields,
-            source: res.features,
+            source: features,
             outFields: ['*'],
             renderer: linesRenderer,
             popupTemplate,
@@ -790,9 +876,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
     },
     [
-      FeatureLayer,
-      Query,
-      QueryTask,
+      cropGeometryToHuc,
       handleMapServiceError,
       popupTemplate,
       setLinesData,
@@ -802,8 +886,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   // Gets the areas data and builds the associated feature layer
-  const retrieveAreas = React.useCallback(
-    (filter) => {
+  const retrieveAreas = useCallback(
+    (filter, boundaries) => {
       const query = new Query({
         returnGeometry: true,
         where: filter,
@@ -813,7 +897,20 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       new QueryTask({ url: services.data.waterbodyService.areas })
         .execute(query)
         .then((res) => {
-          setAreasData(res);
+          // build a list of features that still has the original uncropped
+          // geometry and set context
+          let originalFeatures = [];
+          res.features.forEach((item) => {
+            item['originalGeometry'] = item.geometry;
+            originalFeatures.push(item);
+          });
+          setAreasData({ features: originalFeatures });
+
+          // crop the waterbodies geometry to within the huc
+          const features = cropGeometryToHuc(
+            res.features,
+            boundaries.features[0].geometry,
+          );
 
           const areasRenderer = {
             type: 'unique-value',
@@ -832,7 +929,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             geometryType: res.geometryType,
             spatialReference: res.spatialReference,
             fields: res.fields,
-            source: res.features,
+            source: features,
             outFields: ['*'],
             renderer: areasRenderer,
             popupTemplate,
@@ -846,9 +943,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
     },
     [
-      FeatureLayer,
-      Query,
-      QueryTask,
+      cropGeometryToHuc,
       handleMapServiceError,
       popupTemplate,
       setAreasData,
@@ -858,7 +953,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   // Gets the points data and builds the associated feature layer
-  const retrievePoints = React.useCallback(
+  const retrievePoints = useCallback(
     (filter) => {
       const query = new Query({
         returnGeometry: true,
@@ -903,9 +998,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
     },
     [
-      FeatureLayer,
-      Query,
-      QueryTask,
       handleMapServiceError,
       popupTemplate,
       setPointsData,
@@ -922,13 +1014,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     orphanFeatures.status === 'error';
 
   // Builds the waterbody layer once data has been fetched for all sub layers
-  React.useEffect(() => {
+  useEffect(() => {
     if (mapServiceFailure) {
       setMapLoading(false);
-      setCipSummary({
-        data: [],
-        status: 'failure',
-      });
+      setCipSummary({ status: 'failure', data: {} });
       return;
     }
 
@@ -968,41 +1057,94 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     linesLayer,
     pointsLayer,
     mapServiceFailure,
-    GroupLayer,
     setWaterbodyLayer,
     setLayers,
     setCipSummary,
   ]);
 
   // query geocode server for every new search
-  const [mapLoading, setMapLoading] = React.useState(true);
+  const [mapLoading, setMapLoading] = useState(true);
 
-  const queryMonitoringLocationService = React.useCallback(
-    (huc12) => {
+  const queryMonitoringStationService = useCallback(
+    (huc12Param) => {
       const url =
         `${services.data.waterQualityPortal.monitoringLocation}` +
-        `search?mimeType=geojson&zip=no&huc=${huc12}`;
+        `search?mimeType=geojson&zip=no&huc=${huc12Param}`;
 
       fetchCheck(url)
         .then((res) => {
-          setMonitoringLocations({
-            data: res,
-            status: 'success',
-          });
+          setMonitoringLocations({ status: 'success', data: res });
         })
         .catch((err) => {
           console.error(err);
-          setMonitoringLocations({
-            data: [],
-            status: 'failure',
-          });
+          setMonitoringLocations({ status: 'failure', data: {} });
         });
     },
     [setMonitoringLocations, services],
   );
 
-  const queryPermittedDischargersService = React.useCallback(
-    (huc12) => {
+  const queryUsgsStreamgageService = useCallback(
+    (huc12Param) => {
+      const url =
+        `${services.data.usgsSensorThingsAPI}?` +
+        /**/ `$select=name,` +
+        /*  */ `properties/active,` +
+        /*  */ `properties/agency,` +
+        /*  */ `properties/agencyCode,` +
+        /*  */ `properties/monitoringLocationUrl,` +
+        /*  */ `properties/monitoringLocationName,` +
+        /*  */ `properties/monitoringLocationType,` +
+        /*  */ `properties/monitoringLocationNumber,` +
+        /*  */ `properties/hydrologicUnit&` +
+        /**/ `$expand=` +
+        /*  */ `Locations($select=location),` +
+        /*  */ `Datastreams(` +
+        /*    */ `$select=description,` +
+        /*      */ `properties/ParameterCode,` +
+        /*      */ `properties/WebDescription,` +
+        /*      */ `unitOfMeasurement/name,` +
+        /*      */ `unitOfMeasurement/symbol;` +
+        /*    */ `$expand=` +
+        /*      */ `Observations(` +
+        /*        */ `$select=phenomenonTime,result;` +
+        /*        */ `$top=1;` +
+        /*        */ `$orderBy=phenomenonTime desc` +
+        /*      */ `)` +
+        /*  */ `)&` +
+        /**/ `$filter=properties/hydrologicUnit eq '${huc12Param}'`;
+
+      fetchCheck(url)
+        .then((res) => {
+          setUsgsStreamgages({ status: 'success', data: res });
+        })
+        .catch((err) => {
+          console.error(err);
+          setUsgsStreamgages({ status: 'failure', data: {} });
+        });
+    },
+    [services, setUsgsStreamgages],
+  );
+
+  const queryUsgsDailyValuesService = useCallback(
+    (huc12Param) => {
+      const url =
+        `${services.data.usgsDailyValues}?format=json&siteStatus=active` +
+        `&parameterCd=00045&statCd=00006&huc=${huc12Param.substring(0, 8)}`;
+
+      fetchCheck(url)
+        .then((res) => {
+          setUsgsDailyPrecipitation({ status: 'success', data: res });
+        })
+        .catch((err) => {
+          console.error(err);
+          setUsgsDailyPrecipitation({ status: 'failure', data: {} });
+        });
+    },
+    [services, setUsgsDailyPrecipitation],
+  );
+
+  const queryPermittedDischargersService = useCallback(
+    (huc12Param) => {
       fetchCheck(services.data.echoNPDES.metadata)
         .then((res) => {
           // Columns to return from Echo
@@ -1029,39 +1171,30 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
 
           const url =
-            `${services.data.echoNPDES.getFacilities}?output=JSON&tablelist=Y&p_wbd=${huc12}` +
+            `${services.data.echoNPDES.getFacilities}?output=JSON&tablelist=Y&p_wbd=${huc12Param}` +
             `&p_act=Y&p_ptype=NPD&responseset=5000` +
             `&qcolumns=${columnIds.join(',')}`;
 
           fetchCheck(url)
             .then((res) => {
-              setPermittedDischargers({
-                data: res,
-                status: 'success',
-              });
+              setPermittedDischargers({ status: 'success', data: res });
             })
             .catch((err) => {
               console.error(err);
-              setPermittedDischargers({
-                data: [],
-                status: 'failure',
-              });
+              setPermittedDischargers({ status: 'failure', data: {} });
             });
         })
         .catch((err) => {
           console.error(err);
-          setPermittedDischargers({
-            data: [],
-            status: 'failure',
-          });
+          setPermittedDischargers({ status: 'failure', data: {} });
         });
     },
     [setPermittedDischargers, services],
   );
 
-  const queryGrtsHuc12 = React.useCallback(
-    (huc12) => {
-      fetchCheck(`${services.data.grts.getGRTSHUC12}${huc12}`)
+  const queryGrtsHuc12 = useCallback(
+    (huc12Param) => {
+      fetchCheck(`${services.data.grts.getGRTSHUC12}${huc12Param}`)
         .then((res) => {
           setGrts({
             data: res,
@@ -1081,11 +1214,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   // Runs a query to get the plans for the selected huc.
   // Note: The actions page will attempt to look up the organization id.
-  const queryAttainsPlans = React.useCallback(
-    (huc12) => {
+  const queryAttainsPlans = useCallback(
+    (huc12Param) => {
       // get the plans for the selected huc
       fetchCheck(
-        `${services.data.attains.serviceUrl}plans?huc=${huc12}&summarize=Y`,
+        `${services.data.attains.serviceUrl}plans?huc=${huc12Param}&summarize=Y`,
         120000,
       )
         .then((res) => {
@@ -1105,13 +1238,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [setAttainsPlans, services],
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (mapServiceFailure) {
       setMapLoading(false);
     }
   }, [mapServiceFailure]);
 
-  const getFishingLinkData = React.useCallback(
+  const getFishingLinkData = useCallback(
     (states) => {
       setFishingInfo({ status: 'fetching', data: [] });
 
@@ -1152,11 +1285,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [setFishingInfo, services],
   );
 
-  const getWsioHealthIndexData = React.useCallback(
-    (huc12) => {
+  const getWsioHealthIndexData = useCallback(
+    (huc12Param) => {
       const url =
-        `${services.data.wsio}/query?where=HUC12_TEXT%3D%27${huc12}%27` +
-        '&outFields=HUC12_TEXT%2Cstates2013%2Cphwa_health_ndx_st_2016&returnGeometry=false&f=json';
+        `${services.data.wsio}/query?where=HUC12_TEXT%3D%27${huc12Param}%27` +
+        '&outFields=HUC12_TEXT%2CSTATES_ALL%2CPHWA_HEALTH_NDX_ST&returnGeometry=false&f=json';
 
       setWsioHealthIndexData({
         data: [],
@@ -1171,8 +1304,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           }
 
           const healthIndexData = res.features.map((feature) => ({
-            states: feature.attributes.states2013,
-            phwa_health_ndx_st_2016: feature.attributes.phwa_health_ndx_st_2016,
+            states: feature.attributes.STATES_ALL,
+            phwaHealthNdxSt: feature.attributes.PHWA_HEALTH_NDX_ST,
           }));
 
           setWsioHealthIndexData({
@@ -1188,7 +1321,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [setWsioHealthIndexData, services],
   );
 
-  const getWildScenicRivers = React.useCallback(
+  const getWildScenicRivers = useCallback(
     (boundaries) => {
       if (
         !boundaries ||
@@ -1232,10 +1365,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
         });
     },
-    [services, Query, QueryTask, setWildScenicRiversData],
+    [services, setWildScenicRiversData],
   );
 
-  const getProtectedAreas = React.useCallback(
+  const getProtectedAreas = useCallback(
     (boundaries) => {
       if (
         !boundaries ||
@@ -1248,6 +1381,15 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           status: 'success',
         });
         return;
+      }
+
+      function onError(error) {
+        console.error(error);
+        setProtectedAreasData({
+          data: [],
+          fields: [],
+          status: 'failure',
+        });
       }
 
       fetchCheck(`${services.data.protectedAreasDatabase}0?f=json`)
@@ -1284,37 +1426,20 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                 status: 'success',
               });
             })
-            .catch((err) => {
-              console.error(err);
-              setProtectedAreasData({
-                data: [],
-                fields: [],
-                status: 'failure',
-              });
-            });
+            .catch(onError);
         })
-        .catch((err) => {
-          console.error(err);
-          setProtectedAreasData({
-            data: [],
-            fields: [],
-            status: 'failure',
-          });
-        });
+        .catch(onError);
     },
-    [services, Query, QueryTask, setProtectedAreasData, setDynamicPopupFields],
+    [services, setProtectedAreasData, setDynamicPopupFields],
   );
 
-  const handleMapServices = React.useCallback(
-    (results) => {
+  const handleMapServices = useCallback(
+    (results, boundaries) => {
       // sort the parameters by highest percent to lowest
       results.items[0].summaryByParameterImpairments = results.items[0].summaryByParameterImpairments.sort(
         (a, b) => (a.catchmentSizePercent < b.catchmentSizePercent ? 1 : -1),
       );
-      setCipSummary({
-        status: 'success',
-        data: results,
-      });
+      setCipSummary({ status: 'success', data: results });
       setAssessmentUnitCount(results.items[0].assessmentUnits.length);
 
       const ids = results.items[0].assessmentUnits.map((item) => {
@@ -1326,9 +1451,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       const filter = `assessmentunitidentifier in (${createQueryString(ids)})`;
 
       setCheckedForOrphans(false);
-      retrieveLines(filter);
+      retrieveLines(filter, boundaries);
       retrievePoints(filter);
-      retrieveAreas(filter);
+      retrieveAreas(filter, boundaries);
     },
     [
       retrieveAreas,
@@ -1340,9 +1465,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     ],
   );
 
-  const processBoundariesData = React.useCallback(
+  const processBoundariesData = useCallback(
     (boundaries) => {
-      let huc12 = boundaries.features[0].attributes.huc12;
+      let huc12Param = boundaries.features[0].attributes.huc12;
 
       setHucBoundaries(boundaries);
       // queryNonprofits(boundaries); // re-add when EPA approves RiverNetwork service for HMW
@@ -1354,7 +1479,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       getFishingLinkData(boundaries.features[0].attributes.states);
 
       // get wsio health index data for the current huc
-      getWsioHealthIndexData(huc12);
+      getWsioHealthIndexData(huc12Param);
 
       // get Scenic River data for current huc boundaries
       getWildScenicRivers(boundaries);
@@ -1378,8 +1503,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       }
 
       fetchCheck(
-        `${services.data.attains.serviceUrl}huc12summary?huc=${huc12}`,
-      ).then(handleMapServices, handleMapServiceError);
+        `${services.data.attains.serviceUrl}huc12summary?huc=${huc12Param}`,
+      ).then(
+        (res) => handleMapServices(res, boundaries),
+        handleMapServiceError,
+      );
     },
     [
       getFishingLinkData,
@@ -1396,8 +1524,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     ],
   );
 
-  const [hucResponse, setHucResponse] = React.useState(null);
-  const handleHUC12 = React.useCallback(
+  const [hucResponse, setHucResponse] = useState(null);
+  const handleHUC12 = useCallback(
     (response) => {
       setHucResponse(response);
 
@@ -1406,7 +1534,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           let huc12Result = response.features[0].attributes.huc12;
           setHuc12(huc12Result);
           processBoundariesData(response);
-          queryMonitoringLocationService(huc12Result);
+          queryMonitoringStationService(huc12Result);
+          queryUsgsStreamgageService(huc12Result);
+          queryUsgsDailyValuesService(huc12Result);
           queryPermittedDischargersService(huc12Result);
           queryGrtsHuc12(huc12Result);
           queryAttainsPlans(huc12Result);
@@ -1430,7 +1560,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       processBoundariesData,
       queryAttainsPlans,
       queryGrtsHuc12,
-      queryMonitoringLocationService,
+      queryMonitoringStationService,
+      queryUsgsStreamgageService,
+      queryUsgsDailyValuesService,
       queryPermittedDischargersService,
       setHuc12,
       setNoDataAvailable,
@@ -1438,7 +1570,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     ],
   );
 
-  const processGeocodeServerResults = React.useCallback(
+  const processGeocodeServerResults = useCallback(
     (searchText, hucRes = null) => {
       const renderMapAndZoomTo = (longitude, latitude, callback) => {
         const location = {
@@ -1470,17 +1602,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       locator.outSpatialReference = SpatialReference.WebMercator;
 
       // Parse the search text to see if it is from a non-esri search suggestion
-      const { searchPart, coordinatesPart } = splitSuggestedSearch(
-        Point,
-        searchText,
-      );
+      const { searchPart, coordinatesPart } = splitSuggestedSearch(searchText);
 
       // Check if the search text contains coordinates.
       // First see if coordinates are part of a non-esri suggestion and
       // then see if the full text is coordinates
       let point = coordinatesPart
         ? coordinatesPart
-        : getPointFromCoordinates(Point, searchText);
+        : getPointFromCoordinates(searchText);
 
       let getCandidates;
       if (point === null) {
@@ -1673,13 +1802,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
     },
     [
-      Graphic,
-      Locator,
-      PictureMarkerSymbol,
-      Point,
-      Query,
-      QueryTask,
-      SpatialReference.WebMercator,
       handleHUC12,
       searchIconLayer,
       setAddress,
@@ -1692,7 +1814,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     ],
   );
 
-  const queryGeocodeServer = React.useCallback(
+  const queryGeocodeServer = useCallback(
     (searchText) => {
       searchText = searchText.trim();
 
@@ -1739,8 +1861,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       }
     },
     [
-      Query,
-      QueryTask,
       processGeocodeServerResults,
       setNoDataAvailable,
       setErrorMessage,
@@ -1748,7 +1868,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     ],
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (layers.length === 0 || searchText === lastSearchText) return;
 
     resetData();
@@ -1768,16 +1888,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   ]);
 
   // reset map when searchText is cleared (when navigating away from '/community')
-  React.useEffect(() => {
+  useEffect(() => {
     if (!searchText) {
       setHuc12('');
       setMapLoading(false);
     }
   }, [searchText, setHuc12]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (
-      !view ||
+      !mapView ||
       !hucBoundaries ||
       !hucBoundaries.features ||
       !hucBoundaries.features[0]
@@ -1815,25 +1935,23 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setCurrentExtent(currentViewpoint);
 
     homeWidget.viewpoint = currentViewpoint;
-    view.popup.close();
+    mapView.popup.close();
 
     // zoom to the graphic, and update the home widget, and close any popups
-    view.goTo(graphic).then(function () {
+    mapView.goTo(graphic).then(function () {
       setAtHucBoundaries(true);
     });
   }, [
-    view,
+    mapView,
     hucBoundaries,
-    Graphic,
     boundariesLayer.graphics,
-    Viewpoint,
     setCurrentExtent,
     setAtHucBoundaries,
     homeWidget,
   ]);
 
-  const [location, setLocation] = React.useState(null);
-  React.useEffect(() => {
+  const [location, setLocation] = useState(null);
+  useEffect(() => {
     if (!countyBoundaries || !hucResponse || !location) return;
 
     if (
@@ -1888,45 +2006,47 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     services,
   ]);
 
-  // const queryNonprofits = (boundaries) => {
-  //   if (
-  //     !boundariesLayer ||
-  //     !boundaries.features ||
-  //     boundaries.features.length === 0
-  //   ) {
-  //     setNonprofits({
-  //       data: [],
-  //       status: 'success',
-  //     });
-  //     return;
-  //   }
+  /* TODO - Add this code back in when EPA decides to bring back Nonprofits data
+  const queryNonprofits = (boundaries) => {
+    if (
+      !boundariesLayer ||
+      !boundaries.features ||
+      boundaries.features.length === 0
+    ) {
+      setNonprofits({
+        data: [],
+        status: 'success',
+      });
+      return;
+    }
 
-  //   const query = new Query({
-  //     geometry: boundaries.features[0].geometry,
-  //     returnGeometry: true,
-  //     spatialReference: 4326,
-  //     outFields: ['*'],
-  //   });
+    const query = new Query({
+      geometry: boundaries.features[0].geometry,
+      returnGeometry: true,
+      spatialReference: 4326,
+      outFields: ['*'],
+    });
 
-  //   new QueryTask({ url: nonprofits })
-  //     .execute(query)
-  //     .then((res) => {
-  //       console.log('nonprofits data: ', res);
-  //       setNonprofits({
-  //         data: res,
-  //         status: 'success'
-  //       });
-  //     })
-  //     .catch((err) => {
-  //       console.error(err);
-  //       setNonprofits({
-  //         data: [],
-  //         status: 'failure'
-  //       });
-  //     });
-  // };
+    new QueryTask({ url: nonprofits })
+      .execute(query)
+      .then((res) => {
+        console.log('nonprofits data: ', res);
+        setNonprofits({
+          data: res,
+          status: 'success'
+        });
+      })
+      .catch((err) => {
+        console.error(err);
+        setNonprofits({
+          data: [],
+          status: 'failure'
+        });
+      });
+  };
+  */
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (layout !== 'fullscreen') return;
 
     // scroll community content into view
@@ -1934,16 +2054,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     const content = document.querySelector(`[data-content="locationmap"]`);
     if (content) {
       let pos = content.getBoundingClientRect();
-      window.scrollTo(
-        pos.left + window.pageXOffset,
-        pos.top + window.pageYOffset,
-      );
+      window.scrollTo(pos.left + window.scrollX, pos.top + window.scrollY);
     }
   }, [layout, windowHeight]);
 
   // calculate height of div holding searchText
-  const [searchTextHeight, setSearchTextHeight] = React.useState(0);
-  const measuredRef = React.useCallback((node) => {
+  const [searchTextHeight, setSearchTextHeight] = useState(0);
+  const measuredRef = useCallback((node) => {
     if (!node) return;
     setSearchTextHeight(node.getBoundingClientRect().height);
   }, []);
@@ -1951,7 +2068,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // Used for shutting off the loading spinner after the waterbodyLayer is
   // added to the map and the view stops updating.
   const waterbodyFeatures = useWaterbodyFeatures();
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       (!waterbodyLayer || waterbodyFeatures === null) &&
       cipSummary.status !== 'failure'
@@ -1984,46 +2101,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               : windowHeight - searchTextHeight - 3 * mapPadding,
         }}
       >
-        <Map
-          style={{ position: 'absolute' }}
-          loaderOptions={{ url: esriApiUrl }}
-          mapProperties={{ basemap: getBasemap() }}
-          viewProperties={{
-            extent: initialExtent,
-            highlightOptions,
-          }}
-          layers={layers}
-          onLoad={(map, view) => {
-            setView(view);
-            setMapView(view);
-          }}
-          onFail={(err) => {
-            console.error(err);
-            setCommunityMapLoadError(true);
-            setView(null);
-            setMapView(null);
-            window.logToGa('send', 'exception', {
-              exDescription: `Community map failed to load - ${err}`,
-              exFatal: false,
-            });
-          }}
-        >
-          {/* manually passing map and view props to Map component's         */}
-          {/* children to satisfy flow, but map and view props are auto      */}
-          {/* passed from Map component to its children by react-arcgis      */}
-          <MapWidgets
-            map={null}
-            view={null}
-            layers={layers}
-            scrollToComponent="locationmap"
-          />
-
-          {/* manually passing map and view props to Map component's         */}
-          {/* children to satisfy flow, but map and view props are auto      */}
-          {/* passed from Map component to its children by react-arcgis      */}
-          <MapMouseEvents map={null} view={null} />
-        </Map>
-        {view && mapLoading && <MapLoadingSpinner />}
+        <Map layers={layers} />
+        {mapView && mapLoading && <MapLoadingSpinner />}
       </Container>
     </>
   );
@@ -2047,9 +2126,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 export default function LocationMapContainer({ ...props }: Props) {
   return (
     <MapErrorBoundary>
-      <EsriModulesContext.Consumer>
-        {(esriModules) => <LocationMap esriModules={esriModules} {...props} />}
-      </EsriModulesContext.Consumer>
+      <LocationMap {...props} />
     </MapErrorBoundary>
   );
 }

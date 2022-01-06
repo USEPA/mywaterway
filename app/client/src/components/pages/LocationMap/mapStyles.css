@@ -98,7 +98,7 @@
   color: white !important;
 }
 
-.esri-popup__header-title:hover {
+.esri-popup__header-container--button:hover {
   background-color: transparent;
 }
 
