@@ -84,9 +84,7 @@ export function fetchPost(
       return checkResponse(response);
     })
     .catch((err) => {
-      console.error(err);
-      logCallToGoogleAnalytics(apiUrl, err, startTime);
-      return checkResponse(err);
+      onError(err, apiUrl, startTime);
     });
 }
 
@@ -123,9 +121,7 @@ export function fetchPostForm(
       return checkResponse(response);
     })
     .catch((err) => {
-      console.error(err);
-      logCallToGoogleAnalytics(apiUrl, err, startTime);
-      return checkResponse(err);
+      onError(err, apiUrl, startTime);
     });
 }
 
@@ -162,9 +158,7 @@ export function fetchPostFile(
       return checkResponse(response);
     })
     .catch((err) => {
-      console.error(err);
-      logCallToGoogleAnalytics(apiUrl, err, startTime);
-      return checkResponse(err);
+      onError(err, apiUrl, startTime);
     });
 }
 
@@ -244,3 +238,10 @@ export const getEnvironmentString = function () {
 
   return envStringMap[window.location.hostname];
 };
+
+// Common error handler for fetch functions
+function onError(error, apiUrl, startTime) {
+  console.error(error);
+  logCallToGoogleAnalytics(apiUrl, error, startTime);
+  return checkResponse(error);
+}

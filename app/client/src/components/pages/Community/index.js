@@ -20,7 +20,6 @@ import {
 } from 'contexts/CommunityTabs';
 import { EsriMapProvider } from 'contexts/EsriMap';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
-import { OverviewFiltersProvider } from 'contexts/OverviewFilters';
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
 // config
 import { tabs } from './config.js';
@@ -226,11 +225,9 @@ export default function CommunityContainer({ ...props }: Props) {
     <EsriMapProvider>
       <CommunityTabsProvider>
         <MapHighlightProvider>
-          <OverviewFiltersProvider>
-            <FullscreenProvider>
-              <Community {...props} />
-            </FullscreenProvider>
-          </OverviewFiltersProvider>
+          <FullscreenProvider>
+            <Community {...props} />
+          </FullscreenProvider>
         </MapHighlightProvider>
       </CommunityTabsProvider>
     </EsriMapProvider>

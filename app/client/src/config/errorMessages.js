@@ -6,9 +6,13 @@ import React from 'react';
 export const echoError =
   'The permitted discharger information is temporarily unavailable, please try again later.';
 
-// waterqualitydata.us- Monitoring Location Service
+// labs.waterdata.usgs.gov - Monitoring Location Service
+export const streamgagesError =
+  'Current water conditions information is temporarily unavailable, please try again later.';
+
+// waterqualitydata.us - Monitoring Location Service
 export const monitoringError =
-  'Monitoring Location information is temporarily unavailable, please try again later.';
+  'Sample locations information is temporarily unavailable, please try again later.';
 
 // attains.epa.gov - Huc12summary Service
 export const huc12SummaryError =

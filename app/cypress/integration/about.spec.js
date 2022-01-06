@@ -17,9 +17,9 @@ describe('About page', () => {
 
     // verify that community search data is still there after clicking the Back button
     cy.findByText('Back').click();
-    cy.findByText(
-      'Overall condition of waterbodies in the San Pedro Creek watershed.',
-    ).should('exist');
+    cy.findByTestId('overview-waterbodies-accordion-title').contains(
+      'Overall condition of 8 waterbodies in the San Pedro Creek watershed.',
+    );
   });
 
   it('Test navigating to about page', () => {

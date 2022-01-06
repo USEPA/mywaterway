@@ -1,10 +1,10 @@
 // @flow
 
-import styled from 'styled-components';
+import { css } from 'styled-components';
 // styles
 import { fonts } from 'styles/index.js';
 
-const StyledBox = styled.div`
+const boxStyles = css`
   margin-bottom: 1.5em;
   padding-bottom: 0.4375rem;
   border: 1px solid #aebac3;
@@ -42,7 +42,7 @@ const StyledBox = styled.div`
   }
 `;
 
-const StyledBoxHeading = styled.h2`
+const boxHeadingStyles = css`
   margin-bottom: 0.4375rem;
   padding: 0.4375rem 0.875rem;
   border-bottom: 1px solid #aebac3;
@@ -53,8 +53,8 @@ const StyledBoxHeading = styled.h2`
   background-color: whitesmoke;
 `;
 
-const StyledBoxSection = styled.div`
+const boxSectionStyles = css`
   padding: 0.4375rem 0.875rem;
 `;
 
-export { StyledBox, StyledBoxHeading, StyledBoxSection };
+export { boxStyles, boxHeadingStyles, boxSectionStyles };

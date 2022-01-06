@@ -137,6 +137,11 @@ function Data({ ...props }: Props) {
           </StyledLinkButton>
         </li>
         <li>
+          <StyledLinkButton onClick={() => scrollToItem('current-conditions')}>
+            Current Water Conditions (USGS Stream Gages)
+          </StyledLinkButton>
+        </li>
+        <li>
           <StyledLinkButton onClick={() => scrollToItem('echo')}>
             Enforcement and Compliance History Online (ECHO)
           </StyledLinkButton>
@@ -225,6 +230,44 @@ function Data({ ...props }: Props) {
           <a href="attains" target="_blank" rel="noopener noreferrer">
             How ATTAINS data are grouped in How’s My Waterway
           </a>
+        </p>
+        <ScrollToTop />
+      </Item>
+
+      <hr />
+
+      <Item id="current-conditions">
+        <i className="fas fa-database" aria-hidden="true" />{' '}
+        <Title>Current Water Conditions (USGS Stream Gages)</Title>
+        <p>
+          <a
+            href="https://waterdata.usgs.gov/nwis/rt"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            USGS Stream Gages Data/System
+          </a>
+        </p>
+        <p>
+          Data and GIS files from the USGS current conditions can be found on
+          the{' '}
+          <a
+            href="https://waterdata.usgs.gov/nwis/sw"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            USGS website
+          </a>
+          .
+        </p>
+        <br />
+        <Question>
+          Where do I find USGS Stream Gage data in How’s My Waterway?
+        </Question>
+        <p>
+          Information from the USGS databases can be found on the Community page
+          on the Overview tab under Monitoring & Sensors, Current Water
+          Conditions.
         </p>
         <ScrollToTop />
       </Item>

@@ -1,7 +1,6 @@
 // @flow
 
 import React from 'react';
-import type { Node } from 'react';
 import styled from 'styled-components';
 
 // --- styled components ---
@@ -35,7 +34,7 @@ const Text = styled.h1`
 
 // --- components ---
 type Props = {
-  title: Node,
+  title: string,
   onBackClick?: Function,
 };
 
