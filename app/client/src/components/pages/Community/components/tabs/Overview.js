@@ -563,17 +563,17 @@ function MonitoringAndSensorsTab({
     if (!usgsDailyPrecipitation.data.value) return;
     if (normalizedUsgsStreamgages.length === 0) return;
 
-    const streamgageNames = normalizedUsgsStreamgages.map((gage) => {
-      return gage.locationName;
+    const streamgageSiteIds = normalizedUsgsStreamgages.map((gage) => {
+      return gage.siteId;
     });
 
     usgsDailyPrecipitation.data.value?.timeSeries.forEach((site) => {
-      const { siteName } = site.sourceInfo;
+      const siteId = site.sourceInfo.siteCode[0].value;
       const observation = site.values[0].value[0];
 
-      if (streamgageNames.includes(siteName)) {
+      if (streamgageSiteIds.includes(siteId)) {
         const streamgage = normalizedUsgsStreamgages.find((gage) => {
-          return gage.locationName === siteName;
+          return gage.siteId === siteId;
         });
 
         streamgage.streamgageMeasurements.primary.push({

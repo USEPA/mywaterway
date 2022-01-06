@@ -113,7 +113,7 @@ const moreLessRowStyles = css`
 
 const additionalTextStyles = css`
   font-style: italic;
-  color: ${colors.gray9};
+  color: ${colors.gray6};
 `;
 
 const popupIconStyles = css`
@@ -177,13 +177,6 @@ const changeWatershedContainerStyles = css`
   p {
     padding-bottom: 0;
   }
-`;
-
-const noMeasurementDataStyles = css`
-  padding-top: 0.75rem;
-  border-top: 1px solid #dee2e6;
-  font-style: italic;
-  text-align: center;
 `;
 
 type Props = {
@@ -1229,7 +1222,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
     locationUrl,
   } = feature.attributes;
 
-  const [secondaryMeasurementsShown, setSecondaryMeasurementsShown] =
+  const [additionalMeasurementsShown, setAdditionalMeasurementsShown] =
     useState(false);
 
   function addUniqueMeasurement(measurement, array) {
@@ -1267,6 +1260,11 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
       <UsgsStreamgageParameter data={data} index={index} />
     ));
 
+  const sortedMeasurements = [
+    ...sortedPrimaryMeasurements,
+    ...sortedSecondaryMeasurements,
+  ];
+
   return (
     <>
       <table className="table">
@@ -1298,65 +1296,57 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
         </tbody>
       </table>
 
-      {sortedPrimaryMeasurements.length === 0 &&
-      secondaryMeasurements.length === 0 ? (
-        <p css={noMeasurementDataStyles}>No data available.</p>
-      ) : (
-        <table css={tableStyles} className="table">
-          <thead>
+      <table css={tableStyles} className="table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Latest Measurement</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sortedMeasurements.length === 0 ? (
             <tr>
-              <th>Category</th>
-              <th>Latest Measurement</th>
+              <td>
+                <em>No data available.</em>
+              </td>
+              <td>&nbsp;</td>
             </tr>
-          </thead>
-          <tbody>
-            {sortedPrimaryMeasurements}
+          ) : sortedMeasurements.length <= 10 ? (
+            <>{sortedMeasurements}</>
+          ) : (
+            <>
+              {sortedMeasurements.slice(0, 10)}
 
-            {sortedSecondaryMeasurements.length > 0 && (
-              <>
-                {sortedPrimaryMeasurements.length === 0 ? (
-                  <>{sortedSecondaryMeasurements}</>
-                ) : (
-                  <>
-                    <tr>
-                      <td css={moreLessRowStyles} colSpan={2}>
-                        <button
-                          css={buttonStyles}
-                          onClick={(ev) => {
-                            setSecondaryMeasurementsShown(
-                              !secondaryMeasurementsShown,
-                            );
-                          }}
-                        >
-                          {secondaryMeasurementsShown ? (
-                            <>
-                              <i
-                                className="fas fa-angle-down"
-                                aria-hidden="true"
-                              />
-                              &nbsp;&nbsp;Show less categories
-                            </>
-                          ) : (
-                            <>
-                              <i
-                                className="fas fa-angle-right"
-                                aria-hidden="true"
-                              />
-                              &nbsp;&nbsp;Show more categories
-                            </>
-                          )}
-                        </button>
-                      </td>
-                    </tr>
+              <tr>
+                <td css={moreLessRowStyles} colSpan={2}>
+                  <button
+                    css={buttonStyles}
+                    onClick={(ev) => {
+                      setAdditionalMeasurementsShown(
+                        !additionalMeasurementsShown,
+                      );
+                    }}
+                  >
+                    {additionalMeasurementsShown ? (
+                      <>
+                        <i className="fas fa-angle-down" aria-hidden="true" />
+                        &nbsp;&nbsp;Show less categories
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-angle-right" aria-hidden="true" />
+                        &nbsp;&nbsp;Show more categories
+                      </>
+                    )}
+                  </button>
+                </td>
+              </tr>
 
-                    {secondaryMeasurementsShown && sortedSecondaryMeasurements}
-                  </>
-                )}
-              </>
-            )}
-          </tbody>
-        </table>
-      )}
+              {additionalMeasurementsShown && sortedMeasurements.slice(10)}
+            </>
+          )}
+        </tbody>
+      </table>
 
       <div>
         <a rel="noopener noreferrer" target="_blank" href={locationUrl}>
@@ -1393,7 +1383,7 @@ function UsgsStreamgageParameter({ data, index }) {
       <td>
         {data.multiple ? (
           <>
-            <em>multiple measurements</em>
+            <em>multiple measurements found</em>
             <br />
             <small css={additionalTextStyles}>
               see “More Information” link below
