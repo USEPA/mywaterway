@@ -1311,7 +1311,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
               </td>
               <td>&nbsp;</td>
             </tr>
-          ) : sortedMeasurements.length < 10 ? (
+          ) : sortedMeasurements.length <= 10 ? (
             <>{sortedMeasurements}</>
           ) : (
             <>
