@@ -1,20 +1,20 @@
 // @flow
 
-import styled from 'styled-components';
+import { css } from 'styled-components';
 
-const StyledContainer = styled.div`
+const splitLayoutContainerStyles = css`
   /* match homepage max-width */
   margin: auto;
   max-width: 1164px;
 `;
 
-const StyledColumns = styled.div`
+const splitLayoutColumnsStyles = css`
   display: flex;
   flex-flow: row wrap;
   padding: 0.75em;
 `;
 
-const StyledColumn = styled.div`
+const splitLayoutColumnStyles = css`
   padding: 0.75em;
   width: 100%;
 
@@ -23,4 +23,8 @@ const StyledColumn = styled.div`
   }
 `;
 
-export { StyledContainer, StyledColumns, StyledColumn };
+export {
+  splitLayoutContainerStyles,
+  splitLayoutColumnsStyles,
+  splitLayoutColumnStyles,
+};

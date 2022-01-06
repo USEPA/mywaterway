@@ -3,11 +3,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
+import Graphic from '@arcgis/core/Graphic';
 // components
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
-import MapPopup from 'components/shared/MapPopup';
+import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 // styles
 import { colors } from 'styles/index.js';
+// utilities
+import { getSelectedCommunityTab } from 'utils/utils';
 
 const waterbodyStatuses = {
   good: { condition: 'good', label: 'Good' },
@@ -54,7 +57,14 @@ export function getWaterbodyCondition(
   }
 }
 
-export function createUniqueValueInfos(geometryType: string) {
+export function createUniqueValueInfos(
+  geometryType: string,
+  alpha: {
+    base: number,
+    poly: number,
+    outline: number,
+  } | null,
+) {
   return [
     {
       value: `Fully Supporting`,
@@ -62,6 +72,7 @@ export function createUniqueValueInfos(geometryType: string) {
         condition: 'good',
         selected: false,
         geometryType,
+        alpha,
       }),
     },
     {
@@ -70,6 +81,7 @@ export function createUniqueValueInfos(geometryType: string) {
         condition: 'polluted',
         selected: false,
         geometryType,
+        alpha,
       }),
     },
     {
@@ -78,6 +90,7 @@ export function createUniqueValueInfos(geometryType: string) {
         condition: 'unassessed',
         selected: false,
         geometryType,
+        alpha,
       }),
     },
     {
@@ -86,6 +99,7 @@ export function createUniqueValueInfos(geometryType: string) {
         condition: 'unassessed',
         selected: false,
         geometryType,
+        alpha,
       }),
     },
     {
@@ -94,6 +108,7 @@ export function createUniqueValueInfos(geometryType: string) {
         condition: 'good',
         selected: false,
         geometryType,
+        alpha,
       }),
     },
     {
@@ -102,6 +117,109 @@ export function createUniqueValueInfos(geometryType: string) {
         condition: 'polluted',
         selected: false,
         geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `Y`,
+      symbol: createWaterbodySymbol({
+        condition: 'nostatus',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `N`,
+      symbol: createWaterbodySymbol({
+        condition: 'hidden',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+  ];
+}
+
+export function createUniqueValueInfosRestore(
+  geometryType: string,
+  alpha: {
+    base: number,
+    poly: number,
+    outline: number,
+  } | null,
+) {
+  return [
+    {
+      value: `N, N, N`,
+      symbol: createWaterbodySymbol({
+        condition: 'hidden',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `N, N, Y`,
+      symbol: createWaterbodySymbol({
+        condition: 'nostatus',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `N, Y, N`,
+      symbol: createWaterbodySymbol({
+        condition: 'nostatus',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `N, Y, Y`,
+      symbol: createWaterbodySymbol({
+        condition: 'nostatus',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `Y, N, N`,
+      symbol: createWaterbodySymbol({
+        condition: 'nostatus',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `Y, N, Y`,
+      symbol: createWaterbodySymbol({
+        condition: 'nostatus',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `Y, Y, N`,
+      symbol: createWaterbodySymbol({
+        condition: 'nostatus',
+        selected: false,
+        geometryType,
+        alpha,
+      }),
+    },
+    {
+      value: `Y, Y, Y`,
+      symbol: createWaterbodySymbol({
+        condition: 'hidden',
+        selected: false,
+        geometryType,
+        alpha,
       }),
     },
   ];
@@ -132,14 +250,20 @@ export function createWaterbodySymbol({
   condition,
   selected,
   geometryType = 'point',
+  alpha = null,
 }: {
-  condition: 'good' | 'polluted' | 'unassessed' | 'hidden',
+  condition: 'good' | 'polluted' | 'unassessed' | 'nostatus' | 'hidden',
   selected: boolean,
   geometryType: string,
+  alpha: {
+    base: number,
+    poly: number,
+    outline: number,
+  } | null,
 }) {
   const outline = selected
-    ? { color: [0, 255, 255, 0.5], width: 1 }
-    : { color: [0, 0, 0, 1], width: 1 };
+    ? { color: [0, 255, 255, alpha ? alpha.outline : 0.5], width: 1 }
+    : { color: [0, 0, 0, alpha ? alpha.outline : 1], width: 1 };
 
   // from colors.highlightedPurple() and colors.purple()
   let color = selected ? { r: 84, g: 188, b: 236 } : { r: 107, g: 65, b: 149 };
@@ -151,9 +275,16 @@ export function createWaterbodySymbol({
     // from colors.highlightedRed() and colors.red()
     color = selected ? { r: 124, g: 157, b: 173 } : { r: 203, g: 34, b: 62 };
   }
+  if (condition === 'nostatus') {
+    color = selected ? { r: 93, g: 153, b: 227 } : { r: 0, g: 123, b: 255 };
+  }
 
   // for polygons, add transparency to the color so that lines can be seen
   if (geometryType === 'polygon') color.a = 0.75;
+  if (alpha) {
+    color.a = alpha.base;
+    if (geometryType === 'polygon') color.a = alpha.poly;
+  }
 
   let symbol = {
     type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
@@ -171,7 +302,7 @@ export function createWaterbodySymbol({
   }
 
   if (geometryType === 'point') {
-    if (condition === 'good') {
+    if (condition === 'good' || condition === 'nostatus') {
       symbol.style = 'circle';
     }
 
@@ -198,14 +329,16 @@ export function createWaterbodySymbol({
   }
 
   if (geometryType === 'polygon') {
-    const outline = selected ? { color: [0, 255, 255, 0.5], width: 3 } : null;
+    const polyOutline = selected
+      ? { color: [0, 255, 255, alpha ? alpha.outline : 0.5], width: 3 }
+      : null;
 
     return {
       type: 'simple-fill', // autocasts as SimpleFillSymbol()
       color,
       width: 3,
       style: 'solid',
-      outline,
+      outline: polyOutline,
     };
   }
 }
@@ -218,36 +351,32 @@ export function isIE() {
 
 // plot monitoring stations on map
 export function plotStations(
-  Graphic: any,
   stations: Array<Object>,
   layer: any,
   services: Object,
 ) {
   if (!stations || !layer) return;
 
-  // clear the layer
   layer.graphics.removeAll();
 
-  // put graphics on the layer
   stations.forEach((station) => {
-    station.properties.fullPopup = false;
     layer.graphics.add(
       new Graphic({
         geometry: {
-          type: 'point', // autocasts as new Point()
-          longitude: station.x,
-          latitude: station.y,
+          type: 'point',
+          longitude: station.locationLongitude,
+          latitude: station.locationLatitude,
         },
         symbol: {
-          type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
+          type: 'simple-marker',
           style: 'square',
           color: colors.lightPurple(),
         },
-        attributes: station.properties,
+        attributes: station,
         popupTemplate: {
-          title: getPopupTitle(station.properties),
+          title: getPopupTitle(station),
           content: getPopupContent({
-            feature: { attributes: station.properties },
+            feature: { attributes: station },
             services,
           }),
         },
@@ -256,8 +385,40 @@ export function plotStations(
   });
 }
 
+// plot usgs streamgages on map
+export function plotGages(gages: Object[], layer: any) {
+  if (!gages || !layer) return;
+
+  const graphics = gages.map((gage) => {
+    const gageHeightMeasurements = gage.streamgageMeasurements.primary.filter(
+      (d) => d.parameterCode === '00065',
+    );
+
+    const gageHeight =
+      gageHeightMeasurements.length === 1
+        ? gageHeightMeasurements[0]?.measurement
+        : null;
+
+    return new Graphic({
+      geometry: {
+        type: 'point',
+        longitude: gage.locationLongitude,
+        latitude: gage.locationLatitude,
+      },
+      attributes: { gageHeight, ...gage },
+    });
+  });
+
+  layer.queryFeatures().then((featureSet) => {
+    layer.applyEdits({
+      deleteFeatures: featureSet.features,
+      addFeatures: graphics,
+    });
+  });
+}
+
 // plot issues on map
-export function plotIssues(Graphic: any, features: Array<Object>, layer: any) {
+export function plotIssues(features: Array<Object>, layer: any) {
   if (!features || !layer) return;
 
   // clear the layer
@@ -290,11 +451,7 @@ export function plotIssues(Graphic: any, features: Array<Object>, layer: any) {
 }
 
 // plot wild and scenic rivers on map
-export function plotWildScenicRivers(
-  Graphic: any,
-  features: Array<Object>,
-  layer: any,
-) {
+export function plotWildScenicRivers(features: Array<Object>, layer: any) {
   if (!features || !layer) return;
 
   // clear the layer
@@ -326,11 +483,9 @@ export function plotWildScenicRivers(
 
 // plot facilities on map
 export function plotFacilities({
-  Graphic,
   facilities,
   layer,
 }: {
-  Graphic: any,
   facilities: Array<Object>,
   layer: any,
 }) {
@@ -370,10 +525,6 @@ export const openPopup = (
   fields: Object,
   services: Object,
 ) => {
-  // tell the getPopupContent function to use the full popup version that includes the service call
-  if (feature.attributes && feature.attributes.MonitoringLocationName) {
-    feature.attributes.fullPopup = true;
-  }
   const fieldName = feature.attributes && feature.attributes.fieldName;
 
   // set the popup template
@@ -446,9 +597,12 @@ export function getPopupTitle(attributes: Object) {
     title = attributes.CWPName;
   }
 
-  // monitoring location
-  else if (attributes.MonitoringLocationName) {
-    title = attributes.MonitoringLocationName;
+  // monitoring station
+  else if (
+    attributes.monitoringType === 'Sample Location' ||
+    attributes.monitoringType === 'Current Water Conditions'
+  ) {
+    title = attributes.locationName;
   }
 
   // protect tab teal nonprofits
@@ -487,8 +641,8 @@ export function getPopupTitle(attributes: Object) {
   }
 
   // WSIO Health Index
-  else if (attributes.phwa_health_ndx_st_2016) {
-    title = attributes.name_huc12;
+  else if (attributes.PHWA_HEALTH_NDX_ST) {
+    title = attributes.NAME_HUC12;
   }
 
   // Protected areas
@@ -533,9 +687,17 @@ export function getPopupContent({
 
   // line, area, point for waterbody
   else if (attributes && attributes.assessmentunitname) {
-    type = document.location.pathname.includes('advanced-search')
-      ? 'Waterbody State Overview'
-      : 'Waterbody';
+    const communityTab = getSelectedCommunityTab();
+    const pathname = document.location.pathname;
+    const isAllWaterbodiesLayer =
+      feature.layer?.parent?.id === 'allWaterbodiesLayer';
+
+    type = 'Waterbody';
+    if (pathname.includes('advanced-search')) type = 'Waterbody State Overview';
+    if (!isAllWaterbodiesLayer) {
+      if (communityTab === 'restore') type = 'Restoration Plans';
+      if (communityTab === 'protect') type = 'Protection Plans';
+    }
   }
 
   // discharger
@@ -543,18 +705,17 @@ export function getPopupContent({
     type = 'Permitted Discharger';
   }
 
-  // monitoring location popup
+  // usgs streamgage
   else if (
     attributes &&
-    attributes.MonitoringLocationName &&
-    attributes.fullPopup === false
+    attributes.monitoringType === 'Current Water Conditions'
   ) {
-    type = 'Monitoring Location Map Popup';
+    type = 'Current Water Conditions';
   }
 
-  // monitoring location accordion
-  else if (attributes && attributes.MonitoringLocationName) {
-    type = 'Monitoring Location';
+  // monitoring station
+  else if (attributes && attributes.monitoringType === 'Sample Location') {
+    type = 'Sample Location';
   }
 
   // protect tab teal nonprofits
@@ -598,7 +759,7 @@ export function getPopupContent({
   }
 
   // WSIO Health Index
-  else if (attributes.phwa_health_ndx_st_2016) {
+  else if (attributes.PHWA_HEALTH_NDX_ST) {
     type = 'State Watershed Health Index';
   }
 
@@ -613,10 +774,11 @@ export function getPopupContent({
   }
 
   const content = (
-    <MapPopup
+    <WaterbodyInfo
       type={type}
       feature={feature}
       fieldName={fieldName}
+      isPopup={true}
       extraContent={extraContent}
       getClickedHuc={getClickedHuc}
       resetData={resetData}
@@ -633,8 +795,8 @@ export function getPopupContent({
   return contentContainer;
 }
 
-export function getUniqueWaterbodies(waterbodies: Array<Object>) {
-  if (!waterbodies) return null;
+export function getUniqueWaterbodies(waterbodies: Object[]) {
+  if (!waterbodies) return [];
 
   const flags = {};
   return waterbodies.filter((waterbody) => {
@@ -798,4 +960,21 @@ export function gradientIcon({ id, stops }) {
       </tbody>
     </table>
   );
+}
+
+// Gets the highlight symbol styles based on the provided geometry.
+export function getHighlightSymbol(geometry, color) {
+  let symbol: Object = { color };
+  if (geometry.type === 'polyline') {
+    symbol['type'] = 'simple-line';
+    symbol['width'] = 5;
+  } else if (geometry.type === 'polygon') {
+    symbol['type'] = 'simple-fill';
+    symbol['outline'] = { color, width: 2 };
+  } else if (geometry.type === 'point' || geometry.type === 'multipoint') {
+    symbol['type'] = 'simple-marker';
+    symbol['outline'] = { color, width: 2 };
+  }
+
+  return symbol;
 }

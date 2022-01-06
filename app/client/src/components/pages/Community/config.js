@@ -180,8 +180,8 @@ const monitoringUpper = (
       concerns.
     </p>
     <p>
-      View available monitoring locations in your local watershed or view by
-      category.
+      View available monitoring sample locations in your local watershed or view
+      by category.
     </p>
     <Disclaimer>
       <p>
@@ -243,7 +243,8 @@ const tabs = [
     lower: <Overview />,
     layers: {
       waterbodyLayer: true,
-      monitoringStationsLayer: false,
+      monitoringLocationsLayer: false,
+      usgsStreamgagesLayer: false,
       dischargersLayer: false,
     },
   },
@@ -290,7 +291,8 @@ const tabs = [
     upper: monitoringUpper,
     lower: <Monitoring />,
     layers: {
-      monitoringStationsLayer: true,
+      dischargersLayer: false,
+      monitoringLocationsLayer: true,
       waterbodyLayer: false,
     },
   },

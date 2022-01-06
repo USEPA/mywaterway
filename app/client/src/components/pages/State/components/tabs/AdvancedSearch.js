@@ -5,6 +5,8 @@ import styled from 'styled-components';
 import { useWindowSize } from '@reach/window-size';
 import Select, { createFilter } from 'react-select';
 import { CellMeasurer, CellMeasurerCache, List } from 'react-virtualized';
+import Query from '@arcgis/core/rest/support/Query';
+import QueryTask from '@arcgis/core/tasks/QueryTask';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -61,14 +63,10 @@ function retrieveMaxRecordCount(url) {
 // Gets the features without geometry for quickly displaying in the
 // waterbody list component.
 function retrieveFeatures({
-  Query,
-  QueryTask,
   url,
   queryParams,
   maxRecordCount,
 }: {
-  Query: any,
-  QueryTask: any,
   url: string,
   queryParams: Object,
   maxRecordCount: number,
@@ -236,7 +234,6 @@ function AdvancedSearch({ ...props }: Props) {
   const { fullscreenActive } = React.useContext(FullscreenContext);
 
   const {
-    esriHelper,
     mapView,
 
     waterbodyData,
@@ -321,15 +318,12 @@ function AdvancedSearch({ ...props }: Props) {
   React.useEffect(() => {
     if (activeState.code === '' || !watershedsLayerMaxRecordCount) return;
 
-    const { Query, QueryTask } = esriHelper.modules;
     const queryParams = {
       where: `UPPER(STATES) LIKE '%${activeState.code}%' AND STATES <> 'CAN' AND STATES <> 'MEX'`,
       outFields: ['huc12', 'name'],
     };
 
     retrieveFeatures({
-      Query,
-      QueryTask,
       url: services.data.wbd,
       queryParams,
       maxRecordCount: watershedsLayerMaxRecordCount,
@@ -352,7 +346,7 @@ function AdvancedSearch({ ...props }: Props) {
         setServiceError(true);
         setWatersheds([]);
       });
-  }, [esriHelper, activeState, watershedsLayerMaxRecordCount, services]);
+  }, [activeState, watershedsLayerMaxRecordCount, services]);
 
   // Get the maxRecordCount of the summary (waterbody) layer
   const [summaryMrcError, setSummaryMrcError] = React.useState(false);
@@ -386,8 +380,6 @@ function AdvancedSearch({ ...props }: Props) {
       return;
     }
 
-    const { Query, QueryTask } = esriHelper.modules;
-
     // query for initial load
     if (!currentFilter) {
       const queryParams = {
@@ -402,8 +394,6 @@ function AdvancedSearch({ ...props }: Props) {
       };
 
       retrieveFeatures({
-        Query,
-        QueryTask,
         url: services.data.waterbodyService.summary,
         queryParams,
         maxRecordCount: summaryLayerMaxRecordCount,
@@ -450,8 +440,6 @@ function AdvancedSearch({ ...props }: Props) {
       };
 
       retrieveFeatures({
-        Query,
-        QueryTask,
         url: services.data.waterbodyService.summary,
         queryParams,
         maxRecordCount: summaryLayerMaxRecordCount,
@@ -465,7 +453,6 @@ function AdvancedSearch({ ...props }: Props) {
         });
     }
   }, [
-    esriHelper,
     setWaterbodyData,
     currentFilter,
     summaryLayerMaxRecordCount,
@@ -525,8 +512,6 @@ function AdvancedSearch({ ...props }: Props) {
   React.useEffect(() => {
     if (!nextFilter || serviceError) return;
 
-    const { Query, QueryTask } = esriHelper.modules;
-
     let query = new Query({
       returnGeometry: false,
       where: nextFilter,
@@ -550,7 +535,7 @@ function AdvancedSearch({ ...props }: Props) {
         setNextFilter('');
         setServiceError(true);
       });
-  }, [esriHelper, serviceError, nextFilter, services]);
+  }, [serviceError, nextFilter, services]);
 
   const [
     newDisplayOptions,
@@ -765,7 +750,7 @@ function AdvancedSearch({ ...props }: Props) {
     setNewDisplayOptions(newDisplayOptions);
   }, [parameterFilter, useFilter]);
 
-  useWaterbodyOnMap(selectedDisplayOption.value, 'unassessed');
+  useWaterbodyOnMap(selectedDisplayOption.value, '', 'unassessed');
 
   // jsx
   const filterControls = (

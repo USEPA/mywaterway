@@ -24,25 +24,25 @@
     "Courtney Myers <courtney.myers@erg.com>"
   ],
   "engines": {
-    "node": "14.x"
+    "node": "16.x"
   },
   "scripts": {
     "client": "cd client && npm start",
-    "coverage_client": "cd client && npm run coverage",
+    "client:coverage": "cd client && npm run coverage",
     "server": "cd server && npm start",
-    "start": "concurrently --kill-others \"npm run server\" \"npm run client\"",
+    "start": "concurrently -kc \"blue.dim,green.dim\" \"npm:server\" \"npm:client\"",
     "setup": "echo \"Installing project dependencies...\" && npm ci && echo \"Installing client dependencies...\" && cd client && npm ci && echo \"Installing server dependencies...\" && cd .. && cd server && npm ci",
-    "cypress": "concurrently --kill-others \"npm run server\" \"npm run client\" \"cypress open\"",
-    "coverage": "concurrently --kill-others \"npm run server\" \"npm run coverage_client\" \"cypress open\""
+    "cypress": "concurrently -kc \"blue.dim,green.dim\" \"npm:server\" \"npm:client\" \"cypress open\"",
+    "coverage": "concurrently -kc \"blue.dim,green.dim\" \"npm:server\" \"npm:client:coverage\" \"cypress open\""
   },
   "devDependencies": {
-    "@cypress/code-coverage": "3.9.5",
-    "@testing-library/cypress": "7.0.6",
-    "concurrently": "6.0.2",
-    "cypress": "6.5.0",
+    "@cypress/code-coverage": "3.9.12",
+    "@testing-library/cypress": "8.0.2",
+    "concurrently": "7.0.0",
+    "cypress": "9.2.0",
     "cypress-image-snapshot": "4.0.1",
-    "eslint-plugin-cypress": "2.11.3",
-    "istanbul-lib-coverage": "3.0.0",
+    "eslint-plugin-cypress": "2.12.1",
+    "istanbul-lib-coverage": "3.2.0",
     "nyc": "15.1.0"
   },
   "eslintConfig": {
