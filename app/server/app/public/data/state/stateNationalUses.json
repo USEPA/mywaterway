@@ -1019,14 +1019,14 @@
     "state": "CO",
     "name": "Aquatic Life Cold Water-Class 1",
     "category": "Ecological Life",
-    "surveyuseCode": ""
+    "surveyuseCode": "Aquatic Life Use"
   },
   {
     "region": 8,
     "state": "CO",
     "name": "Aquatic Life Cold Water-Class 2",
     "category": "Ecological Life",
-    "surveyuseCode": ""
+    "surveyuseCode": "Aquatic Life Use"
   },
   {
     "region": 8,
@@ -1054,14 +1054,14 @@
     "state": "CO",
     "name": "Aquatic Life Warm Water-Class 1",
     "category": "Ecological Life",
-    "surveyuseCode": ""
+    "surveyuseCode": "Aquatic Life Use"
   },
   {
     "region": 8,
     "state": "CO",
     "name": "Aquatic Life Warm Water-Class 2",
     "category": "Ecological Life",
-    "surveyuseCode": ""
+    "surveyuseCode": "Aquatic Life Use"
   },
   {
     "region": 8,
@@ -1180,7 +1180,7 @@
     "state": "CT",
     "name": "Habitat for Fish, Other Aquatic Life and Wildlife",
     "category": "Ecological Life",
-    "surveyuseCode": ""
+    "surveyuseCode": "AQUATIC LIFE"
   },
   {
     "region": 1,
@@ -2755,7 +2755,7 @@
     "state": "MA",
     "name": "Fish, other Aquatic Life and Wildlife",
     "category": "Ecological Life",
-    "surveyuseCode": ""
+    "surveyuseCode": "Aquatic Life"
   },
   {
     "region": 1,
@@ -2783,7 +2783,7 @@
     "state": "MA",
     "name": "Primary Contact Recreation",
     "category": "Recreation",
-    "surveyuseCode": ""
+    "surveyuseCode": "Recreation – Primary Contact"
   },
   {
     "region": 1,
@@ -2804,7 +2804,7 @@
     "state": "MA",
     "name": "Secondary Contact Recreation",
     "category": "Recreation",
-    "surveyuseCode": ""
+    "surveyuseCode": "Recreation – Secondary Contact"
   },
   {
     "region": 1,
@@ -3334,7 +3334,7 @@
   {
     "region": 7,
     "state": "MO",
-    "name": "Protection of Warm Water Aquatic Life and Human Health--Fish Consumption ",
+    "name": "Protection of Warm Water Aquatic Life and Human Health--Fish Consumption",
     "category": "Ecological Life",
     "surveyuseCode": "AQUATIC LIFE"
   },
@@ -3383,6 +3383,13 @@
   {
     "region": 9,
     "state": "MP",
+    "name": "RECREATIONAL USE",
+    "category": "Recreation",
+    "surveyuseCode": ""
+  },
+  {
+    "region": 9,
+    "state": "MP",
     "name": "AESTHETIC, OTHERS",
     "category": "Other",
     "surveyuseCode": ""
@@ -3392,20 +3399,6 @@
     "state": "MP",
     "name": "AQUATIC LIFE",
     "category": "Ecological Life",
-    "surveyuseCode": ""
-  },
-  {
-    "region": 9,
-    "state": "MP",
-    "name": "AQUATIC LIFE USE",
-    "category": "Ecological Life",
-    "surveyuseCode": ""
-  },
-  {
-    "region": 9,
-    "state": "MP",
-    "name": "FISH CONSUMPTION",
-    "category": "Fish and Shellfish Consumption",
     "surveyuseCode": ""
   },
   {
@@ -3425,8 +3418,15 @@
   {
     "region": 9,
     "state": "MP",
-    "name": "RECREATIONAL USE",
-    "category": "Recreation",
+    "name": "AQUATIC LIFE USE",
+    "category": "Ecological Life",
+    "surveyuseCode": ""
+  },
+  {
+    "region": 9,
+    "state": "MP",
+    "name": "FISH CONSUMPTION",
+    "category": "Fish and Shellfish Consumption",
     "surveyuseCode": ""
   },
   {

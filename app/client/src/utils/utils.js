@@ -1,5 +1,7 @@
 // @flow
 
+import Point from '@arcgis/core/geometry/Point';
+
 // utility function to split up an array into chunks of a designated length
 function chunkArray(array: any, chunkLength: number): Array<Array<any>> {
   const chunks = [];
@@ -92,7 +94,7 @@ function titleCaseWithExceptions(string: string) {
 // Determines whether or not the input string is a HUC12 or not.
 // Returns true if the string is a HUC12 and false if not.
 function isHuc12(string: string) {
-  return /^[0-9]{12}$/.test(string);
+  return /^\d{12}$/.test(string);
 }
 
 function createSchema(huc12, watershed) {
@@ -145,7 +147,7 @@ function createMarkup(message) {
 
 // Determines if the input text is a string representing coordinates.
 // If so the coordinates are converted to an Esri Point object.
-function getPointFromCoordinates(Point, text) {
+function getPointFromCoordinates(text) {
   const regex = /^(-?\d+(\.\d*)?)[\s,]+(-?\d+(\.\d*)?)$/;
   let point = null;
   if (regex.test(text)) {
@@ -164,13 +166,13 @@ function getPointFromCoordinates(Point, text) {
 // Determines if the input text is a string that contains coordinates.
 // The return value is an object containing the esri point for the coordinates (coordinatesPart)
 // and any remaining text (searchPart).
-function splitSuggestedSearch(Point, text) {
+function splitSuggestedSearch(text) {
   // split search
   const parts = text.split('|');
 
   // get the coordinates part (is last item)
   const tempCoords = parts[parts.length - 1];
-  const coordinatesPart = getPointFromCoordinates(Point, tempCoords);
+  const coordinatesPart = getPointFromCoordinates(tempCoords);
 
   // remove the coordinates part from initial array
   let coordinatesString = '';
@@ -280,6 +282,58 @@ function escapeRegex(str) {
   return str.replace(/([.*+?^=!:${}()|\]\\])/g, '\\$1');
 }
 
+// Gets the selected community tab from the url
+function getSelectedCommunityTab() {
+  const pathParts = window.location.pathname.substring(1).split('/');
+  let selectedCommunityTab = '';
+  if (pathParts.length === 3 && pathParts[0] === 'community') {
+    selectedCommunityTab = pathParts[2];
+  }
+
+  return selectedCommunityTab.toLowerCase();
+}
+
+// Normalizes string for comparisons.
+function normalizeString(str: string) {
+  return str.trim().toUpperCase();
+}
+
+// Summarizes assessment counts by the status of the provided fieldname.
+function summarizeAssessments(waterbodies: Array<Object>, fieldName: string) {
+  const summary = {
+    total: 0,
+    unassessed: 0,
+    'Not Supporting': 0,
+    'Fully Supporting': 0,
+    'Insufficient Information': 0,
+    'Not Assessed': 0,
+    'Not Applicable': 0,
+  };
+
+  // ids will contain unique assessment unit id's of each waterbody,
+  // to ensure we don't count a unique waterbody more than once
+  const ids = [];
+
+  waterbodies?.forEach((graphic) => {
+    const field = graphic.attributes[fieldName];
+    const { assessmentunitidentifier: id } = graphic.attributes;
+
+    if (!field || field === 'X') {
+      summary['Not Applicable']++;
+    } else {
+      if (ids.indexOf(id) === -1) {
+        ids.push(id);
+        if (field === 'Not Supporting' || field === 'Fully Supporting') {
+          summary.total++;
+        }
+        summary[field]++;
+      }
+    }
+  });
+
+  return summary;
+}
+
 export {
   chunkArray,
   containsScriptTag,
@@ -300,4 +354,7 @@ export {
   browserIsCompatibleWithArcGIS,
   convertAgencyCode,
   convertDomainCode,
+  getSelectedCommunityTab,
+  normalizeString,
+  summarizeAssessments,
 };

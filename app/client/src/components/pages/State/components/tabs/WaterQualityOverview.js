@@ -31,7 +31,7 @@ import {
 } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
-import { titleCase } from 'utils/utils';
+import { normalizeString, titleCase } from 'utils/utils';
 // images
 import drinkingWaterIcon from 'components/pages/Community/images/drinking-water.png';
 // errors
@@ -675,7 +675,7 @@ function WaterQualityOverview({ ...props }: Props) {
     stateNationalUses.data.forEach((item) => {
       if (item.state === activeState.code && item.category === category) {
         // make sure to use upper case to prevent duplicate uses
-        possibleUses[item.name.toUpperCase()] = item;
+        possibleUses[normalizeString(item.name)] = item;
       }
     });
 
@@ -701,7 +701,7 @@ function WaterQualityOverview({ ...props }: Props) {
             let hasUse = false;
             item.useAttainments.forEach((use) => {
               if (
-                topicUses.hasOwnProperty(use.useName.toUpperCase()) &&
+                topicUses.hasOwnProperty(normalizeString(use.useName)) &&
                 hasUseValues(use)
               ) {
                 hasUse = true;
@@ -731,7 +731,7 @@ function WaterQualityOverview({ ...props }: Props) {
     if (waterTypeData) {
       waterTypeData.forEach((waterTypeItem) => {
         waterTypeItem['useAttainments'].forEach((use) => {
-          let useName = use.useName.toUpperCase();
+          let useName = normalizeString(use.useName);
           if (topicUses.hasOwnProperty(useName) && hasUseValues(use)) {
             if (!addedUses.includes(useName)) {
               addedUses.push(useName);
@@ -749,7 +749,7 @@ function WaterQualityOverview({ ...props }: Props) {
     setUseList(useList);
     setCompleteUseList(completeUseList);
     const displayUses = useList
-      .filter((use) => topicUses.hasOwnProperty(use.useName.toUpperCase()))
+      .filter((use) => topicUses.hasOwnProperty(normalizeString(use.useName)))
       .map((use) => titleCase(use.useName))
       .sort();
     setDisplayUses(displayUses);
@@ -820,7 +820,7 @@ function WaterQualityOverview({ ...props }: Props) {
   React.useEffect(() => {
     if (useList && useList.length > 0) {
       // set to the user's selection if it is availble
-      if (useList.some((e) => e.useName.toUpperCase() === userSelectedUse)) {
+      if (useList.some((e) => normalizeString(e.useName) === userSelectedUse)) {
         setUseSelected(titleCase(userSelectedUse));
       }
 
@@ -839,7 +839,7 @@ function WaterQualityOverview({ ...props }: Props) {
       !useSelected ||
       !surveyData ||
       !waterType ||
-      !topicUses.hasOwnProperty(useSelected.toUpperCase()) ||
+      !topicUses.hasOwnProperty(normalizeString(useSelected)) ||
       waterTypeOptions.status !== 'success'
     ) {
       if (surveyData) setSubPopulationCodes([]);
@@ -859,11 +859,12 @@ function WaterQualityOverview({ ...props }: Props) {
         let useSelectedUpper = '';
         let topicSurveyUseCode = '';
         waterGroup.surveyWaterGroupUseParameters.forEach((param) => {
-          surveyUseCodeUpper = param.surveyUseCode.toUpperCase();
-          useSelectedUpper = useSelected.toUpperCase();
-          topicSurveyUseCode = topicUses[
-            useSelectedUpper
-          ].surveyuseCode.toUpperCase();
+          surveyUseCodeUpper = normalizeString(param.surveyUseCode);
+          useSelectedUpper = normalizeString(useSelected);
+          topicSurveyUseCode = normalizeString(
+            topicUses[useSelectedUpper].surveyuseCode,
+          );
+
           if (
             surveyUseCodeUpper === useSelectedUpper ||
             surveyUseCodeUpper === topicSurveyUseCode
@@ -1028,7 +1029,7 @@ function WaterQualityOverview({ ...props }: Props) {
                             : null
                         }
                         onChange={(ev) =>
-                          setUserSelectedUse(ev.value.toUpperCase())
+                          setUserSelectedUse(normalizeString(ev.value))
                         }
                         isDisabled={displayUses.length <= 0}
                         placeholder={

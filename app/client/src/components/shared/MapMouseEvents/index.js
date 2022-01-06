@@ -1,15 +1,20 @@
-import React from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
+import Point from '@arcgis/core/geometry/Point';
+import Query from '@arcgis/core/rest/support/Query';
+import QueryTask from '@arcgis/core/tasks/QueryTask';
+import SpatialReference from '@arcgis/core/geometry/SpatialReference';
+import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // contexts
 import { MapHighlightContext } from 'contexts/MapHighlight';
-import { EsriModulesContext } from 'contexts/EsriModules';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // config
 import {
   getPopupContent,
-  getPopupTitle,
   graphicComparison,
 } from 'components/pages/LocationMap/MapFunctions';
+// utilities
+import { useDynamicPopup } from 'utils/hooks';
 
 // --- components ---
 type Props = {
@@ -23,21 +28,15 @@ function MapMouseEvents({ map, view }: Props) {
   const {
     setHighlightedGraphic,
     setSelectedGraphic, //
-  } = React.useContext(MapHighlightContext);
+  } = useContext(MapHighlightContext);
 
-  const { getHucBoundaries, resetData, protectedAreasLayer } = React.useContext(
+  const { getHucBoundaries, resetData, protectedAreasLayer } = useContext(
     LocationSearchContext,
   );
 
-  const {
-    SpatialReference,
-    Point,
-    webMercatorUtils,
-    Query,
-    QueryTask,
-  } = React.useContext(EsriModulesContext);
+  const getDynamicPopup = useDynamicPopup();
 
-  const handleMapClick = React.useCallback(
+  const handleMapClick = useCallback(
     (event, view) => {
       // get the point location of the user's click
       const point = new Point({
@@ -148,22 +147,17 @@ function MapMouseEvents({ map, view }: Props) {
         .catch((err) => console.error(err));
     },
     [
-      Point,
-      Query,
-      QueryTask,
       resetData,
-      SpatialReference.WQGS84,
       getHucBoundaries,
       setSelectedGraphic,
-      webMercatorUtils,
       services,
       protectedAreasLayer,
     ],
   );
 
   // Sets up the map mouse events when the component initializes
-  const [initialized, setInitialized] = React.useState(false);
-  React.useEffect(() => {
+  const [initialized, setInitialized] = useState(false);
+  useEffect(() => {
     if (initialized || services.status === 'fetching') return;
 
     // These global scoped variables are used to prevent flickering that is caused
@@ -182,7 +176,8 @@ function MapMouseEvents({ map, view }: Props) {
           lastEventId = event.eventId;
 
           // get the graphic from the hittest
-          let feature = getGraphicFromResponse(res);
+          const extraLayersToIgnore = ['allWaterbodiesLayer'];
+          let feature = getGraphicFromResponse(res, extraLayersToIgnore);
 
           // if any feature besides the upstream watershed is moused over:
           // set the view's highlight fill opacity back to 1
@@ -214,17 +209,6 @@ function MapMouseEvents({ map, view }: Props) {
     });
 
     view.popup.watch('selectedFeature', (graphic) => {
-      // check if monitoring station is clicked, load the popup and call the waterqualitydata service
-      if (
-        graphic &&
-        graphic.layer &&
-        graphic.layer.id === 'monitoringStationsLayer' &&
-        graphic.attributes &&
-        graphic.attributes.fullPopup === false
-      ) {
-        loadMonitoringLocation(graphic, services);
-      }
-
       // set the view highlight options to 0 fill opacity if upstream watershed is selected
       if (graphic?.layer?.id === 'upstreamWatershed') {
         view.highlightOptions.fillOpacity = 0;
@@ -239,13 +223,23 @@ function MapMouseEvents({ map, view }: Props) {
     });
 
     setInitialized(true);
-  }, [view, handleMapClick, setHighlightedGraphic, initialized, services]);
+  }, [
+    getDynamicPopup,
+    handleMapClick,
+    initialized,
+    services,
+    setHighlightedGraphic,
+    view,
+  ]);
 
-  function getGraphicFromResponse(res: Object) {
+  function getGraphicFromResponse(
+    res: Object,
+    additionalLayers: Array<string> = [],
+  ) {
     if (!res.results || res.results.length === 0) return null;
 
     const match = res.results.filter((result) => {
-      const { attributes: attr } = result.graphic;
+      const { attributes: attr, layer } = result.graphic;
       // ignore huc 12 boundaries, map-marker, highlight and provider graphics
       const excludedLayers = [
         'stateBoundariesLayer',
@@ -255,9 +249,12 @@ function MapMouseEvents({ map, view }: Props) {
         'map-marker',
         'highlight',
         'providers',
+        ...additionalLayers,
       ];
+      if (!result.graphic.layer?.id) return null;
       if (attr.name && excludedLayers.indexOf(attr.name) !== -1) return null;
-      if (excludedLayers.indexOf(result.graphic.layer.id) !== -1) return null;
+      if (excludedLayers.indexOf(layer.id) !== -1) return null;
+      if (excludedLayers.indexOf(layer.parent.id) !== -1) return null;
 
       // filter out graphics on basemap layers
       if (result.graphic.layer.type === 'vector-tile') return null;
@@ -267,15 +264,6 @@ function MapMouseEvents({ map, view }: Props) {
 
     return match[0] ? match[0].graphic : null;
   }
-
-  const loadMonitoringLocation = (graphic, servicesParam) => {
-    // tell the getPopupContent function to use the full popup version that includes the service call
-    graphic.attributes.fullPopup = true;
-    graphic.popupTemplate = {
-      title: getPopupTitle(graphic.attributes),
-      content: getPopupContent({ feature: graphic, services: servicesParam }),
-    };
-  };
 
   return null;
 }

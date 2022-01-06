@@ -11,7 +11,6 @@ import * as serviceWorker from './serviceWorker';
 import Routes from './routes';
 import ErrorBoundary from 'components/shared/ErrorBoundary';
 // contexts
-import { EsriModulesProvider } from 'contexts/EsriModules';
 import { AddDataWidgetProvider } from 'contexts/AddDataWidget';
 import { LocationSearchProvider } from 'contexts/locationSearch';
 import { GlossaryProvider } from 'contexts/Glossary';
@@ -37,18 +36,16 @@ export const GlobalStyle = createGlobalStyle`
 function Root() {
   return (
     <LookupFilesProvider>
-      <EsriModulesProvider>
-        <LocationSearchProvider>
-          <GlossaryProvider>
-            <AddDataWidgetProvider>
-              <GlobalStyle />
-              <ErrorBoundary message={defaultErrorBoundaryMessage}>
-                <Routes />
-              </ErrorBoundary>
-            </AddDataWidgetProvider>
-          </GlossaryProvider>
-        </LocationSearchProvider>
-      </EsriModulesProvider>
+      <LocationSearchProvider>
+        <GlossaryProvider>
+          <AddDataWidgetProvider>
+            <GlobalStyle />
+            <ErrorBoundary message={defaultErrorBoundaryMessage}>
+              <Routes />
+            </ErrorBoundary>
+          </AddDataWidgetProvider>
+        </GlossaryProvider>
+      </LocationSearchProvider>
     </LookupFilesProvider>
   );
 }
