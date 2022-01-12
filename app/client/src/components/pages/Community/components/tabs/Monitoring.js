@@ -40,7 +40,9 @@ import { characteristicGroupMappings } from 'config/characteristicGroupMappings'
 import { monitoringError } from 'config/errorMessages';
 
 const containerStyles = css`
-  padding: 1em;
+  @media (min-width: 960px) {
+    padding: 1em;
+  }
 `;
 
 const modifiedErrorBoxStyles = css`
