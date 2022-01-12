@@ -60,8 +60,8 @@ const popupContainerStyles = css`
 `;
 
 const popupContentStyles = css`
-  margin-top: 0.5rem;
-  margin-left: 0.625em;
+  margin: 0.625em;
+  width: calc(100% - 1.25em);
 `;
 
 const popupTitleStyles = css`
@@ -73,6 +73,19 @@ const popupTitleStyles = css`
 `;
 
 const tableStyles = css`
+  th,
+  td {
+    font-size: 0.875em;
+
+    @media (min-width: 540px) {
+      font-size: 1em;
+    }
+  }
+`;
+
+const measurementTableStyles = css`
+  ${tableStyles};
+
   th:last-of-type,
   td:last-of-type {
     text-align: right;
@@ -80,8 +93,9 @@ const tableStyles = css`
 `;
 
 const checkboxCellStyles = css`
-  text-align: center;
+  padding-right: 0 !important;
   vertical-align: middle !important;
+  text-align: center;
 `;
 
 const checkboxStyles = css`
@@ -385,7 +399,7 @@ function WaterbodyInfo({
             )}
 
             {applicableFields.length > 0 && (
-              <table className="table">
+              <table css={tableStyles} className="table">
                 <thead>
                   <tr>
                     <th>Evaluated Use</th>
@@ -444,7 +458,7 @@ function WaterbodyInfo({
 
   const dischargerContent = (
     <>
-      <table className="table">
+      <table css={tableStyles} className="table">
         <tbody>
           <tr>
             <td>
@@ -623,7 +637,7 @@ function WaterbodyInfo({
 
     return (
       <>
-        <table className="table">
+        <table css={tableStyles} className="table">
           <tbody>
             <tr>
               <td>
@@ -677,12 +691,13 @@ function WaterbodyInfo({
         <p>
           <strong>Download Monitoring Data:</strong>
         </p>
+
         {Object.keys(groups).length === 0 && (
           <p>No data available for this monitoring location.</p>
         )}
 
         {Object.keys(groups).length > 0 && (
-          <table css={tableStyles} className="table">
+          <table css={measurementTableStyles} className="table">
             <thead>
               <tr>
                 <th css={checkboxCellStyles}>
@@ -885,7 +900,7 @@ function WaterbodyInfo({
   // jsx
   const wsioContent = (
     <>
-      <table className="table">
+      <table css={tableStyles} className="table">
         <tbody>
           <tr>
             <td>
@@ -1059,7 +1074,7 @@ function WaterbodyInfo({
               ) : (
                 <>
                   <em>Links below open in a new browser tab.</em>
-                  <table className="table">
+                  <table css={tableStyles} className="table">
                     <thead>
                       <tr>
                         <th>Plan (ID)</th>
@@ -1267,7 +1282,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
 
   return (
     <>
-      <table className="table">
+      <table css={tableStyles} className="table">
         <tbody>
           <tr>
             <td>
@@ -1296,7 +1311,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
         </tbody>
       </table>
 
-      <table css={tableStyles} className="table">
+      <table css={measurementTableStyles} className="table">
         <thead>
           <tr>
             <th>Category</th>
