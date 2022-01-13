@@ -135,6 +135,7 @@
 
     // Wrapper for logging to GA which adds the target to the command
     function logToGa(command, ...props) {
+      if (!window.ga) return;
       ga(`${window.gaTarget}.${command}`, ...props);
     }
 
