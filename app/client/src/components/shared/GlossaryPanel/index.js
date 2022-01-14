@@ -1,10 +1,10 @@
 // @flow
 
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import type { Node } from 'react';
-import styled, { createGlobalStyle } from 'styled-components';
+import { css, createGlobalStyle } from 'styled-components/macro';
 // components
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { GlossaryContext } from 'contexts/Glossary';
 // styles
@@ -19,7 +19,6 @@ function termsInDOM() {
   return items && items.length > 0;
 }
 
-// --- styled components ---
 const TermStyles = createGlobalStyle`
   span[data-term] {
     border-bottom: 1px dotted rgba(0, 113, 188, 0.75);
@@ -40,9 +39,8 @@ const TermStyles = createGlobalStyle`
   }
 `;
 
-const TermIcon = styled.i`
+const iconStyles = css`
   font-weight: 900;
-  font-size: ${({ status }) => (status === 'fetching' ? '75%' : '87.5%')};
   color: rgba(0, 113, 188, 0.5);
 
   /* Workaround for IE to stop icon from spinning after fetching is complete */
@@ -51,7 +49,7 @@ const TermIcon = styled.i`
   }
 `;
 
-const Container = styled.div`
+const panelStyles = css`
   position: fixed;
   z-index: 1000;
   top: 0;
@@ -63,23 +61,23 @@ const Container = styled.div`
   box-shadow: -0.375em -0.375em 0.625em -0.375em ${colors.black(0.25)};
   transition: right 0.2s;
 
-  @media (max-width: 400px) {
-    width: 85%;
-  }
-
   &[aria-hidden='true'] {
     right: -22.375rem;
   }
+
+  @media (max-width: 400px) {
+    width: 85%;
+  }
 `;
 
-const Header = styled.header`
+const headerStyles = css`
   display: flex;
   align-items: center;
   justify-content: space-between;
   background-color: #0071bc;
 `;
 
-const Title = styled.h2`
+const titleStyles = css`
   margin-left: 0.75rem;
   margin-bottom: 0.125rem;
   padding-bottom: 0;
@@ -88,7 +86,7 @@ const Title = styled.h2`
   color: white;
 `;
 
-const CloseButton = styled.button`
+const buttonStyles = css`
   margin: 0;
   padding: 0;
   border: none;
@@ -104,7 +102,7 @@ const CloseButton = styled.button`
   }
 `;
 
-const Content = styled.div`
+const containerStyles = css`
   padding: 0.75rem;
 
   p {
@@ -112,12 +110,12 @@ const Content = styled.div`
   }
 `;
 
-const Input = styled.input`
+const inputStyles = css`
   width: 100%;
   font-size: 0.9375em;
 `;
 
-const List = styled.ul`
+const listStyles = css`
   margin-top: 0.375rem;
   padding: 0;
   list-style: none;
@@ -187,15 +185,11 @@ const List = styled.ul`
 
 // --- components ---
 function GlossaryPanel({ path }) {
-  const {
-    initialized,
-    setInitialized,
-    glossaryStatus,
-    setGlossaryStatus,
-  } = React.useContext(GlossaryContext);
+  const { initialized, setInitialized, glossaryStatus, setGlossaryStatus } =
+    useContext(GlossaryContext);
 
   // initialize Glossary panel
-  React.useEffect(() => {
+  useEffect(() => {
     if (!window.fetchGlossaryTerms) return;
 
     if (!initialized) {
@@ -217,7 +211,7 @@ function GlossaryPanel({ path }) {
   });
 
   // Reset initialized flag to re-initialize the Glossary
-  React.useEffect(() => {
+  useEffect(() => {
     // set the initialized flag to false if there are no glossary terms on the DOM
     if (!termsInDOM()) setInitialized(false);
   }, [path, setInitialized]);
@@ -226,42 +220,51 @@ function GlossaryPanel({ path }) {
     <>
       <TermStyles />
 
-      <Container
+      <div
+        css={panelStyles}
         id="glossary"
         aria-describedby="glossary-title"
         aria-hidden="true"
       >
-        <Header>
-          <Title id="glossary-title">Glossary</Title>
-          <CloseButton className="js-glossary-close" title="Close glossary">
+        <header css={headerStyles}>
+          <h2 css={titleStyles} id="glossary-title">
+            Glossary
+          </h2>
+          <button
+            css={buttonStyles}
+            className="js-glossary-close"
+            title="Close glossary"
+          >
             ×
-          </CloseButton>
-        </Header>
+          </button>
+        </header>
 
-        <Content>
+        <div css={containerStyles}>
           {glossaryStatus === 'failure' && (
-            <StyledErrorBox>
+            <div css={errorBoxStyles}>
               <p>{glossaryError}</p>
-            </StyledErrorBox>
+            </div>
           )}
+
           {glossaryStatus === 'success' && (
-            <Input
+            <input
+              css={inputStyles}
               className="js-glossary-search form-control"
               type="search"
               placeholder="Search for a term..."
               aria-label="Search for a glossary term..."
             />
           )}
-          <List className="js-glossary-list" />
-        </Content>
-      </Container>
+
+          <ul css={listStyles} className="js-glossary-list" />
+        </div>
+      </div>
     </>
   );
 }
 
 export default GlossaryPanel;
 
-// --- components ---
 type Props = {
   term: string,
   className: string,
@@ -270,14 +273,11 @@ type Props = {
 };
 
 function GlossaryTerm({ term, className, style, children }: Props) {
-  const [status, setStatus] = React.useState('fetching');
+  const [status, setStatus] = useState('fetching');
 
   if (window.fetchGlossaryTerms) {
     window.fetchGlossaryTerms.then((terms) => setStatus(terms.status));
   }
-
-  const iconClassName =
-    status === 'fetching' ? 'fas fa-spinner fa-pulse' : 'fas fa-book';
 
   return (
     <span
@@ -288,7 +288,18 @@ function GlossaryTerm({ term, className, style, children }: Props) {
       className={className}
       style={style}
     >
-      <TermIcon className={iconClassName} status={status} aria-hidden="true" />{' '}
+      <i
+        css={[
+          iconStyles,
+          { fontSize: status === 'fetching' ? '75%' : '87.5%' },
+        ]}
+        className={
+          status === 'fetching' ? 'fas fa-spinner fa-pulse' : 'fas fa-book'
+        }
+        status={status}
+        aria-hidden="true"
+      />
+      &nbsp;
       {children}
     </span>
   );
