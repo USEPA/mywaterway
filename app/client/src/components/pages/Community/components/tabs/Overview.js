@@ -485,6 +485,8 @@ function MonitoringAndSensorsTab({
     setMonitoringAndSensorsDisplayed,
   ]);
 
+  const [usgsStreamgagesPlotted, setUsgsGtreamgagesPlotted] = useState(false);
+
   const [normalizedUsgsStreamgages, setNormalizedUsgsStreamgages] = useState(
     [],
   );
@@ -553,13 +555,16 @@ function MonitoringAndSensorsTab({
 
     setNormalizedUsgsStreamgages(gages);
 
-    plotGages(gages, usgsStreamgagesLayer);
+    plotGages(gages, usgsStreamgagesLayer).then((result) => {
+      if (result.addFeatureResults.length > 0) setUsgsGtreamgagesPlotted(true);
+    });
   }, [usgsStreamgages.data, usgsStreamgagesLayer]);
 
-  // add precipitation data (fetched from usgsDailyValues web service) to each
-  // streamgage if it exists for that particular location and replot the
-  // streamgages on the map
+  // once streamgages have been plotted initially, add precipitation data
+  // (fetched from usgsDailyValues web service) to each streamgage if it exists
+  // for that particular location and replot the streamgages on the map
   useEffect(() => {
+    if (!usgsStreamgagesPlotted) return;
     if (!usgsDailyPrecipitation.data.value) return;
     if (normalizedUsgsStreamgages.length === 0) return;
 
@@ -591,7 +596,12 @@ function MonitoringAndSensorsTab({
     });
 
     plotGages(normalizedUsgsStreamgages, usgsStreamgagesLayer);
-  }, [usgsDailyPrecipitation, normalizedUsgsStreamgages, usgsStreamgagesLayer]);
+  }, [
+    usgsStreamgagesPlotted,
+    usgsDailyPrecipitation,
+    normalizedUsgsStreamgages,
+    usgsStreamgagesLayer,
+  ]);
 
   const [normalizedMonitoringLocations, setNormalizedMonitoringLocations] =
     useState([]);
