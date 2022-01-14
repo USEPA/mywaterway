@@ -7,7 +7,7 @@ import Query from '@arcgis/core/rest/support/Query';
 import QueryTask from '@arcgis/core/tasks/QueryTask';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 // components
-import { ContentTabs } from 'components/shared/ContentTabs';
+import { tabsStyles } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
@@ -61,15 +61,9 @@ function convertStateCode(stateCode: string, stateData: Array<Object>) {
 }
 
 const containerStyles = css`
-  line-height: 1.25em;
-
   @media (min-width: 960px) {
     padding: 1em;
   }
-`;
-
-const listStyles = css`
-  padding-bottom: 1.5rem;
 `;
 
 const headingStyles = css`
@@ -477,7 +471,7 @@ function Protect() {
 
   return (
     <div css={containerStyles}>
-      <ContentTabs>
+      <div css={tabsStyles}>
         <Tabs
           onChange={(index) => {
             setTabIndex(index);
@@ -1460,10 +1454,12 @@ function Protect() {
               <p>
                 <em>Links below open in a new browser tab.</em>
               </p>
+
               <p>Get quick tips for protecting water in your:</p>
 
               <h2 css={headingStyles}>Community</h2>
-              <ul css={listStyles}>
+
+              <ul>
                 <li>Contribute to local water cleanup efforts.</li>
                 <li>Find a watershed protection organization to support.</li>
                 <li>Volunteer to help monitor water quality.</li>
@@ -1479,7 +1475,8 @@ function Protect() {
               </ul>
 
               <h2 css={headingStyles}>School</h2>
-              <ul css={listStyles}>
+
+              <ul>
                 <li>Adopt your watershed.</li>
                 <li>
                   Teach students about watershed protection by showing the
@@ -1498,7 +1495,8 @@ function Protect() {
               </ul>
 
               <h2 css={headingStyles}>Yard</h2>
-              <ul css={listStyles}>
+
+              <ul>
                 <li>
                   <a
                     href="https://www.epa.gov/nutrientpollution/what-you-can-do-your-yard"
@@ -1539,7 +1537,8 @@ function Protect() {
               </ul>
 
               <h2 css={headingStyles}>Home</h2>
-              <ul css={listStyles}>
+
+              <ul>
                 <li>Choose phosphate-free soaps and detergents.</li>
                 <li>Pick up after your pet.</li>
                 <li>
@@ -1557,7 +1556,7 @@ function Protect() {
             </TabPanel>
           </TabPanels>
         </Tabs>
-      </ContentTabs>
+      </div>
     </div>
   );
 }

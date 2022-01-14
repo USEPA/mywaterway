@@ -9,10 +9,9 @@ import React, {
 } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
-import styled from 'styled-components';
 import Graphic from '@arcgis/core/Graphic';
 // components
-import { ContentTabs } from 'components/shared/ContentTabs';
+import { tabsStyles } from 'components/shared/ContentTabs';
 import {
   AccordionList,
   AccordionItem,
@@ -26,12 +25,11 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
-// styled components
 import {
-  StyledMetrics,
-  StyledMetric,
-  StyledNumber,
-  StyledLabel,
+  keyMetricsStyles,
+  keyMetricStyles,
+  keyMetricNumberStyles,
+  keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
 // contexts
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
@@ -53,56 +51,42 @@ const containerStyles = css`
   }
 `;
 
+const switchContainerStyles = css`
+  margin-top: 0.5em;
+`;
+
 const centeredTextStyles = css`
   text-align: center;
 `;
 
-const Table = styled.table`
+const tableStyles = css`
+  thead {
+    background-color: #f0f6f9;
+  }
+
   th:last-of-type,
   td:last-of-type {
     text-align: right;
   }
 `;
 
-const Heading = styled.h2`
+const toggleStyles = css`
+  display: flex;
+  align-items: center;
+
+  span {
+    margin-left: 0.5rem;
+  }
+`;
+
+const headingStyles = css`
   margin-top: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.25rem;
   padding-bottom: 0;
   font-family: ${fonts.primary};
   font-size: 1.375em;
 `;
 
-const SwitchContainer = styled.div`
-  margin-top: 0.5em;
-`;
-
-const TableSwitch = styled.div`
-  margin-right: 0.5em;
-`;
-
-const FlexDiv = styled.div`
-  display: flex;
-`;
-
-// ***removed until EPA determines correct value***
-// const MapKeyText = styled.span`
-//   color: rgb(249, 59, 91);
-//   font-weight: bold;
-// `;
-
-const Title = styled.p`
-  padding-bottom: 0.3em 1em;
-`;
-
-const THead = styled.thead`
-  background-color: #f0f6f9;
-`;
-
-const IntroDiv = styled.div`
-  margin-bottom: 20px;
-`;
-
-// --- components ---
 function IdentifiedIssues() {
   const { infoToggleChecked } = useContext(CommunityTabsContext);
 
@@ -570,15 +554,17 @@ function IdentifiedIssues() {
 
   return (
     <div css={containerStyles}>
-      <StyledMetrics>
-        <StyledMetric>
+      <div css={keyMetricsStyles}>
+        <div css={keyMetricStyles}>
           {cipSummary.status === 'fetching' ? (
             <LoadingSpinner />
           ) : (
             <>
-              <StyledNumber>{getImpairedWatersPercent()}</StyledNumber>
-              <StyledLabel>of Assessed Waters are impaired</StyledLabel>
-              <SwitchContainer>
+              <span css={keyMetricNumberStyles}>
+                {getImpairedWatersPercent()}
+              </span>
+              <p css={keyMetricLabelStyles}>of Assessed Waters are impaired</p>
+              <div css={switchContainerStyles}>
                 <Switch
                   checked={
                     toggleIssuesChecked && cipSummary.status !== 'failure'
@@ -589,35 +575,38 @@ function IdentifiedIssues() {
                   }
                   ariaLabel="Toggle Issues Layer"
                 />
-              </SwitchContainer>
+              </div>
             </>
           )}
-        </StyledMetric>
-        <StyledMetric>
+        </div>
+
+        <div css={keyMetricStyles}>
           {permittedDischargers.status === 'fetching' ? (
             <LoadingSpinner />
           ) : (
             <>
-              <StyledNumber>
+              <span css={keyMetricNumberStyles}>
                 {permittedDischargers.status === 'failure'
                   ? 'N/A'
                   : violatingFacilities.length.toLocaleString()}
-              </StyledNumber>
-              <StyledLabel>Dischargers with Significant Violations</StyledLabel>
-              <SwitchContainer>
+              </span>
+              <p css={keyMetricLabelStyles}>
+                Dischargers with Significant Violations
+              </p>
+              <div css={switchContainerStyles}>
                 <Switch
                   checked={toggleDischargersChecked}
                   onChange={() => toggleSwitch('Toggle Dischargers Layer')}
                   disabled={zeroDischargers}
                   ariaLabel="Toggle Dischargers Layer"
                 />
-              </SwitchContainer>
+              </div>
             </>
           )}
-        </StyledMetric>
-      </StyledMetrics>
+        </div>
+      </div>
 
-      <ContentTabs>
+      <div css={tabsStyles}>
         <Tabs>
           <TabList>
             <Tab>Impaired Assessed Waters</Tab>
@@ -629,11 +618,13 @@ function IdentifiedIssues() {
           <TabPanels>
             <TabPanel>
               {cipSummary.status === 'fetching' && <LoadingSpinner />}
+
               {(cipSummary.status === 'failure' || !cipSummary.data?.items) && (
                 <StyledErrorBox>
                   <p>{huc12SummaryError}</p>
                 </StyledErrorBox>
               )}
+
               {cipSummary.status === 'success' && (
                 <>
                   {(cipSummary.data.count === 0 ||
@@ -644,22 +635,27 @@ function IdentifiedIssues() {
                       watershed.
                     </p>
                   )}
+
                   {cipSummary.data.items && cipSummary.data.items.length > 0 && (
                     <>
-                      <IntroDiv>
-                        {/* ***removed until EPA determines correct value*** */}
+                      <p>
+                        {/* NOTE: removed until EPA determines correct value */}
                         {/* {assessedPercent > 0 && (
-                        <span>
-                          <strong>{assessedPercent}%</strong> of waters in
-                          your watershed have been assessed.
-                          <br />
-                          Of those assessed,{' '}
-                          <strong>{pollutedPercent}</strong>% are impaired
-                          (shown in <MapKeyText>red</MapKeyText>
-                          ).
-                        </span>
-                      )}
-                      <br /> */}
+                          <span>
+                            <strong>{assessedPercent}%</strong> of waters in
+                            your watershed have been assessed.
+                            <br />
+                            Of those assessed,{' '}
+                            <strong>{pollutedPercent}</strong>% are impaired
+                            (shown in{' '}
+                            <strong style={{ color: 'rgb(249, 59, 91)' }}>
+                              red
+                            </strong>
+                            ).
+                          </span>
+                        )}
+                        <br /> */}
+
                         <DisclaimerModal>
                           <p>
                             The condition of a waterbody is dynamic and can
@@ -668,6 +664,7 @@ function IdentifiedIssues() {
                             If available, refer to local or state real-time
                             water quality reports.
                           </p>
+
                           <p>
                             Furthermore, users of this application should not
                             rely on information relating to environmental laws
@@ -680,7 +677,7 @@ function IdentifiedIssues() {
                             government.
                           </p>
                         </DisclaimerModal>
-                      </IntroDiv>
+                      </p>
 
                       {emptyCategoriesWithPercent && (
                         <p css={centeredTextStyles}>
@@ -690,6 +687,7 @@ function IdentifiedIssues() {
                           on these waters.
                         </p>
                       )}
+
                       {!emptyCategoriesWithPercent &&
                         zeroPollutedWaterbodies && (
                           <p css={centeredTextStyles}>
@@ -697,31 +695,31 @@ function IdentifiedIssues() {
                             {watershed} watershed.
                           </p>
                         )}
+
                       {!emptyCategoriesWithPercent && !zeroPollutedWaterbodies && (
                         <>
-                          <Title>
+                          <p>
                             Impairment categories in the {watershed} watershed.
-                          </Title>
-                          <Table className="table">
-                            <THead>
+                          </p>
+
+                          <table css={tableStyles} className="table">
+                            <thead>
                               <tr>
                                 <th>
-                                  <FlexDiv>
-                                    <TableSwitch>
-                                      <Switch
-                                        checked={showAllParameters}
-                                        onChange={() =>
-                                          toggleSwitch('Toggle All')
-                                        }
-                                        ariaLabel="Toggle all impairment categories"
-                                      />
-                                    </TableSwitch>
-                                    Impairment Category
-                                  </FlexDiv>
+                                  <div css={toggleStyles}>
+                                    <Switch
+                                      checked={showAllParameters}
+                                      onChange={(ev) => {
+                                        toggleSwitch('Toggle All');
+                                      }}
+                                      ariaLabel="Toggle all impairment categories"
+                                    />
+                                    <span>Impairment Category</span>
+                                  </div>
                                 </th>
                                 <th>% of Assessed Area</th>
                               </tr>
-                            </THead>
+                            </thead>
                             <tbody>
                               {cipSummary.data.items[0].summaryByParameterImpairments.map(
                                 (param) => {
@@ -746,24 +744,20 @@ function IdentifiedIssues() {
                                   return (
                                     <tr key={mappedParameterName}>
                                       <td>
-                                        <FlexDiv>
-                                          <TableSwitch>
-                                            <Switch
-                                              ariaLabel={mappedParameterName}
-                                              checked={
-                                                parameterToggleObject[
-                                                  mappedParameterName
-                                                ]
-                                              }
-                                              onChange={() =>
-                                                toggleSwitch(
-                                                  mappedParameterName,
-                                                )
-                                              }
-                                            />
-                                          </TableSwitch>
-                                          {mappedParameterName}
-                                        </FlexDiv>
+                                        <div css={toggleStyles}>
+                                          <Switch
+                                            ariaLabel={mappedParameterName}
+                                            checked={
+                                              parameterToggleObject[
+                                                mappedParameterName
+                                              ]
+                                            }
+                                            onChange={(ev) => {
+                                              toggleSwitch(mappedParameterName);
+                                            }}
+                                          />
+                                          <span>{mappedParameterName}</span>
+                                        </div>
                                       </td>
                                       <td>
                                         {nullPollutedWaterbodies === true
@@ -775,7 +769,7 @@ function IdentifiedIssues() {
                                 },
                               )}
                             </tbody>
-                          </Table>
+                          </table>
                         </>
                       )}
                     </>
@@ -802,6 +796,7 @@ function IdentifiedIssues() {
                       violations in the {watershed} watershed.
                     </p>
                   )}
+
                   {violatingFacilities.length > 0 && (
                     <AccordionList
                       title={
@@ -853,11 +848,11 @@ function IdentifiedIssues() {
             </TabPanel>
           </TabPanels>
         </Tabs>
-      </ContentTabs>
+      </div>
 
       {infoToggleChecked && (
         <>
-          <Heading>Did You Know?</Heading>
+          <h2 css={headingStyles}>Did You Know?</h2>
 
           <ul>
             <li>
