@@ -2,6 +2,7 @@
 
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
+import { css } from 'styled-components/macro';
 import styled from 'styled-components';
 import Graphic from '@arcgis/core/Graphic';
 import Polygon from '@arcgis/core/geometry/Polygon';
@@ -26,6 +27,16 @@ import { summarizeAssessments } from 'utils/utils';
 // errors
 import { countyError, withdrawerError } from 'config/errorMessages';
 import { colors } from 'styles';
+
+const containerStyles = css`
+  @media (min-width: 960px) {
+    padding: 1em;
+  }
+`;
+
+const centeredTextStyles = css`
+  text-align: center;
+`;
 
 const Table = styled.table`
   thead {
@@ -211,16 +222,6 @@ function createAccordionItem(item: Object, isWithdrawer: boolean) {
   );
 }
 
-// --- styled components ---
-const Container = styled.div`
-  padding: 1em;
-`;
-
-const Text = styled.p`
-  text-align: center;
-`;
-
-// --- components ---
 function DrinkingWater() {
   const { infoToggleChecked } = useContext(CommunityTabsContext);
 
@@ -528,7 +529,7 @@ function DrinkingWater() {
   ];
 
   return (
-    <Container>
+    <div css={containerStyles}>
       <ContentTabs>
         <Tabs
           onChange={(index) => {
@@ -627,19 +628,19 @@ function DrinkingWater() {
               {drinkingWater.status === 'success' && (
                 <>
                   {drinkingWater.data.length === 0 && (
-                    <Text>
+                    <p css={centeredTextStyles}>
                       There is no drinking water data for the {watershed}{' '}
                       watershed.
-                    </Text>
+                    </p>
                   )}
 
                   {drinkingWater.data.length > 0 && (
                     <>
                       {providers.length === 0 && (
-                        <Text>
+                        <p css={centeredTextStyles}>
                           There are no public drinking water systems serving{' '}
                           {county} county/municipality.
-                        </Text>
+                        </p>
                       )}
 
                       {providers.length > 0 && (
@@ -732,19 +733,19 @@ function DrinkingWater() {
               {drinkingWater.status === 'success' && (
                 <>
                   {drinkingWater.data.length === 0 && (
-                    <Text>
+                    <p css={centeredTextStyles}>
                       There is no drinking water data for the {watershed}{' '}
                       watershed.
-                    </Text>
+                    </p>
                   )}
 
                   {drinkingWater.data.length > 0 && (
                     <>
                       {totalWithdrawersCount === 0 && (
-                        <Text>
+                        <p css={centeredTextStyles}>
                           There are no public water systems drawing water from
                           the {watershed} watershed.
-                        </Text>
+                        </p>
                       )}
 
                       {totalWithdrawersCount > 0 && (
@@ -905,7 +906,7 @@ function DrinkingWater() {
           </TabPanels>
         </Tabs>
       </ContentTabs>
-    </Container>
+    </div>
   );
 }
 

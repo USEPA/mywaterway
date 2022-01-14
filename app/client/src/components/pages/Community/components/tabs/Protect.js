@@ -61,8 +61,11 @@ function convertStateCode(stateCode: string, stateData: Array<Object>) {
 }
 
 const containerStyles = css`
-  padding: 1em;
   line-height: 1.25em;
+
+  @media (min-width: 960px) {
+    padding: 1em;
+  }
 `;
 
 const listStyles = css`

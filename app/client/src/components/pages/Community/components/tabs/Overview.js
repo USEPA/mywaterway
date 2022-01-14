@@ -45,7 +45,9 @@ import {
 import { usgsStaParameters } from 'config/usgsStaParameters';
 
 const containerStyles = css`
-  padding: 1em;
+  @media (min-width: 960px) {
+    padding: 1em;
+  }
 `;
 
 const modifiedErrorBoxStyles = css`

@@ -17,7 +17,9 @@ import { summarizeAssessments } from 'utils/utils';
 import { huc12SummaryError } from 'config/errorMessages';
 
 const containerStyles = css`
-  padding: 1em;
+  @media (min-width: 960px) {
+    padding: 1em;
+  }
 `;
 
 const modifiedErrorBoxStyles = css`

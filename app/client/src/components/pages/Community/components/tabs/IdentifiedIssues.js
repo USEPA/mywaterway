@@ -8,6 +8,7 @@ import React, {
   useState,
 } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
+import { css } from 'styled-components/macro';
 import styled from 'styled-components';
 import Graphic from '@arcgis/core/Graphic';
 // components
@@ -46,16 +47,13 @@ import { fonts } from 'styles/index.js';
 // errors
 import { echoError, huc12SummaryError } from 'config/errorMessages';
 
-// --- styled components ---
-const Container = styled.div`
-  padding: 1em;
+const containerStyles = css`
+  @media (min-width: 960px) {
+    padding: 1em;
+  }
 `;
 
-const Disclaimer = styled(DisclaimerModal)`
-  /* */
-`;
-
-const Text = styled.p`
+const centeredTextStyles = css`
   text-align: center;
 `;
 
@@ -571,90 +569,86 @@ function IdentifiedIssues() {
   }
 
   return (
-    <Container>
-      <>
-        <StyledMetrics>
-          <StyledMetric>
-            {cipSummary.status === 'fetching' ? (
-              <LoadingSpinner />
-            ) : (
-              <>
-                <StyledNumber>{getImpairedWatersPercent()}</StyledNumber>
-                <StyledLabel>of Assessed Waters are impaired</StyledLabel>
-                <SwitchContainer>
-                  <Switch
-                    checked={
-                      toggleIssuesChecked && cipSummary.status !== 'failure'
-                    }
-                    onChange={() => toggleSwitch('Toggle Issues Layer')}
-                    disabled={
-                      zeroPollutedWaterbodies || cipSummary.status === 'failure'
-                    }
-                    ariaLabel="Toggle Issues Layer"
-                  />
-                </SwitchContainer>
-              </>
-            )}
-          </StyledMetric>
-          <StyledMetric>
-            {permittedDischargers.status === 'fetching' ? (
-              <LoadingSpinner />
-            ) : (
-              <>
-                <StyledNumber>
-                  {permittedDischargers.status === 'failure'
-                    ? 'N/A'
-                    : violatingFacilities.length.toLocaleString()}
-                </StyledNumber>
-                <StyledLabel>
-                  Dischargers with Significant Violations
-                </StyledLabel>
-                <SwitchContainer>
-                  <Switch
-                    checked={toggleDischargersChecked}
-                    onChange={() => toggleSwitch('Toggle Dischargers Layer')}
-                    disabled={zeroDischargers}
-                    ariaLabel="Toggle Dischargers Layer"
-                  />
-                </SwitchContainer>
-              </>
-            )}
-          </StyledMetric>
-        </StyledMetrics>
+    <div css={containerStyles}>
+      <StyledMetrics>
+        <StyledMetric>
+          {cipSummary.status === 'fetching' ? (
+            <LoadingSpinner />
+          ) : (
+            <>
+              <StyledNumber>{getImpairedWatersPercent()}</StyledNumber>
+              <StyledLabel>of Assessed Waters are impaired</StyledLabel>
+              <SwitchContainer>
+                <Switch
+                  checked={
+                    toggleIssuesChecked && cipSummary.status !== 'failure'
+                  }
+                  onChange={() => toggleSwitch('Toggle Issues Layer')}
+                  disabled={
+                    zeroPollutedWaterbodies || cipSummary.status === 'failure'
+                  }
+                  ariaLabel="Toggle Issues Layer"
+                />
+              </SwitchContainer>
+            </>
+          )}
+        </StyledMetric>
+        <StyledMetric>
+          {permittedDischargers.status === 'fetching' ? (
+            <LoadingSpinner />
+          ) : (
+            <>
+              <StyledNumber>
+                {permittedDischargers.status === 'failure'
+                  ? 'N/A'
+                  : violatingFacilities.length.toLocaleString()}
+              </StyledNumber>
+              <StyledLabel>Dischargers with Significant Violations</StyledLabel>
+              <SwitchContainer>
+                <Switch
+                  checked={toggleDischargersChecked}
+                  onChange={() => toggleSwitch('Toggle Dischargers Layer')}
+                  disabled={zeroDischargers}
+                  ariaLabel="Toggle Dischargers Layer"
+                />
+              </SwitchContainer>
+            </>
+          )}
+        </StyledMetric>
+      </StyledMetrics>
 
-        <ContentTabs>
-          <Tabs>
-            <TabList>
-              <Tab>Impaired Assessed Waters</Tab>
-              <Tab data-testid="hmw-dischargers">
-                Dischargers with Significant Violations
-              </Tab>
-            </TabList>
+      <ContentTabs>
+        <Tabs>
+          <TabList>
+            <Tab>Impaired Assessed Waters</Tab>
+            <Tab data-testid="hmw-dischargers">
+              Dischargers with Significant Violations
+            </Tab>
+          </TabList>
 
-            <TabPanels>
-              <TabPanel>
-                {cipSummary.status === 'fetching' && <LoadingSpinner />}
-                {(cipSummary.status === 'failure' ||
-                  !cipSummary.data?.items) && (
-                  <StyledErrorBox>
-                    <p>{huc12SummaryError}</p>
-                  </StyledErrorBox>
-                )}
-                {cipSummary.status === 'success' && (
-                  <>
-                    {(cipSummary.data.count === 0 ||
-                      (cipSummary.data.items &&
-                        cipSummary.data.items.length === 0)) && (
-                      <Text>
-                        There are no impairment categories in the {watershed}{' '}
-                        watershed.
-                      </Text>
-                    )}
-                    {cipSummary.data.items && cipSummary.data.items.length > 0 && (
-                      <>
-                        <IntroDiv>
-                          {/* ***removed until EPA determines correct value*** */}
-                          {/* {assessedPercent > 0 && (
+          <TabPanels>
+            <TabPanel>
+              {cipSummary.status === 'fetching' && <LoadingSpinner />}
+              {(cipSummary.status === 'failure' || !cipSummary.data?.items) && (
+                <StyledErrorBox>
+                  <p>{huc12SummaryError}</p>
+                </StyledErrorBox>
+              )}
+              {cipSummary.status === 'success' && (
+                <>
+                  {(cipSummary.data.count === 0 ||
+                    (cipSummary.data.items &&
+                      cipSummary.data.items.length === 0)) && (
+                    <p css={centeredTextStyles}>
+                      There are no impairment categories in the {watershed}{' '}
+                      watershed.
+                    </p>
+                  )}
+                  {cipSummary.data.items && cipSummary.data.items.length > 0 && (
+                    <>
+                      <IntroDiv>
+                        {/* ***removed until EPA determines correct value*** */}
+                        {/* {assessedPercent > 0 && (
                         <span>
                           <strong>{assessedPercent}%</strong> of waters in
                           your watershed have been assessed.
@@ -666,231 +660,220 @@ function IdentifiedIssues() {
                         </span>
                       )}
                       <br /> */}
-                          <Disclaimer>
-                            <p>
-                              The condition of a waterbody is dynamic and can
-                              change at any time, and the information in How’s
-                              My Waterway should only be used for general
-                              reference. If available, refer to local or state
-                              real-time water quality reports.
-                            </p>
-                            <p>
-                              Furthermore, users of this application should not
-                              rely on information relating to environmental laws
-                              and regulations posted on this application.
-                              Application users are solely responsible for
-                              ensuring that they are in compliance with all
-                              relevant environmental laws and regulations. In
-                              addition, EPA cannot attest to the accuracy of
-                              data provided by organizations outside of the
-                              federal government.
-                            </p>
-                          </Disclaimer>
-                        </IntroDiv>
+                        <DisclaimerModal>
+                          <p>
+                            The condition of a waterbody is dynamic and can
+                            change at any time, and the information in How’s My
+                            Waterway should only be used for general reference.
+                            If available, refer to local or state real-time
+                            water quality reports.
+                          </p>
+                          <p>
+                            Furthermore, users of this application should not
+                            rely on information relating to environmental laws
+                            and regulations posted on this application.
+                            Application users are solely responsible for
+                            ensuring that they are in compliance with all
+                            relevant environmental laws and regulations. In
+                            addition, EPA cannot attest to the accuracy of data
+                            provided by organizations outside of the federal
+                            government.
+                          </p>
+                        </DisclaimerModal>
+                      </IntroDiv>
 
-                        {emptyCategoriesWithPercent && (
-                          <Text>
-                            Impairment Summary information is temporarily
-                            unavailable for the {watershed} watershed. Please
-                            see the Overview tab for specific impairment
-                            information on these waters.
-                          </Text>
+                      {emptyCategoriesWithPercent && (
+                        <p css={centeredTextStyles}>
+                          Impairment Summary information is temporarily
+                          unavailable for the {watershed} watershed. Please see
+                          the Overview tab for specific impairment information
+                          on these waters.
+                        </p>
+                      )}
+                      {!emptyCategoriesWithPercent &&
+                        zeroPollutedWaterbodies && (
+                          <p css={centeredTextStyles}>
+                            There are no impairment categories in the{' '}
+                            {watershed} watershed.
+                          </p>
                         )}
-                        {!emptyCategoriesWithPercent &&
-                          zeroPollutedWaterbodies && (
-                            <Text>
-                              There are no impairment categories in the{' '}
-                              {watershed} watershed.
-                            </Text>
-                          )}
-                        {!emptyCategoriesWithPercent &&
-                          !zeroPollutedWaterbodies && (
-                            <>
-                              <Title>
-                                Impairment categories in the {watershed}{' '}
-                                watershed.
-                              </Title>
-                              <Table className="table">
-                                <THead>
-                                  <tr>
-                                    <th>
-                                      <FlexDiv>
-                                        <TableSwitch>
-                                          <Switch
-                                            checked={showAllParameters}
-                                            onChange={() =>
-                                              toggleSwitch('Toggle All')
-                                            }
-                                            ariaLabel="Toggle all impairment categories"
-                                          />
-                                        </TableSwitch>
-                                        Impairment Category
-                                      </FlexDiv>
-                                    </th>
-                                    <th>% of Assessed Area</th>
-                                  </tr>
-                                </THead>
-                                <tbody>
-                                  {cipSummary.data.items[0].summaryByParameterImpairments.map(
-                                    (param) => {
-                                      const percent = formatNumber(
-                                        Math.min(
-                                          100,
-                                          (param['catchmentSizeSqMi'] /
-                                            cipSummary.data.items[0]
-                                              .assessedCatchmentAreaSqMi) *
-                                            100,
-                                        ),
-                                      );
+                      {!emptyCategoriesWithPercent && !zeroPollutedWaterbodies && (
+                        <>
+                          <Title>
+                            Impairment categories in the {watershed} watershed.
+                          </Title>
+                          <Table className="table">
+                            <THead>
+                              <tr>
+                                <th>
+                                  <FlexDiv>
+                                    <TableSwitch>
+                                      <Switch
+                                        checked={showAllParameters}
+                                        onChange={() =>
+                                          toggleSwitch('Toggle All')
+                                        }
+                                        ariaLabel="Toggle all impairment categories"
+                                      />
+                                    </TableSwitch>
+                                    Impairment Category
+                                  </FlexDiv>
+                                </th>
+                                <th>% of Assessed Area</th>
+                              </tr>
+                            </THead>
+                            <tbody>
+                              {cipSummary.data.items[0].summaryByParameterImpairments.map(
+                                (param) => {
+                                  const percent = formatNumber(
+                                    Math.min(
+                                      100,
+                                      (param['catchmentSizeSqMi'] /
+                                        cipSummary.data.items[0]
+                                          .assessedCatchmentAreaSqMi) *
+                                        100,
+                                    ),
+                                  );
 
-                                      const mappedParameterName =
-                                        getMappedParameterName(
-                                          impairmentFields,
-                                          param['parameterGroupName'],
-                                        );
-                                      // if service contains a parameter we have no mapping for
-                                      if (!mappedParameterName) return false;
+                                  const mappedParameterName =
+                                    getMappedParameterName(
+                                      impairmentFields,
+                                      param['parameterGroupName'],
+                                    );
+                                  // if service contains a parameter we have no mapping for
+                                  if (!mappedParameterName) return false;
 
-                                      return (
-                                        <tr key={mappedParameterName}>
-                                          <td>
-                                            <FlexDiv>
-                                              <TableSwitch>
-                                                <Switch
-                                                  ariaLabel={
-                                                    mappedParameterName
-                                                  }
-                                                  checked={
-                                                    parameterToggleObject[
-                                                      mappedParameterName
-                                                    ]
-                                                  }
-                                                  onChange={() =>
-                                                    toggleSwitch(
-                                                      mappedParameterName,
-                                                    )
-                                                  }
-                                                />
-                                              </TableSwitch>
-                                              {mappedParameterName}
-                                            </FlexDiv>
-                                          </td>
-                                          <td>
-                                            {nullPollutedWaterbodies === true
-                                              ? 'N/A'
-                                              : percent + '%'}
-                                          </td>
-                                        </tr>
-                                      );
-                                    },
-                                  )}
-                                </tbody>
-                              </Table>
-                            </>
-                          )}
-                      </>
-                    )}
-                  </>
-                )}
-              </TabPanel>
+                                  return (
+                                    <tr key={mappedParameterName}>
+                                      <td>
+                                        <FlexDiv>
+                                          <TableSwitch>
+                                            <Switch
+                                              ariaLabel={mappedParameterName}
+                                              checked={
+                                                parameterToggleObject[
+                                                  mappedParameterName
+                                                ]
+                                              }
+                                              onChange={() =>
+                                                toggleSwitch(
+                                                  mappedParameterName,
+                                                )
+                                              }
+                                            />
+                                          </TableSwitch>
+                                          {mappedParameterName}
+                                        </FlexDiv>
+                                      </td>
+                                      <td>
+                                        {nullPollutedWaterbodies === true
+                                          ? 'N/A'
+                                          : percent + '%'}
+                                      </td>
+                                    </tr>
+                                  );
+                                },
+                              )}
+                            </tbody>
+                          </Table>
+                        </>
+                      )}
+                    </>
+                  )}
+                </>
+              )}
+            </TabPanel>
 
-              <TabPanel>
-                {permittedDischargers.status === 'fetching' && (
-                  <LoadingSpinner />
-                )}
+            <TabPanel>
+              {permittedDischargers.status === 'fetching' && <LoadingSpinner />}
 
-                {permittedDischargers.status === 'failure' && (
-                  <StyledErrorBox>
-                    <p>{echoError}</p>
-                  </StyledErrorBox>
-                )}
+              {permittedDischargers.status === 'failure' && (
+                <StyledErrorBox>
+                  <p>{echoError}</p>
+                </StyledErrorBox>
+              )}
 
-                {permittedDischargers.status === 'success' && (
-                  <>
-                    {violatingFacilities.length === 0 && (
-                      <Text>
-                        There are no dischargers with significant{' '}
-                        <GlossaryTerm term="Effluent">effluent</GlossaryTerm>{' '}
-                        violations in the {watershed} watershed.
-                      </Text>
-                    )}
-                    {violatingFacilities.length > 0 && (
-                      <AccordionList
-                        title={
-                          <>
-                            There{' '}
-                            {violatingFacilities.length === 1 ? 'is' : 'are'}{' '}
-                            <strong>
-                              {violatingFacilities.length.toLocaleString()}
-                            </strong>{' '}
-                            {violatingFacilities.length === 1
-                              ? 'discharger'
-                              : 'dischargers'}{' '}
-                            with significant{' '}
-                            <GlossaryTerm term="Effluent">
-                              effluent
-                            </GlossaryTerm>{' '}
-                            violations in the <em>{watershed}</em> watershed.
-                          </>
-                        }
-                      >
-                        {violatingFacilities.map((item, index) => {
-                          const feature = new Graphic({
-                            geometry: {
-                              type: 'point',
-                              longitude: item.FacLong,
-                              latitude: item.FacLat,
-                            },
-                            attributes: item,
-                          });
+              {permittedDischargers.status === 'success' && (
+                <>
+                  {violatingFacilities.length === 0 && (
+                    <p css={centeredTextStyles}>
+                      There are no dischargers with significant{' '}
+                      <GlossaryTerm term="Effluent">effluent</GlossaryTerm>{' '}
+                      violations in the {watershed} watershed.
+                    </p>
+                  )}
+                  {violatingFacilities.length > 0 && (
+                    <AccordionList
+                      title={
+                        <>
+                          There{' '}
+                          {violatingFacilities.length === 1 ? 'is' : 'are'}{' '}
+                          <strong>
+                            {violatingFacilities.length.toLocaleString()}
+                          </strong>{' '}
+                          {violatingFacilities.length === 1
+                            ? 'discharger'
+                            : 'dischargers'}{' '}
+                          with significant{' '}
+                          <GlossaryTerm term="Effluent">effluent</GlossaryTerm>{' '}
+                          violations in the <em>{watershed}</em> watershed.
+                        </>
+                      }
+                    >
+                      {violatingFacilities.map((item, index) => {
+                        const feature = new Graphic({
+                          geometry: {
+                            type: 'point',
+                            longitude: item.FacLong,
+                            latitude: item.FacLat,
+                          },
+                          attributes: item,
+                        });
 
-                          return (
-                            <AccordionItem
-                              key={index}
-                              title={
-                                <strong>{item.CWPName || 'Unknown'}</strong>
-                              }
-                              subTitle={`NPDES ID: ${item.SourceID}`}
+                        return (
+                          <AccordionItem
+                            key={index}
+                            title={<strong>{item.CWPName || 'Unknown'}</strong>}
+                            subTitle={`NPDES ID: ${item.SourceID}`}
+                            feature={feature}
+                            idKey="CWPName"
+                          >
+                            <WaterbodyInfo
+                              type="Permitted Discharger"
                               feature={feature}
-                              idKey="CWPName"
-                            >
-                              <WaterbodyInfo
-                                type="Permitted Discharger"
-                                feature={feature}
-                              />
-                              <ViewOnMapButton feature={feature} />
-                            </AccordionItem>
-                          );
-                        })}
-                      </AccordionList>
-                    )}
-                  </>
-                )}
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
-        </ContentTabs>
+                            />
+                            <ViewOnMapButton feature={feature} />
+                          </AccordionItem>
+                        );
+                      })}
+                    </AccordionList>
+                  )}
+                </>
+              )}
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
+      </ContentTabs>
 
-        {infoToggleChecked && (
-          <>
-            <Heading>Did You Know?</Heading>
+      {infoToggleChecked && (
+        <>
+          <Heading>Did You Know?</Heading>
 
-            <ul>
-              <li>
-                Impairments take many forms, often a result of human behavior.
-                Water impairments are identified across 34 categories such as
-                algae, mercury, pathogens, pesticides, trash and more.
-              </li>
-              <li>
-                Impairments can enter your water through runoff, water discharge
-                from a building, and from the breakdown of water infrastructure
-                like sewers and pipes
-              </li>
-            </ul>
-          </>
-        )}
-      </>
-    </Container>
+          <ul>
+            <li>
+              Impairments take many forms, often a result of human behavior.
+              Water impairments are identified across 34 categories such as
+              algae, mercury, pathogens, pesticides, trash and more.
+            </li>
+            <li>
+              Impairments can enter your water through runoff, water discharge
+              from a building, and from the breakdown of water infrastructure
+              like sewers and pipes
+            </li>
+          </ul>
+        </>
+      )}
+    </div>
   );
 }
 
