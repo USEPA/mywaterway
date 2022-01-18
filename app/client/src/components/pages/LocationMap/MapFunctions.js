@@ -409,8 +409,8 @@ export function plotGages(gages: Object[], layer: any) {
     });
   });
 
-  layer.queryFeatures().then((featureSet) => {
-    layer.applyEdits({
+  return layer.queryFeatures().then((featureSet) => {
+    return layer.applyEdits({
       deleteFeatures: featureSet.features,
       addFeatures: graphics,
     });
