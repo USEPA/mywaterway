@@ -36,7 +36,7 @@
     "express": "4.17.2",
     "express-basic-auth": "1.2.1",
     "helmet": "5.0.1",
-    "log4js": "6.3.0",
+    "log4js": "6.4.0",
     "serve-favicon": "2.5.0"
   },
   "devDependencies": {
