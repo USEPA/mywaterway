@@ -130,7 +130,7 @@ const bannerStyles = css`
 
 const textStyles = css`
   position: absolute;
-  top: 50%;
+  top: calc(50% + 24px); /* leave room for top links */
   right: 50%;
   transform: translate(50%, -50%);
   width: 100%;
