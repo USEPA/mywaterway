@@ -285,11 +285,14 @@ const tabDotStyles = css`
 `;
 
 const tabHeaderStyles = css`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   padding: 0.75em 1em;
   background-color: ${lightBlue};
+
+  @media (min-width: 240px) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
 
   @media (min-width: 320px) {
     padding: 0.5em;
@@ -313,12 +316,14 @@ const tabHeaderStyles = css`
   label {
     display: flex;
     align-items: center;
+    margin-top: 0.375em;
     margin-bottom: 0;
     font-weight: bold;
   }
 
   span {
     margin-right: 0.5em;
+    margin-bottom: 0.125em;
     font-size: 0.875em;
 
     @media (min-width: 320px) {
