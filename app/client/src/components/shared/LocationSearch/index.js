@@ -66,7 +66,7 @@ const formStyles = css`
 const buttonStyles = css`
   margin-top: 1em;
   margin-bottom: 0;
-  font-size: 0.9375em;
+  font-size: 0.875em;
   font-weight: bold;
   color: ${colors.white()};
   background-color: ${colors.blue()};
@@ -79,6 +79,10 @@ const buttonStyles = css`
 
   &:disabled {
     cursor: default;
+  }
+
+  @media (min-width: 480px) {
+    font-size: 0.9375em;
   }
 `;
 
