@@ -13,23 +13,32 @@ const accordionListContainerStyles = css`
 
 const columnsStyles = css`
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: flex-end;
 `;
 
 const selectContainerStyles = css`
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  margin-bottom: 0.625em;
+  margin-bottom: 0.625rem;
   width: 100%;
+
+  @media (min-width: 560px) {
+    flex-wrap: nowrap;
+  }
 `;
 
 const selectLabelStyles = css`
   margin-right: 0.625rem;
-  margin-bottom: 0;
+  margin-bottom: 0.125rem;
   font-size: 0.875rem;
   font-weight: bold;
   white-space: nowrap;
+
+  @media (min-width: 560px) {
+    margin-bottom: 0;
+  }
 `;
 
 const selectStyles = css`
@@ -37,7 +46,7 @@ const selectStyles = css`
 `;
 
 const expandButtonStyles = css`
-  margin-bottom: 0;
+  margin-bottom: 0.625rem;
   margin-left: 0.625rem;
   padding: 0.5em;
   font-size: 0.875em;
