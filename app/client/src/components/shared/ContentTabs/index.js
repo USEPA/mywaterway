@@ -139,6 +139,7 @@ const tabsStyles = css`
 
   [data-reach-tab-panel] {
     padding: 1em;
+    line-height: 1.25;
 
     p,
     li {

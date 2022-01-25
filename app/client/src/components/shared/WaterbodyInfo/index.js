@@ -530,7 +530,7 @@ function WaterbodyInfo({
         </tbody>
       </table>
 
-      <div>
+      <p>
         <a
           href={`https://echo.epa.gov/detailed-facility-report?fid=${attributes.RegistryID}`}
           target="_blank"
@@ -541,7 +541,7 @@ function WaterbodyInfo({
         </a>
         &nbsp;&nbsp;
         <small css={disclaimerStyles}>(opens new browser tab)</small>
-      </div>
+      </p>
     </>
   );
 
@@ -916,7 +916,7 @@ function WaterbodyInfo({
         {attributes.RiverCategory}
         <br />
       </p>
-      <div>
+      <p>
         <a rel="noopener noreferrer" target="_blank" href={attributes.WEBLINK}>
           <i
             css={iconStyles}
@@ -927,7 +927,7 @@ function WaterbodyInfo({
         </a>
         &nbsp;&nbsp;
         <small css={disclaimerStyles}>(opens new browser tab)</small>
-      </div>
+      </p>
     </>
   );
 
@@ -1397,7 +1397,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
         </tbody>
       </table>
 
-      <div>
+      <p>
         <a rel="noopener noreferrer" target="_blank" href={locationUrl}>
           <i
             css={iconStyles}
@@ -1408,7 +1408,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
         </a>
         &nbsp;&nbsp;
         <small css={disclaimerStyles}>(opens new browser tab)</small>
-      </div>
+      </p>
     </>
   );
 }

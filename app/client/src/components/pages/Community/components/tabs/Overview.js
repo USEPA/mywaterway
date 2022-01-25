@@ -79,9 +79,18 @@ const tableStyles = css`
     background-color: #f0f6f9;
   }
 
-  th:last-of-type,
-  td:last-of-type {
-    text-align: right;
+  th,
+  td {
+    font-size: 0.875em;
+    line-height: 1.125;
+
+    @media (min-width: 560px) {
+      font-size: 1em;
+    }
+
+    :last-of-type {
+      text-align: right;
+    }
   }
 `;
 
