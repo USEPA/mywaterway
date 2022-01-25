@@ -174,7 +174,7 @@ const iconStyles = css`
 const textStyles = css`
   flex: 1;
   padding-bottom: 0;
-  word-break: break-word;
+  overflow-wrap: anywhere;
 `;
 
 const subtitleStyles = css`
