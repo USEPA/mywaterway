@@ -73,12 +73,27 @@ const popupTitleStyles = css`
 `;
 
 const tableStyles = css`
+  thead th {
+    vertical-align: top;
+  }
+
   th,
   td {
     font-size: 0.875em;
+    line-height: 1.125;
+    overflow-wrap: anywhere;
+    hyphens: auto;
 
-    @media (min-width: 540px) {
+    @media (min-width: 560px) {
       font-size: 1em;
+    }
+
+    :first-of-type {
+      padding-left: 0;
+    }
+
+    :last-of-type {
+      padding-right: 0;
     }
   }
 `;
@@ -94,7 +109,6 @@ const measurementTableStyles = css`
 
 const checkboxCellStyles = css`
   padding-right: 0 !important;
-  vertical-align: middle !important;
   text-align: center;
 `;
 
@@ -645,7 +659,7 @@ function WaterbodyInfo({
           <tbody>
             <tr>
               <td>
-                <em>Organization:</em>
+                <em>Organ&shy;ization:</em>
               </td>
               <td>{attributes.orgName}</td>
             </tr>
@@ -663,7 +677,7 @@ function WaterbodyInfo({
             </tr>
             <tr>
               <td>
-                <em>Monitoring Site ID:</em>
+                <em>Monitor&shy;ing Site ID:</em>
               </td>
               <td>{attributes.siteId.replace(`${attributes.orgId}-`, '')}</td>
             </tr>
@@ -671,7 +685,7 @@ function WaterbodyInfo({
               <td>
                 <em>
                   <GlossaryTerm term="Monitoring Samples">
-                    Monitoring Samples:
+                    Monitor&shy;ing Samples:
                   </GlossaryTerm>
                 </em>
               </td>
@@ -681,7 +695,7 @@ function WaterbodyInfo({
               <td>
                 <em>
                   <GlossaryTerm term="Monitoring Measurements">
-                    Monitoring Measurements:
+                    Monitor&shy;ing Measure&shy;ments:
                   </GlossaryTerm>
                 </em>
               </td>
@@ -718,12 +732,12 @@ function WaterbodyInfo({
                 </th>
                 <th>
                   <GlossaryTerm term="Characteristic Group">
-                    Characteristic Group
+                    Char&shy;acter&shy;istic Group
                   </GlossaryTerm>
                 </th>
                 <th>
                   <GlossaryTerm term="Monitoring Measurements">
-                    Number of Measurements
+                    Number of Measure&shy;ments
                   </GlossaryTerm>
                 </th>
               </tr>
@@ -1290,13 +1304,13 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
         <tbody>
           <tr>
             <td>
-              <em>Organization:</em>
+              <em>Organ&shy;ization:</em>
             </td>
             <td>{orgName}</td>
           </tr>
           <tr>
             <td>
-              <em>Location Name:</em>
+              <em>Locat&shy;ion Name:</em>
             </td>
             <td>{locationName}</td>
           </tr>
@@ -1308,7 +1322,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
           </tr>
           <tr>
             <td>
-              <em>Monitoring Site ID:</em>
+              <em>Monitor&shy;ing Site ID:</em>
             </td>
             <td>{siteId.replace(`${orgId}-`, '')}</td>
           </tr>
