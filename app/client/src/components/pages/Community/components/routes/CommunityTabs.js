@@ -238,17 +238,24 @@ const tabsStyles = css`
       p {
         margin-top: 1rem;
         padding-bottom: 0;
+        font-size: 0.875em;
 
         :first-of-type {
           margin-top: 0;
         }
+
+        @media (min-width: 320px) {
+          font-size: 1em;
+        }
       }
 
-      h3 {
-        margin: 1rem 0;
-        padding-bottom: 0;
+      h2 {
         font-family: ${fonts.primary};
-        font-size: 1.375em;
+        font-size: 1.125em;
+
+        @media (min-width: 320px) {
+          font-size: 1.375em;
+        }
       }
     }
   }

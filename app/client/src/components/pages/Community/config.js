@@ -1,8 +1,6 @@
 // @flow
 
 import React from 'react';
-import { css } from 'styled-components/macro';
-// import styled from 'styled-components';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import Overview from './components/tabs/Overview';
@@ -27,19 +25,10 @@ import identifiedIssuesIcon from './images/identified-issues.png';
 import restoreIcon from './images/restore.png';
 import protectIcon from './images/protect.png';
 
-const headingStyles = css`
-  font-family: inherit;
-  font-size: 1.125em;
-
-  @media (min-width: 320px) {
-    font-size: 1.375em;
-  }
-`;
-
 function OverviewUpper() {
   return (
     <>
-      <h2 css={headingStyles}>Your Waters: What We Know</h2>
+      <h2>Your Waters: What We Know</h2>
 
       <p>
         Waters in your community are connected within a local{' '}
@@ -54,7 +43,7 @@ function OverviewUpper() {
         not able to be used for certain purposes.
         <ShowLessMore
           charLimit={0}
-          text="The condition of a waterbody is dynamic and can change at any
+          text=" The condition of a waterbody is dynamic and can change at any
             time, and the information in How’s My Waterway should only be used
             for general reference. If available, refer to local or state
             real-time water quality reports."
@@ -83,7 +72,7 @@ function SwimmingUpper() {
         safe while swimming and playing in or on the water.
         <ShowLessMore
           charLimit={0}
-          text="Water quality can change on very short notice. When deciding if
+          text=" Water quality can change on very short notice. When deciding if
             it is safe to swim in a water body, refer to any local or state
             advisories. If available, refer to local or state real-time water
             quality reports."
@@ -127,7 +116,7 @@ function AquaticLifeUpper() {
         living in the water.
         <ShowLessMore
           charLimit={0}
-          text="The condition of a waterbody is dynamic and can change at any
+          text=" The condition of a waterbody is dynamic and can change at any
             time, and the information in How’s My Waterway should only be used
             for general reference. If available, refer to local or state
             real-time water quality reports."
@@ -163,7 +152,7 @@ function DrinkingWaterUpper() {
         water safety.
         <ShowLessMore
           charLimit={0}
-          text="Drinking water quality is based on water that has been treated
+          text=" Drinking water quality is based on water that has been treated
             to ensure it is ready for human consumption which differs from raw
             water in streams and reservoirs."
         />

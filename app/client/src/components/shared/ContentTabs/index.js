@@ -139,6 +139,14 @@ const tabsStyles = css`
 
   [data-reach-tab-panel] {
     padding: 1em;
+
+    p {
+      font-size: 0.875em;
+
+      @media (min-width: 320px) {
+        font-size: 1em;
+      }
+    }
   }
 `;
 
