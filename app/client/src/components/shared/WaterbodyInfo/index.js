@@ -134,7 +134,7 @@ const popupIconStyles = css`
   display: inline-block;
 `;
 
-const textStyles = css`
+const paragraphStyles = css`
   padding-bottom: 0.5em;
 `;
 
@@ -256,7 +256,7 @@ function WaterbodyInfo({
     }
 
     return (
-      <p css={textStyles}>
+      <p css={paragraphStyles}>
         <strong>{label}: </strong>
         {value}
       </p>
@@ -279,7 +279,9 @@ function WaterbodyInfo({
 
     return (
       <>
-        <strong>{label}: </strong>
+        <p css={paragraphStyles}>
+          <strong>{label}: </strong>
+        </p>
         <ul>{pollutionCategories}</ul>
       </>
     );
@@ -309,7 +311,7 @@ function WaterbodyInfo({
 
   const waterbodyReportLink =
     !onWaterbodyReportPage && attributes.organizationid ? (
-      <div>
+      <p css={paragraphStyles}>
         <a
           rel="noopener noreferrer"
           target="_blank"
@@ -325,9 +327,11 @@ function WaterbodyInfo({
         </a>
         &nbsp;&nbsp;
         <small css={disclaimerStyles}>(opens new browser tab)</small>
-      </div>
+      </p>
     ) : (
-      <p>Unable to find a waterbody report for this waterbody.</p>
+      <p css={paragraphStyles}>
+        Unable to find a waterbody report for this waterbody.
+      </p>
     );
 
   const baseWaterbodyContent = () => {
@@ -370,7 +374,7 @@ function WaterbodyInfo({
     return (
       <>
         {reportingCycle && (
-          <p css={textStyles}>
+          <p css={paragraphStyles}>
             <strong>Year Last Reported: </strong>
             {reportingCycle}
           </p>
@@ -386,7 +390,7 @@ function WaterbodyInfo({
         )}
 
         {attributes?.organizationid && attributes?.organizationname && (
-          <p css={textStyles}>
+          <p css={paragraphStyles}>
             <strong>Organization Name (ID): </strong>
             {attributes.organizationname} ({attributes.organizationid})
           </p>

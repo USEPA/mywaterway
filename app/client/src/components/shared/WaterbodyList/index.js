@@ -39,6 +39,11 @@ const legendItemsStyles = css`
   span {
     display: flex;
     align-items: center;
+    font-size: 0.875em;
+
+    @media (min-width: 560px) {
+      font-size: 1em;
+    }
   }
 `;
 
@@ -112,15 +117,15 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
       <div css={legendItemsStyles}>
         <span>
           <WaterbodyIcon condition="good" selected={false} />
-          &nbsp;Good
+          &nbsp;Good&nbsp;
         </span>
         <span>
           <WaterbodyIcon condition="polluted" selected={false} />
-          &nbsp;Impaired
+          &nbsp;Impaired&nbsp;
         </span>
         <span>
           <WaterbodyIcon condition="unassessed" selected={false} />
-          &nbsp;Condition Unknown
+          &nbsp;Condition Unknown&nbsp;
         </span>
       </div>
 

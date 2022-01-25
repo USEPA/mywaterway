@@ -235,16 +235,11 @@ const tabsStyles = css`
         return props['info-toggle-checked'] === 'true' ? '1em' : '0';
       }};
 
-      p {
-        margin-top: 1rem;
-        padding-bottom: 0;
+      p,
+      li {
         font-size: 0.875em;
 
-        :first-of-type {
-          margin-top: 0;
-        }
-
-        @media (min-width: 320px) {
+        @media (min-width: 560px) {
           font-size: 1em;
         }
       }
@@ -253,7 +248,7 @@ const tabsStyles = css`
         font-family: ${fonts.primary};
         font-size: 1.125em;
 
-        @media (min-width: 320px) {
+        @media (min-width: 560px) {
           font-size: 1.375em;
         }
       }
