@@ -48,8 +48,8 @@ const selectStyles = css`
 const expandButtonStyles = css`
   margin-bottom: 0.625rem;
   margin-left: 0.625rem;
-  padding: 0.5em;
-  font-size: 0.875em;
+  padding: 0.5rem;
+  font-size: 0.8125em;
   font-weight: normal;
   color: ${colors.gray6};
   background-color: transparent;
@@ -86,11 +86,9 @@ function AccordionList({
   );
   const [allExpanded, setAllExpanded] = React.useState(false);
 
-  const iconClass = allExpanded
+  const iconClassName = allExpanded
     ? 'far fa-caret-square-right'
     : 'far fa-caret-square-down';
-
-  const buttonText = allExpanded ? 'Collapse All' : 'Expand All';
 
   // generate unique id for sorting label and dropdown
   const uniqueID = Date.now() + Math.random();
@@ -126,8 +124,8 @@ function AccordionList({
             css={expandButtonStyles}
             onClick={(ev) => setAllExpanded(!allExpanded)}
           >
-            {buttonText}&nbsp;&nbsp;
-            <i className={iconClass} aria-hidden="true" />
+            {allExpanded ? 'Collapse All' : 'Expand All'}&nbsp;&nbsp;
+            <i className={iconClassName} aria-hidden="true" />
           </button>
         )}
       </div>

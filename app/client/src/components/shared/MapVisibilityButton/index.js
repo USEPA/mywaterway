@@ -1,56 +1,50 @@
 // @flow
 
-import React from 'react';
-import styled from 'styled-components';
+import React, { useContext, useState, useEffect } from 'react';
+import { css } from 'styled-components/macro';
 // contexts
 import { MapHighlightContext } from 'contexts/MapHighlight';
 // styles
 import { colors } from 'styles/index.js';
 
-// --- styled components ---
-const MapButton = styled.p`
-  padding: 0.5rem 0;
+const buttonContainerStyles = css`
   text-align: right;
 
   button {
-    margin-bottom: 0;
-    padding: 0.5em;
-    font-size: 0.875em;
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    font-size: 0.8125em;
     font-weight: normal;
     color: ${colors.gray6};
     background-color: transparent;
   }
 `;
 
-// --- components ---
 type Props = {
   children: Function,
 };
 
 function MapVisibilityButton({ children }: Props) {
-  const { selectedGraphic } = React.useContext(MapHighlightContext);
-  const [mapShown, setMapShown] = React.useState(false);
+  const { selectedGraphic } = useContext(MapHighlightContext);
+  const [mapShown, setMapShown] = useState(false);
 
-  const opacity = mapShown ? 0.6 : 1;
-  const iconClass = mapShown ? 'far fa-eye-slash' : 'far fa-eye';
-  const buttonText = mapShown ? 'Hide Map' : 'Show Map';
+  const iconClassName = mapShown ? 'far fa-eye-slash' : 'far fa-eye';
 
-  // Show the map if the View on Map button is clicked (i.e. when the selected
-  // graphic changes).
-  React.useEffect(() => {
+  // show the map if the View on Map button is clicked
+  // (i.e. when the selected graphic changes)
+  useEffect(() => {
     if (!selectedGraphic) return;
-
     setMapShown(true);
   }, [selectedGraphic]);
 
   return (
     <>
-      <MapButton style={{ opacity }}>
+      <div css={buttonContainerStyles} style={{ opacity: mapShown ? 0.6 : 1 }}>
         <button onClick={(ev) => setMapShown(!mapShown)}>
-          {buttonText}&nbsp;&nbsp;
-          <i className={iconClass} aria-hidden="true" />
+          {mapShown ? 'Hide Map' : 'Show Map'}&nbsp;&nbsp;
+          <i className={iconClassName} aria-hidden="true" />
         </button>
-      </MapButton>
+      </div>
 
       {children(mapShown)}
     </>
