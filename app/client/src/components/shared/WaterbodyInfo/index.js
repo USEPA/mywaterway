@@ -117,8 +117,21 @@ const checkboxStyles = css`
   transform: scale(1.2);
 `;
 
-const linkStyles = css`
-  margin-left: 0.5em;
+const downloadLinksStyles = css`
+  span {
+    display: inline-block;
+    width: 100%;
+    font-weight: bold;
+
+    @media (min-width: 360px) {
+      margin-right: 0.5em;
+      width: auto;
+    }
+  }
+
+  a {
+    margin-right: 1em;
+  }
 `;
 
 const iconStyles = css`
@@ -770,9 +783,11 @@ function WaterbodyInfo({
             </tbody>
           </table>
         )}
-        <p>
-          <strong>Data Download Format:</strong>
-          <a css={linkStyles} href={`${downloadUrl}&mimeType=xlsx`}>
+
+        <p css={downloadLinksStyles}>
+          <span>Data Download Format:</span>
+          &nbsp;
+          <a href={`${downloadUrl}&mimeType=xlsx`}>
             <i
               css={iconStyles}
               className="fas fa-file-excel"
@@ -780,7 +795,7 @@ function WaterbodyInfo({
             />
             xls
           </a>
-          <a css={linkStyles} href={`${downloadUrl}&mimeType=csv`}>
+          <a href={`${downloadUrl}&mimeType=csv`}>
             <i
               css={iconStyles}
               className="fas fa-file-csv"
@@ -789,7 +804,8 @@ function WaterbodyInfo({
             csv
           </a>
         </p>
-        <div>
+
+        <p>
           <a
             rel="noopener noreferrer"
             target="_blank"
@@ -819,7 +835,7 @@ function WaterbodyInfo({
           </a>
           &nbsp;&nbsp;
           <small css={disclaimerStyles}>(opens new browser tab)</small>
-        </div>
+        </p>
       </>
     );
   }
