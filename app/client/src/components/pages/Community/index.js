@@ -28,6 +28,16 @@ import { colors } from 'styles/index.js';
 
 const columnsStyles = css`
   display: flex;
+  line-height: 1.25;
+
+  p,
+  li {
+    font-size: 0.875em;
+
+    @media (min-width: 560px) {
+      font-size: 1em;
+    }
+  }
 `;
 
 const leftColumnStyles = css`

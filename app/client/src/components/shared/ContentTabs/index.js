@@ -139,16 +139,6 @@ const tabsStyles = css`
 
   [data-reach-tab-panel] {
     padding: 1em;
-    line-height: 1.25;
-
-    p,
-    li {
-      font-size: 0.875em;
-
-      @media (min-width: 560px) {
-        font-size: 1em;
-      }
-    }
   }
 `;
 

@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useContext } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -67,7 +67,6 @@ const modifiedInfoBoxStyles = css`
   text-align: center;
 `;
 
-// --- components ---
 type Props = {
   waterbodies: Array<Object>,
   title: string,
@@ -75,7 +74,7 @@ type Props = {
 };
 
 function WaterbodyList({ waterbodies, title, fieldName }: Props) {
-  const { cipSummary } = React.useContext(LocationSearchContext);
+  const { cipSummary } = useContext(LocationSearchContext);
 
   // if huc12summaryservice is down
   if (cipSummary.status === 'failure') {
