@@ -140,10 +140,8 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
               title={<strong>{graphic.attributes.assessmentunitname}</strong>}
               subTitle={
                 <>
-                  {`${getOrganizationLabel(graphic.attributes)} ${
-                    graphic.attributes.assessmentunitidentifier
-                  }`}
-
+                  {getOrganizationLabel(graphic.attributes)}{' '}
+                  {graphic.attributes.assessmentunitidentifier}
                   {graphic.limited && (
                     <>
                       <br />
@@ -155,7 +153,7 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
               icon={<WaterbodyIcon condition={condition} selected={false} />}
               mapIcon={icon}
               feature={graphic}
-              idKey={'assessmentunitidentifier'}
+              idKey="assessmentunitidentifier"
             >
               <div css={waterbodyItemStyles}>
                 <WaterbodyInfo

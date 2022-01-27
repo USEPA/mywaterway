@@ -228,9 +228,9 @@ function Restore() {
                                 title={
                                   <strong>{item.prj_title || 'Unknown'}</strong>
                                 }
-                                subTitle={`ID:  ${
-                                  item.prj_seq || 'Unknown ID'
-                                }`}
+                                subTitle={
+                                  <>ID: {item.prj_seq || 'Unknown ID'}</>
+                                }
                               >
                                 <table className="table">
                                   <tbody>
@@ -410,7 +410,7 @@ function Restore() {
                               title={
                                 <strong>{item.actionName || 'Unknown'}</strong>
                               }
-                              subTitle={`ID: ${item.actionIdentifier}`}
+                              subTitle={<>ID: {item.actionIdentifier}</>}
                             >
                               <table className="table">
                                 <tbody>

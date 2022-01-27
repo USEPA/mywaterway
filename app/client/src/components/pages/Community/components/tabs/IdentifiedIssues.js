@@ -829,7 +829,7 @@ function IdentifiedIssues() {
                           <AccordionItem
                             key={index}
                             title={<strong>{item.CWPName || 'Unknown'}</strong>}
-                            subTitle={`NPDES ID: ${item.SourceID}`}
+                            subTitle={<>NPDES ID: {item.SourceID}</>}
                             feature={feature}
                             idKey="CWPName"
                           >

@@ -280,7 +280,7 @@ function AccordionItem({
       >
         {icon && <div css={iconStyles}>{icon}</div>}
 
-        <span css={textStyles}>
+        <p css={textStyles}>
           {title}
           {subTitle && (
             <>
@@ -288,7 +288,7 @@ function AccordionItem({
               <span css={subtitleStyles}>{subTitle}</span>
             </>
           )}
-        </span>
+        </p>
 
         <i
           css={arrowStyles}

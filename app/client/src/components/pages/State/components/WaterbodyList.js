@@ -161,7 +161,11 @@ function WaterbodyList({
                 key={symbolType + orgId + auId}
                 index={symbolType + orgId + auId}
                 title={<strong>{name}</strong>}
-                subTitle={`${getOrganizationLabel(graphic.attributes)} ${auId}`}
+                subTitle={
+                  <>
+                    {getOrganizationLabel(graphic.attributes)} {auId}
+                  </>
+                }
                 icon={<WaterbodyIcon condition={condition} selected={false} />}
                 feature={graphic}
                 idKey="assessmentunitidentifier"
