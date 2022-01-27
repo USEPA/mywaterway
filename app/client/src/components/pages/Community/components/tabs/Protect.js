@@ -26,8 +26,6 @@ import { useServicesContext } from 'contexts/LookupFiles';
 import { getUrlFromMarkup, getTitleFromMarkup } from 'components/shared/Regex';
 import { useWaterbodyOnMap } from 'utils/hooks';
 import { convertAgencyCode, convertDomainCode } from 'utils/utils';
-// styles
-import { fonts } from 'styles/index.js';
 // errors
 import {
   protectNonpointSourceError,
@@ -64,13 +62,6 @@ const containerStyles = css`
   @media (min-width: 960px) {
     padding: 1em;
   }
-`;
-
-const headingStyles = css`
-  margin-bottom: 0.25rem;
-  padding-bottom: 0;
-  font-family: ${fonts.primary};
-  font-size: 1.375em;
 `;
 
 const accordionContentStyles = css`
@@ -1450,6 +1441,7 @@ function Protect() {
                 </AccordionItem>
               </AccordionList>
             </TabPanel>
+
             <TabPanel>
               <p>
                 <em>Links below open in a new browser tab.</em>
@@ -1457,7 +1449,7 @@ function Protect() {
 
               <p>Get quick tips for protecting water in your:</p>
 
-              <h2 css={headingStyles}>Community</h2>
+              <h2>Community</h2>
 
               <ul>
                 <li>Contribute to local water cleanup efforts.</li>
@@ -1474,7 +1466,7 @@ function Protect() {
                 <li>See how your state is protecting your waters.</li>
               </ul>
 
-              <h2 css={headingStyles}>School</h2>
+              <h2>School</h2>
 
               <ul>
                 <li>Adopt your watershed.</li>
@@ -1494,7 +1486,7 @@ function Protect() {
                 </li>
               </ul>
 
-              <h2 css={headingStyles}>Yard</h2>
+              <h2>Yard</h2>
 
               <ul>
                 <li>
@@ -1536,7 +1528,7 @@ function Protect() {
                 </li>
               </ul>
 
-              <h2 css={headingStyles}>Home</h2>
+              <h2>Home</h2>
 
               <ul>
                 <li>Choose phosphate-free soaps and detergents.</li>

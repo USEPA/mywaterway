@@ -20,7 +20,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 // config
 import { tabs } from 'components/pages/Community/config.js';
 // styles
-import { colors, fonts } from 'styles/index.js';
+import { colors } from 'styles/index.js';
 import '@reach/tabs/styles.css';
 
 const lightBlue = '#f0f6f9';
@@ -234,24 +234,6 @@ const tabsStyles = css`
       padding: ${(props) => {
         return props['info-toggle-checked'] === 'true' ? '1em' : '0';
       }};
-
-      p,
-      li {
-        font-size: 0.875em;
-
-        @media (min-width: 560px) {
-          font-size: 1em;
-        }
-      }
-
-      h2 {
-        font-family: ${fonts.primary};
-        font-size: 1.125em;
-
-        @media (min-width: 560px) {
-          font-size: 1.375em;
-        }
-      }
     }
   }
 `;

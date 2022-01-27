@@ -24,7 +24,7 @@ import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
 // config
 import { tabs } from './config.js';
 // styles
-import { colors } from 'styles/index.js';
+import { colors, fonts } from 'styles/index.js';
 
 const columnsStyles = css`
   display: flex;
@@ -36,6 +36,15 @@ const columnsStyles = css`
 
     @media (min-width: 560px) {
       font-size: 1em;
+    }
+  }
+
+  h2 {
+    font-family: ${fonts.primary};
+    font-size: 1.125em;
+
+    @media (min-width: 560px) {
+      font-size: 1.375em;
     }
   }
 `;
