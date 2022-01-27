@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { Fragment, useContext } from 'react';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import Overview from './components/tabs/Overview';
@@ -14,6 +14,8 @@ import Restore from './components/tabs/Restore';
 import Protect from './components/tabs/Protect';
 import DisclaimerModal from 'components/shared/DisclaimerModal';
 import ShowLessMore from 'components/shared/ShowLessMore';
+// contexts
+import { LocationSearchContext } from 'contexts/locationSearch';
 // images
 import overviewIcon from './images/overview.png';
 import drinkingWaterIcon from './images/drinking-water.png';
@@ -94,11 +96,78 @@ function SwimmingUpper() {
 }
 
 function EatingFishUpper() {
+  const { watershed, fishingInfo, statesData } = useContext(
+    LocationSearchContext,
+  );
+
   return (
-    <p>
-      EPA, states, and tribes monitor and assess water quality to determine if
-      fish and shellfish are safe to eat.
-    </p>
+    <>
+      <p>
+        EPA, states, and tribes monitor and assess water quality to determine if
+        fish and shellfish are safe to eat.
+      </p>
+
+      <p>
+        Eating fish and shellfish caught in impaired waters can pose health
+        risks. For the <em>{watershed}</em> watershed, be sure to look for
+        posted fish advisories or consult your local or state environmental
+        health department for{' '}
+        {fishingInfo.status === 'success' ? (
+          <>
+            {fishingInfo.data.map((state, index) => {
+              const seperator =
+                index === 0
+                  ? ''
+                  : index === fishingInfo.data.length - 1
+                  ? ' and '
+                  : ', ';
+
+              const matchedState = statesData.data.find((s) => {
+                return s.code === state.stateCode;
+              });
+
+              return (
+                <Fragment key={index}>
+                  {seperator}
+                  <a href={state.url} target="_blank" rel="noopener noreferrer">
+                    {matchedState ? matchedState.name : state.stateCode}
+                  </a>
+                </Fragment>
+              );
+            })}
+            .{' '}
+            <a
+              className="exit-disclaimer"
+              href="https://www.epa.gov/home/exit-epa"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              EXIT
+            </a>
+          </>
+        ) : (
+          <>your state.</>
+        )}
+        <ShowLessMore
+          charLimit={0}
+          text=" The information in How’s My Waterway about the safety of eating
+            fish caught recreationally should only be considered as general
+            reference. Please consult with your state for local or state-wide
+            fish advisories."
+        />
+      </p>
+
+      <DisclaimerModal>
+        <p>
+          Users of this application should not rely on information relating to
+          environmental laws and regulations posted on this application.
+          Application users are solely responsible for ensuring that they are in
+          compliance with all relevant environmental laws and regulations. In
+          addition, EPA cannot attest to the accuracy of data provided by
+          organizations outside of the federal government.
+        </p>
+      </DisclaimerModal>
+    </>
   );
 }
 
