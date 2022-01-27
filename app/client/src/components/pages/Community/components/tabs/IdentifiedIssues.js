@@ -31,6 +31,7 @@ import {
   keyMetricNumberStyles,
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
+import { toggleTableStyles } from 'components/pages/Community';
 // contexts
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -57,17 +58,6 @@ const switchContainerStyles = css`
 
 const centeredTextStyles = css`
   text-align: center;
-`;
-
-const tableStyles = css`
-  thead {
-    background-color: #f0f6f9;
-  }
-
-  th:last-of-type,
-  td:last-of-type {
-    text-align: right;
-  }
 `;
 
 const toggleStyles = css`
@@ -631,8 +621,8 @@ function IdentifiedIssues() {
                     (cipSummary.data.items &&
                       cipSummary.data.items.length === 0)) && (
                     <p css={centeredTextStyles}>
-                      There are no impairment categories in the {watershed}{' '}
-                      watershed.
+                      There are no impairment categories in the{' '}
+                      <em>{watershed}</em> watershed.
                     </p>
                   )}
 
@@ -688,13 +678,12 @@ function IdentifiedIssues() {
                         </p>
                       )}
 
-                      {!emptyCategoriesWithPercent &&
-                        zeroPollutedWaterbodies && (
-                          <p css={centeredTextStyles}>
-                            There are no impairment categories in the{' '}
-                            {watershed} watershed.
-                          </p>
-                        )}
+                      {!emptyCategoriesWithPercent && zeroPollutedWaterbodies && (
+                        <p css={centeredTextStyles}>
+                          There are no impairment categories in the{' '}
+                          <em>{watershed}</em> watershed.
+                        </p>
+                      )}
 
                       {!emptyCategoriesWithPercent && !zeroPollutedWaterbodies && (
                         <>
@@ -702,7 +691,7 @@ function IdentifiedIssues() {
                             Impairment categories in the {watershed} watershed.
                           </p>
 
-                          <table css={tableStyles} className="table">
+                          <table css={toggleTableStyles} className="table">
                             <thead>
                               <tr>
                                 <th>
@@ -793,7 +782,7 @@ function IdentifiedIssues() {
                     <p css={centeredTextStyles}>
                       There are no dischargers with significant{' '}
                       <GlossaryTerm term="Effluent">effluent</GlossaryTerm>{' '}
-                      violations in the {watershed} watershed.
+                      violations in the <em>{watershed}</em> watershed.
                     </p>
                   )}
 

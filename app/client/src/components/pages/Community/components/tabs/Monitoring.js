@@ -25,6 +25,7 @@ import {
   keyMetricNumberStyles,
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
+import { toggleTableStyles } from 'components/pages/Community';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -56,17 +57,6 @@ const centeredTextStyles = css`
 
 const accordionContentStyles = css`
   padding: 0.4375em 0.875em 0.875em;
-`;
-
-const tableStyles = css`
-  thead {
-    background-color: #f0f6f9;
-  }
-
-  th:last-of-type,
-  td:last-of-type {
-    text-align: right;
-  }
 `;
 
 const toggleStyles = css`
@@ -471,7 +461,7 @@ function Monitoring() {
 
           {allMonitoringLocations.length > 0 && (
             <>
-              <table css={tableStyles} className="table">
+              <table css={toggleTableStyles} className="table">
                 <thead>
                   <tr>
                     <th>

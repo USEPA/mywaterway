@@ -22,6 +22,7 @@ import {
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
 import { tabsStyles } from 'components/shared/ContentTabs';
+import { toggleTableStyles } from 'components/pages/Community';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -72,26 +73,6 @@ const centeredTextStyles = css`
 
 const accordionContentStyles = css`
   padding: 0.4375em 0.875em 0.875em;
-`;
-
-const tableStyles = css`
-  thead {
-    background-color: #f0f6f9;
-  }
-
-  th,
-  td {
-    font-size: 0.875em;
-    line-height: 1.125;
-
-    @media (min-width: 560px) {
-      font-size: 1em;
-    }
-
-    :last-of-type {
-      text-align: right;
-    }
-  }
 `;
 
 const toggleStyles = css`
@@ -724,7 +705,7 @@ function MonitoringAndSensorsTab({
               explore sample data from water quality monitoring locations.
             </p>
 
-            <table css={tableStyles} className="table">
+            <table css={toggleTableStyles} className="table">
               <thead>
                 <tr>
                   <th>

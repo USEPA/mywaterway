@@ -84,6 +84,26 @@ const modifiedErrorBoxStyles = css`
   text-align: center;
 `;
 
+export const toggleTableStyles = css`
+  thead {
+    background-color: #f0f6f9;
+  }
+
+  th,
+  td {
+    font-size: 0.875em;
+    line-height: 1.125;
+
+    @media (min-width: 560px) {
+      font-size: 1em;
+    }
+
+    :last-of-type {
+      text-align: right;
+    }
+  }
+`;
+
 type Props = {
   children: Node,
   ...RouteProps,

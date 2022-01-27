@@ -10,13 +10,14 @@ import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
-import { tabsStyles } from 'components/shared/ContentTabs';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import AssessmentSummary from 'components/shared/AssessmentSummary';
 import WaterbodyList from 'components/shared/WaterbodyList';
 import { errorBoxStyles, noteBoxStyles } from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Switch from 'components/shared/Switch';
+import { tabsStyles } from 'components/shared/ContentTabs';
+import { toggleTableStyles } from 'components/pages/Community';
 // contexts
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -35,17 +36,6 @@ const containerStyles = css`
 
 const centeredTextStyles = css`
   text-align: center;
-`;
-
-const tableStyles = css`
-  thead {
-    background-color: #f0f6f9;
-  }
-
-  th:last-of-type,
-  td:last-of-type {
-    text-align: right;
-  }
 `;
 
 const toggleStyles = css`
@@ -763,7 +753,7 @@ function DrinkingWater() {
 
                       {totalWithdrawersCount > 0 && (
                         <>
-                          <table css={tableStyles} className="table">
+                          <table css={toggleTableStyles} className="table">
                             <thead>
                               <tr>
                                 <th>
