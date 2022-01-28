@@ -226,13 +226,8 @@ function useWaterbodyOnMap(
     setHighlightedGraphic,
     setSelectedGraphic, //
   } = useContext(MapHighlightContext);
-  const {
-    allWaterbodiesLayer,
-    pointsLayer,
-    linesLayer,
-    areasLayer,
-    mapView,
-  } = useContext(LocationSearchContext);
+  const { allWaterbodiesLayer, pointsLayer, linesLayer, areasLayer, mapView } =
+    useContext(LocationSearchContext);
 
   const setRenderer = useCallback(
     (layer, geometryType, attribute, alpha = null) => {
@@ -407,11 +402,8 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     else if (selectedGraphic) graphic = selectedGraphic;
 
     // save the state into separate variables for now
-    let {
-      currentHighlight,
-      currentSelection,
-      cachedHighlights,
-    } = highlightState;
+    let { currentHighlight, currentSelection, cachedHighlights } =
+      highlightState;
 
     // verify that we have a graphic before continuing
     if (!graphic || !graphic.attributes) {
@@ -840,8 +832,7 @@ function useSharedLayers() {
   const getDynamicPopup = useDynamicPopup();
   const { getTitle, getTemplate } = getDynamicPopup();
 
-  // Gets the settings for the WSIO Health Index layer.
-  return function getSharedLayers() {
+  function getWsioLayer() {
     // shared symbol settings
     const symbol = {
       type: 'simple-fill',
@@ -983,6 +974,10 @@ function useSharedLayers() {
       },
     );
 
+    return wsioHealthIndexLayer;
+  }
+
+  function getProtectedAreasLayer() {
     const protectedAreasLayer = new MapImageLayer({
       id: 'protectedAreasLayer',
       title: 'Protected Areas',
@@ -1001,6 +996,10 @@ function useSharedLayers() {
 
     setProtectedAreasLayer(protectedAreasLayer);
 
+    return protectedAreasLayer;
+  }
+
+  function getProtectedAreasHighlightLayer() {
     const protectedAreasHighlightLayer = new GraphicsLayer({
       id: 'protectedAreasHighlightLayer',
       title: 'Protected Areas Highlight Layer',
@@ -1009,6 +1008,10 @@ function useSharedLayers() {
 
     setProtectedAreasHighlightLayer(protectedAreasHighlightLayer);
 
+    return protectedAreasHighlightLayer;
+  }
+
+  function getWildScenicRiversLayer() {
     const wildScenicRiversRenderer = {
       type: 'simple',
       symbol: {
@@ -1035,7 +1038,10 @@ function useSharedLayers() {
 
     setWildScenicRiversLayer(wildScenicRiversLayer);
 
-    // START - Tribal layers
+    return wildScenicRiversLayer;
+  }
+
+  function getTribalLayer() {
     const renderer = {
       type: 'simple',
       symbol: {
@@ -1108,8 +1114,10 @@ function useSharedLayers() {
       layers: [alaskaNativeVillages, alaskaReservations, lower48Tribal],
     });
 
-    // END - Tribal layers
+    return tribalLayer;
+  }
 
+  function getCongressionalLayer() {
     const congressionalLayerOutFields = [
       'DISTRICTID',
       'STFIPS',
@@ -1146,6 +1154,10 @@ function useSharedLayers() {
       },
     });
 
+    return congressionalLayer;
+  }
+
+  function getMappedWaterLayer() {
     const mappedWaterLayer = new MapImageLayer({
       id: 'mappedWaterLayer',
       url: services.data.mappedWater,
@@ -1155,6 +1167,10 @@ function useSharedLayers() {
       visible: false,
     });
 
+    return mappedWaterLayer;
+  }
+
+  function getCountyLayer() {
     const countyLayer = new FeatureLayer({
       id: 'countyLayer',
       url: services.data.counties,
@@ -1180,6 +1196,10 @@ function useSharedLayers() {
       },
     });
 
+    return countyLayer;
+  }
+
+  function getStateBoundariesLayer() {
     const stateBoundariesLayer = new MapImageLayer({
       id: 'stateBoundariesLayer',
       url: services.data.stateBoundaries,
@@ -1189,6 +1209,10 @@ function useSharedLayers() {
       visible: false,
     });
 
+    return stateBoundariesLayer;
+  }
+
+  function getWatershedsLayer() {
     const watershedsLayer = new FeatureLayer({
       id: 'watershedsLayer',
       url: services.data.wbd,
@@ -1197,8 +1221,10 @@ function useSharedLayers() {
       visible: false,
     });
 
-    // BEGIN - EJSCREEN layers
+    return watershedsLayer;
+  }
 
+  function getEjscreen() {
     const ejOutFields = [
       'T_MINORPCT',
       'T_LWINCPCT',
@@ -1294,10 +1320,10 @@ function useSharedLayers() {
       ],
     });
 
-    // END - EJSCREEN layers
+    return ejscreen;
+  }
 
-    // START - All Waterbodies layers
-
+  function getAllWaterbodiesLayer() {
     const popupTemplate = {
       title: getTitle,
       content: getTemplate,
@@ -1384,7 +1410,34 @@ function useSharedLayers() {
     allWaterbodiesLayer.addMany([areasLayer, linesLayer, pointsLayer]);
     setAllWaterbodiesLayer(allWaterbodiesLayer);
 
-    // END - All Waterbodies layers
+    return allWaterbodiesLayer;
+  }
+
+  // Gets the settings for the WSIO Health Index layer.
+  return function getSharedLayers() {
+    const wsioHealthIndexLayer = getWsioLayer();
+
+    const protectedAreasLayer = getProtectedAreasLayer();
+
+    const protectedAreasHighlightLayer = getProtectedAreasHighlightLayer();
+
+    const wildScenicRiversLayer = getWildScenicRiversLayer();
+
+    const tribalLayer = getTribalLayer();
+
+    const congressionalLayer = getCongressionalLayer();
+
+    const mappedWaterLayer = getMappedWaterLayer();
+
+    const countyLayer = getCountyLayer();
+
+    const stateBoundariesLayer = getStateBoundariesLayer();
+
+    const watershedsLayer = getWatershedsLayer();
+
+    const ejscreen = getEjscreen();
+
+    const allWaterbodiesLayer = getAllWaterbodiesLayer();
 
     return [
       ejscreen,
