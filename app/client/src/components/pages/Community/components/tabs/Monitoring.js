@@ -537,6 +537,10 @@ function Monitoring() {
                     value: 'orgId',
                   },
                   {
+                    label: 'Organization Name',
+                    value: 'orgName',
+                  },
+                  {
                     label: 'Monitoring Site ID',
                     value: 'siteId',
                   },
@@ -564,6 +568,9 @@ function Monitoring() {
                         <>
                           <em>Organization ID:</em>&nbsp;&nbsp;
                           {item.orgId}
+                          <br />
+                          <em>Organization Name:</em>&nbsp;&nbsp;
+                          {item.orgName}
                           <br />
                           <em>Monitoring Site ID:</em>&nbsp;&nbsp;
                           {item.siteId.replace(`${item.orgId}-`, '')}
