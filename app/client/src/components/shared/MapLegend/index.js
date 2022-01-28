@@ -527,7 +527,11 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
         <div css={imageContainerStyles}>
           {squareIcon({ color: 'rgb(31, 184, 255, 0.2)', strokeWidth: 2 })}
         </div>
-        <span css={labelStyles}>Upstream Watershed</span>
+        <span css={labelStyles}>
+          <GlossaryTerm term="Upstream Watershed">
+            Upstream Watershed
+          </GlossaryTerm>
+        </span>
       </div>
     </li>
   );

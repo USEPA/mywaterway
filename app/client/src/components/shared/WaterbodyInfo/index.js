@@ -289,6 +289,13 @@ function WaterbodyInfo({
     if (type === 'Protection Plans') {
       title = 'Protection Plans for this Waterbody';
     }
+    if (type === 'Upstream Watershed') {
+      title = (
+        <>
+          <GlossaryTerm term="Upstream Watershed">{title}</GlossaryTerm>
+        </>
+      );
+    }
 
     return <p css={popupTitleStyles}>{title}</p>;
   };
