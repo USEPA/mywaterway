@@ -428,7 +428,9 @@ function WaterbodyInfo({
   const waterbodyStateContent = (
     <>
       {labelValue(
-        '303(d) Listed',
+        <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
+          303(d) Listed
+        </GlossaryTerm>,
         attributes.on303dlist === 'Y' ? 'Yes' : 'No',
       )}
       {labelValue('TMDL', attributes.hastmdl === 'Y' ? 'Yes' : 'No')}

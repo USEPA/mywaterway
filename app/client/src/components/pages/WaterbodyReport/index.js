@@ -13,6 +13,7 @@ import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import ActionsMap from 'components/pages/Actions/ActionsMap';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import MapVisibilityButton from 'components/shared/MapVisibilityButton';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // styled components
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import {
@@ -844,7 +845,12 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
       </div>
 
       <div css={inlineBoxSectionStyles}>
-        <h3>303(d) Listed:</h3>
+        <h3>
+          <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
+            303(d) Listed
+          </GlossaryTerm>
+          :
+        </h3>
         {waterbodyStatus.status === 'fetching' && <LoadingSpinner />}
         {waterbodyStatus.status === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
