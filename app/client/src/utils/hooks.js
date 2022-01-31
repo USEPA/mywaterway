@@ -31,7 +31,7 @@ import {
 
 let dynamicPopupFields = [];
 
-const alpha = {
+const allWaterbodiesAlpha = {
   base: 1,
   poly: 0.4,
   outline: 1,
@@ -292,9 +292,9 @@ function useWaterbodyOnMap(
       ? allWaterbodiesAttribute
       : attributeName;
 
-    setRenderer(layers.items[2], 'point', attribute, alpha);
-    setRenderer(layers.items[1], 'polyline', attribute, alpha);
-    setRenderer(layers.items[0], 'polygon', attribute, alpha);
+    setRenderer(layers.items[2], 'point', attribute, allWaterbodiesAlpha);
+    setRenderer(layers.items[1], 'polyline', attribute, allWaterbodiesAlpha);
+    setRenderer(layers.items[0], 'polygon', attribute, allWaterbodiesAlpha);
   }, [
     allWaterbodiesAttribute,
     attributeName,
@@ -1106,15 +1106,13 @@ function useSharedLayers() {
       },
     });
 
-    const tribalLayer = new GroupLayer({
+    return new GroupLayer({
       id: 'tribalLayer',
       title: 'Tribal Areas',
       listMode: 'show',
       visible: false,
       layers: [alaskaNativeVillages, alaskaReservations, lower48Tribal],
     });
-
-    return tribalLayer;
   }
 
   function getCongressionalLayer() {
@@ -1128,7 +1126,8 @@ function useSharedLayers() {
       'PARTY',
       'SQMI',
     ];
-    const congressionalLayer = new FeatureLayer({
+
+    return new FeatureLayer({
       id: 'congressionalLayer',
       url: services.data.congressional,
       title: 'Congressional Districts',
@@ -1153,12 +1152,10 @@ function useSharedLayers() {
         outFields: congressionalLayerOutFields,
       },
     });
-
-    return congressionalLayer;
   }
 
   function getMappedWaterLayer() {
-    const mappedWaterLayer = new MapImageLayer({
+    return new MapImageLayer({
       id: 'mappedWaterLayer',
       url: services.data.mappedWater,
       title: 'Mapped Water (all)',
@@ -1166,12 +1163,10 @@ function useSharedLayers() {
       listMode: 'hide-children',
       visible: false,
     });
-
-    return mappedWaterLayer;
   }
 
   function getCountyLayer() {
-    const countyLayer = new FeatureLayer({
+    return new FeatureLayer({
       id: 'countyLayer',
       url: services.data.counties,
       title: 'County',
@@ -1195,12 +1190,10 @@ function useSharedLayers() {
         outFields: ['NAME', 'CNTY_FIPS', 'STATE_NAME'],
       },
     });
-
-    return countyLayer;
   }
 
   function getStateBoundariesLayer() {
-    const stateBoundariesLayer = new MapImageLayer({
+    return new MapImageLayer({
       id: 'stateBoundariesLayer',
       url: services.data.stateBoundaries,
       title: 'State',
@@ -1208,20 +1201,16 @@ function useSharedLayers() {
       listMode: 'hide',
       visible: false,
     });
-
-    return stateBoundariesLayer;
   }
 
   function getWatershedsLayer() {
-    const watershedsLayer = new FeatureLayer({
+    return new FeatureLayer({
       id: 'watershedsLayer',
       url: services.data.wbd,
       title: 'Watersheds',
       listMode: 'show',
       visible: false,
     });
-
-    return watershedsLayer;
   }
 
   function getEjscreen() {
@@ -1304,7 +1293,7 @@ function useSharedLayers() {
       popupTemplate: ejscreenPopupTemplate,
     });
 
-    const ejscreen = new GroupLayer({
+    return new GroupLayer({
       id: 'ejscreenLayer',
       title: 'Demographic Indicators',
       listMode: 'show',
@@ -1319,8 +1308,6 @@ function useSharedLayers() {
         ejDemographicIndex,
       ],
     });
-
-    return ejscreen;
   }
 
   function getAllWaterbodiesLayer() {
@@ -1341,9 +1328,9 @@ function useSharedLayers() {
         condition: 'unassessed',
         selected: false,
         geometryType: 'point',
-        alpha,
+        alpha: allWaterbodiesAlpha,
       }),
-      uniqueValueInfos: createUniqueValueInfos('point', alpha),
+      uniqueValueInfos: createUniqueValueInfos('point', allWaterbodiesAlpha),
     };
     const pointsLayer = new FeatureLayer({
       url: services.data.waterbodyService.points,
@@ -1361,9 +1348,9 @@ function useSharedLayers() {
         condition: 'unassessed',
         selected: false,
         geometryType: 'polyline',
-        alpha,
+        alpha: allWaterbodiesAlpha,
       }),
-      uniqueValueInfos: createUniqueValueInfos('polyline', alpha),
+      uniqueValueInfos: createUniqueValueInfos('polyline', allWaterbodiesAlpha),
     };
     const linesLayer = new FeatureLayer({
       url: services.data.waterbodyService.lines,
@@ -1381,9 +1368,9 @@ function useSharedLayers() {
         condition: 'unassessed',
         selected: false,
         geometryType: 'polygon',
-        alpha,
+        alpha: allWaterbodiesAlpha,
       }),
-      uniqueValueInfos: createUniqueValueInfos('polygon', alpha),
+      uniqueValueInfos: createUniqueValueInfos('polygon', allWaterbodiesAlpha),
     };
     const areasLayer = new FeatureLayer({
       url: services.data.waterbodyService.areas,
