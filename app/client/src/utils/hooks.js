@@ -31,6 +31,12 @@ import {
 
 let dynamicPopupFields = [];
 
+const alpha = {
+  base: 1,
+  poly: 0.4,
+  outline: 1,
+};
+
 // Closes the map popup and clears highlights whenever the user changes
 // tabs. This function is called from the useWaterbodyHighlight hook (handles
 // tab changes) and from the use useWaterbodyOnMap hook (handles sub tab changes
@@ -280,12 +286,6 @@ function useWaterbodyOnMap(
 
   useEffect(() => {
     if (!allWaterbodiesLayer || allWaterbodiesLayer === 'error') return;
-
-    const alpha = {
-      base: 0.2,
-      poly: 0.1,
-      outline: 0.05,
-    };
 
     const layers = allWaterbodiesLayer.layers;
     const attribute = allWaterbodiesAttribute
@@ -1330,12 +1330,6 @@ function useSharedLayers() {
       outFields: ['*'],
     };
 
-    const alpha = {
-      base: 0.2,
-      poly: 0.1,
-      outline: 0.05,
-    };
-
     const minScale = 577791;
 
     // Build the feature layers that will make up the waterbody layer
@@ -1406,6 +1400,7 @@ function useSharedLayers() {
       listMode: 'hide',
       visible: true,
       minScale,
+      opacity: 0.3,
     });
     allWaterbodiesLayer.addMany([areasLayer, linesLayer, pointsLayer]);
     setAllWaterbodiesLayer(allWaterbodiesLayer);
