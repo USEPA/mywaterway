@@ -1058,8 +1058,8 @@ function useSharedLayers() {
 
     const alaskaNativeVillageOutFields = ['NAME', 'TRIBE_NAME'];
     const alaskaNativeVillages = new FeatureLayer({
-      id: 'tribalLayer-1',
-      url: `${services.data.tribal}/1`,
+      id: 'tribalLayer-0',
+      url: `${services.data.tribal}/0`,
       title: 'Alaska Native Villages',
       outFields: alaskaNativeVillageOutFields,
       listMode: 'hide',
@@ -1072,12 +1072,27 @@ function useSharedLayers() {
       },
     });
 
-    const alaskaReservationOutFields = ['TRIBE_NAME'];
-    const alaskaReservations = new FeatureLayer({
-      id: 'tribalLayer-2',
-      url: `${services.data.tribal}/2`,
-      title: 'Alaska Reservations',
-      outFields: alaskaReservationOutFields,
+    const lower48TribalOutFields = ['TRIBE_NAME'];
+    const otherTribes = new FeatureLayer({
+      id: 'tribalLayer-1',
+      url: `${services.data.tribal}/1`,
+      title: 'Other Federally Recognized Tribes',
+      outFields: lower48TribalOutFields,
+      listMode: 'hide',
+      visible: true,
+      labelsVisible: false,
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields: lower48TribalOutFields,
+      },
+    });
+
+    const americanIndianReservations = new FeatureLayer({
+      id: 'tribalLayer-3',
+      url: `${services.data.tribal}/3`,
+      title: 'American Indian Reservations',
+      outFields: lower48TribalOutFields,
       listMode: 'hide',
       visible: true,
       labelsVisible: false,
@@ -1085,15 +1100,30 @@ function useSharedLayers() {
       popupTemplate: {
         title: getTitle,
         content: getTemplate,
-        outFields: alaskaReservationOutFields,
+        outFields: lower48TribalOutFields,
       },
     });
 
-    const lower48TribalOutFields = ['TRIBE_NAME'];
-    const lower48Tribal = new FeatureLayer({
+    const americanIndianOffReservations = new FeatureLayer({
       id: 'tribalLayer-4',
       url: `${services.data.tribal}/4`,
-      title: 'Lower 48 States',
+      title: 'American Indian Off-Reservation Trust Lands',
+      outFields: lower48TribalOutFields,
+      listMode: 'hide',
+      visible: true,
+      labelsVisible: false,
+      renderer,
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields: lower48TribalOutFields,
+      },
+    });
+
+    const oklahomaStatisticalAreas = new FeatureLayer({
+      id: 'tribalLayer-5',
+      url: `${services.data.tribal}/5`,
+      title: 'Oklahoma Statistical Areas',
       outFields: lower48TribalOutFields,
       listMode: 'hide',
       visible: true,
@@ -1111,7 +1141,13 @@ function useSharedLayers() {
       title: 'Tribal Areas',
       listMode: 'show',
       visible: false,
-      layers: [alaskaNativeVillages, alaskaReservations, lower48Tribal],
+      layers: [
+        alaskaNativeVillages,
+        otherTribes,
+        americanIndianReservations,
+        americanIndianOffReservations,
+        oklahomaStatisticalAreas,
+      ],
     });
   }
 

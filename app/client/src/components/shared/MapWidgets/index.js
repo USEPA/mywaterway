@@ -86,9 +86,11 @@ const orderedLayers = [
   'stateBoundariesLayer',
   'congressionalLayer',
   'tribalLayer',
+  'tribalLayer-0',
   'tribalLayer-1',
-  'tribalLayer-2',
+  'tribalLayer-3',
   'tribalLayer-4',
+  'tribalLayer-5',
   'wsioHealthIndexLayer',
   'wildScenicRiversLayer',
   'protectedAreasHighlightLayer',
@@ -228,11 +230,8 @@ function MapWidgets({
   scrollToComponent,
   onHomeWidgetRendered = () => {},
 }: Props) {
-  const {
-    addDataWidgetVisible,
-    setAddDataWidgetVisible,
-    widgetLayers,
-  } = React.useContext(AddDataWidgetContext);
+  const { addDataWidgetVisible, setAddDataWidgetVisible, widgetLayers } =
+    React.useContext(AddDataWidgetContext);
 
   const {
     homeWidget,
@@ -586,10 +585,8 @@ function MapWidgets({
 
   // Fetch additional legend information. Data is stored in a dictionary
   // where the key is the layer id.
-  const [
-    additioanlLegendInitialized,
-    setAdditionalLegendInitialized,
-  ] = React.useState(false);
+  const [additioanlLegendInitialized, setAdditionalLegendInitialized] =
+    React.useState(false);
   const [additionalLegendInfo, setAdditionalLegendInfo] = React.useState({
     status: 'fetching',
     data: {},
@@ -1159,10 +1156,8 @@ function MapWidgets({
   );
 
   const [allWaterbodiesWidget, setAllWaterbodiesWidget] = React.useState(null);
-  const [
-    allWaterbodiesLayerVisible,
-    setAllWaterbodiesLayerVisible,
-  ] = React.useState(true);
+  const [allWaterbodiesLayerVisible, setAllWaterbodiesLayerVisible] =
+    React.useState(true);
 
   // watch for location changes and disable/enable the all waterbodies widget
   // accordingly widget should only be displayed on valid Community page location
@@ -1268,9 +1263,8 @@ function MapWidgets({
     const [hover, setHover] = React.useState(false);
 
     // store loading state to Upstream Watershed map widget icon
-    const [allWaterbodiesLoading, setAllWaterbodiesLoading] = React.useState(
-      false,
-    );
+    const [allWaterbodiesLoading, setAllWaterbodiesLoading] =
+      React.useState(false);
 
     // create a watcher to control the loading spinner for the widget
     if (firstLoad) {
