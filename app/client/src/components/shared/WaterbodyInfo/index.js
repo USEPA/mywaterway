@@ -1303,7 +1303,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
           {sortedMeasurements.length === 0 ? (
             <tr>
               <td>
-                <em>No data available.</em>
+                <em>No recent data available.</em>
               </td>
               <td>&nbsp;</td>
             </tr>
