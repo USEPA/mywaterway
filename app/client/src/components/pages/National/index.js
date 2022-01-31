@@ -41,6 +41,14 @@ const Container = styled.div`
   margin: auto;
   padding: 1rem;
   max-width: 58rem;
+
+  .hmw-percent {
+    display: inline-block;
+    margin-right: 0.125em;
+    font-size: 1.25em;
+    font-weight: bold;
+    color: #0071bc;
+  }
 `;
 
 const StyledTabs = styled(Tabs)`
@@ -200,14 +208,6 @@ const Disclaimer = styled(DisclaimerModal)`
   margin-top: 1rem;
 `;
 
-const Percent = styled.span`
-  display: inline-block;
-  margin-right: 0.125em;
-  font-size: 1.25em;
-  font-weight: bold;
-  color: #0071bc;
-`;
-
 const Icon = styled.img`
   position: relative;
   bottom: 0.125em;
@@ -275,23 +275,11 @@ const NewTabDisclaimer = styled.p`
 function WaterConditionsPanel() {
   const NARS = useNarsContext();
 
-  const narsFooter = (
-    <FooterText>
-      This data is pulled from the National Aquatic Resource Surveys (NARS) and
-      the metrics are only for the conterminous US.
-    </FooterText>
-  );
-
   const narsTabContent = (data) => {
     return data.map((category, index) => (
       <AccordionItem
         key={index}
-        title={
-          <>
-            <Percent>{category.metric}</Percent>{' '}
-            <span dangerouslySetInnerHTML={createMarkup(category.title)} />
-          </>
-        }
+        title={<span dangerouslySetInnerHTML={createMarkup(category.title)} />}
       >
         <AccordionContent
           dangerouslySetInnerHTML={createMarkup(category.content)}
@@ -300,176 +288,115 @@ function WaterConditionsPanel() {
     ));
   };
 
+  if (NARS.status === 'fetching') return <LoadingSpinner />;
+
+  if (NARS.status === 'failure') {
+    return <StyledErrorBox>{narsError}</StyledErrorBox>;
+  }
+
+  if (NARS.status === 'success' && Object.keys(NARS.data).length === 0) {
+    return <StyledErrorBox>{narsError}</StyledErrorBox>;
+  }
+
   return (
     <>
       <IntroBox>
-        <StyledIntroHeading>Explore National Water Quality</StyledIntroHeading>
-        <StyledIntroText>
-          EPA, states, and tribes survey a representative sample of our nation's
-          waters to provide an accurate snapshot of water quality, and track
-          changes over time.
-        </StyledIntroText>
+        <StyledIntroHeading>{NARS.data.topTitle}</StyledIntroHeading>
+        <StyledIntroText
+          dangerouslySetInnerHTML={createMarkup(NARS.data.topContent)}
+        />
       </IntroBox>
+      <h3>{NARS.data.subTitle}</h3>
 
-      {NARS.status === 'fetching' && <LoadingSpinner />}
+      <Article>
+        <p dangerouslySetInnerHTML={createMarkup(NARS.data.subContent)} />
 
-      {NARS.status === 'failure' && (
-        <StyledErrorBox>{narsError}</StyledErrorBox>
-      )}
+        <a
+          href={NARS.data.excessNutrientsImageUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Figure>
+            <img
+              src={nutrientPollutionPhoto}
+              alt="Map of excess nutrients across the United States"
+            />
+          </Figure>
+        </a>
+      </Article>
 
-      {NARS.status === 'success' && Object.keys(NARS.data).length === 0 && (
-        <StyledErrorBox>{narsError}</StyledErrorBox>
-      )}
+      <h3>Learn about the health of our waters</h3>
 
-      {NARS.status === 'success' && Object.keys(NARS.data).length > 0 && (
-        <>
-          <h3>Excess nutrients in waterways continue to be an issue</h3>
+      <ContentTabs>
+        <Tabs>
+          <TabList>
+            {NARS.data.tabbedContent.map((tab, index) => (
+              <Tab data-testid={tab.dataTestid} key={index}>
+                {tab.name}
+              </Tab>
+            ))}
+          </TabList>
 
-          <Article>
-            <p>
-              <a
-                href={NARS.data.excessNutrientsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Excess Nutrients in Waterways
-              </a>{' '}
-              (opens new browser tab) is one of America’s most widespread water
-              quality issues. While nutrients are important, too much of a good
-              thing can become a bad thing. Excess nutrients can lead to
-              excessive algae growth, which can use up oxygen that aquatic
-              organisms need to survive. Too much algae growth can cause fish to
-              die.{' '}
-              <a
-                href={NARS.data.reduceNutriantsPollutionUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Learn more about what EPA is doing to reduce excess nutrients in
-                waterways
-              </a>{' '}
-              (opens new browser tab).
-            </p>
+          <TabPanels>
+            {NARS.data.tabbedContent.map((tab, index) => (
+              <TabPanel key={index}>
+                <AccordionList>{narsTabContent(tab.content)}</AccordionList>
 
-            <a
-              href={NARS.data.excessNutrientsImageUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Figure>
-                <img
-                  src={nutrientPollutionPhoto}
-                  alt="Map of excess nutrients across the United States"
-                />
-              </Figure>
-            </a>
-          </Article>
+                {tab.footnotes.map((footnote, index) => (
+                  <FooterText
+                    dangerouslySetInnerHTML={createMarkup(footnote)}
+                    key={index}
+                  />
+                ))}
+              </TabPanel>
+            ))}
+          </TabPanels>
+        </Tabs>
+      </ContentTabs>
 
-          <h3>Learn about the health of our waters</h3>
+      <h3>Learn more about waterbody types</h3>
 
-          <ContentTabs>
-            <Tabs>
-              <TabList>
-                <Tab data-testid="hmw-national-rivers-and-streams-tab">
-                  Rivers and Streams
-                </Tab>
-                <Tab data-testid="hmw-national-lakes-tab">Lakes</Tab>
-                <Tab data-testid="hmw-national-coasts-tab">Coasts</Tab>
-                <Tab data-testid="hmw-national-wetlands-tab">Wetlands</Tab>
-              </TabList>
+      <NewTabDisclaimer>
+        Links below open in a new browser tab.
+      </NewTabDisclaimer>
 
-              <TabPanels>
-                <TabPanel>
-                  <AccordionList>
-                    {narsTabContent(NARS.data.riversAndStreams)}
-                  </AccordionList>
+      <Links>
+        <a
+          href={NARS.data.riversStreamsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Figure>
+            <img src={riversPhoto} alt="Learn more about Rivers & Streams" />
+            <figcaption>Rivers & Stream</figcaption>
+          </Figure>
+        </a>
 
-                  {narsFooter}
-                </TabPanel>
+        <a href={NARS.data.lakesUrl} target="_blank" rel="noopener noreferrer">
+          <Figure>
+            <img src={lakesPhoto} alt="Learn more about Lakes" />
+            <figcaption>Lakes</figcaption>
+          </Figure>
+        </a>
 
-                <TabPanel>
-                  <AccordionList>
-                    {narsTabContent(NARS.data.lakes)}
-                  </AccordionList>
+        <a href={NARS.data.coastsUrl} target="_blank" rel="noopener noreferrer">
+          <Figure>
+            <img src={coastsPhoto} alt="Learn more about Coasts" />
+            <figcaption>Coasts</figcaption>
+          </Figure>
+        </a>
 
-                  {narsFooter}
-                </TabPanel>
-
-                <TabPanel>
-                  <AccordionList>
-                    {narsTabContent(NARS.data.coasts)}
-                  </AccordionList>
-
-                  {narsFooter}
-                </TabPanel>
-
-                <TabPanel>
-                  <AccordionList>
-                    {narsTabContent(NARS.data.wetlands)}
-                  </AccordionList>
-
-                  {narsFooter}
-                </TabPanel>
-              </TabPanels>
-            </Tabs>
-          </ContentTabs>
-
-          <h3>Learn more about waterbody types</h3>
-
-          <NewTabDisclaimer>
-            Links below open in a new browser tab.
-          </NewTabDisclaimer>
-
-          <Links>
-            <a
-              href={NARS.data.riversStreamsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Figure>
-                <img
-                  src={riversPhoto}
-                  alt="Learn more about Rivers & Streams"
-                />
-                <figcaption>Rivers & Stream</figcaption>
-              </Figure>
-            </a>
-
-            <a
-              href={NARS.data.lakesUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Figure>
-                <img src={lakesPhoto} alt="Learn more about Lakes" />
-                <figcaption>Lakes</figcaption>
-              </Figure>
-            </a>
-
-            <a
-              href={NARS.data.coastsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Figure>
-                <img src={coastsPhoto} alt="Learn more about Coasts" />
-                <figcaption>Coasts</figcaption>
-              </Figure>
-            </a>
-
-            <a
-              href={NARS.data.wetlandsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Figure>
-                <img src={wetlandsPhoto} alt="Learn more about Wetlands" />
-                <figcaption>Wetlands</figcaption>
-              </Figure>
-            </a>
-          </Links>
-        </>
-      )}
+        <a
+          href={NARS.data.wetlandsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Figure>
+            <img src={wetlandsPhoto} alt="Learn more about Wetlands" />
+            <figcaption>Wetlands</figcaption>
+          </Figure>
+        </a>
+      </Links>
     </>
   );
 }
