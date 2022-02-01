@@ -84,7 +84,7 @@ const modifiedErrorBoxStyles = css`
   text-align: center;
 `;
 
-export const tableStyles = css`
+const tableStyles = css`
   th,
   td {
     font-size: 0.875em;
@@ -96,7 +96,7 @@ export const tableStyles = css`
   }
 `;
 
-export const toggleTableStyles = css`
+const toggleTableStyles = css`
   ${tableStyles};
 
   thead {
@@ -292,3 +292,5 @@ export default function CommunityContainer({ ...props }: Props) {
     </EsriMapProvider>
   );
 }
+
+export { tableStyles, toggleTableStyles };
