@@ -226,13 +226,8 @@ function useWaterbodyOnMap(
     setHighlightedGraphic,
     setSelectedGraphic, //
   } = useContext(MapHighlightContext);
-  const {
-    allWaterbodiesLayer,
-    pointsLayer,
-    linesLayer,
-    areasLayer,
-    mapView,
-  } = useContext(LocationSearchContext);
+  const { allWaterbodiesLayer, pointsLayer, linesLayer, areasLayer, mapView } =
+    useContext(LocationSearchContext);
 
   const setRenderer = useCallback(
     (layer, geometryType, attribute, alpha = null) => {
@@ -407,11 +402,8 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     else if (selectedGraphic) graphic = selectedGraphic;
 
     // save the state into separate variables for now
-    let {
-      currentHighlight,
-      currentSelection,
-      cachedHighlights,
-    } = highlightState;
+    let { currentHighlight, currentSelection, cachedHighlights } =
+      highlightState;
 
     // verify that we have a graphic before continuing
     if (!graphic || !graphic.attributes) {
@@ -479,6 +471,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     }
 
     if (!layer) return;
+    if (graphic.layer?.parent?.id === 'allWaterbodiesLayer') return;
 
     // remove the highlights
     handles.remove(group);
