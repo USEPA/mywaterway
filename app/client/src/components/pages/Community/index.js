@@ -84,11 +84,7 @@ const modifiedErrorBoxStyles = css`
   text-align: center;
 `;
 
-export const toggleTableStyles = css`
-  thead {
-    background-color: #f0f6f9;
-  }
-
+export const tableStyles = css`
   th,
   td {
     font-size: 0.875em;
@@ -97,7 +93,18 @@ export const toggleTableStyles = css`
     @media (min-width: 560px) {
       font-size: 1em;
     }
+  }
+`;
 
+export const toggleTableStyles = css`
+  ${tableStyles};
+
+  thead {
+    background-color: #f0f6f9;
+  }
+
+  th,
+  td {
     :last-of-type {
       text-align: right;
     }

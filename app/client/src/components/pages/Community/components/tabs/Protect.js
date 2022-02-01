@@ -13,10 +13,11 @@ import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 import Switch from 'components/shared/Switch';
-import { gradientIcon } from 'components/pages/LocationMap/MapFunctions';
+import { GradientIcon } from 'components/pages/LocationMap/MapFunctions';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import { tableStyles } from 'components/pages/Community';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
@@ -65,7 +66,8 @@ const containerStyles = css`
 `;
 
 const accordionContentStyles = css`
-  padding: 0.875em;
+  padding-top: 0.875em;
+  padding-bottom: 0.875em;
 `;
 
 const switchStyles = css`
@@ -135,16 +137,29 @@ const questionStyles = css`
 `;
 
 const watershedAccordionStyles = css`
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
+  @media (min-width: 480px) {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    table {
+      flex: 1;
+      margin-right: 1rem;
+    }
+  }
 `;
 
 const watershedGradientStyles = css`
   display: flex;
-  align-items: center;
   flex-direction: column;
+  margin: 0 auto 1rem;
+
+  p {
+    padding-bottom: 0;
+    font-size: 0.875em;
+    text-align: center;
+  }
 `;
 
 const buttonContainerStyles = css`
@@ -539,92 +554,68 @@ function Protect() {
                     {wsioHealthIndexData.status === 'success' &&
                       wsioHealthIndexData.data.length > 0 && (
                         <div css={watershedAccordionStyles}>
-                          <div css={{ flex: '3 1 220px' }}>
-                            <table className="table">
-                              <tbody>
-                                <tr>
-                                  <td>
-                                    <em>Watershed Name:</em>
-                                  </td>
-                                  <td>{watershed}</td>
-                                </tr>
-                                <tr>
-                                  <td>
-                                    <em>Watershed:</em>
-                                  </td>
-                                  <td>{huc12}</td>
-                                </tr>
-                                <tr>
-                                  <td>
-                                    <em>State:</em>
-                                  </td>
-                                  <td>
-                                    {(wsioHealthIndexData.status ===
-                                      'fetching' ||
-                                      statesData.status === 'fetching') && (
-                                      <LoadingSpinner />
+                          <table css={tableStyles} className="table">
+                            <tbody>
+                              <tr>
+                                <td>
+                                  <em>Watershed Name:</em>
+                                </td>
+                                <td>{watershed}</td>
+                              </tr>
+                              <tr>
+                                <td>
+                                  <em>Watershed:</em>
+                                </td>
+                                <td>{huc12}</td>
+                              </tr>
+                              <tr>
+                                <td>
+                                  <em>State:</em>
+                                </td>
+                                <td>
+                                  {(wsioHealthIndexData.status === 'fetching' ||
+                                    statesData.status === 'fetching') && (
+                                    <LoadingSpinner />
+                                  )}
+
+                                  {wsioHealthIndexData.status === 'success' &&
+                                    statesData.status === 'success' &&
+                                    convertStateCode(
+                                      wsioData.states,
+                                      statesData.data,
                                     )}
+                                </td>
+                              </tr>
+                              <tr>
+                                <td>
+                                  <em>Watershed Health Score:</em>
+                                </td>
+                                <td>
+                                  {wsioHealthIndexData.status ===
+                                    'fetching' && <LoadingSpinner />}
+                                  {wsioHealthIndexData.status === 'success' && (
+                                    <>{wsioScore}</>
+                                  )}
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
 
-                                    {wsioHealthIndexData.status === 'success' &&
-                                      statesData.status === 'success' &&
-                                      convertStateCode(
-                                        wsioData.states,
-                                        statesData.data,
-                                      )}
-                                  </td>
-                                </tr>
-                                <tr>
-                                  <td>
-                                    <em>Watershed Health Score:</em>
-                                  </td>
-                                  <td>
-                                    {wsioHealthIndexData.status ===
-                                      'fetching' && <LoadingSpinner />}
-                                    {wsioHealthIndexData.status ===
-                                      'success' && <>{wsioScore}</>}
-                                  </td>
-                                </tr>
-                              </tbody>
-                            </table>
-                          </div>
+                          <div css={watershedGradientStyles}>
+                            <p>More Healthy</p>
 
-                          <div css={{ flex: '1 1 0', margin: '0 0 10px 10px' }}>
-                            <div css={watershedGradientStyles}>
-                              <div css={{ textAlign: 'center' }}>
-                                More Healthy
-                              </div>
+                            <GradientIcon
+                              id="health-index-horizontal-gradient"
+                              stops={[
+                                { label: '1', color: 'rgb(10, 8, 145)' },
+                                { label: '0.75', color: 'rgb(30, 61, 181)' },
+                                { label: '0.5', color: 'rgb(54, 140, 225)' },
+                                { label: '0.25', color: 'rgb(124, 187, 234)' },
+                                { label: '0', color: 'rgb(180, 238, 239)' },
+                              ]}
+                            />
 
-                              <div css={{ marginLeft: '25px' }}>
-                                {gradientIcon({
-                                  id: 'health-index-horizontal-gradient',
-                                  stops: [
-                                    {
-                                      label: '1',
-                                      color: 'rgb(10, 8, 145)',
-                                    },
-                                    {
-                                      label: '0.75',
-                                      color: 'rgb(30, 61, 181)',
-                                    },
-                                    {
-                                      label: '0.5',
-                                      color: 'rgb(54, 140, 225)',
-                                    },
-                                    {
-                                      label: '0.25',
-                                      color: 'rgb(124, 187, 234)',
-                                    },
-                                    {
-                                      label: '0',
-                                      color: 'rgb(180, 238, 239)',
-                                    },
-                                  ],
-                                })}
-                              </div>
-                              <div css={{ textAlign: 'center' }}>
-                                Less Healthy
-                              </div>
-                            </div>
+                            <p>Less Healthy</p>
                           </div>
                         </div>
                       )}
@@ -834,7 +825,7 @@ function Protect() {
                                   </strong>
                                 }
                               >
-                                <table className="table">
+                                <table css={tableStyles} className="table">
                                   <tbody>
                                     <tr>
                                       <td>
@@ -1055,7 +1046,7 @@ function Protect() {
                                   </strong>
                                 }
                               >
-                                <table className="table">
+                                <table css={tableStyles} className="table">
                                   <tbody>
                                     <tr>
                                       <td>
@@ -1288,7 +1279,10 @@ function Protect() {
                                     }
                                   >
                                     {item.source === 'grts' && (
-                                      <table className="table">
+                                      <table
+                                        css={tableStyles}
+                                        className="table"
+                                      >
                                         <tbody>
                                           {item.pollutants && (
                                             <tr>
@@ -1377,8 +1371,12 @@ function Protect() {
                                         </tbody>
                                       </table>
                                     )}
+
                                     {item.source === 'attains' && (
-                                      <table className="table">
+                                      <table
+                                        css={tableStyles}
+                                        className="table"
+                                      >
                                         <tbody>
                                           <tr>
                                             <td>

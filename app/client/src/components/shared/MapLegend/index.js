@@ -7,7 +7,7 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import PinIcon from 'components/shared/Icons/PinIcon';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
-import { gradientIcon } from 'components/pages/LocationMap/MapFunctions';
+import { GradientIcon } from 'components/pages/LocationMap/MapFunctions';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // utils
 import { getSelectedCommunityTab } from 'utils/utils';
@@ -455,16 +455,16 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
           {squareIcon({ color: 'rgb(54, 140, 225)', strokeWidth: 0 })}
         </div>
         <span css={labelStyles}>State Watershed Health Index Layer</span>
-        {gradientIcon({
-          id: 'health-index-gradient',
-          stops: [
+        <GradientIcon
+          id="health-index-gradient"
+          stops={[
             { label: '1', color: 'rgb(10, 8, 145)' },
             { label: '0.75', color: 'rgb(30, 61, 181)' },
             { label: '0.5', color: 'rgb(54, 140, 225)' },
             { label: '0.25', color: 'rgb(124, 187, 234)' },
             { label: '0', color: 'rgb(180, 238, 239)' },
-          ],
-        })}
+          ]}
+        />
       </div>
     </li>
   );
