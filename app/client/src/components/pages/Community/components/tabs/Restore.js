@@ -16,6 +16,7 @@ import {
   StyledNumber,
   StyledLabel,
 } from 'components/shared/KeyMetrics';
+import { tableStyles } from 'components/pages/Community';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
@@ -232,9 +233,9 @@ function Restore() {
                                   <>ID: {item.prj_seq || 'Unknown ID'}</>
                                 }
                               >
-                                <table className="table">
+                                <table css={tableStyles} className="table">
                                   <tbody>
-                                    {item['pollutants'] && (
+                                    {item.pollutants && (
                                       <tr>
                                         <td>
                                           <em>Impairments:</em>
@@ -412,7 +413,7 @@ function Restore() {
                               }
                               subTitle={<>ID: {item.actionIdentifier}</>}
                             >
-                              <table className="table">
+                              <table css={tableStyles} className="table">
                                 <tbody>
                                   <tr>
                                     <td>

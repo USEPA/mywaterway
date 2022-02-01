@@ -17,7 +17,7 @@ import { errorBoxStyles, noteBoxStyles } from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Switch from 'components/shared/Switch';
 import { tabsStyles } from 'components/shared/ContentTabs';
-import { toggleTableStyles } from 'components/pages/Community';
+import { tableStyles, toggleTableStyles } from 'components/pages/Community';
 // contexts
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -140,15 +140,12 @@ function createAccordionItem(item: Object, isWithdrawer: boolean) {
           Public Water System Population Served:{' '}
           {Number(item['population_served_count']).toLocaleString()}
           <br />
-          {isWithdrawer
-            ? `Drinking Water Facility Source: ${fixCapitalization(
-                item.water_type_calc,
-              )}`
-            : `Drinking Water System Source: ${fixCapitalization(item.gw_sw)}`}
+          Drinking Water {isWithdrawer ? 'Facility' : 'System'} Source:{' '}
+          {fixCapitalization(isWithdrawer ? item.water_type_calc : item.gw_sw)}
         </>
       }
     >
-      <table className="table">
+      <table css={tableStyles} className="table">
         <tbody>
           <tr>
             <td>
@@ -184,21 +181,16 @@ function createAccordionItem(item: Object, isWithdrawer: boolean) {
             <td>{item.violations === 'Y' ? 'Yes' : 'No'}</td>
           </tr>
           <tr>
-            {isWithdrawer ? (
-              <>
-                <td>
-                  <em>Drinking Water Facility Source:</em>
-                </td>
-                <td>{fixCapitalization(item.water_type_calc)}</td>
-              </>
-            ) : (
-              <>
-                <td>
-                  <em>Drinking Water System Source:</em>
-                </td>
-                <td>{fixCapitalization(item.gw_sw)}</td>
-              </>
-            )}
+            <td>
+              <em>
+                Drinking Water {isWithdrawer ? 'Facility' : 'System'} Source:
+              </em>
+            </td>
+            <td>
+              {fixCapitalization(
+                isWithdrawer ? item.water_type_calc : item.gw_sw,
+              )}
+            </td>
           </tr>
           <tr>
             <td>
