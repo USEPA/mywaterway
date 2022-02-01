@@ -338,14 +338,14 @@ function WaterConditionsPanel() {
           </TabList>
 
           <TabPanels>
-            {NARS.data.tabbedContent.map((tab, index) => (
-              <TabPanel key={index}>
+            {NARS.data.tabbedContent.map((tab, indexX) => (
+              <TabPanel key={indexX}>
                 <AccordionList>{narsTabContent(tab.content)}</AccordionList>
 
-                {tab.footnotes.map((footnote, index) => (
+                {tab.footnotes.map((footnote, indexY) => (
                   <FooterText
                     dangerouslySetInnerHTML={createMarkup(footnote)}
-                    key={index}
+                    key={indexY}
                   />
                 ))}
               </TabPanel>
