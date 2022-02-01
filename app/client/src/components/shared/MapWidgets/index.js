@@ -10,12 +10,15 @@ import Graphic from '@arcgis/core/Graphic';
 import Home from '@arcgis/core/widgets/Home';
 import LayerList from '@arcgis/core/widgets/LayerList';
 import Legend from '@arcgis/core/widgets/Legend';
+import Point from '@arcgis/core/geometry/Point';
 import PortalBasemapsSource from '@arcgis/core/widgets/BasemapGallery/support/PortalBasemapsSource';
 import Query from '@arcgis/core/rest/support/Query';
 import QueryTask from '@arcgis/core/tasks/QueryTask';
 import ScaleBar from '@arcgis/core/widgets/ScaleBar';
+import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import Viewpoint from '@arcgis/core/Viewpoint';
 import * as watchUtils from '@arcgis/core/core/watchUtils';
+import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // components
 import AddDataWidget from 'components/shared/AddDataWidget';
 import MapLegend from 'components/shared/MapLegend';
@@ -228,11 +231,8 @@ function MapWidgets({
   scrollToComponent,
   onHomeWidgetRendered = () => {},
 }: Props) {
-  const {
-    addDataWidgetVisible,
-    setAddDataWidgetVisible,
-    widgetLayers,
-  } = React.useContext(AddDataWidgetContext);
+  const { addDataWidgetVisible, setAddDataWidgetVisible, widgetLayers } =
+    React.useContext(AddDataWidgetContext);
 
   const {
     homeWidget,
@@ -263,6 +263,7 @@ function MapWidgets({
     setAllWaterbodiesWidgetDisabled,
     getAllWaterbodiesWidgetDisabled,
     setMapView,
+    getHucBoundaries,
   } = React.useContext(LocationSearchContext);
 
   const services = useServicesContext();
@@ -285,6 +286,8 @@ function MapWidgets({
       view.popup,
       'features',
       (newVal, oldVal, propName, target) => {
+        if (newVal.length === 0) return;
+
         const features = [];
         const idsAdded = [];
         newVal.forEach((item) => {
@@ -297,6 +300,26 @@ function MapWidgets({
             return;
           }
 
+          // get the point location of the user's click
+          const point = new Point({
+            x: view.popup.location.longitude,
+            y: view.popup.location.latitude,
+            spatialReference: SpatialReference.WQGS84,
+          });
+          const location = webMercatorUtils.geographicToWebMercator(point);
+
+          // determine if the user clicked inside of the selected huc
+          const hucBoundaries = getHucBoundaries();
+          const clickedInHuc =
+            hucBoundaries &&
+            hucBoundaries.features.length > 0 &&
+            hucBoundaries.features[0].geometry.contains(location);
+
+          // filter out popups for allWaterbodiesLayer inside of the huc
+          const layerParentId = item.layer?.parent?.id;
+          if (clickedInHuc && layerParentId === 'allWaterbodiesLayer') return;
+
+          // filter out duplicate popups
           const idType = `${id}-${geometryType}`;
           if (idsAdded.includes(idType)) return;
 
@@ -304,14 +327,17 @@ function MapWidgets({
           idsAdded.push(idType);
         });
 
-        if (features.length === view.popup.features.length) return;
-
-        view.popup.features = features;
+        // close the popup if all features were filtered out
+        if (features.length === 0) {
+          view.popup.close();
+        } else if (features.length !== view.popup.features.length) {
+          view.popup.features = features;
+        }
       },
     );
 
     setPopupWatcher(watcher);
-  }, [popupWatcher, view]);
+  }, [getHucBoundaries, popupWatcher, view]);
 
   // add the layers to the map
   React.useEffect(() => {
@@ -586,10 +612,8 @@ function MapWidgets({
 
   // Fetch additional legend information. Data is stored in a dictionary
   // where the key is the layer id.
-  const [
-    additioanlLegendInitialized,
-    setAdditionalLegendInitialized,
-  ] = React.useState(false);
+  const [additioanlLegendInitialized, setAdditionalLegendInitialized] =
+    React.useState(false);
   const [additionalLegendInfo, setAdditionalLegendInfo] = React.useState({
     status: 'fetching',
     data: {},
@@ -1159,10 +1183,8 @@ function MapWidgets({
   );
 
   const [allWaterbodiesWidget, setAllWaterbodiesWidget] = React.useState(null);
-  const [
-    allWaterbodiesLayerVisible,
-    setAllWaterbodiesLayerVisible,
-  ] = React.useState(true);
+  const [allWaterbodiesLayerVisible, setAllWaterbodiesLayerVisible] =
+    React.useState(true);
 
   // watch for location changes and disable/enable the all waterbodies widget
   // accordingly widget should only be displayed on valid Community page location
@@ -1268,9 +1290,8 @@ function MapWidgets({
     const [hover, setHover] = React.useState(false);
 
     // store loading state to Upstream Watershed map widget icon
-    const [allWaterbodiesLoading, setAllWaterbodiesLoading] = React.useState(
-      false,
-    );
+    const [allWaterbodiesLoading, setAllWaterbodiesLoading] =
+      React.useState(false);
 
     // create a watcher to control the loading spinner for the widget
     if (firstLoad) {
