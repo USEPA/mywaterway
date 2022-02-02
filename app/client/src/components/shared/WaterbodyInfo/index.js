@@ -1148,7 +1148,7 @@ function WaterbodyInfo({
       <div css={popupContainerStyles}>
         {clickedHuc && (
           <>
-            {clickedHuc.status === 'no-data' && <p>No Data</p>}
+            {clickedHuc.status === 'no-data' && null}
             {clickedHuc.status === 'fetching' && <LoadingSpinner />}
             {clickedHuc.status === 'failure' && <p>Web service error</p>}
             {clickedHuc.status === 'success' && (
