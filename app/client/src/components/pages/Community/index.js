@@ -84,6 +84,10 @@ const modifiedErrorBoxStyles = css`
   text-align: center;
 `;
 
+const mapContainerStyles = css`
+  margin-bottom: 1em;
+`;
+
 const tableStyles = css`
   th,
   td {
@@ -233,7 +237,10 @@ function Community({ children, ...props }: Props) {
                     <>
                       <MapVisibilityButton>
                         {(mapShown) => (
-                          <div style={{ display: mapShown ? 'block' : 'none' }}>
+                          <div
+                            css={mapContainerStyles}
+                            style={{ display: mapShown ? 'block' : 'none' }}
+                          >
                             <LocationMap
                               windowHeight={height}
                               layout="narrow"
