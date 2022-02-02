@@ -1201,7 +1201,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                       {waterbodyActions.status === 'success' && (
                         <>
                           {waterbodyActions.data.length === 0 ? (
-                            <p>No plans for this waterbody.</p>
+                            <p>No plans specified for this waterbody.</p>
                           ) : (
                             <>
                               <em>Links below open in a new browser tab.</em>
