@@ -566,11 +566,11 @@ function Monitoring() {
                       title={<strong>{item.locationName || 'Unknown'}</strong>}
                       subTitle={
                         <>
-                          <em>Organization ID:</em>&nbsp;&nbsp;
-                          {item.orgId}
-                          <br />
                           <em>Organization Name:</em>&nbsp;&nbsp;
                           {item.orgName}
+                          <br />
+                          <em>Organization ID:</em>&nbsp;&nbsp;
+                          {item.orgId}
                           <br />
                           <em>Monitoring Site ID:</em>&nbsp;&nbsp;
                           {item.siteId.replace(`${item.orgId}-`, '')}
