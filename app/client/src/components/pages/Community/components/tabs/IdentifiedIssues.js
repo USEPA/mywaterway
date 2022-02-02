@@ -60,6 +60,10 @@ const centeredTextStyles = css`
   text-align: center;
 `;
 
+const accordionContentStyles = css`
+  padding: 0.4375em 0.875em 0.875em;
+`;
+
 const toggleStyles = css`
   display: flex;
   align-items: center;
@@ -822,11 +826,13 @@ function IdentifiedIssues() {
                             feature={feature}
                             idKey="CWPName"
                           >
-                            <WaterbodyInfo
-                              type="Permitted Discharger"
-                              feature={feature}
-                            />
-                            <ViewOnMapButton feature={feature} />
+                            <div css={accordionContentStyles}>
+                              <WaterbodyInfo
+                                type="Permitted Discharger"
+                                feature={feature}
+                              />
+                              <ViewOnMapButton feature={feature} />
+                            </div>
                           </AccordionItem>
                         );
                       })}
