@@ -60,10 +60,10 @@ const basemapNames = [
 ];
 
 const zoomDependentLayers = [
+  'ejscreenLayer',
   'mappedWaterLayer',
-  'watershedsLayer',
-  'congressionalLayer',
   'stateBoundariesLayer',
+  'watershedsLayer',
 ];
 
 // used to order the layer legends, so the ordering is consistent no matter
@@ -118,8 +118,46 @@ function handleMapZoomChange(newVal: number, target: any) {
 
 // helper method used in handleMapZoomChange() for determining a map layer’s listMode
 function isInScale(layer: any, scale: number) {
-  const { maxScale, minScale } = layer;
   let isInScale = true;
+  let minScale = 0;
+  let maxScale = 0;
+
+  // get the extreme min and max scales of the layer
+  if (layer.sublayers && layer.sourceJSON) {
+    // get sublayers included in the parentlayer
+    // note: the sublayer has maxScale and minScale, but these are always 0
+    //       even if the sublayer does actually have a min/max scale.
+    const sublayerIds = [];
+    layer.sublayers.forEach((sublayer) => {
+      sublayerIds.push(sublayer.id);
+    });
+
+    // get the min/max scale from the sourceJSON
+    layer.sourceJSON.layers.forEach((sourceLayer) => {
+      if (!sublayerIds.includes(sourceLayer.id)) return;
+
+      if (sourceLayer.minScale === 0 || sourceLayer.minScale > minScale) {
+        minScale = sourceLayer.minScale;
+      }
+      if (sourceLayer.maxScale === 0 || sourceLayer.maxScale < maxScale) {
+        maxScale = sourceLayer.maxScale;
+      }
+    });
+  } else if (layer.layers) {
+    // get the min/max scale from the sourceJSON
+    layer.layers.forEach((subLayer) => {
+      if (subLayer.minScale === 0 || subLayer.minScale > minScale) {
+        minScale = subLayer.minScale;
+      }
+      if (subLayer.maxScale === 0 || subLayer.maxScale < maxScale) {
+        maxScale = subLayer.maxScale;
+      }
+    });
+  } else {
+    ({ maxScale, minScale } = layer);
+  }
+
+  // check if the map zoom is within scale
   if (minScale > 0 || maxScale > 0) {
     if (maxScale > 0 && minScale > 0) {
       isInScale = maxScale <= scale && scale <= minScale;
@@ -129,6 +167,7 @@ function isInScale(layer: any, scale: number) {
       isInScale = scale <= minScale;
     }
   }
+
   return isInScale;
 }
 
@@ -228,11 +267,8 @@ function MapWidgets({
   scrollToComponent,
   onHomeWidgetRendered = () => {},
 }: Props) {
-  const {
-    addDataWidgetVisible,
-    setAddDataWidgetVisible,
-    widgetLayers,
-  } = React.useContext(AddDataWidgetContext);
+  const { addDataWidgetVisible, setAddDataWidgetVisible, widgetLayers } =
+    React.useContext(AddDataWidgetContext);
 
   const {
     homeWidget,
@@ -586,10 +622,8 @@ function MapWidgets({
 
   // Fetch additional legend information. Data is stored in a dictionary
   // where the key is the layer id.
-  const [
-    additioanlLegendInitialized,
-    setAdditionalLegendInitialized,
-  ] = React.useState(false);
+  const [additioanlLegendInitialized, setAdditionalLegendInitialized] =
+    React.useState(false);
   const [additionalLegendInfo, setAdditionalLegendInfo] = React.useState({
     status: 'fetching',
     data: {},
@@ -1159,10 +1193,8 @@ function MapWidgets({
   );
 
   const [allWaterbodiesWidget, setAllWaterbodiesWidget] = React.useState(null);
-  const [
-    allWaterbodiesLayerVisible,
-    setAllWaterbodiesLayerVisible,
-  ] = React.useState(true);
+  const [allWaterbodiesLayerVisible, setAllWaterbodiesLayerVisible] =
+    React.useState(true);
 
   // watch for location changes and disable/enable the all waterbodies widget
   // accordingly widget should only be displayed on valid Community page location
@@ -1268,9 +1300,8 @@ function MapWidgets({
     const [hover, setHover] = React.useState(false);
 
     // store loading state to Upstream Watershed map widget icon
-    const [allWaterbodiesLoading, setAllWaterbodiesLoading] = React.useState(
-      false,
-    );
+    const [allWaterbodiesLoading, setAllWaterbodiesLoading] =
+      React.useState(false);
 
     // create a watcher to control the loading spinner for the widget
     if (firstLoad) {
