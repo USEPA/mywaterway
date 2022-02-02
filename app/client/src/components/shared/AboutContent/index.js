@@ -261,13 +261,16 @@ function AboutContent({ ...props }: Props) {
                 <p>
                   On this page you will be able to find the condition of
                   waterbodies in your state all in one place. You can filter the
-                  data by 303(d) listed waters, all waters, impaired waters or
-                  find out which waters in the state have a TMDL. There is a
-                  filtering function to filter by different parameters
-                  (bacteria, acidity, abnormal flow, etc) and/or different use
-                  groups (aquatic life, fish and shellfish consumption,
-                  recreation, etc.). Results can be viewed on a map or in a
-                  list.
+                  data by{' '}
+                  <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
+                    303(d) listed
+                  </GlossaryTerm>{' '}
+                  waters, all waters, impaired waters or find out which waters
+                  in the state have a TMDL. There is a filtering function to
+                  filter by different parameters (bacteria, acidity, abnormal
+                  flow, etc) and/or different use groups (aquatic life, fish and
+                  shellfish consumption, recreation, etc.). Results can be
+                  viewed on a map or in a list.
                 </p>
 
                 <h1>National Page </h1>
