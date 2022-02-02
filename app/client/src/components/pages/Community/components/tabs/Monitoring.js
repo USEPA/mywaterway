@@ -533,6 +533,10 @@ function Monitoring() {
                     value: 'locationName',
                   },
                   {
+                    label: 'Organization Name',
+                    value: 'orgName',
+                  },
+                  {
                     label: 'Organization ID',
                     value: 'orgId',
                   },
@@ -562,6 +566,9 @@ function Monitoring() {
                       title={<strong>{item.locationName || 'Unknown'}</strong>}
                       subTitle={
                         <>
+                          <em>Organization Name:</em>&nbsp;&nbsp;
+                          {item.orgName}
+                          <br />
                           <em>Organization ID:</em>&nbsp;&nbsp;
                           {item.orgId}
                           <br />

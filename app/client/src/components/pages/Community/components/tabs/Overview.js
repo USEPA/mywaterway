@@ -806,6 +806,10 @@ function MonitoringAndSensorsTab({
                   value: 'locationName',
                 },
                 {
+                  label: 'Organization Name',
+                  value: 'orgName',
+                },
+                {
                   label: 'Organization ID',
                   value: 'orgId',
                 },
@@ -842,6 +846,9 @@ function MonitoringAndSensorsTab({
                       <>
                         <em>Monitoring Type:</em>&nbsp;&nbsp;
                         {item.monitoringType}
+                        <br />
+                        <em>Organization Name:</em>&nbsp;&nbsp;
+                        {item.orgName}
                         <br />
                         <em>Organization ID:</em>&nbsp;&nbsp;{item.orgId}
                         <br />
