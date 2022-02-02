@@ -627,7 +627,7 @@ function WaterbodyInfo({
           <tbody>
             <tr>
               <td>
-                <em>Organization:</em>
+                <em>Organ&shy;ization Name:</em>
               </td>
               <td>{attributes.orgName}</td>
             </tr>
@@ -1267,7 +1267,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
         <tbody>
           <tr>
             <td>
-              <em>Organization:</em>
+              <em>Organ&shy;ization Name:</em>
             </td>
             <td>{orgName}</td>
           </tr>

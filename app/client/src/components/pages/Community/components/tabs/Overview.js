@@ -806,12 +806,12 @@ function MonitoringAndSensorsTab({
                   value: 'locationName',
                 },
                 {
-                  label: 'Organization ID',
-                  value: 'orgId',
-                },
-                {
                   label: 'Organization Name',
                   value: 'orgName',
+                },
+                {
+                  label: 'Organization ID',
+                  value: 'orgId',
                 },
                 {
                   label: 'Monitoring Site ID',
@@ -847,10 +847,10 @@ function MonitoringAndSensorsTab({
                         <em>Monitoring Type:</em>&nbsp;&nbsp;
                         {item.monitoringType}
                         <br />
-                        <em>Organization ID:</em>&nbsp;&nbsp;{item.orgId}
-                        <br />
                         <em>Organization Name:</em>&nbsp;&nbsp;
                         {item.orgName}
+                        <br />
+                        <em>Organization ID:</em>&nbsp;&nbsp;{item.orgId}
                         <br />
                         <em>Monitoring Site ID:</em>&nbsp;&nbsp;
                         {item.siteId.replace(`${item.orgId}-`, '')}

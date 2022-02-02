@@ -533,12 +533,12 @@ function Monitoring() {
                     value: 'locationName',
                   },
                   {
-                    label: 'Organization ID',
-                    value: 'orgId',
-                  },
-                  {
                     label: 'Organization Name',
                     value: 'orgName',
+                  },
+                  {
+                    label: 'Organization ID',
+                    value: 'orgId',
                   },
                   {
                     label: 'Monitoring Site ID',
