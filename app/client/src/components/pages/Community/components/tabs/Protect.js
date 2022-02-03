@@ -237,6 +237,7 @@ function Protect() {
   // normalize attains plans data with grts projects data
   useEffect(() => {
     if (attainsPlans.status === 'fetching') return;
+    if (!attainsPlans.data.items) return;
     if (attainsPlans.data.items.length === 0) return;
 
     const attainsProjects = [];

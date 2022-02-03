@@ -1230,7 +1230,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         .catch((err) => {
           console.error(err);
           setAttainsPlans({
-            data: [],
+            data: {},
             status: 'failure',
           });
         });
@@ -1436,9 +1436,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const handleMapServices = useCallback(
     (results, boundaries) => {
       // sort the parameters by highest percent to lowest
-      results.items[0].summaryByParameterImpairments = results.items[0].summaryByParameterImpairments.sort(
-        (a, b) => (a.catchmentSizePercent < b.catchmentSizePercent ? 1 : -1),
-      );
+      results.items[0].summaryByParameterImpairments =
+        results.items[0].summaryByParameterImpairments.sort((a, b) =>
+          a.catchmentSizePercent < b.catchmentSizePercent ? 1 : -1,
+        );
       setCipSummary({ status: 'success', data: results });
       setAssessmentUnitCount(results.items[0].assessmentUnits.length);
 
@@ -1731,10 +1732,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                 countiesRes.features[0].attributes
               ) {
                 const stateCode = countiesRes.features[0].attributes.STATE_FIPS;
-                const countyCode = countiesRes.features[0].attributes.FIPS.substring(
-                  2,
-                  5,
-                );
+                const countyCode =
+                  countiesRes.features[0].attributes.FIPS.substring(2, 5);
                 setFIPS({
                   stateCode: stateCode,
                   countyCode: countyCode,
@@ -1838,10 +1837,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
             // process the results
             else {
-              const {
-                centermass_x,
-                centermass_y,
-              } = response.features[0].attributes;
+              const { centermass_x, centermass_y } =
+                response.features[0].attributes;
 
               processGeocodeServerResults(
                 `${centermass_x}, ${centermass_y}`,
