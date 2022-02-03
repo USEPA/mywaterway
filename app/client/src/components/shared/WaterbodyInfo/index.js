@@ -1316,7 +1316,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
         <tbody>
           <tr>
             <td>
-              <em>Organ&shy;ization:</em>
+              <em>Organ&shy;ization Name:</em>
             </td>
             <td>{orgName}</td>
           </tr>
