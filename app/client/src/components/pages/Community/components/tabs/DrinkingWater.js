@@ -26,7 +26,7 @@ import { summarizeAssessments } from 'utils/utils';
 // errors
 import { countyError, withdrawerError } from 'config/errorMessages';
 // styles
-import { colors, tableStyles, toggleTableStyles } from 'styles';
+import { colors, tableStyles, toggleTableStyles } from 'styles/index.js';
 
 const containerStyles = css`
   @media (min-width: 960px) {

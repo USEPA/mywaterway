@@ -27,7 +27,7 @@ import {
   restorationPlanError,
 } from 'config/errorMessages';
 // styles
-import { tableStyles } from 'styles';
+import { tableStyles } from 'styles/index.js';
 
 const containerStyles = css`
   @media (min-width: 960px) {

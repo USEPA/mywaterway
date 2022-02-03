@@ -35,7 +35,7 @@ import {
   wsioHealthIndexError,
 } from 'config/errorMessages';
 // styles
-import { tableStyles } from 'styles';
+import { tableStyles } from 'styles/index.js';
 
 const protectedAreasIdKey = 'OBJECTID';
 
