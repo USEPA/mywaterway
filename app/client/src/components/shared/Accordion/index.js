@@ -123,7 +123,7 @@ function AccordionList({
         )}
       </div>
 
-      {title && <div css={titleStyles}>{title}</div>}
+      {title && <p css={titleStyles}>{title}</p>}
 
       {/* implicitly pass 'allExpanded' prop down to children (AccordionItem's) */}
       {React.Children.map(children, (childElement) => {
