@@ -24,7 +24,7 @@ import { characteristicGroupMappings } from 'config/characteristicGroupMappings'
 // errors
 import { waterbodyReportError } from 'config/errorMessages';
 // styles
-import { colors /* tableStyles */ } from 'styles/index.js';
+import { colors, tableStyles } from 'styles/index.js';
 
 function bool(value) {
   // Return 'Yes' for truthy values and non-zero strings
@@ -72,21 +72,17 @@ const popupTitleStyles = css`
   background-color: #f0f6f9;
 `;
 
-const tableStyles = css`
+const modifiedTableStyles = css`
+  ${tableStyles}
+
   thead th {
     vertical-align: top;
   }
 
   th,
   td {
-    font-size: 0.875em;
-    line-height: 1.125;
     overflow-wrap: anywhere;
     hyphens: auto;
-
-    @media (min-width: 560px) {
-      font-size: 1em;
-    }
 
     :first-of-type {
       padding-left: 0;
@@ -99,7 +95,7 @@ const tableStyles = css`
 `;
 
 const measurementTableStyles = css`
-  ${tableStyles};
+  ${modifiedTableStyles};
 
   th:last-of-type,
   td:last-of-type {
@@ -430,7 +426,7 @@ function WaterbodyInfo({
             )}
 
             {applicableFields.length > 0 && (
-              <table css={tableStyles} className="table">
+              <table css={modifiedTableStyles} className="table">
                 <thead>
                   <tr>
                     <th>Evaluated Use</th>
@@ -489,7 +485,7 @@ function WaterbodyInfo({
 
   const dischargerContent = (
     <>
-      <table css={tableStyles} className="table">
+      <table css={modifiedTableStyles} className="table">
         <tbody>
           <tr>
             <td>
@@ -668,7 +664,7 @@ function WaterbodyInfo({
 
     return (
       <>
-        <table css={tableStyles} className="table">
+        <table css={modifiedTableStyles} className="table">
           <tbody>
             <tr>
               <td>
@@ -934,7 +930,7 @@ function WaterbodyInfo({
   // jsx
   const wsioContent = (
     <>
-      <table css={tableStyles} className="table">
+      <table css={modifiedTableStyles} className="table">
         <tbody>
           <tr>
             <td>
@@ -1108,7 +1104,7 @@ function WaterbodyInfo({
               ) : (
                 <>
                   <em>Links below open in a new browser tab.</em>
-                  <table css={tableStyles} className="table">
+                  <table css={modifiedTableStyles} className="table">
                     <thead>
                       <tr>
                         <th>Plan (ID)</th>
@@ -1316,7 +1312,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
 
   return (
     <>
-      <table css={tableStyles} className="table">
+      <table css={modifiedTableStyles} className="table">
         <tbody>
           <tr>
             <td>
