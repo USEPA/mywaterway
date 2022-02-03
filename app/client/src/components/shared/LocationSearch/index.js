@@ -25,7 +25,7 @@ import { useServicesContext } from 'contexts/LookupFiles';
 import { useKeyPress } from 'utils/hooks';
 import {
   containsScriptTag,
-  escapeRegex,
+  indicesOf,
   isHuc12,
   splitSuggestedSearch,
 } from 'utils/utils';
@@ -500,6 +500,37 @@ function LocationSearch({ route, label }: Props) {
     }
   }
 
+  // Splits the provided text by the searchString in a case insensitive way.
+  function getHighlightParts(text, searchString) {
+    const searchLength = searchString.length;
+    const indices = indicesOf(text, searchString);
+
+    // build an array of the string split up by the searchString that includes
+    // the searchString.
+    const parts = [];
+    let endIndex = 0;
+    let remainder = text;
+    indices.forEach((startIndex) => {
+      // skip if the indices are the same (i.e. results in empty string)
+      if (endIndex !== startIndex) {
+        // add in text up to the start index
+        parts.push(text.substring(endIndex, startIndex));
+      }
+
+      // add in the search part of the text
+      endIndex = startIndex + searchLength;
+      parts.push(text.substring(startIndex, endIndex));
+
+      // keep track of leftover text
+      remainder = text.substring(endIndex);
+    });
+
+    // add in remainder text if applicable
+    if (remainder) parts.push(remainder);
+
+    return parts;
+  }
+
   let index = -1;
   function LayerSuggestions({ title, source }) {
     return (
@@ -555,9 +586,8 @@ function LocationSearch({ route, label }: Props) {
                   }
                 }}
               >
-                {result.text
-                  .split(new RegExp(`(${escapeRegex(inputText)})`, 'gi'))
-                  .map((part, textIndex) => {
+                {getHighlightParts(result.text, inputText).map(
+                  (part, textIndex) => {
                     if (part.toLowerCase() === inputText.toLowerCase()) {
                       return (
                         <strong key={`text-key-${textIndex}`}>{part}</strong>
@@ -569,7 +599,8 @@ function LocationSearch({ route, label }: Props) {
                         </Fragment>
                       );
                     }
-                  })}
+                  },
+                )}
               </li>
             );
           })}
