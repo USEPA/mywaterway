@@ -1,9 +1,9 @@
 // @flow
 
-import React from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import type { Node } from 'react';
+import { css } from 'styled-components/macro';
 import { navigate } from '@reach/router';
-import styled from 'styled-components';
 import esriConfig from '@arcgis/core/config';
 // components
 import NavBar from 'components/shared/NavBar';
@@ -21,78 +21,92 @@ import {
 // styles
 import { colors, fonts } from 'styles/index.js';
 // images
-import water from './water.jpg';
+import waterPhoto from './water.jpg';
 
-// --- styled components ---
-const TopLinks = styled.div`
+const topLinksStyles = css`
   position: relative;
   z-index: 100;
   margin: auto;
   max-width: 1024px; /* match EPA header */
-`;
 
-const List = styled.ul`
-  padding: 0;
-  float: right;
-  list-style: none;
-`;
+  ul {
+    position: absolute;
+    margin: 0.375rem 0;
+    padding: 0;
+    width: 100%;
+    text-align: center;
+    list-style: none;
 
-const Item = styled.li`
-  display: inline-block;
-  margin-top: 1rem;
-  margin-right: 0.5rem;
-`;
+    @media (min-width: 30em) {
+      right: 0;
+      margin: 0.375rem;
+      width: auto;
+    }
+  }
 
-const TopLink = styled.a`
-  padding: 0.5em 0.75em;
-  border: 1px solid transparent;
-  border-radius: 0.25em;
-  font-size: 0.8125rem;
-  font-weight: normal;
-  line-height: normal;
-  color: white;
-  background-color: transparent;
-  user-select: none;
+  li {
+    display: inline-block;
+    margin: 0.375rem;
+  }
 
-  :hover,
-  :focus {
-    border-color: ${colors.white(0.75)};
+  a,
+  a:hover,
+  a:focus,
+  a:visited {
     color: white;
-    background-color: ${colors.white(0.125)};
     text-decoration: none;
   }
 
-  :visited {
+  button {
+    margin-bottom: 0;
+    font-weight: normal;
+  }
+
+  a,
+  button {
+    display: flex;
+    align-items: center;
+    padding: 0.5em 0.75em;
+    border: 1px solid transparent;
+    border-radius: 0.25em;
+    height: 2rem;
+    font-size: 0;
+    line-height: normal;
     color: white;
-  }
+    background-color: transparent;
+    user-select: none;
 
-  &[data-disabled='true'] {
-    opacity: 0.125;
-    pointer-events: none;
-  }
+    :hover,
+    :focus {
+      border-color: ${colors.white(0.75)};
+      background-color: ${colors.white(0.125)};
+    }
 
-  i {
-    margin-right: 0.5em;
-    font-size: 0.75rem;
-  }
-
-  @media (max-width: 25em) {
-    height: 48px;
-    width: 48px;
-    font-size: 0px;
+    &[data-disabled='true'] {
+      opacity: 0.125;
+      pointer-events: none;
+    }
 
     i {
-      width: 48px;
-      height: 48px;
-      font-size: 16px;
-      margin-right: 0em;
+      width: 2rem;
+      font-size: 1rem;
       text-align: center;
+    }
+
+    @media (min-width: 30em) {
+      display: inline-block;
+      font-size: 0.8125rem;
+
+      i {
+        width: auto;
+        margin-right: 0.5em;
+        font-size: 0.75rem;
+      }
     }
   }
 `;
 
-const Banner = styled.div`
-  display: block;
+const bannerStyles = css`
   position: relative;
   z-index: 10;
   height: 10em;
@@ -101,7 +115,7 @@ const Banner = styled.div`
       ${colors.black(0.625)} 50%,
       ${colors.black(0.375)} 75%
     ),
-    url(${water});
+    url(${waterPhoto});
   background-size: cover;
   background-position: center;
 
@@ -114,9 +128,9 @@ const Banner = styled.div`
   }
 `;
 
-const Container = styled.div`
+const textStyles = css`
   position: absolute;
-  top: 50%;
+  top: calc(50% + 24px); /* leave room for top links */
   right: 50%;
   transform: translate(50%, -50%);
   width: 100%;
@@ -125,7 +139,7 @@ const Container = styled.div`
   user-select: none;
 `;
 
-const Title = styled.span`
+const titleStyles = css`
   padding: 0.375em;
   font-family: ${fonts.secondary};
   font-size: 1.5em;
@@ -138,42 +152,36 @@ const Title = styled.span`
   @media (min-width: 50em) {
     font-size: 2.5em;
   }
-  &:hover {
-    text-decoration: none;
-  }
-  &:visited {
-    color: white;
-  }
 `;
 
-const Subtitle = styled.p`
+const subtitleStyles = css`
   padding: 0.375em;
-  font-family: 'Roboto', sans-serif;
-  font-size: 0.875em;
+  font-family: ${fonts.primary};
+  font-size: 0.9375em;
 
   @media (min-width: 25em) {
-    font-size: 1em;
+    font-size: 1.0625em;
   }
 
   @media (min-width: 50em) {
-    font-size: 1.1875em;
+    font-size: 1.25em;
   }
 `;
 
-// --- components ---
 type Props = {
   children: Node,
 };
 
 function Page({ children }: Props) {
-  const { initialized, glossaryStatus } = React.useContext(GlossaryContext);
+  const { initialized, glossaryStatus } = useContext(GlossaryContext);
 
   const services = useServicesContext();
 
   // handles hiding of the data page when the user clicks the browser's back button
-  const [dataDisplayed, setDataDisplayed] = React.useState(false);
-  const [aboutDisplayed, setAboutDisplayed] = React.useState(false);
-  React.useEffect(() => {
+  const [dataDisplayed, setDataDisplayed] = useState(false);
+  const [aboutDisplayed, setAboutDisplayed] = useState(false);
+
+  useEffect(() => {
     function handleHistoryChange(ev) {
       if (ev.target.origin !== window.location.origin) {
         return;
@@ -193,10 +201,9 @@ function Page({ children }: Props) {
   const pageName = pathParts.length > 1 ? pathParts[1] : '';
 
   // setup esri interceptors for logging to google analytics
-  const [interceptorsInitialized, setInterceptorsInitialized] = React.useState(
-    false,
-  );
-  React.useEffect(() => {
+  const [interceptorsInitialized, setInterceptorsInitialized] = useState(false);
+
+  useEffect(() => {
     if (interceptorsInitialized) return;
 
     var callId = 0;
@@ -270,24 +277,22 @@ function Page({ children }: Props) {
     <>
       <GlossaryPanel path={pageName} />
 
-      <TopLinks>
-        <List>
-          <Item>
-            <TopLink
+      <div css={topLinksStyles}>
+        <ul>
+          <li>
+            <button
               title="Glossary"
-              as="button"
               className="js-glossary-toggle"
               data-disabled={!initialized || glossaryStatus === 'fetching'}
             >
               <i className="fas fa-book" aria-hidden="true" />
               Glossary
-            </TopLink>
-          </Item>
+            </button>
+          </li>
 
-          <Item>
-            <TopLink
+          <li>
+            <button
               title="Data"
-              as="button"
               onClick={(ev) => {
                 if (window.location.pathname !== '/data') {
                   setAboutDisplayed(false);
@@ -297,13 +302,12 @@ function Page({ children }: Props) {
             >
               <i className="fas fa-database" aria-hidden="true" />
               Data
-            </TopLink>
-          </Item>
+            </button>
+          </li>
 
-          <Item>
-            <TopLink
+          <li>
+            <button
               title="About"
-              as="button"
               onClick={(ev) => {
                 if (window.location.pathname !== '/about') {
                   setDataDisplayed(false);
@@ -313,11 +317,11 @@ function Page({ children }: Props) {
             >
               <i className="fas fa-info-circle" aria-hidden="true" />
               About
-            </TopLink>
-          </Item>
+            </button>
+          </li>
 
-          <Item>
-            <TopLink
+          <li>
+            <a
               title="Contact Us"
               href="https://www.epa.gov/waterdata/forms/contact-us-about-hows-my-waterway"
               target="_blank"
@@ -325,25 +329,29 @@ function Page({ children }: Props) {
             >
               <i className="fas fa-envelope" aria-hidden="true" />
               Contact Us
-            </TopLink>
-          </Item>
-        </List>
-      </TopLinks>
+            </a>
+          </li>
+        </ul>
+      </div>
 
-      <Banner>
-        <Container>
-          <Title
-            onClick={() => {
+      <div css={bannerStyles}>
+        <div css={textStyles}>
+          <span
+            css={titleStyles}
+            onClick={(ev) => {
               if (dataDisplayed) setDataDisplayed(false);
               if (aboutDisplayed) setAboutDisplayed(false);
               navigate('/');
             }}
           >
             How’s My Waterway?
-          </Title>
-          <Subtitle>Informing the conversation about your waters.</Subtitle>
-        </Container>
-      </Banner>
+          </span>
+
+          <p css={subtitleStyles}>
+            Informing the conversation about your waters.
+          </p>
+        </div>
+      </div>
 
       {aboutDisplayed && (
         <>
@@ -351,6 +359,7 @@ function Page({ children }: Props) {
             title="About"
             onBackClick={(ev) => setAboutDisplayed(false)}
           />
+
           <AboutContent />
         </>
       )}
@@ -361,6 +370,7 @@ function Page({ children }: Props) {
             title="About the Data"
             onBackClick={(ev) => setDataDisplayed(false)}
           />
+
           <DataContent />
         </>
       )}
@@ -368,9 +378,7 @@ function Page({ children }: Props) {
       {/* always render Page's children, just toggle the display property
         depending on the state of 'dataDisplayed' */}
       <div
-        style={{
-          display: dataDisplayed || aboutDisplayed ? 'none' : 'block',
-        }}
+        style={{ display: dataDisplayed || aboutDisplayed ? 'none' : 'block' }}
       >
         {children}
       </div>

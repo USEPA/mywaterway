@@ -3,6 +3,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { css } from 'styled-components/macro';
 import Graphic from '@arcgis/core/Graphic';
 // components
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
@@ -844,121 +845,67 @@ export function graphicComparison(graphic1, graphic2) {
   return true;
 }
 
-// Creates a gradient scale used for legends
-export function gradientIcon({ id, stops }) {
-  const gradientHeight = 30 * (stops.length - 1);
-  const labelContainerHeight = 37.5 * (stops.length - 1);
+const tickMarkStyles = css`
+  display: flex;
+  align-items: center;
+  width: 100%;
+
+  ::before {
+    content: '';
+    width: 4px;
+    height: 1px;
+    background-color: #999;
+  }
+
+  p {
+    padding-left: 0.25em;
+    font-size: 0.875em !important;
+  }
+`;
+
+export function GradientIcon({ id, stops }) {
+  const divisions = stops.length - 1;
   return (
-    <table width="50%">
-      <tbody>
-        <tr>
-          <td width="34" align="center">
-            <div
-              style={{
-                position: 'relative',
-                width: '34px',
-                height: `${gradientHeight}px`,
-              }}
+    <div css={{ display: 'flex', margin: 'auto' }}>
+      <div css={{ margin: '15px 0', border: '1px solid #999' }}>
+        <svg width={20} height={30 * divisions}>
+          <defs>
+            <linearGradient
+              id={id}
+              x1={0}
+              y1={0}
+              x2={0}
+              y2={30 * divisions}
+              gradientUnits="userSpaceOnUse"
             >
-              <div
-                className="esriLegendColorRamp"
-                style={{
-                  border: '1px solid rgba(194, 194, 194, 0.25)',
-                  height: `${gradientHeight}px`,
-                }}
-              >
-                <svg
-                  overflow="hidden"
-                  width="24"
-                  height={gradientHeight}
-                  style={{ touchAction: 'none' }}
-                >
-                  <defs>
-                    <linearGradient
-                      id={id}
-                      gradientUnits="userSpaceOnUse"
-                      x1="0.00000000"
-                      y1="0.00000000"
-                      x2="0.00000000"
-                      y2={gradientHeight}
-                    >
-                      {stops.map((item, index) => {
-                        return (
-                          <stop
-                            key={index}
-                            offset={index / (stops.length - 1)}
-                            stopColor={item.color}
-                            stopOpacity="1"
-                          />
-                        );
-                      })}
-                    </linearGradient>
-                  </defs>
-                  <rect
-                    fill={`url(#${id})`}
-                    stroke="none"
-                    strokeOpacity="0"
-                    strokeWidth="1"
-                    strokeLinecap="butt"
-                    strokeLinejoin="miter"
-                    strokeMiterlimit="4"
-                    x="0"
-                    y="0"
-                    width="24"
-                    height={gradientHeight}
-                    ry="0"
-                    rx="0"
-                    fillRule="evenodd"
-                  />
-                  <rect
-                    fill="rgb(255, 255, 255)"
-                    fillOpacity="0"
-                    stroke="none"
-                    strokeOpacity="0"
-                    strokeWidth="1"
-                    strokeLinecap="butt"
-                    strokeLinejoin="miter"
-                    strokeMiterlimit="4"
-                    x="0"
-                    y="0"
-                    width="24"
-                    height={gradientHeight}
-                    ry="0"
-                    rx="0"
-                    fillRule="evenodd"
-                  />
-                </svg>
-              </div>
-              {stops.map((item, index) => {
-                return (
-                  <div
-                    key={index}
-                    className={item.label ? 'esriLegendColorRampTick' : ''}
-                    style={{ top: `${(index / (stops.length - 1)) * 100}%` }}
-                  >
-                    &nbsp;
-                  </div>
-                );
-              })}
-            </div>
-          </td>
-          <td>
-            <div
-              className="esriLegendColorRampLabels"
-              style={{ height: `${labelContainerHeight}px` }}
-            >
-              {stops.map((item, index) => {
-                return (
-                  <div key={index} className="esriLegendColorRampLabel">
-                    {item.label ? item.label : <>&nbsp;</>}
-                  </div>
-                );
-              })}
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+              {stops.map((stop, index) => (
+                <stop
+                  key={index}
+                  offset={index / divisions}
+                  stopColor={stop.color}
+                />
+              ))}
+            </linearGradient>
+          </defs>
+
+          <rect
+            x={0}
+            y={0}
+            width={20}
+            height={30 * divisions}
+            fill={`url(#${id})`}
+          />
+        </svg>
+      </div>
+
+      <div css={{ display: 'flex', flexWrap: 'wrap', width: '45px' }}>
+        {stops.map((stop, index) => (
+          <div key={index} css={tickMarkStyles}>
+            <p>{stop.label}</p>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 

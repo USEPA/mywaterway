@@ -787,7 +787,11 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                                       {name || 'Name not provided'}
                                     </strong>
                                   }
-                                  subTitle={`${orgLabel} ${auId}`}
+                                  subTitle={
+                                    <>
+                                      {orgLabel} {auId}
+                                    </>
+                                  }
                                   feature={graphic}
                                   idKey="assessmentunitidentifier"
                                   status={status}

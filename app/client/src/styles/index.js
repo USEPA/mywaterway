@@ -1,5 +1,7 @@
 // @flow
 
+import { css } from 'styled-components';
+
 const colors = {
   black: (alpha: number = 1) => `rgba(0, 0, 0, ${alpha})`, // #000
   white: (alpha: number = 1) => `rgba(255, 255, 255, ${alpha})`, // #fff
@@ -16,9 +18,9 @@ const colors = {
   steel: (alpha: number = 1) => `rgba(82, 101, 113, ${alpha})`, // #526571
 
   // for hovers and selecting waterbodies
-  highlightedRed: (alpha: number = 1) => `rgba(124, 157, 173, ${alpha})`, //  #54BCEC
-  highlightedGreen: (alpha: number = 1) => `rgba(70, 227, 159, ${alpha})`, // #46E39F
-  highlightedPurple: (alpha: number = 1) => `rgba(84, 188, 236, ${alpha})`, // #7C9DAD
+  highlightedRed: (alpha: number = 1) => `rgba(124, 157, 173, ${alpha})`, //  #54bcec
+  highlightedGreen: (alpha: number = 1) => `rgba(70, 227, 159, ${alpha})`, // #46e39f
+  highlightedPurple: (alpha: number = 1) => `rgba(84, 188, 236, ${alpha})`, // #7C9dad
 
   gray3: '#333',
   gray4: '#444',
@@ -27,6 +29,7 @@ const colors = {
   grayc: '#ccc',
   grayd: '#ddd',
   graye: '#eee',
+
   orange: '#ffa500',
   yellow: '#ffff00',
 };
@@ -37,18 +40,35 @@ const fonts = {
 };
 
 const reactSelectStyles = {
-  placeholder: (defaultStyles) => {
-    return {
-      ...defaultStyles,
-      color: '#495057',
-    };
-  },
-  singleValue: (defaultStyles) => {
-    return {
-      ...defaultStyles,
-      lineHeight: 2,
-    };
-  },
+  placeholder: (defaultStyles) => ({ ...defaultStyles, color: '#495057' }),
+  singleValue: (defaultStyles) => ({ ...defaultStyles, lineHeight: 2 }),
 };
 
-export { colors, fonts, reactSelectStyles };
+const tableStyles = css`
+  th,
+  td {
+    font-size: 0.875em;
+    line-height: 1.125;
+
+    @media (min-width: 560px) {
+      font-size: 1em;
+    }
+  }
+`;
+
+const toggleTableStyles = css`
+  ${tableStyles}
+
+  thead {
+    background-color: #f0f6f9;
+  }
+
+  th,
+  td {
+    :last-of-type {
+      text-align: right;
+    }
+  }
+`;
+
+export { colors, fonts, reactSelectStyles, tableStyles, toggleTableStyles };

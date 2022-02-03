@@ -8,8 +8,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { css } from 'styled-components/macro';
 import { navigate } from '@reach/router';
-import styled from 'styled-components';
 import { isIE } from 'components/pages/LocationMap/MapFunctions';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Locator from '@arcgis/core/tasks/Locator';
@@ -17,7 +17,7 @@ import Point from '@arcgis/core/geometry/Point';
 import Search from '@arcgis/core/widgets/Search';
 import * as watchUtils from '@arcgis/core/core/watchUtils';
 // components
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -30,7 +30,7 @@ import {
   splitSuggestedSearch,
 } from 'utils/utils';
 // styles
-import { colors } from 'styles/index.js';
+import { colors, fonts } from 'styles/index.js';
 // errors
 import {
   invalidSearchError,
@@ -47,31 +47,26 @@ function findSource(name, suggestions) {
   return source;
 }
 
-// --- styled components ---
-const ErrorBox = styled(StyledErrorBox)`
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles};
   margin-bottom: 1em;
-
-  p {
-    padding: 0 !important;
-  }
+  text-align: center;
 `;
 
-const Label = styled.label`
-  margin-top: 0.25em;
+const labelStyles = css`
   margin-bottom: 0;
-  padding-bottom: 0;
 `;
 
-const Form = styled.form`
+const formStyles = css`
   display: flex;
   flex-flow: row wrap;
   align-items: center;
 `;
 
-const Button = styled.button`
+const buttonStyles = css`
   margin-top: 1em;
   margin-bottom: 0;
-  font-size: 0.9375em;
+  font-size: 0.875em;
   font-weight: bold;
   color: ${colors.white()};
   background-color: ${colors.blue()};
@@ -85,19 +80,22 @@ const Button = styled.button`
   &:disabled {
     cursor: default;
   }
+
+  @media (min-width: 480px) {
+    font-size: 0.9375em;
+  }
 `;
 
-const Text = styled.p`
+const textStyles = css`
   margin: 1em 0.5em 0;
   padding: 0 !important;
   font-size: 0.875em;
   font-weight: bold;
 `;
 
-const SearchBox = styled.div`
+const searchBoxStyles = css`
   margin-top: 1em;
   width: 100%;
-  height: 36.75px;
   font-size: 0.9375em;
 
   @media (min-width: 480px) {
@@ -106,25 +104,29 @@ const SearchBox = styled.div`
   }
 
   .esri-search__container {
-    border: 1px solid rgb(211, 211, 211);
+    border: 1px solid ${colors.grayc};
     border-radius: 4px;
+  }
+
+  .esri-search__form {
+    display: flex;
+    align-items: center;
   }
 
   .esri-search__input {
-    height: 36px;
     border-radius: 4px;
-    padding: 1px 2px 1px 8px;
-    color: #495057;
-    font-family: 'Source Sans Pro', 'Helvetica Neue', 'Helvetica', 'Roboto',
-      'Arial', sans-serif;
-    font-size: 16px;
+    padding: 0.625rem;
+    color: ${colors.gray4};
+    font-family: ${fonts.primary};
+    font-size: 0.9375em;
   }
 
   .esri-search__input::placeholder {
-    color: #6c757d;
+    color: ${colors.gray6};
   }
 
   .esri-search__clear-button {
+    border-radius: 4px;
     height: 36px;
     width: 36px;
   }
@@ -153,11 +155,12 @@ const SearchBox = styled.div`
   }
 
   .esri-search__sources-button {
-    height: 38px;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    height: 36px;
   }
 `;
 
-// --- components ---
 type Props = {
   route: string,
   label: Node,
@@ -282,7 +285,7 @@ function LocationSearch({ route, label }: Props) {
   // initialize inputText from searchText context
   const [inputText, setInputText] = useState(searchText);
 
-  // update inputText whenever searchText changes (i.e. Form onSubmit)
+  // update inputText whenever searchText changes (i.e. form onSubmit)
   useEffect(() => setInputText(searchText), [searchText]);
 
   const [errorMessage, setErrorMessage] = useState('');
@@ -681,28 +684,34 @@ function LocationSearch({ route, label }: Props) {
   return (
     <>
       {errorMessage && (
-        <ErrorBox>
+        <div css={modifiedErrorBoxStyles}>
           <p>{errorMessage}</p>
-        </ErrorBox>
+        </div>
       )}
-      <Label htmlFor="hmw-search-input">{label}</Label>
-      <Form
+
+      <label css={labelStyles} htmlFor="hmw-search-input">
+        {label}
+      </label>
+
+      <form
+        css={formStyles}
         onSubmit={(ev) => {
           ev.preventDefault();
-
           formSubmit(inputText);
         }}
       >
-        <SearchBox>
+        <div css={searchBoxStyles}>
           <div
             role="presentation"
-            className={`esri-search-multiple-sources esri-search__container ${
-              sourcesVisible ? 'esri-search--sources' : ''
-            } ${
-              filteredSuggestions.length > 0
-                ? 'esri-search--show-suggestions'
-                : ''
-            }`}
+            className={
+              `esri-search-multiple-sources esri-search__container ` +
+              `${sourcesVisible ? 'esri-search--sources' : ''} ` +
+              `${
+                filteredSuggestions.length > 0
+                  ? 'esri-search--show-suggestions'
+                  : ''
+              }`
+            }
           >
             <div
               role="button"
@@ -778,6 +787,7 @@ function LocationSearch({ route, label }: Props) {
                 })}
               </ul>
             </div>
+
             <div className="esri-search__input-container" ref={suggestionsRef}>
               <div className="esri-search__form" role="search">
                 <input
@@ -824,6 +834,7 @@ function LocationSearch({ route, label }: Props) {
                   }
                 />
               </div>
+
               {filteredSuggestions.length > 0 && suggestionsVisible && (
                 <div
                   id="search-container-suggest-menu"
@@ -864,6 +875,7 @@ function LocationSearch({ route, label }: Props) {
                   })}
                 </div>
               )}
+
               {inputText && (
                 <div
                   id="search-input-clear"
@@ -884,6 +896,7 @@ function LocationSearch({ route, label }: Props) {
                 </div>
               )}
             </div>
+
             <div className="esri-menu esri-search__warning-menu">
               <div className="esri-search__warning-body">
                 <div>
@@ -895,27 +908,34 @@ function LocationSearch({ route, label }: Props) {
               </div>
             </div>
           </div>
-        </SearchBox>
+        </div>
 
-        <Button
+        <button
+          css={buttonStyles}
           className="btn"
           type="submit"
           disabled={inputText === searchText}
         >
           <i className="fas fa-angle-double-right" aria-hidden="true" /> Go
-        </Button>
+        </button>
 
         {navigator.geolocation && (
           <>
-            <Text>OR</Text>
+            <p css={textStyles}>OR</p>
 
             {geolocationError ? (
-              <Button className="btn btn-danger" type="button" disabled>
+              <button
+                css={buttonStyles}
+                className="btn btn-danger"
+                type="button"
+                disabled
+              >
                 <i className="fas fa-exclamation-triangle" aria-hidden="true" />
                 &nbsp;&nbsp;Error Getting Location
-              </Button>
+              </button>
             ) : (
-              <Button
+              <button
+                css={buttonStyles}
                 className="btn"
                 type="button"
                 onClick={(ev) => {
@@ -966,11 +986,11 @@ function LocationSearch({ route, label }: Props) {
                     &nbsp;&nbsp;Getting Location...
                   </>
                 )}
-              </Button>
+              </button>
             )}
           </>
         )}
-      </Form>
+      </form>
     </>
   );
 }

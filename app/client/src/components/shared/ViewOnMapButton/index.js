@@ -10,19 +10,23 @@ import { colors } from 'styles/index.js';
 
 const buttonStyles = css`
   margin-bottom: 0;
+  font-size: 0.875em;
 
-  &:hover,
-  &:focus {
+  @media (min-width: 560px) {
+    font-size: 1em;
+  }
+
+  &:not([disabled]):hover,
+  &:not([disabled]):focus {
     background-color: ${colors.navyBlue()};
   }
 
   &:disabled {
-    opacity: 0.65;
+    opacity: 0.625;
     cursor: default;
   }
 `;
 
-// --- components ---
 type Props = {
   feature: Object,
   fieldName: ?fieldName,
@@ -42,11 +46,9 @@ function ViewOnMapButton({
   onClick,
   disabled = false,
 }: Props) {
-  const {
-    pointsLayer,
-    linesLayer,
-    areasLayer, //
-  } = useContext(LocationSearchContext);
+  const { pointsLayer, linesLayer, areasLayer } = useContext(
+    LocationSearchContext,
+  );
 
   const { setSelectedGraphic } = useContext(MapHighlightContext);
 

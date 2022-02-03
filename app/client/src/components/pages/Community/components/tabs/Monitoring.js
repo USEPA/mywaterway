@@ -38,9 +38,13 @@ import { useWaterbodyOnMap } from 'utils/hooks';
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // errors
 import { monitoringError } from 'config/errorMessages';
+// styles
+import { toggleTableStyles } from 'styles/index.js';
 
 const containerStyles = css`
-  padding: 1em;
+  @media (min-width: 960px) {
+    padding: 1em;
+  }
 `;
 
 const modifiedErrorBoxStyles = css`
@@ -54,17 +58,6 @@ const centeredTextStyles = css`
 
 const accordionContentStyles = css`
   padding: 0.4375em 0.875em 0.875em;
-`;
-
-const tableStyles = css`
-  thead {
-    background-color: #f0f6f9;
-  }
-
-  th:last-of-type,
-  td:last-of-type {
-    text-align: right;
-  }
 `;
 
 const toggleStyles = css`
@@ -469,7 +462,7 @@ function Monitoring() {
 
           {allMonitoringLocations.length > 0 && (
             <>
-              <table css={tableStyles} className="table">
+              <table css={toggleTableStyles} className="table">
                 <thead>
                   <tr>
                     <th>

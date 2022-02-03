@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useContext } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -23,7 +23,6 @@ const modifiedInfoBoxStyles = css`
   text-align: center;
 `;
 
-// --- components ---
 type Props = {
   waterbodies: Array<Object>,
   fieldName: string,
@@ -31,7 +30,7 @@ type Props = {
 };
 
 function AssessmentSummary({ waterbodies, fieldName, usageName }: Props) {
-  const { cipSummary } = React.useContext(LocationSearchContext);
+  const { cipSummary } = useContext(LocationSearchContext);
 
   if (cipSummary.status === 'failure') return null;
 
