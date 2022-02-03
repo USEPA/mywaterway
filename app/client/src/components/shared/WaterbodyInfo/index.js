@@ -1250,14 +1250,22 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
 
   const sortedPrimaryMeasurements = [...primaryMeasurements]
     .sort((a, b) => a.parameterOrder - b.parameterOrder)
-    .map((data, index) => (
-      <UsgsStreamgageParameter url={locationUrl} data={data} key={index} />
+    .map((data) => (
+      <UsgsStreamgageParameter
+        url={locationUrl}
+        data={data}
+        key={data.parameterCode}
+      />
     ));
 
   const sortedSecondaryMeasurements = [...secondaryMeasurements]
     .sort((a, b) => a.parameterName.localeCompare(b.parameterName))
-    .map((data, index) => (
-      <UsgsStreamgageParameter url={locationUrl} data={data} key={index} />
+    .map((data) => (
+      <UsgsStreamgageParameter
+        url={locationUrl}
+        data={data}
+        key={data.parameterCode}
+      />
     ));
 
   const sortedMeasurements = [
@@ -1366,7 +1374,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
 
 function UsgsStreamgageParameter({ url, data }) {
   return (
-    <tr key={data.parameterCode}>
+    <tr>
       <td>
         {data.parameterCategory === 'primary' ? (
           <GlossaryTerm term={data.parameterName}>
