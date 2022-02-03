@@ -668,7 +668,7 @@ function WaterbodyInfo({
           <tbody>
             <tr>
               <td>
-                <em>Organ&shy;ization:</em>
+                <em>Organ&shy;ization Name:</em>
               </td>
               <td>{attributes.orgName}</td>
             </tr>
