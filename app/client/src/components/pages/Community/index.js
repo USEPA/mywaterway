@@ -88,33 +88,6 @@ const mapContainerStyles = css`
   margin-bottom: 1em;
 `;
 
-const tableStyles = css`
-  th,
-  td {
-    font-size: 0.875em;
-    line-height: 1.125;
-
-    @media (min-width: 560px) {
-      font-size: 1em;
-    }
-  }
-`;
-
-const toggleTableStyles = css`
-  ${tableStyles};
-
-  thead {
-    background-color: #f0f6f9;
-  }
-
-  th,
-  td {
-    :last-of-type {
-      text-align: right;
-    }
-  }
-`;
-
 type Props = {
   children: Node,
   ...RouteProps,
@@ -299,5 +272,3 @@ export default function CommunityContainer({ ...props }: Props) {
     </EsriMapProvider>
   );
 }
-
-export { tableStyles, toggleTableStyles };

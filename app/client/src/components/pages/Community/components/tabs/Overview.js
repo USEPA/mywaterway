@@ -22,7 +22,6 @@ import {
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
 import { tabsStyles } from 'components/shared/ContentTabs';
-import { toggleTableStyles } from 'components/pages/Community';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -44,6 +43,8 @@ import {
 } from 'config/errorMessages';
 // config
 import { usgsStaParameters } from 'config/usgsStaParameters';
+// styles
+import { toggleTableStyles } from 'styles/index.js';
 
 const containerStyles = css`
   @media (min-width: 960px) {

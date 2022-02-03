@@ -7,6 +7,7 @@ import { navigate } from '@reach/router';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
 import { getWaterbodyCondition } from 'components/pages/LocationMap/MapFunctions';
@@ -23,8 +24,7 @@ import { characteristicGroupMappings } from 'config/characteristicGroupMappings'
 // errors
 import { waterbodyReportError } from 'config/errorMessages';
 // styles
-import { colors } from 'styles/index.js';
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import { colors /* tableStyles */ } from 'styles/index.js';
 
 function bool(value) {
   // Return 'Yes' for truthy values and non-zero strings

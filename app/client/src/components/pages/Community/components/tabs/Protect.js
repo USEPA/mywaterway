@@ -17,7 +17,6 @@ import { GradientIcon } from 'components/pages/LocationMap/MapFunctions';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import { tableStyles } from 'components/pages/Community';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
@@ -35,6 +34,8 @@ import {
   wildScenicRiversError,
   wsioHealthIndexError,
 } from 'config/errorMessages';
+// styles
+import { tableStyles } from 'styles';
 
 const protectedAreasIdKey = 'OBJECTID';
 

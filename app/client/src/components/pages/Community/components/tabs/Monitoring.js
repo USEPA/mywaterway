@@ -25,7 +25,6 @@ import {
   keyMetricNumberStyles,
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
-import { toggleTableStyles } from 'components/pages/Community';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -39,6 +38,8 @@ import { useWaterbodyOnMap } from 'utils/hooks';
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // errors
 import { monitoringError } from 'config/errorMessages';
+// styles
+import { toggleTableStyles } from 'styles/index.js';
 
 const containerStyles = css`
   @media (min-width: 960px) {

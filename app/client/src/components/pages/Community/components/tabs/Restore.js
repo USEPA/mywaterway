@@ -16,7 +16,6 @@ import {
   StyledNumber,
   StyledLabel,
 } from 'components/shared/KeyMetrics';
-import { tableStyles } from 'components/pages/Community';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
@@ -27,6 +26,8 @@ import {
   restoreNonpointSourceError,
   restorationPlanError,
 } from 'config/errorMessages';
+// styles
+import { tableStyles } from 'styles';
 
 const containerStyles = css`
   @media (min-width: 960px) {

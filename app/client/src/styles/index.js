@@ -1,5 +1,7 @@
 // @flow
 
+import { css } from 'styled-components';
+
 const colors = {
   black: (alpha: number = 1) => `rgba(0, 0, 0, ${alpha})`, // #000
   white: (alpha: number = 1) => `rgba(255, 255, 255, ${alpha})`, // #fff
@@ -42,4 +44,31 @@ const reactSelectStyles = {
   singleValue: (defaultStyles) => ({ ...defaultStyles, lineHeight: 2 }),
 };
 
-export { colors, fonts, reactSelectStyles };
+const tableStyles = css`
+  th,
+  td {
+    font-size: 0.875em;
+    line-height: 1.125;
+
+    @media (min-width: 560px) {
+      font-size: 1em;
+    }
+  }
+`;
+
+const toggleTableStyles = css`
+  ${tableStyles}
+
+  thead {
+    background-color: #f0f6f9;
+  }
+
+  th,
+  td {
+    :last-of-type {
+      text-align: right;
+    }
+  }
+`;
+
+export { colors, fonts, reactSelectStyles, tableStyles, toggleTableStyles };

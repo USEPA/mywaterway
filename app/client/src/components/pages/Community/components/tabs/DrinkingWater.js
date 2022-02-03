@@ -17,7 +17,6 @@ import { errorBoxStyles, noteBoxStyles } from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Switch from 'components/shared/Switch';
 import { tabsStyles } from 'components/shared/ContentTabs';
-import { tableStyles, toggleTableStyles } from 'components/pages/Community';
 // contexts
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -26,7 +25,8 @@ import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
 import { summarizeAssessments } from 'utils/utils';
 // errors
 import { countyError, withdrawerError } from 'config/errorMessages';
-import { colors } from 'styles';
+// styles
+import { colors, tableStyles, toggleTableStyles } from 'styles';
 
 const containerStyles = css`
   @media (min-width: 960px) {

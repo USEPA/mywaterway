@@ -31,7 +31,6 @@ import {
   keyMetricNumberStyles,
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
-import { toggleTableStyles } from 'components/pages/Community';
 // contexts
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -41,10 +40,10 @@ import {
   plotFacilities,
   plotIssues,
 } from 'components/pages/LocationMap/MapFunctions';
-// styles
-import { fonts } from 'styles/index.js';
 // errors
 import { echoError, huc12SummaryError } from 'config/errorMessages';
+// styles
+import { fonts, toggleTableStyles } from 'styles/index.js';
 
 const containerStyles = css`
   @media (min-width: 960px) {
