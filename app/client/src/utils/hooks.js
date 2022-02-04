@@ -1042,15 +1042,17 @@ function useSharedLayers() {
   }
 
   function getTribalLayer() {
-    const renderer = {
+    // redefining the renderer for the alaska native villages and other tribes
+    // layers so the default size value is used
+    let renderer = {
       type: 'simple',
       symbol: {
-        type: 'simple-fill',
-        style: 'solid',
-        color: [154, 154, 154, 0.75],
+        type: 'simple-marker',
+        style: 'circle',
+        color: [158, 0, 124, 1],
         outline: {
           style: 'solid',
-          color: [110, 110, 110, 0.75],
+          color: [0, 0, 0, 1],
           width: 1,
         },
       },
@@ -1065,6 +1067,7 @@ function useSharedLayers() {
       listMode: 'hide',
       visible: true,
       labelsVisible: false,
+      renderer,
       popupTemplate: {
         title: getTitle,
         content: getTemplate,
@@ -1072,6 +1075,7 @@ function useSharedLayers() {
       },
     });
 
+    renderer.symbol.color = [168, 112, 0, 1];
     const lower48TribalOutFields = ['TRIBE_NAME'];
     const otherTribes = new FeatureLayer({
       id: 'tribalLayer-1',
@@ -1081,6 +1085,7 @@ function useSharedLayers() {
       listMode: 'hide',
       visible: true,
       labelsVisible: false,
+      renderer,
       popupTemplate: {
         title: getTitle,
         content: getTemplate,
@@ -1088,6 +1093,19 @@ function useSharedLayers() {
       },
     });
 
+    renderer = {
+      type: 'simple',
+      symbol: {
+        type: 'simple-fill',
+        style: 'solid',
+        color: [154, 154, 154, 0.75],
+        outline: {
+          style: 'solid',
+          color: [110, 110, 110, 0.75],
+          width: 1,
+        },
+      },
+    };
     const americanIndianReservations = new FeatureLayer({
       id: 'tribalLayer-3',
       url: `${services.data.tribal}/3`,
