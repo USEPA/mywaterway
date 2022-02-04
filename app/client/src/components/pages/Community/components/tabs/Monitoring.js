@@ -513,11 +513,11 @@ function Monitoring() {
               <AccordionList
                 expandDisabled={true} // disabled to avoid large number of web service calls
                 title={
-                  <div data-testid="monitoring-accordion-title">
+                  <span data-testid="monitoring-accordion-title">
                     <strong>{displayLocations}</strong> of{' '}
                     <strong>{totalLocations}</strong> water monitoring sample
                     locations in the <em>{watershed}</em> watershed.
-                  </div>
+                  </span>
                 }
                 onSortChange={({ value }) => setSortBy(value)}
                 sortOptions={[
