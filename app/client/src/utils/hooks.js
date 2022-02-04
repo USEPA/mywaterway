@@ -31,6 +31,12 @@ import {
 
 let dynamicPopupFields = [];
 
+const allWaterbodiesAlpha = {
+  base: 1,
+  poly: 0.4,
+  outline: 1,
+};
+
 // Closes the map popup and clears highlights whenever the user changes
 // tabs. This function is called from the useWaterbodyHighlight hook (handles
 // tab changes) and from the use useWaterbodyOnMap hook (handles sub tab changes
@@ -281,20 +287,14 @@ function useWaterbodyOnMap(
   useEffect(() => {
     if (!allWaterbodiesLayer || allWaterbodiesLayer === 'error') return;
 
-    const alpha = {
-      base: 0.2,
-      poly: 0.1,
-      outline: 0.05,
-    };
-
     const layers = allWaterbodiesLayer.layers;
     const attribute = allWaterbodiesAttribute
       ? allWaterbodiesAttribute
       : attributeName;
 
-    setRenderer(layers.items[2], 'point', attribute, alpha);
-    setRenderer(layers.items[1], 'polyline', attribute, alpha);
-    setRenderer(layers.items[0], 'polygon', attribute, alpha);
+    setRenderer(layers.items[2], 'point', attribute, allWaterbodiesAlpha);
+    setRenderer(layers.items[1], 'polyline', attribute, allWaterbodiesAlpha);
+    setRenderer(layers.items[0], 'polygon', attribute, allWaterbodiesAlpha);
   }, [
     allWaterbodiesAttribute,
     attributeName,
@@ -838,8 +838,7 @@ function useSharedLayers() {
   const getDynamicPopup = useDynamicPopup();
   const { getTitle, getTemplate } = getDynamicPopup();
 
-  // Gets the settings for the WSIO Health Index layer.
-  return function getSharedLayers() {
+  function getWsioLayer() {
     // shared symbol settings
     const symbol = {
       type: 'simple-fill',
@@ -981,6 +980,10 @@ function useSharedLayers() {
       },
     );
 
+    return wsioHealthIndexLayer;
+  }
+
+  function getProtectedAreasLayer() {
     const protectedAreasLayer = new MapImageLayer({
       id: 'protectedAreasLayer',
       title: 'Protected Areas',
@@ -999,6 +1002,10 @@ function useSharedLayers() {
 
     setProtectedAreasLayer(protectedAreasLayer);
 
+    return protectedAreasLayer;
+  }
+
+  function getProtectedAreasHighlightLayer() {
     const protectedAreasHighlightLayer = new GraphicsLayer({
       id: 'protectedAreasHighlightLayer',
       title: 'Protected Areas Highlight Layer',
@@ -1007,6 +1014,10 @@ function useSharedLayers() {
 
     setProtectedAreasHighlightLayer(protectedAreasHighlightLayer);
 
+    return protectedAreasHighlightLayer;
+  }
+
+  function getWildScenicRiversLayer() {
     const wildScenicRiversRenderer = {
       type: 'simple',
       symbol: {
@@ -1033,7 +1044,10 @@ function useSharedLayers() {
 
     setWildScenicRiversLayer(wildScenicRiversLayer);
 
-    // START - Tribal layers
+    return wildScenicRiversLayer;
+  }
+
+  function getTribalLayer() {
     const renderer = {
       type: 'simple',
       symbol: {
@@ -1098,16 +1112,16 @@ function useSharedLayers() {
       },
     });
 
-    const tribalLayer = new GroupLayer({
+    return new GroupLayer({
       id: 'tribalLayer',
       title: 'Tribal Areas',
       listMode: 'show',
       visible: false,
       layers: [alaskaNativeVillages, alaskaReservations, lower48Tribal],
     });
+  }
 
-    // END - Tribal layers
-
+  function getCongressionalLayer() {
     const congressionalLayerOutFields = [
       'DISTRICTID',
       'STFIPS',
@@ -1118,7 +1132,8 @@ function useSharedLayers() {
       'PARTY',
       'SQMI',
     ];
-    const congressionalLayer = new FeatureLayer({
+
+    return new FeatureLayer({
       id: 'congressionalLayer',
       url: services.data.congressional,
       title: 'Congressional Districts',
@@ -1143,8 +1158,10 @@ function useSharedLayers() {
         outFields: congressionalLayerOutFields,
       },
     });
+  }
 
-    const mappedWaterLayer = new MapImageLayer({
+  function getMappedWaterLayer() {
+    return new MapImageLayer({
       id: 'mappedWaterLayer',
       url: services.data.mappedWater,
       title: 'Mapped Water (all)',
@@ -1152,8 +1169,10 @@ function useSharedLayers() {
       listMode: 'hide-children',
       visible: false,
     });
+  }
 
-    const countyLayer = new FeatureLayer({
+  function getCountyLayer() {
+    return new FeatureLayer({
       id: 'countyLayer',
       url: services.data.counties,
       title: 'County',
@@ -1177,8 +1196,10 @@ function useSharedLayers() {
         outFields: ['NAME', 'CNTY_FIPS', 'STATE_NAME'],
       },
     });
+  }
 
-    const stateBoundariesLayer = new MapImageLayer({
+  function getStateBoundariesLayer() {
+    return new MapImageLayer({
       id: 'stateBoundariesLayer',
       url: services.data.stateBoundaries,
       title: 'State',
@@ -1186,17 +1207,19 @@ function useSharedLayers() {
       listMode: 'hide',
       visible: false,
     });
+  }
 
-    const watershedsLayer = new FeatureLayer({
+  function getWatershedsLayer() {
+    return new FeatureLayer({
       id: 'watershedsLayer',
       url: services.data.wbd,
       title: 'Watersheds',
       listMode: 'show',
       visible: false,
     });
+  }
 
-    // BEGIN - EJSCREEN layers
-
+  function getEjscreen() {
     const ejOutFields = [
       'T_MINORPCT',
       'T_LWINCPCT',
@@ -1276,7 +1299,7 @@ function useSharedLayers() {
       popupTemplate: ejscreenPopupTemplate,
     });
 
-    const ejscreen = new GroupLayer({
+    return new GroupLayer({
       id: 'ejscreenLayer',
       title: 'Demographic Indicators',
       listMode: 'show',
@@ -1291,21 +1314,13 @@ function useSharedLayers() {
         ejDemographicIndex,
       ],
     });
+  }
 
-    // END - EJSCREEN layers
-
-    // START - All Waterbodies layers
-
+  function getAllWaterbodiesLayer() {
     const popupTemplate = {
       title: getTitle,
       content: getTemplate,
       outFields: ['*'],
-    };
-
-    const alpha = {
-      base: 0.2,
-      poly: 0.1,
-      outline: 0.05,
     };
 
     const minScale = 577791;
@@ -1319,9 +1334,9 @@ function useSharedLayers() {
         condition: 'unassessed',
         selected: false,
         geometryType: 'point',
-        alpha,
+        alpha: allWaterbodiesAlpha,
       }),
-      uniqueValueInfos: createUniqueValueInfos('point', alpha),
+      uniqueValueInfos: createUniqueValueInfos('point', allWaterbodiesAlpha),
     };
     const pointsLayer = new FeatureLayer({
       url: services.data.waterbodyService.points,
@@ -1339,9 +1354,9 @@ function useSharedLayers() {
         condition: 'unassessed',
         selected: false,
         geometryType: 'polyline',
-        alpha,
+        alpha: allWaterbodiesAlpha,
       }),
-      uniqueValueInfos: createUniqueValueInfos('polyline', alpha),
+      uniqueValueInfos: createUniqueValueInfos('polyline', allWaterbodiesAlpha),
     };
     const linesLayer = new FeatureLayer({
       url: services.data.waterbodyService.lines,
@@ -1359,9 +1374,9 @@ function useSharedLayers() {
         condition: 'unassessed',
         selected: false,
         geometryType: 'polygon',
-        alpha,
+        alpha: allWaterbodiesAlpha,
       }),
-      uniqueValueInfos: createUniqueValueInfos('polygon', alpha),
+      uniqueValueInfos: createUniqueValueInfos('polygon', allWaterbodiesAlpha),
     };
     const areasLayer = new FeatureLayer({
       url: services.data.waterbodyService.areas,
@@ -1378,11 +1393,39 @@ function useSharedLayers() {
       listMode: 'hide',
       visible: true,
       minScale,
+      opacity: 0.3,
     });
     allWaterbodiesLayer.addMany([areasLayer, linesLayer, pointsLayer]);
     setAllWaterbodiesLayer(allWaterbodiesLayer);
 
-    // END - All Waterbodies layers
+    return allWaterbodiesLayer;
+  }
+
+  // Gets the settings for the WSIO Health Index layer.
+  return function getSharedLayers() {
+    const wsioHealthIndexLayer = getWsioLayer();
+
+    const protectedAreasLayer = getProtectedAreasLayer();
+
+    const protectedAreasHighlightLayer = getProtectedAreasHighlightLayer();
+
+    const wildScenicRiversLayer = getWildScenicRiversLayer();
+
+    const tribalLayer = getTribalLayer();
+
+    const congressionalLayer = getCongressionalLayer();
+
+    const mappedWaterLayer = getMappedWaterLayer();
+
+    const countyLayer = getCountyLayer();
+
+    const stateBoundariesLayer = getStateBoundariesLayer();
+
+    const watershedsLayer = getWatershedsLayer();
+
+    const ejscreen = getEjscreen();
+
+    const allWaterbodiesLayer = getAllWaterbodiesLayer();
 
     return [
       ejscreen,
