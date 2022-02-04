@@ -444,6 +444,15 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
           <span css={labelStyles}>Alaska Native Villages</span>
         </div>
       </li>
+
+      <li>
+        <div css={legendItemStyles}>
+          <div css={imageContainerStyles}>
+            {circleIcon({ color: 'rgb(168, 112, 0)' })}
+          </div>
+          <span css={labelStyles}>Other Federally Recognized Tribes</span>
+        </div>
+      </li>
     </>
   );
 
