@@ -175,6 +175,10 @@
   display: none;
 }
 
+.esri-legend__message {
+  display: none;
+}
+
 .hidden {
   display: none !important;
 }
