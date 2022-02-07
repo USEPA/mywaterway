@@ -58,9 +58,16 @@ const modifiedTabsStyles = css`
   [data-reach-tab-panel] {
     padding: 1.5em;
 
-    p,
-    li {
+    p {
       padding-bottom: 0;
+      line-height: 1.375;
+
+      + p {
+        margin-top: 1rem;
+      }
+    }
+
+    li {
       line-height: 1.375;
     }
 
