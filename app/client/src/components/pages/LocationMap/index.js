@@ -669,6 +669,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       id: 'usgsStreamgagesLayer',
       title: 'USGS Streamgages',
       listMode: 'hide',
+      legendEnabled: false,
       fields: [
         { name: 'ObjectID', type: 'oid' },
         { name: 'gageHeight', type: 'string' },
@@ -1037,6 +1038,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       title: 'Waterbodies',
       listMode: 'hide',
       visible: false,
+      legendEnabled: false,
     });
     newWaterbodyLayer.addMany([areasLayer, linesLayer, pointsLayer]);
     setWaterbodyLayer(newWaterbodyLayer);

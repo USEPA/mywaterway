@@ -49,12 +49,8 @@ type Props = {
 };
 
 function ActionsMap({ layout, unitIds, onLoad }: Props) {
-  const {
-    actionsLayer,
-    homeWidget,
-    mapView,
-    setActionsLayer,
-  } = React.useContext(LocationSearchContext);
+  const { actionsLayer, homeWidget, mapView, setActionsLayer } =
+    React.useContext(LocationSearchContext);
 
   const [layers, setLayers] = React.useState(null);
 
@@ -77,6 +73,7 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
         title: 'Waterbodies',
         listMode: 'hide',
         visible: true,
+        legendEnabled: false,
       });
       setActionsLayer(localActionsLayer);
     }
@@ -186,8 +183,9 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
             }
 
             // handle Waterbody Report page
-            const condition = getWaterbodyCondition(feature.attributes)
-              .condition;
+            const condition = getWaterbodyCondition(
+              feature.attributes,
+            ).condition;
 
             return createWaterbodySymbol({
               condition: condition,

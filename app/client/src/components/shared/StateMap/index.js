@@ -168,6 +168,7 @@ function StateMap({
       title: 'Waterbodies',
       listMode: 'hide',
       visible: false,
+      legendEnabled: false,
     });
     waterbodyLayer.addMany([areasLayer, linesLayer, pointsLayer]);
     setWaterbodyLayer(waterbodyLayer);
