@@ -136,10 +136,17 @@ function isInScale(layer: any, scale: number) {
 
 function updateVisibleLayers(
   view: any,
+  legendWidget: any,
   hmwLegendNode: Node,
   additionalLegendInfo: Object,
 ) {
-  if (!view || !view.map || !view.map.layers || !view.map.layers.items) {
+  if (
+    !view ||
+    !view.map ||
+    !view.map.layers ||
+    !view.map.layers.items ||
+    !legendWidget
+  ) {
     return;
   }
 
@@ -190,6 +197,7 @@ function updateVisibleLayers(
   ReactDOM.render(
     <MapLegend
       view={view}
+      legendWidget={legendWidget}
       visibleLayers={visibleLayers}
       additionalLegendInfo={additionalLegendInfo}
     />,
@@ -626,6 +634,7 @@ function MapWidgets({
   React.useEffect(() => {
     if (
       !view ||
+      !esriLegend ||
       additionalLegendInfo.status === 'fetching' ||
       layerListWidget
     ) {
@@ -669,10 +678,20 @@ function MapWidgets({
         //only add the item if it has not been added before
         if (!uniqueParentItems.includes(item.title)) {
           uniqueParentItems.push(item.title);
-          updateVisibleLayers(view, hmwLegendNode, additionalLegendInfo);
+          updateVisibleLayers(
+            view,
+            esriLegend,
+            hmwLegendNode,
+            additionalLegendInfo,
+          );
 
           item.watch('visible', function (event) {
-            updateVisibleLayers(view, hmwLegendNode, additionalLegendInfo);
+            updateVisibleLayers(
+              view,
+              esriLegend,
+              hmwLegendNode,
+              additionalLegendInfo,
+            );
             const dict = {
               layerId: item.layer.id,
               visible: item.layer.visible,
@@ -716,7 +735,7 @@ function MapWidgets({
 
     view.ui.add(expandWidget, { position: 'top-right', index: 0 });
     setLayerListWidget(layerlist);
-  }, [hmwLegendNode, view, layerListWidget, additionalLegendInfo]);
+  }, [additionalLegendInfo, esriLegend, hmwLegendNode, layerListWidget, view]);
 
   // Sets up the zoom event handler that is used for determining if layers
   // should be visible at the current zoom level.
@@ -864,12 +883,13 @@ function MapWidgets({
 
   // watch for changes to upstream layer visibility and update visible layers accordingly
   React.useEffect(() => {
-    updateVisibleLayers(view, hmwLegendNode, additionalLegendInfo);
+    updateVisibleLayers(view, esriLegend, hmwLegendNode, additionalLegendInfo);
   }, [
-    view,
+    additionalLegendInfo,
+    esriLegend,
     hmwLegendNode,
     upstreamLayerVisible,
-    additionalLegendInfo,
+    view,
     visibleLayers,
   ]);
 
@@ -1210,12 +1230,13 @@ function MapWidgets({
   // watch for changes to all waterbodies layer visibility and update visible
   // layers accordingly
   React.useEffect(() => {
-    updateVisibleLayers(view, hmwLegendNode, additionalLegendInfo);
+    updateVisibleLayers(view, esriLegend, hmwLegendNode, additionalLegendInfo);
   }, [
-    view,
-    hmwLegendNode,
-    allWaterbodiesLayerVisible,
     additionalLegendInfo,
+    allWaterbodiesLayerVisible,
+    esriLegend,
+    hmwLegendNode,
+    view,
     visibleLayers,
   ]);
 

@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -9,6 +9,7 @@ import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import { GradientIcon } from 'components/pages/LocationMap/MapFunctions';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import * as watchUtils from '@arcgis/core/core/watchUtils';
 // utils
 import { getSelectedCommunityTab } from 'utils/utils';
 // errors
@@ -75,17 +76,37 @@ const ignoreLayers = ['mappedWaterLayer', 'watershedsLayer', 'searchIconLayer'];
 // --- components ---
 type Props = {
   view: Object,
+  legendWidget: Object,
   visibleLayers: Object,
   additionalLegendInfo: Object,
 };
 
-function MapLegend({ view, visibleLayers, additionalLegendInfo }: Props) {
+function MapLegend({
+  view,
+  legendWidget,
+  visibleLayers,
+  additionalLegendInfo,
+}: Props) {
   const filteredVisibleLayers = visibleLayers.filter(
     (layer) => !ignoreLayers.includes(layer.id),
   );
 
+  // Keep track of how many layers are visible in the Esri portion of
+  // the legend.
+  const [watcher, setWatcher] = useState(null);
+  const [esriLegendCount, setEsriLegendCount] = useState(0);
+  useEffect(() => {
+    if (watcher) return;
+
+    const newWatcher = watchUtils.watch(view, 'zoom', () => {
+      setEsriLegendCount(legendWidget.activeLayerInfos.length);
+    });
+
+    setWatcher(newWatcher);
+  }, [esriLegendCount, watcher]);
+
   // no legend data
-  if (filteredVisibleLayers.length === 0) {
+  if (filteredVisibleLayers.length === 0 && esriLegendCount === 0) {
     return (
       <div css={containerStyles}>
         <ul css={listStyles}>There are currently no items to display</ul>
