@@ -103,7 +103,7 @@ function MapLegend({
     });
 
     setWatcher(newWatcher);
-  }, [esriLegendCount, watcher]);
+  }, [esriLegendCount, legendWidget, view, watcher]);
 
   // no legend data
   if (filteredVisibleLayers.length === 0 && esriLegendCount === 0) {
