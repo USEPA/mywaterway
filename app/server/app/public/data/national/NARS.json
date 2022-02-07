@@ -5,7 +5,7 @@
   },
   "columns": {
     "title": "Excess nutrients in waterways continue to be an issue",
-    "content": "<p><a href='https://www.epa.gov/nutrientpollution' target='_blank' rel='noopener noreferrer'>Excess Nutrients in Waterways</a> (opens new browser tab) is one of America’s most widespread water quality issues. While nutrients are important, too much of a good thing can become a bad thing. In the U.S., 58% of rivers and streams, 40% of lakes and 21% of coastal waters have high levels of nutrients. Excess nutrients can lead to excessive algae growth, which can use up oxygen that aquatic organisms need to survive. Too much algae growth can cause fish to die. <a href='https://www.epa.gov/nutrient-policy-data/what-epa-doing-reduce-nutrient-pollution' target='_blank' rel='noopener noreferrer'>Learn more about what EPA is doing to reduce excess nutrients in waterways</a> (opens new browser tab).</p>",
+    "content": "<p><a href='https://www.epa.gov/nutrientpollution' target='_blank' rel='noopener noreferrer'>Excess Nutrients in Waterways</a> <span>(opens new browser tab)</span> is one of America’s most widespread water quality issues. While nutrients are important, too much of a good thing can become a bad thing. In the U.S., 58% of rivers and streams, 40% of lakes and 21% of coastal waters have high levels of nutrients. Excess nutrients can lead to excessive algae growth, which can use up oxygen that aquatic organisms need to survive. Too much algae growth can cause fish to die. <a href='https://www.epa.gov/nutrient-policy-data/what-epa-doing-reduce-nutrient-pollution' target='_blank' rel='noopener noreferrer'>Learn more about what EPA is doing to reduce excess nutrients in waterways</a> <small>(opens new browser tab)</small>.</p>",
     "photoLink": "https://www.epa.gov/nutrientpollution"
   },
   "tabs": [
@@ -20,7 +20,6 @@
           "title": "<span class='hmw-percent'>58%</span> of our rivers and streams have excess nutrients",
           "content": "<p>Between 2008–09 and 2013–14, the percent of river and stream miles in poor condition based on excess phosphorus increased from 47% to 58%. Nutrients like nitrogen and/or phosphorus are important, but too much of a good thing can become a bad thing. Excess nutrients can come from fertilizer, wastewater treatment, atmospheric deposition, animal manure, and urban runoff.</p><p>Excess nutrients can lead to algal blooms and fish kills, causing a loss of fishing and recreational opportunities. High levels of nutrients can also threaten drinking water. Rivers and streams with high levels of nutrients are more likely to have unhealthy biological communities.</p>"
         },
-
         {
           "title": "<span class='hmw-percent'>58%</span> of our rivers and streams have healthy riverside vegetation",
           "content": "<p>Healthy rivers and streams have surrounding plants – grasses, shrubs, and trees – that help to absorb rainfall, slow stormwater, and filter runoff. Many actions, such as mowing, paving, farming, and construction can damage riverside vegetation.</p>"
@@ -39,11 +38,11 @@
         },
         {
           "title": "<span class='hmw-percent'>40%</span> of our nation's lakes have excess nutrients",
-          "content": "<p>Sampling shows that excess nutrients is a widespread problem in America’s lakes. While nutrients are important, too much of a good thing can cause problems. Excess nutrients can lead to excessive algae growth, which can use up oxygen that aquatic organisms need to survive. Lakes with high levels of nutrients are about 2 time more likely to have unhealthy biological communities than those with lower levels.</p><p>Too much algae growth can cause fish to die, causing a loss of fishing and recreational opportunities. Lakes with high levels of nutrients are more likely to have unhealthy biological communities.</p><p><a href='https://www.epa.gov/sites/production/files/2016-12/documents/should_your_lake_be_on_a_diet.pdf' target='_blank' rel='noopener noreferrer'>More Information (PDF)</a> (opens new browser tab)</p>"
+          "content": "<p>Sampling shows that excess nutrients is a widespread problem in America’s lakes. While nutrients are important, too much of a good thing can cause problems. Excess nutrients can lead to excessive algae growth, which can use up oxygen that aquatic organisms need to survive. Lakes with high levels of nutrients are about 2 time more likely to have unhealthy biological communities than those with lower levels.</p><p>Too much algae growth can cause fish to die, causing a loss of fishing and recreational opportunities. Lakes with high levels of nutrients are more likely to have unhealthy biological communities.</p><p><a href='https://www.epa.gov/sites/production/files/2016-12/documents/should_your_lake_be_on_a_diet.pdf' target='_blank' rel='noopener noreferrer'>More Information (PDF)</a> <small>(opens new browser tab)</small></p>"
         },
         {
           "title": "<span class='hmw-percent'>39%</span> of our nation's lakes have measurable levels of a cyanotoxin",
-          "content": "<p>Microcystin is a cyanotoxin that is produced by naturally-occurring bacteria in surface waters. While detected at more than 1 in 3 lakes, less than 1 in 100 had levels that could pose risks to people swimming or playing in the water.</p><p>At high levels, cyanotoxins can present a risk to public drinking water systems and to people, pets, and livestock.</p><p><a href='https://www.epa.gov/sites/production/files/2016-12/documents/when_good_algae_go_bad.pdf' target='_blank' rel='noopener noreferrer'>More Information (PDF)</a> (opens new browser tab)</p>"
+          "content": "<p>Microcystin is a cyanotoxin that is produced by naturally-occurring bacteria in surface waters. While detected at more than 1 in 3 lakes, less than 1 in 100 had levels that could pose risks to people swimming or playing in the water.</p><p>At high levels, cyanotoxins can present a risk to public drinking water systems and to people, pets, and livestock.</p><p><a href='https://www.epa.gov/sites/production/files/2016-12/documents/when_good_algae_go_bad.pdf' target='_blank' rel='noopener noreferrer'>More Information (PDF)</a> <small>(opens new browser tab)</small></p>"
         }
       ],
       "footnotes": [
@@ -69,7 +68,7 @@
       "footnotes": [
         "* 33% of Great Lakes nearshore waters are unassessed for biological condition due to the inability to collect a sample that was suitable for analysis.",
         "** 21% of Great Lakes nearshore waters are unassessed for sediment condition due to the inability to collect a sample that was suitable for analysis.",
-        "Please visit the NCCA Results Dashboard at <a href='https://coastalcondition.epa.gov' target='_blank' rel='noopener noreferrer'>https://coastalcondition.epa.gov</a> (opens new browser tab) to view all results of the NCCA 2015 Survey.",
+        "Please visit the NCCA Results Dashboard at <a href='https://coastalcondition.epa.gov' target='_blank' rel='noopener noreferrer'>https://coastalcondition.epa.gov</a> <small>(opens new browser tab)</small> to view all results of the NCCA 2015 Survey.",
         "This data is pulled from the National Aquatic Resource Surveys (NARS) and the metrics are only for the conterminous US."
       ]
     },

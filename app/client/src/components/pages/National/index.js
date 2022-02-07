@@ -158,7 +158,7 @@ const accordionContentStyles = css`
 `;
 
 const footnoteStyles = css`
-  margin-top: 0.5em;
+  margin-top: 0.5em !important;
   font-style: italic;
   line-height: 1 !important;
 `;
