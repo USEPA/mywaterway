@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import type { Node } from 'react';
 import styled from 'styled-components';
 import StickyBox from 'react-sticky-box';
@@ -63,7 +63,7 @@ function StateMap({
 }: Props) {
   const services = useServicesContext();
 
-  const { selectedGraphic } = React.useContext(MapHighlightContext);
+  const { selectedGraphic } = useContext(MapHighlightContext);
 
   const {
     mapView,
@@ -80,19 +80,19 @@ function StateMap({
 
     homeWidget,
     resetData,
-  } = React.useContext(LocationSearchContext);
+  } = useContext(LocationSearchContext);
 
-  const [layers, setLayers] = React.useState(null);
+  const [layers, setLayers] = useState(null);
 
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
-  const [stateMapLoadError, setStateMapLoadError] = React.useState(false);
+  const [stateMapLoadError, setStateMapLoadError] = useState(false);
 
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight(false);
 
   // Initializes the layers
-  const [layersInitialized, setLayersInitialized] = React.useState(false);
-  React.useEffect(() => {
+  const [layersInitialized, setLayersInitialized] = useState(false);
+  useEffect(() => {
     if (!getSharedLayers || layersInitialized) return;
 
     const popupTemplate = {
@@ -190,19 +190,19 @@ function StateMap({
   ]);
 
   // Function for resetting the LocationSearch context when the map is removed
-  React.useEffect(() => {
+  useEffect(() => {
     return function cleanup() {
       resetData();
     };
   }, [resetData]);
 
-  const [lastFilter, setLastFilter] = React.useState('');
+  const [lastFilter, setLastFilter] = useState('');
 
   // cDU
   // detect when user changes their search
-  const [homeWidgetSet, setHomeWidgetSet] = React.useState(false);
-  const [mapLoading, setMapLoading] = React.useState(true);
-  React.useEffect(() => {
+  const [homeWidgetSet, setHomeWidgetSet] = useState(false);
+  const [mapLoading, setMapLoading] = useState(true);
+  useEffect(() => {
     // query geocode server for every new search
     if (
       filter !== lastFilter &&
@@ -298,11 +298,11 @@ function StateMap({
 
   // Used to tell if the homewidget has been set to the selected state.
   // This will reset the value when the user selects a different state.
-  React.useEffect(() => {
+  useEffect(() => {
     setHomeWidgetSet(false);
   }, [activeState]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // scroll community content into view
     // get community content DOM node to scroll page when form is submitted
 
@@ -327,8 +327,8 @@ function StateMap({
   }, [layout, windowHeight, windowWidth]);
 
   // calculate height of div holding the footer content
-  const [footerHeight, setFooterHeight] = React.useState(0);
-  const measuredRef = React.useCallback((node) => {
+  const [footerHeight, setFooterHeight] = useState(0);
+  const measuredRef = useCallback((node) => {
     if (!node) return;
     setFooterHeight(node.getBoundingClientRect().height);
   }, []);
