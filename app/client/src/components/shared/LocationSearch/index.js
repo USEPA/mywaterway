@@ -473,7 +473,7 @@ function LocationSearch({ route, label }: Props) {
     setSuggestionsVisible(false);
     setCursor(-1);
 
-    newSearchTerm = newSearchTerm.replace(/[\n\r\t\/]/g, ' ');
+    newSearchTerm = newSearchTerm.replace(/[\n\r\t/]/g, ' ');
 
     if (containsScriptTag(newSearchTerm)) {
       setErrorMessage(invalidSearchError);
@@ -502,7 +502,6 @@ function LocationSearch({ route, label }: Props) {
 
   // Splits the provided text by the searchString in a case insensitive way.
   function getHighlightParts(text, searchString) {
-    const searchLength = searchString.length;
     const indices = indicesOf(text, searchString);
 
     // build an array of the string split up by the searchString that includes
@@ -518,7 +517,7 @@ function LocationSearch({ route, label }: Props) {
       }
 
       // add in the search part of the text
-      endIndex = startIndex + searchLength;
+      endIndex = startIndex + searchString.length;
       parts.push(text.substring(startIndex, endIndex));
 
       // keep track of leftover text
