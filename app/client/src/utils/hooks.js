@@ -349,6 +349,8 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     // get the parameters for the zoom call
     const geometry =
       selectedGraphic.originalGeometry ?? selectedGraphic.geometry;
+    if (!geometry) return;
+
     let params = geometry;
     if (!geometry.extent && geometry.longitude && geometry.latitude) {
       params = {
