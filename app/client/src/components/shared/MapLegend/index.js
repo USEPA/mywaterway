@@ -11,6 +11,7 @@ import { GradientIcon } from 'components/pages/LocationMap/MapFunctions';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // utils
 import { getSelectedCommunityTab } from 'utils/utils';
+import { isInScale } from 'components/pages/LocationMap/MapFunctions';
 // errors
 import { legendUnavailableError } from 'config/errorMessages';
 // styles
@@ -87,7 +88,7 @@ function MapLegend({
   additionalLegendInfo,
 }: Props) {
   const filteredVisibleLayers = visibleLayers.filter(
-    (layer) => !ignoreLayers.includes(layer.id),
+    (layer) => !ignoreLayers.includes(layer.id) && isInScale(layer, view.scale),
   );
 
   // no legend data

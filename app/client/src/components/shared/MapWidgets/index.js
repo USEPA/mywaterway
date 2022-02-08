@@ -35,7 +35,10 @@ import { FullscreenContext } from 'contexts/Fullscreen';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
-import { shallowCompare } from 'components/pages/LocationMap/MapFunctions';
+import {
+  isInScale,
+  shallowCompare,
+} from 'components/pages/LocationMap/MapFunctions';
 // helpers
 import { useDynamicPopup } from 'utils/hooks';
 // icons
@@ -129,61 +132,6 @@ function handleMapZoomChange(newVal: number, target: any) {
       }
     }
   });
-}
-
-// helper method used in handleMapZoomChange() for determining a map layer’s listMode
-function isInScale(layer: any, scale: number) {
-  let isInScale = true;
-  let minScale = 0;
-  let maxScale = 0;
-
-  // get the extreme min and max scales of the layer
-  if (layer.sublayers && layer.sourceJSON) {
-    // get sublayers included in the parentlayer
-    // note: the sublayer has maxScale and minScale, but these are always 0
-    //       even if the sublayer does actually have a min/max scale.
-    const sublayerIds = [];
-    layer.sublayers.forEach((sublayer) => {
-      sublayerIds.push(sublayer.id);
-    });
-
-    // get the min/max scale from the sourceJSON
-    layer.sourceJSON.layers.forEach((sourceLayer) => {
-      if (!sublayerIds.includes(sourceLayer.id)) return;
-
-      if (sourceLayer.minScale === 0 || sourceLayer.minScale > minScale) {
-        minScale = sourceLayer.minScale;
-      }
-      if (sourceLayer.maxScale === 0 || sourceLayer.maxScale < maxScale) {
-        maxScale = sourceLayer.maxScale;
-      }
-    });
-  } else if (layer.layers) {
-    // get the min/max scale from the sourceJSON
-    layer.layers.forEach((subLayer) => {
-      if (subLayer.minScale === 0 || subLayer.minScale > minScale) {
-        minScale = subLayer.minScale;
-      }
-      if (subLayer.maxScale === 0 || subLayer.maxScale < maxScale) {
-        maxScale = subLayer.maxScale;
-      }
-    });
-  } else {
-    ({ maxScale, minScale } = layer);
-  }
-
-  // check if the map zoom is within scale
-  if (minScale > 0 || maxScale > 0) {
-    if (maxScale > 0 && minScale > 0) {
-      isInScale = maxScale <= scale && scale <= minScale;
-    } else if (maxScale > 0) {
-      isInScale = maxScale <= scale;
-    } else if (minScale > 0) {
-      isInScale = scale <= minScale;
-    }
-  }
-
-  return isInScale;
 }
 
 function updateVisibleLayers(
@@ -813,11 +761,18 @@ function MapWidgets({
   // Sets up the zoom event handler that is used for determining if layers
   // should be visible at the current zoom level.
   useEffect(() => {
-    if (!view || mapEventHandlersSet) return;
+    if (!view || !additionalLegendInfo || mapEventHandlersSet) return;
 
     // setup map event handlers
     watchUtils.watch(view, 'zoom', (newVal, oldVal, propName, target) => {
       handleMapZoomChange(newVal, target);
+
+      updateVisibleLayers(
+        view,
+        displayEsriLegendNonState,
+        hmwLegendNode,
+        additionalLegendInfo,
+      );
     });
 
     // when basemap changes, update the basemap in context for persistent basemaps
@@ -829,7 +784,15 @@ function MapWidgets({
     });
 
     setMapEventHandlersSet(true);
-  }, [view, mapEventHandlersSet, basemap, setBasemap, map]);
+  }, [
+    additionalLegendInfo,
+    basemap,
+    setBasemap,
+    hmwLegendNode,
+    map,
+    mapEventHandlersSet,
+    view,
+  ]);
 
   useEffect(() => {
     if (!layers || layers.length === 0) return;
