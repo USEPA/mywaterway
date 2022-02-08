@@ -38,6 +38,10 @@ import { useDynamicPopup } from 'utils/hooks';
 // icons
 import resizeIcon from '../Icons/resize.png';
 
+// workaround for React state variables not being updated inside of
+// esri watch events
+let displayEsriLegendNonState = false;
+
 const basemapNames = [
   'Streets',
   'Imagery',
@@ -142,17 +146,11 @@ function isInScale(layer: any, scale: number) {
 
 function updateVisibleLayers(
   view: any,
-  legendWidget: any,
+  displayEsriLegend: Boolean,
   hmwLegendNode: Node,
   additionalLegendInfo: Object,
 ) {
-  if (
-    !view ||
-    !view.map ||
-    !view.map.layers ||
-    !view.map.layers.items ||
-    !legendWidget
-  ) {
+  if (!view || !view.map || !view.map.layers || !view.map.layers.items) {
     return;
   }
 
@@ -203,7 +201,7 @@ function updateVisibleLayers(
   ReactDOM.render(
     <MapLegend
       view={view}
-      legendWidget={legendWidget}
+      displayEsriLegend={displayEsriLegend}
       visibleLayers={visibleLayers}
       additionalLegendInfo={additionalLegendInfo}
     />,
@@ -453,7 +451,6 @@ function MapWidgets({
   const hmwLegendTemp = document.createElement('div');
   const esriLegendTemp = document.createElement('div');
   esriLegendTemp.id = 'esri-legend-container';
-  esriLegendTemp.className = 'esri-legend-hidden';
   legendTemp.appendChild(hmwLegendTemp);
   legendTemp.appendChild(esriLegendTemp);
   const [hmwLegendNode] = useState(hmwLegendTemp);
@@ -480,6 +477,7 @@ function MapWidgets({
 
   // Create the layer list toolbar widget
   const [esriLegend, setEsriLegend] = useState(null);
+  const [displayEsriLegend, setDisplayEsriLegend] = useState(false);
   useEffect(() => {
     if (!view || esriLegend) return;
 
@@ -491,28 +489,25 @@ function MapWidgets({
       layerInfos: [],
     });
 
+    // Create an observer instance linked to the callback function
+    const observer = new MutationObserver((mutationsList, observer) => {
+      const esriMessages = esriLegendNode
+        ? esriLegendNode.querySelectorAll('.esri-legend__message')
+        : [];
+
+      displayEsriLegendNonState = esriMessages.length === 0;
+      setDisplayEsriLegend(displayEsriLegendNonState);
+    });
+
+    // Start observing the target node for configured mutations
+    observer.observe(esriLegendNode, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+
     setEsriLegend(tempLegend);
   }, [view, esriLegend, esriLegendNode]);
-
-  // Update the list of layers in the esri portion of the legend widget
-  useEffect(() => {
-    if (!esriLegend) return;
-
-    // build the list of layers for the widget and update
-    const layerInfos = [];
-    widgetLayers.forEach((widgetLayer) => {
-      layerInfos.push({
-        layer: widgetLayer,
-      });
-    });
-    esriLegend.layerInfos = layerInfos;
-
-    // show the esri portion if widget layers has layers otherwise hide it
-    const elm = document.getElementById('esri-legend-container');
-    if (!elm) return;
-    elm.className =
-      layerInfos.length > 0 ? 'esri-legend' : 'esri-legend-hidden';
-  }, [widgetLayers, esriLegend, visibleLayers]);
 
   // Creates and adds the legend widget to the map
   const rnd = useRef();
@@ -640,7 +635,6 @@ function MapWidgets({
   useEffect(() => {
     if (
       !view ||
-      !esriLegend ||
       additionalLegendInfo.status === 'fetching' ||
       layerListWidget
     ) {
@@ -686,7 +680,7 @@ function MapWidgets({
           uniqueParentItems.push(item.title);
           updateVisibleLayers(
             view,
-            esriLegend,
+            displayEsriLegend,
             hmwLegendNode,
             additionalLegendInfo,
           );
@@ -694,7 +688,7 @@ function MapWidgets({
           item.watch('visible', function (event) {
             updateVisibleLayers(
               view,
-              esriLegend,
+              displayEsriLegendNonState,
               hmwLegendNode,
               additionalLegendInfo,
             );
@@ -741,7 +735,13 @@ function MapWidgets({
 
     view.ui.add(expandWidget, { position: 'top-right', index: 0 });
     setLayerListWidget(layerlist);
-  }, [additionalLegendInfo, esriLegend, hmwLegendNode, layerListWidget, view]);
+  }, [
+    additionalLegendInfo,
+    displayEsriLegend,
+    hmwLegendNode,
+    layerListWidget,
+    view,
+  ]);
 
   // Sets up the zoom event handler that is used for determining if layers
   // should be visible at the current zoom level.
@@ -889,10 +889,15 @@ function MapWidgets({
 
   // watch for changes to upstream layer visibility and update visible layers accordingly
   useEffect(() => {
-    updateVisibleLayers(view, esriLegend, hmwLegendNode, additionalLegendInfo);
+    updateVisibleLayers(
+      view,
+      displayEsriLegend,
+      hmwLegendNode,
+      additionalLegendInfo,
+    );
   }, [
     additionalLegendInfo,
-    esriLegend,
+    displayEsriLegend,
     hmwLegendNode,
     upstreamLayerVisible,
     view,
@@ -1236,11 +1241,16 @@ function MapWidgets({
   // watch for changes to all waterbodies layer visibility and update visible
   // layers accordingly
   useEffect(() => {
-    updateVisibleLayers(view, esriLegend, hmwLegendNode, additionalLegendInfo);
+    updateVisibleLayers(
+      view,
+      displayEsriLegend,
+      hmwLegendNode,
+      additionalLegendInfo,
+    );
   }, [
     additionalLegendInfo,
     allWaterbodiesLayerVisible,
-    esriLegend,
+    displayEsriLegend,
     hmwLegendNode,
     view,
     visibleLayers,
