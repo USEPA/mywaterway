@@ -63,10 +63,10 @@ const basemapNames = [
 ];
 
 const zoomDependentLayers = [
+  'ejscreenLayer',
   'mappedWaterLayer',
-  'watershedsLayer',
-  'congressionalLayer',
   'stateBoundariesLayer',
+  'watershedsLayer',
 ];
 
 // used to order the layer legends, so the ordering is consistent no matter
@@ -123,8 +123,46 @@ function handleMapZoomChange(newVal: number, target: any) {
 
 // helper method used in handleMapZoomChange() for determining a map layer’s listMode
 function isInScale(layer: any, scale: number) {
-  const { maxScale, minScale } = layer;
   let isInScale = true;
+  let minScale = 0;
+  let maxScale = 0;
+
+  // get the extreme min and max scales of the layer
+  if (layer.sublayers && layer.sourceJSON) {
+    // get sublayers included in the parentlayer
+    // note: the sublayer has maxScale and minScale, but these are always 0
+    //       even if the sublayer does actually have a min/max scale.
+    const sublayerIds = [];
+    layer.sublayers.forEach((sublayer) => {
+      sublayerIds.push(sublayer.id);
+    });
+
+    // get the min/max scale from the sourceJSON
+    layer.sourceJSON.layers.forEach((sourceLayer) => {
+      if (!sublayerIds.includes(sourceLayer.id)) return;
+
+      if (sourceLayer.minScale === 0 || sourceLayer.minScale > minScale) {
+        minScale = sourceLayer.minScale;
+      }
+      if (sourceLayer.maxScale === 0 || sourceLayer.maxScale < maxScale) {
+        maxScale = sourceLayer.maxScale;
+      }
+    });
+  } else if (layer.layers) {
+    // get the min/max scale from the sourceJSON
+    layer.layers.forEach((subLayer) => {
+      if (subLayer.minScale === 0 || subLayer.minScale > minScale) {
+        minScale = subLayer.minScale;
+      }
+      if (subLayer.maxScale === 0 || subLayer.maxScale < maxScale) {
+        maxScale = subLayer.maxScale;
+      }
+    });
+  } else {
+    ({ maxScale, minScale } = layer);
+  }
+
+  // check if the map zoom is within scale
   if (minScale > 0 || maxScale > 0) {
     if (maxScale > 0 && minScale > 0) {
       isInScale = maxScale <= scale && scale <= minScale;
@@ -134,6 +172,7 @@ function isInScale(layer: any, scale: number) {
       isInScale = scale <= minScale;
     }
   }
+
   return isInScale;
 }
 
