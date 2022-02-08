@@ -928,7 +928,7 @@ export function getHighlightSymbol(geometry, color) {
 
 // helper method used in handleMapZoomChange() for determining a map layer’s listMode
 export function isInScale(layer: any, scale: number) {
-  let isInScale = true;
+  let inScale = true;
   let minScale = 0;
   let maxScale = 0;
 
@@ -970,13 +970,13 @@ export function isInScale(layer: any, scale: number) {
   // check if the map zoom is within scale
   if (minScale > 0 || maxScale > 0) {
     if (maxScale > 0 && minScale > 0) {
-      isInScale = maxScale <= scale && scale <= minScale;
+      inScale = maxScale <= scale && scale <= minScale;
     } else if (maxScale > 0) {
-      isInScale = maxScale <= scale;
+      inScale = maxScale <= scale;
     } else if (minScale > 0) {
-      isInScale = scale <= minScale;
+      inScale = scale <= minScale;
     }
   }
 
-  return isInScale;
+  return inScale;
 }

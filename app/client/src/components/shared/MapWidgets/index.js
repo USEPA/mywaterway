@@ -136,7 +136,7 @@ function handleMapZoomChange(newVal: number, target: any) {
 
 function updateVisibleLayers(
   view: any,
-  displayEsriLegend: Boolean,
+  displayEsriLegend: boolean,
   hmwLegendNode: Node,
   additionalLegendInfo: Object,
 ) {
@@ -505,7 +505,7 @@ function MapWidgets({
     });
 
     // Create an observer instance linked to the callback function
-    const observer = new MutationObserver((mutationsList, observer) => {
+    const observer = new MutationObserver((mutationsList, observerParam) => {
       const esriMessages = esriLegendNode
         ? esriLegendNode.querySelectorAll('.esri-legend__message')
         : [];
@@ -917,23 +917,6 @@ function MapWidgets({
     }
   }, [upstreamWidget, upstreamWidgetDisabled]);
 
-  // watch for changes to upstream layer visibility and update visible layers accordingly
-  useEffect(() => {
-    updateVisibleLayers(
-      view,
-      displayEsriLegend,
-      hmwLegendNode,
-      additionalLegendInfo,
-    );
-  }, [
-    additionalLegendInfo,
-    displayEsriLegend,
-    hmwLegendNode,
-    upstreamLayerVisible,
-    view,
-    visibleLayers,
-  ]);
-
   // create upstream widget
   const [
     upstreamWidgetCreated,
@@ -1282,6 +1265,7 @@ function MapWidgets({
     allWaterbodiesLayerVisible,
     displayEsriLegend,
     hmwLegendNode,
+    upstreamLayerVisible,
     view,
     visibleLayers,
   ]);

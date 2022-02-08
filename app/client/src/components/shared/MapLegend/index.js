@@ -7,11 +7,13 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import PinIcon from 'components/shared/Icons/PinIcon';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
-import { GradientIcon } from 'components/pages/LocationMap/MapFunctions';
+import {
+  GradientIcon,
+  isInScale,
+} from 'components/pages/LocationMap/MapFunctions';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // utils
 import { getSelectedCommunityTab } from 'utils/utils';
-import { isInScale } from 'components/pages/LocationMap/MapFunctions';
 // errors
 import { legendUnavailableError } from 'config/errorMessages';
 // styles
@@ -76,7 +78,7 @@ const ignoreLayers = ['mappedWaterLayer', 'watershedsLayer', 'searchIconLayer'];
 // --- components ---
 type Props = {
   view: Object,
-  displayEsriLegend: Boolean,
+  displayEsriLegend: boolean,
   visibleLayers: Object,
   additionalLegendInfo: Object,
 };
