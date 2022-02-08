@@ -16,12 +16,15 @@ import Graphic from '@arcgis/core/Graphic';
 import Home from '@arcgis/core/widgets/Home';
 import LayerList from '@arcgis/core/widgets/LayerList';
 import Legend from '@arcgis/core/widgets/Legend';
+import Point from '@arcgis/core/geometry/Point';
 import PortalBasemapsSource from '@arcgis/core/widgets/BasemapGallery/support/PortalBasemapsSource';
 import Query from '@arcgis/core/rest/support/Query';
 import QueryTask from '@arcgis/core/tasks/QueryTask';
 import ScaleBar from '@arcgis/core/widgets/ScaleBar';
+import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import Viewpoint from '@arcgis/core/Viewpoint';
 import * as watchUtils from '@arcgis/core/core/watchUtils';
+import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // components
 import AddDataWidget from 'components/shared/AddDataWidget';
 import MapLegend from 'components/shared/MapLegend';
@@ -70,10 +73,10 @@ const basemapNames = [
 ];
 
 const zoomDependentLayers = [
+  'ejscreenLayer',
   'mappedWaterLayer',
-  'watershedsLayer',
-  'congressionalLayer',
   'stateBoundariesLayer',
+  'watershedsLayer',
 ];
 
 // used to order the layer legends, so the ordering is consistent no matter
@@ -130,8 +133,46 @@ function handleMapZoomChange(newVal: number, target: any) {
 
 // helper method used in handleMapZoomChange() for determining a map layer’s listMode
 function isInScale(layer: any, scale: number) {
-  const { maxScale, minScale } = layer;
   let isInScale = true;
+  let minScale = 0;
+  let maxScale = 0;
+
+  // get the extreme min and max scales of the layer
+  if (layer.sublayers && layer.sourceJSON) {
+    // get sublayers included in the parentlayer
+    // note: the sublayer has maxScale and minScale, but these are always 0
+    //       even if the sublayer does actually have a min/max scale.
+    const sublayerIds = [];
+    layer.sublayers.forEach((sublayer) => {
+      sublayerIds.push(sublayer.id);
+    });
+
+    // get the min/max scale from the sourceJSON
+    layer.sourceJSON.layers.forEach((sourceLayer) => {
+      if (!sublayerIds.includes(sourceLayer.id)) return;
+
+      if (sourceLayer.minScale === 0 || sourceLayer.minScale > minScale) {
+        minScale = sourceLayer.minScale;
+      }
+      if (sourceLayer.maxScale === 0 || sourceLayer.maxScale < maxScale) {
+        maxScale = sourceLayer.maxScale;
+      }
+    });
+  } else if (layer.layers) {
+    // get the min/max scale from the sourceJSON
+    layer.layers.forEach((subLayer) => {
+      if (subLayer.minScale === 0 || subLayer.minScale > minScale) {
+        minScale = subLayer.minScale;
+      }
+      if (subLayer.maxScale === 0 || subLayer.maxScale < maxScale) {
+        maxScale = subLayer.maxScale;
+      }
+    });
+  } else {
+    ({ maxScale, minScale } = layer);
+  }
+
+  // check if the map zoom is within scale
   if (minScale > 0 || maxScale > 0) {
     if (maxScale > 0 && minScale > 0) {
       isInScale = maxScale <= scale && scale <= minScale;
@@ -141,6 +182,7 @@ function isInScale(layer: any, scale: number) {
       isInScale = scale <= minScale;
     }
   }
+
   return isInScale;
 }
 
@@ -274,6 +316,7 @@ function MapWidgets({
     setAllWaterbodiesWidgetDisabled,
     getAllWaterbodiesWidgetDisabled,
     setMapView,
+    getHucBoundaries,
   } = useContext(LocationSearchContext);
 
   const services = useServicesContext();
@@ -296,6 +339,8 @@ function MapWidgets({
       view.popup,
       'features',
       (newVal, oldVal, propName, target) => {
+        if (newVal.length === 0) return;
+
         const features = [];
         const idsAdded = [];
         newVal.forEach((item) => {
@@ -308,6 +353,26 @@ function MapWidgets({
             return;
           }
 
+          // get the point location of the user's click
+          const point = new Point({
+            x: view.popup.location.longitude,
+            y: view.popup.location.latitude,
+            spatialReference: SpatialReference.WQGS84,
+          });
+          const location = webMercatorUtils.geographicToWebMercator(point);
+
+          // determine if the user clicked inside of the selected huc
+          const hucBoundaries = getHucBoundaries();
+          const clickedInHuc =
+            hucBoundaries &&
+            hucBoundaries.features.length > 0 &&
+            hucBoundaries.features[0].geometry.contains(location);
+
+          // filter out popups for allWaterbodiesLayer inside of the huc
+          const layerParentId = item.layer?.parent?.id;
+          if (clickedInHuc && layerParentId === 'allWaterbodiesLayer') return;
+
+          // filter out duplicate popups
           const idType = `${id}-${geometryType}`;
           if (idsAdded.includes(idType)) return;
 
@@ -315,14 +380,16 @@ function MapWidgets({
           idsAdded.push(idType);
         });
 
-        if (features.length === view.popup.features.length) return;
-
-        view.popup.features = features;
+        if (features.length === 0) {
+          view.popup.close();
+        } else if (features.length !== view.popup.features.length) {
+          view.popup.features = features;
+        }
       },
     );
 
     setPopupWatcher(watcher);
-  }, [popupWatcher, view]);
+  }, [getHucBoundaries, popupWatcher, view]);
 
   // add the layers to the map
   useEffect(() => {
