@@ -471,6 +471,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     }
 
     if (!layer) return;
+    if (graphic.layer?.parent?.id === 'allWaterbodiesLayer') return;
 
     // remove the highlights
     handles.remove(group);
