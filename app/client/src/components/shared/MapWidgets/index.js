@@ -220,7 +220,7 @@ function updateVisibleLayers(
       (layer.visible && layer.listMode !== 'hide') ||
       (layer.visible &&
         layer.id === 'boundariesLayer' &&
-        document.location.pathname !== '/community') ||
+        window.location.pathname !== '/community') ||
       (layer.visible && layer.id === 'actionsWaterbodies') ||
       (layer.visible && layer.id === 'upstreamWatershed') ||
       (layer.visible && layer.id === 'allWaterbodiesLayer')

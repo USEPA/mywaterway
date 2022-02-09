@@ -689,7 +689,7 @@ export function getPopupContent({
   // line, area, point for waterbody
   else if (attributes && attributes.assessmentunitname) {
     const communityTab = getSelectedCommunityTab();
-    const pathname = document.location.pathname;
+    const pathname = window.location.pathname;
     const isAllWaterbodiesLayer =
       feature.layer?.parent?.id === 'allWaterbodiesLayer';
 

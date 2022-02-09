@@ -158,21 +158,21 @@
     //Only setup the logging for public sites, ie don't log from localhost
     window.gaTarget = '';
     if (
-      document.location.hostname.indexOf("epa.gov") > -1 ||
-      document.location.hostname === 'mywaterway-prod.app.cloud.gov'
+      window.location.hostname.indexOf("epa.gov") > -1 ||
+      window.location.hostname === 'mywaterway-prod.app.cloud.gov'
     ) {
       //EPA (Production) - Just initialize the HMW logs by setting gaTarget
       window.gaTarget = 'EPA';
     }
-    else if (document.location.hostname === 'mywaterway-stage.app.cloud.gov') {
+    else if (window.location.hostname === 'mywaterway-stage.app.cloud.gov') {
       addGoogleAnalyticsObject();
       ga('create', 'UA-37504877-4', 'auto', 'ERG');  //Stage
       window.gaTarget = 'ERG';
       logToGa('send', 'pageview');
     }
     else if (
-      document.location.hostname === 'mywaterway-dev.app.cloud.gov' ||
-      document.location.hostname === 'localhost'
+      window.location.hostname === 'mywaterway-dev.app.cloud.gov' ||
+      window.location.hostname === 'localhost'
     ) {
       addGoogleAnalyticsObject();
       ga('create', 'UA-37504877-3', 'auto', 'ERG');  //Dev
@@ -220,7 +220,7 @@
         ).test(str);
       }
 
-      document.addEventListener('click', function (event) {
+      window.addEventListener('click', function (event) {
         //Button clicks
         if (event.target.onclick && event.target.textContent) {
           const text = event.target.textContent.trim();
@@ -248,7 +248,7 @@
           });
           action = 'ow-hmw2-' + (action ? action : event.target.text.trim());
 
-          if (document.location.hostname === event.target.hostname) {
+          if (window.location.hostname === event.target.hostname) {
             //Part of the HMW application
             const extension = href.split('.').pop;
             if (extension === '.pdf' || extension === '.zip')
