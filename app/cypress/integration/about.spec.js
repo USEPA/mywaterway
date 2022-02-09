@@ -13,7 +13,7 @@ describe('About page', () => {
 
     cy.findByText('About').click();
     cy.findByText('About How’s My Waterway').should('exist');
-    cy.url().should('equal', `${document.location.origin}/about`);
+    cy.url().should('equal', `${window.location.origin}/about`);
 
     // verify that community search data is still there after clicking the Back button
     cy.findByText('Back').click();

@@ -43,7 +43,7 @@ describe('Homepage links', () => {
 
   it(`"How’s My Waterway?" header text links to home page`, () => {
     cy.findByText('How’s My Waterway?').click();
-    cy.url().should('equal', `${document.location.origin}/`);
+    cy.url().should('equal', `${window.location.origin}/`);
   });
 });
 

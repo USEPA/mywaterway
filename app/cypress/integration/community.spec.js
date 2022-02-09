@@ -32,13 +32,13 @@ describe('Community page links', () => {
 
   it('Switching Community page tabs updates route', () => {
     cy.findByText('State').click();
-    cy.url().should('include', `${document.location.origin}/state`);
+    cy.url().should('include', `${window.location.origin}/state`);
 
     cy.findByText('National').click();
-    cy.url().should('include', `${document.location.origin}/national`);
+    cy.url().should('include', `${window.location.origin}/national`);
 
     cy.findByText('Community').click();
-    cy.url().should('include', `${document.location.origin}/community`);
+    cy.url().should('include', `${window.location.origin}/community`);
   });
 });
 
@@ -48,7 +48,7 @@ describe('Community page routes', () => {
 
     cy.findByText('Sorry, but the url entered was invalid.').should('exist');
 
-    cy.url().should('include', `${document.location.origin}/invalid-url`);
+    cy.url().should('include', `${window.location.origin}/invalid-url`);
   });
 });
 

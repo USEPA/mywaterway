@@ -1,10 +1,10 @@
 describe('Alert message tests', () => {
   beforeEach(() => {
-    const location = document.location;
+    const location = window.location;
     const origin =
       location.hostname === 'localhost'
         ? `${location.protocol}//${location.hostname}:9091`
-        : document.location.origin;
+        : window.location.origin;
 
     console.log(
       `${origin}/proxy?url=${origin}/data/notifications/messages.json`,
