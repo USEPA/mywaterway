@@ -42,11 +42,6 @@ const TermStyles = createGlobalStyle`
 const iconStyles = css`
   font-weight: 900;
   color: rgba(0, 113, 188, 0.5);
-
-  /* Workaround for IE to stop icon from spinning after fetching is complete */
-  &:not(.fa-pulse) {
-    animation: none;
-  }
 `;
 
 const panelStyles = css`

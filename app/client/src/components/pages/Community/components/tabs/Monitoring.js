@@ -251,8 +251,7 @@ function Monitoring() {
     if (allToggled) {
       tempDisplayedMonitoringLocations = allMonitoringLocations;
     } else {
-      // var use intentional for IE support
-      for (var key in monitoringLocationGroups) {
+      for (let key in monitoringLocationGroups) {
         const group = monitoringLocationGroups[key];
         // if the location is toggled
         if (monitoringLocationToggles[group.label]) {
