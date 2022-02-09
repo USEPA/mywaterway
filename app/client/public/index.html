@@ -1,474 +1,667 @@
 <!DOCTYPE html>
 <html class="js" lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="ImageToolbar" content="false" />
+    <meta http-equiv="cleartype" content="on" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="HandheldFriendly" content="true" />
+    <link
+      rel="shortcut icon"
+      href="https://www.epa.gov/sites/all/themes/epa/favicon.ico"
+      type="image/vnd.microsoft.icon"
+    />
+    <meta name="MobileOptimized" content="width" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <!--googleon: all-->
+    <meta name="DC.title" content="How's My Waterway?" />
+    <!--googleoff: snippet-->
+    <meta
+      name="keywords"
+      content="Clean Water Act (CWA), Safe Drinking Water Act (SDWA), pollution, impaired waterbodies"
+    />
+    <link rel="canonical" href="" />
+    <link rel="shortlink" href="" />
+    <meta name="DC.language" content="en" />
+    <meta name="DC.Subject.epachannel" content="Learn the Issues" />
+    <meta name="DC.type" content="Data and Tools" />
+    <meta name="DC.creator" content="US EPA" />
+    <meta name="theme-color" content="#0071bc" />
+    <title>How’s My Waterway? | US EPA</title>
+    <link
+      rel="manifest"
+      href="%PUBLIC_URL%/site.webmanifest"
+      crossorigin="use-credentials"
+    />
+    <!--googleoff: all-->
+    <link
+      rel="stylesheet"
+      href="https://www.epa.gov/sites/all/libraries/standalone/css/core/style.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Slab|Source+Sans+Pro:700i&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.22/esri/css/main.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
+      integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ"
+      crossorigin="anonymous"
+    />
 
-<head>
-  <meta charset="utf-8" />
-  <meta http-equiv="ImageToolbar" content="false" />
-  <meta http-equiv="cleartype" content="on" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="HandheldFriendly" content="true" />
-  <link rel="shortcut icon" href="https://www.epa.gov/sites/all/themes/epa/favicon.ico"
-    type="image/vnd.microsoft.icon" />
-  <meta name="MobileOptimized" content="width" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-  <!--googleon: all-->
-  <meta name="DC.title" content="How's My Waterway?" />
-  <!--googleoff: snippet-->
-  <meta name="keywords"
-    content="Clean Water Act (CWA), Safe Drinking Water Act (SDWA), pollution, impaired waterbodies" />
-  <link rel="canonical" href="" />
-  <link rel="shortlink" href="" />
-  <meta name="DC.language" content="en" />
-  <meta name="DC.Subject.epachannel" content="Learn the Issues" />
-  <meta name="DC.type" content="Data and Tools" />
-  <meta name="DC.creator" content="US EPA" />
-  <meta name="theme-color" content="#0071bc">
-  <title>How’s My Waterway? | US EPA</title>
-  <link rel="manifest" href="%PUBLIC_URL%/site.webmanifest" crossorigin="use-credentials">
-  <!--googleoff: all-->
-  <link rel="stylesheet" href="https://www.epa.gov/sites/all/libraries/standalone/css/core/style.css" />
-  <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Slab|Source+Sans+Pro:700i&display=swap">
-  <link rel="stylesheet" href="https://js.arcgis.com/4.22/esri/css/main.css" />
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
-    integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous" />
-
-  <!-- icons -->
-  <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/apple-touch-icon.png">
-  <link rel="manifest" href="%PUBLIC_URL%/site.webmanifest">
-  <link rel="mask-icon" href="%PUBLIC_URL%/safari-pinned-tab.svg" color="#ffffff">
-  <meta name="msapplication-TileColor" content="#2b5797">
-  <meta name="theme-color" content="#ffffff">
-  <style>
-    /* bootstrap style overrides */
-    .epa-search .form-text {
-      display: inline-block;
-      margin-top: 0;
-    }
-
-    /* epa template overrides */
-    .main-footer .region-footer .row {
-      margin: 0;
-    }
-
-    .main-footer .region-footer .col:first-of-type {
-      padding-left: 0;
-    }
-
-    .main-footer .region-footer .col:last-of-type {
-      padding-right: 0;
-    }
-  </style>
-  <!-- Set page title dynamically -->
-  <script>
-    // map pathnames to a formatted title for SEO purposes
-    const pathnameMapping = {
-      default: "How's My Waterway - Home",
-      community: "How's My Waterway - Community",
-      state: "How's My Waterway - State",
-      national: "How's My Waterway - National",
-      'waterbody-report': "How's My Waterway - Waterbody Report",
-      'plan-summary': "How's My Waterway - Plan Summary",
-      data: "How's My Waterway - Data",
-      about: "How's My Waterway - About",
-      swimming: "How's My Waterway - Explore - Swimming",
-      'eating-fish': "How's My Waterway - Explore - Eating Fish",
-      'aquatic-life': "How's My Waterway - Explore - Aquatic Life",
-      'drinking-water': "How's My Waterway - Explore - Drinking Water",
-      attains: "How's My Waterway - ATTAINS"
-    };
-
-    const descriptionMapping = {
-      default: "An application for learning the condition of local streams, lakes and other waters anywhere in the US... quickly and in plain language.",
-      community: "Enter a location to learn about water quality in your community. Explore information about local stream conditions, watershed protection, restoration, drinking water and whether your waterways are suitable for swimming or eating fish and aquatic life.",
-      state: "Choose a state or territory to get a comprehensive picture of water quality statewide. Search for water conditions throughout your state with the advanced search tool.",
-      national: "Explore information about overall water quality in the United State and the basics of EPA’s drinking water program.",
-      'waterbody-report': "Use the waterbody report page to find information on individual waterbodies including uses, probable sources of impairments and plans to restore water quality. ",
-      'plan-summary': "The restoration plan summary page includes basic plan information, submitted documents, impairments addressed, and waters covered. ",
-    };
-
-    // update page title and description using mapping
-    function setPageTitle(pathnameMapping) {
-      const pageTitle = window.location.pathname.split('/')[1];
-      document.title = pathnameMapping[pageTitle] || pathnameMapping.default;
-
-      // remove old description tags if necessary
-      let oldDescTag = document.querySelector("[name='description']");
-      if(oldDescTag) oldDescTag.remove();
-      let oldDcDescTag = document.querySelector("[name='DC.description']");
-      if(oldDcDescTag) oldDcDescTag.remove();
-
-      // create description tags
-      const descTag = document.createElement('meta');
-      descTag.setAttribute('name', 'description');
-      descTag.content = descriptionMapping[pageTitle] || descriptionMapping.default;
-      document.getElementsByTagName('head')[0].appendChild(descTag);
-
-      const dcDescTag = document.createElement('meta');
-      dcDescTag.setAttribute('name', 'DC.description');
-      dcDescTag.content = descriptionMapping[pageTitle] || descriptionMapping.default;
-      document.getElementsByTagName('head')[0].appendChild(dcDescTag);
-    }
-
-    setPageTitle(pathnameMapping); // set page title when page loads
-
-    // set page title when window location changes
-    window.addEventListener("locationchange", function (event) {
-      setPageTitle(pathnameMapping);
-    });
-  </script>
-  <!-- Google Tag Manager -->
-  <script>(function (w, d, s, l, i) { w[l] = w[l] || []; w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" }); var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != "dataLayer" ? "&l=" + l : ""; j.async = true; j.src = "//www.googletagmanager.com/gtm.js?id=" + i + dl; f.parentNode.insertBefore(j, f); })(window, document, "script", "dataLayer", "GTM-L8ZB");</script>
-  <!-- End Google Tag Manager -->
-  <!-- Google Analytics -->
-  <script>
-    function addGoogleAnalyticsObject() {
-      (function (i, s, o, g, r, a, m) {
-        i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
-          (i[r].q = i[r].q || []).push(arguments)
-        }, i[r].l = 1 * new Date(); a = s.createElement(o),
-          m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
-      })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
-    }
-
-    // Wrapper for logging to GA which adds the target to the command
-    function logToGa(command, ...props) {
-      if (!window.ga) return;
-      ga(`${window.gaTarget}.${command}`, ...props);
-    }
-
-    // get origin for mapping proxy calls
-    const loc = window.location;
-    const origin =
-      loc.hostname === 'localhost'
-        ? `${loc.protocol}//${loc.hostname}:9091`
-        : loc.origin;
-
-    // initialize the googleAnalyticsMapping window object so the calls to get
-    // the services lookup file are logged.
-    window.googleAnalyticsMapping = [
-      {
-        wildcardUrl: `${origin}/proxy?url=${origin}/data/config/services.json`,
-        name: 's3 lookup - config services'
-      },
-    ];
-
-    //Only setup the logging for public sites, ie don't log from localhost
-    window.gaTarget = '';
-    if (
-      window.location.hostname.indexOf("epa.gov") > -1 ||
-      window.location.hostname === 'mywaterway-prod.app.cloud.gov'
-    ) {
-      //EPA (Production) - Just initialize the HMW logs by setting gaTarget
-      window.gaTarget = 'EPA';
-    }
-    else if (window.location.hostname === 'mywaterway-stage.app.cloud.gov') {
-      addGoogleAnalyticsObject();
-      ga('create', 'UA-37504877-4', 'auto', 'ERG');  //Stage
-      window.gaTarget = 'ERG';
-      logToGa('send', 'pageview');
-    }
-    else if (
-      window.location.hostname === 'mywaterway-dev.app.cloud.gov' ||
-      window.location.hostname === 'localhost'
-    ) {
-      addGoogleAnalyticsObject();
-      ga('create', 'UA-37504877-3', 'auto', 'ERG');  //Dev
-      window.gaTarget = 'ERG';
-      logToGa('send', 'pageview');
-    }
-
-    //Only setup the logging for public sites, ie don't log from localhost
-    if (gaTarget) {
-      // create the locationChange event 
-      let event;
-      if (typeof Event === 'function') { // used for modern browsers
-        event = new Event('locationchange');
-      } else { // used for supporting internet explorer
-        event = document.createEvent("Event");
-        event.initEvent("locationchange", false, false);
+    <!-- icons -->
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="%PUBLIC_URL%/apple-touch-icon.png"
+    />
+    <link rel="manifest" href="%PUBLIC_URL%/site.webmanifest" />
+    <link
+      rel="mask-icon"
+      href="%PUBLIC_URL%/safari-pinned-tab.svg"
+      color="#ffffff"
+    />
+    <meta name="msapplication-TileColor" content="#2b5797" />
+    <meta name="theme-color" content="#ffffff" />
+    <style>
+      /* bootstrap style overrides */
+      .epa-search .form-text {
+        display: inline-block;
+        margin-top: 0;
       }
 
-      // create the location change event listener
-      window.addEventListener("locationchange", function (event) {
-        logToGa('set', 'page', window.location.pathname)
+      /* epa template overrides */
+      .main-footer .region-footer .row {
+        margin: 0;
+      }
+
+      .main-footer .region-footer .col:first-of-type {
+        padding-left: 0;
+      }
+
+      .main-footer .region-footer .col:last-of-type {
+        padding-right: 0;
+      }
+    </style>
+    <!-- Set page title dynamically -->
+    <script>
+      // map pathnames to a formatted title for SEO purposes
+      const pathnameMapping = {
+        default: "How's My Waterway - Home",
+        community: "How's My Waterway - Community",
+        state: "How's My Waterway - State",
+        national: "How's My Waterway - National",
+        'waterbody-report': "How's My Waterway - Waterbody Report",
+        'plan-summary': "How's My Waterway - Plan Summary",
+        data: "How's My Waterway - Data",
+        about: "How's My Waterway - About",
+        swimming: "How's My Waterway - Explore - Swimming",
+        'eating-fish': "How's My Waterway - Explore - Eating Fish",
+        'aquatic-life': "How's My Waterway - Explore - Aquatic Life",
+        'drinking-water': "How's My Waterway - Explore - Drinking Water",
+        attains: "How's My Waterway - ATTAINS",
+      };
+
+      const descriptionMapping = {
+        default:
+          'An application for learning the condition of local streams, lakes and other waters anywhere in the US... quickly and in plain language.',
+        community:
+          'Enter a location to learn about water quality in your community. Explore information about local stream conditions, watershed protection, restoration, drinking water and whether your waterways are suitable for swimming or eating fish and aquatic life.',
+        state:
+          'Choose a state or territory to get a comprehensive picture of water quality statewide. Search for water conditions throughout your state with the advanced search tool.',
+        national:
+          'Explore information about overall water quality in the United State and the basics of EPA’s drinking water program.',
+        'waterbody-report':
+          'Use the waterbody report page to find information on individual waterbodies including uses, probable sources of impairments and plans to restore water quality. ',
+        'plan-summary':
+          'The restoration plan summary page includes basic plan information, submitted documents, impairments addressed, and waters covered. ',
+      };
+
+      // update page title and description using mapping
+      function setPageTitle(pathnameMapping) {
+        const pageTitle = window.location.pathname.split('/')[1];
+        document.title = pathnameMapping[pageTitle] || pathnameMapping.default;
+
+        // remove old description tags if necessary
+        let oldDescTag = document.querySelector("[name='description']");
+        if (oldDescTag) oldDescTag.remove();
+        let oldDcDescTag = document.querySelector("[name='DC.description']");
+        if (oldDcDescTag) oldDcDescTag.remove();
+
+        // create description tags
+        const descTag = document.createElement('meta');
+        descTag.setAttribute('name', 'description');
+        descTag.content =
+          descriptionMapping[pageTitle] || descriptionMapping.default;
+        document.getElementsByTagName('head')[0].appendChild(descTag);
+
+        const dcDescTag = document.createElement('meta');
+        dcDescTag.setAttribute('name', 'DC.description');
+        dcDescTag.content =
+          descriptionMapping[pageTitle] || descriptionMapping.default;
+        document.getElementsByTagName('head')[0].appendChild(dcDescTag);
+      }
+
+      setPageTitle(pathnameMapping); // set page title when page loads
+
+      // set page title when window location changes
+      window.addEventListener('locationchange', function (event) {
+        setPageTitle(pathnameMapping);
+      });
+    </script>
+    <!-- Google Tag Manager -->
+    <script>
+      (function (w, d, s, l, i) {
+        w[l] = w[l] || [];
+        w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+        var f = d.getElementsByTagName(s)[0],
+          j = d.createElement(s),
+          dl = l != 'dataLayer' ? '&l=' + l : '';
+        j.async = true;
+        j.src = '//www.googletagmanager.com/gtm.js?id=' + i + dl;
+        f.parentNode.insertBefore(j, f);
+      })(window, document, 'script', 'dataLayer', 'GTM-L8ZB');
+    </script>
+    <!-- End Google Tag Manager -->
+    <!-- Google Analytics -->
+    <script>
+      function addGoogleAnalyticsObject() {
+        (function (i, s, o, g, r, a, m) {
+          i['GoogleAnalyticsObject'] = r;
+          (i[r] =
+            i[r] ||
+            function () {
+              (i[r].q = i[r].q || []).push(arguments);
+            }),
+            (i[r].l = 1 * new Date());
+          (a = s.createElement(o)), (m = s.getElementsByTagName(o)[0]);
+          a.async = 1;
+          a.src = g;
+          m.parentNode.insertBefore(a, m);
+        })(
+          window,
+          document,
+          'script',
+          '//www.google-analytics.com/analytics.js',
+          'ga',
+        );
+      }
+
+      // Wrapper for logging to GA which adds the target to the command
+      function logToGa(command, ...props) {
+        if (!window.ga) return;
+        ga(`${window.gaTarget}.${command}`, ...props);
+      }
+
+      // get origin for mapping proxy calls
+      const loc = window.location;
+      const origin =
+        loc.hostname === 'localhost'
+          ? `${loc.protocol}//${loc.hostname}:9091`
+          : loc.origin;
+
+      // initialize the googleAnalyticsMapping window object so the calls to get
+      // the services lookup file are logged.
+      window.googleAnalyticsMapping = [
+        {
+          wildcardUrl: `${origin}/proxy?url=${origin}/data/config/services.json`,
+          name: 's3 lookup - config services',
+        },
+      ];
+
+      //Only setup the logging for public sites, ie don't log from localhost
+      window.gaTarget = '';
+      if (
+        window.location.hostname.indexOf('epa.gov') > -1 ||
+        window.location.hostname === 'mywaterway-prod.app.cloud.gov'
+      ) {
+        //EPA (Production) - Just initialize the HMW logs by setting gaTarget
+        window.gaTarget = 'EPA';
+      } else if (
+        window.location.hostname === 'mywaterway-stage.app.cloud.gov'
+      ) {
+        addGoogleAnalyticsObject();
+        ga('create', 'UA-37504877-4', 'auto', 'ERG'); //Stage
+        window.gaTarget = 'ERG';
         logToGa('send', 'pageview');
-      });
-
-      // Modify the pushState, replaceState and popState events so they
-      // will trigger the locationchange event.
-      var pushState = history.pushState;
-      history.pushState = function () {
-        pushState.apply(history, arguments);
-        window.dispatchEvent(event);
-      };
-      var replaceState = history.replaceState;
-      history.replaceState = function () {
-        replaceState.apply(this, arguments);
-        window.dispatchEvent(event);
-      };
-      window.addEventListener('popstate', function () {
-        window.dispatchEvent(event);
-      });
-
-      function wildcardIncludes(str, rule) {
-        var escapeRegex = (str) => str.replace(/([.*+?^=!:${}()|\]\\])/g, '\\$1');
-        return new RegExp(
-          '^' + rule.split('*').map(escapeRegex).join('.*') + '$',
-        ).test(str);
+      } else if (
+        window.location.hostname === 'mywaterway-dev.app.cloud.gov' ||
+        window.location.hostname === 'localhost'
+      ) {
+        addGoogleAnalyticsObject();
+        ga('create', 'UA-37504877-3', 'auto', 'ERG'); //Dev
+        window.gaTarget = 'ERG';
+        logToGa('send', 'pageview');
       }
 
-      window.addEventListener('click', function (event) {
-        //Button clicks
-        if (event.target.onclick && event.target.textContent) {
-          const text = event.target.textContent.trim();
-          const title = event.target.title.trim();
-
-          //Log to Google Analytics
-          const action = title ?
-            'ow-hmw2-' + text + ' - ' + title :
-            'ow-hmw2-' + text;
-          logToGa('send', 'event', 'buttonClick', action, window.location.pathname);
+      //Only setup the logging for public sites, ie don't log from localhost
+      if (gaTarget) {
+        // create the locationChange event
+        let event;
+        if (typeof Event === 'function') {
+          // used for modern browsers
+          event = new Event('locationchange');
+        } else {
+          // used for supporting internet explorer
+          event = document.createEvent('Event');
+          event.initEvent('locationchange', false, false);
         }
 
-        //Link clicks
-        if (event.target.tagName.toLowerCase() === 'a' && event.target.target === '_blank') {
-          const href = event.target.href;
-          let category = 'Web-service';
-          let action = '';
-
-          // combine the web service and map service mappings
-          let mapping = window.googleAnalyticsMapping;
-          mapping.forEach((item) => {
-            if (!action && wildcardIncludes(href, item.wildcardUrl)) {
-              action = item.name;
-            }
-          });
-          action = 'ow-hmw2-' + (action ? action : event.target.text.trim());
-
-          if (window.location.hostname === event.target.hostname) {
-            //Part of the HMW application
-            const extension = href.split('.').pop;
-            if (extension === '.pdf' || extension === '.zip')
-              category = 'Download';
-            else
-              category = 'Internal'
-          } else {
-            //External EPA Hyperlink
-            category = 'External';
-          }
-
-          //Log to Google Analytics
-          logToGa('send', 'event', category, action, href);
-        }
-      });
-
-      window.addEventListener('error', function (event) {
-        window.logToGa('send', 'exception', {
-          exDescription: `${event.error.message}${event.error.stack}`,
-          exFatal: true,
+        // create the location change event listener
+        window.addEventListener('locationchange', function (event) {
+          logToGa('set', 'page', window.location.pathname);
+          logToGa('send', 'pageview');
         });
 
-        return true;
-      });
-    }
-  </script>
-  <!-- End Google Analytics-->
-</head>
+        // Modify the pushState, replaceState and popState events so they
+        // will trigger the locationchange event.
+        const pushState = history.pushState;
+        history.pushState = function () {
+          pushState.apply(history, arguments);
+          window.dispatchEvent(locationChangeEvent);
+        };
+        const replaceState = history.replaceState;
+        history.replaceState = function () {
+          replaceState.apply(this, arguments);
+          window.dispatchEvent(locationChangeEvent);
+        };
+        window.addEventListener('popstate', function () {
+          window.dispatchEvent(locationChangeEvent);
+        });
 
-<body>
-  <!-- Google Tag Manager -->
-  <noscript><iframe title="google tag manager" src="//www.googletagmanager.com/ns.html?id=GTM-L8ZB" height="0" width="0"
-      style="display:none;visibility:hidden"></iframe></noscript>
-  <!-- End Google Tag Manager -->
-  <div class="skip-links">
-    <a href="#main-content" class="skip-link element-invisible element-focusable">Jump to main content</a>
-  </div>
+        function wildcardIncludes(str, rule) {
+          const escapeRegex = (str) =>
+            str.replace(/([.*+?^=!:${}()|\]\\])/g, '\\$1');
+          return new RegExp(
+            '^' + rule.split('*').map(escapeRegex).join('.*') + '$',
+          ).test(str);
+        }
 
-  <header class="masthead clearfix" role="banner">
-    <img alt="" class="site-logo" src="https://www.epa.gov/sites/all/themes/epa/logo.png" />
-    <div class="site-name-and-slogan">
-      <h1 class="site-name">
-        <a href="https://www.epa.gov/" rel="home" title="Go to the home page"><span>US EPA</span></a>
-      </h1>
-      <div class="site-slogan">United States Environmental Protection Agency</div>
+        window.addEventListener('click', function (event) {
+          //Button clicks
+          if (event.target.onclick && event.target.textContent) {
+            const text = event.target.textContent.trim();
+            const title = event.target.title.trim();
+
+            //Log to Google Analytics
+            const action = title
+              ? 'ow-hmw2-' + text + ' - ' + title
+              : 'ow-hmw2-' + text;
+            logToGa(
+              'send',
+              'event',
+              'buttonClick',
+              action,
+              window.location.pathname,
+            );
+          }
+
+          //Link clicks
+          if (
+            event.target.tagName.toLowerCase() === 'a' &&
+            event.target.target === '_blank'
+          ) {
+            const href = event.target.href;
+
+            // combine the web service and map service mappings
+            const mapping = window.googleAnalyticsMapping;
+            let name = '';
+            mapping.forEach((item) => {
+              if (!name && wildcardIncludes(href, item.wildcardUrl)) {
+                name = item.name;
+              }
+            });
+            const action =
+              'ow-hmw2-' + (name ? name : event.target.text.trim());
+
+            const extension = href.split('.').pop;
+            const category =
+              window.location.hostname === event.target.hostname
+                ? //Part of the HMW application
+                  extension === '.pdf' || extension === '.zip'
+                  ? 'Download'
+                  : 'Internal'
+                : 'External'; //External EPA Hyperlink
+
+            //Log to Google Analytics
+            logToGa('send', 'event', category, action, href);
+          }
+        });
+
+        window.addEventListener('error', function (event) {
+          window.logToGa('send', 'exception', {
+            exDescription: `${event.error.message}${event.error.stack}`,
+            exFatal: true,
+          });
+
+          return true;
+        });
+      }
+    </script>
+    <!-- End Google Analytics-->
+  </head>
+
+  <body>
+    <!-- Google Tag Manager -->
+    <noscript
+      ><iframe
+        title="google tag manager"
+        src="//www.googletagmanager.com/ns.html?id=GTM-L8ZB"
+        height="0"
+        width="0"
+        style="display: none; visibility: hidden"
+      ></iframe
+    ></noscript>
+    <!-- End Google Tag Manager -->
+    <div class="skip-links">
+      <a
+        href="#main-content"
+        class="skip-link element-invisible element-focusable"
+        >Jump to main content</a
+      >
     </div>
-    <div class="region-header">
-      <div class="block-epa-core-gsa-epa-search" id="block-epa-core-gsa-epa-search">
-        <form action="https://search.epa.gov/epasearch" class="epa-search" method="get">
-          <label class="element-hidden" for="search-box">Search</label>
-          <input class="form-text" id="search-box" aria-label="Search EPA.gov" name="querytext"
-            placeholder="Search EPA.gov" value="" />
-          <button class="epa-search-button" id="search-button" title="Search" type="submit">Search</button>
-          <input name="areaname" type="hidden" value="" />
-          <input name="areacontacts" type="hidden" value="" />
-          <input name="areasearchurl" type="hidden" value="" />
-          <input name="typeofsearch" type="hidden" value="epa" />
-          <input name="result_template" type="hidden" value="2col.ftl" />
-        </form>
+
+    <header class="masthead clearfix" role="banner">
+      <img
+        alt=""
+        class="site-logo"
+        src="https://www.epa.gov/sites/all/themes/epa/logo.png"
+      />
+      <div class="site-name-and-slogan">
+        <h1 class="site-name">
+          <a href="https://www.epa.gov/" rel="home" title="Go to the home page"
+            ><span>US EPA</span></a
+          >
+        </h1>
+        <div class="site-slogan">
+          United States Environmental Protection Agency
+        </div>
+      </div>
+      <div class="region-header">
+        <div
+          class="block-epa-core-gsa-epa-search"
+          id="block-epa-core-gsa-epa-search"
+        >
+          <form
+            action="https://search.epa.gov/epasearch"
+            class="epa-search"
+            method="get"
+          >
+            <label class="element-hidden" for="search-box">Search</label>
+            <input
+              class="form-text"
+              id="search-box"
+              aria-label="Search EPA.gov"
+              name="querytext"
+              placeholder="Search EPA.gov"
+              value=""
+            />
+            <button
+              class="epa-search-button"
+              id="search-button"
+              title="Search"
+              type="submit"
+            >
+              Search
+            </button>
+            <input name="areaname" type="hidden" value="" />
+            <input name="areacontacts" type="hidden" value="" />
+            <input name="areasearchurl" type="hidden" value="" />
+            <input name="typeofsearch" type="hidden" value="epa" />
+            <input name="result_template" type="hidden" value="2col.ftl" />
+          </form>
+        </div>
+      </div>
+    </header>
+
+    <nav class="nav main-nav clearfix" role="navigation">
+      <div class="nav__inner">
+        <h2 class="element-invisible">Main menu</h2>
+        <ul class="menu" role="menu">
+          <li class="menu-item" role="presentation">
+            <a
+              class="menu-link"
+              href="https://www.epa.gov/environmental-topics"
+              role="menuitem"
+              title="Learn about Environmental Topics that EPA covers."
+              >Environmental Topics</a
+            >
+          </li>
+          <li class="menu-item" role="presentation">
+            <a
+              class="menu-link"
+              href="https://www.epa.gov/laws-regulations"
+              role="menuitem"
+              title="Laws written by Congress provide the authority for EPA to write regulations. Regulations explain the technical, operational, and legal details necessary to implement laws."
+              >Laws &amp; Regulations</a
+            >
+          </li>
+          <li class="menu-item" role="presentation">
+            <a
+              class="menu-link"
+              href="https://www.epa.gov/aboutepa"
+              role="menuitem"
+              title="Learn more about our mission and what we do, how we are organized, and our history."
+              >About EPA</a
+            >
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="mobile-nav" id="mobile-nav">
+      <div class="mobile-bar clearfix">
+        <label class="menu-button" for="mobile-nav-toggle">Menu</label>
+      </div>
+      <input checked id="mobile-nav-toggle" type="checkbox" />
+      <div
+        class="mobile-links element-hidden"
+        id="mobile-links"
+        style="height: 2404px"
+      >
+        <ul class="mobile-menu">
+          <li class="menu-item" role="presentation">
+            <a
+              class="menu-link"
+              href="https://www.epa.gov/environmental-topics"
+              role="menuitem"
+              title="Learn about Environmental Topics that EPA covers."
+              >Environmental Topics</a
+            >
+          </li>
+          <li class="menu-item" role="presentation">
+            <a
+              class="menu-link"
+              href="https://www.epa.gov/laws-regulations"
+              role="menuitem"
+              title="Laws written by Congress provide the authority for EPA to write regulations. Regulations explain the technical, operational, and legal details necessary to implement laws."
+              >Laws &amp; Regulations</a
+            >
+          </li>
+          <li class="menu-item" role="presentation">
+            <a
+              class="menu-link"
+              href="https://www.epa.gov/aboutepa"
+              role="menuitem"
+              title="Learn more about our mission and what we do, how we are organized, and our history."
+              >About EPA</a
+            >
+          </li>
+        </ul>
       </div>
     </div>
-  </header>
 
-  <nav class="nav main-nav clearfix" role="navigation">
-    <div class="nav__inner">
-      <h2 class="element-invisible">Main menu</h2>
-      <ul class="menu" role="menu">
-        <li class="menu-item" role="presentation">
-          <a class="menu-link" href="https://www.epa.gov/environmental-topics" role="menuitem"
-            title="Learn about Environmental Topics that EPA covers.">Environmental Topics</a>
-        </li>
-        <li class="menu-item" role="presentation">
-          <a class="menu-link" href="https://www.epa.gov/laws-regulations" role="menuitem"
-            title="Laws written by Congress provide the authority for EPA to write regulations. Regulations explain the technical, operational, and legal details necessary to implement laws.">Laws
-            &amp; Regulations</a>
-        </li>
-        <li class="menu-item" role="presentation">
-          <a class="menu-link" href="https://www.epa.gov/aboutepa" role="menuitem"
-            title="Learn more about our mission and what we do, how we are organized, and our history.">About EPA</a>
-        </li>
-      </ul>
-    </div>
-  </nav>
+    <section
+      class="clearfix"
+      id="main-content"
+      lang="en"
+      role="main"
+      tabindex="-1"
+    >
+      <noscript>You need to enable JavaScript to run this app.</noscript>
+      <div id="root"></div>
+    </section>
 
-  <div class="mobile-nav" id="mobile-nav">
-    <div class="mobile-bar clearfix">
-      <label class="menu-button" for="mobile-nav-toggle">Menu</label>
-    </div>
-    <input checked id="mobile-nav-toggle" type="checkbox">
-    <div class="mobile-links element-hidden" id="mobile-links" style="height:2404px;">
-      <ul class="mobile-menu">
-        <li class="menu-item" role="presentation">
-          <a class="menu-link" href="https://www.epa.gov/environmental-topics" role="menuitem"
-            title="Learn about Environmental Topics that EPA covers.">Environmental Topics</a>
-        </li>
-        <li class="menu-item" role="presentation">
-          <a class="menu-link" href="https://www.epa.gov/laws-regulations" role="menuitem"
-            title="Laws written by Congress provide the authority for EPA to write regulations. Regulations explain the technical, operational, and legal details necessary to implement laws.">Laws
-            &amp; Regulations</a>
-        </li>
-        <li class="menu-item" role="presentation">
-          <a class="menu-link" href="https://www.epa.gov/aboutepa" role="menuitem"
-            title="Learn more about our mission and what we do, how we are organized, and our history.">About EPA</a>
-        </li>
-      </ul>
-    </div>
-  </div>
-
-  <section class="clearfix" id="main-content" lang="en" role="main" tabindex="-1">
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-  </section>
-
-  <footer class="main-footer clearfix" role="contentinfo">
-    <div class="main-footer__inner">
-      <div class="region-footer">
-        <div class="block-pane-epa-global-footer" id="block-pane-epa-global-footer">
-          <div class="row cols-3">
-            <div class="col size-1of3">
-              <div class="col__title">Discover.</div>
-              <ul class="menu">
-                <li>
-                  <a href="https://www.epa.gov/accessibility">Accessibility</a>
-                </li>
-                <li>
-                  <a href="https://www.epa.gov/planandbudget">Budget &amp; Performance</a>
-                </li>
-                <li>
-                  <a href="https://www.epa.gov/contracts">Contracting</a>
-                </li>
-                <li>
-                  <a href="https://www.epa.gov/grants">Grants</a>
-                </li>
-                <li>
-                  <a href="https://www.epa.gov/home/wwwepagov-snapshots">EPA www Web Snapshots</a>
-                </li>
-                <li>
-                  <a
-                    href="https://www.epa.gov/ocr/whistleblower-protections-epa-and-how-they-relate-non-disclosure-agreements-signed-epa-employees">No
-                    FEAR Act Data</a>
-                </li>
-                <li>
-                  <a href="https://www.epa.gov/privacy">Privacy</a>
-                </li>
-                <li>
-                  <a href="https://www.epa.gov/privacy/privacy-and-security-notice">Privacy and Security Notice</a>
-                </li>
-              </ul>
-            </div>
-            <div class="col size-1of3">
-              <div class="col__title">Connect.</div>
-              <ul class="menu">
-                <li>
-                  <a href="https://www.data.gov/">Data.gov</a>
-                </li>
-                <li>
-                  <a href="https://www.epa.gov/office-inspector-general/about-epas-office-inspector-general">Inspector
-                    General</a>
-                </li>
-                <li>
-                  <a href="https://www.epa.gov/careers">Jobs</a>
-                </li>
-                <li>
-                  <a href="https://www.epa.gov/newsroom">Newsroom</a>
-                </li>
-                <li>
-                  <a href="https://www.regulations.gov/">Regulations.gov</a>
-                </li>
-                <li>
-                  <a href="https://www.epa.gov/newsroom/email-subscriptions">Subscribe</a>
-                </li>
-                <li>
-                  <a href="https://www.usa.gov/">USA.gov</a>
-                </li>
-                <li>
-                  <a href="https://www.whitehouse.gov/">White House</a>
-                </li>
-              </ul>
-            </div>
-            <div class="col size-1of3">
-              <div class="col__title">Ask.</div>
-              <ul class="menu">
-                <li>
-                  <a href="https://www.epa.gov/home/forms/contact-us">Contact EPA</a>
-                </li>
-                <li>
-                  <a href="https://www.epa.gov/home/epa-hotlines">Hotlines</a>
-                </li>
-                <li>
-                  <a href="https://www.epa.gov/foia">FOIA Requests</a>
-                </li>
-                <li>
-                  <a href="https://www.epa.gov/home/frequent-questions-specific-epa-programstopics">Frequent
-                    Questions</a>
-                </li>
-              </ul>
-              <div class="col__title">Follow.</div>
-              <ul class="social-menu">
-                <li>
-                  <a class="menu-link social-facebook" href="https://www.facebook.com/EPA">EPA's Facebook</a>
-                </li>
-                <li>
-                  <a class="menu-link social-twitter" href="https://twitter.com/epa">EPA's Twitter</a>
-                </li>
-                <li>
-                  <a class="menu-link social-youtube" href="https://www.youtube.com/user/USEPAgov">EPA's YouTube</a>
-                </li>
-                <li>
-                  <a class="menu-link social-flickr" href="https://www.flickr.com/photos/usepagov">EPA's Flickr</a>
-                </li>
-                <li>
-                  <a class="menu-link social-instagram" href="https://www.instagram.com/epagov">EPA's Instagram</a>
-                </li>
-              </ul>
+    <footer class="main-footer clearfix" role="contentinfo">
+      <div class="main-footer__inner">
+        <div class="region-footer">
+          <div
+            class="block-pane-epa-global-footer"
+            id="block-pane-epa-global-footer"
+          >
+            <div class="row cols-3">
+              <div class="col size-1of3">
+                <div class="col__title">Discover.</div>
+                <ul class="menu">
+                  <li>
+                    <a href="https://www.epa.gov/accessibility"
+                      >Accessibility</a
+                    >
+                  </li>
+                  <li>
+                    <a href="https://www.epa.gov/planandbudget"
+                      >Budget &amp; Performance</a
+                    >
+                  </li>
+                  <li>
+                    <a href="https://www.epa.gov/contracts">Contracting</a>
+                  </li>
+                  <li>
+                    <a href="https://www.epa.gov/grants">Grants</a>
+                  </li>
+                  <li>
+                    <a href="https://www.epa.gov/home/wwwepagov-snapshots"
+                      >EPA www Web Snapshots</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      href="https://www.epa.gov/ocr/whistleblower-protections-epa-and-how-they-relate-non-disclosure-agreements-signed-epa-employees"
+                      >No FEAR Act Data</a
+                    >
+                  </li>
+                  <li>
+                    <a href="https://www.epa.gov/privacy">Privacy</a>
+                  </li>
+                  <li>
+                    <a
+                      href="https://www.epa.gov/privacy/privacy-and-security-notice"
+                      >Privacy and Security Notice</a
+                    >
+                  </li>
+                </ul>
+              </div>
+              <div class="col size-1of3">
+                <div class="col__title">Connect.</div>
+                <ul class="menu">
+                  <li>
+                    <a href="https://www.data.gov/">Data.gov</a>
+                  </li>
+                  <li>
+                    <a
+                      href="https://www.epa.gov/office-inspector-general/about-epas-office-inspector-general"
+                      >Inspector General</a
+                    >
+                  </li>
+                  <li>
+                    <a href="https://www.epa.gov/careers">Jobs</a>
+                  </li>
+                  <li>
+                    <a href="https://www.epa.gov/newsroom">Newsroom</a>
+                  </li>
+                  <li>
+                    <a href="https://www.regulations.gov/">Regulations.gov</a>
+                  </li>
+                  <li>
+                    <a href="https://www.epa.gov/newsroom/email-subscriptions"
+                      >Subscribe</a
+                    >
+                  </li>
+                  <li>
+                    <a href="https://www.usa.gov/">USA.gov</a>
+                  </li>
+                  <li>
+                    <a href="https://www.whitehouse.gov/">White House</a>
+                  </li>
+                </ul>
+              </div>
+              <div class="col size-1of3">
+                <div class="col__title">Ask.</div>
+                <ul class="menu">
+                  <li>
+                    <a href="https://www.epa.gov/home/forms/contact-us"
+                      >Contact EPA</a
+                    >
+                  </li>
+                  <li>
+                    <a href="https://www.epa.gov/home/epa-hotlines">Hotlines</a>
+                  </li>
+                  <li>
+                    <a href="https://www.epa.gov/foia">FOIA Requests</a>
+                  </li>
+                  <li>
+                    <a
+                      href="https://www.epa.gov/home/frequent-questions-specific-epa-programstopics"
+                      >Frequent Questions</a
+                    >
+                  </li>
+                </ul>
+                <div class="col__title">Follow.</div>
+                <ul class="social-menu">
+                  <li>
+                    <a
+                      class="menu-link social-facebook"
+                      href="https://www.facebook.com/EPA"
+                      >EPA's Facebook</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      class="menu-link social-twitter"
+                      href="https://twitter.com/epa"
+                      >EPA's Twitter</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      class="menu-link social-youtube"
+                      href="https://www.youtube.com/user/USEPAgov"
+                      >EPA's YouTube</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      class="menu-link social-flickr"
+                      href="https://www.flickr.com/photos/usepagov"
+                      >EPA's Flickr</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      class="menu-link social-instagram"
+                      href="https://www.instagram.com/epagov"
+                      >EPA's Instagram</a
+                    >
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </footer>
-</body>
-
+    </footer>
+  </body>
 </html>
