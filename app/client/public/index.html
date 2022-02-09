@@ -250,15 +250,7 @@
       //Only setup the logging for public sites, ie don't log from localhost
       if (gaTarget) {
         // create the locationChange event
-        let event;
-        if (typeof Event === 'function') {
-          // used for modern browsers
-          event = new Event('locationchange');
-        } else {
-          // used for supporting internet explorer
-          event = document.createEvent('Event');
-          event.initEvent('locationchange', false, false);
-        }
+        const locationChangeEvent = new Event('locationchange');
 
         // create the location change event listener
         window.addEventListener('locationchange', function (event) {
