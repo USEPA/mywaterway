@@ -23,13 +23,8 @@ type Props = {
 };
 
 function Map({ layers = null, startingExtent = null, children }: Props) {
-  const {
-    initialExtent,
-    highlightOptions,
-    getBasemap,
-    mapView,
-    setMapView,
-  } = useContext(LocationSearchContext);
+  const { initialExtent, highlightOptions, getBasemap, mapView, setMapView } =
+    useContext(LocationSearchContext);
 
   const [map, setMap] = useState(null);
 
@@ -50,6 +45,9 @@ function Map({ layers = null, startingExtent = null, children }: Props) {
       map: esriMap,
       extent: startingExtent ?? initialExtent,
       highlightOptions,
+      popup: {
+        collapseEnabled: false,
+      },
     });
 
     setMapView(view);
