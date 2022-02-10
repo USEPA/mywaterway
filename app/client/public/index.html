@@ -95,7 +95,34 @@
       .main-footer .region-footer .col:last-of-type {
         padding-right: 0;
       }
+
+      .ieErrorBox {
+        margin: 1rem;
+        text-align: center;
+        border-color: #f5c6cb;
+        color: #721c24;
+        background-color: #f8d7da;
+      }
+
+      .ieOnly {
+        display: none;
+      }
+
+      @media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+        /* IE10 and IE11 styles */
+        .ieOnly {
+          display: block;
+        }
+      }
     </style>
+    <!-- IE9 and below styles -->
+    <!--[if IE]>
+      <style>
+        .ieOnly {
+          display: block;
+        }
+      </style>
+    <![endif]-->
     <!-- Set page title dynamically -->
     <script>
       // map pathnames to a formatted title for SEO purposes
@@ -504,7 +531,39 @@
       tabindex="-1"
     >
       <noscript>You need to enable JavaScript to run this app.</noscript>
-      <div id="root"></div>
+      <div id="root">
+        <div class="ieOnly">
+          <div class="ieErrorBox">
+            <strong
+              >Internet Explorer is not supported. Please use another browser
+              such as Chrome, Safari, Edge, or Firfox.</strong
+            >
+            <br />
+            How's My Waterway utilizes Esri's ArcGIS JavaScript API for advanced
+            mapping features, which are not supported by Internet Explorer. For
+            more information visit the following links:
+            <a
+              href="https://developers.arcgis.com/javascript/latest/system-requirements/#:~:text=Supported%20browsers&text=Firefox%2093%20or%20later,Safari%2014%20or%20later"
+              >ArcGIS System Requirements</a
+            >
+            and
+            <a
+              href="https://www.esri.com/arcgis-blog/products/arcgis/announcements/so-long-internet-explorer-11/"
+              target="_blank"
+              rel="noopener noreferrer"
+              >So Long Internet Explorer</a
+            >.
+            <a
+              class="exit-disclaimer"
+              href="https://www.epa.gov/home/exit-epa"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              EXIT
+            </a>
+          </div>
+        </div>
+      </div>
     </section>
 
     <footer class="main-footer clearfix" role="contentinfo">
