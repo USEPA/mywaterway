@@ -74,7 +74,7 @@ const StyledTabs = styled(Tabs)`
   }
 `;
 
-const NewTabDisclaimer = styled.div`
+const NewTabDisclaimer = styled.small`
   display: inline-block;
 `;
 

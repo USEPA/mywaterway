@@ -466,9 +466,9 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                   View Waterbody Report
                 </a>
                 &nbsp;&nbsp;
-                <div css={newTabDisclaimerDivStyles}>
+                <small css={newTabDisclaimerDivStyles}>
                   (opens new browser tab)
-                </div>
+                </small>
               </div>
             )}
           </>
