@@ -638,7 +638,8 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
     const url =
       services.data.attains.serviceUrl +
       `actions?organizationIdentifier=${orgId}` +
-      `&assessmentUnitIdentifier=${auId}`;
+      `&assessmentUnitIdentifier=${auId}` +
+      `&summarize=Y`;
 
     fetchCheck(url).then(
       (res) => {
@@ -651,15 +652,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
 
         const actions = filteredActions[0].actions.map((action) => {
           // get water with matching assessment unit identifier
-          const matchingWater = action.associatedWaters.specificWaters.filter(
-            (water) => water.assessmentUnitIdentifier === auId,
-          )[0];
-
-          const pollutants = matchingWater
-            ? matchingWater.parameters.map((p) =>
-                titleCaseWithExceptions(p.parameterName),
-              )
-            : [];
+          const pollutants = action.parameters.map((p) =>
+            titleCaseWithExceptions(p.parameterName),
+          );
 
           return {
             id: action.actionIdentifier,
@@ -712,7 +707,8 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
       const url =
         services.data.attains.serviceUrl +
         `actions?organizationIdentifier=${orgId}` +
-        `&actionIdentifier=${additionalIds.join(',')}`;
+        `&actionIdentifier=${additionalIds.join(',')}` +
+        `&summarize=Y`;
 
       setActionsFetchedAgain(true);
 
@@ -736,8 +732,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
 
           filteredActions.forEach((item) => {
             item.actions.forEach((action) => {
-              const { specificWaters } = action.associatedWaters;
-              const pollutants = specificWaters[0].parameters.map((p) => {
+              const pollutants = action.parameters.map((p) => {
                 return titleCaseWithExceptions(p.parameterName);
               });
 
