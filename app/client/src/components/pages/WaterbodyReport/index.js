@@ -127,6 +127,14 @@ const inlineBoxSectionStyles = css`
   }
 `;
 
+const boxSectionStylesNoTopMargin = css`
+  ${boxSectionStyles}
+
+  p {
+    margin-top: 0;
+  }
+`;
+
 const rationaleStyles = css`
   margin-top: 0 !important;
 `;
@@ -1076,7 +1084,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                       )}
                     </h2>
 
-                    <div css={boxSectionStyles}>
+                    <div css={boxSectionStylesNoTopMargin}>
                       <h3>What is this water used for?</h3>
                       {waterbodyUses.status === 'fetching' && (
                         <LoadingSpinner />
