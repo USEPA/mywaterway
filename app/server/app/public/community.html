@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7]><html class="iem7 no-js" lang="en" dir="ltr"><![endif]-->
+<!--[if lt IE 7]><html class="lt-ie9 lt-ie8 lt-ie7 no-js" lang="en" dir="ltr"><![endif]-->
+<!--[if (IE 7)&(!IEMobile)]><html class="lt-ie9 lt-ie8 no-js" lang="en" dir="ltr"><![endif]-->
+<!--[if IE 8]><html class="lt-ie9 no-js" lang="en" dir="ltr"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)]><!-->
+<html class="no-js not-oldie" lang="en" dir="ltr">
+  <!--<![endif]-->
+  <head>
+    <meta charset="utf-8" />
+    <meta name="HandheldFriendly" content="true" />
+    <link
+      rel="shortcut icon"
+      href="favicon.ico"
+      type="image/vnd.microsoft.icon"
+    />
+    <meta name="MobileOptimized" content="width" />
+    <meta http-equiv="cleartype" content="on" />
+    <meta http-equiv="ImageToolbar" content="false" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <!--googleon: all-->
+    <meta name="DC.title" content="How's My Waterway? Widget" />
+    <meta
+      name="DC.description"
+      content="Enter a location to learn about water quality in your community. Explore information about local stream conditions, watershed protection, restoration, drinking water and whether your waterways are suitable for swimming or eating fish and aquatic life."
+    />
+    <title>How’s My Waterway? | US EPA</title>
+    <!--googleoff: snippet-->
+    <meta name="DC.date.created" content="2021-10-13" />
+    <meta name="DC.date.modified" content="2021-10-13" />
+    <meta
+      name="keywords"
+      content="Clean Water Act (CWA), Safe Drinking Water Act (SDWA), pollution, impaired waterbodies"
+    />
+    <meta name="DC.type" content="Data and Tools" />
+    <meta name="DC.Subject.epachannel" content="Learn the Issues" />
+    <meta name="DC.creator" content="US EPA" />
+    <meta name="DC.language" content="en" />
+    <!--googleoff: all-->
+    <style type="text/css">
+      body {
+        display: flex;
+        flex-direction: column;
+        margin: 4px;
+        height: calc(100vh - 8px);
+      }
+
+      .widget {
+        position: relative;
+        border: 3px solid #0059b2;
+        border-radius: 10px;
+        height: 100%;
+        font-family: Verdana, Geneva, sans-serif;
+        font-size: 13px;
+        background-image: url(boating.jpg);
+        background-position: center;
+        background-size: cover;
+      }
+
+      .widget-content {
+        padding: 10px;
+        border-radius: 7px;
+        height: calc(100% - 20px);
+        background-image: linear-gradient(
+          to top,
+          rgba(255, 255, 255, 0.8),
+          rgba(255, 255, 255, 0.6),
+          rgba(255, 255, 255, 0.8)
+        );
+      }
+
+      .widget-content h1 {
+        margin-top: 0;
+        margin-bottom: 8px;
+        font-size: 15px;
+        text-align: center;
+      }
+
+      .widget-content h1 a {
+        text-decoration: none;
+        color: #044b8d;
+      }
+
+      .widget-content p {
+        margin-top: 0;
+        margin-bottom: 8px;
+        color: #333;
+      }
+
+      .widget-content label {
+        display: block;
+        margin-bottom: 3px;
+        font-weight: bold;
+        color: #044b8d;
+      }
+
+      .widget-input {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .widget-input input {
+        border: 1px solid #044b8d;
+        border-radius: 3px;
+      }
+
+      .widget-input input[type='text'] {
+        flex: 1;
+        padding: 4px;
+        width: 100%;
+        color: #515151;
+      }
+
+      .widget-input input[type='submit'] {
+        margin-left: 6px;
+        padding: 4px 8px;
+        font-weight: bold;
+        text-shadow: 0 0 6px rgba(0, 0, 0, 0.375);
+        color: #fff;
+        background-color: #044b8d;
+      }
+
+      .widget-footer {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        position: absolute;
+        bottom: 0;
+        width: calc(100% - 12px);
+        padding: 6px;
+        padding-bottom: 3px;
+      }
+
+      .widget-footer img {
+        height: 16px;
+        width: auto;
+      }
+
+      #hmw-no-script-link {
+        display: none;
+      }
+    </style>
+  </head>
+  <body class="blank">
+    <!-- Google Tag Manager -->
+    <noscript>
+      <iframe
+        title="google tag manager"
+        src="//www.googletagmanager.com/ns.html?id=GTM-L8ZB"
+        height="0"
+        width="0"
+        style="display: none; visibility: hidden"
+      >
+      </iframe>
+    </noscript>
+    <script>
+      (function (w, d, s, l, i) {
+        w[l] = w[l] || [];
+        w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+        var f = d.getElementsByTagName(s)[0],
+          j = d.createElement(s),
+          dl = l != 'dataLayer' ? '&l=' + l : '';
+        j.async = true;
+        j.src = '//www.googletagmanager.com/gtm.js?id=' + i + dl;
+        f.parentNode.insertBefore(j, f);
+      })(window, document, 'script', 'dataLayer', 'GTM-L8ZB');
+    </script>
+    <!-- End Google Tag Manager -->
+
+    <noscript>
+      <style>
+        #hmw-form {
+          display: none;
+        }
+
+        #hmw-no-script-link {
+          display: block;
+        }
+      </style>
+    </noscript>
+
+    <main class="widget">
+      <div class="widget-content">
+        <h1>
+          <a
+            href="https://mywaterway-dev.app.cloud.gov/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            How’s My Waterway
+          </a>
+        </h1>
+
+        <p>Explore water quality in your community!</p>
+
+        <a
+          id="hmw-no-script-link"
+          href="https://mywaterway-dev.app.cloud.gov/community"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Learn more
+        </a>
+
+        <form id="hmw-form">
+          <label for="hmw-location">Enter a location:</label>
+          <div class="widget-input">
+            <input
+              id="hmw-location"
+              type="text"
+              name="location"
+              value="address, zip or place"
+              onfocus="clearDefault(this)"
+              onblur="setDefault(this)"
+            />
+            <input type="submit" value="Go" />
+          </div>
+        </form>
+      </div>
+
+      <div class="widget-footer">
+        <a
+          href="https://www.epa.gov/waterdata/hows-my-waterway"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            src="info-icon.png"
+            alt="How's My Waterway Information"
+            title="Learn more about this tool"
+          />
+        </a>
+        <a href="https://www.epa.gov" target="_blank" rel="noopener noreferrer">
+          <img
+            src="https://www.epa.gov/sites/production/files/2014-03/epa-logo.png"
+            alt="EPA Home Page"
+          />
+        </a>
+      </div>
+      </main>
+
+    <script>
+      var form = document.getElementById('hmw-form');
+
+      if (form.addEventListener) {
+        form.addEventListener('submit', onSubmit, false); //Modern browsers
+      } else if (form.attachEvent) {
+        form.attachEvent('onsubmit', onSubmit); //Old IE
+      }
+
+      function onSubmit(ev) {
+        ev.preventDefault();
+
+        if (form.location.value === form.location.defaultValue) {
+          alert('Please input a location.');
+          return;
+        }
+
+        var url = 'https://mywaterway-dev.app.cloud.gov/community/' + form.location.value;
+        window.open(url, '_blank');
+      }
+
+      function clearDefault(field) {
+        if (field.defaultValue === field.value) field.value = '';
+      }
+
+      function setDefault(field) {
+        if (field.value === '') field.value = field.defaultValue;
+      }
+    </script>
+  </body>
+</html>
