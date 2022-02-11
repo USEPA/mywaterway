@@ -131,7 +131,10 @@ if (isLocal) {
       'Access-Control-Allow-Headers',
       'Origin, X-Requested-With, Content-Type, Accept',
     );
-    res.header('X-Frame-Options', 'allow-from http://localhost:3000/');
+    res.header(
+      'X-Frame-Options',
+      'allow-from http://localhost:3000/, https://storymaps.arcgis.com/', // TODO - Remove storymaps from the allow list
+    );
     next();
   });
 }
