@@ -37,6 +37,7 @@ import { StyledErrorBox } from 'components/shared/MessageBoxes';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
+  useOrganizationsContext,
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
@@ -93,6 +94,7 @@ type Props = {
 };
 
 function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
+  const organizations = useOrganizationsContext();
   const services = useServicesContext();
 
   const {
@@ -109,8 +111,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     homeWidget,
     huc12,
     setHuc12,
-    assessmentUnitCount,
-    setAssessmentUnitCount,
     assessmentUnitIDs,
     setAssessmentUnitIDs,
     orphanFeatures,
@@ -209,39 +209,44 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         return [];
       }
 
-      return idsWithNoAssessmentData.map((id) => {
-        const assessmentUnitName = matchAssessmentUnitName(
-          id,
-          allAssessmentUnits,
-        );
+      return [];
 
-        const matchingItem = assessmentUnitServiceData.items.find((item) => {
-          return item.assessmentUnits.find(
-            (assessmentUnit) => assessmentUnit.assessmentUnitIdentifier === id,
-          );
-        });
+      // The code below is commented out because, these assessments do not
+      // have a reportingCycle. So there is no way to know if any of these
+      // assessments will match up with the reportingCycle of the organization
+      // return idsWithNoAssessmentData.map((id) => {
+      //   const assessmentUnitName = matchAssessmentUnitName(
+      //     id,
+      //     allAssessmentUnits,
+      //   );
 
-        const orgID = matchingItem && matchingItem.organizationIdentifier;
-        const orgName = matchingItem && matchingItem.organizationName;
-        const orgType = matchingItem && matchingItem.organizationTypeText;
+      //   const matchingItem = assessmentUnitServiceData.items.find((item) => {
+      //     return item.assessmentUnits.find(
+      //       (assessmentUnit) => assessmentUnit.assessmentUnitIdentifier === id,
+      //     );
+      //   });
 
-        return {
-          limited: true,
-          attributes: {
-            assessmentunitidentifier: id,
-            assessmentunitname: assessmentUnitName || 'Unknown',
-            organizationid: orgID,
-            reportingcycle: null,
-            overallstatus: 'Condition Unknown',
-            orgtype: orgType,
-            organizationname: orgName,
-            drinkingwater_use: null,
-            fishconsumption_use: null,
-            ecological_use: null,
-            recreation_use: null,
-          },
-        };
-      });
+      //   const orgID = matchingItem && matchingItem.organizationIdentifier;
+      //   const orgName = matchingItem && matchingItem.organizationName;
+      //   const orgType = matchingItem && matchingItem.organizationTypeText;
+
+      //   return {
+      //     limited: true,
+      //     attributes: {
+      //       assessmentunitidentifier: id,
+      //       assessmentunitname: assessmentUnitName || 'Unknown',
+      //       organizationid: orgID,
+      //       reportingcycle: null,
+      //       overallstatus: 'Condition Unknown',
+      //       orgtype: orgType,
+      //       organizationname: orgName,
+      //       drinkingwater_use: null,
+      //       fishconsumption_use: null,
+      //       ecological_use: null,
+      //       recreation_use: null,
+      //     },
+      //   };
+      // });
     },
     [],
   );
@@ -249,6 +254,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // create a feature using data from ATTAINS Domains, Assessment Units, and Assessments services
   const createDetailedOrphanFeatures = useCallback(
     (res, allAssessmentUnits, attainsDomainsData) => {
+      if (organizations.status !== 'success') return [];
+
       // function that checks if any uses in an array of uses have a status that matches the 2nd paremeter
       function checkStatus(uses, status) {
         return uses.some((e) => e.status === status);
@@ -325,6 +332,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       const organizationName = res[0].organizationName;
       const cycleYear = res[0].reportingCycleText;
 
+      // get organization
+      const organization = organizations.data.features.find(
+        (org) => org.attributes.organizationid === orgId,
+      );
+      if (!organization?.attributes?.reportingcycle) return [];
+
+      // check if record cycle year matches the organization cycle year
+      const orgCycleYear = organization.attributes.reportingcycle;
+      if (orgCycleYear.toString() !== cycleYear.toString()) return [];
+
       return res[0].assessments.map((assessment) => {
         const assessmentUnitName = matchAssessmentUnitName(
           assessment.assessmentUnitIdentifier,
@@ -385,7 +402,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         };
       });
     },
-    [stateNationalUses],
+    [organizations, stateNationalUses],
   );
 
   const handleOrphanedFeatures = useCallback(
@@ -509,9 +526,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // If so, query the individual missing assessment IDs using the ATTAINS assessments and assessmentUnits service
   // to build a complete feature that can be displayed in the Community section,
   // These features are marked by a custom attribute {... limited: true ...} and they lack spatial representation on the map.
+  const [assessmentUnitCount, setAssessmentUnitCount] = useState(0);
   const [checkedForOrphans, setCheckedForOrphans] = useState(false);
   useEffect(() => {
-    if (stateNationalUses.status === 'fetching') {
+    if (
+      organizations.status === 'fetching' ||
+      stateNationalUses.status === 'fetching'
+    ) {
       return;
     }
 
@@ -591,20 +612,21 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       }
     }
   }, [
-    huc12,
-    checkedForOrphans,
-    getAllFeatures,
     areasData,
-    linesData,
-    pointsData,
     assessmentUnitCount,
     assessmentUnitIDs,
-    services,
+    checkedForOrphans,
+    getAllFeatures,
     handleOrphanedFeatures,
+    huc12,
+    linesData,
+    organizations,
+    pointsData,
+    services,
     setOrphanFeatures,
+    stateNationalUses,
     waterbodyCountMismatch,
     setWaterbodyCountMismatch,
-    stateNationalUses,
   ]);
 
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
@@ -1460,9 +1482,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       retrieveAreas,
       retrieveLines,
       retrievePoints,
-      setCipSummary,
-      setAssessmentUnitCount,
       setAssessmentUnitIDs,
+      setCipSummary,
     ],
   );
 

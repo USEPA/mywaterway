@@ -138,8 +138,7 @@ function useWaterbodyFeatures() {
       waterbodyCountMismatch === null ||
       (waterbodyCountMismatch === true &&
         orphanFeatures &&
-        orphanFeatures.status !== 'error' &&
-        orphanFeatures.features.length === 0)
+        orphanFeatures.status === 'fetching')
     ) {
       if (features) setFeatures(null);
       return;
