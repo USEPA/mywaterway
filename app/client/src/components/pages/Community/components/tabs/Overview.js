@@ -88,7 +88,6 @@ const toggleStyles = css`
 function Overview() {
   const {
     cipSummary,
-    assessmentUnitCount, // TODO: determine if this is needed...
     monitoringLocations,
     usgsStreamgages,
     permittedDischargers,
@@ -270,8 +269,8 @@ function Overview() {
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {Boolean(assessmentUnitCount) && cipSummary.status === 'success'
-                  ? assessmentUnitCount.toLocaleString()
+                {Boolean(waterbodies.length) && cipSummary.status === 'success'
+                  ? waterbodies.length.toLocaleString()
                   : 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Waterbodies</p>
