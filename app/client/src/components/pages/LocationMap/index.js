@@ -229,6 +229,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         const orgType = matchingItem && matchingItem.organizationTypeText;
 
         return {
+          includeInOutput: true,
           limited: true,
           attributes: {
             assessmentunitidentifier: id,
@@ -329,6 +330,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       const orgType = res[0].organizationTypeText;
       const organizationName = res[0].organizationName;
       const cycleYear = res[0].reportingCycleText;
+      let includeInOutput = true;
 
       // get organization
       const organization = organizations.data.features.find(
@@ -337,8 +339,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       if (!organization?.attributes?.reportingcycle) return [];
 
       // check if record cycle year matches the organization cycle year
+      // if they don't match exclude it from the output
       const orgCycleYear = organization.attributes.reportingcycle;
-      if (orgCycleYear.toString() !== cycleYear.toString()) return [];
+      if (orgCycleYear.toString() !== cycleYear.toString()) {
+        includeInOutput = false;
+      }
 
       return res[0].assessments.map((assessment) => {
         const assessmentUnitName = matchAssessmentUnitName(
@@ -366,6 +371,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         const parametersObject = createParametersObject(parameterList);
 
         return {
+          includeInOutput,
           limited: true,
           attributes: {
             organizationid: orgId,
@@ -505,7 +511,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               orphans = orphans.concat(simpleFeatures);
             }
           }
-          setOrphanFeatures({ features: orphans, status: 'success' });
+
+          // filter out the orphans that arn't marked for includeInOutput
+          setOrphanFeatures({
+            features: orphans.filter((orphan) => orphan.includeInOutput),
+            status: 'success',
+          });
         })
         .catch((err) => {
           console.error(err);
