@@ -205,6 +205,10 @@
     <!-- End Google Tag Manager -->
     <!-- Google Analytics -->
     <script>
+    // Prevent scroll restoration. This is used to avoid issues with browsers 
+    // scrolling to odd positions after the page finishes loading
+    history.scrollRestoration = "manual";
+
       function addGoogleAnalyticsObject() {
         (function (i, s, o, g, r, a, m) {
           i['GoogleAnalyticsObject'] = r;
