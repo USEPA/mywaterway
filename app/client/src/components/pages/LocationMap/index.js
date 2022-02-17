@@ -209,44 +209,42 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         return [];
       }
 
-      return [];
-
       // The code below is commented out because, these assessments do not
       // have a reportingCycle. So there is no way to know if any of these
       // assessments will match up with the reportingCycle of the organization
-      // return idsWithNoAssessmentData.map((id) => {
-      //   const assessmentUnitName = matchAssessmentUnitName(
-      //     id,
-      //     allAssessmentUnits,
-      //   );
+      return idsWithNoAssessmentData.map((id) => {
+        const assessmentUnitName = matchAssessmentUnitName(
+          id,
+          allAssessmentUnits,
+        );
 
-      //   const matchingItem = assessmentUnitServiceData.items.find((item) => {
-      //     return item.assessmentUnits.find(
-      //       (assessmentUnit) => assessmentUnit.assessmentUnitIdentifier === id,
-      //     );
-      //   });
+        const matchingItem = assessmentUnitServiceData.items.find((item) => {
+          return item.assessmentUnits.find(
+            (assessmentUnit) => assessmentUnit.assessmentUnitIdentifier === id,
+          );
+        });
 
-      //   const orgID = matchingItem && matchingItem.organizationIdentifier;
-      //   const orgName = matchingItem && matchingItem.organizationName;
-      //   const orgType = matchingItem && matchingItem.organizationTypeText;
+        const orgID = matchingItem && matchingItem.organizationIdentifier;
+        const orgName = matchingItem && matchingItem.organizationName;
+        const orgType = matchingItem && matchingItem.organizationTypeText;
 
-      //   return {
-      //     limited: true,
-      //     attributes: {
-      //       assessmentunitidentifier: id,
-      //       assessmentunitname: assessmentUnitName || 'Unknown',
-      //       organizationid: orgID,
-      //       reportingcycle: null,
-      //       overallstatus: 'Condition Unknown',
-      //       orgtype: orgType,
-      //       organizationname: orgName,
-      //       drinkingwater_use: null,
-      //       fishconsumption_use: null,
-      //       ecological_use: null,
-      //       recreation_use: null,
-      //     },
-      //   };
-      // });
+        return {
+          limited: true,
+          attributes: {
+            assessmentunitidentifier: id,
+            assessmentunitname: assessmentUnitName || 'Unknown',
+            organizationid: orgID,
+            reportingcycle: null,
+            overallstatus: 'Condition Unknown',
+            orgtype: orgType,
+            organizationname: orgName,
+            drinkingwater_use: null,
+            fishconsumption_use: null,
+            ecological_use: null,
+            recreation_use: null,
+          },
+        };
+      });
     },
     [],
   );
