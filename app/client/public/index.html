@@ -785,11 +785,11 @@
         };
       }
       if (M[1] === 'Chrome') {
-        item = ua.match(/\b(OPR|Edg)\/(\d+)/);
+        item = ua.match(/\b(Edg)\/(\d+)/);
         if (item != null) {
           item = item.slice(1);
           return {
-            browserName: item[0].replace('OPR', 'Opera').replace('Edg', 'Edge'),
+            browserName: item[0].replace('Edg', 'Edge'),
             browserVersion: parseInt(item[1]) || 0,
           };
         }
