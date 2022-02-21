@@ -142,7 +142,7 @@ const searchBoxStyles = css`
   }
 
   .esri-menu {
-    z-index: 1000;
+    z-index: 800;
   }
 
   .esri-menu__list-item::hover {
