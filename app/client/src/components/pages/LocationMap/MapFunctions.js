@@ -308,14 +308,9 @@ export function createWaterbodySymbol({
     }
 
     if (condition === 'polluted') {
-      //internet explorer does not support the path style
-      if (isIE()) {
-        symbol.style = 'circle';
-      } else {
-        symbol.style = 'path';
-        symbol.path =
-          'M17.14 3 8.86 3 3 8.86 3 17.14 8.86 23 17.14 23 23 17.14 23 8.86 17.14 3z';
-      }
+      symbol.style = 'path';
+      symbol.path =
+        'M17.14 3 8.86 3 3 8.86 3 17.14 8.86 23 17.14 23 23 17.14 23 8.86 17.14 3z';
     }
 
     return symbol;
@@ -342,12 +337,6 @@ export function createWaterbodySymbol({
       outline: polyOutline,
     };
   }
-}
-
-export function isIE() {
-  const ua = navigator.userAgent;
-  /* MSIE used to detect old browsers and Trident used to newer ones*/
-  return ua.indexOf('MSIE ') > -1 || ua.indexOf('Trident/') > -1;
 }
 
 // plot monitoring stations on map
@@ -689,7 +678,7 @@ export function getPopupContent({
   // line, area, point for waterbody
   else if (attributes && attributes.assessmentunitname) {
     const communityTab = getSelectedCommunityTab();
-    const pathname = document.location.pathname;
+    const pathname = window.location.pathname;
     const isAllWaterbodiesLayer =
       feature.layer?.parent?.id === 'allWaterbodiesLayer';
 

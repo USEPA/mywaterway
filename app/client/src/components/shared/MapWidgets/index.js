@@ -220,7 +220,7 @@ function updateVisibleLayers(
       (layer.visible && layer.listMode !== 'hide') ||
       (layer.visible &&
         layer.id === 'boundariesLayer' &&
-        document.location.pathname !== '/community') ||
+        window.location.pathname !== '/community') ||
       (layer.visible && layer.id === 'actionsWaterbodies') ||
       (layer.visible && layer.id === 'upstreamWatershed') ||
       (layer.visible && layer.id === 'allWaterbodiesLayer')
@@ -1508,15 +1508,9 @@ function ExpandCollapse({
       onMouseOut={() => setHover(false)}
       onClick={(ev) => {
         // Toggle scroll bars
-        if (fullscreenActive()) {
-          // Display the scroll bars
-          document.documentElement.style.overflow = 'auto';
-          document.body.scroll = 'yes'; //ie browser
-        } else {
-          // Hide the scroll bars
-          document.documentElement.style.overflow = 'hidden';
-          document.body.scroll = 'no'; //ie browser
-        }
+        document.documentElement.style.overflow = fullscreenActive()
+          ? 'auto'
+          : 'hidden';
 
         // Toggle fullscreen mode
         setFullscreenActive(!fullscreenActive());

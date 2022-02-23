@@ -10,7 +10,6 @@ import React, {
 } from 'react';
 import { css } from 'styled-components/macro';
 import { navigate } from '@reach/router';
-import { isIE } from 'components/pages/LocationMap/MapFunctions';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Locator from '@arcgis/core/tasks/Locator';
 import Point from '@arcgis/core/geometry/Point';
@@ -143,7 +142,7 @@ const searchBoxStyles = css`
   }
 
   .esri-menu {
-    z-index: 1000;
+    z-index: 800;
   }
 
   .esri-menu__list-item::hover {
@@ -1004,8 +1003,7 @@ function LocationSearch({ route, label }: Props) {
                   );
                 }}
               >
-                {/* don't display the loading indicator in IE11 */}
-                {!geolocating || isIE() ? (
+                {!geolocating ? (
                   <>
                     <i className="fas fa-crosshairs" aria-hidden="true" />
                     &nbsp;&nbsp;Use My Location

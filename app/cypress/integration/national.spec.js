@@ -4,8 +4,10 @@ describe('National Water Quality tab', () => {
   });
 
   it('Switching the sub-tabs updates the content within the container', () => {
-    const riversAndStreamsText = /of our rivers and streams are healthy based on their biological communities/;
-    const coastsText = /of our coasts are healthy based on their biological communities/;
+    const riversAndStreamsText =
+      /of our rivers and streams are healthy based on their biological communities/;
+    const coastsText =
+      /of our coasts are healthy based on their biological communities/;
 
     // verify Rivers and Streams tab content is displayed and Coasts tab content is hidden
     cy.findByText(riversAndStreamsText).should('be.visible');
@@ -100,7 +102,7 @@ describe('National Drinking Water tab', () => {
     );
 
     // verify Url stayed the same
-    cy.url().should('equal', `${document.location.origin}/national`);
+    cy.url().should('equal', `${window.location.origin}/national`);
   });
 
   it('The US Drinking Water Systems By Type pie chart is displayed', () => {
