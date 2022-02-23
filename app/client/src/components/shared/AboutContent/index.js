@@ -10,7 +10,6 @@ import { LargeTab } from 'components/shared/ContentTabs/LargeTab.js';
 // styles
 import { fonts } from 'styles/index.js';
 
-// --- styled components ---
 const containerStyles = css`
   padding: 1rem;
 
@@ -72,11 +71,10 @@ const subheadingStyles = css`
   padding: 0;
 `;
 
-const newTabDisclaimerStyles = css`
+const disclaimerStyles = css`
   display: inline-block;
 `;
 
-// --- components ---
 type Props = {};
 
 function AboutContent({ ...props }: Props) {
@@ -398,7 +396,7 @@ function AboutContent({ ...props }: Props) {
                 </p>
 
                 <h2>More Questions?</h2>
-                <div>
+                <p>
                   <a
                     href="https://www.epa.gov/waterdata/forms/contact-us-about-hows-my-waterway"
                     target="_blank"
@@ -407,10 +405,8 @@ function AboutContent({ ...props }: Props) {
                     Contact us
                   </a>
                   &nbsp;&nbsp;
-                  <small css={newTabDisclaimerStyles}>
-                    (opens new browser tab)
-                  </small>
-                </div>
+                  <small css={disclaimerStyles}>(opens new browser tab)</small>
+                </p>
               </div>
             </TabPanel>
           </TabPanels>
