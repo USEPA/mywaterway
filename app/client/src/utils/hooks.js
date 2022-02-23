@@ -946,6 +946,7 @@ function useSharedLayers() {
       renderer: wsioHealthIndexRenderer,
       listMode: 'show',
       visible: false,
+      legendEnabled: false,
       popupTemplate: {
         title: getTitle,
         content: getTemplate,
@@ -991,6 +992,7 @@ function useSharedLayers() {
       id: 'protectedAreasLayer',
       title: 'Protected Areas',
       url: services.data.protectedAreasDatabase,
+      legendEnabled: false,
       sublayers: [
         {
           id: 0,
@@ -1013,6 +1015,7 @@ function useSharedLayers() {
       id: 'protectedAreasHighlightLayer',
       title: 'Protected Areas Highlight Layer',
       listMode: 'hide',
+      legendEnabled: false,
     });
 
     setProtectedAreasHighlightLayer(protectedAreasHighlightLayer);
@@ -1038,6 +1041,7 @@ function useSharedLayers() {
       renderer: wildScenicRiversRenderer,
       listMode: 'hide',
       visible: false,
+      legendEnabled: false,
       popupTemplate: {
         title: getTitle,
         content: getTemplate,
@@ -1168,6 +1172,7 @@ function useSharedLayers() {
       title: 'Tribal Areas',
       listMode: 'show',
       visible: false,
+      legendEnabled: false,
       layers: [
         alaskaNativeVillages,
         otherTribes,
@@ -1196,6 +1201,7 @@ function useSharedLayers() {
       title: 'Congressional Districts',
       listMode: 'hide-children',
       visible: false,
+      legendEnabled: false,
       renderer: {
         type: 'simple',
         symbol: {
@@ -1235,6 +1241,7 @@ function useSharedLayers() {
       title: 'County',
       listMode: 'show',
       visible: false,
+      legendEnabled: false,
       renderer: {
         type: 'simple',
         symbol: {
@@ -1263,6 +1270,7 @@ function useSharedLayers() {
       sublayers: [{ id: 0 }],
       listMode: 'hide',
       visible: false,
+      legendEnabled: false,
     });
   }
 
@@ -1361,6 +1369,7 @@ function useSharedLayers() {
       title: 'Demographic Indicators',
       listMode: 'show',
       visible: false,
+      legendEnabled: false,
       layers: [
         ejLessThanHS,
         ejMinority,
@@ -1449,6 +1458,7 @@ function useSharedLayers() {
       title: 'All Waterbodies',
       listMode: 'hide',
       visible: true,
+      legendEnabled: false,
       minScale,
       opacity: 0.3,
     });

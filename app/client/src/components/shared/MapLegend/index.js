@@ -7,7 +7,10 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import PinIcon from 'components/shared/Icons/PinIcon';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
-import { GradientIcon } from 'components/pages/LocationMap/MapFunctions';
+import {
+  GradientIcon,
+  isInScale,
+} from 'components/pages/LocationMap/MapFunctions';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // utils
 import { getSelectedCommunityTab } from 'utils/utils';
@@ -75,17 +78,23 @@ const ignoreLayers = ['mappedWaterLayer', 'watershedsLayer', 'searchIconLayer'];
 // --- components ---
 type Props = {
   view: Object,
+  displayEsriLegend: boolean,
   visibleLayers: Object,
   additionalLegendInfo: Object,
 };
 
-function MapLegend({ view, visibleLayers, additionalLegendInfo }: Props) {
+function MapLegend({
+  view,
+  displayEsriLegend,
+  visibleLayers,
+  additionalLegendInfo,
+}: Props) {
   const filteredVisibleLayers = visibleLayers.filter(
-    (layer) => !ignoreLayers.includes(layer.id),
+    (layer) => !ignoreLayers.includes(layer.id) && isInScale(layer, view.scale),
   );
 
   // no legend data
-  if (filteredVisibleLayers.length === 0) {
+  if (filteredVisibleLayers.length === 0 && !displayEsriLegend) {
     return (
       <div css={containerStyles}>
         <ul css={listStyles}>There are currently no items to display</ul>

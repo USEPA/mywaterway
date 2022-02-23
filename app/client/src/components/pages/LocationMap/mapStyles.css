@@ -168,10 +168,15 @@
 }
 
 .esri-legend {
+  min-height: auto !important;
   max-height: none !important;
 }
 
 .esri-legend-hidden {
+  display: none;
+}
+
+.esri-legend__message {
   display: none;
 }
 
