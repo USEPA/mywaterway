@@ -695,7 +695,7 @@ function MapWidgets({
           uniqueParentItems.push(item.title);
           updateVisibleLayers(
             view,
-            displayEsriLegend,
+            displayEsriLegendNonState,
             hmwLegendNode,
             additionalLegendInfo,
           );
