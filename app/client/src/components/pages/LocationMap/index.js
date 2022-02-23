@@ -376,7 +376,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               assessment.useAttainments,
             ),
             recreation_use: getUseStatus(
-              'Recreation',
+              'Recreation', // Recreation in Attains = Swimming and Boating in HMW
               stateCode,
               assessment.useAttainments,
             ),
