@@ -238,7 +238,7 @@ const paragraphContentStyles = css`
   }
 `;
 
-const newTabDisclaimerDivStyles = css`
+const disclaimerStyles = css`
   display: inline-block;
 `;
 
@@ -466,9 +466,7 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
                   View Waterbody Report
                 </a>
                 &nbsp;&nbsp;
-                <div css={newTabDisclaimerDivStyles}>
-                  (opens new browser tab)
-                </div>
+                <small css={disclaimerStyles}>(opens new browser tab)</small>
               </div>
             )}
           </>

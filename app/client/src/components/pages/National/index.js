@@ -40,6 +40,10 @@ const containerStyles = css`
     font-weight: bold;
     color: ${colors.blue()};
   }
+
+  small {
+    font-weight: inherit;
+  }
 `;
 
 const modifiedTabsStyles = css`
@@ -447,12 +451,13 @@ function NationalDrinkingWaterPanel() {
           >
             Consumer Confidence Report (CCR)
           </a>{' '}
-          (opens new browser tab). The CCR lists the levels of contaminants that
-          have been detected in the water, including those identified by EPA,
-          and whether the public water system (PWS) meets state and EPA drinking
-          water standards. In addition, the search results in this tool on the
-          community page under the Drinking Water tab pull data from the Safe
-          Drinking Water Information System (SDWIS) Federal Reporting Services.
+          <small>(opens new browser tab)</small>. The CCR lists the levels of
+          contaminants that have been detected in the water, including those
+          identified by EPA, and whether the public water system (PWS) meets
+          state and EPA drinking water standards. In addition, the search
+          results in this tool on the community page under the Drinking Water
+          tab pull data from the Safe Drinking Water Information System (SDWIS)
+          Federal Reporting Services.
         </p>
       </div>
 
