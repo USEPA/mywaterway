@@ -198,63 +198,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       return matchedAssessment.assessmentUnitName;
   }
 
-  // create features whose IDs and data are not found in the Assessment Units and/or Assessments services
-  const createSimpleOrphanFeatures = useCallback(
-    (
-      assessmentUnitServiceData,
-      idsWithNoAssessmentData,
-      allAssessmentUnits,
-    ) => {
-      if (!idsWithNoAssessmentData || idsWithNoAssessmentData.length === 0) {
-        return [];
-      }
-
-      // The code below is commented out because, these assessments do not
-      // have a reportingCycle. So there is no way to know if any of these
-      // assessments will match up with the reportingCycle of the organization
-      return idsWithNoAssessmentData.map((id) => {
-        const assessmentUnitName = matchAssessmentUnitName(
-          id,
-          allAssessmentUnits,
-        );
-
-        const matchingItem = assessmentUnitServiceData.items.find((item) => {
-          return item.assessmentUnits.find(
-            (assessmentUnit) => assessmentUnit.assessmentUnitIdentifier === id,
-          );
-        });
-
-        const orgID = matchingItem && matchingItem.organizationIdentifier;
-        const orgName = matchingItem && matchingItem.organizationName;
-        const orgType = matchingItem && matchingItem.organizationTypeText;
-
-        return {
-          includeInOutput: true,
-          limited: true,
-          attributes: {
-            assessmentunitidentifier: id,
-            assessmentunitname: assessmentUnitName || 'Unknown',
-            organizationid: orgID,
-            reportingcycle: null,
-            overallstatus: 'Condition Unknown',
-            orgtype: orgType,
-            organizationname: orgName,
-            drinkingwater_use: null,
-            fishconsumption_use: null,
-            ecological_use: null,
-            recreation_use: null,
-          },
-        };
-      });
-    },
-    [],
-  );
-
   // create a feature using data from ATTAINS Domains, Assessment Units, and Assessments services
   const createDetailedOrphanFeatures = useCallback(
     (res, allAssessmentUnits, attainsDomainsData) => {
-      if (organizations.status !== 'success') return [];
-
       // function that checks if any uses in an array of uses have a status that matches the 2nd paremeter
       function checkStatus(uses, status) {
         return uses.some((e) => e.status === status);
@@ -330,20 +276,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       const orgType = res[0].organizationTypeText;
       const organizationName = res[0].organizationName;
       const cycleYear = res[0].reportingCycleText;
-      let includeInOutput = true;
-
-      // get organization
-      const organization = organizations.data.features.find(
-        (org) => org.attributes.organizationid === orgId,
-      );
-      if (!organization?.attributes?.reportingcycle) return [];
-
-      // check if record cycle year matches the organization cycle year
-      // if they don't match exclude it from the output
-      const orgCycleYear = organization.attributes.reportingcycle;
-      if (orgCycleYear.toString() !== cycleYear.toString()) {
-        includeInOutput = false;
-      }
 
       return res[0].assessments.map((assessment) => {
         const assessmentUnitName = matchAssessmentUnitName(
@@ -371,7 +303,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         const parametersObject = createParametersObject(parameterList);
 
         return {
-          includeInOutput,
           limited: true,
           attributes: {
             organizationid: orgId,
@@ -406,11 +337,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         };
       });
     },
-    [organizations, stateNationalUses],
+    [stateNationalUses],
   );
 
   const handleOrphanedFeatures = useCallback(
     (res, attainsDomainsData, missingAssessments) => {
+      if (organizations.status !== 'success') return;
+
       const allAssessmentUnits = [];
       res.items.forEach((item) =>
         item.assessmentUnits.forEach((assessmentUnit) => {
@@ -453,9 +386,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           return;
         }
 
+        // get organization
+        const organization = organizations.data.features.find(
+          (org) => org.attributes.organizationid === orgId,
+        );
+        const reportingCycle = organization?.attributes?.reportingcycle;
+        if (!reportingCycle) return;
+
         const url =
           `${services.data.attains.serviceUrl}` +
-          `assessments?organizationId=${orgId}&assessmentUnitIdentifier=${ids.join(
+          `assessments?organizationId=${orgId}&reportingCycle=${reportingCycle}&assessmentUnitIdentifier=${ids.join(
             ',',
           )}`;
 
@@ -484,37 +424,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             orphans = orphans.concat(detailedFeatures);
           });
 
-          if (orphans.length !== missingAssessments.length) {
-            const idsFoundInAssessmentsService = orphans.map(
-              (orphan) => orphan.attributes.assessmentunitidentifier,
-            );
-
-            if (
-              idsFoundInAssessmentsService.length < missingAssessments.length
-            ) {
-              const idsWithNoAssessmentData = missingAssessments.filter(
-                (id) => !idsFoundInAssessmentsService.includes(id),
-              );
-
-              window.logToGa('send', 'exception', {
-                exDescription: `The Assessments and GIS services did not return data for the following assessment IDs ${idsWithNoAssessmentData.join(
-                  ', ',
-                )}`,
-                exFatal: false,
-              });
-
-              const simpleFeatures = createSimpleOrphanFeatures(
-                res,
-                idsWithNoAssessmentData,
-                allAssessmentUnits,
-              );
-              orphans = orphans.concat(simpleFeatures);
-            }
-          }
-
-          // filter out the orphans that arn't marked for includeInOutput
           setOrphanFeatures({
-            features: orphans.filter((orphan) => orphan.includeInOutput),
+            features: orphans,
             status: 'success',
           });
         })
@@ -523,12 +434,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           setOrphanFeatures({ features: [], status: 'error' });
         });
     },
-    [
-      createDetailedOrphanFeatures,
-      createSimpleOrphanFeatures,
-      services,
-      setOrphanFeatures,
-    ],
+    [createDetailedOrphanFeatures, organizations, services, setOrphanFeatures],
   );
 
   // Check if the Huc12Summary service contains any Assessment IDs that are not included in the GIS (points/lines/areas) results.
