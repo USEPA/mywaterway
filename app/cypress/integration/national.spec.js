@@ -7,7 +7,7 @@ describe('National Water Quality tab', () => {
     const riversAndStreamsText =
       /of our rivers and streams are healthy based on their biological communities/;
     const coastsText =
-      /of our coasts are healthy based on their biological communities/;
+      /of Great Lakes nearshore waters are healthy based on their biological communities./;
 
     // verify Rivers and Streams tab content is displayed and Coasts tab content is hidden
     cy.findByText(riversAndStreamsText).should('be.visible');
