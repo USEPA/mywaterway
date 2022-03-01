@@ -11,8 +11,11 @@ module.exports = function (app) {
 
   router.get('/', function (req, res, next) {
     let authoriztedURL = false;
-    var parsedUrl;
+    let parsedUrl;
     let metadataObj = logger.populateMetdataObjFromRequest(req);
+    let lowerCaseUrl = '';
+    let message = '';
+    let messageWithUrl = '';
 
     try {
       if (req.originalUrl) {
@@ -21,46 +24,43 @@ module.exports = function (app) {
         const url = new URL(parsedUrl);
         authoriztedURL = config.urls.includes(url.host.toLowerCase());
       } else {
-        let msg = 'Missing proxy request';
-        log.warn(logger.formatLogMsg(metadataObj, msg));
-        res.status(403).json({ message: msg });
+        message = 'Missing proxy request';
+        log.warn(logger.formatLogMsg(metadataObj, message));
+        res.status(403).json({ message });
         return;
       }
 
+      lowerCaseUrl = parsedUrl.toLowerCase();
       if (
         !authoriztedURL &&
-        !parsedUrl.toLowerCase().includes('://' + req.hostname.toLowerCase())
+        !lowerCaseUrl.includes('://' + req.hostname.toLowerCase())
       ) {
-        let msg = 'Invalid proxy request';
-        log.error(
-          logger.formatLogMsg(metadataObj, `${msg}. parsedUrl = ${parsedUrl}`),
-        );
-        res.status(403).json({ message: msg });
+        message = 'Invalid proxy request';
+        messageWithUrl = `${message}. parsedUrl = ${parsedUrl}`;
+        log.error(logger.formatLogMsg(metadataObj, messageWithUrl));
+        res.status(403).json({ message });
         return;
       }
     } catch (err) {
-      let msg = 'Invalid URL';
-      log.error(
-        logger.formatLogMsg(metadataObj, `${msg}. parsedUrl = ${parsedUrl}`),
-      );
-      res.status(403).json({ message: msg });
+      message = 'Invalid URL';
+      messageWithUrl = `${message}. parsedUrl = ${parsedUrl}`;
+      log.error(logger.formatLogMsg(metadataObj, messageWithUrl));
+      res.status(403).json({ message });
       return;
     }
 
     try {
-      let request_headers = {};
-      if (parsedUrl.toLowerCase().includes('etss.epa.gov')) {
-        request_headers.authorization = 'basic ' + process.env.GLOSSARY_AUTH;
+      let headers = {};
+      if (lowerCaseUrl.includes('etss.epa.gov')) {
+        headers.authorization = 'basic ' + process.env.GLOSSARY_AUTH;
       } else {
         if (
           !app.enabled('isLocal') &&
-          parsedUrl
-            .toLowerCase()
-            .includes('://' + req.hostname.toLowerCase()) &&
-          parsedUrl.toLowerCase().includes('/data/')
+          lowerCaseUrl.includes('://' + req.hostname.toLowerCase()) &&
+          lowerCaseUrl.includes('/data/')
         ) {
           //change out the URL for the internal s3 bucket that support this instance of the application in Cloud.gov
-          var jsonFileName = parsedUrl.split('/data/').pop();
+          const jsonFileName = parsedUrl.split('/data/').pop();
           parsedUrl = app.get('s3_bucket_url') + '/data/' + jsonFileName;
         }
       }
@@ -83,24 +83,16 @@ module.exports = function (app) {
       axios({
         method: req.query.method,
         url: parsedUrl,
-        headers: request_headers,
+        headers,
         timeout: 10000,
       })
         .then((response) => {
           if (response.status !== 200) {
-            log.error(
-              logger.formatLogMsg(
-                metadataObj,
-                `Non-200 returned from web service. parsedUrl = ${parsedUrl}.`,
-              ),
-            );
+            messageWithUrl = `Non-200 returned from web service. parsedUrl = ${parsedUrl}.`;
+            log.error(logger.formatLogMsg(metadataObj, messageWithUrl));
           } else {
-            log.info(
-              logger.formatLogMsg(
-                metadataObj,
-                `Successful request: ${parsedUrl}`,
-              ),
-            );
+            messageWithUrl = `Successful request: ${parsedUrl}`;
+            log.info(logger.formatLogMsg(metadataObj, messageWithUrl));
           }
 
           deleteTSHeaders(response);
@@ -110,19 +102,11 @@ module.exports = function (app) {
             .send(response.data);
         })
         .catch((err) => {
-          log.error(
-            logger.formatLogMsg(
-              metadataObj,
-              `Unsuccessful request. parsedUrl = ${parsedUrl}. Detailed error: ${err}`,
-            ),
-          );
+          messageWithUrl = `Unsuccessful request. parsedUrl = ${parsedUrl}. Detailed error: ${err}`;
+          log.error(logger.formatLogMsg(metadataObj, messageWithUrl));
           if (res.headersSent) {
-            log.error(
-              logger.formatLogMsg(
-                metadataObj,
-                `Odd header already sent check = ${parsedUrl}. Detailed error: ${err}`,
-              ),
-            );
+            messageWithUrl = `Odd header already sent check = ${parsedUrl}. Detailed error: ${err}`;
+            log.error(logger.formatLogMsg(metadataObj, messageWithUrl));
           }
 
           deleteTSHeaders(err.response);
@@ -132,11 +116,10 @@ module.exports = function (app) {
             .send(err.response.data);
         });
     } catch (err) {
-      let msg = 'URL Request Error';
-      log.error(
-        logger.formatLogMsg(metadataObj, `${msg}. parsedUrl = ${parsedUrl}`),
-      );
-      res.status(403).json({ message: msg });
+      message = 'URL Request Error';
+      messageWithUrl = `${message}. parsedUrl = ${parsedUrl}`;
+      log.error(logger.formatLogMsg(metadataObj, messageWithUrl));
+      res.status(403).json({ message });
       return;
     }
   });
