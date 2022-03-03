@@ -40,7 +40,7 @@
 
 - Fixed a bug of duplicate popups on the overview tab of the community page.
 
-- Fixed an infinite loading spinner bug that occurs wehn clicking an assessment that is outside of HUC boundaries.
+- Fixed an infinite loading spinner bug that occurs when clicking an assessment that is outside of HUC boundaries.
 
 
 ## 2.1.0 (January 2022)
