@@ -55,13 +55,17 @@ describe('State page links', () => {
 
     // since Cypress doesn't support multiple tabs, we'll do the next best thing
     // (https://docs.cypress.io/guides/references/trade-offs.html#Multiple-tabs)
-    cy.findByText(linkText).should(
+    cy.findAllByText(linkText).should(
       'have.attr',
       'href',
       'https://www.epa.gov/home/exit-epa',
     );
-    cy.findByText(linkText).should('have.attr', 'target', '_blank');
-    cy.findByText(linkText).should('have.attr', 'rel', 'noopener noreferrer');
+    cy.findAllByText(linkText).should('have.attr', 'target', '_blank');
+    cy.findAllByText(linkText).should(
+      'have.attr',
+      'rel',
+      'noopener noreferrer',
+    );
   });
 });
 
@@ -79,7 +83,7 @@ describe('State page routes', () => {
   it('Directly navigating to a state with a non-existent state abbreviation, navigates back to the state page', () => {
     cy.visit('/state/ZZ');
 
-    cy.url().should('equal', `${document.location.origin}/state`);
+    cy.url().should('equal', `${window.location.origin}/state`);
   });
 
   it('Switching state page tabs updates route', () => {
@@ -99,7 +103,7 @@ describe('State page routes', () => {
 
     cy.findByText('Sorry, but the url entered was invalid.').should('exist');
 
-    cy.url().should('include', `${document.location.origin}/invalid-url`);
+    cy.url().should('include', `${window.location.origin}/invalid-url`);
   });
 });
 

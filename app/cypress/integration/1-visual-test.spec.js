@@ -107,7 +107,7 @@ describe('Community Visual Regression Testing', () => {
 
     cy.get(mapId).within(($el) => {
       cy.findByText(
-        'ANATF - Anacostia River Tidal Fresh (State Waterbody ID: MD-ANATF-02140205)',
+        'ANATF - Anacostia River Tidal Fresh (State Waterbody ID: MD-ANATF)',
       );
 
       cy.findByText('Maryland (MDE_EASP)');

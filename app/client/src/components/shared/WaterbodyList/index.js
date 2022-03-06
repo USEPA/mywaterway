@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useContext } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -39,6 +39,11 @@ const legendItemsStyles = css`
   span {
     display: flex;
     align-items: center;
+    font-size: 0.875em;
+
+    @media (min-width: 560px) {
+      font-size: 1em;
+    }
   }
 `;
 
@@ -62,7 +67,6 @@ const modifiedInfoBoxStyles = css`
   text-align: center;
 `;
 
-// --- components ---
 type Props = {
   waterbodies: Array<Object>,
   title: string,
@@ -70,7 +74,7 @@ type Props = {
 };
 
 function WaterbodyList({ waterbodies, title, fieldName }: Props) {
-  const { cipSummary } = React.useContext(LocationSearchContext);
+  const { cipSummary } = useContext(LocationSearchContext);
 
   // if huc12summaryservice is down
   if (cipSummary.status === 'failure') {
@@ -112,15 +116,15 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
       <div css={legendItemsStyles}>
         <span>
           <WaterbodyIcon condition="good" selected={false} />
-          &nbsp;Good
+          &nbsp;Good&nbsp;
         </span>
         <span>
           <WaterbodyIcon condition="polluted" selected={false} />
-          &nbsp;Impaired
+          &nbsp;Impaired&nbsp;
         </span>
         <span>
           <WaterbodyIcon condition="unassessed" selected={false} />
-          &nbsp;Condition Unknown
+          &nbsp;Condition Unknown&nbsp;
         </span>
       </div>
 
@@ -136,10 +140,8 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
               title={<strong>{graphic.attributes.assessmentunitname}</strong>}
               subTitle={
                 <>
-                  {`${getOrganizationLabel(graphic.attributes)} ${
-                    graphic.attributes.assessmentunitidentifier
-                  }`}
-
+                  {getOrganizationLabel(graphic.attributes)}{' '}
+                  {graphic.attributes.assessmentunitidentifier}
                   {graphic.limited && (
                     <>
                       <br />
@@ -151,7 +153,7 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
               icon={<WaterbodyIcon condition={condition} selected={false} />}
               mapIcon={icon}
               feature={graphic}
-              idKey={'assessmentunitidentifier'}
+              idKey="assessmentunitidentifier"
             >
               <div css={waterbodyItemStyles}>
                 <WaterbodyInfo

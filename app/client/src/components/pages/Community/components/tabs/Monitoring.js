@@ -38,9 +38,13 @@ import { useWaterbodyOnMap } from 'utils/hooks';
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // errors
 import { monitoringError } from 'config/errorMessages';
+// styles
+import { toggleTableStyles } from 'styles/index.js';
 
 const containerStyles = css`
-  padding: 1em;
+  @media (min-width: 960px) {
+    padding: 1em;
+  }
 `;
 
 const modifiedErrorBoxStyles = css`
@@ -54,17 +58,6 @@ const centeredTextStyles = css`
 
 const accordionContentStyles = css`
   padding: 0.4375em 0.875em 0.875em;
-`;
-
-const tableStyles = css`
-  thead {
-    background-color: #f0f6f9;
-  }
-
-  th:last-of-type,
-  td:last-of-type {
-    text-align: right;
-  }
 `;
 
 const toggleStyles = css`
@@ -258,8 +251,7 @@ function Monitoring() {
     if (allToggled) {
       tempDisplayedMonitoringLocations = allMonitoringLocations;
     } else {
-      // var use intentional for IE support
-      for (var key in monitoringLocationGroups) {
+      for (let key in monitoringLocationGroups) {
         const group = monitoringLocationGroups[key];
         // if the location is toggled
         if (monitoringLocationToggles[group.label]) {
@@ -469,7 +461,7 @@ function Monitoring() {
 
           {allMonitoringLocations.length > 0 && (
             <>
-              <table css={tableStyles} className="table">
+              <table css={toggleTableStyles} className="table">
                 <thead>
                   <tr>
                     <th>
@@ -520,17 +512,21 @@ function Monitoring() {
               <AccordionList
                 expandDisabled={true} // disabled to avoid large number of web service calls
                 title={
-                  <div data-testid="monitoring-accordion-title">
+                  <span data-testid="monitoring-accordion-title">
                     <strong>{displayLocations}</strong> of{' '}
                     <strong>{totalLocations}</strong> water monitoring sample
                     locations in the <em>{watershed}</em> watershed.
-                  </div>
+                  </span>
                 }
                 onSortChange={({ value }) => setSortBy(value)}
                 sortOptions={[
                   {
                     label: 'Monitoring Sample Location Name',
                     value: 'locationName',
+                  },
+                  {
+                    label: 'Organization Name',
+                    value: 'orgName',
                   },
                   {
                     label: 'Organization ID',
@@ -562,6 +558,9 @@ function Monitoring() {
                       title={<strong>{item.locationName || 'Unknown'}</strong>}
                       subTitle={
                         <>
+                          <em>Organization Name:</em>&nbsp;&nbsp;
+                          {item.orgName}
+                          <br />
                           <em>Organization ID:</em>&nbsp;&nbsp;
                           {item.orgId}
                           <br />

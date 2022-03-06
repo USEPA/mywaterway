@@ -1,7 +1,13 @@
 // @flow
 
-import React from 'react';
-import styled from 'styled-components';
+import React, {
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+} from 'react';
+import { css } from 'styled-components/macro';
 import { navigate } from '@reach/router';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 // components
@@ -14,27 +20,52 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 // config
 import { tabs } from 'components/pages/Community/config.js';
 // styles
-import { colors, fonts } from 'styles/index.js';
+import { colors } from 'styles/index.js';
 import '@reach/tabs/styles.css';
 
-// --- styled components ---
 const lightBlue = '#f0f6f9';
 
-const Location = styled.div`
+const locationStyles = css`
   display: flex;
   align-items: center;
-  padding: 0.5em;
+  padding: 0.75em 1em;
+
+  @media (min-width: 320px) {
+    padding: 0.75em 0.5em;
+  }
+
+  @media (min-width: 480px) {
+    padding: 0.5em;
+  }
 `;
 
-const Icon = styled(PinIcon)`
-  margin-right: 0.25em;
-  width: 3.25em;
-  height: 3.25em;
+const iconStyles = css`
+  display: none;
+
+  @media (min-width: 320px) {
+    display: block;
+    margin-right: 0.25em;
+    width: 2.25em;
+    height: 2.25em;
+  }
+
+  @media (min-width: 480px) {
+    width: 3.25em;
+    height: 3.25em;
+  }
 `;
 
-const Text = styled.div`
+const locationTextStyles = css`
   display: flex;
   flex-flow: row wrap;
+
+  @media (min-width: 320px) {
+    width: calc(100% - 2.25em);
+  }
+
+  @media (min-width: 480px) {
+    width: calc(100% - 3.25em);
+  }
 
   p {
     margin: 0;
@@ -43,28 +74,35 @@ const Text = styled.div`
   }
 `;
 
-const Address = styled.p`
-  font-size: 1.0625em;
+const addressStyles = css`
+  font-size: 1em;
   font-weight: bold;
+
+  @media (min-width: 480px) {
+    font-size: 1.0625em;
+  }
 `;
 
-const Watershed = styled.p`
-  strong {
+const watershedStyles = css`
+  font-size: 0.9375em;
+
+  span {
     font-size: 0.875em;
+    font-weight: bold;
   }
 `;
 
 /*
-  - TabsOverlay's height is set to match each tab's initial min-height value
-    (see StyledTabs [data-react-tab] styles below).
-  - TabsOverlays' margin-bottom matches its height, so the overlay visually
+  - tabsOverlayStyles's height is set to match each tab's initial min-height
+    value (see StyledTabs [data-react-tab] styles below).
+  - tabsOverlayStyles' margin-bottom matches its height, so the overlay visually
     appears on top of the tabs, which are below the overlay in the DOM.
   - Though initially set to 45px, these two values (height and margin-bottom)
     are re-assigned with the actual rendered height of the tabs in case the
     tab's text contents makes its height greater than 45px
     (see measuredTabRef and tabsOverlayRef below).
 */
-const TabsOverlay = styled.div`
+const tabsOverlayStyles = css`
   position: relative;
   width: 100%;
   height: 45px;
@@ -77,27 +115,27 @@ const TabsOverlay = styled.div`
     display: block;
     position: absolute;
     top: 0;
-    width: calc(100% / 9); /* .5 tab width */
+    width: calc(100% / 9); /* half tab width */
     height: inherit;
 
     @media (min-width: 800px) {
-      width: calc(100% / 11); /* .5 tab width */
+      width: calc(100% / 11); /* half tab width */
     }
 
     @media (min-width: 960px) {
-      width: calc(100% / 9); /* .5 tab width */
+      width: calc(100% / 9); /* half tab width */
     }
 
     @media (min-width: 1280px) {
-      width: calc(100% / 11); /* .5 tab width */
+      width: calc(100% / 11); /* half tab width */
     }
 
     @media (min-width: 1600px) {
-      width: calc(100% / 9); /* .5 tab width */
+      width: calc(100% / 9); /* half tab width */
     }
 
     @media (min-width: 1920px) {
-      width: calc(100% / 11); /* .5 tab width */
+      width: calc(100% / 11); /* half tab width */
     }
   }
 
@@ -105,8 +143,8 @@ const TabsOverlay = styled.div`
     left: 0;
     background-image: linear-gradient(
       to right,
-      rgba(0, 0, 0, 0.5),
-      rgba(0, 0, 0, 0)
+      ${colors.black(0.5)},
+      ${colors.black(0)}
     );
   }
 
@@ -114,13 +152,13 @@ const TabsOverlay = styled.div`
     right: 0;
     background-image: linear-gradient(
       to left,
-      rgba(0, 0, 0, 0.5),
-      rgba(0, 0, 0, 0)
+      ${colors.black(0.5)},
+      ${colors.black(0)}
     );
   }
 `;
 
-const StyledTabs = styled(Tabs)`
+const tabsStyles = css`
   & ::-webkit-scrollbar {
     height: 12px;
   }
@@ -196,27 +234,11 @@ const StyledTabs = styled(Tabs)`
       padding: ${(props) => {
         return props['info-toggle-checked'] === 'true' ? '1em' : '0';
       }};
-
-      p {
-        margin-top: 1rem;
-        padding-bottom: 0;
-
-        :first-of-type {
-          margin-top: 0;
-        }
-      }
-
-      h3 {
-        margin: 1rem 0;
-        padding-bottom: 0;
-        font-family: ${fonts.primary};
-        font-size: 1.375em;
-      }
     }
   }
 `;
 
-const TabDots = styled.ul`
+const tabDotsStyles = css`
   padding: 0.25em 0 0;
   height: 22px;
   text-align: center;
@@ -229,7 +251,7 @@ const TabDots = styled.ul`
   }
 `;
 
-const TabDot = styled.button`
+const tabDotStyles = css`
   margin: 4px;
   padding: 0;
   border: 1px solid ${colors.black(0.25)};
@@ -246,12 +268,19 @@ const TabDot = styled.button`
   }
 `;
 
-const TabHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.5em;
+const tabHeaderStyles = css`
+  padding: 0.75em 1em;
   background-color: ${lightBlue};
+
+  @media (min-width: 240px) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  @media (min-width: 320px) {
+    padding: 0.5em;
+  }
 
   div {
     display: flex;
@@ -259,31 +288,47 @@ const TabHeader = styled.div`
   }
 
   img {
-    margin-right: 0.25em;
-    height: 2.25em;
+    display: none;
+
+    @media (min-width: 320px) {
+      display: block;
+      margin-right: 0.25em;
+      height: 2.25em;
+    }
   }
 
   label {
     display: flex;
     align-items: center;
+    margin-top: 0.375em;
     margin-bottom: 0;
     font-weight: bold;
   }
 
   span {
     margin-right: 0.5em;
+    margin-bottom: 0.125em;
+    font-size: 0.875em;
+
+    @media (min-width: 320px) {
+      font-size: 1em;
+    }
   }
 `;
 
-const TabTitle = styled.h1`
-  font-family: inherit;
-  font-size: 1.5em;
-  font-weight: bold;
+const tabTitleStyles = css`
   margin: 0;
   padding-bottom: 0;
+  font-family: inherit;
+  font-weight: bold;
+  font-size: 1.25em;
+  line-height: 1.125;
+
+  @media (min-width: 480px) {
+    font-size: 1.5em;
+  }
 `;
 
-// --- components ---
 type Props = {
   ...RouteProps,
   // url params defined in routes.js
@@ -297,7 +342,7 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
     setActiveTabIndex,
     infoToggleChecked,
     setInfoToggleChecked,
-  } = React.useContext(CommunityTabsContext);
+  } = useContext(CommunityTabsContext);
 
   const {
     searchText,
@@ -310,11 +355,11 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
     setShowAllPolluted,
     setPollutionParameters,
     setDrinkingWaterTabIndex,
-  } = React.useContext(LocationSearchContext);
+  } = useContext(LocationSearchContext);
 
   // redirect to overview tab if tabName param wasn't provided in the url
   // (e.g. '/community/20001' redirects to '/community/20001/overview')
-  React.useEffect(() => {
+  useEffect(() => {
     if (urlSearch && !tabName) {
       navigate(`/community/${urlSearch}/overview`);
     }
@@ -322,7 +367,7 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
 
   // redirect to '/community' if the url doesn't match a route in the tabs array
   // and conditionally set active tab index
-  React.useEffect(() => {
+  useEffect(() => {
     const tabIndex = tabs
       .map((tab) => encodeURI(tab.route.replace('{urlSearch}', urlSearch)))
       .indexOf(window.location.pathname);
@@ -345,16 +390,16 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
 
   // conditionally set searchText from urlSearch
   // (e.g. when a user visits '/community/20001' directly)
-  React.useEffect(() => {
+  useEffect(() => {
     if (urlSearch !== searchText) {
       setSearchText(urlSearch);
     }
   }, [urlSearch, searchText, setSearchText]);
 
-  const tabListRef = React.useRef();
+  const tabListRef = useRef();
 
   // focus and scroll (horizontally) to the active tab
-  React.useEffect(() => {
+  useEffect(() => {
     if (tabListRef.current) {
       const tabList = tabListRef.current;
       const activeTab = tabList.children[activeTabIndex];
@@ -372,14 +417,16 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
   }, [tabListRef, activeTabIndex]);
 
   // keep the tab overlay height in sync with the height of a tab in the tablist
-  const [tabHeight, setTabHeight] = React.useState(45);
-  const measuredTabRef = React.useCallback((node) => {
+  const [tabHeight, setTabHeight] = useState(45);
+
+  const measuredTabRef = useCallback((node) => {
     if (!node) return;
     setTabHeight(node.getBoundingClientRect().height);
   }, []);
 
-  const tabsOverlayRef = React.useRef();
-  React.useEffect(() => {
+  const tabsOverlayRef = useRef();
+
+  useEffect(() => {
     if (tabsOverlayRef.current) {
       tabsOverlayRef.current.style.height = `${tabHeight}px`;
       tabsOverlayRef.current.style.marginBottom = `-${tabHeight}px`;
@@ -403,23 +450,24 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
 
   return (
     <>
-      <Location>
-        <Icon />
+      <div css={locationStyles}>
+        <PinIcon css={iconStyles} />
 
-        <Text>
-          <Address>{address}</Address>
+        <div css={locationTextStyles}>
+          <p css={addressStyles}>{address}</p>
+
           {watershed && (
-            <Watershed>
-              <strong>WATERSHED: </strong>
-              {watershed} ({huc12})
-            </Watershed>
+            <p css={watershedStyles}>
+              <span>WATERSHED:</span> {watershed} ({huc12})
+            </p>
           )}
-        </Text>
-      </Location>
+        </div>
+      </div>
 
-      <TabsOverlay ref={tabsOverlayRef} />
+      <div css={tabsOverlayStyles} ref={tabsOverlayRef} />
 
-      <StyledTabs
+      <Tabs
+        css={tabsStyles}
         index={activeTabIndex}
         onChange={(index) => {
           // used for reseting tab specific toggles. This is needed so the
@@ -448,11 +496,12 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
           ))}
         </TabList>
 
-        <TabDots aria-hidden="true">
+        <ul css={tabDotsStyles} aria-hidden="true">
           {tabs.map((tab, index) => {
             return (
               <li key={index}>
-                <TabDot
+                <button
+                  css={tabDotStyles}
                   tabIndex="-1"
                   title={tab.title}
                   data-selected={index === activeTabIndex}
@@ -464,15 +513,15 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
               </li>
             );
           })}
-        </TabDots>
+        </ul>
 
-        <TabHeader>
+        <header css={tabHeaderStyles}>
           <div>
             <img
               src={tabs[activeTabIndex].icon}
               alt={tabs[activeTabIndex].title}
             />
-            <TabTitle>{tabs[activeTabIndex].title}</TabTitle>
+            <h1 css={tabTitleStyles}>{tabs[activeTabIndex].title}</h1>
           </div>
 
           <div>
@@ -485,7 +534,7 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
               />
             </label>
           </div>
-        </TabHeader>
+        </header>
 
         <TabPanels>
           {tabs.map((tab) => (
@@ -495,7 +544,7 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
             </TabPanel>
           ))}
         </TabPanels>
-      </StyledTabs>
+      </Tabs>
     </>
   );
 }

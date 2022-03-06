@@ -26,7 +26,7 @@ import {
 // --- styles (URLPanel) ---
 const MessageBoxStyles = `
   margin-bottom: 10px;
-  word-break: break-word;
+  overflow-wrap: anywhere;
 `;
 
 const ErrorBox = styled(StyledErrorBox)`
@@ -74,9 +74,8 @@ const StyledLinkButton = styled(LinkButton)`
 
 // --- components (URLPanel) ---
 function URLPanel() {
-  const { widgetLayers, setWidgetLayers } = React.useContext(
-    AddDataWidgetContext,
-  );
+  const { widgetLayers, setWidgetLayers } =
+    React.useContext(AddDataWidgetContext);
   const { mapView } = React.useContext(LocationSearchContext);
 
   // filters

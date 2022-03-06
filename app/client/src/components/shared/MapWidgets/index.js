@@ -1,6 +1,12 @@
 // @flow
 
-import React from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import ReactDOM from 'react-dom';
 import { Rnd } from 'react-rnd';
 import styled from 'styled-components';
@@ -10,12 +16,15 @@ import Graphic from '@arcgis/core/Graphic';
 import Home from '@arcgis/core/widgets/Home';
 import LayerList from '@arcgis/core/widgets/LayerList';
 import Legend from '@arcgis/core/widgets/Legend';
+import Point from '@arcgis/core/geometry/Point';
 import PortalBasemapsSource from '@arcgis/core/widgets/BasemapGallery/support/PortalBasemapsSource';
 import Query from '@arcgis/core/rest/support/Query';
 import QueryTask from '@arcgis/core/tasks/QueryTask';
 import ScaleBar from '@arcgis/core/widgets/ScaleBar';
+import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import Viewpoint from '@arcgis/core/Viewpoint';
 import * as watchUtils from '@arcgis/core/core/watchUtils';
+import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // components
 import AddDataWidget from 'components/shared/AddDataWidget';
 import MapLegend from 'components/shared/MapLegend';
@@ -26,11 +35,18 @@ import { FullscreenContext } from 'contexts/Fullscreen';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
-import { shallowCompare } from 'components/pages/LocationMap/MapFunctions';
+import {
+  isInScale,
+  shallowCompare,
+} from 'components/pages/LocationMap/MapFunctions';
 // helpers
 import { useDynamicPopup } from 'utils/hooks';
 // icons
 import resizeIcon from '../Icons/resize.png';
+
+// workaround for React state variables not being updated inside of
+// esri watch events
+let displayEsriLegendNonState = false;
 
 const basemapNames = [
   'Streets',
@@ -60,10 +76,10 @@ const basemapNames = [
 ];
 
 const zoomDependentLayers = [
+  'ejscreenLayer',
   'mappedWaterLayer',
-  'watershedsLayer',
-  'congressionalLayer',
   'stateBoundariesLayer',
+  'watershedsLayer',
 ];
 
 // used to order the layer legends, so the ordering is consistent no matter
@@ -86,9 +102,11 @@ const orderedLayers = [
   'stateBoundariesLayer',
   'congressionalLayer',
   'tribalLayer',
+  'tribalLayer-0',
   'tribalLayer-1',
-  'tribalLayer-2',
+  'tribalLayer-3',
   'tribalLayer-4',
+  'tribalLayer-5',
   'wsioHealthIndexLayer',
   'wildScenicRiversLayer',
   'protectedAreasHighlightLayer',
@@ -116,24 +134,9 @@ function handleMapZoomChange(newVal: number, target: any) {
   });
 }
 
-// helper method used in handleMapZoomChange() for determining a map layer’s listMode
-function isInScale(layer: any, scale: number) {
-  const { maxScale, minScale } = layer;
-  let isInScale = true;
-  if (minScale > 0 || maxScale > 0) {
-    if (maxScale > 0 && minScale > 0) {
-      isInScale = maxScale <= scale && scale <= minScale;
-    } else if (maxScale > 0) {
-      isInScale = maxScale <= scale;
-    } else if (minScale > 0) {
-      isInScale = scale <= minScale;
-    }
-  }
-  return isInScale;
-}
-
 function updateVisibleLayers(
   view: any,
+  displayEsriLegend: boolean,
   hmwLegendNode: Node,
   additionalLegendInfo: Object,
 ) {
@@ -176,7 +179,7 @@ function updateVisibleLayers(
       (layer.visible && layer.listMode !== 'hide') ||
       (layer.visible &&
         layer.id === 'boundariesLayer' &&
-        document.location.pathname !== '/community') ||
+        window.location.pathname !== '/community') ||
       (layer.visible && layer.id === 'actionsWaterbodies') ||
       (layer.visible && layer.id === 'upstreamWatershed') ||
       (layer.visible && layer.id === 'allWaterbodiesLayer')
@@ -188,6 +191,7 @@ function updateVisibleLayers(
   ReactDOM.render(
     <MapLegend
       view={view}
+      displayEsriLegend={displayEsriLegend}
       visibleLayers={visibleLayers}
       additionalLegendInfo={additionalLegendInfo}
     />,
@@ -228,11 +232,8 @@ function MapWidgets({
   scrollToComponent,
   onHomeWidgetRendered = () => {},
 }: Props) {
-  const {
-    addDataWidgetVisible,
-    setAddDataWidgetVisible,
-    widgetLayers,
-  } = React.useContext(AddDataWidgetContext);
+  const { addDataWidgetVisible, setAddDataWidgetVisible, widgetLayers } =
+    useContext(AddDataWidgetContext);
 
   const {
     homeWidget,
@@ -263,7 +264,8 @@ function MapWidgets({
     setAllWaterbodiesWidgetDisabled,
     getAllWaterbodiesWidgetDisabled,
     setMapView,
-  } = React.useContext(LocationSearchContext);
+    getHucBoundaries,
+  } = useContext(LocationSearchContext);
 
   const services = useServicesContext();
 
@@ -273,18 +275,20 @@ function MapWidgets({
   const {
     getFullscreenActive,
     setFullscreenActive, //
-  } = React.useContext(FullscreenContext);
+  } = useContext(FullscreenContext);
 
-  const [mapEventHandlersSet, setMapEventHandlersSet] = React.useState(false);
+  const [mapEventHandlersSet, setMapEventHandlersSet] = useState(false);
 
-  const [popupWatcher, setPopupWatcher] = React.useState(null);
-  React.useEffect(() => {
+  const [popupWatcher, setPopupWatcher] = useState(null);
+  useEffect(() => {
     if (!view || popupWatcher) return;
 
     const watcher = watchUtils.watch(
       view.popup,
       'features',
       (newVal, oldVal, propName, target) => {
+        if (newVal.length === 0) return;
+
         const features = [];
         const idsAdded = [];
         newVal.forEach((item) => {
@@ -297,6 +301,26 @@ function MapWidgets({
             return;
           }
 
+          // get the point location of the user's click
+          const point = new Point({
+            x: view.popup.location.longitude,
+            y: view.popup.location.latitude,
+            spatialReference: SpatialReference.WQGS84,
+          });
+          const location = webMercatorUtils.geographicToWebMercator(point);
+
+          // determine if the user clicked inside of the selected huc
+          const hucBoundaries = getHucBoundaries();
+          const clickedInHuc =
+            hucBoundaries &&
+            hucBoundaries.features.length > 0 &&
+            hucBoundaries.features[0].geometry.contains(location);
+
+          // filter out popups for allWaterbodiesLayer inside of the huc
+          const layerParentId = item.layer?.parent?.id;
+          if (clickedInHuc && layerParentId === 'allWaterbodiesLayer') return;
+
+          // filter out duplicate popups
           const idType = `${id}-${geometryType}`;
           if (idsAdded.includes(idType)) return;
 
@@ -304,17 +328,19 @@ function MapWidgets({
           idsAdded.push(idType);
         });
 
-        if (features.length === view.popup.features.length) return;
-
-        view.popup.features = features;
+        if (features.length === 0) {
+          view.popup.close();
+        } else if (features.length !== view.popup.features.length) {
+          view.popup.features = features;
+        }
       },
     );
 
     setPopupWatcher(watcher);
-  }, [popupWatcher, view]);
+  }, [getHucBoundaries, popupWatcher, view]);
 
   // add the layers to the map
-  React.useEffect(() => {
+  useEffect(() => {
     if (!layers || !map) return;
 
     map.removeAll();
@@ -373,7 +399,7 @@ function MapWidgets({
   }, [layers, map, widgetLayers]);
 
   // put the home widget back on the ui after the window is resized
-  React.useEffect(() => {
+  useEffect(() => {
     if (homeWidget) {
       const newHomeWidget = new Home({ view, viewpoint: homeWidget.viewpoint });
       view.ui.add(newHomeWidget, { position: 'top-left', index: 1 });
@@ -383,9 +409,9 @@ function MapWidgets({
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Keeps the layer visiblity in sync with the layer list widget visibilities
-  const [toggledLayer, setToggledLayer] = React.useState({});
-  const [lastToggledLayer, setLastToggledLayer] = React.useState({});
-  React.useEffect(() => {
+  const [toggledLayer, setToggledLayer] = useState({});
+  const [lastToggledLayer, setLastToggledLayer] = useState({});
+  useEffect(() => {
     // if the toggled layer didn't change exit early
     if (shallowCompare(toggledLayer, lastToggledLayer)) return;
 
@@ -408,7 +434,7 @@ function MapWidgets({
   }, [toggledLayer, lastToggledLayer, visibleLayers, setVisibleLayers]);
 
   // Creates and adds the home widget to the map
-  React.useEffect(() => {
+  useEffect(() => {
     if (!view || homeWidget) return;
 
     // create the home widget
@@ -422,8 +448,8 @@ function MapWidgets({
   }, [onHomeWidgetRendered, setHomeWidget, view, homeWidget]);
 
   // Creates and adds the scale bar widget to the map
-  const [scaleBar, setScaleBar] = React.useState(null);
-  React.useEffect(() => {
+  const [scaleBar, setScaleBar] = useState(null);
+  useEffect(() => {
     if (!view || scaleBar) return;
 
     const newScaleBar = new ScaleBar({
@@ -440,16 +466,15 @@ function MapWidgets({
   const hmwLegendTemp = document.createElement('div');
   const esriLegendTemp = document.createElement('div');
   esriLegendTemp.id = 'esri-legend-container';
-  esriLegendTemp.className = 'esri-legend-hidden';
   legendTemp.appendChild(hmwLegendTemp);
   legendTemp.appendChild(esriLegendTemp);
-  const [hmwLegendNode] = React.useState(hmwLegendTemp);
-  const [esriLegendNode] = React.useState(esriLegendTemp);
-  const [legendNode] = React.useState(legendTemp);
+  const [hmwLegendNode] = useState(hmwLegendTemp);
+  const [esriLegendNode] = useState(esriLegendTemp);
+  const [legendNode] = useState(legendTemp);
 
   // Creates and adds the legend widget to the map
-  const [legend, setLegend] = React.useState(null);
-  React.useEffect(() => {
+  const [legend, setLegend] = useState(null);
+  useEffect(() => {
     if (!view || legend) return;
 
     const newLegend = new Expand({
@@ -466,8 +491,9 @@ function MapWidgets({
   }, [view, legend, legendNode]);
 
   // Create the layer list toolbar widget
-  const [esriLegend, setEsriLegend] = React.useState(null);
-  React.useEffect(() => {
+  const [esriLegend, setEsriLegend] = useState(null);
+  const [displayEsriLegend, setDisplayEsriLegend] = useState(false);
+  useEffect(() => {
     if (!view || esriLegend) return;
 
     // create the layer list using the same styles and structure as the
@@ -478,33 +504,30 @@ function MapWidgets({
       layerInfos: [],
     });
 
+    // Create an observer instance linked to the callback function
+    const observer = new MutationObserver((mutationsList, observerParam) => {
+      const esriMessages = esriLegendNode
+        ? esriLegendNode.querySelectorAll('.esri-legend__message')
+        : [];
+
+      displayEsriLegendNonState = esriMessages.length === 0;
+      setDisplayEsriLegend(displayEsriLegendNonState);
+    });
+
+    // Start observing the target node for configured mutations
+    observer.observe(esriLegendNode, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+
     setEsriLegend(tempLegend);
   }, [view, esriLegend, esriLegendNode]);
 
-  // Update the list of layers in the esri portion of the legend widget
-  React.useEffect(() => {
-    if (!esriLegend) return;
-
-    // build the list of layers for the widget and update
-    const layerInfos = [];
-    widgetLayers.forEach((widgetLayer) => {
-      layerInfos.push({
-        layer: widgetLayer,
-      });
-    });
-    esriLegend.layerInfos = layerInfos;
-
-    // show the esri portion if widget layers has layers otherwise hide it
-    const elm = document.getElementById('esri-legend-container');
-    if (!elm) return;
-    elm.className =
-      layerInfos.length > 0 ? 'esri-legend' : 'esri-legend-hidden';
-  }, [widgetLayers, esriLegend, visibleLayers]);
-
   // Creates and adds the legend widget to the map
-  const rnd = React.useRef();
-  const [addDataWidget, setAddDataWidget] = React.useState(null);
-  React.useEffect(() => {
+  const rnd = useRef();
+  const [addDataWidget, setAddDataWidget] = useState(null);
+  useEffect(() => {
     if (!view?.ui || addDataWidget) return;
 
     const node = document.createElement('div');
@@ -555,7 +578,7 @@ function MapWidgets({
     addDataWidgetVisibleParam,
     setAddDataWidgetVisibleParam,
   }) {
-    const [hover, setHover] = React.useState(false);
+    const [hover, setHover] = useState(false);
 
     return (
       <div
@@ -586,15 +609,13 @@ function MapWidgets({
 
   // Fetch additional legend information. Data is stored in a dictionary
   // where the key is the layer id.
-  const [
-    additioanlLegendInitialized,
-    setAdditionalLegendInitialized,
-  ] = React.useState(false);
-  const [additionalLegendInfo, setAdditionalLegendInfo] = React.useState({
+  const [additioanlLegendInitialized, setAdditionalLegendInitialized] =
+    useState(false);
+  const [additionalLegendInfo, setAdditionalLegendInfo] = useState({
     status: 'fetching',
     data: {},
   });
-  React.useState(() => {
+  useState(() => {
     if (additioanlLegendInitialized) return;
 
     setAdditionalLegendInitialized(true);
@@ -625,8 +646,8 @@ function MapWidgets({
   }, [additioanlLegendInitialized, services]);
 
   // Creates and adds the basemap/layer list widget to the map
-  const [layerListWidget, setLayerListWidget] = React.useState(null);
-  React.useEffect(() => {
+  const [layerListWidget, setLayerListWidget] = useState(null);
+  useEffect(() => {
     if (
       !view ||
       additionalLegendInfo.status === 'fetching' ||
@@ -672,10 +693,20 @@ function MapWidgets({
         //only add the item if it has not been added before
         if (!uniqueParentItems.includes(item.title)) {
           uniqueParentItems.push(item.title);
-          updateVisibleLayers(view, hmwLegendNode, additionalLegendInfo);
+          updateVisibleLayers(
+            view,
+            displayEsriLegendNonState,
+            hmwLegendNode,
+            additionalLegendInfo,
+          );
 
           item.watch('visible', function (event) {
-            updateVisibleLayers(view, hmwLegendNode, additionalLegendInfo);
+            updateVisibleLayers(
+              view,
+              displayEsriLegendNonState,
+              hmwLegendNode,
+              additionalLegendInfo,
+            );
             const dict = {
               layerId: item.layer.id,
               visible: item.layer.visible,
@@ -719,16 +750,29 @@ function MapWidgets({
 
     view.ui.add(expandWidget, { position: 'top-right', index: 0 });
     setLayerListWidget(layerlist);
-  }, [hmwLegendNode, view, layerListWidget, additionalLegendInfo]);
+  }, [
+    additionalLegendInfo,
+    displayEsriLegend,
+    hmwLegendNode,
+    layerListWidget,
+    view,
+  ]);
 
   // Sets up the zoom event handler that is used for determining if layers
   // should be visible at the current zoom level.
-  React.useEffect(() => {
-    if (!view || mapEventHandlersSet) return;
+  useEffect(() => {
+    if (!view || !additionalLegendInfo || mapEventHandlersSet) return;
 
     // setup map event handlers
     watchUtils.watch(view, 'zoom', (newVal, oldVal, propName, target) => {
       handleMapZoomChange(newVal, target);
+
+      updateVisibleLayers(
+        view,
+        displayEsriLegendNonState,
+        hmwLegendNode,
+        additionalLegendInfo,
+      );
     });
 
     // when basemap changes, update the basemap in context for persistent basemaps
@@ -740,9 +784,17 @@ function MapWidgets({
     });
 
     setMapEventHandlersSet(true);
-  }, [view, mapEventHandlersSet, basemap, setBasemap, map]);
+  }, [
+    additionalLegendInfo,
+    basemap,
+    setBasemap,
+    hmwLegendNode,
+    map,
+    mapEventHandlersSet,
+    view,
+  ]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!layers || layers.length === 0) return;
 
     //build a list of layers that we care about
@@ -788,7 +840,7 @@ function MapWidgets({
   // however ESRI always leaves one layer behind that has a listMode equal
   // to hide. The other part of this bug, is if you build a new collection
   // of operationalItems then the layer loading indicators no longer work.
-  React.useEffect(() => {
+  useEffect(() => {
     if (!layerListWidget) return;
 
     const numOperationalItems = layerListWidget.operationalItems.items.length;
@@ -804,8 +856,8 @@ function MapWidgets({
   const [
     fullScreenWidgetCreated,
     setFullScreenWidgetCreated, //
-  ] = React.useState(false);
-  React.useEffect(() => {
+  ] = useState(false);
+  useEffect(() => {
     if (fullScreenWidgetCreated) return;
 
     // create the basemap/layers widget
@@ -832,7 +884,7 @@ function MapWidgets({
 
   // watch for location changes and disable/enable the upstream widget accordingly
   // widget should only be displayed on valid Community page location
-  React.useEffect(() => {
+  useEffect(() => {
     if (!upstreamWidget) return;
 
     if (!window.location.pathname.includes('/community')) {
@@ -851,7 +903,7 @@ function MapWidgets({
     setUpstreamWidgetDisabled(false);
   }, [huc12, upstreamWidget, setUpstreamWidgetDisabled]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!upstreamWidget || !window.location.pathname.includes('/community')) {
       return;
     }
@@ -865,23 +917,12 @@ function MapWidgets({
     }
   }, [upstreamWidget, upstreamWidgetDisabled]);
 
-  // watch for changes to upstream layer visibility and update visible layers accordingly
-  React.useEffect(() => {
-    updateVisibleLayers(view, hmwLegendNode, additionalLegendInfo);
-  }, [
-    view,
-    hmwLegendNode,
-    upstreamLayerVisible,
-    additionalLegendInfo,
-    visibleLayers,
-  ]);
-
   // create upstream widget
   const [
     upstreamWidgetCreated,
     setUpstreamWidgetCreated, //
-  ] = React.useState(false);
-  React.useEffect(() => {
+  ] = useState(false);
+  useEffect(() => {
     if (upstreamWidgetCreated || !view || !view.ui) return;
 
     const node = document.createElement('div');
@@ -948,11 +989,11 @@ function MapWidgets({
     setUpstreamWidgetDisabled,
     setUpstreamLayerVisible,
   }: upstreamProps) {
-    const [hover, setHover] = React.useState(false);
-    const [lastHuc12, setLastHuc12] = React.useState('');
+    const [hover, setHover] = useState(false);
+    const [lastHuc12, setLastHuc12] = useState('');
 
     // store loading state to Upstream Watershed map widget icon
-    const [upstreamLoading, setUpstreamLoading] = React.useState(false);
+    const [upstreamLoading, setUpstreamLoading] = useState(false);
 
     const currentHuc12 = getHuc12();
 
@@ -1005,7 +1046,7 @@ function MapWidgets({
     );
   }
 
-  const retrieveUpstreamWatershed = React.useCallback(
+  const retrieveUpstreamWatershed = useCallback(
     (
       getWatershedName,
       currentHuc12,
@@ -1158,15 +1199,13 @@ function MapWidgets({
     [view, services.data.upstreamWatershed],
   );
 
-  const [allWaterbodiesWidget, setAllWaterbodiesWidget] = React.useState(null);
-  const [
-    allWaterbodiesLayerVisible,
-    setAllWaterbodiesLayerVisible,
-  ] = React.useState(true);
+  const [allWaterbodiesWidget, setAllWaterbodiesWidget] = useState(null);
+  const [allWaterbodiesLayerVisible, setAllWaterbodiesLayerVisible] =
+    useState(true);
 
   // watch for location changes and disable/enable the all waterbodies widget
   // accordingly widget should only be displayed on valid Community page location
-  React.useEffect(() => {
+  useEffect(() => {
     if (!allWaterbodiesWidget) return;
 
     if (!window.location.pathname.includes('/community')) {
@@ -1195,7 +1234,7 @@ function MapWidgets({
   ]);
 
   // disable the all waterbodies widget if on the community home page
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       !allWaterbodiesWidget ||
       !window.location.pathname.includes('/community')
@@ -1214,13 +1253,20 @@ function MapWidgets({
 
   // watch for changes to all waterbodies layer visibility and update visible
   // layers accordingly
-  React.useEffect(() => {
-    updateVisibleLayers(view, hmwLegendNode, additionalLegendInfo);
+  useEffect(() => {
+    updateVisibleLayers(
+      view,
+      displayEsriLegend,
+      hmwLegendNode,
+      additionalLegendInfo,
+    );
   }, [
-    view,
-    hmwLegendNode,
-    allWaterbodiesLayerVisible,
     additionalLegendInfo,
+    allWaterbodiesLayerVisible,
+    displayEsriLegend,
+    hmwLegendNode,
+    upstreamLayerVisible,
+    view,
     visibleLayers,
   ]);
 
@@ -1228,8 +1274,8 @@ function MapWidgets({
   const [
     allWaterbodiesWidgetCreated,
     setAllWaterbodiesWidgetCreated, //
-  ] = React.useState(false);
-  React.useEffect(() => {
+  ] = useState(false);
+  useEffect(() => {
     if (allWaterbodiesWidgetCreated || !view || !view.ui) return;
 
     const node = document.createElement('div');
@@ -1264,13 +1310,11 @@ function MapWidgets({
     getDisabled,
     mapView,
   }: allWaterbodiesProps) {
-    const [firstLoad, setFirstLoad] = React.useState(true);
-    const [hover, setHover] = React.useState(false);
+    const [firstLoad, setFirstLoad] = useState(true);
+    const [hover, setHover] = useState(false);
 
     // store loading state to Upstream Watershed map widget icon
-    const [allWaterbodiesLoading, setAllWaterbodiesLoading] = React.useState(
-      false,
-    );
+    const [allWaterbodiesLoading, setAllWaterbodiesLoading] = useState(false);
 
     // create a watcher to control the loading spinner for the widget
     if (firstLoad) {
@@ -1436,7 +1480,7 @@ function ExpandCollapse({
   setFullscreenActive,
   mapViewSetter,
 }: ExpandeCollapseProps) {
-  const [hover, setHover] = React.useState(false);
+  const [hover, setHover] = useState(false);
 
   return (
     <div
@@ -1446,15 +1490,9 @@ function ExpandCollapse({
       onMouseOut={() => setHover(false)}
       onClick={(ev) => {
         // Toggle scroll bars
-        if (fullscreenActive()) {
-          // Display the scroll bars
-          document.documentElement.style.overflow = 'auto';
-          document.body.scroll = 'yes'; //ie browser
-        } else {
-          // Hide the scroll bars
-          document.documentElement.style.overflow = 'hidden';
-          document.body.scroll = 'no'; //ie browser
-        }
+        document.documentElement.style.overflow = fullscreenActive()
+          ? 'auto'
+          : 'hidden';
 
         // Toggle fullscreen mode
         setFullscreenActive(!fullscreenActive());
