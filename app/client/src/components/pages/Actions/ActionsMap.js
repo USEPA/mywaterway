@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
@@ -49,25 +49,22 @@ type Props = {
 };
 
 function ActionsMap({ layout, unitIds, onLoad }: Props) {
-  const {
-    actionsLayer,
-    homeWidget,
-    mapView,
-    setActionsLayer,
-  } = React.useContext(LocationSearchContext);
+  const { actionsLayer, homeWidget, mapView, setActionsLayer } = useContext(
+    LocationSearchContext,
+  );
 
-  const [layers, setLayers] = React.useState(null);
+  const [layers, setLayers] = useState(null);
 
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
-  const [actionsMapLoadError, setActionsMapLoadError] = React.useState(false);
+  const [actionsMapLoadError, setActionsMapLoadError] = useState(false);
 
   const services = useServicesContext();
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
 
   // Initially sets up the layers
-  const [layersInitialized, setLayersInitialized] = React.useState(false);
-  React.useEffect(() => {
+  const [layersInitialized, setLayersInitialized] = useState(false);
+  useEffect(() => {
     if (!getSharedLayers || layersInitialized) return;
 
     let localActionsLayer = actionsLayer;
@@ -77,6 +74,7 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
         title: 'Waterbodies',
         listMode: 'hide',
         visible: true,
+        legendEnabled: false,
       });
       setActionsLayer(localActionsLayer);
     }
@@ -86,13 +84,13 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
     setLayersInitialized(true);
   }, [actionsLayer, setActionsLayer, getSharedLayers, layersInitialized]);
 
-  const [fetchStatus, setFetchStatus] = React.useState('');
+  const [fetchStatus, setFetchStatus] = useState('');
 
   // Queries the Gis service and plots the waterbodies on the map
-  const [noMapData, setNoMapData] = React.useState(null);
+  const [noMapData, setNoMapData] = useState(null);
 
   // Plots the assessments. Also re-plots if the layout changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (!unitIds || !actionsLayer) return;
     if (fetchStatus) return; // only do a fetch if there is no status
 
@@ -186,8 +184,9 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
             }
 
             // handle Waterbody Report page
-            const condition = getWaterbodyCondition(feature.attributes)
-              .condition;
+            const condition = getWaterbodyCondition(
+              feature.attributes,
+            ).condition;
 
             return createWaterbodySymbol({
               condition: condition,
@@ -267,7 +266,7 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
   }, [unitIds, actionsLayer, fetchStatus, onLoad, services]);
 
   // Scrolls to the map when switching layouts
-  React.useEffect(() => {
+  useEffect(() => {
     // scroll container or actions map content into view
     // get container or actions map content DOM node to scroll page
     // the layout changes
@@ -281,8 +280,8 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
   }, [layout]);
 
   // Zooms to the waterbodies after they are drawn on the map
-  const [mapLoading, setMapLoading] = React.useState(true);
-  React.useEffect(() => {
+  const [mapLoading, setMapLoading] = useState(true);
+  useEffect(() => {
     if (
       !fetchStatus ||
       !mapView ||

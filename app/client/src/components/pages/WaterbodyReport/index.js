@@ -13,6 +13,7 @@ import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import ActionsMap from 'components/pages/Actions/ActionsMap';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import MapVisibilityButton from 'components/shared/MapVisibilityButton';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // styled components
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import {
@@ -123,6 +124,14 @@ const inlineBoxSectionStyles = css`
     margin-top: 0;
     margin-bottom: 0;
     line-height: 1.25;
+  }
+`;
+
+const modifiedBoxSectionStyles = css`
+  ${boxSectionStyles}
+
+  p {
+    margin-top: 0;
   }
 `;
 
@@ -637,7 +646,8 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
     const url =
       services.data.attains.serviceUrl +
       `actions?organizationIdentifier=${orgId}` +
-      `&assessmentUnitIdentifier=${auId}`;
+      `&assessmentUnitIdentifier=${auId}` +
+      `&summarize=Y`;
 
     fetchCheck(url).then(
       (res) => {
@@ -650,15 +660,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
 
         const actions = filteredActions[0].actions.map((action) => {
           // get water with matching assessment unit identifier
-          const matchingWater = action.associatedWaters.specificWaters.filter(
-            (water) => water.assessmentUnitIdentifier === auId,
-          )[0];
-
-          const pollutants = matchingWater
-            ? matchingWater.parameters.map((p) =>
-                titleCaseWithExceptions(p.parameterName),
-              )
-            : [];
+          const pollutants = action.parameters.map((p) =>
+            titleCaseWithExceptions(p.parameterName),
+          );
 
           return {
             id: action.actionIdentifier,
@@ -711,7 +715,8 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
       const url =
         services.data.attains.serviceUrl +
         `actions?organizationIdentifier=${orgId}` +
-        `&actionIdentifier=${additionalIds.join(',')}`;
+        `&actionIdentifier=${additionalIds.join(',')}` +
+        `&summarize=Y`;
 
       setActionsFetchedAgain(true);
 
@@ -735,8 +740,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
 
           filteredActions.forEach((item) => {
             item.actions.forEach((action) => {
-              const { specificWaters } = action.associatedWaters;
-              const pollutants = specificWaters[0].parameters.map((p) => {
+              const pollutants = action.parameters.map((p) => {
                 return titleCaseWithExceptions(p.parameterName);
               });
 
@@ -844,7 +848,12 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
       </div>
 
       <div css={inlineBoxSectionStyles}>
-        <h3>303(d) Listed:</h3>
+        <h3>
+          <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
+            303(d) Listed
+          </GlossaryTerm>
+          :
+        </h3>
         {waterbodyStatus.status === 'fetching' && <LoadingSpinner />}
         {waterbodyStatus.status === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
@@ -1075,7 +1084,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                       )}
                     </h2>
 
-                    <div css={boxSectionStyles}>
+                    <div css={modifiedBoxSectionStyles}>
                       <h3>What is this water used for?</h3>
                       {waterbodyUses.status === 'fetching' && (
                         <LoadingSpinner />
@@ -1195,7 +1204,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                       {waterbodyActions.status === 'success' && (
                         <>
                           {waterbodyActions.data.length === 0 ? (
-                            <p>No plans for this waterbody.</p>
+                            <p>No plans specified for this waterbody.</p>
                           ) : (
                             <>
                               <em>Links below open in a new browser tab.</em>

@@ -5,12 +5,11 @@ import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 // components
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
-import { ContentTabs } from 'components/shared/ContentTabs';
+import { tabsStyles } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
-// styled components
 import {
   StyledMetrics,
   StyledMetric,
@@ -27,10 +26,13 @@ import {
   restoreNonpointSourceError,
   restorationPlanError,
 } from 'config/errorMessages';
+// styles
+import { tableStyles } from 'styles/index.js';
 
 const containerStyles = css`
-  padding: 1em;
-  line-height: 1.25em;
+  @media (min-width: 960px) {
+    padding: 1em;
+  }
 `;
 
 const textStyles = css`
@@ -153,7 +155,7 @@ function Restore() {
         </StyledMetric>
       </StyledMetrics>
 
-      <ContentTabs>
+      <div css={tabsStyles}>
         <Tabs onChange={(index) => setRestoreLayerVisibility(index === 1)}>
           <TabList>
             <Tab>Clean Water Act Section 319 Projects</Tab>
@@ -228,13 +230,13 @@ function Restore() {
                                 title={
                                   <strong>{item.prj_title || 'Unknown'}</strong>
                                 }
-                                subTitle={`ID:  ${
-                                  item.prj_seq || 'Unknown ID'
-                                }`}
+                                subTitle={
+                                  <>ID: {item.prj_seq || 'Unknown ID'}</>
+                                }
                               >
-                                <table className="table">
+                                <table css={tableStyles} className="table">
                                   <tbody>
-                                    {item['pollutants'] && (
+                                    {item.pollutants && (
                                       <tr>
                                         <td>
                                           <em>Impairments:</em>
@@ -410,9 +412,9 @@ function Restore() {
                               title={
                                 <strong>{item.actionName || 'Unknown'}</strong>
                               }
-                              subTitle={`ID: ${item.actionIdentifier}`}
+                              subTitle={<>ID: {item.actionIdentifier}</>}
                             >
-                              <table className="table">
+                              <table css={tableStyles} className="table">
                                 <tbody>
                                   <tr>
                                     <td>
@@ -472,7 +474,7 @@ function Restore() {
             </TabPanel>
           </TabPanels>
         </Tabs>
-      </ContentTabs>
+      </div>
     </div>
   );
 }

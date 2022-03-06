@@ -13,23 +13,32 @@ const accordionListContainerStyles = css`
 
 const columnsStyles = css`
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: flex-end;
 `;
 
 const selectContainerStyles = css`
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  margin-bottom: 0.625em;
+  margin-bottom: 0.625rem;
   width: 100%;
+
+  @media (min-width: 560px) {
+    flex-wrap: nowrap;
+  }
 `;
 
 const selectLabelStyles = css`
   margin-right: 0.625rem;
-  margin-bottom: 0;
+  margin-bottom: 0.125rem;
   font-size: 0.875rem;
   font-weight: bold;
   white-space: nowrap;
+
+  @media (min-width: 560px) {
+    margin-bottom: 0;
+  }
 `;
 
 const selectStyles = css`
@@ -37,10 +46,10 @@ const selectStyles = css`
 `;
 
 const expandButtonStyles = css`
-  margin-bottom: 0;
+  margin-bottom: 0.625rem;
   margin-left: 0.625rem;
-  padding: 0.5em;
-  font-size: 0.875em;
+  padding: 0.5rem;
+  font-size: 0.8125em;
   font-weight: normal;
   color: ${colors.gray6};
   background-color: transparent;
@@ -77,11 +86,9 @@ function AccordionList({
   );
   const [allExpanded, setAllExpanded] = React.useState(false);
 
-  const iconClass = allExpanded
+  const iconClassName = allExpanded
     ? 'far fa-caret-square-right'
     : 'far fa-caret-square-down';
-
-  const buttonText = allExpanded ? 'Collapse All' : 'Expand All';
 
   // generate unique id for sorting label and dropdown
   const uniqueID = Date.now() + Math.random();
@@ -117,8 +124,8 @@ function AccordionList({
             css={expandButtonStyles}
             onClick={(ev) => setAllExpanded(!allExpanded)}
           >
-            {buttonText}&nbsp;&nbsp;
-            <i className={iconClass} aria-hidden="true" />
+            {allExpanded ? 'Collapse All' : 'Expand All'}&nbsp;&nbsp;
+            <i className={iconClassName} aria-hidden="true" />
           </button>
         )}
       </div>
@@ -174,7 +181,7 @@ const iconStyles = css`
 const textStyles = css`
   flex: 1;
   padding-bottom: 0;
-  word-break: break-word;
+  overflow-wrap: anywhere;
 `;
 
 const subtitleStyles = css`
@@ -273,7 +280,7 @@ function AccordionItem({
       >
         {icon && <div css={iconStyles}>{icon}</div>}
 
-        <span css={textStyles}>
+        <p css={textStyles}>
           {title}
           {subTitle && (
             <>
@@ -281,7 +288,7 @@ function AccordionItem({
               <span css={subtitleStyles}>{subTitle}</span>
             </>
           )}
-        </span>
+        </p>
 
         <i
           css={arrowStyles}

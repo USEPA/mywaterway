@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useContext, useState, useCallback, useEffect } from 'react';
 import type { Node } from 'react';
 // components
 import {
@@ -13,6 +13,7 @@ import { MapHighlightContext } from 'contexts/MapHighlight';
 
 type AccordionItemProps = {
   icon: ?Object,
+  mapIcon: Object,
   title: Node,
   subTitle: ?Node,
   feature: ?Object,
@@ -33,17 +34,15 @@ function AccordionItem({
   onChange = () => {},
   children,
 }: AccordionItemProps) {
-  const { mapView } = React.useContext(LocationSearchContext);
+  const { mapView } = useContext(LocationSearchContext);
 
-  const {
-    highlightedGraphic,
-    selectedGraphic, //
-    setHighlightedGraphic,
-  } = React.useContext(MapHighlightContext);
+  const { highlightedGraphic, selectedGraphic, setHighlightedGraphic } =
+    useContext(MapHighlightContext);
 
-  // used for getting/setting the accordion item's highlight status
-  const [status, setStatus] = React.useState(null);
-  const checkHighlight = React.useCallback(() => {
+  // the accordion item's highlight status
+  const [status, setStatus] = useState(null);
+
+  const checkHighlight = useCallback(() => {
     // ensure the key exists prior to deciding to highlight
     if (feature && feature.attributes && feature.attributes[idKey]) {
       const id = feature.attributes[idKey];
@@ -64,8 +63,7 @@ function AccordionItem({
     } else setStatus(null);
   }, [feature, highlightedGraphic, idKey, selectedGraphic]);
 
-  // used for checking the highlight status
-  React.useEffect(() => {
+  useEffect(() => {
     checkHighlight();
   }, [checkHighlight, feature, highlightedGraphic, selectedGraphic]);
 
@@ -82,22 +80,20 @@ function AccordionItem({
   };
 
   return (
-    <>
-      <AccordionItemSimple
-        icon={icon}
-        mapIcon={mapIcon}
-        title={title}
-        subTitle={subTitle}
-        status={status}
-        onAddHighlight={addHighlight}
-        onRemoveHighlight={removeHighlight}
-        idKey={idKey}
-        allExpanded={allExpanded}
-        onChange={onChange}
-      >
-        {children}
-      </AccordionItemSimple>
-    </>
+    <AccordionItemSimple
+      icon={icon}
+      mapIcon={mapIcon}
+      title={title}
+      subTitle={subTitle}
+      status={status}
+      onAddHighlight={addHighlight}
+      onRemoveHighlight={removeHighlight}
+      idKey={idKey}
+      allExpanded={allExpanded}
+      onChange={onChange}
+    >
+      {children}
+    </AccordionItemSimple>
   );
 }
 

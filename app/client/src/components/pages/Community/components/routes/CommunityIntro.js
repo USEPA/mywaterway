@@ -1,7 +1,7 @@
 // @flow
 
-import React from 'react';
-import styled from 'styled-components';
+import React, { useContext, useEffect } from 'react';
+import { css } from 'styled-components/macro';
 // components
 import type { RouteProps } from 'routes.js';
 // contexts
@@ -19,42 +19,42 @@ import identifiedIssuesIcon from 'components/pages/Community/images/identified-i
 import restoreIcon from 'components/pages/Community/images/restore.png';
 import protectIcon from 'components/pages/Community/images/protect.png';
 
-// --- styled components ---
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  max-height: 100%;
+const containerStyles = css`
+  padding: 1.25em;
 `;
 
-const Text = styled.div`
-  padding: 1.25em;
+const headingStyles = css`
+  margin-top: 0.25em;
+  margin-bottom: 0;
+  font-family: ${fonts.primary};
+  font-size: 1.25em;
+  text-align: center;
 
-  h2 {
-    margin-top: 0.25em;
-    margin-bottom: 0;
-    font-family: ${fonts.primary};
-    text-align: center;
+  @media (min-width: 560px) {
+    font-size: 1.75em;
+  }
+
+  @media (min-width: 960px) {
+    font-size: 2em;
   }
 `;
 
-const Topic = styled.div`
+const topicStyles = css`
   display: flex;
   align-items: center;
   padding: 0.625em 0;
 `;
 
-const TopicIcon = styled.div`
+const iconStyles = css`
   padding-right: 0.75em;
 
-  img,
-  svg {
+  img {
     max-width: 2.75em;
     max-height: 2.75em;
   }
 `;
 
-const TopicText = styled.div`
+const textStyles = css`
   flex: 1;
 `;
 
@@ -64,115 +64,120 @@ type Props = {
 
 // --- components ---
 function CommunityIntro({ ...props }: Props) {
-  const { setVisibleLayers } = React.useContext(LocationSearchContext);
+  const { setVisibleLayers } = useContext(LocationSearchContext);
 
-  // clear the community page layers when a user navigates to
-  // the community intro page
-  React.useEffect(() => {
+  // clear the community page layers when a user navigates to the community intro page
+  useEffect(() => {
     setVisibleLayers({});
   }, [setVisibleLayers]);
 
   return (
-    <Container>
-      <Text>
-        <h2>Explore Your Water</h2>
+    <div css={containerStyles}>
+      <h2 css={headingStyles}>Explore Your Water</h2>
 
-        <p>
-          Enter a location in the search box to explore waters in your area and
-          find out information about the following:
-        </p>
+      <p>
+        Enter a location in the search box to explore waters in your area and
+        find out information about the following:
+      </p>
 
-        <Topic>
-          <TopicIcon>
-            <img src={overviewIcon} alt="Overview" />
-          </TopicIcon>
-          <TopicText>
-            <strong>Overview</strong>
-          </TopicText>
-        </Topic>
+      <p css={topicStyles}>
+        <span css={iconStyles}>
+          <img src={overviewIcon} alt="Overview" />
+        </span>
 
-        <Topic>
-          <TopicIcon>
-            <img src={swimmingIcon} alt="Swimming" />
-          </TopicIcon>
-          <TopicText>
-            <strong>Swimming:</strong> &nbsp; EPA, states, and tribes monitor
-            and assess water quality to keep you safe while swimming, wading, or
-            boating.
-          </TopicText>
-        </Topic>
+        <span css={textStyles}>
+          <strong>Overview</strong>
+        </span>
+      </p>
 
-        <Topic>
-          <TopicIcon>
-            <img src={eatingFishIcon} alt="Eating Fish" />
-          </TopicIcon>
-          <TopicText>
-            <strong>Eating Fish:</strong> &nbsp; EPA, states, and tribes monitor
-            and assess water quality to determine if fish and shellfish are safe
-            to eat.
-          </TopicText>
-        </Topic>
+      <p css={topicStyles}>
+        <span css={iconStyles}>
+          <img src={swimmingIcon} alt="Swimming" />
+        </span>
 
-        <Topic>
-          <TopicIcon>
-            <img src={aquaticLifeIcon} alt="Aquatic Life" />
-          </TopicIcon>
-          <TopicText>
-            <strong>Aquatic Life:</strong> &nbsp; EPA, states, and tribes
-            monitor and assess water quality to determine the impact of
-            impairments on plants and animals living in the water.
-          </TopicText>
-        </Topic>
+        <span css={textStyles}>
+          <strong>Swimming:</strong> &nbsp; EPA, states, and tribes monitor and
+          assess water quality to keep you safe while swimming, wading, or
+          boating.
+        </span>
+      </p>
 
-        <Topic>
-          <TopicIcon>
-            <img src={drinkingWaterIcon} alt="Drinking Water" />
-          </TopicIcon>
-          <TopicText>
-            <strong>Drinking Water:</strong> &nbsp; Who provides drinking water
-            in your community?
-          </TopicText>
-        </Topic>
+      <p css={topicStyles}>
+        <span css={iconStyles}>
+          <img src={eatingFishIcon} alt="Eating Fish" />
+        </span>
+        <span css={textStyles}>
+          <strong>Eating Fish:</strong> &nbsp; EPA, states, and tribes monitor
+          and assess water quality to determine if fish and shellfish are safe
+          to eat.
+        </span>
+      </p>
 
-        <Topic>
-          <TopicIcon>
-            <img src={monitoringIcon} alt="Monitoring" />
-          </TopicIcon>
-          <TopicText>
-            <strong>Monitoring:</strong> &nbsp; View monitoring locations.
-          </TopicText>
-        </Topic>
+      <p css={topicStyles}>
+        <span css={iconStyles}>
+          <img src={aquaticLifeIcon} alt="Aquatic Life" />
+        </span>
 
-        <Topic>
-          <TopicIcon>
-            <img src={identifiedIssuesIcon} alt="Identified Issues" />
-          </TopicIcon>
-          <TopicText>
-            <strong>Identified Issues:</strong> &nbsp; View identified water
-            quality issues.
-          </TopicText>
-        </Topic>
+        <span css={textStyles}>
+          <strong>Aquatic Life:</strong> &nbsp; EPA, states, and tribes monitor
+          and assess water quality to determine the impact of impairments on
+          plants and animals living in the water.
+        </span>
+      </p>
 
-        <Topic>
-          <TopicIcon>
-            <img src={restoreIcon} alt="Restore" />
-          </TopicIcon>
-          <TopicText>
-            <strong>Restore:</strong> &nbsp; View EPA funded nonpoint source
-            pollution grants and waterbody restoration plans.
-          </TopicText>
-        </Topic>
+      <p css={topicStyles}>
+        <span css={iconStyles}>
+          <img src={drinkingWaterIcon} alt="Drinking Water" />
+        </span>
 
-        <Topic>
-          <TopicIcon>
-            <img src={protectIcon} alt="Protect" />
-          </TopicIcon>
-          <TopicText>
-            <strong>Protect:</strong> &nbsp; How can you help?
-          </TopicText>
-        </Topic>
-      </Text>
-    </Container>
+        <span css={textStyles}>
+          <strong>Drinking Water:</strong> &nbsp; Who provides drinking water in
+          your community?
+        </span>
+      </p>
+
+      <p css={topicStyles}>
+        <span css={iconStyles}>
+          <img src={monitoringIcon} alt="Monitoring" />
+        </span>
+
+        <span css={textStyles}>
+          <strong>Monitoring:</strong> &nbsp; View monitoring locations.
+        </span>
+      </p>
+
+      <p css={topicStyles}>
+        <span css={iconStyles}>
+          <img src={identifiedIssuesIcon} alt="Identified Issues" />
+        </span>
+
+        <span css={textStyles}>
+          <strong>Identified Issues:</strong> &nbsp; View identified water
+          quality issues.
+        </span>
+      </p>
+
+      <p css={topicStyles}>
+        <span css={iconStyles}>
+          <img src={restoreIcon} alt="Restore" />
+        </span>
+
+        <span css={textStyles}>
+          <strong>Restore:</strong> &nbsp; View EPA funded nonpoint source
+          pollution grants and waterbody restoration plans.
+        </span>
+      </p>
+
+      <p css={topicStyles}>
+        <span css={iconStyles}>
+          <img src={protectIcon} alt="Protect" />
+        </span>
+
+        <span css={textStyles}>
+          <strong>Protect:</strong> &nbsp; How can you help?
+        </span>
+      </p>
+    </div>
   );
 }
 

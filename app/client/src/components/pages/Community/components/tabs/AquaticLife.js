@@ -13,10 +13,11 @@ import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
 import { summarizeAssessments } from 'utils/utils';
 
 const containerStyles = css`
-  padding: 1em;
+  @media (min-width: 960px) {
+    padding: 1em;
+  }
 `;
 
-// --- components ---
 function AquaticLife() {
   const { watershed } = useContext(LocationSearchContext);
 

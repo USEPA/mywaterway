@@ -1,29 +1,21 @@
 // @flow
 
 import React from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 // components
 import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
 import TabLinks from 'components/shared/TabLinks';
-import { ContentTabs } from 'components/shared/ContentTabs';
+import { tabsStyles } from 'components/shared/ContentTabs';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import WaterSystemSummary from 'components/shared/WaterSystemSummary';
 import DisclaimerModal from 'components/shared/DisclaimerModal';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
+import { introBoxStyles } from 'components/shared/IntroBox';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useNarsContext } from 'contexts/LookupFiles';
-// styled components
-import {
-  StyledIntroBox,
-  StyledIntroHeading,
-  StyledIntroText,
-} from 'components/shared/IntroBox';
-import { LargeTab } from 'components/shared/ContentTabs/LargeTab.js';
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
-// utilities
-import { createMarkup } from 'utils/utils';
 // styles
 import { colors, fonts } from 'styles/index.js';
 // images
@@ -36,33 +28,47 @@ import drinkingWaterIcon from 'components/pages/Community/images/drinking-water.
 // errors
 import { narsError } from 'config/errorMessages';
 
-// --- styled components ---
-const Container = styled.div`
+const containerStyles = css`
   margin: auto;
   padding: 1rem;
   max-width: 58rem;
+
+  .hmw-percent {
+    display: inline-block;
+    margin-right: 0.125em;
+    font-size: 1.25em;
+    font-weight: bold;
+    color: ${colors.blue()};
+  }
+
+  small {
+    font-weight: inherit;
+  }
 `;
 
-const StyledTabs = styled(Tabs)`
+const modifiedTabsStyles = css`
+  ${tabsStyles}
+  margin-bottom: 1rem;
+
   [data-reach-tab] {
     padding: 0.875em;
+    font-size: 0.875em;
+
+    @media (min-width: 480px) {
+      font-size: 1em;
+    }
   }
 
   [data-reach-tab-panel] {
     padding: 1.5em;
 
     p {
-      margin-top: 1rem;
       padding-bottom: 0;
       line-height: 1.375;
 
-      :first-of-type {
-        margin-top: 0;
+      + p {
+        margin-top: 1rem;
       }
-    }
-
-    ul {
-      padding-bottom: 0;
     }
 
     li {
@@ -70,24 +76,18 @@ const StyledTabs = styled(Tabs)`
     }
 
     h3 {
-      margin: 1.5rem 0 0.625rem;
+      margin-top: 1.5rem;
+      margin-bottom: 0.625rem;
       padding-bottom: 0;
       font-family: ${fonts.primary};
       font-size: 1.375em;
-
-      & + p {
-        margin-top: 0;
-      }
     }
-  }
-
-  /* sub tabs */
-  [data-reach-tabs] {
-    margin-bottom: 0.5rem;
   }
 `;
 
-const IntroBox = styled(StyledIntroBox)`
+const modifiedIntroBoxStyles = css`
+  ${introBoxStyles}
+
   margin-top: -1.5em;
   margin-left: -1.5em;
   padding: 1.5rem;
@@ -95,7 +95,9 @@ const IntroBox = styled(StyledIntroBox)`
   width: calc(100% + 3em);
 `;
 
-const AltBox = styled(IntroBox)`
+const altBoxStyles = css`
+  ${modifiedIntroBoxStyles}
+
   margin-top: 0;
   border-top: 1px solid #d8dfe2;
 
@@ -104,77 +106,36 @@ const AltBox = styled(IntroBox)`
   }
 `;
 
-const AccordionContent = styled.div`
-  padding: 0.875em;
-`;
-
-const FooterText = styled.small`
-  display: block;
-  margin-top: 1em;
-  font-style: italic;
-`;
-
-const Article = styled.div`
+const columnsStyles = css`
   display: flex;
   flex-flow: row wrap;
   justify-content: space-between;
+`;
 
-  p {
-    width: 100%;
-
-    @media (min-width: 30em) {
-      width: calc(50% - 0.5rem);
-    }
-
-    @media (min-width: 40em) {
-      width: calc(75% - 0.5rem);
-    }
+const leftColumnStyles = css`
+  @media (min-width: 640px) {
+    width: calc(50% - 0.5rem);
   }
 
-  a {
-    margin-top: 1rem;
-    width: 100%;
-
-    @media (min-width: 30em) {
-      margin-top: 0;
-      width: calc(50% - 0.5rem);
-    }
-
-    @media (min-width: 40em) {
-      width: calc(25% - 0.5rem);
-    }
+  @media (min-width: 800px) {
+    width: calc(75% - 0.5rem);
   }
 `;
 
-const Links = styled.div`
-  display: flex;
-  flex-flow: row wrap;
-  justify-content: space-between;
+const rightColumnStyles = css`
+  margin-top: 1rem;
 
-  a {
-    margin-top: 1rem;
-    width: 100%;
+  @media (min-width: 640px) {
+    margin-top: 0;
+    width: calc(50% - 0.5rem);
+  }
 
-    :nth-of-type(1) {
-      margin-top: 0;
-    }
-
-    @media (min-width: 20em) {
-      width: calc(50% - 0.5rem);
-
-      :nth-of-type(2) {
-        margin-top: 0;
-      }
-    }
-
-    @media (min-width: 40em) {
-      margin-top: 0;
-      width: calc(25% - 0.75rem);
-    }
+  @media (min-width: 800px) {
+    width: calc(25% - 0.5rem);
   }
 `;
 
-const Figure = styled.figure`
+const figureStyles = css`
   position: relative;
   border-radius: 0.25rem;
   overflow: hidden;
@@ -191,33 +152,55 @@ const Figure = styled.figure`
     width: 100%;
     font-size: 0.8125rem;
     text-align: center;
-    background-color: ${colors.black(0.66)};
     color: white;
+    background-color: ${colors.black(0.6875)};
   }
 `;
 
-const Disclaimer = styled(DisclaimerModal)`
-  margin-top: 1rem;
+const accordionContentStyles = css`
+  padding: 0.4375em 0.875em 0.875em;
 `;
 
-const Percent = styled.span`
+const footnoteStyles = css`
+  margin-top: 0.5em !important;
+  font-style: italic;
+  line-height: 1 !important;
+`;
+
+const disclaimerStyles = css`
   display: inline-block;
-  margin-right: 0.125em;
-  font-size: 1.25em;
-  font-weight: bold;
-  color: #0071bc;
+  margin-bottom: 0.5em;
 `;
 
-const Icon = styled.img`
-  position: relative;
-  bottom: 0.125em;
-  left: -0.3125em;
-  margin-right: -0.3125em;
-  max-width: 1.75em;
-  max-height: 1.75em;
+const linksStyles = css`
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+
+  a {
+    margin-top: 1rem;
+    width: 100%;
+
+    :nth-of-type(1) {
+      margin-top: 0;
+    }
+
+    @media (min-width: 320px) {
+      width: calc(50% - 0.5rem);
+
+      :nth-of-type(2) {
+        margin-top: 0;
+      }
+    }
+
+    @media (min-width: 640px) {
+      margin-top: 0;
+      width: calc(25% - 0.75rem);
+    }
+  }
 `;
 
-const Highlights = styled.div`
+const highlightsStyles = css`
   ol {
     list-style: none;
     counter-reset: hmw;
@@ -246,10 +229,10 @@ const Highlights = styled.div`
     line-height: 1.5em; /* width */
     text-align: center;
     color: white;
-    background-color: #0071bc;
+    background-color: ${colors.blue()};
   }
 
-  @media (min-width: 45em) {
+  @media (min-width: 720px) {
     h3 {
       text-align: center;
     }
@@ -266,234 +249,174 @@ const Highlights = styled.div`
   }
 `;
 
-const NewTabDisclaimer = styled.p`
-  margin-bottom: 0.5em;
-  font-style: italic;
+const iconStyles = css`
+  position: relative;
+  bottom: 0.125em;
+  left: -0.3125em;
+  margin-right: -0.3125em;
+  max-width: 1.75em;
+  max-height: 1.75em;
 `;
 
-// --- components ---
-function WaterConditionsPanel() {
-  const NARS = useNarsContext();
+function NationalWaterQualityPanel() {
+  const { status, data } = useNarsContext();
 
-  const narsFooter = (
-    <FooterText>
-      This data is pulled from the National Aquatic Resource Surveys (NARS) and
-      the metrics are only for the conterminous US.
-    </FooterText>
-  );
+  if (status === 'fetching') {
+    return <LoadingSpinner />;
+  }
 
-  const narsTabContent = (data) => {
-    return data.map((category, index) => (
-      <AccordionItem
-        key={index}
-        title={
-          <>
-            <Percent>{category.metric}</Percent>{' '}
-            <span dangerouslySetInnerHTML={createMarkup(category.title)} />
-          </>
-        }
-      >
-        <AccordionContent
-          dangerouslySetInnerHTML={createMarkup(category.content)}
-        />
-      </AccordionItem>
-    ));
-  };
+  if (status === 'failure') {
+    return (
+      <div css={errorBoxStyles}>
+        <p>{narsError}</p>
+      </div>
+    );
+  }
+
+  if (status === 'success' && Object.keys(data).length === 0) {
+    return (
+      <div css={errorBoxStyles}>
+        <p>{narsError}</p>
+      </div>
+    );
+  }
 
   return (
     <>
-      <IntroBox>
-        <StyledIntroHeading>Explore National Water Quality</StyledIntroHeading>
-        <StyledIntroText>
-          EPA, states, and tribes survey a representative sample of our nation's
-          waters to provide an accurate snapshot of water quality, and track
-          changes over time.
-        </StyledIntroText>
-      </IntroBox>
+      <div css={modifiedIntroBoxStyles}>
+        <h2>{data.intro.title}</h2>
+        <div dangerouslySetInnerHTML={{ __html: data.intro.content }} />
+      </div>
 
-      {NARS.status === 'fetching' && <LoadingSpinner />}
+      <h3>{data.columns.title}</h3>
 
-      {NARS.status === 'failure' && (
-        <StyledErrorBox>{narsError}</StyledErrorBox>
-      )}
+      <div css={columnsStyles}>
+        <div
+          css={leftColumnStyles}
+          dangerouslySetInnerHTML={{ __html: data.columns.content }}
+        />
 
-      {NARS.status === 'success' && Object.keys(NARS.data).length === 0 && (
-        <StyledErrorBox>{narsError}</StyledErrorBox>
-      )}
+        <div css={rightColumnStyles}>
+          <a
+            href={data.columns.photoLink}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <figure css={figureStyles}>
+              <img
+                src={nutrientPollutionPhoto}
+                alt="Map of excess nutrients across the United States"
+              />
+            </figure>
+          </a>
+        </div>
+      </div>
 
-      {NARS.status === 'success' && Object.keys(NARS.data).length > 0 && (
-        <>
-          <h3>Excess nutrients in waterways continue to be an issue</h3>
+      <h3>Learn about the health of our waters</h3>
 
-          <Article>
-            <p>
-              <a
-                href={NARS.data.excessNutrientsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Excess Nutrients in Waterways
-              </a>{' '}
-              (opens new browser tab) is one of America’s most widespread water
-              quality issues. While nutrients are important, too much of a good
-              thing can become a bad thing. Excess nutrients can lead to
-              excessive algae growth, which can use up oxygen that aquatic
-              organisms need to survive. Too much algae growth can cause fish to
-              die.{' '}
-              <a
-                href={NARS.data.reduceNutriantsPollutionUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Learn more about what EPA is doing to reduce excess nutrients in
-                waterways
-              </a>{' '}
-              (opens new browser tab).
-            </p>
-
-            <a
-              href={NARS.data.excessNutrientsImageUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Figure>
-                <img
-                  src={nutrientPollutionPhoto}
-                  alt="Map of excess nutrients across the United States"
-                />
-              </Figure>
-            </a>
-          </Article>
-
-          <h3>Learn about the health of our waters</h3>
-
-          <ContentTabs>
-            <Tabs>
-              <TabList>
-                <Tab data-testid="hmw-national-rivers-and-streams-tab">
-                  Rivers and Streams
+      <div css={tabsStyles}>
+        <Tabs>
+          <TabList>
+            {data.tabs.map((tab, tabIndex) => {
+              const tabId = tab.title.replace(/\W+/g, '-').toLowerCase();
+              return (
+                <Tab data-testid={`hmw-national-${tabId}-tab`} key={tabIndex}>
+                  {tab.title}
                 </Tab>
-                <Tab data-testid="hmw-national-lakes-tab">Lakes</Tab>
-                <Tab data-testid="hmw-national-coasts-tab">Coasts</Tab>
-                <Tab data-testid="hmw-national-wetlands-tab">Wetlands</Tab>
-              </TabList>
+              );
+            })}
+          </TabList>
 
-              <TabPanels>
-                <TabPanel>
-                  <AccordionList>
-                    {narsTabContent(NARS.data.riversAndStreams)}
-                  </AccordionList>
+          <TabPanels>
+            {data.tabs.map((tab, tabIndex) => (
+              <TabPanel key={tabIndex}>
+                <AccordionList>
+                  {tab.content.map((category, categoryIndex) => (
+                    <AccordionItem
+                      key={categoryIndex}
+                      title={
+                        <span
+                          dangerouslySetInnerHTML={{ __html: category.title }}
+                        />
+                      }
+                    >
+                      <div
+                        css={accordionContentStyles}
+                        dangerouslySetInnerHTML={{ __html: category.content }}
+                      />
+                    </AccordionItem>
+                  ))}
+                </AccordionList>
 
-                  {narsFooter}
-                </TabPanel>
+                {tab.footnotes.map((footnote, footnoteIndex) => (
+                  <p css={footnoteStyles} key={footnoteIndex}>
+                    <small dangerouslySetInnerHTML={{ __html: footnote }} />
+                  </p>
+                ))}
+              </TabPanel>
+            ))}
+          </TabPanels>
+        </Tabs>
+      </div>
 
-                <TabPanel>
-                  <AccordionList>
-                    {narsTabContent(NARS.data.lakes)}
-                  </AccordionList>
+      <h3>Learn more about waterbody types</h3>
 
-                  {narsFooter}
-                </TabPanel>
+      <p>
+        <em css={disclaimerStyles}>Links below open in a new browser tab.</em>
+      </p>
 
-                <TabPanel>
-                  <AccordionList>
-                    {narsTabContent(NARS.data.coasts)}
-                  </AccordionList>
+      <div css={linksStyles}>
+        <a href={data.links.rivers} target="_blank" rel="noopener noreferrer">
+          <figure css={figureStyles}>
+            <img src={riversPhoto} alt="Learn more about Rivers & Streams" />
+            <figcaption>Rivers & Stream</figcaption>
+          </figure>
+        </a>
 
-                  {narsFooter}
-                </TabPanel>
+        <a href={data.links.lakes} target="_blank" rel="noopener noreferrer">
+          <figure css={figureStyles}>
+            <img src={lakesPhoto} alt="Learn more about Lakes" />
+            <figcaption>Lakes</figcaption>
+          </figure>
+        </a>
 
-                <TabPanel>
-                  <AccordionList>
-                    {narsTabContent(NARS.data.wetlands)}
-                  </AccordionList>
+        <a href={data.links.coasts} target="_blank" rel="noopener noreferrer">
+          <figure css={figureStyles}>
+            <img src={coastsPhoto} alt="Learn more about Coasts" />
+            <figcaption>Coasts</figcaption>
+          </figure>
+        </a>
 
-                  {narsFooter}
-                </TabPanel>
-              </TabPanels>
-            </Tabs>
-          </ContentTabs>
-
-          <h3>Learn more about waterbody types</h3>
-
-          <NewTabDisclaimer>
-            Links below open in a new browser tab.
-          </NewTabDisclaimer>
-
-          <Links>
-            <a
-              href={NARS.data.riversStreamsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Figure>
-                <img
-                  src={riversPhoto}
-                  alt="Learn more about Rivers & Streams"
-                />
-                <figcaption>Rivers & Stream</figcaption>
-              </Figure>
-            </a>
-
-            <a
-              href={NARS.data.lakesUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Figure>
-                <img src={lakesPhoto} alt="Learn more about Lakes" />
-                <figcaption>Lakes</figcaption>
-              </Figure>
-            </a>
-
-            <a
-              href={NARS.data.coastsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Figure>
-                <img src={coastsPhoto} alt="Learn more about Coasts" />
-                <figcaption>Coasts</figcaption>
-              </Figure>
-            </a>
-
-            <a
-              href={NARS.data.wetlandsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Figure>
-                <img src={wetlandsPhoto} alt="Learn more about Wetlands" />
-                <figcaption>Wetlands</figcaption>
-              </Figure>
-            </a>
-          </Links>
-        </>
-      )}
+        <a href={data.links.wetlands} target="_blank" rel="noopener noreferrer">
+          <figure css={figureStyles}>
+            <img src={wetlandsPhoto} alt="Learn more about Wetlands" />
+            <figcaption>Wetlands</figcaption>
+          </figure>
+        </a>
+      </div>
     </>
   );
 }
 
-function DrinkingWaterPanel() {
+function NationalDrinkingWaterPanel() {
   return (
     <>
-      <IntroBox>
-        <StyledIntroHeading>
-          Explore National Drinking Water Information
-        </StyledIntroHeading>
-        <StyledIntroText>
+      <div css={modifiedIntroBoxStyles}>
+        <h2>Explore National Drinking Water Information</h2>
+
+        <p>
           The United States enjoys one of the world's most reliable and safest
           supplies of drinking water. Congress passed the Safe Drinking Water
           Act (SDWA) in 1974 to protect public health, including by regulating
           public water systems. SDWA requires EPA to establish and enforce
           standards that public drinking water systems must follow and requires
           states to report drinking water information periodically to EPA.
-        </StyledIntroText>
-      </IntroBox>
+        </p>
+      </div>
 
-      <Highlights>
+      <div css={highlightsStyles}>
         <h3>
-          <Icon src={drinkingWaterIcon} alt="Drinking Water" />
+          <img css={iconStyles} src={drinkingWaterIcon} alt="Drinking Water" />
           The Basics
         </h3>
 
@@ -512,9 +435,9 @@ function DrinkingWaterPanel() {
             standards.
           </li>
         </ol>
-      </Highlights>
+      </div>
 
-      <AltBox>
+      <div css={altBoxStyles}>
         <h3>How do I know my water is safe?</h3>
 
         <p>
@@ -528,14 +451,15 @@ function DrinkingWaterPanel() {
           >
             Consumer Confidence Report (CCR)
           </a>{' '}
-          (opens new browser tab). The CCR lists the levels of contaminants that
-          have been detected in the water, including those identified by EPA,
-          and whether the public water system (PWS) meets state and EPA drinking
-          water standards. In addition, the search results in this tool on the
-          community page under the Drinking Water tab pull data from the Safe
-          Drinking Water Information System (SDWIS) Federal Reporting Services.
+          <small>(opens new browser tab)</small>. The CCR lists the levels of
+          contaminants that have been detected in the water, including those
+          identified by EPA, and whether the public water system (PWS) meets
+          state and EPA drinking water standards. In addition, the search
+          results in this tool on the community page under the Drinking Water
+          tab pull data from the Safe Drinking Water Information System (SDWIS)
+          Federal Reporting Services.
         </p>
-      </AltBox>
+      </div>
 
       <h3>EPA has defined three types of public water systems:</h3>
 
@@ -553,29 +477,30 @@ function National({ ...props }: Props) {
     <Page>
       <TabLinks />
 
-      <Container>
-        <ContentTabs>
-          <StyledTabs>
+      <div css={containerStyles}>
+        <div css={modifiedTabsStyles}>
+          <Tabs>
             <TabList>
-              <LargeTab data-testid="hmw-national-water-conditions-tab">
+              <Tab data-testid="hmw-national-water-quality-tab">
                 National Water Quality
-              </LargeTab>
-              <LargeTab data-testid="hmw-national-drinking-water-tab">
+              </Tab>
+              <Tab data-testid="hmw-national-drinking-water-tab">
                 National Drinking Water
-              </LargeTab>
+              </Tab>
             </TabList>
+
             <TabPanels>
               <TabPanel>
-                <WaterConditionsPanel />
+                <NationalWaterQualityPanel />
               </TabPanel>
               <TabPanel>
-                <DrinkingWaterPanel />
+                <NationalDrinkingWaterPanel />
               </TabPanel>
             </TabPanels>
-          </StyledTabs>
-        </ContentTabs>
+          </Tabs>
+        </div>
 
-        <Disclaimer>
+        <DisclaimerModal>
           <p>
             <strong>Disclaimer:</strong> EPA has posted information through this
             application as a convenience to the application’s users. Although
@@ -588,8 +513,8 @@ function National({ ...props }: Props) {
             attest to the accuracy of data provided by organizations outside of
             the federal government.
           </p>
-        </Disclaimer>
-      </Container>
+        </DisclaimerModal>
+      </div>
     </Page>
   );
 }

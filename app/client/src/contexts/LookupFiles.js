@@ -1,9 +1,9 @@
 // @flow
 
-import React from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import type { Node } from 'react';
 // utilities
-import { lookupFetch } from 'utils/fetchUtils';
+import { fetchCheck, lookupFetch } from 'utils/fetchUtils';
 
 // Common function for setting the context/state of lookup files.
 function getLookupFile(filename: string, setVariable: Function) {
@@ -43,7 +43,7 @@ type LookupFiles = {
   setServices: Function,
 };
 
-const LookupFilesContext: Object = React.createContext<LookupFiles>({
+const LookupFilesContext: Object = createContext<LookupFiles>({
   documentOrder: { status: 'fetching', data: null },
   setDocumentOrder: () => {},
   reportStatusMapping: { status: 'fetching', data: null },
@@ -67,35 +67,39 @@ type Props = {
 };
 
 function LookupFilesProvider({ children }: Props) {
-  const [documentOrder, setDocumentOrder] = React.useState({
+  const [documentOrder, setDocumentOrder] = useState({
     status: 'fetching',
     data: {},
   });
-  const [reportStatusMapping, setReportStatusMapping] = React.useState({
+  const [reportStatusMapping, setReportStatusMapping] = useState({
     status: 'fetching',
     data: {},
   });
-  const [stateNationalUses, setStateNationalUses] = React.useState({
+  const [stateNationalUses, setStateNationalUses] = useState({
     status: 'fetching',
     data: [],
   });
-  const [surveyMapping, setSurveyMapping] = React.useState({
+  const [surveyMapping, setSurveyMapping] = useState({
     status: 'fetching',
     data: [],
   });
-  const [waterTypeOptions, setWaterTypeOptions] = React.useState({
+  const [waterTypeOptions, setWaterTypeOptions] = useState({
     status: 'fetching',
     data: {},
   });
-  const [nars, setNars] = React.useState({
+  const [nars, setNars] = useState({
     status: 'fetching',
     data: {},
   });
-  const [notifications, setNotifications] = React.useState({
+  const [notifications, setNotifications] = useState({
     status: 'fetching',
     data: [],
   });
-  const [services, setServices] = React.useState({
+  const [services, setServices] = useState({
+    status: 'fetching',
+    data: {},
+  });
+  const [organizations, setOrganizations] = useState({
     status: 'fetching',
     data: {},
   });
@@ -119,6 +123,8 @@ function LookupFilesProvider({ children }: Props) {
         setNotifications,
         services,
         setServices,
+        organizations,
+        setOrganizations,
       }}
     >
       {children}
@@ -129,9 +135,7 @@ function LookupFilesProvider({ children }: Props) {
 // Custom hook for the documentOrder.json lookup file.
 let documentOrderInitialized = false; // global var for ensuring fetch only happens once
 function useDocumentOrderContext() {
-  const { documentOrder, setDocumentOrder } = React.useContext(
-    LookupFilesContext,
-  );
+  const { documentOrder, setDocumentOrder } = useContext(LookupFilesContext);
 
   // fetch the lookup file if necessary
   if (!documentOrderInitialized) {
@@ -145,9 +149,8 @@ function useDocumentOrderContext() {
 // Custom hook for the reportStatusMapping.json lookup file.
 let reportStatusMappingInitialized = false; // global var for ensuring fetch only happens once
 function useReportStatusMappingContext() {
-  const { reportStatusMapping, setReportStatusMapping } = React.useContext(
-    LookupFilesContext,
-  );
+  const { reportStatusMapping, setReportStatusMapping } =
+    useContext(LookupFilesContext);
 
   // fetch the lookup file if necessary
   if (!reportStatusMappingInitialized) {
@@ -161,9 +164,8 @@ function useReportStatusMappingContext() {
 // Custom hook for the stateNationalUses.json lookup file.
 let stateNationalUsesInitialized = false; // global var for ensuring fetch only happens once
 function useStateNationalUsesContext() {
-  const { stateNationalUses, setStateNationalUses } = React.useContext(
-    LookupFilesContext,
-  );
+  const { stateNationalUses, setStateNationalUses } =
+    useContext(LookupFilesContext);
 
   // fetch the lookup file if necessary
   if (!stateNationalUsesInitialized) {
@@ -177,9 +179,7 @@ function useStateNationalUsesContext() {
 // Custom hook for the surveyMapping.json lookup file.
 let surveyMappingInitialized = false; // global var for ensuring fetch only happens once
 function useSurveyMappingContext() {
-  const { surveyMapping, setSurveyMapping } = React.useContext(
-    LookupFilesContext,
-  );
+  const { surveyMapping, setSurveyMapping } = useContext(LookupFilesContext);
 
   // fetch the lookup file if necessary
   if (!surveyMappingInitialized) {
@@ -193,9 +193,8 @@ function useSurveyMappingContext() {
 // Custom hook for the waterTypeOptions.json lookup file.
 let waterTypeOptionsInitialized = false; // global var for ensuring fetch only happens once
 function useWaterTypeOptionsContext() {
-  const { waterTypeOptions, setWaterTypeOptions } = React.useContext(
-    LookupFilesContext,
-  );
+  const { waterTypeOptions, setWaterTypeOptions } =
+    useContext(LookupFilesContext);
 
   // fetch the lookup file if necessary
   if (!waterTypeOptionsInitialized) {
@@ -209,7 +208,7 @@ function useWaterTypeOptionsContext() {
 // Custom hook for the waterTypeOptions.json lookup file.
 let narsInitialized = false; // global var for ensuring fetch only happens once
 function useNarsContext() {
-  const { nars, setNars } = React.useContext(LookupFilesContext);
+  const { nars, setNars } = useContext(LookupFilesContext);
 
   // fetch the lookup file if necessary
   if (!narsInitialized) {
@@ -223,9 +222,7 @@ function useNarsContext() {
 // Custom hook for the messages.json file.
 let notificationsInitialized = false; // global var for ensuring fetch only happens once
 function useNotificationsContext() {
-  const { notifications, setNotifications } = React.useContext(
-    LookupFilesContext,
-  );
+  const { notifications, setNotifications } = useContext(LookupFilesContext);
 
   // fetch the lookup file if necessary
   if (!notificationsInitialized) {
@@ -239,7 +236,7 @@ function useNotificationsContext() {
 // Custom hook for the services.json file.
 let servicesInitialized = false; // global var for ensuring fetch only happens once
 function useServicesContext() {
-  const { services, setServices } = React.useContext(LookupFilesContext);
+  const { services, setServices } = useContext(LookupFilesContext);
 
   // fetch the lookup file if necessary
   if (!servicesInitialized) {
@@ -289,15 +286,45 @@ function useServicesContext() {
   return services;
 }
 
+// Custom hook for the services.json file.
+let organizationsInitialized = false; // global var for ensuring fetch only happens once
+function useOrganizationsContext() {
+  const { services, organizations, setOrganizations } =
+    useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!organizationsInitialized && services.status === 'success') {
+    organizationsInitialized = true;
+
+    // fetch the lookup file
+    const outFields = ['organizationid', 'orgtype', 'reportingcycle', 'state'];
+    fetchCheck(
+      `${
+        services.data.waterbodyService.controlTable
+      }/query?where=1%3D1&outFields=${outFields.join('%2C')}&f=json`,
+    )
+      .then((data) => {
+        setOrganizations({ status: 'success', data });
+      })
+      .catch((err) => {
+        console.error(err);
+        setOrganizations({ status: 'failure', data: err });
+      });
+  }
+
+  return organizations;
+}
+
 export {
+  LookupFilesContext,
   LookupFilesProvider,
   useDocumentOrderContext,
+  useNarsContext,
+  useNotificationsContext,
+  useOrganizationsContext,
   useReportStatusMappingContext,
+  useServicesContext,
   useStateNationalUsesContext,
   useSurveyMappingContext,
   useWaterTypeOptionsContext,
-  useNarsContext,
-  useNotificationsContext,
-  useServicesContext,
-  LookupFilesContext,
 };
