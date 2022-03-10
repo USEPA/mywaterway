@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
@@ -105,8 +105,8 @@ type Props = {
 function WaterSystemSummary({ state }: Props) {
   const services = useServicesContext();
 
-  const [lastCountsCode, setLastCountsCode] = React.useState(null);
-  const [systemTypeRes, setSystemTypeRes] = React.useState({
+  const [lastCountsCode, setLastCountsCode] = useState(null);
+  const [systemTypeRes, setSystemTypeRes] = useState({
     status: 'fetching',
     data: {
       cwsCount: 0,
@@ -114,7 +114,7 @@ function WaterSystemSummary({ state }: Props) {
       tncwsCount: 0,
     },
   });
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       !state.code ||
       lastCountsCode === state.code ||
@@ -184,13 +184,13 @@ function WaterSystemSummary({ state }: Props) {
   }, [state, services, lastCountsCode]);
 
   // fetch GPRA data
-  const [lastSummaryCode, setLastSummaryCode] = React.useState(null);
-  const [gpraData, setGpraData] = React.useState({
+  const [lastSummaryCode, setLastSummaryCode] = useState(null);
+  const [gpraData, setGpraData] = useState({
     status: 'fetching',
     data: {},
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       !state.code ||
       lastSummaryCode === state.code ||

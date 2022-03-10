@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { Fragment, useContext, useState } from 'react';
 import styled from 'styled-components';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 // components
@@ -152,7 +152,7 @@ const LayerIconButton = styled.button`
 
 // --- components (AddData) ---
 function AddDataWidget() {
-  const { mapView } = React.useContext(LocationSearchContext);
+  const { mapView } = useContext(LocationSearchContext);
   const {
     setAddDataWidgetVisible,
     pageNumber,
@@ -160,10 +160,10 @@ function AddDataWidget() {
     searchResults,
     widgetLayers,
     setWidgetLayers,
-  } = React.useContext(AddDataWidgetContext);
+  } = useContext(AddDataWidgetContext);
 
-  const [activeTabIndex, setActiveTabIndex] = React.useState(0);
-  const [layerPanelVisible, setLayerPanelVisible] = React.useState(false);
+  const [activeTabIndex, setActiveTabIndex] = useState(0);
+  const [layerPanelVisible, setLayerPanelVisible] = useState(false);
 
   // Build an array of layers to display on the layers panel.
   // Note: ArcGIS Online has some group layers that are empty, these will not
@@ -190,7 +190,7 @@ function AddDataWidget() {
   });
 
   return (
-    <React.Fragment>
+    <Fragment>
       <WidgetHeader>
         <DragHandle className="drag-handle">
           <h1>Add Data</h1>
@@ -299,7 +299,7 @@ function AddDataWidget() {
         <FooterBar>
           <div>
             {activeTabIndex === 0 && !layerPanelVisible && (
-              <React.Fragment>
+              <Fragment>
                 <PageControl
                   disabled={pageNumber === 1 || !searchResults?.data}
                   onClick={() => setPageNumber(1)}
@@ -331,7 +331,7 @@ function AddDataWidget() {
                     : 0}{' '}
                   Items
                 </Total>
-              </React.Fragment>
+              </Fragment>
             )}
           </div>
           <DisclaimerModal>
@@ -350,18 +350,18 @@ function AddDataWidget() {
             }}
           >
             {layerPanelVisible ? (
-              <React.Fragment>
+              <Fragment>
                 Back <i className="fas fa-angle-double-right"></i>
-              </React.Fragment>
+              </Fragment>
             ) : (
-              <React.Fragment>
+              <Fragment>
                 <i className="fas fa-layer-group"></i> Layers
-              </React.Fragment>
+              </Fragment>
             )}
           </StyledLinkButton>
         </FooterBar>
       </Container>
-    </React.Fragment>
+    </Fragment>
   );
 }
 

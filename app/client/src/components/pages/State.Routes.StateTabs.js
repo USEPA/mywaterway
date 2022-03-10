@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { navigate } from '@reach/router';
 import { Tabs, TabList, TabPanels } from '@reach/tabs';
 // components
@@ -27,11 +27,11 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
   const services = useServicesContext();
 
   const { activeState, setActiveState, activeTabIndex, setActiveTabIndex } =
-    React.useContext(StateTabsContext);
+    useContext(StateTabsContext);
 
   // redirect to overview tab if tabName param wasn't provided in the url
   // (e.g. '/state/al' redirects to '/state/AL/water-quality-overview')
-  React.useEffect(() => {
+  useEffect(() => {
     if (stateCode && !tabName) {
       navigate(`/state/${stateCode.toUpperCase()}/water-quality-overview`);
     }
@@ -39,7 +39,7 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
 
   // redirect to '/state' if the url doesn't match a valid route
   // and conditionally set active tab index
-  React.useEffect(() => {
+  useEffect(() => {
     const validRoutes = [
       `/state/${stateCode.toLowerCase()}/water-quality-overview`,
       `/state/${stateCode.toLowerCase()}/advanced-search`,
@@ -60,7 +60,7 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
 
   // if user navigation directly to the url, activeState.code will be an empty
   // string, so we'll need to query the attains states service for the states
-  React.useEffect(() => {
+  useEffect(() => {
     if (activeState.code === '') {
       fetchCheck(`${services.data.attains.serviceUrl}states`)
         .then((res) => {
@@ -80,10 +80,10 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
     }
   }, [activeState, setActiveState, stateCode, services]);
 
-  const tabListRef = React.useRef();
+  const tabListRef = useRef();
 
   // focus the active tab
-  React.useEffect(() => {
+  useEffect(() => {
     if (tabListRef.current) {
       const tabList = tabListRef.current;
       const activeTab = tabList.children[activeTabIndex];

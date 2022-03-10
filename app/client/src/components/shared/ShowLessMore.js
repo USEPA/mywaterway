@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { isValidElement, useState } from 'react';
 import styled from 'styled-components';
 
 // --- styled components ---
@@ -30,7 +30,7 @@ type Props = {
 };
 
 function ShowLessMore({ text, charLimit }: Props) {
-  const [truncated, setTruncated] = React.useState(true);
+  const [truncated, setTruncated] = useState(true);
 
   if (typeof text === 'string') {
     if (!text) return '';
@@ -46,7 +46,7 @@ function ShowLessMore({ text, charLimit }: Props) {
     );
   }
 
-  if (React.isValidElement(text)) {
+  if (isValidElement(text)) {
     return (
       <>
         {truncated ? '...' : text}

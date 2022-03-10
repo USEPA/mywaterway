@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   AutoSizer,
   CellMeasurer,
@@ -22,18 +22,18 @@ function VirtualizedList({
   allExpanded,
   expandedRowsSetter,
 }: Props) {
-  const [cache] = React.useState(
+  const [cache] = useState(
     new CellMeasurerCache({
       defaultHeight: 50,
       fixedWidth: true,
     }),
   );
-  const windowScrollRef = React.useRef(null);
-  const listRef = React.useRef(null);
+  const windowScrollRef = useRef(null);
+  const listRef = useRef(null);
 
   // Resizes the rows (accordion items) of the react-virtualized list.
   // This is done anytime an accordion item is expanded/collapsed
-  React.useEffect(() => {
+  useEffect(() => {
     cache.clearAll();
     listRef.current.recomputeRowHeights();
     if (expandedRowsSetter) expandedRowsSetter([]);

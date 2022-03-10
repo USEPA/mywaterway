@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { Component } from 'react';
 import type { Node } from 'react';
 import styled from 'styled-components';
 // components
@@ -39,7 +39,7 @@ type State = {
   hasError: boolean,
 };
 
-class ErrorBoundary extends React.Component<Props, State> {
+class ErrorBoundary extends Component<Props, State> {
   state: State = {
     hasError: false,
   };

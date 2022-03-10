@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useState } from 'react';
 import { css } from 'styled-components/macro';
 import { globalHistory } from '@reach/router';
 // styles
@@ -38,7 +38,7 @@ const separatorStyles = css`
 function AlertMessage({ ...props }: Props) {
   const notifications = useNotificationsContext();
 
-  const [pathname, setPathname] = React.useState('');
+  const [pathname, setPathname] = useState('');
 
   if (notifications.status === 'failure') return null;
 

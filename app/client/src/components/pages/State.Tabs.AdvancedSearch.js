@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { useWindowSize } from '@reach/window-size';
 import Select, { createFilter } from 'react-select';
@@ -229,9 +229,9 @@ function AdvancedSearch({ ...props }: Props) {
     activeState,
     stateAndOrganization,
     setStateAndOrganization,
-  } = React.useContext(StateTabsContext);
+  } = useContext(StateTabsContext);
 
-  const { fullscreenActive } = React.useContext(FullscreenContext);
+  const { fullscreenActive } = useContext(FullscreenContext);
 
   const {
     mapView,
@@ -243,21 +243,21 @@ function AdvancedSearch({ ...props }: Props) {
     watershedsLayerMaxRecordCount,
     setSummaryLayerMaxRecordCount,
     setWatershedsLayerMaxRecordCount,
-  } = React.useContext(LocationSearchContext);
+  } = useContext(LocationSearchContext);
 
-  const [searchLoading, setSearchLoading] = React.useState(false);
-  const [serviceError, setServiceError] = React.useState(false);
-  const [showMap, setShowMap] = React.useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [serviceError, setServiceError] = useState(false);
+  const [showMap, setShowMap] = useState(false);
 
   const [
     parameterGroupOptions,
     setParameterGroupOptions, //
-  ] = React.useState(null);
+  ] = useState(null);
 
   // Get the list of parameters available for this state.
   // This data comes from the usesStateSummary service response
   // which is called from WaterQualityOverview.
-  React.useEffect(() => {
+  useEffect(() => {
     if (currentSummary.status === 'fetching') return;
     if (currentSummary.status === 'failure') {
       setParameterGroupOptions([]);
@@ -292,8 +292,8 @@ function AdvancedSearch({ ...props }: Props) {
   }, [currentSummary]);
 
   // Get the maxRecordCount of the watersheds layer
-  const [watershedMrcError, setWatershedMrcError] = React.useState(false);
-  React.useEffect(() => {
+  const [watershedMrcError, setWatershedMrcError] = useState(false);
+  useEffect(() => {
     if (watershedsLayerMaxRecordCount || watershedMrcError) return;
 
     retrieveMaxRecordCount(services.data.wbd)
@@ -314,8 +314,8 @@ function AdvancedSearch({ ...props }: Props) {
   ]);
 
   // get a list of watersheds and build the esri where clause
-  const [watersheds, setWatersheds] = React.useState(null);
-  React.useEffect(() => {
+  const [watersheds, setWatersheds] = useState(null);
+  useEffect(() => {
     if (activeState.code === '' || !watershedsLayerMaxRecordCount) return;
 
     const queryParams = {
@@ -349,8 +349,8 @@ function AdvancedSearch({ ...props }: Props) {
   }, [activeState, watershedsLayerMaxRecordCount, services]);
 
   // Get the maxRecordCount of the summary (waterbody) layer
-  const [summaryMrcError, setSummaryMrcError] = React.useState(false);
-  React.useEffect(() => {
+  const [summaryMrcError, setSummaryMrcError] = useState(false);
+  useEffect(() => {
     if (summaryLayerMaxRecordCount || summaryMrcError) return;
 
     retrieveMaxRecordCount(services.data.waterbodyService.summary)
@@ -370,12 +370,12 @@ function AdvancedSearch({ ...props }: Props) {
     services,
   ]);
 
-  const [currentFilter, setCurrentFilter] = React.useState(null);
+  const [currentFilter, setCurrentFilter] = useState(null);
 
   // these lists just have the name and id for faster load time
-  const [waterbodiesList, setWaterbodiesList] = React.useState(null);
+  const [waterbodiesList, setWaterbodiesList] = useState(null);
   // Get the features on the waterbodies point layer
-  React.useEffect(() => {
+  useEffect(() => {
     if (!stateAndOrganization || !summaryLayerMaxRecordCount) {
       return;
     }
@@ -461,13 +461,13 @@ function AdvancedSearch({ ...props }: Props) {
     stateAndOrganization,
   ]);
 
-  const [waterbodyFilter, setWaterbodyFilter] = React.useState([]);
-  const [watershedFilter, setWatershedFilter] = React.useState([]);
-  const [watershedResults, setWatershedResults] = React.useState({});
-  const [useFilter, setUseFilter] = React.useState([]);
-  const [waterTypeFilter, setWaterTypeFilter] = React.useState('all');
-  const [hasTmdlChecked, setHasTmdlChecked] = React.useState(false);
-  const [parameterFilter, setParameterFilter] = React.useState([]);
+  const [waterbodyFilter, setWaterbodyFilter] = useState([]);
+  const [watershedFilter, setWatershedFilter] = useState([]);
+  const [watershedResults, setWatershedResults] = useState({});
+  const [useFilter, setUseFilter] = useState([]);
+  const [waterTypeFilter, setWaterTypeFilter] = useState('all');
+  const [hasTmdlChecked, setHasTmdlChecked] = useState(false);
+  const [parameterFilter, setParameterFilter] = useState([]);
 
   // Build a list of assessment unit ids by combining the waterbody filter
   // and the watershed filter. Each watershed in the watershed filter contains
@@ -506,10 +506,10 @@ function AdvancedSearch({ ...props }: Props) {
     return unitIdList;
   };
 
-  const [numberOfRecords, setNumberOfRecords] = React.useState(null);
-  const [confirmOpen, setConfirmOpen] = React.useState(false);
-  const [nextFilter, setNextFilter] = React.useState('');
-  React.useEffect(() => {
+  const [numberOfRecords, setNumberOfRecords] = useState(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [nextFilter, setNextFilter] = useState('');
+  useEffect(() => {
     if (!nextFilter || serviceError) return;
 
     let query = new Query({
@@ -540,17 +540,17 @@ function AdvancedSearch({ ...props }: Props) {
   const [
     newDisplayOptions,
     setNewDisplayOptions, //
-  ] = React.useState([defaultDisplayOption]);
+  ] = useState([defaultDisplayOption]);
   const [
     displayOptions,
     setDisplayOptions, //
-  ] = React.useState([defaultDisplayOption]);
+  ] = useState([defaultDisplayOption]);
   const [
     selectedDisplayOption,
     setSelectedDisplayOption, //
-  ] = React.useState(defaultDisplayOption);
+  ] = useState(defaultDisplayOption);
   // Resets the filters when the user selects a different state
-  React.useEffect(() => {
+  useEffect(() => {
     // Reset ui
     setConfirmOpen(false);
     setServiceError(false);
@@ -712,8 +712,8 @@ function AdvancedSearch({ ...props }: Props) {
 
   // Makes the view on map button work for the state page
   // (i.e. switches and scrolls to the map when the selected graphic changes)
-  const { selectedGraphic } = React.useContext(MapHighlightContext);
-  React.useEffect(() => {
+  const { selectedGraphic } = useContext(MapHighlightContext);
+  useEffect(() => {
     if (!selectedGraphic) return;
 
     setShowMap(true);
@@ -722,7 +722,7 @@ function AdvancedSearch({ ...props }: Props) {
 
   // Waits until the data is loaded and the map is visible before scrolling
   // to the map
-  React.useEffect(() => {
+  useEffect(() => {
     if (!waterbodyData) return;
 
     scrollToMap();
@@ -730,7 +730,7 @@ function AdvancedSearch({ ...props }: Props) {
 
   // Combines the parameter groups and use groups filters to make the
   // display options.
-  React.useEffect(() => {
+  useEffect(() => {
     let newDisplayOptions = [defaultDisplayOption];
 
     // if the filter array exists add it to newDisplayOptions
@@ -991,8 +991,8 @@ function AdvancedSearch({ ...props }: Props) {
   );
 
   const { width, height } = useWindowSize();
-  const [mapShownInitialized, setMapShownInitialized] = React.useState(false);
-  React.useEffect(() => {
+  const [mapShownInitialized, setMapShownInitialized] = useState(false);
+  useEffect(() => {
     if (mapShownInitialized || !width) return;
 
     if (width > 960) {
@@ -1137,7 +1137,7 @@ function AdvancedSearch({ ...props }: Props) {
 }
 
 function MenuList({ ...props }) {
-  const [cache] = React.useState(
+  const [cache] = useState(
     new CellMeasurerCache({
       defaultHeight: 50,
       fixedWidth: true,
@@ -1145,8 +1145,8 @@ function MenuList({ ...props }) {
   );
 
   // Resize the options when the search changes
-  const listRef = React.useRef(null);
-  React.useEffect(() => {
+  const listRef = useRef(null);
+  useEffect(() => {
     if (!listRef || !listRef.current) return;
 
     cache.clearAll();

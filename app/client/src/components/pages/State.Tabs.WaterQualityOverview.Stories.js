@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -54,7 +54,7 @@ type Props = {
 };
 
 function Stories({ stories }: Props) {
-  const [storiesToLoad, setStoriesToLoad] = React.useState(3);
+  const [storiesToLoad, setStoriesToLoad] = useState(3);
 
   return (
     <>

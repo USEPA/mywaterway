@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { Component, createContext } from 'react';
 import { navigate } from '@reach/router';
 import { resetCanonicalLink, removeJsonLD } from 'utils/utils';
 
-export const LocationSearchContext = React.createContext();
+export const LocationSearchContext = createContext();
 
 type Props = {
   children: Node,
@@ -297,7 +297,7 @@ type State = {
   pollutionParameters: Object,
 };
 
-export class LocationSearchProvider extends React.Component<Props, State> {
+export class LocationSearchProvider extends Component<Props, State> {
   state: State = {
     initialExtent: {
       xmin: -15634679.853814237,

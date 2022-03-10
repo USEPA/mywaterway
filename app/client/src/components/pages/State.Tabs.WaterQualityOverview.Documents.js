@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -90,15 +90,14 @@ function Documents({
   documentServiceError,
   surveyServiceError,
 }: Props) {
-  const [surveyDocumentsRanked, setSurveyDocumentsRanked] = React.useState([]);
-  const [
-    assessmentDocumentsRanked,
-    setAssessmentDocumentsRanked,
-  ] = React.useState([]);
+  const [surveyDocumentsRanked, setSurveyDocumentsRanked] = useState([]);
+  const [assessmentDocumentsRanked, setAssessmentDocumentsRanked] = useState(
+    [],
+  );
 
   const documentOrder = useDocumentOrderContext();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (documentOrder.status === 'fetching') return;
 
     const rankings =
@@ -110,7 +109,7 @@ function Documents({
     setSurveyDocumentsRanked(documentsRanked);
   }, [surveyDocuments, documentOrder]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (documentOrder.status === 'fetching') return;
 
     const rankings =

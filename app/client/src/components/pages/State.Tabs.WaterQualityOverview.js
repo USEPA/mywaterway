@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import Select from 'react-select';
 import { Tabs, TabList, Tab, TabPanels } from '@reach/tabs';
@@ -259,56 +259,56 @@ function WaterQualityOverview({ ...props }: Props) {
     setUsesStateSummaryServiceError,
     stateAndOrganization,
     setStateAndOrganization,
-  } = React.useContext(StateTabsContext);
+  } = useContext(StateTabsContext);
 
-  const [loading, setLoading] = React.useState(true);
-  const [surveyLoading, setSurveyLoading] = React.useState(true);
-  const [assessmentsLoading, setAssessmentsLoading] = React.useState(true);
-  const [serviceError, setServiceError] = React.useState(false);
-  const [documentServiceError, setDocumentServiceError] = React.useState(false);
-  const [surveyServiceError, setSurveyServiceError] = React.useState(false);
-  const [noDataError, setNoDataError] = React.useState(false);
-  const [currentState, setCurrentState] = React.useState('');
-  const [currentStateData, setCurrentStateData] = React.useState({});
-  const [yearSelected, setYearSelected] = React.useState('');
-  const [waterType, setWaterType] = React.useState('');
-  const [useSelected, setUseSelected] = React.useState('');
-  const [currentTopic, setCurrentTopic] = React.useState('swimming');
-  const [waterTypes, setWaterTypes] = React.useState(null);
-  const [waterTypeData, setWaterTypeData] = React.useState(null);
+  const [loading, setLoading] = useState(true);
+  const [surveyLoading, setSurveyLoading] = useState(true);
+  const [assessmentsLoading, setAssessmentsLoading] = useState(true);
+  const [serviceError, setServiceError] = useState(false);
+  const [documentServiceError, setDocumentServiceError] = useState(false);
+  const [surveyServiceError, setSurveyServiceError] = useState(false);
+  const [noDataError, setNoDataError] = useState(false);
+  const [currentState, setCurrentState] = useState('');
+  const [currentStateData, setCurrentStateData] = useState({});
+  const [yearSelected, setYearSelected] = useState('');
+  const [waterType, setWaterType] = useState('');
+  const [useSelected, setUseSelected] = useState('');
+  const [currentTopic, setCurrentTopic] = useState('swimming');
+  const [waterTypes, setWaterTypes] = useState(null);
+  const [waterTypeData, setWaterTypeData] = useState(null);
 
-  const [surveyData, setSurveyData] = React.useState(null);
-  const [assessmentDocuments, setAssessmentDocuments] = React.useState(null);
+  const [surveyData, setSurveyData] = useState(null);
+  const [assessmentDocuments, setAssessmentDocuments] = useState(null);
 
-  const [fishingAdvisoryData, setFishingAdvisoryData] = React.useState({
+  const [fishingAdvisoryData, setFishingAdvisoryData] = useState({
     status: 'fetching',
     data: [],
   });
 
-  const [topicUses, setTopicUses] = React.useState({});
-  const [useList, setUseList] = React.useState([]);
-  const [completeUseList, setCompleteUseList] = React.useState([]);
+  const [topicUses, setTopicUses] = useState({});
+  const [useList, setUseList] = useState([]);
+  const [completeUseList, setCompleteUseList] = useState([]);
 
   // user selections
-  const [userSelectedWaterType, setUserSelectedWaterType] = React.useState('');
-  const [userSelectedUse, setUserSelectedUse] = React.useState('');
+  const [userSelectedWaterType, setUserSelectedWaterType] = useState('');
+  const [userSelectedUse, setUserSelectedUse] = useState('');
 
   // dropdown lists
-  const [displayWaterTypes, setDisplayWaterTypes] = React.useState([]);
-  const [displayUses, setDisplayUses] = React.useState([]);
-  const [subPopulationCodes, setSubPopulationCodes] = React.useState([]);
+  const [displayWaterTypes, setDisplayWaterTypes] = useState([]);
+  const [displayUses, setDisplayUses] = useState([]);
+  const [subPopulationCodes, setSubPopulationCodes] = useState([]);
 
   // documents
-  const [surveyDocuments, setSurveyDocuments] = React.useState([]);
+  const [surveyDocuments, setSurveyDocuments] = useState([]);
 
   // stories
-  const [stories, setStories] = React.useState({
+  const [stories, setStories] = useState({
     status: 'fetching',
     data: [],
     nextUrl: '',
   });
   // Get the assessments
-  const fetchAssessments = React.useCallback(
+  const fetchAssessments = useCallback(
     (orgID, year) => {
       // use the excludeAsssessments flag to improve performance, since we only
       // need the documents and reportStatusCode
@@ -337,7 +337,7 @@ function WaterQualityOverview({ ...props }: Props) {
   );
 
   // Get the state intro text
-  const fetchIntroText = React.useCallback(
+  const fetchIntroText = useCallback(
     (orgID) => {
       const url = `${services.data.attains.serviceUrl}metrics?organizationId=${orgID}`;
       fetchCheck(url)
@@ -360,9 +360,8 @@ function WaterQualityOverview({ ...props }: Props) {
   );
 
   // summary service has the different years of data for recreation/eco/fish/water/other
-  const [usesStateSummaryCalled, setUsesStateSummaryCalled] =
-    React.useState(false);
-  React.useEffect(() => {
+  const [usesStateSummaryCalled, setUsesStateSummaryCalled] = useState(false);
+  useEffect(() => {
     if (
       !stateAndOrganization ||
       currentReportingCycle.status === 'fetching' ||
@@ -465,7 +464,7 @@ function WaterQualityOverview({ ...props }: Props) {
   ]);
 
   // Get fishing advisory information
-  const fetchFishingAdvisoryData = React.useCallback(
+  const fetchFishingAdvisoryData = useCallback(
     (stateCode) => {
       setFishingAdvisoryData({ status: 'fetching', data: [] });
 
@@ -499,7 +498,7 @@ function WaterQualityOverview({ ...props }: Props) {
   );
 
   // Get the survey data and survey documents
-  const fetchSurveyData = React.useCallback(
+  const fetchSurveyData = useCallback(
     (orgID) => {
       const url = `${services.data.attains.serviceUrl}surveys?organizationId=${orgID}`;
       fetchCheck(url)
@@ -536,7 +535,7 @@ function WaterQualityOverview({ ...props }: Props) {
   );
 
   // get state organization ID for summary service
-  const fetchStateOrgId = React.useCallback(
+  const fetchStateOrgId = useCallback(
     (stateID: string) => {
       const url = `${services.data.attains.serviceUrl}states/${stateID}/organizations`;
       fetchCheck(url)
@@ -584,7 +583,7 @@ function WaterQualityOverview({ ...props }: Props) {
   );
 
   // If the user changes the search
-  React.useEffect(() => {
+  useEffect(() => {
     if (activeState.code === '') return;
 
     if (currentState !== activeState.code) {
@@ -638,7 +637,7 @@ function WaterQualityOverview({ ...props }: Props) {
   // fetch the stories from the provided url. This also saves the next stories
   // url to nextStoriesUrl, if the web service provided it, and the useEffect
   // will execute the fetch again.
-  React.useEffect(() => {
+  useEffect(() => {
     if (!stories.nextUrl) return;
 
     fetchCheck(stories.nextUrl)
@@ -664,7 +663,7 @@ function WaterQualityOverview({ ...props }: Props) {
   }, [stories]);
 
   // Gets a list of uses that pertain to the current topic
-  React.useEffect(() => {
+  useEffect(() => {
     if (activeState.code === '' || stateNationalUses.status !== 'success') {
       return;
     }
@@ -685,7 +684,7 @@ function WaterQualityOverview({ ...props }: Props) {
 
   // Gets a unique list of water types that have data that is relevant to
   // the current topic
-  React.useEffect(() => {
+  useEffect(() => {
     if (waterTypeOptions.status !== 'success');
     if (!waterTypes) {
       setDisplayWaterTypes([]);
@@ -724,7 +723,7 @@ function WaterQualityOverview({ ...props }: Props) {
 
   // Builds use lists that will be used for displaying in dropdowns and
   // building graphs with aggregrate data.
-  React.useEffect(() => {
+  useEffect(() => {
     // fill in the use list dropdown
     let addedUses = [];
     let useList = []; //used for dropdown (excludes duplicate names)
@@ -757,7 +756,7 @@ function WaterQualityOverview({ ...props }: Props) {
   }, [topicUses, waterTypeData, useSelected]);
 
   // Handles user year changes and gets data associated with the selected year.
-  React.useEffect(() => {
+  useEffect(() => {
     if (waterTypeOptions.status !== 'success') return;
     let yearData =
       yearSelected &&
@@ -790,7 +789,7 @@ function WaterQualityOverview({ ...props }: Props) {
   }, [currentTopic, yearSelected, currentStateData, waterTypeOptions]);
 
   // Handles user and auto water type selection
-  React.useEffect(() => {
+  useEffect(() => {
     if (displayWaterTypes && displayWaterTypes.length > 0) {
       // set to the user's selection if it is availble
       if (displayWaterTypes.includes(userSelectedWaterType)) {
@@ -807,7 +806,7 @@ function WaterQualityOverview({ ...props }: Props) {
   }, [displayWaterTypes, userSelectedWaterType]);
 
   // Gets data that is associated with the selected water type
-  React.useEffect(() => {
+  useEffect(() => {
     if (!waterType || !waterTypes) return;
 
     const waterTypeData =
@@ -818,7 +817,7 @@ function WaterQualityOverview({ ...props }: Props) {
   }, [waterTypes, waterType]);
 
   // Handles user and auto use selection
-  React.useEffect(() => {
+  useEffect(() => {
     if (useList && useList.length > 0) {
       // set to the user's selection if it is availble
       if (useList.some((e) => normalizeString(e.useName) === userSelectedUse)) {
@@ -835,7 +834,7 @@ function WaterQualityOverview({ ...props }: Props) {
   }, [useList, userSelectedUse]);
 
   // Handles changes in the selected use
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       !useSelected ||
       !surveyData ||
@@ -920,7 +919,7 @@ function WaterQualityOverview({ ...props }: Props) {
 
   // we need change the currentTopic whenever a tab changes, which means we
   // unfortunately  need to manage the activeTabIndex (an implementation detail)
-  const [activeTabIndex, setActiveTabIndex] = React.useState(initialTabIndex);
+  const [activeTabIndex, setActiveTabIndex] = useState(initialTabIndex);
 
   if (
     serviceError ||

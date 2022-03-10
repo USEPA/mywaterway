@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import type { Node } from 'react';
 import { navigate } from '@reach/router';
 import styled from 'styled-components';
@@ -148,9 +148,9 @@ function State({ children, ...props }: Props) {
   const services = useServicesContext();
 
   // query attains for the list of states
-  const [states, setStates] = React.useState({ status: 'fetching', data: [] });
-  const [statesInitialized, setStatesInitialized] = React.useState(false);
-  React.useEffect(() => {
+  const [states, setStates] = useState({ status: 'fetching', data: [] });
+  const [statesInitialized, setStatesInitialized] = useState(false);
+  useEffect(() => {
     if (statesInitialized) return;
 
     setStatesInitialized(true);
@@ -166,10 +166,10 @@ function State({ children, ...props }: Props) {
     introText,
     usesStateSummaryServiceError,
     setUsesStateSummaryServiceError,
-  } = React.useContext(StateTabsContext);
+  } = useContext(StateTabsContext);
 
   // reset active state if on state intro page
-  React.useEffect(() => {
+  useEffect(() => {
     if (props.location.pathname === '/state') {
       setActiveState({ code: '', name: '' });
     }
@@ -177,11 +177,11 @@ function State({ children, ...props }: Props) {
 
   // selectedState used for the HTML select menu, so we don't immediately
   // update activeState every time the user changes the selected state
-  const [selectedState, setSelectedState] = React.useState(activeState);
+  const [selectedState, setSelectedState] = useState(activeState);
 
   // update selectedState whenever activeState changes
   // (e.g. when a user navigates directly to '/state/DC/advanced-search')
-  React.useEffect(() => {
+  useEffect(() => {
     setUsesStateSummaryServiceError(false);
     setSelectedState(activeState);
   }, [activeState, setUsesStateSummaryServiceError]);

@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 // components
 import type { RouteProps } from 'routes.js';
@@ -71,15 +71,13 @@ type Props = {
 function Attains({ ...props }: Props) {
   const services = useServicesContext();
 
-  const [loading, setLoading] = React.useState(true);
-  const [serviceError, setServiceError] = React.useState(false);
-  const [attainsData, setAttainsData] = React.useState(null);
-  const [matchedMappings, setMatchedMappings] = React.useState([]);
+  const [loading, setLoading] = useState(true);
+  const [serviceError, setServiceError] = useState(false);
+  const [attainsData, setAttainsData] = useState(null);
+  const [matchedMappings, setMatchedMappings] = useState([]);
 
-  const [attainsDataInitialized, setAttainsDataInitialized] = React.useState(
-    false,
-  );
-  React.useEffect(() => {
+  const [attainsDataInitialized, setAttainsDataInitialized] = useState(false);
+  useEffect(() => {
     if (attainsDataInitialized) return;
 
     setAttainsDataInitialized(true);
@@ -99,7 +97,7 @@ function Attains({ ...props }: Props) {
       });
   }, [services, attainsDataInitialized]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // array of arrays - each containing 3 values: the HMW mapping, the ATTAINS context, and the ATTAINS name
     // i.e. ["Algae", "ALGAL GROWTH", "EXCESS ALGAL GROWTH"]
     let data = [];

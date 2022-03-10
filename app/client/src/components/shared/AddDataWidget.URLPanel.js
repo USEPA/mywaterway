@@ -1,6 +1,12 @@
 // @flow
 
-import React from 'react';
+import React, {
+  Fragment,
+  MouseEvent,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import styled from 'styled-components';
 import Select from 'react-select';
 import CSVLayer from '@arcgis/core/layers/CSVLayer';
@@ -74,24 +80,23 @@ const StyledLinkButton = styled(LinkButton)`
 
 // --- components (URLPanel) ---
 function URLPanel() {
-  const { widgetLayers, setWidgetLayers } =
-    React.useContext(AddDataWidgetContext);
-  const { mapView } = React.useContext(LocationSearchContext);
+  const { widgetLayers, setWidgetLayers } = useContext(AddDataWidgetContext);
+  const { mapView } = useContext(LocationSearchContext);
 
   // filters
   const [
     urlType,
     setUrlType, //
-  ] = React.useState({
+  ] = useState({
     value: 'ArcGIS',
     label: 'An ArcGIS Server Web Service',
   });
-  const [url, setUrl] = React.useState('');
-  const [showSampleUrls, setShowSampleUrls] = React.useState(false);
-  const [status, setStatus] = React.useState('none');
+  const [url, setUrl] = useState('');
+  const [showSampleUrls, setShowSampleUrls] = useState(false);
+  const [status, setStatus] = useState('none');
 
-  const [layer, setLayer] = React.useState(null);
-  React.useEffect(() => {
+  const [layer, setLayer] = useState(null);
+  useEffect(() => {
     if (!mapView || !layer) return;
 
     // add the layer to the map
@@ -102,7 +107,7 @@ function URLPanel() {
 
   if (!mapView) return null;
 
-  const handleAdd = (ev: React.MouseEvent<HTMLButtonElement>) => {
+  const handleAdd = (ev: MouseEvent<HTMLButtonElement>) => {
     // make sure the url hasn't already been added
     const index = widgetLayers.findIndex(
       (tempLayer) => tempLayer.url?.toLowerCase() === url.toLowerCase(),
@@ -220,7 +225,7 @@ function URLPanel() {
       </ButtonContainer>
 
       {showSampleUrls && (
-        <React.Fragment>
+        <Fragment>
           {urlType.value === 'ArcGIS' && (
             <div>
               <p>
@@ -264,7 +269,7 @@ function URLPanel() {
               </p>
             </div>
           )}
-        </React.Fragment>
+        </Fragment>
       )}
     </form>
   );

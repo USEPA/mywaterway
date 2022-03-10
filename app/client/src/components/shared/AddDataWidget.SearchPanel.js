@@ -1,6 +1,12 @@
 // @flow
 
-import React from 'react';
+import React, {
+  Fragment,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import styled from 'styled-components';
 import Select from 'react-select';
 import Layer from '@arcgis/core/layers/Layer';
@@ -164,12 +170,8 @@ const NewTabDisclaimer = styled.em`
 
 // --- components (SearchPanel) ---
 function SearchPanel() {
-  const {
-    pageNumber,
-    setPageNumber,
-    searchResults,
-    setSearchResults,
-  } = React.useContext(AddDataWidgetContext);
+  const { pageNumber, setPageNumber, searchResults, setSearchResults } =
+    useContext(AddDataWidgetContext);
 
   const locationList = [
     { value: '161a24e10b8d405d97492264589afd0b', label: 'Suggested Content' },
@@ -180,25 +182,25 @@ function SearchPanel() {
   const [
     location,
     setLocation, //
-  ] = React.useState(locationList[0]);
-  const [search, setSearch] = React.useState('');
-  const [searchText, setSearchText] = React.useState('');
-  const [mapService, setMapService] = React.useState(false);
-  const [featureService, setFeatureService] = React.useState(false);
-  const [imageService, setImageService] = React.useState(false);
-  const [vectorTileService, setVectorTileService] = React.useState(false);
-  const [kml, setKml] = React.useState(false);
-  const [wms, setWms] = React.useState(false);
+  ] = useState(locationList[0]);
+  const [search, setSearch] = useState('');
+  const [searchText, setSearchText] = useState('');
+  const [mapService, setMapService] = useState(false);
+  const [featureService, setFeatureService] = useState(false);
+  const [imageService, setImageService] = useState(false);
+  const [vectorTileService, setVectorTileService] = useState(false);
+  const [kml, setKml] = useState(false);
+  const [wms, setWms] = useState(false);
 
-  const [sortBy, setSortBy] = React.useState({
+  const [sortBy, setSortBy] = useState({
     value: 'none',
     label: 'Relevance',
     defaultSort: 'desc',
   });
-  const [sortOrder, setSortOrder] = React.useState('desc');
+  const [sortOrder, setSortOrder] = useState('desc');
 
   // Builds and executes the search query on search button click
-  React.useEffect(() => {
+  useEffect(() => {
     setSearchResults({ status: 'fetching', data: null });
 
     const tmpPortal = new Portal();
@@ -299,8 +301,8 @@ function SearchPanel() {
   ]);
 
   // Runs the query for changing pages of the result set
-  const [lastPageNumber, setLastPageNumber] = React.useState(1);
-  React.useEffect(() => {
+  const [lastPageNumber, setLastPageNumber] = useState(1);
+  useEffect(() => {
     if (!searchResults.data || pageNumber === lastPageNumber) return;
 
     // prevent running the same query multiple times
@@ -334,12 +336,12 @@ function SearchPanel() {
       });
   }, [pageNumber, lastPageNumber, searchResults, setSearchResults]);
 
-  const [showFilterOptions, setShowFilterOptions] = React.useState(false);
+  const [showFilterOptions, setShowFilterOptions] = useState(false);
 
-  const [showSortOptions, setShowSortOptions] = React.useState(false);
+  const [showSortOptions, setShowSortOptions] = useState(false);
 
   return (
-    <React.Fragment>
+    <Fragment>
       <div>
         <SearchFlexBox>
           <SearchFlexItem>
@@ -602,7 +604,7 @@ function SearchPanel() {
             <StyledErrorBox>{webServiceErrorMessage}</StyledErrorBox>
           )}
           {searchResults.status === 'success' && (
-            <React.Fragment>
+            <Fragment>
               <div>
                 {searchResults.data?.results.map((result, index) => {
                   return <ResultCard result={result} key={index} />;
@@ -613,11 +615,11 @@ function SearchPanel() {
                   No items for this search criteria.
                 </div>
               )}
-            </React.Fragment>
+            </Fragment>
           )}
         </div>
       </div>
-    </React.Fragment>
+    </Fragment>
   );
 }
 
@@ -696,14 +698,12 @@ type ResultCardProps = {
 };
 
 function ResultCard({ result }: ResultCardProps) {
-  const { widgetLayers, setWidgetLayers } = React.useContext(
-    AddDataWidgetContext,
-  );
-  const { mapView } = React.useContext(LocationSearchContext);
+  const { widgetLayers, setWidgetLayers } = useContext(AddDataWidgetContext);
+  const { mapView } = useContext(LocationSearchContext);
 
   // Used to determine if the layer for this card has been added or not
-  const [added, setAdded] = React.useState(false);
-  React.useEffect(() => {
+  const [added, setAdded] = useState(false);
+  useEffect(() => {
     setAdded(
       widgetLayers.findIndex(
         (widgetLayer) => widgetLayer.portalItem?.id === result.id,
@@ -712,9 +712,9 @@ function ResultCard({ result }: ResultCardProps) {
   }, [widgetLayers, result]);
 
   // removes the esri watch handle when the card is removed from the DOM.
-  const [status, setStatus] = React.useState('');
-  const [watcher, setWatcher] = React.useState(null);
-  React.useEffect(() => {
+  const [status, setStatus] = useState('');
+  const [watcher, setWatcher] = useState(null);
+  useEffect(() => {
     return function cleanup() {
       if (watcher) watcher.remove();
     };
@@ -807,9 +807,9 @@ function ResultCard({ result }: ResultCardProps) {
 
   // Updates the styles when the add data widget shrinks below
   // 200 pixels wide
-  const cardRef = React.useRef();
-  const [cardWidth, setCardWidth] = React.useState(0);
-  React.useEffect(() => {
+  const cardRef = useRef();
+  const [cardWidth, setCardWidth] = useState(0);
+  useEffect(() => {
     if (!cardRef?.current) return;
 
     function handleResize() {
@@ -833,7 +833,7 @@ function ResultCard({ result }: ResultCardProps) {
           {status === 'error' && 'Add Failed'}
         </CardMessage>
         {mapView?.map && (
-          <React.Fragment>
+          <Fragment>
             {!added && (
               <CardButton
                 disabled={status === 'loading'}
@@ -853,7 +853,7 @@ function ResultCard({ result }: ResultCardProps) {
                 Remove
               </CardButton>
             )}
-          </React.Fragment>
+          </Fragment>
         )}
         <CardLink
           href={`https://arcgis.com/home/item.html?id=${result.id}`}

@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { Fragment, useCallback, useEffect, useState } from 'react';
 import WindowSize from '@reach/window-size';
 import { css } from 'styled-components/macro';
 import StickyBox from 'react-sticky-box';
@@ -222,28 +222,28 @@ type Props = {
 function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
   const services = useServicesContext();
 
-  const [noWaterbodies, setNoWaterbodies] = React.useState(false);
+  const [noWaterbodies, setNoWaterbodies] = useState(false);
 
-  const [waterbodyName, setWaterbodyName] = React.useState('');
-  const [waterbodyLocation, setWaterbodyLocation] = React.useState({
+  const [waterbodyName, setWaterbodyName] = useState('');
+  const [waterbodyLocation, setWaterbodyLocation] = useState({
     status: 'fetching',
     text: '',
   });
-  const [waterbodyTypes, setWaterbodyTypes] = React.useState({
+  const [waterbodyTypes, setWaterbodyTypes] = useState({
     status: 'fetching',
     data: [],
   });
-  const [monitoringLocations, setMonitoringLocations] = React.useState({
+  const [monitoringLocations, setMonitoringLocations] = useState({
     status: 'fetching',
     data: [],
   });
-  const [mapLayer, setMapLayer] = React.useState({
+  const [mapLayer, setMapLayer] = useState({
     status: 'fetching',
     layer: null,
   });
 
   // fetch waterbody name, location, types from attains 'assessmentUnits' web service
-  React.useEffect(() => {
+  useEffect(() => {
     const url =
       services.data.attains.serviceUrl +
       `assessmentUnits?organizationId=${orgId}` +
@@ -343,40 +343,40 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
     );
   }, [auId, orgId, services]);
 
-  const [reportingCycleFetch, setReportingCycleFetch] = React.useState({
+  const [reportingCycleFetch, setReportingCycleFetch] = useState({
     status: 'fetching',
     year: '',
   });
-  const [organizationName, setOrganizationName] = React.useState({
+  const [organizationName, setOrganizationName] = useState({
     status: 'fetching',
     name: '',
   });
-  const [decisionRationale, setDecisionRationale] = React.useState('');
-  const [waterbodyStatus, setWaterbodyStatus] = React.useState({
+  const [decisionRationale, setDecisionRationale] = useState('');
+  const [waterbodyStatus, setWaterbodyStatus] = useState({
     status: 'fetching',
     data: { condition: '', planForRestoration: '', listed303d: '' },
   });
-  const [waterbodyUses, setWaterbodyUses] = React.useState({
+  const [waterbodyUses, setWaterbodyUses] = useState({
     status: 'fetching',
     data: [],
   });
-  const [waterbodySources, setWaterbodySources] = React.useState({
+  const [waterbodySources, setWaterbodySources] = useState({
     status: 'fetching',
     data: [],
   });
-  const [allParameterActionIds, setAllParameterActionIds] = React.useState({
+  const [allParameterActionIds, setAllParameterActionIds] = useState({
     status: 'fetching',
     data: [],
   });
-  const [documents, setDocuments] = React.useState({
+  const [documents, setDocuments] = useState({
     status: 'fetching',
     data: [],
   });
 
   // fetch reporting cycle, waterbody status, decision rational, uses,
   // and sources from attains 'assessments' web service
-  const [assessmentsCalled, setAssessmentsCalled] = React.useState(false);
-  React.useEffect(() => {
+  const [assessmentsCalled, setAssessmentsCalled] = useState(false);
+  useEffect(() => {
     if (assessmentsCalled) return;
     if (!reportingCycle && mapLayer.status === 'fetching') return;
 
@@ -643,8 +643,8 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
   }, [auId, orgId, reportingCycle, mapLayer, assessmentsCalled, services]);
 
   // Get the reporting cycle from the map
-  const [mapReportingCycle, setMapReportingCycle] = React.useState('');
-  React.useEffect(() => {
+  const [mapReportingCycle, setMapReportingCycle] = useState('');
+  useEffect(() => {
     if (mapLayer.status === 'success' && mapLayer.layer.graphics.length > 0) {
       setMapReportingCycle(
         mapLayer.layer.graphics.items[0].attributes.reportingcycle,
@@ -654,14 +654,14 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
     }
   }, [mapLayer]);
 
-  const [waterbodyActions, setWaterbodyActions] = React.useState({
+  const [waterbodyActions, setWaterbodyActions] = useState({
     status: 'fetching',
     data: [],
   });
 
   // fetch waterbody actions from attains 'actions' web service, using the
   // 'organizationId' and 'assessmentUnitIdentifier' query string parameters
-  React.useEffect(() => {
+  useEffect(() => {
     const url =
       services.data.attains.serviceUrl +
       `actions?organizationIdentifier=${orgId}` +
@@ -705,9 +705,9 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
   // 'actionIdentifier' query string parameter – once for each action
   // id that wasn't returned in the previous web service call (when
   // the 'assessmentUnitIdentifier' query string parameter was used)
-  const [actionsFetchedAgain, setActionsFetchedAgain] = React.useState(false);
+  const [actionsFetchedAgain, setActionsFetchedAgain] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (actionsFetchedAgain) return;
     if (allParameterActionIds.status === 'fetching') return;
     if (waterbodyActions.status === 'pending') {
@@ -806,8 +806,8 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
   unitIds[auId] = null;
 
   // calculate height of div holding waterbody info
-  const [infoHeight, setInfoHeight] = React.useState(0);
-  const measuredRef = React.useCallback((node) => {
+  const [infoHeight, setInfoHeight] = useState(0);
+  const measuredRef = useCallback((node) => {
     if (!node) return;
     setInfoHeight(node.getBoundingClientRect().height);
   }, []);
@@ -1447,7 +1447,7 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
         <p>No other parameters evaluated for this use.</p>
       ) : (
         Object.keys(parameters).map((category) => (
-          <React.Fragment key={category}>
+          <Fragment key={category}>
             {parameters[category].length > 0 && (
               <>
                 <p css={parameterCategoryStyles}>{category}</p>
@@ -1462,7 +1462,7 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
                 </ul>
               </>
             )}
-          </React.Fragment>
+          </Fragment>
         ))
       )}
     </div>

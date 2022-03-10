@@ -1,11 +1,11 @@
 // @flow
 
-import React from 'react';
+import { useEffect } from 'react';
 
 // --- components ---
 function PageNotFound() {
   // redirect to the server side 400.html page
-  React.useEffect(() => {
+  useEffect(() => {
     const location = window.location;
 
     let url = `${location.origin}/404.html`;

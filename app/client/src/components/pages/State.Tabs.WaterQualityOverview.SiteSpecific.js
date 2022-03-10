@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
@@ -99,10 +99,10 @@ function SiteSpecific({
   useSelected,
   fishingAdvisoryData,
 }: Props) {
-  const { currentReportingCycle } = React.useContext(StateTabsContext);
+  const { currentReportingCycle } = useContext(StateTabsContext);
 
-  const [waterTypeUnits, setWaterTypeUnits] = React.useState('');
-  React.useEffect(() => {
+  const [waterTypeUnits, setWaterTypeUnits] = useState('');
+  useEffect(() => {
     if (!waterTypeData || waterTypeData.length === 0) {
       if (waterTypeUnits) setWaterTypeUnits(null);
       return;

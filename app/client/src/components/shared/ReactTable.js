@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import {
   useTable,
@@ -133,13 +133,13 @@ type Props = {
 
 function ReactTable({ data, getColumns, striped = false }: Props) {
   // Initializes the column widths based on the table width
-  const [tableWidth, setTableWidth] = React.useState(0);
-  const columns = React.useMemo(() => {
+  const [tableWidth, setTableWidth] = useState(0);
+  const columns = useMemo(() => {
     return getColumns(tableWidth);
   }, [tableWidth, getColumns]);
 
   // default column settings
-  const defaultColumn = React.useMemo(
+  const defaultColumn = useMemo(
     () => ({
       // When using the useFlexLayout:
       minWidth: 50, // minWidth is only used as a limit for resizing
@@ -150,27 +150,22 @@ function ReactTable({ data, getColumns, striped = false }: Props) {
     [],
   );
 
-  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    rows,
-    prepareRow,
-  } = useTable(
-    {
-      columns,
-      data,
-      defaultColumn,
-    },
-    useResizeColumns,
-    useBlockLayout,
-    useFlexLayout,
-    useFilters,
-    useSortBy,
-  );
+  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
+    useTable(
+      {
+        columns,
+        data,
+        defaultColumn,
+      },
+      useResizeColumns,
+      useBlockLayout,
+      useFlexLayout,
+      useFilters,
+      useSortBy,
+    );
 
   // measures the table width
-  const measuredTableRef = React.useCallback((node) => {
+  const measuredTableRef = useCallback((node) => {
     if (!node) return;
     setTableWidth(node.getBoundingClientRect().width);
   }, []);

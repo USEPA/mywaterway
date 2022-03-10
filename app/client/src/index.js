@@ -2,7 +2,7 @@
 
 import 'react-app-polyfill/stable';
 import smoothscroll from 'smoothscroll-polyfill';
-import React from 'react';
+import React, { StrictMode } from 'react';
 import ReactDOM from 'react-dom';
 import { createGlobalStyle } from 'styled-components';
 import * as serviceWorker from './serviceWorker';
@@ -53,9 +53,9 @@ const rootElement: ?HTMLElement = document.getElementById('root');
 
 if (rootElement)
   ReactDOM.render(
-    <React.StrictMode>
+    <StrictMode>
       <Root />
-    </React.StrictMode>,
+    </StrictMode>,
     rootElement,
   );
 

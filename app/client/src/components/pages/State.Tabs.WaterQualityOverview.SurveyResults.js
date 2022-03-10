@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import WindowSize from '@reach/window-size';
 import Highcharts from 'highcharts';
@@ -105,12 +105,12 @@ function SurveyResults({
   const surveyMapping = useSurveyMappingContext();
   const waterTypeOptions = useWaterTypeOptionsContext();
 
-  const [userSelectedSubPop, setUserSelectedSubPop] = React.useState('');
-  const [selectedSubPop, setSelectedSubPop] = React.useState('');
-  const [selectedSurveyGroup, setSelectedSurveyGroup] = React.useState(null);
+  const [userSelectedSubPop, setUserSelectedSubPop] = useState('');
+  const [selectedSubPop, setSelectedSubPop] = useState('');
+  const [selectedSurveyGroup, setSelectedSurveyGroup] = useState(null);
 
   // Handles user and auto subPopulation selection
-  React.useEffect(() => {
+  useEffect(() => {
     if (subPopulationCodes && subPopulationCodes.length > 0) {
       // set to the user's selection if it is availble
       if (

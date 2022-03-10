@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { Children, cloneElement, useEffect, useState } from 'react';
 import type { Node } from 'react';
 import { css } from 'styled-components/macro';
 import Select from 'react-select';
@@ -81,10 +81,10 @@ function AccordionList({
   sortOptions = [],
   onSortChange = () => {},
 }: AccordionListProps) {
-  const [sortBy, setSortBy] = React.useState(
+  const [sortBy, setSortBy] = useState(
     sortOptions.length > 0 ? sortOptions[0] : null,
   );
-  const [allExpanded, setAllExpanded] = React.useState(false);
+  const [allExpanded, setAllExpanded] = useState(false);
 
   const iconClassName = allExpanded
     ? 'far fa-caret-square-right'
@@ -133,8 +133,8 @@ function AccordionList({
       {title && <p css={titleStyles}>{title}</p>}
 
       {/* implicitly pass 'allExpanded' prop down to children (AccordionItem's) */}
-      {React.Children.map(children, (childElement) => {
-        return React.cloneElement(childElement, { allExpanded });
+      {Children.map(children, (childElement) => {
+        return cloneElement(childElement, { allExpanded });
       })}
     </div>
   );
@@ -228,14 +228,12 @@ function AccordionItem({
   allExpanded,
   highlightContent = true,
 }: AccordionItemProps) {
-  const [isOpen, setIsOpen] = React.useState(allExpanded);
+  const [isOpen, setIsOpen] = useState(allExpanded);
 
-  React.useEffect(() => setIsOpen(allExpanded), [allExpanded]);
+  useEffect(() => setIsOpen(allExpanded), [allExpanded]);
 
-  const [backgroundColor, setBackgroundColor] = React.useState(
-    colorMap.default,
-  );
-  React.useEffect(() => {
+  const [backgroundColor, setBackgroundColor] = useState(colorMap.default);
+  useEffect(() => {
     if (status === 'selected') setBackgroundColor(colorMap.selected);
     if (status === 'highlighted') setBackgroundColor(colorMap.highlighted);
     if (!status) setBackgroundColor(colorMap.default);

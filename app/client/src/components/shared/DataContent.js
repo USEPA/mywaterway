@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import styled from 'styled-components';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -88,7 +88,7 @@ const Item = styled.div`
 type Props = {};
 
 function Data({ ...props }: Props) {
-  React.useEffect(() => {
+  useEffect(() => {
     // get the original url
     const href = window.location.href;
 

@@ -1,6 +1,12 @@
 // @flow
 
-import React from 'react';
+import React, {
+  Fragment,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import styled from 'styled-components';
 import { useDropzone } from 'react-dropzone';
 import { DialogOverlay, DialogContent } from '@reach/dialog';
@@ -223,19 +229,18 @@ type UploadStatusType =
   | 'file-read-error';
 
 function FilePanel() {
-  const { widgetLayers, setWidgetLayers } =
-    React.useContext(AddDataWidgetContext);
-  const { mapView } = React.useContext(LocationSearchContext);
+  const { widgetLayers, setWidgetLayers } = useContext(AddDataWidgetContext);
+  const { mapView } = useContext(LocationSearchContext);
 
-  const [generalizeFeatures, setGeneralizeFeatures] = React.useState(false);
-  const [analyzeResponse, setAnalyzeResponse] = React.useState<any>(null);
-  const [generateResponse, setGenerateResponse] = React.useState<any>(null);
-  const [featuresAdded, setFeaturesAdded] = React.useState(false);
-  const [uploadStatus, setUploadStatus] = React.useState<UploadStatusType>('');
+  const [generalizeFeatures, setGeneralizeFeatures] = useState(false);
+  const [analyzeResponse, setAnalyzeResponse] = useState<any>(null);
+  const [generateResponse, setGenerateResponse] = useState<any>(null);
+  const [featuresAdded, setFeaturesAdded] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<UploadStatusType>('');
 
   // Handles the user uploading a file
-  const [file, setFile] = React.useState<any>(null);
-  const onDrop = React.useCallback((acceptedFiles) => {
+  const [file, setFile] = useState<any>(null);
+  const onDrop = useCallback((acceptedFiles) => {
     // Do something with the files
     if (
       !acceptedFiles ||
@@ -283,7 +288,7 @@ function FilePanel() {
   });
 
   // analyze csv files
-  React.useEffect(() => {
+  useEffect(() => {
     if (!file?.file?.esriFileType || file.analyzeCalled) return;
     if (
       file.file.name === file.lastFileName ||
@@ -320,7 +325,7 @@ function FilePanel() {
   }, [file]);
 
   // get features from file
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       !mapView ||
       !file?.file?.esriFileType ||
@@ -409,8 +414,8 @@ function FilePanel() {
 
   // add features to the map as feature layers. This is only for reference layer
   // types. This is so users can view popups but not edit the features.
-  const [newLayerName, setNewLayerName] = React.useState('');
-  React.useEffect(() => {
+  const [newLayerName, setNewLayerName] = useState('');
+  useEffect(() => {
     if (!mapView?.map || !file?.file?.esriFileType || featuresAdded) {
       return;
     }
@@ -510,7 +515,7 @@ function FilePanel() {
   ]);
 
   // handle loading of the KMLLayer
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       !file?.file?.esriFileType ||
       !mapView ||
@@ -559,13 +564,13 @@ function FilePanel() {
 
   const filename = file?.file?.name ? file.file.name : '';
 
-  const [dialogShown, setDialogShown] = React.useState(false);
+  const [dialogShown, setDialogShown] = useState(false);
 
   return (
     <SearchContainer>
       {uploadStatus === 'fetching' && <LoadingSpinner />}
       {uploadStatus !== 'fetching' && (
-        <React.Fragment>
+        <Fragment>
           {uploadStatus === 'invalid-file-type' && (
             <ErrorBox>{invalidFileTypeMessage(filename)}</ErrorBox>
           )}
@@ -627,7 +632,7 @@ function FilePanel() {
               }}
             ></HelpIcon>
           </div>
-        </React.Fragment>
+        </Fragment>
       )}
 
       <Overlay isOpen={dialogShown} onDismiss={() => setDialogShown(false)}>

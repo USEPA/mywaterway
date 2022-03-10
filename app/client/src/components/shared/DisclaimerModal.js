@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useState } from 'react';
 import type { Node } from 'react';
 import styled from 'styled-components';
 import { DialogOverlay, DialogContent } from '@reach/dialog';
@@ -83,7 +83,7 @@ type Props = {
 };
 
 function DisclaimerModal({ children, ...props }: Props) {
-  const [dialogShown, setDialogShown] = React.useState(false);
+  const [dialogShown, setDialogShown] = useState(false);
   return (
     <>
       <DisclaimerButton

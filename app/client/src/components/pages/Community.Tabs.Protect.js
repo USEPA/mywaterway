@@ -1,6 +1,12 @@
 // @flow
 
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 import Query from '@arcgis/core/rest/support/Query';
@@ -459,7 +465,7 @@ function Protect() {
   // component unmounts.
 
   // This sets a componentWillUnmount ref trigger when the component unmounts.
-  const componentWillUnmount = React.useRef(false);
+  const componentWillUnmount = useRef(false);
   useEffect(() => {
     return function cleanup() {
       componentWillUnmount.current = true;
