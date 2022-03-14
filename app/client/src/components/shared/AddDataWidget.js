@@ -1,12 +1,12 @@
 // @flow
 
 import React, { Fragment, useContext, useState } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 // components
-import { ContentTabs } from 'components/shared/ContentTabs';
+import { tabsStyles } from 'components/shared/ContentTabs';
 import DisclaimerModal from 'components/shared/DisclaimerModal';
-import { LinkButton } from 'components/shared/LinkButton';
+import { linkButtonStyles } from 'components/shared/LinkButton';
 import FilePanel from 'components/shared/AddDataWidget.FilePanel';
 import SearchPanel from 'components/shared/AddDataWidget.SearchPanel';
 import URLPanel from 'components/shared/AddDataWidget.URLPanel';
@@ -15,7 +15,7 @@ import { AddDataWidgetContext } from 'contexts/AddDataWidget';
 import { LocationSearchContext } from 'contexts/locationSearch';
 
 // --- styles (AddData) ---
-const Container = styled.div`
+const containerStyles = css`
   height: calc(100% - 75px);
 
   [data-reach-tabs] {
@@ -46,7 +46,7 @@ const Container = styled.div`
   }
 `;
 
-const WidgetHeader = styled.div`
+const widgetHeaderStyles = css`
   width: 100%;
   height: 35px;
   display: flex;
@@ -69,15 +69,16 @@ const WidgetHeader = styled.div`
   }
 `;
 
-const DragHandle = styled.div`
+const dragHandleStyles = css`
   width: calc(100% - 46.7px);
 `;
 
-const StyledContentTabs = styled(ContentTabs)`
+const styledContentTabsStyles = css`
+  ${tabsStyles}
   height: 100%;
 `;
 
-const FooterBar = styled.div`
+const footerBarStyles = css`
   height: 40px;
   width: 100%;
   display: flex;
@@ -87,7 +88,7 @@ const FooterBar = styled.div`
   background-color: #f8f8f8;
 `;
 
-const PageControl = styled.button`
+const pageControlStyles = css`
   color: black;
   background-color: transparent;
   padding: 3px;
@@ -99,16 +100,17 @@ const PageControl = styled.button`
   }
 `;
 
-const ButtonHiddenText = styled.span`
+const buttonHiddenTextStyles = css`
   font: 0/0 a, sans-serif;
   text-indent: -999em;
 `;
 
-const Total = styled.span`
+const totalStyles = css`
   margin-left: 10px;
 `;
 
-const StyledLinkButton = styled(LinkButton)`
+const modifiedLinkButtonStyles = css`
+  ${linkButtonStyles}
   margin-right: 20px;
   text-transform: uppercase;
   text-decoration: none;
@@ -116,13 +118,13 @@ const StyledLinkButton = styled(LinkButton)`
   padding: 5px;
 `;
 
-const LayerPanel = styled.div`
+const layerPanelStyles = css`
   display: ${({ layerPanelVisible }) => (layerPanelVisible ? 'flex' : 'none')};
   flex-flow: column;
   height: 100%;
 `;
 
-const LayerPanelHeader = styled.h2`
+const layerPanelHeaderStyles = css`
   height: 40px;
   margin: 0;
   padding: 7px 15px;
@@ -133,18 +135,18 @@ const LayerPanelHeader = styled.h2`
   line-height: 2;
 `;
 
-const RecordList = styled.div`
+const recordListStyles = css`
   overflow: auto;
   padding: 10px 15px;
 `;
 
-const RecordContainer = styled.div`
+const recordContainerStyles = css`
   display: flex;
   justify-content: space-between;
   align-items: center;
 `;
 
-const LayerIconButton = styled.button`
+const layerIconButtonStyles = css`
   margin: 0;
   color: black;
   background-color: transparent;
@@ -191,10 +193,10 @@ function AddDataWidget() {
 
   return (
     <Fragment>
-      <WidgetHeader>
-        <DragHandle className="drag-handle">
+      <div css={widgetHeaderStyles}>
+        <div css={dragHandleStyles} className="drag-handle">
           <h1>Add Data</h1>
-        </DragHandle>
+        </div>
         <button
           onClick={() => {
             const widget = document.getElementById('add-data-widget');
@@ -204,9 +206,10 @@ function AddDataWidget() {
         >
           X
         </button>
-      </WidgetHeader>
-      <Container>
-        <StyledContentTabs
+      </div>
+      <div css={containerStyles}>
+        <div
+          css={styledContentTabsStyles}
           style={{ display: layerPanelVisible ? 'none' : 'block' }}
         >
           <Tabs
@@ -235,29 +238,31 @@ function AddDataWidget() {
               </TabPanel>
             </TabPanels>
           </Tabs>
-        </StyledContentTabs>
-        <LayerPanel layerPanelVisible={layerPanelVisible}>
-          <LayerPanelHeader>Layers</LayerPanelHeader>
-          <RecordList>
+        </div>
+        <div css={layerPanelStyles} layerPanelVisible={layerPanelVisible}>
+          <h2 css={layerPanelHeaderStyles}>Layers</h2>
+          <div css={recordListStyles}>
             {layersToDisplay.length === 0 && (
               <div>No layers have been added.</div>
             )}
             {layersToDisplay.length > 0 &&
               layersToDisplay.map((item) => {
                 return (
-                  <RecordContainer key={item.layer.id}>
+                  <div css={recordContainerStyles} key={item.layer.id}>
                     <span>{item.title}</span>
                     <div>
-                      <LayerIconButton
+                      <button
+                        css={layerIconButtonStyles}
                         className="esri-icon-zoom-in-magnifying-glass"
                         onClick={() => {
                           if (!item?.layer?.fullExtent) return;
                           mapView.goTo(item.layer.fullExtent);
                         }}
                       >
-                        <ButtonHiddenText>Zoom to Layer</ButtonHiddenText>
-                      </LayerIconButton>
-                      <LayerIconButton
+                        <span css={buttonHiddenTextStyles}>Zoom to Layer</span>
+                      </button>
+                      <button
+                        css={layerIconButtonStyles}
                         className="esri-icon-trash"
                         onClick={() => {
                           if (
@@ -288,34 +293,37 @@ function AddDataWidget() {
                           }
                         }}
                       >
-                        <ButtonHiddenText>Delete Layer</ButtonHiddenText>
-                      </LayerIconButton>
+                        <span css={buttonHiddenTextStyles}>Delete Layer</span>
+                      </button>
                     </div>
-                  </RecordContainer>
+                  </div>
                 );
               })}
-          </RecordList>
-        </LayerPanel>
-        <FooterBar>
+          </div>
+        </div>
+        <div css={footerBarStyles}>
           <div>
             {activeTabIndex === 0 && !layerPanelVisible && (
               <Fragment>
-                <PageControl
+                <button
+                  css={pageControlStyles}
                   disabled={pageNumber === 1 || !searchResults?.data}
                   onClick={() => setPageNumber(1)}
                 >
                   <i className="fas fa-angle-double-left"></i>
-                  <ButtonHiddenText>Go to first page</ButtonHiddenText>
-                </PageControl>
-                <PageControl
+                  <span css={buttonHiddenTextStyles}>Go to first page</span>
+                </button>
+                <button
+                  css={pageControlStyles}
                   disabled={pageNumber === 1 || !searchResults?.data}
                   onClick={() => setPageNumber(pageNumber - 1)}
                 >
                   <i className="fas fa-angle-left"></i>
-                  <ButtonHiddenText>Previous</ButtonHiddenText>
-                </PageControl>
+                  <span css={buttonHiddenTextStyles}>Previous</span>
+                </button>
                 <span>{pageNumber}</span>
-                <PageControl
+                <button
+                  css={pageControlStyles}
                   disabled={
                     !searchResults?.data ||
                     searchResults.data.nextQueryParams?.start === -1
@@ -323,14 +331,14 @@ function AddDataWidget() {
                   onClick={() => setPageNumber(pageNumber + 1)}
                 >
                   <i className="fas fa-angle-right"></i>
-                  <ButtonHiddenText>Next</ButtonHiddenText>
-                </PageControl>
-                <Total>
+                  <span css={buttonHiddenTextStyles}>Next</span>
+                </button>
+                <span css={totalStyles}>
                   {searchResults?.data?.total
                     ? searchResults.data.total.toLocaleString()
                     : 0}{' '}
                   Items
-                </Total>
+                </span>
               </Fragment>
             )}
           </div>
@@ -344,7 +352,8 @@ function AddDataWidget() {
               organizations outside of the federal government.
             </p>
           </DisclaimerModal>
-          <StyledLinkButton
+          <button
+            css={modifiedLinkButtonStyles}
             onClick={() => {
               setLayerPanelVisible(!layerPanelVisible);
             }}
@@ -358,9 +367,9 @@ function AddDataWidget() {
                 <i className="fas fa-layer-group"></i> Layers
               </Fragment>
             )}
-          </StyledLinkButton>
-        </FooterBar>
-      </Container>
+          </button>
+        </div>
+      </div>
     </Fragment>
   );
 }

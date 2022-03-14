@@ -8,13 +8,13 @@ import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
 import {
-  StyledMetrics,
-  StyledMetric,
-  StyledNumber,
-  StyledLabel,
+  keyMetricsStyles,
+  keyMetricStyles,
+  keyMetricNumberStyles,
+  keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -128,32 +128,32 @@ function Restore() {
 
   return (
     <div css={containerStyles}>
-      <StyledMetrics>
-        <StyledMetric>
+      <div css={keyMetricsStyles}>
+        <div css={keyMetricStyles}>
           {grts.status === 'fetching' ? (
             <LoadingSpinner />
           ) : (
-            <StyledNumber>
+            <span css={keyMetricNumberStyles}>
               {grts.status === 'failure'
                 ? 'N/A'
                 : sortedGrtsData.length.toLocaleString()}
-            </StyledNumber>
+            </span>
           )}
-          <StyledLabel>Projects</StyledLabel>
-        </StyledMetric>
-        <StyledMetric>
+          <p css={keyMetricLabelStyles}>Projects</p>
+        </div>
+        <div css={keyMetricStyles}>
           {attainsPlans.status === 'fetching' ? (
             <LoadingSpinner />
           ) : (
-            <StyledNumber>
+            <span css={keyMetricNumberStyles}>
               {attainsPlans.status === 'failure'
                 ? 'N/A'
                 : sortedAttainsPlanData.length.toLocaleString()}
-            </StyledNumber>
+            </span>
           )}
-          <StyledLabel>Plans</StyledLabel>
-        </StyledMetric>
-      </StyledMetrics>
+          <p css={keyMetricLabelStyles}>Plans</p>
+        </div>
+      </div>
 
       <div css={tabsStyles}>
         <Tabs onChange={(index) => setRestoreLayerVisibility(index === 1)}>
@@ -168,9 +168,9 @@ function Restore() {
                 {grts.status === 'fetching' && <LoadingSpinner />}
 
                 {grts.status === 'failure' && (
-                  <StyledErrorBox>
+                  <div css={errorBoxStyles}>
                     <p>{restoreNonpointSourceError}</p>
-                  </StyledErrorBox>
+                  </div>
                 )}
 
                 {grts.status === 'success' && (
@@ -339,9 +339,9 @@ function Restore() {
                 {attainsPlans.status === 'fetching' && <LoadingSpinner />}
 
                 {attainsPlans.status === 'failure' && (
-                  <StyledErrorBox>
+                  <div css={errorBoxStyles}>
                     <p>{restorationPlanError}</p>
-                  </StyledErrorBox>
+                  </div>
                 )}
 
                 {attainsPlans.status === 'success' && (

@@ -13,7 +13,6 @@ import { createMarkup } from 'utils/utils';
 // --- components ---
 type Props = {};
 
-// --- styled components ---
 const bannerStyles = (color, backgroundColor) => {
   return css`
     background-color: ${backgroundColor};

@@ -1,6 +1,6 @@
 // @flow
 
-import { css } from 'styled-components';
+import { css } from 'styled-components/macro';
 // styles
 import { fonts } from 'styles/index.js';
 

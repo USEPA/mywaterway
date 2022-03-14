@@ -2,7 +2,7 @@
 
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import type { Node } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import StickyBox from 'react-sticky-box';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
@@ -18,7 +18,7 @@ import {
 } from 'utils/mapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // styled components
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { MapHighlightContext } from 'contexts/MapHighlight';
@@ -31,10 +31,9 @@ import 'styles/mapStyles.css';
 // errors
 import { esriMapLoadingFailure } from 'config/errorMessages';
 
-// --- styled components ---
 const mapPadding = 20;
 
-const Container = styled.div`
+const containerStyles = css`
   display: flex;
   position: relative;
   border: 1px solid #aebac3;
@@ -350,7 +349,8 @@ function StateMap({
           : {}
       }
     >
-      <Container
+      <div
+        css={containerStyles}
         data-content="statemap"
         style={
           layout === 'fullscreen'
@@ -378,7 +378,7 @@ function StateMap({
           layers={layers}
         />
         {mapView && mapLoading && <MapLoadingSpinner />}
-      </Container>
+      </div>
 
       {/* The StateMap's children is a footer */}
       <div ref={measuredRef}>{children}</div>
@@ -386,7 +386,7 @@ function StateMap({
   );
 
   if (stateMapLoadError) {
-    return <StyledErrorBox>{esriMapLoadingFailure}</StyledErrorBox>;
+    return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
   }
 
   if (layout === 'wide') {

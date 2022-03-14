@@ -1,8 +1,8 @@
 // @flow
 
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 
-const LinkButton = styled.button`
+const linkButtonStyles = css`
   display: inline;
   margin: 0;
   padding: 0;
@@ -20,4 +20,4 @@ const LinkButton = styled.button`
   }
 `;
 
-export { LinkButton };
+export { linkButtonStyles };

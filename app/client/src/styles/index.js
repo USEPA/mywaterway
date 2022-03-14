@@ -1,6 +1,6 @@
 // @flow
 
-import { css } from 'styled-components';
+import { css } from 'styled-components/macro';
 
 const colors = {
   black: (alpha: number = 1) => `rgba(0, 0, 0, ${alpha})`, // #000

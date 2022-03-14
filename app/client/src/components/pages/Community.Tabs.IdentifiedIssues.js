@@ -22,7 +22,7 @@ import { impairmentFields } from 'config/attainsToHmwMapping';
 import Switch from 'components/shared/Switch';
 import DisclaimerModal from 'components/shared/DisclaimerModal';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
 import {
@@ -610,9 +610,9 @@ function IdentifiedIssues() {
               {cipSummary.status === 'fetching' && <LoadingSpinner />}
 
               {(cipSummary.status === 'failure' || !cipSummary.data?.items) && (
-                <StyledErrorBox>
+                <div css={errorBoxStyles}>
                   <p>{huc12SummaryError}</p>
-                </StyledErrorBox>
+                </div>
               )}
 
               {cipSummary.status === 'success' && (
@@ -771,9 +771,9 @@ function IdentifiedIssues() {
               {permittedDischargers.status === 'fetching' && <LoadingSpinner />}
 
               {permittedDischargers.status === 'failure' && (
-                <StyledErrorBox>
+                <div css={errorBoxStyles}>
                   <p>{echoError}</p>
-                </StyledErrorBox>
+                </div>
               )}
 
               {permittedDischargers.status === 'success' && (

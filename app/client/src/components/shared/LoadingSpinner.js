@@ -1,11 +1,10 @@
 // @flow
 
 import React from 'react';
-import styled, { keyframes } from 'styled-components';
+import { css, keyframes } from 'styled-components/macro';
 // styles
 import { colors } from 'styles/index.js';
 
-// --- styled components ---
 const rotate = keyframes`
   0% {
     transform: rotate(0deg);
@@ -48,13 +47,13 @@ const color = keyframes`
   }
 `;
 
-const Svg = styled.svg`
+const svgStyles = css`
   display: block;
   margin: 1rem auto;
   animation: ${rotate} 5s linear infinite;
 `;
 
-const Circle = styled.circle`
+const circleStyles = css`
   fill: none;
   stroke-width: 5;
   stroke-linecap: round;
@@ -70,7 +69,8 @@ type Props = {};
 
 function LoadingSpinner({ ...props }: Props) {
   return (
-    <Svg
+    <svg
+      css={svgStyles}
       data-testid="hmw-loading-spinner"
       width="50"
       height="50"
@@ -78,8 +78,8 @@ function LoadingSpinner({ ...props }: Props) {
       aria-hidden="true"
       {...props}
     >
-      <Circle cx="25" cy="25" r="20" />
-    </Svg>
+      <circle css={circleStyles} cx="25" cy="25" r="20" />
+    </svg>
   );
 }
 

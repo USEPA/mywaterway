@@ -1,7 +1,7 @@
 // @flow
 
 import React, { useContext, useEffect, useState } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import highchartsAccessibility from 'highcharts/modules/accessibility';
@@ -10,7 +10,7 @@ import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 // styled components
-import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { StateTabsContext } from 'contexts/StateTabs';
 // utilities
@@ -25,15 +25,14 @@ import { fishingAdvisoryError } from 'config/errorMessages';
 // add accessibility features to highcharts
 highchartsAccessibility(Highcharts);
 
-// --- styled components ---
-const Text = styled.p`
+const textStyles = css`
   padding-bottom: 0;
   font-size: 0.875rem;
   font-style: italic;
 }
 `;
 
-const AccordionContent = styled.div`
+const accordionContentStyles = css`
   padding: 0.25em 1.5em 1.5em;
 
   ul {
@@ -41,7 +40,7 @@ const AccordionContent = styled.div`
   }
 `;
 
-const ChartFooter = styled.p`
+const chartFooterStyles = css`
   display: flex;
   align-items: center;
   margin-bottom: 1.5em;
@@ -54,7 +53,7 @@ const ChartFooter = styled.p`
   }
 `;
 
-const Percent = styled.span`
+const percentStyles = css`
   display: inline-block;
   margin-right: 0.125em;
   font-size: 1.25em;
@@ -62,22 +61,24 @@ const Percent = styled.span`
   color: #0071bc;
 `;
 
-const HighchartsContainer = styled.div`
+const highchartsContainerStyles = css`
   @media (max-width: 400px) {
     margin-left: -1.4em;
     margin-right: -1.4em;
   }
 `;
 
-const FishingAdvisoryText = styled.h3`
+const fishingAdvisoryTextStyles = css`
   display: inline-block;
 `;
 
-const ErrorBox = styled(StyledErrorBox)`
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles}
   margin-bottom: 1.5em;
 `;
 
-const InfoBox = styled(StyledInfoBox)`
+const modifiedInfoBoxStyles = css`
+  ${infoBoxStyles}
   margin-bottom: 1.5em;
 `;
 
@@ -232,7 +233,7 @@ function SiteSpecific({
 
         return (
           <li key={index}>
-            <Percent>{percent}%</Percent> or {number} {units}{' '}
+            <span css={percentStyles}>{percent}%</span> or {number} {units}{' '}
             {match ? sentence : <strong>{param}</strong>}.
           </li>
         );
@@ -306,12 +307,12 @@ function SiteSpecific({
 
           {barChartData.length > 0 && (
             <>
-              <Text>
+              <p css={textStyles}>
                 Targeted monitoring provides information on water quality
                 problems for the subset of those waters that were assessed.
-              </Text>
+              </p>
 
-              <HighchartsContainer id="hmw-site-specific-chart">
+              <div css={highchartsContainerStyles} id="hmw-site-specific-chart">
                 <HighchartsReact
                   highcharts={Highcharts}
                   options={{
@@ -376,8 +377,8 @@ function SiteSpecific({
                     legend: { enabled: false },
                   }}
                 />
-              </HighchartsContainer>
-              <ChartFooter>
+              </div>
+              <p css={chartFooterStyles}>
                 <strong>Year Last Reported:</strong>
                 {currentReportingCycle.status === 'success' && (
                   <>&nbsp;{currentReportingCycle.reportingCycle}</>
@@ -385,7 +386,7 @@ function SiteSpecific({
                 {currentReportingCycle.status === 'fetching' && (
                   <LoadingSpinner />
                 )}
-              </ChartFooter>
+              </p>
             </>
           )}
         </>
@@ -407,9 +408,9 @@ function SiteSpecific({
               </h3>
             }
           >
-            <AccordionContent>
+            <div css={accordionContentStyles}>
               <ul>{parameters}</ul>
-            </AccordionContent>
+            </div>
           </AccordionItem>
         </AccordionList>
       )}
@@ -419,22 +420,22 @@ function SiteSpecific({
       )}
 
       {topic === 'fishing' && fishingAdvisoryData.status === 'failure' && (
-        <ErrorBox>{fishingAdvisoryError}</ErrorBox>
+        <div css={modifiedErrorBoxStyles}>{fishingAdvisoryError}</div>
       )}
 
       {topic === 'fishing' &&
         fishingAdvisoryData.status === 'success' &&
         fishingAdvisoryData.data.length === 0 && (
-          <InfoBox>
+          <div css={modifiedInfoBoxStyles}>
             Fishing Advisory information is not available for this location.
-          </InfoBox>
+          </div>
         )}
 
       {topic === 'fishing' &&
         fishingAdvisoryData.status === 'success' &&
         fishingAdvisoryData.data.length !== 0 && (
           <>
-            <FishingAdvisoryText>
+            <h3 css={fishingAdvisoryTextStyles}>
               Fish Consumption Advisories for{' '}
               <a
                 href={fishingAdvisoryData.data[0].url}
@@ -443,7 +444,7 @@ function SiteSpecific({
               >
                 {activeState.name}
               </a>{' '}
-            </FishingAdvisoryText>
+            </h3>
             <a
               className="exit-disclaimer"
               href="https://www.epa.gov/home/exit-epa"

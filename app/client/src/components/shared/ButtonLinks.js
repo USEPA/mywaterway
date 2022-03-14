@@ -1,18 +1,16 @@
 // @flow
 
-import styled, { css } from 'styled-components';
-import { Link } from '@reach/router';
+import { css } from 'styled-components/macro';
 // styles
 import { colors } from 'styles/index.js';
 
-// --- styled components ---
-const StyledButtons = styled.div`
+const topicButtonContainer = css`
   display: flex;
   flex-flow: row wrap;
   justify-content: space-between;
 `;
 
-const StyledButtonLink = styled(Link)`
+const buttonLinkStyles = css`
   margin-top: 1em;
   padding: 1em;
   border-radius: 0.25em;
@@ -28,7 +26,8 @@ const StyledButtonLink = styled(Link)`
   }
 `;
 
-const StyledTopicButtonLink = styled(StyledButtonLink)`
+const topicButtonLinkStyles = css`
+  ${buttonLinkStyles}
   padding-bottom: 1.75em;
   font-weight: bold;
   background-color: #0071bb;
@@ -49,7 +48,7 @@ const StyledTopicButtonLink = styled(StyledButtonLink)`
   }
 `;
 
-const StyledFourButtonLinks = css`
+const fourButtonLinkStyles = css`
   @media (min-width: 35em) {
     width: calc(25% - 0.75em);
   }
@@ -59,7 +58,7 @@ const StyledFourButtonLinks = css`
   }
 `;
 
-const StyledThreeButtonLinks = css`
+const threeButtonLinkStyles = css`
   @media (min-width: 35em) {
     width: calc((100% / 3) - 0.75em);
   }
@@ -69,7 +68,7 @@ const StyledThreeButtonLinks = css`
   }
 `;
 
-const StyledTwoButtonLinks = css`
+const twoButtonLinkStyles = css`
   @media (min-width: 35em) {
     width: calc(50% - 0.75em);
   }
@@ -80,10 +79,10 @@ const StyledTwoButtonLinks = css`
 `;
 
 export {
-  StyledButtons,
-  StyledButtonLink,
-  StyledTopicButtonLink,
-  StyledFourButtonLinks,
-  StyledThreeButtonLinks,
-  StyledTwoButtonLinks,
+  topicButtonContainer,
+  buttonLinkStyles,
+  topicButtonLinkStyles,
+  fourButtonLinkStyles,
+  threeButtonLinkStyles,
+  twoButtonLinkStyles,
 };

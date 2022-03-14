@@ -1,7 +1,8 @@
 // @flow
 
 import React from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
+import { Link } from '@reach/router';
 // components
 import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
@@ -15,20 +16,20 @@ import {
   SwimmingIcon,
 } from 'components/shared/Icons';
 // styled components
-import { StyledText, StyledTopic } from 'components/shared/Topics';
+import { searchTitleStyles, topicTitleStyles } from 'components/shared/Topics';
 import {
-  StyledButtons,
-  StyledTopicButtonLink,
-  StyledThreeButtonLinks,
+  topicButtonContainer,
+  topicButtonLinkStyles,
+  threeButtonLinkStyles,
 } from 'components/shared/ButtonLinks';
 
-// --- styled components ---
-const Disclaimer = styled(DisclaimerModal)`
+const disclaimerStyles = css`
   bottom: 1.25rem;
 `;
 
-const TopicButtonLink = styled(StyledTopicButtonLink)`
-  ${StyledThreeButtonLinks}
+const threeTopicButtonLinkStyles = css`
+  ${topicButtonLinkStyles}
+  ${threeButtonLinkStyles}
 `;
 
 // --- components ---
@@ -41,12 +42,12 @@ function AquaticLife({ ...props }: Props) {
     <Page>
       <NavBar title="Explore Topics" />
 
-      <StyledTopic>
+      <div css={topicTitleStyles}>
         <AquaticLifeIcon />
         <p>Aquatic Life</p>
-      </StyledTopic>
+      </div>
 
-      <StyledText className="container">
+      <div className="container" css={searchTitleStyles}>
         <LocationSearch
           route="/community/{urlSearch}/aquatic-life"
           label={<em>Find out more about your aquatic life.</em>}
@@ -62,7 +63,7 @@ function AquaticLife({ ...props }: Props) {
           available, refer to local or state real-time water quality reports.
         </p>
 
-        <Disclaimer>
+        <DisclaimerModal css={disclaimerStyles}>
           <p>
             Users of this application should not rely on information relating to
             environmental laws and regulations posted on this application.
@@ -71,27 +72,27 @@ function AquaticLife({ ...props }: Props) {
             In addition, EPA cannot attest to the accuracy of data provided by
             organizations outside of the federal government.
           </p>
-        </Disclaimer>
+        </DisclaimerModal>
 
         <hr />
 
         <h2>Other Topics</h2>
 
-        <StyledButtons>
-          <TopicButtonLink to="/swimming">
+        <div css={topicButtonContainer}>
+          <Link to="/swimming" css={threeTopicButtonLinkStyles}>
             <SwimmingIcon />
             Swimming
-          </TopicButtonLink>
-          <TopicButtonLink to="/eating-fish">
+          </Link>
+          <Link to="/eating-fish" css={threeTopicButtonLinkStyles}>
             <EatingFishIcon />
             Eating Fish
-          </TopicButtonLink>
-          <TopicButtonLink to="/drinking-water">
+          </Link>
+          <Link to="/drinking-water" css={threeTopicButtonLinkStyles}>
             <DrinkingWaterIcon />
             Drinking Water
-          </TopicButtonLink>
-        </StyledButtons>
-      </StyledText>
+          </Link>
+        </div>
+      </div>
     </Page>
   );
 }

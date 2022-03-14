@@ -1,7 +1,8 @@
 // @flow
 
 import React from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
+import { Link } from '@reach/router';
 // components
 import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
@@ -15,25 +16,24 @@ import {
 import DisclaimerModal from 'components/shared/DisclaimerModal';
 // styled components
 import {
-  StyledButtons,
-  StyledButtonLink,
-  StyledTopicButtonLink,
-  StyledThreeButtonLinks,
-  StyledFourButtonLinks,
+  topicButtonContainer,
+  buttonLinkStyles,
+  topicButtonLinkStyles,
+  threeButtonLinkStyles,
+  fourButtonLinkStyles,
 } from 'components/shared/ButtonLinks';
 // styles
 import { colors } from 'styles/index.js';
 
-// --- styled components ---
-const Container = styled.div`
+const containerStyles = css`
   margin-bottom: 2.5em;
 `;
 
-const SearchBox = styled.div`
+const searchBoxStyles = css`
   margin-top: 2em;
 `;
 
-const BaseHeaderStyles = `
+const baseHeaderStyles = `
   margin: 0;
   padding: 0;
   font-family: inherit;
@@ -42,20 +42,22 @@ const BaseHeaderStyles = `
   line-height: 19px;
 `;
 
-const SearchLabel = styled.h1`
-  ${BaseHeaderStyles}
+const searchLabelStyles = css`
+  ${baseHeaderStyles}
 `;
 
-const Header = styled.h1`
-  ${BaseHeaderStyles}
+const headerStyles = css`
+  ${baseHeaderStyles}
   margin-top: 2em;
 `;
 
-const TopicButtonLink = styled(StyledTopicButtonLink)`
-  ${StyledFourButtonLinks}
+const fourTopicButtonLinkStyles = css`
+  ${topicButtonLinkStyles}
+  ${fourButtonLinkStyles}
 `;
 
-const PlaceButtonLink = styled(StyledButtonLink)`
+const placeButtonLinkStyles = css`
+  ${buttonLinkStyles}
   padding-bottom: 1.25em;
   border-top-width: 0.5em;
   border-top-style: solid;
@@ -77,10 +79,10 @@ const PlaceButtonLink = styled(StyledButtonLink)`
     font-size: 1.25em;
   }
 
-  ${StyledThreeButtonLinks}
+  ${threeButtonLinkStyles}
 `;
 
-const Disclaimer = styled(DisclaimerModal)`
+const disclaimerStyles = css`
   margin-top: 2rem;
 `;
 
@@ -92,44 +94,50 @@ type Props = {
 function Home({ ...props }: Props) {
   return (
     <Page>
-      <Container className="container">
-        <SearchBox>
+      <div className="container" css={containerStyles}>
+        <div css={searchBoxStyles}>
           <LocationSearch
             route="/community/{urlSearch}/overview"
-            label={<SearchLabel>Let’s get started!</SearchLabel>}
+            label={<h1 css={searchLabelStyles}>Let’s get started!</h1>}
           />
-        </SearchBox>
+        </div>
 
-        <Header>Choose a place to learn about your waters:</Header>
+        <h1 css={headerStyles}>Choose a place to learn about your waters:</h1>
 
-        <StyledButtons>
-          <PlaceButtonLink to="/community">Community</PlaceButtonLink>
-          <PlaceButtonLink to="/state">State</PlaceButtonLink>
-          <PlaceButtonLink to="/national">National</PlaceButtonLink>
-        </StyledButtons>
+        <div css={topicButtonContainer}>
+          <Link to="/community" css={placeButtonLinkStyles}>
+            Community
+          </Link>
+          <Link to="/state" css={placeButtonLinkStyles}>
+            State
+          </Link>
+          <Link to="/national" css={placeButtonLinkStyles}>
+            National
+          </Link>
+        </div>
 
-        <Header>Explore Topics:</Header>
+        <h1 css={headerStyles}>Explore Topics:</h1>
 
-        <StyledButtons>
-          <TopicButtonLink to="/swimming">
+        <div css={topicButtonContainer}>
+          <Link to="/swimming" css={fourTopicButtonLinkStyles}>
             <SwimmingIcon />
             Swimming
-          </TopicButtonLink>
-          <TopicButtonLink to="/eating-fish">
+          </Link>
+          <Link to="/eating-fish" css={fourTopicButtonLinkStyles}>
             <EatingFishIcon />
             Eating Fish
-          </TopicButtonLink>
-          <TopicButtonLink to="/aquatic-life">
+          </Link>
+          <Link to="/aquatic-life" css={fourTopicButtonLinkStyles}>
             <AquaticLifeIcon />
             Aquatic Life
-          </TopicButtonLink>
-          <TopicButtonLink to="/drinking-water">
+          </Link>
+          <Link to="/drinking-water" css={fourTopicButtonLinkStyles}>
             <DrinkingWaterIcon />
             Drinking Water
-          </TopicButtonLink>
-        </StyledButtons>
+          </Link>
+        </div>
 
-        <Disclaimer>
+        <DisclaimerModal css={disclaimerStyles}>
           <p>
             <strong>Disclaimer:</strong> EPA has posted information through this
             application as a convenience to the application’s users. Although
@@ -142,8 +150,8 @@ function Home({ ...props }: Props) {
             attest to the accuracy of data provided by organizations outside of
             the federal government.
           </p>
-        </Disclaimer>
-      </Container>
+        </DisclaimerModal>
+      </div>
     </Page>
   );
 }

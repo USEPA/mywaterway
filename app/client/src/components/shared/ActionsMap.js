@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import Query from '@arcgis/core/rest/support/Query';
@@ -13,7 +13,7 @@ import Map from 'components/shared/Map';
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // styled components
-import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -33,8 +33,7 @@ import {
   esriMapLoadingFailure,
 } from 'config/errorMessages';
 
-// --- styled components ---
-const Container = styled.div`
+const containerStyles = css`
   display: flex;
   position: relative;
   border: 1px solid #aebac3;
@@ -322,30 +321,30 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
   }
 
   if (actionsMapLoadError) {
-    return <StyledErrorBox>{esriMapLoadingFailure}</StyledErrorBox>;
+    return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
   }
 
   if (fetchStatus === 'failure') {
     return (
-      <StyledErrorBox>
+      <div css={errorBoxStyles}>
         <p>{actionMapError}</p>
-      </StyledErrorBox>
+      </div>
     );
   }
 
   if (noMapData) {
     return (
-      <StyledInfoBox>
+      <div css={infoBoxStyles}>
         <p>{actionMapNoData}</p>
-      </StyledInfoBox>
+      </div>
     );
   }
 
   return (
-    <Container data-testid="hmw-actions-map">
+    <div css={containerStyles} data-testid="hmw-actions-map">
       <Map layers={layers} />
       {mapView && mapLoading && <MapLoadingSpinner />}
-    </Container>
+    </div>
   );
 }
 

@@ -1,7 +1,7 @@
 // @flow
 
 import React, { useEffect, useState } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import ReactTable from 'components/shared/ReactTable';
@@ -10,7 +10,7 @@ import { useDocumentOrderContext } from 'contexts/LookupFiles';
 // utilities
 import { getExtensionFromPath } from 'utils/utils';
 // styled components
-import { StyledErrorBox, StyledInfoBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // errors
 import {
   stateDocumentError,
@@ -40,8 +40,7 @@ function sortDocuments(documents, status) {
   });
 }
 
-// --- styled components ---
-const Container = styled.div`
+const containerStyles = css`
   p {
     padding-bottom: 1.25rem;
   }
@@ -60,11 +59,14 @@ const Container = styled.div`
   }
 `;
 
-const InfoBox = styled(StyledInfoBox)`
+const modifiedInfoBoxStyles = css`
+  ${infoBoxStyles}
   margin-bottom: 0.5em;
 `;
 
-const ErrorBox = styled(StyledErrorBox)`
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles}
+
   p {
     padding-bottom: 0;
   }
@@ -161,19 +163,19 @@ function Documents({
   if (activeState.code === '') return null;
 
   return (
-    <Container>
+    <div css={containerStyles}>
       <h3>Documents Related to Integrated Report</h3>
       <em>Select a document below to download a copy of the report.</em>
       {assessmentsLoading || documentOrder.status === 'fetching' ? (
         <LoadingSpinner />
       ) : documentServiceError ? (
-        <ErrorBox>
+        <div css={modifiedErrorBoxStyles}>
           <p>{stateDocumentError(activeState.name)}</p>
-        </ErrorBox>
+        </div>
       ) : (
         <>
           {documentOrder.status === 'failure' && (
-            <InfoBox>{stateDocumentSortingError}</InfoBox>
+            <div css={modifiedInfoBoxStyles}>{stateDocumentSortingError}</div>
           )}
           <DocumentsTable
             documents={assessmentDocumentsSorted}
@@ -187,13 +189,13 @@ function Documents({
       {surveyLoading || documentOrder.status === 'fetching' ? (
         <LoadingSpinner />
       ) : surveyServiceError ? (
-        <ErrorBox>
+        <div css={modifiedErrorBoxStyles}>
           <p>{stateSurveyError(activeState.name)}</p>
-        </ErrorBox>
+        </div>
       ) : (
         <>
           {documentOrder.status === 'failure' && (
-            <InfoBox>{stateDocumentSortingError}</InfoBox>
+            <div css={modifiedInfoBoxStyles}>{stateDocumentSortingError}</div>
           )}
           <DocumentsTable
             documents={surveyDocumentsSorted}
@@ -201,7 +203,7 @@ function Documents({
           />
         </>
       )}
-    </Container>
+    </div>
   );
 }
 

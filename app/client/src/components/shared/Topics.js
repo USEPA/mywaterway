@@ -1,9 +1,8 @@
 // @flow
 
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 
-// --- styled components ---
-const StyledText = styled.div`
+const searchTitleStyles = css`
   padding: 1rem;
   line-height: 1.375;
 
@@ -31,7 +30,7 @@ const StyledText = styled.div`
   }
 `;
 
-const StyledTopic = styled.div`
+const topicTitleStyles = css`
   padding: 1em;
   text-align: center;
   color: #fff;
@@ -51,4 +50,4 @@ const StyledTopic = styled.div`
   }
 `;
 
-export { StyledText, StyledTopic };
+export { searchTitleStyles, topicTitleStyles };

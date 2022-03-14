@@ -1,10 +1,9 @@
 // @flow
 
 import React, { isValidElement, useState } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 
-// --- styled components ---
-const LinkButton = styled.button`
+const linkButtonStyles = css`
   display: inline;
   margin-bottom: 0;
   margin-left: 0.25rem;
@@ -39,9 +38,12 @@ function ShowLessMore({ text, charLimit }: Props) {
     return (
       <>
         {truncated ? `${text.substring(0, charLimit)}...` : text}
-        <LinkButton onClick={(ev) => setTruncated(!truncated)}>
+        <button
+          css={linkButtonStyles}
+          onClick={(ev) => setTruncated(!truncated)}
+        >
           Show {truncated ? 'more' : 'less'}
-        </LinkButton>
+        </button>
       </>
     );
   }
@@ -50,9 +52,12 @@ function ShowLessMore({ text, charLimit }: Props) {
     return (
       <>
         {truncated ? '...' : text}
-        <LinkButton onClick={(ev) => setTruncated(!truncated)}>
+        <button
+          css={linkButtonStyles}
+          onClick={(ev) => setTruncated(!truncated)}
+        >
           Show {truncated ? 'more' : 'less'}
-        </LinkButton>
+        </button>
       </>
     );
   }

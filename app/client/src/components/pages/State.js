@@ -3,7 +3,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import type { Node } from 'react';
 import { navigate } from '@reach/router';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import Select from 'react-select';
 // components
 import type { RouteProps } from 'routes.js';
@@ -13,13 +13,13 @@ import ShowLessMore from 'components/shared/ShowLessMore';
 import DisclaimerModal from 'components/shared/DisclaimerModal';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 // styled components
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
-import { StyledIntroBox } from 'components/shared/IntroBox';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import { introBoxStyles } from 'components/shared/IntroBox';
 import {
-  StyledMetrics,
-  StyledMetric,
-  StyledNumber,
-  StyledLabel,
+  keyMetricsStyles,
+  keyMetricStyles,
+  keyMetricNumberStyles,
+  keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
 // contexts
 import { StateTabsContext, StateTabsProvider } from 'contexts/StateTabs';
@@ -36,8 +36,7 @@ import {
   usesStateSummaryServiceInvalidResponse,
 } from 'config/errorMessages';
 
-// --- styled components ---
-const Container = styled.div`
+const containerStyles = css`
   margin-top: 15px;
   margin-bottom: 15px;
 
@@ -51,17 +50,17 @@ const Container = styled.div`
   }
 `;
 
-const Prompt = styled.label`
+const promptStyles = css`
   margin: 0;
   padding-bottom: 0;
 `;
 
-const Form = styled.form`
+const formStyles = css`
   display: flex;
   margin-bottom: 1em;
 `;
 
-const SelectStyled = styled(Select)`
+const selectStyles = css`
   flex: 1;
   margin-top: 1em;
   margin-right: 0.5em;
@@ -69,7 +68,7 @@ const SelectStyled = styled(Select)`
   z-index: 2;
 `;
 
-const Button = styled.button`
+const buttonStyles = css`
   margin-top: 1em;
   margin-bottom: 0;
   font-size: 0.9375em;
@@ -84,7 +83,7 @@ const Button = styled.button`
   }
 `;
 
-const Content = styled.div`
+const contentStyles = css`
   h2 {
     margin-top: 0.75rem;
     font-size: 1.625em;
@@ -114,11 +113,13 @@ const Content = styled.div`
   }
 `;
 
-const ErrorBox = styled(StyledErrorBox)`
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles}
   margin-bottom: 1.5em;
 `;
 
-const IntroBox = styled(StyledIntroBox)`
+const modifiedIntroBoxStyles = css`
+  ${introBoxStyles}
   margin-top: 1.5rem;
   margin-bottom: 1rem;
   padding: 1.5rem;
@@ -129,11 +130,11 @@ const IntroBox = styled(StyledIntroBox)`
   }
 `;
 
-const Disclaimer = styled(DisclaimerModal)`
+const disclaimerStyles = css`
   margin-bottom: 1rem;
 `;
 
-const ByTheNumbersExplanation = styled.p`
+const byTheNumbersExplanationStyles = css`
   font-style: italic;
   padding: 0.5rem 0 0 0;
 `;
@@ -193,33 +194,35 @@ function State({ children, ...props }: Props) {
     <Page>
       <TabLinks />
 
-      <Container className="container" data-content="state">
+      <div css={containerStyles} className="container" data-content="state">
         {states.status === 'fetching' && <LoadingSpinner />}
 
         {states.status === 'failure' && (
-          <ErrorBox>
+          <div css={modifiedErrorBoxStyles}>
             <p>{stateListError}</p>
-          </ErrorBox>
+          </div>
         )}
 
         {states.status === 'success' && (
           <>
-            <Prompt htmlFor="hmw-state-select-input">
+            <label css={promptStyles} htmlFor="hmw-state-select-input">
               <strong>Let’s get started!</strong>&nbsp;&nbsp;
               <em>
                 Select your state or territory from the drop down to begin
                 exploring water quality.
               </em>
-            </Prompt>
+            </label>
 
-            <Form
+            <form
+              css={formStyles}
               onSubmit={(ev) => {
                 ev.preventDefault();
                 setActiveState(selectedState);
                 navigate(`/state/${selectedState.code}/water-quality-overview`);
               }}
             >
-              <SelectStyled
+              <Select
+                css={selectStyles}
                 id="hmw-state-select"
                 inputId="hmw-state-select-input"
                 classNamePrefix="Select"
@@ -244,34 +247,34 @@ function State({ children, ...props }: Props) {
                 styles={reactSelectStyles}
               />
 
-              <Button type="submit" className="btn">
+              <button type="submit" className="btn" css={buttonStyles}>
                 <i className="fas fa-angle-double-right" aria-hidden="true" />{' '}
                 Go
-              </Button>
-            </Form>
+              </button>
+            </form>
           </>
         )}
 
         {usesStateSummaryServiceError ? (
-          <ErrorBox>
+          <div css={modifiedErrorBoxStyles}>
             {usesStateSummaryServiceInvalidResponse(activeState.name)}
-          </ErrorBox>
+          </div>
         ) : (
-          <Content>
+          <div css={contentStyles}>
             {activeState.code !== '' && (
               <>
                 {introText.status === 'fetching' && <LoadingSpinner />}
                 {introText.status === 'failure' && (
-                  <ErrorBox>
+                  <div css={modifiedErrorBoxStyles}>
                     <p>{stateGeneralError}</p>
-                  </ErrorBox>
+                  </div>
                 )}
                 {introText.status === 'success' && (
                   <>
                     {!stateIntro ? (
-                      <ErrorBox>
+                      <div css={modifiedErrorBoxStyles}>
                         <p>{stateNoDataError(activeState.name)}</p>
-                      </ErrorBox>
+                      </div>
                     ) : (
                       <>
                         {stateIntro.organizationMetrics.length > 0 && (
@@ -284,7 +287,7 @@ function State({ children, ...props }: Props) {
                               <strong>{activeState.name}</strong> by the Numbers
                             </h2>
 
-                            <StyledMetrics>
+                            <div css={keyMetricsStyles}>
                               {stateIntro.organizationMetrics.map(
                                 (metric, index) => {
                                   if (
@@ -308,37 +311,39 @@ function State({ children, ...props }: Props) {
                                   }
 
                                   return (
-                                    <StyledMetric key={index}>
-                                      <StyledNumber>{value}</StyledNumber>
-                                      <StyledLabel>
+                                    <div css={keyMetricStyles} key={index}>
+                                      <span css={keyMetricNumberStyles}>
+                                        {value}
+                                      </span>
+                                      <p css={keyMetricLabelStyles}>
                                         {metric.label}
                                         <br />
                                         <em>{metric.unit}</em>
-                                      </StyledLabel>
-                                    </StyledMetric>
+                                      </p>
+                                    </div>
                                   );
                                 },
                               )}
-                            </StyledMetrics>
-                            <ByTheNumbersExplanation>
+                            </div>
+                            <p css={byTheNumbersExplanationStyles}>
                               Waters not assessed do not show up in summaries
                               below.
-                            </ByTheNumbersExplanation>
+                            </p>
                           </>
                         )}
 
                         {stateIntro.description && (
-                          <IntroBox>
+                          <div css={modifiedIntroBoxStyles}>
                             <p>
                               <ShowLessMore
                                 text={stateIntro.description}
                                 charLimit={450}
                               />
                             </p>
-                          </IntroBox>
+                          </div>
                         )}
 
-                        <Disclaimer>
+                        <DisclaimerModal css={disclaimerStyles}>
                           <p>
                             The condition of a waterbody is dynamic and can
                             change at any time, and the information in How’s My
@@ -357,7 +362,7 @@ function State({ children, ...props }: Props) {
                             provided by organizations outside of the federal
                             government.
                           </p>
-                        </Disclaimer>
+                        </DisclaimerModal>
                       </>
                     )}
                   </>
@@ -367,9 +372,9 @@ function State({ children, ...props }: Props) {
 
             {/* children is either StateIntro or StateTabs */}
             {children}
-          </Content>
+          </div>
         )}
-      </Container>
+      </div>
     </Page>
   );
 }

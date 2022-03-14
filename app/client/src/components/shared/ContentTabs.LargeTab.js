@@ -1,12 +1,11 @@
 // @flow
 
-import styled from 'styled-components';
-import { Tab } from '@reach/tabs';
+import { css } from 'styled-components/macro';
 
-const LargeTab = styled(Tab)`
+const largeTabStyles = css`
   padding-bottom: 15px !important;
   padding-top: 15px !important;
   font-size: 1rem !important;
 `;
 
-export { LargeTab };
+export { largeTabStyles };

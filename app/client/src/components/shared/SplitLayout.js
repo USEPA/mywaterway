@@ -1,6 +1,6 @@
 // @flow
 
-import { css } from 'styled-components';
+import { css } from 'styled-components/macro';
 
 const splitLayoutContainerStyles = css`
   /* match homepage max-width */

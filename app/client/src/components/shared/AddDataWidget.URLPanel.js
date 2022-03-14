@@ -7,7 +7,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import Select from 'react-select';
 import CSVLayer from '@arcgis/core/layers/CSVLayer';
 import GeoRSSLayer from '@arcgis/core/layers/GeoRSSLayer';
@@ -15,9 +15,9 @@ import KMLLayer from '@arcgis/core/layers/KMLLayer';
 import Layer from '@arcgis/core/layers/Layer';
 import WMSLayer from '@arcgis/core/layers/WMSLayer';
 // components
-import { LinkButton } from 'components/shared/LinkButton';
+import { linkButtonStyles } from 'components/shared/LinkButton';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
-import { StyledErrorBox, StyledNoteBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles, noteBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { AddDataWidgetContext } from 'contexts/AddDataWidget';
@@ -29,35 +29,36 @@ import {
   urlLayerSuccessMessage,
 } from 'config/errorMessages';
 
-// --- styles (URLPanel) ---
 const MessageBoxStyles = `
   margin-bottom: 10px;
   overflow-wrap: anywhere;
 `;
 
-const ErrorBox = styled(StyledErrorBox)`
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles}
   ${MessageBoxStyles}
 `;
 
-const NoteBox = styled(StyledNoteBox)`
+const modifiedNoteBoxStyles = css`
+  ${noteBoxStyles}
   ${MessageBoxStyles}
 `;
 
-const ButtonContainer = styled.div`
+const buttonContainerStyles = css`
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
 `;
 
-const AddButton = styled.button`
+const addButtonStyles = css`
   margin: 0;
   min-width: 50%;
   font-weight: normal;
   font-size: 12px;
 `;
 
-const UrlInput = styled.input`
+const urlInputStyles = css`
   width: 100%;
   height: 36px;
   padding: 2px 8px;
@@ -67,7 +68,8 @@ const UrlInput = styled.input`
   border-color: hsl(0, 0%, 80%);
 `;
 
-const StyledLinkButton = styled(LinkButton)`
+const modifiedLinkButtonStyles = css`
+  ${linkButtonStyles}
   text-transform: uppercase;
   text-decoration: none;
   font-weight: normal;
@@ -191,7 +193,8 @@ function URLPanel() {
       />
       <br />
       <label htmlFor="url-upload-input">URL</label>
-      <UrlInput
+      <input
+        css={urlInputStyles}
         id="url-upload-input"
         value={url}
         onChange={(ev) => {
@@ -202,27 +205,32 @@ function URLPanel() {
       <br />
       <br />
       {status === 'fetching' && <LoadingSpinner />}
-      {status === 'success' && <NoteBox>{urlLayerSuccessMessage}</NoteBox>}
+      {status === 'success' && (
+        <div css={modifiedNoteBoxStyles}>{urlLayerSuccessMessage}</div>
+      )}
       {status === 'failure' && (
-        <ErrorBox>{urlLayerFailureMessage(url)}</ErrorBox>
+        <div css={modifiedErrorBoxStyles}>{urlLayerFailureMessage(url)}</div>
       )}
       {status === 'unsupported' && (
-        <ErrorBox>{unsupportedLayerMessage(urlType.label)}</ErrorBox>
+        <div css={modifiedErrorBoxStyles}>
+          {unsupportedLayerMessage(urlType.label)}
+        </div>
       )}
       {status === 'already-added' && (
-        <NoteBox>{urlAlreadyAddedMessage(url)}</NoteBox>
+        <div css={modifiedNoteBoxStyles}>{urlAlreadyAddedMessage(url)}</div>
       )}
-      <ButtonContainer>
-        <StyledLinkButton
+      <div css={buttonContainerStyles}>
+        <button
+          css={modifiedLinkButtonStyles}
           type="button"
           onClick={() => setShowSampleUrls(!showSampleUrls)}
         >
           SAMPLE URL(S)
-        </StyledLinkButton>
-        <AddButton type="submit" onClick={handleAdd}>
+        </button>
+        <button css={addButtonStyles} type="submit" onClick={handleAdd}>
           ADD
-        </AddButton>
-      </ButtonContainer>
+        </button>
+      </div>
 
       {showSampleUrls && (
         <Fragment>

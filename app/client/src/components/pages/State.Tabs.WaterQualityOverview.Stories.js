@@ -1,21 +1,20 @@
 // @flow
 
 import React, { useState } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import ShowLessMore from 'components/shared/ShowLessMore';
 // utilities
 import { getExtensionFromPath } from 'utils/utils';
 // styled components
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // styles
 import { colors } from 'styles/index.js';
 // errors
 import { stateStoriesError } from 'config/errorMessages';
 
-// --- styled components ---
-const Story = styled.div`
+const storyStyles = css`
   margin-bottom: 1.5rem;
   padding-left: 0.75rem;
   border-left: 3px solid #d8d3d3;
@@ -31,12 +30,12 @@ const Story = styled.div`
   }
 `;
 
-const Buttons = styled.div`
+const buttonContainerStyles = css`
   text-align: center;
   font-size: 0.875rem;
 `;
 
-const Button = styled.button`
+const buttonStyles = css`
   margin: 0.25rem;
   color: ${colors.white()};
   background-color: ${colors.blue()};
@@ -60,9 +59,9 @@ function Stories({ stories }: Props) {
     <>
       {stories.status === 'fetching' && <LoadingSpinner />}
       {stories.status === 'failure' && (
-        <StyledErrorBox>
+        <div css={errorBoxStyles}>
           <p>{stateStoriesError}</p>
-        </StyledErrorBox>
+        </div>
       )}
       {stories.status === 'success' && (
         <>
@@ -72,7 +71,7 @@ function Stories({ stories }: Props) {
           {stories.data.length > 0 && (
             <>
               {stories.data.slice(0, storiesToLoad).map((story, index) => (
-                <Story key={index}>
+                <div css={storyStyles} key={index}>
                   <a
                     href={story.web_link}
                     target="_blank"
@@ -86,31 +85,33 @@ function Stories({ stories }: Props) {
                       charLimit={150}
                     />
                   </p>
-                </Story>
+                </div>
               ))}
-              <Buttons>
+              <div css={buttonContainerStyles}>
                 {(storiesToLoad >= stories.data.length || storiesToLoad > 3) &&
                   stories.data.length > 3 && (
-                    <Button
+                    <button
+                      css={buttonStyles}
                       type="button"
                       className="btn btn-primary"
                       onClick={(ev) => setStoriesToLoad(3)}
                     >
                       View Less Stories
-                    </Button>
+                    </button>
                   )}
 
                 {stories.data.length > 3 &&
                   storiesToLoad < stories.data.length && (
-                    <Button
+                    <button
+                      css={buttonStyles}
                       type="button"
                       className="btn"
                       onClick={(ev) => setStoriesToLoad(storiesToLoad + 3)}
                     >
                       View More Stories
-                    </Button>
+                    </button>
                   )}
-              </Buttons>
+              </div>
             </>
           )}
         </>

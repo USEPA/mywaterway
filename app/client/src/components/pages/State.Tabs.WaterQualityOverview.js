@@ -1,11 +1,11 @@
 // @flow
 
 import React, { useCallback, useContext, useEffect, useState } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import Select from 'react-select';
-import { Tabs, TabList, Tab, TabPanels } from '@reach/tabs';
+import { Tabs, TabList, Tab, TabPanel, TabPanels } from '@reach/tabs';
 // components
-import { ContentTabs, StyledTabPanel } from 'components/shared/ContentTabs';
+import { tabsStyles, tabPanelStyles } from 'components/shared/ContentTabs';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import {
@@ -21,7 +21,7 @@ import SiteSpecific from 'components/pages/State.Tabs.WaterQualityOverview.SiteS
 import Documents from 'components/pages/State.Tabs.WaterQualityOverview.Documents';
 import Stories from 'components/pages/State.Tabs.WaterQualityOverview.Stories';
 // styled components
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // styles
 import { colors, reactSelectStyles } from 'styles/index.js';
 // contexts
@@ -74,8 +74,7 @@ function hasUseValues(use) {
   );
 }
 
-// --- styled components ---
-const Container = styled.div`
+const containerStyles = css`
   .hmw-accordions {
     margin: 1.5em 0;
   }
@@ -91,21 +90,23 @@ const Container = styled.div`
   }
 `;
 
-const NewTabDisclaimer = styled.em`
+const newTabDisclaimerStyles = css`
   display: block;
   margin-bottom: 1.25rem;
 `;
 
-const TopicTabs = styled(ContentTabs)`
+const topicTabsStyles = css`
+  ${tabsStyles}
+
   [data-reach-tab] {
-    padding: 0.625em 0.625em 0.875em;
-    font-size: 0.875em;
-    background-color: #0674ba;
+    padding: 0.625em 0.625em 0.875em !important;
+    font-size: 0.875em !important;
+    background-color: #0674ba !important;
 
     &[data-selected],
     &:hover,
     &:focus {
-      background-color: #165277;
+      background-color: #165277 !important;
     }
   }
 
@@ -114,14 +115,14 @@ const TopicTabs = styled(ContentTabs)`
   }
 `;
 
-const TabContainer = styled(TabList)`
+const tabContainerStyles = css`
   background-color: #0774ba;
   @media (max-width: 450px) {
     flex-wrap: wrap;
   }
 `;
 
-const TopicTab = styled(Tab)`
+const topicTabStyles = css`
   @media (max-width: 450px) {
     border-top: 1px solid black;
     &:first-child {
@@ -130,14 +131,14 @@ const TopicTab = styled(Tab)`
   }
 `;
 
-const TopicIcon = styled.div`
+const topicIconStyles = css`
   display: flex;
   margin: 0 auto;
   width: 2.5em;
   height: 2.5em;
 `;
 
-const Heading = styled.h2`
+const headingStyles = css`
   margin-top: 0 !important;
 
   i {
@@ -146,11 +147,12 @@ const Heading = styled.h2`
   }
 `;
 
-const Section = styled.div`
+const sectionStyles = css`
   margin-bottom: 1.5em;
 `;
 
-const FiltersSection = styled(Section)`
+const filtersSectionStyles = css`
+  ${sectionStyles}
   margin-top: -1.5em;
   margin-left: -1.5em;
   padding: 1.5em;
@@ -159,7 +161,8 @@ const FiltersSection = styled(Section)`
   background-color: whitesmoke;
 `;
 
-const DrinkingWaterSection = styled(Section)`
+const drinkingWaterSectionStyles = css`
+  ${sectionStyles}
   display: ${({ displayed }) => (displayed ? 'block' : 'none')};
   /* add top border to replicate bottom accordion border that was
   removed from 'Top Polltants' accordion in SiteSpecific component */
@@ -169,17 +172,17 @@ const DrinkingWaterSection = styled(Section)`
   width: calc(100% + 3em);
 `;
 
-const DrinkingWaterText = styled.p`
+const drinkingWaterTextStyles = css`
   padding-bottom: 0;
 `;
 
-const Inputs = styled.div`
+const inputsStyles = css`
   display: flex;
   flex-flow: row wrap;
   justify-content: space-between;
 `;
 
-const Input = styled.div`
+const inputStyles = css`
   margin-bottom: 0.75em;
   width: 100%;
 
@@ -195,25 +198,25 @@ const Input = styled.div`
   }
 `;
 
-const Accordions = styled(AccordionList)`
+const accordionsStyles = css`
   border-bottom: none;
 
   margin: 1.5em 0 -1.5em -1.5em !important;
   width: calc(100% + 3em) !important;
 `;
 
-const AccordionContent = styled.div`
+const accordionContentStyles = css`
   padding: 0.25em 1.5em 1.5em;
 `;
 
-const AccordionIcon = styled.i`
+const accordionIconStyles = css`
   width: 1.125em;
   font-size: 1.625em;
   color: #2c72b5;
   text-align: center;
 `;
 
-const SelectStyled = styled(Select)`
+const selectStyles = css`
   .Select__control--is-disabled {
     background-color: #e9ecef;
     border-color: #ced4da;
@@ -224,7 +227,7 @@ const SelectStyled = styled(Select)`
   }
 `;
 
-const ImageIcon = styled.img`
+const imageIconStyles = css`
   position: relative;
   bottom: 0.125em;
   left: -0.3125em;
@@ -233,11 +236,11 @@ const ImageIcon = styled.img`
   max-height: 1.75em;
 `;
 
-const LinkList = styled.ul`
+const linkListStyles = css`
   padding-bottom: 0;
 `;
 
-const NoDataMessage = styled.p`
+const noDataMessageStyles = css`
   padding-bottom: 0;
 `;
 
@@ -927,17 +930,17 @@ function WaterQualityOverview({ ...props }: Props) {
     stateNationalUses.status === 'failure'
   ) {
     return (
-      <StyledErrorBox>
+      <div css={errorBoxStyles}>
         <p>{stateGeneralError}</p>
-      </StyledErrorBox>
+      </div>
     );
   }
 
   if (noDataError) {
     return (
-      <StyledErrorBox>
+      <div css={errorBoxStyles}>
         <p>{stateNoDataError(activeState.name)}</p>
-      </StyledErrorBox>
+      </div>
     );
   }
 
@@ -950,15 +953,15 @@ function WaterQualityOverview({ ...props }: Props) {
   }
 
   return (
-    <Container>
-      <Heading>
+    <div css={containerStyles}>
+      <h2 css={headingStyles}>
         <i className="fas fa-tint" aria-hidden="true" />
         <strong>{activeState.name}</strong> Water Quality
-      </Heading>
+      </h2>
 
       <h3>Choose a Topic:</h3>
 
-      <TopicTabs>
+      <div css={topicTabsStyles}>
         <Tabs
           index={activeTabIndex}
           onChange={(index) => {
@@ -966,30 +969,36 @@ function WaterQualityOverview({ ...props }: Props) {
             setCurrentTopic(tabs[index].id);
           }}
         >
-          <TabContainer>
+          <TabList css={tabContainerStyles}>
             {tabs.map((tab) => (
-              <TopicTab key={tab.id} data-testid={`hmw-${tab.id}-tab-button`}>
-                <TopicIcon>{tab.icon}</TopicIcon>
+              <Tab
+                css={topicTabStyles}
+                key={tab.id}
+                data-testid={`hmw-${tab.id}-tab-button`}
+              >
+                <div css={topicIconStyles}>{tab.icon}</div>
                 {tab.title}
-              </TopicTab>
+              </Tab>
             ))}
-          </TabContainer>
+          </TabList>
 
           <TabPanels>
             {tabs.map((tab) => (
-              <StyledTabPanel
+              <TabPanel
+                css={tabPanelStyles}
                 key={tab.id}
                 data-testid={`hmw-${tab.id}-tab-panel`}
               >
-                <FiltersSection>
+                <div css={filtersSectionStyles}>
                   <h4>Pick your Water Type and Use:</h4>
 
-                  <Inputs>
-                    <Input>
+                  <div css={inputsStyles}>
+                    <div css={inputStyles}>
                       <label htmlFor={`water-type-input-${tab.id}`}>
                         Water Type:
                       </label>
-                      <SelectStyled
+                      <Select
+                        css={selectStyles}
                         id={`water-type-${tab.id}`}
                         inputId={`water-type-input-${tab.id}`}
                         classNamePrefix="Select"
@@ -1011,11 +1020,12 @@ function WaterQualityOverview({ ...props }: Props) {
                         }
                         styles={reactSelectStyles}
                       />
-                    </Input>
+                    </div>
 
-                    <Input>
+                    <div css={inputStyles}>
                       <label htmlFor={`water-use-input-${tab.id}`}>Use:</label>
-                      <SelectStyled
+                      <Select
+                        css={selectStyles}
                         id={`water-use-${tab.id}`}
                         inputId={`water-use-input-${tab.id}`}
                         classNamePrefix="Select"
@@ -1039,15 +1049,15 @@ function WaterQualityOverview({ ...props }: Props) {
                         }
                         styles={reactSelectStyles}
                       />
-                    </Input>
-                  </Inputs>
-                </FiltersSection>
+                    </div>
+                  </div>
+                </div>
 
-                <Section>
+                <div css={sectionStyles}>
                   {surveyServiceError || !stateAndOrganization ? (
-                    <StyledErrorBox>
+                    <div css={errorBoxStyles}>
                       <p>{stateSurveySectionError}</p>
-                    </StyledErrorBox>
+                    </div>
                   ) : (
                     <SurveyResults
                       loading={surveyLoading}
@@ -1060,7 +1070,7 @@ function WaterQualityOverview({ ...props }: Props) {
                       waterType={waterType}
                     />
                   )}
-                </Section>
+                </div>
 
                 <SiteSpecific
                   completeUseList={completeUseList}
@@ -1072,9 +1082,16 @@ function WaterQualityOverview({ ...props }: Props) {
                   fishingAdvisoryData={fishingAdvisoryData}
                 />
 
-                <DrinkingWaterSection displayed={currentTopic === 'drinking'}>
+                <div
+                  css={drinkingWaterSectionStyles}
+                  displayed={currentTopic === 'drinking'}
+                >
                   <h3>
-                    <ImageIcon src={drinkingWaterIcon} alt="Drinking Water" />
+                    <img
+                      css={imageIconStyles}
+                      src={drinkingWaterIcon}
+                      alt="Drinking Water"
+                    />
                     Drinking Water Information for{' '}
                     <strong>{activeState.name}</strong>
                   </h3>
@@ -1085,7 +1102,7 @@ function WaterQualityOverview({ ...props }: Props) {
                     <WaterSystemSummary state={activeState} />
                   )}
 
-                  <DrinkingWaterText>
+                  <p css={drinkingWaterTextStyles}>
                     <a
                       href={
                         `https://ofmpub.epa.gov/apex/sfdw/f?p=108:103:::` +
@@ -1097,30 +1114,34 @@ function WaterQualityOverview({ ...props }: Props) {
                       View detailed drinking water data for {activeState.name}.
                     </a>{' '}
                     <small>(opens new browser tab)</small>
-                  </DrinkingWaterText>
-                </DrinkingWaterSection>
-              </StyledTabPanel>
+                  </p>
+                </div>
+              </TabPanel>
             ))}
           </TabPanels>
         </Tabs>
-      </TopicTabs>
+      </div>
 
-      <Accordions>
+      <AccordionList css={accordionsStyles}>
         <AccordionItem
           highlightContent={false}
           icon={
-            <AccordionIcon className="fas fa-file-alt" aria-hidden="true" />
+            <i
+              css={accordionIconStyles}
+              className="fas fa-file-alt"
+              aria-hidden="true"
+            />
           }
           title={
-            <Heading>
+            <h2 css={headingStyles}>
               <strong>{activeState.name}</strong> Documents
-            </Heading>
+            </h2>
           }
         >
-          <AccordionContent>
-            <NewTabDisclaimer>
+          <div css={accordionContentStyles}>
+            <em css={newTabDisclaimerStyles}>
               Documents below open in a new browser tab.
-            </NewTabDisclaimer>
+            </em>
             <Documents
               activeState={activeState}
               surveyLoading={surveyLoading}
@@ -1130,56 +1151,64 @@ function WaterQualityOverview({ ...props }: Props) {
               documentServiceError={documentServiceError}
               surveyServiceError={surveyServiceError}
             />
-          </AccordionContent>
+          </div>
         </AccordionItem>
         <AccordionItem
           highlightContent={false}
           icon={
-            <AccordionIcon className="fas fa-newspaper" aria-hidden="true" />
+            <i
+              css={accordionIconStyles}
+              className="fas fa-newspaper"
+              aria-hidden="true"
+            />
           }
           title={
-            <Heading>
+            <h2 css={headingStyles}>
               <strong>{activeState.name}</strong> Water Stories
-            </Heading>
+            </h2>
           }
         >
-          <AccordionContent>
-            <NewTabDisclaimer>
+          <div css={accordionContentStyles}>
+            <em css={newTabDisclaimerStyles}>
               Stories below open in a new browser tab.
-            </NewTabDisclaimer>
+            </em>
             <Stories stories={stories} />
-          </AccordionContent>
+          </div>
         </AccordionItem>
         <AccordionItem
           highlightContent={false}
           icon={
-            <AccordionIcon className="fas fa-info-circle" aria-hidden="true" />
+            <i
+              css={accordionIconStyles}
+              className="fas fa-info-circle"
+              aria-hidden="true"
+            />
           }
           title={
-            <Heading>
+            <h2 css={headingStyles}>
               More Information for <strong>{activeState.name}</strong>
-            </Heading>
+            </h2>
           }
         >
-          <AccordionContent>
+          <div css={accordionContentStyles}>
             {introText.status === 'fetching' && <LoadingSpinner />}
             {introText.status === 'failure' && (
-              <StyledErrorBox>
+              <div css={errorBoxStyles}>
                 <p>{stateMetricsError}</p>
-              </StyledErrorBox>
+              </div>
             )}
             {introText.status === 'success' && (
               <>
                 {introText.data.organizationURLs.length === 0 ? (
-                  <NoDataMessage>
+                  <p css={noDataMessageStyles}>
                     No additional information available for this state.
-                  </NoDataMessage>
+                  </p>
                 ) : (
                   <>
-                    <NewTabDisclaimer>
+                    <em css={newTabDisclaimerStyles}>
                       Links below open in a new browser tab.
-                    </NewTabDisclaimer>
-                    <LinkList>
+                    </em>
+                    <ul css={linkListStyles}>
                       {introText.data.organizationURLs.map((item, index) => {
                         return (
                           <li key={index}>
@@ -1201,15 +1230,15 @@ function WaterQualityOverview({ ...props }: Props) {
                           </li>
                         );
                       })}
-                    </LinkList>
+                    </ul>
                   </>
                 )}
               </>
             )}
-          </AccordionContent>
+          </div>
         </AccordionItem>
-      </Accordions>
-    </Container>
+      </AccordionList>
+    </div>
   );
 }
 

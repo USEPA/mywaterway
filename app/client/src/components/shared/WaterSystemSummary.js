@@ -1,7 +1,7 @@
 // @flow
 
 import React, { useEffect, useState } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import highchartsAccessibility from 'highcharts/modules/accessibility';
@@ -9,7 +9,7 @@ import WindowSize from '@reach/window-size';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
@@ -25,8 +25,7 @@ function formatValue(value: ?string) {
   return value ? formatNumber(value) : '';
 }
 
-// --- styled components ---
-const SubHeader = styled.h4`
+const subHeaderStyles = css`
   margin: 0;
   padding: 0;
   font-family: inherit;
@@ -34,19 +33,19 @@ const SubHeader = styled.h4`
   font-weight: bold;
 `;
 
-const Section = styled.div`
+const sectionStyles = css`
   padding-bottom: 1.5em;
   line-height: 1.375;
 `;
 
-const LoadingContainer = styled.div`
+const loadingContainerStyles = css`
   display: flex;
   align-items: center;
   justify-content: center;
   height: 10em;
 `;
 
-const Container = styled.div`
+const containerStyles = css`
   margin-top: 1em;
 
   @media (max-width: 400px) {
@@ -55,7 +54,7 @@ const Container = styled.div`
   }
 `;
 
-const Table = styled.table`
+const tableStyles = css`
   table-layout: fixed;
   line-height: 1.375;
 
@@ -71,13 +70,13 @@ const Table = styled.table`
   }
 `;
 
-const Rows = styled.ul`
+const rowsStyles = css`
   padding-left: 0;
   border-bottom: 1px solid #dee2e6;
   list-style: none;
 `;
 
-const Row = styled.li`
+const rowStyles = css`
   display: flex;
   justify-content: space-between;
   padding: 0.375rem;
@@ -85,15 +84,16 @@ const Row = styled.li`
   font-size: 0.8125rem;
 `;
 
-const Label = styled.span`
+const labelStyles = css`
   font-weight: bold;
 `;
 
-const Value = styled.span`
+const valueStyles = css`
   margin-left: 0.5rem;
 `;
 
-const ErrorBox = styled(StyledErrorBox)`
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles}
   margin: 1rem;
 `;
 
@@ -208,38 +208,41 @@ function WaterSystemSummary({ state }: Props) {
 
   return (
     <>
-      <Section>
-        <SubHeader>Community Water System (CWS):</SubHeader>A public water
-        system that supplies water to the same population year-round (e.g.,
-        residences).
-      </Section>
-      <Section>
-        <SubHeader>
+      <div css={sectionStyles}>
+        <h4 css={subHeaderStyles}>Community Water System (CWS):</h4>A public
+        water system that supplies water to the same population year-round
+        (e.g., residences).
+      </div>
+      <div css={sectionStyles}>
+        <h4 css={subHeaderStyles}>
           Non-Transient Non-Community Water System (NTNCWS):
-        </SubHeader>
+        </h4>
         A public water system that regularly supplies water to at least 25 of
         the same people at least six months per year. Some examples are schools,
         factories, office buildings, and hospitals which have their own water
         systems.
-      </Section>
-      <Section>
-        <SubHeader>Transient Non-Community Water System (TNCWS):</SubHeader>A
-        public water system that provides water in a place such as a gas station
-        or campground where people do not remain for long periods of time.
-      </Section>
+      </div>
+      <div css={sectionStyles}>
+        <h4 css={subHeaderStyles}>
+          Transient Non-Community Water System (TNCWS):
+        </h4>
+        A public water system that provides water in a place such as a gas
+        station or campground where people do not remain for long periods of
+        time.
+      </div>
 
       {systemTypeRes.status === 'fetching' && (
-        <LoadingContainer className="container">
+        <div css={loadingContainerStyles} className="container">
           <LoadingSpinner />
-        </LoadingContainer>
+        </div>
       )}
       {systemTypeRes.status === 'failure' && (
-        <ErrorBox>
+        <div css={modifiedErrorBoxStyles}>
           <p>{grpaError}</p>
-        </ErrorBox>
+        </div>
       )}
       {systemTypeRes.status === 'success' && (
-        <Container>
+        <div css={containerStyles}>
           <HighchartsReact
             highcharts={Highcharts}
             options={{
@@ -298,7 +301,7 @@ function WaterSystemSummary({ state }: Props) {
               },
             }}
           />
-        </Container>
+        </div>
       )}
 
       <p>
@@ -319,12 +322,12 @@ function WaterSystemSummary({ state }: Props) {
         Agencies and these summary metrics are then posted by EPA.
       </p>
 
-      <Container>
+      <div css={containerStyles}>
         {gpraData.status === 'fetching' && <LoadingSpinner />}
         {gpraData.status === 'failure' && (
-          <ErrorBox>
+          <div css={modifiedErrorBoxStyles}>
             <p>{grpaError}</p>
-          </ErrorBox>
+          </div>
         )}
         {gpraData.status === 'success' && (
           <WindowSize>
@@ -354,19 +357,19 @@ function WaterSystemSummary({ state }: Props) {
               if (width < 986) {
                 // narrow screens
                 return (
-                  <Rows>
+                  <ul css={rowsStyles}>
                     {labels.map((label, index) => (
-                      <Row key={index}>
-                        <Label>{label}</Label>
-                        <Value>{values[index]}</Value>
-                      </Row>
+                      <li css={rowStyles} key={index}>
+                        <span css={labelStyles}>{label}</span>
+                        <span css={valueStyles}>{values[index]}</span>
+                      </li>
                     ))}
-                  </Rows>
+                  </ul>
                 );
               } else {
                 // wide screens
                 return (
-                  <Table className="table">
+                  <table css={tableStyles} className="table">
                     <thead>
                       <tr>
                         {labels.map((item, index) => (
@@ -381,13 +384,13 @@ function WaterSystemSummary({ state }: Props) {
                         ))}
                       </tr>
                     </tbody>
-                  </Table>
+                  </table>
                 );
               }
             }}
           </WindowSize>
         )}
-      </Container>
+      </div>
     </>
   );
 }

@@ -1,37 +1,6 @@
 // @flow
 
-import styled, { css } from 'styled-components';
-
-const StyledMetrics = styled.div`
-  display: flex;
-  margin-bottom: 1em;
-`;
-
-const StyledMetric = styled.div`
-  flex: 1;
-  padding: 0 0.25em;
-  text-align: center;
-`;
-
-const StyledNumber = styled.span`
-  display: block;
-  padding-bottom: 0.25rem;
-  font-size: 1.375em;
-  font-weight: bold;
-
-  @media (min-width: 560px) {
-    font-size: 1.875em;
-  }
-`;
-
-const StyledLabel = styled.p`
-  padding-bottom: 0;
-  font-size: 0.8125em;
-
-  @media (min-width: 560px) {
-    font-size: 0.9375em;
-  }
-`;
+import { css } from 'styled-components/macro';
 
 const keyMetricsStyles = css`
   display: flex;
@@ -65,10 +34,6 @@ const keyMetricLabelStyles = css`
 `;
 
 export {
-  StyledMetrics, // TODO: remove
-  StyledMetric, // TODO: remove
-  StyledNumber, // TODO: remove
-  StyledLabel, // TODO: remove
   keyMetricsStyles,
   keyMetricStyles,
   keyMetricNumberStyles,

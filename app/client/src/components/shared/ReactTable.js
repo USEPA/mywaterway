@@ -1,7 +1,7 @@
 // @flow
 
 import React, { useCallback, useMemo, useState } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import {
   useTable,
   useSortBy,
@@ -11,7 +11,7 @@ import {
   useFilters,
 } from 'react-table';
 
-const Input = styled.input`
+const inputStyles = css`
   width: 100%;
   border: 1px solid rgba(0, 0, 0, 0.1);
   background: #fff;
@@ -26,7 +26,8 @@ function generateFilterInput({
   column: { filterValue, preFilteredRows, setFilter },
 }) {
   return (
-    <Input
+    <input
+      css={inputStyles}
       type="text"
       placeholder="Filter column..."
       value={filterValue ? filterValue : ''}
@@ -39,8 +40,7 @@ function generateFilterInput({
   );
 }
 
-// --- styles ---
-const Styles = styled.div`
+const containerStyles = css`
   /*These styles are suggested for the table fill all available space in its containing element*/
   display: block;
   /* These styles are required for a horizontaly scrollable table overflow */
@@ -171,7 +171,7 @@ function ReactTable({ data, getColumns, striped = false }: Props) {
   }, []);
 
   return (
-    <Styles ref={measuredTableRef} className="ReactTable">
+    <div css={containerStyles} ref={measuredTableRef} className="ReactTable">
       <div className="rt-table" role="grid" {...getTableProps()}>
         <div className="rt-thead">
           {headerGroups.map((headerGroup) => (
@@ -247,7 +247,7 @@ function ReactTable({ data, getColumns, striped = false }: Props) {
           })}
         </div>
       </div>
-    </Styles>
+    </div>
   );
 }
 

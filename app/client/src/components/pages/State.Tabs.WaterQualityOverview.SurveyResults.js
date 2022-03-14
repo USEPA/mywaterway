@@ -1,7 +1,7 @@
 // @flow
 
 import React, { useEffect, useState } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import WindowSize from '@reach/window-size';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
@@ -11,7 +11,7 @@ import Select from 'react-select';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 // styled components
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import {
   useSurveyMappingContext,
@@ -32,19 +32,18 @@ import { stateSurveySectionError } from 'config/errorMessages';
 // add accessibility features to highcharts
 highchartsAccessibility(Highcharts);
 
-// --- styled components ---
-const ChartFooter = styled.p`
+const chartFooterStyles = css`
   font-size: 0.75rem;
   padding-bottom: 0;
 `;
 
-const Inputs = styled.div`
+const inputContainerStyles = css`
   display: flex;
   flex-flow: row wrap;
   justify-content: space-between;
 `;
 
-const Input = styled.div`
+const inputStyles = css`
   margin-bottom: 0.75em;
   width: 100%;
 
@@ -70,11 +69,11 @@ const Input = styled.div`
   }
 `;
 
-const AccordionContent = styled.div`
+const accordionContentStyles = css`
   padding: 0.25em 1.5em 1.5em;
 `;
 
-const FullWidthHr = styled.hr`
+const fullWidthHrStyles = css`
   width: calc(100% + 3em);
   margin-left: -1.5em;
   background-color: ${colors.slate()};
@@ -398,9 +397,9 @@ function SurveyResults({
     waterTypeOptions.status === 'failure'
   ) {
     return (
-      <StyledErrorBox>
+      <div css={errorBoxStyles}>
         <p>{stateSurveySectionError}</p>
-      </StyledErrorBox>
+      </div>
     );
   }
 
@@ -425,8 +424,8 @@ function SurveyResults({
           </strong>
         </h3>
 
-        <Inputs>
-          <Input>
+        <div css={inputContainerStyles}>
+          <div css={inputStyles}>
             <label
               htmlFor={`population-${populationId}`}
               title={populationTitle}
@@ -446,15 +445,15 @@ function SurveyResults({
               styles={reactSelectStyles}
             />
             {populationDistance && <small>({populationDistance})</small>}
-          </Input>
+          </div>
 
-          <Input>
+          <div css={inputStyles}>
             <p>
               State statistical surveys provide an overall picture of water
               quality condition across the state and look at changes over time.
             </p>
-          </Input>
-        </Inputs>
+          </div>
+        </div>
 
         <WindowSize>
           {({ width }) => {
@@ -527,9 +526,9 @@ function SurveyResults({
             );
           }}
         </WindowSize>
-        <ChartFooter>
+        <p css={chartFooterStyles}>
           <strong>Year Last Reported:</strong> {surveyData.year}
-        </ChartFooter>
+        </p>
 
         {Object.keys(stressorChartSeries).length > 0 && (
           <AccordionList expandDisabled={true}>
@@ -543,7 +542,7 @@ function SurveyResults({
                 </h3>
               }
             >
-              <AccordionContent>
+              <div css={accordionContentStyles}>
                 <HighchartsReact
                   highcharts={Highcharts}
                   options={{
@@ -605,12 +604,12 @@ function SurveyResults({
                     },
                   }}
                 />
-              </AccordionContent>
+              </div>
             </AccordionItem>
           </AccordionList>
         )}
 
-        <FullWidthHr />
+        <hr css={fullWidthHrStyles} />
       </>
     )
   );

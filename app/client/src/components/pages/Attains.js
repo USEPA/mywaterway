@@ -1,7 +1,7 @@
 // @flow
 
 import React, { useEffect, useState } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 // components
 import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
@@ -10,7 +10,7 @@ import NavBar from 'components/shared/NavBar';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import ReactTable from 'components/shared/ReactTable';
 // styled components
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
@@ -30,8 +30,7 @@ function getMatchingLabel(ATTAINSContext) {
   })[0].label;
 }
 
-// --- styled components ---
-const Container = styled.div`
+const containerStyles = css`
   padding: 1rem;
 
   p {
@@ -59,7 +58,8 @@ const Container = styled.div`
   }
 `;
 
-const ErrorBox = styled(StyledErrorBox)`
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles}
   margin: 1.25rem;
 `;
 
@@ -118,9 +118,9 @@ function Attains({ ...props }: Props) {
     return (
       <Page>
         <NavBar title="ATTAINS Information" />
-        <ErrorBox>
+        <div css={modifiedErrorBoxStyles}>
           <p>{attainsParameterServiceError}</p>
-        </ErrorBox>
+        </div>
       </Page>
     );
   }
@@ -138,7 +138,7 @@ function Attains({ ...props }: Props) {
   return (
     <Page>
       <NavBar title="ATTAINS Information" />
-      <Container className="container">
+      <div className="container" css={containerStyles}>
         <p>
           This page provides a way to compare How’s My Waterway{' '}
           <GlossaryTerm term="Impairment Categories">
@@ -186,7 +186,7 @@ function Attains({ ...props }: Props) {
             ];
           }}
         />
-      </Container>
+      </div>
     </Page>
   );
 }

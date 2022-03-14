@@ -9,7 +9,7 @@ import React, {
 } from 'react';
 import ReactDOM from 'react-dom';
 import { Rnd } from 'react-rnd';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import BasemapGallery from '@arcgis/core/widgets/BasemapGallery';
 import Expand from '@arcgis/core/widgets/Expand';
 import Graphic from '@arcgis/core/Graphic';
@@ -196,8 +196,7 @@ function updateVisibleLayers(
   );
 }
 
-// --- styles ---
-const ResizeHandle = styled.div`
+const resizeHandleStyles = css`
   float: right;
   position: absolute;
   right: 0;
@@ -1421,9 +1420,9 @@ function MapWidgets({
           dragHandleClassName="drag-handle"
         >
           <AddDataWidget />
-          <ResizeHandle>
+          <div css={resizeHandleStyles}>
             <img src={resizeIcon} alt="Resize Handle"></img>
-          </ResizeHandle>
+          </div>
         </Rnd>
       )}
     </div>

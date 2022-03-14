@@ -2,21 +2,20 @@
 
 import React from 'react';
 import type { Node } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import { DialogOverlay, DialogContent } from '@reach/dialog';
 // styles
 import { colors } from 'styles/index.js';
 import '@reach/dialog/styles.css';
 
-// --- styled components ---
-const Overlay = styled(DialogOverlay)`
+const overlayStyles = css`
   &[data-reach-dialog-overlay] {
     z-index: 1000;
     background-color: ${colors.black(0.75)};
   }
 `;
 
-const Content = styled(DialogContent)`
+const contentStyles = css`
   &[data-reach-dialog-content] {
     position: relative;
     left: 50%;
@@ -41,7 +40,7 @@ const Content = styled(DialogContent)`
   }
 `;
 
-const CloseButton = styled.button`
+const closeButtonStyles = css`
   position: absolute;
   top: 0;
   right: 0;
@@ -58,7 +57,7 @@ const CloseButton = styled.button`
   }
 `;
 
-const ButtonContainer = styled.div`
+const buttonContainerStyles = css`
   margin-top: 15px;
   display: flex;
   justify-content: space-around;
@@ -67,7 +66,7 @@ const ButtonContainer = styled.div`
   }
 `;
 
-const Button = styled.button`
+const buttonStyles = css`
   color: ${colors.white()};
   background-color: ${colors.blue()};
 
@@ -78,7 +77,7 @@ const Button = styled.button`
   }
 `;
 
-const CancelButton = styled.button`
+const cancelButtonStyles = css`
   background-color: lightgray;
 `;
 
@@ -102,38 +101,50 @@ function ConfirmModal({
   ...props
 }: Props) {
   return (
-    <Overlay isOpen={isOpen} onDismiss={onCancel}>
-      <Content aria-label={label}>
-        <CloseButton title="Cancel search" onClick={onCancel}>
+    <DialogOverlay css={overlayStyles} isOpen={isOpen} onDismiss={onCancel}>
+      <DialogContent css={contentStyles} aria-label={label}>
+        <button
+          css={closeButtonStyles}
+          title="Cancel search"
+          onClick={onCancel}
+        >
           ×
-        </CloseButton>
+        </button>
 
         {children}
 
-        <ButtonContainer>
+        <div css={buttonContainerStyles}>
           {confirmEnabled ? (
             <>
               <div>
-                <CancelButton className="btn" onClick={onCancel}>
+                <button
+                  css={cancelButtonStyles}
+                  className="btn"
+                  onClick={onCancel}
+                >
                   Cancel
-                </CancelButton>
+                </button>
               </div>
               <div>
-                <Button className="btn" onClick={onConfirm}>
+                <button css={buttonStyles} className="btn" onClick={onConfirm}>
                   Continue
-                </Button>
+                </button>
               </div>
             </>
           ) : (
             <div>
-              <CancelButton className="btn" onClick={onCancel}>
+              <button
+                css={cancelButtonStyles}
+                className="btn"
+                onClick={onCancel}
+              >
                 Ok
-              </CancelButton>
+              </button>
             </div>
           )}
-        </ButtonContainer>
-      </Content>
-    </Overlay>
+        </div>
+      </DialogContent>
+    </DialogOverlay>
   );
 }
 

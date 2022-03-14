@@ -2,21 +2,21 @@
 
 import React, { Component } from 'react';
 import type { Node } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 // components
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { LookupFilesContext } from 'contexts/LookupFiles';
 // utilities
 import { createMarkup } from 'utils/utils';
 
-// --- styled components ---
-const ErrorBox = styled(StyledErrorBox)`
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles}
   margin: 1rem;
   text-align: center;
 `;
 
-const ErrorBanner = styled.div`
+const errorBannerStyles = css`
   margin: 1rem;
   text-align: center;
   background-color: ${(props) => props.backgroundColor};
@@ -74,20 +74,22 @@ class ErrorBoundary extends Component<Props, State> {
       return (
         <>
           {data && data['all'] && (
-            <ErrorBanner
+            <div
+              css={errorBannerStyles}
               color={data['all'].color}
               backgroundColor={data['all'].backgroundColor}
               dangerouslySetInnerHTML={createMarkup(data['all'].message)}
             />
           )}
           {data && Object.keys(data).includes(page) && (
-            <ErrorBanner
+            <div
+              css={errorBannerStyles}
               color={data[page].color}
               backgroundColor={data[page].backgroundColor}
               dangerouslySetInnerHTML={createMarkup(data[page].message)}
             />
           )}
-          <ErrorBox>{this.props.message}</ErrorBox>
+          <div css={modifiedErrorBoxStyles}>{this.props.message}</div>
         </>
       );
     }

@@ -1,10 +1,10 @@
 // @flow
 
 import React, { useEffect } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import { LinkButton } from 'components/shared/LinkButton';
+import { linkButtonStyles } from 'components/shared/LinkButton';
 // styles
 import { fonts } from 'styles/index.js';
 
@@ -13,8 +13,7 @@ function scrollToItem(id: string) {
   if (item) item.scrollIntoView();
 }
 
-// --- styled components ---
-const Container = styled.div`
+const containerStyles = css`
   padding: 1rem;
 
   p {
@@ -39,18 +38,19 @@ const Container = styled.div`
   }
 `;
 
-const ContentsTitle = styled.p`
+const contentsTitleStyles = css`
   padding-bottom: 16px !important;
   text-decoration: underline;
 `;
 
-const StyledLinkButton = styled(LinkButton)`
+const modifiedLinkButtonStyles = css`
+  ${linkButtonStyles}
   font-size: 16px;
   font-weight: 400;
   text-align: left;
 `;
 
-const Title = styled.h2`
+const titleStyles = css`
   display: inline;
   line-height: 1.125;
   font-family: 'Source Sans Pro', 'Helvetica Neue', Helvetica, Roboto, Arial,
@@ -61,7 +61,7 @@ const Title = styled.h2`
   }
 `;
 
-const Question = styled.h2`
+const questionStyles = css`
   display: block;
   margin-bottom: 0.25rem;
   font-size: 1.125em;
@@ -71,7 +71,7 @@ const Question = styled.h2`
   padding-bottom: 0;
 `;
 
-const Item = styled.div`
+const itemStyles = css`
   margin-top: 1rem;
 
   @media (min-width: 30em) {
@@ -117,7 +117,7 @@ function Data({ ...props }: Props) {
   }, []);
 
   return (
-    <Container className="container">
+    <div css={containerStyles} className="container">
       <p>
         <em>How’s My Waterway</em> pulls data from multiple databases at EPA and
         other federal agencies through web services. Below is a summary of data
@@ -126,61 +126,91 @@ function Data({ ...props }: Props) {
 
       <hr />
 
-      <ContentsTitle>
+      <p css={contentsTitleStyles}>
         <strong>Contents</strong>
-      </ContentsTitle>
+      </p>
       <ul>
         <li>
-          <StyledLinkButton onClick={() => scrollToItem('attains')}>
+          <button
+            css={modifiedLinkButtonStyles}
+            onClick={() => scrollToItem('attains')}
+          >
             Assessment, Total Maximum Daily Load Tracking and Implementation
             System (ATTAINS)
-          </StyledLinkButton>
+          </button>
         </li>
         <li>
-          <StyledLinkButton onClick={() => scrollToItem('current-conditions')}>
+          <button
+            css={modifiedLinkButtonStyles}
+            onClick={() => scrollToItem('current-conditions')}
+          >
             Current Water Conditions (USGS Stream Gages)
-          </StyledLinkButton>
+          </button>
         </li>
         <li>
-          <StyledLinkButton onClick={() => scrollToItem('echo')}>
+          <button
+            css={modifiedLinkButtonStyles}
+            onClick={() => scrollToItem('echo')}
+          >
             Enforcement and Compliance History Online (ECHO)
-          </StyledLinkButton>
+          </button>
         </li>
         <li>
-          <StyledLinkButton onClick={() => scrollToItem('grts')}>
+          <button
+            css={modifiedLinkButtonStyles}
+            onClick={() => scrollToItem('grts')}
+          >
             Grants Reporting and Tracking System (GRTS)
-          </StyledLinkButton>
+          </button>
         </li>
         <li>
-          <StyledLinkButton onClick={() => scrollToItem('protected-areas')}>
+          <button
+            css={modifiedLinkButtonStyles}
+            onClick={() => scrollToItem('protected-areas')}
+          >
             Protected Areas
-          </StyledLinkButton>
+          </button>
         </li>
         <li>
-          <StyledLinkButton onClick={() => scrollToItem('sdwis')}>
+          <button
+            css={modifiedLinkButtonStyles}
+            onClick={() => scrollToItem('sdwis')}
+          >
             Safe Drinking Water Information System (SDWIS)
-          </StyledLinkButton>
+          </button>
         </li>
         <li>
-          <StyledLinkButton onClick={() => scrollToItem('wqp')}>
+          <button
+            css={modifiedLinkButtonStyles}
+            onClick={() => scrollToItem('wqp')}
+          >
             Water Quality Portal (WQP)
-          </StyledLinkButton>
+          </button>
         </li>
         <li>
-          <StyledLinkButton onClick={() => scrollToItem('waters')}>
+          <button
+            css={modifiedLinkButtonStyles}
+            onClick={() => scrollToItem('waters')}
+          >
             Watershed Assessment, Tracking &amp; Environmental Results System
             (WATERS)
-          </StyledLinkButton>
+          </button>
         </li>
         <li>
-          <StyledLinkButton onClick={() => scrollToItem('wsio')}>
+          <button
+            css={modifiedLinkButtonStyles}
+            onClick={() => scrollToItem('wsio')}
+          >
             Watershed Index Online (WSIO)
-          </StyledLinkButton>
+          </button>
         </li>
         <li>
-          <StyledLinkButton onClick={() => scrollToItem('wild-scenic-rivers')}>
+          <button
+            css={modifiedLinkButtonStyles}
+            onClick={() => scrollToItem('wild-scenic-rivers')}
+          >
             Wild and Scenic Rivers
-          </StyledLinkButton>
+          </button>
         </li>
       </ul>
 
@@ -188,12 +218,12 @@ function Data({ ...props }: Props) {
 
       <em>Links below open in a new browser tab.</em>
 
-      <Item id="attains">
+      <div css={itemStyles} id="attains">
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <Title>
+        <h2 css={titleStyles}>
           Assessment, Total Maximum Daily Load Tracking and Implementation
           System (ATTAINS)
-        </Title>
+        </h2>
         <p>
           <a
             href="https://www.epa.gov/waterdata/attains"
@@ -213,7 +243,9 @@ function Data({ ...props }: Props) {
           and 305(b).
         </p>
         <br />
-        <Question>Where do I find ATTAINS data in How’s My Waterway?</Question>
+        <h2 css={questionStyles}>
+          Where do I find ATTAINS data in How’s My Waterway?
+        </h2>
         <p>
           Information from this database can be found on the Community page on
           the following tabs; Overview ({' '}
@@ -229,20 +261,20 @@ function Data({ ...props }: Props) {
           Quality Overview and Advanced Search tabs.
         </p>
         <br />
-        <Question>Impairment Category Filtering Tool:</Question>{' '}
+        <h2 css={questionStyles}>Impairment Category Filtering Tool:</h2>{' '}
         <p>
           <a href="attains" target="_blank" rel="noopener noreferrer">
             How ATTAINS data are grouped in How’s My Waterway
           </a>
         </p>
         <ScrollToTop />
-      </Item>
+      </div>
 
       <hr />
 
-      <Item id="current-conditions">
+      <div css={itemStyles} id="current-conditions">
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <Title>Current Water Conditions (USGS Stream Gages)</Title>
+        <h2 css={titleStyles}>Current Water Conditions (USGS Stream Gages)</h2>
         <p>
           <a
             href="https://waterdata.usgs.gov/nwis/rt"
@@ -265,22 +297,24 @@ function Data({ ...props }: Props) {
           .
         </p>
         <br />
-        <Question>
+        <h2 css={questionStyles}>
           Where do I find USGS Stream Gage data in How’s My Waterway?
-        </Question>
+        </h2>
         <p>
           Information from the USGS databases can be found on the Community page
           on the Overview tab under Monitoring & Sensors, Current Water
           Conditions.
         </p>
         <ScrollToTop />
-      </Item>
+      </div>
 
       <hr />
 
-      <Item id="echo">
+      <div css={itemStyles} id="echo">
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <Title>Enforcement and Compliance History Online (ECHO)</Title>
+        <h2 css={titleStyles}>
+          Enforcement and Compliance History Online (ECHO)
+        </h2>
         <p>
           <a
             href="https://echo.epa.gov/"
@@ -295,7 +329,9 @@ function Data({ ...props }: Props) {
           assess their compliance with environmental regulations.
         </p>
         <br />
-        <Question>Where do I find ECHO data in How’s My Waterway?</Question>
+        <h2 css={questionStyles}>
+          Where do I find ECHO data in How’s My Waterway?
+        </h2>
         <p>
           Information from this database can be found on the Community page on
           the following tabs; Overview ({' '}
@@ -307,13 +343,13 @@ function Data({ ...props }: Props) {
           ).
         </p>
         <ScrollToTop />
-      </Item>
+      </div>
 
       <hr />
 
-      <Item id="grts">
+      <div css={itemStyles} id="grts">
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <Title>Grants Reporting and Tracking System (GRTS)</Title>
+        <h2 css={titleStyles}>Grants Reporting and Tracking System (GRTS)</h2>
         <p>
           <a
             href="https://iaspub.epa.gov/apex/grts/f?p=grts:95"
@@ -330,7 +366,9 @@ function Data({ ...props }: Props) {
           management programs.
         </p>
         <br />
-        <Question>Where do I find GRTS data in How’s My Waterway?</Question>
+        <h2 css={questionStyles}>
+          Where do I find GRTS data in How’s My Waterway?
+        </h2>
         <p>
           Information from this database can be found on the Community page on
           the following tabs; Restore ({' '}
@@ -341,13 +379,13 @@ function Data({ ...props }: Props) {
           the State page under Water Stories.{' '}
         </p>
         <ScrollToTop />
-      </Item>
+      </div>
 
       <hr />
 
-      <Item id="protected-areas">
+      <div css={itemStyles} id="protected-areas">
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <Title>Protected Areas</Title>
+        <h2 css={titleStyles}>Protected Areas</h2>
         <p>
           <a
             href="https://www.usgs.gov/core-science-systems/science-analytics-and-synthesis/gap/science/protected-areas"
@@ -365,22 +403,24 @@ function Data({ ...props }: Props) {
           through legal or other effective means.
         </p>
         <br />
-        <Question>
+        <h2 css={questionStyles}>
           Where do I find Wild and Protected Areas data in How’s My Waterway?
-        </Question>
+        </h2>
         <p>
           Information from this database can be found on the Community page on
           the protect tab under Watershed Health and Protection, Protected
           Areas.
         </p>
         <ScrollToTop />
-      </Item>
+      </div>
 
       <hr />
 
-      <Item id="sdwis">
+      <div css={itemStyles} id="sdwis">
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <Title>Safe Drinking Water Information System (SDWIS)</Title>
+        <h2 css={titleStyles}>
+          Safe Drinking Water Information System (SDWIS)
+        </h2>
         <p>
           <a
             href="https://www.epa.gov/ground-water-and-drinking-water/safe-drinking-water-information-system-sdwis-federal-reporting"
@@ -397,7 +437,9 @@ function Data({ ...props }: Props) {
           the Safe Drinking Water Act (SDWA).
         </p>
         <br />
-        <Question>Where do I find SDWIS data in How’s My Waterway?</Question>
+        <h2 css={questionStyles}>
+          Where do I find SDWIS data in How’s My Waterway?
+        </h2>
         <p>
           Information from this database can be found on the Community page on
           the following tabs; Drinking Water (Who provides the drinking water
@@ -406,13 +448,13 @@ function Data({ ...props }: Props) {
           National page under the National Drinking Water tab.
         </p>
         <ScrollToTop />
-      </Item>
+      </div>
 
       <hr />
 
-      <Item id="wqp">
+      <div css={itemStyles} id="wqp">
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <Title>Water Quality Portal (WQP)</Title>
+        <h2 css={titleStyles}>Water Quality Portal (WQP)</h2>
         <p>
           <a
             href="https://www.waterqualitydata.us/"
@@ -430,23 +472,25 @@ function Data({ ...props }: Props) {
           monitoring data.
         </p>
         <br />
-        <Question>Where do I find WQP data in How’s My Waterway? </Question>
+        <h2 css={questionStyles}>
+          Where do I find WQP data in How’s My Waterway?{' '}
+        </h2>
         <p>
           Information from this database can be found on the Community page
           under the Overview tab (monitoring locations) and under the Monitoring
           tab after performing a search.
         </p>
         <ScrollToTop />
-      </Item>
+      </div>
 
       <hr />
 
-      <Item id="waters">
+      <div css={itemStyles} id="waters">
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <Title>
+        <h2 css={titleStyles}>
           Watershed Assessment, Tracking &amp; Environmental Results System
           (WATERS)
-        </Title>
+        </h2>
         <p>
           <a
             href="https://www.epa.gov/waterdata/waters-watershed-assessment-tracking-environmental-results-system"
@@ -461,19 +505,21 @@ function Data({ ...props }: Props) {
           the quality of the nation's surface water.
         </p>
         <br />
-        <Question>Where do I find WATERS data in How’s My Waterway?</Question>
+        <h2 css={questionStyles}>
+          Where do I find WATERS data in How’s My Waterway?
+        </h2>
         <p>
           Information from WATERS supports the display of Watershed boundaries
           on the map display.
         </p>
         <ScrollToTop />
-      </Item>
+      </div>
 
       <hr />
 
-      <Item id="wsio">
+      <div css={itemStyles} id="wsio">
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <Title>Watershed Index Online (WSIO)</Title>
+        <h2 css={titleStyles}>Watershed Index Online (WSIO)</h2>
         <p>
           <a
             href="https://www.epa.gov/wsio"
@@ -491,20 +537,22 @@ function Data({ ...props }: Props) {
           purpose.
         </p>
         <br />
-        <Question>Where do I find WSIO data in How’s My Waterway?</Question>
+        <h2 css={questionStyles}>
+          Where do I find WSIO data in How’s My Waterway?
+        </h2>
         <p>
           Information from this database can be found on the Community page on
           the protect tab under Watershed Health and Protection, Watershed
           Health Scores.
         </p>
         <ScrollToTop />
-      </Item>
+      </div>
 
       <hr />
 
-      <Item id="wild-scenic-rivers">
+      <div css={itemStyles} id="wild-scenic-rivers">
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <Title>Wild and Scenic Rivers</Title>
+        <h2 css={titleStyles}>Wild and Scenic Rivers</h2>
         <p>
           <a
             href="https://www.rivers.gov/"
@@ -526,22 +574,21 @@ function Data({ ...props }: Props) {
           website.
         </p>
         <br />
-        <Question>
+        <h2 css={questionStyles}>
           Where do I find Wild and Scenic Rivers data in How’s My Waterway?
-        </Question>
+        </h2>
         <p>
           Information from this database can be found on the Community page on
           the protect tab under Watershed Health and Protection, Wild and Scenic
           Rivers.
         </p>
         <ScrollToTop />
-      </Item>
-    </Container>
+      </div>
+    </div>
   );
 }
 
-// --- styled components - ScrollToTop ---
-const ScrollToTopContainer = styled.div`
+const scrollToTopContainerStyles = css`
   padding-top: 10px;
   color: #0071bc;
 `;
@@ -554,14 +601,17 @@ type ScrollToTopProps = {
 
 function ScrollToTop({ id }: ScrollToTopProps) {
   return (
-    <ScrollToTopContainer>
+    <div css={scrollToTopContainerStyles}>
       <div style={{ float: 'right' }}>
         <i className="fas fa-arrow-up" aria-hidden="true"></i>
-        <StyledLinkButton onClick={() => scrollToItem('hmw-nav-bar')}>
+        <button
+          css={modifiedLinkButtonStyles}
+          onClick={() => scrollToItem('hmw-nav-bar')}
+        >
           Top of Page
-        </StyledLinkButton>
+        </button>
       </div>
-    </ScrollToTopContainer>
+    </div>
   );
 }
 

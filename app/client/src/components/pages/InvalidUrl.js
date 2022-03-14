@@ -2,20 +2,19 @@
 
 import React from 'react';
 import { Link } from '@reach/router';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 
-// --- styled components ---
-const Container = styled.div`
+const containerStyles = css`
   margin: 2rem 0;
   text-align: center;
 `;
 
-const Header = styled.h1`
+const headerStyles = css`
   margin-bottom: 0;
   font-size: 1.75rem;
 `;
 
-const Paragraph = styled.p`
+const paragraphStyles = css`
   padding-bottom: 0;
 `;
 
@@ -23,12 +22,12 @@ const Paragraph = styled.p`
 function InvalidUrl() {
   return (
     <div className="container">
-      <Container>
-        <Header>Sorry, but the url entered was invalid.</Header>
-        <Paragraph>
+      <div css={containerStyles}>
+        <h1 css={headerStyles}>Sorry, but the url entered was invalid.</h1>
+        <p css={paragraphStyles}>
           Return to the <Link to="/">homepage</Link>.
-        </Paragraph>
-      </Container>
+        </p>
+      </div>
     </div>
   );
 }

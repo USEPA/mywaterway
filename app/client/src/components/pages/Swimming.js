@@ -1,7 +1,8 @@
 // @flow
 
 import React from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
+import { Link } from '@reach/router';
 // components
 import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
@@ -15,20 +16,20 @@ import {
   SwimmingIcon,
 } from 'components/shared/Icons';
 // styled components
-import { StyledText, StyledTopic } from 'components/shared/Topics';
+import { searchTitleStyles, topicTitleStyles } from 'components/shared/Topics';
 import {
-  StyledButtons,
-  StyledTopicButtonLink,
-  StyledThreeButtonLinks,
+  topicButtonContainer,
+  topicButtonLinkStyles,
+  threeButtonLinkStyles,
 } from 'components/shared/ButtonLinks';
 
-// --- styled components ---
-const Disclaimer = styled(DisclaimerModal)`
+const disclaimerStyles = css`
   bottom: 1.25rem;
 `;
 
-const TopicButtonLink = styled(StyledTopicButtonLink)`
-  ${StyledThreeButtonLinks}
+const threeTopicButtonLinkStyles = css`
+  ${topicButtonLinkStyles}
+  ${threeButtonLinkStyles}
 `;
 
 // --- components ---
@@ -41,12 +42,12 @@ function Swimming({ ...props }: Props) {
     <Page>
       <NavBar title="Explore Topics" />
 
-      <StyledTopic>
+      <div css={topicTitleStyles}>
         <SwimmingIcon />
         <p>Swimming</p>
-      </StyledTopic>
+      </div>
 
-      <StyledText className="container">
+      <div className="container" css={searchTitleStyles}>
         <LocationSearch
           route="/community/{urlSearch}/swimming"
           label={
@@ -65,7 +66,7 @@ function Swimming({ ...props }: Props) {
           real-time water quality reports.
         </p>
 
-        <Disclaimer>
+        <DisclaimerModal css={disclaimerStyles}>
           <p>
             Users of this application should not rely on information relating to
             environmental laws and regulations posted on this application.
@@ -74,27 +75,27 @@ function Swimming({ ...props }: Props) {
             In addition, EPA cannot attest to the accuracy of data provided by
             organizations outside of the federal government.
           </p>
-        </Disclaimer>
+        </DisclaimerModal>
 
         <hr />
 
         <h2>Other Topics</h2>
 
-        <StyledButtons>
-          <TopicButtonLink to="/eating-fish">
+        <div css={topicButtonContainer}>
+          <Link to="/eating-fish" css={threeTopicButtonLinkStyles}>
             <EatingFishIcon />
             Eating Fish
-          </TopicButtonLink>
-          <TopicButtonLink to="/aquatic-life">
+          </Link>
+          <Link to="/aquatic-life" css={threeTopicButtonLinkStyles}>
             <AquaticLifeIcon />
             Aquatic Life
-          </TopicButtonLink>
-          <TopicButtonLink to="/drinking-water">
+          </Link>
+          <Link to="/drinking-water" css={threeTopicButtonLinkStyles}>
             <DrinkingWaterIcon />
             Drinking Water
-          </TopicButtonLink>
-        </StyledButtons>
-      </StyledText>
+          </Link>
+        </div>
+      </div>
     </Page>
   );
 }

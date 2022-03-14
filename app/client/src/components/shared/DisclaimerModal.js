@@ -2,14 +2,13 @@
 
 import React, { useState } from 'react';
 import type { Node } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import { DialogOverlay, DialogContent } from '@reach/dialog';
 // styles
 import { colors } from 'styles/index.js';
 import '@reach/dialog/styles.css';
 
-// --- styled components ---
-const DisclaimerButton = styled.button`
+const disclaimerButtonStyles = css`
   position: relative;
   margin-bottom: 0;
   padding: 0.125rem 0.375rem;
@@ -28,14 +27,14 @@ const DisclaimerButton = styled.button`
   }
 `;
 
-const Overlay = styled(DialogOverlay)`
+const overlayStyles = css`
   &[data-reach-dialog-overlay] {
     z-index: 1000;
     background-color: ${colors.black(0.75)};
   }
 `;
 
-const Content = styled(DialogContent)`
+const contentStyles = css`
   &[data-reach-dialog-content] {
     position: relative;
     left: 50%;
@@ -60,7 +59,7 @@ const Content = styled(DialogContent)`
   }
 `;
 
-const CloseButton = styled.button`
+const closeButtonStyles = css`
   position: absolute;
   top: 0;
   right: 0;
@@ -86,25 +85,31 @@ function DisclaimerModal({ children, ...props }: Props) {
   const [dialogShown, setDialogShown] = useState(false);
   return (
     <>
-      <DisclaimerButton
+      <button
+        css={disclaimerButtonStyles}
         onClick={(ev) => setDialogShown(!dialogShown)}
         // spread props so button’s styles (e.g. position) can be further set when used
         {...props}
       >
         Disclaimer
-      </DisclaimerButton>
+      </button>
 
-      <Overlay isOpen={dialogShown} onDismiss={() => setDialogShown(false)}>
-        <Content aria-label="Disclaimer">
+      <DialogOverlay
+        css={overlayStyles}
+        isOpen={dialogShown}
+        onDismiss={() => setDialogShown(false)}
+      >
+        <DialogContent css={contentStyles} aria-label="Disclaimer">
           {children}
-          <CloseButton
+          <button
+            css={closeButtonStyles}
             title="Close disclaimer"
             onClick={(ev) => setDialogShown(false)}
           >
             ×
-          </CloseButton>
-        </Content>
-      </Overlay>
+          </button>
+        </DialogContent>
+      </DialogOverlay>
     </>
   );
 }

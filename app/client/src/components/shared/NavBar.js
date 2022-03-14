@@ -1,10 +1,9 @@
 // @flow
 
 import React from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 
-// --- styled components ---
-const Container = styled.div`
+const containerStyles = css`
   display: flex;
   align-items: center;
   padding: 1em;
@@ -12,18 +11,18 @@ const Container = styled.div`
   color: #fff;
 `;
 
-const Group = styled.div`
+const groupStyles = css`
   flex: 1;
 `;
 
-const BackButton = styled.button`
+const backButtonStyles = css`
   margin: 0;
   padding: 0;
   font-weight: normal;
   background-color: transparent;
 `;
 
-const Text = styled.h1`
+const textStyles = css`
   margin: auto;
   padding-bottom: 0;
   font-size: 1.5em;
@@ -40,18 +39,18 @@ type Props = {
 
 function NavBar({ title, onBackClick = null }: Props) {
   return (
-    <Container id="hmw-nav-bar">
-      <Group>
+    <div css={containerStyles} id="hmw-nav-bar">
+      <div css={groupStyles}>
         {onBackClick && (
-          <BackButton onClick={(ev) => onBackClick(ev)}>
+          <button css={backButtonStyles} onClick={(ev) => onBackClick(ev)}>
             <i className="fas fa-chevron-left" aria-hidden="true" />
             &nbsp; Back
-          </BackButton>
+          </button>
         )}
-      </Group>
-      <Text>{title}</Text>
-      <Group />
-    </Container>
+      </div>
+      <h1 css={textStyles}>{title}</h1>
+      <div css={groupStyles} />
+    </div>
   );
 }
 

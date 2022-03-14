@@ -19,7 +19,6 @@ import { defaultErrorBoundaryMessage } from 'config/errorMessages';
 
 smoothscroll.polyfill();
 
-// --- styled components ---
 export const GlobalStyle = createGlobalStyle`
   #root {
     margin: 0;

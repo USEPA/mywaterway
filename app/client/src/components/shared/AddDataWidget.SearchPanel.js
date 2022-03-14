@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import Select from 'react-select';
 import Layer from '@arcgis/core/layers/Layer';
 import Portal from '@arcgis/core/portal/Portal';
@@ -15,7 +15,7 @@ import PortalItem from '@arcgis/core/portal/PortalItem';
 import * as watchUtils from '@arcgis/core/core/watchUtils';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { AddDataWidgetContext } from 'contexts/AddDataWidget';
@@ -24,8 +24,7 @@ import { webServiceErrorMessage } from 'config/errorMessages';
 // styles
 import { reactSelectStyles } from 'styles/index.js';
 
-// --- styles (SearchPanel) ---
-const SearchFlexBox = styled.div`
+const searchFlexBoxStyles = css`
   display: flex;
   flex-flow: wrap;
   justify-content: space-between;
@@ -33,22 +32,22 @@ const SearchFlexBox = styled.div`
   margin: 2.5px;
 `;
 
-const SearchFlexItem = styled.div`
+const searchFlexItemStyles = css`
   flex: 1 1 175px;
   margin: 2.5px;
 `;
 
-const SearchContainer = styled.form`
+const searchContainerStyles = css`
   width: 100%;
   border: 1px solid #ccc;
   border-radius: 4px;
 `;
 
-const StyledSelect = styled(Select)`
+const selectStyles = css`
   width: 100%;
 `;
 
-const SearchInput = styled.input`
+const searchInputStyles = css`
   margin: 0;
   padding-left: 8px;
   border: none;
@@ -59,7 +58,7 @@ const SearchInput = styled.input`
   width: calc(100% - 37px);
 `;
 
-const SearchSeparator = styled.span`
+const searchSeparatorStyles = css`
   align-self: stretch;
   background-color: #ccc;
   margin-bottom: 8px;
@@ -68,7 +67,7 @@ const SearchSeparator = styled.span`
   box-sizing: border-box;
 `;
 
-const SearchButton = styled.button`
+const searchButtonStyles = css`
   margin: 0;
   height: 36px;
   width: 36px;
@@ -79,40 +78,40 @@ const SearchButton = styled.button`
   border-radius: 4px;
 `;
 
-const Checkbox = styled.input`
+const checkboxStyles = css`
   margin-right: 5px;
 `;
 
-const HiddenText = `
+const hiddenText = `
   font: 0/0 a, sans-serif;
   text-indent: -999em;
 `;
 
-const LabelHiddenText = styled.label`
-  ${HiddenText}
+const labelHiddenTextStyles = css`
+  ${hiddenText}
   margin: 0;
   display: block;
 `;
 
-const ButtonHiddenText = styled.span`
-  ${HiddenText}
+const buttonHiddenTextStyles = css`
+  ${hiddenText}
 `;
 
-const FilterContainer = styled.div`
+const filterContainerStyles = css`
   display: flex;
   flex-wrap: wrap;
   margin: 2.5px;
 `;
 
-const FilterOption = styled.div`
+const filterOptionStyles = css`
   margin: 5px;
 `;
 
-const TextSelect = styled.span`
+const textSelectStyles = css`
   cursor: pointer;
 `;
 
-const TypeSelect = styled.div`
+const typeSelectStyles = css`
   position: absolute;
   background: white;
   border: 1px solid #ccc;
@@ -132,7 +131,7 @@ const TypeSelect = styled.div`
   }
 `;
 
-const ButtonSelect = styled.button`
+const buttonSelectStyles = css`
   width: 100%;
   height: 35px;
   margin: 0;
@@ -148,7 +147,7 @@ const ButtonSelect = styled.button`
   }
 `;
 
-const SortOrder = styled.button`
+const sortOrderStyles = css`
   color: black;
   width: 10px;
   background-color: white;
@@ -160,7 +159,7 @@ const SortOrder = styled.button`
   }
 `;
 
-const NewTabDisclaimer = styled.em`
+const newTabDisclaimerStyles = css`
   display: block;
   margin: 0;
   padding: 0.75em 0.5em;
@@ -343,12 +342,13 @@ function SearchPanel() {
   return (
     <Fragment>
       <div>
-        <SearchFlexBox>
-          <SearchFlexItem>
-            <LabelHiddenText htmlFor="location-select">
+        <div css={searchFlexBoxStyles}>
+          <div css={searchFlexItemStyles}>
+            <label css={labelHiddenTextStyles} htmlFor="location-select">
               Search In
-            </LabelHiddenText>
-            <StyledSelect
+            </label>
+            <Select
+              css={selectStyles}
               inputId="location-select"
               isSearchable={false}
               options={locationList}
@@ -361,46 +361,51 @@ function SearchPanel() {
               }}
               styles={reactSelectStyles}
             />
-          </SearchFlexItem>
-          <SearchFlexItem>
-            <SearchContainer
+          </div>
+          <div css={searchFlexItemStyles}>
+            <form
+              css={searchContainerStyles}
               onSubmit={(ev) => {
                 ev.preventDefault();
               }}
             >
-              <SearchInput
+              <input
+                css={searchInputStyles}
                 aria-label="Search"
                 value={searchText}
                 placeholder={'Search...'}
                 onChange={(ev) => setSearchText(ev.target.value)}
               />
-              <SearchSeparator />
-              <SearchButton
+              <span css={searchSeparatorStyles} />
+              <button
+                css={searchButtonStyles}
                 type="submit"
                 onClick={(ev) => setSearch(searchText)}
               >
                 <i className="fas fa-search"></i>
-                <ButtonHiddenText>Search</ButtonHiddenText>
-              </SearchButton>
-            </SearchContainer>
-          </SearchFlexItem>
-        </SearchFlexBox>
+                <span css={buttonHiddenTextStyles}>Search</span>
+              </button>
+            </form>
+          </div>
+        </div>
 
-        <FilterContainer>
-          <FilterOption>
-            <TextSelect
+        <div css={filterContainerStyles}>
+          <div css={filterOptionStyles}>
+            <span
+              css={textSelectStyles}
               onClick={() => {
                 setShowFilterOptions(!showFilterOptions);
                 setShowSortOptions(false);
               }}
             >
               Type <i className="fas fa-caret-down"></i>
-            </TextSelect>
+            </span>
             {showFilterOptions && (
-              <TypeSelect>
+              <div css={typeSelectStyles}>
                 <ul>
                   <li>
-                    <Checkbox
+                    <input
+                      css={checkboxStyles}
                       id="map_service_filter"
                       type="checkbox"
                       checked={mapService}
@@ -410,7 +415,8 @@ function SearchPanel() {
                   </li>
 
                   <li>
-                    <Checkbox
+                    <input
+                      css={checkboxStyles}
                       id="feature_service_filter"
                       type="checkbox"
                       checked={featureService}
@@ -422,7 +428,8 @@ function SearchPanel() {
                   </li>
 
                   <li>
-                    <Checkbox
+                    <input
+                      css={checkboxStyles}
                       id="image_service_filter"
                       type="checkbox"
                       checked={imageService}
@@ -432,7 +439,8 @@ function SearchPanel() {
                   </li>
 
                   <li>
-                    <Checkbox
+                    <input
+                      css={checkboxStyles}
                       id="vector_tile_service_filter"
                       type="checkbox"
                       checked={vectorTileService}
@@ -446,7 +454,8 @@ function SearchPanel() {
                   </li>
 
                   <li>
-                    <Checkbox
+                    <input
+                      css={checkboxStyles}
                       id="kml_filter"
                       type="checkbox"
                       checked={kml}
@@ -456,7 +465,8 @@ function SearchPanel() {
                   </li>
 
                   <li>
-                    <Checkbox
+                    <input
+                      css={checkboxStyles}
                       id="wms_filter"
                       type="checkbox"
                       checked={wms}
@@ -465,21 +475,23 @@ function SearchPanel() {
                     <label htmlFor="wms_filter">WMS</label>
                   </li>
                 </ul>
-              </TypeSelect>
+              </div>
             )}
-          </FilterOption>
-          <FilterOption>
-            <TextSelect
+          </div>
+          <div css={filterOptionStyles}>
+            <span
+              css={textSelectStyles}
               onClick={() => {
                 setShowSortOptions(!showSortOptions);
                 setShowFilterOptions(false);
               }}
             >
               {sortBy.label} <i className="fas fa-caret-down"></i>
-            </TextSelect>
+            </span>
             {showSortOptions && (
-              <TypeSelect>
-                <ButtonSelect
+              <div css={typeSelectStyles}>
+                <button
+                  css={buttonSelectStyles}
                   onClick={() => {
                     setShowSortOptions(false);
                     setSortOrder('desc');
@@ -491,9 +503,10 @@ function SearchPanel() {
                   }}
                 >
                   Relevance
-                </ButtonSelect>
+                </button>
 
-                <ButtonSelect
+                <button
+                  css={buttonSelectStyles}
                   onClick={() => {
                     setShowSortOptions(false);
                     setSortOrder('asc');
@@ -505,9 +518,10 @@ function SearchPanel() {
                   }}
                 >
                   Title
-                </ButtonSelect>
+                </button>
 
-                <ButtonSelect
+                <button
+                  css={buttonSelectStyles}
                   onClick={() => {
                     setShowSortOptions(false);
                     setSortOrder('asc');
@@ -519,9 +533,10 @@ function SearchPanel() {
                   }}
                 >
                   Owner
-                </ButtonSelect>
+                </button>
 
-                <ButtonSelect
+                <button
+                  css={buttonSelectStyles}
                   onClick={() => {
                     setShowSortOptions(false);
                     setSortOrder('desc');
@@ -533,9 +548,10 @@ function SearchPanel() {
                   }}
                 >
                   Rating
-                </ButtonSelect>
+                </button>
 
-                <ButtonSelect
+                <button
+                  css={buttonSelectStyles}
                   onClick={() => {
                     setShowSortOptions(false);
                     setSortOrder('desc');
@@ -547,9 +563,10 @@ function SearchPanel() {
                   }}
                 >
                   Views
-                </ButtonSelect>
+                </button>
 
-                <ButtonSelect
+                <button
+                  css={buttonSelectStyles}
                   onClick={() => {
                     setShowSortOptions(false);
                     setSortOrder('desc');
@@ -561,12 +578,13 @@ function SearchPanel() {
                   }}
                 >
                   Data
-                </ButtonSelect>
-              </TypeSelect>
+                </button>
+              </div>
             )}
 
             {sortBy.value !== 'none' && (
-              <SortOrder
+              <button
+                css={sortOrderStyles}
                 onClick={() =>
                   setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')
                 }
@@ -576,13 +594,13 @@ function SearchPanel() {
                     sortOrder === 'desc' ? 'up' : 'down'
                   }`}
                 ></i>
-                <ButtonHiddenText>
+                <span css={buttonHiddenTextStyles}>
                   {sortOrder === 'desc' ? 'Sort Ascending' : 'Sort Descending'}
-                </ButtonHiddenText>
-              </SortOrder>
+                </span>
+              </button>
             )}
-          </FilterOption>
-        </FilterContainer>
+          </div>
+        </div>
       </div>
 
       <div
@@ -594,14 +612,14 @@ function SearchPanel() {
       >
         {searchResults?.data?.results &&
           searchResults.data.results.length > 0 && (
-            <NewTabDisclaimer>
+            <em css={newTabDisclaimerStyles}>
               Links below open in a new browser tab.
-            </NewTabDisclaimer>
+            </em>
           )}
         <div>
           {searchResults.status === 'fetching' && <LoadingSpinner />}
           {searchResults.status === 'failure' && (
-            <StyledErrorBox>{webServiceErrorMessage}</StyledErrorBox>
+            <div css={errorBoxStyles}>{webServiceErrorMessage}</div>
           )}
           {searchResults.status === 'success' && (
             <Fragment>
@@ -623,8 +641,7 @@ function SearchPanel() {
   );
 }
 
-// --- styles (ResultCard) ---
-const CardContainer = styled.div`
+const cardContainerStyles = css`
   min-height: 70px;
   padding: 5px;
   border: 1px solid #e0e0e0;
@@ -633,14 +650,14 @@ const CardContainer = styled.div`
   flex-flow: column;
 `;
 
-const CardThumbnail = styled.img`
+const cardThumbnailStyles = css`
   float: left;
   margin-right: 10px;
   height: 60px;
   width: 90px;
 `;
 
-const CardTitle = styled.div`
+const cardTitleStyles = css`
   margin: 0;
   padding: 0;
   font-family: 'Merriweather', 'Georgia', 'Cambria', 'Times New Roman', 'Times',
@@ -653,7 +670,7 @@ const CardTitle = styled.div`
   line-height: 1.3;
 `;
 
-const CardInfo = styled.div`
+const cardInfoStyles = css`
   font-size: 11px;
   color: #545454;
   overflow: hidden;
@@ -662,19 +679,19 @@ const CardInfo = styled.div`
   padding-top: 3px;
 `;
 
-const CardButtonContainer = styled.div`
+const cardButtonContainerStyles = css`
   text-align: right;
   margin-top: 5px;
 `;
 
-const CardMessage = styled.span`
+const cardMessageStyles = css`
   font-size: 11px;
   font-style: italic;
   margin-left: 4px;
   margin-right: 4px;
 `;
 
-const CardButton = styled.button`
+const cardButtonStyles = css`
   font-size: 13px;
   margin: 0 5px 0 0;
   padding: 0.3em 0.7em;
@@ -684,7 +701,7 @@ const CardButton = styled.button`
   }
 `;
 
-const CardLink = styled.a`
+const cardLinkStyles = css`
   font-size: 14px;
   display: inline-block;
   margin: 0 0 0 5px;
@@ -820,48 +837,56 @@ function ResultCard({ result }: ResultCardProps) {
   }, [cardRef]);
 
   return (
-    <CardContainer ref={cardRef} width={cardWidth}>
-      <CardThumbnail
+    <div css={cardContainerStyles} ref={cardRef} width={cardWidth}>
+      <img
+        css={cardThumbnailStyles}
         src={result.thumbnailUrl}
         alt={`${result.title} Thumbnail`}
       />
-      <CardTitle title={result.title}>{result.title}</CardTitle>
-      <CardInfo title={infoStr}>{infoStr}</CardInfo>
-      <CardButtonContainer>
-        <CardMessage title={statusStr}>
+      <div css={cardTitleStyles} title={result.title}>
+        {result.title}
+      </div>
+      <div css={cardInfoStyles} title={infoStr}>
+        {infoStr}
+      </div>
+      <div css={cardButtonContainerStyles}>
+        <span css={cardMessageStyles} title={statusStr}>
           {status === 'loading' && 'Adding...'}
           {status === 'error' && 'Add Failed'}
-        </CardMessage>
+        </span>
         {mapView?.map && (
           <Fragment>
             {!added && (
-              <CardButton
+              <button
+                css={cardButtonStyles}
                 disabled={status === 'loading'}
                 onClick={() => {
                   addRefLayer();
                 }}
               >
                 Add
-              </CardButton>
+              </button>
             )}
             {added && !status && (
-              <CardButton
+              <button
+                css={cardButtonStyles}
                 onClick={() => {
                   removeRefLayer();
                 }}
               >
                 Remove
-              </CardButton>
+              </button>
             )}
           </Fragment>
         )}
-        <CardLink
+        <a
+          css={cardLinkStyles}
           href={`https://arcgis.com/home/item.html?id=${result.id}`}
           target="_blank"
           rel="noopener noreferrer"
         >
           Details
-        </CardLink>
+        </a>
         <a
           className="exit-disclaimer"
           href="https://www.epa.gov/home/exit-epa"
@@ -870,8 +895,8 @@ function ResultCard({ result }: ResultCardProps) {
         >
           Exit
         </a>
-      </CardButtonContainer>
-    </CardContainer>
+      </div>
+    </div>
   );
 }
 

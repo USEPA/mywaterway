@@ -2,11 +2,11 @@
 
 import React, { useEffect } from 'react';
 import { css } from 'styled-components/macro';
-import { Tabs, TabList, TabPanels, TabPanel } from '@reach/tabs';
+import { Tab, Tabs, TabList, TabPanels, TabPanel } from '@reach/tabs';
 // components
-import { ContentTabs } from 'components/shared/ContentTabs';
+import { tabsStyles } from 'components/shared/ContentTabs';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import { LargeTab } from 'components/shared/ContentTabs.LargeTab.js';
+import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 // styles
 import { fonts } from 'styles/index.js';
 
@@ -108,11 +108,11 @@ function AboutContent({ ...props }: Props) {
 
   return (
     <div className="container" css={containerStyles}>
-      <ContentTabs>
+      <div css={tabsStyles}>
         <Tabs>
           <TabList>
-            <LargeTab>About How's My Waterway</LargeTab>
-            <LargeTab>Questions and Answers</LargeTab>
+            <Tab css={largeTabStyles}>About How's My Waterway</Tab>
+            <Tab css={largeTabStyles}>Questions and Answers</Tab>
           </TabList>
           <TabPanels>
             <TabPanel>
@@ -411,7 +411,7 @@ function AboutContent({ ...props }: Props) {
             </TabPanel>
           </TabPanels>
         </Tabs>
-      </ContentTabs>
+      </div>
     </div>
   );
 }

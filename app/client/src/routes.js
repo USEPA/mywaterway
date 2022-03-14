@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Router, Location, navigate } from '@reach/router';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 // components
 import Home from 'components/pages/Home';
 import Attains from 'components/pages/Attains';
@@ -26,7 +26,7 @@ import InvalidUrl from 'components/pages/InvalidUrl';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import AlertMessage from 'components/shared/AlertMessage';
 // styled components
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
@@ -38,8 +38,8 @@ import {
 // errors
 import { servicesLookupServiceError } from 'config/errorMessages';
 
-// --- styled components ---
-const ErrorBox = styled(StyledErrorBox)`
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles}
   margin: 1rem;
   text-align: center;
 `;
@@ -61,7 +61,7 @@ function Routes() {
     return <LoadingSpinner />;
   }
   if (services.status === 'failure') {
-    return <ErrorBox>{servicesLookupServiceError}</ErrorBox>;
+    return <div css={modifiedErrorBoxStyles}>{servicesLookupServiceError}</div>;
   }
 
   return (

@@ -8,7 +8,7 @@ import React, {
   useState,
 } from 'react';
 import type { Node } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import StickyBox from 'react-sticky-box';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Graphic from '@arcgis/core/Graphic';
@@ -33,7 +33,7 @@ import {
 } from 'utils/mapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // styled components
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
@@ -76,10 +76,9 @@ function createQueryString(array) {
   return `'${array.join("', '")}'`;
 }
 
-// --- styled components ---
 const mapPadding = 20;
 
-const Container = styled.div`
+const containerStyles = css`
   display: flex;
   position: relative;
   border: 1px solid #aebac3;
@@ -2025,7 +2024,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       {/* for wide screens, LocationMap's children is searchText */}
       <div ref={measuredRef}>{children}</div>
 
-      <Container
+      <div
+        css={containerStyles}
         data-content="locationmap"
         data-testid="hmw-community-map"
         style={{
@@ -2038,12 +2038,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       >
         <Map layers={layers} />
         {mapView && mapLoading && <MapLoadingSpinner />}
-      </Container>
+      </div>
     </>
   );
 
   if (communityMapLoadError) {
-    return <StyledErrorBox>{esriMapLoadingFailure}</StyledErrorBox>;
+    return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
   }
 
   if (layout === 'wide') {

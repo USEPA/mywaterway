@@ -1,15 +1,17 @@
 // @flow
 
 import React, { useContext, useEffect, useRef } from 'react';
+import {} from 'styled-components/macro';
+// import {} from 'styled-components/cssprop';
 import { navigate } from '@reach/router';
-import { Tabs, TabList, TabPanels } from '@reach/tabs';
+import { Tab, Tabs, TabList, TabPanel, TabPanels } from '@reach/tabs';
 // components
 import type { RouteProps } from 'routes.js';
-import { ContentTabs, StyledTabPanel } from 'components/shared/ContentTabs';
+import { tabsStyles, tabPanelStyles } from 'components/shared/ContentTabs';
 import WaterQualityOverview from 'components/pages/State.Tabs.WaterQualityOverview';
 import AdvancedSearch from 'components/pages/State.Tabs.AdvancedSearch';
 // styled components
-import { LargeTab } from 'components/shared/ContentTabs.LargeTab.js';
+import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 // contexts
 import { StateTabsContext } from 'contexts/StateTabs';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -92,35 +94,32 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
   }, [tabListRef, activeTabIndex]);
 
   return (
-    <>
-      <ContentTabs>
-        <Tabs
-          data-content="stateTabs"
-          index={activeTabIndex}
-          onChange={(index) => {
-            setActiveTabIndex(index);
-            // navigate to the tab’s route so Google Analytics captures a pageview
-            const route =
-              index === 0 ? 'water-quality-overview' : 'advanced-search';
-            navigate(`/state/${stateCode.toUpperCase()}/${route}`);
-          }}
-        >
-          <TabList ref={tabListRef}>
-            <LargeTab>State Water Quality Overview</LargeTab>
-            <LargeTab>Advanced Search</LargeTab>
-          </TabList>
+    <Tabs
+      css={tabsStyles}
+      data-content="stateTabs"
+      index={activeTabIndex}
+      onChange={(index) => {
+        setActiveTabIndex(index);
+        // navigate to the tab’s route so Google Analytics captures a pageview
+        const route =
+          index === 0 ? 'water-quality-overview' : 'advanced-search';
+        navigate(`/state/${stateCode.toUpperCase()}/${route}`);
+      }}
+    >
+      <TabList ref={tabListRef}>
+        <Tab css={largeTabStyles}>State Water Quality Overview</Tab>
+        <Tab css={largeTabStyles}>Advanced Search</Tab>
+      </TabList>
 
-          <TabPanels>
-            <StyledTabPanel>
-              <WaterQualityOverview />
-            </StyledTabPanel>
-            <StyledTabPanel>
-              <AdvancedSearch />
-            </StyledTabPanel>
-          </TabPanels>
-        </Tabs>
-      </ContentTabs>
-    </>
+      <TabPanels>
+        <TabPanel css={tabPanelStyles}>
+          <WaterQualityOverview />
+        </TabPanel>
+        <TabPanel css={tabPanelStyles}>
+          <AdvancedSearch />
+        </TabPanel>
+      </TabPanels>
+    </Tabs>
   );
 }
 

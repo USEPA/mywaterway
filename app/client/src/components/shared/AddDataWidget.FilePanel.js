@@ -7,7 +7,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import { useDropzone } from 'react-dropzone';
 import { DialogOverlay, DialogContent } from '@reach/dialog';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
@@ -16,7 +16,7 @@ import Graphic from '@arcgis/core/Graphic';
 import * as rendererJsonUtils from '@arcgis/core/renderers/support/jsonUtils';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
-import { StyledErrorBox, StyledNoteBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles, noteBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { AddDataWidgetContext } from 'contexts/AddDataWidget';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -59,14 +59,14 @@ function getLayerName(layers, desiredName) {
 }
 
 // --- styles (FileIcon) ---
-const Overlay = styled(DialogOverlay)`
+const overlayStyles = css`
   &[data-reach-dialog-overlay] {
     z-index: 1000;
     background-color: ${colors.black(0.75)};
   }
 `;
 
-const Content = styled(DialogContent)`
+const contentStyles = css`
   &[data-reach-dialog-content] {
     position: relative;
     left: 50%;
@@ -96,7 +96,7 @@ const Content = styled(DialogContent)`
   }
 `;
 
-const CloseButton = styled.button`
+const closeButtonStyles = css`
   position: absolute;
   top: 0;
   right: 0;
@@ -113,13 +113,13 @@ const CloseButton = styled.button`
   }
 `;
 
-const FileIconOuterContainer = styled.span`
+const fileIconOuterContainerStyles = css`
   width: 2em;
   line-height: 1;
   margin: 2px;
 `;
 
-const FileIconContainer = styled.span`
+const fileIconContainerStyles = css`
   display: flex;
   align-items: center;
   width: 100%;
@@ -127,7 +127,7 @@ const FileIconContainer = styled.span`
   vertical-align: middle;
 `;
 
-const FileIconI = styled.i`
+const fileIconIStyles = css`
   color: #e6e8ed;
   width: 100%;
 `;
@@ -136,22 +136,22 @@ const fileIconTextColor = `
   color: #545454;
 `;
 
-const FileIconTextColorDiv = styled.div`
+const fileIconTextColorDivStyles = css`
   ${fileIconTextColor}
 `;
 
-const FileIconText = styled.span`
+const fileIconTextStyles = css`
   ${fileIconTextColor}
   font-size: 16px;
   margin-top: 5px;
   width: 100%;
 `;
 
-const CheckBoxStyles = styled.input`
+const checkBoxStyles = css`
   margin-right: 5px;
 `;
 
-const HelpIcon = styled.i`
+const helpIconStyles = css`
   position: absolute;
   top: 5px;
   right: 5px;
@@ -165,14 +165,14 @@ type FileIconProps = {
 
 function FileIcon({ label }: FileIconProps) {
   return (
-    <FileIconOuterContainer className="fa-stack fa-2x">
-      <FileIconContainer>
-        <FileIconI className="fas fa-file fa-stack-2x"></FileIconI>
-        <FileIconText className="fa-stack-text fa-stack-1x">
+    <span css={fileIconOuterContainerStyles} className="fa-stack fa-2x">
+      <span css={fileIconContainerStyles}>
+        <i css={fileIconIStyles} className="fas fa-file fa-stack-2x"></i>
+        <span css={fileIconTextStyles} className="fa-stack-text fa-stack-1x">
           {label}
-        </FileIconText>
-      </FileIconContainer>
-    </FileIconOuterContainer>
+        </span>
+      </span>
+    </span>
   );
 }
 
@@ -182,15 +182,17 @@ const MessageBoxStyles = `
   overflow-wrap: anywhere;
 `;
 
-const ErrorBox = styled(StyledErrorBox)`
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles}
   ${MessageBoxStyles}
 `;
 
-const NoteBox = styled(StyledNoteBox)`
+const modifiedNoteBoxStyles = css`
+  ${noteBoxStyles}
   ${MessageBoxStyles}
 `;
 
-const SearchContainer = styled.div`
+const searchContainerStyles = css`
   height: 100%;
   overflow: auto;
   padding: 1em;
@@ -567,29 +569,36 @@ function FilePanel() {
   const [dialogShown, setDialogShown] = useState(false);
 
   return (
-    <SearchContainer>
+    <div css={searchContainerStyles}>
       {uploadStatus === 'fetching' && <LoadingSpinner />}
       {uploadStatus !== 'fetching' && (
         <Fragment>
           {uploadStatus === 'invalid-file-type' && (
-            <ErrorBox>{invalidFileTypeMessage(filename)}</ErrorBox>
+            <div css={modifiedErrorBoxStyles}>
+              {invalidFileTypeMessage(filename)}
+            </div>
           )}
           {uploadStatus === 'import-error' && (
-            <ErrorBox>{importErrorMessage}</ErrorBox>
+            <div css={modifiedErrorBoxStyles}>{importErrorMessage}</div>
           )}
           {uploadStatus === 'file-read-error' && (
-            <ErrorBox>{fileReadErrorMessage(filename)}</ErrorBox>
+            <div css={modifiedErrorBoxStyles}>
+              {fileReadErrorMessage(filename)}
+            </div>
           )}
           {uploadStatus === 'no-data' && (
-            <ErrorBox>{noDataMessage(filename)}</ErrorBox>
+            <div css={modifiedErrorBoxStyles}>{noDataMessage(filename)}</div>
           )}
           {uploadStatus === 'failure' && (
-            <ErrorBox>{webServiceErrorMessage}</ErrorBox>
+            <div css={modifiedErrorBoxStyles}>{webServiceErrorMessage}</div>
           )}
           {uploadStatus === 'success' && (
-            <NoteBox>{uploadSuccessMessage(filename, newLayerName)}</NoteBox>
+            <div css={modifiedNoteBoxStyles}>
+              {uploadSuccessMessage(filename, newLayerName)}
+            </div>
           )}
-          <CheckBoxStyles
+          <input
+            css={checkBoxStyles}
             id="generalize-features-input"
             type="checkbox"
             checked={generalizeFeatures}
@@ -611,7 +620,7 @@ function FilePanel() {
             {isDragActive ? (
               <p>Drop the files here ...</p>
             ) : (
-              <FileIconTextColorDiv>
+              <div css={fileIconTextColorDivStyles}>
                 <div>
                   <FileIcon label="Shape File" />
                   <FileIcon label="CSV" />
@@ -622,21 +631,26 @@ function FilePanel() {
                 <label htmlFor="tots-dropzone">Drop or Browse</label>
                 <br />
                 <button onClick={open}>Browse</button>
-              </FileIconTextColorDiv>
+              </div>
             )}
 
-            <HelpIcon
+            <i
+              css={helpIconStyles}
               className="fas fa-question-circle"
               onClick={() => {
                 setDialogShown(true);
               }}
-            ></HelpIcon>
+            ></i>
           </div>
         </Fragment>
       )}
 
-      <Overlay isOpen={dialogShown} onDismiss={() => setDialogShown(false)}>
-        <Content aria-label="Disclaimer">
+      <DialogOverlay
+        css={overlayStyles}
+        isOpen={dialogShown}
+        onDismiss={() => setDialogShown(false)}
+      >
+        <DialogContent css={contentStyles} aria-label="Disclaimer">
           <label>
             You can drop or browse for one the following file types:
           </label>
@@ -653,15 +667,16 @@ function FilePanel() {
             <li>A GeoJSON File (.geo.json or .geojson)</li>
             <li>A maximum of 1000 features is allowed</li>
           </ul>
-          <CloseButton
+          <button
+            css={closeButtonStyles}
             title="Close disclaimer"
             onClick={(ev) => setDialogShown(false)}
           >
             ×
-          </CloseButton>
-        </Content>
-      </Overlay>
-    </SearchContainer>
+          </button>
+        </DialogContent>
+      </DialogOverlay>
+    </div>
   );
 }
 

@@ -1,12 +1,11 @@
 // @flow
 
 import React from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 
-// --- styled components ---
-const LoadingContainer = styled.div`
+const loadingContainerStyles = css`
   display: flex;
   height: 100%;
   width: 100%;
@@ -23,9 +22,9 @@ type Props = {};
 
 function MapLoadingSpinner({ ...props }: Props) {
   return (
-    <LoadingContainer>
+    <div css={loadingContainerStyles}>
       <LoadingSpinner />
-    </LoadingContainer>
+    </div>
   );
 }
 

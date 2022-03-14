@@ -1,7 +1,7 @@
 // @flow
 
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import { useWindowSize } from '@reach/window-size';
 import Select, { createFilter } from 'react-select';
 import { CellMeasurer, CellMeasurerCache, List } from 'react-virtualized';
@@ -14,7 +14,7 @@ import StateMap from 'components/shared/StateMap';
 import WaterbodyListVirtualized from 'components/shared/WaterbodyListVirtualized';
 import ConfirmModal from 'components/shared/ConfirmModal';
 // styled components
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { StateTabsContext } from 'contexts/StateTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -123,8 +123,7 @@ function retrieveFeatures({
   });
 }
 
-// --- styled components ---
-const Inputs = styled.div`
+const inputsStyles = css`
   display: flex;
   flex-flow: row wrap;
   justify-content: space-between;
@@ -135,32 +134,35 @@ const Inputs = styled.div`
   }
 `;
 
-const Input = styled.div`
+const inputStyles = css`
   margin-bottom: 0.75em;
   width: 100%;
   @media (min-width: 768px) {
     width: calc(50% - 0.75em);
   }
 `;
-const ButtonGroup = styled.div`
+
+const buttonGroupStyles = css`
   z-index: 0;
 `;
 
-const ResultsInputs = styled(Inputs)`
+const resultsInputsStyles = css`
+  ${inputsStyles}
   align-items: center;
 `;
 
-const ResultsInput = styled(Input)`
+const resultsInputStyles = css`
+  ${inputsStyles}
   @media (min-width: 768px) {
     width: calc((100% / 3) - 1em);
   }
 `;
 
-const ResultsItems = styled.span`
+const resultsItemsStyles = css`
   font-weight: normal;
 `;
 
-const InputGroup = styled.div`
+const inputGroupStyles = css`
   margin-top: 0.125rem;
   label {
     padding-left: 0.375rem;
@@ -168,11 +170,11 @@ const InputGroup = styled.div`
   }
 `;
 
-const Search = styled.div`
+const searchStyles = css`
   text-align: center;
 `;
 
-const Button = styled.button`
+const buttonStyles = css`
   margin-bottom: 0;
   font-size: 0.9375em;
   &.active {
@@ -180,7 +182,7 @@ const Button = styled.button`
   }
 `;
 
-const MapFooter = styled.div`
+const mapFooterStyles = css`
   width: 100%;
   /* match ESRI map footer text */
   padding: 3px 5px;
@@ -190,11 +192,11 @@ const MapFooter = styled.div`
   background-color: whitesmoke;
 `;
 
-const MapFooterMessage = styled.div`
+const mapFooterMessageStyles = css`
   margin-bottom: 5px;
 `;
 
-const MapFooterStatus = styled.div`
+const mapFooterStatusStyles = css`
   display: flex;
   align-items: center;
 
@@ -204,14 +206,15 @@ const MapFooterStatus = styled.div`
   }
 `;
 
-const ScreenLabel = styled.span`
+const screenLabelStyles = css`
   display: inline-block;
   margin-bottom: 0.25rem;
   font-size: 0.875rem;
   font-weight: bold;
 `;
 
-const ScreenLabelWithPadding = styled(ScreenLabel)`
+const screenLabelWithPaddingStyles = css`
+  ${screenLabelStyles}
   padding-left: 0.375rem;
 `;
 
@@ -761,12 +764,12 @@ function AdvancedSearch({ ...props }: Props) {
         to help narrow down your search. There are no required fields.
       </p>
 
-      <Inputs>
-        <Input>
-          <ScreenLabel>
+      <div css={inputsStyles}>
+        <div css={inputStyles}>
+          <span css={screenLabelStyles}>
             <GlossaryTerm term="Parameter Group">Parameter Groups</GlossaryTerm>
             :
-          </ScreenLabel>
+          </span>
           <Select
             aria-label="Parameter Groups"
             isMulti
@@ -777,12 +780,12 @@ function AdvancedSearch({ ...props }: Props) {
             onChange={(ev) => setParameterFilter(ev)}
             styles={reactSelectStyles}
           />
-        </Input>
+        </div>
 
-        <Input>
-          <ScreenLabel>
+        <div css={inputStyles}>
+          <span css={screenLabelStyles}>
             <GlossaryTerm term="Use Group">Use Groups</GlossaryTerm>:
-          </ScreenLabel>
+          </span>
           <Select
             aria-label="Use Groups"
             isMulti
@@ -792,17 +795,17 @@ function AdvancedSearch({ ...props }: Props) {
             onChange={(ev) => setUseFilter(ev)}
             styles={reactSelectStyles}
           />
-        </Input>
-      </Inputs>
+        </div>
+      </div>
 
-      <Inputs>
-        <Input>
-          <ScreenLabel>
+      <div css={inputsStyles}>
+        <div css={inputStyles}>
+          <span css={screenLabelStyles}>
             <GlossaryTerm term="Watershed Names (HUC 12)">
               Watershed Names (HUC12)
             </GlossaryTerm>
             :
-          </ScreenLabel>
+          </span>
           <Select
             aria-label="Watershed Names (HUC12)"
             isMulti
@@ -821,9 +824,9 @@ function AdvancedSearch({ ...props }: Props) {
             onChange={(ev) => setWatershedFilter(ev)}
             styles={reactSelectStyles}
           />
-        </Input>
+        </div>
 
-        <Input>
+        <div css={inputStyles}>
           <label htmlFor="waterbodies">Waterbody Names (IDs):</label>
           <Select
             inputId="waterbodies"
@@ -841,18 +844,18 @@ function AdvancedSearch({ ...props }: Props) {
             onChange={(ev) => setWaterbodyFilter(ev)}
             styles={reactSelectStyles}
           />
-        </Input>
-      </Inputs>
+        </div>
+      </div>
 
-      <Inputs>
-        <Input>
-          <ScreenLabel>
+      <div css={inputsStyles}>
+        <div css={inputStyles}>
+          <span css={screenLabelStyles}>
             <GlossaryTerm term="Integrated Reporting (IR) Category">
               Integrated Reporting (IR) Category
             </GlossaryTerm>
             :
-          </ScreenLabel>
-          <InputGroup>
+          </span>
+          <div css={inputGroupStyles}>
             <div>
               <input
                 id="ir-category-all"
@@ -874,11 +877,11 @@ function AdvancedSearch({ ...props }: Props) {
                 checked={waterTypeFilter === '303d'}
                 onChange={(ev) => setWaterTypeFilter(ev.target.value)}
               />
-              <ScreenLabelWithPadding>
+              <span css={screenLabelWithPaddingStyles}>
                 <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
                   303(d) Listed Impaired Waters (Category 5)
                 </GlossaryTerm>
-              </ScreenLabelWithPadding>
+              </span>
             </div>
 
             <div>
@@ -890,33 +893,34 @@ function AdvancedSearch({ ...props }: Props) {
                 checked={waterTypeFilter === 'impaired'}
                 onChange={(ev) => setWaterTypeFilter(ev.target.value)}
               />
-              <ScreenLabelWithPadding>
+              <span css={screenLabelWithPaddingStyles}>
                 <GlossaryTerm term="Impaired (Category 4 and 5)">
                   Impaired (Category 4 and 5)
                 </GlossaryTerm>
-              </ScreenLabelWithPadding>
+              </span>
             </div>
-          </InputGroup>
-        </Input>
+          </div>
+        </div>
 
-        <Input>
-          <ScreenLabel>Additional Filters:</ScreenLabel>
-          <InputGroup>
+        <div css={inputStyles}>
+          <span css={screenLabelStyles}>Additional Filters:</span>
+          <div css={inputGroupStyles}>
             <input
               aria-label="Has TMDL"
               type="checkbox"
               checked={hasTmdlChecked}
               onChange={(ev) => setHasTmdlChecked(!hasTmdlChecked)}
             />
-            <ScreenLabelWithPadding>
+            <span css={screenLabelWithPaddingStyles}>
               <GlossaryTerm term="TMDL">Has TMDL</GlossaryTerm>
-            </ScreenLabelWithPadding>
-          </InputGroup>
-        </Input>
-      </Inputs>
+            </span>
+          </div>
+        </div>
+      </div>
 
-      <Search>
-        <Button
+      <div css={searchStyles}>
+        <button
+          css={buttonStyles}
           disabled={searchLoading}
           onClick={(ev) => {
             if (mapView && mapView.popup) mapView.popup.close();
@@ -934,8 +938,8 @@ function AdvancedSearch({ ...props }: Props) {
               &nbsp;&nbsp;Search
             </>
           )}
-        </Button>
-      </Search>
+        </button>
+      </div>
     </>
   );
 
@@ -944,17 +948,17 @@ function AdvancedSearch({ ...props }: Props) {
     <>
       <hr />
 
-      <ResultsInputs data-content="stateinputs">
-        <ResultsInput>
-          <ScreenLabel>
+      <div css={resultsInputsStyles} data-content="stateinputs">
+        <div css={resultsInputStyles}>
+          <span css={screenLabelStyles}>
             Results:{' '}
-            <ResultsItems>
+            <span css={resultsItemsStyles}>
               {waterbodies ? waterbodies.length.toLocaleString() : 0} items
-            </ResultsItems>
-          </ScreenLabel>
-        </ResultsInput>
+            </span>
+          </span>
+        </div>
 
-        <ResultsInput>
+        <div css={resultsInputStyles}>
           <label htmlFor="display-by">Display Waterbodies by:</label>
           <Select
             inputId="display-by"
@@ -964,29 +968,35 @@ function AdvancedSearch({ ...props }: Props) {
             onChange={(ev) => setSelectedDisplayOption(ev)}
             styles={reactSelectStyles}
           />
-        </ResultsInput>
+        </div>
 
-        <ResultsInput>
-          <ButtonGroup className="btn-group float-right" role="group">
-            <Button
+        <div css={resultsInputStyles}>
+          <div
+            css={buttonGroupStyles}
+            className="btn-group float-right"
+            role="group"
+          >
+            <button
+              css={buttonStyles}
               type="button"
               className={`btn btn-secondary${showMap ? ' active' : ''}`}
               onClick={(ev) => setShowMap(true)}
             >
               <i className="fas fa-map-marked-alt" aria-hidden="true" />
               &nbsp;&nbsp;Map
-            </Button>
-            <Button
+            </button>
+            <button
+              css={buttonStyles}
               type="button"
               className={`btn btn-secondary${!showMap ? ' active' : ''}`}
               onClick={(ev) => setShowMap(false)}
             >
               <i className="fas fa-list" aria-hidden="true" />
               &nbsp;&nbsp;List
-            </Button>
-          </ButtonGroup>
-        </ResultsInput>
-      </ResultsInputs>
+            </button>
+          </div>
+        </div>
+      </div>
     </>
   );
 
@@ -1014,11 +1024,14 @@ function AdvancedSearch({ ...props }: Props) {
       activeState={activeState}
       numberOfRecords={numberOfRecords}
     >
-      <MapFooter style={{ width: fullscreenActive ? width : '100%' }}>
+      <div
+        css={mapFooterStyles}
+        style={{ width: fullscreenActive ? width : '100%' }}
+      >
         {reportStatusMapping.status === 'failure' && (
-          <MapFooterMessage>{state303dStatusError}</MapFooterMessage>
+          <div css={mapFooterMessageStyles}>{state303dStatusError}</div>
         )}
-        <MapFooterStatus>
+        <div css={mapFooterStatusStyles}>
           <strong>
             <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
               303(d) List Status
@@ -1048,8 +1061,8 @@ function AdvancedSearch({ ...props }: Props) {
             <>{currentReportingCycle.reportingCycle}</>
           )}
           {currentReportingCycle.status === 'fetching' && <LoadingSpinner />}
-        </MapFooterStatus>
-      </MapFooter>
+        </div>
+      </div>
     </StateMap>
   );
 
@@ -1061,9 +1074,9 @@ function AdvancedSearch({ ...props }: Props) {
 
   if (serviceError) {
     return (
-      <StyledErrorBox>
+      <div css={errorBoxStyles}>
         <p>{stateGeneralError}</p>
-      </StyledErrorBox>
+      </div>
     );
   }
 

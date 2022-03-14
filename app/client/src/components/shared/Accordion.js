@@ -180,6 +180,7 @@ const iconStyles = css`
 
 const textStyles = css`
   flex: 1;
+  margin-top: 0 !important;
   padding-bottom: 0;
   overflow-wrap: anywhere;
 `;

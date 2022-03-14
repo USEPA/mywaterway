@@ -5,7 +5,7 @@ import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { PinIcon } from 'components/shared/Icons';
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import { GradientIcon, isInScale } from 'utils/mapFunctions';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -561,7 +561,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
 
     if (additionalLegendInfo.status === 'failure') {
       return (
-        <StyledErrorBox>{legendUnavailableError(layerName)}</StyledErrorBox>
+        <div css={errorBoxStyles}>{legendUnavailableError(layerName)}</div>
       );
     }
 
@@ -570,7 +570,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
 
     if (!padLegend) {
       return (
-        <StyledErrorBox>{legendUnavailableError(layerName)}</StyledErrorBox>
+        <div css={errorBoxStyles}>{legendUnavailableError(layerName)}</div>
       );
     }
 
@@ -615,14 +615,14 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     if (additionalLegendInfo.status === 'fetching') return <LoadingSpinner />;
     if (additionalLegendInfo.status === 'failure') {
       return (
-        <StyledErrorBox>{legendUnavailableError(layerName)}</StyledErrorBox>
+        <div css={errorBoxStyles}>{legendUnavailableError(layerName)}</div>
       );
     }
 
     const legend = additionalLegendInfo.data['ejscreen']?.layers?.[0]?.legend;
     if (!legend) {
       return (
-        <StyledErrorBox>{legendUnavailableError(layerName)}</StyledErrorBox>
+        <div css={errorBoxStyles}>{legendUnavailableError(layerName)}</div>
       );
     }
 
