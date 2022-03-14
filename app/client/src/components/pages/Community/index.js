@@ -1,9 +1,9 @@
 // @flow
 
-import React from 'react';
+import React, { useContext, useEffect } from 'react';
 import type { Node } from 'react';
+import { css } from 'styled-components/macro';
 import WindowSize from '@reach/window-size';
-import styled from 'styled-components';
 // components
 import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
@@ -11,7 +11,7 @@ import TabLinks from 'components/shared/TabLinks';
 import LocationSearch from 'components/shared/LocationSearch';
 import LocationMap from 'components/pages/LocationMap';
 import MapVisibilityButton from 'components/shared/MapVisibilityButton';
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
@@ -24,15 +24,33 @@ import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
 // config
 import { tabs } from './config.js';
 // styles
-import { colors } from 'styles/index.js';
+import { colors, fonts } from 'styles/index.js';
 
-// --- styled components ---
-const Columns = styled.div`
+const columnsStyles = css`
   display: flex;
+  line-height: 1.25;
+
+  p,
+  li {
+    font-size: 0.875em;
+
+    @media (min-width: 560px) {
+      font-size: 1em;
+    }
+  }
+
+  h2 {
+    font-family: ${fonts.primary};
+    font-size: 1.125em;
+
+    @media (min-width: 560px) {
+      font-size: 1.375em;
+    }
+  }
 `;
 
-const LeftColumn = styled.div`
-  padding: 1.25em;
+const leftColumnStyles = css`
+  padding: 1em;
   width: 100%;
 
   @media (min-width: 960px) {
@@ -45,9 +63,9 @@ const LeftColumn = styled.div`
   }
 `;
 
-const RightColumn = styled.div`
-  margin-left: -1.25em;
-  width: calc(100% + 2.5em);
+const rightColumnStyles = css`
+  margin-left: -1em;
+  width: calc(100% + 2em);
   line-height: 1.25;
 
   @media (min-width: 960px) {
@@ -60,11 +78,16 @@ const RightColumn = styled.div`
   }
 `;
 
-const ErrorBox = styled(StyledErrorBox)`
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles};
+  margin-bottom: 1em;
+  text-align: center;
+`;
+
+const mapContainerStyles = css`
   margin-bottom: 1em;
 `;
 
-// --- components ---
 type Props = {
   children: Node,
   ...RouteProps,
@@ -87,28 +110,25 @@ type Props = {
 */
 
 function Community({ children, ...props }: Props) {
-  const { activeTabIndex } = React.useContext(CommunityTabsContext);
+  const { activeTabIndex } = useContext(CommunityTabsContext);
 
-  const { fullscreenActive } = React.useContext(FullscreenContext);
+  const { fullscreenActive } = useContext(FullscreenContext);
 
   // CommunityIntro is rendered as children when at the '/community' and '/community/' routes
   const atCommunityIntroRoute =
     window.location.pathname.replace(/\//g, '') === 'community'; // replace slashes "/" with empty string
 
   // scroll community content into view
-  React.useEffect(() => {
+  useEffect(() => {
     const content = document.querySelector('[data-content="community"]');
     if (content) content.scrollIntoView();
   }, []);
 
   // reset searchText and data when navigating away from '/community'
-  const {
-    resetData,
-    setSearchText,
-    setLastSearchText,
-    errorMessage,
-  } = React.useContext(LocationSearchContext);
-  React.useEffect(() => {
+  const { resetData, setSearchText, setLastSearchText, errorMessage } =
+    useContext(LocationSearchContext);
+
+  useEffect(() => {
     return function cleanup() {
       resetData();
       setSearchText('');
@@ -116,8 +136,9 @@ function Community({ children, ...props }: Props) {
     };
   }, [resetData, setLastSearchText, setSearchText]);
 
-  const { setVisibleLayers } = React.useContext(LocationSearchContext);
-  React.useEffect(() => {
+  const { setVisibleLayers } = useContext(LocationSearchContext);
+
+  useEffect(() => {
     // don't show any tab based layers if on community landing page
     if (window.location.pathname === '/community' || activeTabIndex === -1) {
       return;
@@ -127,7 +148,7 @@ function Community({ children, ...props }: Props) {
   }, [activeTabIndex, setVisibleLayers]);
 
   // reset data when navigating back to /community
-  React.useEffect(() => {
+  useEffect(() => {
     if (window.location.pathname === '/community') {
       resetData();
       setSearchText('');
@@ -159,6 +180,7 @@ function Community({ children, ...props }: Props) {
                 <LocationMap windowHeight={height} layout="fullscreen" />
 
                 <div style={{ display: 'none' }}>{children}</div>
+
                 {!atCommunityIntroRoute && (
                   <div style={{ display: 'none' }}>{lowerTab}</div>
                 )}
@@ -169,19 +191,29 @@ function Community({ children, ...props }: Props) {
           if (width < 960) {
             // narrow screens
             return (
-              <Columns data-content="community">
-                <LeftColumn data-column="left">
-                  {errorMessage && <ErrorBox>{errorMessage}</ErrorBox>}
+              <div css={columnsStyles} data-content="community">
+                <div css={leftColumnStyles} data-column="left">
+                  {errorMessage && (
+                    <div css={modifiedErrorBoxStyles}>
+                      <p>{errorMessage}</p>
+                    </div>
+                  )}
+
                   {searchMarkup}
-                  <RightColumn data-column="right">
+
+                  <div css={rightColumnStyles} data-column="right">
                     {/* children is either CommunityIntro or CommunityTabs (upper tabs) */}
                     {children}
-                  </RightColumn>
+                  </div>
+
                   {!atCommunityIntroRoute && (
                     <>
                       <MapVisibilityButton>
                         {(mapShown) => (
-                          <div style={{ display: mapShown ? 'block' : 'none' }}>
+                          <div
+                            css={mapContainerStyles}
+                            style={{ display: mapShown ? 'block' : 'none' }}
+                          >
                             <LocationMap
                               windowHeight={height}
                               layout="narrow"
@@ -193,25 +225,32 @@ function Community({ children, ...props }: Props) {
                       {lowerTab}
                     </>
                   )}
-                </LeftColumn>
-              </Columns>
+                </div>
+              </div>
             );
           } else {
             // wide screens
             return (
-              <Columns data-content="community">
-                <LeftColumn data-column="left">
-                  {errorMessage && <ErrorBox>{errorMessage}</ErrorBox>}
+              <div css={columnsStyles} data-content="community">
+                <div css={leftColumnStyles} data-column="left">
+                  {errorMessage && (
+                    <div css={modifiedErrorBoxStyles}>
+                      <p>{errorMessage}</p>
+                    </div>
+                  )}
+
                   <LocationMap windowHeight={height} layout="wide">
                     {searchMarkup}
                   </LocationMap>
-                </LeftColumn>
-                <RightColumn data-column="right">
+                </div>
+
+                <div css={rightColumnStyles} data-column="right">
                   {/* children is either CommunityIntro or CommunityTabs (upper tabs) */}
                   {children}
+
                   {!atCommunityIntroRoute && lowerTab}
-                </RightColumn>
-              </Columns>
+                </div>
+              </div>
             );
           }
         }}

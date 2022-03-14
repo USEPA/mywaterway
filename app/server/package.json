@@ -31,18 +31,18 @@
     "start": "nodemon -r dotenv/config --inspect app/server.js dotenv_config_path=./.env.local"
   },
   "dependencies": {
-    "axios": "0.24.0",
-    "dotenv": "10.0.0",
-    "express": "4.17.2",
+    "axios": "0.26.0",
+    "dotenv": "16.0.0",
+    "express": "4.17.3",
     "express-basic-auth": "1.2.1",
-    "helmet": "5.0.1",
-    "log4js": "6.3.0",
+    "helmet": "5.0.2",
+    "log4js": "6.4.1",
     "serve-favicon": "2.5.0"
   },
   "devDependencies": {
     "browser-sync": "2.27.7",
     "husky": "7.0.4",
-    "lint-staged": "12.1.5",
+    "lint-staged": "12.3.4",
     "nodemon": "2.0.15",
     "prettier": "2.5.1"
   },

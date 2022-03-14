@@ -3,6 +3,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { css } from 'styled-components/macro';
 import Graphic from '@arcgis/core/Graphic';
 // components
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
@@ -307,14 +308,9 @@ export function createWaterbodySymbol({
     }
 
     if (condition === 'polluted') {
-      //internet explorer does not support the path style
-      if (isIE()) {
-        symbol.style = 'circle';
-      } else {
-        symbol.style = 'path';
-        symbol.path =
-          'M17.14 3 8.86 3 3 8.86 3 17.14 8.86 23 17.14 23 23 17.14 23 8.86 17.14 3z';
-      }
+      symbol.style = 'path';
+      symbol.path =
+        'M17.14 3 8.86 3 3 8.86 3 17.14 8.86 23 17.14 23 23 17.14 23 8.86 17.14 3z';
     }
 
     return symbol;
@@ -341,12 +337,6 @@ export function createWaterbodySymbol({
       outline: polyOutline,
     };
   }
-}
-
-export function isIE() {
-  const ua = navigator.userAgent;
-  /* MSIE used to detect old browsers and Trident used to newer ones*/
-  return ua.indexOf('MSIE ') > -1 || ua.indexOf('Trident/') > -1;
 }
 
 // plot monitoring stations on map
@@ -409,8 +399,8 @@ export function plotGages(gages: Object[], layer: any) {
     });
   });
 
-  layer.queryFeatures().then((featureSet) => {
-    layer.applyEdits({
+  return layer.queryFeatures().then((featureSet) => {
+    return layer.applyEdits({
       deleteFeatures: featureSet.features,
       addFeatures: graphics,
     });
@@ -688,7 +678,7 @@ export function getPopupContent({
   // line, area, point for waterbody
   else if (attributes && attributes.assessmentunitname) {
     const communityTab = getSelectedCommunityTab();
-    const pathname = document.location.pathname;
+    const pathname = window.location.pathname;
     const isAllWaterbodiesLayer =
       feature.layer?.parent?.id === 'allWaterbodiesLayer';
 
@@ -844,121 +834,67 @@ export function graphicComparison(graphic1, graphic2) {
   return true;
 }
 
-// Creates a gradient scale used for legends
-export function gradientIcon({ id, stops }) {
-  const gradientHeight = 30 * (stops.length - 1);
-  const labelContainerHeight = 37.5 * (stops.length - 1);
+const tickMarkStyles = css`
+  display: flex;
+  align-items: center;
+  width: 100%;
+
+  ::before {
+    content: '';
+    width: 4px;
+    height: 1px;
+    background-color: #999;
+  }
+
+  p {
+    padding-left: 0.25em;
+    font-size: 0.875em !important;
+  }
+`;
+
+export function GradientIcon({ id, stops }) {
+  const divisions = stops.length - 1;
   return (
-    <table width="50%">
-      <tbody>
-        <tr>
-          <td width="34" align="center">
-            <div
-              style={{
-                position: 'relative',
-                width: '34px',
-                height: `${gradientHeight}px`,
-              }}
+    <div css={{ display: 'flex', margin: 'auto' }}>
+      <div css={{ margin: '15px 0', border: '1px solid #999' }}>
+        <svg width={20} height={30 * divisions}>
+          <defs>
+            <linearGradient
+              id={id}
+              x1={0}
+              y1={0}
+              x2={0}
+              y2={30 * divisions}
+              gradientUnits="userSpaceOnUse"
             >
-              <div
-                className="esriLegendColorRamp"
-                style={{
-                  border: '1px solid rgba(194, 194, 194, 0.25)',
-                  height: `${gradientHeight}px`,
-                }}
-              >
-                <svg
-                  overflow="hidden"
-                  width="24"
-                  height={gradientHeight}
-                  style={{ touchAction: 'none' }}
-                >
-                  <defs>
-                    <linearGradient
-                      id={id}
-                      gradientUnits="userSpaceOnUse"
-                      x1="0.00000000"
-                      y1="0.00000000"
-                      x2="0.00000000"
-                      y2={gradientHeight}
-                    >
-                      {stops.map((item, index) => {
-                        return (
-                          <stop
-                            key={index}
-                            offset={index / (stops.length - 1)}
-                            stopColor={item.color}
-                            stopOpacity="1"
-                          />
-                        );
-                      })}
-                    </linearGradient>
-                  </defs>
-                  <rect
-                    fill={`url(#${id})`}
-                    stroke="none"
-                    strokeOpacity="0"
-                    strokeWidth="1"
-                    strokeLinecap="butt"
-                    strokeLinejoin="miter"
-                    strokeMiterlimit="4"
-                    x="0"
-                    y="0"
-                    width="24"
-                    height={gradientHeight}
-                    ry="0"
-                    rx="0"
-                    fillRule="evenodd"
-                  />
-                  <rect
-                    fill="rgb(255, 255, 255)"
-                    fillOpacity="0"
-                    stroke="none"
-                    strokeOpacity="0"
-                    strokeWidth="1"
-                    strokeLinecap="butt"
-                    strokeLinejoin="miter"
-                    strokeMiterlimit="4"
-                    x="0"
-                    y="0"
-                    width="24"
-                    height={gradientHeight}
-                    ry="0"
-                    rx="0"
-                    fillRule="evenodd"
-                  />
-                </svg>
-              </div>
-              {stops.map((item, index) => {
-                return (
-                  <div
-                    key={index}
-                    className={item.label ? 'esriLegendColorRampTick' : ''}
-                    style={{ top: `${(index / (stops.length - 1)) * 100}%` }}
-                  >
-                    &nbsp;
-                  </div>
-                );
-              })}
-            </div>
-          </td>
-          <td>
-            <div
-              className="esriLegendColorRampLabels"
-              style={{ height: `${labelContainerHeight}px` }}
-            >
-              {stops.map((item, index) => {
-                return (
-                  <div key={index} className="esriLegendColorRampLabel">
-                    {item.label ? item.label : <>&nbsp;</>}
-                  </div>
-                );
-              })}
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+              {stops.map((stop, index) => (
+                <stop
+                  key={index}
+                  offset={index / divisions}
+                  stopColor={stop.color}
+                />
+              ))}
+            </linearGradient>
+          </defs>
+
+          <rect
+            x={0}
+            y={0}
+            width={20}
+            height={30 * divisions}
+            fill={`url(#${id})`}
+          />
+        </svg>
+      </div>
+
+      <div css={{ display: 'flex', flexWrap: 'wrap', width: '45px' }}>
+        {stops.map((stop, index) => (
+          <div key={index} css={tickMarkStyles}>
+            <p>{stop.label}</p>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -977,4 +913,59 @@ export function getHighlightSymbol(geometry, color) {
   }
 
   return symbol;
+}
+
+// helper method used in handleMapZoomChange() for determining a map layer’s listMode
+export function isInScale(layer: any, scale: number) {
+  let inScale = true;
+  let minScale = 0;
+  let maxScale = 0;
+
+  // get the extreme min and max scales of the layer
+  if (layer.sublayers && layer.sourceJSON) {
+    // get sublayers included in the parentlayer
+    // note: the sublayer has maxScale and minScale, but these are always 0
+    //       even if the sublayer does actually have a min/max scale.
+    const sublayerIds = [];
+    layer.sublayers.forEach((sublayer) => {
+      sublayerIds.push(sublayer.id);
+    });
+
+    // get the min/max scale from the sourceJSON
+    layer.sourceJSON.layers.forEach((sourceLayer) => {
+      if (!sublayerIds.includes(sourceLayer.id)) return;
+
+      if (sourceLayer.minScale === 0 || sourceLayer.minScale > minScale) {
+        minScale = sourceLayer.minScale;
+      }
+      if (sourceLayer.maxScale === 0 || sourceLayer.maxScale < maxScale) {
+        maxScale = sourceLayer.maxScale;
+      }
+    });
+  } else if (layer.layers) {
+    // get the min/max scale from the sourceJSON
+    layer.layers.forEach((subLayer) => {
+      if (subLayer.minScale === 0 || subLayer.minScale > minScale) {
+        minScale = subLayer.minScale;
+      }
+      if (subLayer.maxScale === 0 || subLayer.maxScale < maxScale) {
+        maxScale = subLayer.maxScale;
+      }
+    });
+  } else {
+    ({ maxScale, minScale } = layer);
+  }
+
+  // check if the map zoom is within scale
+  if (minScale > 0 || maxScale > 0) {
+    if (maxScale > 0 && minScale > 0) {
+      inScale = maxScale <= scale && scale <= minScale;
+    } else if (maxScale > 0) {
+      inScale = maxScale <= scale;
+    } else if (minScale > 0) {
+      inScale = scale <= minScale;
+    }
+  }
+
+  return inScale;
 }

@@ -7,6 +7,7 @@ import { navigate } from '@reach/router';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
 import { getWaterbodyCondition } from 'components/pages/LocationMap/MapFunctions';
@@ -23,8 +24,7 @@ import { characteristicGroupMappings } from 'config/characteristicGroupMappings'
 // errors
 import { waterbodyReportError } from 'config/errorMessages';
 // styles
-import { colors } from 'styles/index.js';
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import { colors, tableStyles } from 'styles/index.js';
 
 function bool(value) {
   // Return 'Yes' for truthy values and non-zero strings
@@ -60,8 +60,8 @@ const popupContainerStyles = css`
 `;
 
 const popupContentStyles = css`
-  margin-top: 0.5rem;
-  margin-left: 0.625em;
+  margin: 0.625em;
+  width: calc(100% - 1.25em);
 `;
 
 const popupTitleStyles = css`
@@ -72,7 +72,31 @@ const popupTitleStyles = css`
   background-color: #f0f6f9;
 `;
 
-const tableStyles = css`
+const modifiedTableStyles = css`
+  ${tableStyles}
+
+  thead th {
+    vertical-align: top;
+  }
+
+  th,
+  td {
+    overflow-wrap: anywhere;
+    hyphens: auto;
+
+    :first-of-type {
+      padding-left: 0;
+    }
+
+    :last-of-type {
+      padding-right: 0;
+    }
+  }
+`;
+
+const measurementTableStyles = css`
+  ${modifiedTableStyles};
+
   th:last-of-type,
   td:last-of-type {
     text-align: right;
@@ -80,8 +104,8 @@ const tableStyles = css`
 `;
 
 const checkboxCellStyles = css`
+  padding-right: 0 !important;
   text-align: center;
-  vertical-align: middle !important;
 `;
 
 const checkboxStyles = css`
@@ -89,8 +113,21 @@ const checkboxStyles = css`
   transform: scale(1.2);
 `;
 
-const linkStyles = css`
-  margin-left: 0.5em;
+const downloadLinksStyles = css`
+  span {
+    display: inline-block;
+    width: 100%;
+    font-weight: bold;
+
+    @media (min-width: 360px) {
+      margin-right: 0.5em;
+      width: auto;
+    }
+  }
+
+  a {
+    margin-right: 1em;
+  }
 `;
 
 const iconStyles = css`
@@ -120,7 +157,7 @@ const popupIconStyles = css`
   display: inline-block;
 `;
 
-const textStyles = css`
+const paragraphStyles = css`
   padding-bottom: 0.5em;
 `;
 
@@ -242,7 +279,7 @@ function WaterbodyInfo({
     }
 
     return (
-      <p css={textStyles}>
+      <p css={paragraphStyles}>
         <strong>{label}: </strong>
         {value}
       </p>
@@ -265,7 +302,9 @@ function WaterbodyInfo({
 
     return (
       <>
-        <strong>{label}: </strong>
+        <p css={paragraphStyles}>
+          <strong>{label}: </strong>
+        </p>
         <ul>{pollutionCategories}</ul>
       </>
     );
@@ -289,13 +328,16 @@ function WaterbodyInfo({
     if (type === 'Protection Plans') {
       title = 'Protection Plans for this Waterbody';
     }
+    if (type === 'Upstream Watershed') {
+      title = <GlossaryTerm term="Upstream Watershed">{title}</GlossaryTerm>;
+    }
 
     return <p css={popupTitleStyles}>{title}</p>;
   };
 
   const waterbodyReportLink =
     !onWaterbodyReportPage && attributes.organizationid ? (
-      <div>
+      <p css={paragraphStyles}>
         <a
           rel="noopener noreferrer"
           target="_blank"
@@ -311,9 +353,11 @@ function WaterbodyInfo({
         </a>
         &nbsp;&nbsp;
         <small css={disclaimerStyles}>(opens new browser tab)</small>
-      </div>
+      </p>
     ) : (
-      <p>Unable to find a waterbody report for this waterbody.</p>
+      <p css={paragraphStyles}>
+        Unable to find a waterbody report for this waterbody.
+      </p>
     );
 
   const baseWaterbodyContent = () => {
@@ -356,7 +400,7 @@ function WaterbodyInfo({
     return (
       <>
         {reportingCycle && (
-          <p css={textStyles}>
+          <p css={paragraphStyles}>
             <strong>Year Last Reported: </strong>
             {reportingCycle}
           </p>
@@ -372,7 +416,7 @@ function WaterbodyInfo({
         )}
 
         {attributes?.organizationid && attributes?.organizationname && (
-          <p css={textStyles}>
+          <p css={paragraphStyles}>
             <strong>Organization Name (ID): </strong>
             {attributes.organizationname} ({attributes.organizationid})
           </p>
@@ -385,7 +429,7 @@ function WaterbodyInfo({
             )}
 
             {applicableFields.length > 0 && (
-              <table className="table">
+              <table css={modifiedTableStyles} className="table">
                 <thead>
                   <tr>
                     <th>Evaluated Use</th>
@@ -428,7 +472,9 @@ function WaterbodyInfo({
   const waterbodyStateContent = (
     <>
       {labelValue(
-        '303(d) Listed',
+        <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
+          303(d) Listed
+        </GlossaryTerm>,
         attributes.on303dlist === 'Y' ? 'Yes' : 'No',
       )}
       {labelValue('TMDL', attributes.hastmdl === 'Y' ? 'Yes' : 'No')}
@@ -444,7 +490,7 @@ function WaterbodyInfo({
 
   const dischargerContent = (
     <>
-      <table className="table">
+      <table css={modifiedTableStyles} className="table">
         <tbody>
           <tr>
             <td>
@@ -485,7 +531,7 @@ function WaterbodyInfo({
         </tbody>
       </table>
 
-      <div>
+      <p>
         <a
           href={`https://echo.epa.gov/detailed-facility-report?fid=${attributes.RegistryID}`}
           target="_blank"
@@ -496,7 +542,7 @@ function WaterbodyInfo({
         </a>
         &nbsp;&nbsp;
         <small css={disclaimerStyles}>(opens new browser tab)</small>
-      </div>
+      </p>
     </>
   );
 
@@ -623,11 +669,11 @@ function WaterbodyInfo({
 
     return (
       <>
-        <table className="table">
+        <table css={modifiedTableStyles} className="table">
           <tbody>
             <tr>
               <td>
-                <em>Organization:</em>
+                <em>Organ&shy;ization Name:</em>
               </td>
               <td>{attributes.orgName}</td>
             </tr>
@@ -645,7 +691,7 @@ function WaterbodyInfo({
             </tr>
             <tr>
               <td>
-                <em>Monitoring Site ID:</em>
+                <em>Monitor&shy;ing Site ID:</em>
               </td>
               <td>{attributes.siteId.replace(`${attributes.orgId}-`, '')}</td>
             </tr>
@@ -653,7 +699,7 @@ function WaterbodyInfo({
               <td>
                 <em>
                   <GlossaryTerm term="Monitoring Samples">
-                    Monitoring Samples:
+                    Monitor&shy;ing Samples:
                   </GlossaryTerm>
                 </em>
               </td>
@@ -663,7 +709,7 @@ function WaterbodyInfo({
               <td>
                 <em>
                   <GlossaryTerm term="Monitoring Measurements">
-                    Monitoring Measurements:
+                    Monitor&shy;ing Measure&shy;ments:
                   </GlossaryTerm>
                 </em>
               </td>
@@ -677,12 +723,13 @@ function WaterbodyInfo({
         <p>
           <strong>Download Monitoring Data:</strong>
         </p>
+
         {Object.keys(groups).length === 0 && (
           <p>No data available for this monitoring location.</p>
         )}
 
         {Object.keys(groups).length > 0 && (
-          <table css={tableStyles} className="table">
+          <table css={measurementTableStyles} className="table">
             <thead>
               <tr>
                 <th css={checkboxCellStyles}>
@@ -699,12 +746,12 @@ function WaterbodyInfo({
                 </th>
                 <th>
                   <GlossaryTerm term="Characteristic Group">
-                    Characteristic Group
+                    Char&shy;acter&shy;istic Group
                   </GlossaryTerm>
                 </th>
                 <th>
                   <GlossaryTerm term="Monitoring Measurements">
-                    Number of Measurements
+                    Number of Measure&shy;ments
                   </GlossaryTerm>
                 </th>
               </tr>
@@ -737,9 +784,11 @@ function WaterbodyInfo({
             </tbody>
           </table>
         )}
-        <p>
-          <strong>Data Download Format:</strong>
-          <a css={linkStyles} href={`${downloadUrl}&mimeType=xlsx`}>
+
+        <p css={downloadLinksStyles}>
+          <span>Data Download Format:</span>
+          &nbsp;
+          <a href={`${downloadUrl}&mimeType=xlsx`}>
             <i
               css={iconStyles}
               className="fas fa-file-excel"
@@ -747,7 +796,7 @@ function WaterbodyInfo({
             />
             xls
           </a>
-          <a css={linkStyles} href={`${downloadUrl}&mimeType=csv`}>
+          <a href={`${downloadUrl}&mimeType=csv`}>
             <i
               css={iconStyles}
               className="fas fa-file-csv"
@@ -756,7 +805,8 @@ function WaterbodyInfo({
             csv
           </a>
         </p>
-        <div>
+
+        <p>
           <a
             rel="noopener noreferrer"
             target="_blank"
@@ -786,7 +836,7 @@ function WaterbodyInfo({
           </a>
           &nbsp;&nbsp;
           <small css={disclaimerStyles}>(opens new browser tab)</small>
-        </div>
+        </p>
       </>
     );
   }
@@ -867,7 +917,7 @@ function WaterbodyInfo({
         {attributes.RiverCategory}
         <br />
       </p>
-      <div>
+      <p>
         <a rel="noopener noreferrer" target="_blank" href={attributes.WEBLINK}>
           <i
             css={iconStyles}
@@ -878,14 +928,14 @@ function WaterbodyInfo({
         </a>
         &nbsp;&nbsp;
         <small css={disclaimerStyles}>(opens new browser tab)</small>
-      </div>
+      </p>
     </>
   );
 
   // jsx
   const wsioContent = (
     <>
-      <table className="table">
+      <table css={modifiedTableStyles} className="table">
         <tbody>
           <tr>
             <td>
@@ -1055,11 +1105,11 @@ function WaterbodyInfo({
           {attainsProjects.status === 'success' && (
             <>
               {projects.length === 0 ? (
-                <p>No plans for this waterbody.</p>
+                <p>No plans specified for this waterbody.</p>
               ) : (
                 <>
                   <em>Links below open in a new browser tab.</em>
-                  <table className="table">
+                  <table css={modifiedTableStyles} className="table">
                     <thead>
                       <tr>
                         <th>Plan (ID)</th>
@@ -1148,7 +1198,7 @@ function WaterbodyInfo({
       <div css={popupContainerStyles}>
         {clickedHuc && (
           <>
-            {clickedHuc.status === 'no-data' && <p>No Data</p>}
+            {clickedHuc.status === 'no-data' && null}
             {clickedHuc.status === 'fetching' && <LoadingSpinner />}
             {clickedHuc.status === 'failure' && <p>Web service error</p>}
             {clickedHuc.status === 'success' && (
@@ -1250,14 +1300,22 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
 
   const sortedPrimaryMeasurements = [...primaryMeasurements]
     .sort((a, b) => a.parameterOrder - b.parameterOrder)
-    .map((data, index) => (
-      <UsgsStreamgageParameter url={locationUrl} data={data} index={index} />
+    .map((data) => (
+      <UsgsStreamgageParameter
+        url={locationUrl}
+        data={data}
+        key={data.parameterCode}
+      />
     ));
 
   const sortedSecondaryMeasurements = [...secondaryMeasurements]
     .sort((a, b) => a.parameterName.localeCompare(b.parameterName))
-    .map((data, index) => (
-      <UsgsStreamgageParameter url={locationUrl} data={data} index={index} />
+    .map((data) => (
+      <UsgsStreamgageParameter
+        url={locationUrl}
+        data={data}
+        key={data.parameterCode}
+      />
     ));
 
   const sortedMeasurements = [
@@ -1267,17 +1325,17 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
 
   return (
     <>
-      <table className="table">
+      <table css={modifiedTableStyles} className="table">
         <tbody>
           <tr>
             <td>
-              <em>Organization:</em>
+              <em>Organ&shy;ization Name:</em>
             </td>
             <td>{orgName}</td>
           </tr>
           <tr>
             <td>
-              <em>Location Name:</em>
+              <em>Locat&shy;ion Name:</em>
             </td>
             <td>{locationName}</td>
           </tr>
@@ -1289,14 +1347,14 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
           </tr>
           <tr>
             <td>
-              <em>Monitoring Site ID:</em>
+              <em>Monitor&shy;ing Site ID:</em>
             </td>
             <td>{siteId.replace(`${orgId}-`, '')}</td>
           </tr>
         </tbody>
       </table>
 
-      <table css={tableStyles} className="table">
+      <table css={measurementTableStyles} className="table">
         <thead>
           <tr>
             <th>Category</th>
@@ -1307,7 +1365,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
           {sortedMeasurements.length === 0 ? (
             <tr>
               <td>
-                <em>No data available.</em>
+                <em>No recent data available.</em>
               </td>
               <td>&nbsp;</td>
             </tr>
@@ -1348,7 +1406,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
         </tbody>
       </table>
 
-      <div>
+      <p>
         <a rel="noopener noreferrer" target="_blank" href={locationUrl}>
           <i
             css={iconStyles}
@@ -1359,14 +1417,14 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
         </a>
         &nbsp;&nbsp;
         <small css={disclaimerStyles}>(opens new browser tab)</small>
-      </div>
+      </p>
     </>
   );
 }
 
-function UsgsStreamgageParameter({ url, data, index }) {
+function UsgsStreamgageParameter({ url, data }) {
   return (
-    <tr key={index}>
+    <tr>
       <td>
         {data.parameterCategory === 'primary' ? (
           <GlossaryTerm term={data.parameterName}>

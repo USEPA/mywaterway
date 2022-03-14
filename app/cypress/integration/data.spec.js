@@ -13,7 +13,7 @@ describe('Data page', () => {
 
     cy.findByText('Data').click();
     cy.findByText('About the Data').should('exist');
-    cy.url().should('equal', `${document.location.origin}/data`);
+    cy.url().should('equal', `${window.location.origin}/data`);
 
     // verify that community search data is still there after clicking the Back button
     cy.findByText('Back').click();

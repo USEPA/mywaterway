@@ -173,7 +173,7 @@ function FileIcon({ label }: FileIconProps) {
 // --- styles (FilePanel) ---
 const MessageBoxStyles = `
   margin-bottom: 10px;
-  word-break: break-word;
+  overflow-wrap: anywhere;
 `;
 
 const ErrorBox = styled(StyledErrorBox)`
@@ -223,9 +223,8 @@ type UploadStatusType =
   | 'file-read-error';
 
 function FilePanel() {
-  const { widgetLayers, setWidgetLayers } = React.useContext(
-    AddDataWidgetContext,
-  );
+  const { widgetLayers, setWidgetLayers } =
+    React.useContext(AddDataWidgetContext);
   const { mapView } = React.useContext(LocationSearchContext);
 
   const [generalizeFeatures, setGeneralizeFeatures] = React.useState(false);

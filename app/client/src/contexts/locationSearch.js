@@ -233,7 +233,6 @@ type State = {
   searchText: string,
   lastSearchText: string,
   huc12: string,
-  assessmentUnitCount: ?number,
   assessmentUnitIDs: Array<string>,
   watershed: string,
   address: string,
@@ -313,7 +312,6 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     searchText: '',
     lastSearchText: '',
     huc12: '',
-    assessmentUnitCount: null,
     assessmentUnitIDs: [],
     watershed: '',
     address: '',
@@ -328,7 +326,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     usgsDailyPrecipitation: { status: 'fetching', data: {} },
     permittedDischargers: { status: 'fetching', data: {} },
     grts: { status: 'fetching', data: [] },
-    attainsPlans: { status: 'fetching', data: [] },
+    attainsPlans: { status: 'fetching', data: {} },
     drinkingWater: { status: 'fetching', data: [] },
     cipSummary: { status: 'fetching', data: {} },
     nonprofits: { status: 'fetching', data: [] },
@@ -443,9 +441,6 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     },
     setHuc12: (huc12) => {
       this.setState({ huc12 });
-    },
-    setAssessmentUnitCount: (assessmentUnitCount) => {
-      this.setState({ assessmentUnitCount });
     },
     setAssessmentUnitIDs: (assessmentUnitIDs) => {
       this.setState({ assessmentUnitIDs });
@@ -798,7 +793,6 @@ export class LocationSearchProvider extends React.Component<Props, State> {
     resetData: () => {
       this.setState({
         huc12: '',
-        assessmentUnitCount: null,
         assessmentUnitIDs: null,
         watershed: '',
         pointsData: null,
@@ -815,7 +809,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
         permittedDischargers: { status: 'fetching', data: {} },
         nonprofits: { status: 'fetching', data: [] },
         grts: { status: 'fetching', data: [] },
-        attainsPlans: { status: 'fetching', data: [] },
+        attainsPlans: { status: 'fetching', data: {} },
         cipSummary: { status: 'fetching', data: {} },
         drinkingWater: { status: 'fetching', data: [] },
       });
@@ -839,7 +833,6 @@ export class LocationSearchProvider extends React.Component<Props, State> {
       this.setState(
         {
           huc12: '',
-          assessmentUnitCount: null,
           assessmentUnitIDs: null,
           watershed: '',
           pointsData: [],
@@ -854,7 +847,7 @@ export class LocationSearchProvider extends React.Component<Props, State> {
           permittedDischargers: { status: 'success', data: {} },
           nonprofits: { status: 'success', data: [] },
           grts: { status: 'success', data: [] },
-          attainsPlans: { status: 'success', data: [] },
+          attainsPlans: { status: 'success', data: {} },
           cipSummary: { status: 'success', data: {} },
           drinkingWater: { status: 'success', data: [] },
           visibleLayers: {},

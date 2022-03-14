@@ -43,9 +43,13 @@ import {
 } from 'config/errorMessages';
 // config
 import { usgsStaParameters } from 'config/usgsStaParameters';
+// styles
+import { toggleTableStyles } from 'styles/index.js';
 
 const containerStyles = css`
-  padding: 1em;
+  @media (min-width: 960px) {
+    padding: 1em;
+  }
 `;
 
 const modifiedErrorBoxStyles = css`
@@ -72,17 +76,6 @@ const accordionContentStyles = css`
   padding: 0.4375em 0.875em 0.875em;
 `;
 
-const tableStyles = css`
-  thead {
-    background-color: #f0f6f9;
-  }
-
-  th:last-of-type,
-  td:last-of-type {
-    text-align: right;
-  }
-`;
-
 const toggleStyles = css`
   display: flex;
   align-items: center;
@@ -95,7 +88,6 @@ const toggleStyles = css`
 function Overview() {
   const {
     cipSummary,
-    assessmentUnitCount, // TODO: determine if this is needed...
     monitoringLocations,
     usgsStreamgages,
     permittedDischargers,
@@ -277,8 +269,8 @@ function Overview() {
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {Boolean(assessmentUnitCount) && cipSummary.status === 'success'
-                  ? assessmentUnitCount.toLocaleString()
+                {Boolean(waterbodies.length) && cipSummary.status === 'success'
+                  ? waterbodies.length.toLocaleString()
                   : 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Waterbodies</p>
@@ -438,12 +430,12 @@ function WaterbodiesTab() {
       waterbodies={waterbodies}
       fieldName={null}
       title={
-        <div data-testid="overview-waterbodies-accordion-title">
+        <span data-testid="overview-waterbodies-accordion-title">
           Overall condition of{' '}
           <strong>{waterbodies?.length.toLocaleString()}</strong>{' '}
           {waterbodies?.length === 1 ? 'waterbody' : 'waterbodies'} in the{' '}
           <em>{watershed}</em> watershed.
-        </div>
+        </span>
       }
     />
   );
@@ -484,6 +476,8 @@ function MonitoringAndSensorsTab({
     monitoringLocationsDisplayed,
     setMonitoringAndSensorsDisplayed,
   ]);
+
+  const [usgsStreamgagesPlotted, setUsgsGtreamgagesPlotted] = useState(false);
 
   const [normalizedUsgsStreamgages, setNormalizedUsgsStreamgages] = useState(
     [],
@@ -553,13 +547,16 @@ function MonitoringAndSensorsTab({
 
     setNormalizedUsgsStreamgages(gages);
 
-    plotGages(gages, usgsStreamgagesLayer);
+    plotGages(gages, usgsStreamgagesLayer).then((result) => {
+      if (result.addFeatureResults.length > 0) setUsgsGtreamgagesPlotted(true);
+    });
   }, [usgsStreamgages.data, usgsStreamgagesLayer]);
 
-  // add precipitation data (fetched from usgsDailyValues web service) to each
-  // streamgage if it exists for that particular location and replot the
-  // streamgages on the map
+  // once streamgages have been plotted initially, add precipitation data
+  // (fetched from usgsDailyValues web service) to each streamgage if it exists
+  // for that particular location and replot the streamgages on the map
   useEffect(() => {
+    if (!usgsStreamgagesPlotted) return;
     if (!usgsDailyPrecipitation.data.value) return;
     if (normalizedUsgsStreamgages.length === 0) return;
 
@@ -591,7 +588,12 @@ function MonitoringAndSensorsTab({
     });
 
     plotGages(normalizedUsgsStreamgages, usgsStreamgagesLayer);
-  }, [usgsDailyPrecipitation, normalizedUsgsStreamgages, usgsStreamgagesLayer]);
+  }, [
+    usgsStreamgagesPlotted,
+    usgsDailyPrecipitation,
+    normalizedUsgsStreamgages,
+    usgsStreamgagesLayer,
+  ]);
 
   const [normalizedMonitoringLocations, setNormalizedMonitoringLocations] =
     useState([]);
@@ -713,7 +715,7 @@ function MonitoringAndSensorsTab({
               explore sample data from water quality monitoring locations.
             </p>
 
-            <table css={tableStyles} className="table">
+            <table css={toggleTableStyles} className="table">
               <thead>
                 <tr>
                   <th>
@@ -796,6 +798,10 @@ function MonitoringAndSensorsTab({
                   value: 'locationName',
                 },
                 {
+                  label: 'Organization Name',
+                  value: 'orgName',
+                },
+                {
                   label: 'Organization ID',
                   value: 'orgId',
                 },
@@ -832,6 +838,9 @@ function MonitoringAndSensorsTab({
                       <>
                         <em>Monitoring Type:</em>&nbsp;&nbsp;
                         {item.monitoringType}
+                        <br />
+                        <em>Organization Name:</em>&nbsp;&nbsp;
+                        {item.orgName}
                         <br />
                         <em>Organization ID:</em>&nbsp;&nbsp;{item.orgId}
                         <br />
