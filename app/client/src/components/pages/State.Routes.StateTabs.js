@@ -2,7 +2,6 @@
 
 import React, { useContext, useEffect, useRef } from 'react';
 import {} from 'styled-components/macro';
-// import {} from 'styled-components/cssprop';
 import { navigate } from '@reach/router';
 import { Tab, Tabs, TabList, TabPanel, TabPanels } from '@reach/tabs';
 // components
