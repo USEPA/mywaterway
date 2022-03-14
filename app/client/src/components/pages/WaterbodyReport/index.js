@@ -200,6 +200,15 @@ const disclaimerStyles = css`
   display: inline-block;
 `;
 
+const introTextStyles = css`
+  margin-top: 0 !important;
+  padding-bottom: 0.4375em !important;
+`;
+
+const listStyles = css`
+  padding-bottom: 0;
+`;
+
 type Props = {
   ...RouteProps,
   // passed from FullscreenContext.Consumer in WaterbodyReportContainer
@@ -359,6 +368,10 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
     status: 'fetching',
     data: [],
   });
+  const [documents, setDocuments] = React.useState({
+    status: 'fetching',
+    data: [],
+  });
 
   // fetch reporting cycle, waterbody status, decision rational, uses,
   // and sources from attains 'assessments' web service
@@ -409,6 +422,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
             data: [],
           });
           setWaterbodySources({ status: 'success', data: [] });
+          setDocuments({ status: 'success', data: [] });
           return;
         }
 
@@ -428,6 +442,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         let useAttainments = [];
         let parameters = [];
         let probableSources = [];
+        let assessmentDocuments = [];
         if (firstItem.assessments.length > 0) {
           const assessment = firstItem.assessments[0];
 
@@ -437,6 +452,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
           useAttainments = assessment.useAttainments;
           parameters = assessment.parameters;
           probableSources = assessment.probableSources;
+          assessmentDocuments = assessment.documents;
         }
 
         setDecisionRationale(rationaleText);
@@ -604,6 +620,8 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         });
 
         setWaterbodySources({ status: 'success', data: sources });
+
+        setDocuments({ status: 'success', data: assessmentDocuments });
       },
       (err) => {
         console.error(err);
@@ -615,6 +633,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
         setWaterbodyStatus({ status: 'failure', data: [] });
         setWaterbodyUses({ status: 'failure', data: [] });
         setWaterbodySources({ status: 'failure', data: [] });
+        setDocuments({ status: 'failure', data: [] });
         setOrganizationName({
           status: 'failure',
           name: '',
@@ -1177,6 +1196,50 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                               </tbody>
                             </table>
                           )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div css={boxStyles}>
+                    <h2 css={boxHeadingStyles}>Associated Documents</h2>
+
+                    <div css={boxSectionStyles}>
+                      {documents.status === 'fetching' && <LoadingSpinner />}
+                      {documents.status === 'failure' && (
+                        <div css={modifiedErrorBoxStyles}>
+                          <p>{waterbodyReportError('Assessment')}</p>
+                        </div>
+                      )}
+                      {documents.status === 'success' && (
+                        <>
+                          {documents.length > 0 && (
+                            <div css={[boxSectionStyles, { paddingBottom: 0 }]}>
+                              <p css={introTextStyles}>
+                                <em>Links below open in a new browser tab.</em>
+                              </p>
+                            </div>
+                          )}
+                          <div css={boxSectionStyles}>
+                            <ul css={listStyles}>
+                              {documents.data.length === 0 && (
+                                <li>No documents are available</li>
+                              )}
+
+                              {documents.data.length > 0 &&
+                                documents.data.map((document) => (
+                                  <li key={document.documentName}>
+                                    <a
+                                      href={document.documentURL}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      {document.documentName}
+                                    </a>
+                                  </li>
+                                ))}
+                            </ul>
+                          </div>
                         </>
                       )}
                     </div>
