@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -57,8 +57,9 @@ function WaterbodyList({
 }: Props) {
   // Triggers the loading spinner. When a search is complete the loading
   // spinner will be displayed for 250ms.
-  const [loading, setLoading] = React.useState(true);
-  React.useEffect(() => {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
     if (!waterbodies) {
       setLoading(true);
     } else {
@@ -69,11 +70,11 @@ function WaterbodyList({
   }, [waterbodies]);
 
   // Sort the waterbodies
-  const [sortBy, setSortBy] = React.useState('assessmentunitname');
-  const { highlightedGraphic, selectedGraphic } = React.useContext(
-    MapHighlightContext,
-  );
-  const [expandedRows, setExpandedRows] = React.useState([]);
+  const [sortBy, setSortBy] = useState('assessmentunitname');
+
+  const { highlightedGraphic, selectedGraphic } =
+    useContext(MapHighlightContext);
+  const [expandedRows, setExpandedRows] = useState([]);
 
   if (loading || !waterbodies) return <LoadingSpinner />;
   if (!loading && waterbodies && waterbodies.length <= 0) {
@@ -87,6 +88,7 @@ function WaterbodyList({
   return (
     <>
       <p css={textStyles}>Waterbody Conditions:</p>
+
       <div css={legendStyles}>
         <span>
           <WaterbodyIcon condition={'good'} selected={false} />
@@ -101,6 +103,7 @@ function WaterbodyList({
           &nbsp;Condition Unknown
         </span>
       </div>
+
       <AccordionList
         sortOptions={[
           { value: 'assessmentunitname', label: 'Waterbody Name' },
@@ -158,7 +161,11 @@ function WaterbodyList({
                 key={symbolType + orgId + auId}
                 index={symbolType + orgId + auId}
                 title={<strong>{name}</strong>}
-                subTitle={`${getOrganizationLabel(graphic.attributes)} ${auId}`}
+                subTitle={
+                  <>
+                    {getOrganizationLabel(graphic.attributes)} {auId}
+                  </>
+                }
                 icon={<WaterbodyIcon condition={condition} selected={false} />}
                 feature={graphic}
                 idKey="assessmentunitidentifier"

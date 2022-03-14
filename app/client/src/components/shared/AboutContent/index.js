@@ -1,7 +1,7 @@
 // @flow
 
-import React from 'react';
-import styled from 'styled-components';
+import React, { useEffect } from 'react';
+import { css } from 'styled-components/macro';
 import { Tabs, TabList, TabPanels, TabPanel } from '@reach/tabs';
 // components
 import { ContentTabs } from 'components/shared/ContentTabs';
@@ -10,20 +10,9 @@ import { LargeTab } from 'components/shared/ContentTabs/LargeTab.js';
 // styles
 import { fonts } from 'styles/index.js';
 
-// --- styled components ---
-const Container = styled.div`
+const containerStyles = css`
   padding: 1rem;
-`;
 
-const Subheading = styled.h2`
-  font-size: 1.1rem;
-  margin: 1rem 0 0;
-  font-weight: bold;
-  font-family: ${fonts.primary};
-  padding: 0;
-`;
-
-const StyledTabs = styled(Tabs)`
   [data-reach-tab] {
     padding: 0.875em;
   }
@@ -74,15 +63,22 @@ const StyledTabs = styled(Tabs)`
   }
 `;
 
-const NewTabDisclaimer = styled.div`
+const subheadingStyles = css`
+  font-size: 1.1rem;
+  margin: 1rem 0 0;
+  font-weight: bold;
+  font-family: ${fonts.primary};
+  padding: 0;
+`;
+
+const disclaimerStyles = css`
   display: inline-block;
 `;
 
-// --- components ---
 type Props = {};
 
 function AboutContent({ ...props }: Props) {
-  React.useEffect(() => {
+  useEffect(() => {
     // get the original url
     const href = window.location.href;
 
@@ -111,9 +107,9 @@ function AboutContent({ ...props }: Props) {
   }, []);
 
   return (
-    <Container className="container">
+    <div className="container" css={containerStyles}>
       <ContentTabs>
-        <StyledTabs>
+        <Tabs>
           <TabList>
             <LargeTab>About How's My Waterway</LargeTab>
             <LargeTab>Questions and Answers</LargeTab>
@@ -157,7 +153,7 @@ function AboutContent({ ...props }: Props) {
 
                 <h1>Community Page </h1>
                 <hr />
-                <Subheading>About impairment reporting</Subheading>
+                <h2 css={subheadingStyles}>About impairment reporting</h2>
                 <p>
                   The Clean Water Act requires States, Territories and
                   authorized tribes (states for brevity) to monitor water
@@ -178,7 +174,7 @@ function AboutContent({ ...props }: Props) {
                   conditions.
                 </p>
 
-                <Subheading>About water quality information</Subheading>
+                <h2 css={subheadingStyles}>About water quality information</h2>
                 <p>
                   EPA's water databases are the largest single, national source
                   of information about reported water quality problems and
@@ -194,7 +190,7 @@ function AboutContent({ ...props }: Props) {
                   were measured and reported.
                 </p>
 
-                <Subheading>About impairment categories</Subheading>
+                <h2 css={subheadingStyles}>About impairment categories</h2>
                 <p>
                   A single waterway can have one or more types of impairments.
                   When States report impaired waters, they put them in different
@@ -212,7 +208,7 @@ function AboutContent({ ...props }: Props) {
                   information. This information can be found in the glossary.
                 </p>
 
-                <Subheading>About what's being done</Subheading>
+                <h2 css={subheadingStyles}>About what's being done</h2>
                 <p>
                   Identifying and reporting water impairments leads to action
                   for improvement. Two major types of action taken under the
@@ -239,7 +235,7 @@ function AboutContent({ ...props }: Props) {
 
                 <h1>State Page </h1>
                 <hr />
-                <Subheading>State Water Quality Overview</Subheading>
+                <h2 css={subheadingStyles}>State Water Quality Overview</h2>
 
                 <p>
                   You will find basic facts about a state’s waters (by the
@@ -256,18 +252,21 @@ function AboutContent({ ...props }: Props) {
                   stories are also found on this page by state (if applicable).
                 </p>
 
-                <Subheading>Advanced Search</Subheading>
+                <h2 css={subheadingStyles}>Advanced Search</h2>
 
                 <p>
                   On this page you will be able to find the condition of
                   waterbodies in your state all in one place. You can filter the
-                  data by 303(d) listed waters, all waters, impaired waters or
-                  find out which waters in the state have a TMDL. There is a
-                  filtering function to filter by different parameters
-                  (bacteria, acidity, abnormal flow, etc) and/or different use
-                  groups (aquatic life, fish and shellfish consumption,
-                  recreation, etc.). Results can be viewed on a map or in a
-                  list.
+                  data by{' '}
+                  <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
+                    303(d) listed
+                  </GlossaryTerm>{' '}
+                  waters, all waters, impaired waters or find out which waters
+                  in the state have a TMDL. There is a filtering function to
+                  filter by different parameters (bacteria, acidity, abnormal
+                  flow, etc) and/or different use groups (aquatic life, fish and
+                  shellfish consumption, recreation, etc.). Results can be
+                  viewed on a map or in a list.
                 </p>
 
                 <h1>National Page </h1>
@@ -397,7 +396,7 @@ function AboutContent({ ...props }: Props) {
                 </p>
 
                 <h2>More Questions?</h2>
-                <div>
+                <p>
                   <a
                     href="https://www.epa.gov/waterdata/forms/contact-us-about-hows-my-waterway"
                     target="_blank"
@@ -406,14 +405,14 @@ function AboutContent({ ...props }: Props) {
                     Contact us
                   </a>
                   &nbsp;&nbsp;
-                  <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
-                </div>
+                  <small css={disclaimerStyles}>(opens new browser tab)</small>
+                </p>
               </div>
             </TabPanel>
           </TabPanels>
-        </StyledTabs>
+        </Tabs>
       </ContentTabs>
-    </Container>
+    </div>
   );
 }
 

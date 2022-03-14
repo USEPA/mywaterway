@@ -7,7 +7,10 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import PinIcon from 'components/shared/Icons/PinIcon';
 import { StyledErrorBox } from 'components/shared/MessageBoxes';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
-import { gradientIcon } from 'components/pages/LocationMap/MapFunctions';
+import {
+  GradientIcon,
+  isInScale,
+} from 'components/pages/LocationMap/MapFunctions';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // utils
 import { getSelectedCommunityTab } from 'utils/utils';
@@ -75,17 +78,23 @@ const ignoreLayers = ['mappedWaterLayer', 'watershedsLayer', 'searchIconLayer'];
 // --- components ---
 type Props = {
   view: Object,
+  displayEsriLegend: boolean,
   visibleLayers: Object,
   additionalLegendInfo: Object,
 };
 
-function MapLegend({ view, visibleLayers, additionalLegendInfo }: Props) {
+function MapLegend({
+  view,
+  displayEsriLegend,
+  visibleLayers,
+  additionalLegendInfo,
+}: Props) {
   const filteredVisibleLayers = visibleLayers.filter(
-    (layer) => !ignoreLayers.includes(layer.id),
+    (layer) => !ignoreLayers.includes(layer.id) && isInScale(layer, view.scale),
   );
 
   // no legend data
-  if (filteredVisibleLayers.length === 0) {
+  if (filteredVisibleLayers.length === 0 && !displayEsriLegend) {
     return (
       <div css={containerStyles}>
         <ul css={listStyles}>There are currently no items to display</ul>
@@ -444,6 +453,15 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
           <span css={labelStyles}>Alaska Native Villages</span>
         </div>
       </li>
+
+      <li>
+        <div css={legendItemStyles}>
+          <div css={imageContainerStyles}>
+            {circleIcon({ color: 'rgb(168, 112, 0)' })}
+          </div>
+          <span css={labelStyles}>Other Federally Recognized Tribes</span>
+        </div>
+      </li>
     </>
   );
 
@@ -455,16 +473,16 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
           {squareIcon({ color: 'rgb(54, 140, 225)', strokeWidth: 0 })}
         </div>
         <span css={labelStyles}>State Watershed Health Index Layer</span>
-        {gradientIcon({
-          id: 'health-index-gradient',
-          stops: [
+        <GradientIcon
+          id="health-index-gradient"
+          stops={[
             { label: '1', color: 'rgb(10, 8, 145)' },
             { label: '0.75', color: 'rgb(30, 61, 181)' },
             { label: '0.5', color: 'rgb(54, 140, 225)' },
             { label: '0.25', color: 'rgb(124, 187, 234)' },
             { label: '0', color: 'rgb(180, 238, 239)' },
-          ],
-        })}
+          ]}
+        />
       </div>
     </li>
   );
@@ -527,7 +545,11 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
         <div css={imageContainerStyles}>
           {squareIcon({ color: 'rgb(31, 184, 255, 0.2)', strokeWidth: 2 })}
         </div>
-        <span css={labelStyles}>Upstream Watershed</span>
+        <span css={labelStyles}>
+          <GlossaryTerm term="Upstream Watershed">
+            Upstream Watershed
+          </GlossaryTerm>
+        </span>
       </div>
     </li>
   );

@@ -2,9 +2,7 @@
 
 import React from 'react';
 
-type Props = {};
-
-function PinIcon({ ...props }: Props) {
+function PinIcon({ ...props }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -15,7 +13,7 @@ function PinIcon({ ...props }: Props) {
       aria-hidden="true"
     >
       <path
-        fill="#2D72B5"
+        fill="#2d72b5"
         fillOpacity="0.875"
         stroke="#000"
         strokeOpacity="0.625"

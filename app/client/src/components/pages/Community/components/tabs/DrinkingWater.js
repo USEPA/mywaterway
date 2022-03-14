@@ -2,7 +2,7 @@
 
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 import Graphic from '@arcgis/core/Graphic';
 import Polygon from '@arcgis/core/geometry/Polygon';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
@@ -10,13 +10,13 @@ import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
-import { ContentTabs } from 'components/shared/ContentTabs';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import AssessmentSummary from 'components/shared/AssessmentSummary';
 import WaterbodyList from 'components/shared/WaterbodyList';
-import { StyledErrorBox, StyledNoteBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles, noteBoxStyles } from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import Switch from 'components/shared/Switch';
+import { tabsStyles } from 'components/shared/ContentTabs';
 // contexts
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -25,20 +25,20 @@ import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
 import { summarizeAssessments } from 'utils/utils';
 // errors
 import { countyError, withdrawerError } from 'config/errorMessages';
-import { colors } from 'styles';
+// styles
+import { colors, tableStyles, toggleTableStyles } from 'styles/index.js';
 
-const Table = styled.table`
-  thead {
-    background-color: #f0f6f9;
-  }
-
-  th:last-of-type,
-  td:last-of-type {
-    text-align: right;
+const containerStyles = css`
+  @media (min-width: 960px) {
+    padding: 1em;
   }
 `;
 
-const Toggle = styled.div`
+const centeredTextStyles = css`
+  text-align: center;
+`;
+
+const toggleStyles = css`
   display: flex;
   align-items: center;
 
@@ -47,11 +47,18 @@ const Toggle = styled.div`
   }
 `;
 
-const NoteBoxContainer = styled(StyledNoteBox)`
-  margin-bottom: 0.625em;
+const modifiedNoteBoxStyles = css`
+  ${noteBoxStyles};
+  margin-bottom: 1em;
 `;
 
-const NewTabDisclaimer = styled.div`
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles};
+  margin-bottom: 1em;
+  text-align: center;
+`;
+
+const disclaimerStyles = css`
   display: inline-block;
 `;
 
@@ -133,15 +140,12 @@ function createAccordionItem(item: Object, isWithdrawer: boolean) {
           Public Water System Population Served:{' '}
           {Number(item['population_served_count']).toLocaleString()}
           <br />
-          {isWithdrawer
-            ? `Drinking Water Facility Source: ${fixCapitalization(
-                item.water_type_calc,
-              )}`
-            : `Drinking Water System Source: ${fixCapitalization(item.gw_sw)}`}
+          Drinking Water {isWithdrawer ? 'Facility' : 'System'} Source:{' '}
+          {fixCapitalization(isWithdrawer ? item.water_type_calc : item.gw_sw)}
         </>
       }
     >
-      <table className="table">
+      <table css={tableStyles} className="table">
         <tbody>
           <tr>
             <td>
@@ -177,21 +181,16 @@ function createAccordionItem(item: Object, isWithdrawer: boolean) {
             <td>{item.violations === 'Y' ? 'Yes' : 'No'}</td>
           </tr>
           <tr>
-            {isWithdrawer ? (
-              <>
-                <td>
-                  <em>Drinking Water Facility Source:</em>
-                </td>
-                <td>{fixCapitalization(item.water_type_calc)}</td>
-              </>
-            ) : (
-              <>
-                <td>
-                  <em>Drinking Water System Source:</em>
-                </td>
-                <td>{fixCapitalization(item.gw_sw)}</td>
-              </>
-            )}
+            <td>
+              <em>
+                Drinking Water {isWithdrawer ? 'Facility' : 'System'} Source:
+              </em>
+            </td>
+            <td>
+              {fixCapitalization(
+                isWithdrawer ? item.water_type_calc : item.gw_sw,
+              )}
+            </td>
           </tr>
           <tr>
             <td>
@@ -202,7 +201,7 @@ function createAccordionItem(item: Object, isWithdrawer: boolean) {
                 More Details
               </a>
               &nbsp;&nbsp;
-              <NewTabDisclaimer>(opens new browser tab)</NewTabDisclaimer>
+              <small css={disclaimerStyles}>(opens new browser tab)</small>
             </td>
           </tr>
         </tbody>
@@ -211,16 +210,6 @@ function createAccordionItem(item: Object, isWithdrawer: boolean) {
   );
 }
 
-// --- styled components ---
-const Container = styled.div`
-  padding: 1em;
-`;
-
-const Text = styled.p`
-  text-align: center;
-`;
-
-// --- components ---
 function DrinkingWater() {
   const { infoToggleChecked } = useContext(CommunityTabsContext);
 
@@ -528,8 +517,8 @@ function DrinkingWater() {
   ];
 
   return (
-    <Container>
-      <ContentTabs>
+    <div css={containerStyles}>
+      <div css={tabsStyles}>
         <Tabs
           onChange={(index) => {
             setPreviousTabIndex(drinkingWaterTabIndex);
@@ -604,7 +593,8 @@ function DrinkingWater() {
                     </a>
                     .
                   </p>
-                  <NoteBoxContainer>
+
+                  <div css={modifiedNoteBoxStyles}>
                     <p>
                       <strong>Mapping Note: </strong>The map does not display
                       the actual locations of public water system facility
@@ -612,34 +602,34 @@ function DrinkingWater() {
                       outside the mapped area shown, and may include a
                       combination of different sources.
                     </p>
-                  </NoteBoxContainer>
+                  </div>
                 </>
               )}
 
               {drinkingWater.status === 'fetching' && <LoadingSpinner />}
 
               {drinkingWater.status === 'failure' && (
-                <StyledErrorBox>
+                <div css={modifiedErrorBoxStyles}>
                   <p>{countyError}</p>
-                </StyledErrorBox>
+                </div>
               )}
 
               {drinkingWater.status === 'success' && (
                 <>
                   {drinkingWater.data.length === 0 && (
-                    <Text>
+                    <p css={centeredTextStyles}>
                       There is no drinking water data for the {watershed}{' '}
                       watershed.
-                    </Text>
+                    </p>
                   )}
 
                   {drinkingWater.data.length > 0 && (
                     <>
                       {providers.length === 0 && (
-                        <Text>
+                        <p css={centeredTextStyles}>
                           There are no public drinking water systems serving{' '}
                           {county} county/municipality.
-                        </Text>
+                        </p>
                       )}
 
                       {providers.length > 0 && (
@@ -687,6 +677,7 @@ function DrinkingWater() {
                       outlined on the map.
                     </strong>
                   </p>
+
                   <p>
                     <GlossaryTerm term="Surface Water">
                       Surface water
@@ -696,6 +687,7 @@ function DrinkingWater() {
                     (aquifers) can serve as sources of drinking water, referred
                     to as source water.
                   </p>
+
                   <p>
                     Public water systems evaluate and, as necessary, treat water
                     used for public drinking water supplies. Protecting source
@@ -709,47 +701,51 @@ function DrinkingWater() {
                     >
                       protecting source water
                     </a>{' '}
-                    (opens new browser tab).
+                    <small css={disclaimerStyles}>
+                      (opens new browser tab)
+                    </small>
+                    .
                   </p>
-                  <NoteBoxContainer>
+
+                  <div css={modifiedNoteBoxStyles}>
                     <p>
                       <strong>Mapping Note:</strong> The map does not display
                       the actual locations of public water system facility
                       intakes.
                     </p>
-                  </NoteBoxContainer>
+                  </div>
                 </>
               )}
 
               {drinkingWater.status === 'fetching' && <LoadingSpinner />}
 
               {drinkingWater.status === 'failure' && (
-                <StyledErrorBox>
+                <div css={modifiedErrorBoxStyles}>
                   <p>{withdrawerError}</p>
-                </StyledErrorBox>
+                </div>
               )}
 
               {drinkingWater.status === 'success' && (
                 <>
                   {drinkingWater.data.length === 0 && (
-                    <Text>
+                    <p css={centeredTextStyles}>
                       There is no drinking water data for the {watershed}{' '}
                       watershed.
-                    </Text>
+                    </p>
                   )}
 
                   {drinkingWater.data.length > 0 && (
                     <>
                       {totalWithdrawersCount === 0 && (
-                        <Text>
+                        <p css={centeredTextStyles}>
                           There are no public water systems drawing water from
                           the {watershed} watershed.
-                        </Text>
+                        </p>
                       )}
 
                       {totalWithdrawersCount > 0 && (
                         <>
-                          <Table className="table">
+                          <table css={toggleTableStyles} className="table">
                             <thead>
                               <tr>
                                 <th>
@@ -761,7 +757,7 @@ function DrinkingWater() {
                             <tbody>
                               <tr>
                                 <td>
-                                  <Toggle>
+                                  <div css={toggleStyles}>
                                     <Switch
                                       disabled={!surfaceWaterCount}
                                       checked={
@@ -776,13 +772,13 @@ function DrinkingWater() {
                                       ariaLabel="Surface Water"
                                     />
                                     <span>Surface Water</span>
-                                  </Toggle>
+                                  </div>
                                 </td>
                                 <td>{surfaceWaterCount}</td>
                               </tr>
                               <tr>
                                 <td>
-                                  <Toggle>
+                                  <div css={toggleStyles}>
                                     <Switch
                                       disabled={!groundWaterCount}
                                       checked={
@@ -797,14 +793,15 @@ function DrinkingWater() {
                                       ariaLabel="Ground Water"
                                     />
                                     <span>Ground Water</span>
-                                  </Toggle>
+                                  </div>
                                 </td>
                                 <td>{groundWaterCount}</td>
                               </tr>
+
                               {bothCount > 0 && (
                                 <tr>
                                   <td>
-                                    <Toggle>
+                                    <div css={toggleStyles}>
                                       <Switch
                                         disabled={!bothCount}
                                         checked={bothDisplayed && bothCount > 0}
@@ -816,13 +813,13 @@ function DrinkingWater() {
                                       <span>
                                         Ground Water &amp; Surface Water
                                       </span>
-                                    </Toggle>
+                                    </div>
                                   </td>
                                   <td>{bothCount}</td>
                                 </tr>
                               )}
                             </tbody>
-                          </Table>
+                          </table>
 
                           <AccordionList
                             title={
@@ -865,11 +862,10 @@ function DrinkingWater() {
                   conduct an{' '}
                   <GlossaryTerm term="Assessed Waters">assessment</GlossaryTerm>{' '}
                   of the surface water quality to help ensure the safety of the
-                  drinking water sources.
+                  drinking water sources.{' '}
                   <ShowLessMore
                     text={
                       <>
-                        {' '}
                         The map shows the assessment status of the surface
                         source water, not the quality of the treated drinking
                         water. Public water systems also evaluate the source
@@ -881,31 +877,31 @@ function DrinkingWater() {
                   />
                 </p>
               )}
-              <>
-                <AssessmentSummary
-                  waterbodies={waterbodies}
-                  fieldName="drinkingwater_use"
-                  usageName="drinking water use"
-                />
-                <WaterbodyList
-                  waterbodies={waterbodies}
-                  fieldName="drinkingwater_use"
-                  title={
-                    <>
-                      There {summary.total === 1 ? 'is' : 'are'}{' '}
-                      <strong>{summary.total.toLocaleString()}</strong>{' '}
-                      {summary.total === 1 ? 'waterbody' : 'waterbodies'}{' '}
-                      assessed as potential future sources of drinking water in
-                      the <em>{watershed}</em> watershed.
-                    </>
-                  }
-                />
-              </>
+
+              <AssessmentSummary
+                waterbodies={waterbodies}
+                fieldName="drinkingwater_use"
+                usageName="drinking water use"
+              />
+
+              <WaterbodyList
+                waterbodies={waterbodies}
+                fieldName="drinkingwater_use"
+                title={
+                  <>
+                    There {summary.total === 1 ? 'is' : 'are'}{' '}
+                    <strong>{summary.total.toLocaleString()}</strong>{' '}
+                    {summary.total === 1 ? 'waterbody' : 'waterbodies'} assessed
+                    as potential future sources of drinking water in the{' '}
+                    <em>{watershed}</em> watershed.
+                  </>
+                }
+              />
             </TabPanel>
           </TabPanels>
         </Tabs>
-      </ContentTabs>
-    </Container>
+      </div>
+    </div>
   );
 }
 

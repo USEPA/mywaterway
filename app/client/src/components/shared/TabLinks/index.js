@@ -2,24 +2,27 @@
 
 import React from 'react';
 import type { Node } from 'react';
+import { css } from 'styled-components/macro';
 import { Link } from '@reach/router';
-import styled from 'styled-components';
 // styles
 import { colors } from 'styles/index.js';
 
-// --- styled components ---
-const Container = styled.div`
-  padding-top: 1em;
-  background-color: #323a45;
+const containerStyles = css`
+  padding-top: 0.5em;
+  background-color: ${colors.slate()};
+
+  @media (min-width: 800px) {
+    padding-top: 1em;
+  }
 `;
 
-const Tabs = styled.div`
+const tabsStyles = css`
   display: flex;
   margin: auto;
   max-width: 60em;
 `;
 
-const StyledLink = styled(Link)`
+const linkStyles = css`
   flex: 1;
   margin-top: 0.25em;
   margin-right: 0.25em;
@@ -30,14 +33,14 @@ const StyledLink = styled(Link)`
   border-top-color: ${colors.teal()};
   border-top-right-radius: 0.125em;
   border-top-left-radius: 0.125em;
-  background-color: #eee;
-  font-size: 1.375em;
+  background-color: ${colors.graye};
+  font-size: 0.875em;
   text-align: center;
 
   &:link,
   &:visited {
     text-decoration: none;
-    color: #222;
+    color: ${colors.gray3};
   }
 
   &:hover,
@@ -45,12 +48,19 @@ const StyledLink = styled(Link)`
     margin-top: 0;
   }
 
-  @media (max-width: 400px) {
-    font-size: 1em;
+  @media (min-width: 480px) {
+    font-size: 1;
+  }
+
+  @media (min-width: 640px) {
+    font-size: 1.125em;
+  }
+
+  @media (min-width: 800px) {
+    font-size: 1.25em;
   }
 `;
 
-// --- components ---
 type TabLinkProps = {
   to: string,
   children: Node,
@@ -58,7 +68,8 @@ type TabLinkProps = {
 
 function TabLink({ to, children }: TabLinkProps) {
   return (
-    <StyledLink
+    <Link
+      css={linkStyles}
       to={to}
       getProps={({ isPartiallyCurrent }) => {
         return isPartiallyCurrent
@@ -73,19 +84,19 @@ function TabLink({ to, children }: TabLinkProps) {
       }}
     >
       {children}
-    </StyledLink>
+    </Link>
   );
 }
 
 function TabLinks() {
   return (
-    <Container>
-      <Tabs>
+    <div css={containerStyles}>
+      <div css={tabsStyles}>
         <TabLink to="/community">Community</TabLink>
         <TabLink to="/state">State</TabLink>
         <TabLink to="/national">National</TabLink>
-      </Tabs>
-    </Container>
+      </div>
+    </div>
   );
 }
 

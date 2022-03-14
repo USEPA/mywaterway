@@ -6,7 +6,6 @@ import { css } from 'styled-components/macro';
 import AssessmentSummary from 'components/shared/AssessmentSummary';
 import WaterbodyList from 'components/shared/WaterbodyList';
 import TabErrorBoundary from 'components/shared/ErrorBoundary/TabErrorBoundary';
-// styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -17,7 +16,9 @@ import { summarizeAssessments } from 'utils/utils';
 import { huc12SummaryError } from 'config/errorMessages';
 
 const containerStyles = css`
-  padding: 1em;
+  @media (min-width: 960px) {
+    padding: 1em;
+  }
 `;
 
 const modifiedErrorBoxStyles = css`
