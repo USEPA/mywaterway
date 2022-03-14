@@ -3,7 +3,7 @@ describe('ATTAINS page', () => {
     cy.visit('/');
     cy.findByText('Data').click();
     cy.findByText('About the Data').should('exist');
-    cy.url().should('equal', `${document.location.origin}/data`);
+    cy.url().should('equal', `${window.location.origin}/data`);
 
     cy.findByText('How ATTAINS data are grouped in How’s My Waterway')
       .should('have.attr', 'href', 'attains')

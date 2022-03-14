@@ -334,6 +334,28 @@ function summarizeAssessments(waterbodies: Array<Object>, fieldName: string) {
   return summary;
 }
 
+// Finds all occurrences of the provided searchstring within the provided text.
+function indicesOf(text, searchString) {
+  const searchLength = searchString.length;
+  if (searchLength === 0) return [];
+
+  let startIndex = 0;
+  let index = 0;
+  const indices = [];
+
+  // make inputs lower case for doing case insensitive search
+  text = text.toLowerCase();
+  searchString = searchString.toLowerCase();
+
+  // search for all occurrences of the searchString
+  while ((index = text.indexOf(searchString, startIndex)) > -1) {
+    indices.push(index);
+    startIndex = index + searchLength;
+  }
+
+  return indices;
+}
+
 export {
   chunkArray,
   containsScriptTag,
@@ -357,4 +379,5 @@ export {
   getSelectedCommunityTab,
   normalizeString,
   summarizeAssessments,
+  indicesOf,
 };

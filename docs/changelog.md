@@ -1,6 +1,48 @@
 
 # Change Log
 
+## 2.1.1 (March 2022)
+
+### Added
+
+- Added the Organization Name to the Monitoring stages on the community page.
+
+- Added a message for unsupported browsers. 
+
+### Changed
+
+
+- Updated the community page to filter out ATTAINS assessments that are in "public comment" status.
+
+- Improved the performance of the waterbody report page.
+
+- Updated the NARS data on the National page.
+
+- Updated the surrounding waterbodies layer so the colors don't blend. 
+
+- Updated the tribes layer to the latest version.
+
+- Updated the protect tab to load as much data as possible, even when some of the services are down.
+
+- Updated the app so that it works better on small mobile devices.
+
+- Updated the popups so they are expanded by default.
+
+- Fixed a bug with the glossary service crashing the server side.
+
+- Fixed a bug that caused the page to scroll to the top after load.
+
+- Fixed an issue with the "Mapped Water (all)" layer being visible in the layer list but not showing on the map.
+
+- Fixed various bugs around the legend display.
+
+- Fixed a bug with Google Analytics not always loading.
+
+- Fixed a bug of duplicate popups on the overview tab of the community page.
+
+- Fixed an infinite loading spinner bug that occurs when clicking an assessment that is outside of HUC boundaries.
+
+
 ## 2.1.0 (January 2022)
 
 ### Added

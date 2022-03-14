@@ -1019,7 +1019,12 @@ function AdvancedSearch({ ...props }: Props) {
           <MapFooterMessage>{state303dStatusError}</MapFooterMessage>
         )}
         <MapFooterStatus>
-          <strong>303(d) List Status / Year Last Reported:</strong>
+          <strong>
+            <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
+              303(d) List Status
+            </GlossaryTerm>{' '}
+            / Year Last Reported:
+          </strong>
           &nbsp;&nbsp;
           {!currentReportStatus ? (
             <LoadingSpinner />

@@ -358,9 +358,8 @@ function WaterQualityOverview({ ...props }: Props) {
   );
 
   // summary service has the different years of data for recreation/eco/fish/water/other
-  const [usesStateSummaryCalled, setUsesStateSummaryCalled] = React.useState(
-    false,
-  );
+  const [usesStateSummaryCalled, setUsesStateSummaryCalled] =
+    React.useState(false);
   React.useEffect(() => {
     if (
       !stateAndOrganization ||
@@ -1096,7 +1095,7 @@ function WaterQualityOverview({ ...props }: Props) {
                     >
                       View detailed drinking water data for {activeState.name}.
                     </a>{' '}
-                    (opens new browser tab)
+                    <small>(opens new browser tab)</small>
                   </DrinkingWaterText>
                 </DrinkingWaterSection>
               </StyledTabPanel>

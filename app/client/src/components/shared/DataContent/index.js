@@ -206,7 +206,11 @@ function Data({ ...props }: Props) {
         <p>
           ATTAINS contains information on water quality assessments, impaired
           waters, and total maximum daily loads (TMDLs), through data submitted
-          by states under Clean Water Act sections 303(d) and 305(b).
+          by states under Clean Water Act sections{' '}
+          <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
+            303(d)
+          </GlossaryTerm>{' '}
+          and 305(b).
         </p>
         <br />
         <Question>Where do I find ATTAINS data in How’s My Waterway?</Question>
