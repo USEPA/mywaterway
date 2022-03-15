@@ -1,7 +1,6 @@
 // @flow
 
 import React, {
-  createRef,
   Fragment,
   useContext,
   useEffect,
@@ -167,15 +166,15 @@ type Props = {
 
 function LocationSearch({ route, label }: Props) {
   const services = useServicesContext();
-  const searchBox = createRef();
+  const searchBox = useRef();
   const downPress = useKeyPress('ArrowDown', searchBox);
   const upPress = useKeyPress('ArrowUp', searchBox);
   const enterPress = useKeyPress('Enter', searchBox);
-  const sourceList = createRef();
+  const sourceList = useRef();
   const sourceDownPress = useKeyPress('ArrowDown', sourceList);
   const sourceUpPress = useKeyPress('ArrowUp', sourceList);
   const sourceEnterPress = useKeyPress('Enter', sourceList);
-  const clearButton = createRef();
+  const clearButton = useRef();
   const clearEnterPress = useKeyPress('Enter', clearButton);
   const { searchText, watershed, huc12 } = useContext(LocationSearchContext);
 
