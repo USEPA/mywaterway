@@ -41,6 +41,8 @@ import { useDynamicPopup } from 'utils/hooks';
 // icons
 import resizeIcon from 'images/resize.png';
 
+const layersToAllowPopups = ['restore', 'protect'];
+
 // workaround for React state variables not being updated inside of
 // esri watch events
 let displayEsriLegendNonState = false;
@@ -313,8 +315,16 @@ function MapWidgets({
             hucBoundaries.features[0].geometry.contains(location);
 
           // filter out popups for allWaterbodiesLayer inside of the huc
+          const pathParts = window.location.pathname.split('/');
+          const panelName = pathParts[pathParts.length - 1];
           const layerParentId = item.layer?.parent?.id;
-          if (clickedInHuc && layerParentId === 'allWaterbodiesLayer') return;
+          if (
+            clickedInHuc &&
+            layerParentId === 'allWaterbodiesLayer' &&
+            !layersToAllowPopups.includes(panelName)
+          ) {
+            return;
+          }
 
           // filter out duplicate popups
           const idType = `${id}-${geometryType}`;
