@@ -992,7 +992,7 @@ function WaterbodyInfo({
 
       {labelValue(
         'Public Access',
-        convertDomainCode(fields, 'Access', attributes.Access),
+        convertDomainCode(fields, 'Pub_Access', attributes.Pub_Access),
       )}
     </>
   );
