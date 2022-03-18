@@ -446,7 +446,6 @@ function Monitoring() {
       const toggleGroups = monitoringLocationToggles;
 
       if (groupLabel === 'All') {
-        console.log('allToggledParam: ', allToggledParam);
         if (!allToggledParam) {
           // toggle everything on
           setAllToggled(true);
