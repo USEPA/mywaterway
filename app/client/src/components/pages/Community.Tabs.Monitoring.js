@@ -271,6 +271,9 @@ function Monitoring() {
     {},
   );
 
+  const [monitoringLocationTogglesPrev, setMonitoringLocationTogglesPrev] =
+    useState({});
+
   const [monitoringLocationGroups, setMonitoringLocationGroups] = useState({});
 
   const [allMonitoringLocations, setAllMonitoringLocations] = useState([]);
@@ -383,65 +386,68 @@ function Monitoring() {
     showAllMonitoring,
   ]);
 
-  const drawMap = useCallback(() => {
-    if (allMonitoringLocations.length === 0) return;
-    if (services.status === 'fetching') return;
-    const addedStationUids = [];
-    let tempDisplayedMonitoringLocations = [];
+  const drawMap = useCallback(
+    (monitoringLocationTogglesParam) => {
+      if (allMonitoringLocations.length === 0) return;
+      if (services.status === 'fetching') return;
+      const addedStationUids = [];
+      let tempDisplayedMonitoringLocations = [];
 
-    if (allToggled) {
-      tempDisplayedMonitoringLocations = allMonitoringLocations;
-    } else {
-      for (let key in monitoringLocationGroups) {
-        const group = monitoringLocationGroups[key];
-        // if the location is toggled
-        if (monitoringLocationToggles[group.label]) {
-          group.stations.forEach((station) => {
-            // add the station to the display, if it has not already been added
-            if (!addedStationUids.includes(station.uid)) {
-              addedStationUids.push(station.uid);
-              tempDisplayedMonitoringLocations.push(station);
-            }
-          });
+      if (allToggled) {
+        tempDisplayedMonitoringLocations = allMonitoringLocations;
+      } else {
+        for (let key in monitoringLocationGroups) {
+          const group = monitoringLocationGroups[key];
+          // if the location is toggled
+          if (monitoringLocationTogglesParam[group.label]) {
+            group.stations.forEach((station) => {
+              // add the station to the display, if it has not already been added
+              if (!addedStationUids.includes(station.uid)) {
+                addedStationUids.push(station.uid);
+                tempDisplayedMonitoringLocations.push(station);
+              }
+            });
+          }
         }
       }
-    }
 
-    plotStations(
-      tempDisplayedMonitoringLocations,
+      plotStations(
+        tempDisplayedMonitoringLocations,
+        monitoringLocationsLayer,
+        services,
+      );
+
+      if (tempDisplayedMonitoringLocations.length === 0) {
+        setDisplayedMonitoringLocations([]);
+        return;
+      }
+
+      if (
+        displayedMonitoringLocations.length ===
+        tempDisplayedMonitoringLocations.length
+      ) {
+        return;
+      }
+
+      setDisplayedMonitoringLocations(tempDisplayedMonitoringLocations);
+    },
+    [
+      displayedMonitoringLocations,
+      allMonitoringLocations,
+      allToggled,
+      monitoringLocationGroups,
       monitoringLocationsLayer,
       services,
-    );
-
-    if (tempDisplayedMonitoringLocations.length === 0) {
-      setDisplayedMonitoringLocations([]);
-      return;
-    }
-
-    if (
-      displayedMonitoringLocations.length ===
-      tempDisplayedMonitoringLocations.length
-    ) {
-      return;
-    }
-
-    setDisplayedMonitoringLocations(tempDisplayedMonitoringLocations);
-  }, [
-    displayedMonitoringLocations,
-    allMonitoringLocations,
-    allToggled,
-    monitoringLocationToggles,
-    monitoringLocationGroups,
-    monitoringLocationsLayer,
-    services,
-  ]);
+    ],
+  );
 
   const toggleSwitch = useCallback(
-    (groupLabel: string) => {
+    (groupLabel: string, allToggledParam?: boolean = false) => {
       const toggleGroups = monitoringLocationToggles;
 
       if (groupLabel === 'All') {
-        if (!allToggled) {
+        console.log('allToggledParam: ', allToggledParam);
+        if (!allToggledParam) {
           // toggle everything on
           setAllToggled(true);
           for (var toggle in toggleGroups) {
@@ -450,6 +456,8 @@ function Monitoring() {
 
           setShowAllMonitoring(true);
           monitoringLocationsLayer.visible = true;
+
+          setMonitoringDisplayed(true);
         } else {
           // toggle everything off
           setAllToggled(false);
@@ -459,6 +467,8 @@ function Monitoring() {
 
           setShowAllMonitoring(false);
           monitoringLocationsLayer.visible = false;
+
+          setMonitoringDisplayed(false);
         }
       }
       // just one of the categories was changed
@@ -476,16 +486,24 @@ function Monitoring() {
 
         setAllToggled(allOthersToggled);
         setShowAllMonitoring(allOthersToggled);
+
+        // only check the toggles that are on the screen (i.e., ignore Bacterial, Sediments, etc.)
+        const someToggled =
+          groups.Metals ||
+          groups.Nutrients ||
+          groups.Pesticides ||
+          groups.Physical ||
+          groups.Other;
+        setMonitoringDisplayed(someToggled);
       }
 
       setMonitoringGroups(toggleGroups);
       setMonitoringLocationToggles(toggleGroups);
 
-      drawMap();
+      drawMap(toggleGroups);
     },
     [
       monitoringLocationsLayer,
-      allToggled,
       drawMap,
       monitoringLocationToggles,
       setMonitoringGroups,
@@ -516,9 +534,10 @@ function Monitoring() {
       // return early if displayedMonitoringLocations hasn't yet been set
       if (displayedMonitoringLocations.length === 0) return;
 
-      drawMap();
+      drawMap(monitoringLocationToggles);
     }
   }, [
+    monitoringLocationToggles,
     monitoringLocations,
     prevMonitoringLocationData,
     displayedMonitoringLocations,
@@ -617,11 +636,34 @@ function Monitoring() {
                   onChange={(checked) => {
                     if (!usgsStreamgagesLayer) return;
                     if (!monitoringLocationsLayer) return;
-                    setMonitoringDisplayed(!monitoringDisplayed);
+                    const newMonitoringDisplayed = !monitoringDisplayed;
+                    setMonitoringDisplayed(newMonitoringDisplayed);
                     setVisibleLayers({
                       usgsStreamgagesLayer: usgsStreamgagesDisplayed,
-                      monitoringLocationsLayer: !monitoringDisplayed,
+                      monitoringLocationsLayer: newMonitoringDisplayed,
                     });
+
+                    if (newMonitoringDisplayed) {
+                      // restore the switch values
+                      setMonitoringLocationToggles(
+                        monitoringLocationTogglesPrev,
+                      );
+                      setMonitoringGroups(monitoringLocationTogglesPrev);
+
+                      const allToggledOn = Object.values(
+                        monitoringLocationTogglesPrev,
+                      ).every((value) => value);
+                      setAllToggled(allToggledOn);
+
+                      drawMap(monitoringLocationTogglesPrev);
+                    } else {
+                      setMonitoringLocationTogglesPrev({ ...monitoringGroups });
+
+                      // turn off all switches
+                      toggleSwitch('All', true);
+
+                      drawMap(monitoringLocationToggles);
+                    }
                   }}
                   disabled={!Boolean(totalLocations)}
                   ariaLabel="Monitoring Stations"
@@ -784,7 +826,9 @@ function Monitoring() {
                               <div css={toggleStyles}>
                                 <Switch
                                   checked={allToggled}
-                                  onChange={(ev) => toggleSwitch('All')}
+                                  onChange={(ev) =>
+                                    toggleSwitch('All', allToggled)
+                                  }
                                   ariaLabel="Toggle all monitoring locations"
                                 />
                                 <span>All Monitoring Sample Locations</span>
