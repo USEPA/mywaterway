@@ -479,20 +479,19 @@ function Monitoring() {
         const groups = toggleGroups;
         delete groups['All'];
 
-        const allOthersToggled = Object.keys(groups).every((group) => {
-          return groups[group];
-        });
+        const allOthersToggled = Object.keys(monitoringLocationGroups).every(
+          (key) => {
+            return groups[key];
+          },
+        );
 
         setAllToggled(allOthersToggled);
         setShowAllMonitoring(allOthersToggled);
 
         // only check the toggles that are on the screen (i.e., ignore Bacterial, Sediments, etc.)
-        const someToggled =
-          groups.Metals ||
-          groups.Nutrients ||
-          groups.Pesticides ||
-          groups.Physical ||
-          groups.Other;
+        const someToggled = Object.keys(monitoringLocationGroups).some(
+          (key) => groups[key],
+        );
         setMonitoringDisplayed(someToggled);
       }
 
@@ -504,6 +503,7 @@ function Monitoring() {
     [
       monitoringLocationsLayer,
       drawMap,
+      monitoringLocationGroups,
       monitoringLocationToggles,
       setMonitoringGroups,
       setShowAllMonitoring,
