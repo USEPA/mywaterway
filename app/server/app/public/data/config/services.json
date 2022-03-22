@@ -50,6 +50,7 @@
   "wildScenicRivers": "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/WildScenicRiversV2_AGOL/FeatureServer/1/",
   "protectedAreasDatabase": "https://gis1.usgs.gov/arcgis/rest/services/padus2/protection_mechanism_category/MapServer/",
   "ejscreen": "https://geopub.epa.gov/arcgis/rest/services/ejscreen/Demographic_Indicators_2018_Public/MapServer/",
+  "sfdw": "https://ordspub.epa.gov/ords/sfdw/",
   "googleAnalyticsMapping": [
     {
       "urlLookup": "attains.serviceUrl",
@@ -119,42 +120,42 @@
     {
       "urlLookup": "grts.getGRTSHUC12",
       "wildcardUrl": "{urlLookup}*",
-      "name": "ofmpub - nonpoint restoration projects"
+      "name": "grts - nonpoint restoration projects"
     },
     {
       "urlLookup": "grts.getSSByState",
       "wildcardUrl": "{urlLookup}*",
-      "name": "ofmpub - state water stories"
+      "name": "grts - state water stories"
     },
     {
       "urlLookup": "dwmaps.getGPRASummary",
       "wildcardUrl": "{urlLookup}*",
-      "name": "ofmpub - GPRA summary"
+      "name": "sdwis - GPRA summary"
     },
     {
       "urlLookup": "dwmaps.getGPRASystemCountsByType",
       "wildcardUrl": "{urlLookup}*",
-      "name": "ofmpub - GPRA system counts by type"
+      "name": "sdwis - GPRA system counts by type"
     },
     {
       "urlLookup": "dwmaps.GetPWSWMHUC12FIPS",
       "wildcardUrl": "{urlLookup}*/ZCzc/ZCzc",
-      "name": "ofmpub - drinking water withdrawers"
+      "name": "sdwis - drinking water withdrawers"
     },
     {
       "urlLookup": "dwmaps.GetPWSWMHUC12FIPS",
       "wildcardUrl": "{urlLookup}*",
-      "name": "ofmpub - drinking water providers"
+      "name": "sdwis - drinking water providers"
     },
     {
       "urlLookup": "echoNPDES.getFacilities",
       "wildcardUrl": "{urlLookup}*",
-      "name": "ofmpub - echo get facilities"
+      "name": "echodata - echo get facilities"
     },
     {
       "urlLookup": "echoNPDES.metadata",
       "wildcardUrl": "{urlLookup}*",
-      "name": "ofmpub - echo metadata"
+      "name": "echodata - echo metadata"
     },
     {
       "urlLookup": "waterQualityPortal.monitoringLocation",
@@ -325,6 +326,11 @@
       "urlLookup": "ejscreen",
       "wildcardUrl": "{urlLookup}*",
       "name": "EJSCREEN"
+    },
+    {
+      "urlLookup": "sfdw",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "sfdw"
     }
   ]
 }
