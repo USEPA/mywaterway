@@ -531,17 +531,23 @@ function Monitoring() {
       }
 
       // return early if displayedMonitoringLocations hasn't yet been set
-      if (displayedMonitoringLocations.length === 0) return;
+      if (displayedMonitoringLocations.length !== 0) {
+        drawMap(monitoringLocationToggles);
+      }
 
-      drawMap(monitoringLocationToggles);
+      if (normalizedUsgsStreamgages.length !== 0) {
+        plotGages(normalizedUsgsStreamgages, usgsStreamgagesLayer);
+      }
     }
   }, [
-    monitoringLocationToggles,
-    monitoringLocations,
-    prevMonitoringLocationData,
     displayedMonitoringLocations,
     drawMap,
+    monitoringLocationToggles,
+    monitoringLocations,
+    normalizedUsgsStreamgages,
+    prevMonitoringLocationData,
     storeMonitoringLocations,
+    usgsStreamgagesLayer,
   ]);
 
   // clear the visible layers if the monitoring stations service failed
