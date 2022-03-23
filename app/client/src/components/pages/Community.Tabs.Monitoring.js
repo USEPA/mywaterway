@@ -710,7 +710,6 @@ function Monitoring() {
               {usgsStreamgages.status === 'success' && (
                 <>
                   <AccordionList
-                    expandDisabled={true} // disabled to avoid large number of web service calls
                     title={
                       <>
                         There{' '}
