@@ -565,6 +565,19 @@ function Monitoring() {
     }
   }, [permittedDischargers.data, dischargersLayer]);
 
+  // Syncs the toggles with the visible layers on the map. Mainly
+  // used for when the user toggles layers in full screen mode and then
+  // exist full screen.
+  useEffect(() => {
+    if (typeof visibleLayers.usgsStreamgagesLayer === 'boolean') {
+      setUsgsStreamgagesDisplayed(visibleLayers.usgsStreamgagesLayer);
+    }
+
+    if (typeof visibleLayers.monitoringLocationsLayer === 'boolean') {
+      setMonitoringDisplayed(visibleLayers.monitoringLocationsLayer);
+    }
+  }, [visibleLayers]);
+
   const sortedMonitoringLocations = displayedMonitoringLocations
     ? displayedMonitoringLocations.sort((a, b) => {
         if (sortBy === 'stationTotalMeasurements') {
