@@ -889,7 +889,6 @@ function Monitoring() {
                       </table>
 
                       <AccordionList
-                        expandDisabled={true} // disabled to avoid large number of web service calls
                         title={
                           <span data-testid="monitoring-accordion-title">
                             <strong>{displayLocations}</strong> of{' '}

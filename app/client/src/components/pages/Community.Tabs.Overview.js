@@ -781,7 +781,6 @@ function MonitoringAndSensorsTab({
             </table>
 
             <AccordionList
-              expandDisabled={true} // disabled to avoid large number of web service calls
               title={
                 <>
                   <strong>{filteredMonitoringAndSensors.length}</strong> of{' '}
