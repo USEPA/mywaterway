@@ -488,7 +488,7 @@ function Monitoring() {
                   }
                   onChange={(checked) => {
                     if (!usgsStreamgagesLayer) return;
-                    if (!monitoringLocationsLayer) return;
+
                     setUsgsStreamgagesDisplayed(!usgsStreamgagesDisplayed);
                     setVisibleLayers({
                       usgsStreamgagesLayer: !usgsStreamgagesDisplayed,
@@ -517,36 +517,14 @@ function Monitoring() {
                 <Switch
                   checked={Boolean(totalLocations) && monitoringDisplayed}
                   onChange={(checked) => {
-                    if (!usgsStreamgagesLayer) return;
                     if (!monitoringLocationsLayer) return;
+
                     const newMonitoringDisplayed = !monitoringDisplayed;
                     setMonitoringDisplayed(newMonitoringDisplayed);
                     setVisibleLayers({
                       usgsStreamgagesLayer: usgsStreamgagesDisplayed,
                       monitoringLocationsLayer: newMonitoringDisplayed,
                     });
-
-                    if (newMonitoringDisplayed) {
-                      // restore the switch values
-                      setMonitoringLocationToggles(
-                        monitoringLocationTogglesPrev,
-                      );
-                      setMonitoringGroups(monitoringLocationTogglesPrev);
-
-                      const allToggledOn = Object.values(
-                        monitoringLocationTogglesPrev,
-                      ).every((value) => value);
-                      setAllToggled(allToggledOn);
-
-                      drawMap(monitoringLocationTogglesPrev);
-                    } else {
-                      setMonitoringLocationTogglesPrev({ ...monitoringGroups });
-
-                      // turn off all switches
-                      toggleSwitch('All', true);
-
-                      drawMap(monitoringLocationToggles);
-                    }
                   }}
                   disabled={!Boolean(totalLocations)}
                   ariaLabel="Monitoring Stations"
