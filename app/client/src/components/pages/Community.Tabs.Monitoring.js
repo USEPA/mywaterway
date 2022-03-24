@@ -127,7 +127,6 @@ function Monitoring() {
     visibleLayers,
     setVisibleLayers,
     usgsStreamgages,
-    usgsDailyPrecipitation,
     usgsStreamgagesLayer,
   } = useContext(LocationSearchContext);
 
@@ -135,134 +134,6 @@ function Monitoring() {
     useState(true);
 
   const [monitoringDisplayed, setMonitoringDisplayed] = useState(true);
-
-  const [usgsStreamgagesPlotted, setUsgsGtreamgagesPlotted] = useState(false);
-
-  const [normalizedUsgsStreamgages, setNormalizedUsgsStreamgages] = useState(
-    [],
-  );
-
-  // normalize USGS streamgages data with monitoring stations data,
-  // and draw them on the map
-  useEffect(() => {
-    if (!usgsStreamgages.data.value) return;
-
-    const gages = usgsStreamgages.data.value.map((gage) => {
-      const streamgageMeasurements = { primary: [], secondary: [] };
-
-      [...gage.Datastreams]
-        .filter((item) => item.Observations.length > 0)
-        .forEach((item) => {
-          const observation = item.Observations[0];
-          const parameterCode = item.properties.ParameterCode;
-          const parameterDesc = item.description.split(' / USGS-')[0];
-          const parameterUnit = item.unitOfMeasurement;
-
-          let measurement = observation.result;
-          // convert measurements recorded in celsius to fahrenheit
-          if (['00010', '00020', '85583'].includes(parameterCode)) {
-            measurement = measurement * (9 / 5) + 32;
-          }
-
-          const matchedParam = usgsStaParameters.find((p) => {
-            return p.staParameterCode === parameterCode;
-          });
-
-          const data = {
-            parameterCategory: matchedParam?.hmwCategory || 'exclude',
-            parameterOrder: matchedParam?.hmwOrder || 0,
-            parameterName: matchedParam?.hmwName || parameterDesc,
-            parameterUsgsName: matchedParam?.staDescription || parameterDesc,
-            parameterCode,
-            measurement,
-            datetime: new Date(observation.phenomenonTime).toLocaleString(),
-            unitAbbr: matchedParam?.hmwUnits || parameterUnit.symbol,
-            unitName: parameterUnit.name,
-          };
-
-          if (data.parameterCategory === 'primary') {
-            streamgageMeasurements.primary.push(data);
-          }
-
-          if (data.parameterCategory === 'secondary') {
-            streamgageMeasurements.secondary.push(data);
-          }
-        });
-
-      return {
-        monitoringType: 'Current Water Conditions',
-        siteId: gage.properties.monitoringLocationNumber,
-        orgId: gage.properties.agencyCode,
-        orgName: gage.properties.agency,
-        locationLongitude: gage.Locations[0].location.coordinates[0],
-        locationLatitude: gage.Locations[0].location.coordinates[1],
-        locationName: gage.properties.monitoringLocationName,
-        locationType: gage.properties.monitoringLocationType,
-        locationUrl: gage.properties.monitoringLocationUrl,
-        // usgs streamgage specific properties:
-        streamgageMeasurements,
-      };
-    });
-
-    setNormalizedUsgsStreamgages(gages);
-
-    plotGages(gages, usgsStreamgagesLayer).then((result) => {
-      if (result.addFeatureResults.length > 0) setUsgsGtreamgagesPlotted(true);
-    });
-  }, [usgsStreamgages.data, usgsStreamgagesLayer]);
-
-  // once streamgages have been plotted initially, add precipitation data
-  // (fetched from usgsDailyValues web service) to each streamgage if it exists
-  // for that particular location and replot the streamgages on the map
-  useEffect(() => {
-    if (!usgsStreamgagesPlotted) return;
-    if (!usgsDailyPrecipitation.data.value) return;
-    if (normalizedUsgsStreamgages.length === 0) return;
-
-    const streamgageSiteIds = normalizedUsgsStreamgages.map((gage) => {
-      return gage.siteId;
-    });
-
-    usgsDailyPrecipitation.data.value?.timeSeries.forEach((site) => {
-      const siteId = site.sourceInfo.siteCode[0].value;
-      const observation = site.values[0].value[0];
-
-      if (streamgageSiteIds.includes(siteId)) {
-        const streamgage = normalizedUsgsStreamgages.find((gage) => {
-          return gage.siteId === siteId;
-        });
-
-        streamgage.streamgageMeasurements.primary.push({
-          parameterCategory: 'primary',
-          parameterOrder: 5,
-          parameterName: 'Total Daily Rainfall',
-          parameterUsgsName: 'Precipitation (USGS Daily Value)',
-          parameterCode: '00045',
-          measurement: observation.value,
-          datetime: new Date(observation.dateTime).toLocaleDateString(),
-          unitAbbr: 'in',
-          unitName: 'inches',
-        });
-      }
-    });
-
-    plotGages(normalizedUsgsStreamgages, usgsStreamgagesLayer);
-  }, [
-    usgsStreamgagesPlotted,
-    usgsDailyPrecipitation,
-    normalizedUsgsStreamgages,
-    usgsStreamgagesLayer,
-  ]);
-
-  const [sensorsSortedBy, setSensorsSortedBy] = useState('locationName');
-
-  const sortedSensors = [...normalizedUsgsStreamgages].sort((a, b) => {
-    if (sensorsSortedBy === 'siteId') {
-      return a.siteId.localeCompare(b.siteId);
-    }
-
-    return a[sensorsSortedBy].localeCompare(b[sensorsSortedBy]);
-  });
 
   const [prevMonitoringLocationData, setPrevMonitoringLocationData] =
     useState<MonitoringLocationData>({});
@@ -531,23 +402,17 @@ function Monitoring() {
       }
 
       // return early if displayedMonitoringLocations hasn't yet been set
-      if (displayedMonitoringLocations.length !== 0) {
-        drawMap(monitoringLocationToggles);
-      }
+      if (displayedMonitoringLocations.length === 0) return;
 
-      if (normalizedUsgsStreamgages.length !== 0) {
-        plotGages(normalizedUsgsStreamgages, usgsStreamgagesLayer);
-      }
+      drawMap(monitoringLocationToggles);
     }
   }, [
     displayedMonitoringLocations,
     drawMap,
     monitoringLocationToggles,
     monitoringLocations,
-    normalizedUsgsStreamgages,
     prevMonitoringLocationData,
     storeMonitoringLocations,
-    usgsStreamgagesLayer,
   ]);
 
   // clear the visible layers if the monitoring stations service failed
@@ -612,13 +477,13 @@ function Monitoring() {
               <span css={keyMetricNumberStyles}>
                 {usgsStreamgages.status === 'failure'
                   ? 'N/A'
-                  : `${normalizedUsgsStreamgages.length}`}
+                  : `${usgsStreamgages.data.value.length}`}
               </span>
               <p css={keyMetricLabelStyles}>Current Water Conditions</p>
               <div css={switchContainerStyles}>
                 <Switch
                   checked={
-                    Boolean(normalizedUsgsStreamgages.length) &&
+                    Boolean(usgsStreamgages.data.value.length) &&
                     usgsStreamgagesDisplayed
                   }
                   onChange={(checked) => {
@@ -630,7 +495,7 @@ function Monitoring() {
                       monitoringLocationsLayer: monitoringDisplayed,
                     });
                   }}
-                  disabled={!Boolean(normalizedUsgsStreamgages.length)}
+                  disabled={!Boolean(usgsStreamgages.data.value.length)}
                   ariaLabel="Current Water Conditions"
                 />
               </div>
@@ -705,111 +570,10 @@ function Monitoring() {
                 Find out about current water conditions at sensor locations.
               </p>
 
-              {usgsStreamgages.status === 'fetching' && <LoadingSpinner />}
-
-              {usgsStreamgages.status === 'failure' && (
-                <div css={modifiedErrorBoxStyles}>
-                  <p>{monitoringError}</p>
-                </div>
-              )}
-
-              {usgsStreamgages.status === 'success' && (
-                <>
-                  <AccordionList
-                    title={
-                      <>
-                        There{' '}
-                        {normalizedUsgsStreamgages.length === 1 ? 'is' : 'are'}{' '}
-                        <strong>{normalizedUsgsStreamgages.length}</strong>{' '}
-                        {normalizedUsgsStreamgages.length === 1
-                          ? 'location'
-                          : 'locations'}{' '}
-                        with data in the <em>{watershed}</em> watershed.
-                      </>
-                    }
-                    onSortChange={({ value }) => setSensorsSortedBy(value)}
-                    sortOptions={[
-                      {
-                        label: 'Location Name',
-                        value: 'locationName',
-                      },
-                      {
-                        label: 'Organization Name',
-                        value: 'orgName',
-                      },
-                      {
-                        label: 'Organization ID',
-                        value: 'orgId',
-                      },
-                      {
-                        label: 'Monitoring Site ID',
-                        value: 'siteId',
-                      },
-                    ]}
-                  >
-                    {sortedSensors.map((item, index) => {
-                      const feature = {
-                        geometry: {
-                          type: 'point',
-                          longitude: item.locationLongitude,
-                          latitude: item.locationLatitude,
-                        },
-                        attributes: item,
-                      };
-
-                      return (
-                        <AccordionItem
-                          key={index}
-                          title={
-                            <strong>{item.locationName || 'Unknown'}</strong>
-                          }
-                          subTitle={
-                            <>
-                              <em>Organization Name:</em>&nbsp;&nbsp;
-                              {item.orgName}
-                              <br />
-                              <em>Organization ID:</em>&nbsp;&nbsp;{item.orgId}
-                              <br />
-                              <em>Monitoring Site ID:</em>&nbsp;&nbsp;
-                              {item.siteId.replace(`${item.orgId}-`, '')}
-                              {item.monitoringType === 'Sample Location' && (
-                                <>
-                                  <br />
-                                  <em>Monitoring Measurements:</em>&nbsp;&nbsp;
-                                  {item.stationTotalMeasurements}
-                                </>
-                              )}
-                            </>
-                          }
-                          feature={feature}
-                          idKey="siteId"
-                        >
-                          <div css={accordionContentStyles}>
-                            {item.monitoringType ===
-                              'Current Water Conditions' && (
-                              <WaterbodyInfo
-                                type="Current Water Conditions"
-                                feature={feature}
-                                services={services}
-                              />
-                            )}
-
-                            {item.monitoringType === 'Sample Location' && (
-                              <WaterbodyInfo
-                                type="Sample Location"
-                                feature={feature}
-                                services={services}
-                              />
-                            )}
-
-                            <ViewOnMapButton feature={feature} />
-                          </div>
-                        </AccordionItem>
-                      );
-                    })}
-                  </AccordionList>
-                </>
-              )}
+              <SensorsTab
+                usgsStreamgagesDisplayed={usgsStreamgagesDisplayed}
+                setUsgsStreamgagesDisplayed={setUsgsStreamgagesDisplayed}
+              />
             </TabPanel>
             <TabPanel>
               <p>
@@ -985,6 +749,259 @@ function Monitoring() {
       </div>
     </div>
   );
+}
+
+function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
+  const services = useServicesContext();
+
+  const {
+    watershed,
+    usgsStreamgages,
+    usgsDailyPrecipitation,
+    usgsStreamgagesLayer,
+  } = useContext(LocationSearchContext);
+
+  const [usgsStreamgagesPlotted, setUsgsGtreamgagesPlotted] = useState(false);
+
+  const [normalizedUsgsStreamgages, setNormalizedUsgsStreamgages] = useState(
+    [],
+  );
+
+  // normalize USGS streamgages data with monitoring stations data,
+  // and draw them on the map
+  useEffect(() => {
+    if (!usgsStreamgages.data.value) return;
+
+    const gages = usgsStreamgages.data.value.map((gage) => {
+      const streamgageMeasurements = { primary: [], secondary: [] };
+
+      [...gage.Datastreams]
+        .filter((item) => item.Observations.length > 0)
+        .forEach((item) => {
+          const observation = item.Observations[0];
+          const parameterCode = item.properties.ParameterCode;
+          const parameterDesc = item.description.split(' / USGS-')[0];
+          const parameterUnit = item.unitOfMeasurement;
+
+          let measurement = observation.result;
+          // convert measurements recorded in celsius to fahrenheit
+          if (['00010', '00020', '85583'].includes(parameterCode)) {
+            measurement = measurement * (9 / 5) + 32;
+          }
+
+          const matchedParam = usgsStaParameters.find((p) => {
+            return p.staParameterCode === parameterCode;
+          });
+
+          const data = {
+            parameterCategory: matchedParam?.hmwCategory || 'exclude',
+            parameterOrder: matchedParam?.hmwOrder || 0,
+            parameterName: matchedParam?.hmwName || parameterDesc,
+            parameterUsgsName: matchedParam?.staDescription || parameterDesc,
+            parameterCode,
+            measurement,
+            datetime: new Date(observation.phenomenonTime).toLocaleString(),
+            unitAbbr: matchedParam?.hmwUnits || parameterUnit.symbol,
+            unitName: parameterUnit.name,
+          };
+
+          if (data.parameterCategory === 'primary') {
+            streamgageMeasurements.primary.push(data);
+          }
+
+          if (data.parameterCategory === 'secondary') {
+            streamgageMeasurements.secondary.push(data);
+          }
+        });
+
+      return {
+        monitoringType: 'Current Water Conditions',
+        siteId: gage.properties.monitoringLocationNumber,
+        orgId: gage.properties.agencyCode,
+        orgName: gage.properties.agency,
+        locationLongitude: gage.Locations[0].location.coordinates[0],
+        locationLatitude: gage.Locations[0].location.coordinates[1],
+        locationName: gage.properties.monitoringLocationName,
+        locationType: gage.properties.monitoringLocationType,
+        locationUrl: gage.properties.monitoringLocationUrl,
+        // usgs streamgage specific properties:
+        streamgageMeasurements,
+      };
+    });
+
+    setNormalizedUsgsStreamgages(gages);
+
+    plotGages(gages, usgsStreamgagesLayer).then((result) => {
+      if (result.addFeatureResults.length > 0) setUsgsGtreamgagesPlotted(true);
+    });
+  }, [usgsStreamgages.data, usgsStreamgagesLayer]);
+
+  // once streamgages have been plotted initially, add precipitation data
+  // (fetched from usgsDailyValues web service) to each streamgage if it exists
+  // for that particular location and replot the streamgages on the map
+  useEffect(() => {
+    if (!usgsStreamgagesPlotted) return;
+    if (!usgsDailyPrecipitation.data.value) return;
+    if (normalizedUsgsStreamgages.length === 0) return;
+
+    const streamgageSiteIds = normalizedUsgsStreamgages.map((gage) => {
+      return gage.siteId;
+    });
+
+    usgsDailyPrecipitation.data.value?.timeSeries.forEach((site) => {
+      const siteId = site.sourceInfo.siteCode[0].value;
+      const observation = site.values[0].value[0];
+
+      if (streamgageSiteIds.includes(siteId)) {
+        const streamgage = normalizedUsgsStreamgages.find((gage) => {
+          return gage.siteId === siteId;
+        });
+
+        streamgage.streamgageMeasurements.primary.push({
+          parameterCategory: 'primary',
+          parameterOrder: 5,
+          parameterName: 'Total Daily Rainfall',
+          parameterUsgsName: 'Precipitation (USGS Daily Value)',
+          parameterCode: '00045',
+          measurement: observation.value,
+          datetime: new Date(observation.dateTime).toLocaleDateString(),
+          unitAbbr: 'in',
+          unitName: 'inches',
+        });
+      }
+    });
+
+    plotGages(normalizedUsgsStreamgages, usgsStreamgagesLayer);
+  }, [
+    usgsStreamgagesPlotted,
+    usgsDailyPrecipitation,
+    normalizedUsgsStreamgages,
+    usgsStreamgagesLayer,
+  ]);
+
+  // emulate componentdidupdate
+  const mounted = useRef();
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+    } else {
+      if (normalizedUsgsStreamgages.length === 0) return;
+
+      plotGages(normalizedUsgsStreamgages, usgsStreamgagesLayer);
+    }
+  }, [normalizedUsgsStreamgages, usgsStreamgagesLayer]);
+
+  const [sensorsSortedBy, setSensorsSortedBy] = useState('locationName');
+
+  const sortedSensors = [...normalizedUsgsStreamgages].sort((a, b) => {
+    if (sensorsSortedBy === 'siteId') {
+      return a.siteId.localeCompare(b.siteId);
+    }
+
+    return a[sensorsSortedBy].localeCompare(b[sensorsSortedBy]);
+  });
+
+  if (usgsStreamgages.status === 'fetching') return <LoadingSpinner />;
+
+  if (usgsStreamgages.status === 'failure') {
+    return (
+      <div css={modifiedErrorBoxStyles}>
+        <p>{monitoringError}</p>
+      </div>
+    );
+  }
+
+  if (usgsStreamgages.status === 'success') {
+    return (
+      <AccordionList
+        title={
+          <>
+            There {normalizedUsgsStreamgages.length === 1 ? 'is' : 'are'}{' '}
+            <strong>{normalizedUsgsStreamgages.length}</strong>{' '}
+            {normalizedUsgsStreamgages.length === 1 ? 'location' : 'locations'}{' '}
+            with data in the <em>{watershed}</em> watershed.
+          </>
+        }
+        onSortChange={({ value }) => setSensorsSortedBy(value)}
+        sortOptions={[
+          {
+            label: 'Location Name',
+            value: 'locationName',
+          },
+          {
+            label: 'Organization Name',
+            value: 'orgName',
+          },
+          {
+            label: 'Organization ID',
+            value: 'orgId',
+          },
+          {
+            label: 'Monitoring Site ID',
+            value: 'siteId',
+          },
+        ]}
+      >
+        {sortedSensors.map((item, index) => {
+          const feature = {
+            geometry: {
+              type: 'point',
+              longitude: item.locationLongitude,
+              latitude: item.locationLatitude,
+            },
+            attributes: item,
+          };
+
+          return (
+            <AccordionItem
+              key={index}
+              title={<strong>{item.locationName || 'Unknown'}</strong>}
+              subTitle={
+                <>
+                  <em>Organization Name:</em>&nbsp;&nbsp;
+                  {item.orgName}
+                  <br />
+                  <em>Organization ID:</em>&nbsp;&nbsp;{item.orgId}
+                  <br />
+                  <em>Monitoring Site ID:</em>&nbsp;&nbsp;
+                  {item.siteId.replace(`${item.orgId}-`, '')}
+                  {item.monitoringType === 'Sample Location' && (
+                    <>
+                      <br />
+                      <em>Monitoring Measurements:</em>&nbsp;&nbsp;
+                      {item.stationTotalMeasurements}
+                    </>
+                  )}
+                </>
+              }
+              feature={feature}
+              idKey="siteId"
+            >
+              <div css={accordionContentStyles}>
+                {item.monitoringType === 'Current Water Conditions' && (
+                  <WaterbodyInfo
+                    type="Current Water Conditions"
+                    feature={feature}
+                    services={services}
+                  />
+                )}
+
+                {item.monitoringType === 'Sample Location' && (
+                  <WaterbodyInfo
+                    type="Sample Location"
+                    feature={feature}
+                    services={services}
+                  />
+                )}
+
+                <ViewOnMapButton feature={feature} />
+              </div>
+            </AccordionItem>
+          );
+        })}
+      </AccordionList>
+    );
+  }
 }
 
 export default function MonitoringContainer({ ...props }: Props) {
