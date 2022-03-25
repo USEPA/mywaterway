@@ -27,7 +27,7 @@ import {
   graphicComparison,
   openPopup,
   shallowCompare,
-} from 'components/pages/LocationMap/MapFunctions';
+} from 'utils/mapFunctions';
 
 let dynamicPopupFields = [];
 

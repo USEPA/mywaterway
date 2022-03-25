@@ -2,18 +2,18 @@
 
 import React from 'react';
 import { Router, Location, navigate } from '@reach/router';
-import styled from 'styled-components';
+import { css } from 'styled-components/macro';
 // components
 import Home from 'components/pages/Home';
 import Attains from 'components/pages/Attains';
 import Data from 'components/pages/Data';
 import About from 'components/pages/About';
 import Community from 'components/pages/Community';
-import CommunityIntro from 'components/pages/Community/components/routes/CommunityIntro';
-import CommunityTabs from 'components/pages/Community/components/routes/CommunityTabs';
+import CommunityIntro from 'components/pages/Community.Routes.CommunityIntro';
+import CommunityTabs from 'components/pages/Community.Routes.CommunityTabs';
 import State from 'components/pages/State';
-import StateIntro from 'components/pages/State/components/routes/StateIntro';
-import StateTabs from 'components/pages/State/components/routes/StateTabs';
+import StateIntro from 'components/pages/State.Routes.StateIntro';
+import StateTabs from 'components/pages/State.Routes.StateTabs';
 import National from 'components/pages/National';
 import DrinkingWater from 'components/pages/DrinkingWater';
 import Swimming from 'components/pages/Swimming';
@@ -26,7 +26,7 @@ import InvalidUrl from 'components/pages/InvalidUrl';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import AlertMessage from 'components/shared/AlertMessage';
 // styled components
-import { StyledErrorBox } from 'components/shared/MessageBoxes';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
@@ -38,8 +38,8 @@ import {
 // errors
 import { servicesLookupServiceError } from 'config/errorMessages';
 
-// --- styled components ---
-const ErrorBox = styled(StyledErrorBox)`
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles}
   margin: 1rem;
   text-align: center;
 `;
@@ -61,7 +61,7 @@ function Routes() {
     return <LoadingSpinner />;
   }
   if (services.status === 'failure') {
-    return <ErrorBox>{servicesLookupServiceError}</ErrorBox>;
+    return <div css={modifiedErrorBoxStyles}>{servicesLookupServiceError}</div>;
   }
 
   return (
