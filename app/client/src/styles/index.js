@@ -69,6 +69,12 @@ const toggleTableStyles = css`
       text-align: right;
     }
   }
+
+  span,
+  td,
+  th {
+    overflow-wrap: anywhere;
+  }
 `;
 
 export { colors, fonts, reactSelectStyles, tableStyles, toggleTableStyles };
