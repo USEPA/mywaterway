@@ -152,7 +152,7 @@ const resultsInputsStyles = css`
 `;
 
 const resultsInputStyles = css`
-  ${inputsStyles}
+  ${inputStyles}
   @media (min-width: 768px) {
     width: calc((100% / 3) - 1em);
   }
