@@ -1202,7 +1202,7 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                   </div>
 
                   <div css={boxStyles}>
-                    <h2 css={boxHeadingStyles}>Associated Documents</h2>
+                    <h2 css={boxHeadingStyles}>Assessment Documents</h2>
 
                     <div css={boxSectionStyles}>
                       {documents.status === 'fetching' && <LoadingSpinner />}
