@@ -27,6 +27,7 @@ import {
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
 import { tabsStyles } from 'components/shared/ContentTabs';
+import VirtualizedList from 'components/shared/VirtualizedList';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -889,6 +890,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   const totalLocations = allMonitoringLocations.length.toLocaleString();
   const displayLocations = sortedMonitoringLocations.length.toLocaleString();
 
+  const [expandedRows, setExpandedRows] = useState([]);
+
   if (monitoringLocations.status === 'fetching') return <LoadingSpinner />;
 
   if (monitoringLocations.status === 'failure') {
@@ -991,49 +994,69 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                 },
               ]}
             >
-              {sortedMonitoringLocations.map((item, index) => {
-                const feature = {
-                  geometry: {
-                    type: 'point',
-                    longitude: item.locationLongitude,
-                    latitude: item.locationLatitude,
-                  },
-                  attributes: item,
-                };
+              <VirtualizedList
+                items={sortedMonitoringLocations}
+                expandedRowsSetter={setExpandedRows}
+                renderer={({ index, resizeCell, allExpanded }) => {
+                  const item = sortedMonitoringLocations[index];
 
-                return (
-                  <AccordionItem
-                    key={index}
-                    title={<strong>{item.locationName || 'Unknown'}</strong>}
-                    subTitle={
-                      <>
-                        <em>Organization Name:</em>&nbsp;&nbsp;
-                        {item.orgName}
-                        <br />
-                        <em>Organization ID:</em>&nbsp;&nbsp;
-                        {item.orgId}
-                        <br />
-                        <em>Monitoring Site ID:</em>&nbsp;&nbsp;
-                        {item.siteId.replace(`${item.orgId}-`, '')}
-                        <br />
-                        <em>Monitoring Measurements:</em>&nbsp;&nbsp;
-                        {item.stationTotalMeasurements}
-                      </>
-                    }
-                    feature={feature}
-                    idKey="siteId"
-                  >
-                    <div css={accordionContentStyles}>
-                      <WaterbodyInfo
-                        type="Sample Location"
-                        feature={feature}
-                        services={services}
-                      />
-                      <ViewOnMapButton feature={feature} />
-                    </div>
-                  </AccordionItem>
-                );
-              })}
+                  const feature = {
+                    geometry: {
+                      type: 'point',
+                      longitude: item.locationLongitude,
+                      latitude: item.locationLatitude,
+                    },
+                    attributes: item,
+                  };
+
+                  return (
+                    <AccordionItem
+                      key={index}
+                      index={index}
+                      title={<strong>{item.locationName || 'Unknown'}</strong>}
+                      subTitle={
+                        <>
+                          <em>Organization Name:</em>&nbsp;&nbsp;
+                          {item.orgName}
+                          <br />
+                          <em>Organization ID:</em>&nbsp;&nbsp;
+                          {item.orgId}
+                          <br />
+                          <em>Monitoring Site ID:</em>&nbsp;&nbsp;
+                          {item.siteId.replace(`${item.orgId}-`, '')}
+                          <br />
+                          <em>Monitoring Measurements:</em>&nbsp;&nbsp;
+                          {item.stationTotalMeasurements}
+                        </>
+                      }
+                      feature={feature}
+                      idKey="siteId"
+                      allExpanded={allExpanded || expandedRows.includes(index)}
+                      onChange={() => {
+                        // ensure the cell is sized appropriately
+                        resizeCell();
+
+                        // add the item to the expandedRows array so the accordion item
+                        // will stay expanded when the user scrolls or highlights map items
+                        if (expandedRows.includes(index)) {
+                          setExpandedRows(
+                            expandedRows.filter((item) => item !== index),
+                          );
+                        } else setExpandedRows(expandedRows.concat(index));
+                      }}
+                    >
+                      <div css={accordionContentStyles}>
+                        <WaterbodyInfo
+                          type="Sample Location"
+                          feature={feature}
+                          services={services}
+                        />
+                        <ViewOnMapButton feature={feature} />
+                      </div>
+                    </AccordionItem>
+                  );
+                }}
+              />
             </AccordionList>
           </>
         )}
