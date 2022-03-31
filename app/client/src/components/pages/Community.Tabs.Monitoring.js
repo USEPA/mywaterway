@@ -922,7 +922,9 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                       <span>All Monitoring Sample Locations</span>
                     </div>
                   </th>
-                  <th>Count</th>
+                  <th>Location Count</th>
+                  <th>Sample Count</th>
+                  <th>Measurement Count</th>
                 </tr>
               </thead>
               <tbody>
@@ -931,6 +933,16 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                     // remove duplicates caused by a single monitoring station having multiple overlapping groupNames
                     // like 'Inorganics, Major, Metals' and 'Inorganics, Minor, Metals'
                     const uniqueStations = [...new Set(group.stations)];
+
+                    // get the number of measurements for this group type
+                    let sampleCount = 0;
+                    let measurementCount = 0;
+                    uniqueStations.forEach((station) => {
+                      sampleCount += parseInt(station.stationTotalSamples);
+                      measurementCount += parseInt(
+                        station.stationTotalMeasurements,
+                      );
+                    });
 
                     return (
                       <tr key={group.label}>
@@ -945,6 +957,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                           </div>
                         </td>
                         <td>{uniqueStations.length.toLocaleString()}</td>
+                        <td>{sampleCount.toLocaleString()}</td>
+                        <td>{measurementCount.toLocaleString()}</td>
                       </tr>
                     );
                   })
