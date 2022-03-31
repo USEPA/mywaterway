@@ -43,6 +43,11 @@ import { usgsStaParameters } from 'config/usgsStaParameters';
 // styles
 import { toggleTableStyles } from 'styles/index.js';
 
+// This variable is used as a comparison for a function that is called
+// from multiple places. This variable needs to be updated instantly,
+// so the setState doesn't happen fast enough for this variable.
+let monitoringTogglesDrawn = {};
+
 const containerStyles = css`
   @media (min-width: 960px) {
     padding: 1em;
@@ -718,8 +723,19 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     (monitoringLocationTogglesParam) => {
       if (allMonitoringLocations.length === 0) return;
       if (!monitoringLocationsLayer) return;
+
+      // verify the switches changed from the last time this function was called
+      if (
+        JSON.stringify(monitoringLocationTogglesParam) ===
+        JSON.stringify(monitoringTogglesDrawn)
+      ) {
+        return;
+      }
+
       const addedStationUids = [];
       let tempDisplayedMonitoringLocations = [];
+
+      monitoringTogglesDrawn = { ...monitoringLocationTogglesParam };
 
       if (allToggled) {
         tempDisplayedMonitoringLocations = allMonitoringLocations;
