@@ -634,7 +634,7 @@ function MonitoringAndSensorsTab({
 
     setNormalizedMonitoringLocations(stations);
 
-    plotStations(stations, monitoringLocationsLayer, services);
+    plotStations(stations, monitoringLocationsLayer);
   }, [monitoringLocations.data, monitoringLocationsLayer, services]);
 
   const allMonitoringAndSensors = [

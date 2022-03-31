@@ -733,8 +733,13 @@ export class LocationSearchProvider extends Component<Props, State> {
         searchIconLayer.visible = false;
         searchIconLayer.graphics.removeAll();
       }
-      if (monitoringLocationsLayer)
-        monitoringLocationsLayer.graphics.removeAll();
+      if (monitoringLocationsLayer) {
+        monitoringLocationsLayer.queryFeatures().then((featureSet) => {
+          monitoringLocationsLayer.applyEdits({
+            deleteFeatures: featureSet.features,
+          });
+        });
+      }
       if (usgsStreamgagesLayer) {
         usgsStreamgagesLayer.queryFeatures().then((featureSet) => {
           usgsStreamgagesLayer.applyEdits({

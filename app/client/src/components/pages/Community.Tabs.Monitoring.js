@@ -97,7 +97,7 @@ type Station = {
   stationProviderName: string,
   stationTotalSamples: number,
   stationTotalMeasurements: number,
-  uid: string,
+  uniqueId: string,
 };
 
 type MonitoringLocationGroups = {
@@ -653,9 +653,9 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
         // create a unique id, so we can check if the monitoring station has
         // already been added to the display (since a monitoring station id
         // isn't universally unique)
-        uid:
-          `${station.properties.MonitoringLocationIdentifier}/` +
-          `${station.properties.ProviderName}/` +
+        uniqueId:
+          `${station.properties.MonitoringLocationIdentifier}-` +
+          `${station.properties.ProviderName}-` +
           `${station.properties.OrganizationIdentifier}`,
       };
 
@@ -717,7 +717,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   const drawMap = useCallback(
     (monitoringLocationTogglesParam) => {
       if (allMonitoringLocations.length === 0) return;
-      if (services.status === 'fetching') return;
+      if (!monitoringLocationsLayer) return;
       const addedStationUids = [];
       let tempDisplayedMonitoringLocations = [];
 
@@ -730,8 +730,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
           if (monitoringLocationTogglesParam[group.label]) {
             group.stations.forEach((station) => {
               // add the station to the display, if it has not already been added
-              if (!addedStationUids.includes(station.uid)) {
-                addedStationUids.push(station.uid);
+              if (!addedStationUids.includes(station.uniqueId)) {
+                addedStationUids.push(station.uniqueId);
                 tempDisplayedMonitoringLocations.push(station);
               }
             });
@@ -739,11 +739,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
         }
       }
 
-      plotStations(
-        tempDisplayedMonitoringLocations,
-        monitoringLocationsLayer,
-        services,
-      );
+      plotStations(tempDisplayedMonitoringLocations, monitoringLocationsLayer);
 
       if (tempDisplayedMonitoringLocations.length === 0) {
         setDisplayedMonitoringLocations([]);
@@ -765,7 +761,6 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
       allToggled,
       monitoringLocationGroups,
       monitoringLocationsLayer,
-      services,
     ],
   );
 
