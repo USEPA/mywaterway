@@ -682,8 +682,17 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     ],
   );
 
-  // Initializes the switches and monitoring station data
   const [dataInitialized, setDataInitialized] = useState(false);
+
+  // Reset dataInitialized if the user switches locations (i.e. monitoringGroups
+  // changes to null)
+  useEffect(() => {
+    if (monitoringGroups) return;
+
+    setDataInitialized(false);
+  }, [monitoringGroups]);
+
+  // Initializes the switches and monitoring station data
   useEffect(() => {
     if (!monitoringLocations.data.features) return;
     if (dataInitialized) return;
@@ -779,6 +788,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
     drawMap(monitoringLocationGroups);
   }, [
+    dataInitialized,
     displayedMonitoringLocations,
     drawMap,
     monitoringGroups,
