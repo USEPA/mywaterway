@@ -683,9 +683,13 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   );
 
   // Initializes the switches and monitoring station data
+  const [dataInitialized, setDataInitialized] = useState(false);
   useEffect(() => {
     if (!monitoringLocations.data.features) return;
-    if (monitoringGroups && displayedMonitoringLocations.length > 0) return;
+    if (dataInitialized) return;
+
+    setDataInitialized(true);
+
     if (monitoringGroups && displayedMonitoringLocations.length === 0) {
       // draw the map for handling switching to/from full screen mode
       drawMap(monitoringGroups);
