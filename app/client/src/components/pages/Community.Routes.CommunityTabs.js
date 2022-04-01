@@ -350,7 +350,6 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
     address,
     watershed,
     huc12,
-    setShowAllMonitoring,
     setMonitoringGroups,
     setShowAllPolluted,
     setPollutionParameters,
@@ -435,7 +434,6 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
 
   const resetTabSpecificData = () => {
     // monitoring panel
-    setShowAllMonitoring(true);
     setMonitoringGroups(null);
 
     // identified issues panel

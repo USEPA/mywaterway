@@ -288,7 +288,6 @@ type State = {
   FIPS: Object,
 
   // monitoring panel
-  showAllMonitoring: boolean,
   monitoringGroups: Object,
 
   // identified issues panel
@@ -375,7 +374,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     watershedsLayerMaxRecordCount: null,
 
     // monitoring panel
-    showAllMonitoring: true,
     monitoringGroups: null,
 
     // identified issues panel
@@ -616,9 +614,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     setCipSummary: (cipSummary: { status: Status, data: Huc12SummaryData }) => {
       this.setState({ cipSummary });
     },
-    setShowAllMonitoring: (showAllMonitoring) => {
-      this.setState({ showAllMonitoring });
-    },
     setMonitoringGroups: (monitoringGroups) => {
       this.setState({ monitoringGroups });
     },
@@ -808,6 +803,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         countyBoundaries: '',
         atHucBoundaries: false,
         hucBoundaries: '',
+        monitoringGroups: null,
         monitoringLocations: { status: 'fetching', data: {} },
         usgsStreamgages: { status: 'fetching', data: {} },
         usgsDailyPrecipitation: { status: 'fetching', data: {} },
