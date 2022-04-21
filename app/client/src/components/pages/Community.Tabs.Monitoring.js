@@ -11,10 +11,13 @@ import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 // components
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
-import WaterbodyInfo from 'components/shared/WaterbodyInfo';
+import WaterbodyInfo, {
+  modifiedTableStyles,
+} from 'components/shared/WaterbodyInfo';
 import {
   AccordionList,
   AccordionItem,
@@ -578,6 +581,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   const services = useServicesContext();
 
   const {
+    huc12,
     monitoringGroups,
     monitoringLocations,
     monitoringLocationsLayer,
@@ -589,6 +593,10 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     useState([]);
 
   const [allToggled, setAllToggled] = useState(true);
+
+  const [totalMeasurements, setTotalMeasurements] = useState(0);
+
+  const [totalSamples, setTotalSamples] = useState(0);
 
   const [sortBy, setSortBy] = useState('locationName');
 
@@ -635,6 +643,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   const toggleSwitch = useCallback(
     (groupLabel: string, allToggledParam?: boolean = false) => {
       const toggleGroups = monitoringGroups;
+      let newTotalMeasurements = 0;
+      let newTotalSamples = 0;
 
       if (groupLabel === 'All') {
         if (!allToggledParam) {
@@ -642,6 +652,10 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
           for (let toggle in toggleGroups) {
             if (toggle !== 'All') toggleGroups[toggle].toggled = true;
           }
+          toggleGroups['All'].stations.forEach((station) => {
+            newTotalMeasurements += parseInt(station.stationTotalMeasurements);
+            newTotalSamples += parseInt(station.stationTotalSamples);
+          });
 
           monitoringLocationsLayer.visible = true;
 
@@ -651,6 +665,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
           for (let key in toggleGroups) {
             if (key !== 'All') toggleGroups[key].toggled = false;
           }
+          newTotalMeasurements = 0;
+          newTotalSamples = 0;
 
           monitoringLocationsLayer.visible = false;
 
@@ -667,8 +683,24 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
           (key) => toggleGroups[key].toggled,
         );
         setMonitoringDisplayed(someToggled);
+
+        const activeGroups = Object.keys(toggleGroups).filter(
+          (label) => label !== 'All' && toggleGroups[label].toggled === true,
+        );
+        toggleGroups['All'].stations.forEach((station) => {
+          let hasData = false;
+          activeGroups.forEach((group) => {
+            if (group in station.stationTotalsByGroup) {
+              newTotalMeasurements += station.stationTotalsByGroup[group];
+              hasData = true;
+            }
+          });
+          if (hasData) newTotalSamples += parseInt(station.stationTotalSamples);
+        });
       }
 
+      setTotalMeasurements(newTotalMeasurements);
+      setTotalSamples(newTotalSamples);
       setMonitoringGroups(toggleGroups);
 
       drawMap(toggleGroups);
@@ -736,6 +768,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
         stationTotalsByCategory: JSON.stringify(
           station.properties.characteristicGroupResultCount,
         ),
+        stationTotalsByGroup: {},
         // create a unique id, so we can check if the monitoring station has
         // already been added to the display (since a monitoring station id
         // isn't universally unique)
@@ -768,6 +801,17 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
               };
             }
             groupAdded = true;
+            if (
+              !monitoringLocation.stationTotalsByGroup.hasOwnProperty(
+                mapping.label,
+              )
+            ) {
+              monitoringLocation.stationTotalsByGroup[mapping.label] =
+                station.properties.characteristicGroupResultCount[group];
+            } else {
+              monitoringLocation.stationTotalsByGroup[mapping.label] +=
+                station.properties.characteristicGroupResultCount[group];
+            }
           }
         }
       });
@@ -776,6 +820,9 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
       // add the station to the 'Other' group
       if (!groupAdded) {
         monitoringLocationGroups['Other'].stations.push(monitoringLocation);
+        monitoringLocation.stationTotalsByGroup['Other'] = Object.values(
+          JSON.parse(monitoringLocation.stationTotalsByCategory),
+        ).reduce((a, b) => a + b);
       }
     });
 
@@ -796,6 +843,19 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     services,
     setMonitoringGroups,
   ]);
+
+  useEffect(() => {
+    let totalMeasurements = 0;
+    let totalSamples = 0;
+    if (monitoringGroups) {
+      monitoringGroups['All'].stations.forEach((station) => {
+        totalMeasurements += parseInt(station.stationTotalMeasurements);
+        totalSamples += parseInt(station.stationTotalSamples);
+      });
+      setTotalMeasurements(totalMeasurements);
+      setTotalSamples(totalSamples);
+    }
+  }, [monitoringGroups]);
 
   const sortedMonitoringLocations = displayedMonitoringLocations
     ? displayedMonitoringLocations.sort((a, b) => {
@@ -900,6 +960,41 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                   })}
               </tbody>
             </table>
+
+            <p>
+              <strong>
+                <em>{watershed}</em> totals:{' '}
+              </strong>
+            </p>
+            <table css={modifiedTableStyles} className="table">
+              <tbody>
+                <tr>
+                  <td>
+                    <em>
+                      <GlossaryTerm term="Monitoring Samples">
+                        Monitoring Samples:
+                      </GlossaryTerm>
+                    </em>
+                  </td>
+                  <td>{Number(totalSamples).toLocaleString()}</td>
+                </tr>
+                <tr>
+                  <td>
+                    <em>
+                      <GlossaryTerm term="Monitoring Measurements">
+                        Monitoring Measurements:
+                      </GlossaryTerm>
+                    </em>
+                  </td>
+                  <td>{Number(totalMeasurements).toLocaleString()}</td>
+                </tr>
+              </tbody>
+            </table>
+            <p>
+              <strong>
+                Download All <em>{watershed}</em> Monitoring Data:
+              </strong>
+            </p>
 
             <AccordionList
               title={

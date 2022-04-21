@@ -72,7 +72,7 @@ const popupTitleStyles = css`
   background-color: #f0f6f9;
 `;
 
-const modifiedTableStyles = css`
+export const modifiedTableStyles = css`
   ${tableStyles}
 
   thead th {
