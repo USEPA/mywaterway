@@ -113,6 +113,7 @@ function AboutContent({ ...props }: Props) {
           <TabList>
             <Tab css={largeTabStyles}>About How's My Waterway</Tab>
             <Tab css={largeTabStyles}>Questions and Answers</Tab>
+            <Tab css={largeTabStyles}>Educational Materials</Tab>
           </TabList>
           <TabPanels>
             <TabPanel>
@@ -406,6 +407,23 @@ function AboutContent({ ...props }: Props) {
                   </a>
                   &nbsp;&nbsp;
                   <small css={disclaimerStyles}>(opens new browser tab)</small>
+                </p>
+              </div>
+            </TabPanel>
+            <TabPanel>
+              <div className="container">
+                <h1>Educational Materials from How's My Waterway</h1>
+                <hr />
+                <p>
+                  <ul>
+                    <li>
+                      <em>How's My Waterway</em> middleschool lesson plan:{' '}
+                      <br />
+                      <a href="https://www.epa.gov/waterdata/hows-my-waterway-middle-school-lesson-plan">
+                        https://www.epa.gov/waterdata/hows-my-waterway-middle-school-lesson-plan
+                      </a>
+                    </li>
+                  </ul>
                 </p>
               </div>
             </TabPanel>
