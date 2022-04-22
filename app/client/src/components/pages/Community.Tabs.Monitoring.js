@@ -16,6 +16,8 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import WaterbodyInfo, {
+  downloadLinksStyles,
+  iconStyles,
   modifiedTableStyles,
 } from 'components/shared/WaterbodyInfo';
 import {
@@ -594,6 +596,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
   const [allToggled, setAllToggled] = useState(true);
 
+  const [charGroupFilters, setCharGroupFilters] = useState('');
+
   const [totalMeasurements, setTotalMeasurements] = useState(0);
 
   const [totalSamples, setTotalSamples] = useState(0);
@@ -640,6 +644,26 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     [monitoringLocationsLayer],
   );
 
+  // create the filter string for download links based on active toggles
+  const buildFilter = useCallback(
+    (selectedNames) => {
+      let filter = '';
+
+      let groups = {};
+      characteristicGroupMappings.forEach(
+        (mapping) => (groups[mapping.label] = mapping.groupNames),
+      );
+
+      for (const name of selectedNames) {
+        filter +=
+          '&characteristicType=' + groups[name].join('&characteristicType=');
+      }
+
+      setCharGroupFilters(filter);
+    },
+    [setCharGroupFilters],
+  );
+
   const toggleSwitch = useCallback(
     (groupLabel: string, allToggledParam?: boolean = false) => {
       const toggleGroups = monitoringGroups;
@@ -652,10 +676,16 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
           for (let toggle in toggleGroups) {
             if (toggle !== 'All') toggleGroups[toggle].toggled = true;
           }
+          // update the watershed total measurements and samples counts
           toggleGroups['All'].stations.forEach((station) => {
             newTotalMeasurements += parseInt(station.stationTotalMeasurements);
             newTotalSamples += parseInt(station.stationTotalSamples);
           });
+
+          const activeGroups = characteristicGroupMappings.map(
+            (group) => group.label,
+          );
+          buildFilter(activeGroups);
 
           monitoringLocationsLayer.visible = true;
 
@@ -665,11 +695,13 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
           for (let key in toggleGroups) {
             if (key !== 'All') toggleGroups[key].toggled = false;
           }
+          // update the watershed total measurements and samples counts
           newTotalMeasurements = 0;
           newTotalSamples = 0;
 
           monitoringLocationsLayer.visible = false;
 
+          setCharGroupFilters('');
           setMonitoringDisplayed(false);
         }
       }
@@ -684,9 +716,12 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
         );
         setMonitoringDisplayed(someToggled);
 
+        // update the watershed total measurements and samples counts
+        // to include only the specified characteristic groups
         const activeGroups = Object.keys(toggleGroups).filter(
           (label) => label !== 'All' && toggleGroups[label].toggled === true,
         );
+        buildFilter(activeGroups);
         toggleGroups['All'].stations.forEach((station) => {
           let hasData = false;
           activeGroups.forEach((group) => {
@@ -706,6 +741,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
       drawMap(toggleGroups);
     },
     [
+      buildFilter,
       drawMap,
       monitoringGroups,
       monitoringLocationsLayer,
@@ -765,9 +801,11 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
         stationProviderName: station.properties.ProviderName,
         stationTotalSamples: station.properties.activityCount,
         stationTotalMeasurements: station.properties.resultCount,
+        // counts for each lower-tier characteristic group
         stationTotalsByCategory: JSON.stringify(
           station.properties.characteristicGroupResultCount,
         ),
+        // counts for each top-tier characteristic group
         stationTotalsByGroup: {},
         // create a unique id, so we can check if the monitoring station has
         // already been added to the display (since a monitoring station id
@@ -781,12 +819,15 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
       allMonitoringLocations.push(monitoringLocation);
 
       // build up the monitoringLocationToggles and monitoringLocationGroups
-      let groupAdded = false;
+      let locationAddedToGroup = false;
+      const subGroupsAdded = [];
 
       characteristicGroupMappings.forEach((mapping) => {
-        for (const group in station.properties.characteristicGroupResultCount) {
+        for (const subGroup in station.properties
+          .characteristicGroupResultCount) {
           // if characteristic group exists in switch config object
-          if (mapping.groupNames.includes(group)) {
+          if (mapping.groupNames.includes(subGroup)) {
+            subGroupsAdded.push(subGroup);
             // if switch group (w/ label key) already exists, add the stations to it
             if (monitoringLocationGroups[mapping.label]) {
               monitoringLocationGroups[mapping.label].stations.push(
@@ -800,29 +841,39 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                 toggled: true,
               };
             }
-            groupAdded = true;
+            locationAddedToGroup = true;
+            // add the lower-tier group counts to the corresponding top-tier group counts
             if (
               !monitoringLocation.stationTotalsByGroup.hasOwnProperty(
                 mapping.label,
               )
             ) {
               monitoringLocation.stationTotalsByGroup[mapping.label] =
-                station.properties.characteristicGroupResultCount[group];
+                station.properties.characteristicGroupResultCount[subGroup];
             } else {
               monitoringLocation.stationTotalsByGroup[mapping.label] +=
-                station.properties.characteristicGroupResultCount[group];
+                station.properties.characteristicGroupResultCount[subGroup];
             }
           }
         }
       });
 
+      // add any leftover lower-tier group counts to the 'Other' top-tier group
+      if (!monitoringLocation.stationTotalsByGroup['Other']) {
+        monitoringLocation.stationTotalsByGroup['Other'] = 0;
+      }
+      for (const subGroup in station.properties
+        .characteristicGroupResultCount) {
+        if (!subGroupsAdded.includes(subGroup)) {
+          monitoringLocation.stationTotalsByGroup['Other'] +=
+            station.properties.characteristicGroupResultCount[subGroup];
+        }
+      }
+
       // if characteristic group didn't exist in switch config object,
       // add the station to the 'Other' group
-      if (!groupAdded) {
+      if (!locationAddedToGroup) {
         monitoringLocationGroups['Other'].stations.push(monitoringLocation);
-        monitoringLocation.stationTotalsByGroup['Other'] = Object.values(
-          JSON.parse(monitoringLocation.stationTotalsByCategory),
-        ).reduce((a, b) => a + b);
       }
     });
 
@@ -845,6 +896,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   ]);
 
   useEffect(() => {
+    // update total measurements and samples counts
+    // after `monitoringGroups` is initialized
     let totalMeasurements = 0;
     let totalSamples = 0;
     if (monitoringGroups) {
@@ -856,6 +909,11 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
       setTotalSamples(totalSamples);
     }
   }, [monitoringGroups]);
+
+  const downloadUrl =
+    `${services.data.waterQualityPortal.resultSearch}zip=no&huc=` +
+    `${huc12}` +
+    `${charGroupFilters}`;
 
   const sortedMonitoringLocations = displayedMonitoringLocations
     ? displayedMonitoringLocations.sort((a, b) => {
@@ -992,8 +1050,28 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
             </table>
             <p>
               <strong>
-                Download All <em>{watershed}</em> Monitoring Data:
+                Download <em>{watershed}</em> Monitoring Data:
               </strong>
+            </p>
+            <p css={downloadLinksStyles}>
+              <span>Data Download Format:</span>
+              &nbsp;
+              <a href={`${downloadUrl}&mimeType=xlsx`}>
+                <i
+                  css={iconStyles}
+                  className="fas fa-file-excel"
+                  aria-hidden="true"
+                />
+                xls
+              </a>
+              <a href={`${downloadUrl}&mimeType=csv`}>
+                <i
+                  css={iconStyles}
+                  className="fas fa-file-csv"
+                  aria-hidden="true"
+                />
+                csv
+              </a>
             </p>
 
             <AccordionList

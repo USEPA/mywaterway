@@ -113,7 +113,7 @@ const checkboxStyles = css`
   transform: scale(1.2);
 `;
 
-const downloadLinksStyles = css`
+export const downloadLinksStyles = css`
   span {
     display: inline-block;
     width: 100%;
@@ -130,7 +130,7 @@ const downloadLinksStyles = css`
   }
 `;
 
-const iconStyles = css`
+export const iconStyles = css`
   margin-right: 5px;
 `;
 
