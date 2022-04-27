@@ -24,7 +24,12 @@ import { characteristicGroupMappings } from 'config/characteristicGroupMappings'
 // errors
 import { waterbodyReportError } from 'config/errorMessages';
 // styles
-import { colors, tableStyles } from 'styles/index.js';
+import {
+  colors,
+  downloadLinksStyles,
+  iconStyles,
+  modifiedTableStyles,
+} from 'styles/index.js';
 
 function bool(value) {
   // Return 'Yes' for truthy values and non-zero strings
@@ -72,28 +77,6 @@ const popupTitleStyles = css`
   background-color: #f0f6f9;
 `;
 
-export const modifiedTableStyles = css`
-  ${tableStyles}
-
-  thead th {
-    vertical-align: top;
-  }
-
-  th,
-  td {
-    overflow-wrap: anywhere;
-    hyphens: auto;
-
-    :first-of-type {
-      padding-left: 0;
-    }
-
-    :last-of-type {
-      padding-right: 0;
-    }
-  }
-`;
-
 const measurementTableStyles = css`
   ${modifiedTableStyles};
 
@@ -111,27 +94,6 @@ const checkboxCellStyles = css`
 const checkboxStyles = css`
   appearance: checkbox;
   transform: scale(1.2);
-`;
-
-export const downloadLinksStyles = css`
-  span {
-    display: inline-block;
-    width: 100%;
-    font-weight: bold;
-
-    @media (min-width: 360px) {
-      margin-right: 0.5em;
-      width: auto;
-    }
-  }
-
-  a {
-    margin-right: 1em;
-  }
-`;
-
-export const iconStyles = css`
-  margin-right: 5px;
 `;
 
 const moreLessRowStyles = css`
