@@ -1024,7 +1024,11 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                 <em>{watershed}</em> totals:{' '}
               </strong>
             </p>
-            <table css={modifiedTableStyles} className="table">
+            <table
+              css={modifiedTableStyles}
+              id="monitoring-totals"
+              className="table"
+            >
               <tbody>
                 <tr>
                   <td>
