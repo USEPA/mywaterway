@@ -12,7 +12,7 @@ export const characteristicGroupMappings = [
     groupNames: ['Organics, Pesticide'],
   },
   {
-    label: 'PFCs',
+    label: 'PFAS',
     groupNames: [
       'PFOA, Perfluorooctanoic Acid',
       'PFAS,Perfluorinated Alkyl Substance',

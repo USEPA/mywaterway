@@ -335,6 +335,78 @@ describe('Monitoring Tab', () => {
       'true',
     );
   });
+
+  it('Should update the total measurement counts when flipping the "PFAS" toggle switch', () => {
+    // navigate to Monitoring tab of Community page
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      '45203',
+    );
+    cy.findByText('Go').click();
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    cy.findByText('Monitoring').click();
+
+    // navigate to the Sample Locations sub-tab
+    cy.findAllByText('Sample Locations').filter('button').click();
+
+    // turn off all switches
+    cy.findByText('All Monitoring Sample Locations')
+      .siblings()
+      .first()
+      .find('input')
+      .click({
+        force: true,
+      });
+
+    cy.get('#monitoring-totals').find('td').last().should('have.text', '0');
+
+    // flip the PFAS switch
+    cy.findByText('PFAS').siblings().first().find('input').click({
+      force: true,
+    });
+
+    cy.get('#monitoring-totals').find('td').last().should('not.have.text', '0');
+  });
+
+  it('Should update the mapped locations when flipping the "PFAS" toggle switch', () => {
+    // navigate to Monitoring tab of Community page
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      '45203',
+    );
+    cy.findByText('Go').click();
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    cy.findByText('Monitoring').click();
+
+    // navigate to the Sample Locations sub-tab
+    cy.findAllByText('Sample Locations').filter('button').click();
+
+    // turn off all switches
+    cy.findByText('All Monitoring Sample Locations')
+      .siblings()
+      .first()
+      .find('input')
+      .click({
+        force: true,
+      });
+
+    cy.findAllByText('Ohio: Middle').should('not.exist');
+
+    // flip the PFAS switch
+    cy.findByText('PFAS').siblings().first().find('input').click({
+      force: true,
+    });
+
+    cy.findAllByText('Ohio: Middle').should('exist');
+  });
 });
 
 describe('Protect Tab', () => {
