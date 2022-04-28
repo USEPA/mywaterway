@@ -34,6 +34,27 @@ const colors = {
   yellow: '#ffff00',
 };
 
+const downloadLinksStyles = css`
+  span {
+    display: inline-block;
+    width: 100%;
+    font-weight: bold;
+
+    @media (min-width: 360px) {
+      margin-right: 0.5em;
+      width: auto;
+    }
+  }
+
+  a {
+    margin-right: 1em;
+  }
+`;
+
+const iconStyles = css`
+  margin-right: 5px;
+`;
+
 const fonts = {
   primary: `'Source Sans Pro', 'Helvetica Neue', 'Helvetica', 'Roboto', 'Arial', sans-serif`,
   secondary: `'Roboto Slab', serif`,
@@ -52,6 +73,28 @@ const tableStyles = css`
 
     @media (min-width: 560px) {
       font-size: 1em;
+    }
+  }
+`;
+
+const modifiedTableStyles = css`
+  ${tableStyles}
+
+  thead th {
+    vertical-align: top;
+  }
+
+  th,
+  td {
+    overflow-wrap: anywhere;
+    hyphens: auto;
+
+    :first-of-type {
+      padding-left: 0;
+    }
+
+    :last-of-type {
+      padding-right: 0;
     }
   }
 `;
@@ -77,4 +120,13 @@ const toggleTableStyles = css`
   }
 `;
 
-export { colors, fonts, reactSelectStyles, tableStyles, toggleTableStyles };
+export {
+  colors,
+  downloadLinksStyles,
+  fonts,
+  iconStyles,
+  modifiedTableStyles,
+  reactSelectStyles,
+  tableStyles,
+  toggleTableStyles,
+};

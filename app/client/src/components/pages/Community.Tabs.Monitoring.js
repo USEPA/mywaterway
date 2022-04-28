@@ -15,11 +15,12 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
-import WaterbodyInfo, {
+import WaterbodyInfo from 'components/shared/WaterbodyInfo';
+import {
   downloadLinksStyles,
   iconStyles,
   modifiedTableStyles,
-} from 'components/shared/WaterbodyInfo';
+} from 'styles/index';
 import {
   AccordionList,
   AccordionItem,
@@ -646,7 +647,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
   // create the filter string for download links based on active toggles
   const buildFilter = useCallback(
-    (selectedNames) => {
+    (selectedNames, monitoringGroups) => {
       let filter = '';
 
       let groups = {};
@@ -654,9 +655,23 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
         (mapping) => (groups[mapping.label] = mapping.groupNames),
       );
 
-      for (const name of selectedNames) {
-        filter +=
-          '&characteristicType=' + groups[name].join('&characteristicType=');
+      const groupsCount = Object.values(monitoringGroups).filter(
+        (group) => group.label !== 'All',
+      ).length;
+      if (groupsCount !== selectedNames.length) {
+        for (const name of selectedNames) {
+          if (name === 'Other') {
+            filter +=
+              '&characteristicType=' +
+              monitoringGroups['Other'].characteristicGroups.join(
+                '&characteristicType=',
+              );
+          } else {
+            filter +=
+              '&characteristicType=' +
+              groups[name].join('&characteristicType=');
+          }
+        }
       }
 
       setCharGroupFilters(filter);
@@ -685,7 +700,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
           const activeGroups = characteristicGroupMappings.map(
             (group) => group.label,
           );
-          buildFilter(activeGroups);
+          buildFilter(activeGroups, monitoringGroups);
 
           monitoringLocationsLayer.visible = true;
 
@@ -721,7 +736,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
         const activeGroups = Object.keys(toggleGroups).filter(
           (label) => label !== 'All' && toggleGroups[label].toggled === true,
         );
-        buildFilter(activeGroups);
+        buildFilter(activeGroups, monitoringGroups);
         toggleGroups['All'].stations.forEach((station) => {
           let hasData = false;
           activeGroups.forEach((group) => {
@@ -777,7 +792,12 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     let allMonitoringLocations = [];
     let monitoringLocationGroups: MonitoringLocationGroups = {
       All: { label: 'All', stations: [], toggled: true },
-      Other: { label: 'Other', stations: [], toggled: true },
+      Other: {
+        label: 'Other',
+        stations: [],
+        toggled: true,
+        characteristicGroups: [],
+      },
     };
 
     monitoringLocations.data.features.forEach((station) => {
@@ -867,6 +887,16 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
         if (!subGroupsAdded.includes(subGroup)) {
           monitoringLocation.stationTotalsByGroup['Other'] +=
             station.properties.characteristicGroupResultCount[subGroup];
+
+          if (
+            !monitoringLocationGroups['Other'].characteristicGroups.includes(
+              subGroup,
+            )
+          ) {
+            monitoringLocationGroups['Other'].characteristicGroups.push(
+              subGroup,
+            );
+          }
         }
       }
 
