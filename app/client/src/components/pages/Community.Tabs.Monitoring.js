@@ -660,8 +660,17 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
       ).length;
       if (groupsCount !== selectedNames.length) {
         for (const name of selectedNames) {
-          filter +=
-            '&characteristicType=' + groups[name].join('&characteristicType=');
+          if (name === 'Other') {
+            filter +=
+              '&characteristicType=' +
+              monitoringGroups['Other'].characteristicGroups.join(
+                '&characteristicType=',
+              );
+          } else {
+            filter +=
+              '&characteristicType=' +
+              groups[name].join('&characteristicType=');
+          }
         }
       }
 
@@ -783,7 +792,12 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     let allMonitoringLocations = [];
     let monitoringLocationGroups: MonitoringLocationGroups = {
       All: { label: 'All', stations: [], toggled: true },
-      Other: { label: 'Other', stations: [], toggled: true },
+      Other: {
+        label: 'Other',
+        stations: [],
+        toggled: true,
+        characteristicGroups: [],
+      },
     };
 
     monitoringLocations.data.features.forEach((station) => {
@@ -873,6 +887,16 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
         if (!subGroupsAdded.includes(subGroup)) {
           monitoringLocation.stationTotalsByGroup['Other'] +=
             station.properties.characteristicGroupResultCount[subGroup];
+
+          if (
+            !monitoringLocationGroups['Other'].characteristicGroups.includes(
+              subGroup,
+            )
+          ) {
+            monitoringLocationGroups['Other'].characteristicGroups.push(
+              subGroup,
+            );
+          }
         }
       }
 
