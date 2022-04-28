@@ -83,6 +83,7 @@ const modifiedTableStyles = css`
   td {
     overflow-wrap: anywhere;
     hyphens: auto;
+    white-space: pre-wrap;
 
     :first-of-type {
       padding-left: 0;
@@ -90,6 +91,7 @@ const modifiedTableStyles = css`
 
     :last-of-type {
       padding-right: 0;
+      text-align: center;
     }
   }
 `;
@@ -432,7 +434,7 @@ function WaterbodyInfo({
               <table css={modifiedTableStyles} className="table">
                 <thead>
                   <tr>
-                    <th>Evaluated Use</th>
+                    <th>What is this water used for?</th>
                     <th>Condition</th>
                   </tr>
                 </thead>
@@ -458,9 +460,7 @@ function WaterbodyInfo({
         )}
 
         {useBasedCondition.condition === 'polluted'
-          ? waterbodyPollutionCategories(
-              'Impairment Categories were identified',
-            )
+          ? waterbodyPollutionCategories('Identified Issues')
           : ''}
 
         {waterbodyReportLink}
