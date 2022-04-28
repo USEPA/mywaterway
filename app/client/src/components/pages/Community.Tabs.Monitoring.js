@@ -740,7 +740,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
         toggleGroups['All'].stations.forEach((station) => {
           let hasData = false;
           activeGroups.forEach((group) => {
-            if (group in station.stationTotalsByGroup) {
+            if (station.stationTotalsByGroup[group] > 0) {
               newTotalMeasurements += station.stationTotalsByGroup[group];
               hasData = true;
             }
@@ -839,10 +839,10 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
       allMonitoringLocations.push(monitoringLocation);
 
       // build up the monitoringLocationToggles and monitoringLocationGroups
-      let locationAddedToGroup = false;
       const subGroupsAdded = [];
 
       characteristicGroupMappings.forEach((mapping) => {
+        monitoringLocation.stationTotalsByGroup[mapping.label] = 0;
         for (const subGroup in station.properties
           .characteristicGroupResultCount) {
           // if characteristic group exists in switch config object
@@ -861,30 +861,18 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                 toggled: true,
               };
             }
-            locationAddedToGroup = true;
             // add the lower-tier group counts to the corresponding top-tier group counts
-            if (
-              !monitoringLocation.stationTotalsByGroup.hasOwnProperty(
-                mapping.label,
-              )
-            ) {
-              monitoringLocation.stationTotalsByGroup[mapping.label] =
-                station.properties.characteristicGroupResultCount[subGroup];
-            } else {
-              monitoringLocation.stationTotalsByGroup[mapping.label] +=
-                station.properties.characteristicGroupResultCount[subGroup];
-            }
+            monitoringLocation.stationTotalsByGroup[mapping.label] +=
+              station.properties.characteristicGroupResultCount[subGroup];
           }
         }
       });
 
       // add any leftover lower-tier group counts to the 'Other' top-tier group
-      if (!monitoringLocation.stationTotalsByGroup['Other']) {
-        monitoringLocation.stationTotalsByGroup['Other'] = 0;
-      }
       for (const subGroup in station.properties
         .characteristicGroupResultCount) {
         if (!subGroupsAdded.includes(subGroup)) {
+          monitoringLocationGroups['Other'].stations.push(monitoringLocation);
           monitoringLocation.stationTotalsByGroup['Other'] +=
             station.properties.characteristicGroupResultCount[subGroup];
 
@@ -898,12 +886,6 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
             );
           }
         }
-      }
-
-      // if characteristic group didn't exist in switch config object,
-      // add the station to the 'Other' group
-      if (!locationAddedToGroup) {
-        monitoringLocationGroups['Other'].stations.push(monitoringLocation);
       }
     });
 
@@ -1017,9 +999,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                     let measurementCount = 0;
                     uniqueStations.forEach((station) => {
                       sampleCount += parseInt(station.stationTotalSamples);
-                      measurementCount += parseInt(
-                        station.stationTotalMeasurements,
-                      );
+                      measurementCount +=
+                        station.stationTotalsByGroup[group.label];
                     });
 
                     return (
