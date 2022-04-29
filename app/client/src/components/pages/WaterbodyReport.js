@@ -1221,12 +1221,6 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                                     width: columnWidth,
                                     filterable: true,
                                   },
-                                  /*{
-                                    Header: 'Use',
-                                    accessor: 'use',
-                                    width: columnWidth,
-                                    filterable: true,
-                                  },*/
                                   {
                                     Header: 'Confirmed',
                                     accessor: 'confirmed',
