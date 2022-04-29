@@ -335,6 +335,41 @@ describe('Monitoring Tab', () => {
       'true',
     );
   });
+
+  it.only('Clicking the Water Quality Portal form link should return a page with pre-populated options', () => {
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      '45203',
+    );
+    cy.findByText('Go').click();
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    cy.findByText('Monitoring').click();
+
+    // navigate to the Sample Locations sub-tab
+    cy.findAllByText('Sample Locations').filter('button').click();
+
+    // turn off all switches
+    cy.findByText('All Monitoring Sample Locations')
+      .siblings()
+      .first()
+      .find('input')
+      .click({
+        force: true,
+      });
+
+    // turn on one switch
+    cy.findByText('Physical').siblings().first().find('input').click({
+      force: true,
+    });
+
+    cy.get('[data-cy=portal]')
+      .invoke('attr', 'href')
+      .should('include', 'Physical');
+  });
 });
 
 describe('Protect Tab', () => {

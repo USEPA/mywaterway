@@ -1090,7 +1090,12 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
               </a>
             </p>
             <p>
-              <a rel="noopener noreferrer" target="_blank" href={portalUrl}>
+              <a
+                rel="noopener noreferrer"
+                target="_blank"
+                data-cy="portal"
+                href={portalUrl}
+              >
                 <i
                   css={iconStyles}
                   className="fas fa-filter"
