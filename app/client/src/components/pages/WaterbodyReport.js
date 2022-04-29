@@ -9,6 +9,7 @@ import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
 import NavBar from 'components/shared/NavBar';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
+import ReactTable from 'components/shared/ReactTable';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import ActionsMap from 'components/shared/ActionsMap';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
@@ -612,14 +613,29 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
 
         setWaterbodyUses({ status: 'success', data: uses });
 
-        const sources = probableSources.map((source) => {
+        const data = [];
+        probableSources.forEach((source) => {
           const name = source.sourceName;
           const status = source.sourceConfirmedIndicator === 'N' ? 'No' : 'Yes';
-
-          return { name, status };
+          source.associatedCauseNames.forEach((cause) => {
+            for (let parameter of parameters) {
+              if (parameter.parameterName === cause.causeName) {
+                const use =
+                  parameter.associatedUses.length &&
+                  parameter.associatedUses[0].associatedUseName;
+                data.push({
+                  source: titleCaseWithExceptions(name),
+                  parameter: titleCaseWithExceptions(cause.causeName),
+                  confirmed: status,
+                  use: use,
+                });
+                break;
+              }
+            }
+          });
         });
 
-        setWaterbodySources({ status: 'success', data: sources });
+        setWaterbodySources({ status: 'success', data: data });
 
         setDocuments({ status: 'success', data: assessmentDocuments });
       },
@@ -1175,26 +1191,42 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                               this waterbody.
                             </p>
                           ) : (
-                            <table className="table">
-                              <thead>
-                                <tr>
-                                  <th>Source</th>
-                                  <th>Confirmed</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {waterbodySources.data
-                                  .sort((a, b) => a.name.localeCompare(b.name))
-                                  .map((source) => (
-                                    <tr key={source.name}>
-                                      <td>
-                                        {titleCaseWithExceptions(source.name)}
-                                      </td>
-                                      <td>{source.status}</td>
-                                    </tr>
-                                  ))}
-                              </tbody>
-                            </table>
+                            <ReactTable
+                              data={waterbodySources.data}
+                              striped={false}
+                              getColumns={(tableWidth) => {
+                                const columnWidth = 2 * (tableWidth / 7) - 1;
+                                const halfColumnWidth = tableWidth / 7 - 1;
+
+                                return [
+                                  {
+                                    Header: 'Source',
+                                    accessor: 'source',
+                                    width: columnWidth,
+                                    filterable: true,
+                                  },
+                                  {
+                                    id: 'parameters',
+                                    Header: 'Parameter',
+                                    accessor: 'parameter',
+                                    width: columnWidth,
+                                    filterable: true,
+                                  },
+                                  {
+                                    Header: 'Use',
+                                    accessor: 'use',
+                                    width: columnWidth,
+                                    filterable: true,
+                                  },
+                                  {
+                                    Header: 'Confirmed',
+                                    accessor: 'confirmed',
+                                    width: halfColumnWidth,
+                                    filterable: true,
+                                  },
+                                ];
+                              }}
+                            />
                           )}
                         </>
                       )}

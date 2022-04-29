@@ -72,6 +72,8 @@ function titleCaseWithExceptions(string: string) {
   switch (string) {
     case 'AMMONIA, UN-IONIZED':
       return 'Ammonia, Un-Ionized';
+    case 'BIOCHEMICAL OXYGEN DEMAND (BOD)':
+      return 'Biochemical Oxygen Demand (BOD)';
     case 'CHLOROPHYLL-A':
       return 'Chlorophyll a';
     case 'CHLOROPHYLL-A - AQUATIC LIFE USE SUPPORT':
