@@ -18,6 +18,7 @@
   },
   "glossaryURL": "https://etss.epa.gov/synaptica_rest_services/api/savedreport/terms/HMWGlossary",
   "waterQualityPortal": {
+    "userInterface": "https://www.waterqualitydata.us/",
     "stationSearch": "https://www.waterqualitydata.us/data/Station/search?",
     "resultSearch": "https://www.waterqualitydata.us/data/Result/search?",
     "monitoringLocation": "https://www.waterqualitydata.us/data/summary/monitoringlocation/",

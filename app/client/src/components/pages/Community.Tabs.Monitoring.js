@@ -17,6 +17,7 @@ import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 import {
+  disclaimerStyles,
   downloadLinksStyles,
   iconStyles,
   modifiedTableStyles,
@@ -926,6 +927,10 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     `${services.data.waterQualityPortal.resultSearch}zip=no&huc=` +
     `${huc12}` +
     `${charGroupFilters}`;
+  const portalUrl =
+    `${services.data.waterQualityPortal.userInterface}#huc=${huc12}` +
+    `${charGroupFilters}&mimeType=xlsx&dataProfile=resultPhysChem` +
+    `&providers=NWIS&providers=STEWARDS&providers=STORET`;
 
   const sortedMonitoringLocations = displayedMonitoringLocations
     ? displayedMonitoringLocations.sort((a, b) => {
@@ -1083,6 +1088,33 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                 />
                 csv
               </a>
+            </p>
+            <p>
+              <a rel="noopener noreferrer" target="_blank" href={portalUrl}>
+                <i
+                  css={iconStyles}
+                  className="fas fa-filter"
+                  aria-hidden="true"
+                />
+                Filter this data using the <em>Water Quality Portal</em> form
+              </a>
+              &nbsp;&nbsp;
+              <small css={disclaimerStyles}>(opens new browser tab)</small>
+              <br />
+              <a
+                rel="noopener noreferrer"
+                target="_blank"
+                href="https://www.waterqualitydata.us/portal_userguide/"
+              >
+                <i
+                  css={iconStyles}
+                  className="fas fa-book-open"
+                  aria-hidden="true"
+                />
+                Water Quality Portal User Guide
+              </a>
+              &nbsp;&nbsp;
+              <small css={disclaimerStyles}>(opens new browser tab)</small>
             </p>
 
             <AccordionList
