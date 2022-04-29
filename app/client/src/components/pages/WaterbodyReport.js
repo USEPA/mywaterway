@@ -635,6 +635,15 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
           });
         });
 
+        data
+          .sort((a, b) => a.source > b.source)
+          .sort((a, b) => {
+            if (a.source === b.source) {
+              return a.parameter > b.parameter;
+            }
+            return -1;
+          });
+
         setWaterbodySources({ status: 'success', data: data });
 
         setDocuments({ status: 'success', data: assessmentDocuments });
@@ -1195,8 +1204,8 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                               data={waterbodySources.data}
                               striped={false}
                               getColumns={(tableWidth) => {
-                                const columnWidth = 2 * (tableWidth / 7) - 1;
-                                const halfColumnWidth = tableWidth / 7 - 1;
+                                const columnWidth = 2 * (tableWidth / 5) - 1;
+                                const halfColumnWidth = tableWidth / 5 - 1;
 
                                 return [
                                   {
@@ -1212,12 +1221,12 @@ function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
                                     width: columnWidth,
                                     filterable: true,
                                   },
-                                  {
+                                  /*{
                                     Header: 'Use',
                                     accessor: 'use',
                                     width: columnWidth,
                                     filterable: true,
-                                  },
+                                  },*/
                                   {
                                     Header: 'Confirmed',
                                     accessor: 'confirmed',
