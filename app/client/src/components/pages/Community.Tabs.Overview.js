@@ -802,12 +802,8 @@ function MonitoringAndSensorsTab({
                   value: 'orgName',
                 },
                 {
-                  label: 'Organization ID',
-                  value: 'orgId',
-                },
-                {
-                  label: 'Monitoring Site ID',
-                  value: 'siteId',
+                  label: 'Water Type',
+                  value: 'locationType',
                 },
               ].concat(
                 monitoringLocationsDisplayed
@@ -842,10 +838,8 @@ function MonitoringAndSensorsTab({
                         <em>Organization Name:</em>&nbsp;&nbsp;
                         {item.orgName}
                         <br />
-                        <em>Organization ID:</em>&nbsp;&nbsp;{item.orgId}
-                        <br />
-                        <em>Monitoring Site ID:</em>&nbsp;&nbsp;
-                        {item.siteId.replace(`${item.orgId}-`, '')}
+                        <em>Water Type:</em>&nbsp;&nbsp;
+                        {item.locationType}
                         {item.monitoringType === 'Sample Location' && (
                           <>
                             <br />

@@ -691,6 +691,12 @@ function WaterbodyInfo({
             </tr>
             <tr>
               <td>
+                <em>Organization ID:</em>
+              </td>
+              <td>{attributes.orgId}</td>
+            </tr>
+            <tr>
+              <td>
                 <em>Monitor&shy;ing Site ID:</em>
               </td>
               <td>{attributes.siteId.replace(`${attributes.orgId}-`, '')}</td>
