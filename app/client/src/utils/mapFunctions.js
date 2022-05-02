@@ -15,7 +15,7 @@ import { getSelectedCommunityTab } from 'utils/utils';
 
 const waterbodyStatuses = {
   good: { condition: 'good', label: 'Good' },
-  polluted: { condition: 'polluted', label: 'Impaired\n(Issues Identified)' },
+  polluted: { condition: 'polluted', label: 'Impaired (Issues Identified)' },
   unassessed: { condition: 'unassessed', label: 'Condition Unknown' },
   notApplicable: { condition: 'hidden', label: 'Not Applicable' },
 };

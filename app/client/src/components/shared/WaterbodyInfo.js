@@ -83,7 +83,6 @@ const modifiedTableStyles = css`
   td {
     overflow-wrap: anywhere;
     hyphens: auto;
-    white-space: pre-wrap;
 
     :first-of-type {
       padding-left: 0;
@@ -91,7 +90,6 @@ const modifiedTableStyles = css`
 
     :last-of-type {
       padding-right: 0;
-      text-align: center;
     }
   }
 `;
