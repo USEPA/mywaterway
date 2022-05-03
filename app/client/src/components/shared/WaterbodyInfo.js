@@ -1353,6 +1353,12 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
           </tr>
           <tr>
             <td>
+              <em>Organization ID:</em>
+            </td>
+            <td>{orgId}</td>
+          </tr>
+          <tr>
+            <td>
               <em>Monitor&shy;ing Site ID:</em>
             </td>
             <td>{siteId.replace(`${orgId}-`, '')}</td>
