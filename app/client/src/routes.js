@@ -15,6 +15,7 @@ import StateTribal from 'components/pages/StateTribal';
 import StateTribalIntro from 'components/pages/StateTribal.Routes.StateTribalIntro';
 import StateTribalTabs from 'components/pages/StateTribal.Routes.StateTribalTabs';
 import National from 'components/pages/National';
+import MonitoringStation from 'components/pages/MonitoringStation';
 import DrinkingWater from 'components/pages/DrinkingWater';
 import Swimming from 'components/pages/Swimming';
 import EatingFish from 'components/pages/EatingFish';
@@ -101,6 +102,7 @@ function AppRoutes() {
           element={<WaterbodyReport />}
         />
         <Route path="/educators" element={<Educators />} />
+        <Route path="/station/:siteId" element={<MonitoringStation />} />
         <Route path="*" element={<ErrorPage />} />
       </Routes>
     </>
