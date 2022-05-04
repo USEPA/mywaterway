@@ -120,9 +120,9 @@ const modifiedErrorBoxStyles = css`
 
 const modifiedIntroBoxStyles = css`
   ${introBoxStyles}
+
   margin-top: 1.5rem;
   margin-bottom: 1rem;
-  padding: 1.5rem;
   line-height: 1.375;
 
   p {

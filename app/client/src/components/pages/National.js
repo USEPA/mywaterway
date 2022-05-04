@@ -90,7 +90,6 @@ const modifiedIntroBoxStyles = css`
 
   margin-top: -1.5em;
   margin-left: -1.5em;
-  padding: 1.5rem;
   border-bottom: 1px solid #d8dfe2;
   width: calc(100% + 3em);
 `;
