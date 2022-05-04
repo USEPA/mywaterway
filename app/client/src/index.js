@@ -4,6 +4,7 @@ import 'react-app-polyfill/stable';
 import smoothscroll from 'smoothscroll-polyfill';
 import React, { StrictMode } from 'react';
 import ReactDOM from 'react-dom';
+import { LocationProvider } from '@reach/router';
 import { createGlobalStyle } from 'styled-components';
 import * as serviceWorker from './serviceWorker';
 // components
@@ -39,7 +40,9 @@ function Root() {
           <AddDataWidgetProvider>
             <GlobalStyle />
             <ErrorBoundary message={defaultErrorBoundaryMessage}>
-              <Routes />
+              <LocationProvider>
+                <Routes />
+              </LocationProvider>
             </ErrorBoundary>
           </AddDataWidgetProvider>
         </GlossaryProvider>

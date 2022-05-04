@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react';
-import { Router, Location, navigate } from '@reach/router';
+import { Router, useLocation, useNavigate } from '@reach/router';
 import { css } from 'styled-components/macro';
 // components
 import Home from 'components/pages/Home';
@@ -55,70 +55,64 @@ export type RouteProps = {
 
 // --- components ---
 function Routes() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const services = useServicesContext();
 
   if (services.status === 'fetching') {
     return <LoadingSpinner />;
   }
+
   if (services.status === 'failure') {
     return <div css={modifiedErrorBoxStyles}>{servicesLookupServiceError}</div>;
+  }
+
+  if (containsScriptTag(location.href)) {
+    // if '<script>' is in the url, navigate to 'invalid-url' and reload the
+    // page, otherwise the styles get all messed up
+    navigate('/invalid-url');
+    window.location.reload();
+  }
+
+  // if the pathname is not on a community page or is the community home page
+  // with no location, reset the canonical link and remove the JSON LD script
+  const pathName = window.location.pathname;
+  if (!pathName.includes('/community') || pathName === '/community') {
+    resetCanonicalLink();
+    removeJsonLD();
   }
 
   return (
     <>
       <AlertMessage />
-      <Location>
-        {({ location }) => {
-          if (containsScriptTag(location.href)) {
-            // if someone puts a <script> tag in the url we have to
-            // navigate to invalid-url and reload the page, otherwise the css
-            // gets all messed up.
-            navigate('/invalid-url');
-            window.location.reload();
-          }
 
-          // reset the canonical link and JSON LD:
-          // if the pathname is not on a community page
-          // or if the pathname is the community home page with no location
-          const pathName = window.location.pathname;
-          if (!pathName.includes('/community') || pathName === '/community') {
-            // reset canonical geoconnex PID link
-            resetCanonicalLink();
-
-            // remove JSON LD context script
-            removeJsonLD();
-          }
-
-          return (
-            <Router>
-              <Home path="/" />
-              <About path="/about" />
-              <Data path="/data" />
-              <Attains path="/attains" />
-              <Community path="/community">
-                <CommunityIntro path="/" />
-                <CommunityTabs path="/:urlSearch" />
-                <CommunityTabs path="/:urlSearch/:tabName" />
-              </Community>
-              <State path="/state">
-                <StateIntro path="/" />
-                <StateTabs path="/:stateCode" />
-                <StateTabs path="/:stateCode/:tabName" />
-              </State>
-              <National path="/national" />
-              <DrinkingWater path="/drinking-water" />
-              <Swimming path="/swimming" />
-              <EatingFish path="/eating-fish" />
-              <AquaticLife path="/aquatic-life" />
-              <Actions path="/plan-summary/:orgId/:actionId" />
-              <WaterbodyReport path="/waterbody-report/:orgId/:auId" />
-              <WaterbodyReport path="/waterbody-report/:orgId/:auId/:reportingCycle" />
-              <InvalidUrl path="/invalid-url" />
-              <ErrorPage default />
-            </Router>
-          );
-        }}
-      </Location>
+      <Router>
+        <Home path="/" />
+        <About path="/about" />
+        <Data path="/data" />
+        <Attains path="/attains" />
+        <Community path="/community">
+          <CommunityIntro path="/" />
+          <CommunityTabs path="/:urlSearch" />
+          <CommunityTabs path="/:urlSearch/:tabName" />
+        </Community>
+        <State path="/state">
+          <StateIntro path="/" />
+          <StateTabs path="/:stateCode" />
+          <StateTabs path="/:stateCode/:tabName" />
+        </State>
+        <National path="/national" />
+        <DrinkingWater path="/drinking-water" />
+        <Swimming path="/swimming" />
+        <EatingFish path="/eating-fish" />
+        <AquaticLife path="/aquatic-life" />
+        <Actions path="/plan-summary/:orgId/:actionId" />
+        <WaterbodyReport path="/waterbody-report/:orgId/:auId" />
+        <WaterbodyReport path="/waterbody-report/:orgId/:auId/:reportingCycle" />
+        <InvalidUrl path="/invalid-url" />
+        <ErrorPage default />
+      </Router>
     </>
   );
 }
