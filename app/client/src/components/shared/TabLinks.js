@@ -67,7 +67,7 @@ type TabLinkProps = {
 };
 
 function TabLink({ to, children }: TabLinkProps) {
-  const match = useMatch(`${to}/*}`);
+  const match = useMatch(to + '/*');
   return (
     <Link
       css={linkStyles}
