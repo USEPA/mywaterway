@@ -64,6 +64,7 @@ function AppRoutes() {
     <>
       <AlertMessage />
 
+<<<<<<< HEAD
       <Routes>
         <Route index element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -105,6 +106,57 @@ function AppRoutes() {
         <Route path="/station/:siteId" element={<MonitoringStation />} />
         <Route path="*" element={<ErrorPage />} />
       </Routes>
+=======
+          // reset the canonical link and JSON LD:
+          // if the pathname is not on a community page
+          // or if the pathname is the community home page with no location
+          const pathName = window.location.pathname;
+          if (!pathName.includes('/community') || pathName === '/community') {
+            // reset canonical geoconnex PID link
+            resetCanonicalLink();
+
+            // remove JSON LD context script
+            removeJsonLD();
+          }
+
+          return (
+            <Router>
+              <Home path="/" />
+              <About path="/about" />
+              <Data path="/data" />
+              <Attains path="/attains" />
+              <Community path="/community">
+                <CommunityIntro path="/" />
+                {/* $FlowFixMe (urlSearch prop is passed from the path) */}
+                <CommunityTabs path="/:urlSearch" />
+                {/* $FlowFixMe (urlSearch and tabName props are passed from the path) */}
+                <CommunityTabs path="/:urlSearch/:tabName" />
+              </Community>
+              <State path="/state">
+                <StateIntro path="/" />
+                {/* $FlowFixMe (stateCode prop is passed from the path) */}
+                <StateTabs path="/:stateCode" />
+                {/* $FlowFixMe (stateCode and tabName props are passed from the path) */}
+                <StateTabs path="/:stateCode/:tabName" />
+              </State>
+              <National path="/national" />
+              <MonitoringStation path="/station/:orgId/:siteId" />
+              <DrinkingWater path="/drinking-water" />
+              <Swimming path="/swimming" />
+              <EatingFish path="/eating-fish" />
+              <AquaticLife path="/aquatic-life" />
+              {/* $FlowFixMe (orgId and actionId props are passed from the path) */}
+              <Actions path="/plan-summary/:orgId/:actionId" />
+              {/* $FlowFixMe (orgId and auId props are passed from the path) */}
+              <WaterbodyReport path="/waterbody-report/:orgId/:auId" />
+              <WaterbodyReport path="/waterbody-report/:orgId/:auId/:reportingCycle" />
+              <InvalidUrl path="/invalid-url" />
+              <ErrorPage default />
+            </Router>
+          );
+        }}
+      </Location>
+>>>>>>> 64675453 (Began implementing the custom map component)
     </>
   );
 }
