@@ -3,7 +3,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import type { Node } from 'react';
 import { css } from 'styled-components/macro';
-import { navigate } from '@reach/router';
+import { useNavigate } from '@reach/router';
 import esriConfig from '@arcgis/core/config';
 // components
 import NavBar from 'components/shared/NavBar';
@@ -173,6 +173,8 @@ type Props = {
 };
 
 function Page({ children }: Props) {
+  const navigate = useNavigate();
+
   const { initialized, glossaryStatus } = useContext(GlossaryContext);
 
   const services = useServicesContext();

@@ -2,7 +2,7 @@
 
 import React, { useContext, useEffect, useState } from 'react';
 import type { Node } from 'react';
-import { navigate } from '@reach/router';
+import { useNavigate } from '@reach/router';
 import { css } from 'styled-components/macro';
 import Select from 'react-select';
 // components
@@ -146,6 +146,8 @@ type Props = {
 };
 
 function State({ children, ...props }: Props) {
+  const navigate = useNavigate();
+
   const services = useServicesContext();
 
   // query attains for the list of states
