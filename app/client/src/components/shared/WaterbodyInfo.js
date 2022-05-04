@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { css } from 'styled-components/macro';
-import { navigate } from '@reach/router';
+import { useNavigate } from '@reach/router';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
@@ -239,6 +239,8 @@ function WaterbodyInfo({
   services,
   fields,
 }: Props) {
+  const navigate = useNavigate();
+
   // Gets the response of what huc was clicked, if provided.
   const [clickedHuc, setClickedHuc] = useState<{
     status: 'none' | 'fetching' | 'success' | 'failure',

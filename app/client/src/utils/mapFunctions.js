@@ -1,8 +1,9 @@
 // @flow
 
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { render } from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { LocationProvider } from '@reach/router';
 import { css } from 'styled-components/macro';
 import Graphic from '@arcgis/core/Graphic';
 // components
@@ -764,22 +765,24 @@ export function getPopupContent({
   }
 
   const content = (
-    <WaterbodyInfo
-      type={type}
-      feature={feature}
-      fieldName={fieldName}
-      isPopup={true}
-      extraContent={extraContent}
-      getClickedHuc={getClickedHuc}
-      resetData={resetData}
-      services={services}
-      fields={fields}
-    />
+    <LocationProvider>
+      <WaterbodyInfo
+        type={type}
+        feature={feature}
+        fieldName={fieldName}
+        isPopup={true}
+        extraContent={extraContent}
+        getClickedHuc={getClickedHuc}
+        resetData={resetData}
+        services={services}
+        fields={fields}
+      />
+    </LocationProvider>
   );
 
   // wrap the content for esri
   const contentContainer = document.createElement('div');
-  ReactDOM.render(content, contentContainer);
+  render(content, contentContainer);
 
   // return an esri popup item
   return contentContainer;
