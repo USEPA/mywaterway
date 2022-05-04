@@ -1,10 +1,10 @@
 // @flow
 
-import React from 'react';
+import React, { Component, createContext } from 'react';
 import type { Node } from 'react';
 
 // --- components ---
-export const StateTabsContext: Object = React.createContext({
+export const StateTabsContext: Object = createContext({
   currentReportStatus: '',
   currentSummary: { status: 'fetching', data: {} },
   currentReportingCycle: { status: 'fetching', currentReportingCycle: '' },
@@ -26,7 +26,7 @@ type State = {
   stateAndOrganization: object,
 };
 
-export class StateTabsProvider extends React.Component<Props, State> {
+export class StateTabsProvider extends Component<Props, State> {
   state: State = {
     activeTabIndex: 0,
     currentReportStatus: '',

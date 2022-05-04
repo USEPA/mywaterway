@@ -1,10 +1,10 @@
 // @flow
 
-import React from 'react';
+import React, { Component, createContext } from 'react';
 import type { Node } from 'react';
 
 // --- components ---
-export const FullscreenContext: Object = React.createContext({
+export const FullscreenContext: Object = createContext({
   fullscreenActive: false,
 });
 
@@ -16,7 +16,7 @@ type State = {
   fullscreenActive: boolean,
 };
 
-export class FullscreenProvider extends React.Component<Props, State> {
+export class FullscreenProvider extends Component<Props, State> {
   state: State = {
     fullscreenActive: false,
     setFullscreenActive: (fullscreenActive: boolean) => {
