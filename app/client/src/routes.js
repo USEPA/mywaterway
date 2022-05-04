@@ -39,15 +39,6 @@ const modifiedErrorBoxStyles = css`
   text-align: center;
 `;
 
-// routes provided by Reach Router to each child of the Router component
-export type RouteProps = {
-  children: Node,
-  location: Object,
-  navigate: () => void,
-  path: string,
-  uri: string,
-};
-
 function AppRoutes() {
   const services = useServicesContext();
 

@@ -4,7 +4,6 @@ import React from 'react';
 import { css } from 'styled-components/macro';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 // components
-import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
 import TabLinks from 'components/shared/TabLinks';
 import { tabsStyles } from 'components/shared/ContentTabs';
@@ -467,11 +466,7 @@ function NationalDrinkingWaterPanel() {
   );
 }
 
-type Props = {
-  ...RouteProps,
-};
-
-function National({ ...props }: Props) {
+function National() {
   return (
     <Page>
       <TabLinks />
