@@ -7,11 +7,11 @@ import React, {
   useEffect,
   useState,
 } from 'react';
+import { useParams } from '@reach/router';
 import { css } from 'styled-components/macro';
 import WindowSize from '@reach/window-size';
 import StickyBox from 'react-sticky-box';
 // components
-import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
 import NavBar from 'components/shared/NavBar';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -252,13 +252,12 @@ const strongBottomMarginStyles = css`
 `;
 
 type Props = {
-  ...RouteProps,
   fullscreen: Object, // passed from FullscreenContext.Consumer
-  orgId: string, // (organization id)
-  actionId: string,
 };
 
-function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
+function Actions({ fullscreen }: Props) {
+  const { orgId, actionId } = useParams();
+
   const services = useServicesContext();
 
   const [loading, setLoading] = useState(true);
@@ -855,12 +854,12 @@ function Actions({ fullscreen, orgId, actionId, ...props }: Props) {
   );
 }
 
-export default function ActionsContainer({ ...props }: Props) {
+export default function ActionsContainer() {
   return (
     <MapHighlightProvider>
       <FullscreenProvider>
         <FullscreenContext.Consumer>
-          {(fullscreen) => <Actions fullscreen={fullscreen} {...props} />}
+          {(fullscreen) => <Actions fullscreen={fullscreen} />}
         </FullscreenContext.Consumer>
       </FullscreenProvider>
     </MapHighlightProvider>

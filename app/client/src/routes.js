@@ -97,16 +97,12 @@ function Routes() {
               <Attains path="/attains" />
               <Community path="/community">
                 <CommunityIntro path="/" />
-                {/* $FlowFixMe (urlSearch prop is passed from the path) */}
                 <CommunityTabs path="/:urlSearch" />
-                {/* $FlowFixMe (urlSearch and tabName props are passed from the path) */}
                 <CommunityTabs path="/:urlSearch/:tabName" />
               </Community>
               <State path="/state">
                 <StateIntro path="/" />
-                {/* $FlowFixMe (stateCode prop is passed from the path) */}
                 <StateTabs path="/:stateCode" />
-                {/* $FlowFixMe (stateCode and tabName props are passed from the path) */}
                 <StateTabs path="/:stateCode/:tabName" />
               </State>
               <National path="/national" />
@@ -114,9 +110,7 @@ function Routes() {
               <Swimming path="/swimming" />
               <EatingFish path="/eating-fish" />
               <AquaticLife path="/aquatic-life" />
-              {/* $FlowFixMe (orgId and actionId props are passed from the path) */}
               <Actions path="/plan-summary/:orgId/:actionId" />
-              {/* $FlowFixMe (orgId and auId props are passed from the path) */}
               <WaterbodyReport path="/waterbody-report/:orgId/:auId" />
               <WaterbodyReport path="/waterbody-report/:orgId/:auId/:reportingCycle" />
               <InvalidUrl path="/invalid-url" />
