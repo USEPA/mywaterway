@@ -218,7 +218,7 @@ const screenLabelWithPaddingStyles = css`
   padding-left: 0.375rem;
 `;
 
-function AdvancedSearch({ ...props }: Props) {
+function AdvancedSearch() {
   const services = useServicesContext();
 
   const {
