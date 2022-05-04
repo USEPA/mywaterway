@@ -8,7 +8,7 @@ import React, {
   useState,
 } from 'react';
 import { css } from 'styled-components/macro';
-import { useNavigate } from '@reach/router';
+import { useNavigate } from 'react-router-dom';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Locator from '@arcgis/core/tasks/Locator';
 import Point from '@arcgis/core/geometry/Point';

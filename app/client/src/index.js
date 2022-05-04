@@ -4,11 +4,11 @@ import 'react-app-polyfill/stable';
 import smoothscroll from 'smoothscroll-polyfill';
 import React, { StrictMode } from 'react';
 import { render } from 'react-dom';
-import { LocationProvider } from '@reach/router';
+import { BrowserRouter } from 'react-router-dom';
 import { createGlobalStyle } from 'styled-components';
 import * as serviceWorker from './serviceWorker';
 // components
-import Routes from './routes';
+import AppRoutes from './routes';
 import ErrorBoundary from 'components/shared/ErrorBoundary';
 // contexts
 import { AddDataWidgetProvider } from 'contexts/AddDataWidget';
@@ -34,20 +34,20 @@ export const GlobalStyle = createGlobalStyle`
 // --- components ---
 function Root() {
   return (
-    <LookupFilesProvider>
-      <LocationSearchProvider>
-        <GlossaryProvider>
-          <AddDataWidgetProvider>
-            <GlobalStyle />
-            <ErrorBoundary message={defaultErrorBoundaryMessage}>
-              <LocationProvider>
-                <Routes />
-              </LocationProvider>
-            </ErrorBoundary>
-          </AddDataWidgetProvider>
-        </GlossaryProvider>
-      </LocationSearchProvider>
-    </LookupFilesProvider>
+    <BrowserRouter>
+      <LookupFilesProvider>
+        <LocationSearchProvider>
+          <GlossaryProvider>
+            <AddDataWidgetProvider>
+              <GlobalStyle />
+              <ErrorBoundary message={defaultErrorBoundaryMessage}>
+                <AppRoutes />
+              </ErrorBoundary>
+            </AddDataWidgetProvider>
+          </GlossaryProvider>
+        </LocationSearchProvider>
+      </LookupFilesProvider>
+    </BrowserRouter>
   );
 }
 

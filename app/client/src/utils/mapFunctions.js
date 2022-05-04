@@ -3,7 +3,7 @@
 import React from 'react';
 import { render } from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { LocationProvider } from '@reach/router';
+import { BrowserRouter } from 'react-router-dom';
 import { css } from 'styled-components/macro';
 import Graphic from '@arcgis/core/Graphic';
 // components
@@ -765,7 +765,7 @@ export function getPopupContent({
   }
 
   const content = (
-    <LocationProvider>
+    <BrowserRouter>
       <WaterbodyInfo
         type={type}
         feature={feature}
@@ -777,7 +777,7 @@ export function getPopupContent({
         services={services}
         fields={fields}
       />
-    </LocationProvider>
+    </BrowserRouter>
   );
 
   // wrap the content for esri

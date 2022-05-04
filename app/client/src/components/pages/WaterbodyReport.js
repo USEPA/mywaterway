@@ -1,7 +1,7 @@
 // @flow
 
 import React, { Fragment, useCallback, useEffect, useState } from 'react';
-import { useParams } from '@reach/router';
+import { useParams } from 'react-router-dom';
 import WindowSize from '@reach/window-size';
 import { css } from 'styled-components/macro';
 import StickyBox from 'react-sticky-box';

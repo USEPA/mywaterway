@@ -8,7 +8,7 @@ import React, {
   useCallback,
 } from 'react';
 import { css } from 'styled-components/macro';
-import { useParams, useNavigate } from '@reach/router';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 // components
 import Switch from 'components/shared/Switch';

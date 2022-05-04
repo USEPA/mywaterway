@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react';
-import { Router, useLocation, useNavigate } from '@reach/router';
+import { Routes, Route } from 'react-router-dom';
 import { css } from 'styled-components/macro';
 // components
 import Home from 'components/pages/Home';
@@ -22,7 +22,6 @@ import AquaticLife from 'components/pages/AquaticLife';
 import Actions from 'components/pages/Actions';
 import WaterbodyReport from 'components/pages/WaterbodyReport';
 import ErrorPage from 'components/pages/404';
-import InvalidUrl from 'components/pages/InvalidUrl';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import AlertMessage from 'components/shared/AlertMessage';
 // styled components
@@ -30,11 +29,7 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
-import {
-  containsScriptTag,
-  resetCanonicalLink,
-  removeJsonLD,
-} from 'utils/utils';
+import { resetCanonicalLink, removeJsonLD } from 'utils/utils';
 // errors
 import { servicesLookupServiceError } from 'config/errorMessages';
 
@@ -53,11 +48,7 @@ export type RouteProps = {
   uri: string,
 };
 
-// --- components ---
-function Routes() {
-  const location = useLocation();
-  const navigate = useNavigate();
-
+function AppRoutes() {
   const services = useServicesContext();
 
   if (services.status === 'fetching') {
@@ -66,13 +57,6 @@ function Routes() {
 
   if (services.status === 'failure') {
     return <div css={modifiedErrorBoxStyles}>{servicesLookupServiceError}</div>;
-  }
-
-  if (containsScriptTag(location.href)) {
-    // if '<script>' is in the url, navigate to 'invalid-url' and reload the
-    // page, otherwise the styles get all messed up
-    navigate('/invalid-url');
-    window.location.reload();
   }
 
   // if the pathname is not on a community page or is the community home page
@@ -87,34 +71,39 @@ function Routes() {
     <>
       <AlertMessage />
 
-      <Router>
-        <Home path="/" />
-        <About path="/about" />
-        <Data path="/data" />
-        <Attains path="/attains" />
-        <Community path="/community">
-          <CommunityIntro path="/" />
-          <CommunityTabs path="/:urlSearch" />
-          <CommunityTabs path="/:urlSearch/:tabName" />
-        </Community>
-        <State path="/state">
-          <StateIntro path="/" />
-          <StateTabs path="/:stateCode" />
-          <StateTabs path="/:stateCode/:tabName" />
-        </State>
-        <National path="/national" />
-        <DrinkingWater path="/drinking-water" />
-        <Swimming path="/swimming" />
-        <EatingFish path="/eating-fish" />
-        <AquaticLife path="/aquatic-life" />
-        <Actions path="/plan-summary/:orgId/:actionId" />
-        <WaterbodyReport path="/waterbody-report/:orgId/:auId" />
-        <WaterbodyReport path="/waterbody-report/:orgId/:auId/:reportingCycle" />
-        <InvalidUrl path="/invalid-url" />
-        <ErrorPage default />
-      </Router>
+      <Routes>
+        <Route index element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/data" element={<Data />} />
+        <Route path="/attains" element={<Attains />} />
+        <Route path="/community" element={<Community />}>
+          <Route index element={<CommunityIntro />} />
+          <Route path=":urlSearch" element={<CommunityTabs />} />
+          <Route path=":urlSearch/:tabName" element={<CommunityTabs />} />
+        </Route>
+        <Route path="/state" element={<State />}>
+          <Route index element={<StateIntro />} />
+          <Route path=":stateCode" element={<StateTabs />} />
+          <Route path=":stateCode/:tabName" element={<StateTabs />} />
+        </Route>
+        <Route path="/national" element={<National />} />
+        <Route path="/drinking-water" element={<DrinkingWater />} />
+        <Route path="/swimming" element={<Swimming />} />
+        <Route path="/eating-fish" element={<EatingFish />} />
+        <Route path="/aquatic-life" element={<AquaticLife />} />
+        <Route path="/plan-summary/:orgId/:actionId" element={<Actions />} />
+        <Route
+          path="/waterbody-report/:orgId/:auId"
+          element={<WaterbodyReport />}
+        />
+        <Route
+          path="/waterbody-report/:orgId/:auId/:reportingCycle"
+          element={<WaterbodyReport />}
+        />
+        <Route path="*" element={<ErrorPage />} />
+      </Routes>
     </>
   );
 }
 
-export default Routes;
+export default AppRoutes;

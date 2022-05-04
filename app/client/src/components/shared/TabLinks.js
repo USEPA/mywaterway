@@ -3,7 +3,7 @@
 import React from 'react';
 import type { Node } from 'react';
 import { css } from 'styled-components/macro';
-import { Link } from '@reach/router';
+import { Link, useMatch } from 'react-router-dom';
 // styles
 import { colors } from 'styles/index.js';
 
@@ -67,21 +67,16 @@ type TabLinkProps = {
 };
 
 function TabLink({ to, children }: TabLinkProps) {
+  const match = useMatch(`${to}/*}`);
   return (
     <Link
       css={linkStyles}
       to={to}
-      getProps={({ isPartiallyCurrent }) => {
-        return isPartiallyCurrent
-          ? {
-              style: {
-                marginTop: '0',
-                fontWeight: 'bold',
-                backgroundColor: 'white',
-              },
-            }
-          : null;
-      }}
+      style={
+        match
+          ? { marginTop: '0', fontWeight: 'bold', backgroundColor: 'white' }
+          : {}
+      }
     >
       {children}
     </Link>

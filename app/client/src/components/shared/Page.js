@@ -3,7 +3,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import type { Node } from 'react';
 import { css } from 'styled-components/macro';
-import { useNavigate } from '@reach/router';
+import { useNavigate } from 'react-router-dom';
 import esriConfig from '@arcgis/core/config';
 // components
 import NavBar from 'components/shared/NavBar';

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { css } from 'styled-components/macro';
-import { useNavigate } from '@reach/router';
+import { useNavigate } from 'react-router-dom';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';

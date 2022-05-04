@@ -1,5 +1,5 @@
 import React, { Component, createContext } from 'react';
-import { navigate } from '@reach/router';
+import { Navigate } from 'react-router-dom';
 import { resetCanonicalLink, removeJsonLD } from 'utils/utils';
 
 export const LocationSearchContext = createContext();
@@ -852,7 +852,7 @@ export class LocationSearchProvider extends Component<Props, State> {
           drinkingWater: { status: 'success', data: [] },
           visibleLayers: {},
         },
-        () => navigate('/community'),
+        () => <Navigate to="/community" />,
       );
 
       // remove map content

@@ -7,7 +7,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import { useParams } from '@reach/router';
+import { useParams } from 'react-router-dom';
 import { css } from 'styled-components/macro';
 import WindowSize from '@reach/window-size';
 import StickyBox from 'react-sticky-box';

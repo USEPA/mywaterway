@@ -1,12 +1,10 @@
 // @flow
 
 import React, { useContext, useEffect, useState } from 'react';
-import type { Node } from 'react';
-import { useNavigate } from '@reach/router';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { css } from 'styled-components/macro';
 import Select from 'react-select';
 // components
-import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
 import TabLinks from 'components/shared/TabLinks';
 import ShowLessMore from 'components/shared/ShowLessMore';
@@ -139,13 +137,8 @@ const byTheNumbersExplanationStyles = css`
   padding: 0.5rem 0 0 0;
 `;
 
-// --- components ---
-type Props = {
-  ...RouteProps,
-  children: Node,
-};
-
-function State({ children, ...props }: Props) {
+function State() {
+  const location = useLocation();
   const navigate = useNavigate();
 
   const services = useServicesContext();
@@ -173,10 +166,10 @@ function State({ children, ...props }: Props) {
 
   // reset active state if on state intro page
   useEffect(() => {
-    if (props.location.pathname === '/state') {
+    if (location.pathname === '/state') {
       setActiveState({ code: '', name: '' });
     }
-  }, [props.location, setActiveState]);
+  }, [location, setActiveState]);
 
   // selectedState used for the HTML select menu, so we don't immediately
   // update activeState every time the user changes the selected state
@@ -372,8 +365,8 @@ function State({ children, ...props }: Props) {
               </>
             )}
 
-            {/* children is either StateIntro or StateTabs */}
-            {children}
+            {/* Outlet is either StateIntro or StateTabs */}
+            <Outlet />
           </div>
         )}
       </div>

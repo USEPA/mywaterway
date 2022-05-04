@@ -1,7 +1,7 @@
 // @flow
 
 import React, { useContext, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from '@reach/router';
+import { useParams, useNavigate } from 'react-router-dom';
 import {} from 'styled-components/macro';
 import { Tab, Tabs, TabList, TabPanel, TabPanels } from '@reach/tabs';
 // components
