@@ -374,10 +374,10 @@ function State() {
   );
 }
 
-export default function StateContainer({ ...props }: Props) {
+export default function StateContainer() {
   return (
     <StateTabsProvider>
-      <State {...props} />
+      <State />
     </StateTabsProvider>
   );
 }

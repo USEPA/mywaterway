@@ -255,13 +255,13 @@ function Community() {
   );
 }
 
-export default function CommunityContainer({ ...props }: Props) {
+export default function CommunityContainer() {
   return (
     <EsriMapProvider>
       <CommunityTabsProvider>
         <MapHighlightProvider>
           <FullscreenProvider>
-            <Community {...props} />
+            <Community />
           </FullscreenProvider>
         </MapHighlightProvider>
       </CommunityTabsProvider>
