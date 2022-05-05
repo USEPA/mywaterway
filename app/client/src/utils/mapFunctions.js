@@ -340,38 +340,25 @@ export function createWaterbodySymbol({
 }
 
 // plot monitoring stations on map
-export function plotStations(
-  stations: Array<Object>,
-  layer: any,
-  services: Object,
-) {
+export function plotStations(stations: Array<Object>, layer: any) {
   if (!stations || !layer) return;
 
-  layer.graphics.removeAll();
+  const graphics = stations.map((station) => {
+    return new Graphic({
+      geometry: {
+        type: 'point',
+        longitude: station.locationLongitude,
+        latitude: station.locationLatitude,
+      },
+      attributes: station,
+    });
+  });
 
-  stations.forEach((station) => {
-    layer.graphics.add(
-      new Graphic({
-        geometry: {
-          type: 'point',
-          longitude: station.locationLongitude,
-          latitude: station.locationLatitude,
-        },
-        symbol: {
-          type: 'simple-marker',
-          style: 'square',
-          color: colors.lightPurple(),
-        },
-        attributes: station,
-        popupTemplate: {
-          title: getPopupTitle(station),
-          content: getPopupContent({
-            feature: { attributes: station },
-            services,
-          }),
-        },
-      }),
-    );
+  layer.queryFeatures().then((featureSet) => {
+    return layer.applyEdits({
+      deleteFeatures: featureSet.features,
+      addFeatures: graphics,
+    });
   });
 }
 
