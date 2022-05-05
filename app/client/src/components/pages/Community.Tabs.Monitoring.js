@@ -1223,10 +1223,10 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   return null;
 }
 
-export default function MonitoringContainer({ ...props }: Props) {
+export default function MonitoringContainer() {
   return (
     <TabErrorBoundary tabName="Monitoring">
-      <Monitoring {...props} />
+      <Monitoring />
     </TabErrorBoundary>
   );
 }
