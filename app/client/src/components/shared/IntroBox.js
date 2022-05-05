@@ -5,6 +5,7 @@ import { css } from 'styled-components/macro';
 import { fonts } from 'styles/index.js';
 
 const introBoxStyles = css`
+  padding: 1.5rem;
   background-color: whitesmoke;
 
   h2 {

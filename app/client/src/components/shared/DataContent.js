@@ -84,10 +84,7 @@ const itemStyles = css`
   }
 `;
 
-// --- components ---
-type Props = {};
-
-function Data({ ...props }: Props) {
+function Data() {
   useEffect(() => {
     // get the original url
     const href = window.location.href;
