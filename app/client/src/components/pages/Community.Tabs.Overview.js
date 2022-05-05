@@ -80,6 +80,7 @@ const accordionContentStyles = css`
 const toggleStyles = css`
   display: flex;
   align-items: center;
+
   span {
     margin-left: 0.5rem;
   }
