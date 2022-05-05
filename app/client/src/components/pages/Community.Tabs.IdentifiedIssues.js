@@ -863,10 +863,10 @@ function IdentifiedIssues() {
   );
 }
 
-export default function IdentifiedIssuesContainer({ ...props }: Props) {
+export default function IdentifiedIssuesContainer() {
   return (
     <TabErrorBoundary tabName="Identified Issues">
-      <IdentifiedIssues {...props} />
+      <IdentifiedIssues />
     </TabErrorBoundary>
   );
 }

@@ -244,10 +244,7 @@ const noDataMessageStyles = css`
   padding-bottom: 0;
 `;
 
-// --- components ---
-type Props = {};
-
-function WaterQualityOverview({ ...props }: Props) {
+function WaterQualityOverview() {
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
   const waterTypeOptions = useWaterTypeOptionsContext();

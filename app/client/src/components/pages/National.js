@@ -4,7 +4,6 @@ import React from 'react';
 import { css } from 'styled-components/macro';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 // components
-import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
 import TabLinks from 'components/shared/TabLinks';
 import { tabsStyles } from 'components/shared/ContentTabs';
@@ -90,7 +89,6 @@ const modifiedIntroBoxStyles = css`
 
   margin-top: -1.5em;
   margin-left: -1.5em;
-  padding: 1.5rem;
   border-bottom: 1px solid #d8dfe2;
   width: calc(100% + 3em);
 `;
@@ -468,11 +466,7 @@ function NationalDrinkingWaterPanel() {
   );
 }
 
-type Props = {
-  ...RouteProps,
-};
-
-function National({ ...props }: Props) {
+function National() {
   return (
     <Page>
       <TabLinks />
