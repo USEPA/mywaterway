@@ -2,9 +2,8 @@
 
 import React from 'react';
 import { css } from 'styled-components/macro';
-import { Link } from '@reach/router';
+import { Link } from 'react-router-dom';
 // components
-import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
 import NavBar from 'components/shared/NavBar';
 import LocationSearch from 'components/shared/LocationSearch';
@@ -32,12 +31,7 @@ const threeTopicButtonLinkStyles = css`
   ${threeButtonLinkStyles}
 `;
 
-// --- components ---
-type Props = {
-  ...RouteProps,
-};
-
-function EatingFish({ ...props }: Props) {
+function EatingFish() {
   return (
     <Page>
       <NavBar title="Explore Topics" />

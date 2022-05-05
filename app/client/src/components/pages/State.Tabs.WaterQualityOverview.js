@@ -244,10 +244,7 @@ const noDataMessageStyles = css`
   padding-bottom: 0;
 `;
 
-// --- components ---
-type Props = {};
-
-function WaterQualityOverview({ ...props }: Props) {
+function WaterQualityOverview() {
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
   const waterTypeOptions = useWaterTypeOptionsContext();
@@ -1105,7 +1102,7 @@ function WaterQualityOverview({ ...props }: Props) {
                   <p css={drinkingWaterTextStyles}>
                     <a
                       href={
-                        `https://ofmpub.epa.gov/apex/sfdw/f?p=108:103:::` +
+                        `${services.data.sfdw}f?p=108:103:::` +
                         `NO:APP,RP:P0_PRIMACY_AGENCY:${activeState.code}`
                       }
                       target="_blank"
