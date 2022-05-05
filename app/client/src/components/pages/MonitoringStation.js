@@ -25,11 +25,13 @@ import {
   splitLayoutColumnsStyles,
   splitLayoutColumnStyles,
 } from 'components/shared/SplitLayout';
+import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 import { monitoringError } from 'config/errorMessages';
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
+import { colors } from 'styles';
 import { fetchCheck } from 'utils/fetchUtils';
 import { useSharedLayers } from 'utils/hooks';
 import { plotStations } from 'utils/mapFunctions';
@@ -57,14 +59,28 @@ const fetchStationDetails = async (url, setData, setStatus) => {
     siteId: feature.properties.MonitoringLocationIdentifier,
     provider: feature.properties.ProviderName,
     state: feature.properties.StateName,
-    totalSamples: feature.properties.activityCount,
-    totalMeasurements: feature.properties.resultCount,
-    totalsByCategory: feature.properties.characteristicGroupResultCount,
+    sampleTotal: feature.properties.activityCount,
+    measurementTotal: feature.properties.resultCount,
+    groupCounts: feature.properties.characteristicGroupResultCount,
+    groupMappings: {},
     uid:
       `${feature.properties.MonitoringLocationIdentifier}/` +
       `${feature.properties.ProviderName}/` +
       `${feature.properties.OrganizationIdentifier}`,
   };
+  characteristicGroupMappings.forEach((mapping) => {
+    stationDetails.groupMappings[mapping.label] = [];
+    for (const group in stationDetails.groupCounts) {
+      if (mapping.groupNames.includes(group)) {
+        stationDetails.groupMappings[mapping.label].push(group);
+      }
+    }
+  });
+
+  // add any leftover lower-tier group counts to the 'Other' top-tier group
+  for (const group in stationDetails.groupCounts) {
+    //const groupsCategorized = Object.values
+  }
   setData(stationDetails);
   setStatus('success');
 };
@@ -118,7 +134,6 @@ const useMap = (station) => {
       setVisibleLayers({ monitoringLocationsLayer: true });
     } else {
       setLayersInitialized(true);
-      console.log(monitoringLocationsLayer.visible);
     }
   }, [
     getSharedLayers,
@@ -228,6 +243,35 @@ const sectionRowInline = (label, value, dataStatus) => {
  * Components
  */
 
+function DownloadSection({ station, stationStatus }) {
+  const [range, setRange] = useState('1');
+
+  const ranges = [1, 5, 10];
+  const inputs = ranges.map((n) => (
+    <p>
+      <input
+        id={`${n}-year`}
+        value={n}
+        type="radio"
+        name="date-range"
+        checked={range === n.toString()}
+        onChange={(e) => setRange(e.target.value)}
+      />
+      <label for={`${n}-year`}>{n === 1 ? `${n} Year` : `${n} Years`}</label>
+    </p>
+  ));
+
+  return (
+    <div css={boxStyles}>
+      <h2 css={boxHeadingStyles}>Download Station Data</h2>
+      <div css={modifiedBoxSectionStyles}>
+        <fieldset>{inputs}</fieldset>
+        <div id="download-links"></div>
+      </div>
+    </div>
+  );
+}
+
 function InformationSection({ siteId, station, stationStatus }) {
   const heading = (
     <h2 css={infoBoxHeadingStyles}>
@@ -271,8 +315,11 @@ function MonitoringStation({ fullscreen, orgId, siteId }) {
           <div
             style={{
               display: mapShown ? 'block' : 'none',
-              height: mapWidth,
+              height: height - 40,
             }}
+            css={`
+              ${boxStyles};
+            `}
           >
             <StationMapContainer
               layout="narrow"
@@ -285,13 +332,16 @@ function MonitoringStation({ fullscreen, orgId, siteId }) {
     </>
   );
 
-  const mapWide = (height) => (
+  const mapWide = (
     <div
       id="waterbody-report-map"
       style={{
         height: mapWidth,
         minHeight: '400px',
       }}
+      css={`
+        ${boxStyles};
+      `}
     >
       <StationMapContainer
         layout="wide"
@@ -309,7 +359,8 @@ function MonitoringStation({ fullscreen, orgId, siteId }) {
         stationStatus={stationStatus}
         siteId={siteId}
       />
-      {width < 960 ? mapNarrow(height) : mapWide(height)}
+      {width < 960 ? mapNarrow(height) : mapWide}
+      <DownloadSection station={station} stationStatus={stationStatus} />
     </div>
   );
 
@@ -328,7 +379,19 @@ function MonitoringStation({ fullscreen, orgId, siteId }) {
     </Page>
   );
 
-  const fullScreenView = <Page></Page>;
+  const fullScreenView = (
+    <WindowSize>
+      {({ width, height }) => (
+        <div data-content="stationmap" style={{ width, height }}>
+          <StationMapContainer
+            layout="fullscreen"
+            station={station}
+            widthRef={widthRef}
+          />
+        </div>
+      )}
+    </WindowSize>
+  );
 
   const twoColumnView = (
     <Page>
@@ -439,12 +502,6 @@ const infoBoxHeadingStyles = css`
     margin: 0 -0.375rem 0 -0.875rem;
     height: 1.5rem;
   }
-
-  /* status icon */
-  span svg {
-    margin-left: -0.25rem;
-    margin-right: 0.375rem;
-  }
 `;
 
 const inlineBoxSectionStyles = css`
@@ -468,9 +525,55 @@ const inlineBoxSectionStyles = css`
 
 const mapContainerStyles = css`
   display: flex;
-  position: relative;
-  border: 1px solid #aebac3;
   height: 100%;
+  position: relative;
+`;
+
+const modifiedBoxSectionStyles = css`
+  ${boxSectionStyles}
+
+  display: flex;
+  fieldset {
+    border: none;
+    font-size: 1rem;
+    input[type='radio'] {
+      appearance: none;
+      margin: 0;
+    }
+    input:checked + label:before {
+      background-color: ${colors.steel()};
+      box-shadow: 0 0 0 1px ${colors.steel()}, inset 0 0 0 1px ${colors.white()};
+    }
+    label {
+      cursor: pointer;
+      font-size: 0.875em;
+      padding-left: 1em;
+      text-indent: -1em;
+      &:before {
+        background: ${colors.white()};
+        border-radius: 100%;
+        box-shadow: 0 0 0 1px ${colors.steel()};
+        content: ' ';
+        display: inline-block;
+        height: 1em;
+        left: 2px;
+        line-height: 1.25em;
+        margin-right: 1em;
+        position: relative;
+        text-indent: 0;
+        vertical-align: middle;
+        white-space: pre;
+        width: 1em;
+      }
+    }
+    p {
+      font-size: 1em;
+      margin-top: 1em;
+      &:first-child {
+        margin-top: 0;
+      }
+    }
+  }
 `;
 
 const modifiedErrorBoxStyles = css`
