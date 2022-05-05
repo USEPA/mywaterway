@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import ReactDOM from 'react-dom';
+import { render } from 'react-dom';
 import { Rnd } from 'react-rnd';
 import { css } from 'styled-components/macro';
 import BasemapGallery from '@arcgis/core/widgets/BasemapGallery';
@@ -187,7 +187,7 @@ function updateVisibleLayers(
     }
   });
 
-  ReactDOM.render(
+  render(
     <MapLegend
       view={view}
       displayEsriLegend={displayEsriLegend}
@@ -539,7 +539,7 @@ function MapWidgets({
     const node = document.createElement('div');
     view.ui.add(node, { position: 'top-right', index: 1 });
 
-    ReactDOM.render(
+    render(
       <ShowAddDataWidget
         addDataWidgetVisible={addDataWidgetVisible}
         setAddDataWidgetVisibleParam={setAddDataWidgetVisible}
@@ -869,7 +869,7 @@ function MapWidgets({
     // create the basemap/layers widget
     const node = document.createElement('div');
     view.ui.add(node, { position: 'bottom-right', index: 0 });
-    ReactDOM.render(
+    render(
       <ExpandCollapse
         scrollToComponent={scrollToComponent}
         fullscreenActive={getFullscreenActive}
@@ -934,7 +934,7 @@ function MapWidgets({
     const node = document.createElement('div');
     view.ui.add(node, { position: 'top-right', index: 2 });
     setUpstreamWidget(node); // store the widget in context so it can be shown or hidden later
-    ReactDOM.render(
+    render(
       <ShowUpstreamWatershed
         getWatershedName={getWatershed}
         getHuc12={getHuc12}
@@ -1287,7 +1287,7 @@ function MapWidgets({
     const node = document.createElement('div');
     view.ui.add(node, { position: 'top-right', index: 2 });
     setAllWaterbodiesWidget(node); // store the widget in context so it can be shown or hidden later
-    ReactDOM.render(
+    render(
       <ShowAllWaterbodies
         getLayer={getAllWaterbodiesLayer}
         getDisabled={getAllWaterbodiesWidgetDisabled}

@@ -218,10 +218,7 @@ const screenLabelWithPaddingStyles = css`
   padding-left: 0.375rem;
 `;
 
-// --- components ---
-type Props = {};
-
-function AdvancedSearch({ ...props }: Props) {
+function AdvancedSearch() {
   const services = useServicesContext();
 
   const {
@@ -1206,11 +1203,11 @@ function MenuList({ ...props }) {
     />
   );
 }
-export default function AdvancedSearchContainer({ ...props }: Props) {
+export default function AdvancedSearchContainer() {
   return (
     <MapHighlightProvider>
       <FullscreenProvider>
-        <AdvancedSearch {...props} />
+        <AdvancedSearch />
       </FullscreenProvider>
     </MapHighlightProvider>
   );
