@@ -75,9 +75,7 @@ const disclaimerStyles = css`
   display: inline-block;
 `;
 
-type Props = {};
-
-function AboutContent({ ...props }: Props) {
+function AboutContent() {
   useEffect(() => {
     // get the original url
     const href = window.location.href;

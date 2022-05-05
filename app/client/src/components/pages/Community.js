@@ -1,11 +1,10 @@
 // @flow
 
 import React, { useContext, useEffect } from 'react';
-import type { Node } from 'react';
+import { Outlet } from 'react-router-dom';
 import { css } from 'styled-components/macro';
 import WindowSize from '@reach/window-size';
 // components
-import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
 import TabLinks from 'components/shared/TabLinks';
 import LocationSearch from 'components/shared/LocationSearch';
@@ -88,11 +87,6 @@ const mapContainerStyles = css`
   margin-bottom: 1em;
 `;
 
-type Props = {
-  children: Node,
-  ...RouteProps,
-};
-
 /*
   default narrow screens layout (single column):
   *******************************************
@@ -109,12 +103,12 @@ type Props = {
   **********************************************************************
 */
 
-function Community({ children, ...props }: Props) {
+function Community() {
   const { activeTabIndex } = useContext(CommunityTabsContext);
 
   const { fullscreenActive } = useContext(FullscreenContext);
 
-  // CommunityIntro is rendered as children when at the '/community' and '/community/' routes
+  // CommunityIntro is rendered in Outlet when at the '/community' and '/community/' routes
   const atCommunityIntroRoute =
     window.location.pathname.replace(/\//g, '') === 'community'; // replace slashes "/" with empty string
 
@@ -179,7 +173,9 @@ function Community({ children, ...props }: Props) {
               <>
                 <LocationMap windowHeight={height} layout="fullscreen" />
 
-                <div style={{ display: 'none' }}>{children}</div>
+                <div style={{ display: 'none' }}>
+                  <Outlet />
+                </div>
 
                 {!atCommunityIntroRoute && (
                   <div style={{ display: 'none' }}>{lowerTab}</div>
@@ -202,8 +198,8 @@ function Community({ children, ...props }: Props) {
                   {searchMarkup}
 
                   <div css={rightColumnStyles} data-column="right">
-                    {/* children is either CommunityIntro or CommunityTabs (upper tabs) */}
-                    {children}
+                    {/* Outlet is either CommunityIntro or CommunityTabs (upper tabs) */}
+                    <Outlet />
                   </div>
 
                   {!atCommunityIntroRoute && (
@@ -245,8 +241,8 @@ function Community({ children, ...props }: Props) {
                 </div>
 
                 <div css={rightColumnStyles} data-column="right">
-                  {/* children is either CommunityIntro or CommunityTabs (upper tabs) */}
-                  {children}
+                  {/* Outlet is either CommunityIntro or CommunityTabs (upper tabs) */}
+                  <Outlet />
 
                   {!atCommunityIntroRoute && lowerTab}
                 </div>
@@ -259,13 +255,13 @@ function Community({ children, ...props }: Props) {
   );
 }
 
-export default function CommunityContainer({ ...props }: Props) {
+export default function CommunityContainer() {
   return (
     <EsriMapProvider>
       <CommunityTabsProvider>
         <MapHighlightProvider>
           <FullscreenProvider>
-            <Community {...props} />
+            <Community />
           </FullscreenProvider>
         </MapHighlightProvider>
       </CommunityTabsProvider>

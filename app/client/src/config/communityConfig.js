@@ -239,11 +239,6 @@ function MonitoringUpper() {
         concerns.
       </p>
 
-      <p>
-        View available monitoring sample locations in your local watershed or
-        view by category.
-      </p>
-
       <DisclaimerModal>
         <p>
           The condition of a waterbody is dynamic and can change at any time,
@@ -361,6 +356,7 @@ const tabs = [
     layers: {
       dischargersLayer: false,
       monitoringLocationsLayer: true,
+      usgsStreamgagesLayer: true,
       waterbodyLayer: false,
     },
   },

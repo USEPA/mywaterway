@@ -781,7 +781,6 @@ function MonitoringAndSensorsTab({
             </table>
 
             <AccordionList
-              expandDisabled={true} // disabled to avoid large number of web service calls
               title={
                 <>
                   <strong>{filteredMonitoringAndSensors.length}</strong> of{' '}
@@ -1001,10 +1000,10 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
   return null;
 }
 
-export default function OverviewContainer({ ...props }: Props) {
+export default function OverviewContainer() {
   return (
     <TabErrorBoundary tabName="Overview">
-      <Overview {...props} />
+      <Overview />
     </TabErrorBoundary>
   );
 }
