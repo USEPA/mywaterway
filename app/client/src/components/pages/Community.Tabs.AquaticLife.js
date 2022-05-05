@@ -51,10 +51,10 @@ function AquaticLife() {
   );
 }
 
-export default function AquaticLifeContainer({ ...props }: Props) {
+export default function AquaticLifeContainer() {
   return (
     <TabErrorBoundary tabName="Aquatic Life">
-      <AquaticLife {...props} />
+      <AquaticLife />
     </TabErrorBoundary>
   );
 }

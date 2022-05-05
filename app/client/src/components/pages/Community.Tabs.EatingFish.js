@@ -52,10 +52,10 @@ function EatingFish() {
   );
 }
 
-export default function EatingFishContainer({ ...props }: Props) {
+export default function EatingFishContainer() {
   return (
     <TabErrorBoundary tabName="Eating Fish">
-      <EatingFish {...props} />
+      <EatingFish />
     </TabErrorBoundary>
   );
 }
