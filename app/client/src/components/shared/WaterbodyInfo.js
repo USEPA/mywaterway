@@ -431,7 +431,7 @@ function WaterbodyInfo({
               <table css={modifiedTableStyles} className="table">
                 <thead>
                   <tr>
-                    <th>Evaluated Use</th>
+                    <th>What is this water used for?</th>
                     <th>Condition</th>
                   </tr>
                 </thead>
@@ -457,9 +457,7 @@ function WaterbodyInfo({
         )}
 
         {useBasedCondition.condition === 'polluted'
-          ? waterbodyPollutionCategories(
-              'Impairment Categories were identified',
-            )
+          ? waterbodyPollutionCategories('Identified Issues')
           : ''}
 
         {waterbodyReportLink}

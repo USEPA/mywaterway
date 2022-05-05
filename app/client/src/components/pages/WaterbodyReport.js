@@ -210,7 +210,13 @@ const listStyles = css`
 `;
 
 type Props = {
-  fullscreen: Object, // passed from FullscreenContext.Consumer
+  fullscreen: Object,
+};
+
+const conditions = {
+  impaired: 'Impaired (Issues Identified)',
+  good: 'Good',
+  unknown: 'Condition Unknown',
 };
 
 function WaterbodyReport({ fullscreen }: Props) {
@@ -460,14 +466,14 @@ function WaterbodyReport({ fullscreen }: Props) {
 
         const condition =
           overallStatus === 'Not Supporting' || overallStatus === 'Cause'
-            ? 'Impaired'
+            ? conditions.impaired
             : overallStatus === 'Fully Supporting' ||
               overallStatus === 'Meeting Criteria'
-            ? 'Good'
-            : 'Condition Unknown'; // catch all
+            ? conditions.good
+            : conditions.unknown; // catch all
 
         // Use the status above initially. When looping through the use attainments
-        // this will be set this to yes if any of the uses have a plan in place
+        // this will be set to yes if any of the uses have a plan in place
         let planForRestoration = status.planForRestoration ? 'Yes' : 'No';
 
         const listed303d = status.listed303d ? 'Yes' : 'No';
@@ -817,9 +823,9 @@ function WaterbodyReport({ fullscreen }: Props) {
           <span>
             <WaterbodyIcon
               condition={
-                waterbodyStatus.data.condition === 'Good'
+                waterbodyStatus.data.condition === conditions.good
                   ? 'good'
-                  : waterbodyStatus.data.condition === 'Impaired'
+                  : waterbodyStatus.data.condition === conditions.impaired
                   ? 'polluted'
                   : 'unassessed'
               }
@@ -1100,7 +1106,7 @@ function WaterbodyReport({ fullscreen }: Props) {
                     </h2>
 
                     <div css={modifiedBoxSectionStyles}>
-                      <h3>What is this water used for?</h3>
+                      <h3>State or tribal nation specific designated uses</h3>
                       {waterbodyUses.status === 'fetching' && (
                         <LoadingSpinner />
                       )}
@@ -1410,7 +1416,7 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
 
   return (
     <div css={accordionContentStyles}>
-      <h4>Impairments Evaluated</h4>
+      <h4>Identified Issues for Use</h4>
 
       {pollutants.length === 0 && (
         <p css={textStyles}>No impairments evaluated for this use.</p>
@@ -1420,7 +1426,11 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
         <table className="table">
           <thead>
             <tr>
-              <th>Impairment</th>
+              <th>
+                <GlossaryTerm term="Impaired Parameters">
+                  Impaired Parameters
+                </GlossaryTerm>
+              </th>
               <th>Plan in Place</th>
             </tr>
           </thead>
@@ -1437,7 +1447,11 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
         </table>
       )}
 
-      <h4>Other Parameters Evaluated</h4>
+      <h4>
+        <GlossaryTerm term="Other Water Quality Parameters Evaluated">
+          Other Water Quality Parameters Evaluated
+        </GlossaryTerm>
+      </h4>
 
       {noParameterData ? (
         <p>No other parameters evaluated for this use.</p>
