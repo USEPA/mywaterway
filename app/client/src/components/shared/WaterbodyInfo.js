@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { css } from 'styled-components/macro';
-import { useNavigate } from 'react-router-dom';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
@@ -239,8 +238,6 @@ function WaterbodyInfo({
   services,
   fields,
 }: Props) {
-  const navigate = useNavigate();
-
   // Gets the response of what huc was clicked, if provided.
   const [clickedHuc, setClickedHuc] = useState<{
     status: 'none' | 'fetching' | 'success' | 'failure',
@@ -1237,11 +1234,11 @@ function WaterbodyInfo({
                           urlParts.includes('community') &&
                           urlParts.length > 3
                         ) {
-                          navigate(`${baseRoute}/${urlParts[3]}`);
+                          window.location.assign(`${baseRoute}/${urlParts[3]}`);
                           return;
                         }
 
-                        navigate(`${baseRoute}/overview`);
+                        window.location.assign(`${baseRoute}/overview`);
                       }}
                     >
                       Yes

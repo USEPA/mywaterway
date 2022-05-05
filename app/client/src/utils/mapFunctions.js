@@ -3,7 +3,6 @@
 import React from 'react';
 import { render } from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { BrowserRouter } from 'react-router-dom';
 import { css } from 'styled-components/macro';
 import Graphic from '@arcgis/core/Graphic';
 // components
@@ -765,19 +764,17 @@ export function getPopupContent({
   }
 
   const content = (
-    <BrowserRouter>
-      <WaterbodyInfo
-        type={type}
-        feature={feature}
-        fieldName={fieldName}
-        isPopup={true}
-        extraContent={extraContent}
-        getClickedHuc={getClickedHuc}
-        resetData={resetData}
-        services={services}
-        fields={fields}
-      />
-    </BrowserRouter>
+    <WaterbodyInfo
+      type={type}
+      feature={feature}
+      fieldName={fieldName}
+      isPopup={true}
+      extraContent={extraContent}
+      getClickedHuc={getClickedHuc}
+      resetData={resetData}
+      services={services}
+      fields={fields}
+    />
   );
 
   // wrap the content for esri
