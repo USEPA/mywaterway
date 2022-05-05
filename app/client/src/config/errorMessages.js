@@ -2,7 +2,7 @@ import React from 'react';
 
 // Community errors //
 
-// ofmpub.epa.gov - Permitted Discharger Service
+// echodata.epa.gov - Permitted Discharger Service
 export const echoError =
   'The permitted discharger information is temporarily unavailable, please try again later.';
 
@@ -37,19 +37,19 @@ export const invalidSearchError = 'Invalid search. Please try a new search.';
 export const glossaryError =
   'The glossary is temporarily unavailable, please try again later.';
 
-// ofmpub.epa.gov - County Service - County (providers)
+// services.arcgis.com - County Service - County (providers)
 export const countyError =
   'The county drinking water provider information is temporarily unavailable, please try again later.';
 
-// ofmpub.epa.gov - County Service - Watershed (withdrawers)
+// sdwis.epa.gov - County Service - Watershed (withdrawers)
 export const withdrawerError =
   'The drinking water withdrawer information for this watershed is temporarily unavailable, please try again later.';
 
-// ofmpub.epa.gov - GRTS Service for protect tab
+// grts.epa.gov - GRTS Service for protect tab
 export const protectNonpointSourceError =
   'The protection projects are temporarily unavailable, please try again later.';
 
-// ofmpub.epa.gov - GRTS Service for restore tab
+// grts.epa.gov - GRTS Service for restore tab
 export const restoreNonpointSourceError =
   'The clean water act section 319 projects are temporarily unavailable, please try again later.';
 
@@ -101,7 +101,7 @@ export const noActionsAvailableCombo = (orgId, actionId) =>
 export const narsError =
   'The National Aquatic Resource Surveys (NARS) data is currently unavailable, please try again later.';
 
-// ofmpub.epa.gov GRPA service
+// sdwis.epa.gov GRPA service
 export const grpaError =
   'The EPA Drinking Water Performance and Results information is temporarily unavailable, please try again later.'; // also used on state page
 
@@ -132,7 +132,7 @@ export const stateSurveyError = (stateName) =>
 export const stateListError =
   'State information is temporarily unavailable, please try again later.';
 
-// ofmpub.epa.gov stories service
+// grts.epa.gov stories service
 export const stateStoriesError =
   'State water stories are temporarily unavailable, please try again later.';
 

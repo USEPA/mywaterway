@@ -1102,7 +1102,7 @@ function WaterQualityOverview() {
                   <p css={drinkingWaterTextStyles}>
                     <a
                       href={
-                        `https://ofmpub.epa.gov/apex/sfdw/f?p=108:103:::` +
+                        `${services.data.sfdw}f?p=108:103:::` +
                         `NO:APP,RP:P0_PRIMACY_AGENCY:${activeState.code}`
                       }
                       target="_blank"
