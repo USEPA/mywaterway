@@ -23,7 +23,13 @@ import { characteristicGroupMappings } from 'config/characteristicGroupMappings'
 // errors
 import { waterbodyReportError } from 'config/errorMessages';
 // styles
-import { colors, tableStyles } from 'styles/index.js';
+import {
+  colors,
+  disclaimerStyles,
+  downloadLinksStyles,
+  iconStyles,
+  modifiedTableStyles,
+} from 'styles/index.js';
 
 function bool(value) {
   // Return 'Yes' for truthy values and non-zero strings
@@ -71,28 +77,6 @@ const popupTitleStyles = css`
   background-color: #f0f6f9;
 `;
 
-const modifiedTableStyles = css`
-  ${tableStyles}
-
-  thead th {
-    vertical-align: top;
-  }
-
-  th,
-  td {
-    overflow-wrap: anywhere;
-    hyphens: auto;
-
-    :first-of-type {
-      padding-left: 0;
-    }
-
-    :last-of-type {
-      padding-right: 0;
-    }
-  }
-`;
-
 const measurementTableStyles = css`
   ${modifiedTableStyles};
 
@@ -110,27 +94,6 @@ const checkboxCellStyles = css`
 const checkboxStyles = css`
   appearance: checkbox;
   transform: scale(1.2);
-`;
-
-const downloadLinksStyles = css`
-  span {
-    display: inline-block;
-    width: 100%;
-    font-weight: bold;
-
-    @media (min-width: 360px) {
-      margin-right: 0.5em;
-      width: auto;
-    }
-  }
-
-  a {
-    margin-right: 1em;
-  }
-`;
-
-const iconStyles = css`
-  margin-right: 5px;
 `;
 
 const moreLessRowStyles = css`
@@ -158,11 +121,6 @@ const popupIconStyles = css`
 
 const paragraphStyles = css`
   padding-bottom: 0.5em;
-`;
-
-const disclaimerStyles = css`
-  display: inline-block;
-  padding-bottom: 1.5em;
 `;
 
 const buttonsContainer = css`
@@ -663,6 +621,11 @@ function WaterbodyInfo({
       `${services.data.waterQualityPortal.resultSearch}zip=no&siteid=` +
       `${attributes.siteId}&providers=${attributes.stationProviderName}` +
       `${charGroupFilters}`;
+    const portalUrl =
+      `${services.data.waterQualityPortal.userInterface}#` +
+      `siteid=${attributes.siteId}${charGroupFilters}` +
+      `&mimeType=xlsx&dataProfile=resultPhysChem` +
+      `&providers=NWIS&providers=STEWARDS&providers=STORET`;
 
     return (
       <>
@@ -825,17 +788,9 @@ function WaterbodyInfo({
           &nbsp;&nbsp;
           <small css={disclaimerStyles}>(opens new browser tab)</small>
           <br />
-          <a
-            rel="noopener noreferrer"
-            target="_blank"
-            href="https://www.waterqualitydata.us/portal_userguide/"
-          >
-            <i
-              css={iconStyles}
-              className="fas fa-book-open"
-              aria-hidden="true"
-            />
-            Water Quality Portal User Guide
+          <a rel="noopener noreferrer" target="_blank" href={portalUrl}>
+            <i css={iconStyles} className="fas fa-filter" aria-hidden="true" />
+            Filter this data using the <em>Water Quality Portal</em> form
           </a>
           &nbsp;&nbsp;
           <small css={disclaimerStyles}>(opens new browser tab)</small>

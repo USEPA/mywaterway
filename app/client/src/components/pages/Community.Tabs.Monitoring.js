@@ -11,10 +11,17 @@ import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 // components
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
+import {
+  disclaimerStyles,
+  downloadLinksStyles,
+  iconStyles,
+  modifiedTableStyles,
+} from 'styles/index';
 import {
   AccordionList,
   AccordionItem,
@@ -565,6 +572,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   const services = useServicesContext();
 
   const {
+    huc12,
     monitoringGroups,
     monitoringLocations,
     monitoringLocationsLayer,
@@ -576,6 +584,12 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     useState([]);
 
   const [allToggled, setAllToggled] = useState(true);
+
+  const [charGroupFilters, setCharGroupFilters] = useState('');
+
+  const [totalMeasurements, setTotalMeasurements] = useState(0);
+
+  const [totalSamples, setTotalSamples] = useState(0);
 
   const [sortBy, setSortBy] = useState('locationName');
 
@@ -619,9 +633,45 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     [monitoringLocationsLayer],
   );
 
+  // create the filter string for download links based on active toggles
+  const buildFilter = useCallback(
+    (selectedNames, monitoringGroups) => {
+      let filter = '';
+
+      let groups = {};
+      characteristicGroupMappings.forEach(
+        (mapping) => (groups[mapping.label] = mapping.groupNames),
+      );
+
+      const groupsCount = Object.values(monitoringGroups).filter(
+        (group) => group.label !== 'All',
+      ).length;
+      if (groupsCount !== selectedNames.length) {
+        for (const name of selectedNames) {
+          if (name === 'Other') {
+            filter +=
+              '&characteristicType=' +
+              monitoringGroups['Other'].characteristicGroups.join(
+                '&characteristicType=',
+              );
+          } else {
+            filter +=
+              '&characteristicType=' +
+              groups[name].join('&characteristicType=');
+          }
+        }
+      }
+
+      setCharGroupFilters(filter);
+    },
+    [setCharGroupFilters],
+  );
+
   const toggleSwitch = useCallback(
     (groupLabel: string, allToggledParam?: boolean = false) => {
       const toggleGroups = monitoringGroups;
+      let newTotalMeasurements = 0;
+      let newTotalSamples = 0;
 
       if (groupLabel === 'All') {
         if (!allToggledParam) {
@@ -629,6 +679,16 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
           for (let toggle in toggleGroups) {
             if (toggle !== 'All') toggleGroups[toggle].toggled = true;
           }
+          // update the watershed total measurements and samples counts
+          toggleGroups['All'].stations.forEach((station) => {
+            newTotalMeasurements += parseInt(station.stationTotalMeasurements);
+            newTotalSamples += parseInt(station.stationTotalSamples);
+          });
+
+          const activeGroups = characteristicGroupMappings.map(
+            (group) => group.label,
+          );
+          buildFilter(activeGroups, monitoringGroups);
 
           monitoringLocationsLayer.visible = true;
 
@@ -638,9 +698,13 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
           for (let key in toggleGroups) {
             if (key !== 'All') toggleGroups[key].toggled = false;
           }
+          // update the watershed total measurements and samples counts
+          newTotalMeasurements = 0;
+          newTotalSamples = 0;
 
           monitoringLocationsLayer.visible = false;
 
+          setCharGroupFilters('');
           setMonitoringDisplayed(false);
         }
       }
@@ -654,13 +718,33 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
           (key) => toggleGroups[key].toggled,
         );
         setMonitoringDisplayed(someToggled);
+
+        // update the watershed total measurements and samples counts
+        // to include only the specified characteristic groups
+        const activeGroups = Object.keys(toggleGroups).filter(
+          (label) => label !== 'All' && toggleGroups[label].toggled === true,
+        );
+        buildFilter(activeGroups, monitoringGroups);
+        toggleGroups['All'].stations.forEach((station) => {
+          let hasData = false;
+          activeGroups.forEach((group) => {
+            if (station.stationTotalsByGroup[group] > 0) {
+              newTotalMeasurements += station.stationTotalsByGroup[group];
+              hasData = true;
+            }
+          });
+          if (hasData) newTotalSamples += parseInt(station.stationTotalSamples);
+        });
       }
 
+      setTotalMeasurements(newTotalMeasurements);
+      setTotalSamples(newTotalSamples);
       setMonitoringGroups(toggleGroups);
 
       drawMap(toggleGroups);
     },
     [
+      buildFilter,
       drawMap,
       monitoringGroups,
       monitoringLocationsLayer,
@@ -696,7 +780,12 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     let allMonitoringLocations = [];
     let monitoringLocationGroups: MonitoringLocationGroups = {
       All: { label: 'All', stations: [], toggled: true },
-      Other: { label: 'Other', stations: [], toggled: true },
+      Other: {
+        label: 'Other',
+        stations: [],
+        toggled: true,
+        characteristicGroups: [],
+      },
     };
 
     monitoringLocations.data.features.forEach((station) => {
@@ -720,9 +809,12 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
         stationProviderName: station.properties.ProviderName,
         stationTotalSamples: station.properties.activityCount,
         stationTotalMeasurements: station.properties.resultCount,
+        // counts for each lower-tier characteristic group
         stationTotalsByCategory: JSON.stringify(
           station.properties.characteristicGroupResultCount,
         ),
+        // counts for each top-tier characteristic group
+        stationTotalsByGroup: {},
         // create a unique id, so we can check if the monitoring station has
         // already been added to the display (since a monitoring station id
         // isn't universally unique)
@@ -735,12 +827,15 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
       allMonitoringLocations.push(monitoringLocation);
 
       // build up the monitoringLocationToggles and monitoringLocationGroups
-      let groupAdded = false;
+      const subGroupsAdded = [];
 
       characteristicGroupMappings.forEach((mapping) => {
-        for (const group in station.properties.characteristicGroupResultCount) {
+        monitoringLocation.stationTotalsByGroup[mapping.label] = 0;
+        for (const subGroup in station.properties
+          .characteristicGroupResultCount) {
           // if characteristic group exists in switch config object
-          if (mapping.groupNames.includes(group)) {
+          if (mapping.groupNames.includes(subGroup)) {
+            subGroupsAdded.push(subGroup);
             // if switch group (w/ label key) already exists, add the stations to it
             if (monitoringLocationGroups[mapping.label]) {
               monitoringLocationGroups[mapping.label].stations.push(
@@ -754,15 +849,31 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                 toggled: true,
               };
             }
-            groupAdded = true;
+            // add the lower-tier group counts to the corresponding top-tier group counts
+            monitoringLocation.stationTotalsByGroup[mapping.label] +=
+              station.properties.characteristicGroupResultCount[subGroup];
           }
         }
       });
 
-      // if characteristic group didn't exist in switch config object,
-      // add the station to the 'Other' group
-      if (!groupAdded) {
-        monitoringLocationGroups['Other'].stations.push(monitoringLocation);
+      // add any leftover lower-tier group counts to the 'Other' top-tier group
+      for (const subGroup in station.properties
+        .characteristicGroupResultCount) {
+        if (!subGroupsAdded.includes(subGroup)) {
+          monitoringLocationGroups['Other'].stations.push(monitoringLocation);
+          monitoringLocation.stationTotalsByGroup['Other'] +=
+            station.properties.characteristicGroupResultCount[subGroup];
+
+          if (
+            !monitoringLocationGroups['Other'].characteristicGroups.includes(
+              subGroup,
+            )
+          ) {
+            monitoringLocationGroups['Other'].characteristicGroups.push(
+              subGroup,
+            );
+          }
+        }
       }
     });
 
@@ -783,6 +894,30 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     services,
     setMonitoringGroups,
   ]);
+
+  useEffect(() => {
+    // update total measurements and samples counts
+    // after `monitoringGroups` is initialized
+    let totalMeasurements = 0;
+    let totalSamples = 0;
+    if (monitoringGroups) {
+      monitoringGroups['All'].stations.forEach((station) => {
+        totalMeasurements += parseInt(station.stationTotalMeasurements);
+        totalSamples += parseInt(station.stationTotalSamples);
+      });
+      setTotalMeasurements(totalMeasurements);
+      setTotalSamples(totalSamples);
+    }
+  }, [monitoringGroups]);
+
+  const downloadUrl =
+    `${services.data.waterQualityPortal.resultSearch}zip=no&huc=` +
+    `${huc12}` +
+    `${charGroupFilters}`;
+  const portalUrl =
+    `${services.data.waterQualityPortal.userInterface}#huc=${huc12}` +
+    `${charGroupFilters}&mimeType=xlsx&dataProfile=resultPhysChem` +
+    `&providers=NWIS&providers=STEWARDS&providers=STORET`;
 
   const sortedMonitoringLocations = displayedMonitoringLocations
     ? displayedMonitoringLocations.sort((a, b) => {
@@ -856,9 +991,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                     let measurementCount = 0;
                     uniqueStations.forEach((station) => {
                       sampleCount += parseInt(station.stationTotalSamples);
-                      measurementCount += parseInt(
-                        station.stationTotalMeasurements,
-                      );
+                      measurementCount +=
+                        station.stationTotalsByGroup[group.label];
                     });
 
                     return (
@@ -887,6 +1021,88 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                   })}
               </tbody>
             </table>
+
+            <p>
+              <strong>
+                <em>{watershed}</em> totals:{' '}
+              </strong>
+            </p>
+            <table css={modifiedTableStyles} className="table">
+              <tbody>
+                <tr>
+                  <td>
+                    <em>
+                      <GlossaryTerm term="Monitoring Samples">
+                        Monitoring Samples:
+                      </GlossaryTerm>
+                    </em>
+                  </td>
+                  <td>{Number(totalSamples).toLocaleString()}</td>
+                </tr>
+                <tr>
+                  <td>
+                    <em>
+                      <GlossaryTerm term="Monitoring Measurements">
+                        Monitoring Measurements:
+                      </GlossaryTerm>
+                    </em>
+                  </td>
+                  <td>{Number(totalMeasurements).toLocaleString()}</td>
+                </tr>
+              </tbody>
+            </table>
+            <p>
+              <strong>
+                Download <em>{watershed}</em> Monitoring Data:
+              </strong>
+            </p>
+            <p css={downloadLinksStyles}>
+              <span>Data Download Format:</span>
+              &nbsp;
+              <a href={`${downloadUrl}&mimeType=xlsx`}>
+                <i
+                  css={iconStyles}
+                  className="fas fa-file-excel"
+                  aria-hidden="true"
+                />
+                xls
+              </a>
+              <a href={`${downloadUrl}&mimeType=csv`}>
+                <i
+                  css={iconStyles}
+                  className="fas fa-file-csv"
+                  aria-hidden="true"
+                />
+                csv
+              </a>
+            </p>
+            <p>
+              <a rel="noopener noreferrer" target="_blank" href={portalUrl}>
+                <i
+                  css={iconStyles}
+                  className="fas fa-filter"
+                  aria-hidden="true"
+                />
+                Filter this data using the <em>Water Quality Portal</em> form
+              </a>
+              &nbsp;&nbsp;
+              <small css={disclaimerStyles}>(opens new browser tab)</small>
+              <br />
+              <a
+                rel="noopener noreferrer"
+                target="_blank"
+                href="https://www.waterqualitydata.us/portal_userguide/"
+              >
+                <i
+                  css={iconStyles}
+                  className="fas fa-book-open"
+                  aria-hidden="true"
+                />
+                Water Quality Portal User Guide
+              </a>
+              &nbsp;&nbsp;
+              <small css={disclaimerStyles}>(opens new browser tab)</small>
+            </p>
 
             <AccordionList
               title={
