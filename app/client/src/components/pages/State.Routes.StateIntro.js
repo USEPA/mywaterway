@@ -2,8 +2,6 @@
 
 import React from 'react';
 import { css } from 'styled-components/macro';
-// components
-import type { RouteProps } from 'routes.js';
 // styled components
 import {
   introBoxStyles,
@@ -32,12 +30,7 @@ const headerStyles = css`
   }
 `;
 
-// --- components ---
-type Props = {
-  ...RouteProps,
-};
-
-function StateIntro({ ...props }: Props) {
+function StateIntro() {
   return (
     <>
       <div css={introBoxStyles}>

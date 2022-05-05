@@ -1594,10 +1594,10 @@ function FeatureItem({ feature, title, children }: FeatureItemProps) {
   );
 }
 
-export default function ProtectContainer({ ...props }: Props) {
+export default function ProtectContainer() {
   return (
     <TabErrorBoundary tabName="Protect">
-      <Protect {...props} />
+      <Protect />
     </TabErrorBoundary>
   );
 }

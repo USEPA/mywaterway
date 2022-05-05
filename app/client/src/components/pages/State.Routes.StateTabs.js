@@ -1,11 +1,10 @@
 // @flow
 
 import React, { useContext, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {} from 'styled-components/macro';
-import { navigate } from '@reach/router';
 import { Tab, Tabs, TabList, TabPanel, TabPanels } from '@reach/tabs';
 // components
-import type { RouteProps } from 'routes.js';
 import { tabsStyles, tabPanelStyles } from 'components/shared/ContentTabs';
 import WaterQualityOverview from 'components/pages/State.Tabs.WaterQualityOverview';
 import AdvancedSearch from 'components/pages/State.Tabs.AdvancedSearch';
@@ -17,14 +16,10 @@ import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 
-// --- components ---
-type Props = {
-  stateCode: string,
-  tabName: string,
-  ...RouteProps,
-};
+function StateTabs() {
+  const { stateCode, tabName } = useParams();
+  const navigate = useNavigate();
 
-function StateTabs({ stateCode, tabName, ...props }: Props) {
   const services = useServicesContext();
 
   const { activeState, setActiveState, activeTabIndex, setActiveTabIndex } =
@@ -36,7 +31,7 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
     if (stateCode && !tabName) {
       navigate(`/state/${stateCode.toUpperCase()}/water-quality-overview`);
     }
-  }, [stateCode, tabName]);
+  }, [navigate, stateCode, tabName]);
 
   // redirect to '/state' if the url doesn't match a valid route
   // and conditionally set active tab index
@@ -57,7 +52,7 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
     if (activeTabIndex !== tabIndex) {
       setActiveTabIndex(tabIndex === -1 ? 0 : tabIndex);
     }
-  }, [activeTabIndex, setActiveTabIndex, stateCode]);
+  }, [navigate, activeTabIndex, setActiveTabIndex, stateCode]);
 
   // if user navigation directly to the url, activeState.code will be an empty
   // string, so we'll need to query the attains states service for the states
@@ -79,7 +74,7 @@ function StateTabs({ stateCode, tabName, ...props }: Props) {
           navigate('/state');
         });
     }
-  }, [activeState, setActiveState, stateCode, services]);
+  }, [navigate, activeState, setActiveState, stateCode, services]);
 
   const tabListRef = useRef();
 
