@@ -17,10 +17,7 @@ const loadingContainerStyles = css`
   z-index: 1;
 `;
 
-// --- components ---
-type Props = {};
-
-function MapLoadingSpinner({ ...props }: Props) {
+function MapLoadingSpinner() {
   return (
     <div css={loadingContainerStyles}>
       <LoadingSpinner />
