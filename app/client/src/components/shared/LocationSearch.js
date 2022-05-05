@@ -8,8 +8,8 @@ import React, {
   useState,
 } from 'react';
 import { css } from 'styled-components/macro';
-import { navigate } from '@reach/router';
 import Switch from 'components/shared/Switch';
+import { useNavigate } from 'react-router-dom';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Locator from '@arcgis/core/tasks/Locator';
 import Point from '@arcgis/core/geometry/Point';
@@ -184,6 +184,8 @@ type Props = {
 };
 
 function LocationSearch({ route, label }: Props) {
+  const navigate = useNavigate();
+
   const services = useServicesContext();
   const searchBox = useRef();
   const downPress = useKeyPress('ArrowDown', searchBox);

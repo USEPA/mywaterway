@@ -72,10 +72,10 @@ function Swimming() {
   );
 }
 
-export default function SwimmingContainer({ ...props }: Props) {
+export default function SwimmingContainer() {
   return (
     <TabErrorBoundary tabName="Swimming">
-      <Swimming {...props} />
+      <Swimming />
     </TabErrorBoundary>
   );
 }
