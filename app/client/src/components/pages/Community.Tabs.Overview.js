@@ -22,6 +22,7 @@ import {
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
 import { tabsStyles } from 'components/shared/ContentTabs';
+import VirtualizedList from 'components/shared/VirtualizedList';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -460,6 +461,8 @@ function MonitoringAndSensorsTab({
 
   const services = useServicesContext();
 
+  const [expandedRows, setExpandedRows] = useState([]);
+
   // if either of the "Current Water Conditions" or "Sample Locations" switches
   // are turned on, or if both switches are turned off, keep the "Monitoring
   // Stations" switch in sync
@@ -631,7 +634,7 @@ function MonitoringAndSensorsTab({
 
     setNormalizedMonitoringLocations(stations);
 
-    plotStations(stations, monitoringLocationsLayer, services);
+    plotStations(stations, monitoringLocationsLayer);
   }, [monitoringLocations.data, monitoringLocationsLayer, services]);
 
   const allMonitoringAndSensors = [
@@ -781,7 +784,6 @@ function MonitoringAndSensorsTab({
             </table>
 
             <AccordionList
-              expandDisabled={true} // disabled to avoid large number of web service calls
               title={
                 <>
                   <strong>{filteredMonitoringAndSensors.length}</strong> of{' '}
@@ -820,66 +822,86 @@ function MonitoringAndSensorsTab({
                   : [],
               )}
             >
-              {filteredMonitoringAndSensors.map((item, index) => {
-                const feature = {
-                  geometry: {
-                    type: 'point',
-                    longitude: item.locationLongitude,
-                    latitude: item.locationLatitude,
-                  },
-                  attributes: item,
-                };
+              <VirtualizedList
+                items={filteredMonitoringAndSensors}
+                expandedRowsSetter={setExpandedRows}
+                renderer={({ index, resizeCell, allExpanded }) => {
+                  const item = filteredMonitoringAndSensors[index];
 
-                return (
-                  <AccordionItem
-                    key={index}
-                    title={<strong>{item.locationName || 'Unknown'}</strong>}
-                    subTitle={
-                      <>
-                        <em>Monitoring Type:</em>&nbsp;&nbsp;
-                        {item.monitoringType}
-                        <br />
-                        <em>Organization Name:</em>&nbsp;&nbsp;
-                        {item.orgName}
-                        <br />
-                        <em>Organization ID:</em>&nbsp;&nbsp;{item.orgId}
-                        <br />
-                        <em>Monitoring Site ID:</em>&nbsp;&nbsp;
-                        {item.siteId.replace(`${item.orgId}-`, '')}
-                        {item.monitoringType === 'Sample Location' && (
-                          <>
-                            <br />
-                            <em>Monitoring Measurements:</em>&nbsp;&nbsp;
-                            {item.stationTotalMeasurements}
-                          </>
+                  const feature = {
+                    geometry: {
+                      type: 'point',
+                      longitude: item.locationLongitude,
+                      latitude: item.locationLatitude,
+                    },
+                    attributes: item,
+                  };
+
+                  return (
+                    <AccordionItem
+                      key={index}
+                      index={index}
+                      title={<strong>{item.locationName || 'Unknown'}</strong>}
+                      subTitle={
+                        <>
+                          <em>Monitoring Type:</em>&nbsp;&nbsp;
+                          {item.monitoringType}
+                          <br />
+                          <em>Organization Name:</em>&nbsp;&nbsp;
+                          {item.orgName}
+                          <br />
+                          <em>Organization ID:</em>&nbsp;&nbsp;{item.orgId}
+                          <br />
+                          <em>Monitoring Site ID:</em>&nbsp;&nbsp;
+                          {item.siteId.replace(`${item.orgId}-`, '')}
+                          {item.monitoringType === 'Sample Location' && (
+                            <>
+                              <br />
+                              <em>Monitoring Measurements:</em>&nbsp;&nbsp;
+                              {item.stationTotalMeasurements}
+                            </>
+                          )}
+                        </>
+                      }
+                      feature={feature}
+                      idKey="siteId"
+                      allExpanded={allExpanded || expandedRows.includes(index)}
+                      onChange={() => {
+                        // ensure the cell is sized appropriately
+                        resizeCell();
+
+                        // add the item to the expandedRows array so the accordion item
+                        // will stay expanded when the user scrolls or highlights map items
+                        if (expandedRows.includes(index)) {
+                          setExpandedRows(
+                            expandedRows.filter((item) => item !== index),
+                          );
+                        } else setExpandedRows(expandedRows.concat(index));
+                      }}
+                    >
+                      <div css={accordionContentStyles}>
+                        {item.monitoringType === 'Current Water Conditions' && (
+                          <WaterbodyInfo
+                            type="Current Water Conditions"
+                            feature={feature}
+                            services={services}
+                          />
                         )}
-                      </>
-                    }
-                    feature={feature}
-                    idKey="siteId"
-                  >
-                    <div css={accordionContentStyles}>
-                      {item.monitoringType === 'Current Water Conditions' && (
-                        <WaterbodyInfo
-                          type="Current Water Conditions"
-                          feature={feature}
-                          services={services}
-                        />
-                      )}
 
-                      {item.monitoringType === 'Sample Location' && (
-                        <WaterbodyInfo
-                          type="Sample Location"
-                          feature={feature}
-                          services={services}
-                        />
-                      )}
+                        {item.monitoringType === 'Sample Location' && (
+                          <WaterbodyInfo
+                            type="Sample Location"
+                            feature={feature}
+                            services={services}
+                          />
+                        )}
 
-                      <ViewOnMapButton feature={feature} />
-                    </div>
-                  </AccordionItem>
-                );
-              })}
+                        <ViewOnMapButton feature={feature} />
+                      </div>
+                    </AccordionItem>
+                  );
+                }}
+              />
             </AccordionList>
           </>
         )}
@@ -1001,10 +1023,10 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
   return null;
 }
 
-export default function OverviewContainer({ ...props }: Props) {
+export default function OverviewContainer() {
   return (
     <TabErrorBoundary tabName="Overview">
-      <Overview {...props} />
+      <Overview />
     </TabErrorBoundary>
   );
 }

@@ -1,11 +1,11 @@
 // @flow
 
 import React, { Fragment, useCallback, useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import WindowSize from '@reach/window-size';
 import { css } from 'styled-components/macro';
 import StickyBox from 'react-sticky-box';
 // components
-import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
 import NavBar from 'components/shared/NavBar';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -210,13 +210,7 @@ const listStyles = css`
 `;
 
 type Props = {
-  ...RouteProps,
-  // passed from FullscreenContext.Consumer in WaterbodyReportContainer
   fullscreen: Object,
-  // url params defined in routes.js
-  orgId: string, // (organization id)
-  auId: string, // (assessment unit id)
-  reportingCycle: number, // (reporting cycle year)
 };
 
 const conditions = {
@@ -225,7 +219,9 @@ const conditions = {
   unknown: 'Condition Unknown',
 };
 
-function WaterbodyReport({ fullscreen, orgId, auId, reportingCycle }) {
+function WaterbodyReport({ fullscreen }: Props) {
+  const { orgId, auId, reportingCycle } = useParams();
+
   const services = useServicesContext();
 
   const [noWaterbodies, setNoWaterbodies] = useState(false);
@@ -1483,14 +1479,12 @@ function WaterbodyUse({ categories }: WaterbodyUseProps) {
   );
 }
 
-export default function WaterbodyReportContainer({ ...props }: Props) {
+export default function WaterbodyReportContainer() {
   return (
     <MapHighlightProvider>
       <FullscreenProvider>
         <FullscreenContext.Consumer>
-          {(fullscreen) => (
-            <WaterbodyReport fullscreen={fullscreen} {...props} />
-          )}
+          {(fullscreen) => <WaterbodyReport fullscreen={fullscreen} />}
         </FullscreenContext.Consumer>
       </FullscreenProvider>
     </MapHighlightProvider>

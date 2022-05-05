@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { css } from 'styled-components/macro';
-import { navigate } from '@reach/router';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
@@ -990,7 +989,7 @@ function WaterbodyInfo({
 
       {labelValue(
         'Public Access',
-        convertDomainCode(fields, 'Access', attributes.Access),
+        convertDomainCode(fields, 'Pub_Access', attributes.Pub_Access),
       )}
     </>
   );
@@ -1233,11 +1232,11 @@ function WaterbodyInfo({
                           urlParts.includes('community') &&
                           urlParts.length > 3
                         ) {
-                          navigate(`${baseRoute}/${urlParts[3]}`);
+                          window.location.assign(`${baseRoute}/${urlParts[3]}`);
                           return;
                         }
 
-                        navigate(`${baseRoute}/overview`);
+                        window.location.assign(`${baseRoute}/overview`);
                       }}
                     >
                       Yes

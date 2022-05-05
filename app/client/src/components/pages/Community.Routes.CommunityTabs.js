@@ -8,10 +8,9 @@ import React, {
   useCallback,
 } from 'react';
 import { css } from 'styled-components/macro';
-import { navigate } from '@reach/router';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 // components
-import type { RouteProps } from 'routes.js';
 import Switch from 'components/shared/Switch';
 import { PinIcon } from 'components/shared/Icons';
 // contexts
@@ -329,14 +328,10 @@ const tabTitleStyles = css`
   }
 `;
 
-type Props = {
-  ...RouteProps,
-  // url params defined in routes.js
-  urlSearch: string,
-  tabName: string,
-};
+function CommunityTabs() {
+  const { urlSearch, tabName } = useParams();
+  const navigate = useNavigate();
 
-function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
   const {
     activeTabIndex,
     setActiveTabIndex,
@@ -350,7 +345,6 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
     address,
     watershed,
     huc12,
-    setShowAllMonitoring,
     setMonitoringGroups,
     setShowAllPolluted,
     setPollutionParameters,
@@ -363,7 +357,7 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
     if (urlSearch && !tabName) {
       navigate(`/community/${urlSearch}/overview`);
     }
-  }, [urlSearch, tabName]);
+  }, [navigate, urlSearch, tabName]);
 
   // redirect to '/community' if the url doesn't match a route in the tabs array
   // and conditionally set active tab index
@@ -386,7 +380,7 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
     return function cleanup() {
       if (window.location.pathname === '/community') setActiveTabIndex(-1);
     };
-  }, [urlSearch, activeTabIndex, setActiveTabIndex]);
+  }, [navigate, urlSearch, activeTabIndex, setActiveTabIndex]);
 
   // conditionally set searchText from urlSearch
   // (e.g. when a user visits '/community/20001' directly)
@@ -435,7 +429,6 @@ function CommunityTabs({ urlSearch, tabName, ...props }: Props) {
 
   const resetTabSpecificData = () => {
     // monitoring panel
-    setShowAllMonitoring(true);
     setMonitoringGroups(null);
 
     // identified issues panel

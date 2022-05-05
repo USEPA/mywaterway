@@ -8,6 +8,8 @@ import {
   List,
   WindowScroller,
 } from 'react-virtualized';
+// utils
+import { useOnScreen } from 'utils/hooks';
 
 type Props = {
   items: Array<Object>,
@@ -16,7 +18,7 @@ type Props = {
   expandedRowsSetter?: Function,
 };
 
-function VirtualizedList({
+function VirtualizedListInner({
   items,
   renderer,
   allExpanded,
@@ -87,6 +89,35 @@ function VirtualizedList({
         </AutoSizer>
       )}
     </WindowScroller>
+  );
+}
+
+// This is a wrapper component that ensures this component
+// is visible on the DOM prior to rendering the actual
+// virtualized list. This component was added as a workaround
+// for an issue where the list would not display anything
+// or jump around when the list is not immediatly visible
+// on the dom (i.e., the list is on the second tab).
+function VirtualizedList({
+  items,
+  renderer,
+  allExpanded,
+  expandedRowsSetter,
+}: Props) {
+  const ref = useRef();
+  const isVisible = useOnScreen(ref);
+
+  return (
+    <div ref={ref}>
+      {isVisible && (
+        <VirtualizedListInner
+          items={items}
+          renderer={renderer}
+          allExpanded={allExpanded}
+          expandedRowsSetter={expandedRowsSetter}
+        />
+      )}
+    </div>
   );
 }
 

@@ -60,6 +60,7 @@ import {
 } from 'utils/utils';
 // styles
 import 'styles/mapStyles.css';
+import { colors } from 'styles/index.js';
 // data
 import { impairmentFields } from 'config/attainsToHmwMapping';
 import { parameterList } from 'config/attainsParameters';
@@ -593,10 +594,61 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setUpstreamLayer(upstreamLayer);
 
-    const monitoringLocationsLayer = new GraphicsLayer({
+    const monitoringLocationsLayer = new FeatureLayer({
       id: 'monitoringLocationsLayer',
       title: 'Sample Locations',
       listMode: 'hide',
+      legendEnabled: false,
+      fields: [
+        { name: 'OBJECTID', type: 'oid' },
+        { name: 'monitoringType', type: 'string' },
+        { name: 'siteId', type: 'string' },
+        { name: 'orgId', type: 'string' },
+        { name: 'orgName', type: 'string' },
+        { name: 'locationLongitude', type: 'double' },
+        { name: 'locationLatitude', type: 'double' },
+        { name: 'locationName', type: 'string' },
+        { name: 'locationType', type: 'string' },
+        { name: 'locationUrl', type: 'string' },
+        { name: 'stationProviderName', type: 'string' },
+        { name: 'stationTotalSamples', type: 'string' },
+        { name: 'stationTotalMeasurements', type: 'string' },
+        { name: 'stationTotalMeasurementsPercentile', type: 'double' },
+        { name: 'stationTotalsByCategory', type: 'string' },
+        { name: 'uniqueId', type: 'string' },
+      ],
+      outFields: ['*'],
+      // NOTE: initial graphic below will be replaced with UGSG streamgages
+      source: [
+        new Graphic({
+          geometry: { type: 'point', longitude: -98.5795, latitude: 39.8283 },
+          attributes: { ObjectID: 1 },
+        }),
+      ],
+      renderer: {
+        type: 'simple',
+        symbol: {
+          type: 'simple-marker',
+          style: 'square',
+          color: colors.lightPurple(),
+        },
+        visualVariables: [
+          {
+            type: 'size',
+            field: 'stationTotalMeasurementsPercentile',
+            minDataValue: 0,
+            maxDataValue: 1,
+            minSize: 8,
+            maxSize: 40,
+          },
+        ],
+      },
+      popupTemplate: {
+        outFields: ['*'],
+        title: (feature) => getPopupTitle(feature.graphic.attributes),
+        content: (feature) =>
+          getPopupContent({ feature: feature.graphic, services }),
+      },
     });
 
     setMonitoringLocationsLayer(monitoringLocationsLayer);

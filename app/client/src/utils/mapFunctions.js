@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { render } from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { css } from 'styled-components/macro';
 import Graphic from '@arcgis/core/Graphic';
@@ -340,39 +340,67 @@ export function createWaterbodySymbol({
 }
 
 // plot monitoring stations on map
-export function plotStations(
-  stations: Array<Object>,
-  layer: any,
-  services: Object,
-) {
+export function plotStations(stations: Array<Object>, layer: any) {
   if (!stations || !layer) return;
 
-  layer.graphics.removeAll();
-
-  stations.forEach((station) => {
-    layer.graphics.add(
-      new Graphic({
-        geometry: {
-          type: 'point',
-          longitude: station.locationLongitude,
-          latitude: station.locationLatitude,
-        },
-        symbol: {
-          type: 'simple-marker',
-          style: 'square',
-          color: colors.lightPurple(),
-        },
-        attributes: station,
-        popupTemplate: {
-          title: getPopupTitle(station),
-          content: getPopupContent({
-            feature: { attributes: station },
-            services,
-          }),
-        },
-      }),
+  // sort ascending order
+  const stationsSorted = [...stations];
+  stationsSorted.sort((a, b) => {
+    return (
+      parseInt(a.stationTotalMeasurements) -
+      parseInt(b.stationTotalMeasurements)
     );
   });
+
+  // build a simple array of stationTotalMeasurements
+  const measurementsArray = stationsSorted.map((station) =>
+    parseInt(station.stationTotalMeasurements),
+  );
+
+  // calculate percentiles
+  measurementsArray.forEach((measurement, index) => {
+    const rank = percentRank(measurementsArray, measurement);
+
+    stationsSorted[index].stationTotalMeasurementsPercentile = rank;
+  });
+
+  // sort in descending order so that smaller features show on top of larger ones
+  stationsSorted.reverse();
+
+  const graphics = stationsSorted.map((station) => {
+    return new Graphic({
+      geometry: {
+        type: 'point',
+        longitude: station.locationLongitude,
+        latitude: station.locationLatitude,
+      },
+      attributes: station,
+    });
+  });
+
+  layer.queryFeatures().then((featureSet) => {
+    return layer.applyEdits({
+      deleteFeatures: featureSet.features,
+      addFeatures: graphics,
+    });
+  });
+}
+
+// Returns the percentile of the given value in a sorted numeric array.
+function percentRank(array, value) {
+  const count = array.length;
+
+  for (let i = 0; i < count; i++) {
+    if (value <= array[i]) {
+      while (i < count && value === array[i]) i++;
+      if (i === 0) return 0;
+      if (value !== array[i - 1]) {
+        i += (value - array[i - 1]) / (array[i] - array[i - 1]);
+      }
+      return i / count;
+    }
+  }
+  return 1;
 }
 
 // plot usgs streamgages on map
@@ -779,7 +807,7 @@ export function getPopupContent({
 
   // wrap the content for esri
   const contentContainer = document.createElement('div');
-  ReactDOM.render(content, contentContainer);
+  render(content, contentContainer);
 
   // return an esri popup item
   return contentContainer;
