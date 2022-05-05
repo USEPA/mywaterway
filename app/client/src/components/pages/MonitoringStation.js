@@ -31,7 +31,7 @@ import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
-import { colors } from 'styles';
+import { colors, tableStyles } from 'styles';
 import { fetchCheck } from 'utils/fetchUtils';
 import { useSharedLayers } from 'utils/hooks';
 import { plotStations } from 'utils/mapFunctions';
@@ -62,25 +62,15 @@ const fetchStationDetails = async (url, setData, setStatus) => {
     sampleTotal: feature.properties.activityCount,
     measurementTotal: feature.properties.resultCount,
     groupCounts: feature.properties.characteristicGroupResultCount,
-    groupMappings: {},
+    groupCategories: categorizeGroups(
+      feature.properties.characteristicGroupResultCount,
+      characteristicGroupMappings,
+    ),
     uid:
       `${feature.properties.MonitoringLocationIdentifier}/` +
       `${feature.properties.ProviderName}/` +
       `${feature.properties.OrganizationIdentifier}`,
   };
-  characteristicGroupMappings.forEach((mapping) => {
-    stationDetails.groupMappings[mapping.label] = [];
-    for (const group in stationDetails.groupCounts) {
-      if (mapping.groupNames.includes(group)) {
-        stationDetails.groupMappings[mapping.label].push(group);
-      }
-    }
-  });
-
-  // add any leftover lower-tier group counts to the 'Other' top-tier group
-  for (const group in stationDetails.groupCounts) {
-    //const groupsCategorized = Object.values
-  }
   setData(stationDetails);
   setStatus('success');
 };
@@ -97,6 +87,32 @@ const isEmpty = (obj) => {
     return false;
   }
   return true;
+};
+
+const categorizeGroups = (groups, mappings) => {
+  const categories = {};
+  mappings
+    .filter((mapping) => mapping.label !== 'All')
+    .forEach((mapping) => {
+      categories[mapping.label] = [];
+      for (const group in groups) {
+        if (mapping.groupNames.includes(group)) {
+          categories[mapping.label].push(group);
+        }
+      }
+    });
+
+  // add any leftover lower-tier group counts to the 'Other' category
+  const groupsCategorized = Object.values(categories).reduce((a, b) => {
+    a.push([...b]);
+    return a;
+  }, []);
+  for (const group in groups) {
+    if (!groupsCategorized.includes(group)) {
+      categories['Other'].push(group);
+    }
+  }
+  return categories;
 };
 
 const useMap = (station) => {
@@ -243,12 +259,35 @@ const sectionRowInline = (label, value, dataStatus) => {
  * Components
  */
 
-function DownloadSection({ station, stationStatus }) {
+function DownloadSection({ station }) {
   const [range, setRange] = useState('1');
+  const [categories, setCategories] = useState([]);
+  const [allChecked, setAllChecked] = useState(1);
+
+  const toggleCategory = (category) => {
+    const newCategories = categories.includes(category)
+      ? categories.filter((c) => c !== category)
+      : [...categories, category];
+    setCategories(newCategories);
+
+    if (categories.length === Object.keys(station.groupCategories).length) {
+      setAllChecked(1);
+    } else if (categories.length === 0) {
+      setAllChecked(0);
+    } else {
+      setAllChecked(2);
+    }
+  };
+
+  const toggleAllCategories = () => {
+    let selected = allChecked === 0 ? Object.keys(station.groupCategories) : [];
+    setCategories(selected);
+    setAllChecked(allChecked === 0 ? 1 : 0);
+  };
 
   const ranges = [1, 5, 10];
-  const inputs = ranges.map((n) => (
-    <p>
+  const radios = ranges.map((n) => (
+    <p key={n}>
       <input
         id={`${n}-year`}
         value={n}
@@ -257,17 +296,72 @@ function DownloadSection({ station, stationStatus }) {
         checked={range === n.toString()}
         onChange={(e) => setRange(e.target.value)}
       />
-      <label for={`${n}-year`}>{n === 1 ? `${n} Year` : `${n} Years`}</label>
+      <label htmlFor={`${n}-year`}>
+        {n === 1 ? `${n} Year` : `${n} Years`}
+      </label>
     </p>
   ));
+
+  const checkboxRows = Object.keys(station.groupCategories).map(
+    (category, index) => {
+      return station.groupCategories[category].length === 0 ? null : (
+        <tr key={index}>
+          <td css={checkboxCellStyles}>
+            <input
+              css={checkboxStyles}
+              type="checkbox"
+              className="checkbox"
+              checked={categories.includes(category) || allChecked === 1}
+              onChange={toggleCategory}
+            />
+          </td>
+          <td>{category}</td>
+        </tr>
+      );
+    },
+  );
+
+  const checkboxHeader = (
+    <tr>
+      <th css={checkboxCellStyles}>
+        <input
+          css={checkboxStyles}
+          type="checkbox"
+          className="checkbox"
+          checked={allChecked === 1}
+          ref={(input) => {
+            if (input) input.indeterminate = allChecked === 2;
+          }}
+          onChange={toggleAllCategories}
+        />
+      </th>
+      <th>
+        <GlossaryTerm term="Characteristic Group">
+          Characteristic Groups
+        </GlossaryTerm>
+      </th>
+    </tr>
+  );
 
   return (
     <div css={boxStyles}>
       <h2 css={boxHeadingStyles}>Download Station Data</h2>
-      <div css={modifiedBoxSectionStyles}>
-        <fieldset>{inputs}</fieldset>
-        <div id="download-links"></div>
-      </div>
+      {
+        /*Object.keys(station.groupCounts).length === 0 ? (
+        <p>No data available for this monitoring location.</p>
+      ) : (*/
+        <>
+          <div css={modifiedBoxSectionStyles}>
+            <fieldset>{radios}</fieldset>
+            <table css={modifiedTableStyles} className="table">
+              <thead>{checkboxHeader}</thead>
+              <tbody>{checkboxRows}</tbody>
+            </table>
+          </div>
+          <div id="download-links"></div>
+        </>
+        /*)*/
+      }
     </div>
   );
 }
@@ -410,9 +504,14 @@ function MonitoringStation({ fullscreen, orgId, siteId }) {
     </Page>
   );
 
-  if (stationStatus === 'no-station') return noStationView;
-
-  return fullscreen.fullscreenActive ? fullScreenView : twoColumnView;
+  switch (stationStatus) {
+    case 'no-station':
+      return noStationView;
+    case 'success':
+      return fullscreen.fullscreenActive ? fullScreenView : twoColumnView;
+    default:
+      return null;
+  }
 }
 
 function MonitoringStationContainer(props) {
@@ -462,6 +561,16 @@ function StationMapContainer({ ...props }) {
  * Styles
  */
 
+const checkboxCellStyles = css`
+  padding-right: 0 !important;
+  text-align: center;
+`;
+
+const checkboxStyles = css`
+  appearance: checkbox;
+  transform: scale(1.2);
+`;
+
 const containerStyles = css`
   ${splitLayoutContainerStyles};
 
@@ -485,6 +594,27 @@ const containerStyles = css`
     margin-bottom: 0.875rem;
     border-top-color: #aebac3;
   }
+`;
+
+const downloadLinksStyles = css`
+  span {
+    display: inline-block;
+    width: 100%;
+    font-weight: bold;
+
+    @media (min-width: 360px) {
+      margin-right: 0.5em;
+      width: auto;
+    }
+  }
+
+  a {
+    margin-right: 1em;
+  }
+`;
+
+const iconStyles = css`
+  margin-right: 5px;
 `;
 
 const infoBoxHeadingStyles = css`
@@ -579,6 +709,29 @@ const modifiedBoxSectionStyles = css`
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles};
   text-align: center;
+`;
+
+const modifiedTableStyles = css`
+  ${tableStyles}
+
+  thead th {
+    vertical-align: top;
+  }
+
+  th,
+  td {
+    overflow-wrap: anywhere;
+    hyphens: auto;
+
+    :first-of-type {
+      padding-left: 0;
+    }
+
+    :last-of-type {
+      padding-right: 0;
+      text-align: right;
+    }
+  }
 `;
 
 const pageErrorBoxStyles = css`
