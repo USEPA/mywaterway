@@ -34,6 +34,11 @@ const colors = {
   yellow: '#ffff00',
 };
 
+const disclaimerStyles = css`
+  display: inline-block;
+  padding-bottom: 1.5em;
+`;
+
 const downloadLinksStyles = css`
   span {
     display: inline-block;
@@ -122,6 +127,7 @@ const toggleTableStyles = css`
 
 export {
   colors,
+  disclaimerStyles,
   downloadLinksStyles,
   fonts,
   iconStyles,

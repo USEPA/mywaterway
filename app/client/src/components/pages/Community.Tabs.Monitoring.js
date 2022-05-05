@@ -17,6 +17,7 @@ import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 import {
+  disclaimerStyles,
   downloadLinksStyles,
   iconStyles,
   modifiedTableStyles,
@@ -740,7 +741,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
         toggleGroups['All'].stations.forEach((station) => {
           let hasData = false;
           activeGroups.forEach((group) => {
-            if (group in station.stationTotalsByGroup) {
+            if (station.stationTotalsByGroup[group] > 0) {
               newTotalMeasurements += station.stationTotalsByGroup[group];
               hasData = true;
             }
@@ -839,10 +840,10 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
       allMonitoringLocations.push(monitoringLocation);
 
       // build up the monitoringLocationToggles and monitoringLocationGroups
-      let locationAddedToGroup = false;
       const subGroupsAdded = [];
 
       characteristicGroupMappings.forEach((mapping) => {
+        monitoringLocation.stationTotalsByGroup[mapping.label] = 0;
         for (const subGroup in station.properties
           .characteristicGroupResultCount) {
           // if characteristic group exists in switch config object
@@ -861,30 +862,18 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                 toggled: true,
               };
             }
-            locationAddedToGroup = true;
             // add the lower-tier group counts to the corresponding top-tier group counts
-            if (
-              !monitoringLocation.stationTotalsByGroup.hasOwnProperty(
-                mapping.label,
-              )
-            ) {
-              monitoringLocation.stationTotalsByGroup[mapping.label] =
-                station.properties.characteristicGroupResultCount[subGroup];
-            } else {
-              monitoringLocation.stationTotalsByGroup[mapping.label] +=
-                station.properties.characteristicGroupResultCount[subGroup];
-            }
+            monitoringLocation.stationTotalsByGroup[mapping.label] +=
+              station.properties.characteristicGroupResultCount[subGroup];
           }
         }
       });
 
       // add any leftover lower-tier group counts to the 'Other' top-tier group
-      if (!monitoringLocation.stationTotalsByGroup['Other']) {
-        monitoringLocation.stationTotalsByGroup['Other'] = 0;
-      }
       for (const subGroup in station.properties
         .characteristicGroupResultCount) {
         if (!subGroupsAdded.includes(subGroup)) {
+          monitoringLocationGroups['Other'].stations.push(monitoringLocation);
           monitoringLocation.stationTotalsByGroup['Other'] +=
             station.properties.characteristicGroupResultCount[subGroup];
 
@@ -898,12 +887,6 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
             );
           }
         }
-      }
-
-      // if characteristic group didn't exist in switch config object,
-      // add the station to the 'Other' group
-      if (!locationAddedToGroup) {
-        monitoringLocationGroups['Other'].stations.push(monitoringLocation);
       }
     });
 
@@ -944,6 +927,10 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     `${services.data.waterQualityPortal.resultSearch}zip=no&huc=` +
     `${huc12}` +
     `${charGroupFilters}`;
+  const portalUrl =
+    `${services.data.waterQualityPortal.userInterface}#huc=${huc12}` +
+    `${charGroupFilters}&mimeType=xlsx&dataProfile=resultPhysChem` +
+    `&providers=NWIS&providers=STEWARDS&providers=STORET`;
 
   const sortedMonitoringLocations = displayedMonitoringLocations
     ? displayedMonitoringLocations.sort((a, b) => {
@@ -1017,9 +1004,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                     let measurementCount = 0;
                     uniqueStations.forEach((station) => {
                       sampleCount += parseInt(station.stationTotalSamples);
-                      measurementCount += parseInt(
-                        station.stationTotalMeasurements,
-                      );
+                      measurementCount +=
+                        station.stationTotalsByGroup[group.label];
                     });
 
                     return (
@@ -1106,6 +1092,33 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                 />
                 csv
               </a>
+            </p>
+            <p>
+              <a rel="noopener noreferrer" target="_blank" href={portalUrl}>
+                <i
+                  css={iconStyles}
+                  className="fas fa-filter"
+                  aria-hidden="true"
+                />
+                Filter this data using the <em>Water Quality Portal</em> form
+              </a>
+              &nbsp;&nbsp;
+              <small css={disclaimerStyles}>(opens new browser tab)</small>
+              <br />
+              <a
+                rel="noopener noreferrer"
+                target="_blank"
+                href="https://www.waterqualitydata.us/portal_userguide/"
+              >
+                <i
+                  css={iconStyles}
+                  className="fas fa-book-open"
+                  aria-hidden="true"
+                />
+                Water Quality Portal User Guide
+              </a>
+              &nbsp;&nbsp;
+              <small css={disclaimerStyles}>(opens new browser tab)</small>
             </p>
 
             <AccordionList
