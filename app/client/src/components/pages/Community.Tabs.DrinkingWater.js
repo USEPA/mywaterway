@@ -905,10 +905,10 @@ function DrinkingWater() {
   );
 }
 
-export default function DrinkingWaterContainer({ ...props }: Props) {
+export default function DrinkingWaterContainer() {
   return (
     <TabErrorBoundary tabName="Drinking Water">
-      <DrinkingWater {...props} />
+      <DrinkingWater />
     </TabErrorBoundary>
   );
 }

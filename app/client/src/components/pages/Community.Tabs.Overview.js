@@ -1001,10 +1001,10 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
   return null;
 }
 
-export default function OverviewContainer({ ...props }: Props) {
+export default function OverviewContainer() {
   return (
     <TabErrorBoundary tabName="Overview">
-      <Overview {...props} />
+      <Overview />
     </TabErrorBoundary>
   );
 }

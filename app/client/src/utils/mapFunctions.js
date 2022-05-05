@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { render } from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { css } from 'styled-components/macro';
 import Graphic from '@arcgis/core/Graphic';
@@ -779,7 +779,7 @@ export function getPopupContent({
 
   // wrap the content for esri
   const contentContainer = document.createElement('div');
-  ReactDOM.render(content, contentContainer);
+  render(content, contentContainer);
 
   // return an esri popup item
   return contentContainer;

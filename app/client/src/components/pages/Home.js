@@ -2,9 +2,8 @@
 
 import React from 'react';
 import { css } from 'styled-components/macro';
-import { Link } from '@reach/router';
+import { Link } from 'react-router-dom';
 // components
-import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
 import LocationSearch from 'components/shared/LocationSearch';
 import {
@@ -86,12 +85,7 @@ const disclaimerStyles = css`
   margin-top: 2rem;
 `;
 
-// --- components ---
-type Props = {
-  ...RouteProps,
-};
-
-function Home({ ...props }: Props) {
+function Home() {
   return (
     <Page>
       <div className="container" css={containerStyles}>

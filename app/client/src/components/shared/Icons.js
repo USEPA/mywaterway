@@ -114,9 +114,7 @@ OtherIcon.defaultProps = {
   height: '5rem',
 };
 
-type PinProps = {};
-
-function PinIcon({ ...props }: PinProps) {
+function PinIcon({ ...props }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
