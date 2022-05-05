@@ -1099,8 +1099,8 @@ function Protect() {
                                       <td>
                                         {convertDomainCode(
                                           fields,
-                                          'Access',
-                                          attributes.Access,
+                                          'Pub_Access',
+                                          attributes.Pub_Access,
                                         )}
                                       </td>
                                     </tr>
