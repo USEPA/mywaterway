@@ -61,6 +61,42 @@ const modifiedErrorBoxStyles = css`
   text-align: center;
 `;
 
+const modifiedToggleTableStyles = css`
+  ${toggleTableStyles};
+  tfoot {
+    background-color: #f0f6f9;
+
+    tr:first-of-type {
+      border-top: 2px solid #dee2e6;
+      th {
+        border: none;
+        &:first-of-type {
+          display: inline-block;
+          margin-left: 46px;
+        }
+      }
+    }
+    .download-links {
+      border-bottom: 1px solid #dee2e6;
+      span {
+        padding-right: 1.2rem;
+        &:last-of-type {
+          padding-right: 0;
+        }
+      }
+      th {
+        border-top: none;
+        div {
+          display: inline-flex;
+          gap: 3px;
+          width: 100%;
+          justify-content: flex-end;
+        }
+      }
+    }
+  }
+`;
+
 const switchContainerStyles = css`
   margin-top: 0.5em;
 `;
@@ -960,7 +996,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
         {totalLocations > 0 && (
           <>
-            <table css={toggleTableStyles} className="table">
+            <table css={modifiedToggleTableStyles} className="table">
               <thead>
                 <tr>
                   <th>
@@ -1020,79 +1056,54 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                     return a.key > b.key ? 1 : -1;
                   })}
               </tbody>
+              <tfoot>
+                <tr>
+                  <th>Totals</th>
+                  <th></th>
+                  <th>{Number(totalSamples).toLocaleString()}</th>
+                  <th>{Number(totalMeasurements).toLocaleString()}</th>
+                </tr>
+                <tr className="download-links">
+                  <th colSpan="4">
+                    <div>
+                      <a href={`${downloadUrl}&mimeType=xlsx`}>
+                        <i
+                          css={iconStyles}
+                          className="fas fa-file-excel"
+                          aria-hidden="true"
+                        />
+                      </a>
+                      <a href={`${downloadUrl}&mimeType=csv`}>
+                        <i
+                          css={iconStyles}
+                          className="fas fa-file-csv"
+                          aria-hidden="true"
+                        />
+                      </a>
+                      <span>Download All</span>
+                      <a
+                        rel="noopener noreferrer"
+                        target="_blank"
+                        data-cy="portal"
+                        href={portalUrl}
+                      >
+                        <i
+                          css={iconStyles}
+                          className="fas fa-filter"
+                          aria-hidden="true"
+                        />
+                      </a>
+                      <span>
+                        Filter
+                        <small css={disclaimerStyles}>(opens new tab)</small>
+                      </span>
+                    </div>
+                  </th>
+                </tr>
+              </tfoot>
             </table>
 
-            <p>
-              <strong>
-                <em>{watershed}</em> totals:{' '}
-              </strong>
-            </p>
-            <table css={modifiedTableStyles} className="table">
-              <tbody>
-                <tr>
-                  <td>
-                    <em>
-                      <GlossaryTerm term="Monitoring Samples">
-                        Monitoring Samples:
-                      </GlossaryTerm>
-                    </em>
-                  </td>
-                  <td>{Number(totalSamples).toLocaleString()}</td>
-                </tr>
-                <tr>
-                  <td>
-                    <em>
-                      <GlossaryTerm term="Monitoring Measurements">
-                        Monitoring Measurements:
-                      </GlossaryTerm>
-                    </em>
-                  </td>
-                  <td>{Number(totalMeasurements).toLocaleString()}</td>
-                </tr>
-              </tbody>
-            </table>
-            <p>
-              <strong>
-                Download <em>{watershed}</em> Monitoring Data:
-              </strong>
-            </p>
-            <p css={downloadLinksStyles}>
-              <span>Data Download Format:</span>
-              &nbsp;
-              <a href={`${downloadUrl}&mimeType=xlsx`}>
-                <i
-                  css={iconStyles}
-                  className="fas fa-file-excel"
-                  aria-hidden="true"
-                />
-                xls
-              </a>
-              <a href={`${downloadUrl}&mimeType=csv`}>
-                <i
-                  css={iconStyles}
-                  className="fas fa-file-csv"
-                  aria-hidden="true"
-                />
-                csv
-              </a>
-            </p>
-            <p>
-              <a
-                rel="noopener noreferrer"
-                target="_blank"
-                data-cy="portal"
-                href={portalUrl}
-              >
-                <i
-                  css={iconStyles}
-                  className="fas fa-filter"
-                  aria-hidden="true"
-                />
-                Filter this data using the <em>Water Quality Portal</em> form
-              </a>
-              &nbsp;&nbsp;
-              <small css={disclaimerStyles}>(opens new browser tab)</small>
-              <br />
+            {/*
               <a
                 rel="noopener noreferrer"
                 target="_blank"
@@ -1107,7 +1118,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
               </a>
               &nbsp;&nbsp;
               <small css={disclaimerStyles}>(opens new browser tab)</small>
-            </p>
+            */}
 
             <AccordionList
               title={
