@@ -21,6 +21,7 @@ import EatingFish from 'components/pages/EatingFish';
 import AquaticLife from 'components/pages/AquaticLife';
 import Actions from 'components/pages/Actions';
 import WaterbodyReport from 'components/pages/WaterbodyReport';
+import Educators from 'components/pages/Educators';
 import ErrorPage from 'components/pages/404';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import AlertMessage from 'components/shared/AlertMessage';
@@ -91,6 +92,7 @@ function AppRoutes() {
           path="/waterbody-report/:orgId/:auId/:reportingCycle"
           element={<WaterbodyReport />}
         />
+        <Route path="/educators" element={<Educators />} />
         <Route path="*" element={<ErrorPage />} />
       </Routes>
     </>

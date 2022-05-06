@@ -7,8 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import esriConfig from '@arcgis/core/config';
 // components
 import NavBar from 'components/shared/NavBar';
-import DataContent from 'components/shared/DataContent';
 import AboutContent from 'components/shared/AboutContent';
+import EducatorsContent from 'components/shared/EducatorsContent';
+import DataContent from 'components/shared/DataContent';
 import GlossaryPanel from 'components/shared/GlossaryPanel';
 // contexts
 import { GlossaryContext } from 'contexts/Glossary';
@@ -182,6 +183,7 @@ function Page({ children }: Props) {
   // handles hiding of the data page when the user clicks the browser's back button
   const [dataDisplayed, setDataDisplayed] = useState(false);
   const [aboutDisplayed, setAboutDisplayed] = useState(false);
+  const [educatorsDisplayed, setEducatorsDisplayed] = useState(false);
 
   useEffect(() => {
     function handleHistoryChange(ev) {
@@ -190,6 +192,8 @@ function Page({ children }: Props) {
       }
       if (window.location.pathname !== '/data') setDataDisplayed(false);
       if (window.location.pathname !== '/about') setAboutDisplayed(false);
+      if (window.location.pathname !== '/educators')
+        setEducatorsDisplayed(false);
     }
 
     window.addEventListener('popstate', handleHistoryChange);
@@ -295,10 +299,11 @@ function Page({ children }: Props) {
           <li>
             <button
               title="Data"
-              onClick={(ev) => {
+              onClick={() => {
                 if (window.location.pathname !== '/data') {
                   setAboutDisplayed(false);
                   setDataDisplayed(true);
+                  setEducatorsDisplayed(false);
                 }
               }}
             >
@@ -310,15 +315,32 @@ function Page({ children }: Props) {
           <li>
             <button
               title="About"
-              onClick={(ev) => {
+              onClick={() => {
                 if (window.location.pathname !== '/about') {
                   setDataDisplayed(false);
                   setAboutDisplayed(true);
+                  setEducatorsDisplayed(false);
                 }
               }}
             >
               <i className="fas fa-info-circle" aria-hidden="true" />
               About
+            </button>
+          </li>
+
+          <li>
+            <button
+              title="Educators"
+              onClick={() => {
+                if (window.location.pathname !== '/educators') {
+                  setDataDisplayed(false);
+                  setAboutDisplayed(false);
+                  setEducatorsDisplayed(true);
+                }
+              }}
+            >
+              <i className="fas fa-graduation-cap" aria-hidden="true" />
+              Educators
             </button>
           </li>
 
@@ -340,9 +362,10 @@ function Page({ children }: Props) {
         <div css={textStyles}>
           <span
             css={titleStyles}
-            onClick={(ev) => {
+            onClick={() => {
               if (dataDisplayed) setDataDisplayed(false);
               if (aboutDisplayed) setAboutDisplayed(false);
+              if (educatorsDisplayed) setEducatorsDisplayed(false);
               navigate('/');
             }}
           >
@@ -357,10 +380,7 @@ function Page({ children }: Props) {
 
       {aboutDisplayed && (
         <>
-          <NavBar
-            title="About"
-            onBackClick={(ev) => setAboutDisplayed(false)}
-          />
+          <NavBar title="About" onBackClick={() => setAboutDisplayed(false)} />
 
           <AboutContent />
         </>
@@ -370,17 +390,33 @@ function Page({ children }: Props) {
         <>
           <NavBar
             title="About the Data"
-            onBackClick={(ev) => setDataDisplayed(false)}
+            onBackClick={() => setDataDisplayed(false)}
           />
 
           <DataContent />
         </>
       )}
 
+      {educatorsDisplayed && (
+        <>
+          <NavBar
+            title="Eduators"
+            onBackClick={() => setEducatorsDisplayed(false)}
+          />
+
+          <EducatorsContent />
+        </>
+      )}
+
       {/* always render Page's children, just toggle the display property
         depending on the state of 'dataDisplayed' */}
       <div
-        style={{ display: dataDisplayed || aboutDisplayed ? 'none' : 'block' }}
+        style={{
+          display:
+            dataDisplayed || aboutDisplayed || educatorsDisplayed
+              ? 'none'
+              : 'block',
+        }}
       >
         {children}
       </div>

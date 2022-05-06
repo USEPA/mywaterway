@@ -1635,6 +1635,36 @@ function useOnScreen(ref) {
   return isIntersecting;
 }
 
+function usePreviousUrl(currentPath) {
+  useEffect(() => {
+    // get the original url
+    const href = window.location.href;
+
+    // get the pathname without the leading /
+    const pathname = window.location.pathname.substr(1);
+
+    // build the url for the current page
+    let newHref = '';
+    if (pathname) {
+      newHref = href.replace(pathname, currentPath);
+    } else {
+      newHref = `${href}${currentPath}`;
+    }
+
+    // change the browser address bar without reloading the page
+    window.history.pushState(null, null, newHref);
+
+    // when the user hits the back button change the url back to the original
+    return function cleanup() {
+      // exit early, if user clicked the banner link or the original path
+      // is the current page.
+      if (window.location.pathname === '/' || pathname === currentPath) return;
+
+      window.history.pushState(null, null, href);
+    };
+  }, [currentPath]);
+}
+
 export {
   useGeometryUtils,
   useSharedLayers,
@@ -1645,4 +1675,5 @@ export {
   useDynamicPopup,
   useKeyPress,
   useOnScreen,
+  usePreviousUrl,
 };
