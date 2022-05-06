@@ -598,7 +598,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       id: 'monitoringLocationsLayer',
       title: 'Sample Locations',
       listMode: 'hide',
-      legendEnabled: false,
+      legendEnabled: true,
       fields: [
         { name: 'OBJECTID', type: 'oid' },
         { name: 'monitoringType', type: 'string' },
@@ -636,6 +636,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           {
             type: 'size',
             field: 'stationTotalMeasurementsPercentile',
+            legendOptions: {
+              title: 'Monitoring Measurment Percentiles for HUC12',
+            },
             stops: [
               { value: 0.25, size: 8, label: '<25th percentile ' },
               { value: 0.5, size: 16, label: '25th - 50th percentile' },
