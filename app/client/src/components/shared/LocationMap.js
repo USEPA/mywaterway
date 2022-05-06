@@ -613,6 +613,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         { name: 'stationProviderName', type: 'string' },
         { name: 'stationTotalSamples', type: 'string' },
         { name: 'stationTotalMeasurements', type: 'string' },
+        { name: 'stationTotalMeasurementsPercentile', type: 'double' },
         { name: 'stationTotalsByCategory', type: 'string' },
         { name: 'uniqueId', type: 'string' },
       ],
@@ -631,6 +632,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           style: 'square',
           color: colors.lightPurple(),
         },
+        visualVariables: [
+          {
+            type: 'size',
+            field: 'stationTotalMeasurementsPercentile',
+            minDataValue: 0,
+            maxDataValue: 1,
+            minSize: 8,
+            maxSize: 40,
+          },
+        ],
       },
       popupTemplate: {
         outFields: ['*'],

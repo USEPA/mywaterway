@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { render } from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { css } from 'styled-components/macro';
 import Graphic from '@arcgis/core/Graphic';
@@ -15,7 +15,7 @@ import { getSelectedCommunityTab } from 'utils/utils';
 
 const waterbodyStatuses = {
   good: { condition: 'good', label: 'Good' },
-  polluted: { condition: 'polluted', label: 'Impaired' },
+  polluted: { condition: 'polluted', label: 'Impaired (Issues Identified)' },
   unassessed: { condition: 'unassessed', label: 'Condition Unknown' },
   notApplicable: { condition: 'hidden', label: 'Not Applicable' },
 };
@@ -343,7 +343,31 @@ export function createWaterbodySymbol({
 export function plotStations(stations: Array<Object>, layer: any) {
   if (!stations || !layer) return;
 
-  const graphics = stations.map((station) => {
+  // sort ascending order
+  const stationsSorted = [...stations];
+  stationsSorted.sort((a, b) => {
+    return (
+      parseInt(a.stationTotalMeasurements) -
+      parseInt(b.stationTotalMeasurements)
+    );
+  });
+
+  // build a simple array of stationTotalMeasurements
+  const measurementsArray = stationsSorted.map((station) =>
+    parseInt(station.stationTotalMeasurements),
+  );
+
+  // calculate percentiles
+  measurementsArray.forEach((measurement, index) => {
+    const rank = percentRank(measurementsArray, measurement);
+
+    stationsSorted[index].stationTotalMeasurementsPercentile = rank;
+  });
+
+  // sort in descending order so that smaller features show on top of larger ones
+  stationsSorted.reverse();
+
+  const graphics = stationsSorted.map((station) => {
     return new Graphic({
       geometry: {
         type: 'point',
@@ -360,6 +384,23 @@ export function plotStations(stations: Array<Object>, layer: any) {
       addFeatures: graphics,
     });
   });
+}
+
+// Returns the percentile of the given value in a sorted numeric array.
+function percentRank(array, value) {
+  const count = array.length;
+
+  for (let i = 0; i < count; i++) {
+    if (value <= array[i]) {
+      while (i < count && value === array[i]) i++;
+      if (i === 0) return 0;
+      if (value !== array[i - 1]) {
+        i += (value - array[i - 1]) / (array[i] - array[i - 1]);
+      }
+      return i / count;
+    }
+  }
+  return 1;
 }
 
 // plot usgs streamgages on map
@@ -766,7 +807,7 @@ export function getPopupContent({
 
   // wrap the content for esri
   const contentContainer = document.createElement('div');
-  ReactDOM.render(content, contentContainer);
+  render(content, contentContainer);
 
   // return an esri popup item
   return contentContainer;

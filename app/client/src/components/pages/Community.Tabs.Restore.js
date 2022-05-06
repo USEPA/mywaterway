@@ -479,10 +479,10 @@ function Restore() {
   );
 }
 
-export default function RestoreContainer({ ...props }: Props) {
+export default function RestoreContainer() {
   return (
     <TabErrorBoundary tabName="Restore">
-      <Restore {...props} />
+      <Restore />
     </TabErrorBoundary>
   );
 }

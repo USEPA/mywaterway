@@ -510,12 +510,8 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
             value: 'orgName',
           },
           {
-            label: 'Organization ID',
-            value: 'orgId',
-          },
-          {
-            label: 'Monitoring Site ID',
-            value: 'siteId',
+            label: 'Water Type',
+            value: 'locationType',
           },
         ]}
       >
@@ -538,17 +534,8 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
                   <em>Organization Name:</em>&nbsp;&nbsp;
                   {item.orgName}
                   <br />
-                  <em>Organization ID:</em>&nbsp;&nbsp;{item.orgId}
-                  <br />
-                  <em>Monitoring Site ID:</em>&nbsp;&nbsp;
-                  {item.siteId.replace(`${item.orgId}-`, '')}
-                  {item.monitoringType === 'Sample Location' && (
-                    <>
-                      <br />
-                      <em>Monitoring Measurements:</em>&nbsp;&nbsp;
-                      {item.stationTotalMeasurements}
-                    </>
-                  )}
+                  <em>Water Type:</em>&nbsp;&nbsp;
+                  {item.locationType}
                 </>
               }
               feature={feature}
@@ -1142,12 +1129,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                   value: 'orgName',
                 },
                 {
-                  label: 'Organization ID',
-                  value: 'orgId',
-                },
-                {
-                  label: 'Monitoring Site ID',
-                  value: 'siteId',
+                  label: 'Water Type',
+                  value: 'locationType',
                 },
                 {
                   label: 'Monitoring Measurements',
@@ -1180,11 +1163,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                           <em>Organization Name:</em>&nbsp;&nbsp;
                           {item.orgName}
                           <br />
-                          <em>Organization ID:</em>&nbsp;&nbsp;
-                          {item.orgId}
-                          <br />
-                          <em>Monitoring Site ID:</em>&nbsp;&nbsp;
-                          {item.siteId.replace(`${item.orgId}-`, '')}
+                          <em>Water Type:</em>&nbsp;&nbsp;
+                          {item.locationType}
                           <br />
                           <em>Monitoring Measurements:</em>&nbsp;&nbsp;
                           {item.stationTotalMeasurements}
@@ -1228,10 +1208,10 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   return null;
 }
 
-export default function MonitoringContainer({ ...props }: Props) {
+export default function MonitoringContainer() {
   return (
     <TabErrorBoundary tabName="Monitoring">
-      <Monitoring {...props} />
+      <Monitoring />
     </TabErrorBoundary>
   );
 }
