@@ -86,6 +86,7 @@ const zoomDependentLayers = [
 const orderedLayers = [
   'waterbodyLayer',
   'allWaterbodiesLayer',
+  'monitoringLocationsLayer',
   'usgsStreamgagesLayer',
   'issuesLayer',
   'dischargersLayer',

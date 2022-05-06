@@ -630,7 +630,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         symbol: {
           type: 'simple-marker',
           style: 'circle',
-          color: colors.lightPurple(0.4),
+          color: colors.lightPurple(0.3),
         },
         visualVariables: [
           {

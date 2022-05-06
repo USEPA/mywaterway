@@ -748,7 +748,6 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     return isRestoreProtect ? actionsWaterbodiesLegend : waterbodyLegend;
   }
   if (layer.id === 'issuesLayer') return issuesLegend;
-  if (layer.id === 'monitoringLocationsLayer') return monitoringLocationsLegend;
   if (layer.id === 'usgsStreamgagesLayer') return usgsStreamgagesLegend;
   if (layer.id === 'dischargersLayer') return dischargersLegend;
   if (layer.id === 'nonprofitsLayer') return nonprofitsLegend;
