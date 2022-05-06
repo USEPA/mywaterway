@@ -627,6 +627,8 @@ function MonitoringAndSensorsTab({
       stationProviderName: station.properties.ProviderName,
       stationTotalSamples: station.properties.activityCount,
       stationTotalMeasurements: station.properties.resultCount,
+      stationTotalMeasurementsPercentile:
+        station.properties.stationTotalMeasurementsPercentile,
       stationTotalsByCategory: JSON.stringify(
         station.properties.characteristicGroupResultCount,
       ),
