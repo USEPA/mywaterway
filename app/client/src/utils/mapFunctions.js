@@ -359,7 +359,12 @@ export function plotStations(stations: Array<Object>, layer: any) {
 
   // calculate percentiles
   measurementsArray.forEach((measurement, index) => {
-    const rank = percentRank(measurementsArray, measurement);
+    // get the rank and then move them into 4 buckets
+    let rank = percentRank(measurementsArray, measurement);
+    if (rank < 0.25) rank = 0.24;
+    if (rank >= 0.25 && rank < 0.5) rank = 0.49;
+    if (rank >= 0.5 && rank < 0.75) rank = 0.74;
+    if (rank >= 0.75 && rank <= 1) rank = 1;
 
     stationsSorted[index].stationTotalMeasurementsPercentile = rank;
   });

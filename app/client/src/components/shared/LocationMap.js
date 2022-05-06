@@ -629,17 +629,19 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         type: 'simple',
         symbol: {
           type: 'simple-marker',
-          style: 'square',
-          color: colors.lightPurple(),
+          style: 'circle',
+          color: colors.lightPurple(0.4),
         },
         visualVariables: [
           {
             type: 'size',
             field: 'stationTotalMeasurementsPercentile',
-            minDataValue: 0,
-            maxDataValue: 1,
-            minSize: 8,
-            maxSize: 40,
+            stops: [
+              { value: 0.25, size: 8, label: '<25th percentile ' },
+              { value: 0.5, size: 16, label: '25th - 50th percentile' },
+              { value: 0.75, size: 24, label: '50th - 75th percentile' },
+              { value: 1, size: 32, label: '75th - 100th percentile' },
+            ],
           },
         ],
       },
@@ -684,7 +686,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         type: 'simple',
         symbol: {
           type: 'simple-marker',
-          style: 'circle',
+          style: 'square',
           color: '#fffe00', // '#989fa2'
         },
         // NOTE: rendering all streamgages in a single color until we can set
