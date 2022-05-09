@@ -2,7 +2,6 @@
 
 import Graphic from '@arcgis/core/Graphic';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
-import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import Viewpoint from '@arcgis/core/Viewpoint';
 import WindowSize from '@reach/window-size';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
@@ -44,8 +43,209 @@ import {
 } from 'utils/mapFunctions';
 
 /*
+ * Styles
+ */
+
+const checkboxCellStyles = css`
+  padding-right: 0 !important;
+  text-align: center;
+`;
+
+const checkboxStyles = css`
+  appearance: checkbox;
+  transform: scale(1.2);
+`;
+
+const containerStyles = css`
+  ${splitLayoutContainerStyles};
+
+  th,
+  td {
+    font-size: 0.875rem;
+    line-height: 1.25;
+
+    &:last-child {
+      text-align: right;
+    }
+  }
+
+  hr {
+    margin-top: 0.125rem;
+    margin-bottom: 0.875rem;
+    border-top-color: #aebac3;
+  }
+`;
+
+const downloadLinksStyles = css`
+  margin-left: 1rem;
+`;
+
+const iconStyles = css`
+  margin-right: 5px;
+`;
+
+const infoBoxHeadingStyles = css`
+  ${boxHeadingStyles};
+  display: flex;
+  align-items: flex-start;
+
+  small {
+    display: block;
+    margin-top: 0.125rem;
+  }
+
+  /* loading icon */
+  svg {
+    margin: 0 -0.375rem 0 -0.875rem;
+    height: 1.5rem;
+  }
+`;
+
+const inlineBoxSectionStyles = css`
+  ${boxSectionStyles};
+
+  /* loading icon */
+  svg {
+    display: inline-block;
+    margin: -0.5rem;
+    height: 1.25rem;
+  }
+
+  h3,
+  p {
+    display: inline-block;
+    margin-top: 0;
+    margin-bottom: 0;
+    line-height: 1.25;
+  }
+`;
+
+const mapContainerStyles = css`
+  display: flex;
+  height: 100%;
+  position: relative;
+`;
+
+const modifiedBoxSectionStyles = css`
+  ${boxSectionStyles}
+
+  align-items: flex-start;
+  display: flex;
+  fieldset {
+    border: none;
+    font-size: 1rem;
+    input[type='radio'] {
+      appearance: none;
+      margin: 0;
+    }
+    input:checked + label:before {
+      background-color: ${colors.steel()};
+      box-shadow: 0 0 0 1px ${colors.steel()}, inset 0 0 0 1px ${colors.white()};
+    }
+    label {
+      cursor: pointer;
+      font-size: 0.875em;
+      padding-left: 1em;
+      text-indent: -1em;
+      &:before {
+        background: ${colors.white()};
+        border-radius: 100%;
+        box-shadow: 0 0 0 1px ${colors.steel()};
+        content: ' ';
+        display: inline-block;
+        height: 1em;
+        left: 2px;
+        line-height: 1.25em;
+        margin-right: 1em;
+        position: relative;
+        text-indent: 0;
+        top: -2px;
+        vertical-align: middle;
+        white-space: pre;
+        width: 1em;
+      }
+    }
+    p {
+      font-size: 1em;
+      margin-top: 1em;
+      &:first-child {
+        margin-top: 0;
+      }
+    }
+  }
+  justify-content: space-between;
+`;
+
+const modifiedErrorBoxStyles = css`
+  ${errorBoxStyles};
+  text-align: center;
+`;
+
+const modifiedTableStyles = css`
+  ${tableStyles}
+
+  thead {
+    th {
+      padding-top: 0;
+      vertical-align: top;
+    }
+    tr {
+      border-bottom: 1px solid ${colors.steel()};
+    }
+  }
+
+  th,
+  td {
+    border: none;
+    overflow-wrap: anywhere;
+    hyphens: auto;
+
+    :first-of-type {
+      padding-left: 0;
+    }
+
+    :last-of-type {
+      padding-right: 0;
+      text-align: right;
+    }
+  }
+  width: 40%;
+`;
+
+const pageErrorBoxStyles = css`
+  ${errorBoxStyles};
+  margin: 1rem;
+  text-align: center;
+`;
+
+/*
  * Helpers
  */
+
+const buildDateFilter = (range) => {
+  if (range === 'all') return '';
+  const date = new Date();
+  const year = date.getFullYear() - parseInt(range);
+  const dateFormatted = `${date.getMonth() + 1}-${date.getDate()}-${year}`;
+  return '&startDateLo=' + dateFormatted;
+};
+
+const buildGroupFilter = (station, selectedCategories) => {
+  if (
+    selectedCategories.length === Object.keys(station.groupCategories).length
+  ) {
+    return '';
+  }
+  let selectedGroups = [];
+  Object.keys(station.groupCategories).forEach((category) => {
+    if (selectedCategories.includes(category)) {
+      selectedGroups = selectedGroups.concat(station.groupCategories[category]);
+    }
+  });
+  const filter =
+    '&characteristicType=' + selectedGroups.join('&characteristicType=');
+  return filter;
+};
 
 const fetchStationDetails = async (url, setData, setStatus) => {
   const res = await fetchCheck(url);
@@ -103,9 +303,9 @@ const categorizeGroups = (groups, mappings) => {
   mappings
     .filter((mapping) => mapping.label !== 'All')
     .forEach((mapping) => {
-      categories[mapping.label] = [];
       for (const group in groups) {
         if (mapping.groupNames.includes(group)) {
+          if (!categories[mapping.label]) categories[mapping.label] = [];
           categories[mapping.label].push(group);
         }
       }
@@ -113,11 +313,12 @@ const categorizeGroups = (groups, mappings) => {
 
   // add any leftover lower-tier group counts to the 'Other' category
   const groupsCategorized = Object.values(categories).reduce((a, b) => {
-    a.push([...b]);
+    a.push(...b);
     return a;
   }, []);
   for (const group in groups) {
     if (!groupsCategorized.includes(group)) {
+      if (!categories['Other']) categories['Other'] = [];
       categories['Other'].push(group);
     }
   }
@@ -323,11 +524,11 @@ const sectionRow = (label, value, style, dataStatus) => (
   </div>
 );
 
-const sectionRowBlock = (label, value, dataStatus) => {
+const sectionRowBlock = (label, value, dataStatus = 'success') => {
   return sectionRow(label, value, boxSectionStyles, dataStatus);
 };
 
-const sectionRowInline = (label, value, dataStatus) => {
+const sectionRowInline = (label, value, dataStatus = 'success') => {
   return sectionRow(label, value, inlineBoxSectionStyles, dataStatus);
 };
 
@@ -337,8 +538,18 @@ const sectionRowInline = (label, value, dataStatus) => {
 
 function DownloadSection({ station }) {
   const [range, setRange] = useState('1');
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState(
+    Object.keys(station.groupCategories),
+  );
   const [allChecked, setAllChecked] = useState(1);
+
+  const services = useServicesContext();
+
+  const downloadUrl =
+    `${services.data.waterQualityPortal.resultSearch}zip=no&siteid=` +
+    `${station.siteId}&providers=${station.stationProviderName}` +
+    `${buildGroupFilter(station, categories)}` +
+    `${buildDateFilter(range)}`;
 
   const toggleCategory = (category) => {
     const newCategories = categories.includes(category)
@@ -346,9 +557,9 @@ function DownloadSection({ station }) {
       : [...categories, category];
     setCategories(newCategories);
 
-    if (categories.length === Object.keys(station.groupCategories).length) {
+    if (newCategories.length === Object.keys(station.groupCategories).length) {
       setAllChecked(1);
-    } else if (categories.length === 0) {
+    } else if (newCategories.length === 0) {
       setAllChecked(0);
     } else {
       setAllChecked(2);
@@ -361,7 +572,7 @@ function DownloadSection({ station }) {
     setAllChecked(allChecked === 0 ? 1 : 0);
   };
 
-  const ranges = [1, 5, 10];
+  const ranges = ['1', '5', '10', 'all'];
   const radios = ranges.map((n) => (
     <p key={n}>
       <input
@@ -369,11 +580,11 @@ function DownloadSection({ station }) {
         value={n}
         type="radio"
         name="date-range"
-        checked={range === n.toString()}
+        checked={range === n}
         onChange={(e) => setRange(e.target.value)}
       />
       <label htmlFor={`${n}-year`}>
-        {n === 1 ? `${n} Year` : `${n} Years`}
+        {n === '1' ? `${n} Year` : n === 'all' ? 'All Time' : `${n} Years`}
       </label>
     </p>
   ));
@@ -388,7 +599,7 @@ function DownloadSection({ station }) {
               type="checkbox"
               className="checkbox"
               checked={categories.includes(category) || allChecked === 1}
-              onChange={toggleCategory}
+              onChange={() => toggleCategory(category)}
             />
           </td>
           <td>{category}</td>
@@ -419,13 +630,26 @@ function DownloadSection({ station }) {
     </tr>
   );
 
+  const downloadLinks = sectionRowInline(
+    'Data Download Format',
+    <>
+      <a css={downloadLinksStyles} href={`${downloadUrl}&mimeType=xlsx`}>
+        <i css={iconStyles} className="fas fa-file-excel" aria-hidden="true" />
+        xls
+      </a>
+      <a css={downloadLinksStyles} href={`${downloadUrl}&mimeType=csv`}>
+        <i css={iconStyles} className="fas fa-file-csv" aria-hidden="true" />
+        csv
+      </a>
+    </>,
+  );
+
   return (
     <div css={boxStyles}>
       <h2 css={boxHeadingStyles}>Download Station Data</h2>
-      {
-        /*Object.keys(station.groupCounts).length === 0 ? (
+      {Object.keys(station.groupCounts).length === 0 ? (
         <p>No data available for this monitoring location.</p>
-      ) : (*/
+      ) : (
         <>
           <div css={modifiedBoxSectionStyles}>
             <fieldset>{radios}</fieldset>
@@ -434,10 +658,9 @@ function DownloadSection({ station }) {
               <tbody>{checkboxRows}</tbody>
             </table>
           </div>
-          <div id="download-links"></div>
+          <div id="download-links">{downloadLinks}</div>
         </>
-        /*)*/
-      }
+      )}
     </div>
   );
 }
@@ -633,188 +856,5 @@ function StationMapContainer({ ...props }) {
     </MapErrorBoundary>
   );
 }
-
-/*
- * Styles
- */
-
-const checkboxCellStyles = css`
-  padding-right: 0 !important;
-  text-align: center;
-`;
-
-const checkboxStyles = css`
-  appearance: checkbox;
-  transform: scale(1.2);
-`;
-
-const containerStyles = css`
-  ${splitLayoutContainerStyles};
-
-  table {
-    margin-top: 0.75rem;
-    margin-bottom: 0.75rem;
-  }
-
-  th,
-  td {
-    font-size: 0.875rem;
-    line-height: 1.25;
-
-    &:last-child {
-      text-align: right;
-    }
-  }
-
-  hr {
-    margin-top: 0.125rem;
-    margin-bottom: 0.875rem;
-    border-top-color: #aebac3;
-  }
-`;
-
-const downloadLinksStyles = css`
-  span {
-    display: inline-block;
-    width: 100%;
-    font-weight: bold;
-
-    @media (min-width: 360px) {
-      margin-right: 0.5em;
-      width: auto;
-    }
-  }
-
-  a {
-    margin-right: 1em;
-  }
-`;
-
-const iconStyles = css`
-  margin-right: 5px;
-`;
-
-const infoBoxHeadingStyles = css`
-  ${boxHeadingStyles};
-  display: flex;
-  align-items: center;
-
-  small {
-    display: block;
-    margin-top: 0.125rem;
-  }
-
-  /* loading icon */
-  svg {
-    margin: 0 -0.375rem 0 -0.875rem;
-    height: 1.5rem;
-  }
-`;
-
-const inlineBoxSectionStyles = css`
-  ${boxSectionStyles};
-
-  /* loading icon */
-  svg {
-    display: inline-block;
-    margin: -0.5rem;
-    height: 1.25rem;
-  }
-
-  h3,
-  p {
-    display: inline-block;
-    margin-top: 0;
-    margin-bottom: 0;
-    line-height: 1.25;
-  }
-`;
-
-const mapContainerStyles = css`
-  display: flex;
-  height: 100%;
-  position: relative;
-`;
-
-const modifiedBoxSectionStyles = css`
-  ${boxSectionStyles}
-
-  display: flex;
-  fieldset {
-    border: none;
-    font-size: 1rem;
-    input[type='radio'] {
-      appearance: none;
-      margin: 0;
-    }
-    input:checked + label:before {
-      background-color: ${colors.steel()};
-      box-shadow: 0 0 0 1px ${colors.steel()}, inset 0 0 0 1px ${colors.white()};
-    }
-    label {
-      cursor: pointer;
-      font-size: 0.875em;
-      padding-left: 1em;
-      text-indent: -1em;
-      &:before {
-        background: ${colors.white()};
-        border-radius: 100%;
-        box-shadow: 0 0 0 1px ${colors.steel()};
-        content: ' ';
-        display: inline-block;
-        height: 1em;
-        left: 2px;
-        line-height: 1.25em;
-        margin-right: 1em;
-        position: relative;
-        text-indent: 0;
-        vertical-align: middle;
-        white-space: pre;
-        width: 1em;
-      }
-    }
-    p {
-      font-size: 1em;
-      margin-top: 1em;
-      &:first-child {
-        margin-top: 0;
-      }
-    }
-  }
-`;
-
-const modifiedErrorBoxStyles = css`
-  ${errorBoxStyles};
-  text-align: center;
-`;
-
-const modifiedTableStyles = css`
-  ${tableStyles}
-
-  thead th {
-    vertical-align: top;
-  }
-
-  th,
-  td {
-    overflow-wrap: anywhere;
-    hyphens: auto;
-
-    :first-of-type {
-      padding-left: 0;
-    }
-
-    :last-of-type {
-      padding-right: 0;
-      text-align: right;
-    }
-  }
-`;
-
-const pageErrorBoxStyles = css`
-  ${errorBoxStyles};
-  margin: 1rem;
-  text-align: center;
-`;
 
 export default MonitoringStationContainer;
