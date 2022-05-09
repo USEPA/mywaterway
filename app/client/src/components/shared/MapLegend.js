@@ -250,22 +250,10 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   );
 
   // jsx
-  const monitoringLocationsLegend = (
-    <li>
-      <div css={legendItemStyles}>
-        <div css={imageContainerStyles}>
-          {squareIcon({ color: colors.lightPurple() })}
-        </div>
-        <span css={labelStyles}>Sample Location</span>
-      </div>
-    </li>
-  );
-
-  // jsx
   const usgsStreamgagesLegend = (
     <li>
       <div css={legendItemStyles}>
-        <div css={imageContainerStyles}>{circleIcon({ color: '#fffe00' })}</div>
+        <div css={imageContainerStyles}>{squareIcon({ color: '#fffe00' })}</div>
         <span css={labelStyles}>Current Water Conditions</span>
       </div>
     </li>
@@ -760,7 +748,6 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     return isRestoreProtect ? actionsWaterbodiesLegend : waterbodyLegend;
   }
   if (layer.id === 'issuesLayer') return issuesLegend;
-  if (layer.id === 'monitoringLocationsLayer') return monitoringLocationsLegend;
   if (layer.id === 'usgsStreamgagesLayer') return usgsStreamgagesLegend;
   if (layer.id === 'dischargersLayer') return dischargersLegend;
   if (layer.id === 'nonprofitsLayer') return nonprofitsLegend;
