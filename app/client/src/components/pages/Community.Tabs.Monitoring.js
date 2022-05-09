@@ -56,6 +56,11 @@ const containerStyles = css`
   }
 `;
 
+const modifiedDisclaimerStyles = css`
+  ${disclaimerStyles};
+  padding-bottom: 0;
+`;
+
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles};
   text-align: center;
@@ -78,19 +83,18 @@ const modifiedToggleTableStyles = css`
     }
     .download-links {
       border-bottom: 1px solid #dee2e6;
-      span {
-        padding-right: 1.2rem;
-        &:last-of-type {
-          padding-right: 0;
-        }
-      }
       th {
         border-top: none;
         div {
           display: inline-flex;
           gap: 3px;
-          width: 100%;
-          justify-content: flex-end;
+          width: 50%;
+          &:first-of-type {
+            justify-content: flex-start;
+          }
+          &:last-of-type {
+            justify-content: flex-end;
+          }
         }
       }
     }
@@ -350,6 +354,24 @@ function Monitoring() {
               <p>
                 View available monitoring sample locations in your local
                 watershed or view by category.
+              </p>
+              <p>
+                <a
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  href="https://www.waterqualitydata.us/portal_userguide/"
+                >
+                  <i
+                    css={iconStyles}
+                    className="fas fa-book-open"
+                    aria-hidden="true"
+                  />
+                  Water Quality Portal User Guide
+                </a>
+                &nbsp;&nbsp;
+                <small css={modifiedDisclaimerStyles}>
+                  (opens new browser tab)
+                </small>
               </p>
 
               <MonitoringTab
@@ -623,9 +645,12 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
   const [charGroupFilters, setCharGroupFilters] = useState('');
 
-  const [totalMeasurements, setTotalMeasurements] = useState(0);
+  const [totalDisplayedLocations, setTotalDisplayedLocations] = useState(0);
 
-  const [totalSamples, setTotalSamples] = useState(0);
+  const [totalDisplayedMeasurements, setTotalDisplayedMeasurements] =
+    useState(0);
+
+  const [totalDisplayedSamples, setTotalDisplayedSamples] = useState(0);
 
   const [sortBy, setSortBy] = useState('locationName');
 
@@ -706,6 +731,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   const toggleSwitch = useCallback(
     (groupLabel: string, allToggledParam?: boolean = false) => {
       const toggleGroups = monitoringGroups;
+      let newTotalLocations = 0;
       let newTotalMeasurements = 0;
       let newTotalSamples = 0;
 
@@ -719,6 +745,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
           toggleGroups['All'].stations.forEach((station) => {
             newTotalMeasurements += parseInt(station.stationTotalMeasurements);
             newTotalSamples += parseInt(station.stationTotalSamples);
+            newTotalLocations++;
           });
 
           const activeGroups = characteristicGroupMappings.map(
@@ -734,9 +761,6 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
           for (let key in toggleGroups) {
             if (key !== 'All') toggleGroups[key].toggled = false;
           }
-          // update the watershed total measurements and samples counts
-          newTotalMeasurements = 0;
-          newTotalSamples = 0;
 
           monitoringLocationsLayer.visible = false;
 
@@ -769,12 +793,16 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
               hasData = true;
             }
           });
-          if (hasData) newTotalSamples += parseInt(station.stationTotalSamples);
+          if (hasData) {
+            newTotalSamples += parseInt(station.stationTotalSamples);
+            newTotalLocations++;
+          }
         });
       }
 
-      setTotalMeasurements(newTotalMeasurements);
-      setTotalSamples(newTotalSamples);
+      setTotalDisplayedLocations(newTotalLocations);
+      setTotalDisplayedMeasurements(newTotalMeasurements);
+      setTotalDisplayedSamples(newTotalSamples);
       setMonitoringGroups(toggleGroups);
 
       drawMap(toggleGroups);
@@ -934,15 +962,20 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   useEffect(() => {
     // update total measurements and samples counts
     // after `monitoringGroups` is initialized
-    let totalMeasurements = 0;
-    let totalSamples = 0;
+    let totalDisplayedLocations = 0;
+    let totalDisplayedMeasurements = 0;
+    let totalDisplayedSamples = 0;
     if (monitoringGroups) {
       monitoringGroups['All'].stations.forEach((station) => {
-        totalMeasurements += parseInt(station.stationTotalMeasurements);
-        totalSamples += parseInt(station.stationTotalSamples);
+        totalDisplayedLocations++;
+        totalDisplayedMeasurements += parseInt(
+          station.stationTotalMeasurements,
+        );
+        totalDisplayedSamples += parseInt(station.stationTotalSamples);
       });
-      setTotalMeasurements(totalMeasurements);
-      setTotalSamples(totalSamples);
+      setTotalDisplayedLocations(totalDisplayedLocations);
+      setTotalDisplayedMeasurements(totalDisplayedMeasurements);
+      setTotalDisplayedSamples(totalDisplayedSamples);
     }
   }, [monitoringGroups]);
 
@@ -1059,13 +1092,34 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
               <tfoot>
                 <tr>
                   <th>Totals</th>
-                  <th></th>
-                  <th>{Number(totalSamples).toLocaleString()}</th>
-                  <th>{Number(totalMeasurements).toLocaleString()}</th>
+                  <th>{Number(totalDisplayedLocations).toLocaleString()}</th>
+                  <th>{Number(totalDisplayedSamples).toLocaleString()}</th>
+                  <th>{Number(totalDisplayedMeasurements).toLocaleString()}</th>
                 </tr>
                 <tr className="download-links">
                   <th colSpan="4">
                     <div>
+                      <a
+                        rel="noopener noreferrer"
+                        target="_blank"
+                        data-cy="portal"
+                        href={portalUrl}
+                      >
+                        <i
+                          css={iconStyles}
+                          className="fas fa-filter"
+                          aria-hidden="true"
+                        />
+                      </a>
+                      <span>
+                        Advanced Filtering &nbsp;
+                        <small css={modifiedDisclaimerStyles}>
+                          (opens new browser tab)
+                        </small>
+                      </span>
+                    </div>
+                    <div>
+                      <span>Download All &nbsp;</span>
                       <a href={`${downloadUrl}&mimeType=xlsx`}>
                         <i
                           css={iconStyles}
@@ -1080,45 +1134,11 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                           aria-hidden="true"
                         />
                       </a>
-                      <span>Download All</span>
-                      <a
-                        rel="noopener noreferrer"
-                        target="_blank"
-                        data-cy="portal"
-                        href={portalUrl}
-                      >
-                        <i
-                          css={iconStyles}
-                          className="fas fa-filter"
-                          aria-hidden="true"
-                        />
-                      </a>
-                      <span>
-                        Filter
-                        <small css={disclaimerStyles}>(opens new tab)</small>
-                      </span>
                     </div>
                   </th>
                 </tr>
               </tfoot>
             </table>
-
-            {/*
-              <a
-                rel="noopener noreferrer"
-                target="_blank"
-                href="https://www.waterqualitydata.us/portal_userguide/"
-              >
-                <i
-                  css={iconStyles}
-                  className="fas fa-book-open"
-                  aria-hidden="true"
-                />
-                Water Quality Portal User Guide
-              </a>
-              &nbsp;&nbsp;
-              <small css={disclaimerStyles}>(opens new browser tab)</small>
-            */}
 
             <AccordionList
               title={
