@@ -8,47 +8,6 @@ import { usePreviousUrl } from 'utils/hooks';
 // styles
 import { fonts } from 'styles/index.js';
 
-function EducatorsContent() {
-  usePreviousUrl('educators');
-  const { data, status: dataStatus } = useEducatorMaterialsContext();
-
-  const links = data.links?.map((link, index) => (
-    <li key={index}>
-      {link.description}:
-      <br />
-      <a href={link.url}>{link.url}</a>
-    </li>
-  ));
-
-  return (
-    <div className="container" css={containerStyles}>
-      <h1>Educational Materials from How's My Waterway</h1>
-      <hr />
-      <section>
-        {dataStatus === 'fetching' ? (
-          <LoadingSpinner />
-        ) : dataStatus === 'failure' ? (
-          <div css={modifiedErrorBoxStyles}>{educatorContentError}</div>
-        ) : (
-          <ul>{links}</ul>
-        )}
-      </section>
-      <section css={promptStyles}>
-        <h2>
-          If you're an educator, we would like to know how you're using{' '}
-          <em>How's My Waterway</em>.
-        </h2>
-        <h3>
-          Please contact us here:{' '}
-          <a href="https://www.epa.gov/waterdata/forms/contact-us-about-hows-my-waterway">
-            Contact Form
-          </a>
-        </h3>
-      </section>
-    </div>
-  );
-}
-
 const containerStyles = css`
   font-family: ${fonts.primary};
   padding: 1rem;
@@ -100,7 +59,51 @@ const promptStyles = css`
   h3 {
     font-size: 1em;
     line-height: 1.125;
+    a {
+      font-size: 1.125em;
+    }
   }
 `;
+
+function EducatorsContent() {
+  usePreviousUrl('educators');
+  const { data, status: dataStatus } = useEducatorMaterialsContext();
+
+  const links = data.links?.map((link, index) => (
+    <li key={index}>
+      {link.description}:
+      <br />
+      <a href={link.url}>{link.url}</a>
+    </li>
+  ));
+
+  return (
+    <div className="container" css={containerStyles}>
+      <h1>Educational Materials from How's My Waterway</h1>
+      <hr />
+      <section>
+        {dataStatus === 'fetching' ? (
+          <LoadingSpinner />
+        ) : dataStatus === 'failure' ? (
+          <div css={modifiedErrorBoxStyles}>{educatorContentError}</div>
+        ) : (
+          <ul>{links}</ul>
+        )}
+      </section>
+      <section css={promptStyles}>
+        <h2>
+          If you're an educator, we would like to know how you're using{' '}
+          <em>How's My Waterway</em>.
+        </h2>
+        <h3>
+          Please contact us here:{' '}
+          <a href="https://www.epa.gov/waterdata/forms/contact-us-about-hows-my-waterway">
+            Contact Form
+          </a>
+        </h3>
+      </section>
+    </div>
+  );
+}
 
 export default EducatorsContent;
