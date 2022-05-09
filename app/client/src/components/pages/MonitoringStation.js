@@ -1,9 +1,12 @@
 // @flow
 
+import Graphic from '@arcgis/core/Graphic';
+import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import Viewpoint from '@arcgis/core/Viewpoint';
 import WindowSize from '@reach/window-size';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { css } from 'styled-components/macro';
 
 import {
@@ -34,7 +37,11 @@ import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { colors, tableStyles } from 'styles';
 import { fetchCheck } from 'utils/fetchUtils';
 import { useSharedLayers } from 'utils/hooks';
-import { plotStations } from 'utils/mapFunctions';
+import {
+  getPopupContent,
+  getPopupTitle,
+  plotStations,
+} from 'utils/mapFunctions';
 
 /*
  * Helpers
@@ -49,24 +56,25 @@ const fetchStationDetails = async (url, setData, setStatus) => {
   const feature = res.features[0];
   const stationDetails = {
     county: feature.properties.CountyName,
-    huc8: feature.properties.HUCEightDigitCode,
-    locationLongitude: feature.geometry.coordinates[0],
-    locationLatitude: feature.geometry.coordinates[1],
-    locationName: feature.properties.MonitoringLocationName,
-    locationType: feature.properties.MonitoringLocationTypeName,
-    orgId: feature.properties.OrganizationIdentifier,
-    orgName: feature.properties.OrganizationFormalName,
-    siteId: feature.properties.MonitoringLocationIdentifier,
-    provider: feature.properties.ProviderName,
-    state: feature.properties.StateName,
-    sampleTotal: feature.properties.activityCount,
-    measurementTotal: feature.properties.resultCount,
     groupCounts: feature.properties.characteristicGroupResultCount,
     groupCategories: categorizeGroups(
       feature.properties.characteristicGroupResultCount,
       characteristicGroupMappings,
     ),
-    uid:
+    huc8: feature.properties.HUCEightDigitCode,
+    locationLongitude: feature.geometry.coordinates[0],
+    locationLatitude: feature.geometry.coordinates[1],
+    locationName: feature.properties.MonitoringLocationName,
+    locationType: feature.properties.MonitoringLocationTypeName,
+    monitoringType: 'Sample Location',
+    orgId: feature.properties.OrganizationIdentifier,
+    orgName: feature.properties.OrganizationFormalName,
+    siteId: feature.properties.MonitoringLocationIdentifier,
+    stationProviderName: feature.properties.ProviderName,
+    state: feature.properties.StateName,
+    stationTotalSamples: feature.properties.activityCount,
+    stationTotalMeasurements: feature.properties.resultCount,
+    uniqueId:
       `${feature.properties.MonitoringLocationIdentifier}/` +
       `${feature.properties.ProviderName}/` +
       `${feature.properties.OrganizationIdentifier}`,
@@ -75,11 +83,12 @@ const fetchStationDetails = async (url, setData, setStatus) => {
   setStatus('success');
 };
 
-const drawStation = (station, layer, services) => {
+const drawStation = async (station, layer, services) => {
   if (isEmpty(station)) return false;
   if (services.status === 'fetching') return false;
-  plotStations([station], layer, services);
-  if (layer.graphics.length) return true;
+  plotStations([station], layer);
+  const featureSet = await layer.queryFeatures();
+  return featureSet.features.length ? true : false;
 };
 
 const isEmpty = (obj) => {
@@ -115,6 +124,23 @@ const categorizeGroups = (groups, mappings) => {
   return categories;
 };
 
+const getZoomParams = async (layer) => {
+  const featureSet = await layer.queryFeatures();
+  const graphics = featureSet.features;
+  if (
+    graphics.length === 1 &&
+    (graphics[0].geometry.type === 'point' ||
+      graphics[0].geometry.type === 'multipoint')
+  ) {
+    // handle zooming to a single point graphic
+    const zoomParams = {
+      target: graphics[0],
+      zoom: 16, // set zoom 1 higher since it gets decremented later
+    };
+    return zoomParams;
+  }
+};
+
 const useMap = (station) => {
   const [layersInitialized, setLayersInitialized] = useState(false);
   const [doneDrawing, setDoneDrawing] = useState(false);
@@ -138,13 +164,72 @@ const useMap = (station) => {
     if (!getSharedLayers || layersInitialized) return;
 
     if (!monitoringLocationsLayer) {
-      let newMonitoringLocationsLayer = new GraphicsLayer({
+      const newMonitoringLocationsLayer = new FeatureLayer({
         id: 'monitoringLocationsLayer',
         title: 'Sample Locations',
-        listMode: 'show',
-        visible: true,
+        listMode: 'hide',
         legendEnabled: false,
+        fields: [
+          { name: 'OBJECTID', type: 'oid' },
+          { name: 'monitoringType', type: 'string' },
+          { name: 'siteId', type: 'string' },
+          { name: 'orgId', type: 'string' },
+          { name: 'orgName', type: 'string' },
+          { name: 'locationLongitude', type: 'double' },
+          { name: 'locationLatitude', type: 'double' },
+          { name: 'locationName', type: 'string' },
+          { name: 'locationType', type: 'string' },
+          { name: 'locationUrl', type: 'string' },
+          { name: 'stationProviderName', type: 'string' },
+          { name: 'stationTotalSamples', type: 'string' },
+          { name: 'stationTotalMeasurements', type: 'string' },
+          { name: 'stationTotalMeasurementsPercentile', type: 'double' },
+          { name: 'stationTotalsByCategory', type: 'string' },
+          { name: 'uniqueId', type: 'string' },
+        ],
+        outFields: ['*'],
+        source: [
+          new Graphic({
+            geometry: {
+              type: 'point',
+              longitude: station.locationLongitude,
+              latitude: station.locationLatitude,
+            },
+            attributes: { ObjectID: 1 },
+          }),
+        ],
+        renderer: {
+          type: 'simple',
+          symbol: {
+            type: 'simple-marker',
+            style: 'square',
+            color: colors.lightPurple(),
+          },
+          visualVariables: [
+            {
+              type: 'size',
+              field: 'stationTotalMeasurementsPercentile',
+              minDataValue: 0,
+              maxDataValue: 1,
+              minSize: 8,
+              maxSize: 20,
+            },
+          ],
+        },
+        popupTemplate: {
+          outFields: ['*'],
+          title: (feature) => getPopupTitle(feature.graphic.attributes),
+          content: (feature) =>
+            getPopupContent({ feature: feature.graphic, services }),
+        },
       });
+      //let newMonitoringLocationsLayer = new GraphicsLayer({
+      //  id: 'monitoringLocationsLayer',
+      //  title: 'Sample Locations',
+      //  listMode: 'show',
+      //  visible: true,
+      //  legendEnabled: false,
+      //});
       setMonitoringLocationsLayer(newMonitoringLocationsLayer);
       setLayers([...getSharedLayers(), newMonitoringLocationsLayer]);
       setVisibleLayers({ monitoringLocationsLayer: true });
@@ -156,16 +241,19 @@ const useMap = (station) => {
     layers,
     layersInitialized,
     monitoringLocationsLayer,
+    services,
     setLayers,
     setMonitoringLocationsLayer,
     setVisibleLayers,
+    station,
   ]);
 
   // Draw the station on the map
   useEffect(() => {
     if (!layersInitialized || doneDrawing) return;
-    const result = drawStation(station, monitoringLocationsLayer, services);
-    setDoneDrawing(result);
+    drawStation(station, monitoringLocationsLayer, services).then((result) => {
+      setDoneDrawing(result);
+    });
   }, [
     doneDrawing,
     layersInitialized,
@@ -179,27 +267,15 @@ const useMap = (station) => {
     if (!doneDrawing || !mapView || !monitoringLocationsLayer || !homeWidget)
       return;
 
-    let zoomParams = monitoringLocationsLayer.graphics;
-    if (
-      monitoringLocationsLayer.graphics.length === 1 &&
-      (monitoringLocationsLayer.graphics.items[0].geometry.type === 'point' ||
-        monitoringLocationsLayer.graphics.items[0].geometry.type ===
-          'multipoint')
-    ) {
-      // handle zooming to a single point graphic
-      zoomParams = {
-        target: monitoringLocationsLayer.graphics,
-        zoom: 16, // set zoom 1 higher since it gets decremented later
-      };
-    }
-
-    mapView.goTo(zoomParams).then(() => {
-      // set map zoom and home widget's viewpoint
-      mapView.zoom = mapView.zoom - 1;
-      homeWidget.viewpoint = new Viewpoint({
-        targetGeometry: mapView.extent,
+    getZoomParams(monitoringLocationsLayer).then((zoomParams) => {
+      mapView.goTo(zoomParams).then(() => {
+        // set map zoom and home widget's viewpoint
+        mapView.zoom = mapView.zoom - 1;
+        homeWidget.viewpoint = new Viewpoint({
+          targetGeometry: mapView.extent,
+        });
+        setMapLoading(false);
       });
-      setMapLoading(false);
     });
   }, [doneDrawing, mapView, monitoringLocationsLayer, homeWidget]);
 
@@ -394,7 +470,8 @@ function InformationSection({ siteId, station, stationStatus }) {
   );
 }
 
-function MonitoringStation({ fullscreen, orgId, siteId }) {
+function MonitoringStation({ fullscreen }) {
+  const { orgId, siteId } = useParams();
   const [station, stationStatus] = useStationDetails(orgId, siteId);
   const [mapWidth, setMapWidth] = useState(0);
   const widthRef = useCallback((node) => {
