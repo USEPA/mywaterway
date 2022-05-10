@@ -35,6 +35,7 @@ import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
+import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useOrganizationsContext,
@@ -95,6 +96,7 @@ type Props = {
 };
 
 function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
+  const fetchedDataDispatch = useFetchedDataDispatch();
   const organizations = useOrganizationsContext();
   const services = useServicesContext();
 
@@ -1173,6 +1175,34 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [services, setUsgsDailyPrecipitation],
   );
 
+  const fetchUsgsDailyAverages = useCallback(
+    (huc12) => {
+      const url =
+        services.data.usgsDailyValues +
+        `?format=json` +
+        `&siteStatus=active` +
+        `&period=P7D` +
+        `&statCd=00003` + // statistics code: MEAN
+        `&variable=all` +
+        `&huc=${huc12.substring(0, 8)}`;
+
+      fetchedDataDispatch({ type: 'USGS_DAILY_AVERAGES/FETCH_REQUEST' });
+
+      fetchCheck(url)
+        .then((res) => {
+          fetchedDataDispatch({
+            type: 'USGS_DAILY_AVERAGES/FETCH_SUCCESS',
+            payload: res,
+          });
+        })
+        .catch((err) => {
+          console.error(err);
+          fetchedDataDispatch({ type: 'USGS_DAILY_AVERAGES/FETCH_FAILURE' });
+        });
+    },
+    [services, fetchedDataDispatch],
+  );
+
   const queryPermittedDischargersService = useCallback(
     (huc12Param) => {
       fetchCheck(services.data.echoNPDES.metadata)
@@ -1561,19 +1591,21 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       if (response.features.length > 0) {
         try {
-          let huc12Result = response.features[0].attributes.huc12;
-          setHuc12(huc12Result);
+          const { huc12 } = response.features[0].attributes;
+
+          setHuc12(huc12);
           processBoundariesData(response);
-          queryMonitoringStationService(huc12Result);
-          queryUsgsStreamgageService(huc12Result);
-          queryUsgsDailyValuesService(huc12Result);
-          queryPermittedDischargersService(huc12Result);
-          queryGrtsHuc12(huc12Result);
-          queryAttainsPlans(huc12Result);
+          queryMonitoringStationService(huc12);
+          queryUsgsStreamgageService(huc12);
+          queryUsgsDailyValuesService(huc12);
+          fetchUsgsDailyAverages(huc12);
+          queryPermittedDischargersService(huc12);
+          queryGrtsHuc12(huc12);
+          queryAttainsPlans(huc12);
 
           // create canonical link and JSON LD
-          updateCanonicalLink(huc12Result);
-          createJsonLD(huc12Result, response.features[0].attributes.name);
+          updateCanonicalLink(huc12);
+          createJsonLD(huc12, response.features[0].attributes.name);
         } catch (err) {
           console.error(err);
           setNoDataAvailable();
@@ -1593,6 +1625,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       queryMonitoringStationService,
       queryUsgsStreamgageService,
       queryUsgsDailyValuesService,
+      fetchUsgsDailyAverages,
       queryPermittedDischargersService,
       setHuc12,
       setNoDataAvailable,
@@ -1897,6 +1930,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   useEffect(() => {
     if (layers.length === 0 || searchText === lastSearchText) return;
 
+    fetchedDataDispatch({ type: 'RESET_FETCHED_DATA' });
     resetData();
     setMapLoading(true);
     setHucResponse(null);
@@ -1904,6 +1938,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setLastSearchText(searchText);
     queryGeocodeServer(searchText);
   }, [
+    fetchedDataDispatch,
     searchText,
     lastSearchText,
     layers,

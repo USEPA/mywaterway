@@ -20,6 +20,7 @@ import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
+import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { MapHighlightContext } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -60,6 +61,8 @@ function StateMap({
   numberOfRecords,
   children,
 }: Props) {
+  const fetchedDataDispatch = useFetchedDataDispatch();
+
   const services = useServicesContext();
 
   const { selectedGraphic } = useContext(MapHighlightContext);
@@ -191,9 +194,10 @@ function StateMap({
   // Function for resetting the LocationSearch context when the map is removed
   useEffect(() => {
     return function cleanup() {
+      fetchedDataDispatch({ type: 'RESET_FETCHED_DATA' });
       resetData();
     };
-  }, [resetData]);
+  }, [fetchedDataDispatch, resetData]);
 
   const [lastFilter, setLastFilter] = useState('');
 

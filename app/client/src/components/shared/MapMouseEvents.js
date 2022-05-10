@@ -5,6 +5,7 @@ import QueryTask from '@arcgis/core/tasks/QueryTask';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // contexts
+import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { MapHighlightContext } from 'contexts/MapHighlight';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -21,6 +22,8 @@ type Props = {
 };
 
 function MapMouseEvents({ map, view }: Props) {
+  const fetchedDataDispatch = useFetchedDataDispatch();
+
   const services = useServicesContext();
   const {
     setHighlightedGraphic,
@@ -93,7 +96,10 @@ function MapMouseEvents({ map, view }: Props) {
                   view.popup.open({
                     title: 'Change to this location?',
                     content: getPopupContent({
-                      resetData,
+                      resetData: () => {
+                        fetchedDataDispatch({ type: 'RESET_FETCHED_DATA' });
+                        resetData();
+                      },
                       feature: {
                         attributes: {
                           changelocationpopup: 'changelocationpopup',
@@ -144,6 +150,7 @@ function MapMouseEvents({ map, view }: Props) {
         .catch((err) => console.error(err));
     },
     [
+      fetchedDataDispatch,
       resetData,
       getHucBoundaries,
       setSelectedGraphic,
