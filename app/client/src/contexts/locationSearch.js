@@ -39,43 +39,6 @@ type MonitoringLocationsData = {
   type: 'FeatureCollection',
 };
 
-type UsgsStreamgageData = {
-  value: {
-    name: string,
-    properties: {
-      active: boolean,
-      agency: string,
-      agencyCode: string,
-      hydrologicUnit: string,
-      monitoringLocationName: string,
-      monitoringLocationNumber: string,
-      monitoringLocationType: string,
-      monitoringLocationUrl: string,
-    },
-    Locations: {
-      location: {
-        coordinates: [number, number],
-        type: 'Point',
-      },
-    }[],
-    Datastreams: {
-      description: string,
-      properties: {
-        ParameterCode: string,
-        WebDescription: string,
-      },
-      unitOfMeasurement: {
-        name: string,
-        symbol: string,
-      },
-      Observations: {
-        phenomenonTime: string, // ISO format datetime
-        result: string, // number
-      }[],
-    }[],
-  }[],
-};
-
 type PermittedDischargersData = {
   Results: {
     BadSystemIDs: null,
@@ -191,7 +154,6 @@ type State = {
   address: string,
   assessmentUnitId: string,
   monitoringLocations: { status: Status, data: MonitoringLocationsData },
-  usgsStreamgages: { status: Status, data: UsgsStreamgageData },
   permittedDischargers: { status: Status, data: PermittedDischargersData },
   grts: Object,
   attainsPlans: Object,
@@ -273,7 +235,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     protectedAreasData: { status: 'fetching', data: [], fields: [] },
     assessmentUnitId: '',
     monitoringLocations: { status: 'fetching', data: {} },
-    usgsStreamgages: { status: 'fetching', data: {} },
     permittedDischargers: { status: 'fetching', data: {} },
     grts: { status: 'fetching', data: [] },
     attainsPlans: { status: 'fetching', data: {} },
@@ -345,12 +306,6 @@ export class LocationSearchProvider extends Component<Props, State> {
       data: MonitoringLocationsData,
     }) => {
       this.setState({ monitoringLocations });
-    },
-    setUsgsStreamgages: (usgsStreamgages: {
-      status: Status,
-      data: UsgsStreamgageData,
-    }) => {
-      this.setState({ usgsStreamgages });
     },
     setPermittedDischargers: (permittedDischargers: {
       status: Status,
@@ -750,7 +705,6 @@ export class LocationSearchProvider extends Component<Props, State> {
         hucBoundaries: '',
         monitoringGroups: null,
         monitoringLocations: { status: 'fetching', data: {} },
-        usgsStreamgages: { status: 'fetching', data: {} },
         permittedDischargers: { status: 'fetching', data: {} },
         nonprofits: { status: 'fetching', data: [] },
         grts: { status: 'fetching', data: [] },
@@ -787,7 +741,6 @@ export class LocationSearchProvider extends Component<Props, State> {
           waterbodyCountMismatch: null,
           countyBoundaries: '',
           monitoringLocations: { status: 'success', data: {} },
-          usgsStreamgages: { status: 'success', data: {} },
           permittedDischargers: { status: 'success', data: {} },
           nonprofits: { status: 'success', data: [] },
           grts: { status: 'success', data: [] },

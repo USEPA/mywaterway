@@ -138,7 +138,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setAtHucBoundaries,
     mapView,
     setMonitoringLocations,
-    setUsgsStreamgages,
     // setNonprofits,
     setPermittedDischargers,
     setWaterbodyLayer,
@@ -1114,8 +1113,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [setMonitoringLocations, services],
   );
 
-  const queryUsgsStreamgageService = useCallback(
-    (huc12Param) => {
+  const fetchUsgsStreamgages = useCallback(
+    (huc12) => {
       const url =
         `${services.data.usgsSensorThingsAPI}?` +
         /**/ `$select=name,` +
@@ -1142,18 +1141,23 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         /*        */ `$orderBy=phenomenonTime desc` +
         /*      */ `)` +
         /*  */ `)&` +
-        /**/ `$filter=properties/hydrologicUnit eq '${huc12Param}'`;
+        /**/ `$filter=properties/hydrologicUnit eq '${huc12}'`;
+
+      fetchedDataDispatch({ type: 'USGS_STREAMGAGES/FETCH_REQUEST' });
 
       fetchCheck(url)
         .then((res) => {
-          setUsgsStreamgages({ status: 'success', data: res });
+          fetchedDataDispatch({
+            type: 'USGS_STREAMGAGES/FETCH_SUCCESS',
+            payload: res,
+          });
         })
         .catch((err) => {
           console.error(err);
-          setUsgsStreamgages({ status: 'failure', data: {} });
+          fetchedDataDispatch({ type: 'USGS_STREAMGAGES/FETCH_FAILURE' });
         });
     },
-    [services, setUsgsStreamgages],
+    [services, fetchedDataDispatch],
   );
 
   const fetchUsgsPrecipitation = useCallback(
@@ -1604,7 +1608,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           setHuc12(huc12);
           processBoundariesData(response);
           queryMonitoringStationService(huc12);
-          queryUsgsStreamgageService(huc12);
+          fetchUsgsStreamgages(huc12);
           fetchUsgsPrecipitation(huc12);
           fetchUsgsDailyAverages(huc12);
           queryPermittedDischargersService(huc12);
@@ -1631,7 +1635,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       queryAttainsPlans,
       queryGrtsHuc12,
       queryMonitoringStationService,
-      queryUsgsStreamgageService,
+      fetchUsgsStreamgages,
       fetchUsgsPrecipitation,
       fetchUsgsDailyAverages,
       queryPermittedDischargersService,

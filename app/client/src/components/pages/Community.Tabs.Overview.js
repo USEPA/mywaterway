@@ -88,10 +88,11 @@ const toggleStyles = css`
 `;
 
 function Overview() {
+  const { usgsStreamgages } = useFetchedDataState();
+
   const {
     cipSummary,
     monitoringLocations,
-    usgsStreamgages,
     permittedDischargers,
     waterbodyLayer,
     monitoringLocationsLayer,
@@ -299,7 +300,8 @@ function Overview() {
           {!monitoringLocationsLayer ||
           !usgsStreamgagesLayer ||
           monitoringLocations.status === 'fetching' ||
-          usgsStreamgages.status === 'fetching' ? (
+          usgsStreamgages.status === 'idle' ||
+          usgsStreamgages.status === 'pending' ? (
             <LoadingSpinner />
           ) : (
             <>
@@ -451,11 +453,10 @@ function MonitoringAndSensorsTab({
   setUsgsStreamgagesDisplayed,
   updateVisibleLayers,
 }) {
-  const { usgsPrecipitation } = useFetchedDataState();
+  const { usgsStreamgages, usgsPrecipitation } = useFetchedDataState();
 
   const {
     monitoringLocations,
-    usgsStreamgages,
     monitoringLocationsLayer,
     usgsStreamgagesLayer,
     watershed,
@@ -482,7 +483,7 @@ function MonitoringAndSensorsTab({
     setMonitoringAndSensorsDisplayed,
   ]);
 
-  const [usgsStreamgagesPlotted, setUsgsGtreamgagesPlotted] = useState(false);
+  const [usgsStreamgagesPlotted, setUsgsStreamgagesPlotted] = useState(false);
 
   const [normalizedUsgsStreamgages, setNormalizedUsgsStreamgages] = useState(
     [],
@@ -553,7 +554,7 @@ function MonitoringAndSensorsTab({
     setNormalizedUsgsStreamgages(gages);
 
     plotGages(gages, usgsStreamgagesLayer).then((result) => {
-      if (result.addFeatureResults.length > 0) setUsgsGtreamgagesPlotted(true);
+      if (result.addFeatureResults.length > 0) setUsgsStreamgagesPlotted(true);
     });
   }, [usgsStreamgages.data, usgsStreamgagesLayer]);
 
@@ -685,7 +686,8 @@ function MonitoringAndSensorsTab({
 
   if (
     monitoringLocations.status === 'fetching' ||
-    usgsStreamgages.status === 'fetching'
+    usgsStreamgages.status === 'idle' ||
+    usgsStreamgages.status === 'pending'
   ) {
     return <LoadingSpinner />;
   }

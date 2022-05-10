@@ -12,6 +12,43 @@ type Props = {
   children: ReactNode,
 };
 
+type UsgsStreamgagesData = {
+  value: {
+    name: string,
+    properties: {
+      active: boolean,
+      agency: string,
+      agencyCode: string,
+      hydrologicUnit: string,
+      monitoringLocationName: string,
+      monitoringLocationNumber: string,
+      monitoringLocationType: string,
+      monitoringLocationUrl: string,
+    },
+    Locations: {
+      location: {
+        coordinates: [number, number],
+        type: 'Point',
+      },
+    }[],
+    Datastreams: {
+      description: string,
+      properties: {
+        ParameterCode: string,
+        WebDescription: string,
+      },
+      unitOfMeasurement: {
+        name: string,
+        symbol: string,
+      },
+      Observations: {
+        phenomenonTime: string, // ISO format datetime
+        result: string, // number
+      }[],
+    }[],
+  }[],
+};
+
 type UsgsPrecipitationData = {
   declaredType: 'org.cuahsi.waterml.TimeSeriesResponseType',
   globalScope: true,
@@ -59,7 +96,14 @@ type UsgsPrecipitationData = {
   },
 };
 
+type UsgsDailyAveragesData = Object;
+
 type State = {
+  usgsStreamgages:
+    | { status: 'idle', data: {} }
+    | { status: 'pending', data: {} }
+    | { status: 'success', data: UsgsStreamgagesData }
+    | { status: 'failure', data: {} },
   usgsPrecipitation:
     | { status: 'idle', data: {} }
     | { status: 'pending', data: {} }
@@ -68,22 +112,28 @@ type State = {
   usgsDailyAverages:
     | { status: 'idle', data: {} }
     | { status: 'pending', data: {} }
-    | { status: 'success', data: Object }
+    | { status: 'success', data: UsgsDailyAveragesData }
     | { status: 'failure', data: {} },
 };
 
 export type Action =
   | { type: 'RESET_FETCHED_DATA' }
+  | { type: 'USGS_STREAMGAGES/FETCH_REQUEST' }
+  | {
+      type: 'USGS_STREAMGAGES/FETCH_SUCCESS',
+      payload: UsgsStreamgagesData,
+    }
+  | { type: 'USGS_STREAMGAGES/FETCH_FAILURE' }
   | { type: 'USGS_PRECIPITATION/FETCH_REQUEST' }
   | {
       type: 'USGS_PRECIPITATION/FETCH_SUCCESS',
-      payload: Object,
+      payload: UsgsPrecipitationData,
     }
   | { type: 'USGS_PRECIPITATION/FETCH_FAILURE' }
   | { type: 'USGS_DAILY_AVERAGES/FETCH_REQUEST' }
   | {
       type: 'USGS_DAILY_AVERAGES/FETCH_SUCCESS',
-      payload: Object,
+      payload: UsgsDailyAveragesData,
     }
   | { type: 'USGS_DAILY_AVERAGES/FETCH_FAILURE' };
 
@@ -91,6 +141,7 @@ const StateContext = createContext<State | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
 
 const initialState: State = {
+  usgsStreamgages: { status: 'idle', data: {} },
   usgsPrecipitation: { status: 'idle', data: {} },
   usgsDailyAverages: { status: 'idle', data: {} },
 };
@@ -99,6 +150,28 @@ function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'RESET_FETCHED_DATA': {
       return initialState;
+    }
+
+    case 'USGS_STREAMGAGES/FETCH_REQUEST': {
+      return {
+        ...state,
+        usgsStreamgages: { status: 'pending', data: {} },
+      };
+    }
+
+    case 'USGS_STREAMGAGES/FETCH_SUCCESS': {
+      const data = action.payload;
+      return {
+        ...state,
+        usgsStreamgages: { status: 'success', data },
+      };
+    }
+
+    case 'USGS_STREAMGAGES/FETCH_FAILURE': {
+      return {
+        ...state,
+        usgsStreamgages: { status: 'failure', data: {} },
+      };
     }
 
     case 'USGS_PRECIPITATION/FETCH_REQUEST': {

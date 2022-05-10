@@ -109,6 +109,8 @@ type MonitoringLocationGroups = {
 };
 
 function Monitoring() {
+  const { usgsStreamgages } = useFetchedDataState();
+
   // draw the waterbody on the map
   useWaterbodyOnMap();
 
@@ -120,7 +122,6 @@ function Monitoring() {
     monitoringLocationsLayer,
     visibleLayers,
     setVisibleLayers,
-    usgsStreamgages,
     usgsStreamgagesLayer,
   } = useContext(LocationSearchContext);
 
@@ -221,7 +222,8 @@ function Monitoring() {
     <div css={containerStyles}>
       <div css={keyMetricsStyles}>
         <div css={keyMetricStyles}>
-          {usgsStreamgages.status === 'fetching' ? (
+          {usgsStreamgages.status === 'idle' ||
+          usgsStreamgages.status === 'pending' ? (
             <LoadingSpinner />
           ) : (
             <>
@@ -330,13 +332,11 @@ function Monitoring() {
 }
 
 function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
-  const { usgsPrecipitation } = useFetchedDataState();
+  const { usgsStreamgages, usgsPrecipitation } = useFetchedDataState();
 
   const services = useServicesContext();
 
-  const { usgsStreamgages, usgsStreamgagesLayer, watershed } = useContext(
-    LocationSearchContext,
-  );
+  const { usgsStreamgagesLayer, watershed } = useContext(LocationSearchContext);
 
   const [usgsStreamgagesPlotted, setUsgsGtreamgagesPlotted] = useState(false);
 
@@ -478,7 +478,8 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
     return a[sensorsSortedBy].localeCompare(b[sensorsSortedBy]);
   });
 
-  if (usgsStreamgages.status === 'fetching') return <LoadingSpinner />;
+  if (usgsStreamgages.status === 'idle' || usgsStreamgages.status === 'pending')
+    return <LoadingSpinner />;
 
   if (usgsStreamgages.status === 'failure') {
     return (
