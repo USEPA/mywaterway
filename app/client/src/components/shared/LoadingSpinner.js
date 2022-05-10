@@ -64,10 +64,7 @@ const circleStyles = css`
     ${color} 5s ease-in-out infinite;
 `;
 
-// --- components ---
-type Props = {};
-
-function LoadingSpinner({ ...props }: Props) {
+function LoadingSpinner() {
   return (
     <svg
       css={svgStyles}
@@ -76,7 +73,6 @@ function LoadingSpinner({ ...props }: Props) {
       height="50"
       viewBox="0 0 50 50"
       aria-hidden="true"
-      {...props}
     >
       <circle css={circleStyles} cx="25" cy="25" r="20" />
     </svg>

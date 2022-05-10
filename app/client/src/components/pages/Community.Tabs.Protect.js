@@ -1099,8 +1099,8 @@ function Protect() {
                                       <td>
                                         {convertDomainCode(
                                           fields,
-                                          'Access',
-                                          attributes.Access,
+                                          'Pub_Access',
+                                          attributes.Pub_Access,
                                         )}
                                       </td>
                                     </tr>
@@ -1594,10 +1594,10 @@ function FeatureItem({ feature, title, children }: FeatureItemProps) {
   );
 }
 
-export default function ProtectContainer({ ...props }: Props) {
+export default function ProtectContainer() {
   return (
     <TabErrorBoundary tabName="Protect">
-      <Protect {...props} />
+      <Protect />
     </TabErrorBoundary>
   );
 }

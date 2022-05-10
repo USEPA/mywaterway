@@ -20,6 +20,7 @@ import { tabsStyles } from 'components/shared/ContentTabs';
 // contexts
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
+import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
 import { summarizeAssessments } from 'utils/utils';
@@ -123,10 +124,15 @@ function groupWithdrawersBySource(systems) {
 }
 
 // uses passed item's fields and, returns JSX for rendering an AccordionItem
-function createAccordionItem(item: Object, isWithdrawer: boolean) {
+function createAccordionItem(
+  services: Object,
+  item: Object,
+  isWithdrawer: boolean,
+) {
   const url =
-    `https://ofmpub.epa.gov/apex/sfdw/f?p=SDWIS_FED_REPORTS_PUBLIC:PWS_SEARCH:::::PWSID:` +
-    `${item.pwsid}`;
+    services.data.sfdw +
+    'f?p=SDWIS_FED_REPORTS_PUBLIC:PWS_SEARCH:::::PWSID:' +
+    item.pwsid;
   return (
     <AccordionItem
       key={
@@ -211,6 +217,7 @@ function createAccordionItem(item: Object, isWithdrawer: boolean) {
 }
 
 function DrinkingWater() {
+  const services = useServicesContext();
   const { infoToggleChecked } = useContext(CommunityTabsContext);
 
   const {
@@ -553,7 +560,7 @@ function DrinkingWater() {
                     Information about public water systems can be found online
                     at{' '}
                     <a
-                      href="https://ofmpub.epa.gov/apex/sfdw/f?p=108:200::::::"
+                      href={`${services.data.sfdw}f?p=108:200::::::`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -651,7 +658,7 @@ function DrinkingWater() {
                             providers,
                             providersSortBy,
                             false,
-                          ).map((item) => createAccordionItem(item))}
+                          ).map((item) => createAccordionItem(services, item))}
                         </AccordionList>
                       )}
                     </>
@@ -839,7 +846,9 @@ function DrinkingWater() {
                               displayedWithdrawers,
                               withdrawersSortBy,
                               true,
-                            ).map((item) => createAccordionItem(item, true))}
+                            ).map((item) =>
+                              createAccordionItem(services, item, true),
+                            )}
                           </AccordionList>
                         </>
                       )}
@@ -905,10 +914,10 @@ function DrinkingWater() {
   );
 }
 
-export default function DrinkingWaterContainer({ ...props }: Props) {
+export default function DrinkingWaterContainer() {
   return (
     <TabErrorBoundary tabName="Drinking Water">
-      <DrinkingWater {...props} />
+      <DrinkingWater />
     </TabErrorBoundary>
   );
 }

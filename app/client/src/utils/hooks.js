@@ -1615,6 +1615,26 @@ function useGeometryUtils() {
   return { cropGeometryToHuc };
 }
 
+// Custom hook that is used to determine if the provided ref is
+// visible on the screen.
+function useOnScreen(ref) {
+  const [isIntersecting, setIntersecting] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) =>
+      setIntersecting(entry.isIntersecting),
+    );
+
+    observer.observe(ref.current);
+    // Remove the observer as soon as the component is unmounted
+    return () => {
+      observer.disconnect();
+    };
+  }, [ref]);
+
+  return isIntersecting;
+}
+
 export {
   useGeometryUtils,
   useSharedLayers,
@@ -1624,4 +1644,5 @@ export {
   useWaterbodyHighlight,
   useDynamicPopup,
   useKeyPress,
+  useOnScreen,
 };

@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 // components
-import type { RouteProps } from 'routes.js';
 import Page from 'components/shared/Page';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import NavBar from 'components/shared/NavBar';
@@ -63,12 +62,7 @@ const modifiedErrorBoxStyles = css`
   margin: 1.25rem;
 `;
 
-// --- components ---
-type Props = {
-  ...RouteProps,
-};
-
-function Attains({ ...props }: Props) {
+function Attains() {
   const services = useServicesContext();
 
   const [loading, setLoading] = useState(true);

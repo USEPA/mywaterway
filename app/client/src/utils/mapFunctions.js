@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { render } from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { css } from 'styled-components/macro';
 import Graphic from '@arcgis/core/Graphic';
@@ -15,7 +15,7 @@ import { getSelectedCommunityTab } from 'utils/utils';
 
 const waterbodyStatuses = {
   good: { condition: 'good', label: 'Good' },
-  polluted: { condition: 'polluted', label: 'Impaired' },
+  polluted: { condition: 'polluted', label: 'Impaired (Issues Identified)' },
   unassessed: { condition: 'unassessed', label: 'Condition Unknown' },
   notApplicable: { condition: 'hidden', label: 'Not Applicable' },
 };
@@ -340,38 +340,34 @@ export function createWaterbodySymbol({
 }
 
 // plot monitoring stations on map
-export function plotStations(
-  stations: Array<Object>,
-  layer: any,
-  services: Object,
-) {
+export function plotStations(stations: Array<Object>, layer: any) {
   if (!stations || !layer) return;
 
-  layer.graphics.removeAll();
-
-  stations.forEach((station) => {
-    layer.graphics.add(
-      new Graphic({
-        geometry: {
-          type: 'point',
-          longitude: station.locationLongitude,
-          latitude: station.locationLatitude,
-        },
-        symbol: {
-          type: 'simple-marker',
-          style: 'square',
-          color: colors.lightPurple(),
-        },
-        attributes: station,
-        popupTemplate: {
-          title: getPopupTitle(station),
-          content: getPopupContent({
-            feature: { attributes: station },
-            services,
-          }),
-        },
-      }),
+  // sort descending order so that smaller graphics show up on top
+  const stationsSorted = [...stations];
+  stationsSorted.sort((a, b) => {
+    return (
+      parseInt(b.stationTotalMeasurements) -
+      parseInt(a.stationTotalMeasurements)
     );
+  });
+
+  const graphics = stationsSorted.map((station) => {
+    return new Graphic({
+      geometry: {
+        type: 'point',
+        longitude: station.locationLongitude,
+        latitude: station.locationLatitude,
+      },
+      attributes: station,
+    });
+  });
+
+  layer.queryFeatures().then((featureSet) => {
+    return layer.applyEdits({
+      deleteFeatures: featureSet.features,
+      addFeatures: graphics,
+    });
   });
 }
 
@@ -779,7 +775,7 @@ export function getPopupContent({
 
   // wrap the content for esri
   const contentContainer = document.createElement('div');
-  ReactDOM.render(content, contentContainer);
+  render(content, contentContainer);
 
   // return an esri popup item
   return contentContainer;
