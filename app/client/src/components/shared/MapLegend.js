@@ -70,7 +70,7 @@ const layerLabelStyles = css`
   font-size: 0.75rem;
 `;
 
-const ignoreLayers = ['mappedWaterLayer', 'watershedsLayer', 'searchIconLayer'];
+const ignoreLayers = ['watershedsLayer', 'searchIconLayer'];
 
 // --- components ---
 type Props = {
@@ -539,6 +539,82 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     </li>
   );
 
+  const mappedWaterLegend = () => {
+    const layerName = 'Mapped Water (all)';
+
+    const sublayerIds = view.map.layers.items
+      .filter((item) => item.id === 'mappedWaterLayer')
+      .map((layerItem) => layerItem.sublayers.items)?.[0]
+      .map((sublayer) => sublayer.id);
+
+    if (additionalLegendInfo.status === 'fetching') {
+      return <LoadingSpinner />;
+    }
+
+    if (additionalLegendInfo.status === 'failure') {
+      return (
+        <div css={errorBoxStyles}>{legendUnavailableError(layerName)}</div>
+      );
+    }
+
+    const subLegends = {};
+    additionalLegendInfo.data['mappedWaterLayer']?.layers
+      ?.filter((sublayer) => sublayerIds.includes(sublayer.layerId))
+      .forEach(
+        (sublayer) => (subLegends[sublayer.layerName] = sublayer.legend),
+      );
+
+    if (!Object.keys(subLegends).length) {
+      return (
+        <div css={errorBoxStyles}>{legendUnavailableError(layerName)}</div>
+      );
+    }
+
+    return (
+      <li>
+        <GlossaryTerm
+          term={layerName}
+          className="esri-widget__heading esri-legend__service-label"
+          style={{
+            fontFamily:
+              '"Merriweather", "Georgia", "Cambria", "Times New Roman", "Times", serif',
+          }}
+        >
+          {layerName}
+        </GlossaryTerm>
+
+        {Object.entries(subLegends).map(([name, legend]) => (
+          <>
+            <div css={{ marginBottom: '0.5rem' }}>{name}</div>
+
+            <ul css={{ marginBottom: '0.5rem', paddingLeft: 0 }}>
+              {legend.map((item, index) => {
+                return (
+                  <li key={index}>
+                    <div css={legendItemStyles}>
+                      <div
+                        css={[
+                          imageContainerStyles,
+                          { width: '20px', height: '20px' },
+                        ]}
+                      >
+                        <img
+                          src={`data:image/png;base64,${item.imageData}`}
+                          alt={item.label}
+                        />
+                      </div>
+                      <span css={labelStyles}>{item.label}</span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        ))}
+      </li>
+    );
+  };
+
   // jsx
   const protectedAreasLegend = () => {
     const layerName = 'Protected Areas';
@@ -763,6 +839,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   if (layer.id === 'stateBoundariesLayer') return stateBoundariesLegend;
   if (layer.id === 'protectedAreasLayer') return protectedAreasLegend();
   if (layer.id === 'ejscreenLayer') return ejscreenLegend();
+  if (layer.id === 'mappedWaterLayer') return mappedWaterLegend();
 
   return null;
 }

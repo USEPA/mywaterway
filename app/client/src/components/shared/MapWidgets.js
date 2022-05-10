@@ -621,7 +621,7 @@ function MapWidgets({
     status: 'fetching',
     data: {},
   });
-  useState(() => {
+  useEffect(() => {
     if (additioanlLegendInitialized) return;
 
     setAdditionalLegendInitialized(true);
@@ -631,6 +631,8 @@ function MapWidgets({
     requests.push(fetchCheck(url));
     url = `${services.data.ejscreen}legend?f=json`;
     requests.push(fetchCheck(url));
+    url = `${services.data.mappedWater}/legend?f=json`;
+    requests.push(fetchCheck(url));
 
     Promise.all(requests)
       .then((responses) => {
@@ -639,6 +641,7 @@ function MapWidgets({
           data: {
             protectedAreasLayer: responses[0],
             ejscreen: responses[1],
+            mappedWaterLayer: responses[2],
           },
         });
       })
