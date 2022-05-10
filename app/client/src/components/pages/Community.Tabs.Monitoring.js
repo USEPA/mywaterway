@@ -1029,7 +1029,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
             </p>
             <table
               css={modifiedTableStyles}
-              id="monitoring-totals"
+              aria-label="Monitoring Totals"
               className="table"
             >
               <tbody>

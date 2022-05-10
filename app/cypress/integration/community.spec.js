@@ -362,14 +362,20 @@ describe('Monitoring Tab', () => {
         force: true,
       });
 
-    cy.get('#monitoring-totals').find('td').last().should('have.text', '0');
+    cy.findByRole('table', { name: 'Monitoring Totals' })
+      .find('td')
+      .last()
+      .should('have.text', '0');
 
     // flip the PFAS switch
     cy.findByText('PFAS').siblings().first().find('input').click({
       force: true,
     });
 
-    cy.get('#monitoring-totals').find('td').last().should('not.have.text', '0');
+    cy.findByRole('table', { name: 'Monitoring Totals' })
+      .find('td')
+      .last()
+      .should('not.have.text', '0');
   });
 
   it('Should update the mapped locations when flipping the "PFAS" toggle switch', () => {
