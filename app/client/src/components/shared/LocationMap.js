@@ -139,7 +139,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     mapView,
     setMonitoringLocations,
     setUsgsStreamgages,
-    setUsgsDailyPrecipitation,
     // setNonprofits,
     setPermittedDischargers,
     setWaterbodyLayer,
@@ -1157,22 +1156,31 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [services, setUsgsStreamgages],
   );
 
-  const queryUsgsDailyValuesService = useCallback(
-    (huc12Param) => {
+  const fetchUsgsPrecipitation = useCallback(
+    (huc12) => {
       const url =
-        `${services.data.usgsDailyValues}?format=json&siteStatus=active` +
-        `&parameterCd=00045&statCd=00006&huc=${huc12Param.substring(0, 8)}`;
+        services.data.usgsDailyValues +
+        `?format=json` +
+        `&siteStatus=active` +
+        `&statCd=00006` + // statistics code: SUMMATION VALUES
+        `&parameterCd=00045` + // parameter code: Precipitation, total, inches
+        `&huc=${huc12.substring(0, 8)}`;
+
+      fetchedDataDispatch({ type: 'USGS_PRECIPITATION/FETCH_REQUEST' });
 
       fetchCheck(url)
         .then((res) => {
-          setUsgsDailyPrecipitation({ status: 'success', data: res });
+          fetchedDataDispatch({
+            type: 'USGS_PRECIPITATION/FETCH_SUCCESS',
+            payload: res,
+          });
         })
         .catch((err) => {
           console.error(err);
-          setUsgsDailyPrecipitation({ status: 'failure', data: {} });
+          fetchedDataDispatch({ type: 'USGS_PRECIPITATION/FETCH_FAILURE' });
         });
     },
-    [services, setUsgsDailyPrecipitation],
+    [services, fetchedDataDispatch],
   );
 
   const fetchUsgsDailyAverages = useCallback(
@@ -1182,8 +1190,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         `?format=json` +
         `&siteStatus=active` +
         `&period=P7D` +
-        `&statCd=00003` + // statistics code: MEAN
-        `&variable=all` +
+        `&statCd=00003` + // statistics code: MEAN VALUES
+        `&parameterCd=all` +
         `&huc=${huc12.substring(0, 8)}`;
 
       fetchedDataDispatch({ type: 'USGS_DAILY_AVERAGES/FETCH_REQUEST' });
@@ -1597,7 +1605,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           processBoundariesData(response);
           queryMonitoringStationService(huc12);
           queryUsgsStreamgageService(huc12);
-          queryUsgsDailyValuesService(huc12);
+          fetchUsgsPrecipitation(huc12);
           fetchUsgsDailyAverages(huc12);
           queryPermittedDischargersService(huc12);
           queryGrtsHuc12(huc12);
@@ -1624,7 +1632,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       queryGrtsHuc12,
       queryMonitoringStationService,
       queryUsgsStreamgageService,
-      queryUsgsDailyValuesService,
+      fetchUsgsPrecipitation,
       fetchUsgsDailyAverages,
       queryPermittedDischargersService,
       setHuc12,

@@ -24,6 +24,7 @@ import {
 import { tabsStyles } from 'components/shared/ContentTabs';
 import VirtualizedList from 'components/shared/VirtualizedList';
 // contexts
+import { useFetchedDataState } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
@@ -450,10 +451,11 @@ function MonitoringAndSensorsTab({
   setUsgsStreamgagesDisplayed,
   updateVisibleLayers,
 }) {
+  const { usgsPrecipitation } = useFetchedDataState();
+
   const {
     monitoringLocations,
     usgsStreamgages,
-    usgsDailyPrecipitation,
     monitoringLocationsLayer,
     usgsStreamgagesLayer,
     watershed,
@@ -560,14 +562,14 @@ function MonitoringAndSensorsTab({
   // for that particular location and replot the streamgages on the map
   useEffect(() => {
     if (!usgsStreamgagesPlotted) return;
-    if (!usgsDailyPrecipitation.data.value) return;
+    if (!usgsPrecipitation.data.value) return;
     if (normalizedUsgsStreamgages.length === 0) return;
 
     const streamgageSiteIds = normalizedUsgsStreamgages.map((gage) => {
       return gage.siteId;
     });
 
-    usgsDailyPrecipitation.data.value?.timeSeries.forEach((site) => {
+    usgsPrecipitation.data.value?.timeSeries.forEach((site) => {
       const siteId = site.sourceInfo.siteCode[0].value;
       const observation = site.values[0].value[0];
 
@@ -593,7 +595,7 @@ function MonitoringAndSensorsTab({
     plotGages(normalizedUsgsStreamgages, usgsStreamgagesLayer);
   }, [
     usgsStreamgagesPlotted,
-    usgsDailyPrecipitation,
+    usgsPrecipitation,
     normalizedUsgsStreamgages,
     usgsStreamgagesLayer,
   ]);
