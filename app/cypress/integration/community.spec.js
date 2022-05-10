@@ -133,6 +133,31 @@ describe('Community page zero waterbodies message', () => {
   });
 });
 
+describe('Community page map legend', () => {
+  beforeEach(() => {
+    cy.visit('/community');
+  });
+
+  it.only('Clicking the "Mapped Water (all)" layer visibility button should populate the legend', () => {
+    // navigate to Monitoring tab of Community page
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      'San Antonio, TX',
+    );
+    cy.findByText('Go').click();
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    cy.findByRole('button', { name: 'Expand' }).click();
+    cy.findAllByRole('switch', { name: 'Mapped Water (all)' }).click();
+    cy.findByRole('button', { name: 'Collapse' }).click();
+    cy.findByRole('button', { name: 'Toggle Legend' }).click();
+    cy.findAllByText('Mapped Water (all)').should('be.visible');
+  });
+});
+
 describe('Community page (small screen)', () => {
   beforeEach(() => {
     cy.viewport(850, 900);
