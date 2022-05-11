@@ -638,10 +638,10 @@ function WaterbodyReport({ fullscreen }: Props) {
         });
 
         data
-          .sort((a, b) => a.source > b.source)
+          .sort((a, b) => b.source.localeCompare(a.source))
           .sort((a, b) => {
             if (a.source === b.source) {
-              return a.parameter > b.parameter;
+              return a.parameter.localeCompare(b.parameter);
             }
             return -1;
           });
