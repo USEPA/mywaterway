@@ -1500,6 +1500,13 @@
   {
     "region": 4,
     "state": "FL",
+    "name": "Recreation",
+    "category": "Recreation",
+    "surveyuseCode": "Recreational Use"
+  },
+  {
+    "region": 4,
+    "state": "FL",
     "name": "RECREATION, PROPAGATION, AND MAINTENANCE OF HEALTHY, WELL-BALANCED POPULATION OF FISH AND WILDLIFE",
     "category": "Ecological Life",
     "surveyuseCode": ""
@@ -4056,6 +4063,13 @@
     "region": 1,
     "state": "NH",
     "name": "Aquatic Life",
+    "category": "Ecological Life",
+    "surveyuseCode": "AQUATIC LIFE INTEGRITY"
+  },
+  {
+    "region": 1,
+    "state": "NH",
+    "name": "Aquatic Life Integrity",
     "category": "Ecological Life",
     "surveyuseCode": "AQUATIC LIFE INTEGRITY"
   },
