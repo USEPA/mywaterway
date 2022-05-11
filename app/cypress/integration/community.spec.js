@@ -138,12 +138,10 @@ describe('Community page map legend', () => {
     cy.visit('/community');
   });
 
-  it.only('Clicking the "Mapped Water (all)" layer visibility button should populate the legend', () => {
+  it('Clicking the "Mapped Water (all)" layer visibility button should populate the legend', () => {
     // navigate to Monitoring tab of Community page
-    cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      'San Antonio, TX',
-    );
-    cy.findByText('Go').click();
+    cy.findByRole('textbox', { name: 'Search' }).type('San Antonio, TX');
+    cy.findByRole('button', { name: 'Go' }).click();
 
     // wait for the web services to finish
     cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
