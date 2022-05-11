@@ -133,6 +133,29 @@ describe('Community page zero waterbodies message', () => {
   });
 });
 
+describe('Community page map legend', () => {
+  beforeEach(() => {
+    cy.visit('/community');
+  });
+
+  it('Clicking the "Mapped Water (all)" layer visibility button should populate the legend', () => {
+    // navigate to Monitoring tab of Community page
+    cy.findByRole('textbox', { name: 'Search' }).type('San Antonio, TX');
+    cy.findByRole('button', { name: 'Go' }).click();
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    cy.findByRole('button', { name: 'Expand' }).click();
+    cy.findAllByRole('switch', { name: 'Mapped Water (all)' }).click();
+    cy.findByRole('button', { name: 'Collapse' }).click();
+    cy.findByRole('button', { name: 'Toggle Legend' }).click();
+    cy.findAllByText('Mapped Water (all)').should('be.visible');
+  });
+});
+
 describe('Community page (small screen)', () => {
   beforeEach(() => {
     cy.viewport(850, 900);
@@ -336,7 +359,8 @@ describe('Monitoring Tab', () => {
     );
   });
 
-  it.only('Clicking the Water Quality Portal form link should return a page with pre-populated options', () => {
+  it('Should update the total measurement counts when flipping the "PFAS" toggle switch', () => {
+    // navigate to Monitoring tab of Community page
     cy.findByPlaceholderText('Search by address', { exact: false }).type(
       '45203',
     );
@@ -361,14 +385,56 @@ describe('Monitoring Tab', () => {
         force: true,
       });
 
-    // turn on one switch
-    cy.findByText('Physical').siblings().first().find('input').click({
+    cy.findByRole('table', { name: 'Monitoring Totals' })
+      .find('td')
+      .last()
+      .should('have.text', '0');
+
+    // flip the PFAS switch
+    cy.findByText('PFAS').siblings().first().find('input').click({
       force: true,
     });
 
-    cy.get('[data-cy=portal]')
-      .invoke('attr', 'href')
-      .should('include', 'Physical');
+    cy.findByRole('table', { name: 'Monitoring Totals' })
+      .find('td')
+      .last()
+      .should('not.have.text', '0');
+  });
+
+  it('Should update the mapped locations when flipping the "PFAS" toggle switch', () => {
+    // navigate to Monitoring tab of Community page
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      '45203',
+    );
+    cy.findByText('Go').click();
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    cy.findByText('Monitoring').click();
+
+    // navigate to the Sample Locations sub-tab
+    cy.findAllByText('Sample Locations').filter('button').click();
+
+    // turn off all switches
+    cy.findByText('All Monitoring Sample Locations')
+      .siblings()
+      .first()
+      .find('input')
+      .click({
+        force: true,
+      });
+
+    cy.findAllByText('Ohio: Middle').should('not.exist');
+
+    // flip the PFAS switch
+    cy.findByText('PFAS').siblings().first().find('input').click({
+      force: true,
+    });
+
+    cy.findAllByText('Ohio: Middle').should('exist');
   });
 });
 

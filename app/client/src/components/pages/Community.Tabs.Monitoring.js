@@ -873,6 +873,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
         stationProviderName: station.properties.ProviderName,
         stationTotalSamples: station.properties.activityCount,
         stationTotalMeasurements: station.properties.resultCount,
+        stationTotalMeasurementsPercentile:
+          station.properties.stationTotalMeasurementsPercentile,
         // counts for each lower-tier characteristic group
         stationTotalsByCategory: JSON.stringify(
           station.properties.characteristicGroupResultCount,
