@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { Fragment } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -604,8 +604,8 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
           {layerName}
         </GlossaryTerm>
 
-        {Object.entries(subLegends).map(([name, legend]) => (
-          <>
+        {Object.entries(subLegends).map(([name, legend], outerIndex) => (
+          <Fragment key={outerIndex}>
             <div css={subLayerLabelStyles}>{name}</div>
 
             <ul css={[nestedUl, { marginBottom: '0.5rem' }]}>
@@ -625,7 +625,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
                 );
               })}
             </ul>
-          </>
+          </Fragment>
         ))}
       </li>
     );
