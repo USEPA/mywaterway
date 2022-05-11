@@ -356,6 +356,23 @@ function indicesOf(text, searchString) {
   return indices;
 }
 
+// Returns the percentile of the given value in a sorted numeric array.
+function percentRank(array, value) {
+  const count = array.length;
+
+  for (let i = 0; i < count; i++) {
+    if (value <= array[i]) {
+      while (i < count && value === array[i]) i++;
+      if (i === 0) return 0;
+      if (value !== array[i - 1]) {
+        i += (value - array[i - 1]) / (array[i] - array[i - 1]);
+      }
+      return i / count;
+    }
+  }
+  return 1;
+}
+
 export {
   chunkArray,
   containsScriptTag,
@@ -380,4 +397,5 @@ export {
   normalizeString,
   summarizeAssessments,
   indicesOf,
+  percentRank,
 };

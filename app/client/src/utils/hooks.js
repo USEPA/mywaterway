@@ -27,7 +27,7 @@ import {
   graphicComparison,
   openPopup,
   shallowCompare,
-} from 'components/pages/LocationMap/MapFunctions';
+} from 'utils/mapFunctions';
 
 let dynamicPopupFields = [];
 
@@ -1228,6 +1228,7 @@ function useSharedLayers() {
       url: services.data.mappedWater,
       title: 'Mapped Water (all)',
       sublayers: [{ id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
+      legendEnabled: false,
       listMode: 'hide-children',
       visible: false,
     });
@@ -1615,6 +1616,26 @@ function useGeometryUtils() {
   return { cropGeometryToHuc };
 }
 
+// Custom hook that is used to determine if the provided ref is
+// visible on the screen.
+function useOnScreen(ref) {
+  const [isIntersecting, setIntersecting] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) =>
+      setIntersecting(entry.isIntersecting),
+    );
+
+    observer.observe(ref.current);
+    // Remove the observer as soon as the component is unmounted
+    return () => {
+      observer.disconnect();
+    };
+  }, [ref]);
+
+  return isIntersecting;
+}
+
 export {
   useGeometryUtils,
   useSharedLayers,
@@ -1624,4 +1645,5 @@ export {
   useWaterbodyHighlight,
   useDynamicPopup,
   useKeyPress,
+  useOnScreen,
 };

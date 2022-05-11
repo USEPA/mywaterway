@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { createContext, useState } from 'react';
 import type { Node } from 'react';
 
 type AddDataWidget = {
@@ -14,7 +14,7 @@ type AddDataWidget = {
   setWidgetLayers: Function,
 };
 
-export const AddDataWidgetContext: Object = React.createContext<AddDataWidget>({
+export const AddDataWidgetContext: Object = createContext<AddDataWidget>({
   addDataWidgetVisible: false,
   setAddDataWidgetVisible: () => {},
   pageNumber: 1,
@@ -30,13 +30,13 @@ type Props = {
 };
 
 export function AddDataWidgetProvider({ children }: Props) {
-  const [addDataWidgetVisible, setAddDataWidgetVisible] = React.useState(false);
-  const [pageNumber, setPageNumber] = React.useState(1);
-  const [searchResults, setSearchResults] = React.useState({
+  const [addDataWidgetVisible, setAddDataWidgetVisible] = useState(false);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [searchResults, setSearchResults] = useState({
     status: 'none',
     data: null,
   });
-  const [widgetLayers, setWidgetLayers] = React.useState([]);
+  const [widgetLayers, setWidgetLayers] = useState([]);
 
   return (
     <AddDataWidgetContext.Provider

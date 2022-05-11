@@ -1,9 +1,9 @@
 // @flow
 
-import React from 'react';
+import React, { Component, createContext } from 'react';
 import type { Node } from 'react';
 
-export const MapHighlightContext: Object = React.createContext({
+export const MapHighlightContext: Object = createContext({
   highlightedGraphic: '',
   selectedGraphic: '',
 });
@@ -18,7 +18,7 @@ type State = {
   setSelectedGraphic: Function,
 };
 
-export class MapHighlightProvider extends React.Component<Props, State> {
+export class MapHighlightProvider extends Component<Props, State> {
   state: State = {
     highlightedGraphic: '',
     selectedGraphic: '',

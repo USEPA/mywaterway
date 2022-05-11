@@ -2,12 +2,13 @@
 
 import 'react-app-polyfill/stable';
 import smoothscroll from 'smoothscroll-polyfill';
-import React from 'react';
-import ReactDOM from 'react-dom';
+import React, { StrictMode } from 'react';
+import { render } from 'react-dom';
+import { BrowserRouter } from 'react-router-dom';
 import { createGlobalStyle } from 'styled-components';
 import * as serviceWorker from './serviceWorker';
 // components
-import Routes from './routes';
+import AppRoutes from './routes';
 import ErrorBoundary from 'components/shared/ErrorBoundary';
 // contexts
 import { AddDataWidgetProvider } from 'contexts/AddDataWidget';
@@ -19,7 +20,6 @@ import { defaultErrorBoundaryMessage } from 'config/errorMessages';
 
 smoothscroll.polyfill();
 
-// --- styled components ---
 export const GlobalStyle = createGlobalStyle`
   #root {
     margin: 0;
@@ -34,28 +34,30 @@ export const GlobalStyle = createGlobalStyle`
 // --- components ---
 function Root() {
   return (
-    <LookupFilesProvider>
-      <LocationSearchProvider>
-        <GlossaryProvider>
-          <AddDataWidgetProvider>
-            <GlobalStyle />
-            <ErrorBoundary message={defaultErrorBoundaryMessage}>
-              <Routes />
-            </ErrorBoundary>
-          </AddDataWidgetProvider>
-        </GlossaryProvider>
-      </LocationSearchProvider>
-    </LookupFilesProvider>
+    <BrowserRouter>
+      <LookupFilesProvider>
+        <LocationSearchProvider>
+          <GlossaryProvider>
+            <AddDataWidgetProvider>
+              <GlobalStyle />
+              <ErrorBoundary message={defaultErrorBoundaryMessage}>
+                <AppRoutes />
+              </ErrorBoundary>
+            </AddDataWidgetProvider>
+          </GlossaryProvider>
+        </LocationSearchProvider>
+      </LookupFilesProvider>
+    </BrowserRouter>
   );
 }
 
 const rootElement: ?HTMLElement = document.getElementById('root');
 
 if (rootElement)
-  ReactDOM.render(
-    <React.StrictMode>
+  render(
+    <StrictMode>
       <Root />
-    </React.StrictMode>,
+    </StrictMode>,
     rootElement,
   );
 
