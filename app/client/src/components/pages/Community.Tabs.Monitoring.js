@@ -332,7 +332,8 @@ function Monitoring() {
 }
 
 function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
-  const { usgsStreamgages, usgsPrecipitation } = useFetchedDataState();
+  const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
+    useFetchedDataState();
 
   const services = useServicesContext();
 
@@ -378,6 +379,7 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
             parameterCode,
             measurement,
             datetime: new Date(observation.phenomenonTime).toLocaleString(),
+            dailyAverages: [],
             unitAbbr: matchedParam?.hmwUnits || parameterUnit.symbol,
             unitName: parameterUnit.name,
           };
@@ -413,12 +415,14 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
     });
   }, [usgsStreamgages.data, usgsStreamgagesLayer]);
 
-  // once streamgages have been plotted initially, add precipitation data
-  // (fetched from usgsDailyValues web service) to each streamgage if it exists
-  // for that particular location and replot the streamgages on the map
+  // once streamgages have been plotted initially, add precipitation data and
+  // daily average measurements data (both fetched from the usgs daily values
+  // web service) to each streamgage if it exists for that particular location
+  // and replot the streamgages on the map
   useEffect(() => {
     if (!usgsStreamgagesPlotted) return;
     if (!usgsPrecipitation.data.value) return;
+    if (!usgsDailyAverages.data.value) return;
     if (normalizedUsgsStreamgages.length === 0) return;
 
     const streamgageSiteIds = normalizedUsgsStreamgages.map((gage) => {
@@ -442,9 +446,35 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
           parameterCode: '00045',
           measurement: observation.value,
           datetime: new Date(observation.dateTime).toLocaleDateString(),
+          dailyAverages: [],
           unitAbbr: 'in',
           unitName: 'inches',
         });
+      }
+    });
+
+    usgsDailyAverages.data.value?.timeSeries.forEach((site) => {
+      const siteId = site.sourceInfo.siteCode[0].value;
+      const sitesHasObservations = site.values[0].value.length > 0;
+
+      if (streamgageSiteIds.includes(siteId) && sitesHasObservations) {
+        const streamgage = normalizedUsgsStreamgages.find((gage) => {
+          return gage.siteId === siteId;
+        });
+
+        const paramCode = site.variable.variableCode[0].value;
+        const observations = site.values[0].value.map(({ value, dateTime }) => {
+          return { measurement: value, date: new Date(dateTime) };
+        });
+
+        // NOTE: 'category' is either 'primary' or 'secondary' – loop over both
+        for (const category in streamgage.streamgageMeasurements) {
+          streamgage.streamgageMeasurements[category].forEach((measurement) => {
+            if (measurement.parameterCode === paramCode.toString()) {
+              measurement.dailyAverages = observations;
+            }
+          });
+        }
       }
     });
 
@@ -452,6 +482,7 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
   }, [
     usgsStreamgagesPlotted,
     usgsPrecipitation,
+    usgsDailyAverages,
     normalizedUsgsStreamgages,
     usgsStreamgagesLayer,
   ]);
