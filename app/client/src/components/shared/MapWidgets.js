@@ -46,6 +46,10 @@ const layersToAllowPopups = ['restore', 'protect'];
 // workaround for React state variables not being updated inside of
 // esri watch events
 let displayEsriLegendNonState = false;
+let additionalLegendInfoNonState = {
+  status: 'fetching',
+  data: {},
+};
 
 const basemapNames = [
   'Streets',
@@ -636,21 +640,23 @@ function MapWidgets({
 
     Promise.all(requests)
       .then((responses) => {
-        setAdditionalLegendInfo({
+        additionalLegendInfoNonState = {
           status: 'success',
           data: {
             protectedAreasLayer: responses[0],
             ejscreen: responses[1],
             mappedWaterLayer: responses[2],
           },
-        });
+        };
+        setAdditionalLegendInfo(additionalLegendInfoNonState);
       })
       .catch((err) => {
         console.error(err);
-        setAdditionalLegendInfo({
+        additionalLegendInfoNonState = {
           status: 'failure',
           data: {},
-        });
+        };
+        setAdditionalLegendInfo(additionalLegendInfoNonState);
       });
   }, [additioanlLegendInitialized, services]);
 
@@ -706,7 +712,7 @@ function MapWidgets({
             view,
             displayEsriLegendNonState,
             hmwLegendNode,
-            additionalLegendInfo,
+            additionalLegendInfoNonState,
           );
 
           item.watch('visible', function (event) {
@@ -714,7 +720,7 @@ function MapWidgets({
               view,
               displayEsriLegendNonState,
               hmwLegendNode,
-              additionalLegendInfo,
+              additionalLegendInfoNonState,
             );
             const dict = {
               layerId: item.layer.id,
@@ -770,7 +776,7 @@ function MapWidgets({
   // Sets up the zoom event handler that is used for determining if layers
   // should be visible at the current zoom level.
   useEffect(() => {
-    if (!view || !additionalLegendInfo || mapEventHandlersSet) return;
+    if (!view || mapEventHandlersSet) return;
 
     // setup map event handlers
     watchUtils.watch(view, 'zoom', (newVal, oldVal, propName, target) => {
@@ -780,7 +786,7 @@ function MapWidgets({
         view,
         displayEsriLegendNonState,
         hmwLegendNode,
-        additionalLegendInfo,
+        additionalLegendInfoNonState,
       );
     });
 
