@@ -7,6 +7,7 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import { Sparkline } from 'components/shared/Sparkline';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
 import { getWaterbodyCondition } from 'utils/mapFunctions';
@@ -113,6 +114,12 @@ const moreLessRowStyles = css`
 const additionalTextStyles = css`
   font-style: italic;
   color: ${colors.gray6};
+`;
+
+const measurementStyles = css`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 `;
 
 const popupIconStyles = css`
@@ -1402,7 +1409,7 @@ function UsgsStreamgageParameter({ url, data }) {
           {data.parameterCode} &ndash; {data.parameterUsgsName}
         </small>
       </td>
-      <td>
+      <td style={{ width: '256px' }}>
         {data.multiple ? (
           <>
             <em>multiple&nbsp;measurements&nbsp;found</em>
@@ -1416,13 +1423,22 @@ function UsgsStreamgageParameter({ url, data }) {
             </small>
           </>
         ) : (
-          <>
-            <strong>{data.measurement}</strong>
-            &nbsp;
-            <small title={data.unitName}>{data.unitAbbr}</small>
-            <br />
-            <small css={additionalTextStyles}>{data.datetime}</small>
-          </>
+          <div css={measurementStyles} style={{ width: '256px' }}>
+            {data.dailyAverages.length > 0 ? (
+              <div style={{ width: '128px' }}>
+                <Sparkline data={data.dailyAverages} />
+              </div>
+            ) : (
+              <div>&nbsp;</div>
+            )}
+            <div>
+              <strong>{data.measurement}</strong>
+              &nbsp;
+              <small title={data.unitName}>{data.unitAbbr}</small>
+              <br />
+              <small css={additionalTextStyles}>{data.datetime}</small>
+            </div>
+          </div>
         )}
       </td>
     </tr>
