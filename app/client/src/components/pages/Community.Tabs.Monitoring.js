@@ -11,17 +11,11 @@ import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 // components
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
-import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
-import {
-  disclaimerStyles,
-  downloadLinksStyles,
-  iconStyles,
-  modifiedTableStyles,
-} from 'styles/index';
+import { disclaimerStyles, iconStyles } from 'styles/index';
 import {
   AccordionList,
   AccordionItem,
