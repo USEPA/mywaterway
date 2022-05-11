@@ -53,10 +53,20 @@ const legendItemStyles = css`
   align-items: center;
 `;
 
+const imageContainerBaseStyles = css`
+  margin-right: 0.25rem;
+`;
+
 const imageContainerStyles = css`
+  ${imageContainerBaseStyles}
   width: 26px;
   height: 26px;
-  margin-right: 0.25rem;
+`;
+
+const smallImageContainerStyles = css`
+  ${imageContainerBaseStyles}
+  width: 20px;
+  height: 20px;
 `;
 
 const labelStyles = css`
@@ -68,6 +78,17 @@ const labelStyles = css`
 const layerLabelStyles = css`
   margin-bottom: 0.25rem;
   font-size: 0.75rem;
+`;
+
+const subLayerLabelStyles = css`
+  ${layerLabelStyles}
+  margin-left: 0.438rem;
+`;
+
+const nestedUl = css`
+  li {
+    border-bottom: none;
+  }
 `;
 
 const ignoreLayers = ['watershedsLayer', 'searchIconLayer'];
@@ -585,19 +606,14 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
 
         {Object.entries(subLegends).map(([name, legend]) => (
           <>
-            <div css={{ marginBottom: '0.5rem' }}>{name}</div>
+            <div css={subLayerLabelStyles}>{name}</div>
 
-            <ul css={{ marginBottom: '0.5rem', paddingLeft: 0 }}>
+            <ul css={[nestedUl, { marginBottom: '0.5rem' }]}>
               {legend.map((item, index) => {
                 return (
                   <li key={index}>
                     <div css={legendItemStyles}>
-                      <div
-                        css={[
-                          imageContainerStyles,
-                          { width: '20px', height: '20px' },
-                        ]}
-                      >
+                      <div css={smallImageContainerStyles}>
                         <img
                           src={`data:image/png;base64,${item.imageData}`}
                           alt={item.label}
@@ -642,21 +658,14 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
       <li>
         <div css={layerLabelStyles}>{layerName}</div>
 
-        <div css={[layerLabelStyles, { fontStyle: 'italic' }]}>
-          Protection Category:
-        </div>
+        <div css={subLayerLabelStyles}>Protection Category:</div>
 
-        <ul css={{ paddingLeft: 0 }}>
+        <ul css={nestedUl}>
           {padLegend.map((item, index) => {
             return (
               <li key={index}>
                 <div css={legendItemStyles}>
-                  <div
-                    css={[
-                      imageContainerStyles,
-                      { width: '20px', height: '20px' },
-                    ]}
-                  >
+                  <div css={smallImageContainerStyles}>
                     <img
                       src={`data:image/png;base64,${item.imageData}`}
                       alt={item.label}
@@ -783,19 +792,19 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
         </GlossaryTerm>
 
         {subtitleParts.length > 0 && (
-          <div css={[layerLabelStyles, { marginBottom: '0.5rem' }]}>
+          <div css={[subLayerLabelStyles, { marginBottom: '0.5rem' }]}>
             {subtitleParts.map((part, index) => {
               return <div key={index}>{part.glossary}</div>;
             })}
           </div>
         )}
 
-        <ul css={{ paddingLeft: 0 }}>
+        <ul css={nestedUl}>
           {legend.map((item, index) => {
             return (
               <li key={index}>
                 <div css={legendItemStyles}>
-                  <div css={imageContainerStyles}>
+                  <div css={smallImageContainerStyles}>
                     <img
                       src={`data:image/png;base64,${item.imageData}`}
                       alt={item.label.replace('%ile', '%')}
