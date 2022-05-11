@@ -21,7 +21,8 @@
     "Andrew VanNess <andrew.vanness@erg.com>",
     "Brad Cooper <brad.cooper@erg.com>",
     "Caleb Schwind <caleb.schwind@erg.com>",
-    "Courtney Myers <courtney.myers@erg.com>"
+    "Courtney Myers <courtney.myers@erg.com>",
+    "Max Diebold <max.diebold@erg.com>"
   ],
   "engines": {
     "node": "16.x"
