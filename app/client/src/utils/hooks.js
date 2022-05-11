@@ -1228,6 +1228,7 @@ function useSharedLayers() {
       url: services.data.mappedWater,
       title: 'Mapped Water (all)',
       sublayers: [{ id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
+      legendEnabled: false,
       listMode: 'hide-children',
       visible: false,
     });

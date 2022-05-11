@@ -49,6 +49,7 @@ const containerStyles = css`
   .rt-table {
     border-spacing: 0;
     border: 1px solid rgba(0, 0, 0, 0.1);
+    display: inline-block;
 
     .rt-thead {
       background-color: #f1f1f1;
@@ -76,6 +77,7 @@ const containerStyles = css`
     .rt-td {
       margin: 0;
       overflow: hidden;
+      overflow-wrap: anywhere;
 
       /* This is required for the absolutely positioned resizer */
       position: relative;

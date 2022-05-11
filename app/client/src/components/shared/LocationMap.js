@@ -57,6 +57,7 @@ import {
   getPointFromCoordinates,
   splitSuggestedSearch,
   browserIsCompatibleWithArcGIS,
+  percentRank,
 } from 'utils/utils';
 // styles
 import 'styles/mapStyles.css';
@@ -598,7 +599,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       id: 'monitoringLocationsLayer',
       title: 'Sample Locations',
       listMode: 'hide',
-      legendEnabled: false,
+      legendEnabled: true,
       fields: [
         { name: 'OBJECTID', type: 'oid' },
         { name: 'monitoringType', type: 'string' },
@@ -629,17 +630,22 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         type: 'simple',
         symbol: {
           type: 'simple-marker',
-          style: 'square',
-          color: colors.lightPurple(),
+          style: 'circle',
+          color: colors.lightPurple(0.3),
         },
         visualVariables: [
           {
             type: 'size',
             field: 'stationTotalMeasurementsPercentile',
-            minDataValue: 0,
-            maxDataValue: 1,
-            minSize: 8,
-            maxSize: 40,
+            legendOptions: {
+              title: 'Monitoring Measurment Percentiles for HUC12',
+            },
+            stops: [
+              { value: 0.25, size: 8, label: '<25th percentile ' },
+              { value: 0.5, size: 16, label: '25th - 50th percentile' },
+              { value: 0.75, size: 24, label: '50th - 75th percentile' },
+              { value: 1, size: 32, label: '75th - 100th percentile' },
+            ],
           },
         ],
       },
@@ -684,7 +690,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         type: 'simple',
         symbol: {
           type: 'simple-marker',
-          style: 'circle',
+          style: 'square',
           color: '#fffe00', // '#989fa2'
         },
         // NOTE: rendering all streamgages in a single color until we can set
@@ -1063,7 +1069,41 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       fetchCheck(url)
         .then((res) => {
-          setMonitoringLocations({ status: 'success', data: res });
+          // sort ascending order
+          const stationsSorted = [...res.features];
+          stationsSorted.sort((a, b) => {
+            return (
+              parseInt(a.properties.resultCount) -
+              parseInt(b.properties.resultCount)
+            );
+          });
+
+          // build a simple array of stationTotalMeasurements
+          const measurementsArray = stationsSorted.map((station) =>
+            parseInt(station.properties.resultCount),
+          );
+
+          // calculate percentiles
+          measurementsArray.forEach((measurement, index) => {
+            // get the rank and then move them into 4 buckets
+            let rank = percentRank(measurementsArray, measurement);
+            if (rank < 0.25) rank = 0.24;
+            if (rank >= 0.25 && rank < 0.5) rank = 0.49;
+            if (rank >= 0.5 && rank < 0.75) rank = 0.74;
+            if (rank >= 0.75 && rank <= 1) rank = 1;
+
+            stationsSorted[
+              index
+            ].properties.stationTotalMeasurementsPercentile = rank;
+          });
+
+          setMonitoringLocations({
+            status: 'success',
+            data: {
+              ...res,
+              features: stationsSorted,
+            },
+          });
         })
         .catch((err) => {
           console.error(err);

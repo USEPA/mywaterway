@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { Fragment } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -53,10 +53,20 @@ const legendItemStyles = css`
   align-items: center;
 `;
 
+const imageContainerBaseStyles = css`
+  margin-right: 0.25rem;
+`;
+
 const imageContainerStyles = css`
+  ${imageContainerBaseStyles}
   width: 26px;
   height: 26px;
-  margin-right: 0.25rem;
+`;
+
+const smallImageContainerStyles = css`
+  ${imageContainerBaseStyles}
+  width: 20px;
+  height: 20px;
 `;
 
 const labelStyles = css`
@@ -70,7 +80,18 @@ const layerLabelStyles = css`
   font-size: 0.75rem;
 `;
 
-const ignoreLayers = ['mappedWaterLayer', 'watershedsLayer', 'searchIconLayer'];
+const subLayerLabelStyles = css`
+  ${layerLabelStyles}
+  margin-left: 0.438rem;
+`;
+
+const nestedUl = css`
+  li {
+    border-bottom: none;
+  }
+`;
+
+const ignoreLayers = ['watershedsLayer', 'searchIconLayer'];
 
 // --- components ---
 type Props = {
@@ -250,22 +271,10 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   );
 
   // jsx
-  const monitoringLocationsLegend = (
-    <li>
-      <div css={legendItemStyles}>
-        <div css={imageContainerStyles}>
-          {squareIcon({ color: colors.lightPurple() })}
-        </div>
-        <span css={labelStyles}>Sample Location</span>
-      </div>
-    </li>
-  );
-
-  // jsx
   const usgsStreamgagesLegend = (
     <li>
       <div css={legendItemStyles}>
-        <div css={imageContainerStyles}>{circleIcon({ color: '#fffe00' })}</div>
+        <div css={imageContainerStyles}>{squareIcon({ color: '#fffe00' })}</div>
         <span css={labelStyles}>Current Water Conditions</span>
       </div>
     </li>
@@ -551,6 +560,77 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     </li>
   );
 
+  const mappedWaterLegend = () => {
+    const layerName = 'Mapped Water (all)';
+
+    const sublayerIds = view.map.layers.items
+      .filter((item) => item.id === 'mappedWaterLayer')
+      .map((layerItem) => layerItem.sublayers.items)?.[0]
+      .map((sublayer) => sublayer.id);
+
+    if (additionalLegendInfo.status === 'fetching') {
+      return <LoadingSpinner />;
+    }
+
+    if (additionalLegendInfo.status === 'failure') {
+      return (
+        <div css={errorBoxStyles}>{legendUnavailableError(layerName)}</div>
+      );
+    }
+
+    const subLegends = {};
+    additionalLegendInfo.data['mappedWaterLayer']?.layers
+      ?.filter((sublayer) => sublayerIds.includes(sublayer.layerId))
+      .forEach(
+        (sublayer) => (subLegends[sublayer.layerName] = sublayer.legend),
+      );
+
+    if (!Object.keys(subLegends).length) {
+      return (
+        <div css={errorBoxStyles}>{legendUnavailableError(layerName)}</div>
+      );
+    }
+
+    return (
+      <li>
+        <GlossaryTerm
+          term={layerName}
+          className="esri-widget__heading esri-legend__service-label"
+          style={{
+            fontFamily:
+              '"Merriweather", "Georgia", "Cambria", "Times New Roman", "Times", serif',
+          }}
+        >
+          {layerName}
+        </GlossaryTerm>
+
+        {Object.entries(subLegends).map(([name, legend], outerIndex) => (
+          <Fragment key={outerIndex}>
+            <div css={subLayerLabelStyles}>{name}</div>
+
+            <ul css={[nestedUl, { marginBottom: '0.5rem' }]}>
+              {legend.map((item, index) => {
+                return (
+                  <li key={index}>
+                    <div css={legendItemStyles}>
+                      <div css={smallImageContainerStyles}>
+                        <img
+                          src={`data:image/png;base64,${item.imageData}`}
+                          alt={item.label}
+                        />
+                      </div>
+                      <span css={labelStyles}>{item.label}</span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </Fragment>
+        ))}
+      </li>
+    );
+  };
+
   // jsx
   const protectedAreasLegend = () => {
     const layerName = 'Protected Areas';
@@ -578,21 +658,14 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
       <li>
         <div css={layerLabelStyles}>{layerName}</div>
 
-        <div css={[layerLabelStyles, { fontStyle: 'italic' }]}>
-          Protection Category:
-        </div>
+        <div css={subLayerLabelStyles}>Protection Category:</div>
 
-        <ul css={{ paddingLeft: 0 }}>
+        <ul css={nestedUl}>
           {padLegend.map((item, index) => {
             return (
               <li key={index}>
                 <div css={legendItemStyles}>
-                  <div
-                    css={[
-                      imageContainerStyles,
-                      { width: '20px', height: '20px' },
-                    ]}
-                  >
+                  <div css={smallImageContainerStyles}>
                     <img
                       src={`data:image/png;base64,${item.imageData}`}
                       alt={item.label}
@@ -719,19 +792,19 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
         </GlossaryTerm>
 
         {subtitleParts.length > 0 && (
-          <div css={[layerLabelStyles, { marginBottom: '0.5rem' }]}>
+          <div css={[subLayerLabelStyles, { marginBottom: '0.5rem' }]}>
             {subtitleParts.map((part, index) => {
               return <div key={index}>{part.glossary}</div>;
             })}
           </div>
         )}
 
-        <ul css={{ paddingLeft: 0 }}>
+        <ul css={nestedUl}>
           {legend.map((item, index) => {
             return (
               <li key={index}>
                 <div css={legendItemStyles}>
-                  <div css={imageContainerStyles}>
+                  <div css={smallImageContainerStyles}>
                     <img
                       src={`data:image/png;base64,${item.imageData}`}
                       alt={item.label.replace('%ile', '%')}
@@ -760,7 +833,6 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     return isRestoreProtect ? actionsWaterbodiesLegend : waterbodyLegend;
   }
   if (layer.id === 'issuesLayer') return issuesLegend;
-  if (layer.id === 'monitoringLocationsLayer') return monitoringLocationsLegend;
   if (layer.id === 'usgsStreamgagesLayer') return usgsStreamgagesLegend;
   if (layer.id === 'dischargersLayer') return dischargersLegend;
   if (layer.id === 'nonprofitsLayer') return nonprofitsLegend;
@@ -776,6 +848,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   if (layer.id === 'stateBoundariesLayer') return stateBoundariesLegend;
   if (layer.id === 'protectedAreasLayer') return protectedAreasLegend();
   if (layer.id === 'ejscreenLayer') return ejscreenLegend();
+  if (layer.id === 'mappedWaterLayer') return mappedWaterLegend();
 
   return null;
 }

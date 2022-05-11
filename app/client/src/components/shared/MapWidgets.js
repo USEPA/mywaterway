@@ -46,6 +46,10 @@ const layersToAllowPopups = ['restore', 'protect'];
 // workaround for React state variables not being updated inside of
 // esri watch events
 let displayEsriLegendNonState = false;
+let additionalLegendInfoNonState = {
+  status: 'fetching',
+  data: {},
+};
 
 const basemapNames = [
   'Streets',
@@ -615,14 +619,14 @@ function MapWidgets({
 
   // Fetch additional legend information. Data is stored in a dictionary
   // where the key is the layer id.
-  const [additioanlLegendInitialized, setAdditionalLegendInitialized] =
+  const [additionalLegendInitialized, setAdditionalLegendInitialized] =
     useState(false);
   const [additionalLegendInfo, setAdditionalLegendInfo] = useState({
     status: 'fetching',
     data: {},
   });
-  useState(() => {
-    if (additioanlLegendInitialized) return;
+  useEffect(() => {
+    if (additionalLegendInitialized) return;
 
     setAdditionalLegendInitialized(true);
 
@@ -631,25 +635,30 @@ function MapWidgets({
     requests.push(fetchCheck(url));
     url = `${services.data.ejscreen}legend?f=json`;
     requests.push(fetchCheck(url));
+    url = `${services.data.mappedWater}/legend?f=json`;
+    requests.push(fetchCheck(url));
 
     Promise.all(requests)
       .then((responses) => {
-        setAdditionalLegendInfo({
+        additionalLegendInfoNonState = {
           status: 'success',
           data: {
             protectedAreasLayer: responses[0],
             ejscreen: responses[1],
+            mappedWaterLayer: responses[2],
           },
-        });
+        };
+        setAdditionalLegendInfo(additionalLegendInfoNonState);
       })
       .catch((err) => {
         console.error(err);
-        setAdditionalLegendInfo({
+        additionalLegendInfoNonState = {
           status: 'failure',
           data: {},
-        });
+        };
+        setAdditionalLegendInfo(additionalLegendInfoNonState);
       });
-  }, [additioanlLegendInitialized, services]);
+  }, [additionalLegendInitialized, services]);
 
   // Creates and adds the basemap/layer list widget to the map
   const [layerListWidget, setLayerListWidget] = useState(null);
@@ -703,7 +712,7 @@ function MapWidgets({
             view,
             displayEsriLegendNonState,
             hmwLegendNode,
-            additionalLegendInfo,
+            additionalLegendInfoNonState,
           );
 
           item.watch('visible', function (event) {
@@ -711,7 +720,7 @@ function MapWidgets({
               view,
               displayEsriLegendNonState,
               hmwLegendNode,
-              additionalLegendInfo,
+              additionalLegendInfoNonState,
             );
             const dict = {
               layerId: item.layer.id,
@@ -767,7 +776,7 @@ function MapWidgets({
   // Sets up the zoom event handler that is used for determining if layers
   // should be visible at the current zoom level.
   useEffect(() => {
-    if (!view || !additionalLegendInfo || mapEventHandlersSet) return;
+    if (!view || mapEventHandlersSet) return;
 
     // setup map event handlers
     watchUtils.watch(view, 'zoom', (newVal, oldVal, propName, target) => {
@@ -777,7 +786,7 @@ function MapWidgets({
         view,
         displayEsriLegendNonState,
         hmwLegendNode,
-        additionalLegendInfo,
+        additionalLegendInfoNonState,
       );
     });
 
