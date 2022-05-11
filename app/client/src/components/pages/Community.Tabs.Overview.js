@@ -264,8 +264,7 @@ function Overview() {
 
       <div css={keyMetricsStyles}>
         <div css={keyMetricStyles}>
-          {(!waterbodyLayer || waterbodies === null) &&
-          cipSummary.status !== 'failure' ? (
+          {waterbodies === null && cipSummary.status !== 'failure' ? (
             <LoadingSpinner />
           ) : (
             <>

@@ -135,7 +135,6 @@ function useWaterbodyFeatures() {
       !linesData ||
       !areasData ||
       !pointsData ||
-      waterbodyCountMismatch === null ||
       (waterbodyCountMismatch === true &&
         orphanFeatures &&
         orphanFeatures.status === 'fetching')
@@ -153,6 +152,9 @@ function useWaterbodyFeatures() {
       if (!features || features.length !== 0) setFeatures([]);
       return;
     }
+
+    if (huc12 === '' && features === null) setFeatures([]);
+
     if (huc12 === lastHuc12) return;
 
     setLastHuc12(huc12);
