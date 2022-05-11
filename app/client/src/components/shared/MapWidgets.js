@@ -619,14 +619,14 @@ function MapWidgets({
 
   // Fetch additional legend information. Data is stored in a dictionary
   // where the key is the layer id.
-  const [additioanlLegendInitialized, setAdditionalLegendInitialized] =
+  const [additionalLegendInitialized, setAdditionalLegendInitialized] =
     useState(false);
   const [additionalLegendInfo, setAdditionalLegendInfo] = useState({
     status: 'fetching',
     data: {},
   });
   useEffect(() => {
-    if (additioanlLegendInitialized) return;
+    if (additionalLegendInitialized) return;
 
     setAdditionalLegendInitialized(true);
 
@@ -658,7 +658,7 @@ function MapWidgets({
         };
         setAdditionalLegendInfo(additionalLegendInfoNonState);
       });
-  }, [additioanlLegendInitialized, services]);
+  }, [additionalLegendInitialized, services]);
 
   // Creates and adds the basemap/layer list widget to the map
   const [layerListWidget, setLayerListWidget] = useState(null);
