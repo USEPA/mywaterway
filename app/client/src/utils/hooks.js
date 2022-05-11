@@ -135,6 +135,7 @@ function useWaterbodyFeatures() {
       !linesData ||
       !areasData ||
       !pointsData ||
+      waterbodyCountMismatch === null ||
       (waterbodyCountMismatch === true &&
         orphanFeatures &&
         orphanFeatures.status === 'fetching')

@@ -443,7 +443,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // to build a complete feature that can be displayed in the Community section,
   // These features are marked by a custom attribute {... limited: true ...} and they lack spatial representation on the map.
   const [assessmentUnitCount, setAssessmentUnitCount] = useState(0);
-  const [checkedForOrphans, setCheckedForOrphans] = useState(false);
+  const [checkedForOrphans, setCheckedForOrphans] = useState(null);
   useEffect(() => {
     if (
       organizations.status === 'fetching' ||
@@ -452,78 +452,82 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       return;
     }
 
-    if (!checkedForOrphans && areasData && linesData && pointsData) {
-      setCheckedForOrphans(true);
-      const allFeatures = getAllFeatures();
+    if (areasData && linesData && pointsData) {
+      if (checkedForOrphans === false) {
+        setCheckedForOrphans(true);
+        const allFeatures = getAllFeatures();
 
-      const uniqueWaterbodies = allFeatures
-        ? getUniqueWaterbodies(allFeatures)
-        : [];
+        const uniqueWaterbodies = allFeatures
+          ? getUniqueWaterbodies(allFeatures)
+          : [];
 
-      if (uniqueWaterbodies.length < assessmentUnitCount) {
-        if (waterbodyCountMismatch) return;
-        if (assessmentUnitIDs.length === 0) return;
+        if (uniqueWaterbodies.length < assessmentUnitCount) {
+          if (waterbodyCountMismatch) return;
+          if (assessmentUnitIDs.length === 0) return;
 
-        const gisIDs = uniqueWaterbodies.map(
-          (feature) => feature.attributes.assessmentunitidentifier,
-        );
+          const gisIDs = uniqueWaterbodies.map(
+            (feature) => feature.attributes.assessmentunitidentifier,
+          );
 
-        const orphanIDs = assessmentUnitIDs.filter(
-          (id) => !gisIDs.includes(id),
-        );
+          const orphanIDs = assessmentUnitIDs.filter(
+            (id) => !gisIDs.includes(id),
+          );
 
-        if (orphanIDs.length === 0) return;
-        setWaterbodyCountMismatch(true);
+          if (orphanIDs.length === 0) return;
+          setWaterbodyCountMismatch(true);
 
-        window.logToGa('send', 'exception', {
-          exDescription: `huc12Summary service contained ${assessmentUnitCount} Assessment Unit IDs but the GIS service contained ${
-            uniqueWaterbodies.length
-          } features for HUC ${huc12}. Assessment Unit IDs not found in GIS service: (${orphanIDs.join(
-            ', ',
-          )})`,
-          exFatal: false,
-        });
-
-        setOrphanFeatures({ features: [], status: 'fetching' });
-
-        // fetch the ATTAINS Domains service Parameter Names so we can populate the Waterbody Parameters later on
-        fetchCheck(
-          `${services.data.attains.serviceUrl}domains?domainName=ParameterName`,
-        )
-          .then((res) => {
-            if (!res || res.length === 0) {
-              setOrphanFeatures({ features: [], status: 'error' });
-              return;
-            }
-
-            const attainsDomainsData = res;
-
-            const url =
-              `${services.data.attains.serviceUrl}` +
-              `assessmentUnits?assessmentUnitIdentifier=${orphanIDs.join(',')}`;
-
-            fetchCheck(url)
-              .then((resUnits) => {
-                if (
-                  !resUnits ||
-                  !resUnits.items ||
-                  resUnits.items.length === 0
-                ) {
-                  setOrphanFeatures({ features: [], status: 'error' });
-                  return;
-                }
-                handleOrphanedFeatures(resUnits, attainsDomainsData, orphanIDs);
-              })
-              .catch((err) => {
-                console.error(err);
-                setOrphanFeatures({ features: [], status: 'error' });
-              });
-          })
-          .catch((err) => {
-            console.error(err);
-            setOrphanFeatures({ features: [], status: 'error' });
+          window.logToGa('send', 'exception', {
+            exDescription: `huc12Summary service contained ${assessmentUnitCount} Assessment Unit IDs but the GIS service contained ${
+              uniqueWaterbodies.length
+            } features for HUC ${huc12}. Assessment Unit IDs not found in GIS service: (${orphanIDs.join(
+              ', ',
+            )})`,
+            exFatal: false,
           });
-      } else {
+
+          setOrphanFeatures({ features: [], status: 'fetching' });
+
+          // fetch the ATTAINS Domains service Parameter Names so we can populate the Waterbody Parameters later on
+          fetchCheck(
+            `${services.data.attains.serviceUrl}domains?domainName=ParameterName`,
+          )
+            .then((res) => {
+              if (!res || res.length === 0) {
+                setOrphanFeatures({ features: [], status: 'error' });
+                return;
+              }
+
+              const attainsDomainsData = res;
+
+              const url =
+                `${services.data.attains.serviceUrl}` +
+                `assessmentUnits?assessmentUnitIdentifier=${orphanIDs.join(',')}`;
+
+              fetchCheck(url)
+                .then((resUnits) => {
+                  if (
+                    !resUnits ||
+                    !resUnits.items ||
+                    resUnits.items.length === 0
+                  ) {
+                    setOrphanFeatures({ features: [], status: 'error' });
+                    return;
+                  }
+                  handleOrphanedFeatures(resUnits, attainsDomainsData, orphanIDs);
+                })
+                .catch((err) => {
+                  console.error(err);
+                  setOrphanFeatures({ features: [], status: 'error' });
+                });
+            })
+            .catch((err) => {
+              console.error(err);
+              setOrphanFeatures({ features: [], status: 'error' });
+            });
+        } else {
+          setWaterbodyCountMismatch(false);
+        }
+      } else if (checkedForOrphans === null) {
         setWaterbodyCountMismatch(false);
       }
     }
@@ -1898,6 +1902,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     if (layers.length === 0 || searchText === lastSearchText) return;
 
     resetData();
+    setCheckedForOrphans(null);
     setMapLoading(true);
     setHucResponse(null);
     setErrorMessage('');
