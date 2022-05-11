@@ -210,7 +210,8 @@ function Protect() {
 
   // normalize grts projects data with attains plans data
   useEffect(() => {
-    if (grts.status === 'fetching' || grts.data.items.length === 0) return;
+    if (grts.status === 'fetching') return;
+    if (!grts.data.items?.length) return setNormalizedGrtsProjects([]);
 
     const grtsProjects = grts.data.items
       .filter(
@@ -243,8 +244,8 @@ function Protect() {
   // normalize attains plans data with grts projects data
   useEffect(() => {
     if (attainsPlans.status === 'fetching') return;
-    if (!attainsPlans.data.items) return;
-    if (attainsPlans.data.items.length === 0) return;
+    if (!attainsPlans.data.items?.length)
+      return setNormalizedAttainsProjects([]);
 
     const attainsProjects = [];
     attainsPlans.data.items.forEach((plan) => {
