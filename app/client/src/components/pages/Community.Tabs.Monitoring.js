@@ -225,7 +225,8 @@ function Monitoring() {
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {usgsStreamgages.status === 'failure'
+                {usgsStreamgages.status === 'failure' ||
+                !usgsStreamgages.data.value
                   ? 'N/A'
                   : `${usgsStreamgages.data.value?.length}`}
               </span>
@@ -260,9 +261,10 @@ function Monitoring() {
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {monitoringLocations.status === 'failure'
+                {monitoringLocations.status === 'failure' ||
+                !monitoringLocations.data.features
                   ? 'N/A'
-                  : `${monitoringLocations.data.features.length}`}
+                  : `${monitoringLocations.data.features?.length}`}
               </span>
               <p css={keyMetricLabelStyles}>Sample Locations</p>
               <div css={switchContainerStyles}>
@@ -347,7 +349,7 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
   // normalize USGS streamgages data with monitoring stations data,
   // and draw them on the map
   useEffect(() => {
-    if (!usgsStreamgages.data.value) return;
+    if (!usgsStreamgages.data.value) return setNormalizedUsgsStreamgages([]);
 
     const gages = usgsStreamgages.data.value.map((gage) => {
       const streamgageMeasurements = { primary: [], secondary: [] };
