@@ -604,8 +604,8 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
           {layerName}
         </GlossaryTerm>
 
-        {Object.entries(subLegends).map(([name, legend], index) => (
-          <Fragment key={index}>
+        {Object.entries(subLegends).map(([name, legend], outerIndex) => (
+          <Fragment key={outerIndex}>
             <div css={subLayerLabelStyles}>{name}</div>
 
             <ul css={[nestedUl, { marginBottom: '0.5rem' }]}>
