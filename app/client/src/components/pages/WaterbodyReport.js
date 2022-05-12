@@ -50,16 +50,14 @@ const containerStyles = css`
   table {
     margin-top: 0.75rem;
     margin-bottom: 0.75rem;
-  }
-
-  .table-container {
-    overflow: scroll;
+    table-layout: fixed;
   }
 
   th,
   td {
     font-size: 0.875rem;
     line-height: 1.25;
+    overflow-wrap: break-word;
 
     &:last-child {
       text-align: right;
@@ -1306,7 +1304,7 @@ function WaterbodyReport({ fullscreen }: Props) {
                         </div>
                       )}
                       {waterbodyActions.status === 'success' && (
-                        <div className="table-container">
+                        <>
                           {waterbodyActions.data.length === 0 ? (
                             <p>No plans specified for this waterbody.</p>
                           ) : (
@@ -1363,7 +1361,7 @@ function WaterbodyReport({ fullscreen }: Props) {
                               </table>
                             </>
                           )}
-                        </div>
+                        </>
                       )}
                     </div>
                   </div>
