@@ -38,7 +38,7 @@ const topLinksStyles = css`
     text-align: center;
     list-style: none;
 
-    @media (min-width: 30em) {
+    @media (min-width: 35em) {
       right: 0;
       margin: 0.375rem;
       width: auto;
@@ -94,7 +94,7 @@ const topLinksStyles = css`
       text-align: center;
     }
 
-    @media (min-width: 30em) {
+    @media (min-width: 35em) {
       display: inline-block;
       font-size: 0.8125rem;
 
