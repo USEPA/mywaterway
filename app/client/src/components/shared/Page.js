@@ -7,9 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import esriConfig from '@arcgis/core/config';
 // components
 import NavBar from 'components/shared/NavBar';
+import DataContent from 'components/shared/DataContent';
 import AboutContent from 'components/shared/AboutContent';
 import EducatorsContent from 'components/shared/EducatorsContent';
-import DataContent from 'components/shared/DataContent';
 import GlossaryPanel from 'components/shared/GlossaryPanel';
 // contexts
 import { GlossaryContext } from 'contexts/Glossary';
@@ -301,8 +301,8 @@ function Page({ children }: Props) {
               title="Data"
               onClick={(_ev) => {
                 if (window.location.pathname !== '/data') {
-                  setAboutDisplayed(false);
                   setDataDisplayed(true);
+                  setAboutDisplayed(false);
                   setEducatorsDisplayed(false);
                 }
               }}
@@ -378,17 +378,6 @@ function Page({ children }: Props) {
         </div>
       </div>
 
-      {aboutDisplayed && (
-        <>
-          <NavBar
-            title="About"
-            onBackClick={(_ev) => setAboutDisplayed(false)}
-          />
-
-          <AboutContent />
-        </>
-      )}
-
       {dataDisplayed && (
         <>
           <NavBar
@@ -397,6 +386,17 @@ function Page({ children }: Props) {
           />
 
           <DataContent />
+        </>
+      )}
+
+      {aboutDisplayed && (
+        <>
+          <NavBar
+            title="About"
+            onBackClick={(_ev) => setAboutDisplayed(false)}
+          />
+
+          <AboutContent />
         </>
       )}
 
