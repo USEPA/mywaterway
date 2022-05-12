@@ -3096,6 +3096,156 @@
     "year": "2022",
     "subPopulationCode": "Statewide",
     "waterTypeGroupCode": "LAKE/RESERVOIR/POND",
+    "surveyUseCode": "AQUATIC LIFE INTEGRITY",
+    "categoryCodeMapping": [
+      {
+        "surveyCategoryCode": "Not Supporting",
+        "categoryCode_label": "Not Supporting",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "surveyCategoryCode": "Fully Supporting",
+        "categoryCode_label": "Fully Supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      }
+    ],
+    "stressorMapping": [
+      {
+        "stressor": "PHOSPHORUS, TOTAL",
+        "surveyCategoryCode": "Fully Supporting",
+        "categoryCode_label": "Fully Supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      },
+      {
+        "stressor": "PHOSPHORUS, TOTAL",
+        "surveyCategoryCode": "Not Supporting",
+        "categoryCode_label": "Not Supporting",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "PHOSPHORUS, TOTAL",
+        "surveyCategoryCode": "Potentially Not Supporting",
+        "categoryCode_label": "Potentially Not Supporting",
+        "categoryCode_order": "3",
+        "categoryCode_color": "#FFFF00"
+      },
+      {
+        "stressor": "PHOSPHORUS, TOTAL",
+        "surveyCategoryCode": "Insufficient Information",
+        "categoryCode_label": "Insufficient Information",
+        "categoryCode_order": "4",
+        "categoryCode_color": "#6b4195"
+      },
+      {
+        "stressor": "PH",
+        "surveyCategoryCode": "Fully Supporting",
+        "categoryCode_label": "Fully Supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      },
+      {
+        "stressor": "PH",
+        "surveyCategoryCode": "Not Supporting",
+        "categoryCode_label": "Not Supporting",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "NON-NATIVE AQUATIC PLANTS",
+        "surveyCategoryCode": "Fully Supporting",
+        "categoryCode_label": "Fully Supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      },
+      {
+        "stressor": "NON-NATIVE AQUATIC PLANTS",
+        "surveyCategoryCode": "Not Supporting",
+        "categoryCode_label": "Not Supporting",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "DISSOLVED OXYGEN SATURATION",
+        "surveyCategoryCode": "Fully Supporting",
+        "categoryCode_label": "Fully Supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      },
+      {
+        "stressor": "DISSOLVED OXYGEN SATURATION",
+        "surveyCategoryCode": "Not Supporting",
+        "categoryCode_label": "Not Supporting",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "DISSOLVED OXYGEN SATURATION",
+        "surveyCategoryCode": "Insufficient Information",
+        "categoryCode_label": "Insufficient Information",
+        "categoryCode_order": "4",
+        "categoryCode_color": "#6b4195"
+      },
+      {
+        "stressor": "DISSOLVED OXYGEN",
+        "surveyCategoryCode": "Fully Supporting",
+        "categoryCode_label": "Fully Supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      },
+      {
+        "stressor": "DISSOLVED OXYGEN",
+        "surveyCategoryCode": "Not Supporting",
+        "categoryCode_label": "Not Supporting",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "DISSOLVED OXYGEN",
+        "surveyCategoryCode": "Insufficient Information",
+        "categoryCode_label": "Insufficient Information",
+        "categoryCode_order": "4",
+        "categoryCode_color": "#6b4195"
+      },
+      {
+        "stressor": "CHLOROPHYLL-A",
+        "surveyCategoryCode": "Fully Supporting",
+        "categoryCode_label": "Fully Supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      },
+      {
+        "stressor": "CHLOROPHYLL-A",
+        "surveyCategoryCode": "Not Supporting",
+        "categoryCode_label": "Not Supporting",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "CHLOROPHYLL-A",
+        "surveyCategoryCode": "Insufficient Information",
+        "categoryCode_label": "Insufficient Information",
+        "categoryCode_order": "4",
+        "categoryCode_color": "#6b4195"
+      },
+      {
+        "stressor": "CHLORIDE",
+        "surveyCategoryCode": "Fully Supporting",
+        "categoryCode_label": "Fully Supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      }
+    ]
+  },
+  {
+    "state": "NH",
+    "organizationIdentifier": "11113300",
+    "year": "2022",
+    "subPopulationCode": "Statewide",
+    "waterTypeGroupCode": "LAKE/RESERVOIR/POND",
     "surveyUseCode": "PRIMARY CONTACT RECREATION",
     "categoryCodeMapping": [
       {
