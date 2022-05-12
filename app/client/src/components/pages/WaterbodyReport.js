@@ -52,6 +52,10 @@ const containerStyles = css`
     margin-bottom: 0.75rem;
   }
 
+  .table-container {
+    overflow: scroll;
+  }
+
   th,
   td {
     font-size: 0.875rem;
@@ -1302,7 +1306,7 @@ function WaterbodyReport({ fullscreen }: Props) {
                         </div>
                       )}
                       {waterbodyActions.status === 'success' && (
-                        <>
+                        <div className="table-container">
                           {waterbodyActions.data.length === 0 ? (
                             <p>No plans specified for this waterbody.</p>
                           ) : (
@@ -1359,7 +1363,7 @@ function WaterbodyReport({ fullscreen }: Props) {
                               </table>
                             </>
                           )}
-                        </>
+                        </div>
                       )}
                     </div>
                   </div>
