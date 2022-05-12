@@ -1,108 +1,96 @@
+// @flow
+
+import { useEffect } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
-import { educatorContentError } from 'config/errorMessages';
+// contexts
 import { useEducatorMaterialsContext } from 'contexts/LookupFiles';
-import { usePreviousUrl } from 'utils/hooks';
-// styles
-import { fonts } from 'styles/index.js';
-
-const containerStyles = css`
-  font-family: ${fonts.primary};
-  padding: 1rem;
-
-  section {
-    padding-bottom: 1em;
-    line-height: 1.375;
-  }
-
-  ul {
-    padding-bottom: 0;
-  }
-
-  li {
-    margin-bottom: 0.25em;
-  }
-
-  @media (min-width: 30em) {
-    padding: 2rem;
-
-    hr {
-      margin-top: 1rem;
-    }
-  }
-`;
+// config
+import { educatorContentError } from 'config/errorMessages';
 
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles}
-
-  p {
-    padding-bottom: 0;
-  }
   margin-bottom: 1.25rem;
 `;
 
-const promptStyles = css`
-  h2,
-  h3 {
-    display: block;
-    margin-bottom: 0.25rem;
-    font-family: ${fonts.primary};
-    font-weight: bold;
-    padding-bottom: 0;
-  }
-  h2 {
-    font-size: 1.125em;
-    line-height: 1.125;
-  }
-  h3 {
-    font-size: 1em;
-    line-height: 1.125;
-    a {
-      font-size: 1.125em;
-    }
-  }
+const disclaimerStyles = css`
+  display: inline-block;
 `;
 
 function EducatorsContent() {
-  usePreviousUrl('educators');
-  const { data, status: dataStatus } = useEducatorMaterialsContext();
+  useEffect(() => {
+    // get the original url
+    const href = window.location.href;
 
-  const links = data.links?.map((link, index) => (
-    <li key={index}>
-      {link.description}:
-      <br />
-      <a href={link.url}>{link.url}</a>
-    </li>
-  ));
+    // get the pathname without the leading /
+    const pathname = window.location.pathname.substr(1);
+
+    // build the url for the current page
+    let newHref = '';
+    if (pathname) {
+      newHref = href.replace(pathname, 'educators');
+    } else {
+      newHref = `${href}educators`;
+    }
+
+    // change the browser address bar without reloading the page
+    window.history.pushState(null, null, newHref);
+
+    // when the user hits the back button change the url back to the original
+    return function cleanup() {
+      // exit early, if user clicked the banner link or the original path
+      // is the current page.
+      if (window.location.pathname === '/' || pathname === 'educators') return;
+
+      window.history.pushState(null, null, href);
+    };
+  }, []);
+
+  const { data, status } = useEducatorMaterialsContext();
 
   return (
-    <div className="container" css={containerStyles}>
-      <h1>Educational Materials from How's My Waterway</h1>
+    <>
+      <h2>Educational Materials from How’s My Waterway</h2>
       <hr />
-      <section>
-        {dataStatus === 'fetching' ? (
-          <LoadingSpinner />
-        ) : dataStatus === 'failure' ? (
-          <div css={modifiedErrorBoxStyles}>{educatorContentError}</div>
-        ) : (
-          <ul>{links}</ul>
-        )}
-      </section>
-      <section css={promptStyles}>
-        <h2>
-          If you're an educator, we would like to know how you're using{' '}
-          <em>How's My Waterway</em>.
-        </h2>
-        <h3>
-          Please contact us here:{' '}
-          <a href="https://www.epa.gov/waterdata/forms/contact-us-about-hows-my-waterway">
-            Contact Form
-          </a>
-        </h3>
-      </section>
-    </div>
+
+      {status === 'failure' && (
+        <div css={modifiedErrorBoxStyles}>
+          <p>{educatorContentError}</p>
+        </div>
+      )}
+
+      {status === 'fetching' && <LoadingSpinner />}
+
+      {status === 'success' && (
+        <ul>
+          {data.links.map((link, index) => (
+            <li key={index}>
+              {link.description}:
+              <br />
+              <a href={link.url}>{link.url}</a>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <h3>
+        If you’re an educator, we would like to know how you're using{' '}
+        <em>How’s My Waterway</em>.
+      </h3>
+      <p>
+        <a
+          href="https://www.epa.gov/waterdata/forms/contact-us-about-hows-my-waterway"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Contact us
+        </a>
+        &nbsp;&nbsp;
+        <small css={disclaimerStyles}>(opens new browser tab)</small>
+      </p>
+    </>
   );
 }
 

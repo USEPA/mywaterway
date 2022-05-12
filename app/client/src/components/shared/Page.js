@@ -299,7 +299,7 @@ function Page({ children }: Props) {
           <li>
             <button
               title="Data"
-              onClick={() => {
+              onClick={(_ev) => {
                 if (window.location.pathname !== '/data') {
                   setAboutDisplayed(false);
                   setDataDisplayed(true);
@@ -362,7 +362,7 @@ function Page({ children }: Props) {
         <div css={textStyles}>
           <span
             css={titleStyles}
-            onClick={() => {
+            onClick={(_ev) => {
               if (dataDisplayed) setDataDisplayed(false);
               if (aboutDisplayed) setAboutDisplayed(false);
               if (educatorsDisplayed) setEducatorsDisplayed(false);
@@ -380,7 +380,10 @@ function Page({ children }: Props) {
 
       {aboutDisplayed && (
         <>
-          <NavBar title="About" onBackClick={() => setAboutDisplayed(false)} />
+          <NavBar
+            title="About"
+            onBackClick={(_ev) => setAboutDisplayed(false)}
+          />
 
           <AboutContent />
         </>
@@ -390,7 +393,7 @@ function Page({ children }: Props) {
         <>
           <NavBar
             title="About the Data"
-            onBackClick={() => setDataDisplayed(false)}
+            onBackClick={(_ev) => setDataDisplayed(false)}
           />
 
           <DataContent />
@@ -401,7 +404,7 @@ function Page({ children }: Props) {
         <>
           <NavBar
             title="Educators"
-            onBackClick={() => setEducatorsDisplayed(false)}
+            onBackClick={(_ev) => setEducatorsDisplayed(false)}
           />
 
           <EducatorsContent />
