@@ -187,13 +187,13 @@ function Page({ children }: Props) {
 
   useEffect(() => {
     function handleHistoryChange(ev) {
-      if (ev.target.origin !== window.location.origin) {
-        return;
-      }
-      if (window.location.pathname !== '/data') setDataDisplayed(false);
-      if (window.location.pathname !== '/about') setAboutDisplayed(false);
-      if (window.location.pathname !== '/educators')
-        setEducatorsDisplayed(false);
+      const { origin, pathname } = window.location;
+
+      if (ev.target.origin !== origin) return;
+
+      if (pathname !== '/data') setDataDisplayed(false);
+      if (pathname !== '/about') setAboutDisplayed(false);
+      if (pathname !== '/educators') setEducatorsDisplayed(false);
     }
 
     window.addEventListener('popstate', handleHistoryChange);
@@ -315,7 +315,7 @@ function Page({ children }: Props) {
           <li>
             <button
               title="About"
-              onClick={() => {
+              onClick={(_ev) => {
                 if (window.location.pathname !== '/about') {
                   setDataDisplayed(false);
                   setAboutDisplayed(true);
@@ -331,7 +331,7 @@ function Page({ children }: Props) {
           <li>
             <button
               title="Educators"
-              onClick={() => {
+              onClick={(_ev) => {
                 if (window.location.pathname !== '/educators') {
                   setDataDisplayed(false);
                   setAboutDisplayed(false);
