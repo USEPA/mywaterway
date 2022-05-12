@@ -1,6 +1,4 @@
 import React, { Component, createContext } from 'react';
-import { Navigate } from 'react-router-dom';
-import { resetCanonicalLink, removeJsonLD } from 'utils/utils';
 
 export const LocationSearchContext = createContext();
 
@@ -723,34 +721,25 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
 
     setNoDataAvailable: () => {
-      // reset canonical geoconnex PID link
-      resetCanonicalLink();
-
-      // remove JSON LD context script
-      removeJsonLD();
-
-      this.setState(
-        {
-          huc12: '',
-          assessmentUnitIDs: null,
-          watershed: '',
-          pointsData: [],
-          linesData: [],
-          areasData: [],
-          orphanFeatures: { status: 'fetching', features: [] },
-          waterbodyCountMismatch: null,
-          countyBoundaries: '',
-          monitoringLocations: { status: 'success', data: {} },
-          permittedDischargers: { status: 'success', data: {} },
-          nonprofits: { status: 'success', data: [] },
-          grts: { status: 'success', data: [] },
-          attainsPlans: { status: 'success', data: {} },
-          cipSummary: { status: 'success', data: {} },
-          drinkingWater: { status: 'success', data: [] },
-          visibleLayers: {},
-        },
-        () => <Navigate to="/community" />,
-      );
+      this.setState({
+        huc12: '',
+        assessmentUnitIDs: null,
+        watershed: '',
+        pointsData: [],
+        linesData: [],
+        areasData: [],
+        orphanFeatures: { status: 'fetching', features: [] },
+        waterbodyCountMismatch: null,
+        countyBoundaries: '',
+        monitoringLocations: { status: 'success', data: {} },
+        permittedDischargers: { status: 'success', data: {} },
+        nonprofits: { status: 'success', data: [] },
+        grts: { status: 'success', data: [] },
+        attainsPlans: { status: 'success', data: {} },
+        cipSummary: { status: 'success', data: {} },
+        drinkingWater: { status: 'success', data: [] },
+        visibleLayers: {},
+      });
 
       // remove map content
       this.state.resetMap(true);

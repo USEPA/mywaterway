@@ -10,6 +10,7 @@ import React, {
 import type { Node } from 'react';
 import { css } from 'styled-components/macro';
 import StickyBox from 'react-sticky-box';
+import { useNavigate } from 'react-router-dom';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
@@ -59,6 +60,8 @@ import {
   splitSuggestedSearch,
   browserIsCompatibleWithArcGIS,
   percentRank,
+  resetCanonicalLink,
+  removeJsonLD,
 } from 'utils/utils';
 // styles
 import 'styles/mapStyles.css';
@@ -99,6 +102,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const fetchedDataDispatch = useFetchedDataDispatch();
   const organizations = useOrganizationsContext();
   const services = useServicesContext();
+  const navigate = useNavigate();
 
   const {
     searchText,
@@ -1596,6 +1600,24 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     ],
   );
 
+  // Clears state and navigates back to the community home page
+  // when there is no data available.
+  const handleNoDataAvailable = useCallback(
+    (errorMessage) => {
+      // reset canonical geoconnex PID link
+      resetCanonicalLink();
+
+      // remove JSON LD context script
+      removeJsonLD();
+
+      navigate('/community');
+      setNoDataAvailable();
+      setMapLoading(false);
+      setErrorMessage(errorMessage);
+    },
+    [navigate, setErrorMessage, setNoDataAvailable],
+  );
+
   const [hucResponse, setHucResponse] = useState(null);
   const handleHUC12 = useCallback(
     (response) => {
@@ -1620,14 +1642,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           createJsonLD(huc12, response.features[0].attributes.name);
         } catch (err) {
           console.error(err);
-          setNoDataAvailable();
-          setMapLoading(false);
-          setErrorMessage(noDataAvailableError);
+          handleNoDataAvailable(noDataAvailableError);
         }
       } else {
-        setNoDataAvailable();
-        setMapLoading(false);
-        setErrorMessage(noDataAvailableError);
+        handleNoDataAvailable(noDataAvailableError);
       }
     },
     [
@@ -1640,8 +1658,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       fetchUsgsDailyAverages,
       queryPermittedDischargersService,
       setHuc12,
-      setNoDataAvailable,
-      setErrorMessage,
+      handleNoDataAvailable,
     ],
   );
 
@@ -1728,9 +1745,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           if (candidates.length === 0 || !location || !location.attributes) {
             const newAddress = coordinatesPart ? searchPart : searchText;
             setAddress(newAddress); // preserve the user's search so it is displayed
-            setNoDataAvailable();
-            setMapLoading(false);
-            setErrorMessage(noDataAvailableError);
+            handleNoDataAvailable(noDataAvailableError);
             return;
           }
 
@@ -1778,9 +1793,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                 console.error(err);
                 const newAddress = coordinatesPart ? searchPart : searchText;
                 setAddress(newAddress); // preserve the user's search so it is displayed
-                setNoDataAvailable();
-                setErrorMessage(watersgeoError);
-                setMapLoading(false);
+                handleNoDataAvailable(watersgeoError);
               });
           }
 
@@ -1843,9 +1856,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             console.error(err);
             const newAddress = coordinatesPart ? searchPart : searchText;
             setAddress(newAddress); // preserve the user's search so it is displayed
-            setNoDataAvailable();
-            setErrorMessage(geocodeError);
-            setMapLoading(false);
+            handleNoDataAvailable(geocodeError);
             return;
           }
 
@@ -1881,8 +1892,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       setCountyBoundaries,
       setDrinkingWater,
       setFIPS,
-      setNoDataAvailable,
-      setErrorMessage,
+      handleNoDataAvailable,
       services,
     ],
   );
@@ -1904,9 +1914,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           .then((response) => {
             if (response.features.length === 0) {
               // flag no data available for no response
-              setMapLoading(false);
-              setErrorMessage(noDataAvailableError);
-              setNoDataAvailable();
+              handleNoDataAvailable(noDataAvailableError);
             }
 
             // process the results
@@ -1922,21 +1930,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           })
           .catch((err) => {
             console.error(err);
-            setMapLoading(false);
-            setErrorMessage(noDataAvailableError);
-            setNoDataAvailable();
+            handleNoDataAvailable(noDataAvailableError);
           });
       } else {
         // If not HUC12, get address first
         processGeocodeServerResults(searchText);
       }
     },
-    [
-      processGeocodeServerResults,
-      setNoDataAvailable,
-      setErrorMessage,
-      services,
-    ],
+    [processGeocodeServerResults, handleNoDataAvailable, services],
   );
 
   useEffect(() => {
