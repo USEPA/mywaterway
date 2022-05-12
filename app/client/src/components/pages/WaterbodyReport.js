@@ -1204,6 +1204,7 @@ function WaterbodyReport({ fullscreen }: Props) {
                           ) : (
                             <ReactTable
                               data={waterbodySources.data}
+                              placeholder="Filter..."
                               striped={false}
                               getColumns={(tableWidth) => {
                                 const columnWidth = 2 * (tableWidth / 5) - 1;

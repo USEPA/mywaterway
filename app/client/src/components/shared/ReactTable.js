@@ -22,22 +22,22 @@ const inputStyles = css`
   outline-width: 0;
 `;
 
-function generateFilterInput({
-  column: { filterValue, preFilteredRows, setFilter },
-}) {
-  return (
-    <input
-      css={inputStyles}
-      type="text"
-      placeholder="Filter column..."
-      value={filterValue ? filterValue : ''}
-      onClick={(event) => event.stopPropagation()}
-      onChange={
-        (event) => setFilter(event.target.value || undefined) // Set undefined to remove the filter entirely
-      }
-      aria-label="Filter column..."
-    />
-  );
+function generateFilterInput(placeholder = 'Filter column...') {
+  return ({ column: { filterValue, preFilteredRows, setFilter } }) => {
+    return (
+      <input
+        css={inputStyles}
+        type="text"
+        placeholder={placeholder}
+        value={filterValue ? filterValue : ''}
+        onClick={(event) => event.stopPropagation()}
+        onChange={
+          (event) => setFilter(event.target.value || undefined) // Set undefined to remove the filter entirely
+        }
+        aria-label="Filter column..."
+      />
+    );
+  };
 }
 
 const containerStyles = css`
@@ -130,10 +130,11 @@ const containerStyles = css`
 type Props = {
   data: Array<Object>,
   getColumns: Function,
+  placeholder: ?string,
   striped: ?boolean,
 };
 
-function ReactTable({ data, getColumns, striped = false }: Props) {
+function ReactTable({ data, getColumns, placeholder, striped = false }: Props) {
   // Initializes the column widths based on the table width
   const [tableWidth, setTableWidth] = useState(0);
   const columns = useMemo(() => {
@@ -147,9 +148,9 @@ function ReactTable({ data, getColumns, striped = false }: Props) {
       minWidth: 50, // minWidth is only used as a limit for resizing
       width: 150, // width is used for both the flex-basis and flex-grow
       maxWidth: 1000, // maxWidth is only used as a limit for resizing
-      Filter: generateFilterInput,
+      Filter: generateFilterInput(placeholder),
     }),
-    [],
+    [placeholder],
   );
 
   const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
