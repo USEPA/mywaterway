@@ -400,7 +400,7 @@ function Page({ children }: Props) {
       {educatorsDisplayed && (
         <>
           <NavBar
-            title="Eduators"
+            title="Educators"
             onBackClick={() => setEducatorsDisplayed(false)}
           />
 
