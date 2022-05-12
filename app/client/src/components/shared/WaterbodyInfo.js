@@ -193,8 +193,6 @@ type Props = {
   feature: ?Object,
   fieldName: ?string,
   extraContent: ?Object,
-  getClickedHuc: ?Function,
-  resetData: ?Function,
   services: ?Object,
   fields: ?Object,
 };
@@ -204,8 +202,6 @@ function WaterbodyInfo({
   feature,
   fieldName,
   extraContent,
-  getClickedHuc,
-  resetData,
   services,
   fields,
 }: Props) {
@@ -1095,6 +1091,17 @@ function WaterbodyInfo({
   return content;
 }
 
+type MapPopupProps = {
+  type: string,
+  feature: ?Object,
+  fieldName: ?string,
+  extraContent: ?Object,
+  getClickedHuc: ?Function,
+  resetData: ?Function,
+  services: ?Object,
+  fields: ?Object,
+};
+
 function MapPopup({
   type,
   feature,
@@ -1104,7 +1111,7 @@ function MapPopup({
   resetData,
   services,
   fields,
-}: Props) {
+}: MapPopupProps) {
   // Gets the response of what huc was clicked, if provided.
   const [clickedHuc, setClickedHuc] = useState<{
     status: 'none' | 'fetching' | 'success' | 'failure',
