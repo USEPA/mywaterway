@@ -12,6 +12,7 @@ import LocationMap from 'components/shared/LocationMap';
 import MapVisibilityButton from 'components/shared/MapVisibilityButton';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
+import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   CommunityTabsContext,
@@ -104,6 +105,8 @@ const mapContainerStyles = css`
 */
 
 function Community() {
+  const fetchedDataDispatch = useFetchedDataDispatch();
+
   const { activeTabIndex } = useContext(CommunityTabsContext);
 
   const { fullscreenActive } = useContext(FullscreenContext);
@@ -124,11 +127,12 @@ function Community() {
 
   useEffect(() => {
     return function cleanup() {
+      fetchedDataDispatch({ type: 'RESET_FETCHED_DATA' });
       resetData();
       setSearchText('');
       setLastSearchText('');
     };
-  }, [resetData, setLastSearchText, setSearchText]);
+  }, [fetchedDataDispatch, resetData, setLastSearchText, setSearchText]);
 
   const { setVisibleLayers } = useContext(LocationSearchContext);
 
@@ -144,11 +148,18 @@ function Community() {
   // reset data when navigating back to /community
   useEffect(() => {
     if (window.location.pathname === '/community') {
+      fetchedDataDispatch({ type: 'RESET_FETCHED_DATA' });
       resetData();
       setSearchText('');
       setLastSearchText('');
     }
-  }, [atCommunityIntroRoute, resetData, setSearchText, setLastSearchText]);
+  }, [
+    fetchedDataDispatch,
+    atCommunityIntroRoute,
+    resetData,
+    setSearchText,
+    setLastSearchText,
+  ]);
 
   // jsx
   const activeTabRoute = tabs[activeTabIndex === -1 ? 0 : activeTabIndex].route;

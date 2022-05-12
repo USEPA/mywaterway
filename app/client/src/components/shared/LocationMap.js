@@ -35,6 +35,7 @@ import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
+import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useOrganizationsContext,
@@ -95,6 +96,7 @@ type Props = {
 };
 
 function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
+  const fetchedDataDispatch = useFetchedDataDispatch();
   const organizations = useOrganizationsContext();
   const services = useServicesContext();
 
@@ -136,8 +138,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setAtHucBoundaries,
     mapView,
     setMonitoringLocations,
-    setUsgsStreamgages,
-    setUsgsDailyPrecipitation,
     // setNonprofits,
     setPermittedDischargers,
     setWaterbodyLayer,
@@ -1113,8 +1113,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [setMonitoringLocations, services],
   );
 
-  const queryUsgsStreamgageService = useCallback(
-    (huc12Param) => {
+  const fetchUsgsStreamgages = useCallback(
+    (huc12) => {
       const url =
         `${services.data.usgsSensorThingsAPI}?` +
         /**/ `$select=name,` +
@@ -1141,36 +1141,78 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         /*        */ `$orderBy=phenomenonTime desc` +
         /*      */ `)` +
         /*  */ `)&` +
-        /**/ `$filter=properties/hydrologicUnit eq '${huc12Param}'`;
+        /**/ `$filter=properties/hydrologicUnit eq '${huc12}'`;
+
+      fetchedDataDispatch({ type: 'USGS_STREAMGAGES/FETCH_REQUEST' });
 
       fetchCheck(url)
         .then((res) => {
-          setUsgsStreamgages({ status: 'success', data: res });
+          fetchedDataDispatch({
+            type: 'USGS_STREAMGAGES/FETCH_SUCCESS',
+            payload: res,
+          });
         })
         .catch((err) => {
           console.error(err);
-          setUsgsStreamgages({ status: 'failure', data: {} });
+          fetchedDataDispatch({ type: 'USGS_STREAMGAGES/FETCH_FAILURE' });
         });
     },
-    [services, setUsgsStreamgages],
+    [services, fetchedDataDispatch],
   );
 
-  const queryUsgsDailyValuesService = useCallback(
-    (huc12Param) => {
+  const fetchUsgsPrecipitation = useCallback(
+    (huc12) => {
       const url =
-        `${services.data.usgsDailyValues}?format=json&siteStatus=active` +
-        `&parameterCd=00045&statCd=00006&huc=${huc12Param.substring(0, 8)}`;
+        services.data.usgsDailyValues +
+        `?format=json` +
+        `&siteStatus=active` +
+        `&statCd=00006` + // statistics code: SUMMATION VALUES
+        `&parameterCd=00045` + // parameter code: Precipitation, total, inches
+        `&huc=${huc12.substring(0, 8)}`;
+
+      fetchedDataDispatch({ type: 'USGS_PRECIPITATION/FETCH_REQUEST' });
 
       fetchCheck(url)
         .then((res) => {
-          setUsgsDailyPrecipitation({ status: 'success', data: res });
+          fetchedDataDispatch({
+            type: 'USGS_PRECIPITATION/FETCH_SUCCESS',
+            payload: res,
+          });
         })
         .catch((err) => {
           console.error(err);
-          setUsgsDailyPrecipitation({ status: 'failure', data: {} });
+          fetchedDataDispatch({ type: 'USGS_PRECIPITATION/FETCH_FAILURE' });
         });
     },
-    [services, setUsgsDailyPrecipitation],
+    [services, fetchedDataDispatch],
+  );
+
+  const fetchUsgsDailyAverages = useCallback(
+    (huc12) => {
+      const url =
+        services.data.usgsDailyValues +
+        `?format=json` +
+        `&siteStatus=active` +
+        `&period=P7D` +
+        `&statCd=00003` + // statistics code: MEAN VALUES
+        `&parameterCd=all` +
+        `&huc=${huc12.substring(0, 8)}`;
+
+      fetchedDataDispatch({ type: 'USGS_DAILY_AVERAGES/FETCH_REQUEST' });
+
+      fetchCheck(url)
+        .then((res) => {
+          fetchedDataDispatch({
+            type: 'USGS_DAILY_AVERAGES/FETCH_SUCCESS',
+            payload: res,
+          });
+        })
+        .catch((err) => {
+          console.error(err);
+          fetchedDataDispatch({ type: 'USGS_DAILY_AVERAGES/FETCH_FAILURE' });
+        });
+    },
+    [services, fetchedDataDispatch],
   );
 
   const queryPermittedDischargersService = useCallback(
@@ -1561,19 +1603,21 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       if (response.features.length > 0) {
         try {
-          let huc12Result = response.features[0].attributes.huc12;
-          setHuc12(huc12Result);
+          const { huc12 } = response.features[0].attributes;
+
+          setHuc12(huc12);
           processBoundariesData(response);
-          queryMonitoringStationService(huc12Result);
-          queryUsgsStreamgageService(huc12Result);
-          queryUsgsDailyValuesService(huc12Result);
-          queryPermittedDischargersService(huc12Result);
-          queryGrtsHuc12(huc12Result);
-          queryAttainsPlans(huc12Result);
+          queryMonitoringStationService(huc12);
+          fetchUsgsStreamgages(huc12);
+          fetchUsgsPrecipitation(huc12);
+          fetchUsgsDailyAverages(huc12);
+          queryPermittedDischargersService(huc12);
+          queryGrtsHuc12(huc12);
+          queryAttainsPlans(huc12);
 
           // create canonical link and JSON LD
-          updateCanonicalLink(huc12Result);
-          createJsonLD(huc12Result, response.features[0].attributes.name);
+          updateCanonicalLink(huc12);
+          createJsonLD(huc12, response.features[0].attributes.name);
         } catch (err) {
           console.error(err);
           setNoDataAvailable();
@@ -1591,8 +1635,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       queryAttainsPlans,
       queryGrtsHuc12,
       queryMonitoringStationService,
-      queryUsgsStreamgageService,
-      queryUsgsDailyValuesService,
+      fetchUsgsStreamgages,
+      fetchUsgsPrecipitation,
+      fetchUsgsDailyAverages,
       queryPermittedDischargersService,
       setHuc12,
       setNoDataAvailable,
@@ -1897,6 +1942,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   useEffect(() => {
     if (layers.length === 0 || searchText === lastSearchText) return;
 
+    fetchedDataDispatch({ type: 'RESET_FETCHED_DATA' });
     resetData();
     setMapLoading(true);
     setHucResponse(null);
@@ -1904,6 +1950,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setLastSearchText(searchText);
     queryGeocodeServer(searchText);
   }, [
+    fetchedDataDispatch,
     searchText,
     lastSearchText,
     layers,

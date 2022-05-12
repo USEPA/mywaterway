@@ -15,6 +15,7 @@ import { AddDataWidgetProvider } from 'contexts/AddDataWidget';
 import { LocationSearchProvider } from 'contexts/locationSearch';
 import { GlossaryProvider } from 'contexts/Glossary';
 import { LookupFilesProvider } from 'contexts/LookupFiles';
+import { FetchedDataProvider } from 'contexts/FetchedData';
 // errors
 import { defaultErrorBoundaryMessage } from 'config/errorMessages';
 
@@ -36,16 +37,18 @@ function Root() {
   return (
     <BrowserRouter>
       <LookupFilesProvider>
-        <LocationSearchProvider>
-          <GlossaryProvider>
-            <AddDataWidgetProvider>
-              <GlobalStyle />
-              <ErrorBoundary message={defaultErrorBoundaryMessage}>
-                <AppRoutes />
-              </ErrorBoundary>
-            </AddDataWidgetProvider>
-          </GlossaryProvider>
-        </LocationSearchProvider>
+        <FetchedDataProvider>
+          <LocationSearchProvider>
+            <GlossaryProvider>
+              <AddDataWidgetProvider>
+                <GlobalStyle />
+                <ErrorBoundary message={defaultErrorBoundaryMessage}>
+                  <AppRoutes />
+                </ErrorBoundary>
+              </AddDataWidgetProvider>
+            </GlossaryProvider>
+          </LocationSearchProvider>
+        </FetchedDataProvider>
       </LookupFilesProvider>
     </BrowserRouter>
   );
