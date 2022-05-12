@@ -9,6 +9,7 @@ import Page from 'components/shared/Page';
 // styles
 import { fonts } from 'styles/index.js';
 
+// NOTE: matching styles used in tabs in `AboutContent` component
 const containerStyles = css`
   padding: 2rem;
 
