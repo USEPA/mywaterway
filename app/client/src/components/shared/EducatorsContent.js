@@ -9,6 +9,58 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { useEducatorMaterialsContext } from 'contexts/LookupFiles';
 // config
 import { educatorContentError } from 'config/errorMessages';
+// styles
+import { fonts } from 'styles/index.js';
+
+// NOTE: matching styles used in tabs in `AboutContent` component
+const containerStyles = css`
+  padding: 2rem;
+
+  & :first-child {
+    margin-top: 0;
+  }
+
+  h2,
+  h3 {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    font-family: ${fonts.primary};
+  }
+
+  h2 {
+    margin-top: 2rem;
+    font-size: 1.8em;
+
+    & + p {
+      margin-top: 0;
+    }
+  }
+
+  h3 {
+    margin-top: 1rem;
+    font-size: 1.2em;
+    font-weight: bold;
+  }
+
+  p {
+    margin-top: 0.5rem;
+    padding-bottom: 0;
+    line-height: 1.375;
+  }
+
+  ul {
+    padding-bottom: 0;
+  }
+
+  li {
+    line-height: 1.375;
+  }
+
+  hr {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+`;
 
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles}
@@ -51,7 +103,7 @@ function EducatorsContent() {
   const { data, status } = useEducatorMaterialsContext();
 
   return (
-    <>
+    <div css={containerStyles} className="container">
       <h2>Educational Materials from How’s My Waterway</h2>
       <hr />
 
@@ -90,7 +142,7 @@ function EducatorsContent() {
         &nbsp;&nbsp;
         <small css={disclaimerStyles}>(opens new browser tab)</small>
       </p>
-    </>
+    </div>
   );
 }
 

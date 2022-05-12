@@ -5,7 +5,6 @@ import { css } from 'styled-components/macro';
 import { Tab, Tabs, TabList, TabPanels, TabPanel } from '@reach/tabs';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import EducatorsContent from 'components/shared/EducatorsContent';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 // styles
@@ -112,7 +111,6 @@ function AboutContent() {
           <TabList>
             <Tab css={largeTabStyles}>About How’s My Waterway</Tab>
             <Tab css={largeTabStyles}>Questions and Answers</Tab>
-            <Tab css={largeTabStyles}>Educational Materials</Tab>
           </TabList>
 
           <TabPanels>
@@ -402,10 +400,6 @@ function AboutContent() {
                 &nbsp;&nbsp;
                 <small css={disclaimerStyles}>(opens new browser tab)</small>
               </p>
-            </TabPanel>
-
-            <TabPanel>
-              <EducatorsContent />
             </TabPanel>
           </TabPanels>
         </Tabs>
