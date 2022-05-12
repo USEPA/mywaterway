@@ -84,7 +84,7 @@ const itemStyles = css`
   }
 `;
 
-function Data() {
+function DataContent() {
   useEffect(() => {
     // get the original url
     const href = window.location.href;
@@ -612,4 +612,4 @@ function ScrollToTop({ id }: ScrollToTopProps) {
   );
 }
 
-export default Data;
+export default DataContent;
