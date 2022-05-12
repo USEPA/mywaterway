@@ -3121,20 +3121,20 @@
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
-        "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e"
-      },
-      {
-        "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Potentially Not Supporting",
         "categoryCode_label": "Potentially Not Supporting",
-        "categoryCode_order": "3",
+        "categoryCode_order": "2",
         "categoryCode_color": "#FFFF00"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
+        "surveyCategoryCode": "Not Supporting",
+        "categoryCode_label": "Not Supporting",
+        "categoryCode_order": "3",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "PHOSPHORUS, TOTAL",
         "surveyCategoryCode": "Insufficient Information",
         "categoryCode_label": "Insufficient Information",
         "categoryCode_order": "4",
@@ -3151,7 +3151,7 @@
         "stressor": "PH",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
-        "categoryCode_order": "2",
+        "categoryCode_order": "3",
         "categoryCode_color": "#cb223e"
       },
       {
@@ -3165,7 +3165,7 @@
         "stressor": "NON-NATIVE AQUATIC PLANTS",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
-        "categoryCode_order": "2",
+        "categoryCode_order": "3",
         "categoryCode_color": "#cb223e"
       },
       {
@@ -3179,7 +3179,7 @@
         "stressor": "DISSOLVED OXYGEN SATURATION",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
-        "categoryCode_order": "2",
+        "categoryCode_order": "3",
         "categoryCode_color": "#cb223e"
       },
       {
@@ -3200,7 +3200,7 @@
         "stressor": "DISSOLVED OXYGEN",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
-        "categoryCode_order": "2",
+        "categoryCode_order": "3",
         "categoryCode_color": "#cb223e"
       },
       {
@@ -3221,7 +3221,7 @@
         "stressor": "CHLOROPHYLL-A",
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
-        "categoryCode_order": "2",
+        "categoryCode_order": "3",
         "categoryCode_color": "#cb223e"
       },
       {
