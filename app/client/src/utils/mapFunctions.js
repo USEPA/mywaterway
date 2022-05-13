@@ -15,9 +15,14 @@ import { getSelectedCommunityTab } from 'utils/utils';
 
 const waterbodyStatuses = {
   good: { condition: 'good', label: 'Good' },
-  polluted: { condition: 'polluted', label: 'Impaired (Issues Identified)' },
+  polluted: { condition: 'polluted', label: 'Impaired' },
   unassessed: { condition: 'unassessed', label: 'Condition Unknown' },
   notApplicable: { condition: 'hidden', label: 'Not Applicable' },
+};
+
+const waterbodyOverallStatuses = {
+  ...waterbodyStatuses,
+  polluted: { condition: 'polluted', label: 'Impaired (Issues Identified)' },
 };
 
 // Gets the type of symbol using the shape's attributes.
@@ -34,27 +39,28 @@ export function getTypeFromAttributes(graphic) {
 
 export function getWaterbodyCondition(
   attributes: Object,
-  fieldName: string,
+  fieldName: ?string,
   showNulls: boolean = false,
 ) {
   // when no fieldName is provided, use the isassessed/isimpaired logic
   const statusValue = fieldName
     ? attributes[fieldName]
     : attributes.overallstatus;
+  const statuses = fieldName ? waterbodyStatuses : waterbodyOverallStatuses;
 
   if (!statusValue) {
-    if (showNulls) return waterbodyStatuses.unassessed;
-    else return waterbodyStatuses.notApplicable;
+    if (showNulls) return statuses.unassessed;
+    else return statuses.notApplicable;
   } else if (statusValue === 'Not Supporting') {
-    return waterbodyStatuses.polluted;
+    return statuses.polluted;
   } else if (statusValue === 'Fully Supporting') {
-    return waterbodyStatuses.good;
+    return statuses.good;
   } else if (statusValue === 'Cause') {
-    return waterbodyStatuses.polluted;
+    return statuses.polluted;
   } else if (statusValue === 'Meeting Criteria') {
-    return waterbodyStatuses.good;
+    return statuses.good;
   } else {
-    return waterbodyStatuses.unassessed;
+    return statuses.unassessed;
   }
 }
 
