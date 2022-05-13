@@ -64,8 +64,7 @@ const modifiedToggleTableStyles = css`
   ${toggleTableStyles};
   tfoot {
     background-color: #f0f6f9;
-
-    tr:first-of-type {
+    .totals {
       border-top: 2px solid #dee2e6;
       th {
         border: none;
@@ -80,15 +79,27 @@ const modifiedToggleTableStyles = css`
       th {
         border-top: none;
         div {
-          display: inline-flex;
-          gap: 3px;
+          display: inline-block;
+          vertical-align: top;
           width: 50%;
           &:first-of-type {
-            justify-content: flex-start;
+            text-align: left;
+            a {
+              margin-right: 5px;
+            }
           }
           &:last-of-type {
-            justify-content: flex-end;
+            text-align: right;
+            .download-text {
+              margin-bottom: 5px;
+            }
+            a {
+              margin-left: 5px;
+            }
           }
+        }
+        span {
+          display: inline-block;
         }
       }
     }
@@ -1086,7 +1097,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                   })}
               </tbody>
               <tfoot>
-                <tr>
+                <tr className="totals">
                   <th>Totals</th>
                   <th>{Number(totalDisplayedLocations).toLocaleString()}</th>
                   <th>{Number(totalDisplayedSamples).toLocaleString()}</th>
@@ -1106,30 +1117,24 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                           className="fas fa-filter"
                           aria-hidden="true"
                         />
+                        Advanced Filtering
                       </a>
-                      <span>
-                        Advanced Filtering &nbsp;
-                        <small css={modifiedDisclaimerStyles}>
-                          (opens new browser tab)
-                        </small>
-                      </span>
+                      <small css={modifiedDisclaimerStyles}>
+                        (opens new browser tab)
+                      </small>
                     </div>
                     <div>
-                      <span>Download All &nbsp;</span>
-                      <a href={`${downloadUrl}&mimeType=xlsx`}>
-                        <i
-                          css={iconStyles}
-                          className="fas fa-file-excel"
-                          aria-hidden="true"
-                        />
-                      </a>
-                      <a href={`${downloadUrl}&mimeType=csv`}>
-                        <i
-                          css={iconStyles}
-                          className="fas fa-file-csv"
-                          aria-hidden="true"
-                        />
-                      </a>
+                      <span className="download-text">
+                        Download Selected Data for Watershed
+                      </span>
+                      <span>
+                        <a href={`${downloadUrl}&mimeType=xlsx`}>
+                          <i className="fas fa-file-excel" aria-hidden="true" />
+                        </a>
+                        <a href={`${downloadUrl}&mimeType=csv`}>
+                          <i className="fas fa-file-csv" aria-hidden="true" />
+                        </a>
+                      </span>
                     </div>
                   </th>
                 </tr>
