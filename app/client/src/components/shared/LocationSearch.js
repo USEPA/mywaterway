@@ -809,7 +809,7 @@ function LocationSearch({ route, label }: Props) {
                         },
                         symbol: {
                           type: 'text',
-                          color: '#000',
+                          color: '#000000',
                           font: { size: 10, weight: 'bold' },
                         },
                         labelPlacement: 'center-center',
