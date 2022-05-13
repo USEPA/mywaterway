@@ -188,7 +188,9 @@ const parameterStyles = css`
 `;
 
 const dateCellStyles = css`
-  white-space: nowrap;
+  @media (min-width: 480px) {
+    white-space: nowrap;
+  }
 `;
 
 const locationsStyles = css`
