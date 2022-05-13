@@ -339,10 +339,80 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
 
   const { usgsStreamgagesLayer, watershed } = useContext(LocationSearchContext);
 
-  const [usgsStreamgagesPlotted, setUsgsGtreamgagesPlotted] = useState(false);
-
   const [normalizedUsgsStreamgages, setNormalizedUsgsStreamgages] = useState(
     [],
+  );
+
+  // once streamgages have been plotted initially, add precipitation data and
+  // daily average measurements data (both fetched from the usgs daily values
+  // web service) to each streamgage if it exists for that particular location
+  // and replot the streamgages on the map
+  const addStreamgageData = useCallback(
+    (gages) => {
+      if (!usgsPrecipitation.data.value) return;
+      if (!usgsDailyAverages.data.value) return;
+      if (gages.length === 0) return;
+
+      const streamgageSiteIds = gages.map((gage) => {
+        return gage.siteId;
+      });
+
+      usgsPrecipitation.data.value?.timeSeries.forEach((site) => {
+        const siteId = site.sourceInfo.siteCode[0].value;
+        const observation = site.values[0].value[0];
+
+        if (streamgageSiteIds.includes(siteId)) {
+          const streamgage = gages.find((gage) => {
+            return gage.siteId === siteId;
+          });
+
+          streamgage.streamgageMeasurements.primary.push({
+            parameterCategory: 'primary',
+            parameterOrder: 5,
+            parameterName: 'Total Daily Rainfall',
+            parameterUsgsName: 'Precipitation (USGS Daily Value)',
+            parameterCode: '00045',
+            measurement: observation.value,
+            datetime: new Date(observation.dateTime).toLocaleDateString(),
+            dailyAverages: [],
+            unitAbbr: 'in',
+            unitName: 'inches',
+          });
+        }
+      });
+
+      usgsDailyAverages.data.value?.timeSeries.forEach((site) => {
+        const siteId = site.sourceInfo.siteCode[0].value;
+        const sitesHasObservations = site.values[0].value.length > 0;
+
+        if (streamgageSiteIds.includes(siteId) && sitesHasObservations) {
+          const streamgage = gages.find((gage) => {
+            return gage.siteId === siteId;
+          });
+
+          const paramCode = site.variable.variableCode[0].value;
+          const observations = site.values[0].value.map(
+            ({ value, dateTime }) => {
+              return { measurement: value, date: new Date(dateTime) };
+            },
+          );
+
+          // NOTE: 'category' is either 'primary' or 'secondary' – loop over both
+          for (const category in streamgage.streamgageMeasurements) {
+            streamgage.streamgageMeasurements[category].forEach(
+              (measurement) => {
+                if (measurement.parameterCode === paramCode.toString()) {
+                  measurement.dailyAverages = observations;
+                }
+              },
+            );
+          }
+        }
+      });
+
+      setNormalizedUsgsStreamgages(gages);
+    },
+    [usgsPrecipitation, usgsDailyAverages, usgsStreamgagesLayer],
   );
 
   // normalize USGS streamgages data with monitoring stations data,
@@ -408,84 +478,8 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
       };
     });
 
-    setNormalizedUsgsStreamgages(gages);
-
-    plotGages(gages, usgsStreamgagesLayer).then((result) => {
-      if (result.addFeatureResults.length > 0) setUsgsGtreamgagesPlotted(true);
-    });
-  }, [usgsStreamgages.data, usgsStreamgagesLayer]);
-
-  // once streamgages have been plotted initially, add precipitation data and
-  // daily average measurements data (both fetched from the usgs daily values
-  // web service) to each streamgage if it exists for that particular location
-  // and replot the streamgages on the map
-  useEffect(() => {
-    if (!usgsStreamgagesPlotted) return;
-    if (!usgsPrecipitation.data.value) return;
-    if (!usgsDailyAverages.data.value) return;
-    if (normalizedUsgsStreamgages.length === 0) return;
-
-    const streamgageSiteIds = normalizedUsgsStreamgages.map((gage) => {
-      return gage.siteId;
-    });
-
-    usgsPrecipitation.data.value?.timeSeries.forEach((site) => {
-      const siteId = site.sourceInfo.siteCode[0].value;
-      const observation = site.values[0].value[0];
-
-      if (streamgageSiteIds.includes(siteId)) {
-        const streamgage = normalizedUsgsStreamgages.find((gage) => {
-          return gage.siteId === siteId;
-        });
-
-        streamgage.streamgageMeasurements.primary.push({
-          parameterCategory: 'primary',
-          parameterOrder: 5,
-          parameterName: 'Total Daily Rainfall',
-          parameterUsgsName: 'Precipitation (USGS Daily Value)',
-          parameterCode: '00045',
-          measurement: observation.value,
-          datetime: new Date(observation.dateTime).toLocaleDateString(),
-          dailyAverages: [],
-          unitAbbr: 'in',
-          unitName: 'inches',
-        });
-      }
-    });
-
-    usgsDailyAverages.data.value?.timeSeries.forEach((site) => {
-      const siteId = site.sourceInfo.siteCode[0].value;
-      const sitesHasObservations = site.values[0].value.length > 0;
-
-      if (streamgageSiteIds.includes(siteId) && sitesHasObservations) {
-        const streamgage = normalizedUsgsStreamgages.find((gage) => {
-          return gage.siteId === siteId;
-        });
-
-        const paramCode = site.variable.variableCode[0].value;
-        const observations = site.values[0].value.map(({ value, dateTime }) => {
-          return { measurement: value, date: new Date(dateTime) };
-        });
-
-        // NOTE: 'category' is either 'primary' or 'secondary' – loop over both
-        for (const category in streamgage.streamgageMeasurements) {
-          streamgage.streamgageMeasurements[category].forEach((measurement) => {
-            if (measurement.parameterCode === paramCode.toString()) {
-              measurement.dailyAverages = observations;
-            }
-          });
-        }
-      }
-    });
-
-    plotGages(normalizedUsgsStreamgages, usgsStreamgagesLayer);
-  }, [
-    usgsStreamgagesPlotted,
-    usgsPrecipitation,
-    usgsDailyAverages,
-    normalizedUsgsStreamgages,
-    usgsStreamgagesLayer,
-  ]);
+    addStreamgageData(gages);
+  }, [addStreamgageData, usgsStreamgages.data, usgsStreamgagesLayer]);
 
   // emulate componentdidupdate
   const mounted = useRef();
