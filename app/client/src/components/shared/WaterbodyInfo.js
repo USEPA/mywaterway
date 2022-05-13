@@ -203,7 +203,6 @@ const infoLinkStyles = css`
   padding-bottom: 1.5em;
 `;
 
-
 const dateStyles = css`
   white-space: nowrap;
 `;
@@ -562,6 +561,9 @@ function WaterbodyInfo({
   const [charGroupFilters, setCharGroupFilters] = useState('');
   const [selected, setSelected] = useState({});
   const [selectAll, setSelectAll] = useState(1);
+  const [totalMeasurements, setTotalMeasurements] = useState(
+    attributes.stationTotalMeasurements,
+  );
 
   function monitoringLocationsContent() {
     const stationGroups = JSON.parse(attributes.stationTotalsByCategory);
@@ -597,6 +599,14 @@ function WaterbodyInfo({
         }
       }
     });
+
+    if (!Object.keys(selected).length) {
+      let selectedGroups = {};
+      Object.keys(groups).forEach((key) => {
+        selectedGroups[key] = true;
+      });
+      setSelected(selectedGroups);
+    }
 
     function buildFilter(selectedNames, monitoringLocationData) {
       let filter = '';
@@ -636,15 +646,24 @@ function WaterbodyInfo({
       if (numberSelected === totalSelections) {
         setSelectAll(1);
         setCharGroupFilters('');
+        setTotalMeasurements(attributes.stationTotalMeasurements);
       }
       // if none selected
       else if (numberSelected === 0) {
         setSelectAll(0);
         setCharGroupFilters('');
+        setTotalMeasurements(0);
       }
       // if some selected
       else {
         setSelectAll(2);
+        let newTotalMeasurementCount = 0;
+        Object.keys(groups).forEach((group) => {
+          if (selectedGroups[group] === true) {
+            newTotalMeasurementCount += groups[group].resultCount;
+          }
+        });
+        setTotalMeasurements(newTotalMeasurementCount);
       }
     }
 
@@ -662,6 +681,9 @@ function WaterbodyInfo({
 
       setSelected(selectedGroups);
       setSelectAll(selectAll === 0 ? 1 : 0);
+      setTotalMeasurements(
+        selectAll === 0 ? attributes.stationTotalMeasurements : 0,
+      );
       setCharGroupFilters('');
     }
 
@@ -816,10 +838,8 @@ function WaterbodyInfo({
             <tfoot>
               <tr className="totals">
                 <th></th>
-                <th>Totals</th>
-                <th>
-                  {Number(attributes.stationTotalMeasurements).toLocaleString()}
-                </th>
+                <th>Total</th>
+                <th>{Number(totalMeasurements).toLocaleString()}</th>
               </tr>
               <tr className="download-links">
                 <th colSpan="4">
