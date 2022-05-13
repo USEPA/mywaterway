@@ -80,11 +80,51 @@ const popupTitleStyles = css`
 
 const measurementTableStyles = css`
   ${modifiedTableStyles};
-
   th:last-of-type,
   td:last-of-type {
     text-align: right;
   }
+
+  tfoot {
+    .totals {
+      border-top: 2px solid #dee2e6;
+      th {
+        border: none;
+      }
+    }
+    .download-links {
+      th {
+        border-top: none;
+        div {
+          display: inline-block;
+          vertical-align: top;
+          width: 50%;
+          &:first-of-type {
+            text-align: left;
+            a {
+              margin-right: 5px;
+            }
+          }
+          &:last-of-type {
+            .download-text {
+              margin-bottom: 5px;
+            }
+            a {
+              margin-left: 5px;
+            }
+          }
+        }
+        span {
+          display: inline-block;
+        }
+      }
+    }
+  }
+`;
+
+const modifiedDisclaimerStyles = css`
+  ${disclaimerStyles};
+  padding-bottom: 0;
 `;
 
 const checkboxCellStyles = css`
@@ -158,6 +198,11 @@ const imageStyles = css`
   width: 100%;
   height: auto;
 `;
+
+const infoLinkStyles = css`
+  padding-bottom: 1.5em;
+`;
+
 
 const dateStyles = css`
   white-space: nowrap;
@@ -693,8 +738,21 @@ function WaterbodyInfo({
           </tbody>
         </table>
 
-        <p>
-          <strong>Download Monitoring Data:</strong>
+        <p css={infoLinkStyles}>
+          <a
+            rel="noopener noreferrer"
+            target="_blank"
+            href={attributes.locationUrl}
+          >
+            <i
+              css={iconStyles}
+              className="fas fa-info-circle"
+              aria-hidden="true"
+            />
+            More Information
+          </a>
+          &nbsp;&nbsp;
+          <small css={modifiedDisclaimerStyles}>(opens new browser tab)</small>
         </p>
 
         {Object.keys(groups).length === 0 && (
@@ -755,53 +813,50 @@ function WaterbodyInfo({
                 );
               })}
             </tbody>
+            <tfoot>
+              <tr className="totals">
+                <th></th>
+                <th>Totals</th>
+                <th>
+                  {Number(attributes.stationTotalMeasurements).toLocaleString()}
+                </th>
+              </tr>
+              <tr className="download-links">
+                <th colSpan="4">
+                  <div>
+                    <a
+                      rel="noopener noreferrer"
+                      target="_blank"
+                      data-cy="portal"
+                      href={portalUrl}
+                    >
+                      <i
+                        css={iconStyles}
+                        className="fas fa-filter"
+                        aria-hidden="true"
+                      />
+                      Advanced Filtering
+                    </a>
+                    <small css={modifiedDisclaimerStyles}>
+                      (opens new browser tab)
+                    </small>
+                  </div>
+                  <div>
+                    <span className="download-text">Download Station Data</span>
+                    <span className="icon-set">
+                      <a href={`${downloadUrl}&mimeType=xlsx`}>
+                        <i className="fas fa-file-excel" aria-hidden="true" />
+                      </a>
+                      <a href={`${downloadUrl}&mimeType=csv`}>
+                        <i className="fas fa-file-csv" aria-hidden="true" />
+                      </a>
+                    </span>
+                  </div>
+                </th>
+              </tr>
+            </tfoot>
           </table>
         )}
-
-        <p css={downloadLinksStyles}>
-          <span>Data Download Format:</span>
-          &nbsp;
-          <a href={`${downloadUrl}&mimeType=xlsx`}>
-            <i
-              css={iconStyles}
-              className="fas fa-file-excel"
-              aria-hidden="true"
-            />
-            xls
-          </a>
-          <a href={`${downloadUrl}&mimeType=csv`}>
-            <i
-              css={iconStyles}
-              className="fas fa-file-csv"
-              aria-hidden="true"
-            />
-            csv
-          </a>
-        </p>
-
-        <p>
-          <a
-            rel="noopener noreferrer"
-            target="_blank"
-            href={attributes.locationUrl}
-          >
-            <i
-              css={iconStyles}
-              className="fas fa-info-circle"
-              aria-hidden="true"
-            />
-            More Information
-          </a>
-          &nbsp;&nbsp;
-          <small css={disclaimerStyles}>(opens new browser tab)</small>
-          <br />
-          <a rel="noopener noreferrer" target="_blank" href={portalUrl}>
-            <i css={iconStyles} className="fas fa-filter" aria-hidden="true" />
-            Filter this data using the <em>Water Quality Portal</em> form
-          </a>
-          &nbsp;&nbsp;
-          <small css={disclaimerStyles}>(opens new browser tab)</small>
-        </p>
       </>
     );
   }
