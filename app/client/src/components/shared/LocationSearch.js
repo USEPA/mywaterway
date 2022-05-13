@@ -767,9 +767,14 @@ function LocationSearch({ route, label }: Props) {
                 setClusteringEnabled(checked);
 
                 if (checked) {
+                  monitoringLocationsLayer.renderer.symbol.color =
+                    colors.lightPurple();
                   monitoringLocationsLayer.featureReduction = {
                     type: 'cluster',
                     clusterRadius: '100px',
+                    clusterMinSize: '24px',
+                    clusterMaxSize: '60px',
+                    popupEnabled: true,
                     popupTemplate: {
                       title: 'Cluster summary',
                       content: (feature) => {
@@ -796,9 +801,6 @@ function LocationSearch({ route, label }: Props) {
                         },
                       ],
                     },
-                    popupEnabled: true,
-                    clusterMinSize: '24px',
-                    clusterMaxSize: '60px',
                     labelingInfo: [
                       {
                         deconflictionStrategy: 'none',
@@ -815,6 +817,8 @@ function LocationSearch({ route, label }: Props) {
                     ],
                   };
                 } else {
+                  monitoringLocationsLayer.renderer.symbol.color =
+                    colors.lightPurple(0.3);
                   monitoringLocationsLayer.featureReduction = undefined;
                 }
               }}
