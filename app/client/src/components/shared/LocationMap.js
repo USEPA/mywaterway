@@ -635,14 +635,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         symbol: {
           type: 'simple-marker',
           style: 'circle',
-          color: colors.lightPurple(0.3),
+          color: colors.lightPurple(0.5),
         },
         visualVariables: [
           {
             type: 'size',
             field: 'stationTotalMeasurementsPercentile',
             legendOptions: {
-              title: 'Monitoring Measurment Percentiles for HUC12',
+              title: 'Monitoring Measurment Percentiles for Watershed',
             },
             stops: [
               { value: 0.25, size: 8, label: '<25th percentile ' },

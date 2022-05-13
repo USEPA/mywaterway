@@ -794,7 +794,8 @@ function LocationSearch({ route, label }: Props) {
                         },
                         symbol: {
                           type: 'text',
-                          color: '#ffffff',
+                          color: '#000',
+                          font: { size: 10, weight: 'bold' },
                         },
                         labelPlacement: 'center-center',
                       },
