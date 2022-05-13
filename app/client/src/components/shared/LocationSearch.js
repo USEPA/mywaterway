@@ -774,7 +774,7 @@ function LocationSearch({ route, label }: Props) {
                       title: 'Cluster summary',
                       content: (feature) => {
                         const content = (
-                          <div css={{ margin: '0.625em' }}>
+                          <div style={{ margin: '0.625em' }}>
                             This cluster represents{' '}
                             {feature.graphic.attributes.cluster_count} stations
                           </div>
