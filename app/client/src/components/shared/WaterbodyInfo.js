@@ -27,7 +27,6 @@ import { waterbodyReportError } from 'config/errorMessages';
 import {
   colors,
   disclaimerStyles,
-  downloadLinksStyles,
   iconStyles,
   modifiedTableStyles,
 } from 'styles/index.js';
