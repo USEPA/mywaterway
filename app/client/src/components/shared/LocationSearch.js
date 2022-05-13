@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { render } from 'react-dom';
 import { css } from 'styled-components/macro';
 import Switch from 'components/shared/Switch';
 import { useNavigate } from 'react-router-dom';
@@ -771,8 +772,20 @@ function LocationSearch({ route, label }: Props) {
                     clusterRadius: '100px',
                     popupTemplate: {
                       title: 'Cluster summary',
-                      content:
-                        'This cluster represents {cluster_count} stations',
+                      content: (feature) => {
+                        const content = (
+                          <div css={{ margin: '0.625em' }}>
+                            This cluster represents{' '}
+                            {feature.graphic.attributes.cluster_count} stations
+                          </div>
+                        );
+
+                        const contentContainer = document.createElement('div');
+                        render(content, contentContainer);
+
+                        // return an esri popup item
+                        return contentContainer;
+                      },
                       fieldInfos: [
                         {
                           fieldName: 'cluster_count',
