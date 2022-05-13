@@ -768,7 +768,7 @@ function LocationSearch({ route, label }: Props) {
 
                 if (checked) {
                   monitoringLocationsLayer.renderer.symbol.color =
-                    colors.lightPurple();
+                    colors.lightPurple(0.8);
                   monitoringLocationsLayer.featureReduction = {
                     type: 'cluster',
                     clusterRadius: '100px',
