@@ -415,7 +415,7 @@ function State() {
                     role="presentation"
                     className="esri-search__source-name"
                   >
-                    {selectedSource.name} {/** TODO Check this */}
+                    {selectedSource}
                   </span>
                 </div>
                 <div
