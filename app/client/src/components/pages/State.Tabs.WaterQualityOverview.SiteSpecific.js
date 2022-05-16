@@ -84,7 +84,11 @@ const modifiedInfoBoxStyles = css`
 
 // --- components ---
 type Props = {
-  activeState: { code: string, name: string },
+  activeState: {
+    value: string,
+    label: string,
+    source: 'All' | 'States' | 'Tribes',
+  },
   waterType: string,
   waterTypeData: any,
   completeUseList: Array<Object>,
@@ -397,7 +401,7 @@ function SiteSpecific({
           <AccordionItem
             title={
               <h3>
-                Top Reasons for Impairment for {activeState.name}{' '}
+                Top Reasons for Impairment for {activeState.label}{' '}
                 <strong>
                   <em>{waterType}</em>
                 </strong>{' '}
@@ -442,7 +446,7 @@ function SiteSpecific({
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                {activeState.name}
+                {activeState.label}
               </a>{' '}
             </h3>
             <a

@@ -202,7 +202,12 @@ function WaterSystemSummary({ state }: Props) {
     setLastSummaryCode(state.code);
 
     fetchCheck(`${services.data.dwmaps.getGPRASummary}${state.code}`)
-      .then((res) => setGpraData({ status: 'success', data: res.items[0] }))
+      .then((res) =>
+        setGpraData({
+          status: 'success',
+          data: res.items.length > 0 ? res.items[0] : null,
+        }),
+      )
       .catch((err) => setGpraData({ status: 'failure', data: {} }));
   }, [state, services, lastSummaryCode]);
 
@@ -332,6 +337,10 @@ function WaterSystemSummary({ state }: Props) {
         {gpraData.status === 'success' && (
           <WindowSize>
             {({ width, height }) => {
+              if (!gpraData.data || gpraData.data.length === 0) {
+                return <>No data available...</>;
+              }
+
               const labels = [
                 'Submission Year Quarter',
                 'Violations',

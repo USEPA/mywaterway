@@ -316,10 +316,10 @@ function AdvancedSearch() {
   // get a list of watersheds and build the esri where clause
   const [watersheds, setWatersheds] = useState(null);
   useEffect(() => {
-    if (activeState.code === '' || !watershedsLayerMaxRecordCount) return;
+    if (activeState.value === '' || !watershedsLayerMaxRecordCount) return;
 
     const queryParams = {
-      where: `UPPER(STATES) LIKE '%${activeState.code}%' AND STATES <> 'CAN' AND STATES <> 'MEX'`,
+      where: `UPPER(STATES) LIKE '%${activeState.value}%' AND STATES <> 'CAN' AND STATES <> 'MEX'`,
       outFields: ['huc12', 'name'],
     };
 
@@ -563,10 +563,6 @@ function AdvancedSearch() {
     setWaterbodiesList(null);
     setNumberOfRecords(null);
     setStateAndOrganization(null);
-    setCurrentReportingCycle({
-      status: 'fetching',
-      reportingCycle: '',
-    });
 
     // Reset the filters
     setCurrentFilter(null);
@@ -641,9 +637,9 @@ function AdvancedSearch() {
 
   // build esri where clause
   const executeFilterWrapped = (watershedResults: Object) => {
-    if (activeState.code === '' || !stateAndOrganization) return;
+    if (activeState.value === '' || !stateAndOrganization) return;
 
-    let newFilter = `state = '${activeState.code}' AND organizationid = '${stateAndOrganization.organizationId}'`;
+    let newFilter = `state = '${activeState.value}' AND organizationid = '${stateAndOrganization.organizationId}'`;
 
     // radio button filters
     if (waterTypeFilter === '303d') {

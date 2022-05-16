@@ -12,7 +12,10 @@ import AdvancedSearch from 'components/pages/State.Tabs.AdvancedSearch';
 import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 // contexts
 import { StateTabsContext } from 'contexts/StateTabs';
-import { useServicesContext } from 'contexts/LookupFiles';
+import {
+  useOrganizationsContext,
+  useServicesContext,
+} from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 
@@ -20,6 +23,7 @@ function StateTabs() {
   const { stateCode, tabName } = useParams();
   const navigate = useNavigate();
 
+  const organizations = useOrganizationsContext();
   const services = useServicesContext();
 
   const { activeState, setActiveState, activeTabIndex, setActiveTabIndex } =
@@ -54,10 +58,27 @@ function StateTabs() {
     }
   }, [navigate, activeTabIndex, setActiveTabIndex, stateCode]);
 
-  // if user navigation directly to the url, activeState.code will be an empty
+  // if user navigation directly to the url, activeState.value will be an empty
   // string, so we'll need to query the attains states service for the states
   useEffect(() => {
-    if (activeState.code === '') {
+    if (organizations.status === 'fetching') return;
+    if (activeState.value === '') {
+      // check if the stateID is a tribe id by checking the control table
+      const matchTribes = organizations.data.features.filter(
+        (feature) =>
+          feature.attributes.orgtype === 'Tribe' &&
+          feature.attributes.organizationid === stateCode.toUpperCase(),
+      )[0];
+
+      if (matchTribes) {
+        setActiveState({
+          value: matchTribes.attributes.organizationid,
+          label: matchTribes.attributes.organizationid,
+          source: 'Tribes',
+        });
+        return;
+      }
+
       fetchCheck(`${services.data.attains.serviceUrl}states`)
         .then((res) => {
           // get matched state from web service response
@@ -68,13 +89,24 @@ function StateTabs() {
           // redirect to /state if no state was found
           if (!match) navigate('/state');
 
-          setActiveState({ code: match.code, name: match.name });
+          setActiveState({
+            value: match.code,
+            label: match.name,
+            source: 'States',
+          });
         })
         .catch((err) => {
           navigate('/state');
         });
     }
-  }, [navigate, activeState, setActiveState, stateCode, services]);
+  }, [
+    activeState,
+    navigate,
+    organizations,
+    services,
+    setActiveState,
+    stateCode,
+  ]);
 
   const tabListRef = useRef();
 
@@ -86,6 +118,10 @@ function StateTabs() {
       setTimeout(() => activeTab.focus(), 0);
     }
   }, [tabListRef, activeTabIndex]);
+
+  if (activeState.source === 'Tribes') {
+    return <WaterQualityOverview />;
+  }
 
   return (
     <Tabs

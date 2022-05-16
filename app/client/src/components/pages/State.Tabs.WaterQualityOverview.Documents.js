@@ -75,7 +75,11 @@ const modifiedErrorBoxStyles = css`
 
 // --- components (Documents) ---
 type Props = {
-  activeState: { code: string, name: string },
+  activeState: {
+    value: string,
+    label: string,
+    source: 'All' | 'States' | 'Tribes',
+  },
   surveyLoading: boolean,
   surveyDocuments: Object,
   assessmentsLoading: boolean,
@@ -128,7 +132,7 @@ function Documents({
     documents.forEach((document) => {
       // get document ordering
       let order = 999; // large initial order
-      if (document.documentTypes.length === 0) {
+      if (!document.documentTypes || document.documentTypes.length === 0) {
         const documentRanked = {
           ...document,
           order: order,
@@ -160,7 +164,7 @@ function Documents({
     documentOrder.status,
   );
 
-  if (activeState.code === '') return null;
+  if (activeState.value === '') return null;
 
   return (
     <div css={containerStyles}>
@@ -170,7 +174,7 @@ function Documents({
         <LoadingSpinner />
       ) : documentServiceError ? (
         <div css={modifiedErrorBoxStyles}>
-          <p>{stateDocumentError(activeState.name)}</p>
+          <p>{stateDocumentError(activeState.label)}</p>
         </div>
       ) : (
         <>
@@ -190,7 +194,7 @@ function Documents({
         <LoadingSpinner />
       ) : surveyServiceError ? (
         <div css={modifiedErrorBoxStyles}>
-          <p>{stateSurveyError(activeState.name)}</p>
+          <p>{stateSurveyError(activeState.label)}</p>
         </div>
       ) : (
         <>

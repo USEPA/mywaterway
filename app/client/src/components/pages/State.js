@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { css } from 'styled-components/macro';
 import Select from 'react-select';
@@ -21,9 +21,13 @@ import {
 } from 'components/shared/KeyMetrics';
 // contexts
 import { StateTabsContext, StateTabsProvider } from 'contexts/StateTabs';
-import { useServicesContext } from 'contexts/LookupFiles';
+import {
+  useOrganizationsContext,
+  useServicesContext,
+} from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
+import { useKeyPress } from 'utils/hooks';
 // styles
 import { colors, fonts, reactSelectStyles } from 'styles/index.js';
 // errors
@@ -33,6 +37,8 @@ import {
   stateNoDataError,
   usesStateSummaryServiceInvalidResponse,
 } from 'config/errorMessages';
+
+const allSources = ['All', 'States', 'Tribes'];
 
 const containerStyles = css`
   margin-top: 15px;
@@ -45,6 +51,10 @@ const containerStyles = css`
 
   .Select__single-value {
     line-height: 1.25;
+  }
+
+  .Select__control {
+    border: none;
   }
 `;
 
@@ -60,8 +70,6 @@ const formStyles = css`
 
 const selectStyles = css`
   flex: 1;
-  margin-top: 1em;
-  margin-right: 0.5em;
   font-size: 0.9375em;
   z-index: 2;
 `;
@@ -137,11 +145,53 @@ const byTheNumbersExplanationStyles = css`
   padding: 0.5rem 0 0 0;
 `;
 
+const searchContainerStyles = css`
+  margin-top: 1em;
+  margin-right: 0.5em;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  flex: 1 0 calc(100% - 61.53px - 0.5em);
+
+  .esri-menu {
+    z-index: 800;
+  }
+
+  .esri-menu__list-item-active {
+    background-color: #e2f1fb;
+  }
+`;
+
+const searchSourceButtonStyles = css`
+  height: 38px;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+`;
+
 function State() {
   const location = useLocation();
   const navigate = useNavigate();
-
+  const organizations = useOrganizationsContext();
   const services = useServicesContext();
+
+  // get tribes from the organizations data (control table)
+  const [tribes, setTribes] = useState([]);
+  useEffect(() => {
+    if (organizations.status !== 'success') return;
+
+    // query attains for the list of states
+    const tempTribes = [];
+    organizations.data.features.forEach((feature) => {
+      if (feature.attributes.orgtype !== 'Tribe') return;
+
+      tempTribes.push({
+        value: feature.attributes.organizationid,
+        label: feature.attributes.organizationid,
+        source: 'Tribes',
+      });
+    });
+
+    setTribes(tempTribes);
+  }, [organizations]);
 
   // query attains for the list of states
   const [states, setStates] = useState({ status: 'fetching', data: [] });
@@ -152,7 +202,14 @@ function State() {
     setStatesInitialized(true);
 
     fetchCheck(`${services.data.attains.serviceUrl}states`)
-      .then((res) => setStates({ status: 'success', data: res.data }))
+      .then((res) => {
+        setStates({
+          status: 'success',
+          data: res.data.map((state) => {
+            return { value: state.code, label: state.name, source: 'States' };
+          }),
+        });
+      })
       .catch((err) => setStates({ status: 'failure', data: [] }));
   }, [services, statesInitialized]);
 
@@ -167,23 +224,126 @@ function State() {
   // reset active state if on state intro page
   useEffect(() => {
     if (location.pathname === '/state') {
-      setActiveState({ code: '', name: '' });
+      setActiveState({
+        label: '',
+        value: '',
+        source: 'All',
+      });
     }
   }, [location, setActiveState]);
 
   // selectedState used for the HTML select menu, so we don't immediately
   // update activeState every time the user changes the selected state
-  const [selectedState, setSelectedState] = useState(activeState);
+  const [selectedSource, setSelectedSource] = useState('All');
+  const [selectOptions, setSelectOptions] = useState([]);
+  const [selectedStateTribe, setSelectedStateTribe] = useState(
+    activeState.value ? activeState : null,
+  );
+
+  // updates the selectOptions based on the selectedSource
+  useEffect(() => {
+    const options = [];
+    if (selectedSource === 'All') {
+      options.push({
+        label: 'States',
+        options: states.data,
+      });
+      options.push({
+        label: 'Tribes',
+        options: tribes,
+      });
+    }
+    if (selectedSource === 'States') options.push(...states.data);
+    if (selectedSource === 'Tribes') options.push(...tribes);
+
+    setSelectOptions(options);
+  }, [selectedSource, states, tribes]);
 
   // update selectedState whenever activeState changes
   // (e.g. when a user navigates directly to '/state/DC/advanced-search')
   useEffect(() => {
     setUsesStateSummaryServiceError(false);
-    setSelectedState(activeState);
+
+    if (activeState.value) setSelectedStateTribe(activeState);
   }, [activeState, setUsesStateSummaryServiceError]);
 
   // get the state intro and metrics data
   const stateIntro = introText.status === 'success' ? introText.data : null;
+
+  const sourceList = useRef();
+  const sourceDownPress = useKeyPress('ArrowDown', sourceList);
+  const sourceUpPress = useKeyPress('ArrowUp', sourceList);
+  const sourceEnterPress = useKeyPress('Enter', sourceList);
+  const [sourcesVisible, setSourcesVisible] = useState(false);
+  const [sourceCursor, setSourceCursor] = useState(-1);
+
+  const statesSelect = useRef();
+
+  // Handle arrow down key press (sources list)
+  useEffect(() => {
+    if (allSources.length > 0 && sourceDownPress) {
+      setSourceCursor((prevState) => {
+        const newIndex = prevState < allSources.length - 1 ? prevState + 1 : 0;
+
+        // scroll to the suggestion
+        const elm = document.getElementById(`source-${newIndex}`);
+        const panel = document.getElementById('search-container-source-menu');
+        if (elm && panel) panel.scrollTop = elm.offsetTop;
+
+        return newIndex;
+      });
+    }
+  }, [sourceDownPress]);
+
+  // Handle arrow up key press (sources list)
+  useEffect(() => {
+    if (allSources.length > 0 && sourceUpPress) {
+      setSourceCursor((prevState) => {
+        const newIndex = prevState > 0 ? prevState - 1 : allSources.length - 1;
+
+        // scroll to the suggestion
+        const elm = document.getElementById(`source-${newIndex}`);
+        const panel = document.getElementById('search-container-source-menu');
+        if (elm && panel) panel.scrollTop = elm.offsetTop;
+
+        return newIndex;
+      });
+    }
+  }, [sourceUpPress]);
+
+  // Handle enter key press (sources list)
+  useEffect(() => {
+    if (!sourceEnterPress) return;
+
+    // determine if the sources menu is visible
+    const sourcesShown =
+      document
+        .getElementById('search-container-source-menu-div')
+        .getBoundingClientRect().height !== 0;
+
+    // determine whether or not the enter button is being used to open/close
+    // the sources menu or select a source
+    if (!sourcesShown) {
+      setSourcesVisible(true);
+      return;
+    }
+    if (sourcesShown && sourceCursor === -1) {
+      setSourcesVisible(false);
+      return;
+    }
+
+    // handle selecting a source
+    if (sourceCursor < 0 || sourceCursor > allSources.length) return;
+    if (allSources[sourceCursor]) {
+      setSelectedSource(allSources[sourceCursor]);
+      setSourceCursor(-1);
+
+      setTimeout(() => {
+        const searchInput = document.getElementById('hmw-search-input');
+        if (searchInput) searchInput.focus();
+      }, 250);
+    }
+  }, [sourceCursor, sourceEnterPress]);
 
   return (
     <Page>
@@ -212,35 +372,125 @@ function State() {
               css={formStyles}
               onSubmit={(ev) => {
                 ev.preventDefault();
-                setActiveState(selectedState);
-                navigate(`/state/${selectedState.code}/water-quality-overview`);
+                setActiveState(selectedStateTribe);
+                navigate(
+                  `/state/${selectedStateTribe.value}/water-quality-overview`,
+                );
               }}
             >
-              <Select
-                css={selectStyles}
-                id="hmw-state-select"
-                inputId="hmw-state-select-input"
-                classNamePrefix="Select"
-                placeholder="Select a state..."
-                options={states.data.map((state) => {
-                  return { value: state.code, label: state.name };
-                })}
-                value={
-                  selectedState.code
-                    ? {
-                        value: selectedState.code,
-                        label: selectedState.name,
+              <div
+                css={searchContainerStyles}
+                role="presentation"
+                className={
+                  `esri-search-multiple-sources esri-search__container ` +
+                  `${sourcesVisible ? 'esri-search--sources' : ''} `
+                }
+              >
+                <div
+                  css={searchSourceButtonStyles}
+                  role="button"
+                  title="Search in"
+                  aria-haspopup="true"
+                  aria-controls="search-container-source-menu"
+                  className="esri-search__sources-button esri-widget--button "
+                  tabIndex="0"
+                  data-node-ref="_sourceMenuButtonNode"
+                  ref={sourceList}
+                  onClick={() => {
+                    setSourcesVisible(!sourcesVisible);
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    role="presentation"
+                    className="esri-icon-down-arrow esri-search__sources-button--down"
+                  ></span>
+                  <span
+                    aria-hidden="true"
+                    role="presentation"
+                    className="esri-icon-up-arrow esri-search__sources-button--up"
+                  ></span>
+                  <span
+                    aria-hidden="true"
+                    role="presentation"
+                    className="esri-search__source-name"
+                  >
+                    {selectedSource.name} {/** TODO Check this */}
+                  </span>
+                </div>
+                <div
+                  id="search-container-source-menu-div"
+                  tabIndex="-1"
+                  className="esri-menu esri-search__sources-menu"
+                >
+                  <ul
+                    id="search-container-source-menu"
+                    role="menu"
+                    data-node-ref="_sourceListNode"
+                    className="esri-menu__list"
+                  >
+                    {allSources.map((source, sourceIndex) => {
+                      let secondClass = '';
+                      if (selectedSource === source) {
+                        secondClass = 'esri-menu__list-item--active';
+                      } else if (sourceIndex === sourceCursor) {
+                        secondClass = 'esri-menu__list-item-active';
                       }
-                    : null
-                }
-                onChange={(ev) =>
-                  setSelectedState({
-                    code: ev.value,
-                    name: ev.label,
-                  })
-                }
-                styles={reactSelectStyles}
-              />
+
+                      return (
+                        <li
+                          id={`source-${sourceIndex}`}
+                          role="menuitem"
+                          className={`esri-search__source esri-menu__list-item ${secondClass}`}
+                          tabIndex="-1"
+                          key={`source-key-${sourceIndex}`}
+                          onClick={() => {
+                            setSelectedSource(source);
+                            setSourcesVisible(false);
+
+                            const searchInput =
+                              document.getElementById('hmw-search-input');
+                            if (searchInput) searchInput.focus();
+                          }}
+                        >
+                          {source}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+                <Select
+                  id="hmw-state-select"
+                  inputId="hmw-state-select-input"
+                  ref={statesSelect}
+                  css={selectStyles}
+                  classNamePrefix="Select"
+                  placeholder={
+                    selectedSource === 'All'
+                      ? 'Select a state or tribe...'
+                      : selectedSource === 'States'
+                      ? 'Select a state...'
+                      : 'Select a tribe...'
+                  }
+                  options={selectOptions}
+                  value={selectedStateTribe}
+                  onKeyDown={(ev) => {
+                    if (ev.key !== 'Enter') return;
+
+                    const selection = statesSelect.current.state.focusedOption;
+                    if (!selection) return;
+
+                    setActiveState(selection);
+                    navigate(
+                      `/state/${selection.value}/water-quality-overview`,
+                    );
+                  }}
+                  onChange={(ev) => {
+                    setSelectedStateTribe(ev);
+                  }}
+                  styles={reactSelectStyles}
+                />
+              </div>
 
               <button type="submit" className="btn" css={buttonStyles}>
                 <i className="fas fa-angle-double-right" aria-hidden="true" />{' '}
@@ -252,11 +502,11 @@ function State() {
 
         {usesStateSummaryServiceError ? (
           <div css={modifiedErrorBoxStyles}>
-            {usesStateSummaryServiceInvalidResponse(activeState.name)}
+            {usesStateSummaryServiceInvalidResponse(activeState.label)}
           </div>
         ) : (
           <div css={contentStyles}>
-            {activeState.code !== '' && (
+            {activeState.value !== '' && (
               <>
                 {introText.status === 'fetching' && <LoadingSpinner />}
                 {introText.status === 'failure' && (
@@ -268,7 +518,7 @@ function State() {
                   <>
                     {!stateIntro ? (
                       <div css={modifiedErrorBoxStyles}>
-                        <p>{stateNoDataError(activeState.name)}</p>
+                        <p>{stateNoDataError(activeState.label)}</p>
                       </div>
                     ) : (
                       <>
@@ -279,7 +529,8 @@ function State() {
                                 className="fas fa-chart-line"
                                 aria-hidden="true"
                               />
-                              <strong>{activeState.name}</strong> by the Numbers
+                              <strong>{activeState.label}</strong> by the
+                              Numbers
                             </h2>
 
                             <div css={keyMetricsStyles}>

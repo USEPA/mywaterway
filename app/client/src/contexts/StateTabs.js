@@ -8,7 +8,7 @@ export const StateTabsContext: Object = createContext({
   currentReportStatus: '',
   currentSummary: { status: 'fetching', data: {} },
   currentReportingCycle: { status: 'fetching', currentReportingCycle: '' },
-  activeState: { code: '', name: '' },
+  activeState: { value: '', label: '', source: 'All' },
   introText: { status: 'fetching', data: {} },
   stateAndOrganizationId: null,
 });
@@ -21,7 +21,11 @@ type State = {
   currentReportStatus: string,
   currentSummary: object,
   currentReportingCycle: object,
-  activeState: { code: string, name: string },
+  activeState: {
+    value: string,
+    label: string,
+    source: 'All' | 'States' | 'Tribes',
+  },
   introText: object,
   stateAndOrganization: object,
 };
@@ -38,7 +42,7 @@ export class StateTabsProvider extends Component<Props, State> {
       status: 'fetching',
       currentReportingCycle: '',
     },
-    activeState: { code: '', name: '' },
+    activeState: { value: '', label: '', source: 'All' },
     introText: {
       status: 'fetching',
       data: {},
@@ -58,7 +62,11 @@ export class StateTabsProvider extends Component<Props, State> {
     setCurrentReportingCycle: (currentReportingCycle: object) => {
       this.setState({ currentReportingCycle });
     },
-    setActiveState: (activeState: { code: string, name: string }) => {
+    setActiveState: (activeState: {
+      value: string,
+      label: string,
+      source: 'All' | 'States' | 'Tribes',
+    }) => {
       this.setState({ activeState });
     },
     setIntroText: (introText: object) => {

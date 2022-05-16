@@ -82,7 +82,11 @@ const fullWidthHrStyles = css`
 // --- components ---
 type Props = {
   loading: boolean,
-  activeState: { code: string, name: string },
+  activeState: {
+    value: string,
+    label: string,
+    source: 'All' | 'States' | 'Tribes',
+  },
   subPopulationCodes: Array<string>,
   surveyData: Object,
   waterType: string,
@@ -414,7 +418,7 @@ function SurveyResults({
     subPopulationCodes.length > 0 && (
       <>
         <h3>
-          Overall water quality in {activeState.name}{' '}
+          Overall water quality in {activeState.label}{' '}
           <strong>
             <em>{waterType}</em>
           </strong>{' '}
