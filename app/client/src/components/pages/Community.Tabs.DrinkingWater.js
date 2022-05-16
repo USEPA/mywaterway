@@ -59,6 +59,13 @@ const modifiedErrorBoxStyles = css`
   text-align: center;
 `;
 
+const modifiedToggleTableStyles = css`
+  ${toggleTableStyles};
+  tfoot th {
+    background-color: #f0f6f9;
+  }
+`;
+
 const disclaimerStyles = css`
   display: inline-block;
 `;
@@ -159,6 +166,22 @@ function createAccordionItem(
             </td>
             <td>{item.pwsid}</td>
           </tr>
+          {item.tribal_name && (
+            <tr>
+              <td>
+                <em>Tribal Name:</em>
+              </td>
+              <td>{item.tribal_name}</td>
+            </tr>
+          )}
+          {item.tribal_code && (
+            <tr>
+              <td>
+                <em>Tribal ID:</em>
+              </td>
+              <td>{item.tribal_code}</td>
+            </tr>
+          )}
           <tr>
             <td>
               <em>Public Water System Status (PWS Activity):</em>
@@ -370,18 +393,25 @@ function DrinkingWater() {
   const [groundWaterDisplayed, setGroundWaterDisplayed] = useState(true);
   const [surfaceWaterDisplayed, setSurfaceWaterDisplayed] = useState(true);
   const [bothDisplayed, setBothDisplayed] = useState(true);
+  const [tribalProvidersOnly, setTribalProvidersOnly] = useState(false);
+  const [tribalWithdrawersOnly, setTribalWithdrawersOnly] = useState(false);
 
   // sort drinking water data into providers and withdrawers via presence of 'huc12' property
   const providers = [];
   const displayedWithdrawers = [];
   let surfaceWaterCount = 0; // total surface water withdrawers
   let groundWaterCount = 0; // total groundwater withdrawers
+  let tribalProviderCount = 0;
+  let tribalWithdrawerCount = 0;
   let totalWithdrawersCount = 0; // total withdrawers
   let bothCount = 0;
   if (drinkingWater.data) {
     // handle providers separately
     const allProviders = drinkingWater.data.filter((system) => !system.huc12);
-    allProviders.forEach((provider) => providers.push(provider));
+    allProviders.forEach((provider) => {
+      if (provider.tribal_name) tribalProviderCount++;
+      providers.push(provider);
+    });
 
     // find all withdrawers
     const allWithdrawers = drinkingWater.data.filter((system) => system.huc12);
@@ -421,6 +451,7 @@ function DrinkingWater() {
       // if system is a duplicate merge them together
       else if (duplicatePWSIDs.includes(item.pwsid)) {
         totalWithdrawersCount++;
+        if (item.tribal_name) tribalWithdrawerCount++;
         const index = duplicatePWSIDs.indexOf(item.pwsid);
         duplicatePWSIDs.splice(index, 1);
         alreadyDuplicatedPWSIDs.push(item.pwsid);
@@ -439,12 +470,14 @@ function DrinkingWater() {
       else if (item.water_type_calc?.toLowerCase() === 'surface water') {
         totalWithdrawersCount++;
         surfaceWaterCount++;
+        if (item.tribal_name) tribalWithdrawerCount++;
         if (surfaceWaterDisplayed) displayedWithdrawers.push(item);
       }
       // ground water withdrawer
       else if (item.water_type_calc?.toLowerCase() === 'ground water') {
         totalWithdrawersCount++;
         groundWaterCount++;
+        if (item.tribal_name) tribalWithdrawerCount++;
         if (groundWaterDisplayed) displayedWithdrawers.push(item);
       }
     });
@@ -640,26 +673,67 @@ function DrinkingWater() {
                       )}
 
                       {providers.length > 0 && (
-                        <AccordionList
-                          title={
-                            <>
-                              There {providers.length === 1 ? 'is' : 'are'}{' '}
-                              <strong>{providers.length}</strong> public water{' '}
-                              {providers.length === 1 ? 'system' : 'systems'}{' '}
-                              serving <em>{county}</em> county.
-                            </>
-                          }
-                          onSortChange={(sortBy) =>
-                            setProvidersSortBy(sortBy.value)
-                          }
-                          sortOptions={providerSorts}
-                        >
-                          {sortWaterSystems(
-                            providers,
-                            providersSortBy,
-                            false,
-                          ).map((item) => createAccordionItem(services, item))}
-                        </AccordionList>
+                        <>
+                          {tribalProviderCount > 0 && (
+                            <table
+                              css={modifiedToggleTableStyles}
+                              className="table"
+                            >
+                              <thead>
+                                <tr>
+                                  <th>
+                                    <span>Tribal Status</span>
+                                  </th>
+                                  <th></th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <td>
+                                    <div css={toggleStyles}>
+                                      <Switch
+                                        disabled={!tribalProviderCount}
+                                        checked={tribalProvidersOnly}
+                                        onChange={(ev) =>
+                                          setTribalProvidersOnly(
+                                            !tribalProvidersOnly,
+                                          )
+                                        }
+                                        ariaLabel="Tribal Only"
+                                      />
+                                      <span>Tribal Only</span>
+                                    </div>
+                                  </td>
+                                  <td></td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          )}
+                          <AccordionList
+                            title={
+                              <>
+                                There {providers.length === 1 ? 'is' : 'are'}{' '}
+                                <strong>{providers.length}</strong> public water{' '}
+                                {providers.length === 1 ? 'system' : 'systems'}{' '}
+                                serving <em>{county}</em> county.
+                              </>
+                            }
+                            onSortChange={(sortBy) =>
+                              setProvidersSortBy(sortBy.value)
+                            }
+                            sortOptions={providerSorts}
+                          >
+                            {sortWaterSystems(providers, providersSortBy, false)
+                              .filter((item) => {
+                                if (tribalProvidersOnly)
+                                  return item.tribal_name != null;
+                                return true;
+                              })
+                              .map((item) =>
+                                createAccordionItem(services, item),
+                              )}
+                          </AccordionList>
+                        </>
                       )}
                     </>
                   )}
@@ -752,7 +826,10 @@ function DrinkingWater() {
 
                       {totalWithdrawersCount > 0 && (
                         <>
-                          <table css={toggleTableStyles} className="table">
+                          <table
+                            css={modifiedToggleTableStyles}
+                            className="table"
+                          >
                             <thead>
                               <tr>
                                 <th>
@@ -826,6 +903,34 @@ function DrinkingWater() {
                                 </tr>
                               )}
                             </tbody>
+                            {tribalWithdrawerCount > 0 && (
+                              <tfoot>
+                                <tr>
+                                  <th>
+                                    <span>Tribal Status</span>
+                                  </th>
+                                  <th></th>
+                                </tr>
+                                <tr>
+                                  <td>
+                                    <div css={toggleStyles}>
+                                      <Switch
+                                        disabled={!tribalWithdrawerCount}
+                                        checked={tribalWithdrawersOnly}
+                                        onChange={(ev) =>
+                                          setTribalWithdrawersOnly(
+                                            !tribalWithdrawersOnly,
+                                          )
+                                        }
+                                        ariaLabel="Tribal Only"
+                                      />
+                                      <span>Tribal Only</span>
+                                    </div>
+                                  </td>
+                                  <td></td>
+                                </tr>
+                              </tfoot>
+                            )}
                           </table>
 
                           <AccordionList
@@ -846,9 +951,15 @@ function DrinkingWater() {
                               displayedWithdrawers,
                               withdrawersSortBy,
                               true,
-                            ).map((item) =>
-                              createAccordionItem(services, item, true),
-                            )}
+                            )
+                              .filter((item) => {
+                                if (tribalWithdrawersOnly)
+                                  return item.tribal_name != null;
+                                return true;
+                              })
+                              .map((item) =>
+                                createAccordionItem(services, item, true),
+                              )}
                           </AccordionList>
                         </>
                       )}
