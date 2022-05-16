@@ -50,12 +50,14 @@ const containerStyles = css`
   table {
     margin-top: 0.75rem;
     margin-bottom: 0.75rem;
+    table-layout: fixed;
   }
 
   th,
   td {
     font-size: 0.875rem;
     line-height: 1.25;
+    overflow-wrap: break-word;
 
     &:last-child {
       text-align: right;
@@ -186,7 +188,9 @@ const parameterStyles = css`
 `;
 
 const dateCellStyles = css`
-  white-space: nowrap;
+  @media (min-width: 25em) {
+    white-space: nowrap;
+  }
 `;
 
 const locationsStyles = css`
