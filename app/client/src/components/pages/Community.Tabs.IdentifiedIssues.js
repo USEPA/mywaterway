@@ -703,7 +703,7 @@ function IdentifiedIssues() {
                                       }}
                                       ariaLabel="Toggle all impairment categories"
                                     />
-                                    <span>Impairment Category</span>
+                                    <span>Identified Issues</span>
                                   </div>
                                 </th>
                                 <th>% of Assessed Area</th>

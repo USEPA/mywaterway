@@ -1135,7 +1135,7 @@ function WaterbodyReport({ fullscreen }: Props) {
                     </h2>
 
                     <div css={modifiedBoxSectionStyles}>
-                      <h3>State or tribal nation specific designated uses</h3>
+                      <h3>State or Tribal Nation specific designated uses:</h3>
                       {waterbodyUses.status === 'fetching' && (
                         <LoadingSpinner />
                       )}
