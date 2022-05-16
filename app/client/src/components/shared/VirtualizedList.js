@@ -15,6 +15,7 @@ type Props = {
   items: Array<Object>,
   renderer: Function,
   allExpanded?: boolean,
+  displayedTypes?: Array<String>,
   expandedRowsSetter?: Function,
 };
 
@@ -22,6 +23,7 @@ function VirtualizedListInner({
   items,
   renderer,
   allExpanded,
+  displayedTypes,
   expandedRowsSetter,
 }: Props) {
   const [cache] = useState(
@@ -37,9 +39,9 @@ function VirtualizedListInner({
   // This is done anytime an accordion item is expanded/collapsed
   useEffect(() => {
     cache.clearAll();
-    listRef.current.recomputeRowHeights();
+    listRef.current?.recomputeRowHeights();
     if (expandedRowsSetter) expandedRowsSetter([]);
-  }, [allExpanded, cache, expandedRowsSetter]);
+  }, [allExpanded, cache, expandedRowsSetter, displayedTypes]);
 
   function rowRenderer({ index, isScrolling, key, parent, style }) {
     function resizeCell() {
@@ -102,6 +104,7 @@ function VirtualizedList({
   items,
   renderer,
   allExpanded,
+  displayedTypes,
   expandedRowsSetter,
 }: Props) {
   const ref = useRef();
@@ -115,6 +118,7 @@ function VirtualizedList({
           renderer={renderer}
           allExpanded={allExpanded}
           expandedRowsSetter={expandedRowsSetter}
+          displayedTypes={displayedTypes}
         />
       )}
     </div>

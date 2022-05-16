@@ -473,6 +473,10 @@ function MonitoringAndSensorsTab({
 
   const [expandedRows, setExpandedRows] = useState([]);
 
+  const [listTypes, setListTypes] = useState({
+    usgsStreamgages: usgsStreamgagesDisplayed,
+    monitoringLocations: monitoringLocationsDisplayed,
+  });
   // if either of the "Current Water Conditions" or "Sample Locations" switches
   // are turned on, or if both switches are turned off, keep the "Monitoring
   // Stations" switch in sync
@@ -484,6 +488,11 @@ function MonitoringAndSensorsTab({
     if (!usgsStreamgagesDisplayed && !monitoringLocationsDisplayed) {
       setMonitoringAndSensorsDisplayed(false);
     }
+
+    setListTypes({
+      usgsStreamgages: usgsStreamgagesDisplayed,
+      monitoringLocations: monitoringLocationsDisplayed,
+    });
   }, [
     usgsStreamgagesDisplayed,
     monitoringLocationsDisplayed,
@@ -570,9 +579,7 @@ function MonitoringAndSensorsTab({
         }
       });
 
-      plotGages(gages, usgsStreamgagesLayer).then(() => {
-        mounted.current && setNormalizedUsgsStreamgages(gages);
-      });
+      plotGages(gages, usgsStreamgagesLayer);
     },
     [usgsPrecipitation, usgsDailyAverages, usgsStreamgagesLayer],
   );
@@ -640,6 +647,7 @@ function MonitoringAndSensorsTab({
       };
     });
 
+    setNormalizedUsgsStreamgages(gages);
     addStreamgageData(gages);
   }, [addStreamgageData, usgsStreamgages.data, usgsStreamgagesLayer]);
 
@@ -679,9 +687,8 @@ function MonitoringAndSensorsTab({
       ),
     }));
 
-    plotStations(stations, monitoringLocationsLayer).then((_result) => {
-      mounted.current && setNormalizedMonitoringLocations(stations);
-    });
+    setNormalizedMonitoringLocations(stations);
+    plotStations(stations, monitoringLocationsLayer);
   }, [monitoringLocations.data, monitoringLocationsLayer, services]);
 
   const allMonitoringAndSensors = [
@@ -869,6 +876,7 @@ function MonitoringAndSensorsTab({
               <VirtualizedList
                 items={filteredMonitoringAndSensors}
                 expandedRowsSetter={setExpandedRows}
+                displayedTypes={listTypes}
                 renderer={({ index, resizeCell, allExpanded }) => {
                   const item = filteredMonitoringAndSensors[index];
 

@@ -409,10 +409,8 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
           }
         }
       });
-
-      plotGages(gages, usgsStreamgagesLayer).then((_result) => {
-        setNormalizedUsgsStreamgages(gages);
-      });
+      setNormalizedUsgsStreamgages(gages);
+      plotGages(gages, usgsStreamgagesLayer);
     },
     [usgsPrecipitation, usgsDailyAverages, usgsStreamgagesLayer],
   );
