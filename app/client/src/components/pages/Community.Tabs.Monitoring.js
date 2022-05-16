@@ -410,7 +410,9 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
         }
       });
 
-      setNormalizedUsgsStreamgages(gages);
+      plotGages(gages, usgsStreamgagesLayer).then((_result) => {
+        setNormalizedUsgsStreamgages(gages);
+      });
     },
     [usgsPrecipitation, usgsDailyAverages, usgsStreamgagesLayer],
   );
@@ -480,18 +482,6 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
 
     addStreamgageData(gages);
   }, [addStreamgageData, usgsStreamgages.data, usgsStreamgagesLayer]);
-
-  // emulate componentdidupdate
-  const mounted = useRef();
-  useEffect(() => {
-    if (!mounted.current) {
-      mounted.current = true;
-    } else {
-      if (normalizedUsgsStreamgages.length === 0) return;
-
-      plotGages(normalizedUsgsStreamgages, usgsStreamgagesLayer);
-    }
-  }, [normalizedUsgsStreamgages, usgsStreamgagesLayer]);
 
   const [sensorsSortedBy, setSensorsSortedBy] = useState('locationName');
 

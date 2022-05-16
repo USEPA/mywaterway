@@ -363,7 +363,7 @@ export function plotStations(stations: Array<Object>, layer: any) {
     });
   });
 
-  layer.queryFeatures().then((featureSet) => {
+  return layer.queryFeatures().then((featureSet) => {
     return layer.applyEdits({
       deleteFeatures: featureSet.features,
       addFeatures: graphics,

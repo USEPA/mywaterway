@@ -1,6 +1,12 @@
 // @flow
 
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useContext,
+  useCallback,
+} from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 // components
@@ -488,6 +494,15 @@ function MonitoringAndSensorsTab({
     [],
   );
 
+  // emulate componentdidupdate
+  const mounted = useRef();
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+    }
+    return () => (mounted.current = false);
+  }, []);
+
   // once streamgages have been plotted initially, add precipitation data and
   // daily average measurements data (both fetched from the usgs daily values
   // web service) to each streamgage if it exists for that particular location
@@ -555,7 +570,9 @@ function MonitoringAndSensorsTab({
         }
       });
 
-      setNormalizedUsgsStreamgages(gages);
+      plotGages(gages, usgsStreamgagesLayer).then(() => {
+        mounted.current && setNormalizedUsgsStreamgages(gages);
+      });
     },
     [usgsPrecipitation, usgsDailyAverages, usgsStreamgagesLayer],
   );
@@ -660,15 +677,11 @@ function MonitoringAndSensorsTab({
       stationTotalsByCategory: JSON.stringify(
         station.properties.characteristicGroupResultCount,
       ),
-      uniqueId:
-        `${station.properties.MonitoringLocationIdentifier}-` +
-        `${station.properties.ProviderName}-` +
-        `${station.properties.OrganizationIdentifier}`,
     }));
 
-    setNormalizedMonitoringLocations(stations);
-
-    plotStations(stations, monitoringLocationsLayer);
+    plotStations(stations, monitoringLocationsLayer).then((_result) => {
+      mounted.current && setNormalizedMonitoringLocations(stations);
+    });
   }, [monitoringLocations.data, monitoringLocationsLayer, services]);
 
   const allMonitoringAndSensors = [
