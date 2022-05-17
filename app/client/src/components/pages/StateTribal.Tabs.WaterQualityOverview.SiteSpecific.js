@@ -12,7 +12,7 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 // styled components
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { StateTabsContext } from 'contexts/StateTabs';
+import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 // utilities
 import { formatNumber } from 'utils/utils';
 // data
@@ -104,7 +104,7 @@ function SiteSpecific({
   useSelected,
   fishingAdvisoryData,
 }: Props) {
-  const { currentReportingCycle } = useContext(StateTabsContext);
+  const { currentReportingCycle } = useContext(StateTribalTabsContext);
 
   const [waterTypeUnits, setWaterTypeUnits] = useState('');
   useEffect(() => {

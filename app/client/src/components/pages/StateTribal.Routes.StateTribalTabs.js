@@ -6,12 +6,12 @@ import {} from 'styled-components/macro';
 import { Tab, Tabs, TabList, TabPanel, TabPanels } from '@reach/tabs';
 // components
 import { tabsStyles, tabPanelStyles } from 'components/shared/ContentTabs';
-import WaterQualityOverview from 'components/pages/State.Tabs.WaterQualityOverview';
-import AdvancedSearch from 'components/pages/State.Tabs.AdvancedSearch';
+import WaterQualityOverview from 'components/pages/StateTribal.Tabs.WaterQualityOverview';
+import AdvancedSearch from 'components/pages/StateTribal.Tabs.AdvancedSearch';
 // styled components
 import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 // contexts
-import { StateTabsContext } from 'contexts/StateTabs';
+import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 import {
   useOrganizationsContext,
   useServicesContext,
@@ -19,7 +19,7 @@ import {
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 
-function StateTabs() {
+function StateTribalTabs() {
   const { stateCode, tabName } = useParams();
   const navigate = useNavigate();
 
@@ -27,7 +27,7 @@ function StateTabs() {
   const services = useServicesContext();
 
   const { activeState, setActiveState, activeTabIndex, setActiveTabIndex } =
-    useContext(StateTabsContext);
+    useContext(StateTribalTabsContext);
 
   // redirect to overview tab if tabName param wasn't provided in the url
   // (e.g. '/state/al' redirects to '/state/AL/water-quality-overview')
@@ -157,4 +157,4 @@ function StateTabs() {
   );
 }
 
-export default StateTabs;
+export default StateTribalTabs;

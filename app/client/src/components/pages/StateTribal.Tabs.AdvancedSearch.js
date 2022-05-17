@@ -16,7 +16,7 @@ import ConfirmModal from 'components/shared/ConfirmModal';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { StateTabsContext } from 'contexts/StateTabs';
+import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   MapHighlightContext,
@@ -229,7 +229,7 @@ function AdvancedSearch() {
     activeState,
     stateAndOrganization,
     setStateAndOrganization,
-  } = useContext(StateTabsContext);
+  } = useContext(StateTribalTabsContext);
 
   const { fullscreenActive } = useContext(FullscreenContext);
 

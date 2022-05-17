@@ -4,7 +4,7 @@ import React, { Component, createContext } from 'react';
 import type { Node } from 'react';
 
 // --- components ---
-export const StateTabsContext: Object = createContext({
+export const StateTribalTabsContext: Object = createContext({
   currentReportStatus: '',
   currentSummary: { status: 'fetching', data: {} },
   currentReportingCycle: { status: 'fetching', currentReportingCycle: '' },
@@ -30,7 +30,7 @@ type State = {
   stateAndOrganization: object,
 };
 
-export class StateTabsProvider extends Component<Props, State> {
+export class StateTribalTabsProvider extends Component<Props, State> {
   state: State = {
     activeTabIndex: 0,
     currentReportStatus: '',
@@ -84,9 +84,9 @@ export class StateTabsProvider extends Component<Props, State> {
 
   render() {
     return (
-      <StateTabsContext.Provider value={this.state}>
+      <StateTribalTabsContext.Provider value={this.state}>
         {this.props.children}
-      </StateTabsContext.Provider>
+      </StateTribalTabsContext.Provider>
     );
   }
 }

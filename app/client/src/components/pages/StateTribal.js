@@ -20,7 +20,10 @@ import {
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
 // contexts
-import { StateTabsContext, StateTabsProvider } from 'contexts/StateTabs';
+import {
+  StateTribalTabsContext,
+  StateTribalTabsProvider,
+} from 'contexts/StateTribalTabs';
 import {
   useOrganizationsContext,
   useServicesContext,
@@ -167,7 +170,7 @@ const searchSourceButtonStyles = css`
   border-bottom-left-radius: 4px;
 `;
 
-function State() {
+function StateTribal() {
   const location = useLocation();
   const navigate = useNavigate();
   const organizations = useOrganizationsContext();
@@ -227,7 +230,7 @@ function State() {
     introText,
     usesStateSummaryServiceError,
     setUsesStateSummaryServiceError,
-  } = useContext(StateTabsContext);
+  } = useContext(StateTribalTabsContext);
 
   // reset active state if on state intro page
   useEffect(() => {
@@ -646,10 +649,10 @@ function State() {
   );
 }
 
-export default function StateContainer() {
+export default function StateTribalContainer() {
   return (
-    <StateTabsProvider>
-      <State />
-    </StateTabsProvider>
+    <StateTribalTabsProvider>
+      <StateTribal />
+    </StateTribalTabsProvider>
   );
 }

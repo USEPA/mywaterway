@@ -16,16 +16,16 @@ import {
   SwimmingIcon,
 } from 'components/shared/Icons';
 import WaterSystemSummary from 'components/shared/WaterSystemSummary';
-import SurveyResults from 'components/pages/State.Tabs.WaterQualityOverview.SurveyResults';
-import SiteSpecific from 'components/pages/State.Tabs.WaterQualityOverview.SiteSpecific';
-import Documents from 'components/pages/State.Tabs.WaterQualityOverview.Documents';
-import Stories from 'components/pages/State.Tabs.WaterQualityOverview.Stories';
+import SurveyResults from 'components/pages/StateTribal.Tabs.WaterQualityOverview.SurveyResults';
+import SiteSpecific from 'components/pages/StateTribal.Tabs.WaterQualityOverview.SiteSpecific';
+import Documents from 'components/pages/StateTribal.Tabs.WaterQualityOverview.Documents';
+import Stories from 'components/pages/StateTribal.Tabs.WaterQualityOverview.Stories';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // styles
 import { colors, reactSelectStyles } from 'styles/index.js';
 // contexts
-import { StateTabsContext } from 'contexts/StateTabs';
+import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 import {
   useServicesContext,
   useStateNationalUsesContext,
@@ -259,7 +259,7 @@ function WaterQualityOverview() {
     setUsesStateSummaryServiceError,
     stateAndOrganization,
     setStateAndOrganization,
-  } = useContext(StateTabsContext);
+  } = useContext(StateTribalTabsContext);
 
   const [loading, setLoading] = useState(true);
   const [surveyLoading, setSurveyLoading] = useState(true);
