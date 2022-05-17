@@ -33,6 +33,7 @@ import VirtualizedList from 'components/shared/VirtualizedList';
 import { useFetchedDataState } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
+import { MapHighlightContext } from 'contexts/MapHighlight';
 // utilities
 import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
 import {
@@ -468,6 +469,12 @@ function MonitoringAndSensorsTab({
     usgsStreamgagesLayer,
     watershed,
   } = useContext(LocationSearchContext);
+
+  // Clear features cached for highlighting on unmount
+  const { setCacheStale } = useContext(MapHighlightContext);
+  useEffect(() => {
+    return setCacheStale(true);
+  }, [setCacheStale]);
 
   const services = useServicesContext();
 

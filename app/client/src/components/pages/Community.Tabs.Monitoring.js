@@ -39,6 +39,7 @@ import VirtualizedList from 'components/shared/VirtualizedList';
 import { useFetchedDataState } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
+import { MapHighlightContext } from 'contexts/MapHighlight';
 // utilities
 import { plotFacilities, plotGages, plotStations } from 'utils/mapFunctions';
 import { useWaterbodyOnMap } from 'utils/hooks';
@@ -124,6 +125,12 @@ function Monitoring() {
     setVisibleLayers,
     usgsStreamgagesLayer,
   } = useContext(LocationSearchContext);
+
+  // Clear features cached for highlighting on unmount
+  const { setCacheStale } = useContext(MapHighlightContext);
+  useEffect(() => {
+    return setCacheStale(true);
+  }, [setCacheStale]);
 
   const [usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed] =
     useState(true);
