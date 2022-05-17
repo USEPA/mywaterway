@@ -1170,6 +1170,9 @@ function WaterQualityOverview() {
         </AccordionItem>
         <AccordionItem
           highlightContent={false}
+          css={css`
+            display: ${activeState?.source === 'States' ? 'block' : 'none'};
+          `}
           icon={
             <i
               css={accordionIconStyles}
