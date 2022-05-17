@@ -397,8 +397,8 @@ function DrinkingWater() {
   const [tribalWithdrawersOnly, setTribalWithdrawersOnly] = useState(false);
 
   // sort drinking water data into providers and withdrawers via presence of 'huc12' property
-  const providers = [];
-  const displayedWithdrawers = [];
+  let providers = [];
+  let displayedWithdrawers = [];
   let surfaceWaterCount = 0; // total surface water withdrawers
   let groundWaterCount = 0; // total groundwater withdrawers
   let tribalProviderCount = 0;
@@ -412,6 +412,9 @@ function DrinkingWater() {
       if (provider.tribal_name) tribalProviderCount++;
       providers.push(provider);
     });
+    if (tribalProvidersOnly) {
+      providers = providers.filter((item) => item.tribal_name != null);
+    }
 
     // find all withdrawers
     const allWithdrawers = drinkingWater.data.filter((system) => system.huc12);
@@ -481,6 +484,11 @@ function DrinkingWater() {
         if (groundWaterDisplayed) displayedWithdrawers.push(item);
       }
     });
+    if (tribalWithdrawersOnly) {
+      displayedWithdrawers = displayedWithdrawers.filter(
+        (item) => item.tribal_name != null,
+      );
+    }
   }
 
   let county = '';
@@ -723,15 +731,13 @@ function DrinkingWater() {
                             }
                             sortOptions={providerSorts}
                           >
-                            {sortWaterSystems(providers, providersSortBy, false)
-                              .filter((item) => {
-                                if (tribalProvidersOnly)
-                                  return item.tribal_name != null;
-                                return true;
-                              })
-                              .map((item) =>
-                                createAccordionItem(services, item),
-                              )}
+                            {sortWaterSystems(
+                              providers,
+                              providersSortBy,
+                              false,
+                            ).map((item) =>
+                              createAccordionItem(services, item),
+                            )}
                           </AccordionList>
                         </>
                       )}
@@ -951,15 +957,9 @@ function DrinkingWater() {
                               displayedWithdrawers,
                               withdrawersSortBy,
                               true,
-                            )
-                              .filter((item) => {
-                                if (tribalWithdrawersOnly)
-                                  return item.tribal_name != null;
-                                return true;
-                              })
-                              .map((item) =>
-                                createAccordionItem(services, item, true),
-                              )}
+                            ).map((item) =>
+                              createAccordionItem(services, item, true),
+                            )}
                           </AccordionList>
                         </>
                       )}
