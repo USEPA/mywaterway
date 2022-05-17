@@ -173,6 +173,14 @@ function State() {
   const organizations = useOrganizationsContext();
   const services = useServicesContext();
 
+  // redirect to '/stateandtribe' if the url is /state or /tribe
+  useEffect(() => {
+    const pathname = window.location.pathname.toLowerCase();
+    if (pathname === '/state' || pathname === '/tribe') {
+      navigate('/stateandtribal');
+    }
+  }, [navigate]);
+
   // get tribes from the organizations data (control table)
   const [tribes, setTribes] = useState([]);
   useEffect(() => {
@@ -223,7 +231,8 @@ function State() {
 
   // reset active state if on state intro page
   useEffect(() => {
-    if (location.pathname === '/state') {
+    if (location.pathname === '/stateandtribal') {
+      setSelectedStateTribe(null);
       setActiveState({
         label: '',
         value: '',
@@ -373,9 +382,15 @@ function State() {
               onSubmit={(ev) => {
                 ev.preventDefault();
                 setActiveState(selectedStateTribe);
-                navigate(
-                  `/state/${selectedStateTribe.value}/water-quality-overview`,
-                );
+
+                if (selectedStateTribe.source === 'States') {
+                  navigate(
+                    `/state/${selectedStateTribe.value}/water-quality-overview`,
+                  );
+                }
+                if (selectedStateTribe.source === 'Tribes') {
+                  navigate(`/tribe/${selectedStateTribe.value}`);
+                }
               }}
             >
               <div
@@ -481,9 +496,15 @@ function State() {
                     if (!selection) return;
 
                     setActiveState(selection);
-                    navigate(
-                      `/state/${selection.value}/water-quality-overview`,
-                    );
+
+                    if (selectedStateTribe.source === 'States') {
+                      navigate(
+                        `/state/${selectedStateTribe.value}/water-quality-overview`,
+                      );
+                    }
+                    if (selectedStateTribe.source === 'Tribes') {
+                      navigate(`/tribe/${selectedStateTribe.value}`);
+                    }
                   }}
                   onChange={(ev) => {
                     setSelectedStateTribe(ev);

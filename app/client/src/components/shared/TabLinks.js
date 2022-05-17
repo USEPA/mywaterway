@@ -3,7 +3,7 @@
 import React from 'react';
 import type { Node } from 'react';
 import { css } from 'styled-components/macro';
-import { Link, useMatch } from 'react-router-dom';
+import { Link, matchPath } from 'react-router-dom';
 // styles
 import { colors } from 'styles/index.js';
 
@@ -63,11 +63,20 @@ const linkStyles = css`
 
 type TabLinkProps = {
   to: string,
+  possiblePaths: string[] | undefined,
   children: Node,
 };
 
-function TabLink({ to, children }: TabLinkProps) {
-  const match = useMatch(to + '/*');
+function TabLink({ to, possiblePaths, children }: TabLinkProps) {
+  let match = false;
+  if (possiblePaths) {
+    possiblePaths.forEach((path) => {
+      if (matchPath(path + '/*', window.location.pathname)) match = true;
+    });
+  } else {
+    match = matchPath(to + '/*', window.location.pathname);
+  }
+
   return (
     <Link
       css={linkStyles}
@@ -88,7 +97,12 @@ function TabLinks() {
     <div css={containerStyles}>
       <div css={tabsStyles}>
         <TabLink to="/community">Community</TabLink>
-        <TabLink to="/state">State</TabLink>
+        <TabLink
+          to="/stateandtribal"
+          possiblePaths={['/stateandtribal', '/state', '/tribe']}
+        >
+          State & Tribal
+        </TabLink>
         <TabLink to="/national">National</TabLink>
       </div>
     </div>

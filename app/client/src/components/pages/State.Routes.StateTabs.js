@@ -32,17 +32,21 @@ function StateTabs() {
   // redirect to overview tab if tabName param wasn't provided in the url
   // (e.g. '/state/al' redirects to '/state/AL/water-quality-overview')
   useEffect(() => {
+    const pathname = window.location.pathname.toLowerCase();
+    if (pathname === `/tribe/${stateCode.toLowerCase()}`) return;
+
     if (stateCode && !tabName) {
       navigate(`/state/${stateCode.toUpperCase()}/water-quality-overview`);
     }
   }, [navigate, stateCode, tabName]);
 
-  // redirect to '/state' if the url doesn't match a valid route
+  // redirect to '/stateandtribal' if the url doesn't match a valid route
   // and conditionally set active tab index
   useEffect(() => {
     const validRoutes = [
       `/state/${stateCode.toLowerCase()}/water-quality-overview`,
       `/state/${stateCode.toLowerCase()}/advanced-search`,
+      `/tribe/${stateCode.toLowerCase()}`,
     ];
 
     const tabIndex = validRoutes.indexOf(
@@ -50,7 +54,7 @@ function StateTabs() {
     );
 
     if (tabIndex === -1) {
-      navigate('/state');
+      navigate('/stateandtribal');
     }
 
     if (activeTabIndex !== tabIndex) {
@@ -87,7 +91,7 @@ function StateTabs() {
           )[0];
 
           // redirect to /state if no state was found
-          if (!match) navigate('/state');
+          if (!match) navigate('/stateandtribal');
 
           setActiveState({
             value: match.code,
@@ -96,7 +100,7 @@ function StateTabs() {
           });
         })
         .catch((err) => {
-          navigate('/state');
+          navigate('/stateandtribal');
         });
     }
   }, [

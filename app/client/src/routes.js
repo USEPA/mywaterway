@@ -73,10 +73,15 @@ function AppRoutes() {
           <Route path=":urlSearch" element={<CommunityTabs />} />
           <Route path=":urlSearch/:tabName" element={<CommunityTabs />} />
         </Route>
-        <Route path="/state" element={<State />}>
+        <Route path="/stateandtribal" element={<State />}>
           <Route index element={<StateIntro />} />
-          <Route path=":stateCode" element={<StateTabs />} />
-          <Route path=":stateCode/:tabName" element={<StateTabs />} />
+        </Route>
+        <Route path="/state" element={<State />}>
+          <Route path="/state/:stateCode" element={<StateTabs />} />
+          <Route path="/state/:stateCode/:tabName" element={<StateTabs />} />
+        </Route>
+        <Route path="/tribe" element={<State />}>
+          <Route path="/tribe/:stateCode" element={<StateTabs />} />
         </Route>
         <Route path="/national" element={<National />} />
         <Route path="/drinking-water" element={<DrinkingWater />} />
