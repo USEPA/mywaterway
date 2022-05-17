@@ -15,7 +15,7 @@ type Props = {
   items: Array<Object>,
   renderer: Function,
   allExpanded?: boolean,
-  displayedTypes?: Array<String>,
+  displayedTypes?: Object,
   expandedRowsSetter?: Function,
 };
 
