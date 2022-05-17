@@ -267,7 +267,7 @@ function Monitoring() {
                   ? 'N/A'
                   : `${monitoringLocations.data.features.length}`}
               </span>
-              <p css={keyMetricLabelStyles}>Sample Locations</p>
+              <p css={keyMetricLabelStyles}>Past Water Conditions</p>
               <div css={switchContainerStyles}>
                 <Switch
                   checked={
@@ -299,7 +299,7 @@ function Monitoring() {
         <Tabs>
           <TabList>
             <Tab>Current Water Conditions</Tab>
-            <Tab>Sample Locations</Tab>
+            <Tab>Past Water Conditions</Tab>
           </TabList>
 
           <TabPanels>
@@ -1190,7 +1190,14 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                     <AccordionItem
                       key={index}
                       index={index}
-                      title={<strong>{item.locationName || 'Unknown'}</strong>}
+                      title={
+                        <>
+                          <em>Location Name:</em>&nbsp;&nbsp;
+                          <strong className="location-name">
+                            {item.locationName || 'Unknown'}
+                          </strong>
+                        </>
+                      }
                       subTitle={
                         <>
                           <em>Organization Name:</em>&nbsp;&nbsp;
