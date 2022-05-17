@@ -702,7 +702,7 @@ function DrinkingWater() {
                                       <Switch
                                         disabled={!tribalProviderCount}
                                         checked={tribalProvidersOnly}
-                                        onChange={(ev) =>
+                                        onChange={(_ev) =>
                                           setTribalProvidersOnly(
                                             !tribalProvidersOnly,
                                           )
@@ -854,7 +854,7 @@ function DrinkingWater() {
                                         surfaceWaterDisplayed &&
                                         surfaceWaterCount > 0
                                       }
-                                      onChange={(ev) =>
+                                      onChange={(_ev) =>
                                         setSurfaceWaterDisplayed(
                                           !surfaceWaterDisplayed,
                                         )
@@ -875,7 +875,7 @@ function DrinkingWater() {
                                         groundWaterDisplayed &&
                                         groundWaterCount > 0
                                       }
-                                      onChange={(ev) =>
+                                      onChange={(_ev) =>
                                         setGroundWaterDisplayed(
                                           !groundWaterDisplayed,
                                         )
@@ -895,7 +895,7 @@ function DrinkingWater() {
                                       <Switch
                                         disabled={!bothCount}
                                         checked={bothDisplayed && bothCount > 0}
-                                        onChange={(ev) =>
+                                        onChange={(_ev) =>
                                           setBothDisplayed(!bothDisplayed)
                                         }
                                         ariaLabel="Ground Water and Surface Water"
@@ -923,7 +923,7 @@ function DrinkingWater() {
                                       <Switch
                                         disabled={!tribalWithdrawerCount}
                                         checked={tribalWithdrawersOnly}
-                                        onChange={(ev) =>
+                                        onChange={(_ev) =>
                                           setTribalWithdrawersOnly(
                                             !tribalWithdrawersOnly,
                                           )
