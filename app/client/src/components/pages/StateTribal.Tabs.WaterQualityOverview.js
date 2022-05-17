@@ -129,6 +129,12 @@ const topicTabStyles = css`
       border-top: 0;
     }
   }
+
+  i {
+    width: 100%;
+    font-size: 1.5rem;
+    line-height: 2.125rem;
+  }
 `;
 
 const topicIconStyles = css`
@@ -931,6 +937,14 @@ function WaterQualityOverview() {
       icon: <OtherIcon height="2.5em" />,
     },
   ];
+
+  if (activeState?.source === 'Tribes') {
+    tabs.push({
+      id: 'cultural',
+      title: 'Cultural',
+      icon: <i className="fas fa-globe-americas fa-align-center" />,
+    });
+  }
 
   // get index of initial current topic (initialized to 'drinking' above)
   const initialTabIndex = tabs.map((tab) => tab.id).indexOf(currentTopic);
