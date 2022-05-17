@@ -15,6 +15,7 @@ import ActionsMap from 'components/shared/ActionsMap';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import MapVisibilityButton from 'components/shared/MapVisibilityButton';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
 // styled components
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import {
@@ -1274,6 +1275,9 @@ function WaterbodyReport({ fullscreen }: Props) {
                                     >
                                       {document.documentName}
                                     </a>
+                                    <DynamicExitDisclaimer
+                                      url={document.documentURL}
+                                    />
                                   </li>
                                 ))}
                             </ul>
