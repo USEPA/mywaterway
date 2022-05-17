@@ -510,19 +510,9 @@ function MonitoringAndSensorsTab({
     [],
   );
 
-  // emulate componentdidupdate
-  const mounted = useRef();
-  useEffect(() => {
-    if (!mounted.current) {
-      mounted.current = true;
-    }
-    return () => (mounted.current = false);
-  }, []);
-
   // once streamgages have been plotted initially, add precipitation data and
   // daily average measurements data (both fetched from the usgs daily values
   // web service) to each streamgage if it exists for that particular location
-  // and replot the streamgages on the map
   const addStreamgageData = useCallback(
     (gages) => {
       if (!usgsPrecipitation.data.value) return;
@@ -585,14 +575,11 @@ function MonitoringAndSensorsTab({
           }
         }
       });
-
-      plotGages(gages, usgsStreamgagesLayer);
     },
-    [usgsPrecipitation, usgsDailyAverages, usgsStreamgagesLayer],
+    [usgsPrecipitation, usgsDailyAverages],
   );
 
-  // normalize USGS streamgages data with monitoring stations data,
-  // and draw them on the map
+  // normalize USGS streamgages data with monitoring stations data
   useEffect(() => {
     if (!usgsStreamgages.data.value) return;
 
@@ -657,6 +644,19 @@ function MonitoringAndSensorsTab({
     setNormalizedUsgsStreamgages(gages);
     addStreamgageData(gages);
   }, [addStreamgageData, usgsStreamgages.data, usgsStreamgagesLayer]);
+
+  // draw the streamgages on the map,
+  // emulates componentdidupdate
+  const mounted = useRef();
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+    } else {
+      if (normalizedUsgsStreamgages.length === 0) return;
+
+      plotGages(normalizedUsgsStreamgages, usgsStreamgagesLayer);
+    }
+  }, [normalizedUsgsStreamgages, usgsStreamgagesLayer]);
 
   const [normalizedMonitoringLocations, setNormalizedMonitoringLocations] =
     useState([]);
