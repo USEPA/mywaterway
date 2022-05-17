@@ -4,13 +4,12 @@ import React, { useEffect } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useEducatorMaterialsContext } from 'contexts/LookupFiles';
 // config
 import { educatorContentError } from 'config/errorMessages';
 // styles
-import { infoBoxStyles } from 'components/shared/MessageBoxes';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import { fonts } from 'styles/index.js';
 
 // NOTE: matching styles used in tabs in `AboutContent` component
