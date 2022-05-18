@@ -711,7 +711,7 @@ function DrinkingWater() {
                                     <span>Tribal Only</span>
                                   </div>
                                 </td>
-                                <td></td>
+                                <td>{tribalProviderCount}</td>
                               </tr>
                             </tbody>
                           </table>
@@ -930,7 +930,7 @@ function DrinkingWater() {
                                     <span>Tribal Only</span>
                                   </div>
                                 </td>
-                                <td></td>
+                                <td>{tribalWithdrawerCount}</td>
                               </tr>
                             </tfoot>
                           </table>
