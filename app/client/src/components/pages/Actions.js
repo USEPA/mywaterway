@@ -25,6 +25,7 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import MapVisibilityButton from 'components/shared/MapVisibilityButton';
 import VirtualizedList from 'components/shared/VirtualizedList';
+import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import {
@@ -683,6 +684,9 @@ function Actions({ fullscreen }: Props) {
                               >
                                 {document.documentName}
                               </a>
+                              <DynamicExitDisclaimer
+                                url={document.documentURL}
+                              />
                             </li>
                           ))}
                       </ul>

@@ -10,6 +10,7 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
+import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
 import {
   keyMetricsStyles,
   keyMetricStyles,
@@ -304,6 +305,9 @@ function Restore() {
                                                     >
                                                       {document.title}
                                                     </a>
+                                                    <DynamicExitDisclaimer
+                                                      url={document.url}
+                                                    />
                                                   </div>
                                                 );
                                               }
