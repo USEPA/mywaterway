@@ -1,11 +1,9 @@
 // @flow
 
 import React from 'react';
-// contexts
-import { useServicesContext } from 'contexts/LookupFiles';
 
 // Determines if a URL is external
-function isExternalUrl(url: string, services: Object) {
+function isExternalUrl(url: string) {
   const link = new URL(url);
 
   const internalHostnames = [
@@ -33,9 +31,7 @@ type Props = {
 };
 
 function DynamicExitDisclaimer({ url }: Props) {
-  const services = useServicesContext();
-
-  if (isExternalUrl(url, services)) {
+  if (isExternalUrl(url)) {
     return (
       <a
         className="exit-disclaimer"
