@@ -46,6 +46,7 @@ import {
 // config
 import { usgsStaParameters } from 'config/usgsStaParameters';
 // styles
+import { subTitleStyles } from 'components/shared/Accordion';
 import { toggleTableStyles } from 'styles/index.js';
 
 const containerStyles = css`
@@ -874,7 +875,13 @@ function MonitoringAndSensorsTab({
                     <AccordionItem
                       key={index}
                       index={index}
-                      title={<strong>{item.locationName || 'Unknown'}</strong>}
+                      title={
+                        <>
+                          <em css={subTitleStyles}>Location Name:</em>
+                          &nbsp;&nbsp;
+                          <strong>{item.locationName || 'Unknown'}</strong>
+                        </>
+                      }
                       subTitle={
                         <>
                           <em>Monitoring Type:</em>&nbsp;&nbsp;

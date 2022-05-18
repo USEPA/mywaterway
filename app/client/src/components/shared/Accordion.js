@@ -185,11 +185,8 @@ const textStyles = css`
   overflow-wrap: anywhere;
 `;
 
-const accordionItemTitleStyles = css`
+const subTitleStyles = css`
   font-size: 0.8125em;
-  .location-name {
-    font-size: initial;
-  }
 `;
 
 const arrowStyles = css`
@@ -283,11 +280,11 @@ function AccordionItem({
         {icon && <div css={iconStyles}>{icon}</div>}
 
         <p css={textStyles}>
-          <span css={accordionItemTitleStyles}>{title}</span>
+          {title}
           {subTitle && (
             <>
               <br />
-              <span css={accordionItemTitleStyles}>{subTitle}</span>
+              <span css={subTitleStyles}>{subTitle}</span>
             </>
           )}
         </p>
@@ -312,4 +309,4 @@ function AccordionItem({
   );
 }
 
-export { AccordionList, AccordionItem };
+export { AccordionList, AccordionItem, subTitleStyles };

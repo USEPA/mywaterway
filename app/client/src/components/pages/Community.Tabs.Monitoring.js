@@ -49,6 +49,7 @@ import { monitoringError } from 'config/errorMessages';
 // config
 import { usgsStaParameters } from 'config/usgsStaParameters';
 // styles
+import { subTitleStyles } from 'components/shared/Accordion';
 import { toggleTableStyles } from 'styles/index.js';
 
 const containerStyles = css`
@@ -560,7 +561,13 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
           return (
             <AccordionItem
               key={index}
-              title={<strong>{item.locationName || 'Unknown'}</strong>}
+              title={
+                <>
+                  <em css={subTitleStyles}>Location Name:</em>
+                  &nbsp;&nbsp;
+                  <strong>{item.locationName || 'Unknown'}</strong>
+                </>
+              }
               subTitle={
                 <>
                   <em>Organization Name:</em>&nbsp;&nbsp;
@@ -1192,10 +1199,9 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                       index={index}
                       title={
                         <>
-                          <em>Location Name:</em>&nbsp;&nbsp;
-                          <strong className="location-name">
-                            {item.locationName || 'Unknown'}
-                          </strong>
+                          <em css={subTitleStyles}>Location Name:</em>
+                          &nbsp;&nbsp;
+                          <strong>{item.locationName || 'Unknown'}</strong>
                         </>
                       }
                       subTitle={
