@@ -49,7 +49,7 @@ import { monitoringError } from 'config/errorMessages';
 // config
 import { usgsStaParameters } from 'config/usgsStaParameters';
 // styles
-import { subTitleStyles } from 'components/shared/Accordion';
+import { subtitleStyles } from 'components/shared/Accordion';
 import { toggleTableStyles } from 'styles/index.js';
 
 const containerStyles = css`
@@ -563,7 +563,7 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
               key={index}
               title={
                 <>
-                  <em css={subTitleStyles}>Location Name:</em>
+                  <em css={subtitleStyles}>Location Name:</em>
                   &nbsp;&nbsp;
                   <strong>{item.locationName || 'Unknown'}</strong>
                 </>
@@ -1199,7 +1199,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                       index={index}
                       title={
                         <>
-                          <em css={subTitleStyles}>Location Name:</em>
+                          <em css={subtitleStyles}>Location Name:</em>
                           &nbsp;&nbsp;
                           <strong>{item.locationName || 'Unknown'}</strong>
                         </>

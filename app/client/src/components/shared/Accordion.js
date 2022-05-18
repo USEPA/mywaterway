@@ -185,7 +185,7 @@ const textStyles = css`
   overflow-wrap: anywhere;
 `;
 
-const subTitleStyles = css`
+const subtitleStyles = css`
   font-size: 0.8125em;
 `;
 
@@ -284,7 +284,7 @@ function AccordionItem({
           {subTitle && (
             <>
               <br />
-              <span css={subTitleStyles}>{subTitle}</span>
+              <span css={subtitleStyles}>{subTitle}</span>
             </>
           )}
         </p>
@@ -309,4 +309,4 @@ function AccordionItem({
   );
 }
 
-export { AccordionList, AccordionItem, subTitleStyles };
+export { AccordionList, AccordionItem, subtitleStyles };
