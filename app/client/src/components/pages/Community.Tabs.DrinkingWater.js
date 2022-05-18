@@ -682,41 +682,39 @@ function DrinkingWater() {
 
                       {providers.length > 0 && (
                         <>
-                          {tribalProviderCount > 0 && (
-                            <table
-                              css={modifiedToggleTableStyles}
-                              className="table"
-                            >
-                              <thead>
-                                <tr>
-                                  <th>
-                                    <span>Tribal Status</span>
-                                  </th>
-                                  <th></th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                <tr>
-                                  <td>
-                                    <div css={toggleStyles}>
-                                      <Switch
-                                        disabled={!tribalProviderCount}
-                                        checked={tribalProvidersOnly}
-                                        onChange={(_ev) =>
-                                          setTribalProvidersOnly(
-                                            !tribalProvidersOnly,
-                                          )
-                                        }
-                                        ariaLabel="Tribal Only"
-                                      />
-                                      <span>Tribal Only</span>
-                                    </div>
-                                  </td>
-                                  <td></td>
-                                </tr>
-                              </tbody>
-                            </table>
-                          )}
+                          <table
+                            css={modifiedToggleTableStyles}
+                            className="table"
+                          >
+                            <thead>
+                              <tr>
+                                <th>
+                                  <span>Tribal Status</span>
+                                </th>
+                                <th></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td>
+                                  <div css={toggleStyles}>
+                                    <Switch
+                                      disabled={!tribalProviderCount}
+                                      checked={tribalProvidersOnly}
+                                      onChange={(_ev) =>
+                                        setTribalProvidersOnly(
+                                          !tribalProvidersOnly,
+                                        )
+                                      }
+                                      ariaLabel="Tribal Only"
+                                    />
+                                    <span>Tribal Only</span>
+                                  </div>
+                                </td>
+                                <td></td>
+                              </tr>
+                            </tbody>
+                          </table>
                           <AccordionList
                             title={
                               <>
@@ -909,34 +907,32 @@ function DrinkingWater() {
                                 </tr>
                               )}
                             </tbody>
-                            {tribalWithdrawerCount > 0 && (
-                              <tfoot>
-                                <tr>
-                                  <th>
-                                    <span>Tribal Status</span>
-                                  </th>
-                                  <th></th>
-                                </tr>
-                                <tr>
-                                  <td>
-                                    <div css={toggleStyles}>
-                                      <Switch
-                                        disabled={!tribalWithdrawerCount}
-                                        checked={tribalWithdrawersOnly}
-                                        onChange={(_ev) =>
-                                          setTribalWithdrawersOnly(
-                                            !tribalWithdrawersOnly,
-                                          )
-                                        }
-                                        ariaLabel="Tribal Only"
-                                      />
-                                      <span>Tribal Only</span>
-                                    </div>
-                                  </td>
-                                  <td></td>
-                                </tr>
-                              </tfoot>
-                            )}
+                            <tfoot>
+                              <tr>
+                                <th>
+                                  <span>Tribal Status</span>
+                                </th>
+                                <th></th>
+                              </tr>
+                              <tr>
+                                <td>
+                                  <div css={toggleStyles}>
+                                    <Switch
+                                      disabled={!tribalWithdrawerCount}
+                                      checked={tribalWithdrawersOnly}
+                                      onChange={(_ev) =>
+                                        setTribalWithdrawersOnly(
+                                          !tribalWithdrawersOnly,
+                                        )
+                                      }
+                                      ariaLabel="Tribal Only"
+                                    />
+                                    <span>Tribal Only</span>
+                                  </div>
+                                </td>
+                                <td></td>
+                              </tr>
+                            </tfoot>
                           </table>
 
                           <AccordionList
