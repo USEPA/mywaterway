@@ -41,7 +41,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightContext } from 'contexts/MapHighlight';
 // utilities
-import { plotFacilities, plotGages, plotStations } from 'utils/mapFunctions';
+import { plotFacilities, plotGages } from 'utils/mapFunctions';
 import { useWaterbodyOnMap } from 'utils/hooks';
 // data
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
@@ -652,7 +652,25 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
       setAllToggled(allOthersToggled);
 
-      plotStations(tempDisplayedMonitoringLocations, monitoringLocationsLayer);
+      // generate a list of location ids
+      const locationIds = [];
+      tempDisplayedMonitoringLocations.forEach((station) => {
+        locationIds.push(station.uniqueId);
+      });
+
+      // update the filters on the layer
+      if (
+        tempDisplayedMonitoringLocations.length ===
+        monitoringLocationTogglesParam.All.stations.length
+      ) {
+        monitoringLocationsLayer.definitionExpression = '';
+      } else if (locationIds.length === 0) {
+        monitoringLocationsLayer.definitionExpression = '1=0';
+      } else {
+        monitoringLocationsLayer.definitionExpression = `uniqueId IN ('${locationIds.join(
+          "','",
+        )}')`;
+      }
 
       if (tempDisplayedMonitoringLocations.length === 0) {
         setDisplayedMonitoringLocations([]);

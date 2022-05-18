@@ -137,6 +137,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setHucBoundaries,
     setAtHucBoundaries,
     mapView,
+    monitoringLocations,
     setMonitoringLocations,
     // setNonprofits,
     setPermittedDischargers,
@@ -170,6 +171,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     getAllFeatures,
     waterbodyCountMismatch,
     setWaterbodyCountMismatch,
+    monitoringLocationsLayer,
   } = useContext(LocationSearchContext);
 
   const stateNationalUses = useStateNationalUsesContext();
@@ -1112,6 +1114,75 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     },
     [setMonitoringLocations, services],
   );
+
+  // updates the features on the monitoringStationsLayer
+  useEffect(() => {
+    if (!monitoringLocationsLayer || monitoringLocations.status !== 'success') {
+      return;
+    }
+
+    // sort ascending order
+    const stationsSorted = [...monitoringLocations.data.features];
+    stationsSorted.sort((a, b) => {
+      return (
+        parseInt(a.properties.resultCount) - parseInt(b.properties.resultCount)
+      );
+    });
+
+    // sort descending order so that smaller graphics show up on top
+    const graphics = stationsSorted.map((station) => {
+      return new Graphic({
+        geometry: {
+          type: 'point',
+          longitude: station.geometry.coordinates[0],
+          latitude: station.geometry.coordinates[1],
+        },
+        attributes: {
+          monitoringType: 'Sample Location',
+          siteId: station.properties.MonitoringLocationIdentifier,
+          orgId: station.properties.OrganizationIdentifier,
+          orgName: station.properties.OrganizationFormalName,
+          locationLongitude: station.geometry.coordinates[0],
+          locationLatitude: station.geometry.coordinates[1],
+          locationName: station.properties.MonitoringLocationName,
+          locationType: station.properties.MonitoringLocationTypeName,
+          // TODO: explore if the built up locationUrl below is ever different from
+          // `station.properties.siteUrl`. from a quick test, they seem the same
+          locationUrl:
+            `${services.data.waterQualityPortal.monitoringLocationDetails}` +
+            `${station.properties.ProviderName}/` +
+            `${station.properties.OrganizationIdentifier}/` +
+            `${station.properties.MonitoringLocationIdentifier}/`,
+          // monitoring station specific properties:
+          stationProviderName: station.properties.ProviderName,
+          stationTotalSamples: station.properties.activityCount,
+          stationTotalMeasurements: station.properties.resultCount,
+          stationTotalMeasurementsPercentile:
+            station.properties.stationTotalMeasurementsPercentile,
+          // counts for each lower-tier characteristic group
+          stationTotalsByCategory: JSON.stringify(
+            station.properties.characteristicGroupResultCount,
+          ),
+          // counts for each top-tier characteristic group
+          stationTotalsByGroup: {},
+          // create a unique id, so we can check if the monitoring station has
+          // already been added to the display (since a monitoring station id
+          // isn't universally unique)
+          uniqueId:
+            `${station.properties.MonitoringLocationIdentifier}-` +
+            `${station.properties.ProviderName}-` +
+            `${station.properties.OrganizationIdentifier}`,
+        },
+      });
+    });
+
+    monitoringLocationsLayer.queryFeatures().then((featureSet) => {
+      monitoringLocationsLayer.applyEdits({
+        deleteFeatures: featureSet.features,
+        addFeatures: graphics,
+      });
+    });
+  }, [monitoringLocationsLayer, monitoringLocations, services]);
 
   const fetchUsgsStreamgages = useCallback(
     (huc12) => {

@@ -38,7 +38,6 @@ import { MapHighlightContext } from 'contexts/MapHighlight';
 import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
 import {
   plotFacilities,
-  plotStations,
   plotGages,
   getUniqueWaterbodies,
 } from 'utils/mapFunctions';
@@ -695,7 +694,9 @@ function MonitoringAndSensorsTab({
     }));
 
     setNormalizedMonitoringLocations(stations);
-    plotStations(stations, monitoringLocationsLayer);
+
+    // remove any filters on the monitoring locations layer
+    monitoringLocationsLayer.definitionExpression = '';
   }, [monitoringLocations.data, monitoringLocationsLayer, services]);
 
   const allMonitoringAndSensors = [
