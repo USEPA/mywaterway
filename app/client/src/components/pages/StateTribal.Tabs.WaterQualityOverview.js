@@ -8,6 +8,7 @@ import { Tabs, TabList, Tab, TabPanel, TabPanels } from '@reach/tabs';
 import { tabsStyles, tabPanelStyles } from 'components/shared/ContentTabs';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
+import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
 import {
   AquaticLifeIcon,
   DrinkingWaterIcon,
@@ -1251,14 +1252,7 @@ function WaterQualityOverview() {
                             >
                               {item.label ? item.label : item.url}
                             </a>
-                            <a
-                              className="exit-disclaimer"
-                              href="https://www.epa.gov/home/exit-epa"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              EXIT
-                            </a>
+                            <DynamicExitDisclaimer url={item.url} />
                           </li>
                         );
                       })}

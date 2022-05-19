@@ -7,6 +7,7 @@ import HighchartsReact from 'highcharts-react-official';
 import highchartsAccessibility from 'highcharts/modules/accessibility';
 // components
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
+import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 // styled components
@@ -449,14 +450,7 @@ function SiteSpecific({
                 {activeState.label}
               </a>{' '}
             </h3>
-            <a
-              className="exit-disclaimer"
-              href="https://www.epa.gov/home/exit-epa"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              EXIT
-            </a>
+            <DynamicExitDisclaimer url={fishingAdvisoryData.data[0].url} />
           </>
         )}
     </>

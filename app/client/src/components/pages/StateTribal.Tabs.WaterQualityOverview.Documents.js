@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 // components
+import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import ReactTable from 'components/shared/ReactTable';
 // contexts
@@ -246,18 +247,21 @@ function DocumentsTable({ documents, type }: DocumentsTableProps) {
             width: docNameWidth,
             Render: (cell) => {
               return (
-                <a
-                  href={cell.row.original.documentURL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {cell.value} (
-                  {getExtensionFromPath(
-                    cell.row.original.documentFileName,
-                    cell.row.original.documentURL,
-                  )}
-                  )
-                </a>
+                <>
+                  <a
+                    href={cell.row.original.documentURL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {cell.value} (
+                    {getExtensionFromPath(
+                      cell.row.original.documentFileName,
+                      cell.row.original.documentURL,
+                    )}
+                    )
+                  </a>
+                  <DynamicExitDisclaimer url={cell.row.original.documentURL} />
+                </>
               );
             },
           },
