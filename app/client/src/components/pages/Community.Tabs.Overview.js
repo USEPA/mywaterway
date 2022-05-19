@@ -1,12 +1,6 @@
 // @flow
 
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useContext,
-  useCallback,
-} from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 // components
@@ -35,11 +29,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { useWaterbodyFeatures, useWaterbodyOnMap } from 'utils/hooks';
-import {
-  plotFacilities,
-  plotGages,
-  getUniqueWaterbodies,
-} from 'utils/mapFunctions';
+import { plotFacilities, getUniqueWaterbodies } from 'utils/mapFunctions';
 // errors
 import {
   echoError,
