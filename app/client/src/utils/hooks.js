@@ -309,8 +309,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
   const {
     highlightedGraphic,
     selectedGraphic, //
-    cacheStale,
-    setCacheStale,
   } = useContext(MapHighlightContext);
   const {
     mapView,
@@ -392,8 +390,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       currentSelection: null,
       cachedHighlights: {},
     });
-    setCacheStale(false);
-  }, [cacheStale, huc12, setCacheStale]);
+  }, [huc12]);
 
   // do the highlighting
   useEffect(() => {

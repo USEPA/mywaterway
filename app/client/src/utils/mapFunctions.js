@@ -339,38 +339,6 @@ export function createWaterbodySymbol({
   }
 }
 
-// plot usgs streamgages on map
-export function plotGages(gages: Object[], layer: any) {
-  if (!gages || !layer) return;
-
-  const graphics = gages.map((gage) => {
-    const gageHeightMeasurements = gage.streamgageMeasurements.primary.filter(
-      (d) => d.parameterCode === '00065',
-    );
-
-    const gageHeight =
-      gageHeightMeasurements.length === 1
-        ? gageHeightMeasurements[0]?.measurement
-        : null;
-
-    return new Graphic({
-      geometry: {
-        type: 'point',
-        longitude: gage.locationLongitude,
-        latitude: gage.locationLatitude,
-      },
-      attributes: { gageHeight, ...gage },
-    });
-  });
-
-  return layer.queryFeatures().then((featureSet) => {
-    return layer.applyEdits({
-      deleteFeatures: featureSet.features,
-      addFeatures: graphics,
-    });
-  });
-}
-
 // plot issues on map
 export function plotIssues(features: Array<Object>, layer: any) {
   if (!features || !layer) return;

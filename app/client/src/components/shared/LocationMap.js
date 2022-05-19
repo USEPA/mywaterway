@@ -32,16 +32,26 @@ import {
   getUniqueWaterbodies,
 } from 'utils/mapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
-// styled components
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
+// config
+import { usgsStaParameters } from 'config/usgsStaParameters';
 // contexts
-import { useFetchedDataDispatch } from 'contexts/FetchedData';
+import { useFetchedDataDispatch, useFetchedDataState } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useOrganizationsContext,
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
+// data
+import { impairmentFields } from 'config/attainsToHmwMapping';
+import { parameterList } from 'config/attainsParameters';
+// errors
+import {
+  geocodeError,
+  noDataAvailableError,
+  watersgeoError,
+  esriMapLoadingFailure,
+} from 'config/errorMessages';
 // helpers
 import {
   useDynamicPopup,
@@ -60,23 +70,88 @@ import {
   browserIsCompatibleWithArcGIS,
   percentRank,
 } from 'utils/utils';
+// styled components
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // styles
 import 'styles/mapStyles.css';
 import { colors } from 'styles/index.js';
-// data
-import { impairmentFields } from 'config/attainsToHmwMapping';
-import { parameterList } from 'config/attainsParameters';
-// errors
-import {
-  geocodeError,
-  noDataAvailableError,
-  watersgeoError,
-  esriMapLoadingFailure,
-} from 'config/errorMessages';
 
 // turns an array into a string for the service queries
 function createQueryString(array) {
   return `'${array.join("', '")}'`;
+}
+
+function useStreamgageData(fetchedData, fetchStatus) {
+  const [normalizedUsgsStreamgages, setNormalizedUsgsStreamgages] = useState(
+    [],
+  );
+
+  // normalize USGS streamgages data with monitoring stations data
+  useEffect(() => {
+    if (fetchStatus !== 'success' || !fetchedData.value) return;
+
+    const gages = fetchedData.value.map((gage) => {
+      const streamgageMeasurements = { primary: [], secondary: [] };
+
+      [...gage.Datastreams]
+        .filter((item) => item.Observations.length > 0)
+        .forEach((item) => {
+          const observation = item.Observations[0];
+          const parameterCode = item.properties.ParameterCode;
+          const parameterDesc = item.description.split(' / USGS-')[0];
+          const parameterUnit = item.unitOfMeasurement;
+
+          let measurement = observation.result;
+          // convert measurements recorded in celsius to fahrenheit
+          if (['00010', '00020', '85583'].includes(parameterCode)) {
+            measurement = measurement * (9 / 5) + 32;
+          }
+
+          const matchedParam = usgsStaParameters.find((p) => {
+            return p.staParameterCode === parameterCode;
+          });
+
+          const data = {
+            parameterCategory: matchedParam?.hmwCategory || 'exclude',
+            parameterOrder: matchedParam?.hmwOrder || 0,
+            parameterName: matchedParam?.hmwName || parameterDesc,
+            parameterUsgsName: matchedParam?.staDescription || parameterDesc,
+            parameterCode,
+            measurement,
+            datetime: new Date(observation.phenomenonTime).toLocaleString(),
+            dailyAverages: [],
+            unitAbbr: matchedParam?.hmwUnits || parameterUnit.symbol,
+            unitName: parameterUnit.name,
+          };
+
+          if (data.parameterCategory === 'primary') {
+            streamgageMeasurements.primary.push(data);
+          }
+
+          if (data.parameterCategory === 'secondary') {
+            streamgageMeasurements.secondary.push(data);
+          }
+        });
+
+      return {
+        monitoringType: 'Current Water Conditions',
+        siteId: gage.properties.monitoringLocationNumber,
+        orgId: gage.properties.agencyCode,
+        orgName: gage.properties.agency,
+        locationLongitude: gage.Locations[0].location.coordinates[0],
+        locationLatitude: gage.Locations[0].location.coordinates[1],
+        locationName: gage.properties.monitoringLocationName,
+        locationType: gage.properties.monitoringLocationType,
+        locationUrl: gage.properties.monitoringLocationUrl,
+        // usgs streamgage specific properties:
+        streamgageMeasurements,
+      };
+    });
+
+    setNormalizedUsgsStreamgages(gages);
+  }, [fetchedData, fetchStatus]);
+
+  return normalizedUsgsStreamgages;
 }
 
 const mapPadding = 20;
@@ -97,6 +172,7 @@ type Props = {
 
 function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const fetchedDataDispatch = useFetchedDataDispatch();
+  const { usgsStreamgages } = useFetchedDataState();
   const organizations = useOrganizationsContext();
   const services = useServicesContext();
 
@@ -172,6 +248,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     waterbodyCountMismatch,
     setWaterbodyCountMismatch,
     monitoringLocationsLayer,
+    usgsStreamgagesLayer,
   } = useContext(LocationSearchContext);
 
   const stateNationalUses = useStateNationalUsesContext();
@@ -1117,19 +1194,19 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   // updates the features on the monitoringStationsLayer
   useEffect(() => {
-    if (!monitoringLocationsLayer || monitoringLocations.status !== 'success') {
+    if (!monitoringLocationsLayer) return;
+    if (!monitoringLocations.data.features || monitoringLocations.status !== 'success') {
       return;
     }
 
-    // sort ascending order
+    // sort descending order so that smaller graphics show up on top
     const stationsSorted = [...monitoringLocations.data.features];
     stationsSorted.sort((a, b) => {
       return (
-        parseInt(a.properties.resultCount) - parseInt(b.properties.resultCount)
+        parseInt(b.properties.resultCount) - parseInt(a.properties.resultCount)
       );
     });
 
-    // sort descending order so that smaller graphics show up on top
     const graphics = stationsSorted.map((station) => {
       return new Graphic({
         geometry: {
@@ -1230,6 +1307,39 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     },
     [services, fetchedDataDispatch],
   );
+
+  const normalizedUsgsStreamgages = useStreamgageData(usgsStreamgages.data, usgsStreamgages.status);
+
+  useEffect(() => {
+    if (!usgsStreamgagesLayer || !normalizedUsgsStreamgages.length) return;
+
+    const graphics = normalizedUsgsStreamgages.map((gage) => {
+      const gageHeightMeasurements = gage.streamgageMeasurements.primary.filter(
+        (d) => d.parameterCode === '00065',
+      );
+
+      const gageHeight =
+        gageHeightMeasurements.length === 1
+          ? gageHeightMeasurements[0]?.measurement
+          : null;
+
+      return new Graphic({
+        geometry: {
+          type: 'point',
+          longitude: gage.locationLongitude,
+          latitude: gage.locationLatitude,
+        },
+        attributes: { gageHeight, ...gage },
+      });
+    });
+
+    return usgsStreamgagesLayer.queryFeatures().then((featureSet) => {
+      return usgsStreamgagesLayer.applyEdits({
+        deleteFeatures: featureSet.features,
+        addFeatures: graphics,
+      });
+    });
+  }, [normalizedUsgsStreamgages, usgsStreamgagesLayer]);
 
   const fetchUsgsPrecipitation = useCallback(
     (huc12) => {
