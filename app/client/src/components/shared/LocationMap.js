@@ -1679,9 +1679,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             geometry: location,
             symbol: new PictureMarkerSymbol({
               url: mapPin,
-              width: 44,
-              height: 44,
-              yoffset: 17, // this is a little lower to account for space below pin
+              width: 25,
+              height: 25,
+              yoffset: 9, // this is a little lower to account for space below pin
             }),
             attributes: { name: 'map-marker' },
           }),
