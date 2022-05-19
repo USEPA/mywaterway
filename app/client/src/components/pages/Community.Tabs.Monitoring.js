@@ -49,6 +49,7 @@ import { monitoringError } from 'config/errorMessages';
 // config
 import { usgsStaParameters } from 'config/usgsStaParameters';
 // styles
+import { subtitleStyles } from 'components/shared/Accordion';
 import { toggleTableStyles } from 'styles/index.js';
 
 const containerStyles = css`
@@ -267,7 +268,7 @@ function Monitoring() {
                   ? 'N/A'
                   : `${monitoringLocations.data.features.length}`}
               </span>
-              <p css={keyMetricLabelStyles}>Sample Locations</p>
+              <p css={keyMetricLabelStyles}>Past Water Conditions</p>
               <div css={switchContainerStyles}>
                 <Switch
                   checked={
@@ -299,7 +300,7 @@ function Monitoring() {
         <Tabs>
           <TabList>
             <Tab>Current Water Conditions</Tab>
-            <Tab>Sample Locations</Tab>
+            <Tab>Past Water Conditions</Tab>
           </TabList>
 
           <TabPanels>
@@ -560,7 +561,13 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
           return (
             <AccordionItem
               key={index}
-              title={<strong>{item.locationName || 'Unknown'}</strong>}
+              title={
+                <>
+                  <em css={subtitleStyles}>Location Name:</em>
+                  &nbsp;&nbsp;
+                  <strong>{item.locationName || 'Unknown'}</strong>
+                </>
+              }
               subTitle={
                 <>
                   <em>Organization Name:</em>&nbsp;&nbsp;
@@ -1190,7 +1197,13 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                     <AccordionItem
                       key={index}
                       index={index}
-                      title={<strong>{item.locationName || 'Unknown'}</strong>}
+                      title={
+                        <>
+                          <em css={subtitleStyles}>Location Name:</em>
+                          &nbsp;&nbsp;
+                          <strong>{item.locationName || 'Unknown'}</strong>
+                        </>
+                      }
                       subTitle={
                         <>
                           <em>Organization Name:</em>&nbsp;&nbsp;
