@@ -46,6 +46,7 @@ import {
 // config
 import { usgsStaParameters } from 'config/usgsStaParameters';
 // styles
+import { subtitleStyles } from 'components/shared/Accordion';
 import { toggleTableStyles } from 'styles/index.js';
 
 const containerStyles = css`
@@ -312,7 +313,7 @@ function Overview() {
                   ? totalMonitoringAndSensors
                   : 'N/A'}
               </span>
-              <p css={keyMetricLabelStyles}>Monitoring &amp; Sensors</p>
+              <p css={keyMetricLabelStyles}>Monitoring Locations</p>
               <div css={switchContainerStyles}>
                 <Switch
                   checked={
@@ -386,7 +387,7 @@ function Overview() {
         <Tabs>
           <TabList>
             <Tab>Waterbodies</Tab>
-            <Tab>Monitoring &amp; Sensors</Tab>
+            <Tab>Monitoring Locations</Tab>
             <Tab>Permitted Dischargers</Tab>
           </TabList>
 
@@ -812,7 +813,7 @@ function MonitoringAndSensorsTab({
                         disabled={normalizedMonitoringLocations.length === 0}
                         ariaLabel="Sample Locations"
                       />
-                      <span>Sample Locations</span>
+                      <span>Past Water Conditions</span>
                     </div>
                   </td>
                   <td>{normalizedMonitoringLocations.length}</td>
@@ -874,7 +875,13 @@ function MonitoringAndSensorsTab({
                     <AccordionItem
                       key={index}
                       index={index}
-                      title={<strong>{item.locationName || 'Unknown'}</strong>}
+                      title={
+                        <>
+                          <em css={subtitleStyles}>Location Name:</em>
+                          &nbsp;&nbsp;
+                          <strong>{item.locationName || 'Unknown'}</strong>
+                        </>
+                      }
                       subTitle={
                         <>
                           <em>Monitoring Type:</em>&nbsp;&nbsp;

@@ -309,4 +309,4 @@ function AccordionItem({
   );
 }
 
-export { AccordionList, AccordionItem };
+export { AccordionList, AccordionItem, subtitleStyles };

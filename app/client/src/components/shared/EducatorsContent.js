@@ -1,15 +1,15 @@
 // @flow
 
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useEducatorMaterialsContext } from 'contexts/LookupFiles';
 // config
 import { educatorContentError } from 'config/errorMessages';
 // styles
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import { fonts } from 'styles/index.js';
 
 // NOTE: matching styles used in tabs in `AboutContent` component
@@ -37,7 +37,6 @@ const containerStyles = css`
   }
 
   h3 {
-    margin-top: 1rem;
     font-size: 1.2em;
     font-weight: bold;
   }
@@ -65,6 +64,14 @@ const containerStyles = css`
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles}
   margin-bottom: 1.25rem;
+`;
+
+const modifiedInfoBoxStyles = css`
+  ${infoBoxStyles}
+  margin-top: 1rem;
+  h3 {
+    margin-bottom: 0.5em;
+  }
 `;
 
 const disclaimerStyles = css`
@@ -127,21 +134,23 @@ function EducatorsContent() {
         </ul>
       )}
 
-      <h3>
-        If you’re an educator, we would like to know how you're using{' '}
-        <em>How’s My Waterway</em>.
-      </h3>
-      <p>
-        <a
-          href="https://www.epa.gov/waterdata/forms/contact-us-about-hows-my-waterway"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Contact us
-        </a>
-        &nbsp;&nbsp;
-        <small css={disclaimerStyles}>(opens new browser tab)</small>
-      </p>
+      <div css={modifiedInfoBoxStyles}>
+        <h3>
+          If you’re an educator, we would like to know how you're using{' '}
+          <em>How’s My Waterway</em>.
+        </h3>
+        <p>
+          <a
+            href="https://www.epa.gov/waterdata/forms/contact-us-about-hows-my-waterway"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Contact us
+          </a>
+          &nbsp;&nbsp;
+          <small css={disclaimerStyles}>(opens new browser tab)</small>
+        </p>
+      </div>
     </div>
   );
 }
