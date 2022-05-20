@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { render } from 'react-dom';
 import { css } from 'styled-components/macro';
 import Switch from 'components/shared/Switch';
 import { useNavigate } from 'react-router-dom';
@@ -766,13 +767,30 @@ function LocationSearch({ route, label }: Props) {
                 setClusteringEnabled(checked);
 
                 if (checked) {
+                  monitoringLocationsLayer.renderer.symbol.color =
+                    colors.lightPurple(0.8);
                   monitoringLocationsLayer.featureReduction = {
                     type: 'cluster',
                     clusterRadius: '100px',
+                    clusterMinSize: '24px',
+                    clusterMaxSize: '60px',
+                    popupEnabled: true,
                     popupTemplate: {
                       title: 'Cluster summary',
-                      content:
-                        'This cluster represents {cluster_count} stations',
+                      content: (feature) => {
+                        const content = (
+                          <div style={{ margin: '0.625em' }}>
+                            This cluster represents{' '}
+                            {feature.graphic.attributes.cluster_count} stations
+                          </div>
+                        );
+
+                        const contentContainer = document.createElement('div');
+                        render(content, contentContainer);
+
+                        // return an esri popup item
+                        return contentContainer;
+                      },
                       fieldInfos: [
                         {
                           fieldName: 'cluster_count',
@@ -783,9 +801,6 @@ function LocationSearch({ route, label }: Props) {
                         },
                       ],
                     },
-                    popupEnabled: true,
-                    clusterMinSize: '24px',
-                    clusterMaxSize: '60px',
                     labelingInfo: [
                       {
                         deconflictionStrategy: 'none',
@@ -794,13 +809,16 @@ function LocationSearch({ route, label }: Props) {
                         },
                         symbol: {
                           type: 'text',
-                          color: '#ffffff',
+                          color: '#000000',
+                          font: { size: 10, weight: 'bold' },
                         },
                         labelPlacement: 'center-center',
                       },
                     ],
                   };
                 } else {
+                  monitoringLocationsLayer.renderer.symbol.color =
+                    colors.lightPurple(0.3);
                   monitoringLocationsLayer.featureReduction = undefined;
                 }
               }}

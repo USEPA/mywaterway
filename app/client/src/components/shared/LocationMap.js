@@ -642,7 +642,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             type: 'size',
             field: 'stationTotalMeasurementsPercentile',
             legendOptions: {
-              title: 'Monitoring Measurment Percentiles for HUC12',
+              title: 'Monitoring Measurment Percentiles for Watershed',
             },
             stops: [
               { value: 0.25, size: 8, label: '<25th percentile ' },
