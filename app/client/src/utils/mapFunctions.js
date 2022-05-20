@@ -6,8 +6,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { css } from 'styled-components/macro';
 import Graphic from '@arcgis/core/Graphic';
 // components
+import { MapPopup } from 'components/shared/WaterbodyInfo';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
-import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 // styles
 import { colors } from 'styles/index.js';
 // utilities
@@ -702,11 +702,10 @@ export function getPopupContent({
   }
 
   const content = (
-    <WaterbodyInfo
+    <MapPopup
       type={type}
       feature={feature}
       fieldName={fieldName}
-      isPopup={true}
       extraContent={extraContent}
       getClickedHuc={getClickedHuc}
       resetData={resetData}

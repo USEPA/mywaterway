@@ -56,6 +56,21 @@ function renderLink(label, link) {
   );
 }
 
+function labelValue(label, value, icon = null) {
+  return (
+    <p>
+      <strong>{label}: </strong>
+      {icon ? (
+        <span css={popupIconStyles}>
+          {icon} {value}
+        </span>
+      ) : (
+        value
+      )}
+    </p>
+  );
+}
+
 const popupContainerStyles = css`
   margin: 0;
   overflow-y: auto;
@@ -182,12 +197,9 @@ const changeWatershedContainerStyles = css`
 
 type Props = {
   type: string,
-  feature: ?Object,
+  feature: Object,
   fieldName: ?string,
-  isPopup: boolean,
   extraContent: ?Object,
-  getClickedHuc: ?Function,
-  resetData: ?Function,
   services: ?Object,
   fields: ?Object,
 };
@@ -196,59 +208,13 @@ function WaterbodyInfo({
   type,
   feature,
   fieldName,
-  isPopup = false,
   extraContent,
-  getClickedHuc,
-  resetData,
   services,
   fields,
 }: Props) {
-  // Gets the response of what huc was clicked, if provided.
-  const [clickedHuc, setClickedHuc] = useState<{
-    status: 'none' | 'fetching' | 'success' | 'failure',
-    data: { huc12: any, watershed: any } | null,
-  }>({ status: 'none', data: null });
-
-  useEffect(() => {
-    if (!getClickedHuc || clickedHuc.status !== 'none') return;
-
-    setClickedHuc({ status: 'fetching', data: null });
-
-    getClickedHuc
-      .then((res) => setClickedHuc(res))
-      .catch((err) => {
-        console.error(err);
-        setClickedHuc({ status: 'failure', data: null });
-      });
-  }, [getClickedHuc, clickedHuc]);
-
   const { attributes } = feature;
   const onWaterbodyReportPage =
     window.location.pathname.indexOf('waterbody-report') !== -1;
-
-  function labelValue(label, value, icon = null) {
-    if (isPopup) {
-      return (
-        <p>
-          <strong>{label}: </strong>
-          {icon ? (
-            <span css={popupIconStyles}>
-              {icon} {value}
-            </span>
-          ) : (
-            value
-          )}
-        </p>
-      );
-    }
-
-    return (
-      <p css={paragraphStyles}>
-        <strong>{label}: </strong>
-        {value}
-      </p>
-    );
-  }
 
   const waterbodyPollutionCategories = (label: string) => {
     const pollutionCategories = impairmentFields
@@ -272,31 +238,6 @@ function WaterbodyInfo({
         <ul>{pollutionCategories}</ul>
       </>
     );
-  };
-
-  const getTypeTitle = () => {
-    const typesToSkip = [
-      'Action',
-      'Change Location',
-      'Waterbody State Overview',
-    ];
-    if (typesToSkip.includes(type)) return null;
-
-    let title = type;
-    if (type === 'Demographic Indicators') {
-      title = `${type} - ${feature.layer.title}`;
-    }
-    if (type === 'Restoration Plans') {
-      title = 'Restoration Plans for this Waterbody';
-    }
-    if (type === 'Protection Plans') {
-      title = 'Protection Plans for this Waterbody';
-    }
-    if (type === 'Upstream Watershed') {
-      title = <GlossaryTerm term="Upstream Watershed">{title}</GlossaryTerm>;
-    }
-
-    return <p css={popupTitleStyles}>{title}</p>;
   };
 
   const waterbodyReportLink =
@@ -360,7 +301,6 @@ function WaterbodyInfo({
       }) || [];
 
     const reportingCycle = attributes && attributes.reportingcycle;
-
     return (
       <>
         {reportingCycle && (
@@ -1155,75 +1095,152 @@ function WaterbodyInfo({
     content = congressionalDistrictContent();
   }
 
-  if (isPopup) {
-    const huc12 = clickedHuc?.data?.huc12;
-    const watershed = clickedHuc?.data?.watershed;
-
-    content = (
-      <div css={popupContainerStyles}>
-        {clickedHuc && (
-          <>
-            {clickedHuc.status === 'no-data' && null}
-            {clickedHuc.status === 'fetching' && <LoadingSpinner />}
-            {clickedHuc.status === 'failure' && <p>Web service error</p>}
-            {clickedHuc.status === 'success' && (
-              <>
-                {type !== 'Change Location' && (
-                  <p css={popupTitleStyles}>Change to this location?</p>
-                )}
-
-                <div css={changeWatershedContainerStyles}>
-                  <div>
-                    {labelValue('WATERSHED', `${watershed} (${huc12})`)}
-                  </div>
-
-                  <div css={buttonsContainer}>
-                    <button
-                      css={buttonStyles}
-                      title="Change to this location"
-                      className="btn"
-                      onClick={(ev) => {
-                        // Clear all data before navigating.
-                        // The main reason for this is better performance
-                        // when doing a huc search by clicking on the state map. The app
-                        // will attempt to use all of the loaded state data, then clear it
-                        // then load the huc. This could take a long time if the state
-                        // has a lot of waterbodies.
-                        if (resetData) resetData();
-
-                        let baseRoute = `/community/${huc12}`;
-
-                        // community will attempt to stay on the same tab
-                        // if available, stay on the same tab otherwise go to overview
-                        let urlParts = window.location.pathname.split('/');
-                        if (
-                          urlParts.includes('community') &&
-                          urlParts.length > 3
-                        ) {
-                          window.location.assign(`${baseRoute}/${urlParts[3]}`);
-                          return;
-                        }
-
-                        window.location.assign(`${baseRoute}/overview`);
-                      }}
-                    >
-                      Yes
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-          </>
-        )}
-
-        {getTypeTitle()}
-
-        <div css={popupContentStyles}>{content}</div>
-      </div>
-    );
-  }
-
   return content;
+}
+
+type MapPopupProps = {
+  type: string,
+  feature: Object,
+  fieldName: ?string,
+  extraContent: ?Object,
+  getClickedHuc: ?Function,
+  resetData: ?Function,
+  services: ?Object,
+  fields: ?Object,
+};
+
+function MapPopup({
+  type,
+  feature,
+  fieldName,
+  extraContent,
+  getClickedHuc,
+  resetData,
+  services,
+  fields,
+}: MapPopupProps) {
+  // Gets the response of what huc was clicked, if provided.
+  const [clickedHuc, setClickedHuc] = useState<{
+    status: 'none' | 'fetching' | 'success' | 'failure',
+    data: { huc12: any, watershed: any } | null,
+  }>({ status: 'none', data: null });
+
+  useEffect(() => {
+    if (!getClickedHuc || clickedHuc.status !== 'none') return;
+
+    setClickedHuc({ status: 'fetching', data: null });
+
+    getClickedHuc
+      .then((res) => setClickedHuc(res))
+      .catch((err) => {
+        console.error(err);
+        setClickedHuc({ status: 'failure', data: null });
+      });
+  }, [getClickedHuc, clickedHuc]);
+
+  const { attributes } = feature;
+
+  const getTypeTitle = () => {
+    const typesToSkip = [
+      'Action',
+      'Change Location',
+      'Waterbody State Overview',
+    ];
+    if (typesToSkip.includes(type)) return null;
+
+    let title = type;
+    if (type === 'Demographic Indicators') {
+      title = `${type} - ${feature.layer.title}`;
+    }
+    if (type === 'Restoration Plans') {
+      title = 'Restoration Plans for this Waterbody';
+    }
+    if (type === 'Protection Plans') {
+      title = 'Protection Plans for this Waterbody';
+    }
+    if (type === 'Upstream Watershed') {
+      title = <GlossaryTerm term="Upstream Watershed">{title}</GlossaryTerm>;
+    }
+
+    return <p css={popupTitleStyles}>{title}</p>;
+  };
+
+  if (!attributes) return null;
+
+  const huc12 = clickedHuc?.data?.huc12;
+  const watershed = clickedHuc?.data?.watershed;
+
+  return (
+    <div css={popupContainerStyles}>
+      {clickedHuc && (
+        <>
+          {clickedHuc.status === 'no-data' && null}
+          {clickedHuc.status === 'fetching' && <LoadingSpinner />}
+          {clickedHuc.status === 'failure' && <p>Web service error</p>}
+          {clickedHuc.status === 'success' && (
+            <>
+              {type !== 'Change Location' && (
+                <p css={popupTitleStyles}>Change to this location?</p>
+              )}
+
+              <div css={changeWatershedContainerStyles}>
+                <div>{labelValue('WATERSHED', `${watershed} (${huc12})`)}</div>
+
+                <div css={buttonsContainer}>
+                  <button
+                    css={buttonStyles}
+                    title="Change to this location"
+                    className="btn"
+                    onClick={(ev) => {
+                      // Clear all data before navigating.
+                      // The main reason for this is better performance
+                      // when doing a huc search by clicking on the state map. The app
+                      // will attempt to use all of the loaded state data, then clear it
+                      // then load the huc. This could take a long time if the state
+                      // has a lot of waterbodies.
+                      if (resetData) resetData();
+
+                      let baseRoute = `/community/${huc12}`;
+
+                      // community will attempt to stay on the same tab
+                      // if available, stay on the same tab otherwise go to overview
+                      let urlParts = window.location.pathname.split('/');
+                      if (
+                        urlParts.includes('community') &&
+                        urlParts.length > 3
+                      ) {
+                        window.location.assign(`${baseRoute}/${urlParts[3]}`);
+                        return;
+                      }
+
+                      window.location.assign(`${baseRoute}/overview`);
+                    }}
+                  >
+                    Yes
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </>
+      )}
+
+      {getTypeTitle()}
+
+      <div css={popupContentStyles}>
+        <WaterbodyInfo
+          type={type}
+          feature={feature}
+          fieldName={fieldName}
+          extraContent={extraContent}
+          getClickedHuc={getClickedHuc}
+          resetData={resetData}
+          services={services}
+          fields={fields}
+        />
+      </div>
+    </div>
+  );
 }
 
 function UsgsStreamgagesContent({ feature }: { feature: Object }) {
@@ -1446,3 +1463,5 @@ function UsgsStreamgageParameter({ url, data }) {
 }
 
 export default WaterbodyInfo;
+
+export { MapPopup };
