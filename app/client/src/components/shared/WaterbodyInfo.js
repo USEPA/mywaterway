@@ -190,7 +190,7 @@ const changeWatershedContainerStyles = css`
 
 type Props = {
   type: string,
-  feature: ?Object,
+  feature: Object,
   fieldName: ?string,
   extraContent: ?Object,
   services: ?Object,
@@ -1093,7 +1093,7 @@ function WaterbodyInfo({
 
 type MapPopupProps = {
   type: string,
-  feature: ?Object,
+  feature: Object,
   fieldName: ?string,
   extraContent: ?Object,
   getClickedHuc: ?Function,
