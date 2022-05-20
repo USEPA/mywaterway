@@ -33,21 +33,30 @@ import {
   getUniqueWaterbodies,
 } from 'utils/mapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
-// styled components
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { useFetchedDataDispatch } from 'contexts/FetchedData';
+import { useFetchedDataDispatch, useFetchedDataState } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   useOrganizationsContext,
   useServicesContext,
   useStateNationalUsesContext,
 } from 'contexts/LookupFiles';
+// data
+import { impairmentFields } from 'config/attainsToHmwMapping';
+import { parameterList } from 'config/attainsParameters';
+// errors
+import {
+  geocodeError,
+  noDataAvailableError,
+  watersgeoError,
+  esriMapLoadingFailure,
+} from 'config/errorMessages';
 // helpers
 import {
   useDynamicPopup,
   useGeometryUtils,
   useSharedLayers,
+  useStreamgageData,
   useWaterbodyHighlight,
   useWaterbodyFeatures,
 } from 'utils/hooks';
@@ -63,19 +72,11 @@ import {
   resetCanonicalLink,
   removeJsonLD,
 } from 'utils/utils';
+// styled components
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // styles
 import 'styles/mapStyles.css';
 import { colors } from 'styles/index.js';
-// data
-import { impairmentFields } from 'config/attainsToHmwMapping';
-import { parameterList } from 'config/attainsParameters';
-// errors
-import {
-  geocodeError,
-  noDataAvailableError,
-  watersgeoError,
-  esriMapLoadingFailure,
-} from 'config/errorMessages';
 
 // turns an array into a string for the service queries
 function createQueryString(array) {
@@ -100,6 +101,7 @@ type Props = {
 
 function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const fetchedDataDispatch = useFetchedDataDispatch();
+  const { usgsStreamgages } = useFetchedDataState();
   const organizations = useOrganizationsContext();
   const services = useServicesContext();
   const navigate = useNavigate();
@@ -141,6 +143,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setHucBoundaries,
     setAtHucBoundaries,
     mapView,
+    monitoringLocations,
     setMonitoringLocations,
     // setNonprofits,
     setPermittedDischargers,
@@ -174,6 +177,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     getAllFeatures,
     waterbodyCountMismatch,
     setWaterbodyCountMismatch,
+    monitoringLocationsLayer,
+    usgsStreamgagesLayer,
   } = useContext(LocationSearchContext);
 
   const stateNationalUses = useStateNationalUsesContext();
@@ -1117,6 +1122,75 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [setMonitoringLocations, services],
   );
 
+  // updates the features on the monitoringStationsLayer
+  useEffect(() => {
+    if (!monitoringLocationsLayer) return;
+    if (!monitoringLocations.data.features || monitoringLocations.status !== 'success') {
+      return;
+    }
+
+    // sort descending order so that smaller graphics show up on top
+    const stationsSorted = [...monitoringLocations.data.features];
+    stationsSorted.sort((a, b) => {
+      return (
+        parseInt(b.properties.resultCount) - parseInt(a.properties.resultCount)
+      );
+    });
+
+    const graphics = stationsSorted.map((station) => {
+      return new Graphic({
+        geometry: {
+          type: 'point',
+          longitude: station.geometry.coordinates[0],
+          latitude: station.geometry.coordinates[1],
+        },
+        attributes: {
+          monitoringType: 'Sample Location',
+          siteId: station.properties.MonitoringLocationIdentifier,
+          orgId: station.properties.OrganizationIdentifier,
+          orgName: station.properties.OrganizationFormalName,
+          locationLongitude: station.geometry.coordinates[0],
+          locationLatitude: station.geometry.coordinates[1],
+          locationName: station.properties.MonitoringLocationName,
+          locationType: station.properties.MonitoringLocationTypeName,
+          // TODO: explore if the built up locationUrl below is ever different from
+          // `station.properties.siteUrl`. from a quick test, they seem the same
+          locationUrl:
+            `${services.data.waterQualityPortal.monitoringLocationDetails}` +
+            `${station.properties.ProviderName}/` +
+            `${station.properties.OrganizationIdentifier}/` +
+            `${station.properties.MonitoringLocationIdentifier}/`,
+          // monitoring station specific properties:
+          stationProviderName: station.properties.ProviderName,
+          stationTotalSamples: station.properties.activityCount,
+          stationTotalMeasurements: station.properties.resultCount,
+          stationTotalMeasurementsPercentile:
+            station.properties.stationTotalMeasurementsPercentile,
+          // counts for each lower-tier characteristic group
+          stationTotalsByCategory: JSON.stringify(
+            station.properties.characteristicGroupResultCount,
+          ),
+          // counts for each top-tier characteristic group
+          stationTotalsByGroup: {},
+          // create a unique id, so we can check if the monitoring station has
+          // already been added to the display (since a monitoring station id
+          // isn't universally unique)
+          uniqueId:
+            `${station.properties.MonitoringLocationIdentifier}-` +
+            `${station.properties.ProviderName}-` +
+            `${station.properties.OrganizationIdentifier}`,
+        },
+      });
+    });
+
+    monitoringLocationsLayer.queryFeatures().then((featureSet) => {
+      monitoringLocationsLayer.applyEdits({
+        deleteFeatures: featureSet.features,
+        addFeatures: graphics,
+      });
+    });
+  }, [monitoringLocationsLayer, monitoringLocations, services]);
+
   const fetchUsgsStreamgages = useCallback(
     (huc12) => {
       const url =
@@ -1163,6 +1237,39 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     },
     [services, fetchedDataDispatch],
   );
+
+  const normalizedUsgsStreamgages = useStreamgageData(usgsStreamgages);
+
+  useEffect(() => {
+    if (!usgsStreamgagesLayer || !normalizedUsgsStreamgages.length) return;
+
+    const graphics = normalizedUsgsStreamgages.map((gage) => {
+      const gageHeightMeasurements = gage.streamgageMeasurements.primary.filter(
+        (d) => d.parameterCode === '00065',
+      );
+
+      const gageHeight =
+        gageHeightMeasurements.length === 1
+          ? gageHeightMeasurements[0]?.measurement
+          : null;
+
+      return new Graphic({
+        geometry: {
+          type: 'point',
+          longitude: gage.locationLongitude,
+          latitude: gage.locationLatitude,
+        },
+        attributes: { gageHeight, ...gage },
+      });
+    });
+
+    return usgsStreamgagesLayer.queryFeatures().then((featureSet) => {
+      return usgsStreamgagesLayer.applyEdits({
+        deleteFeatures: featureSet.features,
+        addFeatures: graphics,
+      });
+    });
+  }, [normalizedUsgsStreamgages, usgsStreamgagesLayer]);
 
   const fetchUsgsPrecipitation = useCallback(
     (huc12) => {
