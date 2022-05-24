@@ -564,37 +564,12 @@ function MonitoringAndSensorsTab({
     if (services.status === 'fetching') return;
     if (!monitoringLocations.data.features) return;
 
-    const stations = monitoringLocations.data.features.map((station) => ({
-      monitoringType: 'Sample Location',
-      siteId: station.properties.MonitoringLocationIdentifier,
-      orgId: station.properties.OrganizationIdentifier,
-      orgName: station.properties.OrganizationFormalName,
-      locationLongitude: station.geometry.coordinates[0],
-      locationLatitude: station.geometry.coordinates[1],
-      locationName: station.properties.MonitoringLocationName,
-      locationType: station.properties.MonitoringLocationTypeName,
-      // TODO: explore if the built up locationUrl below is ever different from
-      // `station.properties.siteUrl`. from a quick test, they seem the same
-      locationUrl:
-        `${services.data.waterQualityPortal.monitoringLocationDetails}` +
-        `${station.properties.ProviderName}/` +
-        `${station.properties.OrganizationIdentifier}/` +
-        `${station.properties.MonitoringLocationIdentifier}/`,
-      // monitoring station specific properties:
-      stationProviderName: station.properties.ProviderName,
-      stationTotalSamples: station.properties.activityCount,
-      stationTotalMeasurements: station.properties.resultCount,
-      stationTotalMeasurementsPercentile:
-        station.properties.stationTotalMeasurementsPercentile,
-      stationTotalsByCategory: JSON.stringify(
-        station.properties.characteristicGroupResultCount,
-      ),
-    }));
-
-    setNormalizedMonitoringLocations(stations);
-
-    // remove any filters on the monitoring locations layer
-    monitoringLocationsLayer.definitionExpression = '';
+    monitoringLocationsLayer.queryFeatures().then((featureSet) => {
+      const stations = featureSet.features.map((feature) => feature.attributes);
+      setNormalizedMonitoringLocations(stations);
+      // remove any filters on the monitoring locations layer
+      monitoringLocationsLayer.definitionExpression = '';
+    });
   }, [monitoringLocations.data, monitoringLocationsLayer, services]);
 
   const allMonitoringAndSensors = [
