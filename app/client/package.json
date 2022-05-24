@@ -55,6 +55,7 @@
     "glossary-panel": "github:Eastern-Research-Group/glossary",
     "highcharts": "9.3.3",
     "highcharts-react-official": "3.1.0",
+    "papaparse": "^5.3.2",
     "react": "17.0.2",
     "react-app-polyfill": "3.0.0",
     "react-dom": "17.0.2",

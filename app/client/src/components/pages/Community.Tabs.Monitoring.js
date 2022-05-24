@@ -1,6 +1,7 @@
 // @flow
 
 import React, { useCallback, useContext, useEffect, useState } from 'react';
+import Papa from 'papaparse';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 // components
@@ -100,6 +101,63 @@ type MonitoringLocationGroups = {
     toggled: boolean,
   },
 };
+
+type SummaryYears = '1' | '5' | 'all';
+
+function fetchParseCsv(url: string, year: number, records: Array<Object>) {
+  return new Promise((resolve, reject) => {
+    Papa.parse(url, {
+      chunk: (results, parser) => {
+        results.data.forEach((result) => {
+          if (result.YearSummarized === year) records.push(result);
+        });
+        if (results.errors?.length)
+          console.error('Chunk errors: ', results.errors);
+      },
+      complete: (results) => resolve('Success'),
+      download: true,
+      dynamicTyping: true,
+      error: (err) => reject(err),
+      header: true,
+      worker: true,
+    });
+  });
+}
+
+function usePeriodOfRecord(huc12: string, year: number) {
+  const services = useServicesContext();
+
+  const [data, setData] = useState([]);
+  const [currentYear] = useState(new Date().getFullYear());
+
+  const range: SummaryYears =
+    year === currentYear ? '1' : currentYear - year <= 4 ? '5' : 'all';
+
+  const url =
+    `${services.data.waterQualityPortal.monitoringLocation}search?huc=${huc12}` +
+    `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=${range}`;
+
+  const fetchJson = useCallback(
+    async (url: string, year: number) => {
+      const records = [];
+      try {
+        await fetchParseCsv(url, year, records);
+        setData(records);
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    [setData],
+  );
+
+  useEffect(() => {
+    if (!huc12) return;
+
+    fetchJson(url, year);
+  }, [fetchJson, huc12, range, url, year]);
+
+  return data;
+}
 
 function Monitoring() {
   const { usgsStreamgages } = useFetchedDataState();
@@ -514,6 +572,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     setMonitoringGroups,
     watershed,
   } = useContext(LocationSearchContext);
+
+  const records = usePeriodOfRecord(huc12, 2017);
 
   const [displayedMonitoringLocations, setDisplayedMonitoringLocations] =
     useState([]);
