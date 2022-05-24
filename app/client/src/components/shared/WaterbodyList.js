@@ -162,11 +162,11 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
                   fieldName={fieldName}
                 />
 
-                {/*<ViewOnMapButton
+                <ViewOnMapButton
                   feature={graphic}
                   fieldName={fieldName}
                   disabled={graphic.limited ? true : false}
-                />*/}
+                />
 
                 {graphic.limited && (
                   <p>No map data available for this waterbody.</p>

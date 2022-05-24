@@ -77,31 +77,6 @@ const toggleStyles = css`
   }
 `;
 
-type Station = {
-  monitoringType: 'Sample Location',
-  siteId: string,
-  orgId: string,
-  orgName: string,
-  locationLongitude: number,
-  locationLatitude: number,
-  locationName: string,
-  locationType: string,
-  locationUrl: string,
-  stationProviderName: string,
-  stationTotalSamples: number,
-  stationTotalMeasurements: number,
-  uniqueId: string,
-};
-
-type MonitoringLocationGroups = {
-  [label: string]: {
-    label: string,
-    characteristicGroups?: Array<string>,
-    stations: Station[],
-    toggled: boolean,
-  },
-};
-
 type SummaryYears = '1' | '5' | 'all';
 
 function fetchParseCsv(url: string, year: number, records: Array<Object>) {
@@ -573,7 +548,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     watershed,
   } = useContext(LocationSearchContext);
 
-  const records = usePeriodOfRecord(huc12, 2017);
+  //const records = usePeriodOfRecord(huc12, 2017);
 
   const [displayedMonitoringLocations, setDisplayedMonitoringLocations] =
     useState([]);
@@ -776,8 +751,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     setDataInitialized(false);
   }, [monitoringGroups]);
 
-  const buildMonitoringLocationGroups = useCallback(async () => {
-    // build up monitoring stations, toggles, and groups
+  // Queries monitoring locations and displays them in the Accordion
+  const displayMonitoringLocations = useCallback(async () => {
     const featureSet = await monitoringLocationsLayer.queryFeatures();
     const allMonitoringLocations = featureSet.features.map(
       (feature) => feature.attributes,
@@ -785,22 +760,23 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
     setDisplayedMonitoringLocations(allMonitoringLocations);
     setAllToggled(true);
+  }, [monitoringLocationsLayer]);
 
-    drawMap(monitoringGroups);
-  }, [drawMap, monitoringGroups, monitoringLocationsLayer]);
-
-  // Initializes the switches and monitoring station data
+  // Renders the monitoring locations on the map
+  // and displays them in the Accordion list and toggles
   useEffect(() => {
     if (!monitoringGroups) return;
     if (dataInitialized) return;
+
     setDataInitialized(true);
-    buildMonitoringLocationGroups();
-  }, [
-    buildMonitoringLocationGroups,
-    dataInitialized,
-    drawMap,
-    monitoringGroups,
-  ]);
+    drawMap(monitoringGroups);
+
+    try {
+      displayMonitoringLocations();
+    } catch (e) {
+      setDataInitialized(false);
+    }
+  }, [displayMonitoringLocations, dataInitialized, drawMap, monitoringGroups]);
 
   useEffect(() => {
     // update total measurements and samples counts
