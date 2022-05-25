@@ -530,7 +530,12 @@ function MonitoringAndSensorsTab({
       }
     });
 
-    usgsDailyAverages.data.allParamsMean.value?.timeSeries.forEach((site) => {
+    const usgsDailyTimeSeriesData = [
+      ...(usgsDailyAverages.data.allParamsMean.value?.timeSeries || []),
+      ...(usgsDailyAverages.data.precipitationSum.value.timeSeries || []),
+    ];
+
+    usgsDailyTimeSeriesData.forEach((site) => {
       const siteId = site.sourceInfo.siteCode[0].value;
       const sitesHasObservations = site.values[0].value.length > 0;
 

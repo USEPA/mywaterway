@@ -1312,13 +1312,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const fetchUsgsDailyAverages = useCallback(
     (huc12) => {
-      const url =
-        services.data.usgsDailyValues +
-        `?format=json` +
-        `&siteStatus=active` +
-        `&period=P7D` +
-        `&huc=${huc12.substring(0, 8)}`;
-
       // https://help.waterdata.usgs.gov/stat_code
       const meanValues = '00003';
       const sumValues = '00006';
@@ -1326,6 +1319,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       // https://help.waterdata.usgs.gov/codes-and-parameters/parameters
       const allParams = 'all';
       const precipitation = '00045'; // Precipitation, total, inches
+
+      const url =
+        services.data.usgsDailyValues +
+        `?format=json` +
+        `&siteStatus=active` +
+        `&period=P7D` +
+        `&huc=${huc12.substring(0, 8)}`;
 
       fetchedDataDispatch({ type: 'USGS_DAILY_AVERAGES/FETCH_REQUEST' });
 
