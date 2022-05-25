@@ -546,7 +546,13 @@ function MonitoringAndSensorsTab({
 
         const paramCode = site.variable.variableCode[0].value;
         const observations = site.values[0].value.map(({ value, dateTime }) => {
-          return { measurement: value, date: new Date(dateTime) };
+          let measurement = value;
+          // convert measurements recorded in celsius to fahrenheit
+          if (['00010', '00020', '85583'].includes(paramCode)) {
+            measurement = measurement * (9 / 5) + 32;
+          }
+
+          return { measurement, date: new Date(dateTime) };
         });
 
         // NOTE: 'category' is either 'primary' or 'secondary' – loop over both
