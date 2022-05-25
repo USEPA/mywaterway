@@ -96,7 +96,10 @@ type UsgsPrecipitationData = {
   },
 };
 
-type UsgsDailyAveragesData = Object;
+type UsgsDailyAveragesData = {
+  allParamsMean: Object,
+  precipitationSum: Object,
+};
 
 type State = {
   usgsStreamgages:

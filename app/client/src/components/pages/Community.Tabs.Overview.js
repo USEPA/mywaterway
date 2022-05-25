@@ -498,7 +498,8 @@ function MonitoringAndSensorsTab({
   // web service) to each streamgage if it exists for that particular location
   useEffect(() => {
     if (!usgsPrecipitation.data.value) return;
-    if (!usgsDailyAverages.data.value) return;
+    if (!usgsDailyAverages.data?.allParamsMean?.value) return;
+    if (!usgsDailyAverages.data?.precipitationSum?.value) return;
     if (normalizedUsgsStreamgages.length === 0) return;
 
     const streamgageSiteIds = normalizedUsgsStreamgages.map((gage) => {
@@ -529,7 +530,7 @@ function MonitoringAndSensorsTab({
       }
     });
 
-    usgsDailyAverages.data.value?.timeSeries.forEach((site) => {
+    usgsDailyAverages.data.allParamsMean.value?.timeSeries.forEach((site) => {
       const siteId = site.sourceInfo.siteCode[0].value;
       const sitesHasObservations = site.values[0].value.length > 0;
 
