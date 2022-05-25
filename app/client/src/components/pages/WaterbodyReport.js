@@ -215,6 +215,17 @@ const listStyles = css`
   padding-bottom: 0;
 `;
 
+const listItemStyles = css`
+  span {
+    &:first-of-type {
+      padding-right: 1em;
+    }
+    &:last-of-type {
+      padding-left: 1em;
+    }
+  }
+`;
+
 type Props = {
   fullscreen: Object,
 };
@@ -1256,7 +1267,7 @@ function WaterbodyReport({ fullscreen }: Props) {
                       )}
                       {documents.status === 'success' && (
                         <>
-                          {documents.length > 0 && (
+                          {documents.data.length > 0 && (
                             <div css={[boxSectionStyles, { paddingBottom: 0 }]}>
                               <p css={introTextStyles}>
                                 <em>Links below open in a new browser tab.</em>
@@ -1271,17 +1282,29 @@ function WaterbodyReport({ fullscreen }: Props) {
 
                               {documents.data.length > 0 &&
                                 documents.data.map((document) => (
-                                  <li key={document.documentName}>
-                                    <a
-                                      href={document.documentURL}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                    >
-                                      {document.documentName}
-                                    </a>
-                                    <DynamicExitDisclaimer
-                                      url={document.documentURL}
-                                    />
+                                  <li css={listItemStyles} key={document.documentName}>
+                                    <span className='row-start'>
+                                      <a
+                                        href={document.documentURL}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                      >
+                                        {document.documentName}
+                                      </a>
+                                      <DynamicExitDisclaimer
+                                        url={document.documentURL}
+                                      />
+                                    </span>
+                                    {document.documentTypes.length && (
+                                      <>
+                                        <strong>&mdash;</strong>
+                                        <span className='row-end'>
+                                          <strong>
+                                            {document.documentTypes.map((type) => type.documentTypeCode).join(' / ')}
+                                          </strong>
+                                        </span>
+                                      </>
+                                    )}
                                   </li>
                                 ))}
                             </ul>
