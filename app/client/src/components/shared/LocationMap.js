@@ -722,19 +722,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         //   },
         // ],
       },
-      labelingInfo: [
-        {
-          symbol: {
-            type: 'text',
-            yoffset: '-3px',
-            font: { size: 10, weight: 'bold' },
-          },
-          labelPlacement: 'above-center',
-          labelExpressionInfo: {
-            expression: '$feature.gageHeight',
-          },
-        },
-      ],
       popupTemplate: {
         outFields: ['*'],
         title: (feature) => getPopupTitle(feature.graphic.attributes),
