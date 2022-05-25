@@ -57,6 +57,7 @@ export function Sparkline({ data }: { data: Observation[] }) {
       >
         <AreaSeries
           data={data}
+          dataKey="area"
           curve={curveMonotoneX}
           lineProps={{ stroke: color }}
           fill={color}
@@ -70,6 +71,9 @@ export function Sparkline({ data }: { data: Observation[] }) {
           glyphStyle={{ fill: color }}
           renderTooltip={({ tooltipData }) => {
             const datum: Observation = tooltipData?.nearestDatum?.datum;
+
+            console.log(tooltipData);
+
             return (
               <p css={tooltipStyles}>
                 <span>{accessors.xAccessor(datum)}:&nbsp;</span>
