@@ -213,16 +213,29 @@ const introTextStyles = css`
 
 const listStyles = css`
   padding-bottom: 0;
+  &.document-list {
+    padding-left: 0;
+    width: 100%;
+  }
 `;
 
 const listItemStyles = css`
-  span {
-    &:first-of-type {
-      padding-right: 1em;
-    }
-    &:last-of-type {
-      padding-left: 1em;
-    }
+  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr 3em 1fr;
+  padding-bottom: 1em;
+  .row-center {
+    justify-self: center;
+  }
+  .row-end {
+    justify-self: start;
+  }
+  .row-start {
+    justify-self: end;
+    text-align: right;
+  }
+  &:last-of-type {
+    padding-bottom: 0;
   }
 `;
 
@@ -1275,7 +1288,7 @@ function WaterbodyReport({ fullscreen }: Props) {
                             </div>
                           )}
                           <div css={boxSectionStyles}>
-                            <ul css={listStyles}>
+                            <ul css={listStyles} className="document-list">
                               {documents.data.length === 0 && (
                                 <li>No documents are available</li>
                               )}
@@ -1297,12 +1310,10 @@ function WaterbodyReport({ fullscreen }: Props) {
                                     </span>
                                     {document.documentTypes.length && (
                                       <>
-                                        <strong>&mdash;</strong>
-                                        <span className='row-end'>
-                                          <strong>
-                                            {document.documentTypes.map((type) => type.documentTypeCode).join(' / ')}
-                                          </strong>
-                                        </span>
+                                        <strong className='row-center'>&mdash;</strong>
+                                        <strong className='row-end'>
+                                          {document.documentTypes.map((type) => type.documentTypeCode).join(' / ')}
+                                        </strong>
                                       </>
                                     )}
                                   </li>
