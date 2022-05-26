@@ -10,7 +10,7 @@ import { useEducatorMaterialsContext } from 'contexts/LookupFiles';
 import { educatorContentError } from 'config/errorMessages';
 // styles
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
-import { fonts } from 'styles/index.js';
+import { colors, fonts } from 'styles/index.js';
 
 // NOTE: matching styles used in tabs in `AboutContent` component
 const containerStyles = css`
@@ -59,6 +59,10 @@ const containerStyles = css`
     margin-top: 0.5rem;
     margin-bottom: 0.5rem;
   }
+`;
+
+const iconStyles = css`
+  color: ${colors.navyBlue()};
 `;
 
 const modifiedErrorBoxStyles = css`
@@ -112,7 +116,11 @@ function EducatorsContent() {
   return (
     <div css={containerStyles} className="container">
       <h2>
-        <i className="fas fa-graduation-cap" aria-hidden="true" />
+        <i
+          css={iconStyles}
+          className="fas fa-graduation-cap"
+          aria-hidden="true"
+        />
         &nbsp; Educational Materials from How’s My Waterway
       </h2>
       <hr />
@@ -139,7 +147,11 @@ function EducatorsContent() {
 
       <div css={modifiedInfoBoxStyles}>
         <h3>
-          <i className="fas fa-graduation-cap" aria-hidden="true" />
+          <i
+            css={iconStyles}
+            className="fas fa-graduation-cap"
+            aria-hidden="true"
+          />
           &nbsp; If you’re an educator, we would like to know how you're using{' '}
           <em>How’s My Waterway</em>.
         </h3>
