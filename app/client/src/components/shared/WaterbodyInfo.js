@@ -77,47 +77,17 @@ const popupTitleStyles = css`
   background-color: #f0f6f9;
 `;
 
+const measurementStyles = css`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
 const measurementTableStyles = css`
   ${modifiedTableStyles};
   th:last-of-type,
   td:last-of-type {
     text-align: right;
-  }
-
-  tfoot {
-    .totals {
-      border-top: 2px solid #dee2e6;
-      th {
-        border: none;
-      }
-    }
-    .download-links {
-      th {
-        border-top: none;
-        div {
-          display: inline-block;
-          vertical-align: top;
-          width: 50%;
-          &:first-of-type {
-            text-align: left;
-            a {
-              margin-right: 5px;
-            }
-          }
-          &:last-of-type {
-            .download-text {
-              margin-bottom: 5px;
-            }
-            a {
-              margin-left: 5px;
-            }
-          }
-        }
-        span {
-          display: inline-block;
-        }
-      }
-    }
   }
 `;
 
@@ -153,12 +123,6 @@ const moreLessRowStyles = css`
 const additionalTextStyles = css`
   font-style: italic;
   color: ${colors.gray6};
-`;
-
-const measurementStyles = css`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
 `;
 
 const popupIconStyles = css`
@@ -220,6 +184,29 @@ const changeWatershedContainerStyles = css`
 
   p {
     padding-bottom: 0;
+  }
+`;
+
+const totalRowStyles = css`
+  border-top: 2px solid #dee2e6;
+  font-weight: bold;
+`;
+
+const tableFooterStyles = css`
+  span {
+    display: inline-block;
+    &.download-text {
+      margin-bottom: 5px;
+    }
+    &.download-links {
+      margin-left: 5px;
+    }
+  }
+
+  td {
+    border-top: none;
+    font-weight: bold;
+    width: 50%;
   }
 `;
 
@@ -833,45 +820,46 @@ function WaterbodyInfo({
                   </tr>
                 );
               })}
-            </tbody>
-            <tfoot>
-              <tr className="totals">
-                <th></th>
-                <th>Total</th>
-                <th>{Number(totalMeasurements).toLocaleString()}</th>
+              <tr css={totalRowStyles}>
+                <td></td>
+                <td>Total</td>
+                <td>{Number(totalMeasurements).toLocaleString()}</td>
               </tr>
-              <tr className="download-links">
-                <th colSpan="4">
-                  <div>
-                    <a
-                      rel="noopener noreferrer"
-                      target="_blank"
-                      data-cy="portal"
-                      href={portalUrl}
-                    >
-                      <i
-                        css={iconStyles}
-                        className="fas fa-filter"
-                        aria-hidden="true"
-                      />
-                      Advanced Filtering
+            </tbody>
+
+            <tfoot css={tableFooterStyles}>
+              <tr>
+                <td colSpan="2">
+                  <a
+                    rel="noopener noreferrer"
+                    target="_blank"
+                    data-cy="portal"
+                    href={portalUrl}
+                  >
+                    <i
+                      css={iconStyles}
+                      className="fas fa-filter"
+                      aria-hidden="true"
+                    />
+                    Advanced Filtering
+                  </a>
+                  &nbsp;&nbsp;
+                  <small css={modifiedDisclaimerStyles}>
+                    (opens new browser tab)
+                  </small>
+                </td>
+                <td colSpan="2">
+                  <span className="download-text">Download Station Data</span>
+                  <span className="download-links">
+                    <a href={`${downloadUrl}&mimeType=xlsx`}>
+                      <i className="fas fa-file-excel" aria-hidden="true" />
                     </a>
-                    <small css={modifiedDisclaimerStyles}>
-                      (opens new browser tab)
-                    </small>
-                  </div>
-                  <div>
-                    <span className="download-text">Download Station Data</span>
-                    <span className="icon-set">
-                      <a href={`${downloadUrl}&mimeType=xlsx`}>
-                        <i className="fas fa-file-excel" aria-hidden="true" />
-                      </a>
-                      <a href={`${downloadUrl}&mimeType=csv`}>
-                        <i className="fas fa-file-csv" aria-hidden="true" />
-                      </a>
-                    </span>
-                  </div>
-                </th>
+                    &nbsp;&nbsp;
+                    <a href={`${downloadUrl}&mimeType=csv`}>
+                      <i className="fas fa-file-csv" aria-hidden="true" />
+                    </a>
+                  </span>
+                </td>
               </tr>
             </tfoot>
           </table>
