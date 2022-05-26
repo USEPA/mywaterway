@@ -213,10 +213,8 @@ const introTextStyles = css`
 
 const listStyles = css`
   padding-bottom: 0;
-  &.document-list {
-    padding-left: 0;
-    width: 100%;
-  }
+  padding-left: 0;
+  width: 100%;
 `;
 
 const listItemStyles = css`
@@ -1288,7 +1286,7 @@ function WaterbodyReport({ fullscreen }: Props) {
                             </div>
                           )}
                           <div css={boxSectionStyles}>
-                            <ul css={listStyles} className="document-list">
+                            <ul css={listStyles}>
                               {documents.data.length === 0 && (
                                 <li>No documents are available</li>
                               )}
