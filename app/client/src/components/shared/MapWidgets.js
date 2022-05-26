@@ -466,7 +466,7 @@ function MapWidgets({
       view: view,
       unit: 'dual',
     });
-    view.ui.add(newScaleBar, { position: 'bottom-left', index: 1 });
+    view.ui.add(newScaleBar, { position: 'bottom-left', index: 0 });
     setScaleBar(newScaleBar);
   }, [view, scaleBar]);
 
@@ -491,12 +491,14 @@ function MapWidgets({
       content: legendNode,
       view,
       expanded: false,
-      expandIconClass: 'esri-icon-layer-list',
+      expandIconClass: 'esri-icon-legend',
+      //expandIconClass: 'fas fa-info',
+      //expandIconClass: 'fas fa-shapes',
       expandTooltip: 'Toggle Legend',
       autoCollapse: true,
       mode: 'floating',
     });
-    view.ui.add(newLegend, { position: 'bottom-left', index: 0 });
+    view.ui.add(newLegend, { position: 'top-left', index: 0 });
     setLegend(newLegend);
   }, [view, legend, legendNode]);
 
