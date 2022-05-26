@@ -610,7 +610,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       listMode: 'hide',
       legendEnabled: true,
       fields: [
-        { name: 'ObjectID', type: 'oid' },
+        { name: 'OBJECTID', type: 'oid' },
         { name: 'monitoringType', type: 'string' },
         { name: 'siteId', type: 'string' },
         { name: 'orgId', type: 'string' },
@@ -627,13 +627,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         { name: 'stationTotalsByCategory', type: 'string' },
         { name: 'uniqueId', type: 'string' },
       ],
-      objectIdField: "ObjectID",
+      objectIdField: 'OBJECTID',
       outFields: ['*'],
       // NOTE: initial graphic below will be replaced with UGSG streamgages
       source: [
         new Graphic({
           geometry: { type: 'point', longitude: -98.5795, latitude: 39.8283 },
-          attributes: { ObjectID: 1 },
+          attributes: { OBJECTID: 1 },
         }),
       ],
       renderer: {
@@ -675,7 +675,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       listMode: 'hide',
       legendEnabled: false,
       fields: [
-        { name: 'ObjectID', type: 'oid' },
+        { name: 'OBJECTID', type: 'oid' },
         { name: 'gageHeight', type: 'string' },
         { name: 'monitoringType', type: 'string' },
         { name: 'siteId', type: 'string' },
@@ -689,12 +689,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         { name: 'streamgageMeasurements', type: 'blob' },
       ],
       outFields: ['*'],
-      objectIdField: "ObjectID",
+      objectIdField: 'OBJECTID',
       // NOTE: initial graphic below will be replaced with UGSG streamgages
       source: [
         new Graphic({
           geometry: { type: 'point', longitude: -98.5795, latitude: 39.8283 },
-          attributes: { ObjectID: 1 },
+          attributes: { OBJECTID: 1 },
         }),
       ],
       renderer: {
