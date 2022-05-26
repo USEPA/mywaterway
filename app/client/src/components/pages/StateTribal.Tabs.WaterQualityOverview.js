@@ -1114,7 +1114,10 @@ function WaterQualityOverview() {
 
                 <div
                   css={drinkingWaterSectionStyles}
-                  displayed={currentTopic === 'drinking'}
+                  displayed={
+                    currentTopic === 'drinking' &&
+                    activeState.source === 'States'
+                  }
                 >
                   <h3>
                     <img
