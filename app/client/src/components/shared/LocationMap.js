@@ -1319,12 +1319,18 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const fetchUsgsPrecipitation = useCallback(
     (huc12) => {
+      // https://help.waterdata.usgs.gov/stat_code
+      const sumValues = '00006';
+
+      // https://help.waterdata.usgs.gov/codes-and-parameters/parameters
+      const precipitation = '00045'; // Precipitation, total, inches
+
       const url =
         services.data.usgsDailyValues +
         `?format=json` +
         `&siteStatus=active` +
-        `&statCd=00006` + // statistics code: SUMMATION VALUES
-        `&parameterCd=00045` + // parameter code: Precipitation, total, inches
+        `&statCd=${sumValues}` +
+        `&parameterCd=${precipitation}` +
         `&huc=${huc12.substring(0, 8)}`;
 
       fetchedDataDispatch({ type: 'USGS_PRECIPITATION/FETCH_REQUEST' });
@@ -1346,22 +1352,34 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const fetchUsgsDailyAverages = useCallback(
     (huc12) => {
+      // https://help.waterdata.usgs.gov/stat_code
+      const meanValues = '00003';
+      const sumValues = '00006';
+
+      // https://help.waterdata.usgs.gov/codes-and-parameters/parameters
+      const allParams = 'all';
+      const precipitation = '00045'; // Precipitation, total, inches
+
       const url =
         services.data.usgsDailyValues +
         `?format=json` +
         `&siteStatus=active` +
         `&period=P7D` +
-        `&statCd=00003` + // statistics code: MEAN VALUES
-        `&parameterCd=all` +
         `&huc=${huc12.substring(0, 8)}`;
 
       fetchedDataDispatch({ type: 'USGS_DAILY_AVERAGES/FETCH_REQUEST' });
 
-      fetchCheck(url)
-        .then((res) => {
+      Promise.all([
+        fetchCheck(`${url}&statCd=${meanValues}&parameterCd=${allParams}`),
+        fetchCheck(`${url}&statCd=${sumValues}&parameterCd=${precipitation}`),
+      ])
+        .then(([allParamsRes, precipitationRes]) => {
           fetchedDataDispatch({
             type: 'USGS_DAILY_AVERAGES/FETCH_SUCCESS',
-            payload: res,
+            payload: {
+              allParamsMean: allParamsRes,
+              precipitationSum: precipitationRes,
+            },
           });
         })
         .catch((err) => {

@@ -372,7 +372,8 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
   // web service) to each streamgage if it exists for that particular location
   useEffect(() => {
     if (!usgsPrecipitation.data.value) return;
-    if (!usgsDailyAverages.data.value) return;
+    if (!usgsDailyAverages.data?.allParamsMean?.value) return;
+    if (!usgsDailyAverages.data?.precipitationSum?.value) return;
     if (normalizedUsgsStreamgages.length === 0) return;
 
     const streamgageSiteIds = normalizedUsgsStreamgages.map((gage) => {
@@ -403,7 +404,12 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
       }
     });
 
-    usgsDailyAverages.data.value?.timeSeries.forEach((site) => {
+    const usgsDailyTimeSeriesData = [
+      ...(usgsDailyAverages.data.allParamsMean.value?.timeSeries || []),
+      ...(usgsDailyAverages.data.precipitationSum.value.timeSeries || []),
+    ];
+
+    usgsDailyTimeSeriesData.forEach((site) => {
       const siteId = site.sourceInfo.siteCode[0].value;
       const sitesHasObservations = site.values[0].value.length > 0;
 
@@ -414,7 +420,12 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
 
         const paramCode = site.variable.variableCode[0].value;
         const observations = site.values[0].value.map(({ value, dateTime }) => {
-          return { measurement: value, date: new Date(dateTime) };
+          let measurement = value;
+          // convert measurements recorded in celsius to fahrenheit
+          if (['00010', '00020', '85583'].includes(paramCode)) {
+            measurement = measurement * (9 / 5) + 32;
+          }
+          return { measurement, date: new Date(dateTime) };
         });
 
         // NOTE: 'category' is either 'primary' or 'secondary' – loop over both

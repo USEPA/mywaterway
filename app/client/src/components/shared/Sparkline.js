@@ -57,6 +57,7 @@ export function Sparkline({ data }: { data: Observation[] }) {
       >
         <AreaSeries
           data={data}
+          dataKey="area"
           curve={curveMonotoneX}
           lineProps={{ stroke: color }}
           fill={color}
