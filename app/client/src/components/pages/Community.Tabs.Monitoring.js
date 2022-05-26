@@ -15,7 +15,7 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
-import { disclaimerStyles, iconStyles } from 'styles/index';
+import { disclaimerStyles, iconStyles } from 'styles/index.js';
 import {
   AccordionList,
   AccordionItem,
@@ -60,49 +60,20 @@ const modifiedErrorBoxStyles = css`
   text-align: center;
 `;
 
-const modifiedToggleTableStyles = css`
-  ${toggleTableStyles};
-  tfoot {
-    background-color: #f0f6f9;
-    .totals {
-      border-top: 2px solid #dee2e6;
-      th {
-        border: none;
-        &:first-of-type {
-          display: inline-block;
-          margin-left: 46px;
-        }
-      }
-    }
-    .download-links {
-      border-bottom: 1px solid #dee2e6;
-      th {
-        border-top: none;
-        div {
-          display: inline-block;
-          vertical-align: top;
-          width: 50%;
-          &:first-of-type {
-            text-align: left;
-            a {
-              margin-right: 5px;
-            }
-          }
-          &:last-of-type {
-            text-align: right;
-            .download-text {
-              margin-bottom: 5px;
-            }
-            a {
-              margin-left: 5px;
-            }
-          }
-        }
-        span {
-          display: inline-block;
-        }
-      }
-    }
+const totalRowStyles = css`
+  border-top: 2px solid #dee2e6;
+  font-weight: bold;
+  background-color: #f0f6f9;
+`;
+
+const tableFooterStyles = css`
+  border-bottom: 1px solid #dee2e6;
+  background-color: #f0f6f9;
+
+  td {
+    border-top: none;
+    font-weight: bold;
+    width: 50%;
   }
 `;
 
@@ -990,6 +961,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     `${services.data.waterQualityPortal.resultSearch}zip=no&huc=` +
     `${huc12}` +
     `${charGroupFilters}`;
+
   const portalUrl =
     `${services.data.waterQualityPortal.userInterface}#huc=${huc12}` +
     `${charGroupFilters}&mimeType=xlsx&dataProfile=resultPhysChem` +
@@ -1036,7 +1008,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
         {totalLocations > 0 && (
           <>
-            <table css={modifiedToggleTableStyles} className="table">
+            <table css={toggleTableStyles} className="table">
               <thead>
                 <tr>
                   <th>
@@ -1054,6 +1026,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                   <th>Measurement Count</th>
                 </tr>
               </thead>
+
               <tbody>
                 {Object.values(monitoringGroups)
                   .filter((group) => group.label !== 'All')
@@ -1095,48 +1068,52 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                     if (b.key === 'Other') return -1;
                     return a.key > b.key ? 1 : -1;
                   })}
-              </tbody>
-              <tfoot>
-                <tr className="totals">
-                  <th>Totals</th>
-                  <th>{Number(totalDisplayedLocations).toLocaleString()}</th>
-                  <th>{Number(totalDisplayedSamples).toLocaleString()}</th>
-                  <th>{Number(totalDisplayedMeasurements).toLocaleString()}</th>
+
+                <tr css={totalRowStyles}>
+                  <td>
+                    <div css={toggleStyles}>
+                      <div style={{ width: '38px' }} />
+                      <span>Totals</span>
+                    </div>
+                  </td>
+                  <td>{Number(totalDisplayedLocations).toLocaleString()}</td>
+                  <td>{Number(totalDisplayedSamples).toLocaleString()}</td>
+                  <td>{Number(totalDisplayedMeasurements).toLocaleString()}</td>
                 </tr>
-                <tr className="download-links">
-                  <th colSpan="4">
-                    <div>
-                      <a
-                        rel="noopener noreferrer"
-                        target="_blank"
-                        data-cy="portal"
-                        href={portalUrl}
-                      >
-                        <i
-                          css={iconStyles}
-                          className="fas fa-filter"
-                          aria-hidden="true"
-                        />
-                        Advanced Filtering
-                      </a>
-                      <small css={modifiedDisclaimerStyles}>
-                        (opens new browser tab)
-                      </small>
-                    </div>
-                    <div>
-                      <span className="download-text">
-                        Download Selected Data for Watershed
-                      </span>
-                      <span>
-                        <a href={`${downloadUrl}&mimeType=xlsx`}>
-                          <i className="fas fa-file-excel" aria-hidden="true" />
-                        </a>
-                        <a href={`${downloadUrl}&mimeType=csv`}>
-                          <i className="fas fa-file-csv" aria-hidden="true" />
-                        </a>
-                      </span>
-                    </div>
-                  </th>
+              </tbody>
+
+              <tfoot css={tableFooterStyles}>
+                <tr>
+                  <td colSpan="2">
+                    <a
+                      href={portalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-cy="portal"
+                    >
+                      <i
+                        css={iconStyles}
+                        className="fas fa-filter"
+                        aria-hidden="true"
+                      />
+                      Advanced Filtering
+                    </a>
+                    &nbsp;&nbsp;
+                    <small css={modifiedDisclaimerStyles}>
+                      (opens new browser tab)
+                    </small>
+                  </td>
+
+                  <td colSpan="2">
+                    Download Selected Data for Watershed&nbsp;&nbsp;
+                    <a href={`${downloadUrl}&mimeType=xlsx`}>
+                      <i className="fas fa-file-excel" aria-hidden="true" />
+                    </a>
+                    &nbsp;&nbsp;
+                    <a href={`${downloadUrl}&mimeType=csv`}>
+                      <i className="fas fa-file-csv" aria-hidden="true" />
+                    </a>
+                  </td>
                 </tr>
               </tfoot>
             </table>
