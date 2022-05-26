@@ -92,7 +92,7 @@ const toggleStyles = css`
 `;
 
 type Station = {
-  monitoringType: 'Sample Location',
+  monitoringType: 'Past Water Conditions',
   siteId: string,
   orgId: string,
   orgName: string,
@@ -523,9 +523,9 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
                   />
                 )}
 
-                {item.monitoringType === 'Sample Location' && (
+                {item.monitoringType === 'Past Water Conditions' && (
                   <WaterbodyInfo
-                    type="Sample Location"
+                    type="Past Water Conditions"
                     feature={feature}
                     services={services}
                   />
@@ -787,7 +787,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
     monitoringLocations.data.features.forEach((station) => {
       const monitoringLocation = {
-        monitoringType: 'Sample Location',
+        monitoringType: 'Past Water Conditions',
         siteId: station.properties.MonitoringLocationIdentifier,
         orgId: station.properties.OrganizationIdentifier,
         orgName: station.properties.OrganizationFormalName,
@@ -975,7 +975,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                         onChange={(ev) => toggleSwitch('All', allToggled)}
                         ariaLabel="Toggle all monitoring locations"
                       />
-                      <span>All Monitoring Sample Locations</span>
+                      <span>All Monitoring Locations</span>
                     </div>
                   </th>
                   <th>Location Count</th>
@@ -1087,7 +1087,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
               onSortChange={({ value }) => setSortBy(value)}
               sortOptions={[
                 {
-                  label: 'Monitoring Sample Location Name',
+                  label: 'Monitoring Location Name',
                   value: 'locationName',
                 },
                 {
@@ -1154,7 +1154,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                     >
                       <div css={accordionContentStyles}>
                         <WaterbodyInfo
-                          type="Sample Location"
+                          type="Past Water Conditions"
                           feature={feature}
                           services={services}
                         />

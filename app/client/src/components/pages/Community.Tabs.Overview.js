@@ -468,7 +468,7 @@ function MonitoringAndSensorsTab({
     usgsStreamgages: usgsStreamgagesDisplayed,
     monitoringLocations: monitoringLocationsDisplayed,
   });
-  // if either of the "Current Water Conditions" or "Sample Locations" switches
+  // if either of the "Current Water Conditions" or "Past Water Conditions" switches
   // are turned on, or if both switches are turned off, keep the "Monitoring
   // Stations" switch in sync
   useEffect(() => {
@@ -576,7 +576,7 @@ function MonitoringAndSensorsTab({
     if (!monitoringLocations.data.features) return;
 
     const stations = monitoringLocations.data.features.map((station) => ({
-      monitoringType: 'Sample Location',
+      monitoringType: 'Past Water Conditions',
       siteId: station.properties.MonitoringLocationIdentifier,
       orgId: station.properties.OrganizationIdentifier,
       orgName: station.properties.OrganizationFormalName,
@@ -643,7 +643,7 @@ function MonitoringAndSensorsTab({
       }
 
       if (monitoringLocationsDisplayed) {
-        displayedTypes.push('Sample Location');
+        displayedTypes.push('Past Water Conditions');
       }
 
       return displayedTypes.includes(item.monitoringType);
@@ -745,7 +745,7 @@ function MonitoringAndSensorsTab({
                           });
                         }}
                         disabled={normalizedMonitoringLocations.length === 0}
-                        ariaLabel="Sample Locations"
+                        ariaLabel="Past Water Conditions"
                       />
                       <span>Past Water Conditions</span>
                     </div>
@@ -821,7 +821,7 @@ function MonitoringAndSensorsTab({
                           <br />
                           <em>Water Type:</em>&nbsp;&nbsp;
                           {item.locationType}
-                          {item.monitoringType === 'Sample Location' && (
+                          {item.monitoringType === 'Past Water Conditions' && (
                             <>
                               <br />
                               <em>Monitoring Measurements:</em>&nbsp;&nbsp;
@@ -855,9 +855,9 @@ function MonitoringAndSensorsTab({
                           />
                         )}
 
-                        {item.monitoringType === 'Sample Location' && (
+                        {item.monitoringType === 'Past Water Conditions' && (
                           <WaterbodyInfo
-                            type="Sample Location"
+                            type="Past Water Conditions"
                             feature={feature}
                             services={services}
                           />

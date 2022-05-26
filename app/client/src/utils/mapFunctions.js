@@ -527,7 +527,7 @@ export function getPopupTitle(attributes: Object) {
 
   // monitoring station
   else if (
-    attributes.monitoringType === 'Sample Location' ||
+    attributes.monitoringType === 'Past Water Conditions' ||
     attributes.monitoringType === 'Current Water Conditions'
   ) {
     title = attributes.locationName;
@@ -642,8 +642,11 @@ export function getPopupContent({
   }
 
   // monitoring station
-  else if (attributes && attributes.monitoringType === 'Sample Location') {
-    type = 'Sample Location';
+  else if (
+    attributes &&
+    attributes.monitoringType === 'Past Water Conditions'
+  ) {
+    type = 'Past Water Conditions';
   }
 
   // protect tab teal nonprofits

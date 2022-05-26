@@ -610,7 +610,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     const monitoringLocationsLayer = new FeatureLayer({
       id: 'monitoringLocationsLayer',
-      title: 'Sample Locations',
+      title: 'Past Water Conditions',
       listMode: 'hide',
       legendEnabled: true,
       fields: [
@@ -631,12 +631,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         { name: 'stationTotalsByCategory', type: 'string' },
         { name: 'uniqueId', type: 'string' },
       ],
+      objectIdField: 'OBJECTID',
       outFields: ['*'],
       // NOTE: initial graphic below will be replaced with UGSG streamgages
       source: [
         new Graphic({
           geometry: { type: 'point', longitude: -98.5795, latitude: 39.8283 },
-          attributes: { ObjectID: 1 },
+          attributes: { OBJECTID: 1 },
         }),
       ],
       renderer: {
@@ -674,11 +675,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     const usgsStreamgagesLayer = new FeatureLayer({
       id: 'usgsStreamgagesLayer',
-      title: 'USGS Streamgages',
+      title: 'Current Water Conditions',
       listMode: 'hide',
       legendEnabled: false,
       fields: [
-        { name: 'ObjectID', type: 'oid' },
+        { name: 'OBJECTID', type: 'oid' },
         { name: 'gageHeight', type: 'string' },
         { name: 'monitoringType', type: 'string' },
         { name: 'siteId', type: 'string' },
@@ -692,11 +693,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         { name: 'streamgageMeasurements', type: 'blob' },
       ],
       outFields: ['*'],
+      objectIdField: 'OBJECTID',
       // NOTE: initial graphic below will be replaced with UGSG streamgages
       source: [
         new Graphic({
           geometry: { type: 'point', longitude: -98.5795, latitude: 39.8283 },
-          attributes: { ObjectID: 1 },
+          attributes: { OBJECTID: 1 },
         }),
       ],
       renderer: {
@@ -1139,7 +1141,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           latitude: station.geometry.coordinates[1],
         },
         attributes: {
-          monitoringType: 'Sample Location',
+          monitoringType: 'Past Water Conditions',
           siteId: station.properties.MonitoringLocationIdentifier,
           orgId: station.properties.OrganizationIdentifier,
           orgName: station.properties.OrganizationFormalName,
