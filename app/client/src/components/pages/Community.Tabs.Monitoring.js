@@ -1105,7 +1105,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                   </td>
 
                   <td colSpan="2">
-                    Download Selected Data for Watershed&nbsp;&nbsp;
+                    Download All Selected Data&nbsp;&nbsp;
                     <a href={`${downloadUrl}&mimeType=xlsx`}>
                       <i className="fas fa-file-excel" aria-hidden="true" />
                     </a>
