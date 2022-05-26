@@ -63,6 +63,16 @@ const tableFooterStyles = css`
   border-bottom: 1px solid #dee2e6;
   background-color: #f0f6f9;
 
+  span {
+    display: inline-block;
+    &.download-text {
+      margin-bottom: 5px;
+    }
+    &.download-links {
+      margin-left: 5px;
+    }
+  }
+
   td {
     border-top: none;
     font-weight: bold;
@@ -1062,14 +1072,18 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                   </td>
 
                   <td colSpan="2">
-                    Download All Selected Data&nbsp;&nbsp;
-                    <a href={`${downloadUrl}&mimeType=xlsx`}>
-                      <i className="fas fa-file-excel" aria-hidden="true" />
-                    </a>
-                    &nbsp;&nbsp;
-                    <a href={`${downloadUrl}&mimeType=csv`}>
-                      <i className="fas fa-file-csv" aria-hidden="true" />
-                    </a>
+                    <span className="download-text">
+                      Download All Selected Data
+                    </span>
+                    <span className="download-links">
+                      <a href={`${downloadUrl}&mimeType=xlsx`}>
+                        <i className="fas fa-file-excel" aria-hidden="true" />
+                      </a>
+                      &nbsp;&nbsp;
+                      <a href={`${downloadUrl}&mimeType=csv`}>
+                        <i className="fas fa-file-csv" aria-hidden="true" />
+                      </a>
+                    </span>
                   </td>
                 </tr>
               </tfoot>
