@@ -111,7 +111,10 @@ function EducatorsContent() {
 
   return (
     <div css={containerStyles} className="container">
-      <h2>Educational Materials from How’s My Waterway</h2>
+      <h2>
+        <i className="fas fa-graduation-cap" aria-hidden="true" />
+        &nbsp; Educational Materials from How’s My Waterway
+      </h2>
       <hr />
 
       {status === 'failure' && (
@@ -136,7 +139,8 @@ function EducatorsContent() {
 
       <div css={modifiedInfoBoxStyles}>
         <h3>
-          If you’re an educator, we would like to know how you're using{' '}
+          <i className="fas fa-graduation-cap" aria-hidden="true" />
+          &nbsp; If you’re an educator, we would like to know how you're using{' '}
           <em>How’s My Waterway</em>.
         </h3>
         <p>
