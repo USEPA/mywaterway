@@ -457,13 +457,7 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
           return (
             <AccordionItem
               key={index}
-              title={
-                <>
-                  <em css={subtitleStyles}>Location Name:</em>
-                  &nbsp;&nbsp;
-                  <strong>{item.locationName || 'Unknown'}</strong>
-                </>
-              }
+              title={<strong>{item.locationName || 'Unknown'}</strong>}
               subTitle={
                 <>
                   <em>Organization Name:</em>&nbsp;&nbsp;
@@ -1111,13 +1105,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                     <AccordionItem
                       key={index}
                       index={index}
-                      title={
-                        <>
-                          <em css={subtitleStyles}>Location Name:</em>
-                          &nbsp;&nbsp;
-                          <strong>{item.locationName || 'Unknown'}</strong>
-                        </>
-                      }
+                      title={<strong>{item.locationName || 'Unknown'}</strong>}
                       subTitle={
                         <>
                           <em>Organization Name:</em>&nbsp;&nbsp;

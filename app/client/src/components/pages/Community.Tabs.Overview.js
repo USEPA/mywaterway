@@ -799,13 +799,7 @@ function MonitoringAndSensorsTab({
                     <AccordionItem
                       key={index}
                       index={index}
-                      title={
-                        <>
-                          <em css={subtitleStyles}>Location Name:</em>
-                          &nbsp;&nbsp;
-                          <strong>{item.locationName || 'Unknown'}</strong>
-                        </>
-                      }
+                      title={<strong>{item.locationName || 'Unknown'}</strong>}
                       subTitle={
                         <>
                           <em>Monitoring Type:</em>&nbsp;&nbsp;
