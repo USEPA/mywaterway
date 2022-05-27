@@ -373,11 +373,11 @@ describe('Monitoring Tab', () => {
 
     cy.findByText('Monitoring').click();
 
-    // navigate to the Sample Locations sub-tab
-    cy.findAllByText('Sample Locations').filter('button').click();
+    // navigate to the Past Water Conditions sub-tab
+    cy.findAllByText('Past Water Conditions').filter('button').click();
 
     // turn off all switches
-    cy.findByText('All Monitoring Sample Locations')
+    cy.findByText('All Monitoring Locations')
       .siblings()
       .first()
       .find('input')
@@ -415,11 +415,11 @@ describe('Monitoring Tab', () => {
 
     cy.findByText('Monitoring').click();
 
-    // navigate to the Sample Locations sub-tab
-    cy.findAllByText('Sample Locations').filter('button').click();
+    // navigate to the Past Water Conditions sub-tab
+    cy.findAllByText('Past Water Conditions').filter('button').click();
 
     // turn off all switches
-    cy.findByText('All Monitoring Sample Locations')
+    cy.findByText('All Monitoring Locations')
       .siblings()
       .first()
       .find('input')
