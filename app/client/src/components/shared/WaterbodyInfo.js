@@ -195,12 +195,7 @@ const totalRowStyles = css`
 const tableFooterStyles = css`
   span {
     display: inline-block;
-    &.download-text {
-      margin-bottom: 5px;
-    }
-    &.download-links {
-      margin-left: 5px;
-    }
+    margin-bottom: 0.25em;
   }
 
   td {
@@ -849,8 +844,9 @@ function WaterbodyInfo({
                   </small>
                 </td>
                 <td colSpan="2">
-                  <span className="download-text">Download Station Data</span>
-                  <span className="download-links">
+                  <span>Download Station Data</span>
+                  <span>
+                    &nbsp;&nbsp;
                     <a href={`${downloadUrl}&mimeType=xlsx`}>
                       <i className="fas fa-file-excel" aria-hidden="true" />
                     </a>
