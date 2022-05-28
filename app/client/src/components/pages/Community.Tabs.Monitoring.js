@@ -44,7 +44,9 @@ import { monitoringError } from 'config/errorMessages';
 // styles
 import { subtitleStyles } from 'components/shared/Accordion';
 import { toggleTableStyles } from 'styles/index.js';
-
+/*
+ ** Styles
+ */
 const containerStyles = css`
   @media (min-width: 960px) {
     padding: 1em;
@@ -77,61 +79,84 @@ const toggleStyles = css`
   }
 `;
 
-type SummaryYears = '1' | '5' | 'all';
+/*
+ ** Types
+ */
+type AnnualStationData = {|
+  uniqueId: string,
+  stationTotalMeasurements: number,
+  stationTotalMeasurementsPercentile: number,
+  stationTotalSamples: number,
+  stationTotalsByCharacteristic: { [characteristic: string]: number },
+  stationTotalsByGroup: { [group: string]: number },
+  stationTotalsByLabel: { [label: string]: number },
+|};
 
-function fetchParseCsv(url: string, year: number, records: Array<Object>) {
-  return new Promise((resolve, reject) => {
-    Papa.parse(url, {
-      chunk: (results, parser) => {
-        results.data.forEach((result) => {
-          if (result.YearSummarized === year) records.push(result);
-        });
-        if (results.errors?.length)
-          console.error('Chunk errors: ', results.errors);
-      },
-      complete: (results) => resolve('Success'),
-      download: true,
-      dynamicTyping: true,
-      error: (err) => reject(err),
-      header: true,
-      worker: true,
-    });
-  });
-}
+type Station = {|
+  locationLongitude: number,
+  locationLatitude: number,
+  locationName: string,
+  locationType: string,
+  locationUrl: string,
+  monitoringType: 'Sample Location',
+  OBJECTID?: number,
+  orgId: string,
+  orgName: string,
+  siteId: string,
+  stationDataByYear: { [number]: AnnualStationData },
+  stationProviderName: string,
+  stationTotalMeasurements: number,
+  stationTotalMeasurementsPercentile: number,
+  stationTotalSamples: number,
+  stationTotalsByGroup: { [group: string]: number },
+  stationTotalsByLabel: { [label: string]: number },
+  uniqueId: string,
+|};
 
-function usePeriodOfRecord(huc12: string, year: number) {
+type StationFlattened = {|
+  ...Station,
+  stationDataByYear: string,
+  stationTotalsByGroup: string,
+  stationTotalsByLabel: string,
+|};
+
+function usePeriodOfRecordData(filter: string, param: 'huc12' | 'siteId') {
+  if (param !== 'huc12' || param !== 'siteId') {
+    throw new Error('Missing parameter for Period of Record service');
+  }
+
+  const workerScript = 'utils/periodOfRecordWorker.js';
   const services = useServicesContext();
+  const [data, setData] = useState({});
 
-  const [data, setData] = useState([]);
-  const [currentYear] = useState(new Date().getFullYear());
-
-  const range: SummaryYears =
-    year === currentYear ? '1' : currentYear - year <= 4 ? '5' : 'all';
-
-  const url =
-    `${services.data.waterQualityPortal.monitoringLocation}search?huc=${huc12}` +
-    `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=${range}`;
-
-  const fetchJson = useCallback(
-    async (url: string, year: number) => {
-      const records = [];
-      try {
-        await fetchParseCsv(url, year, records);
-        setData(records);
-      } catch (e) {
-        console.error(e);
-      }
-    },
-    [setData],
-  );
+  let url =
+    `${services.data.waterQualityPortal.monitoringLocation}search?` +
+    `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all`;
+  url += param === 'huc12' ? `&huc=${filter}` : `&siteId=${filter}`;
 
   useEffect(() => {
-    if (!huc12) return;
-
-    fetchJson(url, year);
-  }, [fetchJson, huc12, range, url, year]);
+    if (!filter) return;
+    if (window.Worker) {
+      const parseWorker = new Worker(workerScript, { type: 'module' });
+      parseWorker.postMessage(url);
+      parseWorker.onmessage = (e) => {
+        if (e && typeof(e) === 'string') setData(JSON.parse(e.data));
+      }
+    } else {
+      throw new Error("Your browser doesn't support web workers");
+    }
+  });
 
   return data;
+}
+
+function expandStationData(station: StationFlattened): Station {
+  return {
+    ...station,
+    stationDataByYear: JSON.parse(station.stationDataByYear),
+    stationTotalsByGroup: JSON.parse(station.stationTotalsByGroup),
+    stationTotalsByLabel: JSON.parse(station.stationTotalsByLabel),
+  };
 }
 
 function Monitoring() {
@@ -548,7 +573,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     watershed,
   } = useContext(LocationSearchContext);
 
-  //const records = usePeriodOfRecord(huc12, 2017);
+  //const records = usePeriodOfRecordData(huc12);
 
   const [displayedMonitoringLocations, setDisplayedMonitoringLocations] =
     useState([]);
@@ -673,10 +698,10 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
             newTotalSamples += parseInt(station.stationTotalSamples);
           });
 
-          const activeGroups = characteristicGroupMappings.map(
-            (group) => group.label,
+          const activeLabels = characteristicGroupMappings.map(
+            (mapping) => mapping.label,
           );
-          buildFilter(activeGroups, monitoringGroups);
+          buildFilter(activeLabels, monitoringGroups);
 
           monitoringLocationsLayer.visible = true;
 
@@ -709,15 +734,15 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
         // update the watershed total measurements and samples counts
         // to include only the specified characteristic groups
-        const activeGroups = Object.keys(toggleGroups).filter(
+        const activeLabels = Object.keys(toggleGroups).filter(
           (label) => label !== 'All' && toggleGroups[label].toggled === true,
         );
-        buildFilter(activeGroups, monitoringGroups);
+        buildFilter(activeLabels, monitoringGroups);
         toggleGroups['All'].stations.forEach((station) => {
           let hasData = false;
-          activeGroups.forEach((group) => {
-            if (station.stationTotalsByGroup[group] > 0) {
-              newTotalMeasurements += station.stationTotalsByGroup[group];
+          activeLabels.forEach((label) => {
+            if (station.stationTotalsByLabel[label] > 0) {
+              newTotalMeasurements += station.stationTotalsByLabel[label];
               hasData = true;
             }
           });
@@ -754,8 +779,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   // Queries monitoring locations and displays them in the Accordion
   const displayMonitoringLocations = useCallback(async () => {
     const featureSet = await monitoringLocationsLayer.queryFeatures();
-    const allMonitoringLocations = featureSet.features.map(
-      (feature) => feature.attributes,
+    const allMonitoringLocations = featureSet.features.map((feature) =>
+      expandStationData(feature.attributes),
     );
 
     setDisplayedMonitoringLocations(allMonitoringLocations);
@@ -875,7 +900,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                     uniqueStations.forEach((station) => {
                       sampleCount += parseInt(station.stationTotalSamples);
                       measurementCount +=
-                        station.stationTotalsByGroup[group.label];
+                        station.stationTotalsByLabel[group.label];
                     });
 
                     return (

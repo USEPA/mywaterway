@@ -459,7 +459,7 @@ function WaterbodyInfo({
   const [selectAll, setSelectAll] = useState(1);
 
   function monitoringLocationsContent() {
-    const stationGroups = JSON.parse(attributes.stationTotalsByCategory);
+    const stationGroups = attributes.stationTotalsByGroup;
 
     const groups = { Other: { characteristicGroups: [], resultCount: 0 } };
     // get the feature where the provider matches this stations provider

@@ -93,21 +93,46 @@ const containerStyles = css`
   background-color: #fff;
 `;
 
-type Station = {
-  monitoringType: 'Sample Location',
-  siteId: string,
-  orgId: string,
-  orgName: string,
+/*
+**  Types
+*/
+type AnnualStationData = {|
+  uniqueId: string,
+  stationTotalMeasurements: number,
+  stationTotalMeasurementsPercentile: number,
+  stationTotalSamples: number,
+  stationTotalsByCharacteristic: { [characteristic: string]: number },
+  stationTotalsByGroup: { [group: string]: number },
+  stationTotalsByLabel: { [label: string]: number },
+|}
+
+type Station = {|
   locationLongitude: number,
   locationLatitude: number,
   locationName: string,
   locationType: string,
   locationUrl: string,
+  monitoringType: 'Sample Location',
+  OBJECTID?: number,
+  orgId: string,
+  orgName: string,
+  siteId: string,
+  stationDataByYear: { [number]: AnnualStationData },
   stationProviderName: string,
-  stationTotalSamples: number,
   stationTotalMeasurements: number,
+  stationTotalMeasurementsPercentile: number,
+  stationTotalSamples: number,
+  stationTotalsByGroup: { [group: string]: number },
+  stationTotalsByLabel: { [label: string]: number },
   uniqueId: string,
-};
+|};
+
+type StationFlattened = {|
+  ...Station,
+  stationDataByYear: string,
+  stationTotalsByGroup: string,
+  stationTotalsByLabel: string,
+|}
 
 type MonitoringLocationGroups = {
   [label: string]: {
@@ -118,6 +143,15 @@ type MonitoringLocationGroups = {
   },
 };
 
+function flattenStationData(station: Station) : StationFlattened {
+  return {
+    ...station,
+    stationDataByYear: JSON.stringify(station.stationDataByYear),
+    stationTotalsByGroup: JSON.stringify(station.stationTotalsByGroup),
+    stationTotalsByLabel: JSON.stringify(station.stationTotalsByLabel),
+  }
+}
+  
 function useMonitoringLocationFeatures(layer, locations) {
   const services = useServicesContext();
   const [monitoringLocationGroups, setMonitoringLocationGroups] = useState(null);
@@ -175,16 +209,15 @@ function useMonitoringLocationFeatures(layer, locations) {
           `${station.properties.MonitoringLocationIdentifier}/`,
         // monitoring station specific properties:
         stationProviderName: station.properties.ProviderName,
+        stationDataByYear: {},
         stationTotalSamples: station.properties.activityCount,
         stationTotalMeasurements: station.properties.resultCount,
         stationTotalMeasurementsPercentile:
           station.properties.stationTotalMeasurementsPercentile,
         // counts for each lower-tier characteristic group
-        stationTotalsByCategory: JSON.stringify(
-          station.properties.characteristicGroupResultCount,
-        ),
+        stationTotalsByGroup: station.properties.characteristicGroupResultCount,
         // counts for each top-tier characteristic group
-        stationTotalsByGroup: {},
+        stationTotalsByLabel: {},
         // create a unique id, so we can check if the monitoring station has
         // already been added to the display (since a monitoring station id
         // isn't universally unique)
@@ -197,7 +230,7 @@ function useMonitoringLocationFeatures(layer, locations) {
       // build up the monitoringLocationToggles and monitoringLocationGroups
       const subGroupsAdded = [];
       characteristicGroupMappings.forEach((mapping) => {
-        stationData.stationTotalsByGroup[mapping.label] = 0;
+        stationData.stationTotalsByLabel[mapping.label] = 0;
         for (const subGroup in station.properties
           .characteristicGroupResultCount) {
           // if characteristic group exists in switch config object
@@ -217,7 +250,7 @@ function useMonitoringLocationFeatures(layer, locations) {
               };
             }
             // add the lower-tier group counts to the corresponding top-tier group counts
-            stationData.stationTotalsByGroup[mapping.label] +=
+            stationData.stationTotalsByLabel[mapping.label] +=
               station.properties.characteristicGroupResultCount[subGroup];
           }
         }
@@ -230,7 +263,7 @@ function useMonitoringLocationFeatures(layer, locations) {
         .characteristicGroupResultCount) {
         if (!subGroupsAdded.includes(subGroup)) {
           locationGroups['Other'].stations.push(stationData);
-          stationData.stationTotalsByGroup['Other'] +=
+          stationData.stationTotalsByLabel['Other'] +=
             station.properties.characteristicGroupResultCount[subGroup];
 
           if (
@@ -251,7 +284,7 @@ function useMonitoringLocationFeatures(layer, locations) {
           longitude: station.geometry.coordinates[0],
           latitude: station.geometry.coordinates[1],
         },
-        attributes: stationData,
+        attributes: flattenStationData(stationData),
       });
     });
 
@@ -797,9 +830,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         { name: 'stationTotalSamples', type: 'string' },
         { name: 'stationTotalMeasurements', type: 'string' },
         { name: 'stationTotalMeasurementsPercentile', type: 'double' },
-        { name: 'stationTotalsByCategory', type: 'string' },
+        { name: 'stationTotalsByGroup', type: 'string' },
+        { name: 'stationTotalsByLabel', type: 'string' },
+        { name: 'stationDataByYear', type: 'string' },
         { name: 'uniqueId', type: 'string' },
       ],
+      objectIdField: 'OBJECTID',
       outFields: ['*'],
       // NOTE: initial graphic below will be replaced with UGSG streamgages
       source: [
@@ -847,7 +883,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       listMode: 'hide',
       legendEnabled: false,
       fields: [
-        { name: 'ObjectID', type: 'oid' },
+        { name: 'OBJECTID', type: 'oid' },
         { name: 'gageHeight', type: 'string' },
         { name: 'monitoringType', type: 'string' },
         { name: 'siteId', type: 'string' },
@@ -860,6 +896,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         { name: 'locationUrl', type: 'string' },
         { name: 'streamgageMeasurements', type: 'blob' },
       ],
+      objectIdField: 'OBJECTID',
       outFields: ['*'],
       // NOTE: initial graphic below will be replaced with UGSG streamgages
       source: [

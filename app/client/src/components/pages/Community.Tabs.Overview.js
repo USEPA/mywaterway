@@ -85,6 +85,56 @@ const toggleStyles = css`
   }
 `;
 
+/*
+ ** Types
+ */
+type AnnualStationData = {|
+  uniqueId: string,
+  stationTotalMeasurements: number,
+  stationTotalMeasurementsPercentile: number,
+  stationTotalSamples: number,
+  stationTotalsByCharacteristic: { [characteristic: string]: number },
+  stationTotalsByGroup: { [group: string]: number },
+  stationTotalsByLabel: { [label: string]: number },
+|};
+
+type Station = {|
+  locationLongitude: number,
+  locationLatitude: number,
+  locationName: string,
+  locationType: string,
+  locationUrl: string,
+  monitoringType: 'Sample Location',
+  OBJECTID?: number,
+  orgId: string,
+  orgName: string,
+  siteId: string,
+  stationDataByYear: { [number]: AnnualStationData },
+  stationProviderName: string,
+  stationTotalMeasurements: number,
+  stationTotalMeasurementsPercentile: number,
+  stationTotalSamples: number,
+  stationTotalsByGroup: { [group: string]: number },
+  stationTotalsByLabel: { [label: string]: number },
+  uniqueId: string,
+|};
+
+type StationFlattened = {|
+  ...Station,
+  stationDataByYear: string,
+  stationTotalsByGroup: string,
+  stationTotalsByLabel: string,
+|};
+
+function expandStationData(station: StationFlattened): Station {
+  return {
+    ...station,
+    stationDataByYear: JSON.parse(station.stationDataByYear),
+    stationTotalsByGroup: JSON.parse(station.stationTotalsByGroup),
+    stationTotalsByLabel: JSON.parse(station.stationTotalsByLabel),
+  };
+}
+
 function Overview() {
   const { usgsStreamgages } = useFetchedDataState();
 
@@ -565,7 +615,9 @@ function MonitoringAndSensorsTab({
     if (!monitoringLocations.data.features) return;
 
     monitoringLocationsLayer.queryFeatures().then((featureSet) => {
-      const stations = featureSet.features.map((feature) => feature.attributes);
+      const stations = featureSet.features.map((feature) =>
+        expandStationData(feature.attributes),
+      );
       setNormalizedMonitoringLocations(stations);
       // remove any filters on the monitoring locations layer
       monitoringLocationsLayer.definitionExpression = '';

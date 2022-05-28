@@ -8,6 +8,15 @@ type Props = {
 
 type Status = 'fetching' | 'success' | 'failure';
 
+type MonitoringLocationGroups = {
+  [label: string]: {
+    label: string,
+    characteristicGroups?: Array<string>,
+    stations: Station[],
+    toggled: boolean,
+  },
+};
+
 type MonitoringLocationsData = {
   features: {
     geometry: {
@@ -200,7 +209,7 @@ type State = {
   FIPS: Object,
 
   // monitoring panel
-  monitoringGroups: Object,
+  monitoringGroups: MonitoringLocationGroups,
 
   // identified issues panel
   showDischargers: boolean,
