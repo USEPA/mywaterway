@@ -53,7 +53,6 @@
   },
   "dependencies": {
     "@arcgis/core": "4.22.2",
-    "@gouch/to-title-case": "2.2.1",
     "@reach/dialog": "0.16.2",
     "@reach/tabs": "0.16.4",
     "@reach/window-size": "0.16.0",
