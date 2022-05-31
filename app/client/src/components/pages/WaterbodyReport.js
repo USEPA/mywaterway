@@ -1245,37 +1245,48 @@ function WaterbodyReport({ fullscreen }: Props) {
                         <p>{waterbodyReportError('Assessment')}</p>
                       </div>
                     )}
-                    {documents.status === 'success'
-                        && documents.data.length === 0 ? (
-                      <p>No documents are available</p>
-                    ) : (
-                      <>
-                        <em>Links below open in a new browser tab.</em>
-                        <table className="table">
-                          <thead>
-                            <tr>
-                              <th>Assessment</th>
-                              <th>Type</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                          {documents.data.map((document) => (
-                            <tr key={document.documentName}>
-                              <td>
-                                <a href={document.documentURL} target="_blank" rel="noopener noreferrer">
-                                  {document.documentName}
-                                </a>
-                                <DynamicExitDisclaimer url={document.documentURL} />
-                              </td>
-                              <td>
-                                {document.documentTypes.length && document.documentTypes[0].documentTypeCode}
-                              </td>
-                            </tr>
-                          ))}
-                          </tbody>
-                        </table>
-                      </>
-                    )}
+                    {documents.status === 'success' && (
+                        <>
+                          {documents.data.length === 0 ? (
+                            <p>No documents are available</p>
+                          ) : (
+                            <>
+                              <em>Links below open in a new browser tab.</em>
+                              <table className="table">
+                                <thead>
+                                  <tr>
+                                    <th>Assessment</th>
+                                    <th>Type</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {documents.data.map((document) => (
+                                    <tr key={document.documentName}>
+                                      <td>
+                                        <a
+                                          href={document.documentURL}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                        >
+                                          {document.documentName}
+                                        </a>
+                                        <DynamicExitDisclaimer
+                                          url={document.documentURL}
+                                        />
+                                      </td>
+                                      <td>
+                                        {document.documentTypes.length &&
+                                          document.documentTypes[0]
+                                            .documentTypeCode}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </>
+                          )}
+                        </>
+                      )}
                     </div>
                   </div>
 
