@@ -243,6 +243,15 @@ function expandStationData(station: StationFlattened): Station {
   };
 }
 
+function flattenStationData(station: Station): StationFlattened {
+  return {
+    ...station,
+    stationDataByYear: JSON.stringify(station.stationDataByYear),
+    stationTotalsByGroup: JSON.stringify(station.stationTotalsByGroup),
+    stationTotalsByLabel: JSON.stringify(station.stationTotalsByLabel),
+  };
+}
+
 function Monitoring() {
   const { usgsStreamgages } = useFetchedDataState();
 
@@ -658,6 +667,34 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   } = useContext(LocationSearchContext);
 
   const records = usePeriodOfRecordData(huc12, 'huc12');
+
+  const addRecords = useCallback(async () => {
+    const featureSet = await monitoringLocationsLayer.queryFeatures();
+
+    const updatedFeatures = [];
+    featureSet.features.forEach((feature) => {
+      const id = feature.attributes.uniqueId;
+      if (id in records) {
+        feature.attributes = {
+          ...feature.attributes,
+          stationDataByYear: JSON.stringify(records[id]),
+        }
+        updatedFeatures.push(feature);
+      }
+    });
+
+    const updateResults = await monitoringLocationsLayer.applyEdits({
+      updateFeatures: updatedFeatures,
+    });
+
+    return updateResults;
+  }, [monitoringLocationsLayer, records]);
+
+  const [annualDataInitialized, setAnnualDataInitialized] = useState(false);
+  useEffect(() => {
+    if (!records) return;
+    addRecords().then((_updateResults) => setAnnualDataInitialized(true));
+  }, [addRecords, records]);
 
   const [displayedMonitoringLocations, setDisplayedMonitoringLocations] =
     useState([]);
