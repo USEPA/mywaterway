@@ -1,5 +1,6 @@
 // @flow
 
+import Papa from 'papaparse';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
@@ -34,7 +35,8 @@ import { useFetchedDataState } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
-import buildWorker from 'components/shared/workerBuilder'
+import buildWorker from 'components/shared/workerBuilder';
+import recordsJob from 'components/shared/periodOfRecordWorker';
 import { plotFacilities } from 'utils/mapFunctions';
 import { useStreamgageData, useWaterbodyOnMap } from 'utils/hooks';
 // data
@@ -82,6 +84,8 @@ const toggleStyles = css`
 /*
  ** Types
  */
+type AllYearsStationData = { [year: number]: AnnualStationsData };
+
 type AnnualStationData = {|
   uniqueId: string,
   stationTotalMeasurements: number,
@@ -91,6 +95,45 @@ type AnnualStationData = {|
   stationTotalsByGroup: { [group: string]: number },
   stationTotalsByLabel: { [label: string]: number },
 |};
+
+type AnnualStationsData = { [uniqueId: string]: AnnualStationData };
+
+type ParseError = {|
+  type: string,
+  code: string,
+  message: string,
+  row: number,
+|};
+type ParseErrors = Array<ParseError>;
+
+type ParsedRecord = {
+  Provider: string,
+  MonitoringLocationIdentifier: string,
+  YearSummarized: number,
+  CharacteristicType: string,
+  CharacteristicName: string,
+  ActivityCount: number,
+  ResultCount: number,
+  LastResultSubmittedDate: string,
+  OrganizationIdentifier: string,
+  OrganizationFormalName: string,
+  MonitoringLocationName: string,
+  MonitoringLocationTypeName: string,
+  ResolvedMonitoringLocationTypeName: string,
+  HUCEightDigitCode: number,
+  MonitoringLocationUrl: string,
+  CountyName: string,
+  StateName: string,
+  MonitoringLocationLatitude: number,
+  MonitoringLocationLongitude: number,
+};
+type ParsedRecords = Array<ParsedRecord>;
+
+type PeriodData =
+  | { status: 'idle', data: {} }
+  | { status: 'pending', data: {} }
+  | { status: 'success', data: ParsedRecords }
+  | { status: 'failure', data: ParseErrors };
 
 type Station = {|
   locationLongitude: number,
@@ -120,35 +163,75 @@ type StationFlattened = {|
   stationTotalsByLabel: string,
 |};
 
+function fetchParseCsv(url: string) {
+  const parsePromise = new Promise((resolve, reject) => {
+    Papa.parse(url, {
+      complete: (results) => resolve(results),
+      download: true,
+      dynamicTyping: true,
+      error: (err) => reject(err),
+      header: true,
+      worker: true,
+    });
+  });
+  return parsePromise;
+}
+
 function usePeriodOfRecordData(filter: string, param: 'huc12' | 'siteId') {
   if (param !== 'huc12' && param !== 'siteId') {
     throw new Error('Missing parameter for Period of Record service');
   }
 
   const services = useServicesContext();
-  const [data, setData] = useState({});
+
+  const initialRecordsState: PeriodData = { status: 'idle', data: {} };
+  const [records, setRecords] = useState(initialRecordsState);
   const [worker, setWorker] = useState(null);
+  const [annualData, setAnnualData] = useState(null);
 
   let url =
     `${services.data.waterQualityPortal.monitoringLocation}search?` +
     `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all`;
   url += param === 'huc12' ? `&huc=${filter}` : `&siteId=${filter}`;
 
+  const fetchJson = useCallback(
+    async (url: string) => {
+      let results = {};
+      try {
+        results = await fetchParseCsv(url);
+        setRecords({ status: 'success', data: results.data });
+      } catch (e) {
+        console.error(e);
+        setRecords({ status: 'failure', data: results.errors });
+      }
+    },
+    [setRecords],
+  );
+
   useEffect(() => {
-    if (!filter || worker) return;
-    if (window.Worker) {
-      const parseWorker = buildWorker('components/shared/periodOfRecordWorker.js');
-      setWorker(parseWorker);
-      parseWorker.postMessage(url);
-      parseWorker.onmessage = (e) => {
-        if (e && typeof e === 'string') setData(JSON.parse(e.data));
-      };
-    } else {
+    if (!filter || records.status !== 'idle') return;
+    setRecords({ status: 'pending', data: {} });
+    fetchJson(url);
+  }, [records.status, fetchJson, filter, url]);
+
+  useEffect(() => {
+    if (worker || annualData) return;
+    if (!window.Worker) {
       throw new Error("Your browser doesn't support web workers");
     }
-  }, [filter, url, worker]);
+    if (records.status === 'success') {
+      const recordsWorker = buildWorker(recordsJob);
+      setWorker(recordsWorker);
+      recordsWorker.postMessage([records.data, characteristicGroupMappings]);
+      recordsWorker.onmessage = (message) => {
+        if (message.data && typeof message.data === 'string') {
+          setAnnualData(JSON.parse(message.data));
+        }
+      };
+    }
+  }, [annualData, filter, records, url, worker]);
 
-  return data;
+  return annualData;
 }
 
 function expandStationData(station: StationFlattened): Station {
@@ -575,7 +658,6 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   } = useContext(LocationSearchContext);
 
   const records = usePeriodOfRecordData(huc12, 'huc12');
-  console.log(JSON.stringify(records));
 
   const [displayedMonitoringLocations, setDisplayedMonitoringLocations] =
     useState([]);
