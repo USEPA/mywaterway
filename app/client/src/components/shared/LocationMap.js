@@ -72,7 +72,6 @@ import {
   getPointFromCoordinates,
   splitSuggestedSearch,
   browserIsCompatibleWithArcGIS,
-  percentRank,
   resetCanonicalLink,
   removeJsonLD,
 } from 'utils/utils';
@@ -647,19 +646,51 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           style: 'circle',
           color: colors.lightPurple(0.5),
         },
-        visualVariables: [
-          {
-            type: 'size',
-            field: 'stationTotalMeasurementsPercentile',
-            legendOptions: {
-              title: 'Monitoring Measurment Percentiles for Watershed',
+      },
+      featureReduction: {
+        type: 'cluster',
+        clusterRadius: '100px',
+        clusterMinSize: '24px',
+        clusterMaxSize: '60px',
+        popupEnabled: true,
+        popupTemplate: {
+          title: 'Cluster summary',
+          content: (feature) => {
+            const content = (
+              <div style={{ margin: '0.625em' }}>
+                This cluster represents{' '}
+                {feature.graphic.attributes.cluster_count} stations
+              </div>
+            );
+
+            const contentContainer = document.createElement('div');
+            render(content, contentContainer);
+
+            // return an esri popup item
+            return contentContainer;
+          },
+          fieldInfos: [
+            {
+              fieldName: 'cluster_count',
+              format: {
+                places: 0,
+                digitSeparator: true,
+              },
             },
-            stops: [
-              { value: 0.25, size: 8, label: '<25th percentile ' },
-              { value: 0.5, size: 16, label: '25th - 50th percentile' },
-              { value: 0.75, size: 24, label: '50th - 75th percentile' },
-              { value: 1, size: 32, label: '75th - 100th percentile' },
-            ],
+          ],
+        },
+        labelingInfo: [
+          {
+            deconflictionStrategy: 'none',
+            labelExpressionInfo: {
+              expression: "Text($feature.cluster_count, '#,###')",
+            },
+            symbol: {
+              type: 'text',
+              color: '#000000',
+              font: { size: 10, weight: 'bold' },
+            },
+            labelPlacement: 'center-center',
           },
         ],
       },
@@ -1071,40 +1102,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       fetchCheck(url)
         .then((res) => {
-          // sort ascending order
-          const stationsSorted = [...res.features];
-          stationsSorted.sort((a, b) => {
-            return (
-              parseInt(a.properties.resultCount) -
-              parseInt(b.properties.resultCount)
-            );
-          });
-
-          // build a simple array of stationTotalMeasurements
-          const measurementsArray = stationsSorted.map((station) =>
-            parseInt(station.properties.resultCount),
-          );
-
-          // calculate percentiles
-          measurementsArray.forEach((measurement, index) => {
-            // get the rank and then move them into 4 buckets
-            let rank = percentRank(measurementsArray, measurement);
-            if (rank < 0.25) rank = 0.24;
-            if (rank >= 0.25 && rank < 0.5) rank = 0.49;
-            if (rank >= 0.5 && rank < 0.75) rank = 0.74;
-            if (rank >= 0.75 && rank <= 1) rank = 1;
-
-            stationsSorted[
-              index
-            ].properties.stationTotalMeasurementsPercentile = rank;
-          });
-
           setMonitoringLocations({
             status: 'success',
-            data: {
-              ...res,
-              features: stationsSorted,
-            },
+            data: res,
           });
         })
         .catch((err) => {
@@ -1125,15 +1125,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       return;
     }
 
-    // sort descending order so that smaller graphics show up on top
-    const stationsSorted = [...monitoringLocations.data.features];
-    stationsSorted.sort((a, b) => {
-      return (
-        parseInt(b.properties.resultCount) - parseInt(a.properties.resultCount)
-      );
-    });
-
-    const graphics = stationsSorted.map((station) => {
+    const graphics = monitoringLocations.data.features.map((station) => {
       return new Graphic({
         geometry: {
           type: 'point',
@@ -1178,58 +1170,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         },
       });
     });
-
-    if (stationsSorted.length > 20) {
-      monitoringLocationsLayer.featureReduction = {
-        type: 'cluster',
-        clusterRadius: '100px',
-        clusterMinSize: '24px',
-        clusterMaxSize: '60px',
-        popupEnabled: true,
-        popupTemplate: {
-          title: 'Cluster summary',
-          content: (feature) => {
-            const content = (
-              <div style={{ margin: '0.625em' }}>
-                This cluster represents{' '}
-                {feature.graphic.attributes.cluster_count} stations
-              </div>
-            );
-
-            const contentContainer = document.createElement('div');
-            render(content, contentContainer);
-
-            // return an esri popup item
-            return contentContainer;
-          },
-          fieldInfos: [
-            {
-              fieldName: 'cluster_count',
-              format: {
-                places: 0,
-                digitSeparator: true,
-              },
-            },
-          ],
-        },
-        labelingInfo: [
-          {
-            deconflictionStrategy: 'none',
-            labelExpressionInfo: {
-              expression: "Text($feature.cluster_count, '#,###')",
-            },
-            symbol: {
-              type: 'text',
-              color: '#000000',
-              font: { size: 10, weight: 'bold' },
-            },
-            labelPlacement: 'center-center',
-          },
-        ],
-      };
-    } else {
-      monitoringLocationsLayer.featureReduction = undefined;
-    }
 
     monitoringLocationsLayer.queryFeatures().then((featureSet) => {
       monitoringLocationsLayer.applyEdits({
