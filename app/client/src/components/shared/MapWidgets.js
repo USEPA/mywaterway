@@ -492,8 +492,6 @@ function MapWidgets({
       view,
       expanded: false,
       expandIconClass: 'esri-icon-legend',
-      //expandIconClass: 'fas fa-info',
-      //expandIconClass: 'fas fa-shapes',
       expandTooltip: 'Toggle Legend',
       autoCollapse: true,
       mode: 'floating',
