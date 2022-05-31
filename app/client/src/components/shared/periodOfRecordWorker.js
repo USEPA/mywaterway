@@ -1,34 +1,25 @@
 // @flow
 
 import Papa from 'papaparse';
+// config
+import { characteristicGroupMappings as labelMappings } from 'config/characteristicGroupMappings';
 
-type AnnualStationData = {|
-  uniqueId: string,
-  stationTotalMeasurements: number,
-  stationTotalMeasurementsPercentile: ?number,
-  stationTotalSamples: number,
-  stationTotalsByCharacteristic: { [characteristic: string]: number },
-  stationTotalsByGroup: { [group: string]: number },
-  stationTotalsByLabel: { [label: string]: number },
-|};
-
-type AnnualStationsData = { [uniqueId: string]: AnnualStationData };
-
-type AllYearsStationData = { [year: number]: AnnualStationsData };
-
-function fetchParseCsv(url: string) {
+function fetchParseCsv(url) {
   let parseResults = null;
   Papa.parse(url, {
     complete: (results) => (parseResults = results),
     download: true,
     dynamicTyping: true,
-    error: (err) => (parseResults = null),
+    error: (e) => {
+      parseResults = null;
+      return new Error('Papa Parse error');
+    },
     header: true,
   });
   return parseResults;
 }
 
-function getTotalMeasurementPercentiles(year: AnnualStationsData) {
+function getTotalMeasurementPercentiles(year) {
   // sort ascending order
   if (year) {
     const stationsSorted = Object.values(year);
@@ -72,10 +63,17 @@ function percentRank(array, value) {
   return 1;
 }
 
-onmessage = function (e) {
-  const url: string = e.data;
+function getLabel(charType) {
+  for (let mapping of labelMappings) {
+    if (mapping.groupNames.includes(charType)) return mapping.label;
+  }
+}
+
+// eslint-disable-next-line no-restricted-globals
+self.onmessage = function (e) {
+  const url = e.data;
   const records = fetchParseCsv(url);
-  const results: AllYearsStationData = {};
+  const results = {};
   if (records) {
     records.forEach((record) => {
       const id =
@@ -85,8 +83,9 @@ onmessage = function (e) {
       if (!(record.YearSummarized in results)) {
         results[record.YearSummarized] = {};
       }
+      let stationDataForYear = results[record.YearSummarized][id];
       if (!(id in results[record.YearSummarized])) {
-        results[record.YearSummarized][id] = {
+        stationDataForYear = {
           uniqueId: id,
           stationTotalMeasurements: 0,
           stationTotalMeasurementsPercentile: null,
@@ -96,6 +95,37 @@ onmessage = function (e) {
           stationTotalsByLabel: {},
         };
       }
+      stationDataForYear.stationTotalMeasurements += record.ResultCount;
+      stationDataForYear.stationTotalSamples += record.ActivityCount;
+      if (
+        !(
+          record.CharacteristicName in
+          stationDataForYear.stationTotalsByCharacteristic
+        )
+      ) {
+        stationDataForYear.stationTotalsByCharacteristic[
+          record.CharacteristicName
+        ] = 0;
+      }
+      stationDataForYear.stationTotalsByCharacteristic[
+        record.CharacteristicName
+      ] += record.ResultCount;
+      if (
+        !(record.CharacteristicType in stationDataForYear.stationTotalsByGroup)
+      ) {
+        stationDataForYear.stationTotalsByGroup[record.CharacteristicType] = 0;
+      }
+      stationDataForYear.stationTotalsByGroup[record.CharacteristicType] +=
+        record.ResultCount;
+      const label = getLabel(record.CharacteristicType);
+      if (!(label in stationDataForYear.stationTotalsByLabel)) {
+        stationDataForYear.stationTotalsByLabel[label] = 0;
+      }
+      stationDataForYear.stationTotalsByLabel[label] += record.ResultCount;
     });
+    Object.keys(results).forEach((year) =>
+      getTotalMeasurementPercentiles(results[year]),
+    );
+    postMessage(JSON.stringify(results));
   }
 };

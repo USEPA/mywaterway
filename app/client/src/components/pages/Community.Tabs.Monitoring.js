@@ -1,7 +1,6 @@
 // @flow
 
 import React, { useCallback, useContext, useEffect, useState } from 'react';
-import Papa from 'papaparse';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 // components
@@ -35,6 +34,7 @@ import { useFetchedDataState } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
+import buildWorker from 'components/shared/workerBuilder'
 import { plotFacilities } from 'utils/mapFunctions';
 import { useStreamgageData, useWaterbodyOnMap } from 'utils/hooks';
 // data
@@ -121,13 +121,13 @@ type StationFlattened = {|
 |};
 
 function usePeriodOfRecordData(filter: string, param: 'huc12' | 'siteId') {
-  if (param !== 'huc12' || param !== 'siteId') {
+  if (param !== 'huc12' && param !== 'siteId') {
     throw new Error('Missing parameter for Period of Record service');
   }
 
-  const workerScript = 'utils/periodOfRecordWorker.js';
   const services = useServicesContext();
   const [data, setData] = useState({});
+  const [worker, setWorker] = useState(null);
 
   let url =
     `${services.data.waterQualityPortal.monitoringLocation}search?` +
@@ -135,17 +135,18 @@ function usePeriodOfRecordData(filter: string, param: 'huc12' | 'siteId') {
   url += param === 'huc12' ? `&huc=${filter}` : `&siteId=${filter}`;
 
   useEffect(() => {
-    if (!filter) return;
+    if (!filter || worker) return;
     if (window.Worker) {
-      const parseWorker = new Worker(workerScript, { type: 'module' });
+      const parseWorker = buildWorker('components/shared/periodOfRecordWorker.js');
+      setWorker(parseWorker);
       parseWorker.postMessage(url);
       parseWorker.onmessage = (e) => {
-        if (e && typeof(e) === 'string') setData(JSON.parse(e.data));
-      }
+        if (e && typeof e === 'string') setData(JSON.parse(e.data));
+      };
     } else {
       throw new Error("Your browser doesn't support web workers");
     }
-  });
+  }, [filter, url, worker]);
 
   return data;
 }
@@ -573,7 +574,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     watershed,
   } = useContext(LocationSearchContext);
 
-  //const records = usePeriodOfRecordData(huc12);
+  const records = usePeriodOfRecordData(huc12, 'huc12');
+  console.log(JSON.stringify(records));
 
   const [displayedMonitoringLocations, setDisplayedMonitoringLocations] =
     useState([]);
