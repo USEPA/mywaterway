@@ -1079,7 +1079,7 @@ function WaterbodyInfo({
   if (type === 'Current Water Conditions') {
     content = <UsgsStreamgagesContent feature={feature} />;
   }
-  if (type === 'Sample Location') content = monitoringLocationsContent();
+  if (type === 'Past Water Conditions') content = monitoringLocationsContent();
   if (type === 'Nonprofit') content = nonprofitContent;
   if (type === 'Waterbody State Overview') content = waterbodyStateContent;
   if (type === 'Action') content = actionContent;

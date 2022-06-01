@@ -463,7 +463,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       featureLayerType = 'waterbodyLayer';
     } else if (attributes.CWPName) {
       layer = dischargersLayer;
-    } else if (attributes.monitoringType === 'Sample Location') {
+    } else if (attributes.monitoringType === 'Past Water Conditions') {
       layer = monitoringLocationsLayer;
     } else if (attributes.monitoringType === 'Current Water Conditions') {
       layer = usgsStreamgagesLayer;

@@ -1,5 +1,3 @@
-// @flow
-
 import {
   Dispatch,
   ReactNode,
@@ -9,7 +7,7 @@ import {
 } from 'react';
 
 type Props = {
-  children: ReactNode,
+  children: ReactNode;
 };
 
 type UsgsStreamgagesData = {
@@ -96,7 +94,10 @@ type UsgsPrecipitationData = {
   },
 };
 
-type UsgsDailyAveragesData = Object;
+type UsgsDailyAveragesData = {
+  allParamsMean: Object,
+  precipitationSum: Object,
+};
 
 type State = {
   usgsStreamgages:

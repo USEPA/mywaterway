@@ -43,7 +43,6 @@ import {
   zeroAssessedWaterbodies,
 } from 'config/errorMessages';
 // styles
-import { subtitleStyles } from 'components/shared/Accordion';
 import { toggleTableStyles } from 'styles/index.js';
 
 const containerStyles = css`
@@ -519,7 +518,7 @@ function MonitoringAndSensorsTab({
     usgsStreamgages: usgsStreamgagesDisplayed,
     monitoringLocations: monitoringLocationsDisplayed,
   });
-  // if either of the "Current Water Conditions" or "Sample Locations" switches
+  // if either of the "Current Water Conditions" or "Past Water Conditions" switches
   // are turned on, or if both switches are turned off, keep the "Monitoring
   // Stations" switch in sync
   useEffect(() => {
@@ -548,7 +547,8 @@ function MonitoringAndSensorsTab({
   // web service) to each streamgage if it exists for that particular location
   useEffect(() => {
     if (!usgsPrecipitation.data.value) return;
-    if (!usgsDailyAverages.data.value) return;
+    if (!usgsDailyAverages.data?.allParamsMean?.value) return;
+    if (!usgsDailyAverages.data?.precipitationSum?.value) return;
     if (normalizedUsgsStreamgages.length === 0) return;
 
     const streamgageSiteIds = normalizedUsgsStreamgages.map((gage) => {
@@ -579,7 +579,12 @@ function MonitoringAndSensorsTab({
       }
     });
 
-    usgsDailyAverages.data.value?.timeSeries.forEach((site) => {
+    const usgsDailyTimeSeriesData = [
+      ...(usgsDailyAverages.data.allParamsMean.value?.timeSeries || []),
+      ...(usgsDailyAverages.data.precipitationSum.value.timeSeries || []),
+    ];
+
+    usgsDailyTimeSeriesData.forEach((site) => {
       const siteId = site.sourceInfo.siteCode[0].value;
       const sitesHasObservations = site.values[0].value.length > 0;
 
@@ -590,7 +595,13 @@ function MonitoringAndSensorsTab({
 
         const paramCode = site.variable.variableCode[0].value;
         const observations = site.values[0].value.map(({ value, dateTime }) => {
-          return { measurement: value, date: new Date(dateTime) };
+          let measurement = value;
+          // convert measurements recorded in celsius to fahrenheit
+          if (['00010', '00020', '85583'].includes(paramCode)) {
+            measurement = measurement * (9 / 5) + 32;
+          }
+
+          return { measurement, date: new Date(dateTime) };
         });
 
         // NOTE: 'category' is either 'primary' or 'secondary' – loop over both
@@ -659,7 +670,7 @@ function MonitoringAndSensorsTab({
       }
 
       if (monitoringLocationsDisplayed) {
-        displayedTypes.push('Sample Location');
+        displayedTypes.push('Past Water Conditions');
       }
 
       return displayedTypes.includes(item.monitoringType);
@@ -761,7 +772,7 @@ function MonitoringAndSensorsTab({
                           });
                         }}
                         disabled={normalizedMonitoringLocations.length === 0}
-                        ariaLabel="Sample Locations"
+                        ariaLabel="Past Water Conditions"
                       />
                       <span>Past Water Conditions</span>
                     </div>
@@ -826,13 +837,7 @@ function MonitoringAndSensorsTab({
                     <AccordionItem
                       key={index}
                       index={index}
-                      title={
-                        <>
-                          <em css={subtitleStyles}>Location Name:</em>
-                          &nbsp;&nbsp;
-                          <strong>{item.locationName || 'Unknown'}</strong>
-                        </>
-                      }
+                      title={<strong>{item.locationName || 'Unknown'}</strong>}
                       subTitle={
                         <>
                           <em>Monitoring Type:</em>&nbsp;&nbsp;
@@ -843,7 +848,7 @@ function MonitoringAndSensorsTab({
                           <br />
                           <em>Water Type:</em>&nbsp;&nbsp;
                           {item.locationType}
-                          {item.monitoringType === 'Sample Location' && (
+                          {item.monitoringType === 'Past Water Conditions' && (
                             <>
                               <br />
                               <em>Monitoring Measurements:</em>&nbsp;&nbsp;
@@ -877,9 +882,9 @@ function MonitoringAndSensorsTab({
                           />
                         )}
 
-                        {item.monitoringType === 'Sample Location' && (
+                        {item.monitoringType === 'Past Water Conditions' && (
                           <WaterbodyInfo
-                            type="Sample Location"
+                            type="Past Water Conditions"
                             feature={feature}
                             services={services}
                           />
