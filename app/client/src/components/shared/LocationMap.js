@@ -104,7 +104,9 @@ type Props = {
 
 function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const fetchedDataDispatch = useFetchedDataDispatch();
-  const { usgsStreamgages } = useFetchedDataState();
+  const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
+    useFetchedDataState();
+
   const organizations = useOrganizationsContext();
   const services = useServicesContext();
   const navigate = useNavigate();
@@ -1226,39 +1228,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [services, fetchedDataDispatch],
   );
 
-  const normalizedUsgsStreamgages = useStreamgageData(usgsStreamgages);
-
-  useEffect(() => {
-    if (!usgsStreamgagesLayer || !normalizedUsgsStreamgages.length) return;
-
-    const graphics = normalizedUsgsStreamgages.map((gage) => {
-      const gageHeightMeasurements = gage.streamgageMeasurements.primary.filter(
-        (d) => d.parameterCode === '00065',
-      );
-
-      const gageHeight =
-        gageHeightMeasurements.length === 1
-          ? gageHeightMeasurements[0]?.measurement
-          : null;
-
-      return new Graphic({
-        geometry: {
-          type: 'point',
-          longitude: gage.locationLongitude,
-          latitude: gage.locationLatitude,
-        },
-        attributes: { gageHeight, ...gage },
-      });
-    });
-
-    return usgsStreamgagesLayer.queryFeatures().then((featureSet) => {
-      return usgsStreamgagesLayer.applyEdits({
-        deleteFeatures: featureSet.features,
-        addFeatures: graphics,
-      });
-    });
-  }, [normalizedUsgsStreamgages, usgsStreamgagesLayer]);
-
   const fetchUsgsPrecipitation = useCallback(
     (huc12) => {
       // https://help.waterdata.usgs.gov/stat_code
@@ -1331,6 +1300,43 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     },
     [services, fetchedDataDispatch],
   );
+
+  const normalizedUsgsStreamgages = useStreamgageData(
+    usgsStreamgages,
+    usgsPrecipitation,
+    usgsDailyAverages,
+  );
+
+  useEffect(() => {
+    if (!usgsStreamgagesLayer || !normalizedUsgsStreamgages.length) return;
+
+    const graphics = normalizedUsgsStreamgages.map((gage) => {
+      const gageHeightMeasurements = gage.streamgageMeasurements.primary.filter(
+        (d) => d.parameterCode === '00065',
+      );
+
+      const gageHeight =
+        gageHeightMeasurements.length === 1
+          ? gageHeightMeasurements[0]?.measurement
+          : null;
+
+      return new Graphic({
+        geometry: {
+          type: 'point',
+          longitude: gage.locationLongitude,
+          latitude: gage.locationLatitude,
+        },
+        attributes: { gageHeight, ...gage },
+      });
+    });
+
+    return usgsStreamgagesLayer.queryFeatures().then((featureSet) => {
+      return usgsStreamgagesLayer.applyEdits({
+        deleteFeatures: featureSet.features,
+        addFeatures: graphics,
+      });
+    });
+  }, [normalizedUsgsStreamgages, usgsStreamgagesLayer]);
 
   const queryPermittedDischargersService = useCallback(
     (huc12Param) => {
