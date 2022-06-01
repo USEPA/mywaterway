@@ -32,13 +32,17 @@ describe('State page links', () => {
   });
 
   it('Clicking the “More Information for <state name>” link opens a new tab for the state', () => {
-    const linkText = 'https://floridadep.gov/water';
+    const linkText = 'Florida DEP Home Page';
 
     cy.findByText('More Information for').click();
 
     // since Cypress doesn't support multiple tabs, we'll do the next best thing
     // (https://docs.cypress.io/guides/references/trade-offs.html#Multiple-tabs)
-    cy.findByText(linkText).should('have.attr', 'href', `${linkText}\n`);
+    cy.findByText(linkText).should(
+      'have.attr',
+      'href',
+      `https://floridadep.gov`,
+    );
     cy.findByText(linkText).should('have.attr', 'target', '_blank');
     cy.findByText(linkText).should('have.attr', 'rel', 'noopener noreferrer');
   });
@@ -101,9 +105,11 @@ describe('State page routes', () => {
   it('Navigate to the state page with a <script> tag in the route', () => {
     cy.visit('/state/%3Cscript%3Evar%20j%20=%201;%3C/script%3E');
 
-    cy.findByText('Sorry, but the url entered was invalid.').should('exist');
+    cy.findByText(
+      'States Play a Primary Role in Protecting Water Quality',
+    ).should('exist');
 
-    cy.url().should('include', `${window.location.origin}/invalid-url`);
+    cy.url().should('include', `${window.location.origin}/state`);
   });
 });
 

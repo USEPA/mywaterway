@@ -46,9 +46,9 @@ describe('Community page routes', () => {
   it('Navigate to the community page with a <script> tag in the route', () => {
     cy.visit('/community/%3Cscript%3Evar%20j%20=%201;%3C/script%3E/overview');
 
-    cy.findByText('Sorry, but the url entered was invalid.').should('exist');
+    cy.findByText('Sorry, but this web page does not exist.').should('exist');
 
-    cy.url().should('include', `${window.location.origin}/invalid-url`);
+    cy.url().should('include', '404.html');
   });
 });
 
@@ -207,13 +207,17 @@ describe('Community page Show Additional Text', () => {
   it(`Clicking "Expand All/Collapse All" expands/collapses the waterbody list`, () => {
     const text = 'Year Last Reported:';
 
-    cy.findAllByText('Expand All').filter(':visible');
+    cy.findAllByRole('button', { name: /Expand All/i }).filter(':visible');
     cy.findByText(text).should('not.exist');
 
-    cy.findByText('Expand All').click();
+    cy.findAllByRole('button', { name: /Expand All/i })
+      .filter(':visible')
+      .click();
     cy.findAllByText(text).should('be.visible');
 
-    cy.findByText('Collapse All').click();
+    cy.findAllByRole('button', { name: /Collapse All/i })
+      .filter(':visible')
+      .click();
     cy.findByText(text).should('not.exist');
   });
 });
@@ -286,7 +290,7 @@ describe('Identified Issues Tab', () => {
   it('Clicking a Discharger accordion item expands it', () => {
     // navigate to Identified Issues tab of Community page
     cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      '020700100305',
+      '020700110102',
     );
     cy.findByText('Go').click();
 
@@ -298,7 +302,7 @@ describe('Identified Issues Tab', () => {
     // switch to Dischargers tab of Identified Issues tab and check that the discharger accordion item exists and expands when clicked
     cy.findByText('Identified Issues').click();
     cy.findByTestId('hmw-dischargers').click();
-    cy.findByText("CHELTENHAM BOY'S VILLAGE WWTP").click();
+    cy.findByText('GALE-BAILEY ELEMENTARY SCHOOL').click();
     cy.findByText('Compliance Status:');
   });
 });
@@ -321,6 +325,7 @@ describe('Monitoring Tab', () => {
     );
 
     cy.findByText('Monitoring').click();
+    cy.findByRole('tab', { name: 'Past Water Conditions' }).click();
 
     // click Toggle All Monitoring Locations switch and check that all switches are toggled off
     cy.findByLabelText('Toggle all monitoring locations').click({
@@ -339,7 +344,7 @@ describe('Monitoring Tab', () => {
     );
 
     // check that there are no items displayed in accordion
-    cy.findByTestId('monitoring-accordion-title').contains('0 of 96', {
+    cy.findByTestId('monitoring-accordion-title').contains('0 of 97', {
       exact: false,
     });
 
@@ -372,6 +377,7 @@ describe('Monitoring Tab', () => {
     );
 
     cy.findByText('Monitoring').click();
+    cy.findByRole('tab', { name: 'Past Water Conditions' });
 
     // navigate to the Past Water Conditions sub-tab
     cy.findAllByText('Past Water Conditions').filter('button').click();
@@ -385,7 +391,8 @@ describe('Monitoring Tab', () => {
         force: true,
       });
 
-    cy.findByRole('table', { name: 'Monitoring Totals' })
+    cy.findByRole('table', { name: 'Monitoring Location Summary' })
+      .find('tbody')
       .find('td')
       .last()
       .should('have.text', '0');
@@ -395,7 +402,8 @@ describe('Monitoring Tab', () => {
       force: true,
     });
 
-    cy.findByRole('table', { name: 'Monitoring Totals' })
+    cy.findByRole('table', { name: 'Monitoring Location Summary' })
+      .find('tbody')
       .find('td')
       .last()
       .should('not.have.text', '0');

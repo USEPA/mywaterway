@@ -1,22 +1,20 @@
 describe('About page', () => {
   it('Back button works', () => {
     cy.visit('/community');
-    cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      'San Antonio, TX',
-    );
-    cy.findByText('Go').click();
+    cy.findByRole('textbox', { name: 'Search' }).type('San Antonio, TX');
+    cy.findByRole('button', { name: 'Go' }).click();
 
     // wait for the web services to finish
     cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
       'not.exist',
     );
 
-    cy.findByText('About').click();
-    cy.findByText('About How’s My Waterway').should('exist');
+    cy.findByRole('button', { name: 'About' }).click();
+    cy.findByText('How’s My Waterway Glossary').should('exist');
     cy.url().should('equal', `${window.location.origin}/about`);
 
     // verify that community search data is still there after clicking the Back button
-    cy.findByText('Back').click();
+    cy.findByRole('button', { name: 'Back' }).click();
     cy.findByTestId('overview-waterbodies-accordion-title').contains(
       'Overall condition of 8 waterbodies in the San Pedro Creek watershed.',
     );
@@ -32,14 +30,14 @@ describe('About page', () => {
     cy.findByText(text, { exact: false });
 
     // check the Questions and Answers tab
-    cy.findByText('Questions and Answers').click();
+    cy.findByRole('tab', { name: 'Questions and Answers' }).click();
     cy.findByText(
       'is an EPA tool that helps users find information on the condition of their waters',
       { exact: false },
     );
 
     // go back to the About HMW page
-    cy.findByText("About How's My Waterway").click();
+    cy.findByRole('tab', { name: 'About How’s My Waterway' }).click();
     cy.findByText(text, { exact: false });
   });
 });
