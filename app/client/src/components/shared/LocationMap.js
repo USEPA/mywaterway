@@ -1297,7 +1297,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           longitude: gage.locationLongitude,
           latitude: gage.locationLatitude,
         },
-        attributes: { gage },
+        attributes: gage,
       });
     });
 
