@@ -129,6 +129,7 @@ const moreLessRowStyles = css`
 const additionalTextStyles = css`
   font-style: italic;
   color: ${colors.gray6};
+  white-space: nowrap;
 `;
 
 const measurementStyles = css`
@@ -1461,7 +1462,9 @@ function UsgsStreamgageParameter({ url, data }) {
                 <Sparkline data={data.dailyAverages} />
               ) : (
                 <small css={additionalTextStyles}>
-                  No hourly data available
+                  No weekly
+                  <br />
+                  summary data
                 </small>
               )}
             </div>
