@@ -109,7 +109,6 @@ type AllYearsStationData = { [year: number]: AnnualStationsData };
 type AnnualStationData = {|
   uniqueId: string,
   stationTotalMeasurements: number,
-  stationTotalMeasurementsPercentile: number,
   stationTotalSamples: number,
   stationTotalsByCharacteristic: { [characteristic: string]: number },
   stationTotalsByGroup: { [group: string]: number },
@@ -172,7 +171,6 @@ type Station = {
   stationDataByYear: { [number]: AnnualStationData },
   stationProviderName: string,
   stationTotalMeasurements: number,
-  stationTotalMeasurementsPercentile: number,
   stationTotalSamples: number,
   stationTotalsByGroup: { [group: string]: number },
   stationTotalsByLabel: { [label: string]: number },

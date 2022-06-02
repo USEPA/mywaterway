@@ -102,7 +102,6 @@ const containerStyles = css`
 type AnnualStationData = {|
   uniqueId: string,
   stationTotalMeasurements: number,
-  stationTotalMeasurementsPercentile: number,
   stationTotalSamples: number,
   stationTotalsByCharacteristic: { [characteristic: string]: number },
   stationTotalsByGroup: { [group: string]: number },
@@ -123,7 +122,6 @@ type Station = {|
   stationDataByYear: { [number]: AnnualStationData },
   stationProviderName: string,
   stationTotalMeasurements: number,
-  stationTotalMeasurementsPercentile: number,
   stationTotalSamples: number,
   stationTotalsByGroup: { [group: string]: number },
   stationTotalsByLabel: { [label: string]: number },
@@ -215,8 +213,6 @@ function useMonitoringLocationFeatures(layer, locations) {
         stationDataByYear: {},
         stationTotalSamples: station.properties.activityCount,
         stationTotalMeasurements: station.properties.resultCount,
-        stationTotalMeasurementsPercentile:
-          station.properties.stationTotalMeasurementsPercentile,
         // counts for each lower-tier characteristic group
         stationTotalsByGroup: station.properties.characteristicGroupResultCount,
         // counts for each top-tier characteristic group
@@ -281,6 +277,7 @@ function useMonitoringLocationFeatures(layer, locations) {
         }
       }
 
+      console.log(flattenStationData(stationData));
       return new Graphic({
         geometry: {
           type: 'point',
@@ -832,7 +829,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         { name: 'stationProviderName', type: 'string' },
         { name: 'stationTotalSamples', type: 'string' },
         { name: 'stationTotalMeasurements', type: 'string' },
-        { name: 'stationTotalMeasurementsPercentile', type: 'double' },
         { name: 'stationTotalsByGroup', type: 'string' },
         { name: 'stationTotalsByLabel', type: 'string' },
         { name: 'stationDataByYear', type: 'string' },
@@ -933,7 +929,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       ],
       objectIdField: 'OBJECTID',
       outFields: ['*'],
-      objectIdField: 'OBJECTID',
       // NOTE: initial graphic below will be replaced with UGSG streamgages
       source: [
         new Graphic({
@@ -1393,6 +1388,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         gageHeightMeasurements.length === 1
           ? gageHeightMeasurements[0]?.measurement
           : null;
+      console.log(gage);
 
       return new Graphic({
         geometry: {
