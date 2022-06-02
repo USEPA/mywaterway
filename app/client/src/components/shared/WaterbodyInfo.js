@@ -134,7 +134,22 @@ const additionalTextStyles = css`
 const measurementStyles = css`
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
+`;
+
+const chartStyles = css`
+  padding-right: 8px;
+  width: 128px;
+  text-align: center;
+  line-height: 1;
+
+  small {
+    color: ${colors.gray9};
+  }
+`;
+
+const unitStyles = css`
+  overflow-wrap: break-word;
 `;
 
 const popupIconStyles = css`
@@ -1426,7 +1441,7 @@ function UsgsStreamgageParameter({ url, data }) {
           {data.parameterCode} &ndash; {data.parameterUsgsName}
         </small>
       </td>
-      <td style={{ width: '256px' }}>
+      <td>
         {data.multiple ? (
           <>
             <em>multiple&nbsp;measurements&nbsp;found</em>
@@ -1440,15 +1455,18 @@ function UsgsStreamgageParameter({ url, data }) {
             </small>
           </>
         ) : (
-          <div css={measurementStyles} style={{ width: '256px' }}>
-            {data.dailyAverages.length > 0 ? (
-              <div style={{ width: '128px' }}>
+          <div css={measurementStyles}>
+            <div css={chartStyles}>
+              {data.dailyAverages.length > 0 ? (
                 <Sparkline data={data.dailyAverages} />
-              </div>
-            ) : (
-              <div>&nbsp;</div>
-            )}
-            <div>
+              ) : (
+                <small css={additionalTextStyles}>
+                  No hourly data available
+                </small>
+              )}
+            </div>
+
+            <div css={unitStyles}>
               <strong>{data.measurement}</strong>
               &nbsp;
               <small title={data.unitName}>{data.unitAbbr}</small>
