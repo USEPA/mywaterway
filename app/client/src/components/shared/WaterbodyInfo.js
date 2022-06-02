@@ -77,14 +77,9 @@ const popupTitleStyles = css`
   background-color: #f0f6f9;
 `;
 
-const measurementStyles = css`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-`;
-
 const measurementTableStyles = css`
   ${modifiedTableStyles};
+
   th:last-of-type,
   td:last-of-type {
     text-align: right;
@@ -93,6 +88,7 @@ const measurementTableStyles = css`
 
 const modifiedDisclaimerStyles = css`
   ${disclaimerStyles};
+
   padding-bottom: 0;
 `;
 
@@ -123,6 +119,12 @@ const moreLessRowStyles = css`
 const additionalTextStyles = css`
   font-style: italic;
   color: ${colors.gray6};
+`;
+
+const measurementStyles = css`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 `;
 
 const popupIconStyles = css`
@@ -160,10 +162,6 @@ const imageContainerStyles = css`
 const imageStyles = css`
   width: 100%;
   height: auto;
-`;
-
-const infoLinkStyles = css`
-  padding-bottom: 1.5em;
 `;
 
 const dateStyles = css`
@@ -741,7 +739,7 @@ function WaterbodyInfo({
           </tbody>
         </table>
 
-        <p css={infoLinkStyles}>
+        <p>
           <a
             rel="noopener noreferrer"
             target="_blank"
