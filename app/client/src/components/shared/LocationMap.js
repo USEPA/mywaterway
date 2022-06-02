@@ -115,7 +115,7 @@ type Station = {|
   locationName: string,
   locationType: string,
   locationUrl: string,
-  monitoringType: 'Sample Location',
+  monitoringType: 'Past Water Conditions',
   OBJECTID?: number,
   orgId: string,
   orgName: string,
@@ -195,7 +195,7 @@ function useMonitoringLocationFeatures(layer, locations) {
 
     const graphics = stationsSorted.map((station) => {
       const stationData = {
-        monitoringType: 'Sample Location',
+        monitoringType: 'Past Water Conditions',
         siteId: station.properties.MonitoringLocationIdentifier,
         orgId: station.properties.OrganizationIdentifier,
         orgName: station.properties.OrganizationFormalName,

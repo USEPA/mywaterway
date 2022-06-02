@@ -165,7 +165,6 @@ type Station = {
   locationName: string,
   locationType: string,
   locationUrl: string,
-  monitoringType: 'Sample Location',
   OBJECTID?: number,
   orgId: string,
   orgName: string,

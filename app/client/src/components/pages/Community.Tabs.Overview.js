@@ -103,7 +103,7 @@ type Station = {|
   locationName: string,
   locationType: string,
   locationUrl: string,
-  monitoringType: 'Sample Location',
+  monitoringType: 'Past Water Conditions',
   OBJECTID?: number,
   orgId: string,
   orgName: string,
