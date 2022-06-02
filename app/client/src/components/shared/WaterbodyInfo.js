@@ -27,7 +27,6 @@ import { waterbodyReportError } from 'config/errorMessages';
 import {
   colors,
   disclaimerStyles,
-  downloadLinksStyles,
   iconStyles,
   modifiedTableStyles,
 } from 'styles/index.js';
@@ -100,6 +99,12 @@ const measurementTableStyles = css`
   td:last-of-type {
     text-align: right;
   }
+`;
+
+const modifiedDisclaimerStyles = css`
+  ${disclaimerStyles};
+
+  padding-bottom: 0;
 `;
 
 const checkboxCellStyles = css`
@@ -208,6 +213,24 @@ const changeWatershedContainerStyles = css`
 
   p {
     padding-bottom: 0;
+  }
+`;
+
+const totalRowStyles = css`
+  border-top: 2px solid #dee2e6;
+  font-weight: bold;
+`;
+
+const tableFooterStyles = css`
+  span {
+    display: inline-block;
+    margin-bottom: 0.25em;
+  }
+
+  td {
+    border-top: none;
+    font-weight: bold;
+    width: 50%;
   }
 `;
 
@@ -473,6 +496,9 @@ function WaterbodyInfo({
   const [charGroupFilters, setCharGroupFilters] = useState('');
   const [selected, setSelected] = useState({});
   const [selectAll, setSelectAll] = useState(1);
+  const [totalMeasurements, setTotalMeasurements] = useState(
+    attributes.stationTotalMeasurements,
+  );
 
   function monitoringLocationsContent() {
     const stationGroups = JSON.parse(attributes.stationTotalsByCategory);
@@ -508,6 +534,14 @@ function WaterbodyInfo({
         }
       }
     });
+
+    if (!Object.keys(selected).length) {
+      let selectedGroups = {};
+      Object.keys(groups).forEach((key) => {
+        selectedGroups[key] = true;
+      });
+      setSelected(selectedGroups);
+    }
 
     function buildFilter(selectedNames, monitoringLocationData) {
       let filter = '';
@@ -547,15 +581,24 @@ function WaterbodyInfo({
       if (numberSelected === totalSelections) {
         setSelectAll(1);
         setCharGroupFilters('');
+        setTotalMeasurements(attributes.stationTotalMeasurements);
       }
       // if none selected
       else if (numberSelected === 0) {
         setSelectAll(0);
         setCharGroupFilters('');
+        setTotalMeasurements(0);
       }
       // if some selected
       else {
         setSelectAll(2);
+        let newTotalMeasurementCount = 0;
+        Object.keys(groups).forEach((group) => {
+          if (selectedGroups[group] === true) {
+            newTotalMeasurementCount += groups[group].resultCount;
+          }
+        });
+        setTotalMeasurements(newTotalMeasurementCount);
       }
     }
 
@@ -573,6 +616,9 @@ function WaterbodyInfo({
 
       setSelected(selectedGroups);
       setSelectAll(selectAll === 0 ? 1 : 0);
+      setTotalMeasurements(
+        selectAll === 0 ? attributes.stationTotalMeasurements : 0,
+      );
       setCharGroupFilters('');
     }
 
@@ -650,7 +696,20 @@ function WaterbodyInfo({
         </table>
 
         <p>
-          <strong>Download Monitoring Data:</strong>
+          <a
+            rel="noopener noreferrer"
+            target="_blank"
+            href={attributes.locationUrl}
+          >
+            <i
+              css={iconStyles}
+              className="fas fa-info-circle"
+              aria-hidden="true"
+            />
+            More Information
+          </a>
+          &nbsp;&nbsp;
+          <small css={modifiedDisclaimerStyles}>(opens new browser tab)</small>
         </p>
 
         {Object.keys(groups).length === 0 && (
@@ -710,54 +769,51 @@ function WaterbodyInfo({
                   </tr>
                 );
               })}
+              <tr css={totalRowStyles}>
+                <td></td>
+                <td>Total</td>
+                <td>{Number(totalMeasurements).toLocaleString()}</td>
+              </tr>
             </tbody>
+
+            <tfoot css={tableFooterStyles}>
+              <tr>
+                <td colSpan="2">
+                  <a
+                    rel="noopener noreferrer"
+                    target="_blank"
+                    data-cy="portal"
+                    href={portalUrl}
+                  >
+                    <i
+                      css={iconStyles}
+                      className="fas fa-filter"
+                      aria-hidden="true"
+                    />
+                    Advanced Filtering
+                  </a>
+                  &nbsp;&nbsp;
+                  <small css={modifiedDisclaimerStyles}>
+                    (opens new browser tab)
+                  </small>
+                </td>
+                <td colSpan="2">
+                  <span>Download Station Data</span>
+                  <span>
+                    &nbsp;&nbsp;
+                    <a href={`${downloadUrl}&mimeType=xlsx`}>
+                      <i className="fas fa-file-excel" aria-hidden="true" />
+                    </a>
+                    &nbsp;&nbsp;
+                    <a href={`${downloadUrl}&mimeType=csv`}>
+                      <i className="fas fa-file-csv" aria-hidden="true" />
+                    </a>
+                  </span>
+                </td>
+              </tr>
+            </tfoot>
           </table>
         )}
-
-        <p css={downloadLinksStyles}>
-          <span>Data Download Format:</span>
-          &nbsp;
-          <a href={`${downloadUrl}&mimeType=xlsx`}>
-            <i
-              css={iconStyles}
-              className="fas fa-file-excel"
-              aria-hidden="true"
-            />
-            xls
-          </a>
-          <a href={`${downloadUrl}&mimeType=csv`}>
-            <i
-              css={iconStyles}
-              className="fas fa-file-csv"
-              aria-hidden="true"
-            />
-            csv
-          </a>
-        </p>
-
-        <p>
-          <a
-            rel="noopener noreferrer"
-            target="_blank"
-            href={attributes.locationUrl}
-          >
-            <i
-              css={iconStyles}
-              className="fas fa-info-circle"
-              aria-hidden="true"
-            />
-            More Information
-          </a>
-          &nbsp;&nbsp;
-          <small css={disclaimerStyles}>(opens new browser tab)</small>
-          <br />
-          <a rel="noopener noreferrer" target="_blank" href={portalUrl}>
-            <i css={iconStyles} className="fas fa-filter" aria-hidden="true" />
-            Filter this data using the <em>Water Quality Portal</em> form
-          </a>
-          &nbsp;&nbsp;
-          <small css={disclaimerStyles}>(opens new browser tab)</small>
-        </p>
       </>
     );
   }
