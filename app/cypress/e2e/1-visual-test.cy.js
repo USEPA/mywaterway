@@ -4,14 +4,14 @@ describe('Community Visual Regression Testing', () => {
   it('Verify DC GIS data displays correctly', () => {
     cy.visit('/community/dc/overview');
 
-    cy.debouncedWait({
-      url: 'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/2/query?f=pbf*',
-      waitTimeout: 120000,
-    });
+    // cy.debouncedWait({
+    //   url: 'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/*/query?f=pbf*',
+    //   waitTimeout: 120000,
+    // });
 
     // this is needed as a workaround for the delay between the loading spinner
     // disappearing and the waterbodies being drawn on the map
-    cy.wait(7000);
+    cy.wait(20000);
 
     cy.get(mapId).matchSnapshot('verify-dc-gis-display');
   });
@@ -19,14 +19,14 @@ describe('Community Visual Regression Testing', () => {
   it('Verify the switches on Identified Issues correctly update the GIS data', () => {
     cy.visit('/community/dc/identified-issues');
 
-    cy.debouncedWait({
-      url: 'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/2/query?f=pbf*',
-      waitTimeout: 120000,
-    });
+    // cy.debouncedWait({
+    //   url: 'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/*/query?f=pbf*',
+    //   waitTimeout: 120000,
+    // });
 
     // this is needed as a workaround for the delay between the loading spinner
     // disappearing and the waterbodies being drawn on the map
-    cy.wait(7000);
+    cy.wait(20000);
 
     // test all impairment categories on
     cy.get(mapId).matchSnapshot('dc-all-impairment-categories');
@@ -59,12 +59,12 @@ describe('Community Visual Regression Testing', () => {
   it('Verify shading of huc boundaries is turned off when wsio layer is on', () => {
     cy.visit('/community/dc/protect');
 
-    cy.debouncedWait({
-      url: 'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/2/query?f=pbf*',
-      waitTimeout: 120000,
-    });
+    // cy.debouncedWait({
+    //   url: 'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/*/query?f=pbf*',
+    //   waitTimeout: 120000,
+    // });
 
-    cy.wait(7000);
+    cy.wait(20000);
 
     cy.get(mapId).matchSnapshot('verify-huc-boundary-shading');
 
@@ -75,7 +75,7 @@ describe('Community Visual Regression Testing', () => {
 
     // this is needed as a workaround for the delay between the loading spinner
     // disappearing and the waterbodies being drawn on the map
-    cy.wait(3000);
+    cy.wait(5000);
 
     cy.get(mapId).matchSnapshot('verify-huc-boundary-wsio-no-shading');
 
@@ -86,7 +86,7 @@ describe('Community Visual Regression Testing', () => {
 
     // this is needed as a workaround for the delay between the loading spinner
     // disappearing and the waterbodies being drawn on the map
-    cy.wait(1000);
+    cy.wait(2000);
 
     cy.get(mapId).matchSnapshot('verify-huc-boundary-shading');
   });
@@ -94,12 +94,12 @@ describe('Community Visual Regression Testing', () => {
   it('Verify "View on Map" button works', () => {
     cy.visit('/community/dc/overview');
 
-    cy.debouncedWait({
-      url: 'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/2/query?f=pbf*',
-      waitTimeout: 120000,
-    });
+    // cy.debouncedWait({
+    //   url: 'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/*/query?f=pbf*',
+    //   waitTimeout: 120000,
+    // });
 
-    cy.wait(3000);
+    cy.wait(10000);
 
     cy.findByText('ANATF - Anacostia River Tidal Fresh').click();
 
@@ -130,7 +130,7 @@ describe('State Visual Regression Testing', () => {
     );
 
     // wait for animations to settle and check the assessed chart
-    cy.wait(7000);
+    cy.wait(10000);
     cy.get(assessedChartId).matchSnapshot(
       'verify-assessed-less-than-1-chart-display',
     );
@@ -143,7 +143,7 @@ describe('State Visual Regression Testing', () => {
     });
 
     // wait for animations to settle and check the assessed chart
-    cy.wait(7000);
+    cy.wait(10000);
     cy.get(assessedChartId).matchSnapshot('verify-assessed-chart-display');
   });
 
@@ -162,7 +162,7 @@ describe('State Visual Regression Testing', () => {
     });
 
     // wait for animations to settle and check the assessed chart
-    cy.wait(7000);
+    cy.wait(10000);
     cy.get(surveysChartId).matchSnapshot('verify-surveys-chart-display');
   });
 });

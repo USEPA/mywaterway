@@ -37,10 +37,10 @@
     "coverage": "concurrently -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server\" \"cd client && npm run coverage\" \"cypress run --browser edge\""
   },
   "devDependencies": {
-    "@cypress/code-coverage": "3.9.12",
+    "@cypress/code-coverage": "3.10.0",
     "@testing-library/cypress": "8.0.2",
-    "concurrently": "7.0.0",
-    "cypress": "9.5.0",
+    "concurrently": "7.2.1",
+    "cypress": "10.0.1",
     "cypress-image-snapshot": "4.0.1",
     "eslint-plugin-cypress": "2.12.1",
     "istanbul-lib-coverage": "3.2.0",
