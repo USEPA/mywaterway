@@ -1513,19 +1513,24 @@ function useSharedLayers() {
   };
 }
 
-// Normalizes USGS streamgage data with monitoring stations data.
-function useStreamgageData(streamgages) {
-  const [normalizedUsgsStreamgages, setNormalizedUsgsStreamgages] = useState(
-    [],
-  );
-  const fetchedData = streamgages.data;
-  const fetchStatus = streamgages.status;
+/** Normalizes USGS streamgage data with monitoring stations data. */
+function useStreamgageData(
+  usgsStreamgages,
+  usgsPrecipitation,
+  usgsDailyAverages,
+) {
+  const [normalizedStreamgages, setNormalizedStreamgages] = useState([]);
 
-  // normalize USGS streamgages data with monitoring stations data
   useEffect(() => {
-    if (fetchStatus !== 'success' || !fetchedData.value) return;
+    if (
+      usgsStreamgages.status !== 'success' ||
+      usgsPrecipitation.status !== 'success' ||
+      usgsDailyAverages.status !== 'success'
+    ) {
+      return;
+    }
 
-    const gages = fetchedData.value.map((gage) => {
+    const gages = usgsStreamgages.data.value.map((gage) => {
       const streamgageMeasurements = { primary: [], secondary: [] };
 
       [...gage.Datastreams]
@@ -1554,7 +1559,7 @@ function useStreamgageData(streamgages) {
             parameterCode,
             measurement,
             datetime: new Date(observation.phenomenonTime).toLocaleString(),
-            dailyAverages: [],
+            dailyAverages: [], // NOTE: will be set below
             unitAbbr: matchedParam?.hmwUnits || parameterUnit.symbol,
             unitName: parameterUnit.name,
           };
@@ -1583,10 +1588,77 @@ function useStreamgageData(streamgages) {
       };
     });
 
-    setNormalizedUsgsStreamgages(gages);
-  }, [fetchedData, fetchStatus]);
+    const streamgageSiteIds = gages.map((gage) => gage.siteId);
 
-  return normalizedUsgsStreamgages;
+    // add precipitation data to each streamgage if it exists for the site
+    if (usgsPrecipitation.data?.value) {
+      usgsPrecipitation.data.value?.timeSeries.forEach((site) => {
+        const siteId = site.sourceInfo.siteCode[0].value;
+        const observation = site.values[0].value[0];
+
+        if (streamgageSiteIds.includes(siteId)) {
+          const streamgage = gages.find((gage) => gage.siteId === siteId);
+
+          streamgage?.streamgageMeasurements.primary.push({
+            parameterCategory: 'primary',
+            parameterOrder: 5,
+            parameterName: 'Total Daily Rainfall',
+            parameterUsgsName: 'Precipitation (USGS Daily Value)',
+            parameterCode: '00045',
+            measurement: observation.value,
+            datetime: new Date(observation.dateTime).toLocaleDateString(),
+            dailyAverages: [], // NOTE: will be set below
+            unitAbbr: 'in',
+            unitName: 'inches',
+          });
+        }
+      });
+    }
+
+    // add daily average measurements to each streamgage if it exists for the site
+    if (
+      usgsDailyAverages.data?.allParamsMean?.value &&
+      usgsDailyAverages.data?.precipitationSum?.value
+    ) {
+      const usgsDailyTimeSeriesData = [
+        ...(usgsDailyAverages.data.allParamsMean.value?.timeSeries || []),
+        ...(usgsDailyAverages.data.precipitationSum.value?.timeSeries || []),
+      ];
+
+      usgsDailyTimeSeriesData.forEach((site) => {
+        const siteId = site.sourceInfo.siteCode[0].value;
+        const sitesHasObservations = site.values[0].value.length > 0;
+
+        if (streamgageSiteIds.includes(siteId) && sitesHasObservations) {
+          const streamgage = gages.find((gage) => gage.siteId === siteId);
+
+          const paramCode = site.variable.variableCode[0].value;
+          const observations = site.values[0].value.map((observation) => {
+            let measurement = observation.value;
+            // convert measurements recorded in celsius to fahrenheit
+            if (['00010', '00020', '85583'].includes(paramCode)) {
+              measurement = measurement * (9 / 5) + 32;
+            }
+
+            return { measurement, date: new Date(observation.dateTime) };
+          });
+
+          // NOTE: 'type' is either 'primary' or 'secondary' – loop over both
+          for (const type in streamgage?.streamgageMeasurements) {
+            streamgage.streamgageMeasurements[type].forEach((measurement) => {
+              if (measurement.parameterCode === paramCode.toString()) {
+                measurement.dailyAverages = observations;
+              }
+            });
+          }
+        }
+      });
+    }
+
+    setNormalizedStreamgages(gages);
+  }, [usgsStreamgages, usgsPrecipitation, usgsDailyAverages]);
+
+  return normalizedStreamgages;
 }
 
 // Custom hook that is used for handling key presses. This can be used for

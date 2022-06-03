@@ -72,7 +72,6 @@ import {
   getPointFromCoordinates,
   splitSuggestedSearch,
   browserIsCompatibleWithArcGIS,
-  percentRank,
   resetCanonicalLink,
   removeJsonLD,
 } from 'utils/utils';
@@ -105,7 +104,9 @@ type Props = {
 
 function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const fetchedDataDispatch = useFetchedDataDispatch();
-  const { usgsStreamgages } = useFetchedDataState();
+  const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
+    useFetchedDataState();
+
   const organizations = useOrganizationsContext();
   const services = useServicesContext();
   const navigate = useNavigate();
@@ -647,19 +648,51 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           style: 'circle',
           color: colors.lightPurple(0.5),
         },
-        visualVariables: [
-          {
-            type: 'size',
-            field: 'stationTotalMeasurementsPercentile',
-            legendOptions: {
-              title: 'Monitoring Measurment Percentiles for Watershed',
+      },
+      featureReduction: {
+        type: 'cluster',
+        clusterRadius: '100px',
+        clusterMinSize: '24px',
+        clusterMaxSize: '60px',
+        popupEnabled: true,
+        popupTemplate: {
+          title: 'Cluster summary',
+          content: (feature) => {
+            const content = (
+              <div style={{ margin: '0.625em' }}>
+                This cluster represents{' '}
+                {feature.graphic.attributes.cluster_count} stations
+              </div>
+            );
+
+            const contentContainer = document.createElement('div');
+            render(content, contentContainer);
+
+            // return an esri popup item
+            return contentContainer;
+          },
+          fieldInfos: [
+            {
+              fieldName: 'cluster_count',
+              format: {
+                places: 0,
+                digitSeparator: true,
+              },
             },
-            stops: [
-              { value: 0.25, size: 8, label: '<25th percentile ' },
-              { value: 0.5, size: 16, label: '25th - 50th percentile' },
-              { value: 0.75, size: 24, label: '50th - 75th percentile' },
-              { value: 1, size: 32, label: '75th - 100th percentile' },
-            ],
+          ],
+        },
+        labelingInfo: [
+          {
+            deconflictionStrategy: 'none',
+            labelExpressionInfo: {
+              expression: "Text($feature.cluster_count, '#,###')",
+            },
+            symbol: {
+              type: 'text',
+              color: '#000000',
+              font: { size: 10, weight: 'bold' },
+            },
+            labelPlacement: 'center-center',
           },
         ],
       },
@@ -680,7 +713,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       legendEnabled: false,
       fields: [
         { name: 'OBJECTID', type: 'oid' },
-        { name: 'gageHeight', type: 'string' },
         { name: 'monitoringType', type: 'string' },
         { name: 'siteId', type: 'string' },
         { name: 'orgId', type: 'string' },
@@ -708,25 +740,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           style: 'square',
           color: '#fffe00', // '#989fa2'
         },
-        // NOTE: rendering all streamgages in a single color until we can set
-        //       color stops from data returned in USGS STA web service
-        // visualVariables: [
-        //   {
-        //     type: 'color',
-        //     field: 'gageHeight',
-        //     stops: [
-        //       // TODO: determine how to map of gage height values to NWD streamflow percentile stops
-        //       // (National Water Dashboard: https://dashboard.waterdata.usgs.gov/app/nwd/?aoi=default)
-        //       { value: '0', color: '#ea2c38' }, // All-time low for this day  (0th percentile, minimum)
-        //       { value: '1', color: '#b54246' }, // Much below normal          (<10th percentile)
-        //       { value: '2', color: '#eaae3f' }, // Below normal               (10th – 24th percentile)
-        //       { value: '3', color: '#32f242' }, // Normal                     (25th – 75th percentile)
-        //       { value: '4', color: '#56d7da' }, // Above normal               (76th – 90th percentile)
-        //       { value: '5', color: '#2639f6' }, // Much above normal          (>90th percentile)
-        //       { value: '6', color: '#22296e' }, // All-time high for this day (100th percentile, maximum)
-        //     ],
-        //   },
-        // ],
       },
       popupTemplate: {
         outFields: ['*'],
@@ -1071,40 +1084,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       fetchCheck(url)
         .then((res) => {
-          // sort ascending order
-          const stationsSorted = [...res.features];
-          stationsSorted.sort((a, b) => {
-            return (
-              parseInt(a.properties.resultCount) -
-              parseInt(b.properties.resultCount)
-            );
-          });
-
-          // build a simple array of stationTotalMeasurements
-          const measurementsArray = stationsSorted.map((station) =>
-            parseInt(station.properties.resultCount),
-          );
-
-          // calculate percentiles
-          measurementsArray.forEach((measurement, index) => {
-            // get the rank and then move them into 4 buckets
-            let rank = percentRank(measurementsArray, measurement);
-            if (rank < 0.25) rank = 0.24;
-            if (rank >= 0.25 && rank < 0.5) rank = 0.49;
-            if (rank >= 0.5 && rank < 0.75) rank = 0.74;
-            if (rank >= 0.75 && rank <= 1) rank = 1;
-
-            stationsSorted[
-              index
-            ].properties.stationTotalMeasurementsPercentile = rank;
-          });
-
           setMonitoringLocations({
             status: 'success',
-            data: {
-              ...res,
-              features: stationsSorted,
-            },
+            data: res,
           });
         })
         .catch((err) => {
@@ -1125,15 +1107,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       return;
     }
 
-    // sort descending order so that smaller graphics show up on top
-    const stationsSorted = [...monitoringLocations.data.features];
-    stationsSorted.sort((a, b) => {
-      return (
-        parseInt(b.properties.resultCount) - parseInt(a.properties.resultCount)
-      );
-    });
-
-    const graphics = stationsSorted.map((station) => {
+    const graphics = monitoringLocations.data.features.map((station) => {
       return new Graphic({
         geometry: {
           type: 'point',
@@ -1178,58 +1152,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         },
       });
     });
-
-    if (stationsSorted.length > 20) {
-      monitoringLocationsLayer.featureReduction = {
-        type: 'cluster',
-        clusterRadius: '100px',
-        clusterMinSize: '24px',
-        clusterMaxSize: '60px',
-        popupEnabled: true,
-        popupTemplate: {
-          title: 'Cluster summary',
-          content: (feature) => {
-            const content = (
-              <div style={{ margin: '0.625em' }}>
-                This cluster represents{' '}
-                {feature.graphic.attributes.cluster_count} stations
-              </div>
-            );
-
-            const contentContainer = document.createElement('div');
-            render(content, contentContainer);
-
-            // return an esri popup item
-            return contentContainer;
-          },
-          fieldInfos: [
-            {
-              fieldName: 'cluster_count',
-              format: {
-                places: 0,
-                digitSeparator: true,
-              },
-            },
-          ],
-        },
-        labelingInfo: [
-          {
-            deconflictionStrategy: 'none',
-            labelExpressionInfo: {
-              expression: "Text($feature.cluster_count, '#,###')",
-            },
-            symbol: {
-              type: 'text',
-              color: '#000000',
-              font: { size: 10, weight: 'bold' },
-            },
-            labelPlacement: 'center-center',
-          },
-        ],
-      };
-    } else {
-      monitoringLocationsLayer.featureReduction = undefined;
-    }
 
     monitoringLocationsLayer.queryFeatures().then((featureSet) => {
       monitoringLocationsLayer.applyEdits({
@@ -1285,39 +1207,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     },
     [services, fetchedDataDispatch],
   );
-
-  const normalizedUsgsStreamgages = useStreamgageData(usgsStreamgages);
-
-  useEffect(() => {
-    if (!usgsStreamgagesLayer || !normalizedUsgsStreamgages.length) return;
-
-    const graphics = normalizedUsgsStreamgages.map((gage) => {
-      const gageHeightMeasurements = gage.streamgageMeasurements.primary.filter(
-        (d) => d.parameterCode === '00065',
-      );
-
-      const gageHeight =
-        gageHeightMeasurements.length === 1
-          ? gageHeightMeasurements[0]?.measurement
-          : null;
-
-      return new Graphic({
-        geometry: {
-          type: 'point',
-          longitude: gage.locationLongitude,
-          latitude: gage.locationLatitude,
-        },
-        attributes: { gageHeight, ...gage },
-      });
-    });
-
-    return usgsStreamgagesLayer.queryFeatures().then((featureSet) => {
-      return usgsStreamgagesLayer.applyEdits({
-        deleteFeatures: featureSet.features,
-        addFeatures: graphics,
-      });
-    });
-  }, [normalizedUsgsStreamgages, usgsStreamgagesLayer]);
 
   const fetchUsgsPrecipitation = useCallback(
     (huc12) => {
@@ -1391,6 +1280,34 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     },
     [services, fetchedDataDispatch],
   );
+
+  const normalizedUsgsStreamgages = useStreamgageData(
+    usgsStreamgages,
+    usgsPrecipitation,
+    usgsDailyAverages,
+  );
+
+  useEffect(() => {
+    if (!usgsStreamgagesLayer || !normalizedUsgsStreamgages.length) return;
+
+    const graphics = normalizedUsgsStreamgages.map((gage) => {
+      return new Graphic({
+        geometry: {
+          type: 'point',
+          longitude: gage.locationLongitude,
+          latitude: gage.locationLatitude,
+        },
+        attributes: gage,
+      });
+    });
+
+    return usgsStreamgagesLayer.queryFeatures().then((featureSet) => {
+      return usgsStreamgagesLayer.applyEdits({
+        deleteFeatures: featureSet.features,
+        addFeatures: graphics,
+      });
+    });
+  }, [normalizedUsgsStreamgages, usgsStreamgagesLayer]);
 
   const queryPermittedDischargersService = useCallback(
     (huc12Param) => {

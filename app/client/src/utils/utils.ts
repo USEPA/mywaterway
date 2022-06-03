@@ -1,5 +1,3 @@
-// @flow
-
 import Point from '@arcgis/core/geometry/Point';
 
 // utility function to split up an array into chunks of a designated length
@@ -46,13 +44,13 @@ function getExtensionFromPath(primary: string, backup: string = '') {
   function getExtension(path: string) {
     if (!path) return null;
 
-    const filename = path.split('/').pop();
+    const filename = path.split('/').pop() ?? '';
     const parts = filename.split('.');
 
     if (parts.length === 1) {
       return null;
     }
-    return parts.pop().toUpperCase();
+    return (parts.pop() ?? '').toUpperCase();
   }
 
   let extension = getExtension(primary);
@@ -62,10 +60,48 @@ function getExtensionFromPath(primary: string, backup: string = '') {
   return extension;
 }
 
-require('@gouch/to-title-case');
-
 function titleCase(string: string) {
-  return string.toLowerCase().toTitleCase();
+  const smallWords =
+    /^(a|an|and|as|at|but|by|en|for|if|in|nor|of|on|or|per|the|to|v.?|vs.?|via)$/i;
+  const alphanumericPattern = /([A-Za-z0-9\u00C0-\u00FF])/;
+  const wordSeparators = /([ :–—-])/;
+
+  return string
+    .toLowerCase()
+    .split(wordSeparators)
+    .map(function (current, index, array) {
+      if (
+        // check for small words
+        current.search(smallWords) > -1 &&
+        // skip first and last word
+        index !== 0 &&
+        index !== array.length - 1 &&
+        // ignore title end and subtitle start
+        array[index - 3] !== ':' &&
+        array[index + 1] !== ':' &&
+        // ignore small words that start a hyphenated phrase
+        (array[index + 1] !== '-' ||
+          (array[index - 1] === '-' && array[index + 1] === '-'))
+      ) {
+        return current.toLowerCase();
+      }
+
+      // ignore intentional capitalization
+      if (current.substring(1).search(/[A-Z]|\../) > -1) {
+        return current;
+      }
+
+      // ignore URLs
+      if (array[index + 1] === ':' && array[index + 2] !== '') {
+        return current;
+      }
+
+      // capitalize the first letter
+      return current.replace(alphanumericPattern, function (match) {
+        return match.toUpperCase();
+      });
+    })
+    .join('');
 }
 
 function titleCaseWithExceptions(string: string) {
@@ -99,7 +135,7 @@ function isHuc12(string: string) {
   return /^\d{12}$/.test(string);
 }
 
-function createSchema(huc12, watershed) {
+function createSchema(huc12: string, watershed: string) {
   return {
     '@context': ['https://schema.org'],
     '@id': `https://geoconnex.us/epa/hmw/${huc12}`,
@@ -112,7 +148,7 @@ function createSchema(huc12, watershed) {
   };
 }
 
-function createJsonLD(huc12, watershed) {
+function createJsonLD(huc12: string, watershed: string) {
   // try removing any existing JSON-LDs
   removeJsonLD();
 
@@ -125,39 +161,40 @@ function createJsonLD(huc12, watershed) {
   head.appendChild(script);
 }
 
-function updateCanonicalLink(huc12) {
+function updateCanonicalLink(huc12: string) {
   const canonicalLink = document.querySelector('[rel="canonical"]');
-  if (canonicalLink) {
+  if (canonicalLink && canonicalLink instanceof HTMLAnchorElement) {
     canonicalLink.href = `https://geoconnex.us/epa/hmw/${huc12}`;
   }
 }
 
 function resetCanonicalLink() {
   const canonicalLink = document.querySelector('[rel="canonical"]');
-  if (canonicalLink) canonicalLink.href = window.location.href;
-}
-
-function removeJsonLD() {
-  if (document.getElementById('jsonLD')) {
-    document.getElementById('jsonLD').remove();
+  if (canonicalLink && canonicalLink instanceof HTMLAnchorElement) {
+    canonicalLink.href = window.location.href;
   }
 }
 
-function createMarkup(message) {
+function removeJsonLD() {
+  const jsonLD = document.getElementById('jsonLD');
+  if (jsonLD) jsonLD.remove();
+}
+
+function createMarkup(message: string) {
   return { __html: message };
 }
 
 // Determines if the input text is a string representing coordinates.
 // If so the coordinates are converted to an Esri Point object.
-function getPointFromCoordinates(text) {
+function getPointFromCoordinates(text: string) {
   const regex = /^(-?\d+(\.\d*)?)[\s,]+(-?\d+(\.\d*)?)$/;
   let point = null;
   if (regex.test(text)) {
-    const found = text.match(regex);
-    if (found.length >= 4 && found[1] && found[3]) {
+    const found: RegExpMatchArray | null = text.match(regex);
+    if (found && found.length >= 4 && found[1] && found[3]) {
       point = new Point({
-        x: found[1],
-        y: found[3],
+        x: parseFloat(found[1]),
+        y: parseFloat(found[3]),
       });
     }
   }
@@ -168,7 +205,7 @@ function getPointFromCoordinates(text) {
 // Determines if the input text is a string that contains coordinates.
 // The return value is an object containing the esri point for the coordinates (coordinatesPart)
 // and any remaining text (searchPart).
-function splitSuggestedSearch(text) {
+function splitSuggestedSearch(text: string) {
   // split search
   const parts = text.split('|');
 
@@ -177,8 +214,7 @@ function splitSuggestedSearch(text) {
   const coordinatesPart = getPointFromCoordinates(tempCoords);
 
   // remove the coordinates part from initial array
-  let coordinatesString = '';
-  if (coordinatesPart) coordinatesString = parts.pop();
+  const coordinatesString = coordinatesPart ? parts.pop() ?? '' : '';
 
   // get the point from the coordinates part
   return {
@@ -240,7 +276,7 @@ function browserIsCompatibleWithArcGIS() {
   return true;
 }
 
-function convertAgencyCode(agencyShortCode) {
+function convertAgencyCode(agencyShortCode: string) {
   if (!agencyShortCode) return 'Unknown';
 
   // Wild and Scenic Rivers service returns multiple agencies as a string. ex: 'USFS, FWS, NPS'
@@ -259,14 +295,14 @@ function convertAgencyCode(agencyShortCode) {
 
 // Lookup the value of an attribute using domain coded values from
 // the arcgis feature layer fields.
-function convertDomainCode(fields, name, value) {
+function convertDomainCode(fields: __esri.Field[], name: string, value: string) {
   if (!fields) return value;
 
   // look for the field using name
   for (const field of fields) {
     if (field.name === name && field.domain) {
       // look for the code using value
-      const codedValues = field.domain.codedValues;
+      const codedValues = (field.domain as __esri.CodedValueDomain).codedValues;
       for (const codedValue of codedValues) {
         if (codedValue.code === value) {
           return codedValue.name;
@@ -280,7 +316,7 @@ function convertDomainCode(fields, name, value) {
 }
 
 // Escapes special characters for usage with regex
-function escapeRegex(str) {
+function escapeRegex(str: string) {
   return str.replace(/([.*+?^=!:${}()|\]\\])/g, '\\$1');
 }
 
@@ -301,7 +337,7 @@ function normalizeString(str: string) {
 }
 
 // Summarizes assessment counts by the status of the provided fieldname.
-function summarizeAssessments(waterbodies: Array<Object>, fieldName: string) {
+function summarizeAssessments(waterbodies: __esri.Graphic[], fieldName: string) {
   const summary = {
     total: 0,
     unassessed: 0,
@@ -314,10 +350,18 @@ function summarizeAssessments(waterbodies: Array<Object>, fieldName: string) {
 
   // ids will contain unique assessment unit id's of each waterbody,
   // to ensure we don't count a unique waterbody more than once
-  const ids = [];
+  const ids: string[] = [];
 
   waterbodies?.forEach((graphic) => {
-    const field = graphic.attributes[fieldName];
+    const field = graphic.attributes[fieldName] as
+      | 'total'
+      | 'unassessed'
+      | 'Not Supporting'
+      | 'Fully Supporting'
+      | 'Insufficient Information'
+      | 'Not Assessed'
+      | 'Not Applicable'
+      | 'X';
     const { assessmentunitidentifier: id } = graphic.attributes;
 
     if (!field || field === 'X') {
@@ -337,7 +381,7 @@ function summarizeAssessments(waterbodies: Array<Object>, fieldName: string) {
 }
 
 // Finds all occurrences of the provided searchstring within the provided text.
-function indicesOf(text, searchString) {
+function indicesOf(text: string, searchString: string) {
   const searchLength = searchString.length;
   if (searchLength === 0) return [];
 
@@ -356,23 +400,6 @@ function indicesOf(text, searchString) {
   }
 
   return indices;
-}
-
-// Returns the percentile of the given value in a sorted numeric array.
-function percentRank(array, value) {
-  const count = array.length;
-
-  for (let i = 0; i < count; i++) {
-    if (value <= array[i]) {
-      while (i < count && value === array[i]) i++;
-      if (i === 0) return 0;
-      if (value !== array[i - 1]) {
-        i += (value - array[i - 1]) / (array[i] - array[i - 1]);
-      }
-      return i / count;
-    }
-  }
-  return 1;
 }
 
 export {
@@ -399,5 +426,4 @@ export {
   normalizeString,
   summarizeAssessments,
   indicesOf,
-  percentRank,
 };
