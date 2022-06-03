@@ -249,9 +249,10 @@ describe('Add Data Widget', () => {
         cy.findAllByTestId('hmw-loading-spinner', { timeout: 180000 }).should(
           'not.exist',
         );
-        cy.findByText('was successfully uploaded', { exact: false }).should(
-          'exist',
-        );
+        cy.findByText('was successfully uploaded', {
+          exact: false,
+          timeout: 18000,
+        }).should('exist');
       });
 
       if (deleteLayer) {

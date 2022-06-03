@@ -444,6 +444,9 @@ describe('Monitoring Tab', () => {
         force: true,
       });
 
+    // this triggers the virtualized list to load
+    cy.scrollTo('bottom');
+
     cy.findAllByText('Ohio: Middle').should('not.exist');
 
     // flip the PFAS switch
