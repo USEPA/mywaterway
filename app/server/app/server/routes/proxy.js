@@ -66,6 +66,8 @@ module.exports = function (app) {
       }
 
       function deleteTSHeaders(response) {
+        if (!response) return;
+
         /* The EPA Terminology Services (TS) exposes sensitive 
           information about its underlying technology. While we 
           notified the TS Team about this, they have not had time 
@@ -109,17 +111,16 @@ module.exports = function (app) {
             log.error(logger.formatLogMsg(metadataObj, messageWithUrl));
           }
 
-          deleteTSHeaders(err.response);
-          res
-            .status(err.response.status)
-            .header(err.response.headers)
-            .send(err.response.data);
+          message = 'Proxy Request Error';
+          messageWithUrl = `${message}. parsedUrl = ${parsedUrl}`;
+          log.error(logger.formatLogMsg(metadataObj, messageWithUrl));
+          res.status(503).json({ message });
         });
     } catch (err) {
-      message = 'URL Request Error';
+      message = 'Proxy Server Error';
       messageWithUrl = `${message}. parsedUrl = ${parsedUrl}`;
       log.error(logger.formatLogMsg(metadataObj, messageWithUrl));
-      res.status(403).json({ message });
+      res.status(500).json({ message });
       return;
     }
   });
