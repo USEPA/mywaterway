@@ -154,7 +154,7 @@ type PeriodData =
   | { status: 'success', data: ParsedRecords }
   | { status: 'failure', data: ParseErrors };
 
-type Station = {
+type StationData = {
   monitoringType: 'Past Water Conditions',
   siteId: string,
   orgId: string,
@@ -177,8 +177,8 @@ type Station = {
   uniqueId: string,
 };
 
-type StationFlattened = {|
-  ...Station,
+type StationDataFlattened = {|
+  ...StationData,
   stationDataByYear: string,
   stationTotalsByGroup: string,
   stationTotalsByLabel: string,
@@ -712,29 +712,51 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
   const records = usePeriodOfRecordData(huc12, 'huc12');
 
+  const [annualDataInitialized, setAnnualDataInitialized] = useState(false);
   const addRecords = useCallback(async () => {
+    if (!monitoringLocationsLayer || !monitoringGroups) return;
+    if (annualDataInitialized) return;
     const featureSet = await monitoringLocationsLayer.queryFeatures();
 
     const updatedFeatures = [];
     featureSet.features.forEach((feature) => {
       const id = feature.attributes.uniqueId;
+      const updatedFeature = { ...feature };
       if (id in records) {
-        feature.attributes = {
-          ...feature.attributes,
+        updatedFeature.attributes = {
+          ...updatedFeature.attributes,
           stationDataByYear: JSON.stringify(records[id]),
         };
         updatedFeatures.push(feature);
       }
     });
 
-    const updateResults = await monitoringLocationsLayer.applyEdits({
-      updateFeatures: updatedFeatures,
-    });
+    const updatedMonitoringGroups = { ...monitoringGroups };
+    for (const label in updatedMonitoringGroups) {
+      for (const station of updatedMonitoringGroups[label].stations) {
+        const id = station.uniqueId;
+        if (id in records) {
+          station.stationDataByYear = records[id];
+        }
+      }
+    }
+    setMonitoringGroups(updatedMonitoringGroups);
 
-    return updateResults;
-  }, [monitoringLocationsLayer, records]);
+    try {
+      await monitoringLocationsLayer.applyEdits({
+        updateFeatures: updatedFeatures,
+      });
+    } catch (_err) {
+      setAnnualDataInitialized(false);
+    }
+  }, [
+    annualDataInitialized,
+    monitoringGroups,
+    monitoringLocationsLayer,
+    records,
+    setMonitoringGroups,
+  ]);
 
-  const [annualDataInitialized, setAnnualDataInitialized] = useState(false);
   useEffect(() => {
     if (!records) return;
     addRecords().then((_updateResults) => setAnnualDataInitialized(true));

@@ -12,7 +12,7 @@ type MonitoringLocationGroups = {
   [label: string]: {
     label: string,
     characteristicGroups?: Array<string>,
-    stations: Station[],
+    stations: StationData[],
     toggled: boolean,
   },
 };

@@ -96,7 +96,7 @@ type AnnualStationData = {|
   stationTotalsByLabel: { [label: string]: number },
 |};
 
-type Station = {|
+type StationData = {|
   locationLongitude: number,
   locationLatitude: number,
   locationName: string,
@@ -116,20 +116,64 @@ type Station = {|
   uniqueId: string,
 |};
 
-type StationFlattened = {|
-  ...Station,
+type StationDataFlattened = {|
+  ...StationData,
   stationDataByYear: string,
   stationTotalsByGroup: string,
   stationTotalsByLabel: string,
 |};
 
-function expandStationData(station: StationFlattened): Station {
+function expandStationData(station: StationDataFlattened): StationData {
   return {
     ...station,
     stationDataByYear: JSON.parse(station.stationDataByYear),
     stationTotalsByGroup: JSON.parse(station.stationTotalsByGroup),
     stationTotalsByLabel: JSON.parse(station.stationTotalsByLabel),
   };
+}
+
+function useMonitoringLocations() {
+  const { monitoringGroups, monitoringLocationsLayer } = useContext(
+    LocationSearchContext,
+  );
+  console.log(monitoringGroups);
+  const [dataInitialized, setDataInitialized] = useState(false);
+  const [monitoringLocations, setMonitoringLocations] = useState([]);
+
+  // Reset dataInitialized if the user switches locations (i.e. monitoringGroups
+  // changes to null)
+  useEffect(() => {
+    if (monitoringGroups) return;
+
+    setDataInitialized(false);
+  }, [monitoringGroups]);
+
+  // Queries monitoring locations and displays them in the Accordion
+  const getMonitoringLocations = useCallback(async () => {
+    const featureSet = await monitoringLocationsLayer.queryFeatures();
+    const allMonitoringLocations = featureSet.features.map((feature) =>
+      expandStationData(feature.attributes),
+    );
+
+    monitoringLocationsLayer.definitionExpression = '';
+    setMonitoringLocations(allMonitoringLocations);
+  }, [monitoringLocationsLayer]);
+
+  // Renders the monitoring locations on the map
+  // and displays them in the Accordion list and toggles
+  useEffect(() => {
+    if (!monitoringGroups) return;
+    if (dataInitialized) return;
+
+    setDataInitialized(true);
+    try {
+      getMonitoringLocations();
+    } catch (e) {
+      setDataInitialized(false);
+    }
+  }, [dataInitialized, getMonitoringLocations, monitoringGroups]);
+
+  return monitoringLocations;
 }
 
 function Overview() {
@@ -614,24 +658,27 @@ function MonitoringAndSensorsTab({
     });
   }, [normalizedUsgsStreamgages, usgsPrecipitation, usgsDailyAverages]);
 
-  const [normalizedMonitoringLocations, setNormalizedMonitoringLocations] =
-    useState([]);
+  // const [normalizedMonitoringLocations, setNormalizedMonitoringLocations] =
+  // useState([]);
+
+  /* const getMonitoringLocations = useCallback(async () => {
+    const featureSet = await monitoringLocationsLayer.queryFeatures();
+    const stations = featureSet.features.map((feature) => {
+      return expandStationData(feature.attributes);
+    });
+    setNormalizedMonitoringLocations(stations);
+  }, [monitoringLocationsLayer]);
 
   // normalize monitoring stations data with USGS streamgages data,
   // and draw them on the map
   useEffect(() => {
-    if (services.status === 'fetching') return;
-    if (!monitoringLocations.data.features) return;
+    if (!monitoringLocationsLayer) return;
+    // remove any filters on the monitoring locations layer
+    monitoringLocationsLayer.definitionExpression = '';
+    getMonitoringLocations();
+  }, [getMonitoringLocations, monitoringLocationsLayer]); */
 
-    monitoringLocationsLayer.queryFeatures().then((featureSet) => {
-      const stations = featureSet.features.map((feature) =>
-        expandStationData(feature.attributes),
-      );
-      setNormalizedMonitoringLocations(stations);
-      // remove any filters on the monitoring locations layer
-      monitoringLocationsLayer.definitionExpression = '';
-    });
-  }, [monitoringLocations.data, monitoringLocationsLayer, services]);
+  const normalizedMonitoringLocations = useMonitoringLocations();
 
   const allMonitoringAndSensors = [
     ...normalizedUsgsStreamgages,
