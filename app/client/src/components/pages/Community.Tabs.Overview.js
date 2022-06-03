@@ -132,50 +132,6 @@ function expandStationData(station: StationDataFlattened): StationData {
   };
 }
 
-function useMonitoringLocations() {
-  const { monitoringGroups, monitoringLocationsLayer } = useContext(
-    LocationSearchContext,
-  );
-  console.log(monitoringGroups);
-  const [dataInitialized, setDataInitialized] = useState(false);
-  const [monitoringLocations, setMonitoringLocations] = useState([]);
-
-  // Reset dataInitialized if the user switches locations (i.e. monitoringGroups
-  // changes to null)
-  useEffect(() => {
-    if (monitoringGroups) return;
-
-    setDataInitialized(false);
-  }, [monitoringGroups]);
-
-  // Queries monitoring locations and displays them in the Accordion
-  const getMonitoringLocations = useCallback(async () => {
-    const featureSet = await monitoringLocationsLayer.queryFeatures();
-    const allMonitoringLocations = featureSet.features.map((feature) =>
-      expandStationData(feature.attributes),
-    );
-
-    monitoringLocationsLayer.definitionExpression = '';
-    setMonitoringLocations(allMonitoringLocations);
-  }, [monitoringLocationsLayer]);
-
-  // Renders the monitoring locations on the map
-  // and displays them in the Accordion list and toggles
-  useEffect(() => {
-    if (!monitoringGroups) return;
-    if (dataInitialized) return;
-
-    setDataInitialized(true);
-    try {
-      getMonitoringLocations();
-    } catch (e) {
-      setDataInitialized(false);
-    }
-  }, [dataInitialized, getMonitoringLocations, monitoringGroups]);
-
-  return monitoringLocations;
-}
-
 function Overview() {
   const { usgsStreamgages } = useFetchedDataState();
 
@@ -546,6 +502,7 @@ function MonitoringAndSensorsTab({
     useFetchedDataState();
 
   const {
+    monitoringGroups,
     monitoringLocations,
     monitoringLocationsLayer,
     usgsStreamgagesLayer,
@@ -658,27 +615,14 @@ function MonitoringAndSensorsTab({
     });
   }, [normalizedUsgsStreamgages, usgsPrecipitation, usgsDailyAverages]);
 
-  // const [normalizedMonitoringLocations, setNormalizedMonitoringLocations] =
-  // useState([]);
+  const [normalizedMonitoringLocations, setNormalizedMonitoringLocations] =
+    useState([]);
 
-  /* const getMonitoringLocations = useCallback(async () => {
-    const featureSet = await monitoringLocationsLayer.queryFeatures();
-    const stations = featureSet.features.map((feature) => {
-      return expandStationData(feature.attributes);
-    });
-    setNormalizedMonitoringLocations(stations);
-  }, [monitoringLocationsLayer]);
-
-  // normalize monitoring stations data with USGS streamgages data,
-  // and draw them on the map
   useEffect(() => {
-    if (!monitoringLocationsLayer) return;
-    // remove any filters on the monitoring locations layer
+    if (!monitoringGroups) return;
+    setNormalizedMonitoringLocations([...monitoringGroups.All.stations]);
     monitoringLocationsLayer.definitionExpression = '';
-    getMonitoringLocations();
-  }, [getMonitoringLocations, monitoringLocationsLayer]); */
-
-  const normalizedMonitoringLocations = useMonitoringLocations();
+  }, [monitoringGroups, monitoringLocationsLayer]);
 
   const allMonitoringAndSensors = [
     ...normalizedUsgsStreamgages,
@@ -725,7 +669,8 @@ function MonitoringAndSensorsTab({
   if (
     monitoringLocations.status === 'fetching' ||
     usgsStreamgages.status === 'idle' ||
-    usgsStreamgages.status === 'pending'
+    usgsStreamgages.status === 'pending' ||
+    !monitoringGroups
   ) {
     return <LoadingSpinner />;
   }
