@@ -4,11 +4,6 @@ describe('Community Visual Regression Testing', () => {
   it('Verify DC GIS data displays correctly', () => {
     cy.visit('/community/dc/overview');
 
-    // cy.debouncedWait({
-    //   url: 'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/*/query?f=pbf*',
-    //   waitTimeout: 120000,
-    // });
-
     // this is needed as a workaround for the delay between the loading spinner
     // disappearing and the waterbodies being drawn on the map
     cy.wait(20000);
@@ -18,11 +13,6 @@ describe('Community Visual Regression Testing', () => {
 
   it('Verify the switches on Identified Issues correctly update the GIS data', () => {
     cy.visit('/community/dc/identified-issues');
-
-    // cy.debouncedWait({
-    //   url: 'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/*/query?f=pbf*',
-    //   waitTimeout: 120000,
-    // });
 
     // this is needed as a workaround for the delay between the loading spinner
     // disappearing and the waterbodies being drawn on the map
@@ -59,11 +49,6 @@ describe('Community Visual Regression Testing', () => {
   it('Verify shading of huc boundaries is turned off when wsio layer is on', () => {
     cy.visit('/community/dc/protect');
 
-    // cy.debouncedWait({
-    //   url: 'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/*/query?f=pbf*',
-    //   waitTimeout: 120000,
-    // });
-
     cy.wait(20000);
 
     cy.get(mapId).matchSnapshot('verify-huc-boundary-shading');
@@ -93,11 +78,6 @@ describe('Community Visual Regression Testing', () => {
 
   it('Verify "View on Map" button works', () => {
     cy.visit('/community/dc/overview');
-
-    // cy.debouncedWait({
-    //   url: 'https://gispub.epa.gov/arcgis/rest/services/OW/ATTAINS_Assessment/MapServer/*/query?f=pbf*',
-    //   waitTimeout: 120000,
-    // });
 
     cy.wait(10000);
 

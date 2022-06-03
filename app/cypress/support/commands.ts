@@ -25,9 +25,24 @@
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
 
 import '@testing-library/cypress/add-commands';
+import { Options } from 'cypress-image-snapshot';
 import { addMatchImageSnapshotCommand } from 'cypress-image-snapshot/command';
 
 addMatchImageSnapshotCommand();
+
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      /**
+       * Custom command to select DOM element by data-cy attribute.
+       * @example cy.dataCy('greeting')
+       */
+       matchSnapshot(name?: string, options?: Options): Chainable<Element>
+       mockGeolocation(shouldFail: boolean, latitude?: number, longitude?: number): Chainable<Element>
+       upload(file: any, fileName: string, type?: string): Chainable<Element>
+    }
+  }
+}
 
 /**
  * This enables mocking the geolocation api. The default coordinates are
@@ -39,13 +54,13 @@ addMatchImageSnapshotCommand();
  */
 Cypress.Commands.add(
   'mockGeolocation',
-  (shouldFail = false, latitude = 38.9072, longitude = -77.0369) => {
+  (shouldFail: boolean = false, latitude: number = 38.9072, longitude: number = -77.0369) => {
     cy.window().then(($window) => {
       cy.stub(
         $window.navigator.geolocation,
         'getCurrentPosition',
         (resolve, reject) => {
-          if (shouldFail) return reject(Error({ code: 1 })); // 1: rejected, 2: unable, 3: timeout
+          if (shouldFail) return reject(Error('1')); // 1: rejected, 2: unable, 3: timeout
           return resolve({ coords: { latitude, longitude } });
         },
       );
@@ -65,7 +80,7 @@ Cypress.Commands.add(
   {
     prevSubject: 'element',
   },
-  (subject, file, fileName, type) => {
+  (subject, file: any, fileName: string, type: string) => {
     // we need access window to create a file below
     cy.window().then((window) => {
       // Convert the file to a blob (if necessary) and upload
@@ -103,45 +118,12 @@ Cypress.Commands.add(
   {
     prevSubject: 'element',
   },
-  (subject, name, options) => {
+  (subject, name: string, options: Options) => {
     cy.wrap(subject).matchImageSnapshot(`${Cypress.browser.family}-${name}`, {
       comparisonMethod: 'ssim',
       failureThresholdType: 'percent',
       failureThreshold: 0.01,
       ...options,
     });
-  },
-);
-
-/**
- * This enables mocking the geolocation api. The default coordinates are
- * for Washington DC.
- *
- * @param url - The url of the web service to wait for
- * @param debounceTimeout - The amount of time to wait for another call to the same web service. If no call is made within this amount of time, then the function will return
- * @param waitTimeout - The amount of time to wait for the web service call to occur
- */
-Cypress.Commands.add(
-  'debouncedWait',
-  ({ url, debounceTimeout = 3000, waitTimeout = 4000 }) => {
-    cy.intercept(url).as('urlWait');
-
-    let done = false;
-    const recursiveWait = () => {
-      if (!done) {
-        // set a timeout so if no response within debounceTimeout
-        const x = setTimeout(() => {
-          done = true; // end recursion
-        }, debounceTimeout);
-
-        // wait for a response
-        cy.wait('@urlWait', { timeout: waitTimeout }).then(() => {
-          clearTimeout(x); // cancel this wait's timeout
-          recursiveWait(); // wait for the next response
-        });
-      }
-    };
-
-    recursiveWait();
   },
 );
