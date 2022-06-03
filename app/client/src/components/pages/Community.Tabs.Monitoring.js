@@ -1,6 +1,7 @@
 // @flow
 
 import Papa from 'papaparse';
+import Slider from 'rc-slider';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
@@ -80,6 +81,11 @@ const tableFooterStyles = css`
   }
 `;
 
+const sliderStyles = css`
+  width: 100%;
+  height: 4rem;
+`;
+
 const switchContainerStyles = css`
   margin-top: 0.5em;
 `;
@@ -104,7 +110,6 @@ const toggleStyles = css`
 /*
  ** Types
  */
-type AllYearsStationData = { [year: number]: AnnualStationsData };
 
 type AnnualStationData = {|
   uniqueId: string,
@@ -116,6 +121,8 @@ type AnnualStationData = {|
 |};
 
 type AnnualStationsData = { [uniqueId: string]: AnnualStationData };
+
+type AllYearsStationData = { [year: number]: AnnualStationsData };
 
 type ParseError = {|
   type: string,
@@ -253,6 +260,25 @@ function usePeriodOfRecordData(filter: string, param: 'huc12' | 'siteId') {
   }, [annualData, filter, records, url, worker]);
 
   return annualData;
+}
+
+function useYears(annualData) {
+  const [years, setYears] = useState(null);
+  useEffect(() => {
+    if (!annualData) return;
+    let years = [];
+    Object.values(annualData).forEach((station) => {
+      years = years.concat(Object.keys(station));
+    });
+    const uniqueYears = new Set(
+      years.map((yearString) => {
+        return parseInt(yearString);
+      }),
+    );
+    const sortedYears = Array.from(uniqueYears).sort((a, b) => a - b);
+    setYears(sortedYears);
+  }, [annualData]);
+  return years;
 }
 
 function expandStationData(station: StationFlattened): Station {
@@ -710,24 +736,23 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     watershed,
   } = useContext(LocationSearchContext);
 
-  const records = usePeriodOfRecordData(huc12, 'huc12');
-
+  const annualData = usePeriodOfRecordData(huc12, 'huc12');
   const [annualDataInitialized, setAnnualDataInitialized] = useState(false);
-  const addRecords = useCallback(async () => {
+  const addAnnualData = useCallback(async () => {
     if (!monitoringLocationsLayer || !monitoringGroups) return;
     if (annualDataInitialized) return;
     const featureSet = await monitoringLocationsLayer.queryFeatures();
 
     const updatedFeatures = [];
     featureSet.features.forEach((feature) => {
-      const id = feature.attributes.uniqueId;
-      const updatedFeature = { ...feature };
-      if (id in records) {
+      const updatedFeature = feature.clone();
+      const id = updatedFeature.attributes.uniqueId;
+      if (id in annualData) {
         updatedFeature.attributes = {
           ...updatedFeature.attributes,
-          stationDataByYear: JSON.stringify(records[id]),
+          stationDataByYear: JSON.stringify(annualData[id]),
         };
-        updatedFeatures.push(feature);
+        updatedFeatures.push(updatedFeature);
       }
     });
 
@@ -735,8 +760,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     for (const label in updatedMonitoringGroups) {
       for (const station of updatedMonitoringGroups[label].stations) {
         const id = station.uniqueId;
-        if (id in records) {
-          station.stationDataByYear = records[id];
+        if (id in annualData) {
+          station.stationDataByYear = annualData[id];
         }
       }
     }
@@ -754,14 +779,16 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     annualDataInitialized,
     monitoringGroups,
     monitoringLocationsLayer,
-    records,
+    annualData,
     setMonitoringGroups,
   ]);
 
   useEffect(() => {
-    if (!records) return;
-    addRecords();
-  }, [addRecords, records]);
+    if (!annualData) return;
+    addAnnualData();
+  }, [addAnnualData, annualData]);
+
+  const periodOfRecordYears = useYears(annualData);
 
   const [displayedMonitoringLocations, setDisplayedMonitoringLocations] =
     useState([]);
@@ -1054,6 +1081,16 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
         {totalLocations > 0 && (
           <>
+            <div css={sliderStyles}>
+              {!annualDataInitialized ? (
+                <LoadingSpinner />
+              ) : (
+                <DateSlider
+                  years={periodOfRecordYears}
+                  disabled={periodOfRecordYears.length === 0}
+                />
+              )}
+            </div>
             <table css={toggleTableStyles} className="table">
               <thead>
                 <tr>
@@ -1264,6 +1301,46 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   }
 
   return null;
+}
+
+function DateSlider({ years, disabled }) {
+  const max = new Date().getFullYear();
+  const dotStep = 10;
+  let min = years[0];
+  let range = max - min;
+  if (range % dotStep !== 0) {
+    range = range + (dotStep - (range % 5));
+    min = max - range;
+  }
+
+  const [startEndYears, setStartEndYears] = useState([max, max]);
+
+  const marks = {};
+  for (let i = 0; i <= range; i += dotStep) {
+    if (i % dotStep === 0) {
+      const year = min + i;
+      const displayedDigits = year.toString().slice(-2);
+      marks[year] = `'${displayedDigits}`;
+    }
+  }
+  const { createSliderWithTooltip } = Slider;
+  const Range = createSliderWithTooltip(Slider.Range);
+
+  return (
+    <Range
+      ariaLabelGroupForHandles={[]}
+      allowCross={false}
+      defaultValue={startEndYears}
+      disabled={disabled}
+      included={false}
+      marks={marks}
+      max={max}
+      min={years[0]}
+      onChange={(years) => setStartEndYears(years)}
+      step={1}
+      value={startEndYears}
+    />
+  );
 }
 
 export default function MonitoringContainer() {

@@ -1026,7 +1026,6 @@ function MonitoringLocationsContent({ attributes, services }) {
     const selectedGroups = { ...selected };
 
     selectedGroups[mappedGroup] = !selected[mappedGroup];
-    console.log(selectedGroups);
 
     buildFilter(selectedGroups, monitoringLocationData);
     setSelected(selectedGroups);
