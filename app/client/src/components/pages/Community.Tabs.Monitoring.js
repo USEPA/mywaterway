@@ -746,6 +746,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
       await monitoringLocationsLayer.applyEdits({
         updateFeatures: updatedFeatures,
       });
+      setAnnualDataInitialized(true);
     } catch (_err) {
       setAnnualDataInitialized(false);
     }
@@ -759,7 +760,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
   useEffect(() => {
     if (!records) return;
-    addRecords().then((_updateResults) => setAnnualDataInitialized(true));
+    addRecords();
   }, [addRecords, records]);
 
   const [displayedMonitoringLocations, setDisplayedMonitoringLocations] =
@@ -969,17 +970,6 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     setDataInitialized(false);
   }, [monitoringGroups]);
 
-  // Queries monitoring locations and displays them in the Accordion
-  const displayMonitoringLocations = useCallback(async () => {
-    const featureSet = await monitoringLocationsLayer.queryFeatures();
-    const allMonitoringLocations = featureSet.features.map((feature) =>
-      expandStationData(feature.attributes),
-    );
-
-    setDisplayedMonitoringLocations(allMonitoringLocations);
-    setAllToggled(true);
-  }, [monitoringLocationsLayer]);
-
   // Renders the monitoring locations on the map
   // and displays them in the Accordion list and toggles
   useEffect(() => {
@@ -989,12 +979,9 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     setDataInitialized(true);
     drawMap(monitoringGroups);
 
-    try {
-      displayMonitoringLocations();
-    } catch (e) {
-      setDataInitialized(false);
-    }
-  }, [displayMonitoringLocations, dataInitialized, drawMap, monitoringGroups]);
+    setDisplayedMonitoringLocations([...monitoringGroups.All.stations]);
+    setAllToggled(true);
+  }, [dataInitialized, drawMap, monitoringGroups]);
 
   useEffect(() => {
     // update total measurements and samples counts
