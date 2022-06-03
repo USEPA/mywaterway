@@ -59,10 +59,11 @@ const containerStyles = css`
     margin-top: 0.5rem;
     margin-bottom: 0.5rem;
   }
-`;
 
-const iconStyles = css`
-  color: ${colors.navyBlue()};
+  i {
+    padding-right: 0.75rem;
+    color: ${colors.navyBlue()};
+  }
 `;
 
 const modifiedErrorBoxStyles = css`
@@ -76,10 +77,6 @@ const modifiedInfoBoxStyles = css`
   h3 {
     margin-bottom: 0.5em;
   }
-`;
-
-const disclaimerStyles = css`
-  display: inline-block;
 `;
 
 function EducatorsContent() {
@@ -113,60 +110,28 @@ function EducatorsContent() {
 
   const { data, status } = useEducatorMaterialsContext();
 
+  if (status === 'fetching') return <LoadingSpinner />;
+
+  if (status === 'failure') {
+    return (
+      <div css={modifiedErrorBoxStyles}>
+        <p>{educatorContentError}</p>
+      </div>
+    );
+  }
+
   return (
     <div css={containerStyles} className="container">
-      <h2>
-        <i
-          css={iconStyles}
-          className="fas fa-graduation-cap"
-          aria-hidden="true"
-        />
-        &nbsp; Educational Materials from How’s My Waterway
-      </h2>
+      <h2 dangerouslySetInnerHTML={{ __html: data.title }} />
+
       <hr />
 
-      {status === 'failure' && (
-        <div css={modifiedErrorBoxStyles}>
-          <p>{educatorContentError}</p>
-        </div>
-      )}
+      <div dangerouslySetInnerHTML={{ __html: data.content }} />
 
-      {status === 'fetching' && <LoadingSpinner />}
-
-      {status === 'success' && (
-        <ul>
-          {data.links.map((link, index) => (
-            <li key={index}>
-              {link.description}:
-              <br />
-              <a href={link.url}>{link.url}</a>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <div css={modifiedInfoBoxStyles}>
-        <h3>
-          <i
-            css={iconStyles}
-            className="fas fa-graduation-cap"
-            aria-hidden="true"
-          />
-          &nbsp; If you’re an educator, we would like to know how you're using{' '}
-          <em>How’s My Waterway</em>.
-        </h3>
-        <p>
-          <a
-            href="https://www.epa.gov/waterdata/forms/contact-us-about-hows-my-waterway"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Contact us
-          </a>
-          &nbsp;&nbsp;
-          <small css={disclaimerStyles}>(opens new browser tab)</small>
-        </p>
-      </div>
+      <div
+        css={modifiedInfoBoxStyles}
+        dangerouslySetInnerHTML={{ __html: data.footer }}
+      />
     </div>
   );
 }
