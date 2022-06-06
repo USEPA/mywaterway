@@ -784,7 +784,7 @@ function WaterbodyInfo({
                     target="_blank"
                     data-cy="portal"
                     href={portalUrl}
-                    style={{ fontWeight: 'normal ' }}
+                    style={{ fontWeight: 'normal' }}
                   >
                     <i
                       css={iconStyles}
