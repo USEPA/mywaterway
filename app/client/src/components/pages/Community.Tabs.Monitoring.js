@@ -199,6 +199,7 @@ type StationData = {
   OBJECTID?: number,
   orgId: string,
   orgName: string,
+  recordYears: Array<number>,
   siteId: string,
   stationDataByYear: { [number]: AnnualStationData },
   stationProviderName: string,
@@ -211,6 +212,7 @@ type StationData = {
 
 type StationDataFlattened = {|
   ...StationData,
+  recordYears: string,
   stationDataByYear: string,
   stationTotalsByGroup: string,
   stationTotalsByLabel: string,
@@ -309,6 +311,7 @@ function useYears(annualData) {
 function expandStationData(station: StationFlattened): Station {
   return {
     ...station,
+    recordYears: station.recordYears.split(','),
     stationDataByYear: JSON.parse(station.stationDataByYear),
     stationTotalsByGroup: JSON.parse(station.stationTotalsByGroup),
     stationTotalsByLabel: JSON.parse(station.stationTotalsByLabel),
@@ -318,6 +321,7 @@ function expandStationData(station: StationFlattened): Station {
 function flattenStationData(station: Station): StationFlattened {
   return {
     ...station,
+    recordYears: station.recordYears.join(','),
     stationDataByYear: JSON.stringify(station.stationDataByYear),
     stationTotalsByGroup: JSON.stringify(station.stationTotalsByGroup),
     stationTotalsByLabel: JSON.stringify(station.stationTotalsByLabel),
@@ -776,6 +780,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
         updatedFeature.attributes = {
           ...updatedFeature.attributes,
           stationDataByYear: JSON.stringify(annualData[id]),
+          recordYears: Object.keys(annualData[id]).join(','),
         };
         updatedFeatures.push(updatedFeature);
       }
@@ -787,6 +792,9 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
         const id = station.uniqueId;
         if (id in annualData) {
           station.stationDataByYear = annualData[id];
+          station.recordYears = Object.keys(annualData[id]).map((year) => {
+            return parseInt(year);
+          });
         }
       }
     }
@@ -1341,28 +1349,11 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
 function DateSlider({ years, disabled, yearsRange, setYearsRange }) {
   const max = new Date().getFullYear();
-  // const dotStep = 10;
   let min = years.length ? years[0] : max;
-  // let range = max - min;
-  /* if (range % dotStep !== 0) {
-    range = range + (dotStep - (range % 5));
-    min = max - range;
-  } */
 
   useEffect(() => {
     setYearsRange([max, max]);
   }, [max, setYearsRange]);
-
-  /* const marks = {};
-  for (let i = 0; i <= range; i += dotStep) {
-    if (i % dotStep === 0) {
-      const year = min + i;
-      const displayedDigits = year.toString().slice(-2);
-      marks[year] = { style: sliderMarkStyles, label: `'${displayedDigits}` };
-    }
-  } */
-  //const { createSliderWithTooltip } = Slider;
-  //const Range = createSliderWithTooltip(Slider.Range);
 
   return (
     <TooltipSlider
@@ -1371,7 +1362,6 @@ function DateSlider({ years, disabled, yearsRange, setYearsRange }) {
       defaultValue={yearsRange}
       disabled={disabled}
       handleStyle={{ borderColor: '#0b89f4' }}
-      //included={false}
       max={max}
       min={min}
       onChange={(range) => {
