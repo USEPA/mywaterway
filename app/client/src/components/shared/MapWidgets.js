@@ -593,7 +593,7 @@ function MapWidgets({
     const [hover, setHover] = useState(false);
 
     const widget = document.getElementById('add-data-widget');
-    const widgetHidden = widget.classList.contains('hidden');
+    const widgetHidden = widget?.classList.contains('hidden');
 
     return (
       <div
