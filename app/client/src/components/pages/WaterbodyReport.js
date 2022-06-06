@@ -50,7 +50,7 @@ const containerStyles = css`
 
   table {
     margin-top: 0.75rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0;
     table-layout: fixed;
   }
 
@@ -1239,13 +1239,13 @@ function WaterbodyReport({ fullscreen }: Props) {
                     <h2 css={boxHeadingStyles}>Assessment Documents</h2>
 
                     <div css={boxSectionStyles}>
-                    {documents.status === 'fetching' && <LoadingSpinner />}
-                    {documents.status === 'failure' && (
-                      <div css={modifiedErrorBoxStyles}>
-                        <p>{waterbodyReportError('Assessment')}</p>
-                      </div>
-                    )}
-                    {documents.status === 'success' && (
+                      {documents.status === 'fetching' && <LoadingSpinner />}
+                      {documents.status === 'failure' && (
+                        <div css={modifiedErrorBoxStyles}>
+                          <p>{waterbodyReportError('Assessment')}</p>
+                        </div>
+                      )}
+                      {documents.status === 'success' && (
                         <>
                           {documents.data.length === 0 ? (
                             <p>No documents are available</p>

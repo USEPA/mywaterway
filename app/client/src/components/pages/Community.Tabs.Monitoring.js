@@ -983,6 +983,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                       target="_blank"
                       rel="noopener noreferrer"
                       data-cy="portal"
+                      style={{ fontWeight: 'normal' }}
                     >
                       <i
                         css={iconStyles}
