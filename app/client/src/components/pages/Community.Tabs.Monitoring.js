@@ -6,25 +6,25 @@ import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 // components
-import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
-import LoadingSpinner from 'components/shared/LoadingSpinner';
-import Switch from 'components/shared/Switch';
-import ViewOnMapButton from 'components/shared/ViewOnMapButton';
-import WaterbodyInfo from 'components/shared/WaterbodyInfo';
-import { disclaimerStyles, iconStyles } from 'styles/index.js';
 import {
   AccordionList,
   AccordionItem,
 } from 'components/shared/AccordionMapHighlight';
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import { tabsStyles } from 'components/shared/ContentTabs';
+import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
 import {
   keyMetricsStyles,
   keyMetricStyles,
   keyMetricNumberStyles,
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
-import { tabsStyles } from 'components/shared/ContentTabs';
+import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import Switch from 'components/shared/Switch';
+import TooltipSlider from 'components/shared/TooltipSlider';
+import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import VirtualizedList from 'components/shared/VirtualizedList';
+import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 // contexts
 import { useFetchedDataState } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -39,7 +39,13 @@ import { characteristicGroupMappings } from 'config/characteristicGroupMappings'
 // errors
 import { monitoringError } from 'config/errorMessages';
 // styles
-import { toggleTableStyles } from 'styles/index.js';
+import 'rc-slider/assets/index.css';
+import {
+  disclaimerStyles,
+  iconStyles,
+  toggleTableStyles,
+} from 'styles/index.js';
+
 /*
  ** Styles
  */
@@ -81,9 +87,28 @@ const tableFooterStyles = css`
   }
 `;
 
-const sliderStyles = css`
+const sliderContainerStyles = css`
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
   width: 100%;
-  height: 4rem;
+`;
+
+const sliderHeaderStyles = css`
+  padding: 0.5rem 3.5rem;
+  width: 100%;
+  background-color: #f0f6f9;
+  border-top: 1px solid #dee2e6;
+  font-weight: bold;
+  border-bottom: 2px solid #dee2e6;
+`;
+
+const sliderStyles = css`
+  align-items: center;
+  display: inline-flex;
+  height: 3rem;
+  width: 60%;
 `;
 
 const switchContainerStyles = css`
@@ -790,6 +815,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
   const periodOfRecordYears = useYears(annualData);
 
+  const [yearsRange, setYearsRange] = useState([0, 0]);
+
   const [displayedMonitoringLocations, setDisplayedMonitoringLocations] =
     useState([]);
 
@@ -1081,14 +1108,23 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
         {totalLocations > 0 && (
           <>
-            <div css={sliderStyles}>
+            <div css={sliderHeaderStyles}>Date Range</div>
+            <div css={sliderContainerStyles}>
               {!annualDataInitialized ? (
                 <LoadingSpinner />
               ) : (
-                <DateSlider
-                  years={periodOfRecordYears}
-                  disabled={periodOfRecordYears.length === 0}
-                />
+                <>
+                  <span>{yearsRange[0]}</span>
+                  <div css={sliderStyles}>
+                    <DateSlider
+                      years={periodOfRecordYears}
+                      disabled={periodOfRecordYears.length === 0}
+                      yearsRange={yearsRange}
+                      setYearsRange={setYearsRange}
+                    />
+                  </div>
+                  <span>{yearsRange[1]}</span>
+                </>
               )}
             </div>
             <table css={toggleTableStyles} className="table">
@@ -1303,42 +1339,47 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   return null;
 }
 
-function DateSlider({ years, disabled }) {
+function DateSlider({ years, disabled, yearsRange, setYearsRange }) {
   const max = new Date().getFullYear();
-  const dotStep = 10;
-  let min = years[0];
-  let range = max - min;
-  if (range % dotStep !== 0) {
+  // const dotStep = 10;
+  let min = years.length ? years[0] : max;
+  // let range = max - min;
+  /* if (range % dotStep !== 0) {
     range = range + (dotStep - (range % 5));
     min = max - range;
-  }
+  } */
 
-  const [startEndYears, setStartEndYears] = useState([max, max]);
+  useEffect(() => {
+    setYearsRange([max, max]);
+  }, [max, setYearsRange]);
 
-  const marks = {};
+  /* const marks = {};
   for (let i = 0; i <= range; i += dotStep) {
     if (i % dotStep === 0) {
       const year = min + i;
       const displayedDigits = year.toString().slice(-2);
-      marks[year] = `'${displayedDigits}`;
+      marks[year] = { style: sliderMarkStyles, label: `'${displayedDigits}` };
     }
-  }
-  const { createSliderWithTooltip } = Slider;
-  const Range = createSliderWithTooltip(Slider.Range);
+  } */
+  //const { createSliderWithTooltip } = Slider;
+  //const Range = createSliderWithTooltip(Slider.Range);
 
   return (
-    <Range
-      ariaLabelGroupForHandles={[]}
+    <TooltipSlider
+      range
       allowCross={false}
-      defaultValue={startEndYears}
+      defaultValue={yearsRange}
       disabled={disabled}
-      included={false}
-      marks={marks}
+      handleStyle={{ borderColor: '#0b89f4' }}
+      //included={false}
       max={max}
-      min={years[0]}
-      onChange={(years) => setStartEndYears(years)}
+      min={min}
+      onChange={(range) => {
+        setYearsRange(range);
+      }}
       step={1}
-      value={startEndYears}
+      trackStyle={{ backgroundColor: '#0b89f4' }}
+      value={yearsRange}
     />
   );
 }
