@@ -51,7 +51,7 @@
     "web-vitals": "2.1.4"
   },
   "dependencies": {
-    "@arcgis/core": "4.22.2",
+    "@arcgis/core": "4.23.7",
     "@reach/dialog": "0.17.0",
     "@reach/tabs": "0.16.4",
     "@reach/window-size": "0.17.0",
