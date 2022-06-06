@@ -492,7 +492,8 @@ function MapWidgets({
       view,
       expanded: false,
       expandIconClass: 'esri-icon-legend',
-      expandTooltip: 'Toggle Legend',
+      expandTooltip: 'Open Legend',
+      collapseTooltip: 'Close Legend',
       autoCollapse: true,
       mode: 'floating',
     });
@@ -590,17 +591,19 @@ function MapWidgets({
   }) {
     const [hover, setHover] = useState(false);
 
+    const widget = document.getElementById('add-data-widget');
+    const widgetHidden = widget.classList.contains('hidden');
+
     return (
       <div
         className="add-data-widget"
-        title="Add Data Widget"
+        title={widgetHidden ? 'Open Add Data Widget' : 'Close Add Data Widget'}
         style={hover ? divHoverStyle : divStyle}
         onMouseOver={() => setHover(true)}
         onMouseOut={() => setHover(false)}
         onClick={(ev) => {
-          const widget = document.getElementById('add-data-widget');
           if (!widget) return;
-          if (widget.classList.contains('hidden')) {
+          if (widgetHidden) {
             widget.classList.remove('hidden');
             setAddDataWidgetVisibleParam(true);
           } else {
@@ -757,6 +760,8 @@ function MapWidgets({
 
     const expandWidget = new Expand({
       expandIconClass: 'esri-icon-layers',
+      expandTooltip: 'Open Basemaps and Layers',
+      collapseTooltip: 'Close Basemaps and Layers',
       view: view,
       mode: 'floating',
       autoCollapse: true,
@@ -1499,7 +1504,11 @@ function ExpandCollapse({
 
   return (
     <div
-      title={fullscreenActive() ? 'Exit fullscreen' : 'Enter fullscreen'}
+      title={
+        fullscreenActive()
+          ? 'Exit Fullscreen Map View'
+          : 'Enter Fullscreen Map View'
+      }
       style={hover ? divHoverStyle : divStyle}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
