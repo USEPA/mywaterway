@@ -901,7 +901,11 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
         {totalLocations > 0 && (
           <>
-            <table css={toggleTableStyles} className="table">
+            <table
+              css={toggleTableStyles}
+              aria-label="Monitoring Location Summary"
+              className="table"
+            >
               <thead>
                 <tr>
                   <th>
