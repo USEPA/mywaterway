@@ -1074,8 +1074,8 @@ function useSharedLayers() {
 
     const alaskaNativeVillageOutFields = ['NAME', 'TRIBE_NAME'];
     const alaskaNativeVillages = new FeatureLayer({
-      id: 'tribalLayer-0',
-      url: `${services.data.tribal}/0`,
+      id: 'tribalLayer-1',
+      url: `${services.data.tribal}/1`,
       title: 'Alaska Native Villages',
       outFields: alaskaNativeVillageOutFields,
       listMode: 'hide',
@@ -1092,9 +1092,9 @@ function useSharedLayers() {
     renderer.symbol.color = [168, 112, 0, 1];
     const lower48TribalOutFields = ['TRIBE_NAME'];
     const otherTribes = new FeatureLayer({
-      id: 'tribalLayer-1',
-      url: `${services.data.tribal}/1`,
-      title: 'Other Federally Recognized Tribes',
+      id: 'tribalLayer-5',
+      url: `${services.data.tribal}/5`,
+      title: 'Virginia Federally Recognized Tribes',
       outFields: lower48TribalOutFields,
       listMode: 'hide',
       visible: true,
@@ -1121,8 +1121,8 @@ function useSharedLayers() {
       },
     };
     const americanIndianReservations = new FeatureLayer({
-      id: 'tribalLayer-3',
-      url: `${services.data.tribal}/3`,
+      id: 'tribalLayer-2',
+      url: `${services.data.tribal}/2`,
       title: 'American Indian Reservations',
       outFields: lower48TribalOutFields,
       listMode: 'hide',
@@ -1137,8 +1137,8 @@ function useSharedLayers() {
     });
 
     const americanIndianOffReservations = new FeatureLayer({
-      id: 'tribalLayer-4',
-      url: `${services.data.tribal}/4`,
+      id: 'tribalLayer-3',
+      url: `${services.data.tribal}/3`,
       title: 'American Indian Off-Reservation Trust Lands',
       outFields: lower48TribalOutFields,
       listMode: 'hide',
@@ -1153,8 +1153,8 @@ function useSharedLayers() {
     });
 
     const oklahomaStatisticalAreas = new FeatureLayer({
-      id: 'tribalLayer-5',
-      url: `${services.data.tribal}/5`,
+      id: 'tribalLayer-4',
+      url: `${services.data.tribal}/4`,
       title: 'Oklahoma Statistical Areas',
       outFields: lower48TribalOutFields,
       listMode: 'hide',
@@ -1176,10 +1176,10 @@ function useSharedLayers() {
       legendEnabled: false,
       layers: [
         alaskaNativeVillages,
-        otherTribes,
         americanIndianReservations,
         americanIndianOffReservations,
         oklahomaStatisticalAreas,
+        otherTribes,
       ],
     });
   }
