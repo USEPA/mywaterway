@@ -476,6 +476,7 @@ function MapWidgets({
   const hmwLegendTemp = document.createElement('div');
   const esriLegendTemp = document.createElement('div');
   esriLegendTemp.id = 'esri-legend-container';
+  esriLegendTemp.style.maxWidth = '240px';
   legendTemp.appendChild(hmwLegendTemp);
   legendTemp.appendChild(esriLegendTemp);
   const [hmwLegendNode] = useState(hmwLegendTemp);

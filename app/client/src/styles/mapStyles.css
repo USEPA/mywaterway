@@ -9,9 +9,9 @@
 }
 
 .esri-widget--panel,
-.esri-basemap-gallery {
-  min-width: 200px !important;
-  max-width: 200px !important;
+.esri-view .esri-basemap-gallery {
+  min-width: 200px;
+  max-width: 200px;
 }
 
 .esri-basemap-gallery__item-thumbnail {
