@@ -12,6 +12,8 @@ import Polygon from '@arcgis/core/geometry/Polygon';
 import Query from '@arcgis/core/rest/support/Query';
 import QueryTask from '@arcgis/core/tasks/QueryTask';
 import * as watchUtils from '@arcgis/core/core/watchUtils';
+// config
+import { usgsStaParameters } from 'config/usgsStaParameters';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { MapHighlightContext } from 'contexts/MapHighlight';
@@ -27,7 +29,7 @@ import {
   graphicComparison,
   openPopup,
   shallowCompare,
-} from 'components/pages/LocationMap/MapFunctions';
+} from 'utils/mapFunctions';
 
 let dynamicPopupFields = [];
 
@@ -461,7 +463,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       featureLayerType = 'waterbodyLayer';
     } else if (attributes.CWPName) {
       layer = dischargersLayer;
-    } else if (attributes.monitoringType === 'Sample Location') {
+    } else if (attributes.monitoringType === 'Past Water Conditions') {
       layer = monitoringLocationsLayer;
     } else if (attributes.monitoringType === 'Current Water Conditions') {
       layer = usgsStreamgagesLayer;
@@ -1072,8 +1074,8 @@ function useSharedLayers() {
 
     const alaskaNativeVillageOutFields = ['NAME', 'TRIBE_NAME'];
     const alaskaNativeVillages = new FeatureLayer({
-      id: 'tribalLayer-0',
-      url: `${services.data.tribal}/0`,
+      id: 'tribalLayer-1',
+      url: `${services.data.tribal}/1`,
       title: 'Alaska Native Villages',
       outFields: alaskaNativeVillageOutFields,
       listMode: 'hide',
@@ -1090,9 +1092,9 @@ function useSharedLayers() {
     renderer.symbol.color = [168, 112, 0, 1];
     const lower48TribalOutFields = ['TRIBE_NAME'];
     const otherTribes = new FeatureLayer({
-      id: 'tribalLayer-1',
-      url: `${services.data.tribal}/1`,
-      title: 'Other Federally Recognized Tribes',
+      id: 'tribalLayer-5',
+      url: `${services.data.tribal}/5`,
+      title: 'Virginia Federally Recognized Tribes',
       outFields: lower48TribalOutFields,
       listMode: 'hide',
       visible: true,
@@ -1119,8 +1121,8 @@ function useSharedLayers() {
       },
     };
     const americanIndianReservations = new FeatureLayer({
-      id: 'tribalLayer-3',
-      url: `${services.data.tribal}/3`,
+      id: 'tribalLayer-2',
+      url: `${services.data.tribal}/2`,
       title: 'American Indian Reservations',
       outFields: lower48TribalOutFields,
       listMode: 'hide',
@@ -1135,8 +1137,8 @@ function useSharedLayers() {
     });
 
     const americanIndianOffReservations = new FeatureLayer({
-      id: 'tribalLayer-4',
-      url: `${services.data.tribal}/4`,
+      id: 'tribalLayer-3',
+      url: `${services.data.tribal}/3`,
       title: 'American Indian Off-Reservation Trust Lands',
       outFields: lower48TribalOutFields,
       listMode: 'hide',
@@ -1151,9 +1153,9 @@ function useSharedLayers() {
     });
 
     const oklahomaStatisticalAreas = new FeatureLayer({
-      id: 'tribalLayer-5',
-      url: `${services.data.tribal}/5`,
-      title: 'Oklahoma Statistical Areas',
+      id: 'tribalLayer-4',
+      url: `${services.data.tribal}/4`,
+      title: 'American Indian Oklahoma Statistical Areas',
       outFields: lower48TribalOutFields,
       listMode: 'hide',
       visible: true,
@@ -1174,10 +1176,10 @@ function useSharedLayers() {
       legendEnabled: false,
       layers: [
         alaskaNativeVillages,
-        otherTribes,
         americanIndianReservations,
         americanIndianOffReservations,
         oklahomaStatisticalAreas,
+        otherTribes,
       ],
     });
   }
@@ -1228,6 +1230,7 @@ function useSharedLayers() {
       url: services.data.mappedWater,
       title: 'Mapped Water (all)',
       sublayers: [{ id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
+      legendEnabled: false,
       listMode: 'hide-children',
       visible: false,
     });
@@ -1510,6 +1513,160 @@ function useSharedLayers() {
   };
 }
 
+/** Normalizes USGS streamgage data with monitoring stations data. */
+function useStreamgageData(
+  usgsStreamgages,
+  usgsPrecipitation,
+  usgsDailyAverages,
+) {
+  const [normalizedStreamgages, setNormalizedStreamgages] = useState([]);
+
+  useEffect(() => {
+    if (
+      usgsStreamgages.status !== 'success' ||
+      usgsPrecipitation.status !== 'success' ||
+      usgsDailyAverages.status !== 'success'
+    ) {
+      return;
+    }
+
+    const gages = usgsStreamgages.data.value.map((gage) => {
+      const streamgageMeasurements = { primary: [], secondary: [] };
+
+      [...gage.Datastreams]
+        .filter((item) => item.Observations.length > 0)
+        .forEach((item) => {
+          const observation = item.Observations[0];
+          const parameterCode = item.properties.ParameterCode;
+          const parameterDesc = item.description.split(' / USGS-')[0];
+          const parameterUnit = item.unitOfMeasurement;
+
+          let measurement = observation.result;
+          // convert measurements recorded in celsius to fahrenheit
+          if (['00010', '00020', '85583'].includes(parameterCode)) {
+            measurement = measurement * (9 / 5) + 32;
+
+            // round to 1 decimal place
+            measurement = Math.round(measurement * 10) / 10;
+          }
+
+          const matchedParam = usgsStaParameters.find((p) => {
+            return p.staParameterCode === parameterCode;
+          });
+
+          const data = {
+            parameterCategory: matchedParam?.hmwCategory || 'exclude',
+            parameterOrder: matchedParam?.hmwOrder || 0,
+            parameterName: matchedParam?.hmwName || parameterDesc,
+            parameterUsgsName: matchedParam?.staDescription || parameterDesc,
+            parameterCode,
+            measurement,
+            datetime: new Date(observation.phenomenonTime).toLocaleString(),
+            dailyAverages: [], // NOTE: will be set below
+            unitAbbr: matchedParam?.hmwUnits || parameterUnit.symbol,
+            unitName: parameterUnit.name,
+          };
+
+          if (data.parameterCategory === 'primary') {
+            streamgageMeasurements.primary.push(data);
+          }
+
+          if (data.parameterCategory === 'secondary') {
+            streamgageMeasurements.secondary.push(data);
+          }
+        });
+
+      return {
+        monitoringType: 'Current Water Conditions',
+        siteId: gage.properties.monitoringLocationNumber,
+        orgId: gage.properties.agencyCode,
+        orgName: gage.properties.agency,
+        locationLongitude: gage.Locations[0].location.coordinates[0],
+        locationLatitude: gage.Locations[0].location.coordinates[1],
+        locationName: gage.properties.monitoringLocationName,
+        locationType: gage.properties.monitoringLocationType,
+        locationUrl: gage.properties.monitoringLocationUrl,
+        // usgs streamgage specific properties:
+        streamgageMeasurements,
+      };
+    });
+
+    const streamgageSiteIds = gages.map((gage) => gage.siteId);
+
+    // add precipitation data to each streamgage if it exists for the site
+    if (usgsPrecipitation.data?.value) {
+      usgsPrecipitation.data.value?.timeSeries.forEach((site) => {
+        const siteId = site.sourceInfo.siteCode[0].value;
+        const observation = site.values[0].value[0];
+
+        if (streamgageSiteIds.includes(siteId)) {
+          const streamgage = gages.find((gage) => gage.siteId === siteId);
+
+          streamgage?.streamgageMeasurements.primary.push({
+            parameterCategory: 'primary',
+            parameterOrder: 5,
+            parameterName: 'Total Daily Rainfall',
+            parameterUsgsName: 'Precipitation (USGS Daily Value)',
+            parameterCode: '00045',
+            measurement: observation.value,
+            datetime: new Date(observation.dateTime).toLocaleDateString(),
+            dailyAverages: [], // NOTE: will be set below
+            unitAbbr: 'in',
+            unitName: 'inches',
+          });
+        }
+      });
+    }
+
+    // add daily average measurements to each streamgage if it exists for the site
+    if (
+      usgsDailyAverages.data?.allParamsMean?.value &&
+      usgsDailyAverages.data?.precipitationSum?.value
+    ) {
+      const usgsDailyTimeSeriesData = [
+        ...(usgsDailyAverages.data.allParamsMean.value?.timeSeries || []),
+        ...(usgsDailyAverages.data.precipitationSum.value?.timeSeries || []),
+      ];
+
+      usgsDailyTimeSeriesData.forEach((site) => {
+        const siteId = site.sourceInfo.siteCode[0].value;
+        const sitesHasObservations = site.values[0].value.length > 0;
+
+        if (streamgageSiteIds.includes(siteId) && sitesHasObservations) {
+          const streamgage = gages.find((gage) => gage.siteId === siteId);
+
+          const paramCode = site.variable.variableCode[0].value;
+          const observations = site.values[0].value.map((observation) => {
+            let measurement = observation.value;
+            // convert measurements recorded in celsius to fahrenheit
+            if (['00010', '00020', '85583'].includes(paramCode)) {
+              measurement = measurement * (9 / 5) + 32;
+
+              // round to 1 decimal place
+              measurement = Math.round(measurement * 10) / 10;
+            }
+
+            return { measurement, date: new Date(observation.dateTime) };
+          });
+
+          // NOTE: 'type' is either 'primary' or 'secondary' – loop over both
+          for (const type in streamgage?.streamgageMeasurements) {
+            streamgage.streamgageMeasurements[type].forEach((measurement) => {
+              if (measurement.parameterCode === paramCode.toString()) {
+                measurement.dailyAverages = observations;
+              }
+            });
+          }
+        }
+      });
+    }
+
+    setNormalizedStreamgages(gages);
+  }, [usgsStreamgages, usgsPrecipitation, usgsDailyAverages]);
+
+  return normalizedStreamgages;
+}
+
 // Custom hook that is used for handling key presses. This can be used for
 // navigating lists with a keyboard.
 function useKeyPress(targetKey: string, ref: Object) {
@@ -1615,13 +1772,35 @@ function useGeometryUtils() {
   return { cropGeometryToHuc };
 }
 
+// Custom hook that is used to determine if the provided ref is
+// visible on the screen.
+function useOnScreen(ref) {
+  const [isIntersecting, setIntersecting] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) =>
+      setIntersecting(entry.isIntersecting),
+    );
+
+    observer.observe(ref.current);
+    // Remove the observer as soon as the component is unmounted
+    return () => {
+      observer.disconnect();
+    };
+  }, [ref]);
+
+  return isIntersecting;
+}
+
 export {
   useGeometryUtils,
   useSharedLayers,
+  useStreamgageData,
   useWaterbodyFeatures,
   useWaterbodyFeaturesState,
   useWaterbodyOnMap,
   useWaterbodyHighlight,
   useDynamicPopup,
   useKeyPress,
+  useOnScreen,
 };

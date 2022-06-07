@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { createContext, useEffect, useState } from 'react';
 import type { Node } from 'react';
 // contexts
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -8,7 +8,7 @@ import { useServicesContext } from 'contexts/LookupFiles';
 import { proxyFetch } from 'utils/fetchUtils';
 
 // --- components ---
-const GlossaryContext: Object = React.createContext({
+const GlossaryContext: Object = createContext({
   initialized: false,
   setInitialized: () => {},
   glossaryStatus: 'fetching',
@@ -22,15 +22,15 @@ type Props = {
 function GlossaryProvider({ children }: Props) {
   const services = useServicesContext();
 
-  const [initialized, setInitialized] = React.useState(false);
-  const [glossaryStatus, setGlossaryStatus] = React.useState('fetching');
+  const [initialized, setInitialized] = useState(false);
+  const [glossaryStatus, setGlossaryStatus] = useState('fetching');
 
   // the components/GlossaryTerm component uses glossary terms fetched below.
   // some GlossaryTerm components are rendered outside of the main React tree
   // (see getPopupContent() in components/MapFunctions), so we need to store
   // the fetched glossary terms on the global window object
-  const [promiseInitialized, setPromiseInitialized] = React.useState(false);
-  React.useEffect(() => {
+  const [promiseInitialized, setPromiseInitialized] = useState(false);
+  useEffect(() => {
     if (promiseInitialized || services.status !== 'success') return;
 
     setPromiseInitialized(true);
