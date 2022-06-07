@@ -318,7 +318,10 @@ function Monitoring() {
           <TabPanels>
             <TabPanel>
               <p>
-                Find out about current water conditions at sensor locations.
+                Click on each monitoring location on the map or in the list
+                below to find out about current water conditions. Water
+                conditions are measured in real-time using water quality sensors
+                deployed at each location.
               </p>
 
               <SensorsTab
@@ -328,8 +331,12 @@ function Monitoring() {
             </TabPanel>
             <TabPanel>
               <p>
-                View available monitoring sample locations in your local
-                watershed or view by category.
+                Click on each monitoring location on the map or in the list
+                below to find out what was monitored at each location, as well
+                as the number of samples and measurements taken. These locations
+                may have monitoring data available from as recently as last
+                week, to multiple decades old, or anywhere in between, depending
+                on the location.
               </p>
               <p>
                 <a

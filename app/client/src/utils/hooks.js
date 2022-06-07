@@ -1545,6 +1545,9 @@ function useStreamgageData(
           // convert measurements recorded in celsius to fahrenheit
           if (['00010', '00020', '85583'].includes(parameterCode)) {
             measurement = measurement * (9 / 5) + 32;
+
+            // round to 1 decimal place
+            measurement = Math.round(measurement * 10) / 10;
           }
 
           const matchedParam = usgsStaParameters.find((p) => {
@@ -1638,6 +1641,9 @@ function useStreamgageData(
             // convert measurements recorded in celsius to fahrenheit
             if (['00010', '00020', '85583'].includes(paramCode)) {
               measurement = measurement * (9 / 5) + 32;
+
+              // round to 1 decimal place
+              measurement = Math.round(measurement * 10) / 10;
             }
 
             return { measurement, date: new Date(observation.dateTime) };

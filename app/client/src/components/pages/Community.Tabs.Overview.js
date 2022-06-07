@@ -21,6 +21,7 @@ import {
   keyMetricNumberStyles,
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
+import ShowLessMore from 'components/shared/ShowLessMore';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import VirtualizedList from 'components/shared/VirtualizedList';
 // contexts
@@ -594,6 +595,24 @@ function MonitoringAndSensorsTab({
   ) {
     return (
       <>
+        <p>
+          Water is monitored by state, federal, tribal, and local agencies.
+          Universities, volunteers and others also help detect water quality
+          concerns.
+        </p>
+
+        <p>
+          Water quality monitoring locations are shown on the map as both purple
+          circles and yellow squares.
+          <ShowLessMore
+            charLimit={0}
+            text=" The yellow squares represent monitoring
+            locations that provide real time water quality measurements for a
+            subset of categories– such as water level, water temperature,
+            dissolved oxygen saturation, and other water quality indicators. The purple circles represent monitoring locations where all other past water conditions data is available. These locations may have monitoring data available from as recently as last week, to multiple decades old, or anywhere in between, depending on the location."
+          />
+        </p>
+
         {allMonitoringAndSensors.length === 0 && (
           <p css={centeredTextStyles}>
             There are no locations with data in the <em>{watershed}</em>{' '}
@@ -614,11 +633,6 @@ function MonitoringAndSensorsTab({
                 <p>{monitoringError}</p>
               </div>
             )}
-
-            <p>
-              Find out about current water conditions at sensor locations and
-              explore sample data from water quality monitoring locations.
-            </p>
 
             <table css={toggleTableStyles} className="table">
               <thead>
