@@ -1155,7 +1155,7 @@ function useSharedLayers() {
     const oklahomaStatisticalAreas = new FeatureLayer({
       id: 'tribalLayer-4',
       url: `${services.data.tribal}/4`,
-      title: 'Oklahoma Statistical Areas',
+      title: 'American Indian Oklahoma Statistical Areas',
       outFields: lower48TribalOutFields,
       listMode: 'hide',
       visible: true,
