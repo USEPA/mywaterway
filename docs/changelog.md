@@ -5,21 +5,21 @@
 
 ### Added
 
-- Added the Assessment Documents section to the Waterbody Report.
+- Added Assessment Documents section to the Waterbody Report.
 
-- Added the "Parameter" column and the ability to filter the data to the "Probable sources contributing to impairment" section of the Waterbody Report.
+- Added "Parameter" column and the ability to filter the data to the "Probable sources contributing to impairment" section of the Waterbody Report.
 
-- Added the Current Water Conditions (USGS Stream Gages) to the Monitoring Panel.
+- Added  Current Water Conditions (USGS Stream Gages) to the Monitoring Panel.
  
 - Added spark line charts to the Current Water Conditions (USGS Stream Gages) data.
 
-- Added the Educators page.
+- Added Educators page.
 
-- Added the tribal information and a tribal filter to the Drinking Water panel.
+- Added tribal information and a tribal filter to the Drinking Water panel.
 
-- Added the ability to download Past Water Conditions (Monitoring Station) data for the entire HUC.
+- Added ability to download Past Water Conditions (Monitoring Station) data for the entire watershed/HUC12.
 
-- Added the ability to clear the filters on tables that can be filtered.
+- Added ability to clear filters on tables that can be filtered.
  
 ### Changed
 
