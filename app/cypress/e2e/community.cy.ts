@@ -103,10 +103,10 @@ describe('Community page map legend', () => {
       'not.exist',
     );
 
-    cy.findByRole('button', { name: 'Expand' }).click();
-    cy.findAllByRole('switch', { name: 'Mapped Water (all)' }).click();
-    cy.findByRole('button', { name: 'Collapse' }).click();
-    cy.findByRole('button', { name: 'Toggle Legend' }).click();
+    cy.findByRole('button', { name: 'Open Basemaps and Layers' }).click();
+    cy.findAllByRole('switch', { name: 'Mapped Water (all)' }).click({ force: true });
+    cy.findByRole('button', { name: 'Close Basemaps and Layers' }).click();
+    cy.findByRole('button', { name: 'Open Legend' }).click();
     cy.findAllByText('Mapped Water (all)').should('be.visible');
   });
 });

@@ -465,7 +465,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
           <div css={imageContainerStyles}>
             {circleIcon({ color: 'rgb(168, 112, 0)' })}
           </div>
-          <span css={labelStyles}>Other Federally Recognized Tribes</span>
+          <span css={labelStyles}>Virginia Federally Recognized Tribes</span>
         </div>
       </li>
     </>

@@ -22,7 +22,7 @@ describe('Add Data Widget', () => {
     // this a work around to an issue where doing
     // "cy.findByTitle('Add Data Widget').click()" does not work for esri
     // widget buttons
-    cy.get('div[title="Add Data Widget"]').then((button) => button.click());
+    cy.get('div[title="Open Add Data Widget"]').then((button) => button.click());
 
     cy.get(adwId).should('be.visible');
   }

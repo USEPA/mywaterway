@@ -105,8 +105,8 @@ const orderedLayers = [
   'stateBoundariesLayer',
   'congressionalLayer',
   'tribalLayer',
-  'tribalLayer-0',
   'tribalLayer-1',
+  'tribalLayer-2',
   'tribalLayer-3',
   'tribalLayer-4',
   'tribalLayer-5',
@@ -593,7 +593,7 @@ function MapWidgets({
     const [hover, setHover] = useState(false);
 
     const widget = document.getElementById('add-data-widget');
-    const widgetHidden = widget.classList.contains('hidden');
+    const widgetHidden = widget?.classList.contains('hidden');
 
     return (
       <div
