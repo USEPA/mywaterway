@@ -1,6 +1,59 @@
 
 # Change Log
 
+## 2.2.0 (June 2022)
+
+### Added
+
+- Added the Assessment Documents section to the Waterbody Report.
+
+- Added the "Parameter" column and the ability to filter the data to the "Probable sources contributing to impairment" section of the Waterbody Report.
+
+- Added the Current Water Conditions (USGS Stream Gages) to the Monitoring Panel.
+ 
+- Added spark line charts to the Current Water Conditions (USGS Stream Gages) data.
+
+- Added the Educators page.
+
+- Added the tribal information and a tribal filter to the Drinking Water panel.
+
+- Added the ability to download Past Water Conditions (Monitoring Station) data for the entire HUC.
+
+- Added the ability to clear the filters on tables that can be filtered.
+ 
+### Changed
+
+- Updated the surrounding waterbodies layer, so that popups will be displayed when clicking waterbodies inside of the selected HUC.
+
+- Updated the Protected Areas layer to the latest version (v3).
+
+- Updated ofmpub.epa.gov references to use ordspub.epa.gov.
+
+- Updated the survey data of the State page (i.e., updated the stateNationalUses.json and surveyMapping.json files).
+
+- Updated the Past Water Conditions layer (used to be Monitoring Stations) to be clustered.
+
+- Updated the table on the Past Water Conditions tab of the Monitoring panel to have the "Sample Count" and "Measurement Count" columns.
+
+- Updated the available filters on the Past Water Conditions tab of the Monitoring Panel to include PFAS.
+
+- Updated the legend icon and moved it to the top left of the map.
+
+- Improved the look of the monitoring station download section. 
+
+- Improved performance of the Monitoring panel.
+
+- Reduced the size of the location pin icon on the Community page.
+
+- Removed the gage height numbers from the Current Water Conditions layer (USGS Streamgages).
+
+- Fixed issues with tables overflowing the container on the Waterbody Report page.
+
+- Fixed a bug with the glossary service crashing the server side.
+
+- Fixed the Tribal Areas layer, which was broken due to changes in the service.
+
+
 ## 2.1.1 (March 2022)
 
 ### Added
