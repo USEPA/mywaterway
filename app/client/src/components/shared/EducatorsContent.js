@@ -71,6 +71,10 @@ const modifiedErrorBoxStyles = css`
   margin-bottom: 1.25rem;
 `;
 
+const contentStyles = css`
+  margin-top: 1rem;
+`;
+
 const modifiedInfoBoxStyles = css`
   ${infoBoxStyles}
   margin-top: 1rem;
@@ -126,7 +130,12 @@ function EducatorsContent() {
 
       <hr />
 
-      <div dangerouslySetInnerHTML={{ __html: data.content }} />
+      <em>Links below open in a new browser tab.</em>
+
+      <div
+        css={contentStyles}
+        dangerouslySetInnerHTML={{ __html: data.content }}
+      />
 
       <div
         css={modifiedInfoBoxStyles}
