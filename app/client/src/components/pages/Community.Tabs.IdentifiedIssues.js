@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
+import { useNavigate } from 'react-router-dom';
 import Graphic from '@arcgis/core/Graphic';
 // components
 import { tabsStyles } from 'components/shared/ContentTabs';
@@ -78,6 +79,7 @@ const headingStyles = css`
 `;
 
 function IdentifiedIssues() {
+  const navigate = useNavigate();
   const { infoToggleChecked } = useContext(CommunityTabsContext);
 
   const {
@@ -135,8 +137,9 @@ function IdentifiedIssues() {
     plotFacilities({
       facilities: violatingFacilities,
       layer: dischargersLayer,
+      navigate,
     });
-  }, [dischargersLayer, showDischargersLayer, violatingFacilities]);
+  }, [dischargersLayer, showDischargersLayer, violatingFacilities, navigate]);
 
   // translate scientific parameter names
   const getMappedParameterName = (
@@ -182,7 +185,7 @@ function IdentifiedIssues() {
           });
         }
       });
-      plotIssues(Array.from(waterbodiesToShow), issuesLayer);
+      plotIssues(Array.from(waterbodiesToShow), issuesLayer, navigate);
     }
   }, [
     getAllFeatures,
@@ -190,6 +193,7 @@ function IdentifiedIssues() {
     parameterToggleObject,
     showAllParameters,
     waterbodyLayer,
+    navigate,
   ]);
 
   // emulate componentdidmount

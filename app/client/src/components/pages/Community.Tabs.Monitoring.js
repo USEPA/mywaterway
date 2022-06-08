@@ -3,6 +3,7 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
+import { useNavigate } from 'react-router-dom';
 // components
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -122,6 +123,7 @@ type MonitoringLocationGroups = {
 };
 
 function Monitoring() {
+  const navigate = useNavigate();
   const { usgsStreamgages } = useFetchedDataState();
 
   // draw the waterbody on the map
@@ -153,9 +155,10 @@ function Monitoring() {
       plotFacilities({
         facilities: permittedDischargers.data['Results']['Facilities'],
         layer: dischargersLayer,
+        navigate,
       });
     }
-  }, [permittedDischargers.data, dischargersLayer]);
+  }, [permittedDischargers.data, dischargersLayer, navigate]);
 
   // Syncs the toggles with the visible layers on the map. Mainly
   // used for when the user toggles layers in full screen mode and then

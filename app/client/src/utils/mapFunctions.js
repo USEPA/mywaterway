@@ -346,7 +346,11 @@ export function createWaterbodySymbol({
 }
 
 // plot issues on map
-export function plotIssues(features: Array<Object>, layer: any) {
+export function plotIssues(
+  features: Array<Object>,
+  layer: any,
+  navigate: function,
+) {
   if (!features || !layer) return;
 
   // clear the layer
@@ -378,44 +382,15 @@ export function plotIssues(features: Array<Object>, layer: any) {
   });
 }
 
-// plot wild and scenic rivers on map
-export function plotWildScenicRivers(features: Array<Object>, layer: any) {
-  if (!features || !layer) return;
-
-  // clear the layer
-  layer.graphics.removeAll();
-  // put graphics on the layer
-  features.forEach((river) => {
-    layer.graphics.add(
-      new Graphic({
-        geometry: river.geometry,
-        symbol: {
-          type: 'simple-line', // autocasts as SimpleLineSymbol() or SimpleFillSymbol()
-          color: [0, 123, 255],
-          width: 3,
-        },
-        attributes: {
-          ...river.attributes,
-          fieldName: null,
-        },
-        popupTemplate: {
-          title: getPopupTitle(river.attributes),
-          content: getPopupContent({
-            feature: { attributes: river.attributes },
-          }),
-        },
-      }),
-    );
-  });
-}
-
 // plot facilities on map
 export function plotFacilities({
   facilities,
   layer,
+  navigate,
 }: {
   facilities: Array<Object>,
   layer: any,
+  navigate: Function,
 }) {
   if (!facilities || !layer) return;
 
@@ -440,7 +415,10 @@ export function plotFacilities({
         attributes: facility,
         popupTemplate: {
           title: getPopupTitle(facility),
-          content: getPopupContent({ feature: { attributes: facility } }),
+          content: getPopupContent({
+            feature: { attributes: facility },
+            navigate,
+          }),
         },
       }),
     );
@@ -452,6 +430,7 @@ export const openPopup = (
   feature: Object,
   fields: Object,
   services: Object,
+  navigate: Function,
 ) => {
   const fieldName = feature.attributes && feature.attributes.fieldName;
 
@@ -462,7 +441,13 @@ export const openPopup = (
   ) {
     feature.popupTemplate = {
       title: getPopupTitle(feature.attributes),
-      content: getPopupContent({ feature, fields, fieldName, services }),
+      content: getPopupContent({
+        feature,
+        fields,
+        fieldName,
+        services,
+        navigate,
+      }),
     };
   }
 
@@ -594,6 +579,7 @@ export function getPopupContent({
   resetData,
   services,
   fields,
+  navigate,
 }: {
   feature: Object,
   fieldName: ?string,
@@ -602,6 +588,7 @@ export function getPopupContent({
   resetData: ?Function,
   services: ?Object,
   fields: ?Object,
+  navigate: Function,
 }) {
   let type = 'Unknown';
 
@@ -714,6 +701,7 @@ export function getPopupContent({
       resetData={resetData}
       services={services}
       fields={fields}
+      navigate={navigate}
     />
   );
 
