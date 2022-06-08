@@ -1180,6 +1180,7 @@ type MapPopupProps = {
   resetData: ?Function,
   services: ?Object,
   fields: ?Object,
+  navigate: Function,
 };
 
 function MapPopup({
@@ -1191,6 +1192,7 @@ function MapPopup({
   resetData,
   services,
   fields,
+  navigate,
 }: MapPopupProps) {
   // Gets the response of what huc was clicked, if provided.
   const [clickedHuc, setClickedHuc] = useState<{
@@ -1282,11 +1284,11 @@ function MapPopup({
                         urlParts.includes('community') &&
                         urlParts.length > 3
                       ) {
-                        window.location.assign(`${baseRoute}/${urlParts[3]}`);
+                        navigate(`${baseRoute}/${urlParts[3]}`);
                         return;
                       }
 
-                      window.location.assign(`${baseRoute}/overview`);
+                      navigate(`${baseRoute}/overview`);
                     }}
                   >
                     Yes
