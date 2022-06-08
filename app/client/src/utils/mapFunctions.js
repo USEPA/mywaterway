@@ -374,7 +374,7 @@ export function plotIssues(
         popupTemplate: {
           title: getPopupTitle(waterbody.attributes),
           content: getPopupContent({
-            feature: { attributes: waterbody.attributes },
+            feature: { attributes: waterbody.attributes, navigate },
           }),
         },
       }),
