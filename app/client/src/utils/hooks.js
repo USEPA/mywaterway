@@ -1,6 +1,7 @@
 // @flow
 
 import { useCallback, useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
@@ -334,6 +335,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     areasData,
   } = useContext(LocationSearchContext);
   const services = useServicesContext();
+  const navigate = useNavigate();
 
   // Handles zooming to a selected graphic when "View on Map" is clicked.
   useEffect(() => {
@@ -366,9 +368,15 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     // perform the zoom and return the Promise
     mapView.goTo(params).then(() => {
-      openPopup(mapView, selectedGraphic, dynamicPopupFields, services);
+      openPopup(
+        mapView,
+        selectedGraphic,
+        dynamicPopupFields,
+        services,
+        navigate,
+      );
     });
-  }, [mapView, selectedGraphic, services]);
+  }, [mapView, selectedGraphic, services, navigate]);
 
   // Initializes a handles object for more efficient handling of highlight handlers
   const [handles, setHandles] = useState(null);
@@ -700,6 +708,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 }
 
 function useDynamicPopup() {
+  const navigate = useNavigate();
   const services = useServicesContext();
   const { getHucBoundaries, getMapView, resetData } = useContext(
     LocationSearchContext,
@@ -808,6 +817,7 @@ function useDynamicPopup() {
           feature: graphic.graphic,
           fields,
           services,
+          navigate,
         });
       }
 
@@ -817,6 +827,7 @@ function useDynamicPopup() {
         getClickedHuc: getClickedHuc(location),
         resetData,
         services,
+        navigate,
       });
     }
 

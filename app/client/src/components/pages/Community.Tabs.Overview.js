@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
+import { useNavigate } from 'react-router-dom';
 // components
 import {
   AccordionList,
@@ -824,6 +825,7 @@ function MonitoringAndSensorsTab({
 }
 
 function PermittedDischargersTab({ totalPermittedDischargers }) {
+  const navigate = useNavigate();
   const { permittedDischargers, dischargersLayer, watershed } = useContext(
     LocationSearchContext,
   );
@@ -834,9 +836,10 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
       plotFacilities({
         facilities: permittedDischargers.data.Results.Facilities,
         layer: dischargersLayer,
+        navigate,
       });
     }
-  }, [permittedDischargers.data, dischargersLayer]);
+  }, [permittedDischargers.data, dischargersLayer, navigate]);
 
   const [permittedDischargersSortedBy, setPermittedDischargersSortedBy] =
     useState('CWPName');

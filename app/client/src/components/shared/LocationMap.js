@@ -700,7 +700,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         outFields: ['*'],
         title: (feature) => getPopupTitle(feature.graphic.attributes),
         content: (feature) =>
-          getPopupContent({ feature: feature.graphic, services }),
+          getPopupContent({ feature: feature.graphic, services, navigate }),
       },
     });
 
@@ -744,7 +744,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       popupTemplate: {
         outFields: ['*'],
         title: (feature) => getPopupTitle(feature.graphic.attributes),
-        content: (feature) => getPopupContent({ feature: feature.graphic }),
+        content: (feature) =>
+          getPopupContent({ feature: feature.graphic, navigate }),
       },
     });
 
@@ -805,6 +806,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setSearchIconLayer,
     layersInitialized,
     services,
+    navigate,
   ]);
 
   // popup template to be used for all waterbody sublayers
@@ -813,9 +815,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       outFields: ['*'],
       title: (feature) => getPopupTitle(feature.graphic.attributes),
       content: (feature) =>
-        getPopupContent({ feature: feature.graphic, services }),
+        getPopupContent({ feature: feature.graphic, services, navigate }),
     };
-  }, [services]);
+  }, [services, navigate]);
 
   const handleMapServiceError = useCallback(
     (err) => {
