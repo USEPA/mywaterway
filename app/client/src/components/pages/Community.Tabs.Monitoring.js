@@ -1,7 +1,6 @@
 // @flow
 
 import Papa from 'papaparse';
-import Slider from 'rc-slider';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
@@ -199,7 +198,6 @@ type StationData = {
   OBJECTID?: number,
   orgId: string,
   orgName: string,
-  recordYears: Array<number>,
   siteId: string,
   stationDataByYear: { [number]: AnnualStationData },
   stationProviderName: string,
@@ -209,14 +207,6 @@ type StationData = {
   stationTotalsByLabel: { [label: string]: number },
   uniqueId: string,
 };
-
-type StationDataFlattened = {|
-  ...StationData,
-  recordYears: string,
-  stationDataByYear: string,
-  stationTotalsByGroup: string,
-  stationTotalsByLabel: string,
-|};
 
 function fetchParseCsv(url: string) {
   const parsePromise = new Promise((resolve, reject) => {
@@ -242,7 +232,11 @@ function usePeriodOfRecordData(filter: string, param: 'huc12' | 'siteId') {
   const initialRecordsState: PeriodData = { status: 'idle', data: {} };
   const [records, setRecords] = useState(initialRecordsState);
   const [worker, setWorker] = useState(null);
-  const [annualData, setAnnualData] = useState(null);
+  const [workerData, setWorkerData] = useState({
+    minYear: 0,
+    maxYear: 0,
+    annualData: {},
+  });
 
   let url =
     `${services.data.waterQualityPortal.monitoringLocation}search?` +
@@ -270,7 +264,7 @@ function usePeriodOfRecordData(filter: string, param: 'huc12' | 'siteId') {
   }, [records.status, fetchJson, filter, url]);
 
   useEffect(() => {
-    if (worker || annualData) return;
+    if (worker || workerData) return;
     if (!window.Worker) {
       throw new Error("Your browser doesn't support web workers");
     }
@@ -280,52 +274,13 @@ function usePeriodOfRecordData(filter: string, param: 'huc12' | 'siteId') {
       recordsWorker.postMessage([records.data, characteristicGroupMappings]);
       recordsWorker.onmessage = (message) => {
         if (message.data && typeof message.data === 'string') {
-          setAnnualData(JSON.parse(message.data));
+          setWorkerData(JSON.parse(message.data));
         }
       };
     }
-  }, [annualData, filter, records, url, worker]);
+  }, [filter, records, url, worker, workerData]);
 
-  return annualData;
-}
-
-function useYears(annualData) {
-  const [years, setYears] = useState(null);
-  useEffect(() => {
-    if (!annualData) return;
-    let years = [];
-    Object.values(annualData).forEach((station) => {
-      years = years.concat(Object.keys(station));
-    });
-    const uniqueYears = new Set(
-      years.map((yearString) => {
-        return parseInt(yearString);
-      }),
-    );
-    const sortedYears = Array.from(uniqueYears).sort((a, b) => a - b);
-    setYears(sortedYears);
-  }, [annualData]);
-  return years;
-}
-
-function expandStationData(station: StationFlattened): Station {
-  return {
-    ...station,
-    recordYears: station.recordYears.split(','),
-    stationDataByYear: JSON.parse(station.stationDataByYear),
-    stationTotalsByGroup: JSON.parse(station.stationTotalsByGroup),
-    stationTotalsByLabel: JSON.parse(station.stationTotalsByLabel),
-  };
-}
-
-function flattenStationData(station: Station): StationFlattened {
-  return {
-    ...station,
-    recordYears: station.recordYears.join(','),
-    stationDataByYear: JSON.stringify(station.stationDataByYear),
-    stationTotalsByGroup: JSON.stringify(station.stationTotalsByGroup),
-    stationTotalsByLabel: JSON.stringify(station.stationTotalsByLabel),
-  };
+  return workerData;
 }
 
 function Monitoring() {
@@ -753,7 +708,7 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
   }
 }
 
-function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
+function MonitoringTab({ setMonitoringDisplayed }) {
   const services = useServicesContext();
 
   const {
@@ -765,26 +720,15 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     watershed,
   } = useContext(LocationSearchContext);
 
-  const annualData = usePeriodOfRecordData(huc12, 'huc12');
+  const [rangeEnabled, setRangeEnabled] = useState(false);
+  const { minYear, maxYear, annualData } = usePeriodOfRecordData(
+    huc12,
+    'huc12',
+  );
   const [annualDataInitialized, setAnnualDataInitialized] = useState(false);
   const addAnnualData = useCallback(async () => {
     if (!monitoringLocationsLayer || !monitoringGroups) return;
     if (annualDataInitialized) return;
-    const featureSet = await monitoringLocationsLayer.queryFeatures();
-
-    const updatedFeatures = [];
-    featureSet.features.forEach((feature) => {
-      const updatedFeature = feature.clone();
-      const id = updatedFeature.attributes.uniqueId;
-      if (id in annualData) {
-        updatedFeature.attributes = {
-          ...updatedFeature.attributes,
-          stationDataByYear: JSON.stringify(annualData[id]),
-          recordYears: Object.keys(annualData[id]).join(','),
-        };
-        updatedFeatures.push(updatedFeature);
-      }
-    });
 
     const updatedMonitoringGroups = { ...monitoringGroups };
     for (const label in updatedMonitoringGroups) {
@@ -792,22 +736,12 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
         const id = station.uniqueId;
         if (id in annualData) {
           station.stationDataByYear = annualData[id];
-          station.recordYears = Object.keys(annualData[id]).map((year) => {
-            return parseInt(year);
-          });
         }
       }
     }
     setMonitoringGroups(updatedMonitoringGroups);
-
-    try {
-      await monitoringLocationsLayer.applyEdits({
-        updateFeatures: updatedFeatures,
-      });
-      setAnnualDataInitialized(true);
-    } catch (_err) {
-      setAnnualDataInitialized(false);
-    }
+    setAnnualDataInitialized(true);
+    if (Object.keys(annualData).length > 0) setRangeEnabled(true);
   }, [
     annualDataInitialized,
     monitoringGroups,
@@ -818,10 +752,9 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
   useEffect(() => {
     if (!annualData) return;
+    if (annualDataInitialized) return;
     addAnnualData();
-  }, [addAnnualData, annualData]);
-
-  const periodOfRecordYears = useYears(annualData);
+  }, [addAnnualData, annualData, annualDataInitialized]);
 
   const [yearsRange, setYearsRange] = useState([0, 0]);
 
@@ -841,104 +774,200 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
   const [sortBy, setSortBy] = useState('locationName');
 
-  const drawMap = useCallback(
-    (monitoringLocationTogglesParam) => {
-      if (!monitoringLocationsLayer) return;
+  // create the filter string for download links based on active toggles
+  const buildFilter = useCallback(() => {
+    let filter = '';
 
-      const addedStationUids = [];
-      let tempDisplayedMonitoringLocations = [];
-      let allOthersToggled = true;
+    const selectedCount = Object.keys(monitoringGroups).filter((label) => {
+      return label !== 'All' && monitoringGroups[label].toggled;
+    }).length;
 
-      for (let key in monitoringLocationTogglesParam) {
-        const group = monitoringLocationTogglesParam[key];
-        if (group.label === 'All') continue;
+    const groupsCount = Object.values(monitoringGroups).filter(
+      (group) => group.label !== 'All',
+    ).length;
 
-        // if the location is toggled
-        if (group.toggled) {
-          group.stations.forEach((station) => {
-            // add the station to the display, if it has not already been added
-            if (!addedStationUids.includes(station.uniqueId)) {
-              addedStationUids.push(station.uniqueId);
-              tempDisplayedMonitoringLocations.push(station);
-            }
-          });
+    if (selectedCount !== groupsCount) {
+      const groupNames = Array.from(
+        new Set(
+          displayedMonitoringLocations.reduce(
+            (a, b) => a.concat(Object.keys(b.stationTotalsByGroup)),
+            [],
+          ),
+        ),
+      );
+      filter +=
+        '&characteristicType=' + groupNames.join('&characteristicType=');
+    }
+
+    if (rangeEnabled) {
+      filter += `&startDateLo=01-01-${yearsRange[0]}&startDateHi=12-31-${yearsRange[1]}`;
+    }
+
+    setCharGroupFilters(filter);
+  }, [
+    displayedMonitoringLocations,
+    monitoringGroups,
+    rangeEnabled,
+    setCharGroupFilters,
+    yearsRange,
+  ]);
+
+  const filterStation = useCallback(
+    (station) => {
+      const stationAnnualData = annualData[station.uniqueId];
+      const result = {
+        ...station,
+        stationTotalMeasurements: 0,
+        stationTotalSamples: 0,
+        stationTotalsByGroup: {},
+        stationTotalsByLabel: {},
+      };
+      for (const year in stationAnnualData) {
+        if (year < yearsRange[0]) continue;
+        if (year > yearsRange[1]) return result;
+        result.stationTotalMeasurements +=
+          stationAnnualData[year].stationTotalMeasurements;
+        result.stationTotalSamples += stationAnnualData.stationTotalSamples;
+        Object.entries(stationAnnualData[year].stationTotalsByGroup).forEach(
+          ([key, value]) => {
+            key in result.stationTotalsByGroup
+              ? (result.stationTotalsByGroup[key] += value)
+              : (result.stationTotalsByGroup[key] = value);
+          },
+        );
+        Object.entries(stationAnnualData[year].stationTotalsByLabel).forEach(
+          ([key, value]) => {
+            key in result.stationTotalsByLabel
+              ? (result.stationTotalsByLabel[key] += value)
+              : (result.stationTotalsByLabel[key] = value);
+          },
+        );
+      }
+      return result;
+    },
+    [annualData, yearsRange],
+  );
+
+  const drawMap = useCallback(() => {
+    if (!monitoringLocationsLayer) return;
+
+    // const addedStationUids = [];
+    let tempDisplayedMonitoringLocations = [];
+
+    const toggledGroups = Object.keys(monitoringGroups)
+      .filter((groupLabel) => groupLabel !== 'All')
+      .map((groupLabel) => (monitoringGroups[groupLabel].toggled = true));
+
+    monitoringGroups['All'].forEach((station) => {
+      const isInToggledGroup = Object.keys(station.stationTotalsByLabel).some(
+        (label) => label in toggledGroups,
+      );
+      if (isInToggledGroup) {
+        if (rangeEnabled) {
+          tempDisplayedMonitoringLocations.push(filterStation(station));
         } else {
-          allOthersToggled = false;
+          tempDisplayedMonitoringLocations.push(station);
         }
       }
+    });
 
-      setAllToggled(allOthersToggled);
+    let allOthersToggled = true;
+    for (let key in monitoringGroups) {
+      if (!monitoringGroups[key].toggled) allOthersToggled = false;
+    }
+    setAllToggled(allOthersToggled);
 
-      // generate a list of location ids
-      const locationIds = [];
-      tempDisplayedMonitoringLocations.forEach((station) => {
-        locationIds.push(station.uniqueId);
+    // generate a list of location ids
+    const locationIds = [];
+    tempDisplayedMonitoringLocations.forEach((station) => {
+      locationIds.push(station.uniqueId);
+    });
+
+    // update the filters on the layer
+    if (
+      tempDisplayedMonitoringLocations.length ===
+      monitoringGroups['All'].stations.length
+    ) {
+      monitoringLocationsLayer.definitionExpression = '';
+    } else if (locationIds.length === 0) {
+      monitoringLocationsLayer.definitionExpression = '1=0';
+    } else {
+      monitoringLocationsLayer.definitionExpression = `uniqueId IN ('${locationIds.join(
+        "','",
+      )}')`;
+    }
+
+    if (tempDisplayedMonitoringLocations.length === 0) {
+      setDisplayedMonitoringLocations([]);
+      return;
+    }
+
+    setDisplayedMonitoringLocations(tempDisplayedMonitoringLocations);
+  }, [filterStation, monitoringGroups, monitoringLocationsLayer, rangeEnabled]);
+
+  useEffect(() => {
+    if (displayedMonitoringLocations.length) {
+      let newTotalLocations = 0;
+      let newTotalSamples = 0;
+      let newTotalMeasurements = 0;
+
+      // update the watershed total measurements and samples counts
+      displayedMonitoringLocations.forEach((station) => {
+        newTotalMeasurements += parseInt(station.stationTotalMeasurements);
+        newTotalSamples += parseInt(station.stationTotalSamples);
+        newTotalLocations++;
       });
 
-      // update the filters on the layer
-      if (
-        tempDisplayedMonitoringLocations.length ===
-        monitoringLocationTogglesParam.All.stations.length
-      ) {
-        monitoringLocationsLayer.definitionExpression = '';
-      } else if (locationIds.length === 0) {
-        monitoringLocationsLayer.definitionExpression = '1=0';
-      } else {
-        monitoringLocationsLayer.definitionExpression = `uniqueId IN ('${locationIds.join(
-          "','",
-        )}')`;
-      }
+      setTotalDisplayedLocations(newTotalLocations);
+      setTotalDisplayedMeasurements(newTotalMeasurements);
+      setTotalDisplayedSamples(newTotalSamples);
+      buildFilter();
+    }
+  }, [buildFilter, displayedMonitoringLocations]);
 
-      if (tempDisplayedMonitoringLocations.length === 0) {
-        setDisplayedMonitoringLocations([]);
-        return;
-      }
+  const toggleAll = useCallback(() => {
+    for (const label in monitoringGroups) {
+      monitoringGroups[label].toggled = !monitoringGroups[label].toggled;
+    }
+    monitoringLocationsLayer.visible = !allToggled;
+    setMonitoringDisplayed((prev) => !prev);
+    setAllToggled((prev) => !prev);
+    drawMap();
+  }, [
+    allToggled,
+    drawMap,
+    monitoringGroups,
+    monitoringLocationsLayer,
+    setMonitoringDisplayed,
+  ]);
 
-      setDisplayedMonitoringLocations(tempDisplayedMonitoringLocations);
+  const toggleRow = useCallback(
+    (groupLabel: string) => {
+      monitoringLocationsLayer.visible = true;
+      monitoringGroups[groupLabel].toggled =
+        !monitoringGroups[groupLabel].toggled;
+
+      // only check the toggles that are on the screen (i.e., ignore Bacterial, Sediments, etc.)
+      const someToggled = Object.keys(monitoringGroups)
+        .filter((label) => label !== 'All')
+        .some((key) => monitoringGroups[key].toggled);
+      setMonitoringDisplayed(someToggled);
+      drawMap();
     },
-    [monitoringLocationsLayer],
+    [
+      drawMap,
+      monitoringGroups,
+      monitoringLocationsLayer,
+      setMonitoringDisplayed,
+    ],
   );
 
-  // create the filter string for download links based on active toggles
-  const buildFilter = useCallback(
-    (selectedNames, monitoringGroups) => {
-      let filter = '';
-
-      let groups = {};
-      characteristicGroupMappings.forEach(
-        (mapping) => (groups[mapping.label] = mapping.groupNames),
-      );
-
-      const groupsCount = Object.values(monitoringGroups).filter(
-        (group) => group.label !== 'All',
-      ).length;
-      if (groupsCount !== selectedNames.length) {
-        for (const name of selectedNames) {
-          if (name === 'Other') {
-            filter +=
-              '&characteristicType=' +
-              monitoringGroups['Other'].characteristicGroups.join(
-                '&characteristicType=',
-              );
-          } else {
-            filter +=
-              '&characteristicType=' +
-              groups[name].join('&characteristicType=');
-          }
-        }
-      }
-
-      setCharGroupFilters(filter);
-    },
-    [setCharGroupFilters],
-  );
-
-  const toggleSwitch = useCallback(
+  /* const toggleSwitch = useCallback(
     (groupLabel: string, allToggledParam?: boolean = false) => {
       const toggleGroups = monitoringGroups;
-      let newTotalLocations = 0;
-      let newTotalMeasurements = 0;
-      let newTotalSamples = 0;
+      let newtotallocations = 0;
+      let newtotalmeasurements = 0;
+      let newtotalsamples = 0;
 
       if (groupLabel === 'All') {
         if (!allToggledParam) {
@@ -968,26 +997,17 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
           }
 
           monitoringLocationsLayer.visible = false;
-
           setCharGroupFilters('');
           setMonitoringDisplayed(false);
         }
       }
       // just one of the categories was changed
       else {
-        monitoringLocationsLayer.visible = true;
-        toggleGroups[groupLabel].toggled = !toggleGroups[groupLabel].toggled;
-
-        // only check the toggles that are on the screen (i.e., ignore Bacterial, Sediments, etc.)
-        const someToggled = Object.keys(toggleGroups).some(
-          (key) => toggleGroups[key].toggled,
-        );
-        setMonitoringDisplayed(someToggled);
-
         // update the watershed total measurements and samples counts
         // to include only the specified characteristic groups
         const activeLabels = Object.keys(toggleGroups).filter(
-          (label) => label !== 'All' && toggleGroups[label].toggled === true,
+          (label) =>
+            label !== 'All' && toggleGroups[label].toggled === true,
         );
         buildFilter(activeLabels, monitoringGroups);
         toggleGroups['All'].stations.forEach((station) => {
@@ -1020,7 +1040,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
       setMonitoringDisplayed,
       setMonitoringGroups,
     ],
-  );
+  ); */
 
   const [dataInitialized, setDataInitialized] = useState(false);
 
@@ -1040,30 +1060,29 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
     setDataInitialized(true);
     drawMap(monitoringGroups);
-
-    setDisplayedMonitoringLocations([...monitoringGroups.All.stations]);
+    // called in drawMap
+    //setDisplayedMonitoringLocations([...monitoringGroups['All'].stations]);
     setAllToggled(true);
   }, [dataInitialized, drawMap, monitoringGroups]);
 
   useEffect(() => {
     // update total measurements and samples counts
     // after `monitoringGroups` is initialized
+    if (dataInitialized) return;
     let totalDisplayedLocations = 0;
     let totalDisplayedMeasurements = 0;
     let totalDisplayedSamples = 0;
     if (monitoringGroups) {
       monitoringGroups['All'].stations.forEach((station) => {
         totalDisplayedLocations++;
-        totalDisplayedMeasurements += parseInt(
-          station.stationTotalMeasurements,
-        );
-        totalDisplayedSamples += parseInt(station.stationTotalSamples);
+        totalDisplayedMeasurements += station.stationTotalMeasurements;
+        totalDisplayedSamples += station.stationTotalSamples;
       });
       setTotalDisplayedLocations(totalDisplayedLocations);
       setTotalDisplayedMeasurements(totalDisplayedMeasurements);
       setTotalDisplayedSamples(totalDisplayedSamples);
     }
-  }, [monitoringGroups]);
+  }, [dataInitialized, monitoringGroups]);
 
   const downloadUrl =
     `${services.data.waterQualityPortal.resultSearch}zip=no&huc=` +
@@ -1125,8 +1144,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                   <span>{yearsRange[0]}</span>
                   <div css={sliderStyles}>
                     <DateSlider
-                      years={periodOfRecordYears}
-                      disabled={periodOfRecordYears.length === 0}
+                      years={[minYear, maxYear]}
+                      disabled={Object.keys(annualData).length === 0}
                       yearsRange={yearsRange}
                       setYearsRange={setYearsRange}
                     />
@@ -1142,7 +1161,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                     <div css={toggleStyles}>
                       <Switch
                         checked={allToggled}
-                        onChange={(ev) => toggleSwitch('All', allToggled)}
+                        onChange={(_ev) => toggleAll()}
                         ariaLabel="Toggle all monitoring locations"
                       />
                       <span>All Monitoring Locations</span>
@@ -1177,7 +1196,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                           <div css={toggleStyles}>
                             <Switch
                               checked={group.toggled}
-                              onChange={(ev) => toggleSwitch(group.label)}
+                              onChange={(_ev) => toggleRow(group.label)}
                               ariaLabel={`Toggle ${group.label}`}
                             />
                             <span>{group.label}</span>
@@ -1352,8 +1371,8 @@ function DateSlider({ years, disabled, yearsRange, setYearsRange }) {
   let min = years.length ? years[0] : max;
 
   useEffect(() => {
-    setYearsRange([max, max]);
-  }, [max, setYearsRange]);
+    setYearsRange([min, max]);
+  }, [min, max, setYearsRange]);
 
   return (
     <TooltipSlider

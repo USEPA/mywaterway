@@ -118,7 +118,6 @@ type StationData = {|
   OBJECTID?: number,
   orgId: string,
   orgName: string,
-  recordYears: Array<number>,
   siteId: string,
   stationDataByYear: { [number]: AnnualStationData },
   stationProviderName: string,
@@ -131,7 +130,6 @@ type StationData = {|
 
 type StationDataFlattened = {|
   ...StationData,
-  recordYears: string,
   stationDataByYear: string,
   stationTotalsByGroup: string,
   stationTotalsByLabel: string,
@@ -149,7 +147,6 @@ type MonitoringLocationGroups = {
 function expandStationData(station: StationDataFlattened): StationData {
   return {
     ...station,
-    recordYears: station.recordYears.split(','),
     stationDataByYear: JSON.parse(station.stationDataByYear),
     stationTotalsByGroup: JSON.parse(station.stationTotalsByGroup),
     stationTotalsByLabel: JSON.parse(station.stationTotalsByLabel),
@@ -159,7 +156,6 @@ function expandStationData(station: StationDataFlattened): StationData {
 function flattenStationData(station: StationData): StationDataFlattened {
   return {
     ...station,
-    recordYears: station.recordYears.join(','),
     stationDataByYear: JSON.stringify(station.stationDataByYear),
     stationTotalsByGroup: JSON.stringify(station.stationTotalsByGroup),
     stationTotalsByLabel: JSON.stringify(station.stationTotalsByLabel),
@@ -223,7 +219,6 @@ function useMonitoringLocationFeatures(layer, locations) {
           `${station.properties.OrganizationIdentifier}/` +
           `${station.properties.MonitoringLocationIdentifier}/`,
         // monitoring station specific properties:
-        recordYears: [],
         stationProviderName: station.properties.ProviderName,
         stationDataByYear: {},
         stationTotalSamples: station.properties.activityCount,
@@ -834,7 +829,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         { name: 'locationName', type: 'string' },
         { name: 'locationType', type: 'string' },
         { name: 'locationUrl', type: 'string' },
-        { name: 'recordYears', type: 'string' },
         { name: 'stationProviderName', type: 'string' },
         { name: 'stationTotalSamples', type: 'string' },
         { name: 'stationTotalMeasurements', type: 'string' },

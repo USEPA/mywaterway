@@ -67,15 +67,20 @@ export default () => {
         stationDataForYear.stationTotalsByLabel[label] += record.ResultCount;
       });
 
+      let minYear = Infinity;
+      let maxYear = 0;
       const dataBySite = {};
       for (const [year, annualSiteData] of Object.entries(results)) {
+        if (year < minYear) minYear = year;
+        if (year > maxYear) maxYear = year;
         Object.values(annualSiteData).forEach((site) => {
           const id = site.uniqueId;
           if (!(id in dataBySite)) dataBySite[id] = {};
           dataBySite[id][year] = results[year][id];
         });
       }
-      postMessage(JSON.stringify(dataBySite));
+      const output = { minYear, maxYear, annualData: dataBySite };
+      postMessage(JSON.stringify(output));
     }
   };
 };

@@ -106,7 +106,6 @@ type StationData = {|
   OBJECTID?: number,
   orgId: string,
   orgName: string,
-  recordYears: Array<number>,
   siteId: string,
   stationDataByYear: { [number]: AnnualStationData },
   stationProviderName: string,
@@ -119,7 +118,6 @@ type StationData = {|
 
 type StationDataFlattened = {|
   ...StationData,
-  recordYears: string,
   stationDataByYear: string,
   stationTotalsByGroup: string,
   stationTotalsByLabel: string,
@@ -128,7 +126,6 @@ type StationDataFlattened = {|
 function expandStationData(station: StationDataFlattened): StationData {
   return {
     ...station,
-    recordYears: station.recordYears.split(','),
     stationDataByYear: JSON.parse(station.stationDataByYear),
     stationTotalsByGroup: JSON.parse(station.stationTotalsByGroup),
     stationTotalsByLabel: JSON.parse(station.stationTotalsByLabel),
