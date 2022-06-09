@@ -221,8 +221,8 @@ function useMonitoringLocationFeatures(layer, locations) {
         // monitoring station specific properties:
         stationProviderName: station.properties.ProviderName,
         stationDataByYear: {},
-        stationTotalSamples: station.properties.activityCount,
-        stationTotalMeasurements: station.properties.resultCount,
+        stationTotalSamples: parseInt(station.properties.activityCount),
+        stationTotalMeasurements: parseInt(station.properties.resultCount),
         // counts for each lower-tier characteristic group
         stationTotalsByGroup: station.properties.characteristicGroupResultCount,
         // counts for each top-tier characteristic group

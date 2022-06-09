@@ -775,42 +775,39 @@ function MonitoringTab({ setMonitoringDisplayed }) {
   const [sortBy, setSortBy] = useState('locationName');
 
   // create the filter string for download links based on active toggles
-  const buildFilter = useCallback(() => {
-    let filter = '';
+  const buildFilter = useCallback(
+    (groups, displayedLocations) => {
+      let filter = '';
 
-    const selectedCount = Object.keys(monitoringGroups).filter((label) => {
-      return label !== 'All' && monitoringGroups[label].toggled;
-    }).length;
+      const selectedCount = Object.keys(groups).filter((label) => {
+        return label !== 'All' && groups[label].toggled;
+      }).length;
 
-    const groupsCount = Object.values(monitoringGroups).filter(
-      (group) => group.label !== 'All',
-    ).length;
+      const groupsCount = Object.values(groups).filter(
+        (group) => group.label !== 'All',
+      ).length;
 
-    if (selectedCount !== groupsCount) {
-      const groupNames = Array.from(
-        new Set(
-          displayedMonitoringLocations.reduce(
-            (a, b) => a.concat(Object.keys(b.stationTotalsByGroup)),
-            [],
+      if (selectedCount !== groupsCount) {
+        const groupNames = Array.from(
+          new Set(
+            displayedLocations.reduce(
+              (a, b) => a.concat(Object.keys(b.stationTotalsByGroup)),
+              [],
+            ),
           ),
-        ),
-      );
-      filter +=
-        '&characteristicType=' + groupNames.join('&characteristicType=');
-    }
+        );
+        filter +=
+          '&characteristicType=' + groupNames.join('&characteristicType=');
+      }
 
-    if (rangeEnabled) {
-      filter += `&startDateLo=01-01-${yearsRange[0]}&startDateHi=12-31-${yearsRange[1]}`;
-    }
+      if (rangeEnabled) {
+        filter += `&startDateLo=01-01-${yearsRange[0]}&startDateHi=12-31-${yearsRange[1]}`;
+      }
 
-    setCharGroupFilters(filter);
-  }, [
-    displayedMonitoringLocations,
-    monitoringGroups,
-    rangeEnabled,
-    setCharGroupFilters,
-    yearsRange,
-  ]);
+      setCharGroupFilters(filter);
+    },
+    [rangeEnabled, setCharGroupFilters, yearsRange],
+  );
 
   const filterStation = useCallback(
     (station) => {
@@ -848,65 +845,63 @@ function MonitoringTab({ setMonitoringDisplayed }) {
     [annualData, yearsRange],
   );
 
-  const drawMap = useCallback(() => {
-    if (!monitoringLocationsLayer) return;
+  const drawMap = useCallback(
+    (groups) => {
+      if (!monitoringLocationsLayer) return;
 
-    // const addedStationUids = [];
-    let tempDisplayedMonitoringLocations = [];
+      // const addedStationUids = [];
+      let tempDisplayedMonitoringLocations = [];
 
-    const toggledGroups = Object.keys(monitoringGroups)
-      .filter((groupLabel) => groupLabel !== 'All')
-      .map((groupLabel) => (monitoringGroups[groupLabel].toggled = true));
+      const toggledGroups = Object.keys(groups)
+        .filter((groupLabel) => groupLabel !== 'All')
+        .filter((groupLabel) => groups[groupLabel].toggled === true);
 
-    monitoringGroups['All'].forEach((station) => {
-      const isInToggledGroup = Object.keys(station.stationTotalsByLabel).some(
-        (label) => label in toggledGroups,
-      );
-      if (isInToggledGroup) {
-        if (rangeEnabled) {
-          tempDisplayedMonitoringLocations.push(filterStation(station));
-        } else {
-          tempDisplayedMonitoringLocations.push(station);
+      groups['All'].stations.forEach((station) => {
+        const hasToggledData = toggledGroups.some((group) => {
+          return station.stationTotalsByLabel[group] > 0;
+        });
+        if (hasToggledData) {
+          if (rangeEnabled) {
+            tempDisplayedMonitoringLocations.push(filterStation(station));
+          } else {
+            tempDisplayedMonitoringLocations.push(station);
+          }
         }
+      });
+
+      // generate a list of location ids
+      const locationIds = [];
+      tempDisplayedMonitoringLocations.forEach((station) => {
+        locationIds.push(station.uniqueId);
+      });
+
+      // update the filters on the layer
+      if (
+        tempDisplayedMonitoringLocations.length ===
+        groups['All'].stations.length
+      ) {
+        monitoringLocationsLayer.definitionExpression = '';
+      } else if (locationIds.length === 0) {
+        monitoringLocationsLayer.definitionExpression = '1=0';
+      } else {
+        monitoringLocationsLayer.definitionExpression = `uniqueId IN ('${locationIds.join(
+          "','",
+        )}')`;
       }
-    });
 
-    let allOthersToggled = true;
-    for (let key in monitoringGroups) {
-      if (!monitoringGroups[key].toggled) allOthersToggled = false;
-    }
-    setAllToggled(allOthersToggled);
+      if (tempDisplayedMonitoringLocations.length === 0) {
+        setDisplayedMonitoringLocations([]);
+        return;
+      }
 
-    // generate a list of location ids
-    const locationIds = [];
-    tempDisplayedMonitoringLocations.forEach((station) => {
-      locationIds.push(station.uniqueId);
-    });
-
-    // update the filters on the layer
-    if (
-      tempDisplayedMonitoringLocations.length ===
-      monitoringGroups['All'].stations.length
-    ) {
-      monitoringLocationsLayer.definitionExpression = '';
-    } else if (locationIds.length === 0) {
-      monitoringLocationsLayer.definitionExpression = '1=0';
-    } else {
-      monitoringLocationsLayer.definitionExpression = `uniqueId IN ('${locationIds.join(
-        "','",
-      )}')`;
-    }
-
-    if (tempDisplayedMonitoringLocations.length === 0) {
-      setDisplayedMonitoringLocations([]);
-      return;
-    }
-
-    setDisplayedMonitoringLocations(tempDisplayedMonitoringLocations);
-  }, [filterStation, monitoringGroups, monitoringLocationsLayer, rangeEnabled]);
+      setDisplayedMonitoringLocations(tempDisplayedMonitoringLocations);
+    },
+    [filterStation, monitoringLocationsLayer, rangeEnabled],
+  );
 
   useEffect(() => {
-    if (displayedMonitoringLocations.length) {
+    // if (displayedMonitoringLocations.length) {
+    if (monitoringGroups) {
       let newTotalLocations = 0;
       let newTotalSamples = 0;
       let newTotalMeasurements = 0;
@@ -921,24 +916,26 @@ function MonitoringTab({ setMonitoringDisplayed }) {
       setTotalDisplayedLocations(newTotalLocations);
       setTotalDisplayedMeasurements(newTotalMeasurements);
       setTotalDisplayedSamples(newTotalSamples);
-      buildFilter();
+      buildFilter(monitoringGroups, displayedMonitoringLocations);
     }
-  }, [buildFilter, displayedMonitoringLocations]);
+  }, [buildFilter, displayedMonitoringLocations, monitoringGroups]);
 
   const toggleAll = useCallback(() => {
     for (const label in monitoringGroups) {
-      monitoringGroups[label].toggled = !monitoringGroups[label].toggled;
+      monitoringGroups[label].toggled = !allToggled;
     }
     monitoringLocationsLayer.visible = !allToggled;
-    setMonitoringDisplayed((prev) => !prev);
+    setMonitoringDisplayed(!allToggled);
     setAllToggled((prev) => !prev);
-    drawMap();
+    setMonitoringGroups({ ...monitoringGroups });
+    drawMap(monitoringGroups);
   }, [
     allToggled,
     drawMap,
     monitoringGroups,
     monitoringLocationsLayer,
     setMonitoringDisplayed,
+    setMonitoringGroups,
   ]);
 
   const toggleRow = useCallback(
@@ -946,19 +943,27 @@ function MonitoringTab({ setMonitoringDisplayed }) {
       monitoringLocationsLayer.visible = true;
       monitoringGroups[groupLabel].toggled =
         !monitoringGroups[groupLabel].toggled;
+      setMonitoringGroups({ ...monitoringGroups });
+
+      let allOthersToggled = true;
+      for (let key in monitoringGroups) {
+        if (!monitoringGroups[key].toggled) allOthersToggled = false;
+      }
+      setAllToggled(allOthersToggled);
 
       // only check the toggles that are on the screen (i.e., ignore Bacterial, Sediments, etc.)
       const someToggled = Object.keys(monitoringGroups)
         .filter((label) => label !== 'All')
         .some((key) => monitoringGroups[key].toggled);
       setMonitoringDisplayed(someToggled);
-      drawMap();
+      drawMap(monitoringGroups);
     },
     [
       drawMap,
       monitoringGroups,
       monitoringLocationsLayer,
       setMonitoringDisplayed,
+      setMonitoringGroups,
     ],
   );
 
@@ -1056,31 +1061,30 @@ function MonitoringTab({ setMonitoringDisplayed }) {
   // and displays them in the Accordion list and toggles
   useEffect(() => {
     if (!monitoringGroups) return;
-    if (dataInitialized) return;
-
-    setDataInitialized(true);
-    drawMap(monitoringGroups);
-    // called in drawMap
-    //setDisplayedMonitoringLocations([...monitoringGroups['All'].stations]);
-    setAllToggled(true);
+    if (!dataInitialized) {
+      setDataInitialized(true);
+      // setDisplayedMonitoringLocations([...monitoringGroups['All'].stations]);
+      // setAllToggled(true);
+      drawMap(monitoringGroups);
+    }
   }, [dataInitialized, drawMap, monitoringGroups]);
 
   useEffect(() => {
     // update total measurements and samples counts
     // after `monitoringGroups` is initialized
     if (dataInitialized) return;
-    let totalDisplayedLocations = 0;
-    let totalDisplayedMeasurements = 0;
-    let totalDisplayedSamples = 0;
+    let totalLocations = 0;
+    let totalMeasurements = 0;
+    let totalSamples = 0;
     if (monitoringGroups) {
       monitoringGroups['All'].stations.forEach((station) => {
-        totalDisplayedLocations++;
-        totalDisplayedMeasurements += station.stationTotalMeasurements;
-        totalDisplayedSamples += station.stationTotalSamples;
+        totalLocations++;
+        totalMeasurements += station.stationTotalMeasurements;
+        totalSamples += station.stationTotalSamples;
       });
-      setTotalDisplayedLocations(totalDisplayedLocations);
-      setTotalDisplayedMeasurements(totalDisplayedMeasurements);
-      setTotalDisplayedSamples(totalDisplayedSamples);
+      setTotalDisplayedLocations(totalLocations);
+      setTotalDisplayedMeasurements(totalMeasurements);
+      setTotalDisplayedSamples(totalSamples);
     }
   }, [dataInitialized, monitoringGroups]);
 
@@ -1108,7 +1112,7 @@ function MonitoringTab({ setMonitoringDisplayed }) {
       })
     : [];
 
-  const totalLocations = monitoringGroups?.All.stations.length;
+  const totalLocations = monitoringGroups?.['All'].stations.length;
   const displayLocations = sortedMonitoringLocations.length.toLocaleString();
 
   const [expandedRows, setExpandedRows] = useState([]);
@@ -1254,13 +1258,29 @@ function MonitoringTab({ setMonitoringDisplayed }) {
                     <span>Download All Selected Data</span>
                     <span>
                       &nbsp;&nbsp;
-                      <a href={`${downloadUrl}&mimeType=xlsx`}>
-                        <i className="fas fa-file-excel" aria-hidden="true" />
-                      </a>
+                      {displayLocations > 0 ? (
+                        <a href={`${downloadUrl}&mimeType=xlsx`}>
+                          <i className="fas fa-file-excel" aria-hidden="true" />
+                        </a>
+                      ) : (
+                        <i
+                          className="fas fa-file-excel"
+                          aria-hidden="true"
+                          style={{ color: '#ccc' }}
+                        />
+                      )}
                       &nbsp;&nbsp;
-                      <a href={`${downloadUrl}&mimeType=csv`}>
-                        <i className="fas fa-file-csv" aria-hidden="true" />
-                      </a>
+                      {displayLocations > 0 ? (
+                        <a href={`${downloadUrl}&mimeType=csv`}>
+                          <i className="fas fa-file-csv" aria-hidden="true" />
+                        </a>
+                      ) : (
+                        <i
+                          className="fas fa-file-csv"
+                          aria-hidden="true"
+                          style={{ color: '#ccc' }}
+                        />
+                      )}
                     </span>
                   </td>
                 </tr>
