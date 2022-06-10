@@ -10,6 +10,8 @@ import {
   useFlexLayout,
   useFilters,
 } from 'react-table';
+// components
+import { linkButtonStyles } from 'components/shared/LinkButton';
 
 const inputStyles = css`
   width: 100%;
@@ -21,6 +23,14 @@ const inputStyles = css`
   font-weight: 400;
   outline-width: 0;
 `;
+
+const clearFiltersContainerStyles = (margin: string) => {
+  return css`
+    display: flex;
+    justify-content: flex-end;
+    margin: ${margin};
+  `;
+};
 
 function generateFilterInput(placeholder = 'Filter column...') {
   return ({ column: { filterValue, preFilteredRows, setFilter } }) => {
@@ -153,19 +163,25 @@ function ReactTable({ data, getColumns, placeholder, striped = false }: Props) {
     [placeholder],
   );
 
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-    useTable(
-      {
-        columns,
-        data,
-        defaultColumn,
-      },
-      useResizeColumns,
-      useBlockLayout,
-      useFlexLayout,
-      useFilters,
-      useSortBy,
-    );
+  const {
+    getTableProps,
+    getTableBodyProps,
+    headerGroups,
+    rows,
+    prepareRow,
+    setAllFilters,
+  } = useTable(
+    {
+      columns,
+      data,
+      defaultColumn,
+    },
+    useResizeColumns,
+    useBlockLayout,
+    useFlexLayout,
+    useFilters,
+    useSortBy,
+  );
 
   // measures the table width
   const measuredTableRef = useCallback((node) => {
@@ -173,84 +189,100 @@ function ReactTable({ data, getColumns, placeholder, striped = false }: Props) {
     setTableWidth(node.getBoundingClientRect().width);
   }, []);
 
+  const hasFilters = columns.some((column) => column.filterable);
+
+  const clearFiltersLinkButton = (margin: string) => (
+    <div css={clearFiltersContainerStyles(margin)}>
+      <button css={linkButtonStyles} onClick={() => setAllFilters([])}>
+        Clear Filters
+      </button>
+    </div>
+  );
+
   return (
-    <div css={containerStyles} ref={measuredTableRef} className="ReactTable">
-      <div className="rt-table" role="grid" {...getTableProps()}>
-        <div className="rt-thead">
-          {headerGroups.map((headerGroup) => (
-            <div
-              className="rt-tr"
-              role="row"
-              {...headerGroup.getHeaderGroupProps()}
-            >
-              {headerGroup.headers.map((column) => (
-                <div
-                  className="rt-th"
-                  role="columnheader"
-                  {...column.getHeaderProps(column.getSortByToggleProps())}
-                >
-                  <div>
-                    <div className="rt-col-title">
-                      {column.render('Header')}
-                      <span>
-                        {column.isSorted ? (
-                          column.isSortedDesc ? (
-                            <i className="fas fa-arrow-down" />
+    <>
+      {hasFilters && clearFiltersLinkButton('0 0 0.5rem 0')}
+      <div css={containerStyles} ref={measuredTableRef} className="ReactTable">
+        <div className="rt-table" role="grid" {...getTableProps()}>
+          <div className="rt-thead">
+            {headerGroups.map((headerGroup) => (
+              <div
+                className="rt-tr"
+                role="row"
+                {...headerGroup.getHeaderGroupProps()}
+              >
+                {headerGroup.headers.map((column) => (
+                  <div
+                    className="rt-th"
+                    role="columnheader"
+                    {...column.getHeaderProps(column.getSortByToggleProps())}
+                  >
+                    <div>
+                      <div className="rt-col-title">
+                        {column.render('Header')}
+                        <span>
+                          {column.isSorted ? (
+                            column.isSortedDesc ? (
+                              <i className="fas fa-arrow-down" />
+                            ) : (
+                              <i className="fas fa-arrow-up" />
+                            )
                           ) : (
-                            <i className="fas fa-arrow-up" />
-                          )
-                        ) : (
-                          ''
-                        )}
-                      </span>
+                            ''
+                          )}
+                        </span>
+                      </div>
+                      {column.filterable && (
+                        <div className="rt-filter">
+                          {column.render('Filter')}
+                        </div>
+                      )}
                     </div>
-                    {column.filterable && (
-                      <div className="rt-filter">{column.render('Filter')}</div>
+                    {column.canResize && (
+                      <div
+                        {...column.getResizerProps()}
+                        className={`rt-resizer ${
+                          column.isResizing ? 'isResizing' : ''
+                        }`}
+                      />
                     )}
                   </div>
-                  {column.canResize && (
-                    <div
-                      {...column.getResizerProps()}
-                      className={`rt-resizer ${
-                        column.isResizing ? 'isResizing' : ''
-                      }`}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-        <div className="rt-tbody" {...getTableBodyProps()}>
-          {rows.map((row, i) => {
-            const isEven = i % 2 === 0;
-            prepareRow(row);
-            return (
-              <div
-                className={`rt-tr ${striped ? 'rt-striped' : ''} ${
-                  isEven ? '-odd' : '-even'
-                }`}
-                role="row"
-                {...row.getRowProps()}
-              >
-                {row.cells.map((cell) => {
-                  const column = cell.column;
-                  return (
-                    <div
-                      className="rt-td"
-                      role="gridcell"
-                      {...cell.getCellProps()}
-                    >
-                      {column.Render ? column.Render(cell) : cell.value}
-                    </div>
-                  );
-                })}
+                ))}
               </div>
-            );
-          })}
+            ))}
+          </div>
+          <div className="rt-tbody" {...getTableBodyProps()}>
+            {rows.map((row, i) => {
+              const isEven = i % 2 === 0;
+              prepareRow(row);
+              return (
+                <div
+                  className={`rt-tr ${striped ? 'rt-striped' : ''} ${
+                    isEven ? '-odd' : '-even'
+                  }`}
+                  role="row"
+                  {...row.getRowProps()}
+                >
+                  {row.cells.map((cell) => {
+                    const column = cell.column;
+                    return (
+                      <div
+                        className="rt-td"
+                        role="gridcell"
+                        {...cell.getCellProps()}
+                      >
+                        {column.Render ? column.Render(cell) : cell.value}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
-    </div>
+      {hasFilters && clearFiltersLinkButton('0.5rem 0 0 0')}
+    </>
   );
 }
 

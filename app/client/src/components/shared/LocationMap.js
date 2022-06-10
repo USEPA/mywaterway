@@ -308,7 +308,9 @@ type Props = {
 
 function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   const fetchedDataDispatch = useFetchedDataDispatch();
-  const { usgsStreamgages } = useFetchedDataState();
+  const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
+    useFetchedDataState();
+
   const organizations = useOrganizationsContext();
   const services = useServicesContext();
   const navigate = useNavigate();
@@ -908,7 +910,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           feature.graphic.attributes = expandStationData(
             feature.graphic.attributes,
           );
-          return getPopupContent({ feature: feature.graphic, services });
+          return getPopupContent({
+            feature: feature.graphic,
+            services,
+            navigate,
+          });
         },
       },
     });
@@ -922,7 +928,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       legendEnabled: false,
       fields: [
         { name: 'OBJECTID', type: 'oid' },
-        { name: 'gageHeight', type: 'string' },
         { name: 'monitoringType', type: 'string' },
         { name: 'siteId', type: 'string' },
         { name: 'orgId', type: 'string' },
@@ -950,30 +955,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           style: 'square',
           color: '#fffe00', // '#989fa2'
         },
-        // NOTE: rendering all streamgages in a single color until we can set
-        //       color stops from data returned in USGS STA web service
-        // visualVariables: [
-        //   {
-        //     type: 'color',
-        //     field: 'gageHeight',
-        //     stops: [
-        //       // TODO: determine how to map of gage height values to NWD streamflow percentile stops
-        //       // (National Water Dashboard: https://dashboard.waterdata.usgs.gov/app/nwd/?aoi=default)
-        //       { value: '0', color: '#ea2c38' }, // All-time low for this day  (0th percentile, minimum)
-        //       { value: '1', color: '#b54246' }, // Much below normal          (<10th percentile)
-        //       { value: '2', color: '#eaae3f' }, // Below normal               (10th – 24th percentile)
-        //       { value: '3', color: '#32f242' }, // Normal                     (25th – 75th percentile)
-        //       { value: '4', color: '#56d7da' }, // Above normal               (76th – 90th percentile)
-        //       { value: '5', color: '#2639f6' }, // Much above normal          (>90th percentile)
-        //       { value: '6', color: '#22296e' }, // All-time high for this day (100th percentile, maximum)
-        //     ],
-        //   },
-        // ],
       },
       popupTemplate: {
         outFields: ['*'],
         title: (feature) => getPopupTitle(feature.graphic.attributes),
-        content: (feature) => getPopupContent({ feature: feature.graphic }),
+        content: (feature) =>
+          getPopupContent({ feature: feature.graphic, navigate }),
       },
     });
 
@@ -1034,6 +1021,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setSearchIconLayer,
     layersInitialized,
     services,
+    navigate,
   ]);
 
   // popup template to be used for all waterbody sublayers
@@ -1042,9 +1030,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       outFields: ['*'],
       title: (feature) => getPopupTitle(feature.graphic.attributes),
       content: (feature) =>
-        getPopupContent({ feature: feature.graphic, services }),
+        getPopupContent({ feature: feature.graphic, services, navigate }),
     };
-  }, [services]);
+  }, [services, navigate]);
 
   const handleMapServiceError = useCallback(
     (err) => {
@@ -1384,39 +1372,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [services, fetchedDataDispatch],
   );
 
-  const normalizedUsgsStreamgages = useStreamgageData(usgsStreamgages);
-
-  useEffect(() => {
-    if (!usgsStreamgagesLayer || !normalizedUsgsStreamgages.length) return;
-
-    const graphics = normalizedUsgsStreamgages.map((gage) => {
-      const gageHeightMeasurements = gage.streamgageMeasurements.primary.filter(
-        (d) => d.parameterCode === '00065',
-      );
-
-      const gageHeight =
-        gageHeightMeasurements.length === 1
-          ? gageHeightMeasurements[0]?.measurement
-          : null;
-
-      return new Graphic({
-        geometry: {
-          type: 'point',
-          longitude: gage.locationLongitude,
-          latitude: gage.locationLatitude,
-        },
-        attributes: { gageHeight, ...gage },
-      });
-    });
-
-    return usgsStreamgagesLayer.queryFeatures().then((featureSet) => {
-      return usgsStreamgagesLayer.applyEdits({
-        deleteFeatures: featureSet.features,
-        addFeatures: graphics,
-      });
-    });
-  }, [normalizedUsgsStreamgages, usgsStreamgagesLayer]);
-
   const fetchUsgsPrecipitation = useCallback(
     (huc12) => {
       // https://help.waterdata.usgs.gov/stat_code
@@ -1489,6 +1444,34 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     },
     [services, fetchedDataDispatch],
   );
+
+  const normalizedUsgsStreamgages = useStreamgageData(
+    usgsStreamgages,
+    usgsPrecipitation,
+    usgsDailyAverages,
+  );
+
+  useEffect(() => {
+    if (!usgsStreamgagesLayer || !normalizedUsgsStreamgages.length) return;
+
+    const graphics = normalizedUsgsStreamgages.map((gage) => {
+      return new Graphic({
+        geometry: {
+          type: 'point',
+          longitude: gage.locationLongitude,
+          latitude: gage.locationLatitude,
+        },
+        attributes: gage,
+      });
+    });
+
+    return usgsStreamgagesLayer.queryFeatures().then((featureSet) => {
+      return usgsStreamgagesLayer.applyEdits({
+        deleteFeatures: featureSet.features,
+        addFeatures: graphics,
+      });
+    });
+  }, [normalizedUsgsStreamgages, usgsStreamgagesLayer]);
 
   const queryPermittedDischargersService = useCallback(
     (huc12Param) => {

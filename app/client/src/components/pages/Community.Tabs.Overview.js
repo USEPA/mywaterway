@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
+import { useNavigate } from 'react-router-dom';
 // components
 import {
   AccordionList,
@@ -21,6 +22,7 @@ import {
   keyMetricNumberStyles,
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
+import ShowLessMore from 'components/shared/ShowLessMore';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import VirtualizedList from 'components/shared/VirtualizedList';
 // contexts
@@ -491,81 +493,11 @@ function MonitoringAndSensorsTab({
     setMonitoringAndSensorsDisplayed,
   ]);
 
-  const normalizedUsgsStreamgages = useStreamgageData(usgsStreamgages);
-
-  // once streamgages have been normalized, add precipitation data and
-  // daily average measurements data (both fetched from the usgs daily values
-  // web service) to each streamgage if it exists for that particular location
-  useEffect(() => {
-    if (!usgsPrecipitation.data.value) return;
-    if (!usgsDailyAverages.data?.allParamsMean?.value) return;
-    if (!usgsDailyAverages.data?.precipitationSum?.value) return;
-    if (normalizedUsgsStreamgages.length === 0) return;
-
-    const streamgageSiteIds = normalizedUsgsStreamgages.map((gage) => {
-      return gage.siteId;
-    });
-
-    usgsPrecipitation.data.value?.timeSeries.forEach((site) => {
-      const siteId = site.sourceInfo.siteCode[0].value;
-      const observation = site.values[0].value[0];
-
-      if (streamgageSiteIds.includes(siteId)) {
-        const streamgage = normalizedUsgsStreamgages.find((gage) => {
-          return gage.siteId === siteId;
-        });
-
-        streamgage?.streamgageMeasurements.primary.push({
-          parameterCategory: 'primary',
-          parameterOrder: 5,
-          parameterName: 'Total Daily Rainfall',
-          parameterUsgsName: 'Precipitation (USGS Daily Value)',
-          parameterCode: '00045',
-          measurement: observation.value,
-          datetime: new Date(observation.dateTime).toLocaleDateString(),
-          dailyAverages: [],
-          unitAbbr: 'in',
-          unitName: 'inches',
-        });
-      }
-    });
-
-    const usgsDailyTimeSeriesData = [
-      ...(usgsDailyAverages.data.allParamsMean.value?.timeSeries || []),
-      ...(usgsDailyAverages.data.precipitationSum.value.timeSeries || []),
-    ];
-
-    usgsDailyTimeSeriesData.forEach((site) => {
-      const siteId = site.sourceInfo.siteCode[0].value;
-      const sitesHasObservations = site.values[0].value.length > 0;
-
-      if (streamgageSiteIds.includes(siteId) && sitesHasObservations) {
-        const streamgage = normalizedUsgsStreamgages.find((gage) => {
-          return gage.siteId === siteId;
-        });
-
-        const paramCode = site.variable.variableCode[0].value;
-        const observations = site.values[0].value.map(({ value, dateTime }) => {
-          let measurement = value;
-          // convert measurements recorded in celsius to fahrenheit
-          if (['00010', '00020', '85583'].includes(paramCode)) {
-            measurement = measurement * (9 / 5) + 32;
-          }
-
-          return { measurement, date: new Date(dateTime) };
-        });
-
-        // NOTE: 'category' is either 'primary' or 'secondary' – loop over both
-        for (const category in streamgage?.streamgageMeasurements) {
-          streamgage.streamgageMeasurements[category].forEach((measurement) => {
-            if (measurement.parameterCode === paramCode.toString()) {
-              measurement.dailyAverages = observations;
-            }
-          });
-        }
-      }
-    });
-  }, [normalizedUsgsStreamgages, usgsPrecipitation, usgsDailyAverages]);
+  const normalizedUsgsStreamgages = useStreamgageData(
+    usgsStreamgages,
+    usgsPrecipitation,
+    usgsDailyAverages,
+  );
 
   const [normalizedMonitoringLocations, setNormalizedMonitoringLocations] =
     useState([]);
@@ -633,6 +565,24 @@ function MonitoringAndSensorsTab({
   ) {
     return (
       <>
+        <p>
+          Water is monitored by state, federal, tribal, and local agencies.
+          Universities, volunteers and others also help detect water quality
+          concerns.
+        </p>
+
+        <p>
+          Water quality monitoring locations are shown on the map as both purple
+          circles and yellow squares.
+          <ShowLessMore
+            charLimit={0}
+            text=" The yellow squares represent monitoring
+            locations that provide real time water quality measurements for a
+            subset of categories– such as water level, water temperature,
+            dissolved oxygen saturation, and other water quality indicators. The purple circles represent monitoring locations where all other past water conditions data is available. These locations may have monitoring data available from as recently as last week, to multiple decades old, or anywhere in between, depending on the location."
+          />
+        </p>
+
         {allMonitoringAndSensors.length === 0 && (
           <p css={centeredTextStyles}>
             There are no locations with data in the <em>{watershed}</em>{' '}
@@ -653,11 +603,6 @@ function MonitoringAndSensorsTab({
                 <p>{monitoringError}</p>
               </div>
             )}
-
-            <p>
-              Find out about current water conditions at sensor locations and
-              explore sample data from water quality monitoring locations.
-            </p>
 
             <table css={toggleTableStyles} className="table">
               <thead>
@@ -849,6 +794,7 @@ function MonitoringAndSensorsTab({
 }
 
 function PermittedDischargersTab({ totalPermittedDischargers }) {
+  const navigate = useNavigate();
   const { permittedDischargers, dischargersLayer, watershed } = useContext(
     LocationSearchContext,
   );
@@ -859,9 +805,10 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
       plotFacilities({
         facilities: permittedDischargers.data.Results.Facilities,
         layer: dischargersLayer,
+        navigate,
       });
     }
-  }, [permittedDischargers.data, dischargersLayer]);
+  }, [permittedDischargers.data, dischargersLayer, navigate]);
 
   const [permittedDischargersSortedBy, setPermittedDischargersSortedBy] =
     useState('CWPName');

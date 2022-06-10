@@ -17,6 +17,8 @@ yarn.lock
 coverage/
 .nyc_output
 **/__diff_output__
+app/cypress/screenshots/
+app/cypress/videos/
 
 
 # misc

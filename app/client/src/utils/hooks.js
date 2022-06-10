@@ -1,6 +1,7 @@
 // @flow
 
 import { useCallback, useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
@@ -334,6 +335,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     areasData,
   } = useContext(LocationSearchContext);
   const services = useServicesContext();
+  const navigate = useNavigate();
 
   // Handles zooming to a selected graphic when "View on Map" is clicked.
   useEffect(() => {
@@ -366,9 +368,15 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     // perform the zoom and return the Promise
     mapView.goTo(params).then(() => {
-      openPopup(mapView, selectedGraphic, dynamicPopupFields, services);
+      openPopup(
+        mapView,
+        selectedGraphic,
+        dynamicPopupFields,
+        services,
+        navigate,
+      );
     });
-  }, [mapView, selectedGraphic, services]);
+  }, [mapView, selectedGraphic, services, navigate]);
 
   // Initializes a handles object for more efficient handling of highlight handlers
   const [handles, setHandles] = useState(null);
@@ -700,6 +708,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 }
 
 function useDynamicPopup() {
+  const navigate = useNavigate();
   const services = useServicesContext();
   const { getHucBoundaries, getMapView, resetData } = useContext(
     LocationSearchContext,
@@ -808,6 +817,7 @@ function useDynamicPopup() {
           feature: graphic.graphic,
           fields,
           services,
+          navigate,
         });
       }
 
@@ -817,6 +827,7 @@ function useDynamicPopup() {
         getClickedHuc: getClickedHuc(location),
         resetData,
         services,
+        navigate,
       });
     }
 
@@ -1074,8 +1085,8 @@ function useSharedLayers() {
 
     const alaskaNativeVillageOutFields = ['NAME', 'TRIBE_NAME'];
     const alaskaNativeVillages = new FeatureLayer({
-      id: 'tribalLayer-0',
-      url: `${services.data.tribal}/0`,
+      id: 'tribalLayer-1',
+      url: `${services.data.tribal}/1`,
       title: 'Alaska Native Villages',
       outFields: alaskaNativeVillageOutFields,
       listMode: 'hide',
@@ -1092,9 +1103,9 @@ function useSharedLayers() {
     renderer.symbol.color = [168, 112, 0, 1];
     const lower48TribalOutFields = ['TRIBE_NAME'];
     const otherTribes = new FeatureLayer({
-      id: 'tribalLayer-1',
-      url: `${services.data.tribal}/1`,
-      title: 'Other Federally Recognized Tribes',
+      id: 'tribalLayer-5',
+      url: `${services.data.tribal}/5`,
+      title: 'Virginia Federally Recognized Tribes',
       outFields: lower48TribalOutFields,
       listMode: 'hide',
       visible: true,
@@ -1121,8 +1132,8 @@ function useSharedLayers() {
       },
     };
     const americanIndianReservations = new FeatureLayer({
-      id: 'tribalLayer-3',
-      url: `${services.data.tribal}/3`,
+      id: 'tribalLayer-2',
+      url: `${services.data.tribal}/2`,
       title: 'American Indian Reservations',
       outFields: lower48TribalOutFields,
       listMode: 'hide',
@@ -1137,8 +1148,8 @@ function useSharedLayers() {
     });
 
     const americanIndianOffReservations = new FeatureLayer({
-      id: 'tribalLayer-4',
-      url: `${services.data.tribal}/4`,
+      id: 'tribalLayer-3',
+      url: `${services.data.tribal}/3`,
       title: 'American Indian Off-Reservation Trust Lands',
       outFields: lower48TribalOutFields,
       listMode: 'hide',
@@ -1153,9 +1164,9 @@ function useSharedLayers() {
     });
 
     const oklahomaStatisticalAreas = new FeatureLayer({
-      id: 'tribalLayer-5',
-      url: `${services.data.tribal}/5`,
-      title: 'Oklahoma Statistical Areas',
+      id: 'tribalLayer-4',
+      url: `${services.data.tribal}/4`,
+      title: 'American Indian Oklahoma Statistical Areas',
       outFields: lower48TribalOutFields,
       listMode: 'hide',
       visible: true,
@@ -1176,10 +1187,10 @@ function useSharedLayers() {
       legendEnabled: false,
       layers: [
         alaskaNativeVillages,
-        otherTribes,
         americanIndianReservations,
         americanIndianOffReservations,
         oklahomaStatisticalAreas,
+        otherTribes,
       ],
     });
   }
@@ -1513,19 +1524,24 @@ function useSharedLayers() {
   };
 }
 
-// Normalizes USGS streamgage data with monitoring stations data.
-function useStreamgageData(streamgages) {
-  const [normalizedUsgsStreamgages, setNormalizedUsgsStreamgages] = useState(
-    [],
-  );
-  const fetchedData = streamgages.data;
-  const fetchStatus = streamgages.status;
+/** Normalizes USGS streamgage data with monitoring stations data. */
+function useStreamgageData(
+  usgsStreamgages,
+  usgsPrecipitation,
+  usgsDailyAverages,
+) {
+  const [normalizedStreamgages, setNormalizedStreamgages] = useState([]);
 
-  // normalize USGS streamgages data with monitoring stations data
   useEffect(() => {
-    if (fetchStatus !== 'success' || !fetchedData.value) return;
+    if (
+      usgsStreamgages.status !== 'success' ||
+      usgsPrecipitation.status !== 'success' ||
+      usgsDailyAverages.status !== 'success'
+    ) {
+      return;
+    }
 
-    const gages = fetchedData.value.map((gage) => {
+    const gages = usgsStreamgages.data.value.map((gage) => {
       const streamgageMeasurements = { primary: [], secondary: [] };
 
       [...gage.Datastreams]
@@ -1540,6 +1556,9 @@ function useStreamgageData(streamgages) {
           // convert measurements recorded in celsius to fahrenheit
           if (['00010', '00020', '85583'].includes(parameterCode)) {
             measurement = measurement * (9 / 5) + 32;
+
+            // round to 1 decimal place
+            measurement = Math.round(measurement * 10) / 10;
           }
 
           const matchedParam = usgsStaParameters.find((p) => {
@@ -1554,7 +1573,7 @@ function useStreamgageData(streamgages) {
             parameterCode,
             measurement,
             datetime: new Date(observation.phenomenonTime).toLocaleString(),
-            dailyAverages: [],
+            dailyAverages: [], // NOTE: will be set below
             unitAbbr: matchedParam?.hmwUnits || parameterUnit.symbol,
             unitName: parameterUnit.name,
           };
@@ -1583,10 +1602,80 @@ function useStreamgageData(streamgages) {
       };
     });
 
-    setNormalizedUsgsStreamgages(gages);
-  }, [fetchedData, fetchStatus]);
+    const streamgageSiteIds = gages.map((gage) => gage.siteId);
 
-  return normalizedUsgsStreamgages;
+    // add precipitation data to each streamgage if it exists for the site
+    if (usgsPrecipitation.data?.value) {
+      usgsPrecipitation.data.value?.timeSeries.forEach((site) => {
+        const siteId = site.sourceInfo.siteCode[0].value;
+        const observation = site.values[0].value[0];
+
+        if (streamgageSiteIds.includes(siteId)) {
+          const streamgage = gages.find((gage) => gage.siteId === siteId);
+
+          streamgage?.streamgageMeasurements.primary.push({
+            parameterCategory: 'primary',
+            parameterOrder: 5,
+            parameterName: 'Total Daily Rainfall',
+            parameterUsgsName: 'Precipitation (USGS Daily Value)',
+            parameterCode: '00045',
+            measurement: observation.value,
+            datetime: new Date(observation.dateTime).toLocaleDateString(),
+            dailyAverages: [], // NOTE: will be set below
+            unitAbbr: 'in',
+            unitName: 'inches',
+          });
+        }
+      });
+    }
+
+    // add daily average measurements to each streamgage if it exists for the site
+    if (
+      usgsDailyAverages.data?.allParamsMean?.value &&
+      usgsDailyAverages.data?.precipitationSum?.value
+    ) {
+      const usgsDailyTimeSeriesData = [
+        ...(usgsDailyAverages.data.allParamsMean.value?.timeSeries || []),
+        ...(usgsDailyAverages.data.precipitationSum.value?.timeSeries || []),
+      ];
+
+      usgsDailyTimeSeriesData.forEach((site) => {
+        const siteId = site.sourceInfo.siteCode[0].value;
+        const sitesHasObservations = site.values[0].value.length > 0;
+
+        if (streamgageSiteIds.includes(siteId) && sitesHasObservations) {
+          const streamgage = gages.find((gage) => gage.siteId === siteId);
+
+          const paramCode = site.variable.variableCode[0].value;
+          const observations = site.values[0].value.map((observation) => {
+            let measurement = observation.value;
+            // convert measurements recorded in celsius to fahrenheit
+            if (['00010', '00020', '85583'].includes(paramCode)) {
+              measurement = measurement * (9 / 5) + 32;
+
+              // round to 1 decimal place
+              measurement = Math.round(measurement * 10) / 10;
+            }
+
+            return { measurement, date: new Date(observation.dateTime) };
+          });
+
+          // NOTE: 'type' is either 'primary' or 'secondary' – loop over both
+          for (const type in streamgage?.streamgageMeasurements) {
+            streamgage.streamgageMeasurements[type].forEach((measurement) => {
+              if (measurement.parameterCode === paramCode.toString()) {
+                measurement.dailyAverages = observations;
+              }
+            });
+          }
+        }
+      });
+    }
+
+    setNormalizedStreamgages(gages);
+  }, [usgsStreamgages, usgsPrecipitation, usgsDailyAverages]);
+
+  return normalizedStreamgages;
 }
 
 // Custom hook that is used for handling key presses. This can be used for

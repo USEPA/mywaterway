@@ -12,6 +12,10 @@ function PageNotFound() {
     if (location.hostname === 'localhost') {
       url = `${location.protocol}//${location.hostname}:9090/404.html`;
     }
+
+    // append the original url for tracking purposes
+    url += `?src=${location.href}`;
+
     window.location.assign(url);
   }, []);
 

@@ -1,4 +1,5 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Point from '@arcgis/core/geometry/Point';
 import Query from '@arcgis/core/rest/support/Query';
 import QueryTask from '@arcgis/core/tasks/QueryTask';
@@ -22,6 +23,7 @@ type Props = {
 };
 
 function MapMouseEvents({ map, view }: Props) {
+  const navigate = useNavigate();
   const fetchedDataDispatch = useFetchedDataDispatch();
 
   const services = useServicesContext();
@@ -96,6 +98,7 @@ function MapMouseEvents({ map, view }: Props) {
                   view.popup.open({
                     title: 'Change to this location?',
                     content: getPopupContent({
+                      navigate,
                       resetData: () => {
                         fetchedDataDispatch({ type: 'RESET_FETCHED_DATA' });
                         resetData();
@@ -156,6 +159,7 @@ function MapMouseEvents({ map, view }: Props) {
       setSelectedGraphic,
       services,
       protectedAreasLayer,
+      navigate,
     ],
   );
 

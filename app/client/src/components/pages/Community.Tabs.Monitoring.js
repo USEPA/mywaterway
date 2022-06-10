@@ -3,6 +3,7 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
+import { useNavigate } from 'react-router-dom';
 // components
 import {
   AccordionList,
@@ -174,6 +175,7 @@ function usePeriodOfRecordData(filter, param) {
 }
 
 function Monitoring() {
+  const navigate = useNavigate();
   const { usgsStreamgages } = useFetchedDataState();
 
   // draw the waterbody on the map
@@ -205,9 +207,10 @@ function Monitoring() {
       plotFacilities({
         facilities: permittedDischargers.data['Results']['Facilities'],
         layer: dischargersLayer,
+        navigate,
       });
     }
-  }, [permittedDischargers.data, dischargersLayer]);
+  }, [permittedDischargers.data, dischargersLayer, navigate]);
 
   // Syncs the toggles with the visible layers on the map. Mainly
   // used for when the user toggles layers in full screen mode and then
@@ -370,7 +373,10 @@ function Monitoring() {
           <TabPanels>
             <TabPanel>
               <p>
-                Find out about current water conditions at sensor locations.
+                Click on each monitoring location on the map or in the list
+                below to find out about current water conditions. Water
+                conditions are measured in real-time using water quality sensors
+                deployed at each location.
               </p>
 
               <SensorsTab
@@ -380,8 +386,12 @@ function Monitoring() {
             </TabPanel>
             <TabPanel>
               <p>
-                View available monitoring sample locations in your local
-                watershed or view by category.
+                Click on each monitoring location on the map or in the list
+                below to find out what was monitored at each location, as well
+                as the number of samples and measurements taken. These locations
+                may have monitoring data available from as recently as last
+                week, to multiple decades old, or anywhere in between, depending
+                on the location.
               </p>
               <p>
                 <a
@@ -422,80 +432,11 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
 
   const { watershed } = useContext(LocationSearchContext);
 
-  const normalizedUsgsStreamgages = useStreamgageData(usgsStreamgages);
-
-  // once streamgages have been normalized, add precipitation data and
-  // daily average measurements data (both fetched from the usgs daily values
-  // web service) to each streamgage if it exists for that particular location
-  useEffect(() => {
-    if (!usgsPrecipitation.data.value) return;
-    if (!usgsDailyAverages.data?.allParamsMean?.value) return;
-    if (!usgsDailyAverages.data?.precipitationSum?.value) return;
-    if (normalizedUsgsStreamgages.length === 0) return;
-
-    const streamgageSiteIds = normalizedUsgsStreamgages.map((gage) => {
-      return gage.siteId;
-    });
-
-    usgsPrecipitation.data.value?.timeSeries.forEach((site) => {
-      const siteId = site.sourceInfo.siteCode[0].value;
-      const observation = site.values[0].value[0];
-
-      if (streamgageSiteIds.includes(siteId)) {
-        const streamgage = normalizedUsgsStreamgages.find((gage) => {
-          return gage.siteId === siteId;
-        });
-
-        streamgage?.streamgageMeasurements.primary.push({
-          parameterCategory: 'primary',
-          parameterOrder: 5,
-          parameterName: 'Total Daily Rainfall',
-          parameterUsgsName: 'Precipitation (USGS Daily Value)',
-          parameterCode: '00045',
-          measurement: observation.value,
-          datetime: new Date(observation.dateTime).toLocaleDateString(),
-          dailyAverages: [],
-          unitAbbr: 'in',
-          unitName: 'inches',
-        });
-      }
-    });
-
-    const usgsDailyTimeSeriesData = [
-      ...(usgsDailyAverages.data.allParamsMean.value?.timeSeries || []),
-      ...(usgsDailyAverages.data.precipitationSum.value.timeSeries || []),
-    ];
-
-    usgsDailyTimeSeriesData.forEach((site) => {
-      const siteId = site.sourceInfo.siteCode[0].value;
-      const sitesHasObservations = site.values[0].value.length > 0;
-
-      if (streamgageSiteIds.includes(siteId) && sitesHasObservations) {
-        const streamgage = normalizedUsgsStreamgages.find((gage) => {
-          return gage.siteId === siteId;
-        });
-
-        const paramCode = site.variable.variableCode[0].value;
-        const observations = site.values[0].value.map(({ value, dateTime }) => {
-          let measurement = value;
-          // convert measurements recorded in celsius to fahrenheit
-          if (['00010', '00020', '85583'].includes(paramCode)) {
-            measurement = measurement * (9 / 5) + 32;
-          }
-          return { measurement, date: new Date(dateTime) };
-        });
-
-        // NOTE: 'category' is either 'primary' or 'secondary' – loop over both
-        for (const category in streamgage?.streamgageMeasurements) {
-          streamgage.streamgageMeasurements[category].forEach((measurement) => {
-            if (measurement.parameterCode === paramCode.toString()) {
-              measurement.dailyAverages = observations;
-            }
-          });
-        }
-      }
-    });
-  }, [normalizedUsgsStreamgages, usgsPrecipitation, usgsDailyAverages]);
+  const normalizedUsgsStreamgages = useStreamgageData(
+    usgsStreamgages,
+    usgsPrecipitation,
+    usgsDailyAverages,
+  );
 
   const [sensorsSortedBy, setSensorsSortedBy] = useState('locationName');
 
@@ -983,7 +924,11 @@ function MonitoringTab({ setMonitoringDisplayed }) {
                 </>
               )}
             </div>
-            <table css={toggleTableStyles} className="table">
+            <table
+              css={toggleTableStyles}
+              aria-label="Monitoring Location Summary"
+              className="table"
+            >
               <thead>
                 <tr>
                   <th>
@@ -1068,6 +1013,7 @@ function MonitoringTab({ setMonitoringDisplayed }) {
                       target="_blank"
                       rel="noopener noreferrer"
                       data-cy="portal"
+                      style={{ fontWeight: 'normal' }}
                     >
                       <i
                         css={iconStyles}

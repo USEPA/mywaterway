@@ -27,7 +27,6 @@ import { waterbodyReportError } from 'config/errorMessages';
 import {
   colors,
   disclaimerStyles,
-  downloadLinksStyles,
   iconStyles,
   modifiedTableStyles,
 } from 'styles/index.js';
@@ -102,6 +101,12 @@ const measurementTableStyles = css`
   }
 `;
 
+const modifiedDisclaimerStyles = css`
+  ${disclaimerStyles};
+
+  padding-bottom: 0;
+`;
+
 const checkboxCellStyles = css`
   padding-right: 0 !important;
   text-align: center;
@@ -129,12 +134,28 @@ const moreLessRowStyles = css`
 const additionalTextStyles = css`
   font-style: italic;
   color: ${colors.gray6};
+  white-space: nowrap;
 `;
 
 const measurementStyles = css`
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
+`;
+
+const chartStyles = css`
+  padding-right: 8px;
+  width: 128px;
+  text-align: center;
+  line-height: 1;
+
+  small {
+    color: ${colors.gray9};
+  }
+`;
+
+const unitStyles = css`
+  overflow-wrap: break-word;
 `;
 
 const popupIconStyles = css`
@@ -192,6 +213,24 @@ const changeWatershedContainerStyles = css`
 
   p {
     padding-bottom: 0;
+  }
+`;
+
+const totalRowStyles = css`
+  border-top: 2px solid #dee2e6;
+  font-weight: bold;
+`;
+
+const tableFooterStyles = css`
+  span {
+    display: inline-block;
+    margin-bottom: 0.25em;
+  }
+
+  td {
+    border-top: none;
+    font-weight: bold;
+    width: 50%;
   }
 `;
 
@@ -447,6 +486,338 @@ function WaterbodyInfo({
       </p>
     </>
   );
+
+  function checkIfGroupInMapping(groupName) {
+    return characteristicGroupMappings.find((mapping) =>
+      mapping.groupNames.includes(groupName),
+    );
+  }
+
+  const [charGroupFilters, setCharGroupFilters] = useState('');
+  const [selected, setSelected] = useState({});
+  const [selectAll, setSelectAll] = useState(1);
+  const [totalMeasurements, setTotalMeasurements] = useState(
+    attributes.stationTotalMeasurements,
+  );
+
+  function monitoringLocationsContent() {
+    const stationGroups = JSON.parse(attributes.stationTotalsByCategory);
+
+    const groups = { Other: { characteristicGroups: [], resultCount: 0 } };
+    // get the feature where the provider matches this stations provider
+    characteristicGroupMappings.forEach((mapping) => {
+      for (const groupName in stationGroups) {
+        if (
+          mapping.groupNames.includes(groupName) &&
+          !groups[mapping.label]?.characteristicGroups.includes(groupName)
+        ) {
+          // push to existing group
+          if (groups[mapping.label]) {
+            groups[mapping.label].characteristicGroups.push(groupName);
+            groups[mapping.label].resultCount += stationGroups[groupName];
+          }
+          // create a new group
+          else {
+            groups[mapping.label] = {
+              characteristicGroups: [groupName],
+              resultCount: stationGroups[groupName],
+            };
+          }
+        }
+        // push to Other
+        else if (
+          !checkIfGroupInMapping(groupName) &&
+          !groups['Other'].characteristicGroups.includes(groupName)
+        ) {
+          groups['Other'].characteristicGroups.push(groupName);
+          groups['Other'].resultCount += stationGroups[groupName];
+        }
+      }
+    });
+
+    if (!Object.keys(selected).length) {
+      let selectedGroups = {};
+      Object.keys(groups).forEach((key) => {
+        selectedGroups[key] = true;
+      });
+      setSelected(selectedGroups);
+    }
+
+    function buildFilter(selectedNames, monitoringLocationData) {
+      let filter = '';
+
+      for (const name in selectedNames) {
+        if (selectedNames[name]) {
+          filter +=
+            '&characteristicType=' +
+            monitoringLocationData[name].characteristicGroups.join(
+              '&characteristicType=',
+            );
+        }
+      }
+
+      setCharGroupFilters(filter);
+    }
+
+    //Toggle an individual row and call the provided onChange event handler
+    function toggleRow(mappedGroup: string, monitoringLocationData: Object) {
+      const selectedGroups = { ...selected };
+
+      selectedGroups[mappedGroup] = !selected[mappedGroup];
+
+      buildFilter(selectedGroups, monitoringLocationData);
+      setSelected(selectedGroups);
+
+      // find the number of toggles currently true
+      let numberSelected = 0;
+      Object.values(selectedGroups).forEach((value) => {
+        if (value) numberSelected++;
+      });
+
+      // total number of toggles displayed
+      const totalSelections = Object.keys(monitoringLocationData).length;
+
+      // if all selected
+      if (numberSelected === totalSelections) {
+        setSelectAll(1);
+        setCharGroupFilters('');
+        setTotalMeasurements(attributes.stationTotalMeasurements);
+      }
+      // if none selected
+      else if (numberSelected === 0) {
+        setSelectAll(0);
+        setCharGroupFilters('');
+        setTotalMeasurements(0);
+      }
+      // if some selected
+      else {
+        setSelectAll(2);
+        let newTotalMeasurementCount = 0;
+        Object.keys(groups).forEach((group) => {
+          if (selectedGroups[group] === true) {
+            newTotalMeasurementCount += groups[group].resultCount;
+          }
+        });
+        setTotalMeasurements(newTotalMeasurementCount);
+      }
+    }
+
+    //Toggle all rows and call the provided onChange event handler
+    function toggleAllCheckboxes() {
+      let selectedGroups = {};
+
+      if (Object.keys(groups).length > 0) {
+        const newValue = selectAll === 0 ? true : false;
+
+        Object.keys(groups).forEach((key) => {
+          selectedGroups[key] = newValue;
+        });
+      }
+
+      setSelected(selectedGroups);
+      setSelectAll(selectAll === 0 ? 1 : 0);
+      setTotalMeasurements(
+        selectAll === 0 ? attributes.stationTotalMeasurements : 0,
+      );
+      setCharGroupFilters('');
+    }
+
+    // if a user has filtered out certain characteristic groups for
+    // a given table, that'll be used as additional query string
+    // parameters in the download URL string
+    // (see setCharGroupFilters in Table's onChange handler)
+    const downloadUrl =
+      `${services.data.waterQualityPortal.resultSearch}zip=no&siteid=` +
+      `${attributes.siteId}&providers=${attributes.stationProviderName}` +
+      `${charGroupFilters}`;
+    const portalUrl =
+      `${services.data.waterQualityPortal.userInterface}#` +
+      `siteid=${attributes.siteId}${charGroupFilters}` +
+      `&mimeType=xlsx&dataProfile=resultPhysChem` +
+      `&providers=NWIS&providers=STEWARDS&providers=STORET`;
+
+    return (
+      <>
+        <table css={modifiedTableStyles} className="table">
+          <tbody>
+            <tr>
+              <td>
+                <em>Organ&shy;ization Name:</em>
+              </td>
+              <td>{attributes.orgName}</td>
+            </tr>
+            <tr>
+              <td>
+                <em>Location Name:</em>
+              </td>
+              <td>{attributes.locationName}</td>
+            </tr>
+            <tr>
+              <td>
+                <em>Water Type:</em>
+              </td>
+              <td>{attributes.locationType}</td>
+            </tr>
+            <tr>
+              <td>
+                <em>Organization ID:</em>
+              </td>
+              <td>{attributes.orgId}</td>
+            </tr>
+            <tr>
+              <td>
+                <em>Monitor&shy;ing Site ID:</em>
+              </td>
+              <td>{attributes.siteId.replace(`${attributes.orgId}-`, '')}</td>
+            </tr>
+            <tr>
+              <td>
+                <em>
+                  <GlossaryTerm term="Monitoring Samples">
+                    Monitor&shy;ing Samples:
+                  </GlossaryTerm>
+                </em>
+              </td>
+              <td>{Number(attributes.stationTotalSamples).toLocaleString()}</td>
+            </tr>
+            <tr>
+              <td>
+                <em>
+                  <GlossaryTerm term="Monitoring Measurements">
+                    Monitor&shy;ing Measure&shy;ments:
+                  </GlossaryTerm>
+                </em>
+              </td>
+              <td>
+                {Number(attributes.stationTotalMeasurements).toLocaleString()}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>
+          <a
+            rel="noopener noreferrer"
+            target="_blank"
+            href={attributes.locationUrl}
+          >
+            <i
+              css={iconStyles}
+              className="fas fa-info-circle"
+              aria-hidden="true"
+            />
+            More Information
+          </a>
+          &nbsp;&nbsp;
+          <small css={modifiedDisclaimerStyles}>(opens new browser tab)</small>
+        </p>
+
+        {Object.keys(groups).length === 0 && (
+          <p>No data available for this monitoring location.</p>
+        )}
+
+        {Object.keys(groups).length > 0 && (
+          <table css={measurementTableStyles} className="table">
+            <thead>
+              <tr>
+                <th css={checkboxCellStyles}>
+                  <input
+                    css={checkboxStyles}
+                    type="checkbox"
+                    className="checkbox"
+                    checked={selectAll === 1}
+                    ref={(input) => {
+                      if (input) input.indeterminate = selectAll === 2;
+                    }}
+                    onChange={(ev) => toggleAllCheckboxes()}
+                  />
+                </th>
+                <th>
+                  <GlossaryTerm term="Characteristic Group">
+                    Char&shy;acter&shy;istic Group
+                  </GlossaryTerm>
+                </th>
+                <th>
+                  <GlossaryTerm term="Monitoring Measurements">
+                    Number of Measure&shy;ments
+                  </GlossaryTerm>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.keys(groups).map((key, index) => {
+                // ignore groups with 0 results
+                if (groups[key].resultCount === 0) {
+                  return null;
+                }
+
+                return (
+                  <tr key={index}>
+                    <td css={checkboxCellStyles}>
+                      <input
+                        css={checkboxStyles}
+                        type="checkbox"
+                        className="checkbox"
+                        checked={selected[key] === true || selectAll === 1}
+                        onChange={(ev) => {
+                          toggleRow(key, groups);
+                        }}
+                      />
+                    </td>
+                    <td>{key}</td>
+                    <td>{groups[key].resultCount.toLocaleString()}</td>
+                  </tr>
+                );
+              })}
+              <tr css={totalRowStyles}>
+                <td></td>
+                <td>Total</td>
+                <td>{Number(totalMeasurements).toLocaleString()}</td>
+              </tr>
+            </tbody>
+
+            <tfoot css={tableFooterStyles}>
+              <tr>
+                <td colSpan="2">
+                  <a
+                    rel="noopener noreferrer"
+                    target="_blank"
+                    data-cy="portal"
+                    href={portalUrl}
+                    style={{ fontWeight: 'normal' }}
+                  >
+                    <i
+                      css={iconStyles}
+                      className="fas fa-filter"
+                      aria-hidden="true"
+                    />
+                    Advanced Filtering
+                  </a>
+                  &nbsp;&nbsp;
+                  <small css={modifiedDisclaimerStyles}>
+                    (opens new browser tab)
+                  </small>
+                </td>
+                <td colSpan="2">
+                  <span>Download Station Data</span>
+                  <span>
+                    &nbsp;&nbsp;
+                    <a href={`${downloadUrl}&mimeType=xlsx`}>
+                      <i className="fas fa-file-excel" aria-hidden="true" />
+                    </a>
+                    &nbsp;&nbsp;
+                    <a href={`${downloadUrl}&mimeType=csv`}>
+                      <i className="fas fa-file-csv" aria-hidden="true" />
+                    </a>
+                  </span>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        )}
+      </>
+    );
+  }
 
   // Default popup for monitoring popups, when opened a listener will populate the popup with everything the Listview item has
   const nonprofitContent = (
@@ -815,6 +1186,7 @@ type MapPopupProps = {
   resetData: ?Function,
   services: ?Object,
   fields: ?Object,
+  navigate: Function,
 };
 
 function MapPopup({
@@ -826,6 +1198,7 @@ function MapPopup({
   resetData,
   services,
   fields,
+  navigate,
 }: MapPopupProps) {
   // Gets the response of what huc was clicked, if provided.
   const [clickedHuc, setClickedHuc] = useState<{
@@ -917,11 +1290,11 @@ function MapPopup({
                         urlParts.includes('community') &&
                         urlParts.length > 3
                       ) {
-                        window.location.assign(`${baseRoute}/${urlParts[3]}`);
+                        navigate(`${baseRoute}/${urlParts[3]}`);
                         return;
                       }
 
-                      window.location.assign(`${baseRoute}/overview`);
+                      navigate(`${baseRoute}/overview`);
                     }}
                   >
                     Yes
@@ -1437,7 +1810,7 @@ function UsgsStreamgageParameter({ url, data }) {
           {data.parameterCode} &ndash; {data.parameterUsgsName}
         </small>
       </td>
-      <td style={{ width: '256px' }}>
+      <td>
         {data.multiple ? (
           <>
             <em>multiple&nbsp;measurements&nbsp;found</em>
@@ -1451,15 +1824,20 @@ function UsgsStreamgageParameter({ url, data }) {
             </small>
           </>
         ) : (
-          <div css={measurementStyles} style={{ width: '256px' }}>
-            {data.dailyAverages.length > 0 ? (
-              <div style={{ width: '128px' }}>
+          <div css={measurementStyles}>
+            <div css={chartStyles}>
+              {data.dailyAverages.length > 0 ? (
                 <Sparkline data={data.dailyAverages} />
-              </div>
-            ) : (
-              <div>&nbsp;</div>
-            )}
-            <div>
+              ) : (
+                <small css={additionalTextStyles}>
+                  No weekly
+                  <br />
+                  summary data
+                </small>
+              )}
+            </div>
+
+            <div css={unitStyles}>
               <strong>{data.measurement}</strong>
               &nbsp;
               <small title={data.unitName}>{data.unitAbbr}</small>

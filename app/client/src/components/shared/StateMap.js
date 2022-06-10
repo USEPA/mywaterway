@@ -4,6 +4,7 @@ import React, { useCallback, useContext, useEffect, useState } from 'react';
 import type { Node } from 'react';
 import { css } from 'styled-components/macro';
 import StickyBox from 'react-sticky-box';
+import { useNavigate } from 'react-router-dom';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import Viewpoint from '@arcgis/core/Viewpoint';
@@ -62,6 +63,7 @@ function StateMap({
   children,
 }: Props) {
   const fetchedDataDispatch = useFetchedDataDispatch();
+  const navigate = useNavigate();
 
   const services = useServicesContext();
 
@@ -100,7 +102,8 @@ function StateMap({
     const popupTemplate = {
       outFields: ['*'],
       title: (feature) => getPopupTitle(feature.graphic.attributes),
-      content: (feature) => getPopupContent({ feature: feature.graphic }),
+      content: (feature) =>
+        getPopupContent({ feature: feature.graphic, navigate }),
     };
 
     // Build the feature layers that will make up the waterbody layer
@@ -189,6 +192,7 @@ function StateMap({
     setWaterbodyLayer,
     layersInitialized,
     services,
+    navigate,
   ]);
 
   // Function for resetting the LocationSearch context when the map is removed
