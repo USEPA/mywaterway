@@ -812,47 +812,42 @@ function MonitoringTab({ setMonitoringDisplayed }) {
     [rangeEnabled, setCharGroupFilters, yearsRange],
   );
 
-  const filterStation = useCallback(
-    (station) => {
-      // const stationAnnualData = annualData[station.uniqueId];
-      console.log('test');
-      const stationRecords = station.stationDataByYear;
-      const result = {
-        ...station,
-        stationTotalMeasurements: 0,
-        stationTotalSamples: 0,
-        stationTotalsByGroup: {},
-        stationTotalsByLabel: {},
-      };
-      for (const year in stationRecords) {
-        if (parseInt(year) < yearsRange[0]) continue;
-        if (parseInt(year) > yearsRange[1]) return result;
-        result.stationTotalMeasurements +=
-          stationRecords[year].stationTotalMeasurements;
-        result.stationTotalSamples += stationRecords[year].stationTotalSamples;
-        Object.entries(stationRecords[year].stationTotalsByGroup).forEach(
-          ([key, value]) => {
-            key in result.stationTotalsByGroup
-              ? (result.stationTotalsByGroup[key] += value)
-              : (result.stationTotalsByGroup[key] = value);
-          },
-        );
-        Object.entries(stationRecords[year].stationTotalsByLabel).forEach(
-          ([key, value]) => {
-            key in result.stationTotalsByLabel
-              ? (result.stationTotalsByLabel[key] += value)
-              : (result.stationTotalsByLabel[key] = value);
-          },
-        );
-      }
-      console.log(result);
-      return result;
-    },
-    [yearsRange],
-  );
+  const filterStation = useCallback((station, timeframe) => {
+    // const stationAnnualData = annualData[station.uniqueId];
+    const stationRecords = station.stationDataByYear;
+    const result = {
+      ...station,
+      stationTotalMeasurements: 0,
+      stationTotalSamples: 0,
+      stationTotalsByGroup: {},
+      stationTotalsByLabel: {},
+    };
+    for (const year in stationRecords) {
+      if (parseInt(year) < timeframe[0]) continue;
+      if (parseInt(year) > timeframe[1]) return result;
+      result.stationTotalMeasurements +=
+        stationRecords[year].stationTotalMeasurements;
+      result.stationTotalSamples += stationRecords[year].stationTotalSamples;
+      Object.entries(stationRecords[year].stationTotalsByGroup).forEach(
+        ([key, value]) => {
+          key in result.stationTotalsByGroup
+            ? (result.stationTotalsByGroup[key] += value)
+            : (result.stationTotalsByGroup[key] = value);
+        },
+      );
+      Object.entries(stationRecords[year].stationTotalsByLabel).forEach(
+        ([key, value]) => {
+          key in result.stationTotalsByLabel
+            ? (result.stationTotalsByLabel[key] += value)
+            : (result.stationTotalsByLabel[key] = value);
+        },
+      );
+    }
+    return result;
+  }, []);
 
   const drawMap = useCallback(
-    (groups) => {
+    (groups, timeframe) => {
       if (!monitoringLocationsLayer) return;
 
       // const addedStationUids = [];
@@ -868,7 +863,11 @@ function MonitoringTab({ setMonitoringDisplayed }) {
         });
         if (hasToggledData) {
           if (rangeEnabled) {
-            const filteredStation = filterStation(station);
+            const filteredStation = filterStation(station, timeframe);
+            // MILL CREEK WWTP 002 OUTFALL TO OHIO R.
+            /* if (station.uniqueId === '21OHIO_WQX-Q01E06-STORET-21OHIO_WQX') {
+              console.log(filteredStation);
+            } */
             if (filteredStation.stationTotalMeasurements > 0) {
               tempDisplayedMonitoringLocations.push(filteredStation);
             }
@@ -908,6 +907,14 @@ function MonitoringTab({ setMonitoringDisplayed }) {
     [filterStation, monitoringLocationsLayer, rangeEnabled],
   );
 
+  const handleSliderChange = useCallback(
+    (timeframe) => {
+      setYearsRange(timeframe);
+      drawMap(monitoringGroups, timeframe);
+    },
+    [drawMap, monitoringGroups],
+  );
+
   useEffect(() => {
     if (displayedMonitoringLocations.length) {
       // if (monitoringGroups) {
@@ -943,7 +950,7 @@ function MonitoringTab({ setMonitoringDisplayed }) {
     setMonitoringDisplayed(!allToggled);
     setAllToggled((prev) => !prev);
     setMonitoringGroups({ ...monitoringGroups });
-    drawMap(monitoringGroups);
+    drawMap(monitoringGroups, yearsRange);
   }, [
     allToggled,
     drawMap,
@@ -951,6 +958,7 @@ function MonitoringTab({ setMonitoringDisplayed }) {
     monitoringLocationsLayer,
     setMonitoringDisplayed,
     setMonitoringGroups,
+    yearsRange,
   ]);
 
   const toggleRow = useCallback(
@@ -971,7 +979,7 @@ function MonitoringTab({ setMonitoringDisplayed }) {
         .filter((label) => label !== 'All')
         .some((key) => monitoringGroups[key].toggled);
       setMonitoringDisplayed(someToggled);
-      drawMap(monitoringGroups);
+      drawMap(monitoringGroups, yearsRange);
     },
     [
       drawMap,
@@ -979,6 +987,7 @@ function MonitoringTab({ setMonitoringDisplayed }) {
       monitoringLocationsLayer,
       setMonitoringDisplayed,
       setMonitoringGroups,
+      yearsRange,
     ],
   );
 
@@ -1000,9 +1009,9 @@ function MonitoringTab({ setMonitoringDisplayed }) {
       setDataInitialized(true);
       // setDisplayedMonitoringLocations([...monitoringGroups['All'].stations]);
       // setAllToggled(true);
-      drawMap(monitoringGroups);
+      drawMap(monitoringGroups, yearsRange);
     }
-  }, [dataInitialized, drawMap, monitoringGroups]);
+  }, [dataInitialized, drawMap, monitoringGroups, yearsRange]);
 
   useEffect(() => {
     // update total measurements and samples counts
@@ -1086,7 +1095,7 @@ function MonitoringTab({ setMonitoringDisplayed }) {
                       years={[minYear, maxYear]}
                       disabled={Object.keys(annualData).length === 0}
                       yearsRange={yearsRange}
-                      setYearsRange={setYearsRange}
+                      onChange={handleSliderChange}
                     />
                   </div>
                   <span>{yearsRange[1]}</span>
@@ -1321,13 +1330,13 @@ function MonitoringTab({ setMonitoringDisplayed }) {
   return null;
 }
 
-function DateSlider({ years, disabled, yearsRange, setYearsRange }) {
+function DateSlider({ years, disabled, yearsRange, onChange }) {
   const max = new Date().getFullYear();
   let min = years.length ? years[0] : max;
 
   useEffect(() => {
-    setYearsRange([min, max]);
-  }, [min, max, setYearsRange]);
+    onChange([min, max]);
+  }, [min, max, onChange]);
 
   return (
     <TooltipSlider
@@ -1339,7 +1348,7 @@ function DateSlider({ years, disabled, yearsRange, setYearsRange }) {
       max={max}
       min={min}
       onChange={(range) => {
-        setYearsRange(range);
+        onChange(range);
       }}
       step={1}
       trackStyle={{ backgroundColor: '#0b89f4' }}
