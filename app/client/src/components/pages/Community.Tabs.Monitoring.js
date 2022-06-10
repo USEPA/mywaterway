@@ -29,8 +29,8 @@ import { useFetchedDataState } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
-import buildWorker from 'components/shared/workerBuilder';
-import recordsJob from 'components/shared/periodOfRecordWorker';
+// import buildWorker from 'components/shared/workerBuilder';
+// import recordsJob from 'components/shared/periodOfRecordWorker';
 import { plotFacilities } from 'utils/mapFunctions';
 import { useStreamgageData, useWaterbodyOnMap } from 'utils/hooks';
 // data
@@ -200,7 +200,8 @@ function usePeriodOfRecordData(filter: string, param: 'huc12' | 'siteId') {
     if (!window.Worker) {
       throw new Error("Your browser doesn't support web workers");
     }
-    const recordsWorker = buildWorker(recordsJob);
+    // const recordsWorker = buildWorker(recordsJob);
+    const recordsWorker = new Worker(`${origin}/periodOfRecordWorker.js`);
     setWorker(recordsWorker);
     recordsWorker.postMessage([url, origin, characteristicGroupMappings]);
     recordsWorker.onmessage = (message) => {
