@@ -1,6 +1,5 @@
 // @flow
 
-// import Papa from 'papaparse';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
@@ -29,8 +28,6 @@ import { useFetchedDataState } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
-// import buildWorker from 'components/shared/workerBuilder';
-// import recordsJob from 'components/shared/periodOfRecordWorker';
 import { plotFacilities } from 'utils/mapFunctions';
 import { useStreamgageData, useWaterbodyOnMap } from 'utils/hooks';
 // data
@@ -131,48 +128,7 @@ const toggleStyles = css`
   }
 `;
 
-/*
- ** Types
- */
-
-type ParseError = {|
-  type: string,
-  code: string,
-  message: string,
-  row: number,
-|};
-type ParseErrors = Array<ParseError>;
-
-type ParsedRecord = {
-  Provider: string,
-  MonitoringLocationIdentifier: string,
-  YearSummarized: number,
-  CharacteristicType: string,
-  CharacteristicName: string,
-  ActivityCount: number,
-  ResultCount: number,
-  LastResultSubmittedDate: string,
-  OrganizationIdentifier: string,
-  OrganizationFormalName: string,
-  MonitoringLocationName: string,
-  MonitoringLocationTypeName: string,
-  ResolvedMonitoringLocationTypeName: string,
-  HUCEightDigitCode: number,
-  MonitoringLocationUrl: string,
-  CountyName: string,
-  StateName: string,
-  MonitoringLocationLatitude: number,
-  MonitoringLocationLongitude: number,
-};
-type ParsedRecords = Array<ParsedRecord>;
-
-type PeriodData =
-  | { status: 'idle', data: {} }
-  | { status: 'pending', data: {} }
-  | { status: 'success', data: ParsedRecords }
-  | { status: 'failure', data: ParseErrors };
-
-function usePeriodOfRecordData(filter: string, param: 'huc12' | 'siteId') {
+function usePeriodOfRecordData(filter, param) {
   if (param !== 'huc12' && param !== 'siteId') {
     throw new Error('Missing parameter for Period of Record service');
   }
@@ -348,7 +304,7 @@ function Monitoring() {
                     Boolean(usgsStreamgages.data.value?.length) &&
                     usgsStreamgagesDisplayed
                   }
-                  onChange={(checked) => {
+                  onChange={(_checked) => {
                     if (!usgsStreamgagesLayer) return;
 
                     setUsgsStreamgagesDisplayed(!usgsStreamgagesDisplayed);
@@ -383,7 +339,7 @@ function Monitoring() {
                     Boolean(monitoringLocations.data.features?.length) &&
                     monitoringDisplayed
                   }
-                  onChange={(checked) => {
+                  onChange={(_checked) => {
                     if (!monitoringLocationsLayer) return;
 
                     const newMonitoringDisplayed = !monitoringDisplayed;
@@ -744,7 +700,6 @@ function MonitoringTab({ setMonitoringDisplayed }) {
   );
 
   const filterStation = useCallback((station, timeframe) => {
-    // const stationAnnualData = annualData[station.uniqueId];
     const stationRecords = station.stationDataByYear;
     const result = {
       ...station,
@@ -780,7 +735,6 @@ function MonitoringTab({ setMonitoringDisplayed }) {
     (groups, timeframe) => {
       if (!monitoringLocationsLayer) return;
 
-      // const addedStationUids = [];
       let tempDisplayedMonitoringLocations = [];
 
       const toggledGroups = Object.keys(groups)
@@ -891,7 +845,7 @@ function MonitoringTab({ setMonitoringDisplayed }) {
   ]);
 
   const toggleRow = useCallback(
-    (groupLabel: string) => {
+    (groupLabel) => {
       monitoringLocationsLayer.visible = true;
       monitoringGroups[groupLabel].toggled =
         !monitoringGroups[groupLabel].toggled;
@@ -936,8 +890,6 @@ function MonitoringTab({ setMonitoringDisplayed }) {
     if (!monitoringGroups) return;
     if (!dataInitialized) {
       setDataInitialized(true);
-      // setDisplayedMonitoringLocations([...monitoringGroups['All'].stations]);
-      // setAllToggled(true);
       drawMap(monitoringGroups, yearsRange);
     }
   }, [dataInitialized, drawMap, monitoringGroups, yearsRange]);
