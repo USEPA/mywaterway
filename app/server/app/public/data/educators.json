@@ -1,8 +1,5 @@
 {
-  "links": [
-    {
-      "url": "https://www.epa.gov/waterdata/hows-my-waterway-middle-school-lesson-plan",
-      "description": "How's My Waterway middleschool lesson plan"
-    }
-  ]
+  "title": "<i class='fas fa-graduation-cap' aria-hidden='true'></i>Educational Materials from How’s My Waterway",
+  "content": "<ul><li><a href='https://www.epa.gov/waterdata/hows-my-waterway-middle-school-lesson-plan' target='_blank' rel='noopener noreferrer'>Middle School Lesson Plan</a></li></ul>",
+  "footer": "<h3><i class='fas fa-graduation-cap' aria-hidden='true'></i>If you’re an educator, we would like to know how you're using <em>How’s My Waterway</em></h3><p><a href='https://www.epa.gov/waterdata/forms/contact-us-about-hows-my-waterway' target='_blank' rel='noopener noreferrer'>Contact us</a>&nbsp;&nbsp;<small>(opens new browser tab)</small></p>"
 }

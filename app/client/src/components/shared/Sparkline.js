@@ -13,8 +13,8 @@ type Observation = {
 const VisxStyles = createGlobalStyle`
   .visx-tooltip-glyph svg {
     overflow: visible;
-    width: 1px;
-    height: 1px;
+    width: 10px;
+    height: 10px;
   }
 `;
 
@@ -57,6 +57,7 @@ export function Sparkline({ data }: { data: Observation[] }) {
       >
         <AreaSeries
           data={data}
+          dataKey="area"
           curve={curveMonotoneX}
           lineProps={{ stroke: color }}
           fill={color}

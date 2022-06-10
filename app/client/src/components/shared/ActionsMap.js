@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
+import { useNavigate } from 'react-router-dom';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import Query from '@arcgis/core/rest/support/Query';
@@ -48,6 +49,8 @@ type Props = {
 };
 
 function ActionsMap({ layout, unitIds, onLoad }: Props) {
+  const navigate = useNavigate();
+
   const { actionsLayer, homeWidget, mapView, setActionsLayer } = useContext(
     LocationSearchContext,
   );
@@ -212,11 +215,12 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
               content = getPopupContent({
                 feature,
                 extraContent: unitIds[auId](reportingCycle, true),
+                navigate,
               });
             } else {
               // when no content is provided just display the normal community
               // waterbody content
-              content = getPopupContent({ feature });
+              content = getPopupContent({ feature, navigate });
             }
 
             return new Graphic({
@@ -262,7 +266,7 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
     }
 
     if (Object.keys(unitIds).length > 0) plotAssessments(unitIds);
-  }, [unitIds, actionsLayer, fetchStatus, onLoad, services]);
+  }, [unitIds, actionsLayer, fetchStatus, onLoad, services, navigate]);
 
   // Scrolls to the map when switching layouts
   useEffect(() => {

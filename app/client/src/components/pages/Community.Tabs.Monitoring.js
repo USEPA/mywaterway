@@ -1,27 +1,16 @@
 // @flow
 
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
+import { useNavigate } from 'react-router-dom';
 // components
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
-import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
-import {
-  disclaimerStyles,
-  downloadLinksStyles,
-  iconStyles,
-  modifiedTableStyles,
-} from 'styles/index';
+import { disclaimerStyles, iconStyles } from 'styles/index.js';
 import {
   AccordionList,
   AccordionItem,
@@ -40,16 +29,13 @@ import { useFetchedDataState } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
-import { plotFacilities, plotGages, plotStations } from 'utils/mapFunctions';
-import { useWaterbodyOnMap } from 'utils/hooks';
+import { plotFacilities } from 'utils/mapFunctions';
+import { useStreamgageData, useWaterbodyOnMap } from 'utils/hooks';
 // data
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // errors
 import { monitoringError } from 'config/errorMessages';
-// config
-import { usgsStaParameters } from 'config/usgsStaParameters';
 // styles
-import { subtitleStyles } from 'components/shared/Accordion';
 import { toggleTableStyles } from 'styles/index.js';
 
 const containerStyles = css`
@@ -58,9 +44,36 @@ const containerStyles = css`
   }
 `;
 
+const modifiedDisclaimerStyles = css`
+  ${disclaimerStyles};
+  padding-bottom: 0;
+`;
+
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles};
   text-align: center;
+`;
+
+const totalRowStyles = css`
+  border-top: 2px solid #dee2e6;
+  font-weight: bold;
+  background-color: #f0f6f9;
+`;
+
+const tableFooterStyles = css`
+  border-bottom: 1px solid #dee2e6;
+  background-color: #f0f6f9;
+
+  td {
+    border-top: none;
+    font-weight: bold;
+    width: 50%;
+  }
+
+  span {
+    display: inline-block;
+    margin-bottom: 0.25em;
+  }
 `;
 
 const switchContainerStyles = css`
@@ -85,7 +98,7 @@ const toggleStyles = css`
 `;
 
 type Station = {
-  monitoringType: 'Sample Location',
+  monitoringType: 'Past Water Conditions',
   siteId: string,
   orgId: string,
   orgName: string,
@@ -110,6 +123,7 @@ type MonitoringLocationGroups = {
 };
 
 function Monitoring() {
+  const navigate = useNavigate();
   const { usgsStreamgages } = useFetchedDataState();
 
   // draw the waterbody on the map
@@ -141,9 +155,10 @@ function Monitoring() {
       plotFacilities({
         facilities: permittedDischargers.data['Results']['Facilities'],
         layer: dischargersLayer,
+        navigate,
       });
     }
-  }, [permittedDischargers.data, dischargersLayer]);
+  }, [permittedDischargers.data, dischargersLayer, navigate]);
 
   // Syncs the toggles with the visible layers on the map. Mainly
   // used for when the user toggles layers in full screen mode and then
@@ -306,7 +321,10 @@ function Monitoring() {
           <TabPanels>
             <TabPanel>
               <p>
-                Find out about current water conditions at sensor locations.
+                Click on each monitoring location on the map or in the list
+                below to find out about current water conditions. Water
+                conditions are measured in real-time using water quality sensors
+                deployed at each location.
               </p>
 
               <SensorsTab
@@ -316,8 +334,30 @@ function Monitoring() {
             </TabPanel>
             <TabPanel>
               <p>
-                View available monitoring sample locations in your local
-                watershed or view by category.
+                Click on each monitoring location on the map or in the list
+                below to find out what was monitored at each location, as well
+                as the number of samples and measurements taken. These locations
+                may have monitoring data available from as recently as last
+                week, to multiple decades old, or anywhere in between, depending
+                on the location.
+              </p>
+              <p>
+                <a
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  href="https://www.waterqualitydata.us/portal_userguide/"
+                >
+                  <i
+                    css={iconStyles}
+                    className="fas fa-book-open"
+                    aria-hidden="true"
+                  />
+                  Water Quality Portal User Guide
+                </a>
+                &nbsp;&nbsp;
+                <small css={modifiedDisclaimerStyles}>
+                  (opens new browser tab)
+                </small>
               </p>
 
               <MonitoringTab
@@ -338,167 +378,13 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
 
   const services = useServicesContext();
 
-  const { usgsStreamgagesLayer, watershed } = useContext(LocationSearchContext);
+  const { watershed } = useContext(LocationSearchContext);
 
-  const [usgsStreamgagesPlotted, setUsgsGtreamgagesPlotted] = useState(false);
-
-  const [normalizedUsgsStreamgages, setNormalizedUsgsStreamgages] = useState(
-    [],
-  );
-
-  // normalize USGS streamgages data with monitoring stations data,
-  // and draw them on the map
-  useEffect(() => {
-    if (!usgsStreamgages.data.value) return;
-
-    const gages = usgsStreamgages.data.value.map((gage) => {
-      const streamgageMeasurements = { primary: [], secondary: [] };
-
-      [...gage.Datastreams]
-        .filter((item) => item.Observations.length > 0)
-        .forEach((item) => {
-          const observation = item.Observations[0];
-          const parameterCode = item.properties.ParameterCode;
-          const parameterDesc = item.description.split(' / USGS-')[0];
-          const parameterUnit = item.unitOfMeasurement;
-
-          let measurement = observation.result;
-          // convert measurements recorded in celsius to fahrenheit
-          if (['00010', '00020', '85583'].includes(parameterCode)) {
-            measurement = measurement * (9 / 5) + 32;
-          }
-
-          const matchedParam = usgsStaParameters.find((p) => {
-            return p.staParameterCode === parameterCode;
-          });
-
-          const data = {
-            parameterCategory: matchedParam?.hmwCategory || 'exclude',
-            parameterOrder: matchedParam?.hmwOrder || 0,
-            parameterName: matchedParam?.hmwName || parameterDesc,
-            parameterUsgsName: matchedParam?.staDescription || parameterDesc,
-            parameterCode,
-            measurement,
-            datetime: new Date(observation.phenomenonTime).toLocaleString(),
-            dailyAverages: [],
-            unitAbbr: matchedParam?.hmwUnits || parameterUnit.symbol,
-            unitName: parameterUnit.name,
-          };
-
-          if (data.parameterCategory === 'primary') {
-            streamgageMeasurements.primary.push(data);
-          }
-
-          if (data.parameterCategory === 'secondary') {
-            streamgageMeasurements.secondary.push(data);
-          }
-        });
-
-      return {
-        monitoringType: 'Current Water Conditions',
-        siteId: gage.properties.monitoringLocationNumber,
-        orgId: gage.properties.agencyCode,
-        orgName: gage.properties.agency,
-        locationLongitude: gage.Locations[0].location.coordinates[0],
-        locationLatitude: gage.Locations[0].location.coordinates[1],
-        locationName: gage.properties.monitoringLocationName,
-        locationType: gage.properties.monitoringLocationType,
-        locationUrl: gage.properties.monitoringLocationUrl,
-        // usgs streamgage specific properties:
-        streamgageMeasurements,
-      };
-    });
-
-    setNormalizedUsgsStreamgages(gages);
-
-    plotGages(gages, usgsStreamgagesLayer).then((result) => {
-      if (result.addFeatureResults.length > 0) setUsgsGtreamgagesPlotted(true);
-    });
-  }, [usgsStreamgages.data, usgsStreamgagesLayer]);
-
-  // once streamgages have been plotted initially, add precipitation data and
-  // daily average measurements data (both fetched from the usgs daily values
-  // web service) to each streamgage if it exists for that particular location
-  // and replot the streamgages on the map
-  useEffect(() => {
-    if (!usgsStreamgagesPlotted) return;
-    if (!usgsPrecipitation.data.value) return;
-    if (!usgsDailyAverages.data.value) return;
-    if (normalizedUsgsStreamgages.length === 0) return;
-
-    const streamgageSiteIds = normalizedUsgsStreamgages.map((gage) => {
-      return gage.siteId;
-    });
-
-    usgsPrecipitation.data.value?.timeSeries.forEach((site) => {
-      const siteId = site.sourceInfo.siteCode[0].value;
-      const observation = site.values[0].value[0];
-
-      if (streamgageSiteIds.includes(siteId)) {
-        const streamgage = normalizedUsgsStreamgages.find((gage) => {
-          return gage.siteId === siteId;
-        });
-
-        streamgage.streamgageMeasurements.primary.push({
-          parameterCategory: 'primary',
-          parameterOrder: 5,
-          parameterName: 'Total Daily Rainfall',
-          parameterUsgsName: 'Precipitation (USGS Daily Value)',
-          parameterCode: '00045',
-          measurement: observation.value,
-          datetime: new Date(observation.dateTime).toLocaleDateString(),
-          dailyAverages: [],
-          unitAbbr: 'in',
-          unitName: 'inches',
-        });
-      }
-    });
-
-    usgsDailyAverages.data.value?.timeSeries.forEach((site) => {
-      const siteId = site.sourceInfo.siteCode[0].value;
-      const sitesHasObservations = site.values[0].value.length > 0;
-
-      if (streamgageSiteIds.includes(siteId) && sitesHasObservations) {
-        const streamgage = normalizedUsgsStreamgages.find((gage) => {
-          return gage.siteId === siteId;
-        });
-
-        const paramCode = site.variable.variableCode[0].value;
-        const observations = site.values[0].value.map(({ value, dateTime }) => {
-          return { measurement: value, date: new Date(dateTime) };
-        });
-
-        // NOTE: 'category' is either 'primary' or 'secondary' – loop over both
-        for (const category in streamgage.streamgageMeasurements) {
-          streamgage.streamgageMeasurements[category].forEach((measurement) => {
-            if (measurement.parameterCode === paramCode.toString()) {
-              measurement.dailyAverages = observations;
-            }
-          });
-        }
-      }
-    });
-
-    plotGages(normalizedUsgsStreamgages, usgsStreamgagesLayer);
-  }, [
-    usgsStreamgagesPlotted,
+  const normalizedUsgsStreamgages = useStreamgageData(
+    usgsStreamgages,
     usgsPrecipitation,
     usgsDailyAverages,
-    normalizedUsgsStreamgages,
-    usgsStreamgagesLayer,
-  ]);
-
-  // emulate componentdidupdate
-  const mounted = useRef();
-  useEffect(() => {
-    if (!mounted.current) {
-      mounted.current = true;
-    } else {
-      if (normalizedUsgsStreamgages.length === 0) return;
-
-      plotGages(normalizedUsgsStreamgages, usgsStreamgagesLayer);
-    }
-  }, [normalizedUsgsStreamgages, usgsStreamgagesLayer]);
+  );
 
   const [sensorsSortedBy, setSensorsSortedBy] = useState('locationName');
 
@@ -561,13 +447,7 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
           return (
             <AccordionItem
               key={index}
-              title={
-                <>
-                  <em css={subtitleStyles}>Location Name:</em>
-                  &nbsp;&nbsp;
-                  <strong>{item.locationName || 'Unknown'}</strong>
-                </>
-              }
+              title={<strong>{item.locationName || 'Unknown'}</strong>}
               subTitle={
                 <>
                   <em>Organization Name:</em>&nbsp;&nbsp;
@@ -589,9 +469,9 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
                   />
                 )}
 
-                {item.monitoringType === 'Sample Location' && (
+                {item.monitoringType === 'Past Water Conditions' && (
                   <WaterbodyInfo
-                    type="Sample Location"
+                    type="Past Water Conditions"
                     feature={feature}
                     services={services}
                   />
@@ -626,9 +506,12 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
   const [charGroupFilters, setCharGroupFilters] = useState('');
 
-  const [totalMeasurements, setTotalMeasurements] = useState(0);
+  const [totalDisplayedLocations, setTotalDisplayedLocations] = useState(0);
 
-  const [totalSamples, setTotalSamples] = useState(0);
+  const [totalDisplayedMeasurements, setTotalDisplayedMeasurements] =
+    useState(0);
+
+  const [totalDisplayedSamples, setTotalDisplayedSamples] = useState(0);
 
   const [sortBy, setSortBy] = useState('locationName');
 
@@ -660,7 +543,25 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
       setAllToggled(allOthersToggled);
 
-      plotStations(tempDisplayedMonitoringLocations, monitoringLocationsLayer);
+      // generate a list of location ids
+      const locationIds = [];
+      tempDisplayedMonitoringLocations.forEach((station) => {
+        locationIds.push(station.uniqueId);
+      });
+
+      // update the filters on the layer
+      if (
+        tempDisplayedMonitoringLocations.length ===
+        monitoringLocationTogglesParam.All.stations.length
+      ) {
+        monitoringLocationsLayer.definitionExpression = '';
+      } else if (locationIds.length === 0) {
+        monitoringLocationsLayer.definitionExpression = '1=0';
+      } else {
+        monitoringLocationsLayer.definitionExpression = `uniqueId IN ('${locationIds.join(
+          "','",
+        )}')`;
+      }
 
       if (tempDisplayedMonitoringLocations.length === 0) {
         setDisplayedMonitoringLocations([]);
@@ -709,6 +610,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   const toggleSwitch = useCallback(
     (groupLabel: string, allToggledParam?: boolean = false) => {
       const toggleGroups = monitoringGroups;
+      let newTotalLocations = 0;
       let newTotalMeasurements = 0;
       let newTotalSamples = 0;
 
@@ -722,6 +624,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
           toggleGroups['All'].stations.forEach((station) => {
             newTotalMeasurements += parseInt(station.stationTotalMeasurements);
             newTotalSamples += parseInt(station.stationTotalSamples);
+            newTotalLocations++;
           });
 
           const activeGroups = characteristicGroupMappings.map(
@@ -737,9 +640,6 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
           for (let key in toggleGroups) {
             if (key !== 'All') toggleGroups[key].toggled = false;
           }
-          // update the watershed total measurements and samples counts
-          newTotalMeasurements = 0;
-          newTotalSamples = 0;
 
           monitoringLocationsLayer.visible = false;
 
@@ -772,12 +672,16 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
               hasData = true;
             }
           });
-          if (hasData) newTotalSamples += parseInt(station.stationTotalSamples);
+          if (hasData) {
+            newTotalSamples += parseInt(station.stationTotalSamples);
+            newTotalLocations++;
+          }
         });
       }
 
-      setTotalMeasurements(newTotalMeasurements);
-      setTotalSamples(newTotalSamples);
+      setTotalDisplayedLocations(newTotalLocations);
+      setTotalDisplayedMeasurements(newTotalMeasurements);
+      setTotalDisplayedSamples(newTotalSamples);
       setMonitoringGroups(toggleGroups);
 
       drawMap(toggleGroups);
@@ -829,7 +733,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
     monitoringLocations.data.features.forEach((station) => {
       const monitoringLocation = {
-        monitoringType: 'Sample Location',
+        monitoringType: 'Past Water Conditions',
         siteId: station.properties.MonitoringLocationIdentifier,
         orgId: station.properties.OrganizationIdentifier,
         orgName: station.properties.OrganizationFormalName,
@@ -939,15 +843,20 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   useEffect(() => {
     // update total measurements and samples counts
     // after `monitoringGroups` is initialized
-    let totalMeasurements = 0;
-    let totalSamples = 0;
+    let totalDisplayedLocations = 0;
+    let totalDisplayedMeasurements = 0;
+    let totalDisplayedSamples = 0;
     if (monitoringGroups) {
       monitoringGroups['All'].stations.forEach((station) => {
-        totalMeasurements += parseInt(station.stationTotalMeasurements);
-        totalSamples += parseInt(station.stationTotalSamples);
+        totalDisplayedLocations++;
+        totalDisplayedMeasurements += parseInt(
+          station.stationTotalMeasurements,
+        );
+        totalDisplayedSamples += parseInt(station.stationTotalSamples);
       });
-      setTotalMeasurements(totalMeasurements);
-      setTotalSamples(totalSamples);
+      setTotalDisplayedLocations(totalDisplayedLocations);
+      setTotalDisplayedMeasurements(totalDisplayedMeasurements);
+      setTotalDisplayedSamples(totalDisplayedSamples);
     }
   }, [monitoringGroups]);
 
@@ -955,6 +864,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     `${services.data.waterQualityPortal.resultSearch}zip=no&huc=` +
     `${huc12}` +
     `${charGroupFilters}`;
+
   const portalUrl =
     `${services.data.waterQualityPortal.userInterface}#huc=${huc12}` +
     `${charGroupFilters}&mimeType=xlsx&dataProfile=resultPhysChem` +
@@ -1001,7 +911,11 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
         {totalLocations > 0 && (
           <>
-            <table css={toggleTableStyles} className="table">
+            <table
+              css={toggleTableStyles}
+              aria-label="Monitoring Location Summary"
+              className="table"
+            >
               <thead>
                 <tr>
                   <th>
@@ -1011,7 +925,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                         onChange={(ev) => toggleSwitch('All', allToggled)}
                         ariaLabel="Toggle all monitoring locations"
                       />
-                      <span>All Monitoring Sample Locations</span>
+                      <span>All Monitoring Locations</span>
                     </div>
                   </th>
                   <th>Location Count</th>
@@ -1019,6 +933,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                   <th>Measurement Count</th>
                 </tr>
               </thead>
+
               <tbody>
                 {Object.values(monitoringGroups)
                   .filter((group) => group.label !== 'All')
@@ -1060,94 +975,59 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                     if (b.key === 'Other') return -1;
                     return a.key > b.key ? 1 : -1;
                   })}
-              </tbody>
-            </table>
 
-            <p>
-              <strong>
-                <em>{watershed}</em> totals:{' '}
-              </strong>
-            </p>
-            <table
-              css={modifiedTableStyles}
-              aria-label="Monitoring Totals"
-              className="table"
-            >
-              <tbody>
-                <tr>
+                <tr css={totalRowStyles}>
                   <td>
-                    <em>
-                      <GlossaryTerm term="Monitoring Samples">
-                        Monitoring Samples:
-                      </GlossaryTerm>
-                    </em>
+                    <div css={toggleStyles}>
+                      <div style={{ width: '38px' }} />
+                      <span>Totals</span>
+                    </div>
                   </td>
-                  <td>{Number(totalSamples).toLocaleString()}</td>
-                </tr>
-                <tr>
-                  <td>
-                    <em>
-                      <GlossaryTerm term="Monitoring Measurements">
-                        Monitoring Measurements:
-                      </GlossaryTerm>
-                    </em>
-                  </td>
-                  <td>{Number(totalMeasurements).toLocaleString()}</td>
+                  <td>{Number(totalDisplayedLocations).toLocaleString()}</td>
+                  <td>{Number(totalDisplayedSamples).toLocaleString()}</td>
+                  <td>{Number(totalDisplayedMeasurements).toLocaleString()}</td>
                 </tr>
               </tbody>
+
+              <tfoot css={tableFooterStyles}>
+                <tr>
+                  <td colSpan="2">
+                    <a
+                      href={portalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-cy="portal"
+                      style={{ fontWeight: 'normal' }}
+                    >
+                      <i
+                        css={iconStyles}
+                        className="fas fa-filter"
+                        aria-hidden="true"
+                      />
+                      Advanced Filtering
+                    </a>
+                    &nbsp;&nbsp;
+                    <small css={modifiedDisclaimerStyles}>
+                      (opens new browser tab)
+                    </small>
+                  </td>
+
+                  <td colSpan="2">
+                    <span>Download All Selected Data</span>
+                    <span>
+                      &nbsp;&nbsp;
+                      <a href={`${downloadUrl}&mimeType=xlsx`}>
+                        <i className="fas fa-file-excel" aria-hidden="true" />
+                      </a>
+                      &nbsp;&nbsp;
+                      <a href={`${downloadUrl}&mimeType=csv`}>
+                        <i className="fas fa-file-csv" aria-hidden="true" />
+                      </a>
+                    </span>
+                  </td>
+                </tr>
+              </tfoot>
             </table>
-            <p>
-              <strong>
-                Download <em>{watershed}</em> Monitoring Data:
-              </strong>
-            </p>
-            <p css={downloadLinksStyles}>
-              <span>Data Download Format:</span>
-              &nbsp;
-              <a href={`${downloadUrl}&mimeType=xlsx`}>
-                <i
-                  css={iconStyles}
-                  className="fas fa-file-excel"
-                  aria-hidden="true"
-                />
-                xls
-              </a>
-              <a href={`${downloadUrl}&mimeType=csv`}>
-                <i
-                  css={iconStyles}
-                  className="fas fa-file-csv"
-                  aria-hidden="true"
-                />
-                csv
-              </a>
-            </p>
-            <p>
-              <a rel="noopener noreferrer" target="_blank" href={portalUrl}>
-                <i
-                  css={iconStyles}
-                  className="fas fa-filter"
-                  aria-hidden="true"
-                />
-                Filter this data using the <em>Water Quality Portal</em> form
-              </a>
-              &nbsp;&nbsp;
-              <small css={disclaimerStyles}>(opens new browser tab)</small>
-              <br />
-              <a
-                rel="noopener noreferrer"
-                target="_blank"
-                href="https://www.waterqualitydata.us/portal_userguide/"
-              >
-                <i
-                  css={iconStyles}
-                  className="fas fa-book-open"
-                  aria-hidden="true"
-                />
-                Water Quality Portal User Guide
-              </a>
-              &nbsp;&nbsp;
-              <small css={disclaimerStyles}>(opens new browser tab)</small>
-            </p>
 
             <AccordionList
               title={
@@ -1161,7 +1041,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
               onSortChange={({ value }) => setSortBy(value)}
               sortOptions={[
                 {
-                  label: 'Monitoring Sample Location Name',
+                  label: 'Monitoring Location Name',
                   value: 'locationName',
                 },
                 {
@@ -1197,13 +1077,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                     <AccordionItem
                       key={index}
                       index={index}
-                      title={
-                        <>
-                          <em css={subtitleStyles}>Location Name:</em>
-                          &nbsp;&nbsp;
-                          <strong>{item.locationName || 'Unknown'}</strong>
-                        </>
-                      }
+                      title={<strong>{item.locationName || 'Unknown'}</strong>}
                       subTitle={
                         <>
                           <em>Organization Name:</em>&nbsp;&nbsp;
@@ -1234,7 +1108,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                     >
                       <div css={accordionContentStyles}>
                         <WaterbodyInfo
-                          type="Sample Location"
+                          type="Past Water Conditions"
                           feature={feature}
                           services={services}
                         />

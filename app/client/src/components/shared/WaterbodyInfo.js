@@ -27,7 +27,6 @@ import { waterbodyReportError } from 'config/errorMessages';
 import {
   colors,
   disclaimerStyles,
-  downloadLinksStyles,
   iconStyles,
   modifiedTableStyles,
 } from 'styles/index.js';
@@ -52,6 +51,21 @@ function renderLink(label, link) {
       <a rel="noopener noreferrer" target="_blank" href={link}>
         {link}
       </a>
+    </p>
+  );
+}
+
+function labelValue(label, value, icon = null) {
+  return (
+    <p>
+      <strong>{label}: </strong>
+      {icon ? (
+        <span css={popupIconStyles}>
+          {icon} {value}
+        </span>
+      ) : (
+        value
+      )}
     </p>
   );
 }
@@ -87,6 +101,12 @@ const measurementTableStyles = css`
   }
 `;
 
+const modifiedDisclaimerStyles = css`
+  ${disclaimerStyles};
+
+  padding-bottom: 0;
+`;
+
 const checkboxCellStyles = css`
   padding-right: 0 !important;
   text-align: center;
@@ -114,12 +134,28 @@ const moreLessRowStyles = css`
 const additionalTextStyles = css`
   font-style: italic;
   color: ${colors.gray6};
+  white-space: nowrap;
 `;
 
 const measurementStyles = css`
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
+`;
+
+const chartStyles = css`
+  padding-right: 8px;
+  width: 128px;
+  text-align: center;
+  line-height: 1;
+
+  small {
+    color: ${colors.gray9};
+  }
+`;
+
+const unitStyles = css`
+  overflow-wrap: break-word;
 `;
 
 const popupIconStyles = css`
@@ -180,14 +216,29 @@ const changeWatershedContainerStyles = css`
   }
 `;
 
+const totalRowStyles = css`
+  border-top: 2px solid #dee2e6;
+  font-weight: bold;
+`;
+
+const tableFooterStyles = css`
+  span {
+    display: inline-block;
+    margin-bottom: 0.25em;
+  }
+
+  td {
+    border-top: none;
+    font-weight: bold;
+    width: 50%;
+  }
+`;
+
 type Props = {
   type: string,
-  feature: ?Object,
+  feature: Object,
   fieldName: ?string,
-  isPopup: boolean,
   extraContent: ?Object,
-  getClickedHuc: ?Function,
-  resetData: ?Function,
   services: ?Object,
   fields: ?Object,
 };
@@ -196,59 +247,13 @@ function WaterbodyInfo({
   type,
   feature,
   fieldName,
-  isPopup = false,
   extraContent,
-  getClickedHuc,
-  resetData,
   services,
   fields,
 }: Props) {
-  // Gets the response of what huc was clicked, if provided.
-  const [clickedHuc, setClickedHuc] = useState<{
-    status: 'none' | 'fetching' | 'success' | 'failure',
-    data: { huc12: any, watershed: any } | null,
-  }>({ status: 'none', data: null });
-
-  useEffect(() => {
-    if (!getClickedHuc || clickedHuc.status !== 'none') return;
-
-    setClickedHuc({ status: 'fetching', data: null });
-
-    getClickedHuc
-      .then((res) => setClickedHuc(res))
-      .catch((err) => {
-        console.error(err);
-        setClickedHuc({ status: 'failure', data: null });
-      });
-  }, [getClickedHuc, clickedHuc]);
-
   const { attributes } = feature;
   const onWaterbodyReportPage =
     window.location.pathname.indexOf('waterbody-report') !== -1;
-
-  function labelValue(label, value, icon = null) {
-    if (isPopup) {
-      return (
-        <p>
-          <strong>{label}: </strong>
-          {icon ? (
-            <span css={popupIconStyles}>
-              {icon} {value}
-            </span>
-          ) : (
-            value
-          )}
-        </p>
-      );
-    }
-
-    return (
-      <p css={paragraphStyles}>
-        <strong>{label}: </strong>
-        {value}
-      </p>
-    );
-  }
 
   const waterbodyPollutionCategories = (label: string) => {
     const pollutionCategories = impairmentFields
@@ -272,31 +277,6 @@ function WaterbodyInfo({
         <ul>{pollutionCategories}</ul>
       </>
     );
-  };
-
-  const getTypeTitle = () => {
-    const typesToSkip = [
-      'Action',
-      'Change Location',
-      'Waterbody State Overview',
-    ];
-    if (typesToSkip.includes(type)) return null;
-
-    let title = type;
-    if (type === 'Demographic Indicators') {
-      title = `${type} - ${feature.layer.title}`;
-    }
-    if (type === 'Restoration Plans') {
-      title = 'Restoration Plans for this Waterbody';
-    }
-    if (type === 'Protection Plans') {
-      title = 'Protection Plans for this Waterbody';
-    }
-    if (type === 'Upstream Watershed') {
-      title = <GlossaryTerm term="Upstream Watershed">{title}</GlossaryTerm>;
-    }
-
-    return <p css={popupTitleStyles}>{title}</p>;
   };
 
   const waterbodyReportLink =
@@ -360,7 +340,6 @@ function WaterbodyInfo({
       }) || [];
 
     const reportingCycle = attributes && attributes.reportingcycle;
-
     return (
       <>
         {reportingCycle && (
@@ -517,6 +496,9 @@ function WaterbodyInfo({
   const [charGroupFilters, setCharGroupFilters] = useState('');
   const [selected, setSelected] = useState({});
   const [selectAll, setSelectAll] = useState(1);
+  const [totalMeasurements, setTotalMeasurements] = useState(
+    attributes.stationTotalMeasurements,
+  );
 
   function monitoringLocationsContent() {
     const stationGroups = JSON.parse(attributes.stationTotalsByCategory);
@@ -552,6 +534,14 @@ function WaterbodyInfo({
         }
       }
     });
+
+    if (!Object.keys(selected).length) {
+      let selectedGroups = {};
+      Object.keys(groups).forEach((key) => {
+        selectedGroups[key] = true;
+      });
+      setSelected(selectedGroups);
+    }
 
     function buildFilter(selectedNames, monitoringLocationData) {
       let filter = '';
@@ -591,15 +581,24 @@ function WaterbodyInfo({
       if (numberSelected === totalSelections) {
         setSelectAll(1);
         setCharGroupFilters('');
+        setTotalMeasurements(attributes.stationTotalMeasurements);
       }
       // if none selected
       else if (numberSelected === 0) {
         setSelectAll(0);
         setCharGroupFilters('');
+        setTotalMeasurements(0);
       }
       // if some selected
       else {
         setSelectAll(2);
+        let newTotalMeasurementCount = 0;
+        Object.keys(groups).forEach((group) => {
+          if (selectedGroups[group] === true) {
+            newTotalMeasurementCount += groups[group].resultCount;
+          }
+        });
+        setTotalMeasurements(newTotalMeasurementCount);
       }
     }
 
@@ -617,6 +616,9 @@ function WaterbodyInfo({
 
       setSelected(selectedGroups);
       setSelectAll(selectAll === 0 ? 1 : 0);
+      setTotalMeasurements(
+        selectAll === 0 ? attributes.stationTotalMeasurements : 0,
+      );
       setCharGroupFilters('');
     }
 
@@ -694,7 +696,20 @@ function WaterbodyInfo({
         </table>
 
         <p>
-          <strong>Download Monitoring Data:</strong>
+          <a
+            rel="noopener noreferrer"
+            target="_blank"
+            href={attributes.locationUrl}
+          >
+            <i
+              css={iconStyles}
+              className="fas fa-info-circle"
+              aria-hidden="true"
+            />
+            More Information
+          </a>
+          &nbsp;&nbsp;
+          <small css={modifiedDisclaimerStyles}>(opens new browser tab)</small>
         </p>
 
         {Object.keys(groups).length === 0 && (
@@ -754,54 +769,52 @@ function WaterbodyInfo({
                   </tr>
                 );
               })}
+              <tr css={totalRowStyles}>
+                <td></td>
+                <td>Total</td>
+                <td>{Number(totalMeasurements).toLocaleString()}</td>
+              </tr>
             </tbody>
+
+            <tfoot css={tableFooterStyles}>
+              <tr>
+                <td colSpan="2">
+                  <a
+                    rel="noopener noreferrer"
+                    target="_blank"
+                    data-cy="portal"
+                    href={portalUrl}
+                    style={{ fontWeight: 'normal' }}
+                  >
+                    <i
+                      css={iconStyles}
+                      className="fas fa-filter"
+                      aria-hidden="true"
+                    />
+                    Advanced Filtering
+                  </a>
+                  &nbsp;&nbsp;
+                  <small css={modifiedDisclaimerStyles}>
+                    (opens new browser tab)
+                  </small>
+                </td>
+                <td colSpan="2">
+                  <span>Download Station Data</span>
+                  <span>
+                    &nbsp;&nbsp;
+                    <a href={`${downloadUrl}&mimeType=xlsx`}>
+                      <i className="fas fa-file-excel" aria-hidden="true" />
+                    </a>
+                    &nbsp;&nbsp;
+                    <a href={`${downloadUrl}&mimeType=csv`}>
+                      <i className="fas fa-file-csv" aria-hidden="true" />
+                    </a>
+                  </span>
+                </td>
+              </tr>
+            </tfoot>
           </table>
         )}
-
-        <p css={downloadLinksStyles}>
-          <span>Data Download Format:</span>
-          &nbsp;
-          <a href={`${downloadUrl}&mimeType=xlsx`}>
-            <i
-              css={iconStyles}
-              className="fas fa-file-excel"
-              aria-hidden="true"
-            />
-            xls
-          </a>
-          <a href={`${downloadUrl}&mimeType=csv`}>
-            <i
-              css={iconStyles}
-              className="fas fa-file-csv"
-              aria-hidden="true"
-            />
-            csv
-          </a>
-        </p>
-
-        <p>
-          <a
-            rel="noopener noreferrer"
-            target="_blank"
-            href={attributes.locationUrl}
-          >
-            <i
-              css={iconStyles}
-              className="fas fa-info-circle"
-              aria-hidden="true"
-            />
-            More Information
-          </a>
-          &nbsp;&nbsp;
-          <small css={disclaimerStyles}>(opens new browser tab)</small>
-          <br />
-          <a rel="noopener noreferrer" target="_blank" href={portalUrl}>
-            <i css={iconStyles} className="fas fa-filter" aria-hidden="true" />
-            Filter this data using the <em>Water Quality Portal</em> form
-          </a>
-          &nbsp;&nbsp;
-          <small css={disclaimerStyles}>(opens new browser tab)</small>
-        </p>
       </>
     );
   }
@@ -1139,7 +1152,7 @@ function WaterbodyInfo({
   if (type === 'Current Water Conditions') {
     content = <UsgsStreamgagesContent feature={feature} />;
   }
-  if (type === 'Sample Location') content = monitoringLocationsContent();
+  if (type === 'Past Water Conditions') content = monitoringLocationsContent();
   if (type === 'Nonprofit') content = nonprofitContent;
   if (type === 'Waterbody State Overview') content = waterbodyStateContent;
   if (type === 'Action') content = actionContent;
@@ -1155,75 +1168,154 @@ function WaterbodyInfo({
     content = congressionalDistrictContent();
   }
 
-  if (isPopup) {
-    const huc12 = clickedHuc?.data?.huc12;
-    const watershed = clickedHuc?.data?.watershed;
-
-    content = (
-      <div css={popupContainerStyles}>
-        {clickedHuc && (
-          <>
-            {clickedHuc.status === 'no-data' && null}
-            {clickedHuc.status === 'fetching' && <LoadingSpinner />}
-            {clickedHuc.status === 'failure' && <p>Web service error</p>}
-            {clickedHuc.status === 'success' && (
-              <>
-                {type !== 'Change Location' && (
-                  <p css={popupTitleStyles}>Change to this location?</p>
-                )}
-
-                <div css={changeWatershedContainerStyles}>
-                  <div>
-                    {labelValue('WATERSHED', `${watershed} (${huc12})`)}
-                  </div>
-
-                  <div css={buttonsContainer}>
-                    <button
-                      css={buttonStyles}
-                      title="Change to this location"
-                      className="btn"
-                      onClick={(ev) => {
-                        // Clear all data before navigating.
-                        // The main reason for this is better performance
-                        // when doing a huc search by clicking on the state map. The app
-                        // will attempt to use all of the loaded state data, then clear it
-                        // then load the huc. This could take a long time if the state
-                        // has a lot of waterbodies.
-                        if (resetData) resetData();
-
-                        let baseRoute = `/community/${huc12}`;
-
-                        // community will attempt to stay on the same tab
-                        // if available, stay on the same tab otherwise go to overview
-                        let urlParts = window.location.pathname.split('/');
-                        if (
-                          urlParts.includes('community') &&
-                          urlParts.length > 3
-                        ) {
-                          window.location.assign(`${baseRoute}/${urlParts[3]}`);
-                          return;
-                        }
-
-                        window.location.assign(`${baseRoute}/overview`);
-                      }}
-                    >
-                      Yes
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-          </>
-        )}
-
-        {getTypeTitle()}
-
-        <div css={popupContentStyles}>{content}</div>
-      </div>
-    );
-  }
-
   return content;
+}
+
+type MapPopupProps = {
+  type: string,
+  feature: Object,
+  fieldName: ?string,
+  extraContent: ?Object,
+  getClickedHuc: ?Function,
+  resetData: ?Function,
+  services: ?Object,
+  fields: ?Object,
+  navigate: Function,
+};
+
+function MapPopup({
+  type,
+  feature,
+  fieldName,
+  extraContent,
+  getClickedHuc,
+  resetData,
+  services,
+  fields,
+  navigate,
+}: MapPopupProps) {
+  // Gets the response of what huc was clicked, if provided.
+  const [clickedHuc, setClickedHuc] = useState<{
+    status: 'none' | 'fetching' | 'success' | 'failure',
+    data: { huc12: any, watershed: any } | null,
+  }>({ status: 'none', data: null });
+
+  useEffect(() => {
+    if (!getClickedHuc || clickedHuc.status !== 'none') return;
+
+    setClickedHuc({ status: 'fetching', data: null });
+
+    getClickedHuc
+      .then((res) => setClickedHuc(res))
+      .catch((err) => {
+        console.error(err);
+        setClickedHuc({ status: 'failure', data: null });
+      });
+  }, [getClickedHuc, clickedHuc]);
+
+  const { attributes } = feature;
+
+  const getTypeTitle = () => {
+    const typesToSkip = [
+      'Action',
+      'Change Location',
+      'Waterbody State Overview',
+    ];
+    if (typesToSkip.includes(type)) return null;
+
+    let title = type;
+    if (type === 'Demographic Indicators') {
+      title = `${type} - ${feature.layer.title}`;
+    }
+    if (type === 'Restoration Plans') {
+      title = 'Restoration Plans for this Waterbody';
+    }
+    if (type === 'Protection Plans') {
+      title = 'Protection Plans for this Waterbody';
+    }
+    if (type === 'Upstream Watershed') {
+      title = <GlossaryTerm term="Upstream Watershed">{title}</GlossaryTerm>;
+    }
+
+    return <p css={popupTitleStyles}>{title}</p>;
+  };
+
+  if (!attributes) return null;
+
+  const huc12 = clickedHuc?.data?.huc12;
+  const watershed = clickedHuc?.data?.watershed;
+
+  return (
+    <div css={popupContainerStyles}>
+      {clickedHuc && (
+        <>
+          {clickedHuc.status === 'no-data' && null}
+          {clickedHuc.status === 'fetching' && <LoadingSpinner />}
+          {clickedHuc.status === 'failure' && <p>Web service error</p>}
+          {clickedHuc.status === 'success' && (
+            <>
+              {type !== 'Change Location' && (
+                <p css={popupTitleStyles}>Change to this location?</p>
+              )}
+
+              <div css={changeWatershedContainerStyles}>
+                <div>{labelValue('WATERSHED', `${watershed} (${huc12})`)}</div>
+
+                <div css={buttonsContainer}>
+                  <button
+                    css={buttonStyles}
+                    title="Change to this location"
+                    className="btn"
+                    onClick={(ev) => {
+                      // Clear all data before navigating.
+                      // The main reason for this is better performance
+                      // when doing a huc search by clicking on the state map. The app
+                      // will attempt to use all of the loaded state data, then clear it
+                      // then load the huc. This could take a long time if the state
+                      // has a lot of waterbodies.
+                      if (resetData) resetData();
+
+                      let baseRoute = `/community/${huc12}`;
+
+                      // community will attempt to stay on the same tab
+                      // if available, stay on the same tab otherwise go to overview
+                      let urlParts = window.location.pathname.split('/');
+                      if (
+                        urlParts.includes('community') &&
+                        urlParts.length > 3
+                      ) {
+                        navigate(`${baseRoute}/${urlParts[3]}`);
+                        return;
+                      }
+
+                      navigate(`${baseRoute}/overview`);
+                    }}
+                  >
+                    Yes
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </>
+      )}
+
+      {getTypeTitle()}
+
+      <div css={popupContentStyles}>
+        <WaterbodyInfo
+          type={type}
+          feature={feature}
+          fieldName={fieldName}
+          extraContent={extraContent}
+          getClickedHuc={getClickedHuc}
+          resetData={resetData}
+          services={services}
+          fields={fields}
+        />
+      </div>
+    </div>
+  );
 }
 
 function UsgsStreamgagesContent({ feature }: { feature: Object }) {
@@ -1409,7 +1501,7 @@ function UsgsStreamgageParameter({ url, data }) {
           {data.parameterCode} &ndash; {data.parameterUsgsName}
         </small>
       </td>
-      <td style={{ width: '256px' }}>
+      <td>
         {data.multiple ? (
           <>
             <em>multiple&nbsp;measurements&nbsp;found</em>
@@ -1423,15 +1515,20 @@ function UsgsStreamgageParameter({ url, data }) {
             </small>
           </>
         ) : (
-          <div css={measurementStyles} style={{ width: '256px' }}>
-            {data.dailyAverages.length > 0 ? (
-              <div style={{ width: '128px' }}>
+          <div css={measurementStyles}>
+            <div css={chartStyles}>
+              {data.dailyAverages.length > 0 ? (
                 <Sparkline data={data.dailyAverages} />
-              </div>
-            ) : (
-              <div>&nbsp;</div>
-            )}
-            <div>
+              ) : (
+                <small css={additionalTextStyles}>
+                  No weekly
+                  <br />
+                  summary data
+                </small>
+              )}
+            </div>
+
+            <div css={unitStyles}>
               <strong>{data.measurement}</strong>
               &nbsp;
               <small title={data.unitName}>{data.unitAbbr}</small>
@@ -1446,3 +1543,5 @@ function UsgsStreamgageParameter({ url, data }) {
 }
 
 export default WaterbodyInfo;
+
+export { MapPopup };

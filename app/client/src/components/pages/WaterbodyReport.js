@@ -50,7 +50,7 @@ const containerStyles = css`
 
   table {
     margin-top: 0.75rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0;
     table-layout: fixed;
   }
 
@@ -204,15 +204,6 @@ const iconStyles = css`
 
 const disclaimerStyles = css`
   display: inline-block;
-`;
-
-const introTextStyles = css`
-  margin-top: 0 !important;
-  padding-bottom: 0.4375em !important;
-`;
-
-const listStyles = css`
-  padding-bottom: 0;
 `;
 
 type Props = {
@@ -1256,36 +1247,44 @@ function WaterbodyReport({ fullscreen }: Props) {
                       )}
                       {documents.status === 'success' && (
                         <>
-                          {documents.length > 0 && (
-                            <div css={[boxSectionStyles, { paddingBottom: 0 }]}>
-                              <p css={introTextStyles}>
-                                <em>Links below open in a new browser tab.</em>
-                              </p>
-                            </div>
+                          {documents.data.length === 0 ? (
+                            <p>No documents are available</p>
+                          ) : (
+                            <>
+                              <em>Links below open in a new browser tab.</em>
+                              <table className="table">
+                                <thead>
+                                  <tr>
+                                    <th>Assessment</th>
+                                    <th>Type</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {documents.data.map((document) => (
+                                    <tr key={document.documentName}>
+                                      <td>
+                                        <a
+                                          href={document.documentURL}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                        >
+                                          {document.documentName}
+                                        </a>
+                                        <DynamicExitDisclaimer
+                                          url={document.documentURL}
+                                        />
+                                      </td>
+                                      <td>
+                                        {document.documentTypes.length &&
+                                          document.documentTypes[0]
+                                            .documentTypeCode}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </>
                           )}
-                          <div css={boxSectionStyles}>
-                            <ul css={listStyles}>
-                              {documents.data.length === 0 && (
-                                <li>No documents are available</li>
-                              )}
-
-                              {documents.data.length > 0 &&
-                                documents.data.map((document) => (
-                                  <li key={document.documentName}>
-                                    <a
-                                      href={document.documentURL}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                    >
-                                      {document.documentName}
-                                    </a>
-                                    <DynamicExitDisclaimer
-                                      url={document.documentURL}
-                                    />
-                                  </li>
-                                ))}
-                            </ul>
-                          </div>
                         </>
                       )}
                     </div>

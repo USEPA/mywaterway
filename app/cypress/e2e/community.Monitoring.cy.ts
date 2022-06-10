@@ -1,0 +1,139 @@
+describe('Monitoring Tab', () => {
+  beforeEach(() => {
+    cy.visit('/community');
+  });
+
+  it('Clicking the All Monitoring Locations switch toggles it off and displays 0 locations in the accordion', () => {
+    // navigate to Monitoring tab of Community page
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      'San Antonio, TX',
+    );
+    cy.findByText('Go').click();
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    cy.findByText('Monitoring').click();
+    cy.findByRole('tab', { name: 'Past Water Conditions' }).click();
+
+    // click Toggle All Monitoring Locations switch and check that all switches are toggled off
+    cy.findByLabelText('Toggle all monitoring locations').click({
+      force: true,
+    });
+
+    cy.findByLabelText('Toggle all monitoring locations').should(
+      'have.attr',
+      'aria-checked',
+      'false',
+    );
+    cy.findByLabelText('Toggle Metals').should(
+      'have.attr',
+      'aria-checked',
+      'false',
+    );
+
+    // check that there are no items displayed in accordion
+    cy.findByTestId('monitoring-accordion-title').contains('0 of 97');
+
+    // check that clicking the Toggle All switch again toggles all switches back on
+    cy.findByLabelText('Toggle all monitoring locations').click({
+      force: true,
+    });
+    cy.findByLabelText('Toggle all monitoring locations').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
+    cy.findByLabelText('Toggle Metals').should(
+      'have.attr',
+      'aria-checked',
+      'true',
+    );
+  });
+
+  it('Should update the total measurement counts when flipping the "PFAS" toggle switch', () => {
+    // navigate to Monitoring tab of Community page
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      '45203',
+    );
+    cy.findByText('Go').click();
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    cy.findByText('Monitoring').click();
+    cy.findByRole('tab', { name: 'Past Water Conditions' });
+
+    // navigate to the Past Water Conditions sub-tab
+    cy.findAllByText('Past Water Conditions').filter('button').click();
+
+    // turn off all switches
+    cy.findByText('All Monitoring Locations')
+      .siblings()
+      .first()
+      .find('input')
+      .click({
+        force: true,
+      });
+
+    cy.findByRole('table', { name: 'Monitoring Location Summary' })
+      .find('tbody')
+      .find('td')
+      .last()
+      .should('have.text', '0');
+
+    // flip the PFAS switch
+    cy.findByText('PFAS').siblings().first().find('input').click({
+      force: true,
+    });
+
+    cy.findByRole('table', { name: 'Monitoring Location Summary' })
+      .find('tbody')
+      .find('td')
+      .last()
+      .should('not.have.text', '0');
+  });
+
+  it('Should update the mapped locations when flipping the "PFAS" toggle switch', () => {
+    // navigate to Monitoring tab of Community page
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      '45203',
+    );
+    cy.findByText('Go').click();
+
+    // wait for the web services to finish
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    cy.findByText('Monitoring').click();
+
+    // navigate to the Past Water Conditions sub-tab
+    cy.findAllByText('Past Water Conditions').filter('button').click();
+
+    // turn off all switches
+    cy.findByText('All Monitoring Locations')
+      .siblings()
+      .first()
+      .find('input')
+      .click({
+        force: true,
+      });
+
+    // this triggers the virtualized list to load
+    cy.scrollTo('bottom');
+
+    cy.findAllByText('Ohio: Middle').should('not.exist');
+
+    // flip the PFAS switch
+    cy.findByText('PFAS').siblings().first().find('input').click({
+      force: true,
+    });
+
+    cy.findAllByText('Ohio: Middle').should('exist');
+  });
+});

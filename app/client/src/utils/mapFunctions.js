@@ -6,8 +6,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { css } from 'styled-components/macro';
 import Graphic from '@arcgis/core/Graphic';
 // components
+import { MapPopup } from 'components/shared/WaterbodyInfo';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
-import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 // styles
 import { colors } from 'styles/index.js';
 // utilities
@@ -345,72 +345,12 @@ export function createWaterbodySymbol({
   }
 }
 
-// plot monitoring stations on map
-export function plotStations(stations: Array<Object>, layer: any) {
-  if (!stations || !layer) return;
-
-  // sort descending order so that smaller graphics show up on top
-  const stationsSorted = [...stations];
-  stationsSorted.sort((a, b) => {
-    return (
-      parseInt(b.stationTotalMeasurements) -
-      parseInt(a.stationTotalMeasurements)
-    );
-  });
-
-  const graphics = stationsSorted.map((station) => {
-    return new Graphic({
-      geometry: {
-        type: 'point',
-        longitude: station.locationLongitude,
-        latitude: station.locationLatitude,
-      },
-      attributes: station,
-    });
-  });
-
-  layer.queryFeatures().then((featureSet) => {
-    return layer.applyEdits({
-      deleteFeatures: featureSet.features,
-      addFeatures: graphics,
-    });
-  });
-}
-
-// plot usgs streamgages on map
-export function plotGages(gages: Object[], layer: any) {
-  if (!gages || !layer) return;
-
-  const graphics = gages.map((gage) => {
-    const gageHeightMeasurements = gage.streamgageMeasurements.primary.filter(
-      (d) => d.parameterCode === '00065',
-    );
-
-    const gageHeight =
-      gageHeightMeasurements.length === 1
-        ? gageHeightMeasurements[0]?.measurement
-        : null;
-
-    return new Graphic({
-      geometry: {
-        type: 'point',
-        longitude: gage.locationLongitude,
-        latitude: gage.locationLatitude,
-      },
-      attributes: { gageHeight, ...gage },
-    });
-  });
-
-  return layer.queryFeatures().then((featureSet) => {
-    return layer.applyEdits({
-      deleteFeatures: featureSet.features,
-      addFeatures: graphics,
-    });
-  });
-}
-
 // plot issues on map
-export function plotIssues(features: Array<Object>, layer: any) {
+export function plotIssues(
+  features: Array<Object>,
+  layer: any,
+  navigate: function,
+) {
   if (!features || !layer) return;
 
   // clear the layer
@@ -434,38 +374,7 @@ export function plotIssues(features: Array<Object>, layer: any) {
         popupTemplate: {
           title: getPopupTitle(waterbody.attributes),
           content: getPopupContent({
-            feature: { attributes: waterbody.attributes },
-          }),
-        },
-      }),
-    );
-  });
-}
-
-// plot wild and scenic rivers on map
-export function plotWildScenicRivers(features: Array<Object>, layer: any) {
-  if (!features || !layer) return;
-
-  // clear the layer
-  layer.graphics.removeAll();
-  // put graphics on the layer
-  features.forEach((river) => {
-    layer.graphics.add(
-      new Graphic({
-        geometry: river.geometry,
-        symbol: {
-          type: 'simple-line', // autocasts as SimpleLineSymbol() or SimpleFillSymbol()
-          color: [0, 123, 255],
-          width: 3,
-        },
-        attributes: {
-          ...river.attributes,
-          fieldName: null,
-        },
-        popupTemplate: {
-          title: getPopupTitle(river.attributes),
-          content: getPopupContent({
-            feature: { attributes: river.attributes },
+            feature: { attributes: waterbody.attributes, navigate },
           }),
         },
       }),
@@ -477,9 +386,11 @@ export function plotWildScenicRivers(features: Array<Object>, layer: any) {
 export function plotFacilities({
   facilities,
   layer,
+  navigate,
 }: {
   facilities: Array<Object>,
   layer: any,
+  navigate: Function,
 }) {
   if (!facilities || !layer) return;
 
@@ -504,7 +415,10 @@ export function plotFacilities({
         attributes: facility,
         popupTemplate: {
           title: getPopupTitle(facility),
-          content: getPopupContent({ feature: { attributes: facility } }),
+          content: getPopupContent({
+            feature: { attributes: facility },
+            navigate,
+          }),
         },
       }),
     );
@@ -516,6 +430,7 @@ export const openPopup = (
   feature: Object,
   fields: Object,
   services: Object,
+  navigate: Function,
 ) => {
   const fieldName = feature.attributes && feature.attributes.fieldName;
 
@@ -526,7 +441,13 @@ export const openPopup = (
   ) {
     feature.popupTemplate = {
       title: getPopupTitle(feature.attributes),
-      content: getPopupContent({ feature, fields, fieldName, services }),
+      content: getPopupContent({
+        feature,
+        fields,
+        fieldName,
+        services,
+        navigate,
+      }),
     };
   }
 
@@ -591,7 +512,7 @@ export function getPopupTitle(attributes: Object) {
 
   // monitoring station
   else if (
-    attributes.monitoringType === 'Sample Location' ||
+    attributes.monitoringType === 'Past Water Conditions' ||
     attributes.monitoringType === 'Current Water Conditions'
   ) {
     title = attributes.locationName;
@@ -658,6 +579,7 @@ export function getPopupContent({
   resetData,
   services,
   fields,
+  navigate,
 }: {
   feature: Object,
   fieldName: ?string,
@@ -666,6 +588,7 @@ export function getPopupContent({
   resetData: ?Function,
   services: ?Object,
   fields: ?Object,
+  navigate: Function,
 }) {
   let type = 'Unknown';
 
@@ -706,8 +629,11 @@ export function getPopupContent({
   }
 
   // monitoring station
-  else if (attributes && attributes.monitoringType === 'Sample Location') {
-    type = 'Sample Location';
+  else if (
+    attributes &&
+    attributes.monitoringType === 'Past Water Conditions'
+  ) {
+    type = 'Past Water Conditions';
   }
 
   // protect tab teal nonprofits
@@ -766,16 +692,16 @@ export function getPopupContent({
   }
 
   const content = (
-    <WaterbodyInfo
+    <MapPopup
       type={type}
       feature={feature}
       fieldName={fieldName}
-      isPopup={true}
       extraContent={extraContent}
       getClickedHuc={getClickedHuc}
       resetData={resetData}
       services={services}
       fields={fields}
+      navigate={navigate}
     />
   );
 

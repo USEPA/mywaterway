@@ -8,7 +8,6 @@ import React, {
   useState,
 } from 'react';
 import { css } from 'styled-components/macro';
-import Switch from 'components/shared/Switch';
 import { useNavigate } from 'react-router-dom';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Locator from '@arcgis/core/tasks/Locator';
@@ -160,24 +159,6 @@ const searchBoxStyles = css`
   }
 `;
 
-/**
- * TODO
- *   Delete the following styles once the
- *   testing clustering switch is removed.
- */
-const tempClusteringContainerStyles = css`
-  display: flex;
-  justify-content: space-between;
-`;
-const tempClusteringLabelContainerStyles = css`
-  display: flex;
-  align-items: center;
-`;
-const tempClusteringLabelStyles = css`
-  margin: 0;
-  margin-right: 10px;
-`;
-
 type Props = {
   route: string,
   label: Node,
@@ -197,14 +178,7 @@ function LocationSearch({ route, label }: Props) {
   const sourceEnterPress = useKeyPress('Enter', sourceList);
   const clearButton = useRef();
   const clearEnterPress = useKeyPress('Enter', clearButton);
-  const {
-    searchText,
-    watershed,
-    huc12,
-    monitoringLocations,
-    monitoringLocationsLayer,
-    visibleLayers,
-  } = useContext(LocationSearchContext);
+  const { searchText, watershed, huc12 } = useContext(LocationSearchContext);
 
   const placeholder = 'Search by address, zip code, or place...';
   const [allSources] = useState([
@@ -737,9 +711,6 @@ function LocationSearch({ route, label }: Props) {
     };
   }, [suggestionsRef]);
 
-  // TODO Delete this state when the TEMP clustering switch is removed
-  const [clusteringEnabled, setClusteringEnabled] = useState(false);
-
   return (
     <>
       {errorMessage && (
@@ -748,70 +719,9 @@ function LocationSearch({ route, label }: Props) {
         </div>
       )}
 
-      {visibleLayers.monitoringLocationsLayer &&
-      monitoringLocationsLayer &&
-      monitoringLocations.status === 'success' &&
-      monitoringLocations.data.features.length ? (
-        <div css={tempClusteringContainerStyles}>
-          <label css={labelStyles} htmlFor="hmw-search-input">
-            {label}
-          </label>
-          <div css={tempClusteringLabelContainerStyles}>
-            <label css={tempClusteringLabelStyles}>
-              TEMP Monitoring Clustering
-            </label>
-            <Switch
-              checked={clusteringEnabled}
-              onChange={(checked) => {
-                setClusteringEnabled(checked);
-
-                if (checked) {
-                  monitoringLocationsLayer.featureReduction = {
-                    type: 'cluster',
-                    clusterRadius: '100px',
-                    popupTemplate: {
-                      title: 'Cluster summary',
-                      content:
-                        'This cluster represents {cluster_count} stations',
-                      fieldInfos: [
-                        {
-                          fieldName: 'cluster_count',
-                          format: {
-                            places: 0,
-                            digitSeparator: true,
-                          },
-                        },
-                      ],
-                    },
-                    popupEnabled: true,
-                    clusterMinSize: '24px',
-                    clusterMaxSize: '60px',
-                    labelingInfo: [
-                      {
-                        deconflictionStrategy: 'none',
-                        labelExpressionInfo: {
-                          expression: "Text($feature.cluster_count, '#,###')",
-                        },
-                        symbol: {
-                          type: 'text',
-                          color: '#ffffff',
-                        },
-                        labelPlacement: 'center-center',
-                      },
-                    ],
-                  };
-                } else {
-                  monitoringLocationsLayer.featureReduction = undefined;
-                }
-              }}
-            />
-          </div>
-        </div>
-      ) : (
-        <label css={labelStyles} htmlFor="hmw-search-input">
-          {label}
-        </label>
-      )}
+      <label css={labelStyles} htmlFor="hmw-search-input">
+        {label}
+      </label>
 
       <form
         css={formStyles}
