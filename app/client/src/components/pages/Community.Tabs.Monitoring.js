@@ -205,17 +205,15 @@ function usePeriodOfRecordData(filter: string, param: 'huc12' | 'siteId') {
     recordsWorker.postMessage([url, origin, characteristicGroupMappings]);
     recordsWorker.onmessage = (message) => {
       if (message.data && typeof message.data === 'string') {
-        console.log(message.data);
-        /* const parsedData = JSON.parse(message.data);
+        const parsedData = JSON.parse(message.data);
         parsedData.minYear = parseInt(parsedData.minYear);
         parsedData.maxYear = parseInt(parsedData.maxYear);
-        setWorkerData(parsedData); */
+        setWorkerData(parsedData);
       }
     };
   }, [filter, origin, url, worker, workerData]);
 
-  // return workerData;
-  return { minYear: 0, maxYear: 0, annualData: {} };
+  return workerData;
 }
 
 function Monitoring() {
