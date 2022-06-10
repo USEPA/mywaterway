@@ -786,6 +786,9 @@ function MonitoringTab({ setMonitoringDisplayed }) {
       stationTotalsByGroup: {},
       stationTotalsByLabel: {},
     };
+    characteristicGroupMappings.forEach((mapping) => {
+      result.stationTotalsByLabel[mapping.label] = 0;
+    });
     for (const year in stationRecords) {
       if (parseInt(year) < timeframe[0]) continue;
       if (parseInt(year) > timeframe[1]) return result;
@@ -800,11 +803,7 @@ function MonitoringTab({ setMonitoringDisplayed }) {
         },
       );
       Object.entries(stationRecords[year].stationTotalsByLabel).forEach(
-        ([key, value]) => {
-          key in result.stationTotalsByLabel
-            ? (result.stationTotalsByLabel[key] += value)
-            : (result.stationTotalsByLabel[key] = value);
-        },
+        ([key, value]) => (result.stationTotalsByLabel[key] += value),
       );
     }
     return result;
@@ -880,28 +879,20 @@ function MonitoringTab({ setMonitoringDisplayed }) {
   );
 
   useEffect(() => {
-    if (displayedMonitoringLocations.length) {
-      // if (monitoringGroups) {
+    if (monitoringGroups && displayedMonitoringLocations.length) {
       let newTotalLocations = 0;
       let newTotalSamples = 0;
       let newTotalMeasurements = 0;
 
       // update the watershed total measurements and samples counts
       displayedMonitoringLocations.forEach((station) => {
-        // aggregated sample counts in the historical data are a lot greater
-        // than those in the original dataset, so using the original sample
-        // counts here for consistency
-        const stationIdx = monitoringGroups['All'].stations.findIndex(
-          (origStation) => origStation.uniqueId === station.uniqueId,
-        );
-        newTotalSamples +=
-          monitoringGroups['All'].stations[stationIdx].stationTotalSamples;
+        newTotalSamples += station.stationTotalSamples;
         newTotalLocations++;
         Object.keys(monitoringGroups)
           .filter((group) => group !== 'All')
           .forEach((group) => {
             if (monitoringGroups[group].toggled) {
-              newTotalMeasurements += station.stationTotalsByLabel[group] ?? 0;
+              newTotalMeasurements += station.stationTotalsByLabel[group];
             }
           });
       });
@@ -1104,9 +1095,12 @@ function MonitoringTab({ setMonitoringDisplayed }) {
                     let sampleCount = 0;
                     let measurementCount = 0;
                     uniqueStations.forEach((station) => {
-                      sampleCount += parseInt(station.stationTotalSamples);
+                      let curStation = station;
+                      if (rangeEnabled)
+                        curStation = filterStation(station, yearsRange);
+                      sampleCount += curStation.stationTotalSamples;
                       measurementCount +=
-                        station.stationTotalsByLabel[group.label];
+                        curStation.stationTotalsByLabel[group.label];
                     });
 
                     return (
