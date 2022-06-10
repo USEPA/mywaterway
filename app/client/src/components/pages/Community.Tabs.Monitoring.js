@@ -135,19 +135,6 @@ const toggleStyles = css`
  ** Types
  */
 
-type AnnualStationData = {|
-  uniqueId: string,
-  stationTotalMeasurements: number,
-  stationTotalSamples: number,
-  stationTotalsByCharacteristic: { [characteristic: string]: number },
-  stationTotalsByGroup: { [group: string]: number },
-  stationTotalsByLabel: { [label: string]: number },
-|};
-
-type AnnualStationsData = { [uniqueId: string]: AnnualStationData };
-
-type AllYearsStationData = { [year: number]: AnnualStationsData };
-
 type ParseError = {|
   type: string,
   code: string,
@@ -184,29 +171,6 @@ type PeriodData =
   | { status: 'pending', data: {} }
   | { status: 'success', data: ParsedRecords }
   | { status: 'failure', data: ParseErrors };
-
-type StationData = {
-  monitoringType: 'Past Water Conditions',
-  siteId: string,
-  orgId: string,
-  orgName: string,
-  locationLongitude: number,
-  locationLatitude: number,
-  locationName: string,
-  locationType: string,
-  locationUrl: string,
-  OBJECTID?: number,
-  orgId: string,
-  orgName: string,
-  siteId: string,
-  stationDataByYear: { [number]: AnnualStationData },
-  stationProviderName: string,
-  stationTotalMeasurements: number,
-  stationTotalSamples: number,
-  stationTotalsByGroup: { [group: string]: number },
-  stationTotalsByLabel: { [label: string]: number },
-  uniqueId: string,
-};
 
 function fetchParseCsv(url: string) {
   const parsePromise = new Promise((resolve, reject) => {
@@ -924,13 +888,20 @@ function MonitoringTab({ setMonitoringDisplayed }) {
 
       // update the watershed total measurements and samples counts
       displayedMonitoringLocations.forEach((station) => {
-        newTotalSamples += station.stationTotalSamples;
+        // aggregated sample counts in the historical data are a lot greater
+        // than those in the original dataset, so using the original sample
+        // counts here for consistency
+        const stationIdx = monitoringGroups['All'].stations.findIndex(
+          (origStation) => origStation.uniqueId === station.uniqueId,
+        );
+        newTotalSamples +=
+          monitoringGroups['All'].stations[stationIdx].stationTotalSamples;
         newTotalLocations++;
         Object.keys(monitoringGroups)
           .filter((group) => group !== 'All')
           .forEach((group) => {
             if (monitoringGroups[group].toggled) {
-              newTotalMeasurements += station.stationTotalsByLabel[group];
+              newTotalMeasurements += station.stationTotalsByLabel[group] ?? 0;
             }
           });
       });

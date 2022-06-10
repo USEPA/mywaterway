@@ -84,54 +84,6 @@ const toggleStyles = css`
   }
 `;
 
-/*
- ** Types
- */
-type AnnualStationData = {|
-  uniqueId: string,
-  stationTotalMeasurements: number,
-  stationTotalSamples: number,
-  stationTotalsByCharacteristic: { [characteristic: string]: number },
-  stationTotalsByGroup: { [group: string]: number },
-  stationTotalsByLabel: { [label: string]: number },
-|};
-
-type StationData = {|
-  locationLongitude: number,
-  locationLatitude: number,
-  locationName: string,
-  locationType: string,
-  locationUrl: string,
-  monitoringType: 'Past Water Conditions',
-  OBJECTID?: number,
-  orgId: string,
-  orgName: string,
-  siteId: string,
-  stationDataByYear: { [number]: AnnualStationData },
-  stationProviderName: string,
-  stationTotalMeasurements: number,
-  stationTotalSamples: number,
-  stationTotalsByGroup: { [group: string]: number },
-  stationTotalsByLabel: { [label: string]: number },
-  uniqueId: string,
-|};
-
-type StationDataFlattened = {|
-  ...StationData,
-  stationDataByYear: string,
-  stationTotalsByGroup: string,
-  stationTotalsByLabel: string,
-|};
-
-function expandStationData(station: StationDataFlattened): StationData {
-  return {
-    ...station,
-    stationDataByYear: JSON.parse(station.stationDataByYear),
-    stationTotalsByGroup: JSON.parse(station.stationTotalsByGroup),
-    stationTotalsByLabel: JSON.parse(station.stationTotalsByLabel),
-  };
-}
-
 function Overview() {
   const { usgsStreamgages } = useFetchedDataState();
 
