@@ -1,6 +1,6 @@
 // @flow
 
-import Papa from 'papaparse';
+// import Papa from 'papaparse';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
@@ -172,20 +172,6 @@ type PeriodData =
   | { status: 'success', data: ParsedRecords }
   | { status: 'failure', data: ParseErrors };
 
-function fetchParseCsv(url: string) {
-  const parsePromise = new Promise((resolve, reject) => {
-    Papa.parse(url, {
-      complete: (results) => resolve(results),
-      download: true,
-      dynamicTyping: true,
-      error: (err) => reject(err),
-      header: true,
-      worker: true,
-    });
-  });
-  return parsePromise;
-}
-
 function usePeriodOfRecordData(filter: string, param: 'huc12' | 'siteId') {
   if (param !== 'huc12' && param !== 'siteId') {
     throw new Error('Missing parameter for Period of Record service');
@@ -193,8 +179,6 @@ function usePeriodOfRecordData(filter: string, param: 'huc12' | 'siteId') {
 
   const services = useServicesContext();
 
-  const initialRecordsState: PeriodData = { status: 'idle', data: {} };
-  const [records, setRecords] = useState(initialRecordsState);
   const [worker, setWorker] = useState(null);
   const [workerData, setWorkerData] = useState({
     minYear: 0,
@@ -202,52 +186,36 @@ function usePeriodOfRecordData(filter: string, param: 'huc12' | 'siteId') {
     annualData: {},
   });
 
-  let url =
-    `${services.data.waterQualityPortal.monitoringLocation}search?` +
-    `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all`;
-  url += param === 'huc12' ? `&huc=${filter}` : `&siteId=${filter}`;
-
-  const fetchJson = useCallback(
-    async (url: string) => {
-      let results = {};
-      try {
-        results = await fetchParseCsv(url);
-        setRecords({ status: 'success', data: results.data });
-      } catch (e) {
-        console.error(e);
-        setRecords({ status: 'failure', data: results.errors });
-      }
-    },
-    [setRecords],
-  );
+  let url = null;
+  if (services) {
+    url =
+      `${services.data.waterQualityPortal.monitoringLocation}search?` +
+      `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all`;
+    url += param === 'huc12' ? `&huc=${filter}` : `&siteId=${filter}`;
+  }
+  const origin = window.location.origin;
 
   useEffect(() => {
-    if (!filter || records.status !== 'idle') return;
-    setRecords({ status: 'pending', data: {} });
-    fetchJson(url);
-  }, [records.status, fetchJson, filter, url]);
-
-  useEffect(() => {
-    if (worker || records.status !== 'success') return;
+    if (!filter || !url || worker) return;
     if (!window.Worker) {
       throw new Error("Your browser doesn't support web workers");
     }
-    if (records.status === 'success') {
-      const recordsWorker = buildWorker(recordsJob);
-      setWorker(recordsWorker);
-      recordsWorker.postMessage([records.data, characteristicGroupMappings]);
-      recordsWorker.onmessage = (message) => {
-        if (message.data && typeof message.data === 'string') {
-          const parsedData = JSON.parse(message.data);
-          parsedData.minYear = parseInt(parsedData.minYear);
-          parsedData.maxYear = parseInt(parsedData.maxYear);
-          setWorkerData(parsedData);
-        }
-      };
-    }
-  }, [filter, records, url, worker, workerData]);
+    const recordsWorker = buildWorker(recordsJob);
+    setWorker(recordsWorker);
+    recordsWorker.postMessage([url, origin, characteristicGroupMappings]);
+    recordsWorker.onmessage = (message) => {
+      if (message.data && typeof message.data === 'string') {
+        console.log(message.data);
+        /* const parsedData = JSON.parse(message.data);
+        parsedData.minYear = parseInt(parsedData.minYear);
+        parsedData.maxYear = parseInt(parsedData.maxYear);
+        setWorkerData(parsedData); */
+      }
+    };
+  }, [filter, origin, url, worker, workerData]);
 
-  return workerData;
+  // return workerData;
+  return { minYear: 0, maxYear: 0, annualData: {} };
 }
 
 function Monitoring() {

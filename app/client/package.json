@@ -88,7 +88,10 @@
   "eslintConfig": {
     "extends": [
       "react-app"
-    ]
+    ],
+    "env": {
+      "worker": true
+    }
   },
   "browserslist": {
     "production": [
