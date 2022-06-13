@@ -2,16 +2,19 @@
 
 import React, { useContext, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {} from 'styled-components/macro';
 import { Tab, Tabs, TabList, TabPanel, TabPanels } from '@reach/tabs';
+import { useWindowSize } from '@reach/window-size';
 // components
 import { tabsStyles, tabPanelStyles } from 'components/shared/ContentTabs';
 import WaterQualityOverview from 'components/pages/StateTribal.Tabs.WaterQualityOverview';
 import AdvancedSearch from 'components/pages/StateTribal.Tabs.AdvancedSearch';
+import MapVisibilityButton from 'components/shared/MapVisibilityButton';
+import TribeMap from 'components/shared/TribeMap';
 // styled components
 import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 // contexts
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
+import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
 import {
   useOrganizationsContext,
   useServicesContext,
@@ -28,6 +31,8 @@ function StateTribalTabs() {
 
   const { activeState, setActiveState, activeTabIndex, setActiveTabIndex } =
     useContext(StateTribalTabsContext);
+
+  const { fullscreenActive } = useContext(FullscreenContext);
 
   // redirect to overview tab if tabName param wasn't provided in the url
   // (e.g. '/state/al' redirects to '/state/AL/water-quality-overview')
@@ -114,17 +119,37 @@ function StateTribalTabs() {
 
   const tabListRef = useRef();
 
-  // focus the active tab
-  useEffect(() => {
-    if (tabListRef.current) {
-      const tabList = tabListRef.current;
-      const activeTab = tabList.children[activeTabIndex];
-      setTimeout(() => activeTab.focus(), 0);
-    }
-  }, [tabListRef, activeTabIndex]);
+  const { width, height } = useWindowSize();
+
+  const mapContent = (
+    <TribeMap
+      windowHeight={height}
+      windowWidth={width}
+      layout={fullscreenActive ? 'fullscreen' : 'narrow'}
+      orgId={activeState.value}
+    />
+  );
 
   if (activeState.source === 'Tribes') {
-    return <WaterQualityOverview />;
+    if (fullscreenActive) return mapContent;
+
+    return (
+      <div>
+        <MapVisibilityButton initialVisibility={true}>
+          {(mapShown) => (
+            <div
+              style={{
+                display: mapShown ? 'block' : 'none',
+              }}
+            >
+              {mapContent}
+            </div>
+          )}
+        </MapVisibilityButton>
+        <hr />
+        <WaterQualityOverview />
+      </div>
+    );
   }
 
   return (
@@ -157,4 +182,10 @@ function StateTribalTabs() {
   );
 }
 
-export default StateTribalTabs;
+export default function StateTribalTabsContainer() {
+  return (
+    <FullscreenProvider>
+      <StateTribalTabs />
+    </FullscreenProvider>
+  );
+}

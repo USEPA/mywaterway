@@ -21,12 +21,13 @@ const buttonContainerStyles = css`
 `;
 
 type Props = {
+  initialVisibility: boolean,
   children: Function,
 };
 
-function MapVisibilityButton({ children }: Props) {
+function MapVisibilityButton({ initialVisibility = false, children }: Props) {
   const { selectedGraphic } = useContext(MapHighlightContext);
-  const [mapShown, setMapShown] = useState(false);
+  const [mapShown, setMapShown] = useState(initialVisibility);
 
   const iconClassName = mapShown ? 'far fa-eye-slash' : 'far fa-eye';
 

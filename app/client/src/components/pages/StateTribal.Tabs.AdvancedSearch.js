@@ -22,7 +22,7 @@ import {
   MapHighlightContext,
   MapHighlightProvider,
 } from 'contexts/MapHighlight';
-import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
+import { FullscreenContext } from 'contexts/Fullscreen';
 import {
   useReportStatusMappingContext,
   useServicesContext,
@@ -1202,9 +1202,7 @@ function MenuList({ ...props }) {
 export default function AdvancedSearchContainer() {
   return (
     <MapHighlightProvider>
-      <FullscreenProvider>
-        <AdvancedSearch />
-      </FullscreenProvider>
+      <AdvancedSearch />
     </MapHighlightProvider>
   );
 }
