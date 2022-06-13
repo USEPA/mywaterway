@@ -932,11 +932,6 @@ function WaterQualityOverview() {
       title: 'Drinking Water',
       icon: <DrinkingWaterIcon height="2.5em" />,
     },
-    {
-      id: 'other',
-      title: 'Other',
-      icon: <OtherIcon height="2.5em" />,
-    },
   ];
 
   if (activeState?.source === 'Tribes') {
@@ -946,6 +941,12 @@ function WaterQualityOverview() {
       icon: <i className="fas fa-globe-americas fa-align-center" />,
     });
   }
+
+  tabs.push({
+    id: 'other',
+    title: 'Other',
+    icon: <OtherIcon height="2.5em" />,
+  });
 
   // get index of initial current topic (initialized to 'drinking' above)
   const initialTabIndex = tabs.map((tab) => tab.id).indexOf(currentTopic);
