@@ -9,8 +9,7 @@ import { useWindowSize } from '@reach/window-size';
 import { tabsStyles, tabPanelStyles } from 'components/shared/ContentTabs';
 import WaterQualityOverview from 'components/pages/StateTribal.Tabs.WaterQualityOverview';
 import AdvancedSearch from 'components/pages/StateTribal.Tabs.AdvancedSearch';
-import MapVisibilityButton from 'components/shared/MapVisibilityButton';
-import TribeMap from 'components/shared/TribeMap';
+import TribalMapList from 'components/shared/TribalMapList';
 // styled components
 import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 // contexts
@@ -123,7 +122,7 @@ function StateTribalTabs() {
   const { width, height } = useWindowSize();
 
   const mapContent = (
-    <TribeMap
+    <TribalMapList
       windowHeight={height}
       windowWidth={width}
       layout={fullscreenActive ? 'fullscreen' : 'narrow'}
@@ -136,17 +135,7 @@ function StateTribalTabs() {
 
     return (
       <div>
-        <MapVisibilityButton initialVisibility={true}>
-          {(mapShown) => (
-            <div
-              style={{
-                display: mapShown ? 'block' : 'none',
-              }}
-            >
-              {mapContent}
-            </div>
-          )}
-        </MapVisibilityButton>
+        <div>{mapContent}</div>
         <hr />
         <WaterQualityOverview />
       </div>
