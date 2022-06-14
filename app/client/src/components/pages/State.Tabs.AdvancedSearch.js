@@ -1,10 +1,16 @@
 // @flow
 
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { css } from 'styled-components/macro';
 import { useWindowSize } from '@reach/window-size';
 import Select, { createFilter } from 'react-select';
-import { CellMeasurer, CellMeasurerCache, List } from 'react-virtualized';
+import { VariableSizeList } from 'react-window';
 import Query from '@arcgis/core/rest/support/Query';
 import QueryTask from '@arcgis/core/tasks/QueryTask';
 // components
@@ -1147,62 +1153,63 @@ function AdvancedSearch() {
 }
 
 function MenuList({ ...props }) {
-  const [cache] = useState(
-    new CellMeasurerCache({
-      defaultHeight: 50,
-      fixedWidth: true,
-    }),
-  );
+  const { width } = useWindowSize();
+  const listRef = useRef();
 
-  // Resize the options when the search changes
-  const listRef = useRef(null);
-  useEffect(() => {
-    if (!listRef || !listRef.current) return;
-
-    cache.clearAll();
-    listRef.current.recomputeRowHeights();
-  }, [props.children.length, cache]);
+  // keeps track of the size of the virtualized items. This handles
+  // items where the text wraps
+  const sizeMap = useRef({});
+  const setSize = useCallback((index: number, size: number) => {
+    sizeMap.current = { ...sizeMap.current, [index]: size };
+    listRef.current.resetAfterIndex(index);
+  }, []);
+  const getSize = (index: number) => sizeMap.current[index] || 70;
 
   // use the default style dropdown if there is no data
   if (!props.children.length || props.children.length === 0) {
     return props.children;
   }
 
-  // get the width from the parent of the virtualized list
-  const elem = document.getElementById('virtualized-select-list');
-  let width = 0;
-  if (elem && elem.parentElement) {
-    width = elem.parentElement.getBoundingClientRect().width;
+  function MenuItem({
+    index,
+    width,
+    setSize,
+  }: {
+    index: number,
+    width: number,
+    setSize: (index: number, size: number) => void,
+  }) {
+    const rowValue = props.children[index];
+
+    const rowRef = useRef();
+
+    // keep track of the height of the rows to autosize rows
+    useEffect(() => {
+      if (!rowRef?.current) return;
+
+      setSize(index, rowRef.current.getBoundingClientRect().height);
+    }, [setSize, index, width]);
+
+    return <div ref={rowRef}>{rowValue}</div>;
   }
 
   return (
-    <List
-      id="virtualized-select-list"
+    <VariableSizeList
       ref={listRef}
-      deferredMeasurementCache={cache}
+      width="100%"
       height={props.maxHeight}
-      width={width}
-      rowHeight={cache.rowHeight}
-      rowCount={props.children.length}
-      overscanRowCount={25}
-      style={{ paddingTop: '4px', paddingBottom: '4px' }}
-      rowRenderer={({ index, isScrolling, key, parent, style }) => {
-        return (
-          <CellMeasurer
-            cache={cache}
-            columnIndex={0}
-            rowCount={props.children.length}
-            parent={parent}
-            key={key}
-            rowIndex={index}
-          >
-            <div style={style}>{props.children[index]}</div>
-          </CellMeasurer>
-        );
-      }}
-    />
+      itemCount={props.children.length}
+      itemSize={getSize}
+    >
+      {({ index, style }) => (
+        <div style={{ ...style, overflowX: 'hidden' }}>
+          <MenuItem index={index} width={width} setSize={setSize} />
+        </div>
+      )}
+    </VariableSizeList>
   );
 }
+
 export default function AdvancedSearchContainer() {
   return (
     <MapHighlightProvider>
