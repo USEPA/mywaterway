@@ -130,36 +130,42 @@ const toggleStyles = css`
 `;
 
 function usePeriodOfRecordData(filter, param) {
-  if (param !== 'huc12' && param !== 'siteId') {
-    throw new Error('Missing parameter for Period of Record service');
-  }
-
   const services = useServicesContext();
-
-  const [worker, setWorker] = useState(null);
-  const [workerData, setWorkerData] = useState({
+  const initialWorkerData = {
     minYear: 0,
     maxYear: 0,
     annualData: {},
-  });
+  };
 
-  let url = null;
-  if (services) {
-    url =
-      `${services.data.waterQualityPortal.monitoringLocation}search?` +
-      `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all`;
-    url += param === 'huc12' ? `&huc=${filter}` : `&siteId=${filter}`;
-  }
-  const origin = window.location.origin;
+  const [url, setUrl] = useState(null);
+  const [workerData, setWorkerData] = useState(initialWorkerData);
+
+  const resetWorkerData = () => {
+    setWorkerData(initialWorkerData);
+  };
 
   useEffect(() => {
-    if (!filter || !url || worker) return;
+    if (param !== 'huc12' && param !== 'siteId') return;
+    if (!filter) return;
+
+    let url = null;
+    if (services.status === 'success') {
+      url =
+        `${services.data.waterQualityPortal.monitoringLocation}search?` +
+        `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all`;
+      url += param === 'huc12' ? `&huc=${filter}` : `&siteId=${filter}`;
+      setUrl(url);
+    }
+  }, [filter, param, services.data, services.status]);
+
+  useEffect(() => {
+    if (!filter || !url) return;
     if (!window.Worker) {
       throw new Error("Your browser doesn't support web workers");
     }
+    const origin = window.location.origin;
     // const recordsWorker = buildWorker(recordsJob);
     const recordsWorker = new Worker(`${origin}/periodOfRecordWorker.js`);
-    setWorker(recordsWorker);
     recordsWorker.postMessage([url, origin, characteristicGroupMappings]);
     recordsWorker.onmessage = (message) => {
       if (message.data && typeof message.data === 'string') {
@@ -169,9 +175,10 @@ function usePeriodOfRecordData(filter, param) {
         setWorkerData(parsedData);
       }
     };
-  }, [filter, origin, url, worker, workerData]);
+    return () => recordsWorker.terminate();
+  }, [filter, url]);
 
-  return workerData;
+  return [workerData, resetWorkerData];
 }
 
 function Monitoring() {
@@ -550,44 +557,14 @@ function MonitoringTab({ setMonitoringDisplayed }) {
     setMonitoringGroups,
     watershed,
   } = useContext(LocationSearchContext);
+  if (monitoringLocationsLayer) {
+    monitoringLocationsLayer.queryFeatures().then((featureSet) => {});
+  }
 
   const [rangeEnabled, setRangeEnabled] = useState(false);
-  const { minYear, maxYear, annualData } = usePeriodOfRecordData(
-    huc12,
-    'huc12',
-  );
-  const [annualDataInitialized, setAnnualDataInitialized] = useState(false);
-  const addAnnualData = useCallback(async () => {
-    if (!monitoringLocationsLayer || !monitoringGroups) return;
-    if (annualDataInitialized) return;
-
-    const updatedMonitoringGroups = { ...monitoringGroups };
-    for (const label in updatedMonitoringGroups) {
-      for (const station of updatedMonitoringGroups[label].stations) {
-        const id = station.uniqueId;
-        if (id in annualData) {
-          station.stationDataByYear = annualData[id];
-        }
-      }
-    }
-    setMonitoringGroups(updatedMonitoringGroups);
-    setAnnualDataInitialized(true);
-    setRangeEnabled(true);
-  }, [
-    annualDataInitialized,
-    monitoringGroups,
-    monitoringLocationsLayer,
-    annualData,
-    setMonitoringGroups,
-  ]);
-
-  useEffect(() => {
-    if (Object.keys(annualData).length === 0) return;
-    if (annualDataInitialized) return;
-    addAnnualData();
-  }, [addAnnualData, annualData, annualDataInitialized]);
-
   const [yearsRange, setYearsRange] = useState([0, 0]);
+  const [{ minYear, maxYear, annualData }, resetWorkerData] =
+    usePeriodOfRecordData(huc12, 'huc12');
 
   const [displayedMonitoringLocations, setDisplayedMonitoringLocations] =
     useState([]);
@@ -732,6 +709,38 @@ function MonitoringTab({ setMonitoringDisplayed }) {
     [filterStation, monitoringLocationsLayer, rangeEnabled],
   );
 
+  const addAnnualData = useCallback(async () => {
+    if (!monitoringLocationsLayer || !monitoringGroups) return;
+
+    const updatedMonitoringGroups = { ...monitoringGroups };
+    for (const label in updatedMonitoringGroups) {
+      for (const station of updatedMonitoringGroups[label].stations) {
+        const id = station.uniqueId;
+        if (id in annualData) {
+          station.stationDataByYear = annualData[id];
+        }
+      }
+    }
+    setMonitoringGroups(updatedMonitoringGroups);
+    setRangeEnabled(true);
+    setYearsRange([minYear, maxYear]);
+    drawMap(updatedMonitoringGroups, [minYear, maxYear]);
+  }, [
+    maxYear,
+    minYear,
+    monitoringGroups,
+    monitoringLocationsLayer,
+    annualData,
+    drawMap,
+    setMonitoringGroups,
+  ]);
+
+  useEffect(() => {
+    if (Object.keys(annualData).length === 0) return;
+    if (rangeEnabled) return;
+    addAnnualData();
+  }, [addAnnualData, annualData, rangeEnabled]);
+
   const handleSliderChange = useCallback(
     (timeframe) => {
       setYearsRange(timeframe);
@@ -823,7 +832,9 @@ function MonitoringTab({ setMonitoringDisplayed }) {
     if (monitoringGroups) return;
 
     setDataInitialized(false);
-  }, [monitoringGroups]);
+    setRangeEnabled(false);
+    resetWorkerData();
+  }, [monitoringGroups, resetWorkerData]);
 
   // Renders the monitoring locations on the map
   // and displays them in the Accordion list and toggles
@@ -907,7 +918,7 @@ function MonitoringTab({ setMonitoringDisplayed }) {
           <>
             <div css={sliderHeaderStyles}>Date Range</div>
             <div css={sliderContainerStyles}>
-              {!annualDataInitialized ? (
+              {!rangeEnabled ? (
                 <LoadingSpinner />
               ) : (
                 <>
