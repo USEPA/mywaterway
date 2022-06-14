@@ -555,14 +555,16 @@ function MonitoringTab({ setMonitoringDisplayed }) {
     monitoringLocations,
     monitoringLocationsLayer,
     setMonitoringGroups,
+    setTimeRange,
     watershed,
   } = useContext(LocationSearchContext);
-  if (monitoringLocationsLayer) {
-    monitoringLocationsLayer.queryFeatures().then((featureSet) => {});
-  }
 
   const [rangeEnabled, setRangeEnabled] = useState(false);
   const [yearsRange, setYearsRange] = useState([0, 0]);
+  useEffect(() => {
+    setTimeRange([...yearsRange]);
+  }, [setTimeRange, yearsRange]);
+
   const [{ minYear, maxYear, annualData }, resetWorkerData] =
     usePeriodOfRecordData(huc12, 'huc12');
 
@@ -733,6 +735,7 @@ function MonitoringTab({ setMonitoringDisplayed }) {
     annualData,
     drawMap,
     setMonitoringGroups,
+    setYearsRange,
   ]);
 
   useEffect(() => {
@@ -742,11 +745,11 @@ function MonitoringTab({ setMonitoringDisplayed }) {
   }, [addAnnualData, annualData, rangeEnabled]);
 
   const handleSliderChange = useCallback(
-    (timeframe) => {
-      setYearsRange(timeframe);
-      drawMap(monitoringGroups, timeframe);
+    (range) => {
+      setYearsRange([...range]);
+      drawMap(monitoringGroups, range);
     },
-    [drawMap, monitoringGroups],
+    [drawMap, monitoringGroups, setYearsRange],
   );
 
   useEffect(() => {
@@ -889,6 +892,9 @@ function MonitoringTab({ setMonitoringDisplayed }) {
       })
     : [];
 
+  sortedMonitoringLocations.forEach((location) => {
+    location.timeframe = [...yearsRange];
+  });
   const totalLocations = monitoringGroups?.['All'].stations.length;
   const displayLocations = sortedMonitoringLocations.length.toLocaleString();
 
@@ -925,9 +931,9 @@ function MonitoringTab({ setMonitoringDisplayed }) {
                   <span>{yearsRange[0]}</span>
                   <div css={sliderStyles}>
                     <DateSlider
-                      years={[minYear, maxYear]}
+                      bounds={[minYear, maxYear]}
                       disabled={Object.keys(annualData).length === 0}
-                      yearsRange={yearsRange}
+                      range={yearsRange}
                       onChange={handleSliderChange}
                     />
                   </div>
@@ -1154,6 +1160,7 @@ function MonitoringTab({ setMonitoringDisplayed }) {
                           type="Past Water Conditions"
                           feature={feature}
                           services={services}
+                          // timeframe={[yearsRange[0], yearsRange[1]]}
                         />
                         <ViewOnMapButton feature={feature} />
                       </div>
@@ -1171,9 +1178,9 @@ function MonitoringTab({ setMonitoringDisplayed }) {
   return null;
 }
 
-function DateSlider({ years, disabled, yearsRange, onChange }) {
+function DateSlider({ bounds, disabled, range, onChange }) {
   const max = new Date().getFullYear();
-  let min = years.length ? years[0] : max;
+  let min = bounds.length ? bounds[0] : max;
 
   useEffect(() => {
     onChange([min, max]);
@@ -1183,17 +1190,17 @@ function DateSlider({ years, disabled, yearsRange, onChange }) {
     <TooltipSlider
       range
       allowCross={false}
-      defaultValue={yearsRange}
+      defaultValue={range}
       disabled={disabled}
       handleStyle={{ borderColor: '#0b89f4' }}
       max={max}
       min={min}
-      onChange={(range) => {
-        onChange(range);
+      onChange={(newRange) => {
+        onChange(newRange);
       }}
       step={1}
       trackStyle={{ backgroundColor: '#0b89f4' }}
-      value={yearsRange}
+      value={range}
     />
   );
 }
