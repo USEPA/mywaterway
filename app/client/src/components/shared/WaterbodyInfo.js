@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -245,11 +245,11 @@ function WaterbodyInfo({
   extraContent,
   services,
   fields,
+  timeframe,
 }: Props) {
   const { attributes } = feature;
   const onWaterbodyReportPage =
     window.location.pathname.indexOf('waterbody-report') !== -1;
-
   const waterbodyPollutionCategories = (label: string) => {
     const pollutionCategories = impairmentFields
       .filter((field) => attributes[field.value] === 'Cause')
@@ -482,22 +482,22 @@ function WaterbodyInfo({
     </>
   );
 
-  function checkIfGroupInMapping(groupName) {
+  /* function checkIfGroupInMapping(groupName) {
     return characteristicGroupMappings.find((mapping) =>
       mapping.groupNames.includes(groupName),
     );
-  }
+  } */
 
-  const [charGroupFilters, setCharGroupFilters] = useState('');
+  /* const [charGroupFilters, setCharGroupFilters] = useState('');
   const [selected, setSelected] = useState({});
   const [selectAll, setSelectAll] = useState(1);
   const [totalMeasurements, setTotalMeasurements] = useState(
     attributes.stationTotalMeasurements,
   );
-  const [timeframe] = useState(attributes.timeframe);
+  const [filterRange, setFilterRange] = useState(timeframe); */
 
-  function monitoringLocationsContent() {
-    const stationGroups = attributes.stationTotalsByCategory;
+  /* function monitoringLocationsContent(yearsRange) {
+    const stationGroups = attributes.stationTotalsByGroup;
 
     const groups = { Other: { characteristicGroups: [], resultCount: 0 } };
     // get the feature where the provider matches this stations provider
@@ -552,12 +552,19 @@ function WaterbodyInfo({
         }
       }
 
-      console.log(timeframe);
-      if (timeframe && Math.max(...timeframe) > 0) {
-        filter += `&startDateLo=01-01-${timeframe[0]}&startDateHi=12-31-${timeframe[1]}`;
+      if (filterRange) {
+        const yearBegin = filterRange[0];
+        const yearEnd = filterRange[1];
+        if (yearBegin > 0 || yearEnd > 0) {
+          filter += `&startDateLo=01-01-${yearBegin}&startDateHi=12-31-${yearEnd}`;
+        }
       }
 
       setCharGroupFilters(filter);
+    }
+
+    if (yearsRange !== filterRange) {
+      setFilterRange(yearsRange);
     }
 
     //Toggle an individual row and call the provided onChange event handler
@@ -566,7 +573,6 @@ function WaterbodyInfo({
 
       selectedGroups[mappedGroup] = !selected[mappedGroup];
 
-      buildFilter(selectedGroups, monitoringLocationData);
       setSelected(selectedGroups);
 
       // find the number of toggles currently true
@@ -599,6 +605,7 @@ function WaterbodyInfo({
             newTotalMeasurementCount += groups[group].resultCount;
           }
         });
+        buildFilter(selectedGroups, monitoringLocationData);
         setTotalMeasurements(newTotalMeasurementCount);
       }
     }
@@ -818,7 +825,7 @@ function WaterbodyInfo({
         )}
       </>
     );
-  }
+  } */
 
   // Default popup for monitoring popups, when opened a listener will populate the popup with everything the Listview item has
   const nonprofitContent = (
@@ -1153,13 +1160,16 @@ function WaterbodyInfo({
   if (type === 'Current Water Conditions') {
     content = <UsgsStreamgagesContent feature={feature} />;
   }
-  if (type === 'Past Water Conditions') content = monitoringLocationsContent();
-  /* content = (
+  if (type === 'Past Water Conditions') {
+    // content = monitoringLocationsContent(timeframe);
+    content = (
       <MonitoringLocationsContent
         attributes={feature.attributes}
         services={services}
+        timeframe={timeframe}
       />
-    ); */
+    );
+  }
   if (type === 'Nonprofit') content = nonprofitContent;
   if (type === 'Waterbody State Overview') content = waterbodyStateContent;
   if (type === 'Action') content = actionContent;
@@ -1325,11 +1335,47 @@ function MapPopup({
   );
 }
 
-function MonitoringLocationsContent({ attributes, services }) {
+function MonitoringLocationsContent({ attributes, services, timeframe }) {
   const [charGroupFilters, setCharGroupFilters] = useState('');
   const [groups, setGroups] = useState({});
   const [selected, setSelected] = useState({});
   const [selectAll, setSelectAll] = useState(1);
+  const [totalMeasurements, setTotalMeasurements] = useState(
+    attributes.stationTotalMeasurements,
+  );
+
+  const checkIfGroupInMapping = useCallback((groupName) => {
+    return characteristicGroupMappings.find((mapping) =>
+      mapping.groupNames.includes(groupName),
+    );
+  }, []);
+
+  const buildFilter = useCallback(
+    (selectedNames, monitoringLocationData) => {
+      let filter = '';
+
+      for (const name in selectedNames) {
+        if (selectedNames[name]) {
+          filter +=
+            '&characteristicType=' +
+            monitoringLocationData[name].characteristicGroups.join(
+              '&characteristicType=',
+            );
+        }
+      }
+
+      if (timeframe) {
+        filter += `&startDateLo=01-01-${timeframe[0]}&startDateHi=12-31-${timeframe[1]}`;
+      }
+
+      setCharGroupFilters(filter);
+    },
+    [setCharGroupFilters, timeframe],
+  );
+
+  useEffect(() => {
+    buildFilter(selected, groups, timeframe);
+  }, [buildFilter, groups, selected, timeframe]);
 
   useEffect(() => {
     const stationGroups = attributes.stationTotalsByGroup;
@@ -1371,41 +1417,13 @@ function MonitoringLocationsContent({ attributes, services }) {
       initialSelected[group] = true;
     });
     setSelected(initialSelected);
-  }, [attributes]);
-
-  function checkIfGroupInMapping(groupName) {
-    return characteristicGroupMappings.find((mapping) =>
-      mapping.groupNames.includes(groupName),
-    );
-  }
-
-  function buildFilter(selectedNames, monitoringLocationData) {
-    let filter = '';
-
-    for (const name in selectedNames) {
-      if (selectedNames[name]) {
-        filter +=
-          '&characteristicType=' +
-          monitoringLocationData[name].characteristicGroups.join(
-            '&characteristicType=',
-          );
-      }
-    }
-
-    /* if (Math.max(...yearsRange) > 0) {
-      filter += `&startDateLo=01-01-${yearsRange[0]}&startDateHi=12-31-${yearsRange[1]}`;
-    } */
-
-    setCharGroupFilters(filter);
-  }
+  }, [attributes, checkIfGroupInMapping]);
 
   //Toggle an individual row and call the provided onChange event handler
-  function toggleRow(mappedGroup: string, monitoringLocationData: Object) {
+  const toggleRow = (groupLabel: string, allGroups: Object) => {
+    // flip the current toggle
     const selectedGroups = { ...selected };
-
-    selectedGroups[mappedGroup] = !selected[mappedGroup];
-
-    buildFilter(selectedGroups, monitoringLocationData);
+    selectedGroups[groupLabel] = !selected[groupLabel];
     setSelected(selectedGroups);
 
     // find the number of toggles currently true
@@ -1415,26 +1433,36 @@ function MonitoringLocationsContent({ attributes, services }) {
     });
 
     // total number of toggles displayed
-    const totalSelections = Object.keys(monitoringLocationData).length;
+    const totalSelections = Object.keys(allGroups).length;
 
     // if all selected
     if (numberSelected === totalSelections) {
       setSelectAll(1);
       setCharGroupFilters('');
+      setTotalMeasurements(attributes.stationTotalMeasurements);
     }
     // if none selected
     else if (numberSelected === 0) {
       setSelectAll(0);
       setCharGroupFilters('');
+      setTotalMeasurements(0);
     }
     // if some selected
     else {
+      // buildFilter(selectedGroups, groups, timeframe);
       setSelectAll(2);
+      let newTotalMeasurementCount = 0;
+      Object.keys(groups).forEach((group) => {
+        if (selectedGroups[group] === true) {
+          newTotalMeasurementCount += groups[group].resultCount;
+        }
+      });
+      setTotalMeasurements(newTotalMeasurementCount);
     }
-  }
+  };
 
   //Toggle all rows and call the provided onChange event handler
-  function toggleAllCheckboxes() {
+  const toggleAllCheckboxes = () => {
     let selectedGroups = {};
 
     if (Object.keys(groups).length > 0) {
@@ -1447,8 +1475,11 @@ function MonitoringLocationsContent({ attributes, services }) {
 
     setSelected(selectedGroups);
     setSelectAll(selectAll === 0 ? 1 : 0);
+    setTotalMeasurements(
+      selectAll === 0 ? attributes.stationTotalMeasurements : 0,
+    );
     setCharGroupFilters('');
-  }
+  };
 
   // if a user has filtered out certain characteristic groups for
   // a given table, that'll be used as additional query string
@@ -1597,6 +1628,11 @@ function MonitoringLocationsContent({ attributes, services }) {
                 </tr>
               );
             })}
+            <tr>
+              <td></td>
+              <td>Total</td>
+              <td>{Number(totalMeasurements).toLocaleString()}</td>
+            </tr>
           </tbody>
 
           <tfoot css={tableFooterStyles}>

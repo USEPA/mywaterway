@@ -164,7 +164,6 @@ function usePeriodOfRecordData(filter, param) {
       throw new Error("Your browser doesn't support web workers");
     }
     const origin = window.location.origin;
-    // const recordsWorker = buildWorker(recordsJob);
     const recordsWorker = new Worker(`${origin}/periodOfRecordWorker.js`);
     recordsWorker.postMessage([url, origin, characteristicGroupMappings]);
     recordsWorker.onmessage = (message) => {
@@ -625,7 +624,6 @@ function MonitoringTab({ setMonitoringDisplayed }) {
       stationTotalMeasurements: 0,
       stationTotalsByGroup: {},
       stationTotalsByLabel: {},
-      timeframe: timeframe,
     };
     characteristicGroupMappings.forEach((mapping) => {
       result.stationTotalsByLabel[mapping.label] = 0;
@@ -831,6 +829,7 @@ function MonitoringTab({ setMonitoringDisplayed }) {
 
     setDataInitialized(false);
     resetWorkerData();
+    setYearsRange(null);
   }, [monitoringGroups, resetWorkerData]);
 
   // Renders the monitoring locations on the map
@@ -1149,6 +1148,7 @@ function MonitoringTab({ setMonitoringDisplayed }) {
                           type="Past Water Conditions"
                           feature={feature}
                           services={services}
+                          timeframe={yearsRange}
                         />
                         <ViewOnMapButton feature={feature} />
                       </div>
