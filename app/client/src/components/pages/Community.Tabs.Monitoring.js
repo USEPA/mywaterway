@@ -132,8 +132,8 @@ const toggleStyles = css`
 function usePeriodOfRecordData(filter, param) {
   const services = useServicesContext();
   const initialWorkerData = {
-    minYear: 0,
-    maxYear: 0,
+    minYear: null,
+    maxYear: null,
     annualData: {},
   };
 
@@ -555,18 +555,17 @@ function MonitoringTab({ setMonitoringDisplayed }) {
     monitoringLocations,
     monitoringLocationsLayer,
     setMonitoringGroups,
-    setTimeRange,
+    // setTimeRange,
     watershed,
   } = useContext(LocationSearchContext);
 
-  const [rangeEnabled, setRangeEnabled] = useState(false);
-  const [yearsRange, setYearsRange] = useState([0, 0]);
-  useEffect(() => {
-    setTimeRange([...yearsRange]);
-  }, [setTimeRange, yearsRange]);
+  /* useEffect(() => {
+    setTimeRange(yearsRange);
+  }, [setTimeRange, yearsRange]); */
 
   const [{ minYear, maxYear, annualData }, resetWorkerData] =
     usePeriodOfRecordData(huc12, 'huc12');
+  const [yearsRange, setYearsRange] = useState(null);
 
   const [displayedMonitoringLocations, setDisplayedMonitoringLocations] =
     useState([]);
@@ -610,13 +609,13 @@ function MonitoringTab({ setMonitoringDisplayed }) {
           '&characteristicType=' + groupNames.join('&characteristicType=');
       }
 
-      if (rangeEnabled) {
+      if (yearsRange) {
         filter += `&startDateLo=01-01-${yearsRange[0]}&startDateHi=12-31-${yearsRange[1]}`;
       }
 
       setCharGroupFilters(filter);
     },
-    [rangeEnabled, setCharGroupFilters, yearsRange],
+    [setCharGroupFilters, yearsRange],
   );
 
   const filterStation = useCallback((station, timeframe) => {
@@ -624,9 +623,9 @@ function MonitoringTab({ setMonitoringDisplayed }) {
     const result = {
       ...station,
       stationTotalMeasurements: 0,
-      stationTotalSamples: 0,
       stationTotalsByGroup: {},
       stationTotalsByLabel: {},
+      timeframe: timeframe,
     };
     characteristicGroupMappings.forEach((mapping) => {
       result.stationTotalsByLabel[mapping.label] = 0;
@@ -636,7 +635,7 @@ function MonitoringTab({ setMonitoringDisplayed }) {
       if (parseInt(year) > timeframe[1]) return result;
       result.stationTotalMeasurements +=
         stationRecords[year].stationTotalMeasurements;
-      result.stationTotalSamples += stationRecords[year].stationTotalSamples;
+      // result.stationTotalSamples += stationRecords[year].stationTotalSamples;
       Object.entries(stationRecords[year].stationTotalsByGroup).forEach(
         ([key, value]) => {
           key in result.stationTotalsByGroup
@@ -666,12 +665,8 @@ function MonitoringTab({ setMonitoringDisplayed }) {
           return station.stationTotalsByLabel[group] > 0;
         });
         if (hasToggledData) {
-          if (rangeEnabled) {
+          if (yearsRange) {
             const filteredStation = filterStation(station, timeframe);
-            // MILL CREEK WWTP 002 OUTFALL TO OHIO R.
-            /* if (station.uniqueId === '21OHIO_WQX-Q01E06-STORET-21OHIO_WQX') {
-              console.log(filteredStation);
-            } */
             if (filteredStation.stationTotalMeasurements > 0) {
               tempDisplayedMonitoringLocations.push(filteredStation);
             }
@@ -708,7 +703,7 @@ function MonitoringTab({ setMonitoringDisplayed }) {
 
       setDisplayedMonitoringLocations(tempDisplayedMonitoringLocations);
     },
-    [filterStation, monitoringLocationsLayer, rangeEnabled],
+    [filterStation, monitoringLocationsLayer, yearsRange],
   );
 
   const addAnnualData = useCallback(async () => {
@@ -723,9 +718,9 @@ function MonitoringTab({ setMonitoringDisplayed }) {
         }
       }
     }
+    const currentYear = new Date().getFullYear();
     setMonitoringGroups(updatedMonitoringGroups);
-    setRangeEnabled(true);
-    setYearsRange([minYear, maxYear]);
+    setYearsRange([minYear, currentYear]);
     drawMap(updatedMonitoringGroups, [minYear, maxYear]);
   }, [
     maxYear,
@@ -740,9 +735,9 @@ function MonitoringTab({ setMonitoringDisplayed }) {
 
   useEffect(() => {
     if (Object.keys(annualData).length === 0) return;
-    if (rangeEnabled) return;
+    if (yearsRange) return;
     addAnnualData();
-  }, [addAnnualData, annualData, rangeEnabled]);
+  }, [addAnnualData, annualData, yearsRange]);
 
   const handleSliderChange = useCallback(
     (range) => {
@@ -835,7 +830,6 @@ function MonitoringTab({ setMonitoringDisplayed }) {
     if (monitoringGroups) return;
 
     setDataInitialized(false);
-    setRangeEnabled(false);
     resetWorkerData();
   }, [monitoringGroups, resetWorkerData]);
 
@@ -892,11 +886,9 @@ function MonitoringTab({ setMonitoringDisplayed }) {
       })
     : [];
 
-  sortedMonitoringLocations.forEach((location) => {
-    location.timeframe = [...yearsRange];
-  });
-  const totalLocations = monitoringGroups?.['All'].stations.length;
-  const displayLocations = sortedMonitoringLocations.length.toLocaleString();
+  const totalLocationsCount = monitoringGroups?.['All'].stations.length;
+  const displayedLocationsCount =
+    sortedMonitoringLocations.length.toLocaleString();
 
   const [expandedRows, setExpandedRows] = useState([]);
 
@@ -913,18 +905,18 @@ function MonitoringTab({ setMonitoringDisplayed }) {
   if (monitoringLocations.status === 'success') {
     return (
       <>
-        {totalLocations === 0 && (
+        {totalLocationsCount === 0 && (
           <p css={centeredTextStyles}>
             There are no monitoring sample locations in the {watershed}{' '}
             watershed.
           </p>
         )}
 
-        {totalLocations > 0 && (
+        {totalLocationsCount > 0 && (
           <>
             <div css={sliderHeaderStyles}>Date Range</div>
             <div css={sliderContainerStyles}>
-              {!rangeEnabled ? (
+              {!yearsRange ? (
                 <LoadingSpinner />
               ) : (
                 <>
@@ -968,20 +960,17 @@ function MonitoringTab({ setMonitoringDisplayed }) {
                 {Object.values(monitoringGroups)
                   .filter((group) => group.label !== 'All')
                   .map((group) => {
-                    // remove duplicates caused by a single monitoring station having multiple overlapping groupNames
-                    // like 'Inorganics, Major, Metals' and 'Inorganics, Minor, Metals'
-                    const uniqueStations = [...new Set(group.stations)];
-
                     // get the number of measurements for this group type
                     let sampleCount = 0;
                     let measurementCount = 0;
-                    uniqueStations.forEach((station) => {
-                      let curStation = station;
-                      if (rangeEnabled)
-                        curStation = filterStation(station, yearsRange);
-                      sampleCount += curStation.stationTotalSamples;
-                      measurementCount +=
-                        curStation.stationTotalsByLabel[group.label];
+                    let locationCount = 0;
+                    sortedMonitoringLocations.forEach((station) => {
+                      if (station.stationTotalsByLabel[group.label] > 0) {
+                        sampleCount += station.stationTotalSamples;
+                        measurementCount +=
+                          station.stationTotalsByLabel[group.label];
+                        locationCount++;
+                      }
                     });
 
                     return (
@@ -996,7 +985,7 @@ function MonitoringTab({ setMonitoringDisplayed }) {
                             <span>{group.label}</span>
                           </div>
                         </td>
-                        <td>{uniqueStations.length.toLocaleString()}</td>
+                        <td>{locationCount.toLocaleString()}</td>
                         <td>{sampleCount.toLocaleString()}</td>
                         <td>{measurementCount.toLocaleString()}</td>
                       </tr>
@@ -1049,7 +1038,7 @@ function MonitoringTab({ setMonitoringDisplayed }) {
                     <span>Download All Selected Data</span>
                     <span>
                       &nbsp;&nbsp;
-                      {displayLocations > 0 ? (
+                      {displayedLocationsCount > 0 ? (
                         <a href={`${downloadUrl}&mimeType=xlsx`}>
                           <i className="fas fa-file-excel" aria-hidden="true" />
                         </a>
@@ -1061,7 +1050,7 @@ function MonitoringTab({ setMonitoringDisplayed }) {
                         />
                       )}
                       &nbsp;&nbsp;
-                      {displayLocations > 0 ? (
+                      {displayedLocationsCount > 0 ? (
                         <a href={`${downloadUrl}&mimeType=csv`}>
                           <i className="fas fa-file-csv" aria-hidden="true" />
                         </a>
@@ -1081,8 +1070,8 @@ function MonitoringTab({ setMonitoringDisplayed }) {
             <AccordionList
               title={
                 <span data-testid="monitoring-accordion-title">
-                  <strong>{displayLocations}</strong> of{' '}
-                  <strong>{totalLocations.toLocaleString()}</strong> water
+                  <strong>{displayedLocationsCount.toLocaleString()}</strong> of{' '}
+                  <strong>{totalLocationsCount.toLocaleString()}</strong> water
                   monitoring sample locations in the <em>{watershed}</em>{' '}
                   watershed.
                 </span>
@@ -1160,7 +1149,6 @@ function MonitoringTab({ setMonitoringDisplayed }) {
                           type="Past Water Conditions"
                           feature={feature}
                           services={services}
-                          // timeframe={[yearsRange[0], yearsRange[1]]}
                         />
                         <ViewOnMapButton feature={feature} />
                       </div>
@@ -1179,13 +1167,7 @@ function MonitoringTab({ setMonitoringDisplayed }) {
 }
 
 function DateSlider({ bounds, disabled, range, onChange }) {
-  const max = new Date().getFullYear();
-  let min = bounds.length ? bounds[0] : max;
-
-  useEffect(() => {
-    onChange([min, max]);
-  }, [min, max, onChange]);
-
+  const currentYear = new Date().getFullYear();
   return (
     <TooltipSlider
       range
@@ -1193,8 +1175,8 @@ function DateSlider({ bounds, disabled, range, onChange }) {
       defaultValue={range}
       disabled={disabled}
       handleStyle={{ borderColor: '#0b89f4' }}
-      max={max}
-      min={min}
+      max={currentYear}
+      min={bounds?.[0]}
       onChange={(newRange) => {
         onChange(newRange);
       }}
