@@ -250,7 +250,8 @@ function useMonitoringLocations() {
         // build up the monitoringLocationToggles and monitoringLocationGroups
         const subGroupsAdded = [];
         characteristicGroupMappings.forEach((mapping) => {
-          station.stationTotalsByLabel[mapping.label] = 0;
+          if (mapping.label !== 'All') 
+            station.stationTotalsByLabel[mapping.label] = 0;
           for (const subGroup in station.stationTotalsByGroup) {
             // if characteristic group exists in switch config object
             if (mapping.groupNames.includes(subGroup)) {
@@ -267,8 +268,10 @@ function useMonitoringLocations() {
                 };
               }
               // add the lower-tier group counts to the corresponding top-tier group counts
-              station.stationTotalsByLabel[mapping.label] +=
-                station.stationTotalsByGroup[subGroup];
+              if (mapping.label !== 'All') {
+                station.stationTotalsByLabel[mapping.label] +=
+                  station.stationTotalsByGroup[subGroup];
+              }
             }
           }
         });

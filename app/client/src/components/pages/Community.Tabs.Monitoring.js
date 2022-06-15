@@ -554,13 +554,8 @@ function MonitoringTab({ setMonitoringDisplayed }) {
     monitoringLocations,
     monitoringLocationsLayer,
     setMonitoringGroups,
-    // setTimeRange,
     watershed,
   } = useContext(LocationSearchContext);
-
-  /* useEffect(() => {
-    setTimeRange(yearsRange);
-  }, [setTimeRange, yearsRange]); */
 
   const [{ minYear, maxYear, annualData }, resetWorkerData] =
     usePeriodOfRecordData(huc12, 'huc12');
