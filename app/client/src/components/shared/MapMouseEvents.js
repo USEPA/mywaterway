@@ -22,19 +22,28 @@ type Props = {
   view: any,
 };
 
+function updateAttributes(graphic, updates) {
+  if (graphic?.layer?.id === 'monitoringLocationsLayer') {
+    Object.keys(updates).forEach((attribute) => {
+      graphic.setAttribute(attribute, updates[attribute]);
+    });
+  }
+}
+
 function MapMouseEvents({ map, view }: Props) {
   const navigate = useNavigate();
   const fetchedDataDispatch = useFetchedDataDispatch();
 
   const services = useServicesContext();
-  const {
-    setHighlightedGraphic,
-    setSelectedGraphic, //
-  } = useContext(MapHighlightContext);
+  const { setHighlightedGraphic, setSelectedGraphic } =
+    useContext(MapHighlightContext);
 
-  const { getHucBoundaries, resetData, protectedAreasLayer } = useContext(
-    LocationSearchContext,
-  );
+  const {
+    getHucBoundaries,
+    monitoringFeatureUpdates,
+    resetData,
+    protectedAreasLayer,
+  } = useContext(LocationSearchContext);
 
   const getDynamicPopup = useDynamicPopup();
 
@@ -238,6 +247,30 @@ function MapMouseEvents({ map, view }: Props) {
     services,
     setHighlightedGraphic,
     view,
+  ]);
+
+  const [timeframe, setTimeframe] = useState(null);
+  const [watchHandler, setWatchHandler] = useState(null);
+  useEffect(() => {
+    if (services.status === 'fetching' || !monitoringFeatureUpdates) return;
+    if (monitoringFeatureUpdates.timeframe === timeframe) return;
+    // watchHandler?.remove();
+    setTimeframe(monitoringFeatureUpdates.timeframe);
+    if (!watchHandler) {
+      const handler = view.popup.watch('selectedFeature', (graphic) => {
+        const graphicId = graphic?.attributes?.uniqueId;
+        if (monitoringFeatureUpdates[graphicId]) {
+          updateAttributes(graphic, monitoringFeatureUpdates[graphicId]);
+        }
+      });
+      setWatchHandler(handler);
+    }
+  }, [
+    monitoringFeatureUpdates,
+    services.status,
+    timeframe,
+    view.popup,
+    watchHandler,
   ]);
 
   function getGraphicFromResponse(

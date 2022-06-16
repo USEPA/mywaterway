@@ -702,8 +702,10 @@ function MonitoringTab({ setMonitoringDisplayed }) {
         tempDisplayedMonitoringLocations.forEach((location) => {
           stationUpdates[location.uniqueId] = {
             stationTotalMeasurements: location.stationTotalMeasurements,
-            stationTotalsByGroup: JSON.stringify(location.stationTotalsByGroup),
-            timeframe: JSON.stringify(location.timeframe),
+            // stationTotalsByGroup: JSON.stringify(location.stationTotalsByGroup),
+            stationTotalsByGroup: location.stationTotalsByGroup,
+            // timeframe: JSON.stringify(location.timeframe),
+            timeframe: location.timeframe,
           };
         });
         setMonitoringFeatureUpdates(stationUpdates);
@@ -1181,22 +1183,26 @@ function MonitoringTab({ setMonitoringDisplayed }) {
 }
 
 function DateSlider({ bounds, disabled, range, onChange }) {
+  const [curRange, setCurRange] = useState(range);
   const currentYear = new Date().getFullYear();
   return (
     <TooltipSlider
       range
       allowCross={false}
-      defaultValue={range}
+      defaultValue={curRange}
       disabled={disabled}
       handleStyle={{ borderColor: '#0b89f4' }}
       max={currentYear}
       min={bounds?.[0]}
-      onChange={(newRange) => {
+      onAfterChange={(newRange) => {
         onChange(newRange);
+      }}
+      onChange={(newRange) => {
+        setCurRange(newRange);
       }}
       step={1}
       trackStyle={{ backgroundColor: '#0b89f4' }}
-      value={range}
+      value={curRange}
     />
   );
 }
