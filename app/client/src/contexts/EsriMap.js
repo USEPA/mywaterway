@@ -1,9 +1,9 @@
 // @flow
 
-import React from 'react';
+import React, { createContext } from 'react';
 import type { Node } from 'react';
 
-const EsriMapContext: Object = React.createContext();
+const EsriMapContext: Object = createContext();
 
 type Props = { children: Node };
 

@@ -12,6 +12,13 @@ export const characteristicGroupMappings = [
     groupNames: ['Organics, Pesticide'],
   },
   {
+    label: 'PFAS',
+    groupNames: [
+      'PFOA, Perfluorooctanoic Acid',
+      'PFAS,Perfluorinated Alkyl Substance',
+    ],
+  },
+  {
     label: 'Metals',
     groupNames: ['Inorganics, Major, Metals', 'Inorganics, Minor, Metals'],
   },
@@ -29,6 +36,18 @@ export const characteristicGroupMappings = [
   },
   {
     label: 'Other',
-    groupNames: [],
+    groupNames: [
+      'Biological',
+      'Information',
+      'Organics, Other',
+      'Inorganics, Major, Non-metals',
+      'Inorganics, Minor, Non-metals',
+      'Organics, PCBs',
+      'Not Assigned',
+      'Population/Community',
+      'Radiochemical',
+      'Stable Isotopes',
+      'Toxicity',
+    ],
   },
 ];
