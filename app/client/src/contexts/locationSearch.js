@@ -210,6 +210,7 @@ type State = {
 
   // monitoring panel
   monitoringGroups: MonitoringLocationGroups,
+  monitoringFeatureUpdates: Object,
 
   // identified issues panel
   showDischargers: boolean,
@@ -294,6 +295,7 @@ export class LocationSearchProvider extends Component<Props, State> {
 
     // monitoring panel
     monitoringGroups: null,
+    monitoringFeatureUpdates: null,
 
     // identified issues panel
     showAllPolluted: true,
@@ -524,6 +526,9 @@ export class LocationSearchProvider extends Component<Props, State> {
     setMonitoringGroups: (monitoringGroups) => {
       this.setState({ monitoringGroups });
     },
+    setMonitoringFeatureUpdates: (monitoringFeatureUpdates) => {
+      this.setState({ monitoringFeatureUpdates });
+    },
     setShowAllPolluted: (showAllPolluted) => {
       this.setState({ showAllPolluted });
     },
@@ -711,6 +716,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         atHucBoundaries: false,
         hucBoundaries: '',
         monitoringGroups: null,
+        monitoringFeatureUpdates: null,
         monitoringLocations: { status: 'fetching', data: {} },
         permittedDischargers: { status: 'fetching', data: {} },
         nonprofits: { status: 'fetching', data: [] },

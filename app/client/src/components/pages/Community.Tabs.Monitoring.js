@@ -553,6 +553,7 @@ function MonitoringTab({ setMonitoringDisplayed }) {
     monitoringGroups,
     monitoringLocations,
     monitoringLocationsLayer,
+    setMonitoringFeatureUpdates,
     setMonitoringGroups,
     watershed,
   } = useContext(LocationSearchContext);
@@ -619,6 +620,8 @@ function MonitoringTab({ setMonitoringDisplayed }) {
       stationTotalMeasurements: 0,
       stationTotalsByGroup: {},
       stationTotalsByLabel: {},
+      timeframe: [...timeframe],
+      // timeframe: timeframe,
     };
     characteristicGroupMappings.forEach((mapping) => {
       result.stationTotalsByLabel[mapping.label] = 0;
@@ -628,7 +631,6 @@ function MonitoringTab({ setMonitoringDisplayed }) {
       if (parseInt(year) > timeframe[1]) return result;
       result.stationTotalMeasurements +=
         stationRecords[year].stationTotalMeasurements;
-      // result.stationTotalSamples += stationRecords[year].stationTotalSamples;
       Object.entries(stationRecords[year].stationTotalsByGroup).forEach(
         ([key, value]) => {
           key in result.stationTotalsByGroup
@@ -640,6 +642,7 @@ function MonitoringTab({ setMonitoringDisplayed }) {
         ([key, value]) => (result.stationTotalsByLabel[key] += value),
       );
     }
+
     return result;
   }, []);
 
@@ -694,9 +697,26 @@ function MonitoringTab({ setMonitoringDisplayed }) {
         return;
       }
 
+      if (yearsRange) {
+        const stationUpdates = {};
+        tempDisplayedMonitoringLocations.forEach((location) => {
+          stationUpdates[location.uniqueId] = {
+            stationTotalMeasurements: location.stationTotalMeasurements,
+            stationTotalsByGroup: JSON.stringify(location.stationTotalsByGroup),
+            timeframe: JSON.stringify(location.timeframe),
+          };
+        });
+        setMonitoringFeatureUpdates(stationUpdates);
+      }
+
       setDisplayedMonitoringLocations(tempDisplayedMonitoringLocations);
     },
-    [filterStation, monitoringLocationsLayer, yearsRange],
+    [
+      filterStation,
+      monitoringLocationsLayer,
+      setMonitoringFeatureUpdates,
+      yearsRange,
+    ],
   );
 
   const addAnnualData = useCallback(async () => {
@@ -1143,7 +1163,6 @@ function MonitoringTab({ setMonitoringDisplayed }) {
                           type="Past Water Conditions"
                           feature={feature}
                           services={services}
-                          timeframe={yearsRange}
                         />
                         <ViewOnMapButton feature={feature} />
                       </div>
