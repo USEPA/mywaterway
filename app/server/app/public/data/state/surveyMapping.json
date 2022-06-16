@@ -2,20 +2,20 @@
   {
     "state": "FL",
     "organizationIdentifier": "21FL303D",
-    "year": "2018",
+    "year": "2022",
     "subPopulationCode": "Statewide",
     "waterTypeGroupCode": "LAKE/RESERVOIR/POND",
     "surveyUseCode": "Fish, Shellfish, and Wildlife Protection and Propagation",
     "categoryCodeMapping": [
       {
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
         "categoryCode_order": "2",
         "categoryCode_color": "#cb223e"
       },
       {
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
         "categoryCode_order": "1",
         "categoryCode_color": "#20800c"
       }
@@ -23,57 +23,183 @@
     "stressorMapping": [
       {
         "stressor": "AMMONIA, UN-IONIZED",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
         "categoryCode_order": "2",
         "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "AMMONIA, UN-IONIZED",
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
         "categoryCode_order": "1",
         "categoryCode_color": "#20800c"
       },
       {
-        "stressor": "DISSOLVED OXYGEN SATURATION",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
+        "stressor": "ARSENIC IN SEDIMENT",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
         "categoryCode_order": "2",
         "categoryCode_color": "#cb223e"
       },
       {
-        "stressor": "DISSOLVED OXYGEN SATURATION",
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
+        "stressor": "ARSENIC IN SEDIMENT",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      },
+      {
+        "stressor": "CADMIUM IN SEDIMENT",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "CADMIUM IN SEDIMENT",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      },
+      {
+        "stressor": "CHROMIUM IN SEDIMENT",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "CHROMIUM IN SEDIMENT",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      },
+      {
+        "stressor": "COPPER IN SEDIMENT",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "COPPER IN SEDIMENT",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      },
+      {
+        "stressor": "DISSOLVED OXYGEN",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "DISSOLVED OXYGEN",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      },
+      {
+        "stressor": "LEAD IN SEDIMENT",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "LEAD IN SEDIMENT",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      },
+      {
+        "stressor": "MERCURY IN SEDIMENT",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "MERCURY IN SEDIMENT",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      },
+      {
+        "stressor": "NICKEL IN SEDIMENT",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "NICKEL IN SEDIMENT",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
         "categoryCode_order": "1",
         "categoryCode_color": "#20800c"
       },
       {
         "stressor": "NITROGEN, TOTAL",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
         "categoryCode_order": "2",
         "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "NITROGEN, TOTAL",
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
         "categoryCode_order": "1",
         "categoryCode_color": "#20800c"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
         "categoryCode_order": "2",
         "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      },
+      {
+        "stressor": "SILVER IN SEDIMENT",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "SILVER IN SEDIMENT",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      },
+      {
+        "stressor": "ZINC IN SEDIMENT",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "ZINC IN SEDIMENT",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
         "categoryCode_order": "1",
         "categoryCode_color": "#20800c"
       }
@@ -82,36 +208,36 @@
   {
     "state": "FL",
     "organizationIdentifier": "21FL303D",
-    "year": "2018",
+    "year": "2022",
     "subPopulationCode": "Statewide",
     "waterTypeGroupCode": "LAKE/RESERVOIR/POND",
     "surveyUseCode": "Recreational Use",
     "categoryCodeMapping": [
       {
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
         "categoryCode_order": "2",
         "categoryCode_color": "#cb223e"
       },
       {
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
         "categoryCode_order": "1",
         "categoryCode_color": "#20800c"
       }
     ],
     "stressorMapping": [
       {
-        "stressor": "FECAL COLIFORM",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
+        "stressor": "ESCHERICHIA COLI (E. COLI)",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
         "categoryCode_order": "2",
         "categoryCode_color": "#cb223e"
       },
       {
-        "stressor": "FECAL COLIFORM",
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
+        "stressor": "ESCHERICHIA COLI (E. COLI)",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
         "categoryCode_order": "1",
         "categoryCode_color": "#20800c"
       }
@@ -120,20 +246,20 @@
   {
     "state": "FL",
     "organizationIdentifier": "21FL303D",
-    "year": "2018",
+    "year": "2022",
     "subPopulationCode": "Statewide",
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "Fish, Shellfish, and Wildlife Protection and Propagation",
     "categoryCodeMapping": [
       {
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
         "categoryCode_order": "2",
         "categoryCode_color": "#cb223e"
       },
       {
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
         "categoryCode_order": "1",
         "categoryCode_color": "#20800c"
       }
@@ -141,57 +267,57 @@
     "stressorMapping": [
       {
         "stressor": "AMMONIA, UN-IONIZED",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
         "categoryCode_order": "2",
         "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "AMMONIA, UN-IONIZED",
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
         "categoryCode_order": "1",
         "categoryCode_color": "#20800c"
       },
       {
-        "stressor": "DISSOLVED OXYGEN SATURATION",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
+        "stressor": "DISSOLVED OXYGEN",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
         "categoryCode_order": "2",
         "categoryCode_color": "#cb223e"
       },
       {
-        "stressor": "DISSOLVED OXYGEN SATURATION",
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
+        "stressor": "DISSOLVED OXYGEN",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
         "categoryCode_order": "1",
         "categoryCode_color": "#20800c"
       },
       {
         "stressor": "NITROGEN, TOTAL",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
         "categoryCode_order": "2",
         "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "NITROGEN, TOTAL",
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
         "categoryCode_order": "1",
         "categoryCode_color": "#20800c"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
         "categoryCode_order": "2",
         "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
         "categoryCode_order": "1",
         "categoryCode_color": "#20800c"
       }
@@ -200,36 +326,36 @@
   {
     "state": "FL",
     "organizationIdentifier": "21FL303D",
-    "year": "2018",
+    "year": "2022",
     "subPopulationCode": "Statewide",
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
-    "surveyUseCode": "Recreational Use",
+    "surveyUseCode": "Recreational use",
     "categoryCodeMapping": [
       {
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
         "categoryCode_order": "2",
         "categoryCode_color": "#cb223e"
       },
       {
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
         "categoryCode_order": "1",
         "categoryCode_color": "#20800c"
       }
     ],
     "stressorMapping": [
       {
-        "stressor": "FECAL COLIFORM",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
+        "stressor": "ESCHERICHIA COLI (E. COLI)",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
         "categoryCode_order": "2",
         "categoryCode_color": "#cb223e"
       },
       {
-        "stressor": "FECAL COLIFORM",
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
+        "stressor": "ESCHERICHIA COLI (E. COLI)",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
         "categoryCode_order": "1",
         "categoryCode_color": "#20800c"
       }
@@ -238,20 +364,20 @@
   {
     "state": "FL",
     "organizationIdentifier": "21FL303D",
-    "year": "2018",
+    "year": "2022",
     "subPopulationCode": "Statewide",
-    "waterTypeGroupCode": "LAKE/RESERVOIR/POND",
+    "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "Fish, Shellfish, and Wildlife Protection and Propagation",
     "categoryCodeMapping": [
       {
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
         "categoryCode_order": "2",
         "categoryCode_color": "#cb223e"
       },
       {
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
         "categoryCode_order": "1",
         "categoryCode_color": "#20800c"
       }
@@ -259,57 +385,57 @@
     "stressorMapping": [
       {
         "stressor": "AMMONIA, UN-IONIZED",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
         "categoryCode_order": "2",
         "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "AMMONIA, UN-IONIZED",
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
         "categoryCode_order": "1",
         "categoryCode_color": "#20800c"
       },
       {
         "stressor": "DISSOLVED OXYGEN SATURATION",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
         "categoryCode_order": "2",
         "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "DISSOLVED OXYGEN SATURATION",
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
         "categoryCode_order": "1",
         "categoryCode_color": "#20800c"
       },
       {
         "stressor": "NITROGEN, TOTAL",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
         "categoryCode_order": "2",
         "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "NITROGEN, TOTAL",
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
         "categoryCode_order": "1",
         "categoryCode_color": "#20800c"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
+        "surveyCategoryCode": "Not supporting",
+        "categoryCode_label": "Not supporting",
         "categoryCode_order": "2",
         "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
+        "surveyCategoryCode": "Fully supporting",
+        "categoryCode_label": "Fully supporting",
         "categoryCode_order": "1",
         "categoryCode_color": "#20800c"
       }
@@ -1063,7 +1189,7 @@
   {
     "state": "KS",
     "organizationIdentifier": "21KAN001",
-    "year": "2020",
+    "year": "2022",
     "subPopulationCode": "Statewide",
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "AQUATIC LIFE",
@@ -1083,28 +1209,14 @@
     ],
     "stressorMapping": [
       {
-        "stressor": "ATRAZINE",
+        "stressor": "BENTHIC MACROINVERTEBRATES",
         "surveyCategoryCode": "FAIL",
         "categoryCode_label": "FAIL",
         "categoryCode_order": "2",
         "categoryCode_color": "#cb223e"
       },
       {
-        "stressor": "ATRAZINE",
-        "surveyCategoryCode": "PASS",
-        "categoryCode_label": "PASS",
-        "categoryCode_order": "1",
-        "categoryCode_color": "#20800c"
-      },
-      {
-        "stressor": "BENTHIC MACROINVERTEBRATES BIOASSESSMENTS",
-        "surveyCategoryCode": "FAIL",
-        "categoryCode_label": "FAIL",
-        "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e"
-      },
-      {
-        "stressor": "BENTHIC MACROINVERTEBRATES BIOASSESSMENTS",
+        "stressor": "BENTHIC MACROINVERTEBRATES",
         "surveyCategoryCode": "PASS",
         "categoryCode_label": "PASS",
         "categoryCode_order": "1",
@@ -1185,7 +1297,7 @@
   {
     "state": "KS",
     "organizationIdentifier": "21KAN001",
-    "year": "2020",
+    "year": "2022",
     "subPopulationCode": "Statewide",
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "CONTACT RECREATION",
@@ -1223,7 +1335,7 @@
   {
     "state": "KS",
     "organizationIdentifier": "21KAN001",
-    "year": "2020",
+    "year": "2022",
     "subPopulationCode": "Stream/Creek/River with Harvestable Fish",
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "FOOD PROCUREMENT",
@@ -2823,7 +2935,7 @@
   {
     "state": "NH",
     "organizationIdentifier": "11113300",
-    "year": "2010",
+    "year": "2018",
     "subPopulationCode": "Statewide",
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "AQUATIC LIFE INTEGRITY",
@@ -2831,14 +2943,8 @@
       {
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
-        "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0"
-      },
-      {
-        "surveyCategoryCode": "Insufficient Information",
-        "categoryCode_label": "Insufficient Information",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195"
+        "categoryCode_color": "#BCBEC0"
       },
       {
         "surveyCategoryCode": "Not Supporting",
@@ -2857,7 +2963,7 @@
   {
     "state": "NH",
     "organizationIdentifier": "11113300",
-    "year": "2010",
+    "year": "2018",
     "subPopulationCode": "Statewide",
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
     "surveyUseCode": "PRIMARY CONTACT RECREATION",
@@ -2865,48 +2971,8 @@
       {
         "surveyCategoryCode": "Not Assessed",
         "categoryCode_label": "Not Assessed",
-        "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0"
-      },
-      {
-        "surveyCategoryCode": "Insufficient Information",
-        "categoryCode_label": "Insufficient Information",
         "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195"
-      },
-      {
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
-        "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e"
-      },
-      {
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
-        "categoryCode_order": "1",
-        "categoryCode_color": "#20800c"
-      }
-    ]
-  },
-  {
-    "state": "NH",
-    "organizationIdentifier": "11113300",
-    "year": "2010",
-    "subPopulationCode": "Statewide",
-    "waterTypeGroupCode": "STREAM/CREEK/RIVER",
-    "surveyUseCode": "SECONDARY CONTACT RECREATION",
-    "categoryCodeMapping": [
-      {
-        "surveyCategoryCode": "Not Assessed",
-        "categoryCode_label": "Not Assessed",
-        "categoryCode_order": "4",
         "categoryCode_color": "#BCBEC0"
-      },
-      {
-        "surveyCategoryCode": "Insufficient Information",
-        "categoryCode_label": "Insufficient Information",
-        "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195"
       },
       {
         "surveyCategoryCode": "Not Supporting",
@@ -3027,23 +3093,11 @@
   {
     "state": "NH",
     "organizationIdentifier": "11113300",
-    "year": "2010",
+    "year": "2022",
     "subPopulationCode": "Statewide",
     "waterTypeGroupCode": "LAKE/RESERVOIR/POND",
     "surveyUseCode": "AQUATIC LIFE INTEGRITY",
     "categoryCodeMapping": [
-      {
-        "surveyCategoryCode": "Not Assessed",
-        "categoryCode_label": "Not Assessed",
-        "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0"
-      },
-      {
-        "surveyCategoryCode": "Insufficient Information",
-        "categoryCode_label": "Insufficient Information",
-        "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195"
-      },
       {
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
@@ -3059,95 +3113,11 @@
     ],
     "stressorMapping": [
       {
-        "stressor": "CHLOROPHYLL-A",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
-        "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e"
-      },
-      {
-        "stressor": "CHLOROPHYLL-A",
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
-        "categoryCode_order": "1",
-        "categoryCode_color": "#20800c"
-      },
-      {
-        "stressor": "DISSOLVED OXYGEN",
-        "surveyCategoryCode": "Insufficient Information",
-        "categoryCode_label": "Insufficient Information",
-        "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195"
-      },
-      {
-        "stressor": "DISSOLVED OXYGEN",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
-        "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e"
-      },
-      {
-        "stressor": "DISSOLVED OXYGEN",
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
-        "categoryCode_order": "1",
-        "categoryCode_color": "#20800c"
-      },
-      {
-        "stressor": "DISSOLVED OXYGEN SATURATION",
-        "surveyCategoryCode": "Insufficient Information",
-        "categoryCode_label": "Insufficient Information",
-        "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195"
-      },
-      {
-        "stressor": "DISSOLVED OXYGEN SATURATION",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
-        "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e"
-      },
-      {
-        "stressor": "DISSOLVED OXYGEN SATURATION",
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
-        "categoryCode_order": "1",
-        "categoryCode_color": "#20800c"
-      },
-      {
-        "stressor": "NON-NATIVE AQUATIC PLANTS",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
-        "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e"
-      },
-      {
-        "stressor": "NON-NATIVE AQUATIC PLANTS",
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
-        "categoryCode_order": "1",
-        "categoryCode_color": "#20800c"
-      },
-      {
-        "stressor": "PH",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
-        "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e"
-      },
-      {
-        "stressor": "PH",
-        "surveyCategoryCode": "Fully Supporting",
-        "categoryCode_label": "Fully Supporting",
-        "categoryCode_order": "1",
-        "categoryCode_color": "#20800c"
-      },
-      {
         "stressor": "PHOSPHORUS, TOTAL",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
-        "categoryCode_order": "3",
-        "categoryCode_color": "#cb223e"
+        "surveyCategoryCode": "Fully Supporting",
+        "categoryCode_label": "Fully Supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
@@ -3158,6 +3128,111 @@
       },
       {
         "stressor": "PHOSPHORUS, TOTAL",
+        "surveyCategoryCode": "Not Supporting",
+        "categoryCode_label": "Not Supporting",
+        "categoryCode_order": "3",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "PHOSPHORUS, TOTAL",
+        "surveyCategoryCode": "Insufficient Information",
+        "categoryCode_label": "Insufficient Information",
+        "categoryCode_order": "4",
+        "categoryCode_color": "#6b4195"
+      },
+      {
+        "stressor": "PH",
+        "surveyCategoryCode": "Fully Supporting",
+        "categoryCode_label": "Fully Supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      },
+      {
+        "stressor": "PH",
+        "surveyCategoryCode": "Not Supporting",
+        "categoryCode_label": "Not Supporting",
+        "categoryCode_order": "3",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "NON-NATIVE AQUATIC PLANTS",
+        "surveyCategoryCode": "Fully Supporting",
+        "categoryCode_label": "Fully Supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      },
+      {
+        "stressor": "NON-NATIVE AQUATIC PLANTS",
+        "surveyCategoryCode": "Not Supporting",
+        "categoryCode_label": "Not Supporting",
+        "categoryCode_order": "3",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "DISSOLVED OXYGEN SATURATION",
+        "surveyCategoryCode": "Fully Supporting",
+        "categoryCode_label": "Fully Supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      },
+      {
+        "stressor": "DISSOLVED OXYGEN SATURATION",
+        "surveyCategoryCode": "Not Supporting",
+        "categoryCode_label": "Not Supporting",
+        "categoryCode_order": "3",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "DISSOLVED OXYGEN SATURATION",
+        "surveyCategoryCode": "Insufficient Information",
+        "categoryCode_label": "Insufficient Information",
+        "categoryCode_order": "4",
+        "categoryCode_color": "#6b4195"
+      },
+      {
+        "stressor": "DISSOLVED OXYGEN",
+        "surveyCategoryCode": "Fully Supporting",
+        "categoryCode_label": "Fully Supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      },
+      {
+        "stressor": "DISSOLVED OXYGEN",
+        "surveyCategoryCode": "Not Supporting",
+        "categoryCode_label": "Not Supporting",
+        "categoryCode_order": "3",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "DISSOLVED OXYGEN",
+        "surveyCategoryCode": "Insufficient Information",
+        "categoryCode_label": "Insufficient Information",
+        "categoryCode_order": "4",
+        "categoryCode_color": "#6b4195"
+      },
+      {
+        "stressor": "CHLOROPHYLL-A",
+        "surveyCategoryCode": "Fully Supporting",
+        "categoryCode_label": "Fully Supporting",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#20800c"
+      },
+      {
+        "stressor": "CHLOROPHYLL-A",
+        "surveyCategoryCode": "Not Supporting",
+        "categoryCode_label": "Not Supporting",
+        "categoryCode_order": "3",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "stressor": "CHLOROPHYLL-A",
+        "surveyCategoryCode": "Insufficient Information",
+        "categoryCode_label": "Insufficient Information",
+        "categoryCode_order": "4",
+        "categoryCode_color": "#6b4195"
+      },
+      {
+        "stressor": "CHLORIDE",
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
@@ -3168,24 +3243,12 @@
   {
     "state": "NH",
     "organizationIdentifier": "11113300",
-    "year": "2010",
+    "year": "2022",
     "subPopulationCode": "Statewide",
     "waterTypeGroupCode": "LAKE/RESERVOIR/POND",
     "surveyUseCode": "PRIMARY CONTACT RECREATION",
     "categoryCodeMapping": [
       {
-        "surveyCategoryCode": "Not Assessed",
-        "categoryCode_label": "Not Assessed",
-        "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0"
-      },
-      {
-        "surveyCategoryCode": "Insufficient Information",
-        "categoryCode_label": "Insufficient Information",
-        "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195"
-      },
-      {
         "surveyCategoryCode": "Not Supporting",
         "categoryCode_label": "Not Supporting",
         "categoryCode_order": "2",
@@ -3212,13 +3275,6 @@
         "categoryCode_label": "Fully Supporting",
         "categoryCode_order": "1",
         "categoryCode_color": "#20800c"
-      },
-      {
-        "stressor": "CYANOBACTERIA HEPATOTOXIC MICROCYSTINS",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
-        "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e"
       },
       {
         "stressor": "CYANOBACTERIA HEPATOTOXIC MICROCYSTINS",
@@ -3246,29 +3302,11 @@
   {
     "state": "NH",
     "organizationIdentifier": "11113300",
-    "year": "2010",
+    "year": "2022",
     "subPopulationCode": "Statewide",
     "waterTypeGroupCode": "LAKE/RESERVOIR/POND",
     "surveyUseCode": "SECONDARY CONTACT RECREATION",
     "categoryCodeMapping": [
-      {
-        "surveyCategoryCode": "Not Assessed",
-        "categoryCode_label": "Not Assessed",
-        "categoryCode_order": "4",
-        "categoryCode_color": "#BCBEC0"
-      },
-      {
-        "surveyCategoryCode": "Insufficient Information",
-        "categoryCode_label": "Insufficient Information",
-        "categoryCode_order": "3",
-        "categoryCode_color": "#6b4195"
-      },
-      {
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
-        "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e"
-      },
       {
         "surveyCategoryCode": "Fully Supporting",
         "categoryCode_label": "Fully Supporting",
@@ -3277,13 +3315,6 @@
       }
     ],
     "stressorMapping": [
-      {
-        "stressor": "ESCHERICHIA COLI (E. COLI)",
-        "surveyCategoryCode": "Not Supporting",
-        "categoryCode_label": "Not Supporting",
-        "categoryCode_order": "2",
-        "categoryCode_color": "#cb223e"
-      },
       {
         "stressor": "ESCHERICHIA COLI (E. COLI)",
         "surveyCategoryCode": "Fully Supporting",
