@@ -27,6 +27,8 @@ type LookupFile = {
 type LookupFiles = {
   documentOrder: LookupFile,
   setDocumentOrder: Function,
+  educatorMaterials: LookupFile,
+  setEducatorMaterials: Function,
   reportStatusMapping: LookupFile,
   setReportStatusMapping: Function,
   stateNationalUses: LookupFile,
@@ -46,6 +48,8 @@ type LookupFiles = {
 const LookupFilesContext: Object = createContext<LookupFiles>({
   documentOrder: { status: 'fetching', data: null },
   setDocumentOrder: () => {},
+  educatorMaterials: { status: 'fetching', data: null },
+  setEducatorMaterials: () => {},
   reportStatusMapping: { status: 'fetching', data: null },
   setReportStatusMapping: () => {},
   stateNationalUses: { status: 'fetching', data: null },
@@ -68,6 +72,10 @@ type Props = {
 
 function LookupFilesProvider({ children }: Props) {
   const [documentOrder, setDocumentOrder] = useState({
+    status: 'fetching',
+    data: {},
+  });
+  const [educatorMaterials, setEducatorMaterials] = useState({
     status: 'fetching',
     data: {},
   });
@@ -109,6 +117,8 @@ function LookupFilesProvider({ children }: Props) {
       value={{
         documentOrder,
         setDocumentOrder,
+        educatorMaterials,
+        setEducatorMaterials,
         reportStatusMapping,
         setReportStatusMapping,
         stateNationalUses,
@@ -315,10 +325,26 @@ function useOrganizationsContext() {
   return organizations;
 }
 
+// Custom hook for the educators.json file.
+let educatorMaterialsInitialized = false; // global var for ensuring fetch only happens once
+function useEducatorMaterialsContext() {
+  const { educatorMaterials, setEducatorMaterials } =
+    useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!educatorMaterialsInitialized) {
+    educatorMaterialsInitialized = true;
+    getLookupFile('educators.json', setEducatorMaterials);
+  }
+
+  return educatorMaterials;
+}
+
 export {
   LookupFilesContext,
   LookupFilesProvider,
   useDocumentOrderContext,
+  useEducatorMaterialsContext,
   useNarsContext,
   useNotificationsContext,
   useOrganizationsContext,

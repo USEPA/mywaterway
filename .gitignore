@@ -7,6 +7,7 @@ npm-debug.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+yarn.lock
 
 #SONAR related
 .sonarlint
@@ -16,6 +17,8 @@ yarn-error.log*
 coverage/
 .nyc_output
 **/__diff_output__
+app/cypress/screenshots/
+app/cypress/videos/
 
 
 # misc
