@@ -96,24 +96,6 @@ const containerStyles = css`
   background-color: #fff;
 `;
 
-function expandStationData(station) {
-  return {
-    ...station,
-    stationDataByYear: JSON.parse(station.stationDataByYear),
-    stationTotalsByGroup: JSON.parse(station.stationTotalsByGroup),
-    stationTotalsByLabel: JSON.parse(station.stationTotalsByLabel),
-  };
-}
-
-function flattenStationData(station) {
-  return {
-    ...station,
-    stationDataByYear: JSON.stringify(station.stationDataByYear),
-    stationTotalsByGroup: JSON.stringify(station.stationTotalsByGroup),
-    stationTotalsByLabel: JSON.stringify(station.stationTotalsByLabel),
-  };
-}
-
 const editLayer = async (layer, graphics) => {
   const featureSet = await layer.queryFeatures();
   const edits = {
@@ -191,14 +173,11 @@ function useMonitoringLocations() {
             `${station.properties.MonitoringLocationIdentifier}/`,
           // monitoring station specific properties:
           stationProviderName: station.properties.ProviderName,
-          stationDataByYear: {},
           stationTotalSamples: parseInt(station.properties.activityCount),
           stationTotalMeasurements: parseInt(station.properties.resultCount),
           // counts for each lower-tier characteristic group
           stationTotalsByGroup:
             station.properties.characteristicGroupResultCount,
-          // counts for each top-tier characteristic group
-          stationTotalsByLabel: {},
           timeframe: null,
           // create a unique id, so we can check if the monitoring station has
           // already been added to the display (since a monitoring station id
@@ -233,12 +212,7 @@ function useMonitoringLocations() {
 
       if (!stations) return;
 
-      const structuredProps = [
-        'stationTotalsByGroup',
-        'stationTotalsByLabel',
-        'stationDataByYear',
-        'timeframe',
-      ];
+      const structuredProps = ['stationTotalsByGroup', 'timeframe'];
       const graphics = stations.map((station) => {
         const attributes = stringifyAttributes(structuredProps, station);
         return new Graphic({
@@ -257,6 +231,10 @@ function useMonitoringLocations() {
       editLayer(monitoringLocationsLayer, graphics);
 
       stations.forEach((station) => {
+        // add properties that aren't necessary for the layer
+        station.stationDataByYear = {};
+        // counts for each top-tier characteristic group
+        station.stationTotalsByLabel = {};
         // build up the monitoringLocationToggles and monitoringLocationGroups
         const subGroupsAdded = [];
         characteristicGroupMappings.forEach((mapping) => {
@@ -845,7 +823,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         { name: 'locationUrl', type: 'string' },
         { name: 'stationProviderName', type: 'string' },
         { name: 'stationTotalSamples', type: 'integer' },
+        { name: 'stationTotalsByGroup', type: 'string' },
         { name: 'stationTotalMeasurements', type: 'integer' },
+        { name: 'timeframe', type: 'string' },
         { name: 'uniqueId', type: 'string' },
       ],
       objectIdField: 'OBJECTID',
@@ -915,22 +895,12 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       popupTemplate: {
         outFields: ['*'],
         title: (feature) => getPopupTitle(feature.graphic.attributes),
-        /* content: (feature) => {
-          feature.graphic.attributes = expandStationData(
-            feature.graphic.attributes,
-          ); */
         content: (feature) => {
-          const structuredProps = [
-            'stationTotalsByGroup',
-            'stationTotalsByLabel',
-            'stationDataByYear',
-            'timeframe',
-          ];
+          const structuredProps = ['stationTotalsByGroup', 'timeframe'];
           feature.graphic.attributes = parseAttributes(
             structuredProps,
             feature.graphic.attributes,
           );
-          console.log(feature.graphic.attributes);
           return getPopupContent({
             feature: feature.graphic,
             services,
