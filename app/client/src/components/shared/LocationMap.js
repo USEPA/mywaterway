@@ -96,55 +96,7 @@ const containerStyles = css`
   background-color: #fff;
 `;
 
-/*
- **  Types
- */
-type AnnualStationData = {|
-  uniqueId: string,
-  stationTotalMeasurements: number,
-  stationTotalSamples: number,
-  stationTotalsByCharacteristic: { [characteristic: string]: number },
-  stationTotalsByGroup: { [group: string]: number },
-  stationTotalsByLabel: { [label: string]: number },
-|};
-
-type StationData = {|
-  locationLongitude: number,
-  locationLatitude: number,
-  locationName: string,
-  locationType: string,
-  locationUrl: string,
-  monitoringType: 'Past Water Conditions',
-  OBJECTID?: number,
-  orgId: string,
-  orgName: string,
-  siteId: string,
-  stationDataByYear: { [number]: AnnualStationData },
-  stationProviderName: string,
-  stationTotalMeasurements: number,
-  stationTotalSamples: number,
-  stationTotalsByGroup: { [group: string]: number },
-  stationTotalsByLabel: { [label: string]: number },
-  uniqueId: string,
-|};
-
-type StationDataFlattened = {|
-  ...StationData,
-  stationDataByYear: string,
-  stationTotalsByGroup: string,
-  stationTotalsByLabel: string,
-|};
-
-type MonitoringLocationGroups = {
-  [label: string]: {
-    label: string,
-    characteristicGroups?: Array<string>,
-    stations: Station[],
-    toggled: boolean,
-  },
-};
-
-function expandStationData(station: StationDataFlattened): StationData {
+function expandStationData(station) {
   return {
     ...station,
     stationDataByYear: JSON.parse(station.stationDataByYear),
@@ -153,13 +105,46 @@ function expandStationData(station: StationDataFlattened): StationData {
   };
 }
 
-function flattenStationData(station: StationData): StationDataFlattened {
+function flattenStationData(station) {
   return {
     ...station,
     stationDataByYear: JSON.stringify(station.stationDataByYear),
     stationTotalsByGroup: JSON.stringify(station.stationTotalsByGroup),
     stationTotalsByLabel: JSON.stringify(station.stationTotalsByLabel),
   };
+}
+
+const editLayer = async (layer, graphics) => {
+  const featureSet = await layer.queryFeatures();
+  const edits = {
+    deleteFeatures: featureSet.features,
+    addFeatures: graphics,
+  };
+  return layer.applyEdits(edits);
+};
+
+function stringifyAttributes(structuredAttributes, attributes) {
+  const stringified = {};
+  for (const property of structuredAttributes) {
+    try {
+      stringified[property] = JSON.stringify(attributes[property]);
+    } catch {
+      stringified[property] = attributes[property];
+    }
+  }
+  return { ...attributes, ...stringified };
+}
+
+function parseAttributes(structuredAttributes, attributes) {
+  const parsed = {};
+  for (const property of structuredAttributes) {
+    try {
+      parsed[property] = JSON.parse(attributes[property]);
+    } catch {
+      parsed[property] = attributes[property];
+    }
+  }
+  return { ...attributes, ...parsed };
 }
 
 function useMonitoringLocations() {
@@ -214,6 +199,7 @@ function useMonitoringLocations() {
             station.properties.characteristicGroupResultCount,
           // counts for each top-tier characteristic group
           stationTotalsByLabel: {},
+          timeframe: null,
           // create a unique id, so we can check if the monitoring station has
           // already been added to the display (since a monitoring station id
           // isn't universally unique)
@@ -230,7 +216,7 @@ function useMonitoringLocations() {
   useEffect(() => {
     if (!monitoringGroups) {
       // build up monitoring stations, toggles, and groups
-      let locationGroups: MonitoringLocationGroups = {
+      let locationGroups = {
         All: { label: 'All', stations: [], toggled: true },
         Other: {
           label: 'Other',
@@ -246,11 +232,35 @@ function useMonitoringLocations() {
       );
 
       if (!stations) return;
+
+      const structuredProps = [
+        'stationTotalsByGroup',
+        'stationTotalsByLabel',
+        'stationDataByYear',
+        'timeframe',
+      ];
+      const graphics = stations.map((station) => {
+        const attributes = stringifyAttributes(structuredProps, station);
+        return new Graphic({
+          geometry: {
+            type: 'point',
+            longitude: attributes.locationLongitude,
+            latitude: attributes.locationLatitude,
+          },
+          // attributes: attributes,
+          attributes: {
+            ...station,
+            stationTotalsByGroup: JSON.stringify(station.stationTotalsByGroup),
+          },
+        });
+      });
+      editLayer(monitoringLocationsLayer, graphics);
+
       stations.forEach((station) => {
         // build up the monitoringLocationToggles and monitoringLocationGroups
         const subGroupsAdded = [];
         characteristicGroupMappings.forEach((mapping) => {
-          if (mapping.label !== 'All') 
+          if (mapping.label !== 'All')
             station.stationTotalsByLabel[mapping.label] = 0;
           for (const subGroup in station.stationTotalsByGroup) {
             // if characteristic group exists in switch config object
@@ -302,34 +312,6 @@ function useMonitoringLocations() {
     monitoringLocationsLayer,
     setMonitoringGroups,
   ]);
-
-  const editLayer = async (layer, graphics) => {
-    const featureSet = await layer.queryFeatures();
-    const edits = {
-      deleteFeatures: featureSet.features,
-      addFeatures: graphics,
-    };
-    return layer.applyEdits(edits);
-  };
-
-  useEffect(() => {
-    const stations = buildStations(
-      monitoringLocations,
-      monitoringLocationsLayer,
-    );
-    if (!stations) return;
-    const graphics = stations.map((station) => {
-      return new Graphic({
-        geometry: {
-          type: 'point',
-          longitude: station.locationLongitude,
-          latitude: station.locationLatitude,
-        },
-        attributes: flattenStationData(station),
-      });
-    });
-    editLayer(monitoringLocationsLayer, graphics);
-  }, [buildStations, monitoringLocationsLayer, monitoringLocations]);
 }
 
 // --- components ---
@@ -862,11 +844,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         { name: 'locationType', type: 'string' },
         { name: 'locationUrl', type: 'string' },
         { name: 'stationProviderName', type: 'string' },
-        { name: 'stationTotalSamples', type: 'string' },
-        { name: 'stationTotalMeasurements', type: 'string' },
-        { name: 'stationTotalsByGroup', type: 'string' },
-        { name: 'stationTotalsByLabel', type: 'string' },
-        { name: 'stationDataByYear', type: 'string' },
+        { name: 'stationTotalSamples', type: 'integer' },
+        { name: 'stationTotalMeasurements', type: 'integer' },
         { name: 'uniqueId', type: 'string' },
       ],
       objectIdField: 'OBJECTID',
@@ -936,10 +915,22 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       popupTemplate: {
         outFields: ['*'],
         title: (feature) => getPopupTitle(feature.graphic.attributes),
-        content: (feature) => {
+        /* content: (feature) => {
           feature.graphic.attributes = expandStationData(
             feature.graphic.attributes,
+          ); */
+        content: (feature) => {
+          const structuredProps = [
+            'stationTotalsByGroup',
+            'stationTotalsByLabel',
+            'stationDataByYear',
+            'timeframe',
+          ];
+          feature.graphic.attributes = parseAttributes(
+            structuredProps,
+            feature.graphic.attributes,
           );
+          console.log(feature.graphic.attributes);
           return getPopupContent({
             feature: feature.graphic,
             services,
