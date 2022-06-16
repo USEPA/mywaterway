@@ -236,7 +236,6 @@ type Props = {
   extraContent: ?Object,
   services: ?Object,
   fields: ?Object,
-  timeframe: ?Array<number>,
 };
 
 function WaterbodyInfo({
@@ -246,7 +245,6 @@ function WaterbodyInfo({
   extraContent,
   services,
   fields,
-  timeframe,
 }: Props) {
   const { attributes } = feature;
   const onWaterbodyReportPage =
@@ -817,12 +815,10 @@ function WaterbodyInfo({
     content = <UsgsStreamgagesContent feature={feature} />;
   }
   if (type === 'Past Water Conditions') {
-    // content = monitoringLocationsContent(timeframe);
     content = (
       <MonitoringLocationsContent
         attributes={feature.attributes}
         services={services}
-        timeframe={timeframe}
       />
     );
   }
@@ -991,7 +987,19 @@ function MapPopup({
   );
 }
 
-function MonitoringLocationsContent({ attributes, services, timeframe }) {
+function parseAttributes(structuredAttributes, attributes) {
+  const parsed = {};
+  for (const property of structuredAttributes) {
+    try {
+      parsed[property] = JSON.parse(attributes[property]);
+    } catch {
+      parsed[property] = attributes[property];
+    }
+  }
+  return { ...attributes, ...parsed };
+}
+
+function MonitoringLocationsContent({ attributes, services }) {
   const [charGroupFilters, setCharGroupFilters] = useState('');
   const [groups, setGroups] = useState({});
   const [selected, setSelected] = useState({});
@@ -999,6 +1007,23 @@ function MonitoringLocationsContent({ attributes, services, timeframe }) {
   const [totalMeasurements, setTotalMeasurements] = useState(
     attributes.stationTotalMeasurements,
   );
+
+  const structuredProps = ['stationTotalsByGroup', 'timeframe'];
+
+  const parsed = parseAttributes(structuredProps, attributes);
+  const {
+    locationName,
+    locationType,
+    locationUrl,
+    orgId,
+    orgName,
+    siteId,
+    stationProviderName,
+    stationTotalSamples,
+    stationTotalsByGroup,
+    stationTotalMeasurements,
+    timeframe,
+  } = parsed;
 
   const checkIfGroupInMapping = useCallback((groupName) => {
     return characteristicGroupMappings.find((mapping) =>
@@ -1036,7 +1061,7 @@ function MonitoringLocationsContent({ attributes, services, timeframe }) {
   }, [buildFilter, groups, selected, timeframe]);
 
   useEffect(() => {
-    const stationGroups = attributes.stationTotalsByGroup;
+    const stationGroups = stationTotalsByGroup;
     const newGroups = { Other: { characteristicGroups: [], resultCount: 0 } };
     // get the feature where the provider matches this stations provider
     characteristicGroupMappings.forEach((mapping) => {
@@ -1075,7 +1100,7 @@ function MonitoringLocationsContent({ attributes, services, timeframe }) {
       initialSelected[group] = true;
     });
     setSelected(initialSelected);
-  }, [attributes, checkIfGroupInMapping]);
+  }, [checkIfGroupInMapping, stationTotalsByGroup]);
 
   //Toggle an individual row and call the provided onChange event handler
   const toggleRow = (groupLabel: string, allGroups: Object) => {
@@ -1096,18 +1121,15 @@ function MonitoringLocationsContent({ attributes, services, timeframe }) {
     // if all selected
     if (numberSelected === totalSelections) {
       setSelectAll(1);
-      // setCharGroupFilters('');
-      setTotalMeasurements(attributes.stationTotalMeasurements);
+      setTotalMeasurements(stationTotalMeasurements);
     }
     // if none selected
     else if (numberSelected === 0) {
       setSelectAll(0);
-      // setCharGroupFilters('');
       setTotalMeasurements(0);
     }
     // if some selected
     else {
-      // buildFilter(selectedGroups, groups, timeframe);
       setSelectAll(2);
       let newTotalMeasurementCount = 0;
       Object.keys(groups).forEach((group) => {
@@ -1133,10 +1155,7 @@ function MonitoringLocationsContent({ attributes, services, timeframe }) {
 
     setSelected(selectedGroups);
     setSelectAll(selectAll === 0 ? 1 : 0);
-    setTotalMeasurements(
-      selectAll === 0 ? attributes.stationTotalMeasurements : 0,
-    );
-    // setCharGroupFilters('');
+    setTotalMeasurements(selectAll === 0 ? stationTotalMeasurements : 0);
   };
 
   // if a user has filtered out certain characteristic groups for
@@ -1145,21 +1164,13 @@ function MonitoringLocationsContent({ attributes, services, timeframe }) {
   // (see setCharGroupFilters in Table's onChange handler)
   const downloadUrl =
     `${services.data.waterQualityPortal.resultSearch}zip=no&siteid=` +
-    `${attributes.siteId}&providers=${attributes.stationProviderName}` +
+    `${siteId}&providers=${stationProviderName}` +
     `${charGroupFilters}`;
   const portalUrl =
     `${services.data.waterQualityPortal.userInterface}#` +
-    `siteid=${attributes.siteId}${charGroupFilters}` +
+    `siteid=${siteId}${charGroupFilters}` +
     `&mimeType=xlsx&dataProfile=resultPhysChem` +
     `&providers=NWIS&providers=STEWARDS&providers=STORET`;
-
-  /* const numGroups = Object.keys(attributes.stationTotalsByLabel).reduce(
-    (a, b) => {
-      if (attributes.stationTotalsByLabel[b] > 0) a++;
-      return a;
-    },
-    0,
-  ); */
 
   return (
     <>
@@ -1169,31 +1180,31 @@ function MonitoringLocationsContent({ attributes, services, timeframe }) {
             <td>
               <em>Organ&shy;ization Name:</em>
             </td>
-            <td>{attributes.orgName}</td>
+            <td>{orgName}</td>
           </tr>
           <tr>
             <td>
               <em>Location Name:</em>
             </td>
-            <td>{attributes.locationName}</td>
+            <td>{locationName}</td>
           </tr>
           <tr>
             <td>
               <em>Water Type:</em>
             </td>
-            <td>{attributes.locationType}</td>
+            <td>{locationType}</td>
           </tr>
           <tr>
             <td>
               <em>Organization ID:</em>
             </td>
-            <td>{attributes.orgId}</td>
+            <td>{orgId}</td>
           </tr>
           <tr>
             <td>
               <em>Monitor&shy;ing Site ID:</em>
             </td>
-            <td>{attributes.siteId.replace(`${attributes.orgId}-`, '')}</td>
+            <td>{siteId.replace(`${orgId}-`, '')}</td>
           </tr>
           <tr>
             <td>
@@ -1203,7 +1214,7 @@ function MonitoringLocationsContent({ attributes, services, timeframe }) {
                 </GlossaryTerm>
               </em>
             </td>
-            <td>{Number(attributes.stationTotalSamples).toLocaleString()}</td>
+            <td>{Number(stationTotalSamples).toLocaleString()}</td>
           </tr>
           <tr>
             <td>
@@ -1213,19 +1224,13 @@ function MonitoringLocationsContent({ attributes, services, timeframe }) {
                 </GlossaryTerm>
               </em>
             </td>
-            <td>
-              {Number(attributes.stationTotalMeasurements).toLocaleString()}
-            </td>
+            <td>{Number(stationTotalMeasurements).toLocaleString()}</td>
           </tr>
         </tbody>
       </table>
 
       <p>
-        <a
-          rel="noopener noreferrer"
-          target="_blank"
-          href={attributes.locationUrl}
-        >
+        <a rel="noopener noreferrer" target="_blank" href={locationUrl}>
           <i
             css={iconStyles}
             className="fas fa-info-circle"
