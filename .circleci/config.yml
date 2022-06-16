@@ -41,7 +41,7 @@ jobs:
           name: client build
           command: |
             cd client
-            npm install
+            npm install --legacy-peer-deps
             npm run build
       - run:
           name: server build 
@@ -131,7 +131,7 @@ jobs:
           name: client build
           command: |
             cd client
-            npm install
+            npm install --legacy-peer-deps
             npm run build
       - run:
           name: server build 
