@@ -114,7 +114,7 @@ function WaterbodyListVirtualized({
         <VirtualizedList
           items={waterbodies}
           expandedRowsSetter={setExpandedRows}
-          renderer={({ index, resizeCell, allExpanded }) => {
+          renderer={({ index, allExpanded }) => {
             const graphic = waterbodies[index];
 
             const condition = getWaterbodyCondition(
@@ -172,9 +172,6 @@ function WaterbodyListVirtualized({
                 status={status}
                 allExpanded={allExpanded || expandedRows.includes(index)}
                 onChange={() => {
-                  // ensure the cell is sized appropriately
-                  resizeCell();
-
                   // add the item to the expandedRows array so the accordion item
                   // will stay expanded when the user scrolls or highlights map items
                   if (expandedRows.includes(index)) {
