@@ -719,10 +719,10 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
         tempDisplayedMonitoringLocations.forEach((location) => {
           stationUpdates[location.uniqueId] = {
             stationTotalMeasurements: location.stationTotalMeasurements,
-            // stationTotalsByGroup: JSON.stringify(location.stationTotalsByGroup),
-            stationTotalsByGroup: location.stationTotalsByGroup,
-            // timeframe: JSON.stringify(location.timeframe),
-            timeframe: location.timeframe,
+            // stationTotalsByGroup: location.stationTotalsByGroup,
+            stationTotalsByGroup: JSON.stringify(location.stationTotalsByGroup),
+            // timeframe: location.timeframe,
+            timeframe: JSON.stringify(location.timeframe),
           };
         });
         setMonitoringFeatureUpdates(stationUpdates);

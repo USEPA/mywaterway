@@ -295,7 +295,11 @@ export class LocationSearchProvider extends Component<Props, State> {
 
     // monitoring panel
     monitoringGroups: null,
-    monitoringFeatureUpdates: null,
+    monitoringFeatureUpdates: {
+      stationTotalMeasurements: 0,
+      stationTotalsByGroup: {},
+      timeframe: null,
+    },
 
     // identified issues panel
     showAllPolluted: true,
@@ -716,7 +720,11 @@ export class LocationSearchProvider extends Component<Props, State> {
         atHucBoundaries: false,
         hucBoundaries: '',
         monitoringGroups: null,
-        monitoringFeatureUpdates: null,
+        monitoringFeatureUpdates: {
+          stationTotalMeasurements: 0,
+          stationTotalsByGroup: {},
+          timeframe: null,
+        },
         monitoringLocations: { status: 'fetching', data: {} },
         permittedDischargers: { status: 'fetching', data: {} },
         nonprofits: { status: 'fetching', data: [] },

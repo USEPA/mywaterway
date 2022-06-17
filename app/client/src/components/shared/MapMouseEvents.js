@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Point from '@arcgis/core/geometry/Point';
 import Query from '@arcgis/core/rest/support/Query';
@@ -15,20 +15,19 @@ import { getPopupContent, graphicComparison } from 'utils/mapFunctions';
 // utilities
 import { useDynamicPopup } from 'utils/hooks';
 
+// --- helpers ---
+function updateAttributes(graphic, updates) {
+  Object.keys(updates).forEach((attribute) => {
+    graphic.setAttribute(attribute, updates[attribute]);
+  });
+}
+
 // --- components ---
 type Props = {
   // map and view props auto passed from parent Map component by react-arcgis
   map: any,
   view: any,
 };
-
-function updateAttributes(graphic, updates) {
-  if (graphic?.layer?.id === 'monitoringLocationsLayer') {
-    Object.keys(updates).forEach((attribute) => {
-      graphic.setAttribute(attribute, updates[attribute]);
-    });
-  }
-}
 
 function MapMouseEvents({ map, view }: Props) {
   const navigate = useNavigate();
@@ -249,29 +248,29 @@ function MapMouseEvents({ map, view }: Props) {
     view,
   ]);
 
-  const [timeframe, setTimeframe] = useState(null);
+  const updates = useRef(null);
+  useEffect(() => {
+    if (!monitoringFeatureUpdates) return;
+    updates.current = monitoringFeatureUpdates;
+  }, [monitoringFeatureUpdates]);
+
   const [watchHandler, setWatchHandler] = useState(null);
   useEffect(() => {
-    if (services.status === 'fetching' || !monitoringFeatureUpdates) return;
-    if (monitoringFeatureUpdates.timeframe === timeframe) return;
-    // watchHandler?.remove();
-    setTimeframe(monitoringFeatureUpdates.timeframe);
+    if (services.status === 'fetching') return;
     if (!watchHandler) {
       const handler = view.popup.watch('selectedFeature', (graphic) => {
-        const graphicId = graphic?.attributes?.uniqueId;
-        if (monitoringFeatureUpdates[graphicId]) {
-          updateAttributes(graphic, monitoringFeatureUpdates[graphicId]);
+        if (graphic?.layer?.id === 'monitoringLocationsLayer') {
+          const graphicId = graphic?.attributes?.uniqueId;
+          if (updates.current?.[graphicId]) {
+            const stationUpdates = updates.current[graphicId];
+            updateAttributes(graphic, stationUpdates);
+          }
         }
       });
       setWatchHandler(handler);
     }
-  }, [
-    monitoringFeatureUpdates,
-    services.status,
-    timeframe,
-    view.popup,
-    watchHandler,
-  ]);
+    return () => watchHandler?.remove();
+  }, [services.status, updates, view, watchHandler]);
 
   function getGraphicFromResponse(
     res: Object,
