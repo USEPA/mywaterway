@@ -255,12 +255,16 @@ function MapMouseEvents({ map, view }: Props) {
     view,
   ]);
 
+  // Reference to a dictionary of date-filtered updates
+  // applicable to graphics visible on the map
   const updates = useRef(null);
   useEffect(() => {
     if (!monitoringFeatureUpdates) return;
     updates.current = monitoringFeatureUpdates;
   }, [monitoringFeatureUpdates]);
 
+  // Retrieves individual graphics from clusters,
+  // and updates them with date-filtered data
   const updateClusteredFeatures = useCallback(
     async (graphic) => {
       const layerView = await view.whenLayerView(monitoringLocationsLayer);
@@ -272,6 +276,8 @@ function MapMouseEvents({ map, view }: Props) {
     [monitoringLocationsLayer, view],
   );
 
+  // Watches for popups, and updates them if
+  // they represent monitoring location features
   const [popupWatchHandler, setPopupWatchHandler] = useState(null);
   useEffect(() => {
     if (services.status === 'fetching') return;

@@ -1,15 +1,18 @@
+// Helper function to get label of characteristic group
 function getLabel(charType, labelMappings) {
   for (let mapping of labelMappings) {
     if (mapping.groupNames.includes(charType)) return mapping.label;
   }
 }
 
+// This makes sure the listener isn't set twice
 if ('function' === typeof importScripts) {
   // eslint-disable-next-line no-restricted-globals
   self.onmessage = function (message) {
     const [target, origin, mappings] = message.data;
     importScripts(`${origin}/papaparse.min.js`);
 
+    // Use Papa Parse to parse CSV from the service URL
     function fetchParseCsv(url) {
       const parsePromise = new Promise((resolve, reject) => {
         Papa.parse(url, {
@@ -33,6 +36,8 @@ if ('function' === typeof importScripts) {
               `${record.MonitoringLocationIdentifier}-` +
               `${record.Provider}-` +
               `${record.OrganizationIdentifier}`;
+            // Structure the relevant fields of the
+            // returned data, keyed by year
             if (!(record.YearSummarized in results)) {
               results[record.YearSummarized] = {};
             }

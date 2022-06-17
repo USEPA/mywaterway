@@ -96,6 +96,9 @@ const containerStyles = css`
   background-color: #fff;
 `;
 
+/*
+ * Helpers for passing data to the map layers
+ */
 const editLayer = async (layer, graphics) => {
   const featureSet = await layer.queryFeatures();
   const edits = {
@@ -129,6 +132,8 @@ function parseAttributes(structuredAttributes, attributes) {
   return { ...attributes, ...parsed };
 }
 
+// Hook that centralizes updates to the `monitoringLocationsLayer`
+// and the `monitoringGroups` context object
 function useMonitoringLocations() {
   const services = useServicesContext();
   const {
@@ -154,6 +159,7 @@ function useMonitoringLocations() {
         );
       });
 
+      // Attributes common to both the layer and the context object
       return stationsSorted.map((station) => {
         return {
           monitoringType: 'Past Water Conditions',
@@ -221,7 +227,6 @@ function useMonitoringLocations() {
             longitude: attributes.locationLongitude,
             latitude: attributes.locationLatitude,
           },
-          // attributes: attributes,
           attributes: {
             ...station,
             stationTotalsByGroup: JSON.stringify(station.stationTotalsByGroup),
@@ -313,7 +318,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     lastSearchText,
     setLastSearchText,
     setCurrentExtent,
-    //
     boundariesLayer,
     searchIconLayer,
     waterbodyLayer,
@@ -896,6 +900,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         outFields: ['*'],
         title: (feature) => getPopupTitle(feature.graphic.attributes),
         content: (feature) => {
+          // Parse non-scalar variables
           const structuredProps = ['stationTotalsByGroup', 'timeframe'];
           feature.graphic.attributes = parseAttributes(
             structuredProps,

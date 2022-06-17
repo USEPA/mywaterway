@@ -50,7 +50,7 @@ import {
 } from 'styles/index.js';
 
 /*
- ** Styles
+ * Styles
  */
 const containerStyles = css`
   @media (min-width: 960px) {
@@ -142,6 +142,8 @@ const toggleStyles = css`
   }
 `;
 
+// Passes parsing of historical CSV data to a Web Worker,
+// which itself utilizes an external service
 function usePeriodOfRecordData(filter, param) {
   const services = useServicesContext();
   const initialWorkerData = {
@@ -153,10 +155,12 @@ function usePeriodOfRecordData(filter, param) {
   const [url, setUrl] = useState(null);
   const [workerData, setWorkerData] = useState(initialWorkerData);
 
+  // Clear the data on change of location
   const resetWorkerData = () => {
     setWorkerData(initialWorkerData);
   };
 
+  // Craft the URL
   useEffect(() => {
     if (param !== 'huc12' && param !== 'siteId') return;
     if (!filter) return;
@@ -171,6 +175,8 @@ function usePeriodOfRecordData(filter, param) {
     }
   }, [filter, param, services.data, services.status]);
 
+  // Create the worker and assign it a job,
+  // then listen for a response
   useEffect(() => {
     if (!filter || !url) return;
     if (!window.Worker) {
@@ -305,6 +311,8 @@ function Monitoring() {
     visibleLayers,
   ]);
 
+  // Added to avoid the slider tooltip appearing
+  // on the Current Water Conditions tab
   const [tabIndex, setTabIndex] = useState(0);
 
   return (
@@ -575,8 +583,10 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
     watershed,
   } = useContext(LocationSearchContext);
 
+  // The data returned by the worker
   const [{ minYear, maxYear, annualData }, resetWorkerData] =
     usePeriodOfRecordData(huc12, 'huc12');
+  // The currently selected date range
   const [yearsRange, setYearsRange] = useState(null);
 
   const [displayedMonitoringLocations, setDisplayedMonitoringLocations] =
@@ -630,6 +640,7 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
     [setCharGroupFilters, yearsRange],
   );
 
+  // Dynamically filter the displayed locations
   const filterStation = useCallback((station, timeframe) => {
     const stationRecords = station.stationDataByYear;
     const result = {
@@ -638,7 +649,6 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
       stationTotalsByGroup: {},
       stationTotalsByLabel: {},
       timeframe: [...timeframe],
-      // timeframe: timeframe,
     };
     characteristicGroupMappings.forEach((mapping) => {
       result.stationTotalsByLabel[mapping.label] = 0;
@@ -714,14 +724,15 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
         return;
       }
 
+      // Adds filtered data that's relevent to map popups
+      // to a context variable, so it can be injected into
+      // the graphic before it reaches the WaterbodyInfo component
       if (yearsRange) {
         const stationUpdates = {};
         tempDisplayedMonitoringLocations.forEach((location) => {
           stationUpdates[location.uniqueId] = {
             stationTotalMeasurements: location.stationTotalMeasurements,
-            // stationTotalsByGroup: location.stationTotalsByGroup,
             stationTotalsByGroup: JSON.stringify(location.stationTotalsByGroup),
-            // timeframe: location.timeframe,
             timeframe: JSON.stringify(location.timeframe),
           };
         });
@@ -738,6 +749,8 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
     ],
   );
 
+  // Add the stations historical data to the `stationDataByYear` property,
+  // then initializes the date slider
   const addAnnualData = useCallback(async () => {
     if (!monitoringLocationsLayer || !monitoringGroups) return;
 
@@ -750,9 +763,8 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
         }
       }
     }
-    const currentYear = new Date().getFullYear();
     setMonitoringGroups(updatedMonitoringGroups);
-    setYearsRange([minYear, currentYear]);
+    setYearsRange([minYear, maxYear]);
     drawMap(updatedMonitoringGroups, [minYear, maxYear]);
   }, [
     maxYear,
@@ -779,6 +791,7 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
     [drawMap, monitoringGroups, setYearsRange],
   );
 
+  // Updates total counts after `drawMap` filters displayed locations
   useEffect(() => {
     if (monitoringGroups && displayedMonitoringLocations.length) {
       let newTotalLocations = 0;
@@ -925,6 +938,8 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
 
   const [expandedRows, setExpandedRows] = useState([]);
 
+  // Used to position the slider tooltip in the slider container:
+  // it defaults to attaching to the document body
   const sliderRef = useRef();
 
   if (monitoringLocations.status === 'fetching') return <LoadingSpinner />;
@@ -1108,12 +1123,23 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
 
             <AccordionList
               title={
-                <span data-testid="monitoring-accordion-title">
-                  <strong>{displayedLocationsCount.toLocaleString()}</strong> of{' '}
-                  <strong>{totalLocationsCount.toLocaleString()}</strong> water
-                  monitoring sample locations in the <em>{watershed}</em>{' '}
-                  watershed.
-                </span>
+                yearsRange ? (
+                  <span data-testid="monitoring-accordion-title">
+                    <strong>{displayedLocationsCount.toLocaleString()}</strong>{' '}
+                    of <strong>{totalLocationsCount.toLocaleString()}</strong>{' '}
+                    water monitoring sample locations in the{' '}
+                    <em>{watershed}</em> watershed from{' '}
+                    <strong>{yearsRange[0]}</strong> to{' '}
+                    <strong>{yearsRange[1]}</strong>.
+                  </span>
+                ) : (
+                  <span data-testid="monitoring-accordion-title">
+                    <strong>{displayedLocationsCount.toLocaleString()}</strong>{' '}
+                    of <strong>{totalLocationsCount.toLocaleString()}</strong>{' '}
+                    water monitoring sample locations in the{' '}
+                    <em>{watershed}</em> watershed.
+                  </span>
+                )
               }
               onSortChange={({ value }) => setSortBy(value)}
               sortOptions={[
@@ -1205,6 +1231,7 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
   return null;
 }
 
+// Slider component that utilizes annual station data
 function DateSlider({
   bounds,
   containerRef,
