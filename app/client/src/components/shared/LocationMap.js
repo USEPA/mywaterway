@@ -2110,7 +2110,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   }, [
     mapView,
     hucBoundaries,
-    boundariesLayer.graphics,
+    boundariesLayer,
     setCurrentExtent,
     setAtHucBoundaries,
     homeWidget,
