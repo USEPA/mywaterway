@@ -739,7 +739,7 @@ function MonitoringAndSensorsTab({
                 items={filteredMonitoringAndSensors}
                 expandedRowsSetter={setExpandedRows}
                 displayedTypes={listTypes}
-                renderer={({ index, resizeCell, allExpanded }) => {
+                renderer={({ index, allExpanded }) => {
                   const item = filteredMonitoringAndSensors[index];
 
                   const feature = {
@@ -779,9 +779,6 @@ function MonitoringAndSensorsTab({
                       idKey="siteId"
                       allExpanded={allExpanded || expandedRows.includes(index)}
                       onChange={() => {
-                        // ensure the cell is sized appropriately
-                        resizeCell();
-
                         // add the item to the expandedRows array so the accordion item
                         // will stay expanded when the user scrolls or highlights map items
                         if (expandedRows.includes(index)) {

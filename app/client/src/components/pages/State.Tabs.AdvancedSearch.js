@@ -1136,8 +1136,6 @@ function AdvancedSearch() {
         </div>
       )}
 
-      {/* conditionally render the waterbody list to work around a render
-          bug with react-virtualized where only a few list items are renered. */}
       {!showMap && contentVisible && (
         <>
           <hr />
