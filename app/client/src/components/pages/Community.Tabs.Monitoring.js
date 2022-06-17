@@ -217,14 +217,12 @@ function filterStation(station, timeframe) {
     if (parseInt(year) > timeframe[1]) return result;
     result.stationTotalMeasurements +=
       stationRecords[year].stationTotalMeasurements;
+    const resultGroups = result.stationTotalsByGroup;
     Object.entries(stationRecords[year].stationTotalsByGroup).forEach(
       ([group, count]) => {
-        let yearGroupTotal = result.stationTotalsByGroup[group];
-        if (yearGroupTotal) {
-          yearGroupTotal += count;
-        } else {
-          yearGroupTotal = count;
-        }
+        resultGroups[group] = !resultGroups[group]
+          ? count
+          : resultGroups[group] + count;
       },
     );
     Object.entries(stationRecords[year].stationTotalsByLabel).forEach(
