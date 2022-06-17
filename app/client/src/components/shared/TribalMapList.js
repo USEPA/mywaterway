@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 import { useNavigate } from 'react-router-dom';
+import Basemap from '@arcgis/core/Basemap';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import Viewpoint from '@arcgis/core/Viewpoint';
@@ -12,7 +13,10 @@ import WaterbodyList from 'components/shared/WaterbodyList';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { LocationSearchContext } from 'contexts/locationSearch';
+import {
+  LocationSearchContext,
+  LocationSearchProvider,
+} from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 import {
   MapHighlightProvider,
@@ -89,6 +93,22 @@ function TribesMap({ layout, windowHeight, windowWidth, orgId }: Props) {
   const services = useServicesContext();
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
+
+  // switch the base map to
+  useEffect(() => {
+    if (!mapView) return;
+
+    const newBasemap = new Basemap({
+      portalItem: {
+        id: '1536abe5e5504e5db380ccfaa9b6fd8d',
+      },
+    });
+    mapView.map.basemap = newBasemap;
+
+    return function cleanup() {
+      mapView.map.basemap = 'gray-vector';
+    };
+  }, [mapView]);
 
   // Initially sets up the layers
   const [layersInitialized, setLayersInitialized] = useState(false);
@@ -428,7 +448,9 @@ export default function TribesMapContainer({ ...props }: Props) {
   return (
     <MapHighlightProvider>
       <MapErrorBoundary>
-        <TribesMap {...props} />
+        <LocationSearchProvider>
+          <TribesMap {...props} />
+        </LocationSearchProvider>
       </MapErrorBoundary>
     </MapHighlightProvider>
   );
