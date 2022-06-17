@@ -17,9 +17,15 @@ import { useDynamicPopup } from 'utils/hooks';
 
 // --- helpers ---
 function updateAttributes(graphic, updates) {
-  Object.keys(updates).forEach((attribute) => {
-    graphic.setAttribute(attribute, updates[attribute]);
-  });
+  if (graphic.layer?.id === 'monitoringLocationsLayer') {
+    const graphicId = graphic?.attributes?.uniqueId;
+    if (updates.current?.[graphicId]) {
+      const stationUpdates = updates.current[graphicId];
+      Object.keys(stationUpdates).forEach((attribute) => {
+        graphic.setAttribute(attribute, stationUpdates[attribute]);
+      });
+    }
+  }
 }
 
 // --- components ---
@@ -40,6 +46,7 @@ function MapMouseEvents({ map, view }: Props) {
   const {
     getHucBoundaries,
     monitoringFeatureUpdates,
+    monitoringLocationsLayer,
     resetData,
     protectedAreasLayer,
   } = useContext(LocationSearchContext);
@@ -254,23 +261,34 @@ function MapMouseEvents({ map, view }: Props) {
     updates.current = monitoringFeatureUpdates;
   }, [monitoringFeatureUpdates]);
 
-  const [watchHandler, setWatchHandler] = useState(null);
+  const updateClusteredFeatures = useCallback(
+    async (graphic) => {
+      const layerView = await view.whenLayerView(monitoringLocationsLayer);
+      const query = layerView.createQuery();
+      query.aggregateIds = [graphic.getObjectId()];
+      const { features } = await layerView.queryFeatures(query);
+      features.forEach((feature) => updateAttributes(feature, updates));
+    },
+    [monitoringLocationsLayer, view],
+  );
+
+  const [popupWatchHandler, setPopupWatchHandler] = useState(null);
   useEffect(() => {
     if (services.status === 'fetching') return;
-    if (!watchHandler) {
-      const handler = view.popup.watch('selectedFeature', (graphic) => {
-        if (graphic?.layer?.id === 'monitoringLocationsLayer') {
-          const graphicId = graphic?.attributes?.uniqueId;
-          if (updates.current?.[graphicId]) {
-            const stationUpdates = updates.current[graphicId];
-            updateAttributes(graphic, stationUpdates);
+    if (!popupWatchHandler) {
+      const handler = view.popup.watch('features', (graphics) => {
+        graphics.forEach((graphic) => {
+          if (graphic.isAggregate) {
+            updateClusteredFeatures(graphic);
+          } else {
+            updateAttributes(graphic, updates);
           }
-        }
+        });
       });
-      setWatchHandler(handler);
+      setPopupWatchHandler(handler);
     }
-    return () => watchHandler?.remove();
-  }, [services.status, updates, view, watchHandler]);
+    return () => popupWatchHandler?.remove();
+  }, [popupWatchHandler, services.status, updateClusteredFeatures, view]);
 
   function getGraphicFromResponse(
     res: Object,
