@@ -1,6 +1,12 @@
 // @flow
 
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 import { useNavigate } from 'react-router-dom';
@@ -85,27 +91,34 @@ const tableFooterStyles = css`
 `;
 
 const sliderContainerStyles = css`
-  align-items: center;
+  align-items: flex-end;
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
   justify-content: center;
+  padding-bottom: 10px;
   width: 100%;
 `;
 
 const sliderHeaderStyles = css`
-  padding: 0.5rem 3.5rem;
-  width: 100%;
   background-color: #f0f6f9;
-  border-top: 1px solid #dee2e6;
-  font-weight: bold;
   border-bottom: 2px solid #dee2e6;
+  border-top: 1px solid #dee2e6;
+  margin: auto;
+  font-weight: bold;
+  padding: 0.5rem 3.5rem;
+  text-align: center;
+  width: 100%;
 `;
 
 const sliderStyles = css`
-  align-items: center;
+  align-items: end;
   display: inline-flex;
-  height: 3rem;
+  height: 3.5rem;
+  padding-bottom: 3px;
   width: 60%;
+  .rc-tooltip-arrow {
+    display: none !important;
+  }
 `;
 
 const switchContainerStyles = css`
@@ -292,6 +305,8 @@ function Monitoring() {
     visibleLayers,
   ]);
 
+  const [tabIndex, setTabIndex] = useState(0);
+
   return (
     <div css={containerStyles}>
       <div css={keyMetricsStyles}>
@@ -370,7 +385,7 @@ function Monitoring() {
       </div>
 
       <div css={tabsStyles}>
-        <Tabs>
+        <Tabs onChange={(index) => setTabIndex(index)}>
           <TabList>
             <Tab>Current Water Conditions</Tab>
             <Tab>Past Water Conditions</Tab>
@@ -388,6 +403,7 @@ function Monitoring() {
               <SensorsTab
                 usgsStreamgagesDisplayed={usgsStreamgagesDisplayed}
                 setUsgsStreamgagesDisplayed={setUsgsStreamgagesDisplayed}
+                tabSelected={tabIndex === 0}
               />
             </TabPanel>
             <TabPanel>
@@ -421,6 +437,7 @@ function Monitoring() {
               <MonitoringTab
                 monitoringDisplayed={monitoringDisplayed}
                 setMonitoringDisplayed={setMonitoringDisplayed}
+                tabSelected={tabIndex === 1}
               />
             </TabPanel>
           </TabPanels>
@@ -545,7 +562,7 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
   }
 }
 
-function MonitoringTab({ setMonitoringDisplayed }) {
+function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
   const services = useServicesContext();
 
   const {
@@ -908,6 +925,8 @@ function MonitoringTab({ setMonitoringDisplayed }) {
 
   const [expandedRows, setExpandedRows] = useState([]);
 
+  const sliderRef = useRef();
+
   if (monitoringLocations.status === 'fetching') return <LoadingSpinner />;
 
   if (monitoringLocations.status === 'failure') {
@@ -930,22 +949,26 @@ function MonitoringTab({ setMonitoringDisplayed }) {
 
         {totalLocationsCount > 0 && (
           <>
-            <div css={sliderHeaderStyles}>Date Range</div>
+            <div css={sliderHeaderStyles}>
+              Date range for the {watershed} watershed{' '}
+            </div>
             <div css={sliderContainerStyles}>
               {!yearsRange ? (
                 <LoadingSpinner />
               ) : (
                 <>
-                  <span>{yearsRange[0]}</span>
-                  <div css={sliderStyles}>
+                  <span>{minYear}</span>
+                  <div ref={sliderRef} css={sliderStyles}>
                     <DateSlider
                       bounds={[minYear, maxYear]}
+                      containerRef={sliderRef}
                       disabled={Object.keys(annualData).length === 0}
                       range={yearsRange}
                       onChange={handleSliderChange}
+                      tooltipVisible={tabSelected}
                     />
                   </div>
-                  <span>{yearsRange[1]}</span>
+                  <span>{maxYear}</span>
                 </>
               )}
             </div>
@@ -1182,9 +1205,31 @@ function MonitoringTab({ setMonitoringDisplayed }) {
   return null;
 }
 
-function DateSlider({ bounds, disabled, range, onChange }) {
+function DateSlider({
+  bounds,
+  containerRef,
+  disabled,
+  range,
+  onChange,
+  tooltipVisible,
+}) {
   const [curRange, setCurRange] = useState(range);
-  const currentYear = new Date().getFullYear();
+
+  const tooltipInnerStyles = {
+    borderRadius: '10%',
+    color: '#444',
+    backgroundColor: '#d5e6ee',
+    minHeight: 'auto',
+    padding: '0.3em',
+  };
+
+  const tipProps = {
+    align: { offset: [0, 2] },
+    getTooltipContainer: () => containerRef.current,
+    overlayInnerStyle: tooltipInnerStyles,
+    visible: tooltipVisible,
+  };
+
   return (
     <TooltipSlider
       range
@@ -1192,7 +1237,7 @@ function DateSlider({ bounds, disabled, range, onChange }) {
       defaultValue={curRange}
       disabled={disabled}
       handleStyle={{ borderColor: '#0b89f4' }}
-      max={currentYear}
+      max={bounds?.[1]}
       min={bounds?.[0]}
       onAfterChange={(newRange) => {
         onChange(newRange);
@@ -1201,6 +1246,7 @@ function DateSlider({ bounds, disabled, range, onChange }) {
         setCurRange(newRange);
       }}
       step={1}
+      tipProps={tipProps}
       trackStyle={{ backgroundColor: '#0b89f4' }}
       value={curRange}
     />

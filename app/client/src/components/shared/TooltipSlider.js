@@ -8,16 +8,14 @@ function HandleTooltip({
   value,
   children,
   visible,
-  tipFormatter = (val) => `${val}`,
+  tipFormatter = (val) => val,
   ...props
 }) {
   const tooltipRef = React.useRef();
   const rafRef = React.useRef(null);
 
   function cancelKeepAlign() {
-    if (rafRef.current) {
-      raf.cancel(rafRef.current);
-    }
+    if (rafRef.current) raf.cancel(rafRef.current);
   }
 
   function keepAlign() {
@@ -49,14 +47,6 @@ function HandleTooltip({
     </Tooltip>
   );
 }
-
-export const handleRender = (node, props) => {
-  return (
-    <HandleTooltip value={props.value} visible={props.dragging}>
-      {node}
-    </HandleTooltip>
-  );
-};
 
 function TooltipSlider({ tipFormatter, tipProps, ...props }) {
   const tipHandleRender = (node, handleProps) => {
