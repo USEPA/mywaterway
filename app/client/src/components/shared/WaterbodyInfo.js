@@ -1001,9 +1001,8 @@ function parseAttributes(structuredAttributes, attributes) {
 
 function MonitoringLocationsContent({ attributes, services }) {
   const [charGroupFilters, setCharGroupFilters] = useState('');
-  const [groups, setGroups] = useState({});
-  const [selected, setSelected] = useState({});
   const [selectAll, setSelectAll] = useState(1);
+  const [selected, setSelected] = useState({});
   const [totalMeasurements, setTotalMeasurements] = useState(
     attributes.stationTotalMeasurements,
   );
@@ -1030,6 +1029,74 @@ function MonitoringLocationsContent({ attributes, services }) {
       mapping.groupNames.includes(groupName),
     );
   }, []);
+
+  const useGroups = (checkMappings, totalsByGroup) => {
+    const [groups, setGroups] = useState(null);
+
+    const buildGroups = useCallback(
+      (checkMappings, totalsByGroup) => {
+        const stationGroups = totalsByGroup;
+        const newGroups = {
+          Other: { characteristicGroups: [], resultCount: 0 },
+        };
+        // get the feature where the provider matches this stations provider
+        characteristicGroupMappings.forEach((mapping) => {
+          for (const groupName in stationGroups) {
+            if (
+              mapping.groupNames.includes(groupName) &&
+              !newGroups[mapping.label]?.characteristicGroups.includes(
+                groupName,
+              )
+            ) {
+              // push to existing group
+              if (newGroups[mapping.label]) {
+                newGroups[mapping.label].characteristicGroups.push(groupName);
+                newGroups[mapping.label].resultCount +=
+                  stationGroups[groupName];
+              }
+              // create a new group
+              else {
+                newGroups[mapping.label] = {
+                  characteristicGroups: [groupName],
+                  resultCount: stationGroups[groupName],
+                };
+              }
+            }
+            // push to Other
+            else if (
+              !checkMappings(groupName) &&
+              !newGroups['Other'].characteristicGroups.includes(groupName)
+            ) {
+              newGroups['Other'].characteristicGroups.push(groupName);
+              newGroups['Other'].resultCount += stationGroups[groupName];
+            }
+          }
+        });
+        setGroups(newGroups);
+
+        const initialSelected = {};
+        Object.keys(newGroups).forEach((group) => {
+          initialSelected[group] = true;
+        });
+        setSelected(initialSelected);
+
+        return newGroups;
+      },
+      [setGroups],
+    );
+
+    useEffect(() => {
+      buildGroups(checkMappings, totalsByGroup);
+    }, [buildGroups, checkMappings, totalsByGroup]);
+
+    if (!groups) {
+      return buildGroups(checkMappings, totalsByGroup);
+    } else {
+      return groups;
+    }
+  };
+
+  const groups = useGroups(checkIfGroupInMapping, stationTotalsByGroup);
 
   const buildFilter = useCallback(
     (selectedNames, monitoringLocationData) => {
@@ -1059,48 +1126,6 @@ function MonitoringLocationsContent({ attributes, services }) {
   useEffect(() => {
     buildFilter(selected, groups, timeframe);
   }, [buildFilter, groups, selected, timeframe]);
-
-  useEffect(() => {
-    const stationGroups = stationTotalsByGroup;
-    const newGroups = { Other: { characteristicGroups: [], resultCount: 0 } };
-    // get the feature where the provider matches this stations provider
-    characteristicGroupMappings.forEach((mapping) => {
-      for (const groupName in stationGroups) {
-        if (
-          mapping.groupNames.includes(groupName) &&
-          !newGroups[mapping.label]?.characteristicGroups.includes(groupName)
-        ) {
-          // push to existing group
-          if (newGroups[mapping.label]) {
-            newGroups[mapping.label].characteristicGroups.push(groupName);
-            newGroups[mapping.label].resultCount += stationGroups[groupName];
-          }
-          // create a new group
-          else {
-            newGroups[mapping.label] = {
-              characteristicGroups: [groupName],
-              resultCount: stationGroups[groupName],
-            };
-          }
-        }
-        // push to Other
-        else if (
-          !checkIfGroupInMapping(groupName) &&
-          !newGroups['Other'].characteristicGroups.includes(groupName)
-        ) {
-          newGroups['Other'].characteristicGroups.push(groupName);
-          newGroups['Other'].resultCount += stationGroups[groupName];
-        }
-      }
-    });
-    setGroups(newGroups);
-
-    const initialSelected = {};
-    Object.keys(newGroups).forEach((group) => {
-      initialSelected[group] = true;
-    });
-    setSelected(initialSelected);
-  }, [checkIfGroupInMapping, stationTotalsByGroup]);
 
   //Toggle an individual row and call the provided onChange event handler
   const toggleRow = (groupLabel: string, allGroups: Object) => {
