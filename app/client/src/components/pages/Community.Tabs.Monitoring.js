@@ -165,13 +165,13 @@ function usePeriodOfRecordData(filter, param) {
     if (param !== 'huc12' && param !== 'siteId') return;
     if (!filter) return;
 
-    let url = null;
+    let recordUrl = null;
     if (services.status === 'success') {
-      url =
+      recordUrl =
         `${services.data.waterQualityPortal.monitoringLocation}search?` +
         `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all`;
-      url += param === 'huc12' ? `&huc=${filter}` : `&siteId=${filter}`;
-      setUrl(url);
+      recordUrl += param === 'huc12' ? `&huc=${filter}` : `&siteId=${filter}`;
+      setUrl(recordUrl);
     }
   }, [filter, param, services.data, services.status]);
 
@@ -197,6 +197,67 @@ function usePeriodOfRecordData(filter, param) {
   }, [filter, url]);
 
   return [workerData, resetWorkerData];
+}
+
+// Dynamically filter the displayed locations
+function filterStation(station, timeframe) {
+  const stationRecords = station.stationDataByYear;
+  const result = {
+    ...station,
+    stationTotalMeasurements: 0,
+    stationTotalsByGroup: {},
+    stationTotalsByLabel: {},
+    timeframe: [...timeframe],
+  };
+  characteristicGroupMappings.forEach((mapping) => {
+    result.stationTotalsByLabel[mapping.label] = 0;
+  });
+  for (const year in stationRecords) {
+    if (parseInt(year) < timeframe[0]) continue;
+    if (parseInt(year) > timeframe[1]) return result;
+    result.stationTotalMeasurements +=
+      stationRecords[year].stationTotalMeasurements;
+    Object.entries(stationRecords[year].stationTotalsByGroup).forEach(
+      ([group, count]) => {
+        let yearGroupTotal = result.stationTotalsByGroup[group];
+        if (yearGroupTotal) {
+          yearGroupTotal += count;
+        } else {
+          yearGroupTotal = count;
+        }
+      },
+    );
+    Object.entries(stationRecords[year].stationTotalsByLabel).forEach(
+      ([key, value]) => (result.stationTotalsByLabel[key] += value),
+    );
+  }
+
+  return result;
+}
+
+function filterLocations(groups, timeframe, sliderEnabled) {
+  let tempLocations = [];
+
+  const toggledGroups = Object.keys(groups)
+    .filter((groupLabel) => groupLabel !== 'All')
+    .filter((groupLabel) => groups[groupLabel].toggled === true);
+
+  groups['All'].stations.forEach((station) => {
+    const hasToggledData = toggledGroups.some((group) => {
+      return station.stationTotalsByLabel[group] > 0;
+    });
+    if (hasToggledData) {
+      if (sliderEnabled) {
+        const filteredStation = filterStation(station, timeframe);
+        if (filteredStation.stationTotalMeasurements > 0) {
+          tempLocations.push(filteredStation);
+        }
+      } else {
+        tempLocations.push(station);
+      }
+    }
+  });
+  return tempLocations;
 }
 
 function Monitoring() {
@@ -583,6 +644,21 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
     watershed,
   } = useContext(LocationSearchContext);
 
+  const updateFeatures = useCallback(
+    (displayedLocations) => {
+      const stationUpdates = {};
+      displayedLocations.forEach((location) => {
+        stationUpdates[location.uniqueId] = {
+          stationTotalMeasurements: location.stationTotalMeasurements,
+          stationTotalsByGroup: JSON.stringify(location.stationTotalsByGroup),
+          timeframe: JSON.stringify(location.timeframe),
+        };
+      });
+      setMonitoringFeatureUpdates(stationUpdates);
+    },
+    [setMonitoringFeatureUpdates],
+  );
+
   // The data returned by the worker
   const [{ minYear, maxYear, annualData }, resetWorkerData] =
     usePeriodOfRecordData(huc12, 'huc12');
@@ -640,64 +716,16 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
     [setCharGroupFilters, yearsRange],
   );
 
-  // Dynamically filter the displayed locations
-  const filterStation = useCallback((station, timeframe) => {
-    const stationRecords = station.stationDataByYear;
-    const result = {
-      ...station,
-      stationTotalMeasurements: 0,
-      stationTotalsByGroup: {},
-      stationTotalsByLabel: {},
-      timeframe: [...timeframe],
-    };
-    characteristicGroupMappings.forEach((mapping) => {
-      result.stationTotalsByLabel[mapping.label] = 0;
-    });
-    for (const year in stationRecords) {
-      if (parseInt(year) < timeframe[0]) continue;
-      if (parseInt(year) > timeframe[1]) return result;
-      result.stationTotalMeasurements +=
-        stationRecords[year].stationTotalMeasurements;
-      Object.entries(stationRecords[year].stationTotalsByGroup).forEach(
-        ([key, value]) => {
-          key in result.stationTotalsByGroup
-            ? (result.stationTotalsByGroup[key] += value)
-            : (result.stationTotalsByGroup[key] = value);
-        },
-      );
-      Object.entries(stationRecords[year].stationTotalsByLabel).forEach(
-        ([key, value]) => (result.stationTotalsByLabel[key] += value),
-      );
-    }
-
-    return result;
-  }, []);
-
   const drawMap = useCallback(
     (groups, timeframe) => {
       if (!monitoringLocationsLayer) return;
 
-      let tempDisplayedMonitoringLocations = [];
-
-      const toggledGroups = Object.keys(groups)
-        .filter((groupLabel) => groupLabel !== 'All')
-        .filter((groupLabel) => groups[groupLabel].toggled === true);
-
-      groups['All'].stations.forEach((station) => {
-        const hasToggledData = toggledGroups.some((group) => {
-          return station.stationTotalsByLabel[group] > 0;
-        });
-        if (hasToggledData) {
-          if (yearsRange) {
-            const filteredStation = filterStation(station, timeframe);
-            if (filteredStation.stationTotalMeasurements > 0) {
-              tempDisplayedMonitoringLocations.push(filteredStation);
-            }
-          } else {
-            tempDisplayedMonitoringLocations.push(station);
-          }
-        }
-      });
+      const sliderEnabled = yearsRange !== null;
+      const tempDisplayedMonitoringLocations = filterLocations(
+        groups,
+        timeframe,
+        sliderEnabled,
+      );
 
       // generate a list of location ids
       const locationIds = [];
@@ -728,25 +756,12 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
       // to a context variable, so it can be injected into
       // the graphic before it reaches the WaterbodyInfo component
       if (yearsRange) {
-        const stationUpdates = {};
-        tempDisplayedMonitoringLocations.forEach((location) => {
-          stationUpdates[location.uniqueId] = {
-            stationTotalMeasurements: location.stationTotalMeasurements,
-            stationTotalsByGroup: JSON.stringify(location.stationTotalsByGroup),
-            timeframe: JSON.stringify(location.timeframe),
-          };
-        });
-        setMonitoringFeatureUpdates(stationUpdates);
+        updateFeatures(tempDisplayedMonitoringLocations);
       }
 
       setDisplayedMonitoringLocations(tempDisplayedMonitoringLocations);
     },
-    [
-      filterStation,
-      monitoringLocationsLayer,
-      setMonitoringFeatureUpdates,
-      yearsRange,
-    ],
+    [monitoringLocationsLayer, updateFeatures, yearsRange],
   );
 
   // Add the stations historical data to the `stationDataByYear` property,

@@ -99,6 +99,89 @@ const containerStyles = css`
 /*
  * Helpers for passing data to the map layers
  */
+function updateMonitoringLocationsLayer(stations, layer) {
+  const structuredProps = ['stationTotalsByGroup', 'timeframe'];
+  const graphics = stations.map((station) => {
+    const attributes = stringifyAttributes(structuredProps, station);
+    return new Graphic({
+      geometry: {
+        type: 'point',
+        longitude: attributes.locationLongitude,
+        latitude: attributes.locationLatitude,
+      },
+      attributes: {
+        ...station,
+        stationTotalsByGroup: JSON.stringify(station.stationTotalsByGroup),
+      },
+    });
+  });
+  editLayer(layer, graphics);
+}
+
+function updateMonitoringGroups(stations, mappings) {
+  // build up monitoring stations, toggles, and groups
+  let locationGroups = {
+    All: { label: 'All', stations: [], toggled: true },
+    Other: {
+      label: 'Other',
+      stations: [],
+      toggled: true,
+      characteristicGroups: [],
+    },
+  };
+
+  stations.forEach((station) => {
+    // add properties that aren't necessary for the layer
+    station.stationDataByYear = {};
+    // counts for each top-tier characteristic group
+    station.stationTotalsByLabel = {};
+    // build up the monitoringLocationToggles and monitoringLocationGroups
+    const subGroupsAdded = [];
+    mappings.forEach((mapping) => {
+      if (mapping.label !== 'All')
+        station.stationTotalsByLabel[mapping.label] = 0;
+      for (const subGroup in station.stationTotalsByGroup) {
+        // if characteristic group exists in switch config object
+        if (mapping.groupNames.includes(subGroup)) {
+          subGroupsAdded.push(subGroup);
+          // if switch group (w/ label key) already exists, add the stations to it
+          if (locationGroups[mapping.label]) {
+            locationGroups[mapping.label].stations.push(station);
+            // else, create the group (w/ label key) and add the station
+          } else {
+            locationGroups[mapping.label] = {
+              label: mapping.label,
+              stations: [station],
+              toggled: true,
+            };
+          }
+          // add the lower-tier group counts to the corresponding top-tier group counts
+          if (mapping.label !== 'All') {
+            station.stationTotalsByLabel[mapping.label] +=
+              station.stationTotalsByGroup[subGroup];
+          }
+        }
+      }
+    });
+
+    locationGroups['All'].stations.push(station);
+
+    // add any leftover lower-tier group counts to the 'Other' top-tier group
+    for (const subGroup in station.stationTotalsByGroup) {
+      if (!subGroupsAdded.includes(subGroup)) {
+        locationGroups['Other'].stations.push(station);
+        station.stationTotalsByLabel['Other'] +=
+          station.stationTotalsByGroup[subGroup];
+
+        if (!locationGroups['Other'].characteristicGroups?.includes(subGroup)) {
+          locationGroups['Other'].characteristicGroups?.push(subGroup);
+        }
+      }
+    }
+  });
+  return locationGroups;
+}
+
 const editLayer = async (layer, graphics) => {
   const featureSet = await layer.queryFeatures();
   const edits = {
@@ -132,6 +215,56 @@ function parseAttributes(structuredAttributes, attributes) {
   return { ...attributes, ...parsed };
 }
 
+function buildStations(locations, layer, services) {
+  if (!layer) return;
+  if (!locations.data.features || locations.status !== 'success') {
+    return;
+  }
+
+  // sort descending order so that smaller graphics show up on top
+  const stationsSorted = [...locations.data.features];
+  stationsSorted.sort((a, b) => {
+    return (
+      parseInt(b.properties.resultCount) - parseInt(a.properties.resultCount)
+    );
+  });
+
+  // Attributes common to both the layer and the context object
+  return stationsSorted.map((station) => {
+    return {
+      monitoringType: 'Past Water Conditions',
+      siteId: station.properties.MonitoringLocationIdentifier,
+      orgId: station.properties.OrganizationIdentifier,
+      orgName: station.properties.OrganizationFormalName,
+      locationLongitude: station.geometry.coordinates[0],
+      locationLatitude: station.geometry.coordinates[1],
+      locationName: station.properties.MonitoringLocationName,
+      locationType: station.properties.MonitoringLocationTypeName,
+      // TODO: explore if the built up locationUrl below is ever different from
+      // `station.properties.siteUrl`. from a quick test, they seem the same
+      locationUrl:
+        `${services.data.waterQualityPortal.monitoringLocationDetails}` +
+        `${station.properties.ProviderName}/` +
+        `${station.properties.OrganizationIdentifier}/` +
+        `${station.properties.MonitoringLocationIdentifier}/`,
+      // monitoring station specific properties:
+      stationProviderName: station.properties.ProviderName,
+      stationTotalSamples: parseInt(station.properties.activityCount),
+      stationTotalMeasurements: parseInt(station.properties.resultCount),
+      // counts for each lower-tier characteristic group
+      stationTotalsByGroup: station.properties.characteristicGroupResultCount,
+      timeframe: null,
+      // create a unique id, so we can check if the monitoring station has
+      // already been added to the display (since a monitoring station id
+      // isn't universally unique)
+      uniqueId:
+        `${station.properties.MonitoringLocationIdentifier}-` +
+        `${station.properties.ProviderName}-` +
+        `${station.properties.OrganizationIdentifier}`,
+    };
+  });
+}
+
 // Hook that centralizes updates to the `monitoringLocationsLayer`
 // and the `monitoringGroups` context object
 function useMonitoringLocations() {
@@ -143,156 +276,28 @@ function useMonitoringLocations() {
     setMonitoringGroups,
   } = useContext(LocationSearchContext);
 
-  const buildStations = useCallback(
-    (locations, layer) => {
-      if (!layer) return;
-      if (!locations.data.features || locations.status !== 'success') {
-        return;
-      }
-
-      // sort descending order so that smaller graphics show up on top
-      const stationsSorted = [...locations.data.features];
-      stationsSorted.sort((a, b) => {
-        return (
-          parseInt(b.properties.resultCount) -
-          parseInt(a.properties.resultCount)
-        );
-      });
-
-      // Attributes common to both the layer and the context object
-      return stationsSorted.map((station) => {
-        return {
-          monitoringType: 'Past Water Conditions',
-          siteId: station.properties.MonitoringLocationIdentifier,
-          orgId: station.properties.OrganizationIdentifier,
-          orgName: station.properties.OrganizationFormalName,
-          locationLongitude: station.geometry.coordinates[0],
-          locationLatitude: station.geometry.coordinates[1],
-          locationName: station.properties.MonitoringLocationName,
-          locationType: station.properties.MonitoringLocationTypeName,
-          // TODO: explore if the built up locationUrl below is ever different from
-          // `station.properties.siteUrl`. from a quick test, they seem the same
-          locationUrl:
-            `${services.data.waterQualityPortal.monitoringLocationDetails}` +
-            `${station.properties.ProviderName}/` +
-            `${station.properties.OrganizationIdentifier}/` +
-            `${station.properties.MonitoringLocationIdentifier}/`,
-          // monitoring station specific properties:
-          stationProviderName: station.properties.ProviderName,
-          stationTotalSamples: parseInt(station.properties.activityCount),
-          stationTotalMeasurements: parseInt(station.properties.resultCount),
-          // counts for each lower-tier characteristic group
-          stationTotalsByGroup:
-            station.properties.characteristicGroupResultCount,
-          timeframe: null,
-          // create a unique id, so we can check if the monitoring station has
-          // already been added to the display (since a monitoring station id
-          // isn't universally unique)
-          uniqueId:
-            `${station.properties.MonitoringLocationIdentifier}-` +
-            `${station.properties.ProviderName}-` +
-            `${station.properties.OrganizationIdentifier}`,
-        };
-      });
-    },
-    [services],
-  );
-
   useEffect(() => {
     if (!monitoringGroups) {
-      // build up monitoring stations, toggles, and groups
-      let locationGroups = {
-        All: { label: 'All', stations: [], toggled: true },
-        Other: {
-          label: 'Other',
-          stations: [],
-          toggled: true,
-          characteristicGroups: [],
-        },
-      };
-
       const stations = buildStations(
         monitoringLocations,
         monitoringLocationsLayer,
+        services,
       );
-
       if (!stations) return;
 
-      const structuredProps = ['stationTotalsByGroup', 'timeframe'];
-      const graphics = stations.map((station) => {
-        const attributes = stringifyAttributes(structuredProps, station);
-        return new Graphic({
-          geometry: {
-            type: 'point',
-            longitude: attributes.locationLongitude,
-            latitude: attributes.locationLatitude,
-          },
-          attributes: {
-            ...station,
-            stationTotalsByGroup: JSON.stringify(station.stationTotalsByGroup),
-          },
-        });
-      });
-      editLayer(monitoringLocationsLayer, graphics);
+      updateMonitoringLocationsLayer(stations, monitoringLocationsLayer);
 
-      stations.forEach((station) => {
-        // add properties that aren't necessary for the layer
-        station.stationDataByYear = {};
-        // counts for each top-tier characteristic group
-        station.stationTotalsByLabel = {};
-        // build up the monitoringLocationToggles and monitoringLocationGroups
-        const subGroupsAdded = [];
-        characteristicGroupMappings.forEach((mapping) => {
-          if (mapping.label !== 'All')
-            station.stationTotalsByLabel[mapping.label] = 0;
-          for (const subGroup in station.stationTotalsByGroup) {
-            // if characteristic group exists in switch config object
-            if (mapping.groupNames.includes(subGroup)) {
-              subGroupsAdded.push(subGroup);
-              // if switch group (w/ label key) already exists, add the stations to it
-              if (locationGroups[mapping.label]) {
-                locationGroups[mapping.label].stations.push(station);
-                // else, create the group (w/ label key) and add the station
-              } else {
-                locationGroups[mapping.label] = {
-                  label: mapping.label,
-                  stations: [station],
-                  toggled: true,
-                };
-              }
-              // add the lower-tier group counts to the corresponding top-tier group counts
-              if (mapping.label !== 'All') {
-                station.stationTotalsByLabel[mapping.label] +=
-                  station.stationTotalsByGroup[subGroup];
-              }
-            }
-          }
-        });
-
-        locationGroups['All'].stations.push(station);
-
-        // add any leftover lower-tier group counts to the 'Other' top-tier group
-        for (const subGroup in station.stationTotalsByGroup) {
-          if (!subGroupsAdded.includes(subGroup)) {
-            locationGroups['Other'].stations.push(station);
-            station.stationTotalsByLabel['Other'] +=
-              station.stationTotalsByGroup[subGroup];
-
-            if (
-              !locationGroups['Other'].characteristicGroups?.includes(subGroup)
-            ) {
-              locationGroups['Other'].characteristicGroups?.push(subGroup);
-            }
-          }
-        }
-      });
+      const locationGroups = updateMonitoringGroups(
+        stations,
+        characteristicGroupMappings,
+      );
       setMonitoringGroups(locationGroups);
     }
   }, [
-    buildStations,
     monitoringGroups,
     monitoringLocations,
     monitoringLocationsLayer,
+    services,
     setMonitoringGroups,
   ]);
 }
@@ -382,7 +387,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     getAllFeatures,
     waterbodyCountMismatch,
     setWaterbodyCountMismatch,
-    monitoringLocationsLayer,
     usgsStreamgagesLayer,
   } = useContext(LocationSearchContext);
 
