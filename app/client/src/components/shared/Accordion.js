@@ -71,6 +71,7 @@ type AccordionListProps = {
   expandDisabled: boolean,
   sortOptions: { value: string, label: string }[],
   onSortChange: Function,
+  onExpandCollapse: Function,
 };
 
 function AccordionList({
@@ -80,6 +81,7 @@ function AccordionList({
   expandDisabled = false,
   sortOptions = [],
   onSortChange = () => {},
+  onExpandCollapse = () => {},
 }: AccordionListProps) {
   const [sortBy, setSortBy] = useState(
     sortOptions.length > 0 ? sortOptions[0] : null,
@@ -122,7 +124,11 @@ function AccordionList({
         {!expandDisabled && (
           <button
             css={expandButtonStyles}
-            onClick={(ev) => setAllExpanded(!allExpanded)}
+            onClick={(ev) => {
+              const newAllExpanded = !allExpanded;
+              setAllExpanded(newAllExpanded);
+              onExpandCollapse(newAllExpanded);
+            }}
           >
             {allExpanded ? 'Collapse All' : 'Expand All'}&nbsp;&nbsp;
             <i className={iconClassName} aria-hidden="true" />
