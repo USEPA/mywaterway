@@ -120,8 +120,7 @@ function WaterbodyListVirtualized({
       >
         <VirtualizedList
           items={waterbodies}
-          expandedRowsSetter={setExpandedRows}
-          renderer={({ index, allExpanded }) => {
+          renderer={({ index }) => {
             const graphic = waterbodies[index];
 
             const condition = getWaterbodyCondition(

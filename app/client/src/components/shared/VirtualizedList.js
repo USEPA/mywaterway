@@ -10,16 +10,9 @@ import { useOnScreen } from 'utils/hooks';
 type Props = {
   items: Array<Object>,
   renderer: Function,
-  allExpanded?: boolean,
-  displayedTypes?: Object,
 };
 
-function VirtualizedListInner({
-  items,
-  renderer,
-  allExpanded,
-  displayedTypes,
-}: Props) {
+function VirtualizedListInner({ items, renderer }: Props) {
   const innerRef = useRef();
   const outerRef = useRef();
   const sizeMap = useRef({});
@@ -40,7 +33,7 @@ function VirtualizedListInner({
       setSize(index, rowRef.current.getBoundingClientRect().height, listRef);
     }, [setSize, index, width, listRef]);
 
-    return <div ref={rowRef}>{renderer({ index, allExpanded })}</div>;
+    return <div ref={rowRef}>{renderer({ index })}</div>;
   }
 
   // make the virtualized list use the window's scroll bar
@@ -100,27 +93,13 @@ function VirtualizedListInner({
 // for an issue where the list would not display anything
 // or jump around when the list is not immediatly visible
 // on the dom (i.e., the list is on the second tab).
-function VirtualizedList({
-  items,
-  renderer,
-  allExpanded,
-  displayedTypes,
-  expandedRowsSetter,
-}: Props) {
+function VirtualizedList({ items, renderer }: Props) {
   const ref = useRef();
   const isVisible = useOnScreen(ref);
 
   return (
     <div ref={ref}>
-      {isVisible && (
-        <VirtualizedListInner
-          items={items}
-          renderer={renderer}
-          allExpanded={allExpanded}
-          expandedRowsSetter={expandedRowsSetter}
-          displayedTypes={displayedTypes}
-        />
-      )}
+      {isVisible && <VirtualizedListInner items={items} renderer={renderer} />}
     </div>
   );
 }

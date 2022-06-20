@@ -746,9 +746,7 @@ function MonitoringAndSensorsTab({
             >
               <VirtualizedList
                 items={filteredMonitoringAndSensors}
-                expandedRowsSetter={setExpandedRows}
-                displayedTypes={listTypes}
-                renderer={({ index, allExpanded }) => {
+                renderer={({ index }) => {
                   const item = filteredMonitoringAndSensors[index];
 
                   const feature = {

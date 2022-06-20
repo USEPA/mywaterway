@@ -710,8 +710,7 @@ function Actions({ fullscreen }: Props) {
                         >
                           <VirtualizedList
                             items={waters}
-                            expandedRowsSetter={setExpandedRows}
-                            renderer={({ index, allExpanded }) => {
+                            renderer={({ index }) => {
                               const water = waters[index];
 
                               const auId = water.assessmentUnitIdentifier;
@@ -753,9 +752,7 @@ function Actions({ fullscreen }: Props) {
                                   }
                                   feature={graphic}
                                   idKey="assessmentunitidentifier"
-                                  allExpanded={
-                                    allExpanded || expandedRows.includes(index)
-                                  }
+                                  allExpanded={expandedRows.includes(index)}
                                   onChange={() => {
                                     // add the item to the expandedRows array so the accordion item
                                     // will stay expanded when the user scrolls or highlights map items

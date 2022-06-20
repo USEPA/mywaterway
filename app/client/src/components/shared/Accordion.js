@@ -124,7 +124,7 @@ function AccordionList({
         {!expandDisabled && (
           <button
             css={expandButtonStyles}
-            onClick={(ev) => {
+            onClick={(_ev) => {
               const newAllExpanded = !allExpanded;
               setAllExpanded(newAllExpanded);
               onExpandCollapse(newAllExpanded);

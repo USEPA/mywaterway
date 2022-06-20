@@ -1069,8 +1069,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
             >
               <VirtualizedList
                 items={sortedMonitoringLocations}
-                expandedRowsSetter={setExpandedRows}
-                renderer={({ index, allExpanded }) => {
+                renderer={({ index }) => {
                   const item = sortedMonitoringLocations[index];
 
                   const feature = {
