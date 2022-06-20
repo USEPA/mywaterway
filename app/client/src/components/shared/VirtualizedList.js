@@ -7,6 +7,33 @@ import throttle from 'lodash/throttle';
 // utils
 import { useOnScreen } from 'utils/hooks';
 
+type RowRendererProps = {
+  index: number,
+  width: number,
+  listRef: React.MutableRefObject<undefined>,
+  setSize: Function,
+  renderer: Function,
+};
+
+function RowRenderer({
+  index,
+  width,
+  listRef,
+  setSize,
+  renderer,
+}: RowRendererProps) {
+  const rowRef = useRef();
+
+  // keep track of the height of the rows to autosize rows
+  useEffect(() => {
+    if (!rowRef?.current) return;
+
+    setSize(index, rowRef.current.getBoundingClientRect().height, listRef);
+  }, [setSize, index, width, listRef]);
+
+  return <div ref={rowRef}>{renderer({ index })}</div>;
+}
+
 type Props = {
   items: Array<Object>,
   renderer: Function,
@@ -22,19 +49,6 @@ function VirtualizedListInner({ items, renderer }: Props) {
   }, []);
   const getSize = (index: number) => sizeMap.current[index] || 150;
   const { width } = useWindowSize();
-
-  function RowRenderer({ index, setSize, width, listRef }) {
-    const rowRef = useRef();
-
-    // keep track of the height of the rows to autosize rows
-    useEffect(() => {
-      if (!rowRef?.current) return;
-
-      setSize(index, rowRef.current.getBoundingClientRect().height, listRef);
-    }, [setSize, index, width, listRef]);
-
-    return <div ref={rowRef}>{renderer({ index })}</div>;
-  }
 
   // make the virtualized list use the window's scroll bar
   useEffect(() => {
@@ -80,6 +94,7 @@ function VirtualizedListInner({ items, renderer }: Props) {
             index={index}
             setSize={setSize}
             width={width}
+            renderer={renderer}
           />
         </div>
       )}
