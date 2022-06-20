@@ -4,6 +4,8 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { useWindowSize } from '@reach/window-size';
 import { VariableSizeList } from 'react-window';
 import throttle from 'lodash/throttle';
+// utils
+import { useOnScreen } from 'utils/hooks';
 
 type Props = {
   items: Array<Object>,
@@ -12,7 +14,7 @@ type Props = {
   displayedTypes?: Object,
 };
 
-function VirtualizedList({
+function VirtualizedListInner({
   items,
   renderer,
   allExpanded,
@@ -89,6 +91,37 @@ function VirtualizedList({
         </div>
       )}
     </VariableSizeList>
+  );
+}
+
+// This is a wrapper component that ensures this component
+// is visible on the DOM prior to rendering the actual
+// virtualized list. This component was added as a workaround
+// for an issue where the list would not display anything
+// or jump around when the list is not immediatly visible
+// on the dom (i.e., the list is on the second tab).
+function VirtualizedList({
+  items,
+  renderer,
+  allExpanded,
+  displayedTypes,
+  expandedRowsSetter,
+}: Props) {
+  const ref = useRef();
+  const isVisible = useOnScreen(ref);
+
+  return (
+    <div ref={ref}>
+      {isVisible && (
+        <VirtualizedListInner
+          items={items}
+          renderer={renderer}
+          allExpanded={allExpanded}
+          expandedRowsSetter={expandedRowsSetter}
+          displayedTypes={displayedTypes}
+        />
+      )}
+    </div>
   );
 }
 
