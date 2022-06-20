@@ -1168,29 +1168,6 @@ function MenuList({ ...props }) {
     return props.children;
   }
 
-  function MenuItem({
-    index,
-    width,
-    setSize,
-  }: {
-    index: number,
-    width: number,
-    setSize: (index: number, size: number) => void,
-  }) {
-    const rowValue = props.children[index];
-
-    const rowRef = useRef();
-
-    // keep track of the height of the rows to autosize rows
-    useEffect(() => {
-      if (!rowRef?.current) return;
-
-      setSize(index, rowRef.current.getBoundingClientRect().height);
-    }, [setSize, index, width]);
-
-    return <div ref={rowRef}>{rowValue}</div>;
-  }
-
   return (
     <VariableSizeList
       ref={listRef}
@@ -1201,11 +1178,36 @@ function MenuList({ ...props }) {
     >
       {({ index, style }) => (
         <div style={{ ...style, overflowX: 'hidden' }}>
-          <MenuItem index={index} width={width} setSize={setSize} />
+          <MenuItem
+            index={index}
+            width={width}
+            setSize={setSize}
+            value={props.children[index]}
+          />
         </div>
       )}
     </VariableSizeList>
   );
+}
+
+type MenuItemProps = {
+  index: number,
+  width: number,
+  setSize: (index: number, size: number) => void,
+  value: string,
+};
+
+function MenuItem({ index, width, setSize, value }: MenuItemProps) {
+  const rowRef = useRef();
+
+  // keep track of the height of the rows to autosize rows
+  useEffect(() => {
+    if (!rowRef?.current) return;
+
+    setSize(index, rowRef.current.getBoundingClientRect().height);
+  }, [setSize, index, width]);
+
+  return <div ref={rowRef}>{value}</div>;
 }
 
 export default function AdvancedSearchContainer() {
