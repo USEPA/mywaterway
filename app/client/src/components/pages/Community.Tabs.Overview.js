@@ -466,10 +466,6 @@ function MonitoringAndSensorsTab({
 
   const [expandedRows, setExpandedRows] = useState([]);
 
-  const [listTypes, setListTypes] = useState({
-    usgsStreamgages: usgsStreamgagesDisplayed,
-    monitoringLocations: monitoringLocationsDisplayed,
-  });
   // if either of the "Current Water Conditions" or "Past Water Conditions" switches
   // are turned on, or if both switches are turned off, keep the "Monitoring
   // Stations" switch in sync
@@ -481,11 +477,6 @@ function MonitoringAndSensorsTab({
     if (!usgsStreamgagesDisplayed && !monitoringLocationsDisplayed) {
       setMonitoringAndSensorsDisplayed(false);
     }
-
-    setListTypes({
-      usgsStreamgages: usgsStreamgagesDisplayed,
-      monitoringLocations: monitoringLocationsDisplayed,
-    });
   }, [
     usgsStreamgagesDisplayed,
     monitoringLocationsDisplayed,
