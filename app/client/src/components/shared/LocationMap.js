@@ -147,9 +147,11 @@ function updateMonitoringGroups(stations, mappings) {
           // if switch group (w/ label key) already exists, add the stations to it
           if (locationGroups[mapping.label]) {
             locationGroups[mapping.label].stations.push(station);
+            locationGroups[mapping.label].characteristicGroups.push(subGroup);
             // else, create the group (w/ label key) and add the station
           } else {
             locationGroups[mapping.label] = {
+              characteristicGroups: [subGroup],
               label: mapping.label,
               stations: [station],
               toggled: true,
@@ -172,12 +174,14 @@ function updateMonitoringGroups(stations, mappings) {
         locationGroups['Other'].stations.push(station);
         station.stationTotalsByLabel['Other'] +=
           station.stationTotalsByGroup[subGroup];
-
-        if (!locationGroups['Other'].characteristicGroups?.includes(subGroup)) {
-          locationGroups['Other'].characteristicGroups?.push(subGroup);
-        }
+        locationGroups['Other'].characteristicGroups.push(subGroup);
       }
     }
+  });
+  Object.keys(locationGroups).forEach((label) => {
+    locationGroups[label].characteristicGroups = [
+      ...new Set(locationGroups[label].characteristicGroups),
+    ];
   });
   return locationGroups;
 }

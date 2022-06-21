@@ -3,6 +3,7 @@ function getLabel(charType, labelMappings) {
   for (let mapping of labelMappings) {
     if (mapping.groupNames.includes(charType)) return mapping.label;
   }
+  return 'Other';
 }
 
 // This makes sure the listener isn't set twice

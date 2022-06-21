@@ -193,7 +193,9 @@ function usePeriodOfRecordData(filter, param) {
         setWorkerData(parsedData);
       }
     };
-    return () => recordsWorker.terminate();
+    return function cleanup() {
+      recordsWorker.terminate();
+    };
   }, [filter, url]);
 
   return [workerData, resetWorkerData];
@@ -234,7 +236,8 @@ function filterStation(station, timeframe) {
 }
 
 function filterLocations(groups, timeframe, sliderEnabled) {
-  let tempLocations = [];
+  let toggledLocations = [];
+  let allLocations = [];
 
   const toggledGroups = Object.keys(groups)
     .filter((groupLabel) => groupLabel !== 'All')
@@ -244,18 +247,18 @@ function filterLocations(groups, timeframe, sliderEnabled) {
     const hasToggledData = toggledGroups.some((group) => {
       return station.stationTotalsByLabel[group] > 0;
     });
-    if (hasToggledData) {
-      if (sliderEnabled) {
-        const filteredStation = filterStation(station, timeframe);
-        if (filteredStation.stationTotalMeasurements > 0) {
-          tempLocations.push(filteredStation);
-        }
-      } else {
-        tempLocations.push(station);
+    if (sliderEnabled) {
+      const filteredStation = filterStation(station, timeframe);
+      if (filteredStation.stationTotalMeasurements > 0) {
+        if (hasToggledData) toggledLocations.push(filteredStation);
+        allLocations.push(filteredStation);
       }
+    } else {
+      if (hasToggledData) toggledLocations.push(station);
+      allLocations.push(station);
     }
   });
-  return tempLocations;
+  return { toggledLocations, allLocations };
 }
 
 function Monitoring() {
@@ -629,7 +632,11 @@ function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
   }
 }
 
-function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
+function MonitoringTab({
+  monitoringDisplayed,
+  setMonitoringDisplayed,
+  tabSelected,
+}) {
   const services = useServicesContext();
 
   const {
@@ -658,7 +665,9 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
   );
 
   useEffect(() => {
-    return () => setMonitoringFeatureUpdates(null);
+    return function cleanup() {
+      setMonitoringFeatureUpdates(null);
+    };
   }, [setMonitoringFeatureUpdates]);
 
   // The data returned by the worker
@@ -669,6 +678,10 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
 
   const [displayedMonitoringLocations, setDisplayedMonitoringLocations] =
     useState([]);
+  // All stations in the current time range
+  const [currentMonitoringLocations, setCurrentMonitoringLocations] = useState(
+    [],
+  );
 
   const [allToggled, setAllToggled] = useState(true);
 
@@ -685,28 +698,23 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
 
   // create the filter string for download links based on active toggles
   const buildFilter = useCallback(
-    (groups, displayedLocations) => {
+    (groups) => {
       let filter = '';
 
-      const selectedCount = Object.keys(groups).filter((label) => {
+      const selectedNames = Object.keys(groups).filter((label) => {
         return label !== 'All' && groups[label].toggled;
-      }).length;
+      });
 
       const groupsCount = Object.values(groups).filter(
         (group) => group.label !== 'All',
       ).length;
 
-      if (selectedCount !== groupsCount) {
-        const groupNames = Array.from(
-          new Set(
-            displayedLocations.reduce(
-              (a, b) => a.concat(Object.keys(b.stationTotalsByGroup)),
-              [],
-            ),
-          ),
-        );
-        filter +=
-          '&characteristicType=' + groupNames.join('&characteristicType=');
+      if (selectedNames.length !== groupsCount) {
+        for (const name of selectedNames) {
+          filter +=
+            '&characteristicType=' +
+            groups[name].characteristicGroups.join('&characteristicType=');
+        }
       }
 
       if (yearsRange) {
@@ -723,7 +731,7 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
       if (!monitoringLocationsLayer) return;
 
       const sliderEnabled = yearsRange !== null;
-      const tempDisplayedMonitoringLocations = filterLocations(
+      const { toggledLocations, allLocations } = filterLocations(
         groups,
         timeframe,
         sliderEnabled,
@@ -731,15 +739,12 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
 
       // generate a list of location ids
       const locationIds = [];
-      tempDisplayedMonitoringLocations.forEach((station) => {
+      toggledLocations.forEach((station) => {
         locationIds.push(station.uniqueId);
       });
 
       // update the filters on the layer
-      if (
-        tempDisplayedMonitoringLocations.length ===
-        groups['All'].stations.length
-      ) {
+      if (toggledLocations.length === groups['All'].stations.length) {
         monitoringLocationsLayer.definitionExpression = '';
       } else if (locationIds.length === 0) {
         monitoringLocationsLayer.definitionExpression = '1=0';
@@ -749,19 +754,15 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
         )}')`;
       }
 
-      if (tempDisplayedMonitoringLocations.length === 0) {
-        setDisplayedMonitoringLocations([]);
-        return;
-      }
-
       // Adds filtered data that's relevent to map popups
       // to a context variable, so it can be injected into
       // the graphic before it reaches the WaterbodyInfo component
       if (yearsRange) {
-        updateFeatures(tempDisplayedMonitoringLocations);
+        updateFeatures(toggledLocations);
       }
 
-      setDisplayedMonitoringLocations(tempDisplayedMonitoringLocations);
+      setCurrentMonitoringLocations(allLocations);
+      setDisplayedMonitoringLocations(toggledLocations);
     },
     [monitoringLocationsLayer, updateFeatures, yearsRange],
   );
@@ -810,7 +811,8 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
 
   // Updates total counts after `drawMap` filters displayed locations
   useEffect(() => {
-    if (monitoringGroups && displayedMonitoringLocations.length) {
+    // if (monitoringGroups && displayedMonitoringLocations.length) {
+    if (monitoringGroups) {
       let newTotalLocations = 0;
       let newTotalSamples = 0;
       let newTotalMeasurements = 0;
@@ -831,7 +833,7 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
       setTotalDisplayedLocations(newTotalLocations);
       setTotalDisplayedMeasurements(newTotalMeasurements);
       setTotalDisplayedSamples(newTotalSamples);
-      buildFilter(monitoringGroups, displayedMonitoringLocations);
+      buildFilter(monitoringGroups);
     }
   }, [buildFilter, displayedMonitoringLocations, monitoringGroups]);
 
@@ -839,7 +841,6 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
     for (const label in monitoringGroups) {
       monitoringGroups[label].toggled = !allToggled;
     }
-    monitoringLocationsLayer.visible = !allToggled;
     setMonitoringDisplayed(!allToggled);
     setAllToggled((prev) => !prev);
     setMonitoringGroups({ ...monitoringGroups });
@@ -848,7 +849,6 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
     allToggled,
     drawMap,
     monitoringGroups,
-    monitoringLocationsLayer,
     setMonitoringDisplayed,
     setMonitoringGroups,
     yearsRange,
@@ -856,7 +856,6 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
 
   const toggleRow = useCallback(
     (groupLabel) => {
-      monitoringLocationsLayer.visible = true;
       monitoringGroups[groupLabel].toggled =
         !monitoringGroups[groupLabel].toggled;
       setMonitoringGroups({ ...monitoringGroups });
@@ -877,12 +876,16 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
     [
       drawMap,
       monitoringGroups,
-      monitoringLocationsLayer,
       setMonitoringDisplayed,
       setMonitoringGroups,
       yearsRange,
     ],
   );
+
+  useEffect(() => {
+    if (!monitoringLocationsLayer) return;
+    monitoringLocationsLayer.visible = monitoringDisplayed;
+  }, [monitoringLocationsLayer, monitoringDisplayed]);
 
   const [dataInitialized, setDataInitialized] = useState(false);
 
@@ -1035,7 +1038,7 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
                     let sampleCount = 0;
                     let measurementCount = 0;
                     let locationCount = 0;
-                    sortedMonitoringLocations.forEach((station) => {
+                    currentMonitoringLocations.forEach((station) => {
                       if (station.stationTotalsByLabel[group.label] > 0) {
                         sampleCount += station.stationTotalSamples;
                         measurementCount +=

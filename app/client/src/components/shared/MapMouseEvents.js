@@ -322,7 +322,7 @@ function MapMouseEvents({ view }: Props) {
   }, [popupWatchHandler, services.status, updateSingleFeature, view]);
 
   useEffect(() => {
-    return () => {
+    return function cleanup() {
       popupWatchHandler?.remove();
     };
   }, [popupWatchHandler]);

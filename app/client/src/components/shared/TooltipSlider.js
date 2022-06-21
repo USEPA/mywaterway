@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useEffect, useRef } from 'react';
 import 'rc-tooltip/assets/bootstrap.css';
 import Slider from 'rc-slider';
 import raf from 'rc-util/lib/raf';
@@ -11,8 +11,8 @@ function HandleTooltip({
   tipFormatter = (val) => val,
   ...props
 }) {
-  const tooltipRef = React.useRef();
-  const rafRef = React.useRef(null);
+  const tooltipRef = useRef();
+  const rafRef = useRef(null);
 
   function cancelKeepAlign() {
     if (rafRef.current) raf.cancel(rafRef.current);
@@ -24,7 +24,7 @@ function HandleTooltip({
     });
   }
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (visible) {
       keepAlign();
     } else {
