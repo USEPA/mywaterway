@@ -720,11 +720,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         atHucBoundaries: false,
         hucBoundaries: '',
         monitoringGroups: null,
-        monitoringFeatureUpdates: {
-          stationTotalMeasurements: 0,
-          stationTotalsByGroup: {},
-          timeframe: null,
-        },
+        monitoringFeatureUpdates: null,
         monitoringLocations: { status: 'fetching', data: {} },
         permittedDischargers: { status: 'fetching', data: {} },
         nonprofits: { status: 'fetching', data: [] },

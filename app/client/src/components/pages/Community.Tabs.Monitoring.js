@@ -657,6 +657,10 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
     [setMonitoringFeatureUpdates],
   );
 
+  useEffect(() => {
+    return () => setMonitoringFeatureUpdates(null);
+  }, [setMonitoringFeatureUpdates]);
+
   // The data returned by the worker
   const [{ minYear, maxYear, annualData }, resetWorkerData] =
     usePeriodOfRecordData(huc12, 'huc12');
