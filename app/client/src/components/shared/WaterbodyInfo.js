@@ -1053,9 +1053,7 @@ function MonitoringLocationsContent({ attributes, services }) {
   const [charGroupFilters, setCharGroupFilters] = useState('');
   const [selectAll, setSelectAll] = useState(1);
   const [selected, setSelected] = useState({});
-  const [totalMeasurements, setTotalMeasurements] = useState(
-    attributes.stationTotalMeasurements,
-  );
+  const [totalMeasurements, setTotalMeasurements] = useState(null);
 
   const structuredProps = ['stationTotalsByGroup', 'timeframe'];
 
@@ -1089,6 +1087,7 @@ function MonitoringLocationsContent({ attributes, services }) {
     );
     setGroups(newGroups);
     setSelected(newSelected);
+    setSelectAll(1);
   }, [stationTotalsByGroup]);
 
   const buildFilter = useCallback(
