@@ -273,7 +273,6 @@ function MapMouseEvents({ view }: Props) {
   // applicable to graphics visible on the map
   const updates = useRef(null);
   useEffect(() => {
-    if (!monitoringFeatureUpdates) return;
     updates.current = monitoringFeatureUpdates;
   }, [monitoringFeatureUpdates]);
 
@@ -303,18 +302,20 @@ function MapMouseEvents({ view }: Props) {
     if (services.status === 'fetching') return;
     if (!popupWatchHandler) {
       const handler = view.popup.watch('features', (graphics) => {
-        graphics.forEach((graphic) => {
-          if (
-            graphic.layer?.id === 'monitoringLocationsLayer' &&
-            !graphic.isAggregate
-          ) {
-            if (graphics.length === 1) {
-              updateSingleFeature(graphic);
-            } else {
-              updateAttributes(graphic, updates);
+        if (updates?.current) {
+          graphics.forEach((graphic) => {
+            if (
+              graphic.layer?.id === 'monitoringLocationsLayer' &&
+              !graphic.isAggregate
+            ) {
+              if (graphics.length === 1) {
+                updateSingleFeature(graphic);
+              } else {
+                updateAttributes(graphic, updates);
+              }
             }
-          }
-        });
+          });
+        }
       });
       setPopupWatchHandler(handler);
     }
