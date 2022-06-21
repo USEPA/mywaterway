@@ -1120,6 +1120,10 @@ function MonitoringLocationsContent({ attributes, services }) {
     buildFilter(selected, groups, timeframe);
   }, [buildFilter, groups, selected, timeframe]);
 
+  useEffect(() => {
+    setTotalMeasurements(stationTotalMeasurements);
+  }, [stationTotalMeasurements]);
+
   //Toggle an individual row and call the provided onChange event handler
   const toggleRow = (groupLabel: string, allGroups: Object) => {
     // flip the current toggle

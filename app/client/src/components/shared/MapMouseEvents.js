@@ -11,20 +11,35 @@ import { MapHighlightContext } from 'contexts/MapHighlight';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // config
-import { getPopupContent, graphicComparison } from 'utils/mapFunctions';
+import {
+  getPopupContent,
+  getPopupTitle,
+  graphicComparison,
+} from 'utils/mapFunctions';
 // utilities
 import { useDynamicPopup } from 'utils/hooks';
 
 // --- helpers ---
-function updateAttributes(graphic, updates) {
-  if (graphic.layer?.id === 'monitoringLocationsLayer') {
-    const graphicId = graphic?.attributes?.uniqueId;
-    if (updates.current?.[graphicId]) {
-      const stationUpdates = updates.current[graphicId];
-      Object.keys(stationUpdates).forEach((attribute) => {
-        graphic.setAttribute(attribute, stationUpdates[attribute]);
-      });
+function parseAttributes(structuredAttributes, attributes) {
+  const parsed = {};
+  for (const property of structuredAttributes) {
+    try {
+      parsed[property] = JSON.parse(attributes[property]);
+    } catch {
+      parsed[property] = attributes[property];
     }
+  }
+  return { ...attributes, ...parsed };
+}
+
+function updateAttributes(graphic, updates) {
+  const graphicId = graphic?.attributes?.uniqueId;
+  if (updates.current?.[graphicId]) {
+    const stationUpdates = updates.current[graphicId];
+    Object.keys(stationUpdates).forEach((attribute) => {
+      graphic.setAttribute(attribute, stationUpdates[attribute]);
+    });
+    return graphic;
   }
 }
 
@@ -35,7 +50,7 @@ type Props = {
   view: any,
 };
 
-function MapMouseEvents({ map, view }: Props) {
+function MapMouseEvents({ view }: Props) {
   const navigate = useNavigate();
   const fetchedDataDispatch = useFetchedDataDispatch();
 
@@ -46,7 +61,6 @@ function MapMouseEvents({ map, view }: Props) {
   const {
     getHucBoundaries,
     monitoringFeatureUpdates,
-    monitoringLocationsLayer,
     resetData,
     protectedAreasLayer,
   } = useContext(LocationSearchContext);
@@ -263,17 +277,23 @@ function MapMouseEvents({ map, view }: Props) {
     updates.current = monitoringFeatureUpdates;
   }, [monitoringFeatureUpdates]);
 
-  // Retrieves individual graphics from clusters,
-  // and updates them with date-filtered data
-  const updateClusteredFeatures = useCallback(
-    async (graphic) => {
-      const layerView = await view.whenLayerView(monitoringLocationsLayer);
-      const query = layerView.createQuery();
-      query.aggregateIds = [graphic.getObjectId()];
-      const { features } = await layerView.queryFeatures(query);
-      features.forEach((feature) => updateAttributes(feature, updates));
+  const updateSingleFeature = useCallback(
+    (graphic) => {
+      view.popup.clear();
+      updateAttributes(graphic, updates);
+      const structuredProps = ['stationTotalsByGroup', 'timeframe'];
+      graphic.attributes = parseAttributes(structuredProps, graphic.attributes);
+      view.popup.open({
+        title: getPopupTitle(graphic.attributes),
+        content: getPopupContent({
+          feature: graphic,
+          services,
+          navigate,
+        }),
+        location: graphic.geometry,
+      });
     },
-    [monitoringLocationsLayer, view],
+    [navigate, services, view.popup],
   );
 
   // Watches for popups, and updates them if
@@ -284,17 +304,27 @@ function MapMouseEvents({ map, view }: Props) {
     if (!popupWatchHandler) {
       const handler = view.popup.watch('features', (graphics) => {
         graphics.forEach((graphic) => {
-          if (graphic.isAggregate) {
-            updateClusteredFeatures(graphic);
-          } else {
-            updateAttributes(graphic, updates);
+          if (
+            graphic.layer?.id === 'monitoringLocationsLayer' &&
+            !graphic.isAggregate
+          ) {
+            if (graphics.length === 1) {
+              updateSingleFeature(graphic);
+            } else {
+              updateAttributes(graphic, updates);
+            }
           }
         });
       });
       setPopupWatchHandler(handler);
     }
-    return () => popupWatchHandler?.remove();
-  }, [popupWatchHandler, services.status, updateClusteredFeatures, view]);
+  }, [popupWatchHandler, services.status, updateSingleFeature, view]);
+
+  useEffect(() => {
+    return () => {
+      popupWatchHandler?.remove();
+    };
+  }, [popupWatchHandler]);
 
   function getGraphicFromResponse(
     res: Object,
