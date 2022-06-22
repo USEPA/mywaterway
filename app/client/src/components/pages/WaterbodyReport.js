@@ -1,6 +1,6 @@
 // @flow
 
-import React, { Fragment, useCallback, useEffect, useState } from 'react';
+import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import WindowSize from '@reach/window-size';
 import { css } from 'styled-components/macro';
@@ -830,13 +830,17 @@ function WaterbodyReport({ fullscreen }: Props) {
 
   // calculate height of div holding waterbody info
   const [infoHeight, setInfoHeight] = useState(0);
-  const measuredRef = useCallback(
-    (node) => {
-      if (!node) return;
-      setInfoHeight(node.getBoundingClientRect().height);
-    },
-    [reportingCycleFetch, waterbodyLocation, waterbodyStatus, waterbodyTypes],
-  );
+  const measuredRef = useRef();
+  useEffect(() => {
+    if (!measuredRef?.current) return;
+    setInfoHeight(measuredRef.current.getBoundingClientRect().height);
+  }, [
+    measuredRef,
+    reportingCycleFetch,
+    waterbodyLocation,
+    waterbodyStatus,
+    waterbodyTypes,
+  ]);
 
   const infoBox = (
     <div css={boxStyles} ref={measuredRef}>
