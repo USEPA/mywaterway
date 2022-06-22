@@ -830,10 +830,13 @@ function WaterbodyReport({ fullscreen }: Props) {
 
   // calculate height of div holding waterbody info
   const [infoHeight, setInfoHeight] = useState(0);
-  const measuredRef = useCallback((node) => {
-    if (!node) return;
-    setInfoHeight(node.getBoundingClientRect().height);
-  }, []);
+  const measuredRef = useCallback(
+    (node) => {
+      if (!node) return;
+      setInfoHeight(node.getBoundingClientRect().height);
+    },
+    [reportingCycleFetch, waterbodyLocation, waterbodyStatus, waterbodyTypes],
+  );
 
   const infoBox = (
     <div css={boxStyles} ref={measuredRef}>
