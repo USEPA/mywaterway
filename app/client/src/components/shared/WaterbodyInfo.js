@@ -280,7 +280,7 @@ function WaterbodyInfo({
   };
 
   const waterbodyReportLink =
-    !onWaterbodyReportPage && attributes.organizationid ? (
+    onWaterbodyReportPage ? null : attributes.organizationid ? (
       <p css={paragraphStyles}>
         <a
           rel="noopener noreferrer"
