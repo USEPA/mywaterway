@@ -1197,6 +1197,16 @@ function MonitoringLocationsContent({ attributes, services }) {
     <>
       <table css={modifiedTableStyles} className="table">
         <tbody>
+          {timeframe && (
+            <tr>
+              <td>
+                <em>Current Date Range:</em>
+              </td>
+              <td>
+                {timeframe[0]} - {timeframe[1]}
+              </td>
+            </tr>
+          )}
           <tr>
             <td>
               <em>Organ&shy;ization Name:</em>
