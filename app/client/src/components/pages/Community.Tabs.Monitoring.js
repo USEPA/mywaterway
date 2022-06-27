@@ -142,23 +142,23 @@ const toggleStyles = css`
   }
 `;
 
+const initialWorkerData = {
+  minYear: null,
+  maxYear: null,
+  annualData: {},
+};
+
 // Passes parsing of historical CSV data to a Web Worker,
 // which itself utilizes an external service
 function usePeriodOfRecordData(filter, param) {
   const services = useServicesContext();
-  const initialWorkerData = {
-    minYear: null,
-    maxYear: null,
-    annualData: {},
-  };
-
   const [url, setUrl] = useState(null);
   const [workerData, setWorkerData] = useState(initialWorkerData);
 
   // Clear the data on change of location
-  const resetWorkerData = () => {
+  const resetWorkerData = useCallback(() => {
     setWorkerData(initialWorkerData);
-  };
+  }, [setWorkerData]);
 
   // Craft the URL
   useEffect(() => {
