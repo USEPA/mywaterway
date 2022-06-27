@@ -647,6 +647,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           type: 'simple-marker',
           style: 'circle',
           color: colors.lightPurple(0.5),
+          outline: {
+            width: 0.75,
+          },
         },
       },
       featureReduction: {
@@ -739,6 +742,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           type: 'simple-marker',
           style: 'square',
           color: '#fffe00', // '#989fa2'
+          outline: {
+            width: 0.75,
+          },
         },
       },
       popupTemplate: {

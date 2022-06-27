@@ -309,6 +309,9 @@ export function createWaterbodySymbol({
   }
 
   if (geometryType === 'point') {
+    symbol.outline = {
+      width: 0.65,
+    };
     if (condition === 'good' || condition === 'nostatus') {
       symbol.style = 'circle';
     }
@@ -411,6 +414,10 @@ export function plotFacilities({
           color: colors.orange,
           style: 'diamond',
           size: 15,
+          outline: {
+            // width units differ between FeatureLayers and GraphicsLayers
+            width: 0.65,
+          },
         },
         attributes: facility,
         popupTemplate: {

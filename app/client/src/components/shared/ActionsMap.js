@@ -166,6 +166,9 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
                 planSummarySymbol = new SimpleMarkerSymbol({
                   color,
                   style: 'circle',
+                  outline: {
+                    width: 0.65,
+                  },
                 });
               }
               if (type === 'polyline') {
