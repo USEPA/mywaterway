@@ -110,8 +110,7 @@ function updateMonitoringLocationsLayer(stations, layer) {
         latitude: attributes.locationLatitude,
       },
       attributes: {
-        ...station,
-        stationTotalsByGroup: JSON.stringify(station.stationTotalsByGroup),
+        ...attributes,
       },
     });
   });
