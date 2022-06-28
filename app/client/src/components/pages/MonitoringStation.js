@@ -1,5 +1,3 @@
-// @flow
-
 import Graphic from '@arcgis/core/Graphic';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Viewpoint from '@arcgis/core/Viewpoint';
@@ -7,12 +5,7 @@ import WindowSize from '@reach/window-size';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { css } from 'styled-components/macro';
-
-import {
-  boxStyles,
-  boxHeadingStyles,
-  boxSectionStyles,
-} from 'components/shared/Box';
+// components
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -27,16 +20,21 @@ import {
   splitLayoutColumnsStyles,
   splitLayoutColumnStyles,
 } from 'components/shared/SplitLayout';
+// config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 import { monitoringError } from 'config/errorMessages';
+// contexts
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
-import { colors, tableStyles } from 'styles';
+// helpers
 import { fetchCheck } from 'utils/fetchUtils';
 import { useSharedLayers } from 'utils/hooks';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
+// styles
+import { boxStyles, boxHeadingStyles } from 'components/shared/Box';
+import { colors, disclaimerStyles } from 'styles';
 
 /*
  * Styles
@@ -73,7 +71,26 @@ const containerStyles = css`
 `;
 
 const downloadLinksStyles = css`
-  margin-left: 1rem;
+  span {
+    display: inline-block;
+    margin-bottom: 0.25em;
+  }
+
+  div {
+    display: inline-block;
+    vertical-align: top;
+    width: 50%;
+
+    &:first-child {
+      padding-left: 1rem;
+      text-align: start;
+    }
+    &:last-child {
+      font-weight: bold;
+      padding-right: 1rem;
+      text-align: end;
+    }
+  }
 `;
 
 const iconStyles = css`
@@ -98,7 +115,7 @@ const infoBoxHeadingStyles = css`
 `;
 
 const inlineBoxSectionStyles = css`
-  ${boxSectionStyles};
+  padding: 0.4375rem 0.875rem;
 
   /* loading icon */
   svg {
@@ -122,54 +139,15 @@ const mapContainerStyles = css`
   position: relative;
 `;
 
-const modifiedBoxSectionStyles = css`
-  ${boxSectionStyles}
-
-  align-items: flex-start;
+const boxSectionStyles = css`
   display: flex;
-  fieldset {
-    border: none;
-    font-size: 1rem;
-    input[type='radio'] {
-      appearance: none;
-      margin: 0;
-    }
-    input:checked + label:before {
-      background-color: ${colors.steel()};
-      box-shadow: 0 0 0 1px ${colors.steel()}, inset 0 0 0 1px ${colors.white()};
-    }
-    label {
-      cursor: pointer;
-      font-size: 0.875em;
-      padding-left: 1em;
-      text-indent: -1em;
-      &:before {
-        background: ${colors.white()};
-        border-radius: 100%;
-        box-shadow: 0 0 0 1px ${colors.steel()};
-        content: ' ';
-        display: inline-block;
-        height: 1em;
-        left: 2px;
-        line-height: 1.25em;
-        margin-right: 1em;
-        position: relative;
-        text-indent: 0;
-        top: -2px;
-        vertical-align: middle;
-        white-space: pre;
-        width: 1em;
-      }
-    }
-    p {
-      font-size: 1em;
-      margin-top: 1em;
-      &:first-child {
-        margin-top: 0;
-      }
-    }
-  }
-  justify-content: space-between;
+  padding: 0.4375rem 0.875rem;
+`;
+
+const modifiedDisclaimerStyles = css`
+  ${disclaimerStyles};
+
+  padding-bottom: 0;
 `;
 
 const modifiedErrorBoxStyles = css`
@@ -177,41 +155,93 @@ const modifiedErrorBoxStyles = css`
   text-align: center;
 `;
 
-const modifiedTableStyles = css`
-  ${tableStyles}
+const tableStyles = css`
+  display: inline-block;
+  table-layout: fixed;
+  width: 70%;
 
   thead {
     th {
       padding-top: 0;
-      vertical-align: top;
     }
     tr {
-      border-bottom: 1px solid ${colors.steel()};
+      border-bottom: 2px solid #dee2e6;
     }
   }
 
   th,
   td {
     border: none;
-    overflow-wrap: anywhere;
-    hyphens: auto;
+    overflow-wrap: normal;
+    width: 50%;
 
-    :first-of-type {
+    &:first-of-type {
       padding-left: 0;
+      width: 2rem;
     }
 
-    :last-of-type {
+    &:last-of-type {
       padding-right: 0;
-      text-align: right;
     }
   }
-  width: 40%;
+`;
+
+const totalRowStyles = css`
+  border-top: 2px solid #dee2e6;
+  font-weight: bold;
 `;
 
 const pageErrorBoxStyles = css`
   ${errorBoxStyles};
   margin: 1rem;
   text-align: center;
+`;
+
+const radioStyles = css`
+  border: none;
+  display: inline-block;
+  font-size: 1rem;
+  margin: auto;
+  width: 30%;
+
+  input[type='radio'] {
+    appearance: none;
+    margin: 0;
+  }
+  input:checked + label:before {
+    background-color: #38a6ee;
+    box-shadow: 0 0 0 1px ${colors.steel()}, inset 0 0 0 1px ${colors.white()};
+  }
+  label {
+    cursor: pointer;
+    font-size: 0.875em;
+    padding-left: 1em;
+    text-indent: -1em;
+    &:before {
+      background: ${colors.white()};
+      border-radius: 100%;
+      box-shadow: 0 0 0 1px ${colors.steel()};
+      content: ' ';
+      display: inline-block;
+      height: 1em;
+      left: 2px;
+      line-height: 1.25em;
+      margin-right: 1em;
+      position: relative;
+      text-indent: 0;
+      top: -2px;
+      vertical-align: middle;
+      white-space: pre;
+      width: 1em;
+    }
+  }
+  p {
+    font-size: 1em;
+    margin-top: 1em;
+    &:first-child {
+      margin-top: 0;
+    }
+  }
 `;
 
 /*
@@ -228,14 +258,14 @@ function buildDateFilter(range) {
   return '&startDateLo=' + dateFormatted;
 }
 
-function buildGroupFilter(station, selectedCategories) {
-  if (selectedCategories.length === Object.keys(station.groupsByLabel).length) {
+function buildGroupFilter(station, selected) {
+  if (selected.length === Object.keys(station.groupsByLabel).length) {
     return '';
   }
   let selectedGroups = [];
-  Object.keys(station.groupsByLabel).forEach((category) => {
-    if (selectedCategories.includes(category)) {
-      selectedGroups = selectedGroups.concat(station.groupsByLabel[category]);
+  Object.keys(station.groupsByLabel).forEach((label) => {
+    if (selected.includes(label)) {
+      selectedGroups = selectedGroups.concat(station.groupsByLabel[label]);
     }
   });
   const filter =
@@ -276,6 +306,11 @@ async function fetchStationDetails(url, setData, setStatus) {
       `${feature.properties.ProviderName}/` +
       `${feature.properties.OrganizationIdentifier}`,
   };
+  stationDetails.labelCounts = parseLabelCounts(
+    stationDetails.groupCounts,
+    stationDetails.groupsByLabel,
+    characteristicGroupMappings,
+  );
   setData(stationDetails);
   setStatus('success');
 }
@@ -326,31 +361,60 @@ async function getZoomParams(layer) {
 }
 
 function labelGroups(groups, mappings) {
-  const categories = {};
+  const labels = {};
   mappings
     .filter((mapping) => mapping.label !== 'All')
     .forEach((mapping) => {
       for (const group in groups) {
         if (mapping.groupNames.includes(group)) {
-          if (!categories[mapping.label]) categories[mapping.label] = [];
-          categories[mapping.label].push(group);
+          if (!labels[mapping.label]) labels[mapping.label] = [];
+          labels[mapping.label].push(group);
         }
       }
     });
 
   // add any leftover lower-tier group counts to the 'Other' category
-  const groupsCategorized = Object.values(categories).reduce((a, b) => {
+  const groupsCategorized = Object.values(labels).reduce((a, b) => {
     a.push(...b);
     return a;
   }, []);
   for (const group in groups) {
     if (!groupsCategorized.includes(group)) {
-      if (!categories['Other']) categories['Other'] = [];
-      categories['Other'].push(group);
+      if (!labels['Other']) labels['Other'] = [];
+      labels['Other'].push(group);
     }
   }
-  return categories;
+  return labels;
 }
+
+function parseLabelCounts(groupCounts, groupsByLabel, mappings) {
+  const labelCounts = {};
+  mappings
+    .filter((mapping) => mapping.label !== 'All')
+    .forEach((mapping) => (labelCounts[mapping.label] = 0));
+  Object.entries(groupsByLabel).forEach(([label, groups]) => {
+    groups.forEach((group) => (labelCounts[label] += groupCounts[group]));
+  });
+
+  return labelCounts;
+}
+
+const sectionRow = (label, value, style, dataStatus) => (
+  <div css={style}>
+    <h3>{label}:</h3>
+    {dataStatus === 'fetching' && <LoadingSpinner />}
+    {dataStatus === 'failure' && (
+      <div css={modifiedErrorBoxStyles}>
+        <p>{monitoringError}</p>
+      </div>
+    )}
+    {dataStatus === 'success' && <p>&nbsp; {value}</p>}
+  </div>
+);
+
+const sectionRowInline = (label, value, dataStatus = 'success') => {
+  return sectionRow(label, value, inlineBoxSectionStyles, dataStatus);
+};
 
 function useStationDetails(provider, orgId, siteId) {
   const services = useServicesContext();
@@ -373,69 +437,75 @@ function useStationDetails(provider, orgId, siteId) {
   return [station, stationStatus];
 }
 
-const sectionRow = (label, value, style, dataStatus) => (
-  <div css={style}>
-    <h3>{label}:</h3>
-    {dataStatus === 'fetching' && <LoadingSpinner />}
-    {dataStatus === 'failure' && (
-      <div css={modifiedErrorBoxStyles}>
-        <p>{monitoringError}</p>
-      </div>
-    )}
-    {dataStatus === 'success' && <p>&nbsp; {value}</p>}
-  </div>
-);
-
-const sectionRowInline = (label, value, dataStatus = 'success') => {
-  return sectionRow(label, value, inlineBoxSectionStyles, dataStatus);
-};
-
 /*
  * Components
  */
 
 function DownloadSection({ station, stationStatus }) {
   const [range, setRange] = useState('1');
-  const [categories, setCategories] = useState([]);
+  const [selected, setSelected] = useState([]);
   const [allChecked, setAllChecked] = useState(1);
+  const [totalMeasurements, setTotalMeasurements] = useState(
+    Object.values(station.labelCounts).reduce((a, b) => a + b, 0),
+  );
 
   const services = useServicesContext();
 
   const downloadUrl =
     stationStatus === 'success' &&
     `${services.data.waterQualityPortal.resultSearch}zip=no&siteid=` +
-      `${station.siteId}&providers=${station.stationProviderName}` +
-      `${buildGroupFilter(station, categories)}` +
+      `${station.siteId}&providers=${station.providerName}` +
+      `${buildGroupFilter(station, selected)}` +
+      `${buildDateFilter(range)}`;
+
+  const portalUrl =
+    stationStatus === 'success' &&
+    `${services.data.waterQualityPortal.userInterface}#` +
+      `&mimeType=xlsx&dataProfile=resultPhysChem` +
+      `&siteid=${station.siteId}` +
+      `&providers=${station.providerName}` +
+      `${buildGroupFilter(station, selected)}` +
       `${buildDateFilter(range)}`;
 
   const ranges = ['1', '5', '10', 'all'];
 
-  const toggleCategory = (category) => {
-    const newCategories = categories.includes(category)
-      ? categories.filter((c) => c !== category)
-      : [...categories, category];
-    setCategories(newCategories);
+  const toggleLabel = (label) => {
+    const newSelected = selected.includes(label)
+      ? selected.filter((s) => s !== label)
+      : [...selected, label];
+    setSelected(newSelected);
 
-    if (newCategories.length === Object.keys(station.groupsByLabel).length) {
+    const newTotalMeasurements = newSelected.reduce(
+      (a, b) => a + station.labelCounts[b],
+      0,
+    );
+    setTotalMeasurements(newTotalMeasurements);
+
+    if (newSelected.length === Object.keys(station.groupsByLabel).length) {
       setAllChecked(1);
-    } else if (newCategories.length === 0) {
+    } else if (newSelected.length === 0) {
       setAllChecked(0);
     } else {
       setAllChecked(2);
     }
   };
 
-  const toggleAllCategories = () => {
+  const toggleAllChecked = () => {
     let selected = allChecked === 0 ? Object.keys(station.groupsByLabel) : [];
-    setCategories(selected);
+    setSelected(selected);
     setAllChecked(allChecked === 0 ? 1 : 0);
+    const newTotalMeasurements =
+      allChecked !== 0
+        ? 0
+        : Object.values(station.labelCounts).reduce((a, b) => a + b, 0);
+    setTotalMeasurements(newTotalMeasurements);
   };
 
   useEffect(() => {
     if (stationStatus === 'success') {
-      setCategories(Object.keys(station.groupsByLabel));
+      setSelected(Object.keys(station.groupsByLabel));
     }
-  }, [setCategories, station, stationStatus]);
+  }, [setSelected, station, stationStatus]);
 
   return (
     <div css={boxStyles}>
@@ -446,8 +516,8 @@ function DownloadSection({ station, stationStatus }) {
         <p>No data available for this monitoring location.</p>
       ) : (
         <>
-          <div css={modifiedBoxSectionStyles}>
-            <fieldset>
+          <div css={boxSectionStyles}>
+            <fieldset css={radioStyles}>
               {ranges.map((n) => (
                 <p key={n}>
                   <input
@@ -468,7 +538,7 @@ function DownloadSection({ station, stationStatus }) {
                 </p>
               ))}
             </fieldset>
-            <table css={modifiedTableStyles} className="table">
+            <table css={tableStyles} className="table">
               <thead>
                 <tr>
                   <th css={checkboxCellStyles}>
@@ -480,66 +550,81 @@ function DownloadSection({ station, stationStatus }) {
                       ref={(input) => {
                         if (input) input.indeterminate = allChecked === 2;
                       }}
-                      onChange={toggleAllCategories}
+                      onChange={toggleAllChecked}
                     />
                   </th>
                   <th>
                     <GlossaryTerm term="Characteristic Group">
-                      Characteristic Groups
+                      Character&shy;istic Group
+                    </GlossaryTerm>
+                  </th>
+                  <th>
+                    <GlossaryTerm term="Monitoring Measurements">
+                      Number of Measurements
                     </GlossaryTerm>
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {Object.keys(station.groupsByLabel).map((category, index) => {
-                  return station.groupsByLabel[category].length === 0 ? null : (
+                {Object.keys(station.groupsByLabel).map((label, index) => {
+                  return station.groupsByLabel[label].length === 0 ? null : (
                     <tr key={index}>
                       <td css={checkboxCellStyles}>
                         <input
                           css={checkboxStyles}
                           type="checkbox"
                           className="checkbox"
-                          checked={
-                            categories.includes(category) || allChecked === 1
-                          }
-                          onChange={() => toggleCategory(category)}
+                          checked={selected.includes(label) || allChecked === 1}
+                          onChange={() => toggleLabel(label)}
                         />
                       </td>
-                      <td>{category}</td>
+                      <td>{label}</td>
+                      <td>{station.labelCounts[label]}</td>
                     </tr>
                   );
                 })}
+                <tr css={totalRowStyles}>
+                  <td></td>
+                  <td>Total</td>
+                  <td>{Number(totalMeasurements).toLocaleString()}</td>
+                </tr>
               </tbody>
             </table>
           </div>
-          <div id="download-links">
-            {sectionRowInline(
-              'Data Download Format',
-              <>
-                <a
-                  css={downloadLinksStyles}
-                  href={`${downloadUrl}&mimeType=xlsx`}
-                >
-                  <i
-                    css={iconStyles}
-                    className="fas fa-file-excel"
-                    aria-hidden="true"
-                  />
-                  xls
+          <div id="download-links" css={downloadLinksStyles}>
+            <div>
+              <a
+                rel="noopener noreferrer"
+                target="_blank"
+                data-cy="portal"
+                href={portalUrl}
+                style={{ fontWeight: 'normal' }}
+              >
+                <i
+                  css={iconStyles}
+                  className="fas fa-filter"
+                  aria-hidden="true"
+                />
+                Advanced Filtering
+              </a>
+              &nbsp;&nbsp;
+              <small css={modifiedDisclaimerStyles}>
+                (opens new browser tab)
+              </small>
+            </div>
+            <div>
+              <span>Download Selected Data</span>
+              <span>
+                &nbsp;&nbsp;
+                <a href={`${downloadUrl}&mimeType=xlsx`}>
+                  <i className="fas fa-file-excel" aria-hidden="true" />
                 </a>
-                <a
-                  css={downloadLinksStyles}
-                  href={`${downloadUrl}&mimeType=csv`}
-                >
-                  <i
-                    css={iconStyles}
-                    className="fas fa-file-csv"
-                    aria-hidden="true"
-                  />
-                  csv
+                &nbsp;&nbsp;
+                <a href={`${downloadUrl}&mimeType=csv`}>
+                  <i className="fas fa-file-csv" aria-hidden="true" />
                 </a>
-              </>,
-            )}
+              </span>
+            </div>
           </div>
         </>
       )}
@@ -780,12 +865,8 @@ function StationMap({ layout, station, stationStatus, widthRef }) {
         popupTemplate: {
           outFields: ['*'],
           title: (feature) => getPopupTitle(feature.graphic.attributes),
-          content: (feature) => {
-            feature.graphic.attributes.groupCounts = JSON.parse(
-              feature.graphic.attributes.groupCounts,
-            );
-            return getPopupContent({ feature: feature.graphic, services });
-          },
+          content: (feature) =>
+            getPopupContent({ feature: feature.graphic, services }),
         },
       });
       setMonitoringLocationsLayer(newMonitoringLocationsLayer);
