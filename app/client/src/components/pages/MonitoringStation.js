@@ -1,6 +1,7 @@
 import Graphic from '@arcgis/core/Graphic';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Viewpoint from '@arcgis/core/Viewpoint';
+import Papa from 'papaparse';
 import WindowSize from '@reach/window-size';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -340,6 +341,19 @@ async function drawStation(station, layer) {
   return editResults?.addFeatureResults?.length ? true : false;
 }
 
+function fetchParseCsv(url) {
+  return new Promise((complete, error) => {
+    Papa.parse(url, {
+      complete,
+      download: true,
+      dynamicTyping: true,
+      error,
+      header: true,
+      worker: true,
+    });
+  });
+}
+
 function isEmpty(obj) {
   for (var _x in obj) {
     return false;
@@ -416,6 +430,56 @@ const sectionRowInline = (label, value, dataStatus = 'success') => {
   return sectionRow(label, value, inlineBoxSectionStyles, dataStatus);
 };
 
+function useCharacteristics(provider, orgId, siteId) {
+  const services = useServicesContext();
+
+  const [chars, setChars] = useState(null);
+  const [status, setStatus] = useState('fetching');
+
+  const structureRecords = useCallback(
+    (records) => {
+      const recordsByChar = {};
+      records.forEach((record) => {
+        if (!recordsByChar[record.CharacteristicName]) {
+          recordsByChar[record.CharacteristicName] = {};
+          recordsByChar[record.CharacteristicName][record.YearSummarized] = [
+            record,
+          ];
+        } else if (
+          !recordsByChar[record.CharacteristicName][record.YearSummarized]
+        ) {
+          recordsByChar[record.CharacteristicName][record.YearSummarized] = [
+            record,
+          ];
+        } else {
+          recordsByChar[record.CharacteristicName][record.YearSummarized].push(
+            record,
+          );
+        }
+      });
+      setChars(recordsByChar);
+      setStatus('success');
+    },
+    [setChars, setStatus],
+  );
+
+  useEffect(() => {
+    if (chars || services.status !== 'success') return;
+    const url =
+      `${services.data.waterQualityPortal.monitoringLocation}search?` +
+      `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all` +
+      `&providers=${provider}&organization=${orgId}&siteid=${siteId}`;
+    try {
+      fetchParseCsv(url).then((results) => structureRecords(results.data));
+    } catch (err) {
+      setStatus('failure');
+      console.error('Papa Parse error');
+    }
+  }, [chars, orgId, provider, services, siteId, structureRecords]);
+
+  return [chars, status];
+}
+
 function useStationDetails(provider, orgId, siteId) {
   const services = useServicesContext();
 
@@ -445,9 +509,7 @@ function DownloadSection({ station, stationStatus }) {
   const [range, setRange] = useState('1');
   const [selected, setSelected] = useState([]);
   const [allChecked, setAllChecked] = useState(1);
-  const [totalMeasurements, setTotalMeasurements] = useState(
-    Object.values(station.labelCounts).reduce((a, b) => a + b, 0),
-  );
+  const [totalMeasurements, setTotalMeasurements] = useState(0);
 
   const services = useServicesContext();
 
@@ -475,12 +537,6 @@ function DownloadSection({ station, stationStatus }) {
       : [...selected, label];
     setSelected(newSelected);
 
-    const newTotalMeasurements = newSelected.reduce(
-      (a, b) => a + station.labelCounts[b],
-      0,
-    );
-    setTotalMeasurements(newTotalMeasurements);
-
     if (newSelected.length === Object.keys(station.groupsByLabel).length) {
       setAllChecked(1);
     } else if (newSelected.length === 0) {
@@ -494,18 +550,21 @@ function DownloadSection({ station, stationStatus }) {
     let selected = allChecked === 0 ? Object.keys(station.groupsByLabel) : [];
     setSelected(selected);
     setAllChecked(allChecked === 0 ? 1 : 0);
-    const newTotalMeasurements =
-      allChecked !== 0
-        ? 0
-        : Object.values(station.labelCounts).reduce((a, b) => a + b, 0);
-    setTotalMeasurements(newTotalMeasurements);
   };
 
   useEffect(() => {
-    if (stationStatus === 'success') {
-      setSelected(Object.keys(station.groupsByLabel));
-    }
-  }, [setSelected, station, stationStatus]);
+    if (stationStatus !== 'success') return;
+    setSelected(Object.keys(station.groupsByLabel));
+  }, [setSelected, station.groupsByLabel, stationStatus]);
+
+  useEffect(() => {
+    if (stationStatus !== 'success') return;
+    const newTotalMeasurements = selected.reduce(
+      (a, b) => a + station.labelCounts[b],
+      0,
+    );
+    setTotalMeasurements(newTotalMeasurements);
+  }, [selected, station.labelCounts, stationStatus]);
 
   return (
     <div css={boxStyles}>
@@ -661,6 +720,11 @@ function InformationSection({ orgId, siteId, station, stationStatus }) {
 function MonitoringStation({ fullscreen }) {
   const { orgId, provider, siteId } = useParams();
   const [station, stationStatus] = useStationDetails(provider, orgId, siteId);
+  const [characteristics, characteristicsStatus] = useCharacteristics(
+    provider,
+    orgId,
+    siteId,
+  );
   const [mapWidth, setMapWidth] = useState(0);
   const widthRef = useCallback((node) => {
     if (!node) return;
