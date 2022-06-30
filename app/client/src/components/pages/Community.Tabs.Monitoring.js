@@ -170,7 +170,7 @@ function usePeriodOfRecordData(filter, param) {
       recordUrl =
         `${services.data.waterQualityPortal.monitoringLocation}search?` +
         `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all`;
-      recordUrl += param === 'huc12' ? `&huc=${filter}` : `&siteId=${filter}`;
+      recordUrl += param === 'huc12' ? `&huc=${filter}` : `&siteid=${filter}`;
       setUrl(recordUrl);
     }
   }, [filter, param, services.data, services.status]);
@@ -207,6 +207,9 @@ function filterStation(station, timeframe) {
   const result = {
     ...station,
     stationTotalMeasurements: 0,
+    // TODO: investigate discrepancy between periodOfRecord
+    // sample counts and summary counts
+    // stationTotalSamples: 0,
     stationTotalsByGroup: {},
     stationTotalsByLabel: {},
     timeframe: [...timeframe],
@@ -219,6 +222,7 @@ function filterStation(station, timeframe) {
     if (parseInt(year) > timeframe[1]) return result;
     result.stationTotalMeasurements +=
       stationRecords[year].stationTotalMeasurements;
+    // result.stationTotalSamples += stationRecords[year].stationTotalSamples;
     const resultGroups = result.stationTotalsByGroup;
     Object.entries(stationRecords[year].stationTotalsByGroup).forEach(
       ([group, count]) => {
@@ -485,24 +489,6 @@ function Monitoring() {
                 week, to multiple decades old, or anywhere in between, depending
                 on the location.
               </p>
-              <p>
-                <a
-                  rel="noopener noreferrer"
-                  target="_blank"
-                  href="https://www.waterqualitydata.us/portal_userguide/"
-                >
-                  <i
-                    css={iconStyles}
-                    className="fas fa-book-open"
-                    aria-hidden="true"
-                  />
-                  Water Quality Portal User Guide
-                </a>
-                &nbsp;&nbsp;
-                <small css={modifiedDisclaimerStyles}>
-                  (opens new browser tab)
-                </small>
-              </p>
 
               <MonitoringTab
                 monitoringDisplayed={monitoringDisplayed}
@@ -767,6 +753,11 @@ function MonitoringTab({
     [monitoringLocationsLayer, updateFeatures, yearsRange],
   );
 
+  useEffect(() => {
+    if (!monitoringGroups || !yearsRange) return;
+    drawMap(monitoringGroups, yearsRange);
+  }, [drawMap, monitoringGroups, yearsRange]);
+
   // Add the stations historical data to the `stationDataByYear` property,
   // then initializes the date slider
   const addAnnualData = useCallback(async () => {
@@ -783,14 +774,12 @@ function MonitoringTab({
     }
     setMonitoringGroups(updatedMonitoringGroups);
     setYearsRange([minYear, maxYear]);
-    drawMap(updatedMonitoringGroups, [minYear, maxYear]);
   }, [
     maxYear,
     minYear,
     monitoringGroups,
     monitoringLocationsLayer,
     annualData,
-    drawMap,
     setMonitoringGroups,
     setYearsRange,
   ]);
@@ -804,9 +793,8 @@ function MonitoringTab({
   const handleSliderChange = useCallback(
     (range) => {
       setYearsRange([...range]);
-      drawMap(monitoringGroups, range);
     },
-    [drawMap, monitoringGroups, setYearsRange],
+    [setYearsRange],
   );
 
   // Updates total counts after `drawMap` filters displayed locations
@@ -844,14 +832,11 @@ function MonitoringTab({
     setMonitoringDisplayed(!allToggled);
     setAllToggled((prev) => !prev);
     setMonitoringGroups({ ...monitoringGroups });
-    drawMap(monitoringGroups, yearsRange);
   }, [
     allToggled,
-    drawMap,
     monitoringGroups,
     setMonitoringDisplayed,
     setMonitoringGroups,
-    yearsRange,
   ]);
 
   const toggleRow = useCallback(
@@ -871,15 +856,8 @@ function MonitoringTab({
         .filter((label) => label !== 'All')
         .some((key) => monitoringGroups[key].toggled);
       setMonitoringDisplayed(someToggled);
-      drawMap(monitoringGroups, yearsRange);
     },
-    [
-      drawMap,
-      monitoringGroups,
-      setMonitoringDisplayed,
-      setMonitoringGroups,
-      yearsRange,
-    ],
+    [monitoringGroups, setMonitoringDisplayed, setMonitoringGroups],
   );
 
   useEffect(() => {
@@ -905,9 +883,8 @@ function MonitoringTab({
     if (!monitoringGroups) return;
     if (!dataInitialized) {
       setDataInitialized(true);
-      drawMap(monitoringGroups, yearsRange);
     }
-  }, [dataInitialized, drawMap, monitoringGroups, yearsRange]);
+  }, [dataInitialized, monitoringGroups]);
 
   useEffect(() => {
     // update total measurements and samples counts

@@ -70,6 +70,11 @@ function labelValue(label, value, icon = null) {
   );
 }
 
+const dateRangeStyles = css`
+  font-size: 0.8em;
+  margin-left: 1em;
+`;
+
 const popupContainerStyles = css`
   margin: 0;
   overflow-y: auto;
@@ -1197,16 +1202,6 @@ function MonitoringLocationsContent({ attributes, services }) {
     <>
       <table css={modifiedTableStyles} className="table">
         <tbody>
-          {timeframe && (
-            <tr>
-              <td>
-                <em>Current Date Range:</em>
-              </td>
-              <td>
-                {timeframe[0]} - {timeframe[1]}
-              </td>
-            </tr>
-          )}
           <tr>
             <td>
               <em>Organ&shy;ization Name:</em>
@@ -1245,7 +1240,14 @@ function MonitoringLocationsContent({ attributes, services }) {
                 </GlossaryTerm>
               </em>
             </td>
-            <td>{Number(stationTotalSamples).toLocaleString()}</td>
+            <td>
+              {Number(stationTotalSamples).toLocaleString()}
+              {timeframe && (
+                <span css={dateRangeStyles}>
+                  ({timeframe[0]} - {timeframe[1]})
+                </span>
+              )}
+            </td>
           </tr>
           <tr>
             <td>
@@ -1255,7 +1257,14 @@ function MonitoringLocationsContent({ attributes, services }) {
                 </GlossaryTerm>
               </em>
             </td>
-            <td>{Number(stationTotalMeasurements).toLocaleString()}</td>
+            <td>
+              {Number(stationTotalMeasurements).toLocaleString()}
+              {timeframe && (
+                <span css={dateRangeStyles}>
+                  ({timeframe[0]} - {timeframe[1]})
+                </span>
+              )}
+            </td>
           </tr>
         </tbody>
       </table>
