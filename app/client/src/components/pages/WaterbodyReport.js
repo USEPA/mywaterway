@@ -1034,6 +1034,7 @@ function WaterbodyReport({ fullscreen }: Props) {
                 layout="fullscreen"
                 unitIds={unitIds}
                 onLoad={setMapLayer}
+                page="waterbodyReport"
               />
             </div>
           );
@@ -1090,6 +1091,7 @@ function WaterbodyReport({ fullscreen }: Props) {
                               layout="narrow"
                               unitIds={unitIds}
                               onLoad={setMapLayer}
+                              page="waterbodyReport"
                             />
                           </div>
                         )}
@@ -1109,6 +1111,7 @@ function WaterbodyReport({ fullscreen }: Props) {
                           layout="wide"
                           unitIds={unitIds}
                           onLoad={setMapLayer}
+                          page="waterbodyReport"
                         />
                       </div>
                     </StickyBox>
