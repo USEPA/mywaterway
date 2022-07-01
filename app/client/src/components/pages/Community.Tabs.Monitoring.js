@@ -276,10 +276,6 @@ function Monitoring() {
     useState(true);
 
   const [monitoringDisplayed, setMonitoringDisplayed] = useState(true);
-  useEffect(() => {
-    if (!monitoringLocationsLayer) return;
-    monitoringLocationsLayer.visible = monitoringDisplayed;
-  }, [monitoringLocationsLayer, monitoringDisplayed]);
 
   // draw the permitted dischargers on the map
   useEffect(() => {
@@ -611,7 +607,11 @@ function SensorsTab() {
   }
 }
 
-function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
+function MonitoringTab({
+  monitoringDisplayed,
+  setMonitoringDisplayed,
+  tabSelected,
+}) {
   const services = useServicesContext();
 
   const {
@@ -692,14 +692,18 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
   // All stations in the current time range
   const [currentLocations, setCurrentLocations] = useState([]);
   useEffect(() => {
-    if (!monitoringLocationsLayer?.visible) return;
+    if (!monitoringLocationsLayer) return;
+    if (!monitoringDisplayed) {
+      monitoringLocationsLayer.visible = false;
+      return;
+    }
 
     const { toggledLocations, allLocations } = filterLocations(
       monitoringGroups,
       yearsRange,
     );
 
-    // Adds filtered data that's relevent to map popups
+    // Add filtered data that's relevent to map popups
     if (yearsRange) {
       updateFeatures(toggledLocations);
     }
@@ -721,9 +725,16 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
       )}')`;
     }
 
+    monitoringLocationsLayer.visible = true;
     setCurrentLocations(allLocations);
     setDisplayedLocations(toggledLocations);
-  }, [monitoringGroups, monitoringLocationsLayer, updateFeatures, yearsRange]);
+  }, [
+    monitoringDisplayed,
+    monitoringGroups,
+    monitoringLocationsLayer,
+    updateFeatures,
+    yearsRange,
+  ]);
 
   // Add the stations historical data to the `stationDataByYear` property,
   // then initializes the date slider
