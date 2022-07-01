@@ -135,46 +135,43 @@ function updateMonitoringGroups(stations, mappings) {
     // counts for each top-tier characteristic group
     station.stationTotalsByLabel = {};
     // build up the monitoringLocationToggles and monitoringLocationGroups
-    const subGroupsAdded = [];
-    mappings.forEach((mapping) => {
-      if (mapping.label !== 'All')
+    const subGroupsAdded = new Set();
+    mappings
+      .filter((mapping) => mapping.label !== 'All')
+      .forEach((mapping) => {
         station.stationTotalsByLabel[mapping.label] = 0;
-      for (const subGroup in station.stationTotalsByGroup) {
-        // if characteristic group exists in switch config object
-        if (mapping.groupNames.includes(subGroup)) {
-          subGroupsAdded.push(subGroup);
-          // if switch group (w/ label key) already exists, add the stations to it
-          if (locationGroups[mapping.label]) {
-            locationGroups[mapping.label].stations.push(station);
-            locationGroups[mapping.label].characteristicGroups.push(subGroup);
-            // else, create the group (w/ label key) and add the station
-          } else {
+        for (const subGroup in station.stationTotalsByGroup) {
+          // if characteristic group exists in switch config object
+          if (!mapping.groupNames.includes(subGroup)) continue;
+          subGroupsAdded.add(subGroup);
+          if (!locationGroups[mapping.label]) {
+            // create the group (w/ label key) and add the station
             locationGroups[mapping.label] = {
               characteristicGroups: [subGroup],
               label: mapping.label,
               stations: [station],
               toggled: true,
             };
+          } else {
+            // switch group (w/ label key) already exists, add the stations to it
+            locationGroups[mapping.label].stations.push(station);
+            locationGroups[mapping.label].characteristicGroups.push(subGroup);
           }
           // add the lower-tier group counts to the corresponding top-tier group counts
-          if (mapping.label !== 'All') {
-            station.stationTotalsByLabel[mapping.label] +=
-              station.stationTotalsByGroup[subGroup];
-          }
+          station.stationTotalsByLabel[mapping.label] +=
+            station.stationTotalsByGroup[subGroup];
         }
-      }
-    });
+      });
 
     locationGroups['All'].stations.push(station);
 
     // add any leftover lower-tier group counts to the 'Other' top-tier group
     for (const subGroup in station.stationTotalsByGroup) {
-      if (!subGroupsAdded.includes(subGroup)) {
-        locationGroups['Other'].stations.push(station);
-        station.stationTotalsByLabel['Other'] +=
-          station.stationTotalsByGroup[subGroup];
-        locationGroups['Other'].characteristicGroups.push(subGroup);
-      }
+      if (subGroupsAdded.has(subGroup)) continue;
+      locationGroups['Other'].stations.push(station);
+      station.stationTotalsByLabel['Other'] +=
+        station.stationTotalsByGroup[subGroup];
+      locationGroups['Other'].characteristicGroups.push(subGroup);
     }
   });
   Object.keys(locationGroups).forEach((label) => {

@@ -255,7 +255,7 @@ function MapMouseEvents({ view }: Props) {
     });
 
     // auto expands the popup when it is first opened
-    view.popup.watch('visible', (graphic) => {
+    view.popup.watch('visible', (_graphic) => {
       if (view.popup.visible) view.popup.collapsed = false;
     });
 
@@ -295,31 +295,36 @@ function MapMouseEvents({ view }: Props) {
     [navigate, services, view.popup],
   );
 
+  const updateGraphics = useCallback(
+    (graphics) => {
+      if (!updates?.current) return;
+      graphics.forEach((graphic) => {
+        if (
+          graphic.layer?.id === 'monitoringLocationsLayer' &&
+          !graphic.isAggregate
+        ) {
+          if (graphics.length === 1) {
+            updateSingleFeature(graphic);
+          } else {
+            updateAttributes(graphic, updates);
+          }
+        }
+      });
+    },
+    [updateSingleFeature],
+  );
+
   // Watches for popups, and updates them if
   // they represent monitoring location features
   const [popupWatchHandler, setPopupWatchHandler] = useState(null);
   useEffect(() => {
     if (services.status === 'fetching') return;
-    if (!popupWatchHandler) {
-      const handler = view.popup.watch('features', (graphics) => {
-        if (updates?.current) {
-          graphics.forEach((graphic) => {
-            if (
-              graphic.layer?.id === 'monitoringLocationsLayer' &&
-              !graphic.isAggregate
-            ) {
-              if (graphics.length === 1) {
-                updateSingleFeature(graphic);
-              } else {
-                updateAttributes(graphic, updates);
-              }
-            }
-          });
-        }
-      });
-      setPopupWatchHandler(handler);
-    }
-  }, [popupWatchHandler, services.status, updateSingleFeature, view]);
+    if (popupWatchHandler) return;
+    const handler = view.popup.watch('features', (graphics) => {
+      updateGraphics(graphics, updates);
+    });
+    setPopupWatchHandler(handler);
+  }, [popupWatchHandler, services.status, updateGraphics, view]);
 
   useEffect(() => {
     return function cleanup() {

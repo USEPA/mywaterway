@@ -197,13 +197,13 @@ function usePeriodOfRecordData(filter, param) {
 
 // Dynamically filter the displayed locations
 function filterStation(station, timeframe) {
+  if (!timeframe) return station;
   const stationRecords = station.stationDataByYear;
   const result = {
     ...station,
     stationTotalMeasurements: 0,
     // TODO: investigate discrepancy between periodOfRecord
     // sample counts and summary counts
-    // stationTotalSamples: 0,
     stationTotalsByGroup: {},
     stationTotalsByLabel: {},
     timeframe: [...timeframe],
@@ -216,7 +216,6 @@ function filterStation(station, timeframe) {
     if (parseInt(year) > timeframe[1]) return result;
     result.stationTotalMeasurements +=
       stationRecords[year].stationTotalMeasurements;
-    // result.stationTotalSamples += stationRecords[year].stationTotalSamples;
     const resultGroups = result.stationTotalsByGroup;
     Object.entries(stationRecords[year].stationTotalsByGroup).forEach(
       ([group, count]) => {
@@ -243,19 +242,12 @@ function filterLocations(groups, timeframe) {
       .filter((groupLabel) => groups[groupLabel].toggled === true);
 
     groups['All'].stations.forEach((station) => {
+      const curStation = filterStation(station, timeframe);
       const hasToggledData = toggledGroups.some((group) => {
-        return station.stationTotalsByLabel[group] > 0;
+        return curStation.stationTotalsByLabel[group] > 0;
       });
-      if (timeframe) {
-        const filteredStation = filterStation(station, timeframe);
-        if (filteredStation.stationTotalMeasurements > 0) {
-          if (hasToggledData) toggledLocations.push(filteredStation);
-          allLocations.push(filteredStation);
-        }
-      } else {
-        if (hasToggledData) toggledLocations.push(station);
-        allLocations.push(station);
-      }
+      if (hasToggledData) toggledLocations.push(curStation);
+      allLocations.push(curStation);
     });
   }
 
@@ -284,6 +276,10 @@ function Monitoring() {
     useState(true);
 
   const [monitoringDisplayed, setMonitoringDisplayed] = useState(true);
+  useEffect(() => {
+    if (!monitoringLocationsLayer) return;
+    monitoringLocationsLayer.visible = monitoringDisplayed;
+  }, [monitoringLocationsLayer, monitoringDisplayed]);
 
   // draw the permitted dischargers on the map
   useEffect(() => {
@@ -615,11 +611,7 @@ function SensorsTab() {
   }
 }
 
-function MonitoringTab({
-  monitoringDisplayed,
-  setMonitoringDisplayed,
-  tabSelected,
-}) {
+function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
   const services = useServicesContext();
 
   const {
@@ -658,6 +650,12 @@ function MonitoringTab({
     usePeriodOfRecordData(huc12, 'huc12');
   // The currently selected date range
   const [yearsRange, setYearsRange] = useState(null);
+  useEffect(() => {
+    if (monitoringGroups) return;
+    // Reset data if the user switches locations
+    resetWorkerData();
+    setYearsRange(null);
+  }, [monitoringGroups, resetWorkerData]);
 
   const [charGroupFilters, setCharGroupFilters] = useState('');
   // create the filter string for download links based on active toggles
@@ -690,14 +688,11 @@ function MonitoringTab({
     [setCharGroupFilters, yearsRange],
   );
 
-  const [displayedMonitoringLocations, setDisplayedMonitoringLocations] =
-    useState([]);
+  const [displayedLocations, setDisplayedLocations] = useState([]);
   // All stations in the current time range
-  const [currentMonitoringLocations, setCurrentMonitoringLocations] = useState(
-    [],
-  );
+  const [currentLocations, setCurrentLocations] = useState([]);
   useEffect(() => {
-    if (!monitoringLocationsLayer) return;
+    if (!monitoringLocationsLayer?.visible) return;
 
     const { toggledLocations, allLocations } = filterLocations(
       monitoringGroups,
@@ -725,17 +720,10 @@ function MonitoringTab({
         "','",
       )}')`;
     }
-    monitoringLocationsLayer.visible = monitoringDisplayed;
 
-    setCurrentMonitoringLocations(allLocations);
-    setDisplayedMonitoringLocations(toggledLocations);
-  }, [
-    monitoringDisplayed,
-    monitoringGroups,
-    monitoringLocationsLayer,
-    updateFeatures,
-    yearsRange,
-  ]);
+    setCurrentLocations(allLocations);
+    setDisplayedLocations(toggledLocations);
+  }, [monitoringGroups, monitoringLocationsLayer, updateFeatures, yearsRange]);
 
   // Add the stations historical data to the `stationDataByYear` property,
   // then initializes the date slider
@@ -781,7 +769,7 @@ function MonitoringTab({
       let newTotalMeasurements = 0;
 
       // update the watershed total measurements and samples counts
-      displayedMonitoringLocations.forEach((station) => {
+      displayedLocations.forEach((station) => {
         newTotalSamples += station.stationTotalSamples;
         newTotalLocations++;
         Object.keys(monitoringGroups)
@@ -798,7 +786,7 @@ function MonitoringTab({
       setTotalDisplayedSamples(newTotalSamples);
       buildFilter(monitoringGroups);
     }
-  }, [buildFilter, displayedMonitoringLocations, monitoringGroups]);
+  }, [buildFilter, displayedLocations, monitoringGroups]);
 
   const handleSliderChange = useCallback(
     (range) => {
@@ -810,7 +798,7 @@ function MonitoringTab({
   const [allToggled, setAllToggled] = useState(true);
   const toggleAll = useCallback(() => {
     const updatedGroups = { ...monitoringGroups };
-    for (const label in monitoringGroups) {
+    for (const label in updatedGroups) {
       updatedGroups[label].toggled = !allToggled;
     }
     setMonitoringDisplayed(!allToggled);
@@ -844,15 +832,6 @@ function MonitoringTab({
     [monitoringGroups, setMonitoringDisplayed, setMonitoringGroups],
   );
 
-  // Reset data if the user switches locations (i.e. monitoringGroups
-  // changes to null)
-  useEffect(() => {
-    if (monitoringGroups) return;
-
-    resetWorkerData();
-    setYearsRange(null);
-  }, [monitoringGroups, resetWorkerData]);
-
   const downloadUrl =
     `${services.data.waterQualityPortal.resultSearch}zip=no&huc=` +
     `${huc12}` +
@@ -864,8 +843,8 @@ function MonitoringTab({
     `&providers=NWIS&providers=STEWARDS&providers=STORET`;
 
   const [sortBy, setSortBy] = useState('locationName');
-  const sortedMonitoringLocations = displayedMonitoringLocations
-    ? displayedMonitoringLocations.sort((a, b) => {
+  const sortedMonitoringLocations = displayedLocations
+    ? displayedLocations.sort((a, b) => {
         if (sortBy === 'stationTotalMeasurements') {
           return b.stationTotalMeasurements - a.stationTotalMeasurements;
         }
@@ -964,7 +943,7 @@ function MonitoringTab({
                     let sampleCount = 0;
                     let measurementCount = 0;
                     let locationCount = 0;
-                    currentMonitoringLocations.forEach((station) => {
+                    currentLocations.forEach((station) => {
                       if (station.stationTotalsByLabel[group.label] > 0) {
                         sampleCount += station.stationTotalSamples;
                         measurementCount +=
