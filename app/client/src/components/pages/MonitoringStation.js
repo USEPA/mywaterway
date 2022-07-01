@@ -3,7 +3,7 @@ import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Viewpoint from '@arcgis/core/Viewpoint';
 import Papa from 'papaparse';
 import WindowSize from '@reach/window-size';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { css } from 'styled-components/macro';
 // components
@@ -16,6 +16,7 @@ import MapVisibilityButton from 'components/shared/MapVisibilityButton';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import NavBar from 'components/shared/NavBar';
 import Page from 'components/shared/Page';
+import ReactTable from 'components/shared/ReactTable';
 import {
   splitLayoutContainerStyles,
   splitLayoutColumnsStyles,
@@ -40,6 +41,16 @@ import { colors, disclaimerStyles } from 'styles';
 /*
  * Styles
  */
+
+const boxSectionStyles = css`
+  padding: 0.4375rem 0.875rem;
+`;
+
+const charcsTableStyles = css`
+  ${boxSectionStyles}
+  height: 60vh;
+  overflow-y: scroll;
+`;
 
 const checkboxCellStyles = css`
   padding-right: 0 !important;
@@ -94,6 +105,11 @@ const downloadLinksStyles = css`
   }
 `;
 
+const flexboxSectionStyles = css`
+  ${boxSectionStyles}
+  display: flex;
+`;
+
 const iconStyles = css`
   margin-right: 5px;
 `;
@@ -138,11 +154,6 @@ const mapContainerStyles = css`
   display: flex;
   height: 100%;
   position: relative;
-`;
-
-const boxSectionStyles = css`
-  display: flex;
-  padding: 0.4375rem 0.875rem;
 `;
 
 const modifiedDisclaimerStyles = css`
@@ -354,6 +365,13 @@ function fetchParseCsv(url) {
   });
 }
 
+function getLabel(charType, labelMappings) {
+  for (let mapping of labelMappings) {
+    if (mapping.groupNames.includes(charType)) return mapping.label;
+  }
+  return 'Other';
+}
+
 function isEmpty(obj) {
   for (var _x in obj) {
     return false;
@@ -433,38 +451,41 @@ const sectionRowInline = (label, value, dataStatus = 'success') => {
 function useCharacteristics(provider, orgId, siteId) {
   const services = useServicesContext();
 
-  const [chars, setChars] = useState(null);
-  const [status, setStatus] = useState('fetching');
+  // charcs => characteristics
+  const [charcs, setCharcs] = useState({});
+  const [status, setStatus] = useState('idle');
 
   const structureRecords = useCallback(
     (records) => {
-      const recordsByChar = {};
+      const recordsByCharc = {};
       records.forEach((record) => {
-        if (!recordsByChar[record.CharacteristicName]) {
-          recordsByChar[record.CharacteristicName] = {};
-          recordsByChar[record.CharacteristicName][record.YearSummarized] = [
-            record,
-          ];
-        } else if (
-          !recordsByChar[record.CharacteristicName][record.YearSummarized]
-        ) {
-          recordsByChar[record.CharacteristicName][record.YearSummarized] = [
-            record,
-          ];
-        } else {
-          recordsByChar[record.CharacteristicName][record.YearSummarized].push(
-            record,
-          );
+        if (!recordsByCharc[record.CharacteristicName]) {
+          recordsByCharc[record.CharacteristicName] = {
+            countByYear: {},
+            group: getLabel(
+              record.CharacteristicType,
+              characteristicGroupMappings,
+            ),
+            type: record.CharacteristicType,
+            totalCount: 0,
+          };
         }
+        const curCharc = recordsByCharc[record.CharacteristicName];
+        curCharc.totalCount += record.ResultCount;
+        if (!curCharc.countByYear[record.YearSummarized]) {
+          curCharc.countByYear[record.YearSummarized] = 0;
+        }
+        curCharc.countByYear[record.YearSummarized] += record.ResultCount;
       });
-      setChars(recordsByChar);
+      setCharcs(recordsByCharc);
       setStatus('success');
     },
-    [setChars, setStatus],
+    [setCharcs, setStatus],
   );
 
   useEffect(() => {
-    if (chars || services.status !== 'success') return;
+    if (status !== 'idle' || services.status !== 'success') return;
+    setStatus('fetching');
     const url =
       `${services.data.waterQualityPortal.monitoringLocation}search?` +
       `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all` +
@@ -475,9 +496,9 @@ function useCharacteristics(provider, orgId, siteId) {
       setStatus('failure');
       console.error('Papa Parse error');
     }
-  }, [chars, orgId, provider, services, siteId, structureRecords]);
+  }, [orgId, provider, services, siteId, status, structureRecords]);
 
-  return [chars, status];
+  return [charcs, status];
 }
 
 function useStationDetails(provider, orgId, siteId) {
@@ -504,6 +525,89 @@ function useStationDetails(provider, orgId, siteId) {
 /*
  * Components
  */
+
+function CharacteristicsTable({ charcs, charcsStatus }) {
+  const [selected, setSelected] = useState(null);
+  const tableData = useMemo(() => {
+    return Object.keys(charcs)
+      .map((charc) => {
+        const selector = (
+          <input
+            checked={selected === charc}
+            onChange={(e) => setSelected(e.target.value)}
+            style={{ verticalAlign: 'middle' }}
+            type="radio"
+            value={charc}
+          />
+        );
+        return {
+          count: charcs[charc].totalCount,
+          group: charcs[charc].group,
+          select: selector,
+          name: charc,
+          type: charcs[charc].type,
+        };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [charcs, selected]);
+
+  return (
+    <div css={boxStyles}>
+      <h2 css={infoBoxHeadingStyles}>Characteristic Names</h2>
+      <div css={charcsTableStyles}>
+        {charcsStatus === 'fetching' && <LoadingSpinner />}
+        {charcsStatus === 'success' &&
+          (isEmpty(charcs) ? (
+            <p>No records found for this location.</p>
+          ) : (
+            <ReactTable
+              data={tableData}
+              placeholder="Filter..."
+              striped={false}
+              getColumns={(tableWidth) => {
+                const columnWidth = tableWidth / 3 - 7;
+                const halfColumnWidth = tableWidth / 6 - 7;
+
+                return [
+                  {
+                    Header: '',
+                    accessor: 'select',
+                    minWidth: 24,
+                    width: 24,
+                    filterable: false,
+                  },
+                  {
+                    Header: 'Name',
+                    accessor: 'name',
+                    width: columnWidth,
+                    filterable: true,
+                  },
+                  {
+                    Header: 'Type',
+                    accessor: 'type',
+                    width: columnWidth,
+                    filterable: true,
+                  },
+                  {
+                    Header: 'Group',
+                    accessor: 'group',
+                    width: halfColumnWidth,
+                    filterable: true,
+                  },
+                  {
+                    Header: 'Count',
+                    accessor: 'count',
+                    width: halfColumnWidth,
+                    filterable: true,
+                  },
+                ];
+              }}
+            />
+          ))}
+      </div>
+    </div>
+  );
+}
 
 function DownloadSection({ station, stationStatus }) {
   const [range, setRange] = useState('1');
@@ -568,14 +672,14 @@ function DownloadSection({ station, stationStatus }) {
 
   return (
     <div css={boxStyles}>
-      <h2 css={boxHeadingStyles}>Download Station Data</h2>
+      <h2 css={boxHeadingStyles}>Station Data</h2>
       {stationStatus === 'fetching' ? (
         <LoadingSpinner />
       ) : Object.keys(station.groupCounts).length === 0 ? (
         <p>No data available for this monitoring location.</p>
       ) : (
         <>
-          <div css={boxSectionStyles}>
+          <div css={flexboxSectionStyles}>
             <fieldset css={radioStyles}>
               {ranges.map((n) => (
                 <p key={n}>
@@ -821,6 +925,12 @@ function MonitoringStation({ fullscreen }) {
                     siteId={siteId}
                   />
                   {width < 960 ? mapNarrow(height) : mapWide}
+                  <CharacteristicsTable
+                    charcs={characteristics}
+                    charcsStatus={characteristicsStatus}
+                  />
+                </div>
+                <div css={splitLayoutColumnStyles}>
                   <DownloadSection
                     station={station}
                     stationStatus={stationStatus}
