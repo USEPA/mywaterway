@@ -113,6 +113,7 @@ const sliderStyles = css`
   .rc-tooltip-arrow {
     display: none !important;
   }
+  z-index: 0;
 `;
 
 const switchContainerStyles = css`
@@ -368,7 +369,6 @@ function Monitoring() {
 
   // Added to avoid the slider tooltip appearing
   // on the Current Water Conditions tab
-  const [tabIndex, setTabIndex] = useState(0);
 
   return (
     <div css={containerStyles}>
@@ -448,7 +448,7 @@ function Monitoring() {
       </div>
 
       <div css={tabsStyles}>
-        <Tabs onChange={(index) => setTabIndex(index)}>
+        <Tabs>
           <TabList>
             <Tab>Current Water Conditions</Tab>
             <Tab>Past Water Conditions</Tab>
@@ -466,7 +466,6 @@ function Monitoring() {
               <SensorsTab
                 usgsStreamgagesDisplayed={usgsStreamgagesDisplayed}
                 setUsgsStreamgagesDisplayed={setUsgsStreamgagesDisplayed}
-                tabSelected={tabIndex === 0}
               />
             </TabPanel>
             <TabPanel>
@@ -482,7 +481,6 @@ function Monitoring() {
               <MonitoringTab
                 monitoringDisplayed={monitoringDisplayed}
                 setMonitoringDisplayed={setMonitoringDisplayed}
-                tabSelected={tabIndex === 1}
               />
             </TabPanel>
           </TabPanels>
@@ -607,11 +605,7 @@ function SensorsTab() {
   }
 }
 
-function MonitoringTab({
-  monitoringDisplayed,
-  setMonitoringDisplayed,
-  tabSelected,
-}) {
+function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   const services = useServicesContext();
 
   const {
@@ -916,7 +910,6 @@ function MonitoringTab({
                       disabled={Object.keys(annualData).length === 0}
                       range={yearsRange}
                       onChange={handleSliderChange}
-                      tooltipVisible={tabSelected}
                     />
                   </div>
                   <span>{maxYear}</span>
@@ -1168,14 +1161,7 @@ function MonitoringTab({
 }
 
 // Slider component that utilizes annual station data
-function DateSlider({
-  bounds,
-  containerRef,
-  disabled,
-  range,
-  onChange,
-  tooltipVisible,
-}) {
+function DateSlider({ bounds, containerRef, disabled, range, onChange }) {
   const [curRange, setCurRange] = useState(range);
 
   const tooltipInnerStyles = {
@@ -1190,7 +1176,7 @@ function DateSlider({
     align: { offset: [0, 2] },
     getTooltipContainer: () => containerRef.current,
     overlayInnerStyle: tooltipInnerStyles,
-    visible: tooltipVisible,
+    visible: true,
   };
 
   return (
