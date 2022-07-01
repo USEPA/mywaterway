@@ -1,12 +1,6 @@
 // @flow
 
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 import { useNavigate } from 'react-router-dom';
@@ -239,29 +233,32 @@ function filterStation(station, timeframe) {
   return result;
 }
 
-function filterLocations(groups, timeframe, sliderEnabled) {
+function filterLocations(groups, timeframe) {
   let toggledLocations = [];
   let allLocations = [];
 
-  const toggledGroups = Object.keys(groups)
-    .filter((groupLabel) => groupLabel !== 'All')
-    .filter((groupLabel) => groups[groupLabel].toggled === true);
+  if (groups) {
+    const toggledGroups = Object.keys(groups)
+      .filter((groupLabel) => groupLabel !== 'All')
+      .filter((groupLabel) => groups[groupLabel].toggled === true);
 
-  groups['All'].stations.forEach((station) => {
-    const hasToggledData = toggledGroups.some((group) => {
-      return station.stationTotalsByLabel[group] > 0;
-    });
-    if (sliderEnabled) {
-      const filteredStation = filterStation(station, timeframe);
-      if (filteredStation.stationTotalMeasurements > 0) {
-        if (hasToggledData) toggledLocations.push(filteredStation);
-        allLocations.push(filteredStation);
+    groups['All'].stations.forEach((station) => {
+      const hasToggledData = toggledGroups.some((group) => {
+        return station.stationTotalsByLabel[group] > 0;
+      });
+      if (timeframe) {
+        const filteredStation = filterStation(station, timeframe);
+        if (filteredStation.stationTotalMeasurements > 0) {
+          if (hasToggledData) toggledLocations.push(filteredStation);
+          allLocations.push(filteredStation);
+        }
+      } else {
+        if (hasToggledData) toggledLocations.push(station);
+        allLocations.push(station);
       }
-    } else {
-      if (hasToggledData) toggledLocations.push(station);
-      allLocations.push(station);
-    }
-  });
+    });
+  }
+
   return { toggledLocations, allLocations };
 }
 
@@ -305,7 +302,7 @@ function Monitoring() {
 
   // Syncs the toggles with the visible layers on the map. Mainly
   // used for when the user toggles layers in full screen mode and then
-  // exist full screen.
+  // exits full screen.
   useEffect(() => {
     if (typeof visibleLayers.usgsStreamgagesLayer === 'boolean') {
       setUsgsStreamgagesDisplayed(visibleLayers.usgsStreamgagesLayer);
@@ -503,7 +500,7 @@ function Monitoring() {
   );
 }
 
-function SensorsTab({ usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed }) {
+function SensorsTab() {
   const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
     useFetchedDataState();
 
@@ -662,26 +659,7 @@ function MonitoringTab({
   // The currently selected date range
   const [yearsRange, setYearsRange] = useState(null);
 
-  const [displayedMonitoringLocations, setDisplayedMonitoringLocations] =
-    useState([]);
-  // All stations in the current time range
-  const [currentMonitoringLocations, setCurrentMonitoringLocations] = useState(
-    [],
-  );
-
-  const [allToggled, setAllToggled] = useState(true);
-
   const [charGroupFilters, setCharGroupFilters] = useState('');
-
-  const [totalDisplayedLocations, setTotalDisplayedLocations] = useState(0);
-
-  const [totalDisplayedMeasurements, setTotalDisplayedMeasurements] =
-    useState(0);
-
-  const [totalDisplayedSamples, setTotalDisplayedSamples] = useState(0);
-
-  const [sortBy, setSortBy] = useState('locationName');
-
   // create the filter string for download links based on active toggles
   const buildFilter = useCallback(
     (groups) => {
@@ -712,51 +690,52 @@ function MonitoringTab({
     [setCharGroupFilters, yearsRange],
   );
 
-  const drawMap = useCallback(
-    (groups, timeframe) => {
-      if (!monitoringLocationsLayer) return;
-
-      const sliderEnabled = yearsRange !== null;
-      const { toggledLocations, allLocations } = filterLocations(
-        groups,
-        timeframe,
-        sliderEnabled,
-      );
-
-      // generate a list of location ids
-      const locationIds = [];
-      toggledLocations.forEach((station) => {
-        locationIds.push(station.uniqueId);
-      });
-
-      // update the filters on the layer
-      if (toggledLocations.length === groups['All'].stations.length) {
-        monitoringLocationsLayer.definitionExpression = '';
-      } else if (locationIds.length === 0) {
-        monitoringLocationsLayer.definitionExpression = '1=0';
-      } else {
-        monitoringLocationsLayer.definitionExpression = `uniqueId IN ('${locationIds.join(
-          "','",
-        )}')`;
-      }
-
-      // Adds filtered data that's relevent to map popups
-      // to a context variable, so it can be injected into
-      // the graphic before it reaches the WaterbodyInfo component
-      if (yearsRange) {
-        updateFeatures(toggledLocations);
-      }
-
-      setCurrentMonitoringLocations(allLocations);
-      setDisplayedMonitoringLocations(toggledLocations);
-    },
-    [monitoringLocationsLayer, updateFeatures, yearsRange],
+  const [displayedMonitoringLocations, setDisplayedMonitoringLocations] =
+    useState([]);
+  // All stations in the current time range
+  const [currentMonitoringLocations, setCurrentMonitoringLocations] = useState(
+    [],
   );
-
   useEffect(() => {
-    if (!monitoringGroups || !yearsRange) return;
-    drawMap(monitoringGroups, yearsRange);
-  }, [drawMap, monitoringGroups, yearsRange]);
+    if (!monitoringLocationsLayer) return;
+
+    const { toggledLocations, allLocations } = filterLocations(
+      monitoringGroups,
+      yearsRange,
+    );
+
+    // Adds filtered data that's relevent to map popups
+    if (yearsRange) {
+      updateFeatures(toggledLocations);
+    }
+
+    // generate a list of location ids
+    const locationIds = [];
+    toggledLocations.forEach((station) => {
+      locationIds.push(station.uniqueId);
+    });
+
+    // update the filters on the layer
+    if (toggledLocations.length === monitoringGroups?.['All'].stations.length) {
+      monitoringLocationsLayer.definitionExpression = '';
+    } else if (locationIds.length === 0) {
+      monitoringLocationsLayer.definitionExpression = '1=0';
+    } else {
+      monitoringLocationsLayer.definitionExpression = `uniqueId IN ('${locationIds.join(
+        "','",
+      )}')`;
+    }
+    monitoringLocationsLayer.visible = monitoringDisplayed;
+
+    setCurrentMonitoringLocations(allLocations);
+    setDisplayedMonitoringLocations(toggledLocations);
+  }, [
+    monitoringDisplayed,
+    monitoringGroups,
+    monitoringLocationsLayer,
+    updateFeatures,
+    yearsRange,
+  ]);
 
   // Add the stations historical data to the `stationDataByYear` property,
   // then initializes the date slider
@@ -784,22 +763,18 @@ function MonitoringTab({
     setYearsRange,
   ]);
 
+  const [totalDisplayedLocations, setTotalDisplayedLocations] = useState(0);
+  const [totalDisplayedMeasurements, setTotalDisplayedMeasurements] =
+    useState(0);
+  const [totalDisplayedSamples, setTotalDisplayedSamples] = useState(0);
   useEffect(() => {
     if (Object.keys(annualData).length === 0) return;
     if (yearsRange) return;
     addAnnualData();
   }, [addAnnualData, annualData, yearsRange]);
 
-  const handleSliderChange = useCallback(
-    (range) => {
-      setYearsRange([...range]);
-    },
-    [setYearsRange],
-  );
-
-  // Updates total counts after `drawMap` filters displayed locations
+  // Updates total counts after displayed locations are filtered
   useEffect(() => {
-    // if (monitoringGroups && displayedMonitoringLocations.length) {
     if (monitoringGroups) {
       let newTotalLocations = 0;
       let newTotalSamples = 0;
@@ -825,13 +800,22 @@ function MonitoringTab({
     }
   }, [buildFilter, displayedMonitoringLocations, monitoringGroups]);
 
+  const handleSliderChange = useCallback(
+    (range) => {
+      setYearsRange([...range]);
+    },
+    [setYearsRange],
+  );
+
+  const [allToggled, setAllToggled] = useState(true);
   const toggleAll = useCallback(() => {
+    const updatedGroups = { ...monitoringGroups };
     for (const label in monitoringGroups) {
-      monitoringGroups[label].toggled = !allToggled;
+      updatedGroups[label].toggled = !allToggled;
     }
     setMonitoringDisplayed(!allToggled);
     setAllToggled((prev) => !prev);
-    setMonitoringGroups({ ...monitoringGroups });
+    setMonitoringGroups(updatedGroups);
   }, [
     allToggled,
     monitoringGroups,
@@ -841,69 +825,33 @@ function MonitoringTab({
 
   const toggleRow = useCallback(
     (groupLabel) => {
-      monitoringGroups[groupLabel].toggled =
-        !monitoringGroups[groupLabel].toggled;
-      setMonitoringGroups({ ...monitoringGroups });
+      const updatedGroups = { ...monitoringGroups };
+      updatedGroups[groupLabel].toggled = !updatedGroups[groupLabel].toggled;
+      setMonitoringGroups(updatedGroups);
 
       let allOthersToggled = true;
-      for (let key in monitoringGroups) {
-        if (!monitoringGroups[key].toggled) allOthersToggled = false;
+      for (let key in updatedGroups) {
+        if (!updatedGroups[key].toggled) allOthersToggled = false;
       }
       setAllToggled(allOthersToggled);
 
       // only check the toggles that are on the screen (i.e., ignore Bacterial, Sediments, etc.)
-      const someToggled = Object.keys(monitoringGroups)
+      const someToggled = Object.keys(updatedGroups)
         .filter((label) => label !== 'All')
-        .some((key) => monitoringGroups[key].toggled);
+        .some((key) => updatedGroups[key].toggled);
       setMonitoringDisplayed(someToggled);
     },
     [monitoringGroups, setMonitoringDisplayed, setMonitoringGroups],
   );
 
-  useEffect(() => {
-    if (!monitoringLocationsLayer) return;
-    monitoringLocationsLayer.visible = monitoringDisplayed;
-  }, [monitoringLocationsLayer, monitoringDisplayed]);
-
-  const [dataInitialized, setDataInitialized] = useState(false);
-
-  // Reset dataInitialized if the user switches locations (i.e. monitoringGroups
+  // Reset data if the user switches locations (i.e. monitoringGroups
   // changes to null)
   useEffect(() => {
     if (monitoringGroups) return;
 
-    setDataInitialized(false);
     resetWorkerData();
     setYearsRange(null);
   }, [monitoringGroups, resetWorkerData]);
-
-  // Renders the monitoring locations on the map
-  // and displays them in the Accordion list and toggles
-  useEffect(() => {
-    if (!monitoringGroups) return;
-    if (!dataInitialized) {
-      setDataInitialized(true);
-    }
-  }, [dataInitialized, monitoringGroups]);
-
-  useEffect(() => {
-    // update total measurements and samples counts
-    // after `monitoringGroups` is initialized
-    if (dataInitialized) return;
-    let totalLocations = 0;
-    let totalMeasurements = 0;
-    let totalSamples = 0;
-    if (monitoringGroups) {
-      monitoringGroups['All'].stations.forEach((station) => {
-        totalLocations++;
-        totalMeasurements += station.stationTotalMeasurements;
-        totalSamples += station.stationTotalSamples;
-      });
-      setTotalDisplayedLocations(totalLocations);
-      setTotalDisplayedMeasurements(totalMeasurements);
-      setTotalDisplayedSamples(totalSamples);
-    }
-  }, [dataInitialized, monitoringGroups]);
 
   const downloadUrl =
     `${services.data.waterQualityPortal.resultSearch}zip=no&huc=` +
@@ -915,6 +863,7 @@ function MonitoringTab({
     `${charGroupFilters}&mimeType=xlsx&dataProfile=resultPhysChem` +
     `&providers=NWIS&providers=STEWARDS&providers=STORET`;
 
+  const [sortBy, setSortBy] = useState('locationName');
   const sortedMonitoringLocations = displayedMonitoringLocations
     ? displayedMonitoringLocations.sort((a, b) => {
         if (sortBy === 'stationTotalMeasurements') {
