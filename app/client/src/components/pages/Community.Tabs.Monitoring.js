@@ -625,9 +625,9 @@ function MonitoringTab({ setMonitoringDisplayed, tabSelected }) {
   } = useContext(LocationSearchContext);
 
   const updateFeatures = useCallback(
-    (displayedLocations) => {
+    (locations) => {
       const stationUpdates = {};
-      displayedLocations.forEach((location) => {
+      locations.forEach((location) => {
         stationUpdates[location.uniqueId] = {
           stationTotalMeasurements: location.stationTotalMeasurements,
           stationTotalsByGroup: JSON.stringify(location.stationTotalsByGroup),
