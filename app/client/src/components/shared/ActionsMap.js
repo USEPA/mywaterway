@@ -175,13 +175,16 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
                 planSummarySymbol = new SimpleLineSymbol({
                   color,
                   style: 'solid',
-                  width: '2',
+                  width: 3,
                 });
               }
               if (type === 'polygon') {
                 planSummarySymbol = new SimpleFillSymbol({
                   color,
                   style: 'solid',
+                  outline: {
+                    width: 0,
+                  },
                 });
               }
 
