@@ -1,96 +1,104 @@
 // @flow
 
-import React, { useEffect, useRef, useState } from 'react';
-import {
-  AutoSizer,
-  CellMeasurer,
-  CellMeasurerCache,
-  List,
-  WindowScroller,
-} from 'react-virtualized';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { useWindowSize } from '@reach/window-size';
+import { VariableSizeList } from 'react-window';
+import throttle from 'lodash/throttle';
 // utils
 import { useOnScreen } from 'utils/hooks';
+
+type RowRendererProps = {
+  index: number,
+  width: number,
+  listRef: React.MutableRefObject<undefined>,
+  setSize: Function,
+  renderer: Function,
+};
+
+function RowRenderer({
+  index,
+  width,
+  listRef,
+  setSize,
+  renderer,
+}: RowRendererProps) {
+  const rowRef = useRef();
+
+  // keep track of the height of the rows to autosize rows
+  useEffect(() => {
+    if (!rowRef?.current) return;
+
+    setSize(index, rowRef.current.getBoundingClientRect().height, listRef);
+  }, [setSize, index, width, listRef]);
+
+  return <div ref={rowRef}>{renderer({ index })}</div>;
+}
 
 type Props = {
   items: Array<Object>,
   renderer: Function,
-  allExpanded?: boolean,
-  displayedTypes?: Object,
-  expandedRowsSetter?: Function,
 };
 
-function VirtualizedListInner({
-  items,
-  renderer,
-  allExpanded,
-  displayedTypes,
-  expandedRowsSetter,
-}: Props) {
-  const [cache] = useState(
-    new CellMeasurerCache({
-      defaultHeight: 50,
-      fixedWidth: true,
-    }),
-  );
-  const windowScrollRef = useRef(null);
-  const listRef = useRef(null);
+function VirtualizedListInner({ items, renderer }: Props) {
+  const innerRef = useRef();
+  const outerRef = useRef();
+  const sizeMap = useRef({});
+  const setSize = useCallback((index: number, size: number, listRef: any) => {
+    sizeMap.current = { ...sizeMap.current, [index]: size };
+    listRef.current.resetAfterIndex(index);
+  }, []);
+  const getSize = (index: number) => sizeMap.current[index] || 150;
+  const { width } = useWindowSize();
 
-  // Resizes the rows (accordion items) of the react-virtualized list.
-  // This is done anytime an accordion item is expanded/collapsed
+  // make the virtualized list use the window's scroll bar
   useEffect(() => {
-    cache.clearAll();
-    listRef.current?.recomputeRowHeights();
-    if (expandedRowsSetter) expandedRowsSetter([]);
-  }, [allExpanded, cache, expandedRowsSetter, displayedTypes]);
+    const throttleTime = 10;
+    const handleWindowScroll = throttle(() => {
+      const { offsetTop = 0 } = outerRef.current || {};
 
-  function rowRenderer({ index, isScrolling, key, parent, style }) {
-    function resizeCell() {
-      if (!listRef || !listRef.current) return;
+      const scrollPosition =
+        window['pageYOffset'] ||
+        document.documentElement['scrollTop'] ||
+        document.body['scrollTop'] ||
+        0;
 
-      // clear the row height for the accordion item being expanded/collapsed
-      cache.clear(index);
-      listRef.current.recomputeRowHeights(index);
-    }
+      const scrollTop = scrollPosition - offsetTop;
+      innerRef.current && innerRef.current.scrollTo(scrollTop);
+    }, throttleTime);
 
-    return (
-      <CellMeasurer
-        cache={cache}
-        columnIndex={0}
-        rowCount={items.length}
-        parent={parent}
-        key={key}
-        rowIndex={index}
-      >
-        <div style={style} onClick={resizeCell}>
-          {renderer({ index, resizeCell, allExpanded })}
-        </div>
-      </CellMeasurer>
-    );
-  }
+    window.addEventListener('scroll', handleWindowScroll);
+    return () => {
+      handleWindowScroll.cancel();
+      window.removeEventListener('scroll', handleWindowScroll);
+    };
+  }, []);
 
   return (
-    <WindowScroller ref={windowScrollRef}>
-      {({ height, isScrolling, onChildScroll, scrollTop }) => (
-        <AutoSizer disableHeight>
-          {({ width }) => (
-            <List
-              ref={listRef}
-              autoHeight
-              deferredMeasurementCache={cache}
-              height={height}
-              width={width}
-              scrollTop={scrollTop}
-              isScrolling={isScrolling}
-              onScroll={onChildScroll}
-              rowCount={items.length}
-              rowHeight={cache.rowHeight}
-              rowRenderer={rowRenderer}
-              overscanRowCount={10}
-            />
-          )}
-        </AutoSizer>
+    <VariableSizeList
+      height={window.innerHeight}
+      itemCount={items.length}
+      itemSize={getSize}
+      width="100%"
+      ref={innerRef}
+      outerRef={outerRef}
+      style={{
+        width: '100%',
+        height: '100%',
+        display: 'inline-block',
+      }}
+    >
+      {({ index, style }) => (
+        <div style={{ ...style, overflowX: 'hidden' }}>
+          <RowRenderer
+            listRef={innerRef}
+            index={index}
+            setSize={setSize}
+            width={width}
+            renderer={renderer}
+          />
+        </div>
       )}
-    </WindowScroller>
+    </VariableSizeList>
   );
 }
 
@@ -100,27 +108,13 @@ function VirtualizedListInner({
 // for an issue where the list would not display anything
 // or jump around when the list is not immediatly visible
 // on the dom (i.e., the list is on the second tab).
-function VirtualizedList({
-  items,
-  renderer,
-  allExpanded,
-  displayedTypes,
-  expandedRowsSetter,
-}: Props) {
+function VirtualizedList({ items, renderer }: Props) {
   const ref = useRef();
   const isVisible = useOnScreen(ref);
 
   return (
     <div ref={ref}>
-      {isVisible && (
-        <VirtualizedListInner
-          items={items}
-          renderer={renderer}
-          allExpanded={allExpanded}
-          expandedRowsSetter={expandedRowsSetter}
-          displayedTypes={displayedTypes}
-        />
-      )}
+      {isVisible && <VirtualizedListInner items={items} renderer={renderer} />}
     </div>
   );
 }

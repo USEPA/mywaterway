@@ -259,9 +259,6 @@ function Monitoring() {
   const navigate = useNavigate();
   const { usgsStreamgages } = useFetchedDataState();
 
-  // draw the waterbody on the map
-  useWaterbodyOnMap();
-
   const {
     cipSummary,
     monitoringLocations,
@@ -493,6 +490,9 @@ function Monitoring() {
 function SensorsTab() {
   const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
     useFetchedDataState();
+
+  // draw the waterbody on the map
+  useWaterbodyOnMap();
 
   const services = useServicesContext();
 
@@ -1071,6 +1071,15 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                 )
               }
               onSortChange={({ value }) => setSortBy(value)}
+              onExpandCollapse={(allExpanded) => {
+                if (allExpanded) {
+                  setExpandedRows([
+                    ...Array(sortedMonitoringLocations.length).keys(),
+                  ]);
+                } else {
+                  setExpandedRows([]);
+                }
+              }}
               sortOptions={[
                 {
                   label: 'Monitoring Location Name',
@@ -1092,8 +1101,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
             >
               <VirtualizedList
                 items={sortedMonitoringLocations}
-                expandedRowsSetter={setExpandedRows}
-                renderer={({ index, resizeCell, allExpanded }) => {
+                renderer={({ index }) => {
                   const item = sortedMonitoringLocations[index];
 
                   const feature = {
@@ -1124,11 +1132,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                       }
                       feature={feature}
                       idKey="siteId"
-                      allExpanded={allExpanded || expandedRows.includes(index)}
+                      allExpanded={expandedRows.includes(index)}
                       onChange={() => {
-                        // ensure the cell is sized appropriately
-                        resizeCell();
-
                         // add the item to the expandedRows array so the accordion item
                         // will stay expanded when the user scrolls or highlights map items
                         if (expandedRows.includes(index)) {

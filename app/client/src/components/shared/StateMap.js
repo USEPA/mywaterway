@@ -1,6 +1,12 @@
 // @flow
 
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import type { Node } from 'react';
 import { css } from 'styled-components/macro';
 import StickyBox from 'react-sticky-box';
@@ -195,11 +201,21 @@ function StateMap({
     navigate,
   ]);
 
-  // Function for resetting the LocationSearch context when the map is removed
+  // Keep track of when the component is unmounting for use elsewhere
+  const unmounting = useRef(false);
   useEffect(() => {
     return function cleanup() {
-      fetchedDataDispatch({ type: 'RESET_FETCHED_DATA' });
-      resetData();
+      unmounting.current = true;
+    };
+  }, []);
+
+  // Resets the LocationSearch context when the map is removed
+  useEffect(() => {
+    return function cleanup() {
+      if (unmounting.current) {
+        fetchedDataDispatch({ type: 'RESET_FETCHED_DATA' });
+        resetData();
+      }
     };
   }, [fetchedDataDispatch, resetData]);
 

@@ -1078,7 +1078,7 @@ function useSharedLayers() {
         outline: {
           style: 'solid',
           color: [0, 0, 0, 1],
-          width: 1,
+          width: 0.75,
         },
       },
     };
