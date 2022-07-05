@@ -1159,7 +1159,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     // turn off clustering if there are 20 or less stations
     monitoringLocationsLayer.featureReduction =
-      graphics.length > 20 ? monitoringClusterSettings : undefined;
+      graphics.length > 20 ? monitoringClusterSettings : null;
 
     monitoringLocationsLayer.queryFeatures().then((featureSet) => {
       monitoringLocationsLayer.applyEdits({
