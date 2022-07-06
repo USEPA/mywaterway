@@ -89,10 +89,9 @@ function createQueryString(array) {
 
 const mapPadding = 20;
 
-// export const monitoringClusterSettings = {
-const monitoringClusterSettings = {
+export const monitoringClusterSettings = {
   type: 'cluster',
-  clusterRadius: '80px',
+  clusterRadius: '100px',
   clusterMinSize: '24px',
   clusterMaxSize: '60px',
   popupEnabled: true,

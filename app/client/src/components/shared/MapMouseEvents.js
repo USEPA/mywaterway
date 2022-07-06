@@ -11,7 +11,7 @@ import { MapHighlightContext } from 'contexts/MapHighlight';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // config
-// import { monitoringClusterSettings } from 'components/shared/LocationMap';
+import { monitoringClusterSettings } from 'components/shared/LocationMap';
 import {
   getPopupContent,
   getPopupTitle,
@@ -107,18 +107,15 @@ function MapMouseEvents({ view }: Props) {
               graphic.layer.id === 'monitoringLocationsLayer' &&
               graphic.isAggregate
             ) {
-              if (view.zoom >= 20) {
-                // graphics likely overlap, so show cluster popup
-                setSelectedGraphic(graphic);
-              } else {
-                // zoom in towards the cluster
-                getClusterExtent(graphic, view, monitoringLocationsLayer).then(
-                  (extent) => {
-                    // monitoringLocationsLayer.featureReduction = null;
-                    view.goTo(extent);
-                  },
-                );
-              }
+              // zoom in towards the cluster
+              getClusterExtent(graphic, view, monitoringLocationsLayer).then(
+                (extent) => {
+                  if (graphic.attributes.cluster_count <= 20) {
+                    monitoringLocationsLayer.featureReduction = null;
+                  }
+                  view.goTo(extent);
+                },
+              );
             } else {
               setSelectedGraphic(graphic);
             }
@@ -362,7 +359,7 @@ function MapMouseEvents({ view }: Props) {
     };
   }, [popupWatchHandler]);
 
-  /* const [zoomWatchHandler, setZoomWatchHandler] = useState(null);
+  const [zoomWatchHandler, setZoomWatchHandler] = useState(null);
   useEffect(() => {
     if (!view || !monitoringLocationsLayer) return;
     if (zoomWatchHandler) return;
@@ -378,7 +375,7 @@ function MapMouseEvents({ view }: Props) {
     return function cleanup() {
       zoomWatchHandler?.remove();
     };
-  }, [zoomWatchHandler]); */
+  }, [zoomWatchHandler]);
 
   function getGraphicFromResponse(
     res: Object,
