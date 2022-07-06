@@ -71,6 +71,7 @@ type AccordionListProps = {
   expandDisabled: boolean,
   sortOptions: { value: string, label: string }[],
   onSortChange: Function,
+  onExpandCollapse: Function,
 };
 
 function AccordionList({
@@ -80,6 +81,7 @@ function AccordionList({
   expandDisabled = false,
   sortOptions = [],
   onSortChange = () => {},
+  onExpandCollapse = () => {},
 }: AccordionListProps) {
   const [sortBy, setSortBy] = useState(
     sortOptions.length > 0 ? sortOptions[0] : null,
@@ -122,7 +124,11 @@ function AccordionList({
         {!expandDisabled && (
           <button
             css={expandButtonStyles}
-            onClick={(ev) => setAllExpanded(!allExpanded)}
+            onClick={(_ev) => {
+              const newAllExpanded = !allExpanded;
+              setAllExpanded(newAllExpanded);
+              onExpandCollapse(newAllExpanded);
+            }}
           >
             {allExpanded ? 'Collapse All' : 'Expand All'}&nbsp;&nbsp;
             <i className={iconClassName} aria-hidden="true" />
@@ -202,7 +208,6 @@ const colorMap = {
 
 type AccordionItemProps = {
   children: Node,
-  className: string,
   icon: ?Object,
   title: Node,
   subTitle: ?Node,
@@ -210,14 +215,12 @@ type AccordionItemProps = {
   onAddHighlight: () => void,
   onRemoveHighlight: () => void,
   onChange: (isOpen: boolean) => void,
-  idKey: ?string,
   allExpanded: boolean,
   highlightContent: ?boolean,
 };
 
 function AccordionItem({
   children,
-  className = '',
   icon,
   title,
   subTitle,
@@ -225,7 +228,6 @@ function AccordionItem({
   onAddHighlight = () => {},
   onRemoveHighlight = () => {},
   onChange = () => {},
-  idKey,
   allExpanded,
   highlightContent = true,
 }: AccordionItemProps) {
@@ -253,7 +255,7 @@ function AccordionItem({
   return (
     <div
       css={accordionItemContainerStyles}
-      className={`hmw-accordion ${className}`}
+      className={`hmw-accordion`}
       onMouseEnter={(ev) => addHighlight()}
       onMouseLeave={(ev) => removeHighlight()}
       onFocus={(ev) => addHighlight()}

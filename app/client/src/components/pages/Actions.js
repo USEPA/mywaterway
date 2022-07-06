@@ -1,12 +1,6 @@
 // @flow
 
-import React, {
-  Fragment,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+import React, { Fragment, useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { css } from 'styled-components/macro';
 import WindowSize from '@reach/window-size';
@@ -40,10 +34,7 @@ import {
 } from 'components/shared/Box';
 // contexts
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
-import {
-  MapHighlightContext,
-  MapHighlightProvider,
-} from 'contexts/MapHighlight';
+import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
@@ -268,9 +259,6 @@ function Actions({ fullscreen }: Props) {
     status: 'fetching',
     layer: null,
   });
-
-  const { selectedGraphic, highlightedGraphic } =
-    useContext(MapHighlightContext);
 
   // fetch action data from the attains 'actions' web service
   const [organizationName, setOrganizationName] = useState('');
@@ -722,8 +710,7 @@ function Actions({ fullscreen }: Props) {
                         >
                           <VirtualizedList
                             items={waters}
-                            expandedRowsSetter={setExpandedRows}
-                            renderer={({ index, resizeCell, allExpanded }) => {
+                            renderer={({ index }) => {
                               const water = waters[index];
 
                               const auId = water.assessmentUnitIdentifier;
@@ -742,35 +729,6 @@ function Actions({ fullscreen }: Props) {
                                 ? getTypeFromAttributes(graphic)
                                 : '';
 
-                              let status = null;
-                              // ensure the key exists prior to deciding to highlight
-                              if (
-                                graphic?.attributes.assessmentunitidentifier
-                              ) {
-                                const id =
-                                  graphic.attributes.assessmentunitidentifier;
-
-                                let isSelected = false;
-                                if (selectedGraphic?.attributes) {
-                                  isSelected =
-                                    selectedGraphic.attributes
-                                      .assessmentunitidentifier === id;
-                                }
-
-                                let isHighlighted = false;
-                                if (highlightedGraphic?.attributes) {
-                                  isHighlighted =
-                                    highlightedGraphic.attributes
-                                      .assessmentunitidentifier === id;
-                                }
-
-                                if (isSelected) {
-                                  status = 'selected';
-                                } else if (isHighlighted && !isSelected) {
-                                  status = 'highlighted';
-                                }
-                              }
-
                               const waterbodyReportingCycle = graphic
                                 ? graphic.attributes.reportingcycle
                                 : null;
@@ -782,7 +740,6 @@ function Actions({ fullscreen }: Props) {
                               return (
                                 <AccordionItem
                                   key={symbolType + orgId + auId}
-                                  index={symbolType + orgId + auId}
                                   title={
                                     <strong>
                                       {name || 'Name not provided'}
@@ -795,14 +752,8 @@ function Actions({ fullscreen }: Props) {
                                   }
                                   feature={graphic}
                                   idKey="assessmentunitidentifier"
-                                  status={status}
-                                  allExpanded={
-                                    allExpanded || expandedRows.includes(index)
-                                  }
+                                  allExpanded={expandedRows.includes(index)}
                                   onChange={() => {
-                                    // ensure the cell is sized appropriately
-                                    resizeCell();
-
                                     // add the item to the expandedRows array so the accordion item
                                     // will stay expanded when the user scrolls or highlights map items
                                     if (expandedRows.includes(index)) {

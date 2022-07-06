@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Point from '@arcgis/core/geometry/Point';
 import Query from '@arcgis/core/rest/support/Query';
@@ -11,9 +11,37 @@ import { MapHighlightContext } from 'contexts/MapHighlight';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // config
-import { getPopupContent, graphicComparison } from 'utils/mapFunctions';
+import {
+  getPopupContent,
+  getPopupTitle,
+  graphicComparison,
+} from 'utils/mapFunctions';
 // utilities
 import { useDynamicPopup } from 'utils/hooks';
+
+// --- helpers ---
+function parseAttributes(structuredAttributes, attributes) {
+  const parsed = {};
+  for (const property of structuredAttributes) {
+    try {
+      parsed[property] = JSON.parse(attributes[property]);
+    } catch {
+      parsed[property] = attributes[property];
+    }
+  }
+  return { ...attributes, ...parsed };
+}
+
+function updateAttributes(graphic, updates) {
+  const graphicId = graphic?.attributes?.uniqueId;
+  if (updates.current?.[graphicId]) {
+    const stationUpdates = updates.current[graphicId];
+    Object.keys(stationUpdates).forEach((attribute) => {
+      graphic.setAttribute(attribute, stationUpdates[attribute]);
+    });
+    return graphic;
+  }
+}
 
 // --- components ---
 type Props = {
@@ -22,19 +50,20 @@ type Props = {
   view: any,
 };
 
-function MapMouseEvents({ map, view }: Props) {
+function MapMouseEvents({ view }: Props) {
   const navigate = useNavigate();
   const fetchedDataDispatch = useFetchedDataDispatch();
 
   const services = useServicesContext();
-  const {
-    setHighlightedGraphic,
-    setSelectedGraphic, //
-  } = useContext(MapHighlightContext);
+  const { setHighlightedGraphic, setSelectedGraphic } =
+    useContext(MapHighlightContext);
 
-  const { getHucBoundaries, resetData, protectedAreasLayer } = useContext(
-    LocationSearchContext,
-  );
+  const {
+    getHucBoundaries,
+    monitoringFeatureUpdates,
+    resetData,
+    protectedAreasLayer,
+  } = useContext(LocationSearchContext);
 
   const getDynamicPopup = useDynamicPopup();
 
@@ -226,7 +255,7 @@ function MapMouseEvents({ map, view }: Props) {
     });
 
     // auto expands the popup when it is first opened
-    view.popup.watch('visible', (graphic) => {
+    view.popup.watch('visible', (_graphic) => {
       if (view.popup.visible) view.popup.collapsed = false;
     });
 
@@ -239,6 +268,70 @@ function MapMouseEvents({ map, view }: Props) {
     setHighlightedGraphic,
     view,
   ]);
+
+  // Reference to a dictionary of date-filtered updates
+  // applicable to graphics visible on the map
+  const updates = useRef(null);
+  useEffect(() => {
+    if (view.popup.visible) view.popup.close();
+    updates.current = monitoringFeatureUpdates;
+  }, [monitoringFeatureUpdates, view.popup]);
+
+  const updateSingleFeature = useCallback(
+    (graphic) => {
+      view.popup.clear();
+      updateAttributes(graphic, updates);
+      const structuredProps = ['stationTotalsByGroup', 'timeframe'];
+      graphic.attributes = parseAttributes(structuredProps, graphic.attributes);
+      view.popup.open({
+        title: getPopupTitle(graphic.attributes),
+        content: getPopupContent({
+          feature: graphic,
+          services,
+          navigate,
+        }),
+        location: graphic.geometry,
+      });
+    },
+    [navigate, services, view.popup],
+  );
+
+  const updateGraphics = useCallback(
+    (graphics) => {
+      if (!updates?.current) return;
+      graphics.forEach((graphic) => {
+        if (
+          graphic.layer?.id === 'monitoringLocationsLayer' &&
+          !graphic.isAggregate
+        ) {
+          if (graphics.length === 1) {
+            updateSingleFeature(graphic);
+          } else {
+            updateAttributes(graphic, updates);
+          }
+        }
+      });
+    },
+    [updateSingleFeature],
+  );
+
+  // Watches for popups, and updates them if
+  // they represent monitoring location features
+  const [popupWatchHandler, setPopupWatchHandler] = useState(null);
+  useEffect(() => {
+    if (services.status === 'fetching') return;
+    if (popupWatchHandler) return;
+    const handler = view.popup.watch('features', (graphics) => {
+      updateGraphics(graphics, updates);
+    });
+    setPopupWatchHandler(handler);
+  }, [popupWatchHandler, services.status, updateGraphics, view]);
+
+  useEffect(() => {
+    return function cleanup() {
+      popupWatchHandler?.remove();
+    };
+  }, [popupWatchHandler]);
 
   function getGraphicFromResponse(
     res: Object,

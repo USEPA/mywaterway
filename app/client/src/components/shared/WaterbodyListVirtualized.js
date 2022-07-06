@@ -110,11 +110,17 @@ function WaterbodyListVirtualized({
           { value: 'assessmentunitidentifier', label: 'Assessment Unit Id' },
         ]}
         onSortChange={(sortBy) => setSortBy(sortBy.value)}
+        onExpandCollapse={(allExpanded) => {
+          if (allExpanded) {
+            setExpandedRows([...Array(waterbodies.length).keys()]);
+          } else {
+            setExpandedRows([]);
+          }
+        }}
       >
         <VirtualizedList
           items={waterbodies}
-          expandedRowsSetter={setExpandedRows}
-          renderer={({ index, resizeCell, allExpanded }) => {
+          renderer={({ index }) => {
             const graphic = waterbodies[index];
 
             const condition = getWaterbodyCondition(
@@ -170,11 +176,8 @@ function WaterbodyListVirtualized({
                 feature={graphic}
                 idKey="assessmentunitidentifier"
                 status={status}
-                allExpanded={allExpanded || expandedRows.includes(index)}
+                allExpanded={expandedRows.includes(index)}
                 onChange={() => {
-                  // ensure the cell is sized appropriately
-                  resizeCell();
-
                   // add the item to the expandedRows array so the accordion item
                   // will stay expanded when the user scrolls or highlights map items
                   if (expandedRows.includes(index)) {
