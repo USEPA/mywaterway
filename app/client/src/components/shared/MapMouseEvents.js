@@ -11,6 +11,7 @@ import { MapHighlightContext } from 'contexts/MapHighlight';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // config
+// import { monitoringClusterSettings } from 'components/shared/LocationMap';
 import {
   getPopupContent,
   getPopupTitle,
@@ -20,6 +21,14 @@ import {
 import { useDynamicPopup } from 'utils/hooks';
 
 // --- helpers ---
+async function getClusterExtent(cluster, mapView, featureLayer) {
+  const layerView = await mapView.whenLayerView(featureLayer);
+  const query = layerView.createQuery();
+  query.aggregateIds = [cluster.getObjectId()];
+  const { extent } = await layerView.queryExtent(query);
+  return extent;
+}
+
 function parseAttributes(structuredAttributes, attributes) {
   const parsed = {};
   for (const property of structuredAttributes) {
@@ -61,6 +70,7 @@ function MapMouseEvents({ view }: Props) {
   const {
     getHucBoundaries,
     monitoringFeatureUpdates,
+    monitoringLocationsLayer,
     resetData,
     protectedAreasLayer,
   } = useContext(LocationSearchContext);
@@ -93,7 +103,25 @@ function MapMouseEvents({ view }: Props) {
               view.highlightOptions.fillOpacity = 1;
             }
 
-            setSelectedGraphic(graphic);
+            if (
+              graphic.layer.id === 'monitoringLocationsLayer' &&
+              graphic.isAggregate
+            ) {
+              if (view.zoom >= 20) {
+                // graphics likely overlap, so show cluster popup
+                setSelectedGraphic(graphic);
+              } else {
+                // zoom in towards the cluster
+                getClusterExtent(graphic, view, monitoringLocationsLayer).then(
+                  (extent) => {
+                    // monitoringLocationsLayer.featureReduction = null;
+                    view.goTo(extent);
+                  },
+                );
+              }
+            } else {
+              setSelectedGraphic(graphic);
+            }
           } else {
             setSelectedGraphic('');
           }
@@ -183,12 +211,13 @@ function MapMouseEvents({ view }: Props) {
     },
     [
       fetchedDataDispatch,
-      resetData,
       getHucBoundaries,
+      monitoringLocationsLayer,
+      navigate,
       setSelectedGraphic,
       services,
       protectedAreasLayer,
-      navigate,
+      resetData,
     ],
   );
 
@@ -273,7 +302,7 @@ function MapMouseEvents({ view }: Props) {
   // applicable to graphics visible on the map
   const updates = useRef(null);
   useEffect(() => {
-    if (view.popup.visible) view.popup.close();
+    if (view?.popup.visible) view.popup.close();
     updates.current = monitoringFeatureUpdates;
   }, [monitoringFeatureUpdates, view.popup]);
 
@@ -332,6 +361,24 @@ function MapMouseEvents({ view }: Props) {
       popupWatchHandler?.remove();
     };
   }, [popupWatchHandler]);
+
+  /* const [zoomWatchHandler, setZoomWatchHandler] = useState(null);
+  useEffect(() => {
+    if (!view || !monitoringLocationsLayer) return;
+    if (zoomWatchHandler) return;
+    const handler = view.watch('zoom', (newZoom, oldZoom) => {
+      if (newZoom < oldZoom && !monitoringLocationsLayer.featureReduction) {
+        monitoringLocationsLayer.featureReduction = monitoringClusterSettings;
+      }
+    });
+    setZoomWatchHandler(handler);
+  }, [monitoringLocationsLayer, view, zoomWatchHandler]);
+
+  useEffect(() => {
+    return function cleanup() {
+      zoomWatchHandler?.remove();
+    };
+  }, [zoomWatchHandler]); */
 
   function getGraphicFromResponse(
     res: Object,
