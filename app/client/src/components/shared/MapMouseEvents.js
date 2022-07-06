@@ -21,8 +21,8 @@ import {
 import { useDynamicPopup } from 'utils/hooks';
 
 // --- helpers ---
-async function getClusterExtent(cluster, mapView, featureLayer) {
-  const layerView = await mapView.whenLayerView(featureLayer);
+async function getClusterExtent(cluster, mapView, layer) {
+  const layerView = await mapView.whenLayerView(layer);
   const query = layerView.createQuery();
   query.aggregateIds = [cluster.getObjectId()];
   const { extent } = await layerView.queryExtent(query);
