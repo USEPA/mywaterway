@@ -273,7 +273,6 @@ function MapMouseEvents({ view }: Props) {
   // applicable to graphics visible on the map
   const updates = useRef(null);
   useEffect(() => {
-    console.log(view.popup);
     if (view.popup.visible) view.popup.close();
     updates.current = monitoringFeatureUpdates;
   }, [monitoringFeatureUpdates, view.popup]);
