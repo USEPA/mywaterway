@@ -125,7 +125,7 @@ function StateTribalTabs() {
       windowHeight={height}
       windowWidth={width}
       layout={fullscreenActive ? 'fullscreen' : 'narrow'}
-      orgId={activeState.value}
+      activeState={activeState}
     />
   );
 

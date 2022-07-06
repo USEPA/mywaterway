@@ -19,8 +19,8 @@ export const huc12SummaryError =
   'Waterbody information is temporarily unavailable, please try again later.';
 
 // message show on the Community page when number of assessed waterbodies is 0
-export const zeroAssessedWaterbodies = (watershed) =>
-  `There are no waterbodies assessed in the ${watershed} watershed.`;
+export const zeroAssessedWaterbodies = (watershed, type = 'watershed') =>
+  `There are no waterbodies assessed in the ${watershed} ${type}.`;
 
 // geocode.arcgis.com - Geolocation Service
 export const geocodeError =
@@ -150,6 +150,10 @@ export const state303dStatusError =
 // this message is displayed in the State metrics section and more information section when the metrics service is down
 export const stateMetricsError =
   'State metrics information is temporarily unavailable, please try again later.';
+
+// geopub.epa.gov - Tribal Service
+export const tribalBoundaryErrorMessage =
+  'Tribal boundary information is temporarily unavailable, please try again later.';
 
 // Waterbody Report errors //
 export const waterbodyReportError = (type) =>

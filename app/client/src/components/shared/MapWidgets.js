@@ -104,6 +104,7 @@ const orderedLayers = [
   'mappedWaterLayer',
   'stateBoundariesLayer',
   'congressionalLayer',
+  'selectedTribeLayer',
   'tribalLayer',
   'tribalLayer-1',
   'tribalLayer-2',
