@@ -456,6 +456,7 @@ function MonitoringAndSensorsTab({
     useFetchedDataState();
 
   const {
+    monitoringGroups,
     monitoringLocations,
     monitoringLocationsLayer,
     usgsStreamgagesLayer,
@@ -492,44 +493,11 @@ function MonitoringAndSensorsTab({
   const [normalizedMonitoringLocations, setNormalizedMonitoringLocations] =
     useState([]);
 
-  // normalize monitoring stations data with USGS streamgages data,
-  // and draw them on the map
   useEffect(() => {
-    if (services.status === 'fetching') return;
-    if (!monitoringLocations.data.features) return;
-
-    const stations = monitoringLocations.data.features.map((station) => ({
-      monitoringType: 'Past Water Conditions',
-      siteId: station.properties.MonitoringLocationIdentifier,
-      orgId: station.properties.OrganizationIdentifier,
-      orgName: station.properties.OrganizationFormalName,
-      locationLongitude: station.geometry.coordinates[0],
-      locationLatitude: station.geometry.coordinates[1],
-      locationName: station.properties.MonitoringLocationName,
-      locationType: station.properties.MonitoringLocationTypeName,
-      // TODO: explore if the built up locationUrl below is ever different from
-      // `station.properties.siteUrl`. from a quick test, they seem the same
-      locationUrl:
-        `${services.data.waterQualityPortal.monitoringLocationDetails}` +
-        `${station.properties.ProviderName}/` +
-        `${station.properties.OrganizationIdentifier}/` +
-        `${station.properties.MonitoringLocationIdentifier}/`,
-      // monitoring station specific properties:
-      stationProviderName: station.properties.ProviderName,
-      stationTotalSamples: station.properties.activityCount,
-      stationTotalMeasurements: station.properties.resultCount,
-      stationTotalMeasurementsPercentile:
-        station.properties.stationTotalMeasurementsPercentile,
-      stationTotalsByCategory: JSON.stringify(
-        station.properties.characteristicGroupResultCount,
-      ),
-    }));
-
-    setNormalizedMonitoringLocations(stations);
-
-    // remove any filters on the monitoring locations layer
+    if (!monitoringGroups) return;
+    setNormalizedMonitoringLocations([...monitoringGroups.All.stations]);
     monitoringLocationsLayer.definitionExpression = '';
-  }, [monitoringLocations.data, monitoringLocationsLayer, services]);
+  }, [monitoringGroups, monitoringLocationsLayer]);
 
   const allMonitoringAndSensors = [
     ...normalizedUsgsStreamgages,
@@ -576,7 +544,8 @@ function MonitoringAndSensorsTab({
   if (
     monitoringLocations.status === 'fetching' ||
     usgsStreamgages.status === 'idle' ||
-    usgsStreamgages.status === 'pending'
+    usgsStreamgages.status === 'pending' ||
+    !monitoringGroups
   ) {
     return <LoadingSpinner />;
   }

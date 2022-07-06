@@ -44,6 +44,7 @@
     "@types/node": "17.0.40",
     "@types/react": "17.0.45",
     "@types/react-dom": "17.0.17",
+    "@types/styled-components": "5.1.25",
     "husky": "8.0.1",
     "lint-staged": "13.0.0",
     "prettier": "2.6.2",
@@ -65,6 +66,7 @@
     "react-app-polyfill": "3.0.0",
     "react-dom": "17.0.2",
     "react-dropzone": "14.2.1",
+    "react-ranger": "2.1.0",
     "react-rnd": "10.3.7",
     "react-router-dom": "6.3.0",
     "react-scripts": "5.0.1",
@@ -84,7 +86,10 @@
   "eslintConfig": {
     "extends": [
       "react-app"
-    ]
+    ],
+    "env": {
+      "worker": true
+    }
   },
   "browserslist": {
     "production": [
