@@ -25,8 +25,8 @@ import {
   StateTribalTabsProvider,
 } from 'contexts/StateTribalTabs';
 import {
-  useOrganizationsContext,
   useServicesContext,
+  useTribeMappingContext,
 } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
@@ -173,8 +173,8 @@ const searchSourceButtonStyles = css`
 function StateTribal() {
   const location = useLocation();
   const navigate = useNavigate();
-  const organizations = useOrganizationsContext();
   const services = useServicesContext();
+  const tribeMapping = useTribeMappingContext();
 
   // redirect to '/stateandtribe' if the url is /state or /tribe
   useEffect(() => {
@@ -184,25 +184,23 @@ function StateTribal() {
     }
   }, [navigate]);
 
-  // get tribes from the organizations data (control table)
+  // get tribes from the tribeMapping data
   const [tribes, setTribes] = useState([]);
   useEffect(() => {
-    if (organizations.status !== 'success') return;
+    if (tribeMapping.status !== 'success') return;
 
-    // query attains for the list of states
     const tempTribes = [];
-    organizations.data.features.forEach((feature) => {
-      if (feature.attributes.orgtype !== 'Tribe') return;
-
+    tribeMapping.data.forEach((tribe) => {
       tempTribes.push({
-        value: feature.attributes.organizationid,
-        label: feature.attributes.organizationid,
+        ...tribe,
+        value: tribe.attainsId,
+        label: tribe.name,
         source: 'Tribes',
       });
     });
 
     setTribes(tempTribes);
-  }, [organizations]);
+  }, [tribeMapping]);
 
   // query attains for the list of states
   const [states, setStates] = useState({ status: 'fetching', data: [] });
@@ -526,7 +524,10 @@ function StateTribal() {
 
         {usesStateSummaryServiceError ? (
           <div css={modifiedErrorBoxStyles}>
-            {usesStateSummaryServiceInvalidResponse(activeState.label)}
+            {usesStateSummaryServiceInvalidResponse(
+              activeState.source,
+              activeState.label,
+            )}
           </div>
         ) : (
           <div css={contentStyles}>

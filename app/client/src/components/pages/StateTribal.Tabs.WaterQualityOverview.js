@@ -373,6 +373,8 @@ function WaterQualityOverview() {
       !stateAndOrganization ||
       (activeState.source !== 'Tribes' &&
         currentReportingCycle.status === 'fetching') ||
+      (activeState.source === 'Tribes' &&
+        activeState.attainsId !== stateAndOrganization.organizationId) ||
       usesStateSummaryCalled
     ) {
       return;
