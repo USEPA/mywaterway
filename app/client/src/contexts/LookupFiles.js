@@ -29,20 +29,22 @@ type LookupFiles = {
   setDocumentOrder: Function,
   educatorMaterials: LookupFile,
   setEducatorMaterials: Function,
+  nars: LookupFile,
+  setNars: Function,
+  notifications: LookupFile,
+  setNotifications: Function,
+  organizations: LookupFile,
+  setOrganizations: Function,
   reportStatusMapping: LookupFile,
   setReportStatusMapping: Function,
+  services: LookupFile,
+  setServices: Function,
   stateNationalUses: LookupFile,
   setStateNationalUses: Function,
   surveyMapping: LookupFile,
   setSurveyMapping: Function,
   waterTypeOptions: LookupFile,
   setWaterTypeOptions: Function,
-  nars: LookupFile,
-  setNars: Function,
-  notifications: LookupFile,
-  setNotifications: Function,
-  services: LookupFile,
-  setServices: Function,
 };
 
 const LookupFilesContext: Object = createContext<LookupFiles>({
@@ -50,20 +52,22 @@ const LookupFilesContext: Object = createContext<LookupFiles>({
   setDocumentOrder: () => {},
   educatorMaterials: { status: 'fetching', data: null },
   setEducatorMaterials: () => {},
+  nars: { status: 'fetching', data: null },
+  setNars: () => {},
+  notifications: { status: 'fetching', data: null },
+  setNotifications: () => {},
+  organizations: { status: 'fetching', data: null },
+  setOrganizations: () => {},
   reportStatusMapping: { status: 'fetching', data: null },
   setReportStatusMapping: () => {},
+  services: { status: 'fetching', data: null },
+  setServices: () => {},
   stateNationalUses: { status: 'fetching', data: null },
   setStateNationalUses: () => {},
   surveyMapping: { status: 'fetching', data: null },
   setSurveyMapping: () => {},
   waterTypeOptions: { status: 'fetching', data: null },
   setWaterTypeOptions: () => {},
-  nars: { status: 'fetching', data: null },
-  setNars: () => {},
-  notifications: { status: 'fetching', data: null },
-  setNotifications: () => {},
-  services: { status: 'fetching', data: null },
-  setServices: () => {},
 });
 
 type Props = {
@@ -79,7 +83,23 @@ function LookupFilesProvider({ children }: Props) {
     status: 'fetching',
     data: {},
   });
+  const [nars, setNars] = useState({
+    status: 'fetching',
+    data: {},
+  });
+  const [notifications, setNotifications] = useState({
+    status: 'fetching',
+    data: [],
+  });
+  const [organizations, setOrganizations] = useState({
+    status: 'fetching',
+    data: {},
+  });
   const [reportStatusMapping, setReportStatusMapping] = useState({
+    status: 'fetching',
+    data: {},
+  });
+  const [services, setServices] = useState({
     status: 'fetching',
     data: {},
   });
@@ -95,22 +115,6 @@ function LookupFilesProvider({ children }: Props) {
     status: 'fetching',
     data: {},
   });
-  const [nars, setNars] = useState({
-    status: 'fetching',
-    data: {},
-  });
-  const [notifications, setNotifications] = useState({
-    status: 'fetching',
-    data: [],
-  });
-  const [services, setServices] = useState({
-    status: 'fetching',
-    data: {},
-  });
-  const [organizations, setOrganizations] = useState({
-    status: 'fetching',
-    data: {},
-  });
 
   return (
     <LookupFilesContext.Provider
@@ -119,22 +123,22 @@ function LookupFilesProvider({ children }: Props) {
         setDocumentOrder,
         educatorMaterials,
         setEducatorMaterials,
+        nars,
+        setNars,
+        notifications,
+        setNotifications,
+        organizations,
+        setOrganizations,
         reportStatusMapping,
         setReportStatusMapping,
+        services,
+        setServices,
         stateNationalUses,
         setStateNationalUses,
         surveyMapping,
         setSurveyMapping,
         waterTypeOptions,
         setWaterTypeOptions,
-        nars,
-        setNars,
-        notifications,
-        setNotifications,
-        services,
-        setServices,
-        organizations,
-        setOrganizations,
       }}
     >
       {children}
@@ -156,63 +160,19 @@ function useDocumentOrderContext() {
   return documentOrder;
 }
 
-// Custom hook for the reportStatusMapping.json lookup file.
-let reportStatusMappingInitialized = false; // global var for ensuring fetch only happens once
-function useReportStatusMappingContext() {
-  const { reportStatusMapping, setReportStatusMapping } =
+// Custom hook for the educators.json file.
+let educatorMaterialsInitialized = false; // global var for ensuring fetch only happens once
+function useEducatorMaterialsContext() {
+  const { educatorMaterials, setEducatorMaterials } =
     useContext(LookupFilesContext);
 
   // fetch the lookup file if necessary
-  if (!reportStatusMappingInitialized) {
-    reportStatusMappingInitialized = true;
-    getLookupFile('state/reportStatusMapping.json', setReportStatusMapping);
+  if (!educatorMaterialsInitialized) {
+    educatorMaterialsInitialized = true;
+    getLookupFile('educators.json', setEducatorMaterials);
   }
 
-  return reportStatusMapping;
-}
-
-// Custom hook for the stateNationalUses.json lookup file.
-let stateNationalUsesInitialized = false; // global var for ensuring fetch only happens once
-function useStateNationalUsesContext() {
-  const { stateNationalUses, setStateNationalUses } =
-    useContext(LookupFilesContext);
-
-  // fetch the lookup file if necessary
-  if (!stateNationalUsesInitialized) {
-    stateNationalUsesInitialized = true;
-    getLookupFile('state/stateNationalUses.json', setStateNationalUses);
-  }
-
-  return stateNationalUses;
-}
-
-// Custom hook for the surveyMapping.json lookup file.
-let surveyMappingInitialized = false; // global var for ensuring fetch only happens once
-function useSurveyMappingContext() {
-  const { surveyMapping, setSurveyMapping } = useContext(LookupFilesContext);
-
-  // fetch the lookup file if necessary
-  if (!surveyMappingInitialized) {
-    surveyMappingInitialized = true;
-    getLookupFile('state/surveyMapping.json', setSurveyMapping);
-  }
-
-  return surveyMapping;
-}
-
-// Custom hook for the waterTypeOptions.json lookup file.
-let waterTypeOptionsInitialized = false; // global var for ensuring fetch only happens once
-function useWaterTypeOptionsContext() {
-  const { waterTypeOptions, setWaterTypeOptions } =
-    useContext(LookupFilesContext);
-
-  // fetch the lookup file if necessary
-  if (!waterTypeOptionsInitialized) {
-    waterTypeOptionsInitialized = true;
-    getLookupFile('state/waterTypeOptions.json', setWaterTypeOptions);
-  }
-
-  return waterTypeOptions;
+  return educatorMaterials;
 }
 
 // Custom hook for the waterTypeOptions.json lookup file.
@@ -241,6 +201,50 @@ function useNotificationsContext() {
   }
 
   return notifications;
+}
+
+// Custom hook for the services.json file.
+let organizationsInitialized = false; // global var for ensuring fetch only happens once
+function useOrganizationsContext() {
+  const { services, organizations, setOrganizations } =
+    useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!organizationsInitialized && services.status === 'success') {
+    organizationsInitialized = true;
+
+    // fetch the lookup file
+    const outFields = ['organizationid', 'orgtype', 'reportingcycle', 'state'];
+    fetchCheck(
+      `${
+        services.data.waterbodyService.controlTable
+      }/query?where=1%3D1&outFields=${outFields.join('%2C')}&f=json`,
+    )
+      .then((data) => {
+        setOrganizations({ status: 'success', data });
+      })
+      .catch((err) => {
+        console.error(err);
+        setOrganizations({ status: 'failure', data: err });
+      });
+  }
+
+  return organizations;
+}
+
+// Custom hook for the reportStatusMapping.json lookup file.
+let reportStatusMappingInitialized = false; // global var for ensuring fetch only happens once
+function useReportStatusMappingContext() {
+  const { reportStatusMapping, setReportStatusMapping } =
+    useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!reportStatusMappingInitialized) {
+    reportStatusMappingInitialized = true;
+    getLookupFile('state/reportStatusMapping.json', setReportStatusMapping);
+  }
+
+  return reportStatusMapping;
 }
 
 // Custom hook for the services.json file.
@@ -296,48 +300,48 @@ function useServicesContext() {
   return services;
 }
 
-// Custom hook for the services.json file.
-let organizationsInitialized = false; // global var for ensuring fetch only happens once
-function useOrganizationsContext() {
-  const { services, organizations, setOrganizations } =
+// Custom hook for the stateNationalUses.json lookup file.
+let stateNationalUsesInitialized = false; // global var for ensuring fetch only happens once
+function useStateNationalUsesContext() {
+  const { stateNationalUses, setStateNationalUses } =
     useContext(LookupFilesContext);
 
   // fetch the lookup file if necessary
-  if (!organizationsInitialized && services.status === 'success') {
-    organizationsInitialized = true;
-
-    // fetch the lookup file
-    const outFields = ['organizationid', 'orgtype', 'reportingcycle', 'state'];
-    fetchCheck(
-      `${
-        services.data.waterbodyService.controlTable
-      }/query?where=1%3D1&outFields=${outFields.join('%2C')}&f=json`,
-    )
-      .then((data) => {
-        setOrganizations({ status: 'success', data });
-      })
-      .catch((err) => {
-        console.error(err);
-        setOrganizations({ status: 'failure', data: err });
-      });
+  if (!stateNationalUsesInitialized) {
+    stateNationalUsesInitialized = true;
+    getLookupFile('state/stateNationalUses.json', setStateNationalUses);
   }
 
-  return organizations;
+  return stateNationalUses;
 }
 
-// Custom hook for the educators.json file.
-let educatorMaterialsInitialized = false; // global var for ensuring fetch only happens once
-function useEducatorMaterialsContext() {
-  const { educatorMaterials, setEducatorMaterials } =
+// Custom hook for the surveyMapping.json lookup file.
+let surveyMappingInitialized = false; // global var for ensuring fetch only happens once
+function useSurveyMappingContext() {
+  const { surveyMapping, setSurveyMapping } = useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!surveyMappingInitialized) {
+    surveyMappingInitialized = true;
+    getLookupFile('state/surveyMapping.json', setSurveyMapping);
+  }
+
+  return surveyMapping;
+}
+
+// Custom hook for the waterTypeOptions.json lookup file.
+let waterTypeOptionsInitialized = false; // global var for ensuring fetch only happens once
+function useWaterTypeOptionsContext() {
+  const { waterTypeOptions, setWaterTypeOptions } =
     useContext(LookupFilesContext);
 
   // fetch the lookup file if necessary
-  if (!educatorMaterialsInitialized) {
-    educatorMaterialsInitialized = true;
-    getLookupFile('educators.json', setEducatorMaterials);
+  if (!waterTypeOptionsInitialized) {
+    waterTypeOptionsInitialized = true;
+    getLookupFile('state/waterTypeOptions.json', setWaterTypeOptions);
   }
 
-  return educatorMaterials;
+  return waterTypeOptions;
 }
 
 export {
