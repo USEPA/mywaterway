@@ -10,6 +10,7 @@ import {
   AccordionItem,
 } from 'components/shared/AccordionMapHighlight';
 import { tabsStyles } from 'components/shared/ContentTabs';
+import DateSlider from 'components/shared/DateSlider';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import {
@@ -20,7 +21,6 @@ import {
 } from 'components/shared/KeyMetrics';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import Switch from 'components/shared/Switch';
-import TooltipSlider from 'components/shared/TooltipSlider';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import VirtualizedList from 'components/shared/VirtualizedList';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
@@ -36,7 +36,6 @@ import { characteristicGroupMappings } from 'config/characteristicGroupMappings'
 // errors
 import { monitoringError } from 'config/errorMessages';
 // styles
-import 'rc-slider/assets/index.css';
 import {
   disclaimerStyles,
   iconStyles,
@@ -46,6 +45,14 @@ import {
 /*
  * Styles
  */
+const accordionContentStyles = css`
+  padding: 0.4375em 0.875em 0.875em;
+`;
+
+const centeredTextStyles = css`
+  text-align: center;
+`;
+
 const containerStyles = css`
   @media (min-width: 960px) {
     padding: 1em;
@@ -62,10 +69,28 @@ const modifiedErrorBoxStyles = css`
   text-align: center;
 `;
 
-const totalRowStyles = css`
-  border-top: 2px solid #dee2e6;
-  font-weight: bold;
+const sliderContainerStyles = css`
+  align-items: flex-end;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  padding-bottom: 10px;
+  width: 100%;
+`;
+
+const sliderHeaderStyles = css`
   background-color: #f0f6f9;
+  border-bottom: 2px solid #dee2e6;
+  border-top: 1px solid #dee2e6;
+  margin: auto;
+  font-weight: bold;
+  padding: 0.5rem 3.5rem;
+  text-align: center;
+  width: 100%;
+`;
+
+const switchContainerStyles = css`
+  margin-top: 0.5em;
 `;
 
 const tableFooterStyles = css`
@@ -84,50 +109,6 @@ const tableFooterStyles = css`
   }
 `;
 
-const sliderContainerStyles = css`
-  align-items: flex-end;
-  display: flex;
-  gap: 1.5rem;
-  justify-content: center;
-  padding-bottom: 10px;
-  width: 100%;
-`;
-
-const sliderHeaderStyles = css`
-  background-color: #f0f6f9;
-  border-bottom: 2px solid #dee2e6;
-  border-top: 1px solid #dee2e6;
-  margin: auto;
-  font-weight: bold;
-  padding: 0.5rem 3.5rem;
-  text-align: center;
-  width: 100%;
-`;
-
-const sliderStyles = css`
-  align-items: end;
-  display: inline-flex;
-  height: 3.5rem;
-  padding-bottom: 3px;
-  width: 60%;
-  .rc-tooltip-arrow {
-    display: none !important;
-  }
-  z-index: 0;
-`;
-
-const switchContainerStyles = css`
-  margin-top: 0.5em;
-`;
-
-const centeredTextStyles = css`
-  text-align: center;
-`;
-
-const accordionContentStyles = css`
-  padding: 0.4375em 0.875em 0.875em;
-`;
-
 const toggleStyles = css`
   display: flex;
   align-items: center;
@@ -137,6 +118,15 @@ const toggleStyles = css`
   }
 `;
 
+const totalRowStyles = css`
+  border-top: 2px solid #dee2e6;
+  font-weight: bold;
+  background-color: #f0f6f9;
+`;
+
+/*
+ ** Helpers
+ */
 const initialWorkerData = {
   minYear: null,
   maxYear: null,
@@ -793,13 +783,6 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     }
   }, [buildFilter, displayedLocations, monitoringGroups]);
 
-  const handleSliderChange = useCallback(
-    (range) => {
-      setYearsRange([...range]);
-    },
-    [setYearsRange],
-  );
-
   const [allToggled, setAllToggled] = useState(true);
   const toggleAll = useCallback(() => {
     const updatedGroups = { ...monitoringGroups };
@@ -868,10 +851,6 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
   const [expandedRows, setExpandedRows] = useState([]);
 
-  // Used to position the slider tooltip in the slider container:
-  // it defaults to attaching to the document body
-  const sliderRef = useRef();
-
   if (monitoringLocations.status === 'fetching') return <LoadingSpinner />;
 
   if (monitoringLocations.status === 'failure') {
@@ -901,19 +880,11 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
               {!yearsRange ? (
                 <LoadingSpinner />
               ) : (
-                <>
-                  <span>{minYear}</span>
-                  <div ref={sliderRef} css={sliderStyles}>
-                    <DateSlider
-                      bounds={[minYear, maxYear]}
-                      containerRef={sliderRef}
-                      disabled={Object.keys(annualData).length === 0}
-                      range={yearsRange}
-                      onChange={handleSliderChange}
-                    />
-                  </div>
-                  <span>{maxYear}</span>
-                </>
+                <DateSlider
+                  bounds={[minYear, maxYear]}
+                  disabled={!Boolean(Object.keys(annualData).length)}
+                  onChange={(newRange) => setYearsRange(newRange)}
+                />
               )}
             </div>
             <table
@@ -1163,48 +1134,6 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   }
 
   return null;
-}
-
-// Slider component that utilizes annual station data
-function DateSlider({ bounds, containerRef, disabled, range, onChange }) {
-  const [curRange, setCurRange] = useState(range);
-
-  const tooltipInnerStyles = {
-    borderRadius: '10%',
-    color: '#444',
-    backgroundColor: '#d5e6ee',
-    minHeight: 'auto',
-    padding: '0.3em',
-  };
-
-  const tipProps = {
-    align: { offset: [0, 2] },
-    getTooltipContainer: () => containerRef.current,
-    overlayInnerStyle: tooltipInnerStyles,
-    visible: true,
-  };
-
-  return (
-    <TooltipSlider
-      range
-      allowCross={false}
-      defaultValue={curRange}
-      disabled={disabled}
-      handleStyle={{ borderColor: '#0b89f4' }}
-      max={bounds?.[1]}
-      min={bounds?.[0]}
-      onAfterChange={(newRange) => {
-        onChange(newRange);
-      }}
-      onChange={(newRange) => {
-        setCurRange(newRange);
-      }}
-      step={1}
-      tipProps={tipProps}
-      trackStyle={{ backgroundColor: '#0b89f4' }}
-      value={curRange}
-    />
-  );
 }
 
 export default function MonitoringContainer() {
