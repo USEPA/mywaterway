@@ -677,10 +677,6 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   const [currentLocations, setCurrentLocations] = useState([]);
   useEffect(() => {
     if (!monitoringLocationsLayer) return;
-    if (!monitoringDisplayed) {
-      monitoringLocationsLayer.visible = false;
-      return;
-    }
 
     const { toggledLocations, allLocations } = filterLocations(
       monitoringGroups,
@@ -709,9 +705,9 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
       )}')`;
     }
 
-    monitoringLocationsLayer.visible = true;
     setCurrentLocations(allLocations);
     setDisplayedLocations(toggledLocations);
+    monitoringLocationsLayer.visible = monitoringDisplayed;
   }, [
     monitoringDisplayed,
     monitoringGroups,
