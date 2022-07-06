@@ -1,0 +1,312 @@
+[
+    {
+        "name": "Absentee-Shawnee Tribe of Indians of Oklahoma",
+        "attainsId": "ABSHAWNEE",
+        "wqxId": "ABSHAWNEE",
+        "biaTribeCode": "820",
+        "epaId": 100000001,
+        "state": "OK",
+        "stateList": "OK",
+        "epaRegion": 6
+    },
+    {
+        "name": "Big Valley Band of Pomo Indians of the Big Valley Rancheria, California",
+        "attainsId": "CA_BVR",
+        "wqxId": "CA_BVR",
+        "biaTribeCode": "507",
+        "epaId": 100000019,
+        "state": "CA",
+        "stateList": "CA",
+        "epaRegion": 9
+    },
+    {
+        "name": "Caddo Nation of Oklahoma",
+        "attainsId": "CADDONATION",
+        "wqxId": "CADDONATION_WQX",
+        "biaTribeCode": "806",
+        "epaId": 100000027,
+        "state": "OK",
+        "stateList": "OK",
+        "epaRegion": 6
+    },
+    {
+        "name": "Cherokee Nation",
+        "attainsId": "CHEROKEE",
+        "wqxId": "CHEROKEE_WQX",
+        "biaTribeCode": "905",
+        "epaId": 100000038,
+        "state": "OK",
+        "stateList": "OK",
+        "epaRegion": 6
+    },
+    {
+        "name": "Citizen Potawatomi Nation, Oklahoma",
+        "attainsId": "CPNWATER",
+        "wqxId": "CPNWATER",
+        "biaTribeCode": "821",
+        "epaId": 100000046,
+        "state": "OK",
+        "stateList": "OK",
+        "epaRegion": 6
+    },
+    {
+        "name": "Comanche Nation, Oklahoma",
+        "attainsId": "CNWQD",
+        "wqxId": "CNWQD",
+        "biaTribeCode": "808",
+        "epaId": 100000052,
+        "state": "OK",
+        "stateList": "OK",
+        "epaRegion": 6
+    },
+    {
+        "name": "Delaware Nation, Oklahoma",
+        "attainsId": "DELAWARENATION",
+        "wqxId": "DELAWARENATION",
+        "biaTribeCode": "807",
+        "epaId": 100000072,
+        "state": "OK",
+        "stateList": "OK",
+        "epaRegion": 6
+    },
+    {
+        "name": "Hoopa Valley Tribe, California",
+        "attainsId": "HVTEPA",
+        "wqxId": "HVTEPA_WQX",
+        "biaTribeCode": "561",
+        "epaId": 100000103,
+        "state": "CA",
+        "stateList": "CA",
+        "epaRegion": 9
+    },
+    {
+        "name": "Iowa Tribe of Oklahoma",
+        "attainsId": "IOWATROK",
+        "wqxId": "IOWATROK_WQX",
+        "biaTribeCode": "822",
+        "epaId": 100000112,
+        "state": "OK",
+        "stateList": "OK",
+        "epaRegion": 6
+    },
+    {
+        "name": "Kaw Nation, Oklahoma",
+        "attainsId": "KAWNATION",
+        "wqxId": "KAWNATION_WQX",
+        "biaTribeCode": "810",
+        "epaId": 100000122,
+        "state": "OK",
+        "stateList": "OK",
+        "epaRegion": 6
+    },
+    {
+        "name": "Kickapoo Tribe of Oklahoma",
+        "attainsId": "KICKAPOO",
+        "wqxId": "KICKAPOO",
+        "biaTribeCode": "823",
+        "epaId": 100000127,
+        "state": "OK",
+        "stateList": "OK",
+        "epaRegion": 6
+    },
+    {
+        "name": "Little River Band of Ottawa Indians, Michigan",
+        "attainsId": "LRBOI",
+        "wqxId": "LRBOI_WQX",
+        "biaTribeCode": "482",
+        "epaId": 100000138,
+        "state": "MI",
+        "stateList": "MI",
+        "epaRegion": 5
+    },
+    {
+        "name": "Miami Tribe of Oklahoma",
+        "attainsId": "O_MTRIBE",
+        "wqxId": "MIAMITRIBEOFOKLAHOMA",
+        "biaTribeCode": "925",
+        "epaId": 100000158,
+        "state": "OK",
+        "stateList": "OK",
+        "epaRegion": 6
+    },
+    {
+        "name": "Minnesota Chippewa Tribe, Minnesota (Fond du Lac Band)",
+        "attainsId": "FONDULAC",
+        "wqxId": "FONDULAC_WQX",
+        "biaTribeCode": "405",
+        "epaId": 100000572,
+        "state": "MN",
+        "stateList": "MN",
+        "epaRegion": 5
+    },
+    {
+        "name": "Navajo Nation, Arizona, New Mexico, & Utah",
+        "attainsId": "NNEPA",
+        "wqxId": "NNEPA",
+        "biaTribeCode": "780",
+        "epaId": 100000171,
+        "state": "AZ",
+        "stateList": "AZ;NM;UT",
+        "epaRegion": 9
+    },
+    {
+        "name": "Penobscot Nation",
+        "attainsId": "PENOBSCOT",
+        "wqxId": "PENOBSCOTINDIANNATIONDNR",
+        "biaTribeCode": "018",
+        "epaId": 100000199,
+        "state": "ME",
+        "stateList": "ME",
+        "epaRegion": 1
+    },
+    {
+        "name": "Pueblo of Laguna, New Mexico",
+        "attainsId": "POLSWATER",
+        "wqxId": "POLSWATER_WQX",
+        "biaTribeCode": "707",
+        "epaId": 100000216,
+        "state": "NM",
+        "stateList": "NM",
+        "epaRegion": 6
+    },
+    {
+        "name": "Pueblo of Pojoaque, New Mexico",
+        "attainsId": "PUEBLO_POJOAQUE",
+        "wqxId": "PUEBLO_POJOAQUE",
+        "biaTribeCode": "710",
+        "epaId": 100000219,
+        "state": "NM",
+        "stateList": "NM",
+        "epaRegion": 6
+    },
+    {
+        "name": "Pueblo of San Ildefonso, New Mexico",
+        "attainsId": "SANILDEFONSODECP",
+        "wqxId": "SANILDEFONSODECP",
+        "biaTribeCode": "713",
+        "epaId": 100000221,
+        "state": "NM",
+        "stateList": "NM",
+        "epaRegion": 6
+    },
+    {
+        "name": "Pueblo of Santa Ana, New Mexico",
+        "attainsId": "PUEBLO_SANTAANA",
+        "wqxId": "PUEBLO_SANTAANA",
+        "biaTribeCode": "715",
+        "epaId": 100000223,
+        "state": "NM",
+        "stateList": "NM",
+        "epaRegion": 6
+    },
+    {
+        "name": "Pueblo of Taos, New Mexico",
+        "attainsId": "TAOSPBLO",
+        "wqxId": "TAOSPBLO_WQX",
+        "biaTribeCode": "718",
+        "epaId": 100000225,
+        "state": "NM",
+        "stateList": "NM",
+        "epaRegion": 6
+    },
+    {
+        "name": "Pueblo of Tesuque, New Mexico",
+        "attainsId": "PUEBLOOFTESUQUE",
+        "wqxId": "PUEBLOOFTESUQUE",
+        "biaTribeCode": "719",
+        "epaId": 100000226,
+        "state": "NM",
+        "stateList": "NM",
+        "epaRegion": 6
+    },
+    {
+        "name": "Red Lake Band of Chippewa Indians, Minnesota",
+        "attainsId": "REDLAKE",
+        "wqxId": "REDLAKE_WQX",
+        "biaTribeCode": "409",
+        "epaId": 100000237,
+        "state": "MN",
+        "stateList": "MN",
+        "epaRegion": 5
+    },
+    {
+        "name": "Sac & Fox Nation, Oklahoma",
+        "attainsId": "SFNOES",
+        "wqxId": "SFNOES_WQX",
+        "biaTribeCode": "824",
+        "epaId": 100000248,
+        "state": "OK",
+        "stateList": "OK",
+        "epaRegion": 6
+    },
+    {
+        "name": "Saint Regis Mohawk Tribe",
+        "attainsId": "SRMTWRP",
+        "wqxId": "SRMTWRP_WQX",
+        "biaTribeCode": "007",
+        "epaId": 100000251,
+        "state": "NY",
+        "stateList": "NY",
+        "epaRegion": 2
+    },
+    {
+        "name": "Seneca-Cayuga Nation",
+        "attainsId": "SCEQ",
+        "wqxId": "SCEQ",
+        "biaTribeCode": "923",
+        "epaId": 100000268,
+        "state": "OK",
+        "stateList": "OK",
+        "epaRegion": 6
+    },
+    {
+        "name": "The Chickasaw Nation",
+        "attainsId": "CNENVSER",
+        "wqxId": "CNENVSER",
+        "biaTribeCode": "906",
+        "epaId": 100000041,
+        "state": "OK",
+        "stateList": "OK",
+        "epaRegion": 6
+    },
+    {
+        "name": "The Choctaw Nation of Oklahoma",
+        "attainsId": "CHOCNAT",
+        "wqxId": "CHOCNATWQX",
+        "biaTribeCode": "907",
+        "epaId": 100000045,
+        "state": "OK",
+        "stateList": "OK",
+        "epaRegion": 6
+    },
+    {
+        "name": "Ute Mountain Ute Tribe",
+        "attainsId": "UTEMTN",
+        "wqxId": "UTEMTN",
+        "biaTribeCode": "751",
+        "epaId": 100000319,
+        "state": "CO",
+        "stateList": "CO;NM",
+        "epaRegion": 8
+    },
+    {
+        "name": "Wampanoag Tribe of Gay Head (Aquinnah)",
+        "attainsId": "AQUINNAH",
+        "wqxId": "AQUINNAH_WQX",
+        "biaTribeCode": "030",
+        "epaId": 100000322,
+        "state": "MA",
+        "stateList": "MA",
+        "epaRegion": 1
+    },
+    {
+        "name": "Wyandotte Nation",
+        "attainsId": "WNENVDPT",
+        "wqxId": "WNENVDPT_WQX",
+        "biaTribeCode": "924",
+        "epaId": 100000330,
+        "state": "OK",
+        "stateList": "KS;OK",
+        "epaRegion": 6
+    }
+]

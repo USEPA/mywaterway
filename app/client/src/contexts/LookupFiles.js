@@ -43,6 +43,8 @@ type LookupFiles = {
   setStateNationalUses: Function,
   surveyMapping: LookupFile,
   setSurveyMapping: Function,
+  tribeMapping: LookupFile,
+  setTribeMapping: Function,
   waterTypeOptions: LookupFile,
   setWaterTypeOptions: Function,
 };
@@ -66,6 +68,8 @@ const LookupFilesContext: Object = createContext<LookupFiles>({
   setStateNationalUses: () => {},
   surveyMapping: { status: 'fetching', data: null },
   setSurveyMapping: () => {},
+  tribeMapping: { status: 'fetching', data: null },
+  setTribeMapping: () => {},
   waterTypeOptions: { status: 'fetching', data: null },
   setWaterTypeOptions: () => {},
 });
@@ -111,6 +115,10 @@ function LookupFilesProvider({ children }: Props) {
     status: 'fetching',
     data: [],
   });
+  const [tribeMapping, setTribeMapping] = useState({
+    status: 'fetching',
+    data: [],
+  });
   const [waterTypeOptions, setWaterTypeOptions] = useState({
     status: 'fetching',
     data: {},
@@ -137,6 +145,8 @@ function LookupFilesProvider({ children }: Props) {
         setStateNationalUses,
         surveyMapping,
         setSurveyMapping,
+        tribeMapping,
+        setTribeMapping,
         waterTypeOptions,
         setWaterTypeOptions,
       }}
@@ -329,6 +339,20 @@ function useSurveyMappingContext() {
   return surveyMapping;
 }
 
+// Custom hook for the tribeMapping.json lookup file.
+let tribeMappingInitialized = false; // global var for ensuring fetch only happens once
+function useTribeMappingContext() {
+  const { tribeMapping, setTribeMapping } = useContext(LookupFilesContext);
+
+  // fetch the lookup file if necessary
+  if (!tribeMappingInitialized) {
+    tribeMappingInitialized = true;
+    getLookupFile('tribe/tribeMapping.json', setTribeMapping);
+  }
+
+  return tribeMapping;
+}
+
 // Custom hook for the waterTypeOptions.json lookup file.
 let waterTypeOptionsInitialized = false; // global var for ensuring fetch only happens once
 function useWaterTypeOptionsContext() {
@@ -356,5 +380,6 @@ export {
   useServicesContext,
   useStateNationalUsesContext,
   useSurveyMappingContext,
+  useTribeMappingContext,
   useWaterTypeOptionsContext,
 };
