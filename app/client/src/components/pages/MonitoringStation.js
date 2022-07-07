@@ -46,10 +46,50 @@ const boxSectionStyles = css`
   padding: 0.4375rem 0.875rem;
 `;
 
+const charcsRadioContainerStyles = css`
+  display: flex;
+  height: 100%;
+  width: 100%;
+  input {
+    appearance: none;
+    margin: 0;
+  }
+  input:checked + label:before {
+    background-color: #38a6ee;
+    box-shadow: 0 0 0 1px ${colors.steel()}, inset 0 0 0 1px ${colors.white()};
+  }
+  label {
+    cursor: pointer;
+    font-size: 0.875em;
+    margin: auto;
+    padding-left: 1em;
+    text-indent: -1em;
+    &:before {
+      background: ${colors.white()};
+      border-radius: 100%;
+      box-shadow: 0 0 0 1px ${colors.steel()};
+      content: ' ';
+      display: inline-block;
+      height: 1em;
+      line-height: 1.25em;
+      margin-right: 1em;
+      position: relative;
+      text-indent: 0;
+      top: -1px;
+      vertical-align: middle;
+      white-space: pre;
+      width: 1em;
+    }
+  }
+`;
+
 const charcsTableStyles = css`
   ${boxSectionStyles}
   height: 60vh;
   overflow-y: scroll;
+  .rt-table .rt-td {
+    margin: auto;
+  }
 `;
 
 const checkboxCellStyles = css`
@@ -532,13 +572,16 @@ function CharacteristicsTable({ charcs, charcsStatus }) {
     return Object.keys(charcs)
       .map((charc) => {
         const selector = (
-          <input
-            checked={selected === charc}
-            onChange={(e) => setSelected(e.target.value)}
-            style={{ verticalAlign: 'middle' }}
-            type="radio"
-            value={charc}
-          />
+          <div css={charcsRadioContainerStyles}>
+            <input
+              checked={selected === charc}
+              id={charc}
+              onChange={(e) => setSelected(e.target.value)}
+              type="radio"
+              value={charc}
+            />
+            <label htmlFor={charc}></label>
+          </div>
         );
         return {
           count: charcs[charc].totalCount,
@@ -925,15 +968,15 @@ function MonitoringStation({ fullscreen }) {
                     siteId={siteId}
                   />
                   {width < 960 ? mapNarrow(height) : mapWide}
-                  <CharacteristicsTable
-                    charcs={characteristics}
-                    charcsStatus={characteristicsStatus}
-                  />
-                </div>
-                <div css={splitLayoutColumnStyles}>
                   <DownloadSection
                     station={station}
                     stationStatus={stationStatus}
+                  />
+                </div>
+                <div css={splitLayoutColumnStyles}>
+                  <CharacteristicsTable
+                    charcs={characteristics}
+                    charcsStatus={characteristicsStatus}
                   />
                 </div>
               </div>
