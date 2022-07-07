@@ -295,7 +295,7 @@ function TribesMap({ layout, windowHeight, windowWidth, activeState }: Props) {
                       outline: {
                         color: [0, 0, 0],
                         width: 2,
-                        style: 'dash',
+                        style: 'solid',
                       },
                     },
             });
