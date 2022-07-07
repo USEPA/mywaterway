@@ -383,7 +383,6 @@ function MapMouseEvents({ view }: Props) {
 
   useEffect(() => {
     if (!view || !monitoringLocationsLayer) return;
-    console.log(zoomWatchHandler);
     if (zoomWatchHandler) return;
     const handler = view.watch('zoom', (newZoom, oldZoom) => {
       if (locationCount <= 20) return;
