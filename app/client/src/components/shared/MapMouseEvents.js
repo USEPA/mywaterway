@@ -7,6 +7,7 @@ import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
+import { FullscreenContext } from 'contexts/Fullscreen';
 import { MapHighlightContext } from 'contexts/MapHighlight';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -69,11 +70,14 @@ function MapMouseEvents({ view }: Props) {
 
   const {
     getHucBoundaries,
+    huc12,
     monitoringFeatureUpdates,
     monitoringLocationsLayer,
     resetData,
     protectedAreasLayer,
   } = useContext(LocationSearchContext);
+
+  const { fullscreenActive } = useContext(FullscreenContext);
 
   const getDynamicPopup = useDynamicPopup();
 
@@ -341,9 +345,20 @@ function MapMouseEvents({ view }: Props) {
     [updateSingleFeature],
   );
 
+  const [popupWatchHandler, setPopupWatchHandler] = useState(null);
+  const [zoomWatchHandler, setZoomWatchHandler] = useState(null);
+  const [locationCount, setLocationCount] = useState(0);
+  useEffect(() => {
+    setZoomWatchHandler(null);
+    setPopupWatchHandler(null);
+    if (!monitoringLocationsLayer) return;
+    monitoringLocationsLayer
+      .queryFeatureCount()
+      .then((count) => setLocationCount(count));
+  }, [huc12, monitoringLocationsLayer]);
+
   // Watches for popups, and updates them if
   // they represent monitoring location features
-  const [popupWatchHandler, setPopupWatchHandler] = useState(null);
   useEffect(() => {
     if (services.status === 'fetching') return;
     if (popupWatchHandler) return;
@@ -359,17 +374,30 @@ function MapMouseEvents({ view }: Props) {
     };
   }, [popupWatchHandler]);
 
-  const [zoomWatchHandler, setZoomWatchHandler] = useState(null);
+  useEffect(() => {
+    if (locationCount <= 20) return;
+    if (!monitoringLocationsLayer || monitoringLocationsLayer.featureReduction)
+      return;
+    monitoringLocationsLayer.featureReduction = monitoringClusterSettings;
+  }, [fullscreenActive, huc12, locationCount, monitoringLocationsLayer]);
+
   useEffect(() => {
     if (!view || !monitoringLocationsLayer) return;
+    console.log(zoomWatchHandler);
     if (zoomWatchHandler) return;
     const handler = view.watch('zoom', (newZoom, oldZoom) => {
-      if (newZoom < oldZoom && !monitoringLocationsLayer.featureReduction) {
+      if (locationCount <= 20) return;
+      if (
+        !monitoringLocationsLayer ||
+        monitoringLocationsLayer.featureReduction
+      )
+        return;
+      if (newZoom < oldZoom) {
         monitoringLocationsLayer.featureReduction = monitoringClusterSettings;
       }
     });
     setZoomWatchHandler(handler);
-  }, [monitoringLocationsLayer, view, zoomWatchHandler]);
+  }, [locationCount, monitoringLocationsLayer, view, zoomWatchHandler]);
 
   useEffect(() => {
     return function cleanup() {
