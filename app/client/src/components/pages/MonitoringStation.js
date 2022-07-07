@@ -4,7 +4,7 @@ import Graphic from '@arcgis/core/Graphic';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Viewpoint from '@arcgis/core/Viewpoint';
 import WindowSize from '@reach/window-size';
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { css } from 'styled-components/macro';
 
@@ -36,11 +36,7 @@ import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { colors, tableStyles } from 'styles';
 import { fetchCheck } from 'utils/fetchUtils';
 import { useSharedLayers } from 'utils/hooks';
-import {
-  getPopupContent,
-  getPopupTitle,
-  plotStations,
-} from 'utils/mapFunctions';
+import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
 
 /*
  * Styles
@@ -222,42 +218,43 @@ const pageErrorBoxStyles = css`
  * Helpers
  */
 
-const buildDateFilter = (range) => {
+function buildDateFilter(range) {
   if (range === 'all') return '';
   const date = new Date();
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
   const year = date.getFullYear() - parseInt(range);
-  const dateFormatted = `${date.getMonth() + 1}-${date.getDate()}-${year}`;
+  const dateFormatted = `${month}-${day}-${year}`;
   return '&startDateLo=' + dateFormatted;
-};
+}
 
-const buildGroupFilter = (station, selectedCategories) => {
-  if (
-    selectedCategories.length === Object.keys(station.groupCategories).length
-  ) {
+function buildGroupFilter(station, selectedCategories) {
+  if (selectedCategories.length === Object.keys(station.groupsByLabel).length) {
     return '';
   }
   let selectedGroups = [];
-  Object.keys(station.groupCategories).forEach((category) => {
+  Object.keys(station.groupsByLabel).forEach((category) => {
     if (selectedCategories.includes(category)) {
-      selectedGroups = selectedGroups.concat(station.groupCategories[category]);
+      selectedGroups = selectedGroups.concat(station.groupsByLabel[category]);
     }
   });
   const filter =
     '&characteristicType=' + selectedGroups.join('&characteristicType=');
   return filter;
-};
+}
 
-const fetchStationDetails = async (url, setData, setStatus) => {
+async function fetchStationDetails(url, setData, setStatus) {
   const res = await fetchCheck(url);
   if (res.features.length < 1) {
-    setStatus('no-station');
+    setStatus('success');
+    setData({});
     return;
   }
   const feature = res.features[0];
   const stationDetails = {
     county: feature.properties.CountyName,
     groupCounts: feature.properties.characteristicGroupResultCount,
-    groupCategories: categorizeGroups(
+    groupsByLabel: labelGroups(
       feature.properties.characteristicGroupResultCount,
       characteristicGroupMappings,
     ),
@@ -266,14 +263,14 @@ const fetchStationDetails = async (url, setData, setStatus) => {
     locationLatitude: feature.geometry.coordinates[1],
     locationName: feature.properties.MonitoringLocationName,
     locationType: feature.properties.MonitoringLocationTypeName,
-    monitoringType: 'Sample Location',
+    monitoringType: 'Past Water Conditions',
     orgId: feature.properties.OrganizationIdentifier,
     orgName: feature.properties.OrganizationFormalName,
     siteId: feature.properties.MonitoringLocationIdentifier,
-    stationProviderName: feature.properties.ProviderName,
+    providerName: feature.properties.ProviderName,
     state: feature.properties.StateName,
-    stationTotalSamples: feature.properties.activityCount,
-    stationTotalMeasurements: feature.properties.resultCount,
+    totalSamples: parseInt(feature.properties.activityCount),
+    totalMeasurements: parseInt(feature.properties.resultCount),
     uniqueId:
       `${feature.properties.MonitoringLocationIdentifier}/` +
       `${feature.properties.ProviderName}/` +
@@ -281,24 +278,54 @@ const fetchStationDetails = async (url, setData, setStatus) => {
   };
   setData(stationDetails);
   setStatus('success');
-};
+}
 
-const drawStation = async (station, layer, services) => {
+async function drawStation(station, layer) {
   if (isEmpty(station)) return false;
-  if (services.status === 'fetching') return false;
-  plotStations([station], layer);
+  const newFeature = new Graphic({
+    geometry: {
+      type: 'point',
+      latitude: station.locationLatitude,
+      longitude: station.locationLongitude,
+    },
+    attributes: {
+      ...station,
+      locationUrl: window.location.href,
+      stationProviderName: station.providerName,
+      stationTotalSamples: station.totalSamples,
+      stationTotalMeasurements: station.totalMeasurements,
+      stationTotalsByCategory: JSON.stringify(station.groupCounts),
+    },
+  });
   const featureSet = await layer.queryFeatures();
-  return featureSet.features.length ? true : false;
-};
+  const editResults = await layer.applyEdits({
+    deleteFeatures: featureSet.features,
+    addFeatures: [newFeature],
+  });
+  return editResults?.addFeatureResults?.length ? true : false;
+}
 
-const isEmpty = (obj) => {
-  for (var x in obj) {
+function isEmpty(obj) {
+  for (var _x in obj) {
     return false;
   }
   return true;
-};
+}
 
-const categorizeGroups = (groups, mappings) => {
+async function getZoomParams(layer) {
+  const featureSet = await layer.queryFeatures();
+  const graphics = featureSet.features;
+  if (graphics.length === 1 && graphics[0].geometry.type === 'point') {
+    // handle zooming to a single point graphic
+    const zoomParams = {
+      target: graphics[0],
+      zoom: 16, // set zoom 1 higher since it gets decremented later
+    };
+    return zoomParams;
+  }
+}
+
+function labelGroups(groups, mappings) {
   const categories = {};
   mappings
     .filter((mapping) => mapping.label !== 'All')
@@ -323,174 +350,9 @@ const categorizeGroups = (groups, mappings) => {
     }
   }
   return categories;
-};
+}
 
-const getZoomParams = async (layer) => {
-  const featureSet = await layer.queryFeatures();
-  const graphics = featureSet.features;
-  if (
-    graphics.length === 1 &&
-    (graphics[0].geometry.type === 'point' ||
-      graphics[0].geometry.type === 'multipoint')
-  ) {
-    // handle zooming to a single point graphic
-    const zoomParams = {
-      target: graphics[0],
-      zoom: 16, // set zoom 1 higher since it gets decremented later
-    };
-    return zoomParams;
-  }
-};
-
-const useMap = (station) => {
-  const [layersInitialized, setLayersInitialized] = useState(false);
-  const [doneDrawing, setDoneDrawing] = useState(false);
-  const [mapLoading, setMapLoading] = useState(true);
-
-  const services = useServicesContext();
-  const getSharedLayers = useSharedLayers();
-  const {
-    homeWidget,
-    layers,
-    mapView,
-    monitoringLocationsLayer,
-    resetData,
-    setLayers,
-    setMonitoringLocationsLayer,
-    setVisibleLayers,
-  } = useContext(LocationSearchContext);
-
-  // Initialize the layers
-  useEffect(() => {
-    if (!getSharedLayers || layersInitialized) return;
-
-    if (!monitoringLocationsLayer) {
-      const newMonitoringLocationsLayer = new FeatureLayer({
-        id: 'monitoringLocationsLayer',
-        title: 'Sample Locations',
-        listMode: 'hide',
-        legendEnabled: false,
-        fields: [
-          { name: 'OBJECTID', type: 'oid' },
-          { name: 'monitoringType', type: 'string' },
-          { name: 'siteId', type: 'string' },
-          { name: 'orgId', type: 'string' },
-          { name: 'orgName', type: 'string' },
-          { name: 'locationLongitude', type: 'double' },
-          { name: 'locationLatitude', type: 'double' },
-          { name: 'locationName', type: 'string' },
-          { name: 'locationType', type: 'string' },
-          { name: 'locationUrl', type: 'string' },
-          { name: 'stationProviderName', type: 'string' },
-          { name: 'stationTotalSamples', type: 'string' },
-          { name: 'stationTotalMeasurements', type: 'string' },
-          { name: 'stationTotalMeasurementsPercentile', type: 'double' },
-          { name: 'stationTotalsByCategory', type: 'string' },
-          { name: 'uniqueId', type: 'string' },
-        ],
-        outFields: ['*'],
-        source: [
-          new Graphic({
-            geometry: {
-              type: 'point',
-              longitude: station.locationLongitude,
-              latitude: station.locationLatitude,
-            },
-            attributes: { ObjectID: 1 },
-          }),
-        ],
-        renderer: {
-          type: 'simple',
-          symbol: {
-            type: 'simple-marker',
-            style: 'square',
-            color: colors.lightPurple(),
-          },
-          visualVariables: [
-            {
-              type: 'size',
-              field: 'stationTotalMeasurementsPercentile',
-              minDataValue: 0,
-              maxDataValue: 1,
-              minSize: 8,
-              maxSize: 20,
-            },
-          ],
-        },
-        popupTemplate: {
-          outFields: ['*'],
-          title: (feature) => getPopupTitle(feature.graphic.attributes),
-          content: (feature) =>
-            getPopupContent({ feature: feature.graphic, services }),
-        },
-      });
-      //let newMonitoringLocationsLayer = new GraphicsLayer({
-      //  id: 'monitoringLocationsLayer',
-      //  title: 'Sample Locations',
-      //  listMode: 'show',
-      //  visible: true,
-      //  legendEnabled: false,
-      //});
-      setMonitoringLocationsLayer(newMonitoringLocationsLayer);
-      setLayers([...getSharedLayers(), newMonitoringLocationsLayer]);
-      setVisibleLayers({ monitoringLocationsLayer: true });
-    } else {
-      setLayersInitialized(true);
-    }
-  }, [
-    getSharedLayers,
-    layers,
-    layersInitialized,
-    monitoringLocationsLayer,
-    services,
-    setLayers,
-    setMonitoringLocationsLayer,
-    setVisibleLayers,
-    station,
-  ]);
-
-  // Draw the station on the map
-  useEffect(() => {
-    if (!layersInitialized || doneDrawing) return;
-    drawStation(station, monitoringLocationsLayer, services).then((result) => {
-      setDoneDrawing(result);
-    });
-  }, [
-    doneDrawing,
-    layersInitialized,
-    station,
-    monitoringLocationsLayer,
-    services,
-  ]);
-
-  // Zoom to the location of the station
-  useEffect(() => {
-    if (!doneDrawing || !mapView || !monitoringLocationsLayer || !homeWidget)
-      return;
-
-    getZoomParams(monitoringLocationsLayer).then((zoomParams) => {
-      mapView.goTo(zoomParams).then(() => {
-        // set map zoom and home widget's viewpoint
-        mapView.zoom = mapView.zoom - 1;
-        homeWidget.viewpoint = new Viewpoint({
-          targetGeometry: mapView.extent,
-        });
-        setMapLoading(false);
-      });
-    });
-  }, [doneDrawing, mapView, monitoringLocationsLayer, homeWidget]);
-
-  // Function for resetting the LocationSearch context when the map is removed
-  useEffect(() => {
-    return function cleanup() {
-      resetData();
-    };
-  }, [resetData]);
-
-  return { layers, mapView, mapLoading };
-};
-
-const useStationDetails = (orgId, siteId) => {
+function useStationDetails(provider, orgId, siteId) {
   const services = useServicesContext();
 
   const [station, setStation] = useState({});
@@ -499,17 +361,17 @@ const useStationDetails = (orgId, siteId) => {
   useEffect(() => {
     const url =
       `${services.data.waterQualityPortal.monitoringLocation}` +
-      `search?mimeType=geojson&zip=no&organization=${orgId}&siteid=${siteId}`;
+      `search?mimeType=geojson&zip=no&provider=${provider}&organization=${orgId}&siteid=${siteId}`;
 
     fetchStationDetails(url, setStation, setStationStatus).catch((err) => {
       console.error(err);
       setStationStatus('failure');
       setStation({});
     });
-  }, [services, setStation, setStationStatus, orgId, siteId]);
+  }, [provider, services, setStation, setStationStatus, orgId, siteId]);
 
   return [station, stationStatus];
-};
+}
 
 const sectionRow = (label, value, style, dataStatus) => (
   <div css={style}>
@@ -524,10 +386,6 @@ const sectionRow = (label, value, style, dataStatus) => (
   </div>
 );
 
-const sectionRowBlock = (label, value, dataStatus = 'success') => {
-  return sectionRow(label, value, boxSectionStyles, dataStatus);
-};
-
 const sectionRowInline = (label, value, dataStatus = 'success') => {
   return sectionRow(label, value, inlineBoxSectionStyles, dataStatus);
 };
@@ -536,20 +394,21 @@ const sectionRowInline = (label, value, dataStatus = 'success') => {
  * Components
  */
 
-function DownloadSection({ station }) {
+function DownloadSection({ station, stationStatus }) {
   const [range, setRange] = useState('1');
-  const [categories, setCategories] = useState(
-    Object.keys(station.groupCategories),
-  );
+  const [categories, setCategories] = useState([]);
   const [allChecked, setAllChecked] = useState(1);
 
   const services = useServicesContext();
 
   const downloadUrl =
+    stationStatus === 'success' &&
     `${services.data.waterQualityPortal.resultSearch}zip=no&siteid=` +
-    `${station.siteId}&providers=${station.stationProviderName}` +
-    `${buildGroupFilter(station, categories)}` +
-    `${buildDateFilter(range)}`;
+      `${station.siteId}&providers=${station.stationProviderName}` +
+      `${buildGroupFilter(station, categories)}` +
+      `${buildDateFilter(range)}`;
+
+  const ranges = ['1', '5', '10', 'all'];
 
   const toggleCategory = (category) => {
     const newCategories = categories.includes(category)
@@ -557,7 +416,7 @@ function DownloadSection({ station }) {
       : [...categories, category];
     setCategories(newCategories);
 
-    if (newCategories.length === Object.keys(station.groupCategories).length) {
+    if (newCategories.length === Object.keys(station.groupsByLabel).length) {
       setAllChecked(1);
     } else if (newCategories.length === 0) {
       setAllChecked(0);
@@ -567,120 +426,141 @@ function DownloadSection({ station }) {
   };
 
   const toggleAllCategories = () => {
-    let selected = allChecked === 0 ? Object.keys(station.groupCategories) : [];
+    let selected = allChecked === 0 ? Object.keys(station.groupsByLabel) : [];
     setCategories(selected);
     setAllChecked(allChecked === 0 ? 1 : 0);
   };
 
-  const ranges = ['1', '5', '10', 'all'];
-  const radios = ranges.map((n) => (
-    <p key={n}>
-      <input
-        id={`${n}-year`}
-        value={n}
-        type="radio"
-        name="date-range"
-        checked={range === n}
-        onChange={(e) => setRange(e.target.value)}
-      />
-      <label htmlFor={`${n}-year`}>
-        {n === '1' ? `${n} Year` : n === 'all' ? 'All Time' : `${n} Years`}
-      </label>
-    </p>
-  ));
-
-  const checkboxRows = Object.keys(station.groupCategories).map(
-    (category, index) => {
-      return station.groupCategories[category].length === 0 ? null : (
-        <tr key={index}>
-          <td css={checkboxCellStyles}>
-            <input
-              css={checkboxStyles}
-              type="checkbox"
-              className="checkbox"
-              checked={categories.includes(category) || allChecked === 1}
-              onChange={() => toggleCategory(category)}
-            />
-          </td>
-          <td>{category}</td>
-        </tr>
-      );
-    },
-  );
-
-  const checkboxHeader = (
-    <tr>
-      <th css={checkboxCellStyles}>
-        <input
-          css={checkboxStyles}
-          type="checkbox"
-          className="checkbox"
-          checked={allChecked === 1}
-          ref={(input) => {
-            if (input) input.indeterminate = allChecked === 2;
-          }}
-          onChange={toggleAllCategories}
-        />
-      </th>
-      <th>
-        <GlossaryTerm term="Characteristic Group">
-          Characteristic Groups
-        </GlossaryTerm>
-      </th>
-    </tr>
-  );
-
-  const downloadLinks = sectionRowInline(
-    'Data Download Format',
-    <>
-      <a css={downloadLinksStyles} href={`${downloadUrl}&mimeType=xlsx`}>
-        <i css={iconStyles} className="fas fa-file-excel" aria-hidden="true" />
-        xls
-      </a>
-      <a css={downloadLinksStyles} href={`${downloadUrl}&mimeType=csv`}>
-        <i css={iconStyles} className="fas fa-file-csv" aria-hidden="true" />
-        csv
-      </a>
-    </>,
-  );
+  useEffect(() => {
+    if (stationStatus === 'success') {
+      setCategories(Object.keys(station.groupsByLabel));
+    }
+  }, [setCategories, station, stationStatus]);
 
   return (
     <div css={boxStyles}>
       <h2 css={boxHeadingStyles}>Download Station Data</h2>
-      {Object.keys(station.groupCounts).length === 0 ? (
+      {stationStatus === 'fetching' ? (
+        <LoadingSpinner />
+      ) : Object.keys(station.groupCounts).length === 0 ? (
         <p>No data available for this monitoring location.</p>
       ) : (
         <>
           <div css={modifiedBoxSectionStyles}>
-            <fieldset>{radios}</fieldset>
+            <fieldset>
+              {ranges.map((n) => (
+                <p key={n}>
+                  <input
+                    id={`${n}-year`}
+                    value={n}
+                    type="radio"
+                    name="date-range"
+                    checked={range === n}
+                    onChange={(e) => setRange(e.target.value)}
+                  />
+                  <label htmlFor={`${n}-year`}>
+                    {n === '1'
+                      ? `${n} Year`
+                      : n === 'all'
+                      ? 'All Time'
+                      : `${n} Years`}
+                  </label>
+                </p>
+              ))}
+            </fieldset>
             <table css={modifiedTableStyles} className="table">
-              <thead>{checkboxHeader}</thead>
-              <tbody>{checkboxRows}</tbody>
+              <thead>
+                <tr>
+                  <th css={checkboxCellStyles}>
+                    <input
+                      css={checkboxStyles}
+                      type="checkbox"
+                      className="checkbox"
+                      checked={allChecked === 1}
+                      ref={(input) => {
+                        if (input) input.indeterminate = allChecked === 2;
+                      }}
+                      onChange={toggleAllCategories}
+                    />
+                  </th>
+                  <th>
+                    <GlossaryTerm term="Characteristic Group">
+                      Characteristic Groups
+                    </GlossaryTerm>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.keys(station.groupsByLabel).map((category, index) => {
+                  return station.groupsByLabel[category].length === 0 ? null : (
+                    <tr key={index}>
+                      <td css={checkboxCellStyles}>
+                        <input
+                          css={checkboxStyles}
+                          type="checkbox"
+                          className="checkbox"
+                          checked={
+                            categories.includes(category) || allChecked === 1
+                          }
+                          onChange={() => toggleCategory(category)}
+                        />
+                      </td>
+                      <td>{category}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
             </table>
           </div>
-          <div id="download-links">{downloadLinks}</div>
+          <div id="download-links">
+            {sectionRowInline(
+              'Data Download Format',
+              <>
+                <a
+                  css={downloadLinksStyles}
+                  href={`${downloadUrl}&mimeType=xlsx`}
+                >
+                  <i
+                    css={iconStyles}
+                    className="fas fa-file-excel"
+                    aria-hidden="true"
+                  />
+                  xls
+                </a>
+                <a
+                  css={downloadLinksStyles}
+                  href={`${downloadUrl}&mimeType=csv`}
+                >
+                  <i
+                    css={iconStyles}
+                    className="fas fa-file-csv"
+                    aria-hidden="true"
+                  />
+                  csv
+                </a>
+              </>,
+            )}
+          </div>
         </>
       )}
     </div>
   );
 }
 
-function InformationSection({ siteId, station, stationStatus }) {
-  const heading = (
-    <h2 css={infoBoxHeadingStyles}>
-      {stationStatus === 'fetching' && <LoadingSpinner />}
-      <span>
-        {stationStatus === 'success' && station.locationName}
-        <small>
-          <strong>Monitoring Station ID:</strong>&nbsp; {siteId}
-        </small>
-      </span>
-    </h2>
-  );
+function InformationSection({ orgId, siteId, station, stationStatus }) {
+  const trimmedSiteId = siteId.replace(orgId + '-', '');
 
   return (
     <div css={boxStyles}>
-      {heading}
+      <h2 css={infoBoxHeadingStyles}>
+        {stationStatus === 'fetching' && <LoadingSpinner />}
+        <span>
+          {stationStatus === 'success' && station.locationName}
+          <small>
+            <strong>Monitoring Station ID:</strong>&nbsp; {trimmedSiteId}
+          </small>
+        </span>
+      </h2>
       {sectionRowInline('Organization Name', station.orgName, stationStatus)}
       {sectionRowInline('Organization ID', station.orgId, stationStatus)}
       {sectionRowInline(
@@ -694,8 +574,8 @@ function InformationSection({ siteId, station, stationStatus }) {
 }
 
 function MonitoringStation({ fullscreen }) {
-  const { orgId, siteId } = useParams();
-  const [station, stationStatus] = useStationDetails(orgId, siteId);
+  const { orgId, provider, siteId } = useParams();
+  const [station, stationStatus] = useStationDetails(provider, orgId, siteId);
   const [mapWidth, setMapWidth] = useState(0);
   const widthRef = useCallback((node) => {
     if (!node) return;
@@ -718,6 +598,7 @@ function MonitoringStation({ fullscreen }) {
             <StationMapContainer
               layout="narrow"
               station={station}
+              stationStatus={stationStatus}
               widthRef={widthRef}
             />
           </div>
@@ -740,21 +621,9 @@ function MonitoringStation({ fullscreen }) {
       <StationMapContainer
         layout="wide"
         station={station}
+        stationStatus={stationStatus}
         widthRef={widthRef}
       />
-    </div>
-  );
-
-  const leftColumn = (width, height) => (
-    <div css={splitLayoutColumnStyles}>
-      <InformationSection
-        orgId={orgId}
-        station={station}
-        stationStatus={stationStatus}
-        siteId={siteId}
-      />
-      {width < 960 ? mapNarrow(height) : mapWide}
-      <DownloadSection station={station} stationStatus={stationStatus} />
     </div>
   );
 
@@ -795,7 +664,19 @@ function MonitoringStation({ fullscreen }) {
           {({ width, height }) => {
             return (
               <div css={splitLayoutColumnsStyles}>
-                {leftColumn(width, height)}
+                <div css={splitLayoutColumnStyles}>
+                  <InformationSection
+                    orgId={orgId}
+                    station={station}
+                    stationStatus={stationStatus}
+                    siteId={siteId}
+                  />
+                  {width < 960 ? mapNarrow(height) : mapWide}
+                  <DownloadSection
+                    station={station}
+                    stationStatus={stationStatus}
+                  />
+                </div>
               </div>
             );
           }}
@@ -805,12 +686,17 @@ function MonitoringStation({ fullscreen }) {
   );
 
   switch (stationStatus) {
-    case 'no-station':
-      return noStationView;
     case 'success':
-      return fullscreen.fullscreenActive ? fullScreenView : twoColumnView;
-    default:
+      return isEmpty(station)
+        ? noStationView
+        : fullscreen.fullscreenActive
+        ? fullScreenView
+        : twoColumnView;
+    case 'failure':
+      // TODO: add error box
       return null;
+    default:
+      return fullscreen.fullscreenActive ? fullScreenView : twoColumnView;
   }
 }
 
@@ -828,8 +714,137 @@ function MonitoringStationContainer(props) {
   );
 }
 
-function StationMap({ layout, station, widthRef }) {
-  const { layers, mapView, mapLoading } = useMap(station);
+function StationMap({ layout, station, stationStatus, widthRef }) {
+  const [layersInitialized, setLayersInitialized] = useState(false);
+  const [doneDrawing, setDoneDrawing] = useState(false);
+  const [mapLoading, setMapLoading] = useState(true);
+
+  const services = useServicesContext();
+  const getSharedLayers = useSharedLayers();
+  const {
+    homeWidget,
+    layers,
+    mapView,
+    monitoringLocationsLayer,
+    resetData,
+    setLayers,
+    setMonitoringLocationsLayer,
+    setVisibleLayers,
+  } = useContext(LocationSearchContext);
+
+  // Initialize the layers
+  useEffect(() => {
+    if (!getSharedLayers || layersInitialized) return;
+
+    if (!monitoringLocationsLayer) {
+      const newMonitoringLocationsLayer = new FeatureLayer({
+        id: 'monitoringLocationsLayer',
+        title: 'Past Water Conditions',
+        listMode: 'hide',
+        legendEnabled: true,
+        fields: [
+          { name: 'OBJECTID', type: 'oid' },
+          { name: 'monitoringType', type: 'string' },
+          { name: 'siteId', type: 'string' },
+          { name: 'orgId', type: 'string' },
+          { name: 'orgName', type: 'string' },
+          { name: 'locationLongitude', type: 'double' },
+          { name: 'locationLatitude', type: 'double' },
+          { name: 'locationName', type: 'string' },
+          { name: 'locationType', type: 'string' },
+          { name: 'locationUrl', type: 'string' },
+          { name: 'stationProviderName', type: 'string' },
+          { name: 'stationTotalSamples', type: 'integer' },
+          { name: 'stationTotalMeasurements', type: 'integer' },
+          { name: 'stationTotalsByCategory', type: 'string' },
+          { name: 'uniqueId', type: 'string' },
+        ],
+        outFields: ['*'],
+        source: [
+          new Graphic({
+            geometry: { type: 'point', longitude: -98.5795, latitude: 39.8283 },
+            attributes: { OBJECTID: 1 },
+          }),
+        ],
+        renderer: {
+          type: 'simple',
+          symbol: {
+            type: 'simple-marker',
+            style: 'square',
+            color: colors.lightPurple(),
+            outline: {
+              width: 0.75,
+            },
+          },
+        },
+        popupTemplate: {
+          outFields: ['*'],
+          title: (feature) => getPopupTitle(feature.graphic.attributes),
+          content: (feature) => {
+            feature.graphic.attributes.groupCounts = JSON.parse(
+              feature.graphic.attributes.groupCounts,
+            );
+            return getPopupContent({ feature: feature.graphic, services });
+          },
+        },
+      });
+      setMonitoringLocationsLayer(newMonitoringLocationsLayer);
+      setLayers([...getSharedLayers(), newMonitoringLocationsLayer]);
+      setVisibleLayers({ monitoringLocationsLayer: true });
+    } else {
+      setLayersInitialized(true);
+    }
+  }, [
+    getSharedLayers,
+    layers,
+    layersInitialized,
+    monitoringLocationsLayer,
+    services,
+    setLayers,
+    setMonitoringLocationsLayer,
+    setVisibleLayers,
+    station,
+    stationStatus,
+  ]);
+
+  // Draw the station on the map
+  useEffect(() => {
+    if (!layersInitialized || doneDrawing) return;
+    drawStation(station, monitoringLocationsLayer, services).then((result) => {
+      setDoneDrawing(result);
+    });
+  }, [
+    doneDrawing,
+    layersInitialized,
+    station,
+    monitoringLocationsLayer,
+    services,
+  ]);
+
+  // Zoom to the location of the station
+  useEffect(() => {
+    if (!doneDrawing || !mapView || !monitoringLocationsLayer || !homeWidget)
+      return;
+
+    getZoomParams(monitoringLocationsLayer).then((zoomParams) => {
+      mapView.goTo(zoomParams).then(() => {
+        // set map zoom and home widget's viewpoint
+        mapView.zoom = mapView.zoom - 1;
+        homeWidget.viewpoint = new Viewpoint({
+          targetGeometry: mapView.extent,
+        });
+        setMapLoading(false);
+      });
+    });
+  }, [doneDrawing, mapView, monitoringLocationsLayer, homeWidget]);
+
+  // Function for resetting the LocationSearch context when the map is removed
+  useEffect(() => {
+    return function cleanup() {
+      resetData();
+    };
+  }, [resetData]);
+
   // Scrolls to the map when switching layouts
   useEffect(() => {
     const itemName = layout === 'fullscreen' ? 'stationmap' : 'container';
@@ -843,7 +858,11 @@ function StationMap({ layout, station, widthRef }) {
 
   return (
     <div css={mapContainerStyles} data-testid="hmw-station-map" ref={widthRef}>
-      <Map layers={layers} />
+      {stationStatus === 'fetching' ? (
+        <LoadingSpinner />
+      ) : (
+        <Map layers={layers} />
+      )}
       {mapView && mapLoading && <MapLoadingSpinner />}
     </div>
   );
