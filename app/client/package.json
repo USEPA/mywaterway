@@ -55,6 +55,7 @@
     "@arcgis/core": "4.23.7",
     "@reach/dialog": "0.17.0",
     "@reach/tabs": "0.16.4",
+    "@reach/tooltip": "0.16.0",
     "@reach/window-size": "0.17.0",
     "@visx/curve": "2.1.0",
     "@visx/xychart": "2.10.0",

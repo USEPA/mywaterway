@@ -2,6 +2,7 @@
 
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
+import Tooltip from '@reach/tooltip';
 import { css } from 'styled-components/macro';
 import { useNavigate } from 'react-router-dom';
 // components
@@ -36,7 +37,9 @@ import { characteristicGroupMappings } from 'config/characteristicGroupMappings'
 // errors
 import { monitoringError } from 'config/errorMessages';
 // styles
+import '@reach/tooltip/styles.css';
 import {
+  colors,
   disclaimerStyles,
   iconStyles,
   toggleTableStyles,
@@ -84,9 +87,14 @@ const sliderHeaderStyles = css`
   border-top: 1px solid #dee2e6;
   margin: auto;
   font-weight: bold;
-  padding: 0.5rem 3.5rem;
+  padding: 0.5rem;
   text-align: center;
   width: 100%;
+`;
+
+const sliderIconStyles = css`
+  cursor: help;
+  float: right;
 `;
 
 const switchContainerStyles = css`
@@ -117,6 +125,14 @@ const toggleStyles = css`
     margin-left: 0.5rem;
   }
 `;
+
+const tooltipStyles = {
+  background: colors.steel(0.9),
+  border: 'none',
+  borderRadius: '6px',
+  color: 'white',
+  padding: '0.5rem 1rem',
+};
 
 const totalRowStyles = css`
   border-top: 2px solid #dee2e6;
@@ -353,9 +369,6 @@ function Monitoring() {
     usgsStreamgages,
     visibleLayers,
   ]);
-
-  // Added to avoid the slider tooltip appearing
-  // on the Current Water Conditions tab
 
   return (
     <div css={containerStyles}>
@@ -871,6 +884,17 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
           <>
             <div css={sliderHeaderStyles}>
               Date range for the {watershed} watershed{' '}
+              <Tooltip
+                label={
+                  'Adjust the slider to filter location ' +
+                  'data by the selected year range'
+                }
+                style={tooltipStyles}
+              >
+                <span css={sliderIconStyles}>
+                  <i className="fas fa-question-circle" aria-hidden="true" />
+                </span>
+              </Tooltip>
             </div>
             <div css={sliderContainerStyles}>
               {!yearsRange ? (
