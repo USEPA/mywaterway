@@ -1,6 +1,12 @@
 // @flow
 
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, {
+  Fragment,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import { css } from 'styled-components/macro';
 import Select from 'react-select';
 import { Tabs, TabList, Tab, TabPanel, TabPanels } from '@reach/tabs';
@@ -1189,31 +1195,32 @@ function WaterQualityOverview() {
             />
           </div>
         </AccordionItem>
-        <AccordionItem
-          highlightContent={false}
-          css={css`
-            display: ${activeState?.source === 'States' ? 'block' : 'none'};
-          `}
-          icon={
-            <i
-              css={accordionIconStyles}
-              className="fas fa-newspaper"
-              aria-hidden="true"
-            />
-          }
-          title={
-            <h2 css={headingStyles}>
-              <strong>{activeState.label}</strong> Water Stories
-            </h2>
-          }
-        >
-          <div css={accordionContentStyles}>
-            <em css={newTabDisclaimerStyles}>
-              Stories below open in a new browser tab.
-            </em>
-            <Stories stories={stories} />
-          </div>
-        </AccordionItem>
+        {activeState?.source === 'States' ? (
+          <AccordionItem
+            highlightContent={false}
+            icon={
+              <i
+                css={accordionIconStyles}
+                className="fas fa-newspaper"
+                aria-hidden="true"
+              />
+            }
+            title={
+              <h2 css={headingStyles}>
+                <strong>{activeState.label}</strong> Water Stories
+              </h2>
+            }
+          >
+            <div css={accordionContentStyles}>
+              <em css={newTabDisclaimerStyles}>
+                Stories below open in a new browser tab.
+              </em>
+              <Stories stories={stories} />
+            </div>
+          </AccordionItem>
+        ) : (
+          <Fragment></Fragment>
+        )}
         <AccordionItem
           highlightContent={false}
           icon={
