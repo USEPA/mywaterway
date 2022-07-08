@@ -676,7 +676,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   // All stations in the current time range
   const [currentLocations, setCurrentLocations] = useState([]);
   useEffect(() => {
-    if (!monitoringLocationsLayer) return;
+    if (!monitoringLocationsLayer || !monitoringGroups) return;
     if (!monitoringDisplayed) {
       monitoringLocationsLayer.visible = false;
       return;

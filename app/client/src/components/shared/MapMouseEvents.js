@@ -1,5 +1,6 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import Point from '@arcgis/core/geometry/Point';
 import Query from '@arcgis/core/rest/support/Query';
 import QueryTask from '@arcgis/core/tasks/QueryTask';
@@ -26,6 +27,7 @@ async function getClusterExtent(cluster, mapView, layer) {
   const layerView = await mapView.whenLayerView(layer);
   const query = layerView.createQuery();
   query.aggregateIds = [cluster.getObjectId()];
+  await reactiveUtils.whenOnce(() => !layerView.updating);
   const { extent } = await layerView.queryExtent(query);
   return extent;
 }
@@ -70,8 +72,8 @@ function MapMouseEvents({ view }: Props) {
 
   const {
     getHucBoundaries,
-    huc12,
     monitoringFeatureUpdates,
+    monitoringLocations,
     monitoringLocationsLayer,
     resetData,
     protectedAreasLayer,
@@ -299,7 +301,7 @@ function MapMouseEvents({ view }: Props) {
     view,
   ]);
 
-  // Reference to a dictionary of date-filtered updates
+  // reference to a dictionary of date-filtered updates
   // applicable to graphics visible on the map
   const updates = useRef(null);
   useEffect(() => {
@@ -345,29 +347,9 @@ function MapMouseEvents({ view }: Props) {
     [updateSingleFeature],
   );
 
-  const [popupWatchHandler, setPopupWatchHandler] = useState(null);
-  const [zoomWatchHandler, setZoomWatchHandler] = useState(null);
-  const [locationCount, setLocationCount] = useState(0);
-  useEffect(() => {
-    setZoomWatchHandler(null);
-    setPopupWatchHandler(null);
-    if (!monitoringLocationsLayer) return;
-    monitoringLocationsLayer
-      .queryFeatureCount()
-      .then((count) => setLocationCount(count));
-  }, [huc12, monitoringLocationsLayer]);
-
-  // Watches for popups, and updates them if
+  // watches for popups, and updates them if
   // they represent monitoring location features
-  useEffect(() => {
-    if (services.status === 'fetching') return;
-    if (popupWatchHandler) return;
-    const handler = view.popup.watch('features', (graphics) => {
-      updateGraphics(graphics, updates);
-    });
-    setPopupWatchHandler(handler);
-  }, [popupWatchHandler, services.status, updateGraphics, view]);
-
+  const [popupWatchHandler, setPopupWatchHandler] = useState(null);
   useEffect(() => {
     return function cleanup() {
       popupWatchHandler?.remove();
@@ -375,17 +357,52 @@ function MapMouseEvents({ view }: Props) {
   }, [popupWatchHandler]);
 
   useEffect(() => {
-    if (locationCount <= 20) return;
+    if (services.status === 'fetching') return;
+    const handler = view.popup.watch('features', (graphics) => {
+      updateGraphics(graphics, updates);
+    });
+    setPopupWatchHandler(handler);
+    return function cleanup() {
+      setPopupWatchHandler(null);
+    };
+  }, [services.status, updateGraphics, view]);
+
+  // recalculates stored total location count on change of location
+  const [locationCount, setLocationCount] = useState(null);
+  useEffect(() => {
+    if (
+      monitoringLocations.status !== 'success' ||
+      !monitoringLocations.data.features
+    )
+      return;
+    setLocationCount(monitoringLocations.data.features.length);
+    return function cleanup() {
+      setLocationCount(null);
+    };
+  }, [monitoringLocations]);
+
+  // restores cluster settings on change of
+  // location or on entering/exiting fullscreen
+  useEffect(() => {
+    if (!locationCount || locationCount <= 20) return;
     if (!monitoringLocationsLayer || monitoringLocationsLayer.featureReduction)
       return;
     monitoringLocationsLayer.featureReduction = monitoringClusterSettings;
-  }, [fullscreenActive, huc12, locationCount, monitoringLocationsLayer]);
+  }, [fullscreenActive, locationCount, monitoringLocationsLayer]);
+
+  // sets a watcher on the zoom level, and restores
+  // cluster settings if the user zooms out
+  const [zoomWatchHandler, setZoomWatchHandler] = useState(null);
+  useEffect(() => {
+    return function cleanup() {
+      zoomWatchHandler?.remove();
+    };
+  }, [zoomWatchHandler]);
 
   useEffect(() => {
+    if (!locationCount || locationCount <= 20) return;
     if (!view || !monitoringLocationsLayer) return;
-    if (zoomWatchHandler) return;
     const handler = view.watch('zoom', (newZoom, oldZoom) => {
-      if (locationCount <= 20) return;
       if (
         !monitoringLocationsLayer ||
         monitoringLocationsLayer.featureReduction
@@ -396,13 +413,10 @@ function MapMouseEvents({ view }: Props) {
       }
     });
     setZoomWatchHandler(handler);
-  }, [locationCount, monitoringLocationsLayer, view, zoomWatchHandler]);
-
-  useEffect(() => {
     return function cleanup() {
-      zoomWatchHandler?.remove();
+      setZoomWatchHandler(null);
     };
-  }, [zoomWatchHandler]);
+  }, [locationCount, monitoringLocationsLayer, view]);
 
   function getGraphicFromResponse(
     res: Object,
