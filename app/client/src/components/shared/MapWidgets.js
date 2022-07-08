@@ -1251,6 +1251,12 @@ function MapWidgets({
       allWaterbodiesLayer.layers.forEach((layer) => {
         layer.minScale = allWaterbodiesLayer.minScale;
       });
+
+      // enable the all waterbodies widget but default visibility to off
+      setAllWaterbodiesWidgetDisabled(false);
+      setAllWaterbodiesLayerVisible(false);
+      allWaterbodiesLayer.visible = false;
+      return;
     }
 
     // display and enable the all waterbodies widget
