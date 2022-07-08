@@ -98,8 +98,8 @@ function TabLinks() {
       <div css={tabsStyles}>
         <TabLink to="/community">Community</TabLink>
         <TabLink
-          to="/stateandtribal"
-          possiblePaths={['/stateandtribal', '/state', '/tribe']}
+          to="/state-and-tribal"
+          possiblePaths={['/state-and-tribal', '/state', '/tribe']}
         >
           State & Tribal
         </TabLink>

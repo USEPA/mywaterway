@@ -180,7 +180,7 @@ function StateTribal() {
   useEffect(() => {
     const pathname = window.location.pathname.toLowerCase();
     if (pathname === '/state' || pathname === '/tribe') {
-      navigate('/stateandtribal');
+      navigate('/state-and-tribal');
     }
   }, [navigate]);
 
@@ -232,7 +232,7 @@ function StateTribal() {
 
   // reset active state if on state intro page
   useEffect(() => {
-    if (location.pathname === '/stateandtribal') {
+    if (location.pathname === '/state-and-tribal') {
       setSelectedStateTribe(null);
       setActiveState({
         label: '',

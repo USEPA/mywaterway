@@ -102,7 +102,7 @@ function Home() {
           <Link to="/community" css={placeButtonLinkStyles}>
             Community
           </Link>
-          <Link to="/stateandtribal" css={placeButtonLinkStyles}>
+          <Link to="/state-and-tribal" css={placeButtonLinkStyles}>
             State & Tribal
           </Link>
           <Link to="/national" css={placeButtonLinkStyles}>

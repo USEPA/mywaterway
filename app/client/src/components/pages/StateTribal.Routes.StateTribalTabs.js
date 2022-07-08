@@ -45,7 +45,7 @@ function StateTribalTabs() {
     }
   }, [navigate, stateCode, tabName]);
 
-  // redirect to '/stateandtribal' if the url doesn't match a valid route
+  // redirect to '/state-and-tribal' if the url doesn't match a valid route
   // and conditionally set active tab index
   useEffect(() => {
     const validRoutes = [
@@ -59,7 +59,7 @@ function StateTribalTabs() {
     );
 
     if (tabIndex === -1) {
-      navigate('/stateandtribal');
+      navigate('/state-and-tribal');
     }
 
     if (activeTabIndex !== tabIndex) {
@@ -95,7 +95,7 @@ function StateTribalTabs() {
           )[0];
 
           // redirect to /state if no state was found
-          if (!match) navigate('/stateandtribal');
+          if (!match) navigate('/state-and-tribal');
 
           setActiveState({
             value: match.code,
@@ -104,7 +104,7 @@ function StateTribalTabs() {
           });
         })
         .catch((err) => {
-          navigate('/stateandtribal');
+          navigate('/state-and-tribal');
         });
     }
   }, [
