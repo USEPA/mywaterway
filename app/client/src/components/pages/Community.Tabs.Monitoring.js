@@ -674,10 +674,17 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   useEffect(() => {
     if (monitoringGroups) return;
     // Reset data if the user switches locations
+    monitoringLocationsLayer.definitionExpression = '';
     resetWorkerData();
     setYearsRange(null);
     setAllToggled(true);
-  }, [monitoringGroups, resetWorkerData]);
+    setMonitoringDisplayed(true);
+  }, [
+    monitoringGroups,
+    monitoringLocationsLayer,
+    resetWorkerData,
+    setMonitoringDisplayed,
+  ]);
 
   const [charGroupFilters, setCharGroupFilters] = useState('');
   // create the filter string for download links based on active toggles
