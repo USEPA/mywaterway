@@ -271,7 +271,7 @@ function Overview() {
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {Boolean(waterbodies.length) && cipSummary.status === 'success'
+                {Boolean(waterbodies?.length) && cipSummary.status === 'success'
                   ? waterbodies.length.toLocaleString()
                   : 'N/A'}
               </span>

@@ -89,7 +89,7 @@ function createQueryString(array) {
 
 const mapPadding = 20;
 
-const monitoringClusterSettings = {
+export const monitoringClusterSettings = {
   type: 'cluster',
   clusterRadius: '100px',
   clusterMinSize: '24px',
@@ -281,7 +281,7 @@ function buildStations(locations, layer, services) {
     );
   });
 
-  // Attributes common to both the layer and the context object
+  // attributes common to both the layer and the context object
   return stationsSorted.map((station) => {
     return {
       monitoringType: 'Past Water Conditions',
@@ -317,8 +317,8 @@ function buildStations(locations, layer, services) {
   });
 }
 
-// Hook that centralizes updates to the `monitoringLocationsLayer`
-// and the `monitoringGroups` context object
+// hook that centralizes initialization of the `monitoringLocationsLayer`
+// and the `monitoringGroups` context objects
 function useMonitoringLocations() {
   const services = useServicesContext();
   const {
