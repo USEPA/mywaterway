@@ -1,12 +1,22 @@
+import Basemap from '@arcgis/core/Basemap';
 import Graphic from '@arcgis/core/Graphic';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Viewpoint from '@arcgis/core/Viewpoint';
 import Papa from 'papaparse';
 import WindowSize from '@reach/window-size';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useReducer,
+  useState,
+} from 'react';
 import { useParams } from 'react-router-dom';
 import { css } from 'styled-components/macro';
 // components
+import { AccordionList, AccordionItem } from 'components/shared/Accordion';
+import DateSlider from 'components/shared/DateSlider';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -24,6 +34,7 @@ import {
 } from 'components/shared/SplitLayout';
 // config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
+import { characteristicsByType } from 'config/characteristicsByType';
 import { monitoringError } from 'config/errorMessages';
 // contexts
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
@@ -44,43 +55,6 @@ import { colors, disclaimerStyles } from 'styles';
 
 const boxSectionStyles = css`
   padding: 0.4375rem 0.875rem;
-`;
-
-const charcsRadioContainerStyles = css`
-  display: flex;
-  height: 100%;
-  width: 100%;
-  input {
-    appearance: none;
-    margin: 0;
-  }
-  input:checked + label:before {
-    background-color: #38a6ee;
-    box-shadow: 0 0 0 1px ${colors.steel()}, inset 0 0 0 1px ${colors.white()};
-  }
-  label {
-    cursor: pointer;
-    font-size: 0.875em;
-    margin: auto;
-    padding-left: 1em;
-    text-indent: -1em;
-    &:before {
-      background: ${colors.white()};
-      border-radius: 100%;
-      box-shadow: 0 0 0 1px ${colors.steel()};
-      content: ' ';
-      display: inline-block;
-      height: 1em;
-      line-height: 1.25em;
-      margin-right: 1em;
-      position: relative;
-      text-indent: 0;
-      top: -1px;
-      vertical-align: middle;
-      white-space: pre;
-      width: 1em;
-    }
-  }
 `;
 
 const charcsTableStyles = css`
@@ -207,10 +181,19 @@ const modifiedErrorBoxStyles = css`
   text-align: center;
 `;
 
+const sliderContainerStyles = css`
+  align-items: flex-end;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  padding-bottom: 10px;
+  width: 100%;
+`;
+
 const tableStyles = css`
   display: inline-block;
   table-layout: fixed;
-  width: 70%;
+  width: 100%;
 
   thead {
     th {
@@ -250,13 +233,10 @@ const pageErrorBoxStyles = css`
 `;
 
 const radioStyles = css`
-  border: none;
-  display: inline-block;
-  font-size: 1rem;
-  margin: auto;
-  width: 30%;
-
-  input[type='radio'] {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  input {
     appearance: none;
     margin: 0;
   }
@@ -267,6 +247,7 @@ const radioStyles = css`
   label {
     cursor: pointer;
     font-size: 0.875em;
+    margin: auto;
     padding-left: 1em;
     text-indent: -1em;
     &:before {
@@ -276,22 +257,14 @@ const radioStyles = css`
       content: ' ';
       display: inline-block;
       height: 1em;
-      left: 2px;
       line-height: 1.25em;
       margin-right: 1em;
       position: relative;
       text-indent: 0;
-      top: -2px;
+      top: -1px;
       vertical-align: middle;
       white-space: pre;
       width: 1em;
-    }
-  }
-  p {
-    font-size: 1em;
-    margin-top: 1em;
-    &:first-child {
-      margin-top: 0;
     }
   }
 `;
@@ -310,19 +283,244 @@ function buildDateFilter(range) {
   return '&startDateLo=' + dateFormatted;
 }
 
-function buildGroupFilter(station, selected) {
-  if (selected.length === Object.keys(station.groupsByLabel).length) {
+function buildTypeFilter(station, selected) {
+  if (selected.length === Object.keys(station.charcGroups).length) {
     return '';
   }
-  let selectedGroups = [];
-  Object.keys(station.groupsByLabel).forEach((label) => {
-    if (selected.includes(label)) {
-      selectedGroups = selectedGroups.concat(station.groupsByLabel[label]);
+  let selectedTypes = [];
+  Object.keys(station.charcGroups).forEach((group) => {
+    if (selected.includes(group)) {
+      selectedTypes = selectedTypes.concat(station.charcGroups[group]);
     }
   });
   const filter =
-    '&characteristicType=' + selectedGroups.join('&characteristicType=');
+    '&characteristicType=' + selectedTypes.join('&characteristicType=');
   return filter;
+}
+
+function checkboxReducer(state, action) {
+  switch (action.type) {
+    case 'all': {
+      const newCharcs = {};
+      Object.values(state.charcs).forEach((charc) => {
+        newCharcs[charc.name] = {
+          ...charc,
+          selected: 1,
+        };
+      });
+      const newGroups = {};
+      Object.values(state.groups).forEach((group) => {
+        newGroups[group.name] = {
+          ...group,
+          selected: 1,
+        };
+      });
+      const newTypes = {};
+      Object.values(state.types).forEach((type) => {
+        newTypes[type.name] = {
+          ...type,
+          selected: 1,
+        };
+      });
+      return {
+        charcs: newCharcs,
+        groups: newGroups,
+        types: newTypes,
+      };
+    }
+    case 'none': {
+      const newCharcs = {};
+      Object.values(state.charcs).forEach((charc) => {
+        newCharcs[charc.name] = {
+          ...charc,
+          selected: 0,
+        };
+      });
+      const newGroups = {};
+      Object.values(state.groups).forEach((group) => {
+        newGroups[group.name] = {
+          ...group,
+          selected: 0,
+        };
+      });
+      const newTypes = {};
+      Object.values(state.types).forEach((type) => {
+        newTypes[type.name] = {
+          ...type,
+          selected: 0,
+        };
+      });
+      return {
+        charcs: newCharcs,
+        groups: newGroups,
+        types: newTypes,
+      };
+    }
+    case 'load': {
+      const newCharcs = {};
+      const newGroups = {};
+      const newTypes = {};
+      const { data } = action.payload;
+      Object.values(data).forEach((group) => {
+        newGroups[group.name] = {
+          count: group.count,
+          id: group.name,
+          selected: 1,
+          types: Object.keys(group.types),
+        };
+        Object.values(group.types).forEach((type) => {
+          newTypes[type.name] = {
+            charcs: Object.keys(type.charcs),
+            count: type.count,
+            group,
+            id: type.name,
+            selected: 1,
+          };
+          Object.values(type.charcs).forEach((charc) => {
+            newCharcs[charc.name] = {
+              count: charc.count,
+              group,
+              id: charc.name,
+              selected: 1,
+              type,
+            };
+          });
+        });
+      });
+      return {
+        charcs: newCharcs,
+        groups: newGroups,
+        types: newTypes,
+      };
+    }
+    case 'group': {
+      const { id: groupId } = action.payload;
+      const group = state.groups[groupId];
+      const newSelected = group.selected === 0 ? 1 : 0;
+      const newTypes = { ...state.types };
+      Object.values(newTypes).forEach((type) => {
+        if (type.group === groupId) {
+          newTypes[type.id] = {
+            ...type,
+            selected: newSelected,
+          };
+        }
+      });
+      const newCharcs = { ...state.charcs };
+      Object.values(newCharcs).forEach((charc) => {
+        if (charc.group === groupId) {
+          newCharcs[charc.id] = {
+            ...charc,
+            selected: newSelected,
+          };
+        }
+      });
+      return {
+        charcs: newCharcs,
+        groups: {
+          ...state.groups,
+          [groupId]: {
+            ...group,
+            selected: newSelected,
+          },
+        },
+        types: newTypes,
+      };
+    }
+    case 'type': {
+      const { id: typeId } = action.payload;
+      const type = state.types[typeId];
+      const newSelected = type.selected === 0 ? 1 : 0;
+      const newCharcs = { ...state.charcs };
+      Object.values(newCharcs).forEach((charc) => {
+        if (charc.type === typeId) {
+          newCharcs[charc.id] = {
+            ...charc,
+            selected: newSelected,
+          };
+        }
+      });
+      const newTypes = {
+        ...state.types,
+        [typeId]: {
+          ...type,
+          selected: newSelected,
+        },
+      };
+      const newGroups = { ...state.groups };
+      let groupTypesSelected = 0;
+      const typeIds = newGroups[type.group].types;
+      typeIds.forEach((id) => {
+        if (newTypes[id].selected) groupTypesSelected++;
+      });
+      const groupSelected =
+        groupTypesSelected === 0
+          ? 0
+          : groupTypesSelected === typeIds.length
+          ? 1
+          : 2;
+      newGroups[type.group] = {
+        ...newGroups[type.group],
+        selected: groupSelected,
+      };
+      return {
+        charcs: newCharcs,
+        groups: newGroups,
+        types: newTypes,
+      };
+    }
+    case 'characteristic': {
+      const { id: charcId } = action.payload;
+      const charc = state.charcs[charcId];
+      const newSelected = charc.selected === 0 ? 1 : 0;
+      const newCharcs = {
+        ...state.charcs,
+        [charcId]: {
+          ...charc,
+          selected: newSelected,
+        },
+      };
+      const newTypes = { ...state.types };
+      let typeCharcsSelected = 0;
+      const charcIds = newTypes[charc.type].charcs;
+      charcIds.forEach((id) => {
+        if (newCharcs[id].selected) typeCharcsSelected++;
+      });
+      const typeSelected =
+        typeCharcsSelected === 0
+          ? 0
+          : typeCharcsSelected === charcIds.length
+          ? 1
+          : 2;
+      newTypes[charc.type] = {
+        ...newTypes[charc.type],
+        selected: typeSelected,
+      };
+      const newGroups = { ...state.groups };
+      let groupTypesSelected = 0;
+      const typeIds = newGroups[charc.group].types;
+      typeIds.forEach((id) => {
+        if (newTypes[id].selected) groupTypesSelected++;
+      });
+      const groupSelected =
+        groupTypesSelected === 0
+          ? 0
+          : groupTypesSelected === typeIds.length
+          ? 1
+          : 2;
+      newGroups[charc.group] = {
+        ...newGroups[charc.group],
+        selected: groupSelected,
+      };
+      return {
+        charcs: newCharcs,
+        groups: newGroups,
+        types: newTypes,
+      };
+    }
+    default:
+      throw new Error('Invalid action type');
+  }
 }
 
 async function fetchStationDetails(url, setData, setStatus) {
@@ -335,8 +533,8 @@ async function fetchStationDetails(url, setData, setStatus) {
   const feature = res.features[0];
   const stationDetails = {
     county: feature.properties.CountyName,
-    groupCounts: feature.properties.characteristicGroupResultCount,
-    groupsByLabel: labelGroups(
+    charcTypeCounts: feature.properties.characteristicGroupResultCount,
+    charcGroups: groupTypes(
       feature.properties.characteristicGroupResultCount,
       characteristicGroupMappings,
     ),
@@ -358,9 +556,9 @@ async function fetchStationDetails(url, setData, setStatus) {
       `${feature.properties.ProviderName}/` +
       `${feature.properties.OrganizationIdentifier}`,
   };
-  stationDetails.labelCounts = parseLabelCounts(
-    stationDetails.groupCounts,
-    stationDetails.groupsByLabel,
+  stationDetails.charcGroupCounts = parseGroupCounts(
+    stationDetails.charcTypeCounts,
+    stationDetails.charcGroups,
     characteristicGroupMappings,
   );
   setData(stationDetails);
@@ -381,7 +579,7 @@ async function drawStation(station, layer) {
       stationProviderName: station.providerName,
       stationTotalSamples: station.totalSamples,
       stationTotalMeasurements: station.totalMeasurements,
-      stationTotalsByCategory: JSON.stringify(station.groupCounts),
+      stationTotalsByCategory: JSON.stringify(station.charcTypeCounts),
     },
   });
   const featureSet = await layer.queryFeatures();
@@ -405,12 +603,25 @@ function fetchParseCsv(url) {
   });
 }
 
-function getLabel(charType, labelMappings) {
-  for (let mapping of labelMappings) {
-    if (mapping.groupNames.includes(charType)) return mapping.label;
+function getCharcGroup(charcType, groupMappings) {
+  for (let mapping of groupMappings) {
+    if (mapping.groupNames.includes(charcType)) return mapping.label;
   }
   return 'Other';
 }
+
+function getCharcType(charcName, typeMappings) {
+  for (let mapping of Object.keys(typeMappings)) {
+    if (typeMappings[mapping].includes(charcName)) return mapping;
+  }
+  return 'Other';
+}
+
+const initialCheckboxes = {
+  groups: {},
+  types: {},
+  charcs: {},
+};
 
 function isEmpty(obj) {
   for (var _x in obj) {
@@ -432,43 +643,71 @@ async function getZoomParams(layer) {
   }
 }
 
-function labelGroups(groups, mappings) {
-  const labels = {};
+function groupTypes(charcTypes, mappings) {
+  const groups = {};
   mappings
     .filter((mapping) => mapping.label !== 'All')
     .forEach((mapping) => {
-      for (const group in groups) {
-        if (mapping.groupNames.includes(group)) {
-          if (!labels[mapping.label]) labels[mapping.label] = [];
-          labels[mapping.label].push(group);
+      for (const charcType in charcTypes) {
+        if (mapping.groupNames.includes(charcType)) {
+          if (!groups[mapping.label]) groups[mapping.label] = [];
+          groups[mapping.label].push(charcType);
         }
       }
     });
 
   // add any leftover lower-tier group counts to the 'Other' category
-  const groupsCategorized = Object.values(labels).reduce((a, b) => {
+  const typesGrouped = Object.values(groups).reduce((a, b) => {
     a.push(...b);
     return a;
   }, []);
-  for (const group in groups) {
-    if (!groupsCategorized.includes(group)) {
-      if (!labels['Other']) labels['Other'] = [];
-      labels['Other'].push(group);
+  for (const charcType in charcTypes) {
+    if (!typesGrouped.includes(charcType)) {
+      if (!groups['Other']) groups['Other'] = [];
+      groups['Other'].push(charcType);
     }
   }
-  return labels;
+  return groups;
 }
 
-function parseLabelCounts(groupCounts, groupsByLabel, mappings) {
-  const labelCounts = {};
+function parseGroupCounts(typeCounts, charcGroups, mappings) {
+  const groupCounts = {};
   mappings
     .filter((mapping) => mapping.label !== 'All')
-    .forEach((mapping) => (labelCounts[mapping.label] = 0));
-  Object.entries(groupsByLabel).forEach(([label, groups]) => {
-    groups.forEach((group) => (labelCounts[label] += groupCounts[group]));
+    .forEach((mapping) => (groupCounts[mapping.label] = 0));
+  Object.entries(charcGroups).forEach(([charcGroup, charcTypes]) => {
+    charcTypes.forEach(
+      (charcType) => (groupCounts[charcGroup] += typeCounts[charcType]),
+    );
   });
 
-  return labelCounts;
+  return groupCounts;
+}
+
+function parseCharcs(charcs, range) {
+  const result = {};
+  // structure characteristcs by group, then type
+  Object.entries(charcs).forEach(([charc, data]) => {
+    const { group, type, totalCount } = data;
+    if (!result[group]) {
+      result[group] = {
+        name: group,
+        types: {},
+      };
+    }
+    if (!result[group].types[type]) {
+      result[group].types[type] = {
+        charcs: {},
+        name: type,
+      };
+    }
+    result[group].types[type].charcs[charc] = {
+      count: totalCount,
+      name: charc,
+    };
+  });
+  updateCounts(result, range);
+  return result;
 }
 
 const sectionRow = (label, value, style, dataStatus) => (
@@ -488,6 +727,30 @@ const sectionRowInline = (label, value, dataStatus = 'success') => {
   return sectionRow(label, value, inlineBoxSectionStyles, dataStatus);
 };
 
+function updateCounts(groups, range) {
+  Object.values(groups).forEach((group) => {
+    let countByGroup = 0;
+    Object.values(group.types).forEach((type) => {
+      let countByType = 0;
+      Object.values(type.charcs).forEach((charc) => {
+        if (range) {
+          let countByCharc = 0;
+          charc.records.forEach((record) => {
+            if (record.year >= range[0] && record.year <= range[1]) {
+              countByCharc += 1;
+            }
+          });
+          charc.count = countByCharc;
+        }
+        countByType += charc.count;
+      });
+      type.count = countByType;
+      countByGroup += type.count;
+    });
+    group.count = countByGroup;
+  });
+}
+
 function useCharacteristics(provider, orgId, siteId) {
   const services = useServicesContext();
 
@@ -500,22 +763,28 @@ function useCharacteristics(provider, orgId, siteId) {
       const recordsByCharc = {};
       records.forEach((record) => {
         if (!recordsByCharc[record.CharacteristicName]) {
+          const charcType = getCharcType(
+            record.CharacteristicName,
+            characteristicsByType,
+          );
           recordsByCharc[record.CharacteristicName] = {
-            countByYear: {},
-            group: getLabel(
-              record.CharacteristicType,
-              characteristicGroupMappings,
-            ),
-            type: record.CharacteristicType,
-            totalCount: 0,
+            name: record.CharacteristicName,
+            group: getCharcGroup(charcType, characteristicGroupMappings),
+            records: [],
+            type: charcType,
+            count: 0,
           };
         }
         const curCharc = recordsByCharc[record.CharacteristicName];
-        curCharc.totalCount += record.ResultCount;
-        if (!curCharc.countByYear[record.YearSummarized]) {
-          curCharc.countByYear[record.YearSummarized] = 0;
-        }
-        curCharc.countByYear[record.YearSummarized] += record.ResultCount;
+        curCharc.count += 1;
+        const recordDate = record.ActivityStartDate.split('-');
+        curCharc.records.push({
+          year: parseInt(recordDate[0]),
+          month: parseInt(recordDate[1]),
+          day: parseInt(recordDate[2]),
+          measurement: record.ResultMeasureValue ?? null,
+          unit: record['ResultMeasure/MeasureUnitCode'] || null,
+        });
       });
       setCharcs(recordsByCharc);
       setStatus('success');
@@ -527,8 +796,8 @@ function useCharacteristics(provider, orgId, siteId) {
     if (status !== 'idle' || services.status !== 'success') return;
     setStatus('fetching');
     const url =
-      `${services.data.waterQualityPortal.monitoringLocation}search?` +
-      `&mimeType=csv&dataProfile=periodOfRecord&summaryYears=all` +
+      `${services.data.waterQualityPortal.resultSearch}` +
+      `&mimeType=csv&zip=no&dataProfile=narrowResult` +
       `&providers=${provider}&organization=${orgId}&siteid=${siteId}`;
     try {
       fetchParseCsv(url).then((results) => structureRecords(results.data));
@@ -569,26 +838,26 @@ function useStationDetails(provider, orgId, siteId) {
 function CharacteristicsTable({ charcs, charcsStatus }) {
   const [selected, setSelected] = useState(null);
   const tableData = useMemo(() => {
-    return Object.keys(charcs)
+    return Object.values(charcs)
       .map((charc) => {
         const selector = (
-          <div css={charcsRadioContainerStyles}>
+          <div css={radioStyles}>
             <input
-              checked={selected === charc}
-              id={charc}
+              checked={selected === charc.name}
+              id={charc.name}
               onChange={(e) => setSelected(e.target.value)}
               type="radio"
-              value={charc}
+              value={charc.name}
             />
-            <label htmlFor={charc}></label>
+            <label htmlFor={charc.name}></label>
           </div>
         );
         return {
-          count: charcs[charc].totalCount,
-          group: charcs[charc].group,
+          count: charc.count,
+          group: charc.group,
           select: selector,
-          name: charc,
-          type: charcs[charc].type,
+          name: charc.name,
+          type: charc.type,
         };
       })
       .sort((a, b) => a.name.localeCompare(b.name));
@@ -596,7 +865,7 @@ function CharacteristicsTable({ charcs, charcsStatus }) {
 
   return (
     <div css={boxStyles}>
-      <h2 css={infoBoxHeadingStyles}>Characteristic Names</h2>
+      <h2 css={infoBoxHeadingStyles}>Characteristics</h2>
       <div css={charcsTableStyles}>
         {charcsStatus === 'fetching' && <LoadingSpinner />}
         {charcsStatus === 'success' &&
@@ -652,11 +921,14 @@ function CharacteristicsTable({ charcs, charcsStatus }) {
   );
 }
 
-function DownloadSection({ station, stationStatus }) {
-  const [range, setRange] = useState('1');
-  const [selected, setSelected] = useState([]);
-  const [allChecked, setAllChecked] = useState(1);
-  const [totalMeasurements, setTotalMeasurements] = useState(0);
+function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
+  const [range, setRange] = useState(null);
+  const [minYear, setMinYear] = useState(null);
+  const [maxYear, setMaxYear] = useState(null);
+  const [checkboxes, checkboxDispatch] = useReducer(
+    checkboxReducer,
+    initialCheckboxes,
+  );
 
   const services = useServicesContext();
 
@@ -664,7 +936,7 @@ function DownloadSection({ station, stationStatus }) {
     stationStatus === 'success' &&
     `${services.data.waterQualityPortal.resultSearch}zip=no&siteid=` +
       `${station.siteId}&providers=${station.providerName}` +
-      `${buildGroupFilter(station, selected)}` +
+      `${buildTypeFilter(station, selected)}` +
       `${buildDateFilter(range)}`;
 
   const portalUrl =
@@ -673,77 +945,106 @@ function DownloadSection({ station, stationStatus }) {
       `&mimeType=xlsx&dataProfile=resultPhysChem` +
       `&siteid=${station.siteId}` +
       `&providers=${station.providerName}` +
-      `${buildGroupFilter(station, selected)}` +
+      `${buildTypeFilter(station, selected)}` +
       `${buildDateFilter(range)}`;
 
-  const ranges = ['1', '5', '10', 'all'];
-
-  const toggleLabel = (label) => {
-    const newSelected = selected.includes(label)
-      ? selected.filter((s) => s !== label)
-      : [...selected, label];
+  /* const toggleGroup = (group) => {
+    const newSelected = selected.includes(group)
+      ? selected.filter((s) => s !== group)
+      : [...selected, group];
     setSelected(newSelected);
 
-    if (newSelected.length === Object.keys(station.groupsByLabel).length) {
+    if (newSelected.length === Object.keys(station.charcGroups).length) {
       setAllChecked(1);
     } else if (newSelected.length === 0) {
       setAllChecked(0);
     } else {
       setAllChecked(2);
     }
-  };
+  }; */
 
-  const toggleAllChecked = () => {
-    let selected = allChecked === 0 ? Object.keys(station.groupsByLabel) : [];
+  /* const toggleAllChecked = () => {
+    let selected = allChecked === 0 ? Object.keys(station.charcGroups) : [];
     setSelected(selected);
     setAllChecked(allChecked === 0 ? 1 : 0);
-  };
+  }; */
 
   useEffect(() => {
-    if (stationStatus !== 'success') return;
-    setSelected(Object.keys(station.groupsByLabel));
-  }, [setSelected, station.groupsByLabel, stationStatus]);
+    if (charcsStatus !== 'success') return;
+    const data = parseCharcs(charcs);
+    checkboxDispatch({ type: 'load', data: data });
+  }, [charcs, charcsStatus]);
 
   useEffect(() => {
+    if (charcsStatus !== 'success') return;
+    if (minYear || maxYear) return;
+    let min = 0;
+    let max = Infinity;
+    Object.values(charcs).forEach((charc) => {
+      const { records } = charc;
+      records.forEach((record) => {
+        if (record.year < min) min = record.year;
+        if (record.year > max) max = record.year;
+      });
+    });
+    setMinYear(min);
+    setMaxYear(max);
+    setRange([min, max]);
+  }, [charcs, charcsStatus, maxYear, minYear]);
+
+  /* useEffect(() => {
     if (stationStatus !== 'success') return;
     const newTotalMeasurements = selected.reduce(
-      (a, b) => a + station.labelCounts[b],
+      (a, b) => a + station.charcGroupCounts[b],
       0,
     );
     setTotalMeasurements(newTotalMeasurements);
-  }, [selected, station.labelCounts, stationStatus]);
+  }, [selected, station.charcGroupCounts, stationStatus]); */
 
   return (
     <div css={boxStyles}>
-      <h2 css={boxHeadingStyles}>Station Data</h2>
+      <h2 css={boxHeadingStyles}>Download Station Data</h2>
       {stationStatus === 'fetching' ? (
         <LoadingSpinner />
-      ) : Object.keys(station.groupCounts).length === 0 ? (
+      ) : Object.keys(station.charcGroupCounts).length === 0 ? (
         <p>No data available for this monitoring location.</p>
       ) : (
         <>
+          <div css={sliderContainerStyles}>
+            {!range ? (
+              <LoadingSpinner />
+            ) : (
+              <DateSlider
+                bounds={[minYear, maxYear]}
+                disabled={!Boolean(Object.keys(charcs).length)}
+                onChange={(newRange) => setRange(newRange)}
+              />
+            )}
+          </div>
           <div css={flexboxSectionStyles}>
-            <fieldset css={radioStyles}>
-              {ranges.map((n) => (
-                <p key={n}>
-                  <input
-                    id={`${n}-year`}
-                    value={n}
-                    type="radio"
-                    name="date-range"
-                    checked={range === n}
-                    onChange={(e) => setRange(e.target.value)}
-                  />
-                  <label htmlFor={`${n}-year`}>
-                    {n === '1'
-                      ? `${n} Year`
-                      : n === 'all'
-                      ? 'All Time'
-                      : `${n} Years`}
-                  </label>
-                </p>
-              ))}
-            </fieldset>
+            <h3>Characteristics Groups:</h3>
+            {charcsStatus === 'idle' || charcsStatus === 'fetching' ? (
+              <LoadingSpinner />
+            ) : charcsStatus === 'failure' ? (
+              <div css={modifiedErrorBoxStyles}>
+                <p>{monitoringError}</p>
+              </div>
+            ) : charcsStatus === 'success' ? (
+              <AccordionList>
+                {Object.keys(station.charcGroups)
+                  .sort((a, b) => a.localeCompare(b))
+                  .map((group) => (
+                    <AccordionItem
+                      key={group}
+                      title={
+                        <span>
+                          <input type="checkbox" />
+                        </span>
+                      }
+                    ></AccordionItem>
+                  ))}
+              </AccordionList>
+            ) : null}
             <table css={tableStyles} className="table">
               <thead>
                 <tr>
@@ -756,7 +1057,7 @@ function DownloadSection({ station, stationStatus }) {
                       ref={(input) => {
                         if (input) input.indeterminate = allChecked === 2;
                       }}
-                      onChange={toggleAllChecked}
+                      // onChange={toggleAllChecked}
                     />
                   </th>
                   <th>
@@ -772,20 +1073,20 @@ function DownloadSection({ station, stationStatus }) {
                 </tr>
               </thead>
               <tbody>
-                {Object.keys(station.groupsByLabel).map((label, index) => {
-                  return station.groupsByLabel[label].length === 0 ? null : (
+                {Object.keys(station.charcGroups).map((group, index) => {
+                  return station.charcGroups[group].length === 0 ? null : (
                     <tr key={index}>
                       <td css={checkboxCellStyles}>
                         <input
                           css={checkboxStyles}
                           type="checkbox"
                           className="checkbox"
-                          checked={selected.includes(label) || allChecked === 1}
-                          onChange={() => toggleLabel(label)}
+                          // checked={selected.includes(group) || allChecked === 1}
+                          // onChange={() => toggleGroup(group)}
                         />
                       </td>
-                      <td>{label}</td>
-                      <td>{station.labelCounts[label]}</td>
+                      <td>{group}</td>
+                      <td>{station.charcGroupCounts[group]}</td>
                     </tr>
                   );
                 })}
@@ -969,6 +1270,8 @@ function MonitoringStation({ fullscreen }) {
                   />
                   {width < 960 ? mapNarrow(height) : mapWide}
                   <DownloadSection
+                    charcs={characteristics}
+                    charcsStatus={characteristicsStatus}
                     station={station}
                     stationStatus={stationStatus}
                   />
@@ -1033,6 +1336,19 @@ function StationMap({ layout, station, stationStatus, widthRef }) {
     setMonitoringLocationsLayer,
     setVisibleLayers,
   } = useContext(LocationSearchContext);
+
+  useEffect(() => {
+    if (!mapView) return;
+    mapView.map.basemap = new Basemap({
+      portalItem: {
+        id: '588f0e0acc514c11bc7c898fed9fc651',
+      },
+    });
+
+    return function cleanup() {
+      mapView.map.basemap = 'gray-vector';
+    };
+  }, [mapView]);
 
   // Initialize the layers
   useEffect(() => {
