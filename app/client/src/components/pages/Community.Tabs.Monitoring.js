@@ -629,6 +629,43 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     };
   }, [setMonitoringFeatureUpdates]);
 
+  const [allToggled, setAllToggled] = useState(true);
+  const toggleAll = useCallback(() => {
+    const updatedGroups = { ...monitoringGroups };
+    for (const label in updatedGroups) {
+      updatedGroups[label].toggled = !allToggled;
+    }
+    setMonitoringDisplayed(!allToggled);
+    setAllToggled((prev) => !prev);
+    setMonitoringGroups(updatedGroups);
+  }, [
+    allToggled,
+    monitoringGroups,
+    setMonitoringDisplayed,
+    setMonitoringGroups,
+  ]);
+
+  const toggleRow = useCallback(
+    (groupLabel) => {
+      const updatedGroups = { ...monitoringGroups };
+      updatedGroups[groupLabel].toggled = !updatedGroups[groupLabel].toggled;
+      setMonitoringGroups(updatedGroups);
+
+      let allOthersToggled = true;
+      for (let key in updatedGroups) {
+        if (!updatedGroups[key].toggled) allOthersToggled = false;
+      }
+      setAllToggled(allOthersToggled);
+
+      // only check the toggles that are on the screen (i.e., ignore Bacterial, Sediments, etc.)
+      const someToggled = Object.keys(updatedGroups)
+        .filter((label) => label !== 'All')
+        .some((key) => updatedGroups[key].toggled);
+      setMonitoringDisplayed(someToggled);
+    },
+    [monitoringGroups, setMonitoringDisplayed, setMonitoringGroups],
+  );
+
   // The data returned by the worker
   const [{ minYear, maxYear, annualData }, resetWorkerData] =
     usePeriodOfRecordData(huc12, 'huc12');
@@ -637,9 +674,17 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   useEffect(() => {
     if (monitoringGroups) return;
     // Reset data if the user switches locations
+    monitoringLocationsLayer.definitionExpression = '';
     resetWorkerData();
     setYearsRange(null);
-  }, [monitoringGroups, resetWorkerData]);
+    setAllToggled(true);
+    setMonitoringDisplayed(true);
+  }, [
+    monitoringGroups,
+    monitoringLocationsLayer,
+    resetWorkerData,
+    setMonitoringDisplayed,
+  ]);
 
   const [charGroupFilters, setCharGroupFilters] = useState('');
   // create the filter string for download links based on active toggles
@@ -676,11 +721,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   // All stations in the current time range
   const [currentLocations, setCurrentLocations] = useState([]);
   useEffect(() => {
-    if (!monitoringLocationsLayer) return;
-    if (!monitoringDisplayed) {
-      monitoringLocationsLayer.visible = false;
-      return;
-    }
+    if (!monitoringLocationsLayer || !monitoringGroups) return;
 
     const { toggledLocations, allLocations } = filterLocations(
       monitoringGroups,
@@ -709,9 +750,9 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
       )}')`;
     }
 
-    monitoringLocationsLayer.visible = true;
     setCurrentLocations(allLocations);
     setDisplayedLocations(toggledLocations);
+    monitoringLocationsLayer.visible = monitoringDisplayed;
   }, [
     monitoringDisplayed,
     monitoringGroups,
@@ -782,43 +823,6 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
       buildFilter(monitoringGroups);
     }
   }, [buildFilter, displayedLocations, monitoringGroups]);
-
-  const [allToggled, setAllToggled] = useState(true);
-  const toggleAll = useCallback(() => {
-    const updatedGroups = { ...monitoringGroups };
-    for (const label in updatedGroups) {
-      updatedGroups[label].toggled = !allToggled;
-    }
-    setMonitoringDisplayed(!allToggled);
-    setAllToggled((prev) => !prev);
-    setMonitoringGroups(updatedGroups);
-  }, [
-    allToggled,
-    monitoringGroups,
-    setMonitoringDisplayed,
-    setMonitoringGroups,
-  ]);
-
-  const toggleRow = useCallback(
-    (groupLabel) => {
-      const updatedGroups = { ...monitoringGroups };
-      updatedGroups[groupLabel].toggled = !updatedGroups[groupLabel].toggled;
-      setMonitoringGroups(updatedGroups);
-
-      let allOthersToggled = true;
-      for (let key in updatedGroups) {
-        if (!updatedGroups[key].toggled) allOthersToggled = false;
-      }
-      setAllToggled(allOthersToggled);
-
-      // only check the toggles that are on the screen (i.e., ignore Bacterial, Sediments, etc.)
-      const someToggled = Object.keys(updatedGroups)
-        .filter((label) => label !== 'All')
-        .some((key) => updatedGroups[key].toggled);
-      setMonitoringDisplayed(someToggled);
-    },
-    [monitoringGroups, setMonitoringDisplayed, setMonitoringGroups],
-  );
 
   const downloadUrl =
     `${services.data.waterQualityPortal.resultSearch}zip=no&huc=` +
