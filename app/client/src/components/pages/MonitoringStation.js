@@ -52,6 +52,52 @@ import { colors, disclaimerStyles } from 'styles';
 /*
  * Styles
  */
+const accordionHeadingStyles = css`
+  font-size: 0.875rem;
+  margin-top: 0 !important;
+  padding: 0.75em 1em !important;
+`;
+
+const accordionRowStyles = css`
+  ${accordionHeadingStyles}
+  border-top: 1px solid #d8dfe2;
+`;
+
+const accordionStyles = css`
+  margin-bottom: 1.25rem;
+  width: 100%;
+
+  .accordion-list > p {
+    margin-top: 0;
+    padding-bottom: 0.625em;
+    text-align: left;
+  }
+
+  .charc-name {
+    margin-left: 2em;
+    margin-right: 2.5em;
+  }
+
+  .charc-type {
+    margin-left: 1em;
+    margin-right: 1.25em;
+  }
+
+  .count {
+    float: right;
+  }
+
+  .total-row {
+    margin-right: 1.75em;
+  }
+
+  input[type='checkbox'] {
+    margin-right: 1em;
+    position: relative;
+    top: 0.15em;
+    transform: scale(1.2);
+  }
+`;
 
 const boxSectionStyles = css`
   padding: 0.4375rem 0.875rem;
@@ -64,16 +110,6 @@ const charcsTableStyles = css`
   .rt-table .rt-td {
     margin: auto;
   }
-`;
-
-const checkboxCellStyles = css`
-  padding-right: 0 !important;
-  text-align: center;
-`;
-
-const checkboxStyles = css`
-  appearance: checkbox;
-  transform: scale(1.2);
 `;
 
 const containerStyles = css`
@@ -184,10 +220,17 @@ const modifiedErrorBoxStyles = css`
 const sliderContainerStyles = css`
   align-items: flex-end;
   display: flex;
-  gap: 1rem;
   justify-content: center;
-  padding-bottom: 10px;
   width: 100%;
+  span {
+    margin-bottom: 0.1em;
+    &:first-of-type {
+      margin-left: 1em;
+    }
+    &:last-of-type {
+      margin-right: 1em;
+    }
+  }
 `;
 
 const tableStyles = css`
@@ -301,222 +344,26 @@ function buildTypeFilter(station, selected) {
 function checkboxReducer(state, action) {
   switch (action.type) {
     case 'all': {
-      const newCharcs = {};
-      Object.values(state.charcs).forEach((charc) => {
-        newCharcs[charc.name] = {
-          ...charc,
-          selected: 1,
-        };
-      });
-      const newGroups = {};
-      Object.values(state.groups).forEach((group) => {
-        newGroups[group.name] = {
-          ...group,
-          selected: 1,
-        };
-      });
-      const newTypes = {};
-      Object.values(state.types).forEach((type) => {
-        newTypes[type.name] = {
-          ...type,
-          selected: 1,
-        };
-      });
-      return {
-        charcs: newCharcs,
-        groups: newGroups,
-        types: newTypes,
-      };
-    }
-    case 'none': {
-      const newCharcs = {};
-      Object.values(state.charcs).forEach((charc) => {
-        newCharcs[charc.name] = {
-          ...charc,
-          selected: 0,
-        };
-      });
-      const newGroups = {};
-      Object.values(state.groups).forEach((group) => {
-        newGroups[group.name] = {
-          ...group,
-          selected: 0,
-        };
-      });
-      const newTypes = {};
-      Object.values(state.types).forEach((type) => {
-        newTypes[type.name] = {
-          ...type,
-          selected: 0,
-        };
-      });
-      return {
-        charcs: newCharcs,
-        groups: newGroups,
-        types: newTypes,
-      };
+      return toggleAll(state);
     }
     case 'load': {
-      const newCharcs = {};
-      const newGroups = {};
-      const newTypes = {};
       const { data } = action.payload;
-      Object.values(data).forEach((group) => {
-        newGroups[group.name] = {
-          count: group.count,
-          id: group.name,
-          selected: 1,
-          types: Object.keys(group.types),
-        };
-        Object.values(group.types).forEach((type) => {
-          newTypes[type.name] = {
-            charcs: Object.keys(type.charcs),
-            count: type.count,
-            group,
-            id: type.name,
-            selected: 1,
-          };
-          Object.values(type.charcs).forEach((charc) => {
-            newCharcs[charc.name] = {
-              count: charc.count,
-              group,
-              id: charc.name,
-              selected: 1,
-              type,
-            };
-          });
-        });
-      });
-      return {
-        charcs: newCharcs,
-        groups: newGroups,
-        types: newTypes,
-      };
+      return loadNewData(data);
     }
     case 'group': {
-      const { id: groupId } = action.payload;
-      const group = state.groups[groupId];
-      const newSelected = group.selected === 0 ? 1 : 0;
-      const newTypes = { ...state.types };
-      Object.values(newTypes).forEach((type) => {
-        if (type.group === groupId) {
-          newTypes[type.id] = {
-            ...type,
-            selected: newSelected,
-          };
-        }
-      });
-      const newCharcs = { ...state.charcs };
-      Object.values(newCharcs).forEach((charc) => {
-        if (charc.group === groupId) {
-          newCharcs[charc.id] = {
-            ...charc,
-            selected: newSelected,
-          };
-        }
-      });
-      return {
-        charcs: newCharcs,
-        groups: {
-          ...state.groups,
-          [groupId]: {
-            ...group,
-            selected: newSelected,
-          },
-        },
-        types: newTypes,
-      };
+      const { id } = action.payload;
+      const entity = state.groups[id];
+      return toggle(state, id, entity, action.type);
     }
     case 'type': {
-      const { id: typeId } = action.payload;
-      const type = state.types[typeId];
-      const newSelected = type.selected === 0 ? 1 : 0;
-      const newCharcs = { ...state.charcs };
-      Object.values(newCharcs).forEach((charc) => {
-        if (charc.type === typeId) {
-          newCharcs[charc.id] = {
-            ...charc,
-            selected: newSelected,
-          };
-        }
-      });
-      const newTypes = {
-        ...state.types,
-        [typeId]: {
-          ...type,
-          selected: newSelected,
-        },
-      };
-      const newGroups = { ...state.groups };
-      let groupTypesSelected = 0;
-      const typeIds = newGroups[type.group].types;
-      typeIds.forEach((id) => {
-        if (newTypes[id].selected) groupTypesSelected++;
-      });
-      const groupSelected =
-        groupTypesSelected === 0
-          ? 0
-          : groupTypesSelected === typeIds.length
-          ? 1
-          : 2;
-      newGroups[type.group] = {
-        ...newGroups[type.group],
-        selected: groupSelected,
-      };
-      return {
-        charcs: newCharcs,
-        groups: newGroups,
-        types: newTypes,
-      };
+      const { id } = action.payload;
+      const entity = state.types[id];
+      return toggle(state, id, entity, action.type);
     }
     case 'characteristic': {
-      const { id: charcId } = action.payload;
-      const charc = state.charcs[charcId];
-      const newSelected = charc.selected === 0 ? 1 : 0;
-      const newCharcs = {
-        ...state.charcs,
-        [charcId]: {
-          ...charc,
-          selected: newSelected,
-        },
-      };
-      const newTypes = { ...state.types };
-      let typeCharcsSelected = 0;
-      const charcIds = newTypes[charc.type].charcs;
-      charcIds.forEach((id) => {
-        if (newCharcs[id].selected) typeCharcsSelected++;
-      });
-      const typeSelected =
-        typeCharcsSelected === 0
-          ? 0
-          : typeCharcsSelected === charcIds.length
-          ? 1
-          : 2;
-      newTypes[charc.type] = {
-        ...newTypes[charc.type],
-        selected: typeSelected,
-      };
-      const newGroups = { ...state.groups };
-      let groupTypesSelected = 0;
-      const typeIds = newGroups[charc.group].types;
-      typeIds.forEach((id) => {
-        if (newTypes[id].selected) groupTypesSelected++;
-      });
-      const groupSelected =
-        groupTypesSelected === 0
-          ? 0
-          : groupTypesSelected === typeIds.length
-          ? 1
-          : 2;
-      newGroups[charc.group] = {
-        ...newGroups[charc.group],
-        selected: groupSelected,
-      };
-      return {
-        charcs: newCharcs,
-        groups: newGroups,
-        types: newTypes,
-      };
+      const { id } = action.payload;
+      const entity = state.charcs[id];
+      return toggle(state, id, entity, action.type);
     }
     default:
       throw new Error('Invalid action type');
@@ -617,7 +464,16 @@ function getCharcType(charcName, typeMappings) {
   return 'Other';
 }
 
+function getTotalCount(charcs) {
+  let totalCount = 0;
+  Object.values(charcs).forEach((charc) => {
+    if (charc.selected) totalCount += charc.count;
+  });
+  return totalCount;
+}
+
 const initialCheckboxes = {
+  all: 0,
   groups: {},
   types: {},
   charcs: {},
@@ -670,6 +526,46 @@ function groupTypes(charcTypes, mappings) {
   return groups;
 }
 
+function loadNewData(data) {
+  const newCharcs = {};
+  const newGroups = {};
+  const newTypes = {};
+
+  Object.values(data).forEach((group) => {
+    newGroups[group.id] = {
+      count: group.count,
+      id: group.id,
+      selected: 1,
+      types: Object.keys(group.types),
+    };
+    Object.values(group.types).forEach((type) => {
+      newTypes[type.id] = {
+        charcs: Object.keys(type.charcs),
+        count: type.count,
+        group: group.id,
+        id: type.id,
+        selected: 1,
+      };
+      Object.values(type.charcs).forEach((charc) => {
+        newCharcs[charc.id] = {
+          count: charc.count,
+          group: group.id,
+          id: charc.id,
+          selected: 1,
+          type: type.id,
+        };
+      });
+    });
+  });
+
+  return {
+    all: 1,
+    charcs: newCharcs,
+    groups: newGroups,
+    types: newTypes,
+  };
+}
+
 function parseGroupCounts(typeCounts, charcGroups, mappings) {
   const groupCounts = {};
   mappings
@@ -688,22 +584,23 @@ function parseCharcs(charcs, range) {
   const result = {};
   // structure characteristcs by group, then type
   Object.entries(charcs).forEach(([charc, data]) => {
-    const { group, type, totalCount } = data;
+    const { group, type, count, records } = data;
     if (!result[group]) {
       result[group] = {
-        name: group,
+        id: group,
         types: {},
       };
     }
     if (!result[group].types[type]) {
       result[group].types[type] = {
         charcs: {},
-        name: type,
+        id: type,
       };
     }
     result[group].types[type].charcs[charc] = {
-      count: totalCount,
-      name: charc,
+      count,
+      records,
+      id: charc,
     };
   });
   updateCounts(result, range);
@@ -727,6 +624,88 @@ const sectionRowInline = (label, value, dataStatus = 'success') => {
   return sectionRow(label, value, inlineBoxSectionStyles, dataStatus);
 };
 
+function toggle(state, id, entity, level) {
+  const newSelected = entity.selected === 0 ? 1 : 0;
+
+  const newCharcs = { ...state.charcs };
+  const newTypes = { ...state.types };
+  const newGroups = { ...state.groups };
+
+  switch (level) {
+    case 'characteristic': {
+      updateEntity(newCharcs, id, entity, newSelected);
+      const charcIds = newTypes[entity.type].charcs;
+      updateParent(newTypes, newCharcs, entity.type, charcIds);
+      const typeIds = newGroups[entity.group].types;
+      updateParent(newGroups, newTypes, entity.group, typeIds);
+      break;
+    }
+    case 'group': {
+      const ref = 'group';
+      updateEntity(newGroups, id, entity, newSelected);
+      updateDescendants(newTypes, ref, id, newSelected);
+      updateDescendants(newCharcs, ref, id, newSelected);
+      break;
+    }
+    case 'type': {
+      const ref = 'type';
+      updateEntity(newTypes, id, entity, newSelected);
+      updateDescendants(newCharcs, ref, id, newSelected);
+      const typeIds = newGroups[entity.group].types;
+      updateParent(newGroups, newTypes, entity.group, typeIds);
+      break;
+    }
+    default:
+      throw new Error('Invalid action type');
+  }
+
+  const groupIds = Object.keys(newGroups);
+  let groupsSelected = 0;
+  groupIds.forEach((groupId) => {
+    if (newGroups[groupId].selected) groupsSelected++;
+  });
+  const allSelected =
+    groupsSelected === 0 ? 0 : groupsSelected === groupIds.length ? 1 : 2;
+
+  return {
+    all: allSelected,
+    charcs: newCharcs,
+    groups: newGroups,
+    types: newTypes,
+  };
+}
+
+function toggleAll(state) {
+  const newSelected = state.all === 0 ? 1 : 0;
+  const newCharcs = {};
+  Object.values(state.charcs).forEach((charc) => {
+    newCharcs[charc.id] = {
+      ...charc,
+      selected: newSelected,
+    };
+  });
+  const newGroups = {};
+  Object.values(state.groups).forEach((group) => {
+    newGroups[group.id] = {
+      ...group,
+      selected: newSelected,
+    };
+  });
+  const newTypes = {};
+  Object.values(state.types).forEach((type) => {
+    newTypes[type.id] = {
+      ...type,
+      selected: newSelected,
+    };
+  });
+  return {
+    all: newSelected,
+    charcs: newCharcs,
+    groups: newGroups,
+    types: newTypes,
+  };
+}
+
 function updateCounts(groups, range) {
   Object.values(groups).forEach((group) => {
     let countByGroup = 0;
@@ -749,6 +728,37 @@ function updateCounts(groups, range) {
     });
     group.count = countByGroup;
   });
+}
+
+function updateEntity(obj, id, entity, selected) {
+  obj[id] = {
+    ...entity,
+    selected,
+  };
+}
+
+function updateDescendants(obj, ref, id, selected) {
+  Object.values(obj).forEach((entity) => {
+    if (entity[ref] === id) {
+      obj[entity.id] = {
+        ...entity,
+        selected,
+      };
+    }
+  });
+}
+
+function updateParent(parentObj, childObj, parentId, childIds) {
+  let childrenSelected = 0;
+  childIds.forEach((childId) => {
+    if (childObj[childId].selected) childrenSelected++;
+  });
+  const parentSelected =
+    childrenSelected === 0 ? 0 : childrenSelected === childIds.length ? 1 : 2;
+  parentObj[parentId] = {
+    ...parentObj[parentId],
+    selected: parentSelected,
+  };
 }
 
 function useCharacteristics(provider, orgId, siteId) {
@@ -929,24 +939,25 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
     checkboxReducer,
     initialCheckboxes,
   );
+  const [expanded, setExpanded] = useState(false);
 
   const services = useServicesContext();
 
-  const downloadUrl =
-    stationStatus === 'success' &&
+  const downloadUrl = '';
+  /* stationStatus === 'success' &&
     `${services.data.waterQualityPortal.resultSearch}zip=no&siteid=` +
       `${station.siteId}&providers=${station.providerName}` +
       `${buildTypeFilter(station, selected)}` +
-      `${buildDateFilter(range)}`;
+      `${buildDateFilter(range)}`; */
 
-  const portalUrl =
-    stationStatus === 'success' &&
+  const portalUrl = '';
+  /* stationStatus === 'success' &&
     `${services.data.waterQualityPortal.userInterface}#` +
       `&mimeType=xlsx&dataProfile=resultPhysChem` +
       `&siteid=${station.siteId}` +
       `&providers=${station.providerName}` +
       `${buildTypeFilter(station, selected)}` +
-      `${buildDateFilter(range)}`;
+      `${buildDateFilter(range)}`; */
 
   /* const toggleGroup = (group) => {
     const newSelected = selected.includes(group)
@@ -971,25 +982,25 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
 
   useEffect(() => {
     if (charcsStatus !== 'success') return;
-    const data = parseCharcs(charcs);
-    checkboxDispatch({ type: 'load', data: data });
-  }, [charcs, charcsStatus]);
+    const data = parseCharcs(charcs, range);
+    checkboxDispatch({ type: 'load', payload: { data } });
+  }, [charcs, charcsStatus, range]);
 
   useEffect(() => {
     if (charcsStatus !== 'success') return;
     if (minYear || maxYear) return;
-    let min = 0;
-    let max = Infinity;
+    let newMinYear = Infinity;
+    let newMaxYear = 0;
     Object.values(charcs).forEach((charc) => {
       const { records } = charc;
       records.forEach((record) => {
-        if (record.year < min) min = record.year;
-        if (record.year > max) max = record.year;
+        if (record.year < newMinYear) newMinYear = record.year;
+        if (record.year > newMaxYear) newMaxYear = record.year;
       });
     });
-    setMinYear(min);
-    setMaxYear(max);
-    setRange([min, max]);
+    setMinYear(newMinYear);
+    setMaxYear(newMaxYear);
+    setRange([newMinYear, newMaxYear]);
   }, [charcs, charcsStatus, maxYear, minYear]);
 
   /* useEffect(() => {
@@ -1022,7 +1033,6 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
             )}
           </div>
           <div css={flexboxSectionStyles}>
-            <h3>Characteristics Groups:</h3>
             {charcsStatus === 'idle' || charcsStatus === 'fetching' ? (
               <LoadingSpinner />
             ) : charcsStatus === 'failure' ? (
@@ -1030,22 +1040,171 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
                 <p>{monitoringError}</p>
               </div>
             ) : charcsStatus === 'success' ? (
-              <AccordionList>
-                {Object.keys(station.charcGroups)
-                  .sort((a, b) => a.localeCompare(b))
-                  .map((group) => (
-                    <AccordionItem
-                      key={group}
-                      title={
-                        <span>
-                          <input type="checkbox" />
-                        </span>
-                      }
-                    ></AccordionItem>
-                  ))}
-              </AccordionList>
+              <div css={accordionStyles}>
+                <AccordionList
+                  className="accordion-list"
+                  onExpandCollapse={(newExpanded) => setExpanded(newExpanded)}
+                  title={
+                    <>
+                      <input
+                        type="checkbox"
+                        checked={checkboxes.all === 1}
+                        ref={(input) => {
+                          if (input) input.indeterminate = checkboxes.all === 2;
+                        }}
+                        onChange={(_ev) => checkboxDispatch({ type: 'all' })}
+                      />
+                      <strong>Toggle All</strong>
+                    </>
+                  }
+                >
+                  <p css={accordionHeadingStyles}>
+                    <strong>
+                      <em>
+                        <GlossaryTerm term="Characteristic Group">
+                          Character&shy;istic Groups
+                        </GlossaryTerm>
+                        <GlossaryTerm
+                          className="count"
+                          term="Monitoring Measurements"
+                        >
+                          Number of Measurements
+                        </GlossaryTerm>
+                      </em>
+                    </strong>
+                  </p>
+                  {Object.values(checkboxes.groups)
+                    .sort((a, b) => a.id.localeCompare(b.id))
+                    .map((group) => (
+                      <AccordionItem
+                        allExpanded={expanded}
+                        key={group.id}
+                        highlightContent={false}
+                        title={
+                          <>
+                            <input
+                              type="checkbox"
+                              checked={group.selected === 1}
+                              ref={(input) => {
+                                if (input)
+                                  input.indeterminate = group.selected === 2;
+                              }}
+                              onChange={(_ev) => {
+                                checkboxDispatch({
+                                  type: 'group',
+                                  payload: { id: group.id },
+                                });
+                              }}
+                              onClick={(ev) => ev.stopPropagation()}
+                            />
+                            <strong>
+                              {group.id}
+                              <span className="count">{group.count}</span>
+                            </strong>
+                          </>
+                        }
+                      >
+                        <p className="charc-type" css={accordionHeadingStyles}>
+                          <strong>
+                            <em>Character&shy;istic Types</em>
+                          </strong>
+                        </p>
+                        {group.types
+                          .sort((a, b) => a.localeCompare(b))
+                          .map((typeId) => {
+                            const type = checkboxes.types[typeId];
+                            return (
+                              <div className="charc-type" key={typeId}>
+                                <AccordionItem
+                                  allExpanded={expanded}
+                                  highlightContent={false}
+                                  title={
+                                    <>
+                                      <input
+                                        type="checkbox"
+                                        checked={type.selected === 1}
+                                        ref={(input) => {
+                                          if (input)
+                                            input.indeterminate =
+                                              type.selected === 2;
+                                        }}
+                                        onChange={(_ev) =>
+                                          checkboxDispatch({
+                                            type: 'type',
+                                            payload: { id: typeId },
+                                          })
+                                        }
+                                        onClick={(ev) => ev.stopPropagation()}
+                                      />
+                                      <strong>
+                                        {typeId}
+                                        <span className="count">
+                                          {type.count}
+                                        </span>
+                                      </strong>
+                                    </>
+                                  }
+                                >
+                                  <p
+                                    className="charc-name"
+                                    css={accordionHeadingStyles}
+                                  >
+                                    <strong>
+                                      <em>Character&shy;istic Names</em>
+                                    </strong>
+                                  </p>
+                                  {type.charcs
+                                    .sort((a, b) => a.localeCompare(b))
+                                    .map((charcId) => {
+                                      const charc = checkboxes.charcs[charcId];
+                                      return (
+                                        <div
+                                          className="charc-name"
+                                          css={accordionRowStyles}
+                                          key={charcId}
+                                        >
+                                          <input
+                                            type="checkbox"
+                                            checked={charc.selected === 1}
+                                            ref={(input) => {
+                                              if (input)
+                                                input.indeterminate =
+                                                  charc.selected === 2;
+                                            }}
+                                            onChange={(_ev) =>
+                                              checkboxDispatch({
+                                                type: 'characteristic',
+                                                payload: { id: charcId },
+                                              })
+                                            }
+                                          />
+                                          <strong>
+                                            {charcId}
+                                            <span className="count">
+                                              {charc.count}
+                                            </span>
+                                          </strong>
+                                        </div>
+                                      );
+                                    })}
+                                </AccordionItem>
+                              </div>
+                            );
+                          })}
+                      </AccordionItem>
+                    ))}
+                  <p className="total-row" css={accordionHeadingStyles}>
+                    <strong>
+                      <em>Total Measurements Selected:</em>
+                      <span className="count">
+                        {getTotalCount(checkboxes.charcs)}
+                      </span>
+                    </strong>
+                  </p>
+                </AccordionList>
+              </div>
             ) : null}
-            <table css={tableStyles} className="table">
+            {/*<table css={tableStyles} className="table">
               <thead>
                 <tr>
                   <th css={checkboxCellStyles}>
@@ -1096,7 +1255,7 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
                   <td>{Number(totalMeasurements).toLocaleString()}</td>
                 </tr>
               </tbody>
-            </table>
+            </table>*/}
           </div>
           <div id="download-links" css={downloadLinksStyles}>
             <div>

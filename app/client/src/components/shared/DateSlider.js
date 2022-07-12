@@ -44,7 +44,7 @@ const sliderStyles = css`
   align-items: flex-end;
   display: inline-flex;
   height: 3.5em;
-  width: 60%;
+  width: 100%;
   z-index: 0;
 `;
 

@@ -77,6 +77,14 @@ const sliderContainerStyles = css`
   justify-content: center;
   padding-bottom: 10px;
   width: 100%;
+  span {
+    &:first-of-type {
+      margin-left: 1em;
+    }
+    &:last-of-type {
+      margin-right: 1em;
+    }
+  }
 `;
 
 const sliderHeaderStyles = css`
