@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, {
+  Fragment,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 import { useNavigate } from 'react-router-dom';
@@ -138,6 +144,7 @@ function TribalMapList({
   const [waterbodiesDisplayed, setWaterbodiesDisplayed] = useState(true);
   const [monitoringLocationsDisplayed, setMonitoringLocationsDisplayed] =
     useState(true);
+  const [waterbodiesLoading, setWaterbodiesLoading] = useState(false);
 
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
   const [actionsMapLoadError, setActionsMapLoadError] = useState(false);
@@ -179,6 +186,7 @@ function TribalMapList({
 
     setFilter(filter);
     setTribalBoundaryError(false);
+    setWaterbodiesLoading(true);
   }, [activeState, areasLayer, linesLayer, pointsLayer]);
 
   // get the full list of waterbodies across the points, lines, and areas layers
@@ -201,6 +209,7 @@ function TribalMapList({
         areasLayer.queryFeatures().then((areaFeatures) => {
           features.push(...areaFeatures.features);
           setWaterbodies(features);
+          setWaterbodiesLoading(false);
         });
       });
     });
@@ -341,7 +350,7 @@ function TribalMapList({
       {displayMode !== 'none' && (
         <div css={keyMetricsStyles}>
           <div css={keyMetricStyles}>
-            {!waterbodyLayer || waterbodies === null ? (
+            {!waterbodyLayer || waterbodiesLoading ? (
               <LoadingSpinner />
             ) : (
               <>
@@ -434,17 +443,26 @@ function TribalMapList({
             </TabList>
             <TabPanels>
               <TabPanel>
-                {waterbodies.length > 0 ? (
-                  <WaterbodyList
-                    waterbodies={waterbodies}
-                    title="Waterbodies"
-                  />
+                {waterbodiesLoading ? (
+                  <LoadingSpinner />
                 ) : (
-                  <div css={infoBoxStyles}>
-                    <p>
-                      {zeroAssessedWaterbodies(activeState.name, 'tribal area')}
-                    </p>
-                  </div>
+                  <Fragment>
+                    {waterbodies.length > 0 ? (
+                      <WaterbodyList
+                        waterbodies={waterbodies}
+                        title="Waterbodies"
+                      />
+                    ) : (
+                      <div css={infoBoxStyles}>
+                        <p>
+                          {zeroAssessedWaterbodies(
+                            activeState.name,
+                            'tribal area',
+                          )}
+                        </p>
+                      </div>
+                    )}
+                  </Fragment>
                 )}
               </TabPanel>
               <TabPanel>
