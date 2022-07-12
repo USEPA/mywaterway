@@ -1,4 +1,5 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
+import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 import { useNavigate } from 'react-router-dom';
 import Basemap from '@arcgis/core/Basemap';
@@ -8,9 +9,23 @@ import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import Viewpoint from '@arcgis/core/Viewpoint';
 // components
+import {
+  AccordionList,
+  AccordionItem,
+} from 'components/shared/AccordionMapHighlight';
+import {
+  keyMetricsStyles,
+  keyMetricStyles,
+  keyMetricNumberStyles,
+  keyMetricLabelStyles,
+} from 'components/shared/KeyMetrics';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Map from 'components/shared/Map';
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
+import Switch from 'components/shared/Switch';
+import ViewOnMapButton from 'components/shared/ViewOnMapButton';
+import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 import WaterbodyList from 'components/shared/WaterbodyList';
 // styled components
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
@@ -22,22 +37,44 @@ import {
 import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 // helpers
-import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
-import { browserIsCompatibleWithArcGIS } from 'utils/utils';
+import { fetchCheck } from 'utils/fetchUtils';
+import {
+  useMonitoringLocations,
+  useSharedLayers,
+  useWaterbodyHighlight,
+} from 'utils/hooks';
 import {
   createWaterbodySymbol,
   createUniqueValueInfos,
   getPopupTitle,
   getPopupContent,
 } from 'utils/mapFunctions';
+import { browserIsCompatibleWithArcGIS, parseAttributes } from 'utils/utils';
+// config
+import { monitoringClusterSettings } from 'components/shared/LocationMap';
 // errors
 import {
   esriMapLoadingFailure,
   tribalBoundaryErrorMessage,
   zeroAssessedWaterbodies,
 } from 'config/errorMessages';
+// styles
+import { colors } from 'styles/index.js';
+import { tabsStyles } from 'components/shared/ContentTabs';
 
 const mapListHeight = '70vh';
+
+const accordionContentStyles = css`
+  padding: 0.4375em 0.875em 0.875em;
+`;
+
+const buttonStyles = css`
+  margin-bottom: 0;
+  font-size: 0.9375em;
+  &.active {
+    background-color: #0071bc !important;
+  }
+`;
 
 const containerStyles = css`
   display: flex;
@@ -54,51 +91,58 @@ const inputStyles = css`
   margin-bottom: 0.75em;
 `;
 
-const buttonStyles = css`
-  margin-bottom: 0;
-  font-size: 0.9375em;
-  &.active {
-    background-color: #0071bc !important;
-  }
-`;
-
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles}
   margin-bottom: 0.75em;
 `;
 
+const modifiedTabStyles = css`
+  ${tabsStyles}
+  max-height: ${mapListHeight};
+  width: 100%;
+  overflow: auto;
+`;
+
+const switchContainerStyles = css`
+  margin-top: 0.5em;
+`;
+
+type Layout = 'narrow' | 'wide' | 'fullscreen';
+
 type Props = {
-  layout: 'narrow' | 'wide' | 'fullscreen',
+  activeState: Object,
+  layout: Layout,
   windowHeight: number,
   windowWidth: number,
-  activeState: Object,
 };
 
-function TribesMap({ layout, windowHeight, windowWidth, activeState }: Props) {
-  const navigate = useNavigate();
-
+function TribalMapList({
+  activeState,
+  layout,
+  windowHeight,
+  windowWidth,
+}: Props) {
   const {
-    homeWidget,
-    mapView,
     areasLayer,
-    setAreasLayer,
     linesLayer,
-    setLinesLayer,
+    mapView,
+    monitoringLocations,
+    setMonitoringLocations,
+    monitoringLocationsLayer,
     pointsLayer,
-    setPointsLayer,
+    visibleLayers,
     setVisibleLayers,
     waterbodyLayer,
-    setWaterbodyLayer,
   } = useContext(LocationSearchContext);
 
-  const [layers, setLayers] = useState(null);
+  const [waterbodiesDisplayed, setWaterbodiesDisplayed] = useState(true);
+  const [monitoringLocationsDisplayed, setMonitoringLocationsDisplayed] =
+    useState(true);
 
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
   const [actionsMapLoadError, setActionsMapLoadError] = useState(false);
 
   const services = useServicesContext();
-  const getSharedLayers = useSharedLayers();
-  useWaterbodyHighlight();
 
   // switch the base map to
   useEffect(() => {
@@ -115,6 +159,353 @@ function TribesMap({ layout, windowHeight, windowWidth, activeState }: Props) {
       mapView.map.basemap = 'gray-vector';
     };
   }, [mapView]);
+
+  // get gis data for selected tribe
+  const [tribalBoundaryError, setTribalBoundaryError] = useState(false);
+
+  // set the filter on each waterbody layer
+  const [filter, setFilter] = useState('');
+  useEffect(() => {
+    if (!activeState?.attainsId || !pointsLayer || !linesLayer || !areasLayer)
+      return;
+
+    // change the where clause of the feature layers
+    const filter = `organizationid = '${activeState.attainsId}'`;
+    if (filter) {
+      pointsLayer.definitionExpression = filter;
+      linesLayer.definitionExpression = filter;
+      areasLayer.definitionExpression = filter;
+    }
+
+    setFilter(filter);
+    setTribalBoundaryError(false);
+  }, [activeState, areasLayer, linesLayer, pointsLayer]);
+
+  // get the full list of waterbodies across the points, lines, and areas layers
+  const [waterbodies, setWaterbodies] = useState([]);
+  useEffect(() => {
+    if (!filter || !mapView || !pointsLayer || !linesLayer || !areasLayer) {
+      return;
+    }
+
+    const features = [];
+    // get the waterbodies from the points layer
+    pointsLayer.queryFeatures().then((pointFeatures) => {
+      features.push(...pointFeatures.features);
+
+      // get the waterbodies from the lines layer
+      linesLayer.queryFeatures().then((lineFeatures) => {
+        features.push(...lineFeatures.features);
+
+        // get the waterbodies from the areas layer
+        areasLayer.queryFeatures().then((areaFeatures) => {
+          features.push(...areaFeatures.features);
+          setWaterbodies(features);
+        });
+      });
+    });
+  }, [pointsLayer, linesLayer, areasLayer, mapView, filter]);
+
+  // get the wqx monitoring locations associated with the selected tribe
+  useEffect(() => {
+    if (!activeState?.wqxIds) return;
+
+    const url =
+      `${services.data.waterQualityPortal.monitoringLocation}` +
+      `search?mimeType=geojson&zip=no&organization=${activeState.wqxIds.join(
+        '&organization=',
+      )}`;
+
+    fetchCheck(url)
+      .then((res) => {
+        setMonitoringLocations({
+          status: 'success',
+          data: res,
+        });
+      })
+      .catch((err) => {
+        console.error(err);
+        setMonitoringLocations({ status: 'failure', data: {} });
+      });
+  }, [activeState, services, setMonitoringLocations]);
+
+  // scroll to the tribe map when the user switches to full screen mode
+  useEffect(() => {
+    if (layout === 'fullscreen') {
+      const mapContent = document.querySelector(`[aria-label="Tribal Map"]`);
+
+      if (mapContent) {
+        let pos = mapContent.getBoundingClientRect();
+        window.scrollTo(pos.left + window.scrollX, pos.top + window.scrollY);
+      }
+    }
+  }, [layout, windowHeight, windowWidth]);
+
+  // Updates the visible layers. This function also takes into account whether
+  // or not the underlying webservices failed.
+  const updateVisibleLayers = useCallback(
+    ({ key = null, value = null, useCurrentValue = false }) => {
+      const layers = {};
+
+      if (waterbodyLayer) {
+        layers.waterbodyLayer =
+          !waterbodyLayer || useCurrentValue
+            ? visibleLayers.waterbodyLayer
+            : waterbodiesDisplayed;
+      }
+
+      if (monitoringLocations.status !== 'failure') {
+        layers.monitoringLocationsLayer =
+          !monitoringLocationsLayer || useCurrentValue
+            ? visibleLayers.monitoringLocationsLayer
+            : monitoringLocationsDisplayed;
+      }
+
+      if (key && layers.hasOwnProperty(key)) {
+        layers[key] = value;
+      }
+
+      // set the visible layers if something changed
+      if (JSON.stringify(visibleLayers) !== JSON.stringify(layers)) {
+        setVisibleLayers(layers);
+      }
+    },
+    [
+      monitoringLocations,
+      waterbodyLayer,
+      monitoringLocationsLayer,
+      waterbodiesDisplayed,
+      monitoringLocationsDisplayed,
+      visibleLayers,
+      setVisibleLayers,
+    ],
+  );
+
+  // check for browser compatibility with map
+  if (!browserIsCompatibleWithArcGIS() && !actionsMapLoadError) {
+    setActionsMapLoadError(true);
+  }
+
+  const [displayMode, setDisplayMode] = useState('map');
+
+  if (actionsMapLoadError) {
+    return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
+  }
+
+  return (
+    <div>
+      <div css={inputStyles}>
+        <div className="btn-group" role="group">
+          <button
+            css={buttonStyles}
+            type="button"
+            className={`btn btn-secondary${
+              displayMode === 'map' ? ' active' : ''
+            }`}
+            onClick={(ev) => setDisplayMode('map')}
+          >
+            <i className="fas fa-map-marked-alt" aria-hidden="true" />
+            &nbsp;&nbsp;Map
+          </button>
+          <button
+            css={buttonStyles}
+            type="button"
+            className={`btn btn-secondary${
+              displayMode === 'list' ? ' active' : ''
+            }`}
+            onClick={(ev) => setDisplayMode('list')}
+          >
+            <i className="fas fa-list" aria-hidden="true" />
+            &nbsp;&nbsp;List
+          </button>
+          <button
+            css={buttonStyles}
+            type="button"
+            className={`btn btn-secondary${
+              displayMode === 'none' ? ' active' : ''
+            }`}
+            onClick={(ev) => setDisplayMode('none')}
+          >
+            <i className="far fa-eye-slash" aria-hidden="true" />
+            &nbsp;&nbsp;Hidden
+          </button>
+        </div>
+      </div>
+
+      {tribalBoundaryError && (
+        <div css={modifiedErrorBoxStyles}>
+          <p>{tribalBoundaryErrorMessage}</p>
+        </div>
+      )}
+
+      {displayMode !== 'none' && (
+        <div css={keyMetricsStyles}>
+          <div css={keyMetricStyles}>
+            {!waterbodyLayer || waterbodies === null ? (
+              <LoadingSpinner />
+            ) : (
+              <>
+                <span css={keyMetricNumberStyles}>
+                  {Boolean(waterbodies?.length)
+                    ? waterbodies.length.toLocaleString()
+                    : 'N/A'}
+                </span>
+                <p css={keyMetricLabelStyles}>Waterbodies</p>
+                <div css={switchContainerStyles}>
+                  <Switch
+                    checked={
+                      Boolean(waterbodies.length) && waterbodiesDisplayed
+                    }
+                    onChange={(checked) => {
+                      if (!waterbodyLayer) return;
+                      setWaterbodiesDisplayed(!waterbodiesDisplayed);
+                      updateVisibleLayers({
+                        key: 'waterbodyLayer',
+                        value: !waterbodiesDisplayed,
+                      });
+                    }}
+                    disabled={!Boolean(waterbodies.length)}
+                    ariaLabel="Waterbodies"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+
+          <div css={keyMetricStyles}>
+            {!monitoringLocationsLayer ||
+            monitoringLocations.status === 'fetching' ? (
+              <LoadingSpinner />
+            ) : (
+              <>
+                <span css={keyMetricNumberStyles}>
+                  {Boolean(monitoringLocations.data.features.length) &&
+                  monitoringLocations.status === 'success'
+                    ? monitoringLocations.data.features.length
+                    : 'N/A'}
+                </span>
+                <p css={keyMetricLabelStyles}>Monitoring Locations</p>
+                <div css={switchContainerStyles}>
+                  <Switch
+                    checked={
+                      Boolean(monitoringLocations.data.features.length) &&
+                      monitoringLocationsDisplayed
+                    }
+                    onChange={(checked) => {
+                      if (!monitoringLocationsLayer) return;
+                      setMonitoringLocationsDisplayed(
+                        !monitoringLocationsDisplayed,
+                      );
+                      setMonitoringLocationsDisplayed(
+                        !monitoringLocationsDisplayed,
+                      );
+                      setVisibleLayers({
+                        monitoringLocationsLayer: !monitoringLocationsDisplayed,
+                        // NOTE: no change for the following layers:
+                        waterbodyLayer: waterbodiesDisplayed,
+                      });
+                    }}
+                    disabled={
+                      !Boolean(monitoringLocations.data.features.length)
+                    }
+                    ariaLabel="Monitoring Stations"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+      <TribalMap
+        activeState={activeState}
+        displayMode={displayMode}
+        filter={filter}
+        layout={layout}
+        setTribalBoundaryError={setTribalBoundaryError}
+        windowHeight={windowHeight}
+        windowWidth={windowWidth}
+      />
+      {displayMode === 'list' && (
+        <div css={modifiedTabStyles}>
+          <Tabs>
+            <TabList>
+              <Tab>Waterbodies</Tab>
+              <Tab>MonitoringLocations</Tab>
+            </TabList>
+            <TabPanels>
+              <TabPanel>
+                {waterbodies.length > 0 ? (
+                  <WaterbodyList
+                    waterbodies={waterbodies}
+                    title="Waterbodies"
+                  />
+                ) : (
+                  <div css={infoBoxStyles}>
+                    <p>
+                      {zeroAssessedWaterbodies(activeState.name, 'tribal area')}
+                    </p>
+                  </div>
+                )}
+              </TabPanel>
+              <TabPanel>
+                <MonitoringTab
+                  activeState={activeState}
+                  monitoringLocations={monitoringLocations}
+                  monitoringLocationsDisplayed={monitoringLocationsDisplayed}
+                />
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
+        </div>
+      )}
+    </div>
+  );
+}
+
+type TribalMapProps = {
+  activeState: Object,
+  displayMode: 'list' | 'map' | 'none',
+  filter: string,
+  layout: Layout,
+  setTribalBoundaryError: Function,
+  windowHeight: number,
+  windowWidth: number,
+};
+
+function TribalMap({
+  activeState,
+  displayMode,
+  filter,
+  layout,
+  setTribalBoundaryError,
+  windowHeight,
+  windowWidth,
+}: TribalMapProps) {
+  const {
+    areasLayer,
+    setAreasLayer,
+    homeWidget,
+    linesLayer,
+    setLinesLayer,
+    mapView,
+    setMonitoringLocationsLayer,
+    pointsLayer,
+    setPointsLayer,
+    setVisibleLayers,
+    waterbodyLayer,
+    setWaterbodyLayer,
+  } = useContext(LocationSearchContext);
+
+  const navigate = useNavigate();
+  const services = useServicesContext();
+  useWaterbodyHighlight();
+
+  // updates the features on the monitoringStationsLayer
+  // and the monitoring groups
+  useMonitoringLocations();
+
+  const getSharedLayers = useSharedLayers();
+  const [layers, setLayers] = useState(null);
 
   // Initially sets up the layers
   const [layersInitialized, setLayersInitialized] = useState(false);
@@ -212,6 +603,71 @@ function TribesMap({ layout, windowHeight, windowWidth, activeState }: Props) {
     });
     setSelectedTribeLayer(selectedTribeLayer);
 
+    const monitoringLocationsLayer = new FeatureLayer({
+      id: 'monitoringLocationsLayer',
+      title: 'Past Water Conditions',
+      listMode: 'hide-children',
+      visible: true,
+      legendEnabled: true,
+      fields: [
+        { name: 'OBJECTID', type: 'oid' },
+        { name: 'monitoringType', type: 'string' },
+        { name: 'siteId', type: 'string' },
+        { name: 'orgId', type: 'string' },
+        { name: 'orgName', type: 'string' },
+        { name: 'locationLongitude', type: 'double' },
+        { name: 'locationLatitude', type: 'double' },
+        { name: 'locationName', type: 'string' },
+        { name: 'locationType', type: 'string' },
+        { name: 'locationUrl', type: 'string' },
+        { name: 'stationProviderName', type: 'string' },
+        { name: 'stationTotalSamples', type: 'integer' },
+        { name: 'stationTotalsByGroup', type: 'string' },
+        { name: 'stationTotalMeasurements', type: 'integer' },
+        { name: 'timeframe', type: 'string' },
+        { name: 'uniqueId', type: 'string' },
+      ],
+      objectIdField: 'OBJECTID',
+      outFields: ['*'],
+      // NOTE: initial graphic below will be replaced with UGSG streamgages
+      source: [
+        new Graphic({
+          geometry: { type: 'point', longitude: -98.5795, latitude: 39.8283 },
+          attributes: { OBJECTID: 1 },
+        }),
+      ],
+      renderer: {
+        type: 'simple',
+        symbol: {
+          type: 'simple-marker',
+          style: 'circle',
+          color: colors.lightPurple(0.5),
+          outline: {
+            width: 0.75,
+          },
+        },
+      },
+      featureReduction: monitoringClusterSettings,
+      popupTemplate: {
+        outFields: ['*'],
+        title: (feature) => getPopupTitle(feature.graphic.attributes),
+        content: (feature) => {
+          // Parse non-scalar variables
+          const structuredProps = ['stationTotalsByGroup', 'timeframe'];
+          feature.graphic.attributes = parseAttributes(
+            structuredProps,
+            feature.graphic.attributes,
+          );
+          return getPopupContent({
+            feature: feature.graphic,
+            services,
+            navigate,
+          });
+        },
+      },
+    });
+    setMonitoringLocationsLayer(monitoringLocationsLayer);
+
     // add the shared layers to the map and set the tribal layer visible
     const sharedLayers = getSharedLayers();
 
@@ -222,9 +678,14 @@ function TribesMap({ layout, windowHeight, windowWidth, activeState }: Props) {
     //   layer.visible = true;
     // });
 
-    setLayers([...sharedLayers, selectedTribeLayer, waterbodyLayer]);
+    setLayers([
+      ...sharedLayers,
+      selectedTribeLayer,
+      monitoringLocationsLayer,
+      waterbodyLayer,
+    ]);
 
-    setVisibleLayers({ waterbodyLayer: true });
+    setVisibleLayers({ waterbodyLayer: true, monitoringLocationsLayer: true });
 
     setLayersInitialized(true);
   }, [
@@ -235,6 +696,7 @@ function TribesMap({ layout, windowHeight, windowWidth, activeState }: Props) {
     services,
     setAreasLayer,
     setLinesLayer,
+    setMonitoringLocationsLayer,
     setPointsLayer,
     setVisibleLayers,
     setWaterbodyLayer,
@@ -253,7 +715,6 @@ function TribesMap({ layout, windowHeight, windowWidth, activeState }: Props) {
   }, [mapView]);
 
   // get gis data for selected tribe
-  const [tribalBoundaryError, setTribalBoundaryError] = useState(false);
   useEffect(() => {
     if (!selectedTribeLayer || !tribalLayer) return;
 
@@ -310,25 +771,14 @@ function TribesMap({ layout, windowHeight, windowWidth, activeState }: Props) {
         console.error(error);
         setTribalBoundaryError(true);
       });
-  }, [activeState, mapView, navigate, selectedTribeLayer, tribalLayer]);
-
-  // set the filter on each waterbody layer
-  const [filter, setFilter] = useState('');
-  useEffect(() => {
-    if (!activeState?.attainsId || !pointsLayer || !linesLayer || !areasLayer)
-      return;
-
-    // change the where clause of the feature layers
-    const filter = `organizationid = '${activeState.attainsId}'`;
-    if (filter) {
-      pointsLayer.definitionExpression = filter;
-      linesLayer.definitionExpression = filter;
-      areasLayer.definitionExpression = filter;
-    }
-
-    setFilter(filter);
-    setTribalBoundaryError(false);
-  }, [activeState, areasLayer, linesLayer, pointsLayer]);
+  }, [
+    activeState,
+    mapView,
+    navigate,
+    selectedTribeLayer,
+    setTribalBoundaryError,
+    tribalLayer,
+  ]);
 
   // zoom to graphics on the map, and update the home widget's extent
   const [homeWidgetSet, setHomeWidgetSet] = useState(false);
@@ -420,145 +870,185 @@ function TribesMap({ layout, windowHeight, windowWidth, activeState }: Props) {
     waterbodyLayer,
   ]);
 
-  // get the full list of waterbodies across the points, lines, and areas layers
-  const [waterbodies, setWaterbodies] = useState([]);
-  useEffect(() => {
-    if (!filter || !mapView || !pointsLayer || !linesLayer || !areasLayer) {
-      return;
-    }
-
-    const features = [];
-    // get the waterbodies from the points layer
-    pointsLayer.queryFeatures().then((pointFeatures) => {
-      features.push(...pointFeatures.features);
-
-      // get the waterbodies from the lines layer
-      linesLayer.queryFeatures().then((lineFeatures) => {
-        features.push(...lineFeatures.features);
-
-        // get the waterbodies from the areas layer
-        areasLayer.queryFeatures().then((areaFeatures) => {
-          features.push(...areaFeatures.features);
-          setWaterbodies(features);
-        });
-      });
-    });
-  }, [pointsLayer, linesLayer, areasLayer, mapView, filter]);
-
-  useEffect(() => {
-    if (layout === 'fullscreen') {
-      const mapContent = document.querySelector(`[aria-label="Tribal Map"]`);
-
-      if (mapContent) {
-        let pos = mapContent.getBoundingClientRect();
-        window.scrollTo(pos.left + window.scrollX, pos.top + window.scrollY);
-      }
-    }
-  }, [layout, windowHeight, windowWidth]);
-
-  // check for browser compatibility with map
-  if (!browserIsCompatibleWithArcGIS() && !actionsMapLoadError) {
-    setActionsMapLoadError(true);
-  }
-
-  const [displayMode, setDisplayMode] = useState('map');
-
-  if (actionsMapLoadError) {
-    return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
-  }
-
   return (
-    <div>
-      <div css={inputStyles}>
-        <div className="btn-group" role="group">
-          <button
-            css={buttonStyles}
-            type="button"
-            className={`btn btn-secondary${
-              displayMode === 'map' ? ' active' : ''
-            }`}
-            onClick={(ev) => setDisplayMode('map')}
-          >
-            <i className="fas fa-map-marked-alt" aria-hidden="true" />
-            &nbsp;&nbsp;Map
-          </button>
-          <button
-            css={buttonStyles}
-            type="button"
-            className={`btn btn-secondary${
-              displayMode === 'list' ? ' active' : ''
-            }`}
-            onClick={(ev) => setDisplayMode('list')}
-          >
-            <i className="fas fa-list" aria-hidden="true" />
-            &nbsp;&nbsp;List
-          </button>
-          <button
-            css={buttonStyles}
-            type="button"
-            className={`btn btn-secondary${
-              displayMode === 'none' ? ' active' : ''
-            }`}
-            onClick={(ev) => setDisplayMode('none')}
-          >
-            <i className="far fa-eye-slash" aria-hidden="true" />
-            &nbsp;&nbsp;Hidden
-          </button>
-        </div>
-      </div>
-
-      {tribalBoundaryError && (
-        <div css={modifiedErrorBoxStyles}>
-          <p>{tribalBoundaryErrorMessage}</p>
-        </div>
-      )}
-      <div
-        aria-label="Tribal Map"
-        css={containerStyles}
-        style={
-          layout === 'fullscreen'
-            ? {
-                height: windowHeight,
-                width: windowWidth,
-              }
-            : {
-                height: mapListHeight,
-                minHeight: '400px',
-                width: '100%',
-                display: displayMode === 'map' ? 'block' : 'none',
-              }
-        }
-      >
-        <Map layers={layers} />
-        {mapView && mapLoading && <MapLoadingSpinner />}
-      </div>
-      {displayMode === 'list' && (
-        <div
-          style={{
-            maxHeight: mapListHeight,
-            width: '100%',
-            overflow: 'auto',
-          }}
-        >
-          {waterbodies.length > 0 ? (
-            <WaterbodyList waterbodies={waterbodies} title="Waterbodies" />
-          ) : (
-            <div css={infoBoxStyles}>
-              <p>{zeroAssessedWaterbodies(activeState.name, 'tribal area')}</p>
-            </div>
-          )}
-        </div>
-      )}
+    <div
+      aria-label="Tribal Map"
+      css={containerStyles}
+      style={
+        layout === 'fullscreen'
+          ? {
+              height: windowHeight,
+              width: windowWidth,
+            }
+          : {
+              height: mapListHeight,
+              minHeight: '400px',
+              width: '100%',
+              display: displayMode === 'map' ? 'block' : 'none',
+            }
+      }
+    >
+      <Map layers={layers} />
+      {mapView && mapLoading && <MapLoadingSpinner />}
     </div>
   );
 }
 
-export default function TribesMapContainer({ ...props }: Props) {
+type MonitoringTabProps = {
+  activeState: Object,
+  monitoringLocations: { status: Status, data: MonitoringLocationsData },
+  monitoringLocationsDisplayed: boolean,
+};
+
+function MonitoringTab({
+  activeState,
+  monitoringLocations,
+  monitoringLocationsDisplayed,
+}: MonitoringTabProps) {
+  const { monitoringGroups, monitoringLocationsLayer } = useContext(
+    LocationSearchContext,
+  );
+  const services = useServicesContext();
+
+  // get the monitoring locations from the monitoringGroups variable
+  const [normalizedMonitoringLocations, setNormalizedMonitoringLocations] =
+    useState([]);
+  useEffect(() => {
+    if (!monitoringGroups) return;
+    setNormalizedMonitoringLocations([...monitoringGroups.All.stations]);
+    monitoringLocationsLayer.definitionExpression = '';
+  }, [monitoringGroups, monitoringLocationsLayer]);
+
+  // sort the monitoring locations
+  const [monitoringLocationsSortedBy, setMonitoringLocationsSortedBy] =
+    useState('locationName');
+  const sortedMonitoringAndSensors = [...normalizedMonitoringLocations].sort(
+    (a, b) => {
+      if (monitoringLocationsSortedBy === 'stationTotalMeasurements') {
+        return (
+          (b.stationTotalMeasurements || 0) - (a.stationTotalMeasurements || 0)
+        );
+      }
+
+      if (monitoringLocationsSortedBy === 'siteId') {
+        return a.siteId.localeCompare(b.siteId);
+      }
+
+      return a[monitoringLocationsSortedBy].localeCompare(
+        b[monitoringLocationsSortedBy],
+      );
+    },
+  );
+
+  const [expandedRows, setExpandedRows] = useState([]);
+
+  return (
+    <AccordionList
+      title={
+        <>
+          <strong>{sortedMonitoringAndSensors.length}</strong> locations with
+          data in the <em>{activeState.label}</em> watershed.
+        </>
+      }
+      onSortChange={({ value }) => setMonitoringLocationsSortedBy(value)}
+      onExpandCollapse={(allExpanded) => {
+        if (allExpanded) {
+          setExpandedRows([...Array(sortedMonitoringAndSensors.length).keys()]);
+        } else {
+          setExpandedRows([]);
+        }
+      }}
+      sortOptions={[
+        {
+          label: 'Location Name',
+          value: 'locationName',
+        },
+        {
+          label: 'Organization Name',
+          value: 'orgName',
+        },
+        {
+          label: 'Water Type',
+          value: 'locationType',
+        },
+      ].concat(
+        monitoringLocationsDisplayed
+          ? [
+              {
+                label: 'Monitoring Measurements',
+                value: 'stationTotalMeasurements',
+              },
+            ]
+          : [],
+      )}
+    >
+      {sortedMonitoringAndSensors.map((item, index) => {
+        const feature = {
+          geometry: {
+            type: 'point',
+            longitude: item.locationLongitude,
+            latitude: item.locationLatitude,
+          },
+          attributes: item,
+        };
+
+        return (
+          <AccordionItem
+            key={index}
+            index={index}
+            title={<strong>{item.locationName || 'Unknown'}</strong>}
+            subTitle={
+              <>
+                <em>Monitoring Type:</em>&nbsp;&nbsp;
+                {item.monitoringType}
+                <br />
+                <em>Organization Name:</em>&nbsp;&nbsp;
+                {item.orgName}
+                <br />
+                <em>Water Type:</em>&nbsp;&nbsp;
+                {item.locationType}
+                {item.monitoringType === 'Past Water Conditions' && (
+                  <>
+                    <br />
+                    <em>Monitoring Measurements:</em>
+                    &nbsp;&nbsp;
+                    {item.stationTotalMeasurements}
+                  </>
+                )}
+              </>
+            }
+            feature={feature}
+            idKey="siteId"
+            allExpanded={expandedRows.includes(index)}
+            onChange={() => {
+              // add the item to the expandedRows array so the accordion item
+              // will stay expanded when the user scrolls or highlights map items
+              if (expandedRows.includes(index)) {
+                setExpandedRows(expandedRows.filter((item) => item !== index));
+              } else setExpandedRows(expandedRows.concat(index));
+            }}
+          >
+            <div css={accordionContentStyles}>
+              <WaterbodyInfo
+                type="Past Water Conditions"
+                feature={feature}
+                services={services}
+              />
+              <ViewOnMapButton feature={feature} />
+            </div>
+          </AccordionItem>
+        );
+      })}
+    </AccordionList>
+  );
+}
+
+export default function TribalMapListContainer({ ...props }: Props) {
   return (
     <MapHighlightProvider>
       <MapErrorBoundary>
         <LocationSearchProvider>
-          <TribesMap {...props} />
+          <TribalMapList {...props} />
         </LocationSearchProvider>
       </MapErrorBoundary>
     </MapHighlightProvider>
