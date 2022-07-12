@@ -6,7 +6,7 @@
     "biaTribeCode": "820",
     "epaId": 100000001,
     "state": "OK",
-    "stateList": "OK",
+    "stateList": ["OK"],
     "epaRegion": 6
   },
   {
@@ -16,7 +16,7 @@
     "biaTribeCode": "507",
     "epaId": 100000019,
     "state": "CA",
-    "stateList": "CA",
+    "stateList": ["CA"],
     "epaRegion": 9
   },
   {
@@ -26,7 +26,7 @@
     "biaTribeCode": "806",
     "epaId": 100000027,
     "state": "OK",
-    "stateList": "OK",
+    "stateList": ["OK"],
     "epaRegion": 6
   },
   {
@@ -36,7 +36,7 @@
     "biaTribeCode": "905",
     "epaId": 100000038,
     "state": "OK",
-    "stateList": "OK",
+    "stateList": ["OK"],
     "epaRegion": 6
   },
   {
@@ -46,7 +46,7 @@
     "biaTribeCode": "821",
     "epaId": 100000046,
     "state": "OK",
-    "stateList": "OK",
+    "stateList": ["OK"],
     "epaRegion": 6
   },
   {
@@ -56,7 +56,7 @@
     "biaTribeCode": "808",
     "epaId": 100000052,
     "state": "OK",
-    "stateList": "OK",
+    "stateList": ["OK"],
     "epaRegion": 6
   },
   {
@@ -66,7 +66,7 @@
     "biaTribeCode": "807",
     "epaId": 100000072,
     "state": "OK",
-    "stateList": "OK",
+    "stateList": ["OK"],
     "epaRegion": 6
   },
   {
@@ -76,7 +76,7 @@
     "biaTribeCode": "561",
     "epaId": 100000103,
     "state": "CA",
-    "stateList": "CA",
+    "stateList": ["CA"],
     "epaRegion": 9
   },
   {
@@ -86,7 +86,7 @@
     "biaTribeCode": "822",
     "epaId": 100000112,
     "state": "OK",
-    "stateList": "OK",
+    "stateList": ["OK"],
     "epaRegion": 6
   },
   {
@@ -96,7 +96,7 @@
     "biaTribeCode": "810",
     "epaId": 100000122,
     "state": "OK",
-    "stateList": "OK",
+    "stateList": ["OK"],
     "epaRegion": 6
   },
   {
@@ -106,7 +106,7 @@
     "biaTribeCode": "823",
     "epaId": 100000127,
     "state": "OK",
-    "stateList": "OK",
+    "stateList": ["OK"],
     "epaRegion": 6
   },
   {
@@ -116,7 +116,7 @@
     "biaTribeCode": "482",
     "epaId": 100000138,
     "state": "MI",
-    "stateList": "MI",
+    "stateList": ["MI"],
     "epaRegion": 5
   },
   {
@@ -126,7 +126,7 @@
     "biaTribeCode": "925",
     "epaId": 100000158,
     "state": "OK",
-    "stateList": "OK",
+    "stateList": ["OK"],
     "epaRegion": 6
   },
   {
@@ -136,7 +136,7 @@
     "biaTribeCode": "405",
     "epaId": 100000572,
     "state": "MN",
-    "stateList": "MN",
+    "stateList": ["MN"],
     "epaRegion": 5
   },
   {
@@ -146,7 +146,7 @@
     "biaTribeCode": "780",
     "epaId": 100000171,
     "state": "AZ",
-    "stateList": "AZ;NM;UT",
+    "stateList": ["AZ", "NM", "UT"],
     "epaRegion": 9
   },
   {
@@ -156,7 +156,7 @@
     "biaTribeCode": "018",
     "epaId": 100000199,
     "state": "ME",
-    "stateList": "ME",
+    "stateList": ["ME"],
     "epaRegion": 1
   },
   {
@@ -166,7 +166,7 @@
     "biaTribeCode": "707",
     "epaId": 100000216,
     "state": "NM",
-    "stateList": "NM",
+    "stateList": ["NM"],
     "epaRegion": 6
   },
   {
@@ -176,7 +176,7 @@
     "biaTribeCode": "710",
     "epaId": 100000219,
     "state": "NM",
-    "stateList": "NM",
+    "stateList": ["NM"],
     "epaRegion": 6
   },
   {
@@ -186,7 +186,7 @@
     "biaTribeCode": "713",
     "epaId": 100000221,
     "state": "NM",
-    "stateList": "NM",
+    "stateList": ["NM"],
     "epaRegion": 6
   },
   {
@@ -196,7 +196,7 @@
     "biaTribeCode": "715",
     "epaId": 100000223,
     "state": "NM",
-    "stateList": "NM",
+    "stateList": ["NM"],
     "epaRegion": 6
   },
   {
@@ -206,7 +206,7 @@
     "biaTribeCode": "718",
     "epaId": 100000225,
     "state": "NM",
-    "stateList": "NM",
+    "stateList": ["NM"],
     "epaRegion": 6
   },
   {
@@ -216,7 +216,7 @@
     "biaTribeCode": "719",
     "epaId": 100000226,
     "state": "NM",
-    "stateList": "NM",
+    "stateList": ["NM"],
     "epaRegion": 6
   },
   {
@@ -226,7 +226,7 @@
     "biaTribeCode": "409",
     "epaId": 100000237,
     "state": "MN",
-    "stateList": "MN",
+    "stateList": ["MN"],
     "epaRegion": 5
   },
   {
@@ -236,7 +236,7 @@
     "biaTribeCode": "824",
     "epaId": 100000248,
     "state": "OK",
-    "stateList": "OK",
+    "stateList": ["OK"],
     "epaRegion": 6
   },
   {
@@ -246,7 +246,7 @@
     "biaTribeCode": "007",
     "epaId": 100000251,
     "state": "NY",
-    "stateList": "NY",
+    "stateList": ["NY"],
     "epaRegion": 2
   },
   {
@@ -256,7 +256,7 @@
     "biaTribeCode": "923",
     "epaId": 100000268,
     "state": "OK",
-    "stateList": "OK",
+    "stateList": ["OK"],
     "epaRegion": 6
   },
   {
@@ -266,7 +266,7 @@
     "biaTribeCode": "906",
     "epaId": 100000041,
     "state": "OK",
-    "stateList": "OK",
+    "stateList": ["OK"],
     "epaRegion": 6
   },
   {
@@ -276,7 +276,7 @@
     "biaTribeCode": "907",
     "epaId": 100000045,
     "state": "OK",
-    "stateList": "OK",
+    "stateList": ["OK"],
     "epaRegion": 6
   },
   {
@@ -286,7 +286,7 @@
     "biaTribeCode": "751",
     "epaId": 100000319,
     "state": "CO",
-    "stateList": "CO;NM",
+    "stateList": ["CO", "NM"],
     "epaRegion": 8
   },
   {
@@ -296,7 +296,7 @@
     "biaTribeCode": "030",
     "epaId": 100000322,
     "state": "MA",
-    "stateList": "MA",
+    "stateList": ["MA"],
     "epaRegion": 1
   },
   {
@@ -306,7 +306,7 @@
     "biaTribeCode": "924",
     "epaId": 100000330,
     "state": "OK",
-    "stateList": "KS;OK",
+    "stateList": ["KS", "OK"],
     "epaRegion": 6
   }
 ]

@@ -150,7 +150,7 @@ function StateTribalTabs() {
     // build a spelled out version of stateList
     let stateListNoAbbreviations = '';
     if (stateMapping.status === 'success') {
-      const stateCodes = activeState.stateList.split(';');
+      const stateCodes = activeState.stateList;
       stateCodes.forEach((code, index) => {
         const seperator =
           index === 0 ? '' : index === stateCodes.length - 1 ? ' and ' : ', ';
