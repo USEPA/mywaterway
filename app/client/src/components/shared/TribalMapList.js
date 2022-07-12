@@ -488,6 +488,7 @@ function TribalMap({
     linesLayer,
     setLinesLayer,
     mapView,
+    monitoringLocationsLayer,
     setMonitoringLocationsLayer,
     pointsLayer,
     setPointsLayer,
@@ -791,6 +792,7 @@ function TribalMap({
       !linesLayer ||
       !areasLayer ||
       !selectedTribeLayer ||
+      !monitoringLocationsLayer ||
       !homeWidget
     ) {
       return;
@@ -819,42 +821,54 @@ function TribalMap({
             else fullExtent = areasExtent.extent;
           }
 
-          // get the extent of the selected tribes layer graphics
-          selectedTribeLayer.graphics.forEach((graphic) => {
-            if (fullExtent) fullExtent.union(graphic.geometry.extent);
-            else fullExtent = graphic.geometry.extent;
-          });
+          const query = monitoringLocationsLayer.createQuery();
+          query.outSpatialReference = { wkid: 3857 };
+          monitoringLocationsLayer
+            .queryExtent(query)
+            .then((monitoringExtent) => {
+              // set the extent or union the extent if 1 or more features
+              if (monitoringExtent.count > 0) {
+                if (fullExtent) fullExtent.union(monitoringExtent.extent);
+                else fullExtent = monitoringExtent.extent;
+              }
 
-          // if there is an extent then zoom to it and set the home widget
-          if (fullExtent) {
-            let zoomParams = fullExtent;
-            let homeParams = { targetGeometry: fullExtent };
+              // get the extent of the selected tribes layer graphics
+              selectedTribeLayer.graphics.forEach((graphic) => {
+                if (fullExtent) fullExtent.union(graphic.geometry.extent);
+                else fullExtent = graphic.geometry.extent;
+              });
 
-            if (pointsExtent.count === 1) {
-              zoomParams = { target: fullExtent, zoom: 15 };
-              homeParams = {
-                targetGeometry: fullExtent,
-                scale: 18056, // same as zoom 15, viewpoint only takes scale
-              };
-            }
+              // if there is an extent then zoom to it and set the home widget
+              if (fullExtent) {
+                let zoomParams = fullExtent;
+                let homeParams = { targetGeometry: fullExtent };
 
-            mapView.goTo(zoomParams).then(() => {
-              // only show the waterbody layer after everything has loaded to
-              // cut down on unnecessary service calls
-              waterbodyLayer.listMode = 'hide-children';
-              waterbodyLayer.visible = true;
+                if (pointsExtent.count === 1) {
+                  zoomParams = { target: fullExtent, zoom: 15 };
+                  homeParams = {
+                    targetGeometry: fullExtent,
+                    scale: 18056, // same as zoom 15, viewpoint only takes scale
+                  };
+                }
 
-              setMapLoading(false);
+                mapView.goTo(zoomParams).then(() => {
+                  // only show the waterbody layer after everything has loaded to
+                  // cut down on unnecessary service calls
+                  waterbodyLayer.listMode = 'hide-children';
+                  waterbodyLayer.visible = true;
+
+                  setMapLoading(false);
+                });
+
+                // only set the home widget if the user selects a different state
+                if (!homeWidgetSet) {
+                  homeWidget.viewpoint = new Viewpoint(homeParams);
+                  setHomeWidgetSet(true);
+                }
+              } else {
+                setMapLoading(false);
+              }
             });
-
-            // only set the home widget if the user selects a different state
-            if (!homeWidgetSet) {
-              homeWidget.viewpoint = new Viewpoint(homeParams);
-              setHomeWidgetSet(true);
-            }
-          } else {
-            setMapLoading(false);
-          }
         });
       });
     });
@@ -865,6 +879,7 @@ function TribalMap({
     homeWidgetSet,
     linesLayer,
     mapView,
+    monitoringLocationsLayer,
     pointsLayer,
     selectedTribeLayer,
     waterbodyLayer,
