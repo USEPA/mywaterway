@@ -132,6 +132,7 @@ function TribalMapList({
     areasLayer,
     linesLayer,
     mapView,
+    setMonitoringGroups,
     monitoringLocations,
     setMonitoringLocations,
     monitoringLocationsLayer,
@@ -231,12 +232,13 @@ function TribalMapList({
           status: 'success',
           data: res,
         });
+        setMonitoringGroups(null);
       })
       .catch((err) => {
         console.error(err);
         setMonitoringLocations({ status: 'failure', data: {} });
       });
-  }, [activeState, services, setMonitoringLocations]);
+  }, [activeState, services, setMonitoringGroups, setMonitoringLocations]);
 
   // scroll to the tribe map when the user switches to full screen mode
   useEffect(() => {
@@ -526,6 +528,12 @@ function TribalMap({
   const getSharedLayers = useSharedLayers();
   const [layers, setLayers] = useState(null);
 
+  // reset the home widget
+  const [homeWidgetSet, setHomeWidgetSet] = useState(false);
+  useEffect(() => {
+    setHomeWidgetSet(false);
+  }, [filter]);
+
   // Initially sets up the layers
   const [layersInitialized, setLayersInitialized] = useState(false);
   const [selectedTribeLayer, setSelectedTribeLayer] = useState(null);
@@ -800,7 +808,6 @@ function TribalMap({
   ]);
 
   // zoom to graphics on the map, and update the home widget's extent
-  const [homeWidgetSet, setHomeWidgetSet] = useState(false);
   const [mapLoading, setMapLoading] = useState(true);
   useEffect(() => {
     if (
