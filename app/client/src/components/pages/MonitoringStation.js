@@ -52,6 +52,7 @@ import { colors, disclaimerStyles } from 'styles';
 /*
  * Styles
  */
+
 const accordionHeadingStyles = css`
   font-size: 0.875rem;
   margin-top: 0 !important;
@@ -233,42 +234,6 @@ const sliderContainerStyles = css`
   }
 `;
 
-const tableStyles = css`
-  display: inline-block;
-  table-layout: fixed;
-  width: 100%;
-
-  thead {
-    th {
-      padding-top: 0;
-    }
-    tr {
-      border-bottom: 2px solid #dee2e6;
-    }
-  }
-
-  th,
-  td {
-    border: none;
-    overflow-wrap: normal;
-    width: 50%;
-
-    &:first-of-type {
-      padding-left: 0;
-      width: 2rem;
-    }
-
-    &:last-of-type {
-      padding-right: 0;
-    }
-  }
-`;
-
-const totalRowStyles = css`
-  border-top: 2px solid #dee2e6;
-  font-weight: bold;
-`;
-
 const pageErrorBoxStyles = css`
   ${errorBoxStyles};
   margin: 1rem;
@@ -316,28 +281,33 @@ const radioStyles = css`
  * Helpers
  */
 
-function buildDateFilter(range) {
-  if (range === 'all') return '';
-  const date = new Date();
-  const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const year = date.getFullYear() - parseInt(range);
-  const dateFormatted = `${month}-${day}-${year}`;
-  return '&startDateLo=' + dateFormatted;
+function buildDateFilter(range, minYear, maxYear) {
+  if (!range) return;
+  let filter = '';
+  if (range[0] !== minYear) {
+    filter += `&startDateLo=01-01-${range[0]}`;
+  }
+  if (range[1] !== maxYear) {
+    filter += `&startDateHi=12-31-${range[1]}`;
+  }
+  return filter;
 }
 
-function buildTypeFilter(station, selected) {
-  if (selected.length === Object.keys(station.charcGroups).length) {
-    return '';
-  }
-  let selectedTypes = [];
-  Object.keys(station.charcGroups).forEach((group) => {
-    if (selected.includes(group)) {
-      selectedTypes = selectedTypes.concat(station.charcGroups[group]);
+function buildCharcsFilter(checkboxes) {
+  let filter = '';
+  if (checkboxes.all === 1 || checkboxes.all === 0) return filter;
+  Object.values(checkboxes.types).forEach((type) => {
+    if (type.selected === 1) {
+      filter += `&characteristicType=${type.id}`;
+    } else if (type.selected === 2) {
+      type.charcs.forEach((charcId) => {
+        const charc = checkboxes.charcs[charcId];
+        if (charc.selected === 1) {
+          filter += `&characteristicName=${charc.id}`;
+        }
+      });
     }
   });
-  const filter =
-    '&characteristicType=' + selectedTypes.join('&characteristicType=');
   return filter;
 }
 
@@ -461,7 +431,7 @@ function getCharcType(charcName, typeMappings) {
   for (let mapping of Object.keys(typeMappings)) {
     if (typeMappings[mapping].includes(charcName)) return mapping;
   }
-  return 'Other';
+  return 'Not Assigned';
 }
 
 function getTotalCount(charcs) {
@@ -662,8 +632,9 @@ function toggle(state, id, entity, level) {
   const groupIds = Object.keys(newGroups);
   let groupsSelected = 0;
   groupIds.forEach((groupId) => {
-    if (newGroups[groupId].selected) groupsSelected++;
+    groupsSelected += newGroups[groupId].selected;
   });
+  console.log(groupsSelected);
   const allSelected =
     groupsSelected === 0 ? 0 : groupsSelected === groupIds.length ? 1 : 2;
 
@@ -751,7 +722,7 @@ function updateDescendants(obj, ref, id, selected) {
 function updateParent(parentObj, childObj, parentId, childIds) {
   let childrenSelected = 0;
   childIds.forEach((childId) => {
-    if (childObj[childId].selected) childrenSelected++;
+    childrenSelected += childObj[childId].selected;
   });
   const parentSelected =
     childrenSelected === 0 ? 0 : childrenSelected === childIds.length ? 1 : 2;
@@ -943,42 +914,25 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
 
   const services = useServicesContext();
 
-  const downloadUrl = '';
-  /* stationStatus === 'success' &&
-    `${services.data.waterQualityPortal.resultSearch}zip=no&siteid=` +
-      `${station.siteId}&providers=${station.providerName}` +
-      `${buildTypeFilter(station, selected)}` +
-      `${buildDateFilter(range)}`; */
-
-  const portalUrl = '';
-  /* stationStatus === 'success' &&
-    `${services.data.waterQualityPortal.userInterface}#` +
-      `&mimeType=xlsx&dataProfile=resultPhysChem` +
+  const downloadUrl =
+    stationStatus === 'success' &&
+    `${services.data.waterQualityPortal.resultSearch}` +
+      `zip=no&dataProfile=narrowResult` +
+      `&organization=${station.orgId}` +
       `&siteid=${station.siteId}` +
       `&providers=${station.providerName}` +
-      `${buildTypeFilter(station, selected)}` +
-      `${buildDateFilter(range)}`; */
+      `${buildCharcsFilter(checkboxes)}` +
+      `${buildDateFilter(range, minYear, maxYear)}`;
 
-  /* const toggleGroup = (group) => {
-    const newSelected = selected.includes(group)
-      ? selected.filter((s) => s !== group)
-      : [...selected, group];
-    setSelected(newSelected);
-
-    if (newSelected.length === Object.keys(station.charcGroups).length) {
-      setAllChecked(1);
-    } else if (newSelected.length === 0) {
-      setAllChecked(0);
-    } else {
-      setAllChecked(2);
-    }
-  }; */
-
-  /* const toggleAllChecked = () => {
-    let selected = allChecked === 0 ? Object.keys(station.charcGroups) : [];
-    setSelected(selected);
-    setAllChecked(allChecked === 0 ? 1 : 0);
-  }; */
+  const portalUrl =
+    stationStatus === 'success' &&
+    `${services.data.waterQualityPortal.userInterface}#` +
+      `mimeType=xlsx&dataProfile=narrowResult` +
+      `&organization=${station.orgId}` +
+      `&siteid=${station.siteId}` +
+      `&providers=${station.providerName}` +
+      `${buildCharcsFilter(checkboxes)}` +
+      `${buildDateFilter(range, minYear, maxYear)}`;
 
   useEffect(() => {
     if (charcsStatus !== 'success') return;
@@ -1002,15 +956,6 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
     setMaxYear(newMaxYear);
     setRange([newMinYear, newMaxYear]);
   }, [charcs, charcsStatus, maxYear, minYear]);
-
-  /* useEffect(() => {
-    if (stationStatus !== 'success') return;
-    const newTotalMeasurements = selected.reduce(
-      (a, b) => a + station.charcGroupCounts[b],
-      0,
-    );
-    setTotalMeasurements(newTotalMeasurements);
-  }, [selected, station.charcGroupCounts, stationStatus]); */
 
   return (
     <div css={boxStyles}>
@@ -1204,58 +1149,6 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
                 </AccordionList>
               </div>
             ) : null}
-            {/*<table css={tableStyles} className="table">
-              <thead>
-                <tr>
-                  <th css={checkboxCellStyles}>
-                    <input
-                      css={checkboxStyles}
-                      type="checkbox"
-                      className="checkbox"
-                      checked={allChecked === 1}
-                      ref={(input) => {
-                        if (input) input.indeterminate = allChecked === 2;
-                      }}
-                      // onChange={toggleAllChecked}
-                    />
-                  </th>
-                  <th>
-                    <GlossaryTerm term="Characteristic Group">
-                      Character&shy;istic Group
-                    </GlossaryTerm>
-                  </th>
-                  <th>
-                    <GlossaryTerm term="Monitoring Measurements">
-                      Number of Measurements
-                    </GlossaryTerm>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.keys(station.charcGroups).map((group, index) => {
-                  return station.charcGroups[group].length === 0 ? null : (
-                    <tr key={index}>
-                      <td css={checkboxCellStyles}>
-                        <input
-                          css={checkboxStyles}
-                          type="checkbox"
-                          className="checkbox"
-                          // checked={selected.includes(group) || allChecked === 1}
-                          // onChange={() => toggleGroup(group)}
-                        />
-                      </td>
-                      <td>{group}</td>
-                      <td>{station.charcGroupCounts[group]}</td>
-                    </tr>
-                  );
-                })}
-                <tr css={totalRowStyles}>
-                  <td></td>
-                  <td>Total</td>
-                  <td>{Number(totalMeasurements).toLocaleString()}</td>
-                </tr>
-              </tbody>
-            </table>*/}
           </div>
           <div id="download-links" css={downloadLinksStyles}>
             <div>
@@ -1282,13 +1175,29 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
               <span>Download Selected Data</span>
               <span>
                 &nbsp;&nbsp;
-                <a href={`${downloadUrl}&mimeType=xlsx`}>
-                  <i className="fas fa-file-excel" aria-hidden="true" />
-                </a>
+                {checkboxes.all > 0 ? (
+                  <a href={`${downloadUrl}&mimeType=xlsx`}>
+                    <i className="fas fa-file-excel" aria-hidden="true" />
+                  </a>
+                ) : (
+                  <i
+                    className="fas fa-file-excel"
+                    aria-hidden="true"
+                    style={{ color: '#ccc' }}
+                  />
+                )}
                 &nbsp;&nbsp;
-                <a href={`${downloadUrl}&mimeType=csv`}>
-                  <i className="fas fa-file-csv" aria-hidden="true" />
-                </a>
+                {checkboxes.all > 0 ? (
+                  <a href={`${downloadUrl}&mimeType=csv`}>
+                    <i className="fas fa-file-csv" aria-hidden="true" />
+                  </a>
+                ) : (
+                  <i
+                    className="fas fa-file-csv"
+                    aria-hidden="true"
+                    style={{ color: '#ccc' }}
+                  />
+                )}
               </span>
             </div>
           </div>
