@@ -15,6 +15,7 @@ import { useWindowSize } from '@reach/window-size';
 import { tabsStyles, tabPanelStyles } from 'components/shared/ContentTabs';
 import WaterQualityOverview from 'components/pages/StateTribal.Tabs.WaterQualityOverview';
 import AdvancedSearch from 'components/pages/StateTribal.Tabs.AdvancedSearch';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
 import TribalMapList from 'components/shared/TribalMapList';
 // styled components
 import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
@@ -140,6 +141,8 @@ function StateTribalTabs() {
       activeState={activeState}
     />
   );
+
+  if (activeState.source === 'All') return <LoadingSpinner />;
 
   if (activeState.source === 'Tribes') {
     if (fullscreenActive) return mapContent;
