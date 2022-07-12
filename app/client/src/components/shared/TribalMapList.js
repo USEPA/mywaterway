@@ -41,7 +41,10 @@ import {
   LocationSearchProvider,
 } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
-import { MapHighlightProvider } from 'contexts/MapHighlight';
+import {
+  MapHighlightContext,
+  MapHighlightProvider,
+} from 'contexts/MapHighlight';
 // helpers
 import { fetchCheck } from 'utils/fetchUtils';
 import {
@@ -199,15 +202,21 @@ function TribalMapList({
 
     const features = [];
     // get the waterbodies from the points layer
-    pointsLayer.queryFeatures().then((pointFeatures) => {
+    const pointsQuery = pointsLayer.createQuery();
+    pointsQuery.outSpatialReference = { wkid: 3857 };
+    pointsLayer.queryFeatures(pointsQuery).then((pointFeatures) => {
       features.push(...pointFeatures.features);
 
       // get the waterbodies from the lines layer
-      linesLayer.queryFeatures().then((lineFeatures) => {
+      const linesQuery = linesLayer.createQuery();
+      linesQuery.outSpatialReference = { wkid: 3857 };
+      linesLayer.queryFeatures(linesQuery).then((lineFeatures) => {
         features.push(...lineFeatures.features);
 
         // get the waterbodies from the areas layer
-        areasLayer.queryFeatures().then((areaFeatures) => {
+        const areasQuery = areasLayer.createQuery();
+        areasQuery.outSpatialReference = { wkid: 3857 };
+        areasLayer.queryFeatures(areasQuery).then((areaFeatures) => {
           features.push(...areaFeatures.features);
           setWaterbodies(features);
           setWaterbodiesLoading(false);
@@ -251,6 +260,16 @@ function TribalMapList({
       }
     }
   }, [layout, windowHeight, windowWidth]);
+
+  // Makes the view on map button work for the state page
+  // (i.e. switches and scrolls to the map when the selected graphic changes)
+  const [displayMode, setDisplayMode] = useState('map');
+  const { selectedGraphic } = useContext(MapHighlightContext);
+  useEffect(() => {
+    if (!selectedGraphic) return;
+
+    setDisplayMode('map');
+  }, [selectedGraphic]);
 
   // Updates the visible layers. This function also takes into account whether
   // or not the underlying webservices failed.
@@ -296,8 +315,6 @@ function TribalMapList({
   if (!browserIsCompatibleWithArcGIS() && !actionsMapLoadError) {
     setActionsMapLoadError(true);
   }
-
-  const [displayMode, setDisplayMode] = useState('map');
 
   if (actionsMapLoadError) {
     return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
