@@ -402,7 +402,7 @@ function SurveyResults({
   ) {
     return (
       <div css={errorBoxStyles}>
-        <p>{stateSurveySectionError}</p>
+        <p>{stateSurveySectionError(activeState.source)}</p>
       </div>
     );
   }

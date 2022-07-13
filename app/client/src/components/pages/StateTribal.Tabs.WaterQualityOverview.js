@@ -971,7 +971,7 @@ function WaterQualityOverview() {
   ) {
     return (
       <div css={errorBoxStyles}>
-        <p>{stateGeneralError}</p>
+        <p>{stateGeneralError(activeState.source)}</p>
       </div>
     );
   }
@@ -1096,7 +1096,7 @@ function WaterQualityOverview() {
                 <div css={sectionStyles}>
                   {surveyServiceError || !stateAndOrganization ? (
                     <div css={errorBoxStyles}>
-                      <p>{stateSurveySectionError}</p>
+                      <p>{stateSurveySectionError(activeState.source)}</p>
                     </div>
                   ) : (
                     <SurveyResults
@@ -1241,7 +1241,7 @@ function WaterQualityOverview() {
             {introText.status === 'fetching' && <LoadingSpinner />}
             {introText.status === 'failure' && (
               <div css={errorBoxStyles}>
-                <p>{stateMetricsError}</p>
+                <p>{stateMetricsError(activeState.source)}</p>
               </div>
             )}
             {introText.status === 'success' && (

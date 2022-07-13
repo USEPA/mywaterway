@@ -536,7 +536,7 @@ function StateTribal() {
                 {introText.status === 'fetching' && <LoadingSpinner />}
                 {introText.status === 'failure' && (
                   <div css={modifiedErrorBoxStyles}>
-                    <p>{stateGeneralError}</p>
+                    <p>{stateGeneralError(activeState.source)}</p>
                   </div>
                 )}
                 {introText.status === 'success' && (

@@ -121,8 +121,8 @@ export const stateDocumentSortingError =
   'There was an issue sorting the below documents. Because of this, the documents have been sorted alphabetically on document type.';
 
 // this message is displayed in the State Survey Use section when the Survey service is down
-export const stateSurveySectionError =
-  'State survey information is temporarily unavailable, please try again later.';
+export const stateSurveySectionError = (source) =>
+  `${source} survey information is temporarily unavailable, please try again later.`;
 
 // this message is displayed in the State Documents accordion when the Survey service is down
 export const stateSurveyError = (stateName) =>
@@ -137,8 +137,8 @@ export const stateStoriesError =
   'State water stories are temporarily unavailable, please try again later.';
 
 // if one of the main State services goes down and there is no data to display
-export const stateGeneralError =
-  'State information is temporarily unavailable, please try again later.';
+export const stateGeneralError = (source = 'State') =>
+  `${source} information is temporarily unavailable, please try again later.`;
 
 // if an invalid state is entered
 export const stateNoDataError = (stateName) =>
@@ -148,8 +148,8 @@ export const state303dStatusError =
   'There was an issue looking up the 303(d) List Status code. Because of this, the status code may not look familiar.';
 
 // this message is displayed in the State metrics section and more information section when the metrics service is down
-export const stateMetricsError =
-  'State metrics information is temporarily unavailable, please try again later.';
+export const stateMetricsError = (source) =>
+  `${source} metrics information is temporarily unavailable, please try again later.`;
 
 // geopub.epa.gov - Tribal Service
 export const tribalBoundaryErrorMessage =

@@ -64,6 +64,7 @@ import { monitoringClusterSettings } from 'components/shared/LocationMap';
 // errors
 import {
   esriMapLoadingFailure,
+  huc12SummaryError,
   tribalBoundaryErrorMessage,
   zeroAssessedWaterbodies,
 } from 'config/errorMessages';
@@ -148,10 +149,9 @@ function TribalMapList({
   const [waterbodiesDisplayed, setWaterbodiesDisplayed] = useState(true);
   const [monitoringLocationsDisplayed, setMonitoringLocationsDisplayed] =
     useState(true);
-  const [waterbodiesLoading, setWaterbodiesLoading] = useState(false);
 
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
-  const [actionsMapLoadError, setActionsMapLoadError] = useState(false);
+  const [tribeMapLoadError, setTribeMapLoadError] = useState(false);
 
   const services = useServicesContext();
 
@@ -190,39 +190,52 @@ function TribalMapList({
 
     setFilter(filter);
     setTribalBoundaryError(false);
-    setWaterbodiesLoading(true);
+    setWaterbodies({ status: 'pending', data: [] });
   }, [activeState, areasLayer, linesLayer, pointsLayer]);
 
   // get the full list of waterbodies across the points, lines, and areas layers
-  const [waterbodies, setWaterbodies] = useState([]);
+  const [waterbodies, setWaterbodies] = useState({ status: 'idle', data: [] });
   useEffect(() => {
     if (!filter || !mapView || !pointsLayer || !linesLayer || !areasLayer) {
       return;
+    }
+
+    function handelQueryError(error) {
+      console.error(error);
+      setWaterbodies({ status: 'failure', data: [] });
     }
 
     const features = [];
     // get the waterbodies from the points layer
     const pointsQuery = pointsLayer.createQuery();
     pointsQuery.outSpatialReference = { wkid: 3857 };
-    pointsLayer.queryFeatures(pointsQuery).then((pointFeatures) => {
-      features.push(...pointFeatures.features);
+    pointsLayer
+      .queryFeatures(pointsQuery)
+      .then((pointFeatures) => {
+        features.push(...pointFeatures.features);
 
-      // get the waterbodies from the lines layer
-      const linesQuery = linesLayer.createQuery();
-      linesQuery.outSpatialReference = { wkid: 3857 };
-      linesLayer.queryFeatures(linesQuery).then((lineFeatures) => {
-        features.push(...lineFeatures.features);
+        // get the waterbodies from the lines layer
+        const linesQuery = linesLayer.createQuery();
+        linesQuery.outSpatialReference = { wkid: 3857 };
+        linesLayer
+          .queryFeatures(linesQuery)
+          .then((lineFeatures) => {
+            features.push(...lineFeatures.features);
 
-        // get the waterbodies from the areas layer
-        const areasQuery = areasLayer.createQuery();
-        areasQuery.outSpatialReference = { wkid: 3857 };
-        areasLayer.queryFeatures(areasQuery).then((areaFeatures) => {
-          features.push(...areaFeatures.features);
-          setWaterbodies(features);
-          setWaterbodiesLoading(false);
-        });
-      });
-    });
+            // get the waterbodies from the areas layer
+            const areasQuery = areasLayer.createQuery();
+            areasQuery.outSpatialReference = { wkid: 3857 };
+            areasLayer
+              .queryFeatures(areasQuery)
+              .then((areaFeatures) => {
+                features.push(...areaFeatures.features);
+                setWaterbodies({ status: 'success', data: features });
+              })
+              .catch(handelQueryError);
+          })
+          .catch(handelQueryError);
+      })
+      .catch(handelQueryError);
   }, [pointsLayer, linesLayer, areasLayer, mapView, filter]);
 
   // get the wqx monitoring locations associated with the selected tribe
@@ -312,11 +325,11 @@ function TribalMapList({
   );
 
   // check for browser compatibility with map
-  if (!browserIsCompatibleWithArcGIS() && !actionsMapLoadError) {
-    setActionsMapLoadError(true);
+  if (!browserIsCompatibleWithArcGIS() && !tribeMapLoadError) {
+    setTribeMapLoadError(true);
   }
 
-  if (actionsMapLoadError) {
+  if (tribeMapLoadError) {
     return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
   }
 
@@ -369,20 +382,21 @@ function TribalMapList({
       {displayMode !== 'none' && (
         <div css={keyMetricsStyles}>
           <div css={keyMetricStyles}>
-            {!waterbodyLayer || waterbodiesLoading ? (
-              <LoadingSpinner />
-            ) : (
-              <>
+            {waterbodies.status === 'pending' && <LoadingSpinner />}
+            {(waterbodies.status === 'success' ||
+              waterbodies.status === 'failure') && (
+              <Fragment>
                 <span css={keyMetricNumberStyles}>
-                  {Boolean(waterbodies?.length)
-                    ? waterbodies.length.toLocaleString()
+                  {Boolean(waterbodies.data.length) &&
+                  waterbodies.status === 'success'
+                    ? waterbodies.data.length.toLocaleString()
                     : 'N/A'}
                 </span>
                 <p css={keyMetricLabelStyles}>Waterbodies</p>
                 <div css={switchContainerStyles}>
                   <Switch
                     checked={
-                      Boolean(waterbodies.length) && waterbodiesDisplayed
+                      Boolean(waterbodies.data.length) && waterbodiesDisplayed
                     }
                     onChange={(checked) => {
                       if (!waterbodyLayer) return;
@@ -392,11 +406,11 @@ function TribalMapList({
                         value: !waterbodiesDisplayed,
                       });
                     }}
-                    disabled={!Boolean(waterbodies.length)}
+                    disabled={!Boolean(waterbodies.data.length)}
                     ariaLabel="Waterbodies"
                   />
                 </div>
-              </>
+              </Fragment>
             )}
           </div>
 
@@ -462,13 +476,15 @@ function TribalMapList({
             </TabList>
             <TabPanels>
               <TabPanel>
-                {waterbodiesLoading ? (
-                  <LoadingSpinner />
-                ) : (
+                {waterbodies.status === 'pending' && <LoadingSpinner />}
+                {waterbodies.status === 'failure' && (
+                  <div css={errorBoxStyles}>{huc12SummaryError}</div>
+                )}
+                {waterbodies.status === 'success' && (
                   <Fragment>
-                    {waterbodies.length > 0 ? (
+                    {waterbodies.data.length > 0 ? (
                       <WaterbodyList
-                        waterbodies={waterbodies}
+                        waterbodies={waterbodies.data}
                         title="Waterbodies"
                       />
                     ) : (
