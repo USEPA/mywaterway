@@ -53,13 +53,20 @@ import { colors, disclaimerStyles } from 'styles';
  * Styles
  */
 
+const accordionFlexStyles = css`
+  display: flex;
+  justify-content: space-between;
+`;
+
 const accordionHeadingStyles = css`
+  ${accordionFlexStyles}
   font-size: 0.875rem;
   margin-top: 0 !important;
   padding: 0.75em 1em !important;
 `;
 
 const accordionRowStyles = css`
+  ${accordionFlexStyles}
   ${accordionHeadingStyles}
   border-top: 1px solid #d8dfe2;
 `;
@@ -84,8 +91,8 @@ const accordionStyles = css`
     margin-right: 1.25em;
   }
 
-  .count {
-    float: right;
+  .checkbox-label {
+    display: flex;
   }
 
   .total-row {
@@ -318,7 +325,7 @@ function checkboxReducer(state, action) {
     }
     case 'load': {
       const { data } = action.payload;
-      return loadNewData(data);
+      return loadNewData(data, state);
     }
     case 'group': {
       const { id } = action.payload;
@@ -434,6 +441,19 @@ function getCharcType(charcName, typeMappings) {
   return 'Not Assigned';
 }
 
+function getFilteredCount(range, records, count) {
+  if (range) {
+    let filteredCount = 0;
+    records.forEach((record) => {
+      if (record.year >= range[0] && record.year <= range[1]) {
+        filteredCount += 1;
+      }
+    });
+    return filteredCount;
+  }
+  return count;
+}
+
 function getTotalCount(charcs) {
   let totalCount = 0;
   Object.values(charcs).forEach((charc) => {
@@ -496,40 +516,39 @@ function groupTypes(charcTypes, mappings) {
   return groups;
 }
 
-function loadNewData(data) {
+function loadNewData(data, state) {
   const newCharcs = {};
   const newGroups = {};
   const newTypes = {};
 
-  Object.values(data).forEach((group) => {
-    newGroups[group.id] = {
-      count: group.count,
-      id: group.id,
-      selected: 1,
-      types: Object.keys(group.types),
+  const { charcs, groups, types } = data;
+
+  // loop once to build the new data structure
+  Object.values(charcs).forEach((charc) => {
+    newCharcs[charc.id] = {
+      ...charc,
+      selected: state.charcs[charc.id]?.selected ?? 1,
     };
-    Object.values(group.types).forEach((type) => {
-      newTypes[type.id] = {
-        charcs: Object.keys(type.charcs),
-        count: type.count,
-        group: group.id,
-        id: type.id,
-        selected: 1,
-      };
-      Object.values(type.charcs).forEach((charc) => {
-        newCharcs[charc.id] = {
-          count: charc.count,
-          group: group.id,
-          id: charc.id,
-          selected: 1,
-          type: type.id,
-        };
-      });
-    });
+  });
+  Object.values(types).forEach((type) => {
+    newTypes[type.id] = {
+      ...type,
+      charcs: Array.from(type.charcs),
+      selected: 0,
+    };
+  });
+  Object.values(groups).forEach((group) => {
+    newGroups[group.id] = {
+      ...group,
+      selected: 0,
+      types: Array.from(group.types),
+    };
   });
 
+  const allSelected = updateSelected(newCharcs, newTypes, newGroups);
+
   return {
-    all: 1,
+    all: allSelected,
     charcs: newCharcs,
     groups: newGroups,
     types: newTypes,
@@ -551,29 +570,46 @@ function parseGroupCounts(typeCounts, charcGroups, mappings) {
 }
 
 function parseCharcs(charcs, range) {
-  const result = {};
+  const result = {
+    groups: {},
+    types: {},
+    charcs: {},
+  };
   // structure characteristcs by group, then type
   Object.entries(charcs).forEach(([charc, data]) => {
     const { group, type, count, records } = data;
-    if (!result[group]) {
-      result[group] = {
-        id: group,
-        types: {},
+
+    let newCount = getFilteredCount(range, records, count);
+
+    if (newCount > 0) {
+      if (!result.groups[group]) {
+        result.groups[group] = {
+          count: 0,
+          id: group,
+          types: new Set(),
+        };
+      }
+      if (!result.types[type]) {
+        result.types[type] = {
+          charcs: new Set(),
+          count: 0,
+          group,
+          id: type,
+        };
+      }
+      result.charcs[charc] = {
+        count: newCount,
+        group,
+        id: charc,
+        type,
       };
+
+      result.groups[group].count += newCount;
+      result.types[type].count += newCount;
+      result.groups[group].types.add(type);
+      result.types[type].charcs.add(charc);
     }
-    if (!result[group].types[type]) {
-      result[group].types[type] = {
-        charcs: {},
-        id: type,
-      };
-    }
-    result[group].types[type].charcs[charc] = {
-      count,
-      records,
-      id: charc,
-    };
   });
-  updateCounts(result, range);
   return result;
 }
 
@@ -677,30 +713,6 @@ function toggleAll(state) {
   };
 }
 
-function updateCounts(groups, range) {
-  Object.values(groups).forEach((group) => {
-    let countByGroup = 0;
-    Object.values(group.types).forEach((type) => {
-      let countByType = 0;
-      Object.values(type.charcs).forEach((charc) => {
-        if (range) {
-          let countByCharc = 0;
-          charc.records.forEach((record) => {
-            if (record.year >= range[0] && record.year <= range[1]) {
-              countByCharc += 1;
-            }
-          });
-          charc.count = countByCharc;
-        }
-        countByType += charc.count;
-      });
-      type.count = countByType;
-      countByGroup += type.count;
-    });
-    group.count = countByGroup;
-  });
-}
-
 function updateEntity(obj, id, entity, selected) {
   obj[id] = {
     ...entity,
@@ -730,6 +742,34 @@ function updateParent(parentObj, childObj, parentId, childIds) {
     ...parentObj[parentId],
     selected: parentSelected,
   };
+}
+
+function updateSelected(charcs, types, groups) {
+  let groupsSelected = 0;
+
+  // loop over again to get checkbox values
+  Object.values(charcs).forEach((charc) => {
+    types[charc.type].selected += charc.selected;
+  });
+  Object.values(types).forEach((type) => {
+    type.selected =
+      type.selected === 0 ? 0 : type.selected === type.charcs.length ? 1 : 2;
+    groups[type.group].selected += type.selected;
+  });
+  Object.values(groups).forEach((group) => {
+    group.selected =
+      group.selected === 0 ? 0 : group.selected === group.types.length ? 1 : 2;
+    groupsSelected += group.selected;
+  });
+
+  const allSelected =
+    groupsSelected === 0
+      ? 0
+      : groupsSelected === Object.keys(groups).length
+      ? 1
+      : 2;
+
+  return allSelected;
 }
 
 function useCharacteristics(provider, orgId, siteId) {
@@ -990,7 +1030,7 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
                   className="accordion-list"
                   onExpandCollapse={(newExpanded) => setExpanded(newExpanded)}
                   title={
-                    <>
+                    <span className="checkbox-label">
                       <input
                         type="checkbox"
                         checked={checkboxes.all === 1}
@@ -1000,7 +1040,7 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
                         onChange={(_ev) => checkboxDispatch({ type: 'all' })}
                       />
                       <strong>Toggle All</strong>
-                    </>
+                    </span>
                   }
                 >
                   <p css={accordionHeadingStyles}>
@@ -1009,6 +1049,10 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
                         <GlossaryTerm term="Characteristic Group">
                           Character&shy;istic Groups
                         </GlossaryTerm>
+                      </em>
+                    </strong>
+                    <strong>
+                      <em>
                         <GlossaryTerm
                           className="count"
                           term="Monitoring Measurements"
@@ -1026,27 +1070,29 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
                         key={group.id}
                         highlightContent={false}
                         title={
-                          <>
-                            <input
-                              type="checkbox"
-                              checked={group.selected === 1}
-                              ref={(input) => {
-                                if (input)
-                                  input.indeterminate = group.selected === 2;
-                              }}
-                              onChange={(_ev) => {
-                                checkboxDispatch({
-                                  type: 'group',
-                                  payload: { id: group.id },
-                                });
-                              }}
-                              onClick={(ev) => ev.stopPropagation()}
-                            />
-                            <strong>
-                              {group.id}
-                              <span className="count">{group.count}</span>
-                            </strong>
-                          </>
+                          <div css={accordionFlexStyles}>
+                            <span className="checkbox-label">
+                              <input
+                                type="checkbox"
+                                checked={group.selected === 1}
+                                ref={(input) => {
+                                  if (input)
+                                    input.indeterminate = group.selected === 2;
+                                }}
+                                onChange={(_ev) => {
+                                  checkboxDispatch({
+                                    type: 'group',
+                                    payload: { id: group.id },
+                                  });
+                                }}
+                                onClick={(ev) => ev.stopPropagation()}
+                              />
+                              <strong>{group.id}</strong>
+                            </span>
+                            <span>
+                              <strong>{group.count}</strong>
+                            </span>
+                          </div>
                         }
                       >
                         <p className="charc-type" css={accordionHeadingStyles}>
@@ -1064,30 +1110,28 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
                                   allExpanded={expanded}
                                   highlightContent={false}
                                   title={
-                                    <>
-                                      <input
-                                        type="checkbox"
-                                        checked={type.selected === 1}
-                                        ref={(input) => {
-                                          if (input)
-                                            input.indeterminate =
-                                              type.selected === 2;
-                                        }}
-                                        onChange={(_ev) =>
-                                          checkboxDispatch({
-                                            type: 'type',
-                                            payload: { id: typeId },
-                                          })
-                                        }
-                                        onClick={(ev) => ev.stopPropagation()}
-                                      />
-                                      <strong>
-                                        {typeId}
-                                        <span className="count">
-                                          {type.count}
-                                        </span>
-                                      </strong>
-                                    </>
+                                    <div css={accordionFlexStyles}>
+                                      <span className="checkbox-label">
+                                        <input
+                                          type="checkbox"
+                                          checked={type.selected === 1}
+                                          ref={(input) => {
+                                            if (input)
+                                              input.indeterminate =
+                                                type.selected === 2;
+                                          }}
+                                          onChange={(_ev) =>
+                                            checkboxDispatch({
+                                              type: 'type',
+                                              payload: { id: typeId },
+                                            })
+                                          }
+                                          onClick={(ev) => ev.stopPropagation()}
+                                        />
+                                        <strong>{typeId}</strong>
+                                      </span>
+                                      <strong>{type.count}</strong>
+                                    </div>
                                   }
                                 >
                                   <p
@@ -1108,27 +1152,25 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
                                           css={accordionRowStyles}
                                           key={charcId}
                                         >
-                                          <input
-                                            type="checkbox"
-                                            checked={charc.selected === 1}
-                                            ref={(input) => {
-                                              if (input)
-                                                input.indeterminate =
-                                                  charc.selected === 2;
-                                            }}
-                                            onChange={(_ev) =>
-                                              checkboxDispatch({
-                                                type: 'characteristic',
-                                                payload: { id: charcId },
-                                              })
-                                            }
-                                          />
-                                          <strong>
-                                            {charcId}
-                                            <span className="count">
-                                              {charc.count}
-                                            </span>
-                                          </strong>
+                                          <span className="checkbox-label">
+                                            <input
+                                              type="checkbox"
+                                              checked={charc.selected === 1}
+                                              ref={(input) => {
+                                                if (input)
+                                                  input.indeterminate =
+                                                    charc.selected === 2;
+                                              }}
+                                              onChange={(_ev) =>
+                                                checkboxDispatch({
+                                                  type: 'characteristic',
+                                                  payload: { id: charcId },
+                                                })
+                                              }
+                                            />
+                                            <strong>{charcId}</strong>
+                                          </span>
+                                          <strong>{charc.count}</strong>
                                         </div>
                                       );
                                     })}
@@ -1141,9 +1183,9 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
                   <p className="total-row" css={accordionHeadingStyles}>
                     <strong>
                       <em>Total Measurements Selected:</em>
-                      <span className="count">
-                        {getTotalCount(checkboxes.charcs)}
-                      </span>
+                    </strong>
+                    <strong className="count">
+                      {getTotalCount(checkboxes.charcs)}
                     </strong>
                   </p>
                 </AccordionList>
