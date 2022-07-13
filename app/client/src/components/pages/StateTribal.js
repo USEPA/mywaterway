@@ -41,7 +41,7 @@ import {
   usesStateSummaryServiceInvalidResponse,
 } from 'config/errorMessages';
 
-const allSources = ['All', 'States', 'Tribes'];
+const allSources = ['All', 'State', 'Tribe'];
 
 const containerStyles = css`
   margin-top: 15px;
@@ -195,7 +195,7 @@ function StateTribal() {
         ...tribe,
         value: tribe.attainsId,
         label: tribe.name,
-        source: 'Tribes',
+        source: 'Tribe',
       });
     });
 
@@ -215,7 +215,7 @@ function StateTribal() {
         setStates({
           status: 'success',
           data: res.data.map((state) => {
-            return { value: state.code, label: state.name, source: 'States' };
+            return { value: state.code, label: state.name, source: 'State' };
           }),
         });
       })
@@ -255,16 +255,16 @@ function StateTribal() {
     const options = [];
     if (selectedSource === 'All') {
       options.push({
-        label: 'States',
+        label: 'State',
         options: states.data,
       });
       options.push({
-        label: 'Tribes',
+        label: 'Tribe',
         options: tribes,
       });
     }
-    if (selectedSource === 'States') options.push(...states.data);
-    if (selectedSource === 'Tribes') options.push(...tribes);
+    if (selectedSource === 'State') options.push(...states.data);
+    if (selectedSource === 'Tribe') options.push(...tribes);
 
     setSelectOptions(options);
   }, [selectedSource, states, tribes]);
@@ -384,12 +384,12 @@ function StateTribal() {
                 ev.preventDefault();
                 setActiveState(selectedStateTribe);
 
-                if (selectedStateTribe.source === 'States') {
+                if (selectedStateTribe.source === 'State') {
                   navigate(
                     `/state/${selectedStateTribe.value}/water-quality-overview`,
                   );
                 }
-                if (selectedStateTribe.source === 'Tribes') {
+                if (selectedStateTribe.source === 'Tribe') {
                   navigate(`/tribe/${selectedStateTribe.value}`);
                 }
               }}
@@ -484,7 +484,7 @@ function StateTribal() {
                   placeholder={
                     selectedSource === 'All'
                       ? 'Select a state or tribe...'
-                      : selectedSource === 'States'
+                      : selectedSource === 'State'
                       ? 'Select a state...'
                       : 'Select a tribe...'
                   }
@@ -498,12 +498,12 @@ function StateTribal() {
 
                     setActiveState(selection);
 
-                    if (selectedStateTribe.source === 'States') {
+                    if (selectedStateTribe.source === 'State') {
                       navigate(
                         `/state/${selectedStateTribe.value}/water-quality-overview`,
                       );
                     }
-                    if (selectedStateTribe.source === 'Tribes') {
+                    if (selectedStateTribe.source === 'Tribe') {
                       navigate(`/tribe/${selectedStateTribe.value}`);
                     }
                   }}

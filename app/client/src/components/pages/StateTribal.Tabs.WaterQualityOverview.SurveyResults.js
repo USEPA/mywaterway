@@ -85,7 +85,7 @@ type Props = {
   activeState: {
     value: string,
     label: string,
-    source: 'All' | 'States' | 'Tribes',
+    source: 'All' | 'State' | 'Tribe',
   },
   subPopulationCodes: Array<string>,
   surveyData: Object,

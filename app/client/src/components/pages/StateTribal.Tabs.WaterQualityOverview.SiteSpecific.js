@@ -88,7 +88,7 @@ type Props = {
   activeState: {
     value: string,
     label: string,
-    source: 'All' | 'States' | 'Tribes',
+    source: 'All' | 'State' | 'Tribe',
   },
   waterType: string,
   waterTypeData: any,

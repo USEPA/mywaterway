@@ -377,9 +377,9 @@ function WaterQualityOverview() {
   useEffect(() => {
     if (
       !stateAndOrganization ||
-      (activeState.source !== 'Tribes' &&
+      (activeState.source !== 'Tribe' &&
         currentReportingCycle.status === 'fetching') ||
-      (activeState.source === 'Tribes' &&
+      (activeState.source === 'Tribe' &&
         activeState.attainsId !== stateAndOrganization.organizationId) ||
       usesStateSummaryCalled
     ) {
@@ -410,7 +410,7 @@ function WaterQualityOverview() {
       .then((res) => {
         // for states like Alaska that have no reporting cycles
         if (
-          activeState.source !== 'Tribes' &&
+          activeState.source !== 'Tribe' &&
           (!res.data ||
             !res.data.reportingCycles ||
             res.data.reportingCycles.length === 0)
@@ -555,7 +555,7 @@ function WaterQualityOverview() {
   // get state organization ID for summary service
   const fetchStateOrgId = useCallback(
     (stateID: string) => {
-      if (activeState.source === 'Tribes') {
+      if (activeState.source === 'Tribe') {
         const orgID = activeState.value;
         setStateAndOrganization({
           state: orgID,
@@ -943,7 +943,7 @@ function WaterQualityOverview() {
     },
   ];
 
-  if (activeState?.source === 'Tribes') {
+  if (activeState?.source === 'Tribe') {
     tabs.push({
       id: 'cultural',
       title: 'Cultural',
@@ -1126,7 +1126,7 @@ function WaterQualityOverview() {
                   css={drinkingWaterSectionStyles}
                   displayed={
                     currentTopic === 'drinking' &&
-                    activeState.source === 'States'
+                    activeState.source === 'State'
                   }
                 >
                   <h3>
@@ -1165,7 +1165,7 @@ function WaterQualityOverview() {
         </Tabs>
       </div>
 
-      <AccordionList css={activeState.source !== 'Tribes' && accordionsStyles}>
+      <AccordionList css={activeState.source !== 'Tribe' && accordionsStyles}>
         <AccordionItem
           highlightContent={false}
           icon={
@@ -1196,7 +1196,7 @@ function WaterQualityOverview() {
             />
           </div>
         </AccordionItem>
-        {activeState?.source === 'States' ? (
+        {activeState?.source === 'State' ? (
           <AccordionItem
             highlightContent={false}
             icon={

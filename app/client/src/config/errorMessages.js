@@ -109,7 +109,7 @@ export const grpaError =
 
 // for where ATTAINS usesStateSummaryService response is an internal error or missing data for a state
 export const usesStateSummaryServiceInvalidResponse = (source, name) =>
-  `There is no ${source.slice(0, -1)}-level assessment data available${
+  `There is no ${source}-level assessment data available${
     name && ' for ' + name
   }.`; // add conditional check for stateName as it is sometimes undefined
 

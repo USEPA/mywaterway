@@ -85,7 +85,7 @@ function StateTribalTabs() {
               ...matchTribes,
               value: matchTribes.attainsId,
               label: matchTribes.name,
-              source: 'Tribes',
+              source: 'Tribe',
             });
             return;
           }
@@ -101,7 +101,7 @@ function StateTribalTabs() {
           setActiveState({
             value: match.code,
             label: match.name,
-            source: 'States',
+            source: 'State',
           });
         })
         .catch((err) => {
@@ -132,7 +132,7 @@ function StateTribalTabs() {
 
   if (activeState.source === 'All') return <LoadingSpinner />;
 
-  if (activeState.source === 'Tribes') {
+  if (activeState.source === 'Tribe') {
     if (fullscreenActive) return mapContent;
 
     return (

@@ -79,7 +79,7 @@ type Props = {
   activeState: {
     value: string,
     label: string,
-    source: 'All' | 'States' | 'Tribes',
+    source: 'All' | 'State' | 'Tribe',
   },
   surveyLoading: boolean,
   surveyDocuments: Object,

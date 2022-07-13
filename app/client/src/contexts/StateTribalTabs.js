@@ -24,7 +24,7 @@ type State = {
   activeState: {
     value: string,
     label: string,
-    source: 'All' | 'States' | 'Tribes',
+    source: 'All' | 'State' | 'Tribe',
   },
   introText: object,
   stateAndOrganization: object,
@@ -65,7 +65,7 @@ export class StateTribalTabsProvider extends Component<Props, State> {
     setActiveState: (activeState: {
       value: string,
       label: string,
-      source: 'All' | 'States' | 'Tribes',
+      source: 'All' | 'State' | 'Tribe',
     }) => {
       this.setState({ activeState });
     },
