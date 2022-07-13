@@ -410,9 +410,10 @@ function WaterQualityOverview() {
       .then((res) => {
         // for states like Alaska that have no reporting cycles
         if (
-          !res.data ||
-          !res.data.reportingCycles ||
-          res.data.reportingCycles.length === 0
+          activeState.source !== 'Tribes' &&
+          (!res.data ||
+            !res.data.reportingCycles ||
+            res.data.reportingCycles.length === 0)
         ) {
           setUsesStateSummaryServiceError(true);
           setLoading(false);
