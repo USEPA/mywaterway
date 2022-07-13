@@ -1,12 +1,6 @@
 // @flow
 
-import React, {
-  Fragment,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {} from 'styled-components/macro';
 import { Tab, Tabs, TabList, TabPanel, TabPanels } from '@reach/tabs';
@@ -76,10 +70,6 @@ function StateTribalTabs() {
 
   // if user navigation directly to the url, activeState.value will be an empty
   // string, so we'll need to query the attains states service for the states
-  const [stateMapping, setStateMapping] = useState({
-    status: 'fetching',
-    data: null,
-  });
   useEffect(() => {
     if (tribeMapping.status === 'fetching') return;
     if (activeState.value === '') {
@@ -90,8 +80,6 @@ function StateTribalTabs() {
 
       fetchCheck(`${services.data.attains.serviceUrl}states`)
         .then((res) => {
-          setStateMapping({ status: 'success', data: res });
-
           if (matchTribes) {
             setActiveState({
               ...matchTribes,
@@ -147,32 +135,8 @@ function StateTribalTabs() {
   if (activeState.source === 'Tribes') {
     if (fullscreenActive) return mapContent;
 
-    // build a spelled out version of stateList
-    let stateListNoAbbreviations = '';
-    if (stateMapping.status === 'success') {
-      const stateCodes = activeState.stateList;
-      stateCodes.forEach((code, index) => {
-        const seperator =
-          index === 0 ? '' : index === stateCodes.length - 1 ? ' and ' : ', ';
-
-        const matchedState = stateMapping.data.data.find(
-          (state) => state.id === code && state.domain === 'State',
-        );
-        stateListNoAbbreviations += seperator + matchedState.name;
-      });
-    }
-
     return (
       <div>
-        <h2>
-          <strong>{activeState.label}</strong>
-          {stateListNoAbbreviations && (
-            <Fragment>
-              {' '}
-              of <strong>{stateListNoAbbreviations}</strong>
-            </Fragment>
-          )}
-        </h2>
         <div>{mapContent}</div>
         <hr />
         <WaterQualityOverview />
