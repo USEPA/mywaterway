@@ -23,7 +23,7 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Map from 'components/shared/Map';
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import MapVisibilityButton from 'components/shared/MapVisibilityButton';
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import NavBar from 'components/shared/NavBar';
 import Page from 'components/shared/Page';
 import ReactTable from 'components/shared/ReactTable';
@@ -45,6 +45,7 @@ import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { fetchCheck } from 'utils/fetchUtils';
 import { useSharedLayers } from 'utils/hooks';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
+import { titleCaseWithExceptions } from 'utils/utils';
 // styles
 import { boxStyles, boxHeadingStyles } from 'components/shared/Box';
 import { colors, disclaimerStyles } from 'styles';
@@ -113,7 +114,7 @@ const boxSectionStyles = css`
 
 const charcsTableStyles = css`
   ${boxSectionStyles}
-  height: 60vh;
+  height: 50vh;
   overflow-y: scroll;
   .rt-table .rt-td {
     margin: auto;
@@ -122,6 +123,7 @@ const charcsTableStyles = css`
 
 const containerStyles = css`
   ${splitLayoutContainerStyles};
+  max-width: 1800px;
 
   th,
   td {
@@ -208,6 +210,14 @@ const inlineBoxSectionStyles = css`
   }
 `;
 
+const leftColumnStyles = css`
+  ${splitLayoutColumnStyles}
+
+  @media (min-width: 960px) {
+    max-width: 582px;
+  }
+`;
+
 const mapContainerStyles = css`
   display: flex;
   height: 100%;
@@ -223,6 +233,31 @@ const modifiedDisclaimerStyles = css`
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles};
   text-align: center;
+`;
+
+const modifiedInfoBoxStyles = css`
+  ${infoBoxStyles};
+  text-align: center;
+  margin: 1rem auto;
+  padding: 0.7rem 1rem !important;
+  width: max-content;
+`;
+
+const modifiedSplitLayoutColumnsStyles = css`
+  ${splitLayoutColumnsStyles};
+
+  @media (min-width: 960px) {
+    flex-flow: row nowrap;
+  }
+`;
+
+const rightColumnStyles = css`
+  ${splitLayoutColumnStyles}
+
+  @media (min-width: 960px) {
+    flex-grow: 3;
+    width: auto;
+  }
 `;
 
 const sliderContainerStyles = css`
@@ -670,7 +705,6 @@ function toggle(state, id, entity, level) {
   groupIds.forEach((groupId) => {
     groupsSelected += newGroups[groupId].selected;
   });
-  console.log(groupsSelected);
   const allSelected =
     groupsSelected === 0 ? 0 : groupsSelected === groupIds.length ? 1 : 2;
 
@@ -856,8 +890,69 @@ function useStationDetails(provider, orgId, siteId) {
  * Components
  */
 
-function CharacteristicsTable({ charcs, charcsStatus }) {
-  const [selected, setSelected] = useState(null);
+function CharacteristicChart({ charcName, charcsStatus, records = [] }) {
+  const [minYear, setMinYear] = useState(null);
+  const [maxYear, setMaxYear] = useState(null);
+  useEffect(() => {
+    if (!charcName || !records.length) return;
+    setMinYear(null);
+    setMaxYear(null);
+  }, [charcName, records]);
+
+  const [range, setRange] = useState(null);
+  useEffect(() => {
+    if (charcsStatus !== 'success') return;
+    if (minYear || maxYear) return;
+    let newMinYear = Infinity;
+    let newMaxYear = 0;
+    Object.values(records).forEach((record) => {
+      if (record.year < newMinYear) newMinYear = record.year;
+      if (record.year > newMaxYear) newMaxYear = record.year;
+    });
+    setMinYear(newMinYear);
+    setMaxYear(newMaxYear);
+    setRange([newMinYear, newMaxYear]);
+  }, [charcsStatus, maxYear, minYear, records]);
+
+  return (
+    <div css={boxStyles}>
+      <h2 css={infoBoxHeadingStyles}>
+        Chart of Results for{' '}
+        {!charcName || charcName === 'None'
+          ? 'Selected Characteristic'
+          : titleCaseWithExceptions(charcName)}
+      </h2>
+      {charcsStatus === 'fetching' ? (
+        <LoadingSpinner />
+      ) : !charcName ? (
+        <p css={modifiedInfoBoxStyles}>
+          No data available for this monitoring location.
+        </p>
+      ) : charcName === 'None' ? (
+        <p css={modifiedInfoBoxStyles}>
+          Select a characteristic from the table above to graph its results.
+        </p>
+      ) : (
+        <>
+          <div css={sliderContainerStyles}>
+            {!range ? (
+              <LoadingSpinner />
+            ) : (
+              <DateSlider
+                disabled={!Boolean(records.length)}
+                min={minYear}
+                max={maxYear}
+                onChange={(newRange) => setRange(newRange)}
+              />
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function CharacteristicsTable({ charcs, charcsStatus, selected, setSelected }) {
   const tableData = useMemo(() => {
     return Object.values(charcs)
       .map((charc) => {
@@ -873,16 +968,21 @@ function CharacteristicsTable({ charcs, charcsStatus }) {
             <label htmlFor={charc.name}></label>
           </div>
         );
+        const measurementCount = charc.records.reduce((a, b) => {
+          if (b.measurement) return a + 1;
+          return a;
+        }, 0);
         return {
-          count: charc.count,
           group: charc.group,
-          select: selector,
+          measurementCount,
           name: charc.name,
+          resultCount: charc.count,
+          select: selector,
           type: charc.type,
         };
       })
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [charcs, selected]);
+  }, [charcs, selected, setSelected]);
 
   return (
     <div css={boxStyles}>
@@ -891,51 +991,66 @@ function CharacteristicsTable({ charcs, charcsStatus }) {
         {charcsStatus === 'fetching' && <LoadingSpinner />}
         {charcsStatus === 'success' &&
           (isEmpty(charcs) ? (
-            <p>No records found for this location.</p>
+            <p css={modifiedInfoBoxStyles}>
+              No records found for this location.
+            </p>
           ) : (
-            <ReactTable
-              data={tableData}
-              placeholder="Filter..."
-              striped={false}
-              getColumns={(tableWidth) => {
-                const columnWidth = tableWidth / 3 - 7;
-                const halfColumnWidth = tableWidth / 6 - 7;
+            <>
+              {sectionRowInline(
+                'Selected Characteristic',
+                selected,
+                charcsStatus,
+              )}
+              <ReactTable
+                data={tableData}
+                placeholder="Filter..."
+                striped={false}
+                getColumns={(tableWidth) => {
+                  const columnWidth = 2 * (tableWidth / 7) - 6;
+                  const halfColumnWidth = tableWidth / 7 - 6;
 
-                return [
-                  {
-                    Header: '',
-                    accessor: 'select',
-                    minWidth: 24,
-                    width: 24,
-                    filterable: false,
-                  },
-                  {
-                    Header: 'Name',
-                    accessor: 'name',
-                    width: columnWidth,
-                    filterable: true,
-                  },
-                  {
-                    Header: 'Type',
-                    accessor: 'type',
-                    width: columnWidth,
-                    filterable: true,
-                  },
-                  {
-                    Header: 'Group',
-                    accessor: 'group',
-                    width: halfColumnWidth,
-                    filterable: true,
-                  },
-                  {
-                    Header: 'Count',
-                    accessor: 'count',
-                    width: halfColumnWidth,
-                    filterable: true,
-                  },
-                ];
-              }}
-            />
+                  return [
+                    {
+                      Header: '',
+                      accessor: 'select',
+                      minWidth: 24,
+                      width: 24,
+                      filterable: false,
+                    },
+                    {
+                      Header: 'Name',
+                      accessor: 'name',
+                      width: columnWidth,
+                      filterable: true,
+                    },
+                    {
+                      Header: 'Type',
+                      accessor: 'type',
+                      width: columnWidth,
+                      filterable: true,
+                    },
+                    {
+                      Header: 'Group',
+                      accessor: 'group',
+                      width: halfColumnWidth,
+                      filterable: true,
+                    },
+                    {
+                      Header: 'Total Result Count',
+                      accessor: 'resultCount',
+                      width: halfColumnWidth,
+                      filterable: false,
+                    },
+                    {
+                      Header: 'Detectable Result Count',
+                      accessor: 'measurementCount',
+                      width: halfColumnWidth,
+                      filterable: false,
+                    },
+                  ];
+                }}
+              />
+            </>
           ))}
       </div>
     </div>
@@ -1000,9 +1115,9 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
   return (
     <div css={boxStyles}>
       <h2 css={boxHeadingStyles}>Download Station Data</h2>
-      {stationStatus === 'fetching' ? (
+      {charcsStatus === 'fetching' ? (
         <LoadingSpinner />
-      ) : Object.keys(station.charcGroupCounts).length === 0 ? (
+      ) : Object.keys(charcs).length === 0 ? (
         <p>No data available for this monitoring location.</p>
       ) : (
         <>
@@ -1011,7 +1126,8 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
               <LoadingSpinner />
             ) : (
               <DateSlider
-                bounds={[minYear, maxYear]}
+                max={maxYear}
+                min={minYear}
                 disabled={!Boolean(Object.keys(charcs).length)}
                 onChange={(newRange) => setRange(newRange)}
               />
@@ -1070,7 +1186,7 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
                         key={group.id}
                         highlightContent={false}
                         title={
-                          <div css={accordionFlexStyles}>
+                          <span css={accordionFlexStyles}>
                             <span className="checkbox-label">
                               <input
                                 type="checkbox"
@@ -1092,7 +1208,7 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
                             <span>
                               <strong>{group.count}</strong>
                             </span>
-                          </div>
+                          </span>
                         }
                       >
                         <p className="charc-type" css={accordionHeadingStyles}>
@@ -1110,7 +1226,7 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
                                   allExpanded={expanded}
                                   highlightContent={false}
                                   title={
-                                    <div css={accordionFlexStyles}>
+                                    <span css={accordionFlexStyles}>
                                       <span className="checkbox-label">
                                         <input
                                           type="checkbox"
@@ -1131,7 +1247,7 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
                                         <strong>{typeId}</strong>
                                       </span>
                                       <strong>{type.count}</strong>
-                                    </div>
+                                    </span>
                                   }
                                 >
                                   <p
@@ -1283,6 +1399,12 @@ function MonitoringStation({ fullscreen }) {
     orgId,
     siteId,
   );
+  const [selectedCharc, setSelectedCharc] = useState(null);
+  useEffect(() => {
+    if (characteristicsStatus !== 'success') return;
+    setSelectedCharc('None');
+  }, [characteristicsStatus]);
+
   const [mapWidth, setMapWidth] = useState(0);
   const widthRef = useCallback((node) => {
     if (!node) return;
@@ -1370,8 +1492,8 @@ function MonitoringStation({ fullscreen }) {
         <WindowSize>
           {({ width, height }) => {
             return (
-              <div css={splitLayoutColumnsStyles}>
-                <div css={splitLayoutColumnStyles}>
+              <div css={modifiedSplitLayoutColumnsStyles}>
+                <div className="static" css={leftColumnStyles}>
                   <InformationSection
                     orgId={orgId}
                     station={station}
@@ -1386,10 +1508,17 @@ function MonitoringStation({ fullscreen }) {
                     stationStatus={stationStatus}
                   />
                 </div>
-                <div css={splitLayoutColumnStyles}>
+                <div css={rightColumnStyles}>
                   <CharacteristicsTable
                     charcs={characteristics}
                     charcsStatus={characteristicsStatus}
+                    selected={selectedCharc}
+                    setSelected={setSelectedCharc}
+                  />
+                  <CharacteristicChart
+                    charcName={selectedCharc}
+                    charcsStatus={characteristicsStatus}
+                    records={characteristics[selectedCharc]?.records}
                   />
                 </div>
               </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 import { useRanger } from 'react-ranger';
 
@@ -66,11 +66,20 @@ const trackStyles = {
   margin: '0.5em 0',
 };
 
-function DateSlider({ bounds, disabled, onChange }) {
-  const [range, setRange] = useState(bounds);
+function DateSlider({ disabled, min, max, onChange }) {
+  const [minYear, setMinYear] = useState(0);
+  const [maxYear, setMaxYear] = useState(100);
+  const [range, setRange] = useState([minYear, maxYear]);
+  useEffect(() => {
+    if (!min || !max) return;
+    setRange([min, max]);
+    setMinYear(min);
+    setMaxYear(max);
+  }, [min, max]);
+
   const { getTrackProps, segments, handles } = useRanger({
-    min: bounds?.[0],
-    max: bounds?.[1],
+    min: minYear,
+    max: maxYear,
     stepSize: 1,
     values: range,
     onChange,
@@ -79,7 +88,7 @@ function DateSlider({ bounds, disabled, onChange }) {
 
   return (
     <div css={sliderContainerStyles}>
-      <span>{bounds[0]}</span>
+      <span>{!disabled && minYear}</span>
       <div css={sliderStyles}>
         <div {...getTrackProps({ style: trackStyles })}>
           {segments.map(({ getSegmentProps }, i) => (
@@ -104,7 +113,7 @@ function DateSlider({ bounds, disabled, onChange }) {
             ))}
         </div>
       </div>
-      <span>{bounds[1]}</span>
+      <span>{!disabled && maxYear}</span>
     </div>
   );
 }

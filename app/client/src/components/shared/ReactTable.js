@@ -133,6 +133,13 @@ const containerStyles = css`
     .rt-filter {
       padding-top: 10px;
     }
+
+    .rt-th-content {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      justify-content: space-between;
+    }
   }
 `;
 
@@ -217,7 +224,7 @@ function ReactTable({ data, getColumns, placeholder, striped = false }: Props) {
                     role="columnheader"
                     {...column.getHeaderProps(column.getSortByToggleProps())}
                   >
-                    <div>
+                    <div className="rt-th-content">
                       <div className="rt-col-title">
                         {column.render('Header')}
                         <span>
