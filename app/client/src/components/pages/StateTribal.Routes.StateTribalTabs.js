@@ -164,15 +164,6 @@ function StateTribalTabs() {
 
     return (
       <div>
-        <h2>
-          <strong>{activeState.label}</strong>
-          {stateListNoAbbreviations && (
-            <Fragment>
-              {' '}
-              of <strong>{stateListNoAbbreviations}</strong>
-            </Fragment>
-          )}
-        </h2>
         <div>{mapContent}</div>
         <hr />
         <WaterQualityOverview />
