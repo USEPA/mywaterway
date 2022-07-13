@@ -646,8 +646,8 @@ function TribalMap({
     const waterbodyLayer = new GroupLayer({
       id: 'waterbodyLayer',
       title: 'Waterbodies',
-      listMode: 'hide',
-      visible: false,
+      listMode: 'hide-children',
+      visible: true,
       legendEnabled: false,
     });
     waterbodyLayer.addMany([areasLayer, linesLayer, pointsLayer]);
@@ -897,11 +897,6 @@ function TribalMap({
             }
 
             mapView.goTo(zoomParams).then(() => {
-              // only show the waterbody layer after everything has loaded to
-              // cut down on unnecessary service calls
-              waterbodyLayer.listMode = 'hide-children';
-              waterbodyLayer.visible = true;
-
               setMapLoading(false);
             });
 
