@@ -886,8 +886,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
               Date range for the {watershed} watershed{' '}
               <Tooltip
                 label={
-                  'Adjust the slider to filter location ' +
-                  'data by the selected year range'
+                  'Adjust the slider handles to filter ' +
+                  'location data by the selected year range'
                 }
                 style={tooltipStyles}
               >
