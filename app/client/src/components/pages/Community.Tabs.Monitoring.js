@@ -90,11 +90,16 @@ const sliderHeaderStyles = css`
   padding: 0.5rem;
   text-align: center;
   width: 100%;
-`;
 
-const sliderIconStyles = css`
-  cursor: help;
-  float: right;
+  @media (hover: none) {
+    .show {
+      display: block;
+    }
+
+    .hide {
+      display: none;
+    }
+  }
 `;
 
 const switchContainerStyles = css`
@@ -126,13 +131,29 @@ const toggleStyles = css`
   }
 `;
 
-const tooltipStyles = {
-  background: colors.steel(0.9),
-  border: 'none',
-  borderRadius: '6px',
-  color: 'white',
-  padding: '0.5rem 1rem',
-};
+const tooltipIconStyles = css`
+  background: none;
+  border: none;
+  color: inherit;
+  float: right;
+  margin: 0;
+  outline: inherit;
+  padding: 0;
+  position: relative;
+  top: 0.15em;
+
+  i {
+    cursor: help;
+  }
+`;
+
+const tooltipStyles = css`
+  background: ${colors.steel(0.9)};
+  border: none;
+  border-radius: 6px;
+  color: white;
+  padding: 0.5rem 1rem;
+`;
 
 const totalRowStyles = css`
   border-top: 2px solid #dee2e6;
@@ -860,6 +881,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
   const [expandedRows, setExpandedRows] = useState([]);
 
+  const [tooltipVisible, setTooltipVisible] = useState('hide');
+
   if (monitoringLocations.status === 'fetching') return <LoadingSpinner />;
 
   if (monitoringLocations.status === 'failure') {
@@ -885,15 +908,19 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
             <div css={sliderHeaderStyles}>
               Date range for the {watershed} watershed{' '}
               <Tooltip
-                label={
-                  'Adjust the slider handles to filter ' +
-                  'location data by the selected year range'
-                }
-                style={tooltipStyles}
+                className={tooltipVisible}
+                css={tooltipStyles}
+                label="Adjust the slider handles to filter location data by the selected year range"
               >
-                <span css={sliderIconStyles}>
-                  <i className="fas fa-question-circle" aria-hidden="true" />
-                </span>
+                <button
+                  css={tooltipIconStyles}
+                  onFocus={(_ev) => setTooltipVisible('show')}
+                  onBlur={(_ev) => setTooltipVisible('hide')}
+                >
+                  <span aria-hidden>
+                    <i className="fas fa-question-circle" />
+                  </span>
+                </button>
               </Tooltip>
             </div>
             <div css={sliderContainerStyles}>
