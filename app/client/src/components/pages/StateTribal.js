@@ -179,7 +179,7 @@ function StateTribal() {
   // redirect to '/stateandtribe' if the url is /state or /tribe
   useEffect(() => {
     const pathname = window.location.pathname.toLowerCase();
-    if (pathname === '/state' || pathname === '/tribe') {
+    if (['/state', '/state/', '/tribe', '/tribe/'].includes(pathname)) {
       navigate('/state-and-tribal');
     }
   }, [navigate]);
