@@ -458,15 +458,30 @@ function TribalMapList({
           </div>
         </div>
       )}
-      <TribalMap
-        activeState={activeState}
-        displayMode={displayMode}
-        filter={filter}
-        layout={layout}
-        setTribalBoundaryError={setTribalBoundaryError}
-        windowHeight={windowHeight}
-        windowWidth={windowWidth}
-      />
+
+      <div
+        aria-label="Tribal Map"
+        css={containerStyles}
+        style={
+          layout === 'fullscreen'
+            ? {
+                height: windowHeight,
+                width: windowWidth,
+              }
+            : {
+                height: mapListHeight,
+                minHeight: '400px',
+                width: '100%',
+                display: displayMode === 'map' ? 'block' : 'none',
+              }
+        }
+      >
+        <TribalMap
+          activeState={activeState}
+          filter={filter}
+          setTribalBoundaryError={setTribalBoundaryError}
+        />
+      </div>
       {displayMode === 'list' && (
         <div css={modifiedTabStyles}>
           <Tabs>
@@ -517,22 +532,14 @@ function TribalMapList({
 
 type TribalMapProps = {
   activeState: Object,
-  displayMode: 'list' | 'map' | 'none',
   filter: string,
-  layout: Layout,
   setTribalBoundaryError: Function,
-  windowHeight: number,
-  windowWidth: number,
 };
 
 function TribalMap({
   activeState,
-  displayMode,
   filter,
-  layout,
   setTribalBoundaryError,
-  windowHeight,
-  windowWidth,
 }: TribalMapProps) {
   const {
     areasLayer,
@@ -924,26 +931,10 @@ function TribalMap({
   ]);
 
   return (
-    <div
-      aria-label="Tribal Map"
-      css={containerStyles}
-      style={
-        layout === 'fullscreen'
-          ? {
-              height: windowHeight,
-              width: windowWidth,
-            }
-          : {
-              height: mapListHeight,
-              minHeight: '400px',
-              width: '100%',
-              display: displayMode === 'map' ? 'block' : 'none',
-            }
-      }
-    >
+    <Fragment>
       <Map layers={layers} />
       {mapView && mapLoading && <MapLoadingSpinner />}
-    </div>
+    </Fragment>
   );
 }
 
