@@ -436,7 +436,7 @@ function WaterQualityOverview() {
         setYearSelected(latestReportingCycle);
         setCurrentSummary({
           status: 'success',
-          data: currentSummary,
+          data: currentSummary ?? {},
         });
         if (!reportingCycleParam) {
           setCurrentReportingCycle({
