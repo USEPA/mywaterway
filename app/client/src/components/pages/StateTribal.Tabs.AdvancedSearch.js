@@ -273,7 +273,7 @@ function AdvancedSearch() {
 
     // get a unique list of parameterGroups as they are in attains
     const uniqueParameterGroups = [];
-    currentSummary.data.waterTypes.forEach((waterType) => {
+    currentSummary.data?.waterTypes?.forEach((waterType) => {
       waterType.useAttainments.forEach((useAttainment) => {
         useAttainment.parameters.forEach((parameter) => {
           const parameterGroup = parameter.parameterGroup;

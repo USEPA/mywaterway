@@ -335,9 +335,10 @@ function WaterQualityOverview() {
           }
 
           const orgData = res.items[0];
-          setAssessmentDocuments(orgData.documents);
-
-          setCurrentReportStatus(orgData.reportStatusCode);
+          if (orgData) {
+            setAssessmentDocuments(orgData.documents);
+            setCurrentReportStatus(orgData.reportStatusCode);
+          }
         })
         .catch((err) => {
           console.error(err);
@@ -378,7 +379,8 @@ function WaterQualityOverview() {
     if (
       !stateAndOrganization ||
       (activeState.source !== 'Tribe' &&
-        currentReportingCycle.status === 'fetching') ||
+        (currentReportingCycle.status === 'fetching' ||
+          activeState.value !== stateAndOrganization.state)) ||
       (activeState.source === 'Tribe' &&
         activeState.attainsId !== stateAndOrganization.organizationId) ||
       usesStateSummaryCalled
