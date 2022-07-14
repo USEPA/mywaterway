@@ -737,12 +737,12 @@ function TribalMap({
     // add the shared layers to the map and set the tribal layer visible
     const sharedLayers = getSharedLayers();
 
-    // // TODO: Decide if we want to show the full tribal layer or not.
-    // sharedLayers.forEach((layer) => {
-    //   if (layer.id !== 'tribalLayer') return;
+    // turn the tribal layer on by default on the tribal tab
+    sharedLayers.forEach((layer) => {
+      if (layer.id !== 'tribalLayer') return;
 
-    //   layer.visible = true;
-    // });
+      layer.visible = true;
+    });
 
     setLayers([
       ...sharedLayers,
