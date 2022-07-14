@@ -104,7 +104,7 @@ function StateTribalTabs() {
             source: 'State',
           });
         })
-        .catch((err) => {
+        .catch((_err) => {
           navigate('/state-and-tribal');
         });
     }

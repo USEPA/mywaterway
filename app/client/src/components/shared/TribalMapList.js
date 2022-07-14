@@ -343,7 +343,7 @@ function TribalMapList({
             className={`btn btn-secondary${
               displayMode === 'map' ? ' active' : ''
             }`}
-            onClick={(ev) => setDisplayMode('map')}
+            onClick={(_ev) => setDisplayMode('map')}
           >
             <i className="fas fa-map-marked-alt" aria-hidden="true" />
             &nbsp;&nbsp;Map
@@ -354,7 +354,7 @@ function TribalMapList({
             className={`btn btn-secondary${
               displayMode === 'list' ? ' active' : ''
             }`}
-            onClick={(ev) => setDisplayMode('list')}
+            onClick={(_ev) => setDisplayMode('list')}
           >
             <i className="fas fa-list" aria-hidden="true" />
             &nbsp;&nbsp;List
@@ -365,7 +365,7 @@ function TribalMapList({
             className={`btn btn-secondary${
               displayMode === 'none' ? ' active' : ''
             }`}
-            onClick={(ev) => setDisplayMode('none')}
+            onClick={(_ev) => setDisplayMode('none')}
           >
             <i className="far fa-eye-slash" aria-hidden="true" />
             &nbsp;&nbsp;Hidden
@@ -398,7 +398,7 @@ function TribalMapList({
                     checked={
                       Boolean(waterbodies.data.length) && waterbodiesDisplayed
                     }
-                    onChange={(checked) => {
+                    onChange={(_checked) => {
                       if (!waterbodyLayer) return;
                       setWaterbodiesDisplayed(!waterbodiesDisplayed);
                       updateVisibleLayers({
@@ -433,7 +433,7 @@ function TribalMapList({
                       Boolean(monitoringLocations.data.features.length) &&
                       monitoringLocationsDisplayed
                     }
-                    onChange={(checked) => {
+                    onChange={(_checked) => {
                       if (!monitoringLocationsLayer) return;
                       setMonitoringLocationsDisplayed(
                         !monitoringLocationsDisplayed,
@@ -516,11 +516,7 @@ function TribalMapList({
                 )}
               </TabPanel>
               <TabPanel>
-                <MonitoringTab
-                  activeState={activeState}
-                  monitoringLocations={monitoringLocations}
-                  monitoringLocationsDisplayed={monitoringLocationsDisplayed}
-                />
+                <MonitoringTab activeState={activeState} />
               </TabPanel>
             </TabPanels>
           </Tabs>
@@ -940,15 +936,9 @@ function TribalMap({
 
 type MonitoringTabProps = {
   activeState: Object,
-  monitoringLocations: { status: Status, data: MonitoringLocationsData },
-  monitoringLocationsDisplayed: boolean,
 };
 
-function MonitoringTab({
-  activeState,
-  monitoringLocations,
-  monitoringLocationsDisplayed,
-}: MonitoringTabProps) {
+function MonitoringTab({ activeState }: MonitoringTabProps) {
   const { monitoringGroups, monitoringLocationsLayer } = useContext(
     LocationSearchContext,
   );
@@ -1015,16 +1005,11 @@ function MonitoringTab({
           label: 'Water Type',
           value: 'locationType',
         },
-      ].concat(
-        monitoringLocationsDisplayed
-          ? [
-              {
-                label: 'Monitoring Measurements',
-                value: 'stationTotalMeasurements',
-              },
-            ]
-          : [],
-      )}
+        {
+          label: 'Monitoring Measurements',
+          value: 'stationTotalMeasurements',
+        },
+      ]}
     >
       {sortedMonitoringAndSensors.map((item, index) => {
         const feature = {

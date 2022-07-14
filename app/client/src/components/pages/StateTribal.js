@@ -219,7 +219,7 @@ function StateTribal() {
           }),
         });
       })
-      .catch((err) => setStates({ status: 'failure', data: [] }));
+      .catch((_err) => setStates({ status: 'failure', data: [] }));
   }, [services, statesInitialized]);
 
   const {

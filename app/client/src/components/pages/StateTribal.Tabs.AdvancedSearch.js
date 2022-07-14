@@ -409,7 +409,7 @@ function AdvancedSearch() {
           // list prior to filters being visible on the screen.
           let waterbodiesList = [];
           let reportingCycle = '';
-          data.features.forEach((waterbody, index) => {
+          data.features.forEach((waterbody, _index) => {
             if (waterbody.attributes.reportingcycle > reportingCycle) {
               reportingCycle = waterbody.attributes.reportingcycle;
             }
@@ -908,7 +908,7 @@ function AdvancedSearch() {
               aria-label="Has TMDL"
               type="checkbox"
               checked={hasTmdlChecked}
-              onChange={(ev) => setHasTmdlChecked(!hasTmdlChecked)}
+              onChange={(_ev) => setHasTmdlChecked(!hasTmdlChecked)}
             />
             <span css={screenLabelWithPaddingStyles}>
               <GlossaryTerm term="TMDL">Has TMDL</GlossaryTerm>
@@ -921,7 +921,7 @@ function AdvancedSearch() {
         <button
           css={buttonStyles}
           disabled={searchLoading}
-          onClick={(ev) => {
+          onClick={(_ev) => {
             if (mapView && mapView.popup) mapView.popup.close();
             executeFilter();
           }}
@@ -979,7 +979,7 @@ function AdvancedSearch() {
               css={buttonStyles}
               type="button"
               className={`btn btn-secondary${showMap ? ' active' : ''}`}
-              onClick={(ev) => setShowMap(true)}
+              onClick={(_ev) => setShowMap(true)}
             >
               <i className="fas fa-map-marked-alt" aria-hidden="true" />
               &nbsp;&nbsp;Map
@@ -988,7 +988,7 @@ function AdvancedSearch() {
               css={buttonStyles}
               type="button"
               className={`btn btn-secondary${!showMap ? ' active' : ''}`}
-              onClick={(ev) => setShowMap(false)}
+              onClick={(_ev) => setShowMap(false)}
             >
               <i className="fas fa-list" aria-hidden="true" />
               &nbsp;&nbsp;List
@@ -1085,7 +1085,7 @@ function AdvancedSearch() {
         label="Warning about potentially slow search"
         isOpen={confirmOpen}
         confirmEnabled={numberOfRecords > 0}
-        onConfirm={(ev) => {
+        onConfirm={(_ev) => {
           setConfirmOpen(false);
           setCurrentFilter(nextFilter);
           setWaterbodyData(null);
@@ -1101,7 +1101,7 @@ function AdvancedSearch() {
             setSelectedDisplayOption(defaultDisplayOption);
           }
         }}
-        onCancel={(ev) => {
+        onCancel={(_ev) => {
           setConfirmOpen(false);
         }}
       >
