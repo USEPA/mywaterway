@@ -13,6 +13,7 @@ import {
 import { tabsStyles } from 'components/shared/ContentTabs';
 import DateSlider from 'components/shared/DateSlider';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
+import HelpTooltip from 'components/shared/HelpTooltip';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import {
   keyMetricsStyles,
@@ -85,19 +86,18 @@ const sliderHeaderStyles = css`
   background-color: #f0f6f9;
   border-bottom: 2px solid #dee2e6;
   border-top: 1px solid #dee2e6;
+  display: flex;
+  gap: 0.5em;
+  justify-content: space-between;
   margin: auto;
   font-weight: bold;
   padding: 0.5rem;
   text-align: center;
   width: 100%;
 
-  @media (hover: none) {
-    .show {
-      display: block;
-    }
-
-    .hide {
-      display: none;
+  span {
+    &:first-of-type {
+      width: 1em;
     }
   }
 `;
@@ -129,30 +129,6 @@ const toggleStyles = css`
   span {
     margin-left: 0.5rem;
   }
-`;
-
-const tooltipIconStyles = css`
-  background: none;
-  border: none;
-  color: inherit;
-  float: right;
-  margin: 0;
-  outline: inherit;
-  padding: 0;
-  position: relative;
-  top: 0.15em;
-
-  i {
-    cursor: help;
-  }
-`;
-
-const tooltipStyles = css`
-  background: ${colors.steel(0.9)};
-  border: none;
-  border-radius: 6px;
-  color: white;
-  padding: 0.5rem 1rem;
 `;
 
 const totalRowStyles = css`
@@ -881,8 +857,6 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
   const [expandedRows, setExpandedRows] = useState([]);
 
-  const [tooltipVisible, setTooltipVisible] = useState('hide');
-
   if (monitoringLocations.status === 'fetching') return <LoadingSpinner />;
 
   if (monitoringLocations.status === 'failure') {
@@ -906,22 +880,9 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
         {totalLocationsCount > 0 && (
           <>
             <div css={sliderHeaderStyles}>
-              Date range for the {watershed} watershed{' '}
-              <Tooltip
-                className={tooltipVisible}
-                css={tooltipStyles}
-                label="Adjust the slider handles to filter location data by the selected year range"
-              >
-                <button
-                  css={tooltipIconStyles}
-                  onFocus={(_ev) => setTooltipVisible('show')}
-                  onBlur={(_ev) => setTooltipVisible('hide')}
-                >
-                  <span aria-hidden>
-                    <i className="fas fa-question-circle" />
-                  </span>
-                </button>
-              </Tooltip>
+              <span></span>
+              <span>Date range for the {watershed} watershed </span>
+              <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
             </div>
             <div css={sliderContainerStyles}>
               {!yearsRange ? (
