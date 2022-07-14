@@ -12,6 +12,7 @@ import {
 import { tabsStyles } from 'components/shared/ContentTabs';
 import DateSlider from 'components/shared/DateSlider';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
+import HelpTooltip from 'components/shared/HelpTooltip';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import {
   keyMetricsStyles,
@@ -82,11 +83,20 @@ const sliderHeaderStyles = css`
   background-color: #f0f6f9;
   border-bottom: 2px solid #dee2e6;
   border-top: 1px solid #dee2e6;
+  display: flex;
+  gap: 0.5em;
+  justify-content: space-between;
   margin: auto;
   font-weight: bold;
-  padding: 0.5rem 3.5rem;
+  padding: 0.5rem;
   text-align: center;
   width: 100%;
+
+  span {
+    &:first-of-type {
+      width: 1em;
+    }
+  }
 `;
 
 const switchContainerStyles = css`
@@ -353,9 +363,6 @@ function Monitoring() {
     usgsStreamgages,
     visibleLayers,
   ]);
-
-  // Added to avoid the slider tooltip appearing
-  // on the Current Water Conditions tab
 
   return (
     <div css={containerStyles}>
@@ -878,7 +885,9 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
         {totalLocationsCount > 0 && (
           <>
             <div css={sliderHeaderStyles}>
-              Date range for the {watershed} watershed{' '}
+              <span></span>
+              <span>Date range for the {watershed} watershed </span>
+              <HelpTooltip label="Adjust the slider handles to filter location data by the selected year range" />
             </div>
             <div css={sliderContainerStyles}>
               {!yearsRange ? (
