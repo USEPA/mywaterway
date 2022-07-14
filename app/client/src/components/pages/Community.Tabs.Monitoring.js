@@ -2,7 +2,6 @@
 
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
-import Tooltip from '@reach/tooltip';
 import { css } from 'styled-components/macro';
 import { useNavigate } from 'react-router-dom';
 // components
@@ -38,9 +37,7 @@ import { characteristicGroupMappings } from 'config/characteristicGroupMappings'
 // errors
 import { monitoringError } from 'config/errorMessages';
 // styles
-import '@reach/tooltip/styles.css';
 import {
-  colors,
   disclaimerStyles,
   iconStyles,
   toggleTableStyles,

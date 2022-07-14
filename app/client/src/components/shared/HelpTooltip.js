@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useState } from 'react';
+import React from 'react';
 import { TooltipPopup, useTooltip } from '@reach/tooltip';
 import { css } from 'styled-components/macro';
 // styles
@@ -52,7 +52,7 @@ function centered(triggerRect, tooltipRect) {
  * Components
  */
 
-function HelpTooltip({ children, label }) {
+function Tooltip({ children, label }) {
   const [trigger, tooltip] = useTooltip();
 
   return (
@@ -68,16 +68,16 @@ function HelpTooltip({ children, label }) {
   );
 }
 
-function HelpTooltipWrapper({ label }) {
+function HelpTooltip({ label }) {
   return (
-    <HelpTooltip label={label}>
+    <Tooltip label={label}>
       <button css={tooltipIconStyles}>
         <span aria-hidden>
           <i className="fas fa-question-circle" />
         </span>
       </button>
-    </HelpTooltip>
+    </Tooltip>
   );
 }
 
-export default HelpTooltipWrapper;
+export default HelpTooltip;
