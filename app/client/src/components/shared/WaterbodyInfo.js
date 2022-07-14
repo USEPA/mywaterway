@@ -1006,9 +1006,7 @@ function parseAttributes(structuredAttributes, attributes) {
 
 function buildGroups(checkMappings, totalsByGroup) {
   const stationGroups = totalsByGroup;
-  const newGroups = {
-    Other: { characteristicGroups: [], resultCount: 0 },
-  };
+  const newGroups = {};
   // get the feature where the provider matches this stations provider
   characteristicGroupMappings.forEach((mapping) => {
     for (const groupName in stationGroups) {
@@ -1028,14 +1026,15 @@ function buildGroups(checkMappings, totalsByGroup) {
             resultCount: stationGroups[groupName],
           };
         }
-      }
-      // push to Other
-      else if (
-        !checkMappings(groupName) &&
-        !newGroups['Other'].characteristicGroups.includes(groupName)
-      ) {
-        newGroups['Other'].characteristicGroups.push(groupName);
-        newGroups['Other'].resultCount += stationGroups[groupName];
+      } else if (!checkMappings(groupName)) {
+        if (!newGroups['Other']) {
+          newGroups['Other'] = { characteristicGroups: [], resultCount: 0 };
+        }
+        if (!newGroups['Other'].characteristicGroups.includes(groupName)) {
+          // push to Other
+          newGroups['Other'].characteristicGroups.push(groupName);
+          newGroups['Other'].resultCount += stationGroups[groupName];
+        }
       }
     }
   });

@@ -122,6 +122,7 @@ const toggleTableStyles = css`
   td,
   th {
     overflow-wrap: anywhere;
+    word-break: break-word;
   }
 `;
 

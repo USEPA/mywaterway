@@ -41,7 +41,7 @@ const sliderContainerStyles = css`
 `;
 
 const sliderStyles = css`
-  align-items: end;
+  align-items: flex-end;
   display: inline-flex;
   height: 3.5em;
   width: 60%;
