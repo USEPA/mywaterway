@@ -10,6 +10,7 @@ import {
   useEffect,
   useMemo,
   useReducer,
+  useRef,
   useState,
 } from 'react';
 import { useParams } from 'react-router-dom';
@@ -19,6 +20,7 @@ import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import DateSlider from 'components/shared/DateSlider';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import LineChart from 'components/shared/LineChart';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Map from 'components/shared/Map';
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
@@ -497,20 +499,6 @@ function getTotalCount(charcs) {
   return totalCount;
 }
 
-const initialCheckboxes = {
-  all: 0,
-  groups: {},
-  types: {},
-  charcs: {},
-};
-
-function isEmpty(obj) {
-  for (var _x in obj) {
-    return false;
-  }
-  return true;
-}
-
 async function getZoomParams(layer) {
   const featureSet = await layer.queryFeatures();
   const graphics = featureSet.features;
@@ -550,6 +538,31 @@ function groupTypes(charcTypes, mappings) {
   }
   return groups;
 }
+
+const initialCheckboxes = {
+  all: 0,
+  groups: {},
+  types: {},
+  charcs: {},
+};
+
+function isEmpty(obj) {
+  for (var _x in obj) {
+    return false;
+  }
+  return true;
+}
+
+const lineColors = {
+  Bacterial: '#03a66a',
+  Metals: '#526571',
+  Nutrients: '#00de04',
+  Other: '#38a6ee',
+  Pesticides: '#400587',
+  PFAS: '#eb4034',
+  Physical: '#ad9e71',
+  Sediments: '#9c7803',
+};
 
 function loadNewData(data, state) {
   const newCharcs = {};
@@ -890,29 +903,91 @@ function useStationDetails(provider, orgId, siteId) {
  * Components
  */
 
-function CharacteristicChart({ charcName, charcsStatus, records = [] }) {
+function CharacteristicChart({
+  charcGroup,
+  charcName,
+  charcsStatus,
+  records = [],
+}) {
+  const [measurements, setMeasurements] = useState(null);
+  const [unit, setUnit] = useState(null);
+  useEffect(() => {
+    if (!records.length) return;
+    const newMeasurements = {};
+    records.forEach((record) => {
+      if (!record.measurement || !record.unit) return;
+
+      if (!newMeasurements[record.unit]) newMeasurements[record.unit] = {};
+      const unitMeasurements = newMeasurements[record.unit];
+
+      // group by unit and date
+      const date =
+        `${record.year}` +
+        `-${record.month < 10 ? `0${record.month}` : record.month}` +
+        `-${record.day < 10 ? `0${record.day}` : record.day}`;
+      if (!unitMeasurements[date]) {
+        unitMeasurements[date] = {
+          ...record,
+          measurement: [record.measurement],
+          date,
+        };
+      } else {
+        unitMeasurements[date].measurement.push(record.measurement);
+      }
+    });
+
+    // store in arrays by unit and sort by date
+    const sortedMeasurements = {};
+    Object.entries(newMeasurements).forEach(([unitKey, unitMeasurements]) => {
+      Object.values(unitMeasurements).forEach((date) => {
+        date.measurement = parseFloat(
+          (
+            date.measurement.reduce((a, b) => a + b) / date.measurement.length
+          ).toFixed(3),
+        );
+      });
+      sortedMeasurements[unitKey] = Object.values(unitMeasurements)
+        .sort((a, b) => a.day - b.day)
+        .sort((a, b) => a.month - b.month)
+        .sort((a, b) => a.year - b.year);
+    });
+    setMeasurements(sortedMeasurements);
+
+    // initialize selected unit
+    const units = Object.keys(sortedMeasurements);
+    if (units.length) setUnit(units[0]);
+  }, [records]);
+
+  const [chartData, setChartData] = useState(null);
+  const [domain, setDomain] = useState(null);
+  const [range, setRange] = useState(null);
+  const getNewChartData = useCallback((domain, msmts) => {
+    let newChartData = [];
+    msmts.forEach((msmt) => {
+      if (msmt.year >= domain[0] && msmt.year <= domain[1]) {
+        newChartData.push({ x: msmt.date, y: msmt.measurement });
+      }
+    });
+    setChartData(newChartData);
+    // data is already sorted by date
+    setDomain([newChartData[0].x, newChartData[newChartData.length - 1].x]);
+    const yValues = newChartData.map((datum) => datum.y);
+    setRange([Math.min(...yValues), Math.max(...yValues)]);
+  }, []);
+
   const [minYear, setMinYear] = useState(null);
   const [maxYear, setMaxYear] = useState(null);
   useEffect(() => {
-    if (!charcName || !records.length) return;
-    setMinYear(null);
-    setMaxYear(null);
-  }, [charcName, records]);
+    if (!measurements || !unit) return;
+    const unitMeasurements = measurements[unit];
+    const yearLow = unitMeasurements[0].year;
+    const yearHigh = unitMeasurements[unitMeasurements.length - 1].year;
+    setMinYear(yearLow);
+    setMaxYear(yearHigh);
+    getNewChartData([yearLow, yearHigh], unitMeasurements);
+  }, [charcsStatus, getNewChartData, measurements, unit]);
 
-  const [range, setRange] = useState(null);
-  useEffect(() => {
-    if (charcsStatus !== 'success') return;
-    if (minYear || maxYear) return;
-    let newMinYear = Infinity;
-    let newMaxYear = 0;
-    Object.values(records).forEach((record) => {
-      if (record.year < newMinYear) newMinYear = record.year;
-      if (record.year > newMaxYear) newMaxYear = record.year;
-    });
-    setMinYear(newMinYear);
-    setMaxYear(newMaxYear);
-    setRange([newMinYear, newMaxYear]);
-  }, [charcsStatus, maxYear, minYear, records]);
+  const chartRef = useRef(null);
 
   return (
     <div css={boxStyles}>
@@ -935,14 +1010,30 @@ function CharacteristicChart({ charcName, charcsStatus, records = [] }) {
       ) : (
         <>
           <div css={sliderContainerStyles}>
-            {!range ? (
+            {!minYear || !maxYear ? (
               <LoadingSpinner />
             ) : (
               <DateSlider
                 disabled={!Boolean(records.length)}
                 min={minYear}
                 max={maxYear}
-                onChange={(newRange) => setRange(newRange)}
+                onChange={(newDomain) =>
+                  getNewChartData(newDomain, measurements[unit])
+                }
+              />
+            )}
+          </div>
+          <div ref={chartRef}>
+            {!chartData || !domain || !range ? (
+              <LoadingSpinner />
+            ) : (
+              <LineChart
+                color={lineColors[charcGroup]}
+                data={chartData}
+                dataKey={charcName}
+                domain={domain}
+                range={range}
+                containerRef={chartRef.current}
               />
             )}
           </div>
@@ -1516,6 +1607,13 @@ function MonitoringStation({ fullscreen }) {
                     setSelected={setSelectedCharc}
                   />
                   <CharacteristicChart
+                    charcGroup={
+                      selectedCharc &&
+                      getCharcGroup(
+                        characteristics[selectedCharc]?.type,
+                        characteristicGroupMappings,
+                      )
+                    }
                     charcName={selectedCharc}
                     charcsStatus={characteristicsStatus}
                     records={characteristics[selectedCharc]?.records}
