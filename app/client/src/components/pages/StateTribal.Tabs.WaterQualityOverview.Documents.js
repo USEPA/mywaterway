@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 // components
+import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import ReactTable from 'components/shared/ReactTable';
 // contexts
@@ -75,7 +76,11 @@ const modifiedErrorBoxStyles = css`
 
 // --- components (Documents) ---
 type Props = {
-  activeState: { code: string, name: string },
+  activeState: {
+    value: string,
+    label: string,
+    source: 'All' | 'State' | 'Tribe',
+  },
   surveyLoading: boolean,
   surveyDocuments: Object,
   assessmentsLoading: boolean,
@@ -128,7 +133,7 @@ function Documents({
     documents.forEach((document) => {
       // get document ordering
       let order = 999; // large initial order
-      if (document.documentTypes.length === 0) {
+      if (!document.documentTypes || document.documentTypes.length === 0) {
         const documentRanked = {
           ...document,
           order: order,
@@ -160,7 +165,7 @@ function Documents({
     documentOrder.status,
   );
 
-  if (activeState.code === '') return null;
+  if (activeState.value === '') return null;
 
   return (
     <div css={containerStyles}>
@@ -170,7 +175,7 @@ function Documents({
         <LoadingSpinner />
       ) : documentServiceError ? (
         <div css={modifiedErrorBoxStyles}>
-          <p>{stateDocumentError(activeState.name)}</p>
+          <p>{stateDocumentError(activeState.label)}</p>
         </div>
       ) : (
         <>
@@ -190,7 +195,7 @@ function Documents({
         <LoadingSpinner />
       ) : surveyServiceError ? (
         <div css={modifiedErrorBoxStyles}>
-          <p>{stateSurveyError(activeState.name)}</p>
+          <p>{stateSurveyError(activeState.label)}</p>
         </div>
       ) : (
         <>
@@ -242,18 +247,21 @@ function DocumentsTable({ documents, type }: DocumentsTableProps) {
             width: docNameWidth,
             Render: (cell) => {
               return (
-                <a
-                  href={cell.row.original.documentURL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {cell.value} (
-                  {getExtensionFromPath(
-                    cell.row.original.documentFileName,
-                    cell.row.original.documentURL,
-                  )}
-                  )
-                </a>
+                <>
+                  <a
+                    href={cell.row.original.documentURL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {cell.value} (
+                    {getExtensionFromPath(
+                      cell.row.original.documentFileName,
+                      cell.row.original.documentURL,
+                    )}
+                    )
+                  </a>
+                  <DynamicExitDisclaimer url={cell.row.original.documentURL} />
+                </>
               );
             },
           },

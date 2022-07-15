@@ -66,6 +66,19 @@ const fonts = {
 };
 
 const reactSelectStyles = {
+  group: (defaultStyles) => ({ ...defaultStyles, padding: 0 }),
+  groupHeading: (defaultStyles) => ({
+    ...defaultStyles,
+    margin: 0,
+    padding: '6px 12px',
+    color: '#fff',
+    backgroundColor: '#4c4c4c',
+    lineHeight: '16px',
+    fontSize: '16px',
+    fontWeight: '400',
+    textTransform: 'none',
+  }),
+  menuList: (defaultStyles) => ({ ...defaultStyles, padding: 0 }),
   placeholder: (defaultStyles) => ({ ...defaultStyles, color: '#495057' }),
   singleValue: (defaultStyles) => ({ ...defaultStyles, lineHeight: 2 }),
 };

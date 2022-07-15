@@ -272,7 +272,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     upstreamWidgetDisabled: false,
     allWaterbodiesWidgetDisabled: false,
     visibleLayers: {},
-    basemap: {},
+    basemap: 'gray-vector',
     hucBoundaries: '',
     atHucBoundaries: false,
     countyBoundaries: '',
@@ -566,13 +566,6 @@ export class LocationSearchProvider extends Component<Props, State> {
       if (pointsData) features = features.concat(pointsData.features);
 
       return features;
-    },
-
-    // default basemap is gray but use basemap in context if it exists
-    getBasemap: () => {
-      return Object.keys(this.state.basemap).length === 0
-        ? 'gray-vector'
-        : this.state.basemap;
     },
 
     resetMap: (useDefaultZoom = false) => {

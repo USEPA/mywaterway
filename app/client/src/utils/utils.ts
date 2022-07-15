@@ -402,6 +402,19 @@ function indicesOf(text: string, searchString: string) {
   return indices;
 }
 
+// Parses ArcGIS attributes including stringified JSON
+function parseAttributes(structuredAttributes: any, attributes: any) {
+  const parsed: any = {};
+  for (const property of structuredAttributes) {
+    try {
+      parsed[property] = JSON.parse(attributes[property]);
+    } catch {
+      parsed[property] = attributes[property];
+    }
+  }
+  return { ...attributes, ...parsed };
+}
+
 export {
   chunkArray,
   containsScriptTag,
@@ -426,4 +439,5 @@ export {
   normalizeString,
   summarizeAssessments,
   indicesOf,
+  parseAttributes,
 };

@@ -22,13 +22,13 @@ import ConfirmModal from 'components/shared/ConfirmModal';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { StateTabsContext } from 'contexts/StateTabs';
+import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   MapHighlightContext,
   MapHighlightProvider,
 } from 'contexts/MapHighlight';
-import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
+import { FullscreenContext } from 'contexts/Fullscreen';
 import {
   useReportStatusMappingContext,
   useServicesContext,
@@ -235,7 +235,7 @@ function AdvancedSearch() {
     activeState,
     stateAndOrganization,
     setStateAndOrganization,
-  } = useContext(StateTabsContext);
+  } = useContext(StateTribalTabsContext);
 
   const { fullscreenActive } = useContext(FullscreenContext);
 
@@ -273,7 +273,7 @@ function AdvancedSearch() {
 
     // get a unique list of parameterGroups as they are in attains
     const uniqueParameterGroups = [];
-    currentSummary.data.waterTypes.forEach((waterType) => {
+    currentSummary.data?.waterTypes?.forEach((waterType) => {
       waterType.useAttainments.forEach((useAttainment) => {
         useAttainment.parameters.forEach((parameter) => {
           const parameterGroup = parameter.parameterGroup;
@@ -322,10 +322,10 @@ function AdvancedSearch() {
   // get a list of watersheds and build the esri where clause
   const [watersheds, setWatersheds] = useState(null);
   useEffect(() => {
-    if (activeState.code === '' || !watershedsLayerMaxRecordCount) return;
+    if (activeState.value === '' || !watershedsLayerMaxRecordCount) return;
 
     const queryParams = {
-      where: `UPPER(STATES) LIKE '%${activeState.code}%' AND STATES <> 'CAN' AND STATES <> 'MEX'`,
+      where: `UPPER(STATES) LIKE '%${activeState.value}%' AND STATES <> 'CAN' AND STATES <> 'MEX'`,
       outFields: ['huc12', 'name'],
     };
 
@@ -409,7 +409,7 @@ function AdvancedSearch() {
           // list prior to filters being visible on the screen.
           let waterbodiesList = [];
           let reportingCycle = '';
-          data.features.forEach((waterbody, index) => {
+          data.features.forEach((waterbody, _index) => {
             if (waterbody.attributes.reportingcycle > reportingCycle) {
               reportingCycle = waterbody.attributes.reportingcycle;
             }
@@ -569,10 +569,6 @@ function AdvancedSearch() {
     setWaterbodiesList(null);
     setNumberOfRecords(null);
     setStateAndOrganization(null);
-    setCurrentReportingCycle({
-      status: 'fetching',
-      reportingCycle: '',
-    });
 
     // Reset the filters
     setCurrentFilter(null);
@@ -647,9 +643,9 @@ function AdvancedSearch() {
 
   // build esri where clause
   const executeFilterWrapped = (watershedResults: Object) => {
-    if (activeState.code === '' || !stateAndOrganization) return;
+    if (activeState.value === '' || !stateAndOrganization) return;
 
-    let newFilter = `state = '${activeState.code}' AND organizationid = '${stateAndOrganization.organizationId}'`;
+    let newFilter = `state = '${activeState.value}' AND organizationid = '${stateAndOrganization.organizationId}'`;
 
     // radio button filters
     if (waterTypeFilter === '303d') {
@@ -912,7 +908,7 @@ function AdvancedSearch() {
               aria-label="Has TMDL"
               type="checkbox"
               checked={hasTmdlChecked}
-              onChange={(ev) => setHasTmdlChecked(!hasTmdlChecked)}
+              onChange={(_ev) => setHasTmdlChecked(!hasTmdlChecked)}
             />
             <span css={screenLabelWithPaddingStyles}>
               <GlossaryTerm term="TMDL">Has TMDL</GlossaryTerm>
@@ -925,7 +921,7 @@ function AdvancedSearch() {
         <button
           css={buttonStyles}
           disabled={searchLoading}
-          onClick={(ev) => {
+          onClick={(_ev) => {
             if (mapView && mapView.popup) mapView.popup.close();
             executeFilter();
           }}
@@ -983,7 +979,7 @@ function AdvancedSearch() {
               css={buttonStyles}
               type="button"
               className={`btn btn-secondary${showMap ? ' active' : ''}`}
-              onClick={(ev) => setShowMap(true)}
+              onClick={(_ev) => setShowMap(true)}
             >
               <i className="fas fa-map-marked-alt" aria-hidden="true" />
               &nbsp;&nbsp;Map
@@ -992,7 +988,7 @@ function AdvancedSearch() {
               css={buttonStyles}
               type="button"
               className={`btn btn-secondary${!showMap ? ' active' : ''}`}
-              onClick={(ev) => setShowMap(false)}
+              onClick={(_ev) => setShowMap(false)}
             >
               <i className="fas fa-list" aria-hidden="true" />
               &nbsp;&nbsp;List
@@ -1089,7 +1085,7 @@ function AdvancedSearch() {
         label="Warning about potentially slow search"
         isOpen={confirmOpen}
         confirmEnabled={numberOfRecords > 0}
-        onConfirm={(ev) => {
+        onConfirm={(_ev) => {
           setConfirmOpen(false);
           setCurrentFilter(nextFilter);
           setWaterbodyData(null);
@@ -1105,7 +1101,7 @@ function AdvancedSearch() {
             setSelectedDisplayOption(defaultDisplayOption);
           }
         }}
-        onCancel={(ev) => {
+        onCancel={(_ev) => {
           setConfirmOpen(false);
         }}
       >
@@ -1213,9 +1209,7 @@ function MenuItem({ index, width, setSize, value }: MenuItemProps) {
 export default function AdvancedSearchContainer() {
   return (
     <MapHighlightProvider>
-      <FullscreenProvider>
-        <AdvancedSearch />
-      </FullscreenProvider>
+      <AdvancedSearch />
     </MapHighlightProvider>
   );
 }

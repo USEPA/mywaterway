@@ -4,41 +4,55 @@ import React, { useContext, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {} from 'styled-components/macro';
 import { Tab, Tabs, TabList, TabPanel, TabPanels } from '@reach/tabs';
+import { useWindowSize } from '@reach/window-size';
 // components
 import { tabsStyles, tabPanelStyles } from 'components/shared/ContentTabs';
-import WaterQualityOverview from 'components/pages/State.Tabs.WaterQualityOverview';
-import AdvancedSearch from 'components/pages/State.Tabs.AdvancedSearch';
+import WaterQualityOverview from 'components/pages/StateTribal.Tabs.WaterQualityOverview';
+import AdvancedSearch from 'components/pages/StateTribal.Tabs.AdvancedSearch';
+import LoadingSpinner from 'components/shared/LoadingSpinner';
+import TribalMapList from 'components/shared/TribalMapList';
 // styled components
 import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 // contexts
-import { StateTabsContext } from 'contexts/StateTabs';
-import { useServicesContext } from 'contexts/LookupFiles';
+import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
+import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
+import {
+  useServicesContext,
+  useTribeMappingContext,
+} from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 
-function StateTabs() {
+function StateTribalTabs() {
   const { stateCode, tabName } = useParams();
   const navigate = useNavigate();
 
   const services = useServicesContext();
+  const tribeMapping = useTribeMappingContext();
 
   const { activeState, setActiveState, activeTabIndex, setActiveTabIndex } =
-    useContext(StateTabsContext);
+    useContext(StateTribalTabsContext);
+
+  const { fullscreenActive } = useContext(FullscreenContext);
 
   // redirect to overview tab if tabName param wasn't provided in the url
   // (e.g. '/state/al' redirects to '/state/AL/water-quality-overview')
   useEffect(() => {
+    const pathname = window.location.pathname.toLowerCase();
+    if (pathname === `/tribe/${stateCode.toLowerCase()}`) return;
+
     if (stateCode && !tabName) {
       navigate(`/state/${stateCode.toUpperCase()}/water-quality-overview`);
     }
   }, [navigate, stateCode, tabName]);
 
-  // redirect to '/state' if the url doesn't match a valid route
+  // redirect to '/state-and-tribal' if the url doesn't match a valid route
   // and conditionally set active tab index
   useEffect(() => {
     const validRoutes = [
       `/state/${stateCode.toLowerCase()}/water-quality-overview`,
       `/state/${stateCode.toLowerCase()}/advanced-search`,
+      `/tribe/${stateCode.toLowerCase()}`,
     ];
 
     const tabIndex = validRoutes.indexOf(
@@ -46,7 +60,7 @@ function StateTabs() {
     );
 
     if (tabIndex === -1) {
-      navigate('/state');
+      navigate('/state-and-tribal');
     }
 
     if (activeTabIndex !== tabIndex) {
@@ -54,38 +68,81 @@ function StateTabs() {
     }
   }, [navigate, activeTabIndex, setActiveTabIndex, stateCode]);
 
-  // if user navigation directly to the url, activeState.code will be an empty
+  // if user navigation directly to the url, activeState.value will be an empty
   // string, so we'll need to query the attains states service for the states
   useEffect(() => {
-    if (activeState.code === '') {
+    if (tribeMapping.status === 'fetching') return;
+    if (activeState.value === '') {
+      // check if the stateID is a tribe id by checking the control table
+      const matchTribes = tribeMapping.data.filter(
+        (tribe) => tribe.attainsId === stateCode.toUpperCase(),
+      )[0];
+
       fetchCheck(`${services.data.attains.serviceUrl}states`)
         .then((res) => {
+          if (matchTribes) {
+            setActiveState({
+              ...matchTribes,
+              value: matchTribes.attainsId,
+              label: matchTribes.name,
+              source: 'Tribe',
+            });
+            return;
+          }
+
           // get matched state from web service response
           const match = res.data.filter(
             (state) => state.code === stateCode.toUpperCase(),
           )[0];
 
           // redirect to /state if no state was found
-          if (!match) navigate('/state');
+          if (!match) navigate('/state-and-tribal');
 
-          setActiveState({ code: match.code, name: match.name });
+          setActiveState({
+            value: match.code,
+            label: match.name,
+            source: 'State',
+          });
         })
-        .catch((err) => {
-          navigate('/state');
+        .catch((_err) => {
+          navigate('/state-and-tribal');
         });
     }
-  }, [navigate, activeState, setActiveState, stateCode, services]);
+  }, [
+    activeState,
+    navigate,
+    tribeMapping,
+    services,
+    setActiveState,
+    stateCode,
+  ]);
 
   const tabListRef = useRef();
 
-  // focus the active tab
-  useEffect(() => {
-    if (tabListRef.current) {
-      const tabList = tabListRef.current;
-      const activeTab = tabList.children[activeTabIndex];
-      setTimeout(() => activeTab.focus(), 0);
-    }
-  }, [tabListRef, activeTabIndex]);
+  const { width, height } = useWindowSize();
+
+  const mapContent = (
+    <TribalMapList
+      windowHeight={height}
+      windowWidth={width}
+      layout={fullscreenActive ? 'fullscreen' : 'narrow'}
+      activeState={activeState}
+    />
+  );
+
+  if (activeState.source === 'All') return <LoadingSpinner />;
+
+  if (activeState.source === 'Tribe') {
+    if (fullscreenActive) return mapContent;
+
+    return (
+      <div>
+        <div>{mapContent}</div>
+        <hr />
+        <WaterQualityOverview />
+      </div>
+    );
+  }
 
   return (
     <Tabs
@@ -117,4 +174,10 @@ function StateTabs() {
   );
 }
 
-export default StateTabs;
+export default function StateTribalTabsContainer() {
+  return (
+    <FullscreenProvider>
+      <StateTribalTabs />
+    </FullscreenProvider>
+  );
+}

@@ -1,6 +1,12 @@
 // @flow
 
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, {
+  Fragment,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import { css } from 'styled-components/macro';
 import Select from 'react-select';
 import { Tabs, TabList, Tab, TabPanel, TabPanels } from '@reach/tabs';
@@ -8,6 +14,7 @@ import { Tabs, TabList, Tab, TabPanel, TabPanels } from '@reach/tabs';
 import { tabsStyles, tabPanelStyles } from 'components/shared/ContentTabs';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
+import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
 import {
   AquaticLifeIcon,
   DrinkingWaterIcon,
@@ -16,16 +23,16 @@ import {
   SwimmingIcon,
 } from 'components/shared/Icons';
 import WaterSystemSummary from 'components/shared/WaterSystemSummary';
-import SurveyResults from 'components/pages/State.Tabs.WaterQualityOverview.SurveyResults';
-import SiteSpecific from 'components/pages/State.Tabs.WaterQualityOverview.SiteSpecific';
-import Documents from 'components/pages/State.Tabs.WaterQualityOverview.Documents';
-import Stories from 'components/pages/State.Tabs.WaterQualityOverview.Stories';
+import SurveyResults from 'components/pages/StateTribal.Tabs.WaterQualityOverview.SurveyResults';
+import SiteSpecific from 'components/pages/StateTribal.Tabs.WaterQualityOverview.SiteSpecific';
+import Documents from 'components/pages/StateTribal.Tabs.WaterQualityOverview.Documents';
+import Stories from 'components/pages/StateTribal.Tabs.WaterQualityOverview.Stories';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // styles
 import { colors, reactSelectStyles } from 'styles/index.js';
 // contexts
-import { StateTabsContext } from 'contexts/StateTabs';
+import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 import {
   useServicesContext,
   useStateNationalUsesContext,
@@ -128,6 +135,12 @@ const topicTabStyles = css`
     &:first-child {
       border-top: 0;
     }
+  }
+
+  i {
+    width: 100%;
+    font-size: 1.5rem;
+    line-height: 2.125rem;
   }
 `;
 
@@ -259,7 +272,7 @@ function WaterQualityOverview() {
     setUsesStateSummaryServiceError,
     stateAndOrganization,
     setStateAndOrganization,
-  } = useContext(StateTabsContext);
+  } = useContext(StateTribalTabsContext);
 
   const [loading, setLoading] = useState(true);
   const [surveyLoading, setSurveyLoading] = useState(true);
@@ -322,9 +335,10 @@ function WaterQualityOverview() {
           }
 
           const orgData = res.items[0];
-          setAssessmentDocuments(orgData.documents);
-
-          setCurrentReportStatus(orgData.reportStatusCode);
+          if (orgData) {
+            setAssessmentDocuments(orgData.documents);
+            setCurrentReportStatus(orgData.reportStatusCode);
+          }
         })
         .catch((err) => {
           console.error(err);
@@ -364,7 +378,11 @@ function WaterQualityOverview() {
   useEffect(() => {
     if (
       !stateAndOrganization ||
-      currentReportingCycle.status === 'fetching' ||
+      (activeState.source !== 'Tribe' &&
+        (currentReportingCycle.status === 'fetching' ||
+          activeState.value !== stateAndOrganization.state)) ||
+      (activeState.source === 'Tribe' &&
+        activeState.attainsId !== stateAndOrganization.organizationId) ||
       usesStateSummaryCalled
     ) {
       return;
@@ -394,9 +412,10 @@ function WaterQualityOverview() {
       .then((res) => {
         // for states like Alaska that have no reporting cycles
         if (
-          !res.data ||
-          !res.data.reportingCycles ||
-          res.data.reportingCycles.length === 0
+          activeState.source !== 'Tribe' &&
+          (!res.data ||
+            !res.data.reportingCycles ||
+            res.data.reportingCycles.length === 0)
         ) {
           setUsesStateSummaryServiceError(true);
           setLoading(false);
@@ -419,7 +438,7 @@ function WaterQualityOverview() {
         setYearSelected(latestReportingCycle);
         setCurrentSummary({
           status: 'success',
-          data: currentSummary,
+          data: currentSummary ?? {},
         });
         if (!reportingCycleParam) {
           setCurrentReportingCycle({
@@ -453,14 +472,15 @@ function WaterQualityOverview() {
 
     setUsesStateSummaryCalled(true);
   }, [
+    activeState,
+    currentReportingCycle,
     fetchAssessments,
+    services,
+    setCurrentReportingCycle,
     setCurrentSummary,
     setUsesStateSummaryServiceError,
     stateAndOrganization,
-    currentReportingCycle,
-    setCurrentReportingCycle,
     usesStateSummaryCalled,
-    services,
   ]);
 
   // Get fishing advisory information
@@ -537,6 +557,17 @@ function WaterQualityOverview() {
   // get state organization ID for summary service
   const fetchStateOrgId = useCallback(
     (stateID: string) => {
+      if (activeState.source === 'Tribe') {
+        const orgID = activeState.value;
+        setStateAndOrganization({
+          state: orgID,
+          organizationId: orgID,
+        });
+        fetchIntroText(orgID);
+        fetchSurveyData(orgID);
+        return;
+      }
+
       const url = `${services.data.attains.serviceUrl}states/${stateID}/organizations`;
       fetchCheck(url)
         .then((res) => {
@@ -552,7 +583,7 @@ function WaterQualityOverview() {
           // go to the next step if an org id was found, otherwise flag an error
           if (orgID) {
             setStateAndOrganization({
-              state: activeState.code,
+              state: activeState.value,
               organizationId: orgID,
             });
             fetchIntroText(orgID);
@@ -584,9 +615,9 @@ function WaterQualityOverview() {
 
   // If the user changes the search
   useEffect(() => {
-    if (activeState.code === '') return;
+    if (activeState.value === '') return;
 
-    if (currentState !== activeState.code) {
+    if (currentState !== activeState.value) {
       setCurrentStateData({});
       setLoading(true);
       setSurveyLoading(true);
@@ -604,10 +635,14 @@ function WaterQualityOverview() {
       setSubPopulationCodes([]);
       setCurrentReportStatus('');
       setUsesStateSummaryCalled(false);
+      setCurrentReportingCycle({
+        status: 'fetching',
+        reportingCycle: '',
+      });
 
-      setCurrentState(activeState.code);
-      fetchStateOrgId(activeState.code);
-      fetchFishingAdvisoryData(activeState.code);
+      setCurrentState(activeState.value);
+      fetchStateOrgId(activeState.value);
+      fetchFishingAdvisoryData(activeState.value);
 
       setCurrentSummary({
         status: 'fetching',
@@ -620,12 +655,13 @@ function WaterQualityOverview() {
       setStories({
         status: 'fetching',
         data: [],
-        nextUrl: `${services.data.grts.getSSByState}${activeState.code}`,
+        nextUrl: `${services.data.grts.getSSByState}${activeState.value}`,
       });
     }
   }, [
     currentState,
     activeState,
+    setCurrentReportingCycle,
     setCurrentReportStatus,
     setCurrentSummary,
     setIntroText,
@@ -664,7 +700,7 @@ function WaterQualityOverview() {
 
   // Gets a list of uses that pertain to the current topic
   useEffect(() => {
-    if (activeState.code === '' || stateNationalUses.status !== 'success') {
+    if (activeState.value === '' || stateNationalUses.status !== 'success') {
       return;
     }
 
@@ -673,7 +709,7 @@ function WaterQualityOverview() {
     //get the list of possible uses
     let possibleUses = {};
     stateNationalUses.data.forEach((item) => {
-      if (item.state === activeState.code && item.category === category) {
+      if (item.state === activeState.value && item.category === category) {
         // make sure to use upper case to prevent duplicate uses
         possibleUses[normalizeString(item.name)] = item;
       }
@@ -907,12 +943,21 @@ function WaterQualityOverview() {
       title: 'Drinking Water',
       icon: <DrinkingWaterIcon height="2.5em" />,
     },
-    {
-      id: 'other',
-      title: 'Other',
-      icon: <OtherIcon height="2.5em" />,
-    },
   ];
+
+  if (activeState?.source === 'Tribe') {
+    tabs.push({
+      id: 'cultural',
+      title: 'Cultural',
+      icon: <i className="fas fa-globe-americas fa-align-center" />,
+    });
+  }
+
+  tabs.push({
+    id: 'other',
+    title: 'Other',
+    icon: <OtherIcon height="2.5em" />,
+  });
 
   // get index of initial current topic (initialized to 'drinking' above)
   const initialTabIndex = tabs.map((tab) => tab.id).indexOf(currentTopic);
@@ -928,7 +973,7 @@ function WaterQualityOverview() {
   ) {
     return (
       <div css={errorBoxStyles}>
-        <p>{stateGeneralError}</p>
+        <p>{stateGeneralError(activeState.source)}</p>
       </div>
     );
   }
@@ -936,14 +981,14 @@ function WaterQualityOverview() {
   if (noDataError) {
     return (
       <div css={errorBoxStyles}>
-        <p>{stateNoDataError(activeState.name)}</p>
+        <p>{stateNoDataError(activeState.label)}</p>
       </div>
     );
   }
 
   if (
     loading ||
-    currentState !== activeState.code ||
+    currentState !== activeState.value ||
     waterTypeOptions.status === 'fetching'
   ) {
     return <LoadingSpinner />;
@@ -953,7 +998,7 @@ function WaterQualityOverview() {
     <div css={containerStyles}>
       <h2 css={headingStyles}>
         <i className="fas fa-tint" aria-hidden="true" />
-        <strong>{activeState.name}</strong> Water Quality
+        <strong>{activeState.label}</strong> Water Quality
       </h2>
 
       <h3>Choose a Topic:</h3>
@@ -1053,7 +1098,7 @@ function WaterQualityOverview() {
                 <div css={sectionStyles}>
                   {surveyServiceError || !stateAndOrganization ? (
                     <div css={errorBoxStyles}>
-                      <p>{stateSurveySectionError}</p>
+                      <p>{stateSurveySectionError(activeState.source)}</p>
                     </div>
                   ) : (
                     <SurveyResults
@@ -1081,7 +1126,10 @@ function WaterQualityOverview() {
 
                 <div
                   css={drinkingWaterSectionStyles}
-                  displayed={currentTopic === 'drinking'}
+                  displayed={
+                    currentTopic === 'drinking' &&
+                    activeState.source === 'State'
+                  }
                 >
                   <h3>
                     <img
@@ -1090,12 +1138,12 @@ function WaterQualityOverview() {
                       alt="Drinking Water"
                     />
                     Drinking Water Information for{' '}
-                    <strong>{activeState.name}</strong>
+                    <strong>{activeState.label}</strong>
                   </h3>
 
                   <h4>EPA has defined three types of public water systems:</h4>
 
-                  {tab.id === 'drinking' && activeState.code && (
+                  {tab.id === 'drinking' && activeState.value && (
                     <WaterSystemSummary state={activeState} />
                   )}
 
@@ -1103,12 +1151,12 @@ function WaterQualityOverview() {
                     <a
                       href={
                         `${services.data.sfdw}f?p=108:103:::` +
-                        `NO:APP,RP:P0_PRIMACY_AGENCY:${activeState.code}`
+                        `NO:APP,RP:P0_PRIMACY_AGENCY:${activeState.value}`
                       }
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      View detailed drinking water data for {activeState.name}.
+                      View detailed drinking water data for {activeState.label}.
                     </a>{' '}
                     <small>(opens new browser tab)</small>
                   </p>
@@ -1119,7 +1167,7 @@ function WaterQualityOverview() {
         </Tabs>
       </div>
 
-      <AccordionList css={accordionsStyles}>
+      <AccordionList css={activeState.source !== 'Tribe' && accordionsStyles}>
         <AccordionItem
           highlightContent={false}
           icon={
@@ -1131,7 +1179,7 @@ function WaterQualityOverview() {
           }
           title={
             <h2 css={headingStyles}>
-              <strong>{activeState.name}</strong> Documents
+              <strong>{activeState.label}</strong> Documents
             </h2>
           }
         >
@@ -1150,28 +1198,32 @@ function WaterQualityOverview() {
             />
           </div>
         </AccordionItem>
-        <AccordionItem
-          highlightContent={false}
-          icon={
-            <i
-              css={accordionIconStyles}
-              className="fas fa-newspaper"
-              aria-hidden="true"
-            />
-          }
-          title={
-            <h2 css={headingStyles}>
-              <strong>{activeState.name}</strong> Water Stories
-            </h2>
-          }
-        >
-          <div css={accordionContentStyles}>
-            <em css={newTabDisclaimerStyles}>
-              Stories below open in a new browser tab.
-            </em>
-            <Stories stories={stories} />
-          </div>
-        </AccordionItem>
+        {activeState?.source === 'State' ? (
+          <AccordionItem
+            highlightContent={false}
+            icon={
+              <i
+                css={accordionIconStyles}
+                className="fas fa-newspaper"
+                aria-hidden="true"
+              />
+            }
+            title={
+              <h2 css={headingStyles}>
+                <strong>{activeState.label}</strong> Water Stories
+              </h2>
+            }
+          >
+            <div css={accordionContentStyles}>
+              <em css={newTabDisclaimerStyles}>
+                Stories below open in a new browser tab.
+              </em>
+              <Stories stories={stories} />
+            </div>
+          </AccordionItem>
+        ) : (
+          <Fragment></Fragment>
+        )}
         <AccordionItem
           highlightContent={false}
           icon={
@@ -1183,7 +1235,7 @@ function WaterQualityOverview() {
           }
           title={
             <h2 css={headingStyles}>
-              More Information for <strong>{activeState.name}</strong>
+              More Information for <strong>{activeState.label}</strong>
             </h2>
           }
         >
@@ -1191,7 +1243,7 @@ function WaterQualityOverview() {
             {introText.status === 'fetching' && <LoadingSpinner />}
             {introText.status === 'failure' && (
               <div css={errorBoxStyles}>
-                <p>{stateMetricsError}</p>
+                <p>{stateMetricsError(activeState.source)}</p>
               </div>
             )}
             {introText.status === 'success' && (
@@ -1216,14 +1268,7 @@ function WaterQualityOverview() {
                             >
                               {item.label ? item.label : item.url}
                             </a>
-                            <a
-                              className="exit-disclaimer"
-                              href="https://www.epa.gov/home/exit-epa"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              EXIT
-                            </a>
+                            <DynamicExitDisclaimer url={item.url} />
                           </li>
                         );
                       })}
