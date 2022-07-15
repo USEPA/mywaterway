@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { TooltipPopup, useTooltip } from '@reach/tooltip';
 import { css } from 'styled-components/macro';
 // styles
@@ -52,8 +52,10 @@ function centered(triggerRect, tooltipRect) {
  * Components
  */
 
-function Tooltip({ children, label }) {
-  const [trigger, tooltip] = useTooltip();
+function Tooltip({ children, label, triggerRef }) {
+  const [trigger, tooltip] = useTooltip({
+    ref: triggerRef,
+  });
 
   return (
     <>
@@ -69,9 +71,14 @@ function Tooltip({ children, label }) {
 }
 
 function HelpTooltip({ label }) {
+  const triggerRef = useRef();
   return (
-    <Tooltip label={label}>
-      <button css={tooltipIconStyles}>
+    <Tooltip label={label} triggerRef={triggerRef}>
+      <button
+        css={tooltipIconStyles}
+        onClick={(_ev) => triggerRef.current?.focus()}
+        ref={triggerRef}
+      >
         <span aria-hidden>
           <i className="fas fa-question-circle" />
         </span>
