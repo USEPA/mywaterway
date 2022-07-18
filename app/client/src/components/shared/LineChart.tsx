@@ -36,17 +36,17 @@ const customTheme = buildChartTheme({
   tickLength: 4,
 });
 
-interface Props {
+type Props = {
   children: ReactChild | ReactChildren;
   color?: string;
   containerRef?: HTMLElement | null;
   data: Datum[];
   dataKey: string;
-  domain?: number[];
   range?: number[];
   xAccessor?: (d: Datum) => string;
   yAccessor?: (d: Datum) => number;
-}
+  yUnit: string;
+};
 
 function LineChart({
   data,
@@ -56,6 +56,7 @@ function LineChart({
   containerRef,
   xAccessor = (d: Datum) => d.x,
   yAccessor = (d: Datum) => d.y,
+  yUnit,
 }: Props) {
   const [theme, setTheme] = useState<XYChartTheme>(customTheme);
   useEffect(() => {
@@ -70,20 +71,42 @@ function LineChart({
 
   const [width, setWidth] = useState<number | null>(null);
   useLayoutEffect(() => {
-    if (containerRef !== null) {
-      const newWidth = containerRef?.getBoundingClientRect().width;
-      setWidth(newWidth ?? null);
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        if (entry.contentBoxSize) {
+          const contentBoxSize = Array.isArray(entry.contentBoxSize)
+            ? entry.contentBoxSize[0]
+            : entry.contentBoxSize;
+          setWidth(contentBoxSize.inlineSize);
+          break;
+        }
+      }
+    });
+    if (containerRef) {
+      const elementStyle = window.getComputedStyle(containerRef, null);
+      const contentWidth =
+        containerRef?.getBoundingClientRect().width -
+        parseFloat(elementStyle.getPropertyValue('padding-left')) -
+        parseFloat(elementStyle.getPropertyValue('padding-right')) -
+        parseFloat(elementStyle.getPropertyValue('border-left-width')) -
+        parseFloat(elementStyle.getPropertyValue('border-right-width'));
+      setWidth(contentWidth ?? null);
+      resizeObserver.observe(containerRef);
     }
+
+    return function cleanup() {
+      if (containerRef) resizeObserver.unobserve(containerRef);
+    };
   }, [containerRef]);
 
   return (
     <>
       <VisxStyles />
       <XYChart
-        height={400}
-        margin={{ top: 20, bottom: 20, left: 50, right: 25 }}
+        height={500}
+        margin={{ top: 50, bottom: 25, left: 50, right: 25 }}
         theme={theme}
-        xScale={{ type: 'band' }}
+        xScale={{ type: 'band', paddingInner: 1, paddingOuter: 1 }}
         yScale={{ type: 'linear', domain: range, zero: false }}
       >
         <Axis
@@ -107,7 +130,8 @@ function LineChart({
                 xAccessor(tooltipData.nearestDatum.datum)}
               :{' '}
               {tooltipData?.nearestDatum &&
-                yAccessor(tooltipData.nearestDatum.datum)}
+                yAccessor(tooltipData.nearestDatum.datum)}{' '}
+              {yUnit}
             </>
           )}
         />

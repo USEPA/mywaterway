@@ -491,6 +491,32 @@ function getFilteredCount(range, records, count) {
   return count;
 }
 
+function getMean(values) {
+  const sum = values.reduce((a, b) => a + b, 0);
+  const mean = sum / values.length;
+  return mean.toFixed(3);
+}
+
+function getMedian(values) {
+  const sorted = [...values].sort();
+  const numValues = values.length;
+  let median = 0;
+  if (numValues % 2 === 0) {
+    median = (sorted[numValues / 2 - 1] + sorted[numValues / 2]) / 2;
+  } else {
+    median = sorted[(numValues - 1) / 2];
+  }
+  return median.toFixed(3);
+}
+
+function getStdDev(values, mean = null) {
+  const sampleMean = mean ?? getMean(values);
+  const tss = values.reduce((a, b) => a + (b - sampleMean) ** 2, 0);
+  const variance = tss / (values.length - 1);
+  const stdDev = Math.sqrt(variance);
+  return stdDev.toFixed(3);
+}
+
 function getTotalCount(charcs) {
   let totalCount = 0;
   Object.values(charcs).forEach((charc) => {
@@ -961,6 +987,9 @@ function CharacteristicChart({
   const [chartData, setChartData] = useState(null);
   const [domain, setDomain] = useState(null);
   const [range, setRange] = useState(null);
+  const [mean, setMean] = useState(null);
+  const [median, setMedian] = useState(null);
+  const [stdDev, setStdDev] = useState(null);
   const getNewChartData = useCallback((domain, msmts) => {
     let newChartData = [];
     msmts.forEach((msmt) => {
@@ -973,6 +1002,10 @@ function CharacteristicChart({
     setDomain([newChartData[0].x, newChartData[newChartData.length - 1].x]);
     const yValues = newChartData.map((datum) => datum.y);
     setRange([Math.min(...yValues), Math.max(...yValues)]);
+    const newMean = getMean(yValues);
+    setMean(newMean);
+    setMedian(getMedian(yValues));
+    setStdDev(getStdDev(yValues, newMean));
   }, []);
 
   const [minYear, setMinYear] = useState(null);
@@ -996,6 +1029,7 @@ function CharacteristicChart({
         {!charcName || charcName === 'None'
           ? 'Selected Characteristic'
           : titleCaseWithExceptions(charcName)}
+        {unit && ` (${unit})`}
       </h2>
       {charcsStatus === 'fetching' ? (
         <LoadingSpinner />
@@ -1024,18 +1058,30 @@ function CharacteristicChart({
             )}
           </div>
           <div ref={chartRef}>
-            {!chartData || !domain || !range ? (
+            {!chartData || !range ? (
               <LoadingSpinner />
             ) : (
               <LineChart
                 color={lineColors[charcGroup]}
+                containerRef={chartRef.current}
                 data={chartData}
                 dataKey={charcName}
-                domain={domain}
                 range={range}
-                containerRef={chartRef.current}
+                yUnit={unit}
               />
             )}
+          </div>
+          <div css={boxSectionStyles}>
+            {mean && sectionRowInline('Average of Values', `${mean} ${unit}`)}
+            {median && sectionRowInline('Median Value', `${median} ${unit}`)}
+            {domain &&
+              sectionRowInline(
+                'Selected Date Range',
+                `${new Date(domain[0]).toDateString()} - ` +
+                  `${new Date(domain[1]).toDateString()}`,
+              )}
+            {stdDev &&
+              sectionRowInline('Standard Deviation', `${stdDev} ${unit}`)}
           </div>
         </>
       )}
