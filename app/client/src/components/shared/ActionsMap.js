@@ -19,7 +19,8 @@ import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
-import { fetchCheck } from 'utils/fetchUtils';
+// import { fetchCheck } from 'utils/fetchUtils';
+import { proxyFetch } from 'utils/fetchUtils';
 import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
 import { browserIsCompatibleWithArcGIS } from 'utils/utils';
 import {
@@ -56,10 +57,10 @@ type Props = {
   layout: 'narrow' | 'wide' | 'fullscreen',
   unitIds: Array<string>,
   onLoad: ?Function,
-  page?: String,
+  includePhoto?: boolean,
 };
 
-function ActionsMap({ layout, unitIds, onLoad, page }: Props) {
+function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
   const navigate = useNavigate();
 
   const { actionsLayer, homeWidget, mapView, setActionsLayer } = useContext(
@@ -104,18 +105,25 @@ function ActionsMap({ layout, unitIds, onLoad, page }: Props) {
 
   const getPhotoLink = useCallback(
     async (orgId, auId) => {
-      if (!page === 'waterbodyReport' || !auId || !orgId) return null;
+      if (!auId || !orgId) return null;
       if (!(services.status === 'success')) return null;
       const url =
-        services.data.attains.serviceUrl +
+        // services.data.attains.serviceUrl +
+        services.data.attains.serviceUrlDev +
         `assessmentUnits?organizationId=${orgId}` +
         `&assessmentUnitIdentifier=${auId}`;
-      const results = await fetchCheck(url);
+      // const results = await fetchCheck(url);
+      const results = await proxyFetch(url);
       if (!results.items?.length) return null;
-      const { documents } = results.items[0].assessmentUnits[0].documents;
-      return documents?.[0].documentURL;
+      const documents = results.items[0]?.assessmentUnits[0]?.documents;
+      const photo =
+        documents &&
+        documents.find((document) =>
+          document.documentFileType.includes('image'),
+        );
+      return photo ? photo.documentURL : null;
     },
-    [page, services],
+    [services],
   );
 
   // Plots the assessments. Also re-plots if the layout changes
@@ -244,13 +252,13 @@ function ActionsMap({ layout, unitIds, onLoad, page }: Props) {
                 extraContent: unitIds[auId](reportingCycle, true),
                 navigate,
               });
-            } else if (page === 'waterbodyReport') {
+            } else if (includePhoto) {
               const photoLink = await getPhotoLink(
                 feature.attributes.organizationid,
                 feature.attributes.assessmentunitidentifier,
               );
               /* const photoLink =
-                'https://attains.epa.gov/attains-public/api/documents/assessment-units/206757'; */
+                'http://54.209.48.156/attains-public/api/documents/assessment-units/198540'; */
               const extraContent = photoLink && (
                 <div css={imageContainerStyles}>
                   <img
@@ -336,7 +344,7 @@ function ActionsMap({ layout, unitIds, onLoad, page }: Props) {
     getPhotoLink,
     navigate,
     onLoad,
-    page,
+    includePhoto,
     services,
     unitIds,
   ]);
