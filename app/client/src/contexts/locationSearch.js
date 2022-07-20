@@ -230,8 +230,9 @@ export class LocationSearchProvider extends Component<Props, State> {
     currentExtent: '',
     upstreamExtent: '',
     highlightOptions: {
-      color: 'rgba(50, 197, 253, 0.7)',
+      color: [50, 197, 253, 0.7],
       fillOpacity: 1,
+      haloOpacity: 0,
     },
     searchText: '',
     lastSearchText: '',
