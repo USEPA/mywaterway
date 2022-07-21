@@ -116,10 +116,21 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
       const results = await proxyFetch(url);
       if (!results.items?.length) return null;
       const documents = results.items[0]?.assessmentUnits[0]?.documents;
+      const allowedTypes = [
+        'apng',
+        'bmp',
+        'gif',
+        'jpeg',
+        'png',
+        'svg+xml',
+        'tiff',
+        'x-tiff',
+        'x-windows-bmp',
+      ].map((imageType) => `image/${imageType}`);
       const photo =
         documents &&
         documents.find((document) =>
-          document.documentFileType.includes('image'),
+          allowedTypes.includes(document.documentFileType),
         );
       return photo ? photo.documentURL : null;
     },
