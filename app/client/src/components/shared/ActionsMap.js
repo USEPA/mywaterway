@@ -271,8 +271,7 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
                 feature.attributes.organizationid,
                 feature.attributes.assessmentunitidentifier,
               );
-              /* const photoLink =
-                'http://54.209.48.156/attains-public/api/documents/assessment-units/198540'; */
+
               const extraContent = photoLink && (
                 <div css={imageContainerStyles}>
                   <img
