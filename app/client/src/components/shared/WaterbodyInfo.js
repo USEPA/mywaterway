@@ -341,6 +341,7 @@ function WaterbodyInfo({
     const reportingCycle = attributes && attributes.reportingcycle;
     return (
       <>
+        {extraContent}
         {reportingCycle && (
           <p css={paragraphStyles}>
             <strong>Year Last Reported: </strong>

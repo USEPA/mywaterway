@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 import { useNavigate } from 'react-router-dom';
 import Graphic from '@arcgis/core/Graphic';
@@ -19,6 +19,7 @@ import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
+import { fetchCheck } from 'utils/fetchUtils';
 import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
 import { browserIsCompatibleWithArcGIS } from 'utils/utils';
 import {
@@ -41,14 +42,24 @@ const containerStyles = css`
   height: 100%;
 `;
 
+const imageContainerStyles = css`
+  padding: 1rem;
+`;
+
+const imageStyles = css`
+  width: 100%;
+  height: auto;
+`;
+
 // --- components ---
 type Props = {
   layout: 'narrow' | 'wide' | 'fullscreen',
   unitIds: Array<string>,
   onLoad: ?Function,
+  includePhoto?: boolean,
 };
 
-function ActionsMap({ layout, unitIds, onLoad }: Props) {
+function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
   const navigate = useNavigate();
 
   const { actionsLayer, homeWidget, mapView, setActionsLayer } = useContext(
@@ -90,6 +101,38 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
 
   // Queries the Gis service and plots the waterbodies on the map
   const [noMapData, setNoMapData] = useState(null);
+
+  const getPhotoLink = useCallback(
+    async (orgId, auId) => {
+      if (!auId || !orgId) return null;
+      if (services.status !== 'success') return null;
+      const url =
+        services.data.attains.serviceUrl +
+        `assessmentUnits?organizationId=${orgId}` +
+        `&assessmentUnitIdentifier=${auId}`;
+      const results = await fetchCheck(url);
+      if (!results.items?.length) return null;
+      const documents = results.items[0]?.assessmentUnits[0]?.documents;
+      const allowedTypes = [
+        'apng',
+        'bmp',
+        'gif',
+        'jpeg',
+        'png',
+        'svg+xml',
+        'tiff',
+        'x-tiff',
+        'x-windows-bmp',
+      ].map((imageType) => `image/${imageType}`);
+      const photo =
+        documents &&
+        documents.find((document) =>
+          allowedTypes.includes(document.documentFileType),
+        );
+      return photo ? photo.documentURL : null;
+    },
+    [services],
+  );
 
   // Plots the assessments. Also re-plots if the layout changes
   useEffect(() => {
@@ -203,7 +246,7 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
             });
           }
 
-          function createGraphic(feature: Object, type: string) {
+          async function createGraphic(feature: Object, type: string) {
             const symbol = getWaterbodySymbol(feature, type);
 
             const auId = feature.attributes.assessmentunitidentifier;
@@ -223,6 +266,26 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
                 extraContent: unitIds[auId](reportingCycle, true),
                 navigate,
               });
+            } else if (includePhoto) {
+              const photoLink = await getPhotoLink(
+                feature.attributes.organizationid,
+                feature.attributes.assessmentunitidentifier,
+              );
+
+              const extraContent = photoLink && (
+                <div css={imageContainerStyles}>
+                  <img
+                    css={imageStyles}
+                    src={photoLink}
+                    alt={feature.attributes.assessmentunitname}
+                  />
+                </div>
+              );
+              content = getPopupContent({
+                feature,
+                extraContent,
+                navigate,
+              });
             } else {
               // when no content is provided just display the normal community
               // waterbody content
@@ -240,25 +303,41 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
             });
           }
 
-          // add graphics to graphicsLayer based on feature type
-          areaResponse.features.forEach((feature) => {
-            actionsLayer.graphics.add(createGraphic(feature, 'polygon'));
-          });
+          function addGraphics(areaFeatures, lineFeatures, pointFeatures) {
+            // add graphics to graphicsLayer based on feature type
+            const areaPromises = areaFeatures.map((feature) => {
+              return createGraphic(feature, 'polygon');
+            });
 
-          lineResponse.features.forEach((feature) => {
-            actionsLayer.graphics.add(createGraphic(feature, 'polyline'));
-          });
+            const linePromises = lineFeatures.map((feature) => {
+              return createGraphic(feature, 'polyline');
+            });
 
-          pointResponse.features.forEach((feature) => {
-            actionsLayer.graphics.add(createGraphic(feature, 'point'));
-          });
+            const pointPromises = pointFeatures.map((feature) => {
+              return createGraphic(feature, 'point');
+            });
 
-          setFetchStatus('success');
-
-          // pass the layer back up to the parent
-          if (typeof onLoad === 'function') {
-            onLoad({ status: 'success', layer: actionsLayer });
+            return Promise.all([
+              ...areaPromises,
+              ...linePromises,
+              ...pointPromises,
+            ]);
           }
+
+          addGraphics(
+            areaResponse.features,
+            lineResponse.features,
+            pointResponse.features,
+          ).then((graphics) => {
+            graphics.forEach((graphic) => actionsLayer.graphics.add(graphic));
+
+            setFetchStatus('success');
+
+            // pass the layer back up to the parent
+            if (typeof onLoad === 'function') {
+              onLoad({ status: 'success', layer: actionsLayer });
+            }
+          });
         })
         .catch((err) => {
           console.error(err);
@@ -272,7 +351,16 @@ function ActionsMap({ layout, unitIds, onLoad }: Props) {
     }
 
     if (Object.keys(unitIds).length > 0) plotAssessments(unitIds);
-  }, [unitIds, actionsLayer, fetchStatus, onLoad, services, navigate]);
+  }, [
+    actionsLayer,
+    fetchStatus,
+    getPhotoLink,
+    navigate,
+    onLoad,
+    includePhoto,
+    services,
+    unitIds,
+  ]);
 
   // Scrolls to the map when switching layouts
   useEffect(() => {
