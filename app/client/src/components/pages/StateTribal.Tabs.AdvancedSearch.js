@@ -1,10 +1,16 @@
 // @flow
 
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { css } from 'styled-components/macro';
 import { useWindowSize } from '@reach/window-size';
 import Select, { createFilter } from 'react-select';
-import { CellMeasurer, CellMeasurerCache, List } from 'react-virtualized';
+import { VariableSizeList } from 'react-window';
 import Query from '@arcgis/core/rest/support/Query';
 import QueryTask from '@arcgis/core/tasks/QueryTask';
 // components
@@ -16,13 +22,13 @@ import ConfirmModal from 'components/shared/ConfirmModal';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { StateTabsContext } from 'contexts/StateTabs';
+import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
   MapHighlightContext,
   MapHighlightProvider,
 } from 'contexts/MapHighlight';
-import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
+import { FullscreenContext } from 'contexts/Fullscreen';
 import {
   useReportStatusMappingContext,
   useServicesContext,
@@ -229,7 +235,7 @@ function AdvancedSearch() {
     activeState,
     stateAndOrganization,
     setStateAndOrganization,
-  } = useContext(StateTabsContext);
+  } = useContext(StateTribalTabsContext);
 
   const { fullscreenActive } = useContext(FullscreenContext);
 
@@ -267,7 +273,7 @@ function AdvancedSearch() {
 
     // get a unique list of parameterGroups as they are in attains
     const uniqueParameterGroups = [];
-    currentSummary.data.waterTypes.forEach((waterType) => {
+    currentSummary.data?.waterTypes?.forEach((waterType) => {
       waterType.useAttainments.forEach((useAttainment) => {
         useAttainment.parameters.forEach((parameter) => {
           const parameterGroup = parameter.parameterGroup;
@@ -316,10 +322,10 @@ function AdvancedSearch() {
   // get a list of watersheds and build the esri where clause
   const [watersheds, setWatersheds] = useState(null);
   useEffect(() => {
-    if (activeState.code === '' || !watershedsLayerMaxRecordCount) return;
+    if (activeState.value === '' || !watershedsLayerMaxRecordCount) return;
 
     const queryParams = {
-      where: `UPPER(STATES) LIKE '%${activeState.code}%' AND STATES <> 'CAN' AND STATES <> 'MEX'`,
+      where: `UPPER(STATES) LIKE '%${activeState.value}%' AND STATES <> 'CAN' AND STATES <> 'MEX'`,
       outFields: ['huc12', 'name'],
     };
 
@@ -403,7 +409,7 @@ function AdvancedSearch() {
           // list prior to filters being visible on the screen.
           let waterbodiesList = [];
           let reportingCycle = '';
-          data.features.forEach((waterbody, index) => {
+          data.features.forEach((waterbody, _index) => {
             if (waterbody.attributes.reportingcycle > reportingCycle) {
               reportingCycle = waterbody.attributes.reportingcycle;
             }
@@ -563,10 +569,6 @@ function AdvancedSearch() {
     setWaterbodiesList(null);
     setNumberOfRecords(null);
     setStateAndOrganization(null);
-    setCurrentReportingCycle({
-      status: 'fetching',
-      reportingCycle: '',
-    });
 
     // Reset the filters
     setCurrentFilter(null);
@@ -641,9 +643,9 @@ function AdvancedSearch() {
 
   // build esri where clause
   const executeFilterWrapped = (watershedResults: Object) => {
-    if (activeState.code === '' || !stateAndOrganization) return;
+    if (activeState.value === '' || !stateAndOrganization) return;
 
-    let newFilter = `state = '${activeState.code}' AND organizationid = '${stateAndOrganization.organizationId}'`;
+    let newFilter = `state = '${activeState.value}' AND organizationid = '${stateAndOrganization.organizationId}'`;
 
     // radio button filters
     if (waterTypeFilter === '303d') {
@@ -906,7 +908,7 @@ function AdvancedSearch() {
               aria-label="Has TMDL"
               type="checkbox"
               checked={hasTmdlChecked}
-              onChange={(ev) => setHasTmdlChecked(!hasTmdlChecked)}
+              onChange={(_ev) => setHasTmdlChecked(!hasTmdlChecked)}
             />
             <span css={screenLabelWithPaddingStyles}>
               <GlossaryTerm term="TMDL">Has TMDL</GlossaryTerm>
@@ -919,7 +921,7 @@ function AdvancedSearch() {
         <button
           css={buttonStyles}
           disabled={searchLoading}
-          onClick={(ev) => {
+          onClick={(_ev) => {
             if (mapView && mapView.popup) mapView.popup.close();
             executeFilter();
           }}
@@ -977,7 +979,7 @@ function AdvancedSearch() {
               css={buttonStyles}
               type="button"
               className={`btn btn-secondary${showMap ? ' active' : ''}`}
-              onClick={(ev) => setShowMap(true)}
+              onClick={(_ev) => setShowMap(true)}
             >
               <i className="fas fa-map-marked-alt" aria-hidden="true" />
               &nbsp;&nbsp;Map
@@ -986,7 +988,7 @@ function AdvancedSearch() {
               css={buttonStyles}
               type="button"
               className={`btn btn-secondary${!showMap ? ' active' : ''}`}
-              onClick={(ev) => setShowMap(false)}
+              onClick={(_ev) => setShowMap(false)}
             >
               <i className="fas fa-list" aria-hidden="true" />
               &nbsp;&nbsp;List
@@ -1083,7 +1085,7 @@ function AdvancedSearch() {
         label="Warning about potentially slow search"
         isOpen={confirmOpen}
         confirmEnabled={numberOfRecords > 0}
-        onConfirm={(ev) => {
+        onConfirm={(_ev) => {
           setConfirmOpen(false);
           setCurrentFilter(nextFilter);
           setWaterbodyData(null);
@@ -1099,7 +1101,7 @@ function AdvancedSearch() {
             setSelectedDisplayOption(defaultDisplayOption);
           }
         }}
-        onCancel={(ev) => {
+        onCancel={(_ev) => {
           setConfirmOpen(false);
         }}
       >
@@ -1130,8 +1132,6 @@ function AdvancedSearch() {
         </div>
       )}
 
-      {/* conditionally render the waterbody list to work around a render
-          bug with react-virtualized where only a few list items are renered. */}
       {!showMap && contentVisible && (
         <>
           <hr />
@@ -1147,68 +1147,69 @@ function AdvancedSearch() {
 }
 
 function MenuList({ ...props }) {
-  const [cache] = useState(
-    new CellMeasurerCache({
-      defaultHeight: 50,
-      fixedWidth: true,
-    }),
-  );
+  const { width } = useWindowSize();
+  const listRef = useRef();
 
-  // Resize the options when the search changes
-  const listRef = useRef(null);
-  useEffect(() => {
-    if (!listRef || !listRef.current) return;
-
-    cache.clearAll();
-    listRef.current.recomputeRowHeights();
-  }, [props.children.length, cache]);
+  // keeps track of the size of the virtualized items. This handles
+  // items where the text wraps
+  const sizeMap = useRef({});
+  const setSize = useCallback((index: number, size: number) => {
+    sizeMap.current = { ...sizeMap.current, [index]: size };
+    listRef.current.resetAfterIndex(index);
+  }, []);
+  const getSize = (index: number) => sizeMap.current[index] || 70;
 
   // use the default style dropdown if there is no data
   if (!props.children.length || props.children.length === 0) {
     return props.children;
   }
 
-  // get the width from the parent of the virtualized list
-  const elem = document.getElementById('virtualized-select-list');
-  let width = 0;
-  if (elem && elem.parentElement) {
-    width = elem.parentElement.getBoundingClientRect().width;
-  }
-
   return (
-    <List
-      id="virtualized-select-list"
+    <VariableSizeList
       ref={listRef}
-      deferredMeasurementCache={cache}
+      width="100%"
       height={props.maxHeight}
-      width={width}
-      rowHeight={cache.rowHeight}
-      rowCount={props.children.length}
-      overscanRowCount={25}
-      style={{ paddingTop: '4px', paddingBottom: '4px' }}
-      rowRenderer={({ index, isScrolling, key, parent, style }) => {
-        return (
-          <CellMeasurer
-            cache={cache}
-            columnIndex={0}
-            rowCount={props.children.length}
-            parent={parent}
-            key={key}
-            rowIndex={index}
-          >
-            <div style={style}>{props.children[index]}</div>
-          </CellMeasurer>
-        );
-      }}
-    />
+      itemCount={props.children.length}
+      itemSize={getSize}
+    >
+      {({ index, style }) => (
+        <div style={{ ...style, overflowX: 'hidden' }}>
+          <MenuItem
+            index={index}
+            width={width}
+            setSize={setSize}
+            value={props.children[index]}
+          />
+        </div>
+      )}
+    </VariableSizeList>
   );
 }
+
+type MenuItemProps = {
+  index: number,
+  width: number,
+  setSize: (index: number, size: number) => void,
+  value: string,
+};
+
+function MenuItem({ index, width, setSize, value }: MenuItemProps) {
+  const rowRef = useRef();
+
+  // keep track of the height of the rows to autosize rows
+  useEffect(() => {
+    if (!rowRef?.current) return;
+
+    setSize(index, rowRef.current.getBoundingClientRect().height);
+  }, [setSize, index, width]);
+
+  return <div ref={rowRef}>{value}</div>;
+}
+
 export default function AdvancedSearchContainer() {
   return (
     <MapHighlightProvider>
-      <FullscreenProvider>
-        <AdvancedSearch />
-      </FullscreenProvider>
+      <AdvancedSearch />
     </MapHighlightProvider>
   );
 }

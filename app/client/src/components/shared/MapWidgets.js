@@ -104,6 +104,7 @@ const orderedLayers = [
   'mappedWaterLayer',
   'stateBoundariesLayer',
   'congressionalLayer',
+  'selectedTribeLayer',
   'tribalLayer',
   'tribalLayer-1',
   'tribalLayer-2',
@@ -1229,16 +1230,31 @@ function MapWidgets({
   useEffect(() => {
     if (!allWaterbodiesWidget) return;
 
-    if (!window.location.pathname.includes('/community')) {
+    const pathname = window.location.pathname;
+    if (!pathname.includes('/community') && !pathname.includes('/tribe')) {
       // hide all waterbodies widget on other pages
       allWaterbodiesWidget.style.display = 'none';
       allWaterbodiesLayer.visible = false;
       return;
     }
 
-    if (!huc12 || window.location.pathname === '/community') {
+    if (!pathname.includes('/tribe') && (!huc12 || pathname === '/community')) {
       // disable all waterbodies widget on community home or invalid searches
       setAllWaterbodiesWidgetDisabled(true);
+      allWaterbodiesLayer.visible = false;
+      return;
+    }
+
+    // change the minScale of the waterbodies layer for the tribal page
+    if (pathname.includes('/tribe')) {
+      allWaterbodiesLayer.minScale = 4622324;
+      allWaterbodiesLayer.layers.forEach((layer) => {
+        layer.minScale = allWaterbodiesLayer.minScale;
+      });
+
+      // enable the all waterbodies widget but default visibility to off
+      setAllWaterbodiesWidgetDisabled(false);
+      setAllWaterbodiesLayerVisible(false);
       allWaterbodiesLayer.visible = false;
       return;
     }
@@ -1256,9 +1272,10 @@ function MapWidgets({
 
   // disable the all waterbodies widget if on the community home page
   useEffect(() => {
+    const pathname = window.location.pathname;
     if (
       !allWaterbodiesWidget ||
-      !window.location.pathname.includes('/community')
+      (!pathname.includes('/community') && !pathname.includes('/tribe'))
     ) {
       return;
     }

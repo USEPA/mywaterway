@@ -30,7 +30,7 @@ const headerStyles = css`
   }
 `;
 
-function StateIntro() {
+function StateTribalIntro() {
   return (
     <>
       <div css={introBoxStyles}>
@@ -59,4 +59,4 @@ function StateIntro() {
   );
 }
 
-export default StateIntro;
+export default StateTribalIntro;

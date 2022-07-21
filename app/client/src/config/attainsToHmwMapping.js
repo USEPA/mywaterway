@@ -6,6 +6,7 @@ export const useFields = [
   { value: 'ecological_use', label: 'Aquatic Life' },
   { value: 'fishconsumption_use', label: 'Fish and Shellfish Consumption' },
   { value: 'recreation_use', label: 'Swimming and Boating' },
+  { value: 'cultural_use', label: 'Cultural' },
   { value: 'other_use', label: 'Other' },
 ];
 
