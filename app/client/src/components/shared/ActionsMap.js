@@ -106,7 +106,7 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
   const getPhotoLink = useCallback(
     async (orgId, auId) => {
       if (!auId || !orgId) return null;
-      if (!(services.status === 'success')) return null;
+      if (services.status !== 'success') return null;
       const url =
         // services.data.attains.serviceUrl +
         services.data.attains.serviceUrlDev +

@@ -730,7 +730,7 @@ function WaterbodyInfo({
                     ref={(input) => {
                       if (input) input.indeterminate = selectAll === 2;
                     }}
-                    onChange={(ev) => toggleAllCheckboxes()}
+                    onChange={(_ev) => toggleAllCheckboxes()}
                   />
                 </th>
                 <th>
@@ -760,7 +760,7 @@ function WaterbodyInfo({
                         type="checkbox"
                         className="checkbox"
                         checked={selected[key] === true || selectAll === 1}
-                        onChange={(ev) => {
+                        onChange={(_ev) => {
                           toggleRow(key, groups);
                         }}
                       />
@@ -1267,7 +1267,7 @@ function MapPopup({
                     css={buttonStyles}
                     title="Change to this location"
                     className="btn"
-                    onClick={(ev) => {
+                    onClick={(_ev) => {
                       // Clear all data before navigating.
                       // The main reason for this is better performance
                       // when doing a huc search by clicking on the state map. The app
@@ -1443,7 +1443,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
                 <td css={moreLessRowStyles} colSpan={2}>
                   <button
                     css={buttonStyles}
-                    onClick={(ev) => {
+                    onClick={(_ev) => {
                       setAdditionalMeasurementsShown(
                         !additionalMeasurementsShown,
                       );
