@@ -19,8 +19,7 @@ import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
-// import { fetchCheck } from 'utils/fetchUtils';
-import { proxyFetch } from 'utils/fetchUtils';
+import { fetchCheck } from 'utils/fetchUtils';
 import { useSharedLayers, useWaterbodyHighlight } from 'utils/hooks';
 import { browserIsCompatibleWithArcGIS } from 'utils/utils';
 import {
@@ -108,12 +107,10 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
       if (!auId || !orgId) return null;
       if (services.status !== 'success') return null;
       const url =
-        // services.data.attains.serviceUrl +
-        services.data.attains.serviceUrlDev +
+        services.data.attains.serviceUrl +
         `assessmentUnits?organizationId=${orgId}` +
         `&assessmentUnitIdentifier=${auId}`;
-      // const results = await fetchCheck(url);
-      const results = await proxyFetch(url);
+      const results = await fetchCheck(url);
       if (!results.items?.length) return null;
       const documents = results.items[0]?.assessmentUnits[0]?.documents;
       const allowedTypes = [
