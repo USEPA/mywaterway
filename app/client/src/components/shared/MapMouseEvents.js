@@ -1,5 +1,6 @@
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import Point from '@arcgis/core/geometry/Point';
 import Query from '@arcgis/core/rest/support/Query';
 import QueryTask from '@arcgis/core/tasks/QueryTask';
@@ -7,13 +8,52 @@ import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
+import { FullscreenContext } from 'contexts/Fullscreen';
 import { MapHighlightContext } from 'contexts/MapHighlight';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // config
-import { getPopupContent, graphicComparison } from 'utils/mapFunctions';
+import { monitoringClusterSettings } from 'components/shared/LocationMap';
+import {
+  getPopupContent,
+  getPopupTitle,
+  graphicComparison,
+} from 'utils/mapFunctions';
 // utilities
 import { useDynamicPopup } from 'utils/hooks';
+
+// --- helpers ---
+async function getClusterExtent(cluster, mapView, layer) {
+  const layerView = await mapView.whenLayerView(layer);
+  const query = layerView.createQuery();
+  query.aggregateIds = [cluster.getObjectId()];
+  await reactiveUtils.whenOnce(() => !layerView.updating);
+  const { extent } = await layerView.queryExtent(query);
+  return extent;
+}
+
+function parseAttributes(structuredAttributes, attributes) {
+  const parsed = {};
+  for (const property of structuredAttributes) {
+    try {
+      parsed[property] = JSON.parse(attributes[property]);
+    } catch {
+      parsed[property] = attributes[property];
+    }
+  }
+  return { ...attributes, ...parsed };
+}
+
+function updateAttributes(graphic, updates) {
+  const graphicId = graphic?.attributes?.uniqueId;
+  if (updates.current?.[graphicId]) {
+    const stationUpdates = updates.current[graphicId];
+    Object.keys(stationUpdates).forEach((attribute) => {
+      graphic.setAttribute(attribute, stationUpdates[attribute]);
+    });
+    return graphic;
+  }
+}
 
 // --- components ---
 type Props = {
@@ -22,19 +62,24 @@ type Props = {
   view: any,
 };
 
-function MapMouseEvents({ map, view }: Props) {
+function MapMouseEvents({ view }: Props) {
   const navigate = useNavigate();
   const fetchedDataDispatch = useFetchedDataDispatch();
 
   const services = useServicesContext();
-  const {
-    setHighlightedGraphic,
-    setSelectedGraphic, //
-  } = useContext(MapHighlightContext);
+  const { setHighlightedGraphic, setSelectedGraphic } =
+    useContext(MapHighlightContext);
 
-  const { getHucBoundaries, resetData, protectedAreasLayer } = useContext(
-    LocationSearchContext,
-  );
+  const {
+    getHucBoundaries,
+    monitoringFeatureUpdates,
+    monitoringLocations,
+    monitoringLocationsLayer,
+    resetData,
+    protectedAreasLayer,
+  } = useContext(LocationSearchContext);
+
+  const { fullscreenActive } = useContext(FullscreenContext);
 
   const getDynamicPopup = useDynamicPopup();
 
@@ -64,7 +109,22 @@ function MapMouseEvents({ map, view }: Props) {
               view.highlightOptions.fillOpacity = 1;
             }
 
-            setSelectedGraphic(graphic);
+            if (
+              graphic.layer.id === 'monitoringLocationsLayer' &&
+              graphic.isAggregate
+            ) {
+              // zoom in towards the cluster
+              getClusterExtent(graphic, view, monitoringLocationsLayer).then(
+                (extent) => {
+                  if (graphic.attributes.cluster_count <= 20) {
+                    monitoringLocationsLayer.featureReduction = null;
+                  }
+                  view.goTo(extent);
+                },
+              );
+            } else {
+              setSelectedGraphic(graphic);
+            }
           } else {
             setSelectedGraphic('');
           }
@@ -154,12 +214,13 @@ function MapMouseEvents({ map, view }: Props) {
     },
     [
       fetchedDataDispatch,
-      resetData,
       getHucBoundaries,
+      monitoringLocationsLayer,
+      navigate,
       setSelectedGraphic,
       services,
       protectedAreasLayer,
-      navigate,
+      resetData,
     ],
   );
 
@@ -226,7 +287,7 @@ function MapMouseEvents({ map, view }: Props) {
     });
 
     // auto expands the popup when it is first opened
-    view.popup.watch('visible', (graphic) => {
+    view.popup.watch('visible', (_graphic) => {
       if (view.popup.visible) view.popup.collapsed = false;
     });
 
@@ -239,6 +300,123 @@ function MapMouseEvents({ map, view }: Props) {
     setHighlightedGraphic,
     view,
   ]);
+
+  // reference to a dictionary of date-filtered updates
+  // applicable to graphics visible on the map
+  const updates = useRef(null);
+  useEffect(() => {
+    if (view?.popup.visible) view.popup.close();
+    updates.current = monitoringFeatureUpdates;
+  }, [monitoringFeatureUpdates, view.popup]);
+
+  const updateSingleFeature = useCallback(
+    (graphic) => {
+      view.popup.clear();
+      updateAttributes(graphic, updates);
+      const structuredProps = ['stationTotalsByGroup', 'timeframe'];
+      graphic.attributes = parseAttributes(structuredProps, graphic.attributes);
+      view.popup.open({
+        title: getPopupTitle(graphic.attributes),
+        content: getPopupContent({
+          feature: graphic,
+          services,
+          navigate,
+        }),
+        location: graphic.geometry,
+      });
+    },
+    [navigate, services, view.popup],
+  );
+
+  const updateGraphics = useCallback(
+    (graphics) => {
+      if (!updates?.current) return;
+      graphics.forEach((graphic) => {
+        if (
+          graphic.layer?.id === 'monitoringLocationsLayer' &&
+          !graphic.isAggregate
+        ) {
+          if (graphics.length === 1) {
+            updateSingleFeature(graphic);
+          } else {
+            updateAttributes(graphic, updates);
+          }
+        }
+      });
+    },
+    [updateSingleFeature],
+  );
+
+  // watches for popups, and updates them if
+  // they represent monitoring location features
+  const [popupWatchHandler, setPopupWatchHandler] = useState(null);
+  useEffect(() => {
+    return function cleanup() {
+      popupWatchHandler?.remove();
+    };
+  }, [popupWatchHandler]);
+
+  useEffect(() => {
+    if (services.status === 'fetching') return;
+    const handler = view.popup.watch('features', (graphics) => {
+      updateGraphics(graphics, updates);
+    });
+    setPopupWatchHandler(handler);
+    return function cleanup() {
+      setPopupWatchHandler(null);
+    };
+  }, [services.status, updateGraphics, view]);
+
+  // recalculates stored total location count on change of location
+  const [locationCount, setLocationCount] = useState(null);
+  useEffect(() => {
+    if (
+      monitoringLocations.status !== 'success' ||
+      !monitoringLocations.data.features
+    )
+      return;
+    setLocationCount(monitoringLocations.data.features.length);
+    return function cleanup() {
+      setLocationCount(null);
+    };
+  }, [monitoringLocations]);
+
+  // restores cluster settings on change of
+  // location or on entering/exiting fullscreen
+  useEffect(() => {
+    if (!locationCount || locationCount <= 20) return;
+    if (!monitoringLocationsLayer || monitoringLocationsLayer.featureReduction)
+      return;
+    monitoringLocationsLayer.featureReduction = monitoringClusterSettings;
+  }, [fullscreenActive, locationCount, monitoringLocationsLayer]);
+
+  // sets a watcher on the zoom level, and restores
+  // cluster settings if the user zooms out
+  const [zoomWatchHandler, setZoomWatchHandler] = useState(null);
+  useEffect(() => {
+    return function cleanup() {
+      zoomWatchHandler?.remove();
+    };
+  }, [zoomWatchHandler]);
+
+  useEffect(() => {
+    if (!locationCount || locationCount <= 20) return;
+    if (!view || !monitoringLocationsLayer) return;
+    const handler = view.watch('zoom', (newZoom, oldZoom) => {
+      if (
+        !monitoringLocationsLayer ||
+        monitoringLocationsLayer.featureReduction
+      )
+        return;
+      if (newZoom < oldZoom) {
+        monitoringLocationsLayer.featureReduction = monitoringClusterSettings;
+      }
+    });
+    setZoomWatchHandler(handler);
+    return function cleanup() {
+      setZoomWatchHandler(null);
+    };
+  }, [locationCount, monitoringLocationsLayer, view]);
 
   function getGraphicFromResponse(
     res: Object,

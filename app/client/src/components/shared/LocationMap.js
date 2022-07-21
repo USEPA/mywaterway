@@ -59,6 +59,7 @@ import {
 import {
   useDynamicPopup,
   useGeometryUtils,
+  useMonitoringLocations,
   useSharedLayers,
   useStreamgageData,
   useWaterbodyHighlight,
@@ -74,6 +75,7 @@ import {
   browserIsCompatibleWithArcGIS,
   resetCanonicalLink,
   removeJsonLD,
+  parseAttributes,
 } from 'utils/utils';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
@@ -88,6 +90,54 @@ function createQueryString(array) {
 
 const mapPadding = 20;
 
+export const monitoringClusterSettings = {
+  type: 'cluster',
+  clusterRadius: '100px',
+  clusterMinSize: '24px',
+  clusterMaxSize: '60px',
+  popupEnabled: true,
+  popupTemplate: {
+    title: 'Cluster summary',
+    content: (feature) => {
+      const content = (
+        <div style={{ margin: '0.625em' }}>
+          This cluster represents {feature.graphic.attributes.cluster_count}{' '}
+          stations
+        </div>
+      );
+
+      const contentContainer = document.createElement('div');
+      render(content, contentContainer);
+
+      // return an esri popup item
+      return contentContainer;
+    },
+    fieldInfos: [
+      {
+        fieldName: 'cluster_count',
+        format: {
+          places: 0,
+          digitSeparator: true,
+        },
+      },
+    ],
+  },
+  labelingInfo: [
+    {
+      deconflictionStrategy: 'none',
+      labelExpressionInfo: {
+        expression: "Text($feature.cluster_count, '#,###')",
+      },
+      symbol: {
+        type: 'text',
+        color: '#000000',
+        font: { size: 10, weight: 'bold' },
+      },
+      labelPlacement: 'center-center',
+    },
+  ],
+};
+
 const containerStyles = css`
   display: flex;
   position: relative;
@@ -95,7 +145,6 @@ const containerStyles = css`
   background-color: #fff;
 `;
 
-// --- components ---
 type Props = {
   layout: 'narrow' | 'wide' | 'fullscreen',
   windowHeight: number,
@@ -116,7 +165,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     lastSearchText,
     setLastSearchText,
     setCurrentExtent,
-    //
     boundariesLayer,
     searchIconLayer,
     waterbodyLayer,
@@ -148,7 +196,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setHucBoundaries,
     setAtHucBoundaries,
     mapView,
-    monitoringLocations,
     setMonitoringLocations,
     // setNonprofits,
     setPermittedDischargers,
@@ -182,7 +229,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     getAllFeatures,
     waterbodyCountMismatch,
     setWaterbodyCountMismatch,
-    monitoringLocationsLayer,
     usgsStreamgagesLayer,
   } = useContext(LocationSearchContext);
 
@@ -626,10 +672,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         { name: 'locationType', type: 'string' },
         { name: 'locationUrl', type: 'string' },
         { name: 'stationProviderName', type: 'string' },
-        { name: 'stationTotalSamples', type: 'string' },
-        { name: 'stationTotalMeasurements', type: 'string' },
-        { name: 'stationTotalMeasurementsPercentile', type: 'double' },
-        { name: 'stationTotalsByCategory', type: 'string' },
+        { name: 'stationTotalSamples', type: 'integer' },
+        { name: 'stationTotalsByGroup', type: 'string' },
+        { name: 'stationTotalMeasurements', type: 'integer' },
+        { name: 'timeframe', type: 'string' },
         { name: 'uniqueId', type: 'string' },
       ],
       objectIdField: 'OBJECTID',
@@ -647,60 +693,28 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           type: 'simple-marker',
           style: 'circle',
           color: colors.lightPurple(0.5),
+          outline: {
+            width: 0.75,
+          },
         },
       },
-      featureReduction: {
-        type: 'cluster',
-        clusterRadius: '100px',
-        clusterMinSize: '24px',
-        clusterMaxSize: '60px',
-        popupEnabled: true,
-        popupTemplate: {
-          title: 'Cluster summary',
-          content: (feature) => {
-            const content = (
-              <div style={{ margin: '0.625em' }}>
-                This cluster represents{' '}
-                {feature.graphic.attributes.cluster_count} stations
-              </div>
-            );
-
-            const contentContainer = document.createElement('div');
-            render(content, contentContainer);
-
-            // return an esri popup item
-            return contentContainer;
-          },
-          fieldInfos: [
-            {
-              fieldName: 'cluster_count',
-              format: {
-                places: 0,
-                digitSeparator: true,
-              },
-            },
-          ],
-        },
-        labelingInfo: [
-          {
-            deconflictionStrategy: 'none',
-            labelExpressionInfo: {
-              expression: "Text($feature.cluster_count, '#,###')",
-            },
-            symbol: {
-              type: 'text',
-              color: '#000000',
-              font: { size: 10, weight: 'bold' },
-            },
-            labelPlacement: 'center-center',
-          },
-        ],
-      },
+      featureReduction: monitoringClusterSettings,
       popupTemplate: {
         outFields: ['*'],
         title: (feature) => getPopupTitle(feature.graphic.attributes),
-        content: (feature) =>
-          getPopupContent({ feature: feature.graphic, services, navigate }),
+        content: (feature) => {
+          // Parse non-scalar variables
+          const structuredProps = ['stationTotalsByGroup', 'timeframe'];
+          feature.graphic.attributes = parseAttributes(
+            structuredProps,
+            feature.graphic.attributes,
+          );
+          return getPopupContent({
+            feature: feature.graphic,
+            services,
+            navigate,
+          });
+        },
       },
     });
 
@@ -724,8 +738,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         { name: 'locationUrl', type: 'string' },
         { name: 'streamgageMeasurements', type: 'blob' },
       ],
-      outFields: ['*'],
       objectIdField: 'OBJECTID',
+      outFields: ['*'],
       // NOTE: initial graphic below will be replaced with UGSG streamgages
       source: [
         new Graphic({
@@ -739,6 +753,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           type: 'simple-marker',
           style: 'square',
           color: '#fffe00', // '#989fa2'
+          outline: {
+            width: 0.75,
+          },
         },
       },
       popupTemplate: {
@@ -1100,68 +1117,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   // updates the features on the monitoringStationsLayer
-  useEffect(() => {
-    if (!monitoringLocationsLayer) return;
-    if (
-      !monitoringLocations.data.features ||
-      monitoringLocations.status !== 'success'
-    ) {
-      return;
-    }
-
-    const graphics = monitoringLocations.data.features.map((station) => {
-      return new Graphic({
-        geometry: {
-          type: 'point',
-          longitude: station.geometry.coordinates[0],
-          latitude: station.geometry.coordinates[1],
-        },
-        attributes: {
-          monitoringType: 'Past Water Conditions',
-          siteId: station.properties.MonitoringLocationIdentifier,
-          orgId: station.properties.OrganizationIdentifier,
-          orgName: station.properties.OrganizationFormalName,
-          locationLongitude: station.geometry.coordinates[0],
-          locationLatitude: station.geometry.coordinates[1],
-          locationName: station.properties.MonitoringLocationName,
-          locationType: station.properties.MonitoringLocationTypeName,
-          // TODO: explore if the built up locationUrl below is ever different from
-          // `station.properties.siteUrl`. from a quick test, they seem the same
-          locationUrl:
-            `${services.data.waterQualityPortal.monitoringLocationDetails}` +
-            `${station.properties.ProviderName}/` +
-            `${station.properties.OrganizationIdentifier}/` +
-            `${station.properties.MonitoringLocationIdentifier}/`,
-          // monitoring station specific properties:
-          stationProviderName: station.properties.ProviderName,
-          stationTotalSamples: station.properties.activityCount,
-          stationTotalMeasurements: station.properties.resultCount,
-          stationTotalMeasurementsPercentile:
-            station.properties.stationTotalMeasurementsPercentile,
-          // counts for each lower-tier characteristic group
-          stationTotalsByCategory: JSON.stringify(
-            station.properties.characteristicGroupResultCount,
-          ),
-          // counts for each top-tier characteristic group
-          stationTotalsByGroup: {},
-          // create a unique id, so we can check if the monitoring station has
-          // already been added to the display (since a monitoring station id
-          // isn't universally unique)
-          uniqueId:
-            `${station.properties.MonitoringLocationIdentifier}-` +
-            `${station.properties.ProviderName}-` +
-            `${station.properties.OrganizationIdentifier}`,
-        },
-      });
-    });
-
-    monitoringLocationsLayer.queryFeatures().then((featureSet) => {
-      monitoringLocationsLayer.applyEdits({
-        deleteFeatures: featureSet.features,
-        addFeatures: graphics,
-      });
-    });
-  }, [monitoringLocationsLayer, monitoringLocations, services]);
+  // and the monitoring groups
+  useMonitoringLocations();
 
   const fetchUsgsStreamgages = useCallback(
     (huc12) => {

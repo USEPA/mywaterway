@@ -212,19 +212,25 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
                 planSummarySymbol = new SimpleMarkerSymbol({
                   color,
                   style: 'circle',
+                  outline: {
+                    width: 0.65,
+                  },
                 });
               }
               if (type === 'polyline') {
                 planSummarySymbol = new SimpleLineSymbol({
                   color,
                   style: 'solid',
-                  width: '2',
+                  width: 3,
                 });
               }
               if (type === 'polygon') {
                 planSummarySymbol = new SimpleFillSymbol({
                   color,
                   style: 'solid',
+                  outline: {
+                    width: 0,
+                  },
                 });
               }
 

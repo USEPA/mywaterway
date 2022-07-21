@@ -4,6 +4,7 @@ import { useCallback, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
+import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import Handles from '@arcgis/core/core/Handles';
@@ -14,6 +15,8 @@ import Query from '@arcgis/core/rest/support/Query';
 import QueryTask from '@arcgis/core/tasks/QueryTask';
 import * as watchUtils from '@arcgis/core/core/watchUtils';
 // config
+import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
+import { monitoringClusterSettings } from 'components/shared/LocationMap';
 import { usgsStaParameters } from 'config/usgsStaParameters';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -39,6 +42,167 @@ const allWaterbodiesAlpha = {
   poly: 0.4,
   outline: 1,
 };
+
+function buildStations(locations, layer, services) {
+  if (!layer) return;
+  if (!locations.data.features || locations.status !== 'success') {
+    return;
+  }
+
+  // sort descending order so that smaller graphics show up on top
+  const stationsSorted = [...locations.data.features];
+  stationsSorted.sort((a, b) => {
+    return (
+      parseInt(b.properties.resultCount) - parseInt(a.properties.resultCount)
+    );
+  });
+
+  // attributes common to both the layer and the context object
+  return stationsSorted.map((station) => {
+    return {
+      monitoringType: 'Past Water Conditions',
+      siteId: station.properties.MonitoringLocationIdentifier,
+      orgId: station.properties.OrganizationIdentifier,
+      orgName: station.properties.OrganizationFormalName,
+      locationLongitude: station.geometry.coordinates[0],
+      locationLatitude: station.geometry.coordinates[1],
+      locationName: station.properties.MonitoringLocationName,
+      locationType: station.properties.MonitoringLocationTypeName,
+      // TODO: explore if the built up locationUrl below is ever different from
+      // `station.properties.siteUrl`. from a quick test, they seem the same
+      locationUrl:
+        `${services.data.waterQualityPortal.monitoringLocationDetails}` +
+        `${station.properties.ProviderName}/` +
+        `${station.properties.OrganizationIdentifier}/` +
+        `${station.properties.MonitoringLocationIdentifier}/`,
+      // monitoring station specific properties:
+      stationProviderName: station.properties.ProviderName,
+      stationTotalSamples: parseInt(station.properties.activityCount),
+      stationTotalMeasurements: parseInt(station.properties.resultCount),
+      // counts for each lower-tier characteristic group
+      stationTotalsByGroup: station.properties.characteristicGroupResultCount,
+      timeframe: null,
+      // create a unique id, so we can check if the monitoring station has
+      // already been added to the display (since a monitoring station id
+      // isn't universally unique)
+      uniqueId:
+        `${station.properties.MonitoringLocationIdentifier}-` +
+        `${station.properties.ProviderName}-` +
+        `${station.properties.OrganizationIdentifier}`,
+    };
+  });
+}
+
+/*
+ * Helpers for passing data to the map layers
+ */
+function updateMonitoringLocationsLayer(stations, layer) {
+  const structuredProps = ['stationTotalsByGroup', 'timeframe'];
+  const graphics = stations.map((station) => {
+    const attributes = stringifyAttributes(structuredProps, station);
+    return new Graphic({
+      geometry: {
+        type: 'point',
+        longitude: attributes.locationLongitude,
+        latitude: attributes.locationLatitude,
+      },
+      attributes: {
+        ...attributes,
+      },
+    });
+  });
+  editLayer(layer, graphics);
+
+  // turn off clustering if there are 20 or less stations
+  layer.featureReduction =
+    graphics.length > 20 ? monitoringClusterSettings : null;
+}
+
+function updateMonitoringGroups(stations, mappings) {
+  // build up monitoring stations, toggles, and groups
+  let locationGroups = {
+    All: { label: 'All', stations: [], toggled: true },
+    Other: {
+      label: 'Other',
+      stations: [],
+      toggled: true,
+      characteristicGroups: [],
+    },
+  };
+
+  stations.forEach((station) => {
+    // add properties that aren't necessary for the layer
+    station.stationDataByYear = {};
+    // counts for each top-tier characteristic group
+    station.stationTotalsByLabel = {};
+    // build up the monitoringLocationToggles and monitoringLocationGroups
+    const subGroupsAdded = new Set();
+    mappings
+      .filter((mapping) => mapping.label !== 'All')
+      .forEach((mapping) => {
+        station.stationTotalsByLabel[mapping.label] = 0;
+        for (const subGroup in station.stationTotalsByGroup) {
+          // if characteristic group exists in switch config object
+          if (!mapping.groupNames.includes(subGroup)) continue;
+          subGroupsAdded.add(subGroup);
+          if (!locationGroups[mapping.label]) {
+            // create the group (w/ label key) and add the station
+            locationGroups[mapping.label] = {
+              characteristicGroups: [subGroup],
+              label: mapping.label,
+              stations: [station],
+              toggled: true,
+            };
+          } else {
+            // switch group (w/ label key) already exists, add the stations to it
+            locationGroups[mapping.label].stations.push(station);
+            locationGroups[mapping.label].characteristicGroups.push(subGroup);
+          }
+          // add the lower-tier group counts to the corresponding top-tier group counts
+          station.stationTotalsByLabel[mapping.label] +=
+            station.stationTotalsByGroup[subGroup];
+        }
+      });
+
+    locationGroups['All'].stations.push(station);
+
+    // add any leftover lower-tier group counts to the 'Other' top-tier group
+    for (const subGroup in station.stationTotalsByGroup) {
+      if (subGroupsAdded.has(subGroup)) continue;
+      locationGroups['Other'].stations.push(station);
+      station.stationTotalsByLabel['Other'] +=
+        station.stationTotalsByGroup[subGroup];
+      locationGroups['Other'].characteristicGroups.push(subGroup);
+    }
+  });
+  Object.keys(locationGroups).forEach((label) => {
+    locationGroups[label].characteristicGroups = [
+      ...new Set(locationGroups[label].characteristicGroups),
+    ];
+  });
+  return locationGroups;
+}
+
+const editLayer = async (layer, graphics) => {
+  const featureSet = await layer.queryFeatures();
+  const edits = {
+    deleteFeatures: featureSet.features,
+    addFeatures: graphics,
+  };
+  return layer.applyEdits(edits);
+};
+
+function stringifyAttributes(structuredAttributes, attributes) {
+  const stringified = {};
+  for (const property of structuredAttributes) {
+    try {
+      stringified[property] = JSON.stringify(attributes[property]);
+    } catch {
+      stringified[property] = attributes[property];
+    }
+  }
+  return { ...attributes, ...stringified };
+}
 
 // Closes the map popup and clears highlights whenever the user changes
 // tabs. This function is called from the useWaterbodyHighlight hook (handles
@@ -1078,7 +1242,7 @@ function useSharedLayers() {
         outline: {
           style: 'solid',
           color: [0, 0, 0, 1],
-          width: 1,
+          width: 0.75,
         },
       },
     };
@@ -1803,15 +1967,53 @@ function useOnScreen(ref) {
   return isIntersecting;
 }
 
+// hook that centralizes initialization of the `monitoringLocationsLayer`
+// and the `monitoringGroups` context objects
+function useMonitoringLocations() {
+  const services = useServicesContext();
+  const {
+    monitoringGroups,
+    monitoringLocations,
+    monitoringLocationsLayer,
+    setMonitoringGroups,
+  } = useContext(LocationSearchContext);
+
+  useEffect(() => {
+    if (!monitoringGroups) {
+      const stations = buildStations(
+        monitoringLocations,
+        monitoringLocationsLayer,
+        services,
+      );
+      if (!stations) return;
+
+      updateMonitoringLocationsLayer(stations, monitoringLocationsLayer);
+
+      const locationGroups = updateMonitoringGroups(
+        stations,
+        characteristicGroupMappings,
+      );
+      setMonitoringGroups(locationGroups);
+    }
+  }, [
+    monitoringGroups,
+    monitoringLocations,
+    monitoringLocationsLayer,
+    services,
+    setMonitoringGroups,
+  ]);
+}
+
 export {
+  useDynamicPopup,
   useGeometryUtils,
+  useKeyPress,
+  useMonitoringLocations,
+  useOnScreen,
   useSharedLayers,
   useStreamgageData,
   useWaterbodyFeatures,
   useWaterbodyFeaturesState,
   useWaterbodyOnMap,
   useWaterbodyHighlight,
-  useDynamicPopup,
-  useKeyPress,
-  useOnScreen,
 };
