@@ -14,6 +14,7 @@ import {
   useState,
 } from 'react';
 import { useParams } from 'react-router-dom';
+import Select from 'react-select';
 import { css } from 'styled-components/macro';
 // components
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
@@ -50,11 +51,11 @@ import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
 import { titleCaseWithExceptions } from 'utils/utils';
 // styles
 import { boxStyles, boxHeadingStyles } from 'components/shared/Box';
-import { colors, disclaimerStyles } from 'styles';
+import { colors, disclaimerStyles, reactSelectStyles } from 'styles';
 
 /*
- * Styles
- */
+## Styles
+*/
 
 const accordionFlexStyles = css`
   display: flex;
@@ -121,6 +122,11 @@ const charcsTableStyles = css`
   .rt-table .rt-td {
     margin: auto;
   }
+`;
+
+const chartContainerStyles = css`
+  margin-top: 0.625em;
+  margin-right: 0.625em;
 `;
 
 const containerStyles = css`
@@ -262,6 +268,35 @@ const rightColumnStyles = css`
   }
 `;
 
+const selectContainerStyles = css`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1em;
+  justify-content: center;
+  margin-top: 0.625rem;
+  width: 100%;
+
+  @media (min-width: 560px) {
+    flex-wrap: nowrap;
+  }
+`;
+
+const selectLabelStyles = css`
+  margin-right: 0.625rem;
+  margin-bottom: 0.125rem;
+  font-size: 0.875rem;
+  font-weight: bold;
+  white-space: nowrap;
+
+  @media (min-width: 560px) {
+    margin-bottom: 0;
+  }
+`;
+
+const selectStyles = css`
+  width: 100%;
+`;
+
 const sliderContainerStyles = css`
   align-items: flex-end;
   display: flex;
@@ -322,8 +357,8 @@ const radioStyles = css`
 `;
 
 /*
- * Helpers
- */
+## Helpers
+*/
 
 function buildDateFilter(range, minYear, maxYear) {
   if (!range) return;
@@ -384,6 +419,37 @@ function checkboxReducer(state, action) {
   }
 }
 
+const dateOptions = {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+};
+
+async function drawStation(station, layer) {
+  if (isEmpty(station)) return false;
+  const newFeature = new Graphic({
+    geometry: {
+      type: 'point',
+      latitude: station.locationLatitude,
+      longitude: station.locationLongitude,
+    },
+    attributes: {
+      ...station,
+      locationUrl: window.location.href,
+      stationProviderName: station.providerName,
+      stationTotalSamples: station.totalSamples,
+      stationTotalMeasurements: station.totalMeasurements,
+      stationTotalsByCategory: JSON.stringify(station.charcTypeCounts),
+    },
+  });
+  const featureSet = await layer.queryFeatures();
+  const editResults = await layer.applyEdits({
+    deleteFeatures: featureSet.features,
+    addFeatures: [newFeature],
+  });
+  return editResults?.addFeatureResults?.length ? true : false;
+}
+
 async function fetchStationDetails(url, setData, setStatus) {
   const res = await fetchCheck(url);
   if (res.features.length < 1) {
@@ -424,31 +490,6 @@ async function fetchStationDetails(url, setData, setStatus) {
   );
   setData(stationDetails);
   setStatus('success');
-}
-
-async function drawStation(station, layer) {
-  if (isEmpty(station)) return false;
-  const newFeature = new Graphic({
-    geometry: {
-      type: 'point',
-      latitude: station.locationLatitude,
-      longitude: station.locationLongitude,
-    },
-    attributes: {
-      ...station,
-      locationUrl: window.location.href,
-      stationProviderName: station.providerName,
-      stationTotalSamples: station.totalSamples,
-      stationTotalMeasurements: station.totalMeasurements,
-      stationTotalsByCategory: JSON.stringify(station.charcTypeCounts),
-    },
-  });
-  const featureSet = await layer.queryFeatures();
-  const editResults = await layer.applyEdits({
-    deleteFeatures: featureSet.features,
-    addFeatures: [newFeature],
-  });
-  return editResults?.addFeatureResults?.length ? true : false;
 }
 
 function fetchParseCsv(url) {
@@ -854,6 +895,14 @@ function useCharacteristics(provider, orgId, siteId) {
 
   const structureRecords = useCallback(
     (records) => {
+      if (!records) {
+        setCharcs({});
+        setStatus('failure');
+        return;
+      } else if (!records.length) {
+        setCharcs({});
+        setStatus('idle');
+      }
       const recordsByCharc = {};
       records.forEach((record) => {
         if (!recordsByCharc[record.CharacteristicName]) {
@@ -877,6 +926,8 @@ function useCharacteristics(provider, orgId, siteId) {
           month: parseInt(recordDate[1]),
           day: parseInt(recordDate[2]),
           measurement: record.ResultMeasureValue ?? null,
+          sampleFraction: record.ResultSampleFractionText || null,
+          speciation: record.MethodSpecificationName || null,
           unit: record['ResultMeasure/MeasureUnitCode'] || null,
         });
       });
@@ -887,7 +938,7 @@ function useCharacteristics(provider, orgId, siteId) {
   );
 
   useEffect(() => {
-    if (status !== 'idle' || services.status !== 'success') return;
+    if (services.status !== 'success') return;
     setStatus('fetching');
     const url =
       `${services.data.waterQualityPortal.resultSearch}` +
@@ -899,7 +950,7 @@ function useCharacteristics(provider, orgId, siteId) {
       setStatus('failure');
       console.error('Papa Parse error');
     }
-  }, [orgId, provider, services, siteId, status, structureRecords]);
+  }, [orgId, provider, services, siteId, structureRecords]);
 
   return [charcs, status];
 }
@@ -926,8 +977,8 @@ function useStationDetails(provider, orgId, siteId) {
 }
 
 /*
- * Components
- */
+## Components
+*/
 
 function CharacteristicChart({
   charcGroup,
@@ -937,51 +988,104 @@ function CharacteristicChart({
 }) {
   const [measurements, setMeasurements] = useState(null);
   const [unit, setUnit] = useState(null);
+  const [units, setUnits] = useState(null);
+  const [fraction, setFraction] = useState(null);
+  const [fractions, setFractions] = useState(null);
+  const [spec, setSpec] = useState(null);
+  const [specs, setSpecs] = useState(null);
   useEffect(() => {
-    if (!records.length) return;
     const newMeasurements = {};
+    const fractionValues = new Set();
+    const specValues = new Set();
+    const unitValues = new Set();
     records.forEach((record) => {
-      if (!record.measurement || !record.unit) return;
+      if (!record.unit || !Number.isFinite(record.measurement)) return;
 
+      unitValues.add(record.unit);
+      const fraction = record.sampleFraction || 'Not Specified';
+      fractionValues.add(fraction);
       if (!newMeasurements[record.unit]) newMeasurements[record.unit] = {};
       const unitMeasurements = newMeasurements[record.unit];
+      if (!unitMeasurements[fraction]) unitMeasurements[fraction] = {};
+      const fractionMeasurements = unitMeasurements[fraction];
+      const speciation = record.speciation || 'Not Specified';
+      specValues.add(speciation);
+      if (!fractionMeasurements[speciation])
+        fractionMeasurements[speciation] = {};
+      const specMeasurements = fractionMeasurements[speciation];
 
       // group by unit and date
       const date =
         `${record.year}` +
         `-${record.month < 10 ? `0${record.month}` : record.month}` +
         `-${record.day < 10 ? `0${record.day}` : record.day}`;
-      if (!unitMeasurements[date]) {
-        unitMeasurements[date] = {
+      if (!specMeasurements[date]) {
+        specMeasurements[date] = {
           ...record,
           measurement: [record.measurement],
           date,
         };
       } else {
-        unitMeasurements[date].measurement.push(record.measurement);
+        specMeasurements[date].measurement.push(record.measurement);
       }
     });
+    setFractions(
+      Array.from(fractionValues).map((value) => {
+        return { value: value, label: value };
+      }),
+    );
+    setSpecs(
+      Array.from(specValues).map((value) => {
+        return { value: value, label: value };
+      }),
+    );
+    setUnits(
+      Array.from(unitValues).map((value) => {
+        return { value: value, label: value };
+      }),
+    );
 
-    // store in arrays by unit and sort by date
-    const sortedMeasurements = {};
+    // store in arrays by unit,fraction,speciation and sort by date
     Object.entries(newMeasurements).forEach(([unitKey, unitMeasurements]) => {
-      Object.values(unitMeasurements).forEach((date) => {
-        date.measurement = parseFloat(
-          (
-            date.measurement.reduce((a, b) => a + b) / date.measurement.length
-          ).toFixed(3),
-        );
-      });
-      sortedMeasurements[unitKey] = Object.values(unitMeasurements)
-        .sort((a, b) => a.day - b.day)
-        .sort((a, b) => a.month - b.month)
-        .sort((a, b) => a.year - b.year);
+      Object.entries(unitMeasurements).forEach(
+        ([fractionKey, fractionMeasurements]) => {
+          Object.entries(fractionMeasurements).forEach(
+            ([specKey, specMeasurements]) => {
+              Object.values(specMeasurements).forEach((date) => {
+                date.measurement = parseFloat(
+                  (
+                    date.measurement.reduce((a, b) => a + b) /
+                    date.measurement.length
+                  ).toFixed(3),
+                );
+              });
+              newMeasurements[unitKey][fractionKey][specKey] = Object.values(
+                specMeasurements,
+              )
+                .sort((a, b) => a.day - b.day)
+                .sort((a, b) => a.month - b.month)
+                .sort((a, b) => a.year - b.year);
+            },
+          );
+        },
+      );
     });
-    setMeasurements(sortedMeasurements);
 
     // initialize selected unit
-    const units = Object.keys(sortedMeasurements);
-    if (units.length) setUnit(units[0]);
+    const units = Object.keys(newMeasurements);
+    if (units.length) {
+      const fractions = Object.keys(newMeasurements[units[0]]);
+      const specs = Object.keys(newMeasurements[units[0]][fractions[0]]);
+      setMeasurements(newMeasurements);
+      setUnit(units[0]);
+      setFraction(fractions[0]);
+      setSpec(specs[0]);
+    } else {
+      setMeasurements(null);
+      setUnit(null);
+      setFraction(null);
+      setSpec(null);
+    }
   }, [records]);
 
   const [chartData, setChartData] = useState(null);
@@ -990,7 +1094,7 @@ function CharacteristicChart({
   const [mean, setMean] = useState(null);
   const [median, setMedian] = useState(null);
   const [stdDev, setStdDev] = useState(null);
-  const getNewChartData = useCallback((domain, msmts) => {
+  const getChartData = useCallback((domain, msmts) => {
     let newChartData = [];
     msmts.forEach((msmt) => {
       if (msmt.year >= domain[0] && msmt.year <= domain[1]) {
@@ -1011,37 +1115,48 @@ function CharacteristicChart({
   const [minYear, setMinYear] = useState(null);
   const [maxYear, setMaxYear] = useState(null);
   useEffect(() => {
-    if (!measurements || !unit) return;
-    const unitMeasurements = measurements[unit];
-    const yearLow = unitMeasurements[0].year;
-    const yearHigh = unitMeasurements[unitMeasurements.length - 1].year;
-    setMinYear(yearLow);
-    setMaxYear(yearHigh);
-    getNewChartData([yearLow, yearHigh], unitMeasurements);
-  }, [charcsStatus, getNewChartData, measurements, unit]);
+    const specMeasurements = measurements?.[unit]?.[fraction]?.[spec];
+    if (specMeasurements && specMeasurements.length) {
+      const yearLow = specMeasurements[0].year;
+      const yearHigh = specMeasurements[specMeasurements.length - 1].year;
+      setMinYear(yearLow);
+      setMaxYear(yearHigh);
+      getChartData([yearLow, yearHigh], specMeasurements);
+    } else {
+      setChartData(null);
+    }
+  }, [charcsStatus, fraction, getChartData, measurements, spec, unit]);
 
   const chartRef = useRef(null);
+
+  let yTitle = `${unit}`;
+  if (fraction !== 'Not Specified') yTitle += ', ' + fraction;
+  if (spec !== 'Not Specified') yTitle += ', ' + spec;
 
   return (
     <div css={boxStyles}>
       <h2 css={infoBoxHeadingStyles}>
         Chart of Results for{' '}
-        {!charcName || charcName === 'None'
+        {!charcName
           ? 'Selected Characteristic'
           : titleCaseWithExceptions(charcName)}
-        {unit && ` (${unit})`}
+        {/* unit && ` (${unit})` */}
       </h2>
       {charcsStatus === 'fetching' ? (
         <LoadingSpinner />
-      ) : !charcName ? (
+      ) : charcsStatus === 'idle' ? (
         <p css={modifiedInfoBoxStyles}>
           No data available for this monitoring location.
         </p>
-      ) : charcName === 'None' ? (
+      ) : !charcName ? (
         <p css={modifiedInfoBoxStyles}>
           Select a characteristic from the table above to graph its results.
         </p>
-      ) : (
+      ) : !measurements ? (
+        <p css={modifiedInfoBoxStyles}>
+          No measurements available for this characteristic.
+        </p>
+      ) : charcsStatus === 'success' ? (
         <>
           <div css={sliderContainerStyles}>
             {!minYear || !maxYear ? (
@@ -1051,39 +1166,113 @@ function CharacteristicChart({
                 disabled={!Boolean(records.length)}
                 min={minYear}
                 max={maxYear}
-                onChange={(newDomain) =>
-                  getNewChartData(newDomain, measurements[unit])
-                }
+                onChange={(newDomain) => {
+                  const specMeasurements =
+                    measurements?.[unit]?.[fraction]?.[spec];
+                  if (specMeasurements) {
+                    getChartData(newDomain, specMeasurements);
+                  }
+                }}
               />
             )}
+          </div>
+          <div css={selectContainerStyles}>
+            <span>
+              <label css={selectLabelStyles} htmlFor="unit">
+                Unit:
+              </label>
+              <Select
+                css={selectStyles}
+                inputId={'unit'}
+                isSearchable={false}
+                options={units}
+                value={units.find((u) => u.value === unit)}
+                onChange={(ev) => {
+                  setUnit(ev.value);
+                }}
+                styles={reactSelectStyles}
+              />
+            </span>
+            <span>
+              <label css={selectLabelStyles} htmlFor="sample-fraction">
+                Sample Fraction:
+              </label>
+              <Select
+                css={selectStyles}
+                inputId={'sample-fraction'}
+                isSearchable={false}
+                options={fractions}
+                value={fractions.find((f) => f.value === fraction)}
+                onChange={(ev) => {
+                  setFraction(ev.value);
+                }}
+                styles={reactSelectStyles}
+              />
+            </span>
+            <span>
+              <label css={selectLabelStyles} htmlFor="speciation">
+                Method Speciation:
+              </label>
+              <Select
+                css={selectStyles}
+                inputId={'speciation'}
+                isSearchable={false}
+                options={specs}
+                value={specs.find((s) => s.value === spec)}
+                onChange={(ev) => {
+                  setSpec(ev.value);
+                }}
+                styles={reactSelectStyles}
+              />
+            </span>
           </div>
           <div ref={chartRef}>
-            {!chartData || !range ? (
+            {!range ? (
               <LoadingSpinner />
+            ) : !chartData?.length ? (
+              <p css={modifiedInfoBoxStyles}>
+                No measurements available for the selected options.
+              </p>
             ) : (
-              <LineChart
-                color={lineColors[charcGroup]}
-                containerRef={chartRef.current}
-                data={chartData}
-                dataKey={charcName}
-                range={range}
-                yUnit={unit}
-              />
+              <div css={chartContainerStyles}>
+                <LineChart
+                  color={lineColors[charcGroup]}
+                  containerRef={chartRef.current}
+                  data={chartData}
+                  dataKey={charcName}
+                  range={range}
+                  xTitle="Date"
+                  yTitle={yTitle}
+                  yUnit={unit}
+                />
+              </div>
             )}
           </div>
-          <div css={boxSectionStyles}>
-            {mean && sectionRowInline('Average of Values', `${mean} ${unit}`)}
-            {median && sectionRowInline('Median Value', `${median} ${unit}`)}
-            {domain &&
-              sectionRowInline(
+          {chartData?.length && (
+            <div css={boxSectionStyles}>
+              {sectionRowInline(
                 'Selected Date Range',
-                `${new Date(domain[0]).toDateString()} - ` +
-                  `${new Date(domain[1]).toDateString()}`,
+                `${new Date(domain[0]).toLocaleDateString(
+                  'en-us',
+                  dateOptions,
+                )}` +
+                  ` - ${new Date(domain[1]).toLocaleDateString(
+                    'en-us',
+                    dateOptions,
+                  )}`,
               )}
-            {stdDev &&
-              sectionRowInline('Standard Deviation', `${stdDev} ${unit}`)}
-          </div>
+              {sectionRowInline(
+                'Average of Values',
+                `${mean} ${String.fromCharCode(177)} ${stdDev} ${unit}`,
+              )}
+              {sectionRowInline('Median Value', `${median} ${unit}`)}
+              {sectionRowInline('Minimum Value', `${range?.[0]} ${unit}`)}
+              {sectionRowInline('Maximum Value', `${range?.[1]} ${unit}`)}
+            </div>
+          )}
         </>
+      ) : (
+        <p css={modifiedErrorBoxStyles}>{monitoringError}</p>
       )}
     </div>
   );
@@ -1537,10 +1726,6 @@ function MonitoringStation({ fullscreen }) {
     siteId,
   );
   const [selectedCharc, setSelectedCharc] = useState(null);
-  useEffect(() => {
-    if (characteristicsStatus !== 'success') return;
-    setSelectedCharc('None');
-  }, [characteristicsStatus]);
 
   const [mapWidth, setMapWidth] = useState(0);
   const widthRef = useCallback((node) => {

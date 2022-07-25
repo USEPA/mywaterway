@@ -9,6 +9,7 @@ import {
 } from '@visx/xychart';
 // types
 import type { ReactChildren, ReactChild } from 'react';
+import { curveCatmullRom } from '@visx/curve';
 import type { XYChartTheme } from '@visx/xychart';
 
 // NOTE: EPA's _reboot.css file causes the tooltip series glyph to be clipped
@@ -33,7 +34,7 @@ const customTheme = buildChartTheme({
   gridColorDark: '#222831',
   svgLabelSmall: { fill: '#30475e' },
   svgLabelBig: { fill: '#ffffff' },
-  tickLength: 4,
+  tickLength: 8,
 });
 
 type Props = {
@@ -44,7 +45,9 @@ type Props = {
   dataKey: string;
   range?: number[];
   xAccessor?: (d: Datum) => string;
+  xTitle?: string;
   yAccessor?: (d: Datum) => number;
+  yTitle?: string;
   yUnit: string;
 };
 
@@ -55,7 +58,9 @@ function LineChart({
   color,
   containerRef,
   xAccessor = (d: Datum) => d.x,
+  xTitle,
   yAccessor = (d: Datum) => d.y,
+  yTitle,
   yUnit,
 }: Props) {
   const [theme, setTheme] = useState<XYChartTheme>(customTheme);
@@ -104,17 +109,35 @@ function LineChart({
       <VisxStyles />
       <XYChart
         height={500}
-        margin={{ top: 50, bottom: 25, left: 50, right: 25 }}
+        margin={{ top: 10, bottom: 45, left: 70, right: 20 }}
         theme={theme}
-        xScale={{ type: 'band', paddingInner: 1, paddingOuter: 1 }}
-        yScale={{ type: 'linear', domain: range, zero: false }}
+        xScale={{ type: 'band', paddingInner: 1, paddingOuter: 0.2 }}
+        yScale={{ type: 'linear', domain: range }}
       >
         <Axis
-          numTicks={width ? Math.floor(width / 100) : 4}
+          label={xTitle}
+          labelProps={{
+            fill: '#2C2E43',
+            style: { fontWeight: 'bold' },
+            verticalAnchor: 'start',
+          }}
+          numTicks={width ? Math.floor(width / 120) : 4}
           orientation="bottom"
+          strokeWidth={2}
         />
-        <Axis orientation="left" />
+        <Axis
+          label={yTitle}
+          labelProps={{
+            fill: '#2C2E43',
+            dx: -30,
+            style: { fontWeight: 'bold' },
+            textAnchor: 'middle',
+          }}
+          orientation="left"
+          strokeWidth={2}
+        />
         <LineSeries
+          curve={curveCatmullRom}
           data={data}
           dataKey={dataKey}
           xAccessor={xAccessor}
