@@ -759,7 +759,7 @@ function WaterbodyInfo({
                       <tr>
                         <th>Plan (ID)</th>
                         <th>Impairments</th>
-                        <th>Type</th>
+                        <th style={{ minWidth: '4em' }}>Type</th>
                         <th>Date</th>
                       </tr>
                     </thead>
