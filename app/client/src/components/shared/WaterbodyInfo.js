@@ -119,6 +119,9 @@ const checkboxCellStyles = css`
 
 const checkboxStyles = css`
   appearance: checkbox;
+  left: 2px;
+  position: relative;
+  top: 2px;
   transform: scale(1.2);
 `;
 
