@@ -109,7 +109,7 @@ function LineChart({
       <VisxStyles />
       <XYChart
         height={500}
-        margin={{ top: 10, bottom: 45, left: 70, right: 20 }}
+        margin={{ top: 10, bottom: 45, left: 70, right: 30 }}
         theme={theme}
         xScale={{ type: 'band', paddingInner: 1, paddingOuter: 0.2 }}
         yScale={{ type: 'linear', domain: range }}
@@ -144,6 +144,7 @@ function LineChart({
           yAccessor={yAccessor}
         />
         <Tooltip<Datum>
+          // detectBounds={false}
           showDatumGlyph
           showVerticalCrosshair
           snapTooltipToDatumX

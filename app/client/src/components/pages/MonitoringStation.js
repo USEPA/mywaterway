@@ -106,7 +106,7 @@ const accordionStyles = css`
   input[type='checkbox'] {
     margin-right: 1em;
     position: relative;
-    top: 0.15em;
+    top: 0.35em;
     transform: scale(1.2);
   }
 `;
@@ -453,7 +453,7 @@ async function drawStation(station, layer) {
 async function fetchStationDetails(url, setData, setStatus) {
   const res = await fetchCheck(url);
   if (res.features.length < 1) {
-    setStatus('success');
+    setStatus('idle');
     setData({});
     return;
   }
@@ -535,7 +535,7 @@ function getFilteredCount(range, records, count) {
 function getMean(values) {
   const sum = values.reduce((a, b) => a + b, 0);
   const mean = sum / values.length;
-  return mean.toFixed(3);
+  return parseFloat(mean.toFixed(3));
 }
 
 function getMedian(values) {
@@ -547,7 +547,7 @@ function getMedian(values) {
   } else {
     median = sorted[(numValues - 1) / 2];
   }
-  return median.toFixed(3);
+  return parseFloat(median.toFixed(3));
 }
 
 function getStdDev(values, mean = null) {
@@ -555,7 +555,7 @@ function getStdDev(values, mean = null) {
   const tss = values.reduce((a, b) => a + (b - sampleMean) ** 2, 0);
   const variance = tss / (values.length - 1);
   const stdDev = Math.sqrt(variance);
-  return stdDev.toFixed(3);
+  return parseFloat(stdDev.toFixed(3));
 }
 
 function getTotalCount(charcs) {
@@ -980,12 +980,7 @@ function useStationDetails(provider, orgId, siteId) {
 ## Components
 */
 
-function CharacteristicChart({
-  charcGroup,
-  charcName,
-  charcsStatus,
-  records = [],
-}) {
+function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
   const [measurements, setMeasurements] = useState(null);
   const [unit, setUnit] = useState(null);
   const [units, setUnits] = useState(null);
@@ -994,6 +989,7 @@ function CharacteristicChart({
   const [spec, setSpec] = useState(null);
   const [specs, setSpecs] = useState(null);
   useEffect(() => {
+    if (!records) return;
     const newMeasurements = {};
     const fractionValues = new Set();
     const specValues = new Set();
@@ -1154,7 +1150,7 @@ function CharacteristicChart({
         </p>
       ) : !measurements ? (
         <p css={modifiedInfoBoxStyles}>
-          No measurements available for this characteristic.
+          No measurements available to be charted for this characteristic.
         </p>
       ) : charcsStatus === 'success' ? (
         <>
@@ -1262,12 +1258,29 @@ function CharacteristicChart({
                   )}`,
               )}
               {sectionRowInline(
-                'Average of Values',
-                `${mean} ${String.fromCharCode(177)} ${stdDev} ${unit}`,
+                'Number of Measurements Shown',
+                chartData.length.toLocaleString(),
               )}
-              {sectionRowInline('Median Value', `${median} ${unit}`)}
-              {sectionRowInline('Minimum Value', `${range?.[0]} ${unit}`)}
-              {sectionRowInline('Maximum Value', `${range?.[1]} ${unit}`)}
+              {sectionRowInline(
+                'Average of Values',
+                `${mean.toLocaleString('en-US')} ${String.fromCharCode(
+                  177,
+                )} ${stdDev.toLocaleString()} ${unit}`,
+              )}
+              {sectionRowInline(
+                'Median Value',
+                `${median.toLocaleString()} ${unit}`,
+              )}
+              {range &&
+                sectionRowInline(
+                  'Minimum Value',
+                  `${range[0].toLocaleString()} ${unit}`,
+                )}
+              {range &&
+                sectionRowInline(
+                  'Maximum Value',
+                  `${range[1].toLocaleString()} ${unit}`,
+                )}
             </div>
           )}
         </>
@@ -1300,9 +1313,9 @@ function CharacteristicsTable({ charcs, charcsStatus, selected, setSelected }) {
         }, 0);
         return {
           group: charc.group,
-          measurementCount,
+          measurementCount: measurementCount.toLocaleString(),
           name: charc.name,
-          resultCount: charc.count,
+          resultCount: charc.count.toLocaleString(),
           select: selector,
           type: charc.type,
         };
@@ -1532,7 +1545,7 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
                               <strong>{group.id}</strong>
                             </span>
                             <span>
-                              <strong>{group.count}</strong>
+                              <strong>{group.count.toLocaleString()}</strong>
                             </span>
                           </span>
                         }
@@ -1572,7 +1585,9 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
                                         />
                                         <strong>{typeId}</strong>
                                       </span>
-                                      <strong>{type.count}</strong>
+                                      <strong>
+                                        {type.count.toLocaleString()}
+                                      </strong>
                                     </span>
                                   }
                                 >
@@ -1612,7 +1627,9 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
                                             />
                                             <strong>{charcId}</strong>
                                           </span>
-                                          <strong>{charc.count}</strong>
+                                          <strong>
+                                            {charc.count.toLocaleString()}
+                                          </strong>
                                         </div>
                                       );
                                     })}
@@ -1627,7 +1644,7 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
                       <em>Total Measurements Selected:</em>
                     </strong>
                     <strong className="count">
-                      {getTotalCount(checkboxes.charcs)}
+                      {getTotalCount(checkboxes.charcs).toLocaleString()}
                     </strong>
                   </p>
                 </AccordionList>
@@ -1713,6 +1730,16 @@ function InformationSection({ orgId, siteId, station, stationStatus }) {
         stationStatus,
       )}
       {sectionRowInline('Water Type', station.locationType, stationStatus)}
+      {sectionRowInline(
+        'Total Sample Count',
+        station.totalSamples?.toLocaleString(),
+        stationStatus,
+      )}
+      {sectionRowInline(
+        'Total Measurement Count',
+        station.totalMeasurements?.toLocaleString(),
+        stationStatus,
+      )}
     </div>
   );
 }
@@ -1847,7 +1874,11 @@ function MonitoringStation({ fullscreen }) {
                     }
                     charcName={selectedCharc}
                     charcsStatus={characteristicsStatus}
-                    records={characteristics[selectedCharc]?.records}
+                    records={
+                      selectedCharc
+                        ? characteristics[selectedCharc].records
+                        : null
+                    }
                   />
                 </div>
               </div>
@@ -1859,12 +1890,10 @@ function MonitoringStation({ fullscreen }) {
   );
 
   switch (stationStatus) {
+    case 'idle':
+      return noStationView;
     case 'success':
-      return isEmpty(station)
-        ? noStationView
-        : fullscreen.fullscreenActive
-        ? fullScreenView
-        : twoColumnView;
+      return fullscreen.fullscreenActive ? fullScreenView : twoColumnView;
     case 'failure':
       // TODO: add error box
       return null;
