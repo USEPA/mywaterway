@@ -76,6 +76,7 @@ const dateRangeStyles = css`
 `;
 
 const popupContainerStyles = css`
+  font-size: 14px;
   margin: 0;
   overflow-y: auto;
 
