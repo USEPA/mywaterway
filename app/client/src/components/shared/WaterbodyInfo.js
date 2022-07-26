@@ -1282,7 +1282,7 @@ function MonitoringLocationsContent({ attributes, services }) {
             className="fas fa-info-circle"
             aria-hidden="true"
           />
-          More Information
+          Monitoring Report page
         </a>
         &nbsp;&nbsp;
         <small css={modifiedDisclaimerStyles}>(opens new browser tab)</small>

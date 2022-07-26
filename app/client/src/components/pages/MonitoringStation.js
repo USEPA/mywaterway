@@ -209,6 +209,10 @@ const inlineBoxSectionStyles = css`
     height: 1.25rem;
   }
 
+  h3 {
+    margin-right: 0.5em;
+  }
+
   h3,
   p {
     display: inline-block;
@@ -737,7 +741,7 @@ const sectionRow = (label, value, style, dataStatus) => (
         <p>{monitoringError}</p>
       </div>
     )}
-    {dataStatus === 'success' && <p>&nbsp; {value}</p>}
+    {dataStatus === 'success' && <p>{value}</p>}
   </div>
 );
 
@@ -990,6 +994,7 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
   const [specs, setSpecs] = useState(null);
   useEffect(() => {
     if (!records) return;
+    // TODO: refactor this effect
     const newMeasurements = {};
     const fractionValues = new Set();
     const specValues = new Set();
@@ -1087,6 +1092,7 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
   const [chartData, setChartData] = useState(null);
   const [domain, setDomain] = useState(null);
   const [range, setRange] = useState(null);
+  const [scaleType, setScaleType] = useState(null);
   const [mean, setMean] = useState(null);
   const [median, setMedian] = useState(null);
   const [stdDev, setStdDev] = useState(null);
@@ -1100,8 +1106,16 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
     setChartData(newChartData);
     // data is already sorted by date
     setDomain([newChartData[0].x, newChartData[newChartData.length - 1].x]);
+
     const yValues = newChartData.map((datum) => datum.y);
-    setRange([Math.min(...yValues), Math.max(...yValues)]);
+    const newRange = [Math.min(...yValues), Math.max(...yValues)];
+    setRange(newRange);
+
+    // Calculate the proper Y scale type
+    // TODO: try comparing regression lines
+    const minPositive = Math.min(...yValues.filter((y) => y > 0));
+    setScaleType(newRange[1] > minPositive * 1000 ? 'log' : 'linear');
+
     const newMean = getMean(yValues);
     setMean(newMean);
     setMedian(getMedian(yValues));
@@ -1125,9 +1139,11 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
 
   const chartRef = useRef(null);
 
-  let yTitle = `${unit}`;
-  if (fraction !== 'Not Specified') yTitle += ', ' + fraction;
+  let yTitle = charcName;
+  if (fraction !== 'Not Specified')
+    yTitle += ', ' + fraction?.replace(',', ' -');
   if (spec !== 'Not Specified') yTitle += ', ' + spec;
+  yTitle += ', ' + unit;
 
   return (
     <div css={boxStyles}>
@@ -1238,6 +1254,7 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
                   dataKey={charcName}
                   range={range}
                   xTitle="Date"
+                  yScale={scaleType}
                   yTitle={yTitle}
                   yUnit={unit}
                 />
@@ -1341,6 +1358,8 @@ function CharacteristicsTable({ charcs, charcsStatus, selected, setSelected }) {
                 charcsStatus,
               )}
               <ReactTable
+                autoResetFilters={false}
+                autoResetSortBy={false}
                 data={tableData}
                 placeholder="Filter..."
                 striped={false}
@@ -1895,8 +1914,11 @@ function MonitoringStation({ fullscreen }) {
     case 'success':
       return fullscreen.fullscreenActive ? fullScreenView : twoColumnView;
     case 'failure':
-      // TODO: add error box
-      return null;
+      return (
+        <div css={modifiedErrorBoxStyles}>
+          <p>{monitoringError}</p>
+        </div>
+      );
     default:
       return fullscreen.fullscreenActive ? fullScreenView : twoColumnView;
   }

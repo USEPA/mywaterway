@@ -145,13 +145,22 @@ const containerStyles = css`
 
 // --- components ---
 type Props = {
+  autoResetFilters?: boolean,
+  autoResetSortBy?: boolean,
   data: Array<Object>,
   getColumns: Function,
   placeholder: ?string,
   striped: ?boolean,
 };
 
-function ReactTable({ data, getColumns, placeholder, striped = false }: Props) {
+function ReactTable({
+  autoResetFilters = true,
+  autoResetSortBy = true,
+  data,
+  getColumns,
+  placeholder,
+  striped = false,
+}: Props) {
   // Initializes the column widths based on the table width
   const [tableWidth, setTableWidth] = useState(0);
   const columns = useMemo(() => {
@@ -179,6 +188,8 @@ function ReactTable({ data, getColumns, placeholder, striped = false }: Props) {
     setAllFilters,
   } = useTable(
     {
+      autoResetFilters,
+      autoResetSortBy,
       columns,
       data,
       defaultColumn,

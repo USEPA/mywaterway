@@ -47,6 +47,7 @@ type Props = {
   xAccessor?: (d: Datum) => string;
   xTitle?: string;
   yAccessor?: (d: Datum) => number;
+  yScale?: 'log' | 'linear';
   yTitle?: string;
   yUnit: string;
 };
@@ -60,6 +61,7 @@ function LineChart({
   xAccessor = (d: Datum) => d.x,
   xTitle,
   yAccessor = (d: Datum) => d.y,
+  yScale = 'linear',
   yTitle,
   yUnit,
 }: Props) {
@@ -112,7 +114,7 @@ function LineChart({
         margin={{ top: 10, bottom: 45, left: 70, right: 30 }}
         theme={theme}
         xScale={{ type: 'band', paddingInner: 1, paddingOuter: 0.2 }}
-        yScale={{ type: 'linear', domain: range }}
+        yScale={{ type: yScale, domain: range }}
       >
         <Axis
           label={xTitle}
