@@ -66,13 +66,11 @@ function StateTribalTabs() {
   // activeState, so we need to set it.
   const { states, tribes } = useOutletContext();
   useEffect(() => {
-    if (!tribes.length || states.status !== 'success') return;
     if (activeState.value === '' || activeState.value !== stateCode) {
       const match = [...tribes, ...states.data].find((stateTribe) => {
         return stateTribe.value === stateCode.toUpperCase();
       });
-
-      setActiveState(match);
+      if (match) setActiveState(match);
     }
   }, [activeState.value, setActiveState, stateCode, states, tribes]);
 
