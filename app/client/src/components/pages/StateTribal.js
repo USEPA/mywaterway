@@ -632,7 +632,7 @@ function StateTribal() {
             )}
 
             {/* Outlet is either StateIntro or StateTabs */}
-            <Outlet />
+            <Outlet context={{ tribes, states }} />
           </div>
         )}
       </div>

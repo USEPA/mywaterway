@@ -1,7 +1,7 @@
 // @flow
 
 import React, { useContext, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useOutletContext, useParams, useNavigate } from 'react-router-dom';
 import {} from 'styled-components/macro';
 import { Tab, Tabs, TabList, TabPanel, TabPanels } from '@reach/tabs';
 import { useWindowSize } from '@reach/window-size';
@@ -16,19 +16,10 @@ import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 // contexts
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
-import {
-  useServicesContext,
-  useTribeMappingContext,
-} from 'contexts/LookupFiles';
-// utilities
-import { fetchCheck } from 'utils/fetchUtils';
 
 function StateTribalTabs() {
   const { stateCode, tabName } = useParams();
   const navigate = useNavigate();
-
-  const services = useServicesContext();
-  const tribeMapping = useTribeMappingContext();
 
   const { activeState, setActiveState, activeTabIndex, setActiveTabIndex } =
     useContext(StateTribalTabsContext);
@@ -71,53 +62,19 @@ function StateTribalTabs() {
   }, [navigate, activeTabIndex, setActiveTabIndex, stateCode]);
 
   // if user navigation directly to the url, activeState.value will be an empty
-  // string, so we'll need to query the attains states service for the states
+  // string, and if the back or forward buttons are used, `stateCode` won't match the
+  // activeState, so we need to set it.
+  const { states, tribes } = useOutletContext();
   useEffect(() => {
-    if (tribeMapping.status === 'fetching') return;
+    if (!tribes.length || states.status !== 'success') return;
     if (activeState.value === '' || activeState.value !== stateCode) {
-      // check if the stateID is a tribe id by checking the control table
-      const matchTribes = tribeMapping.data.filter(
-        (tribe) => tribe.attainsId === stateCode.toUpperCase(),
-      )[0];
+      const match = [...tribes, ...states.data].find((stateTribe) => {
+        return stateTribe.value === stateCode.toUpperCase();
+      });
 
-      fetchCheck(`${services.data.attains.serviceUrl}states`)
-        .then((res) => {
-          if (matchTribes) {
-            setActiveState({
-              ...matchTribes,
-              value: matchTribes.attainsId,
-              label: matchTribes.name,
-              source: 'Tribe',
-            });
-            return;
-          }
-
-          // get matched state from web service response
-          const match = res.data.filter(
-            (state) => state.code === stateCode.toUpperCase(),
-          )[0];
-
-          // redirect to /state if no state was found
-          if (!match) navigate('/state-and-tribal', { replace: true });
-
-          setActiveState({
-            value: match.code,
-            label: match.name,
-            source: 'State',
-          });
-        })
-        .catch((_err) => {
-          navigate('/state-and-tribal', { replace: true });
-        });
+      setActiveState(match);
     }
-  }, [
-    activeState,
-    navigate,
-    tribeMapping,
-    services,
-    setActiveState,
-    stateCode,
-  ]);
+  }, [activeState.value, setActiveState, stateCode, states, tribes]);
 
   const tabListRef = useRef();
 
