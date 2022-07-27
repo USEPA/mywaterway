@@ -76,6 +76,7 @@ const dateRangeStyles = css`
 `;
 
 const popupContainerStyles = css`
+  font-size: 14px;
   margin: 0;
   overflow-y: auto;
 
@@ -119,6 +120,9 @@ const checkboxCellStyles = css`
 
 const checkboxStyles = css`
   appearance: checkbox;
+  left: 2px;
+  position: relative;
+  top: 2px;
   transform: scale(1.2);
 `;
 
@@ -760,7 +764,7 @@ function WaterbodyInfo({
                       <tr>
                         <th>Plan (ID)</th>
                         <th>Impairments</th>
-                        <th>Type</th>
+                        <th style={{ minWidth: '4em' }}>Type</th>
                         <th>Date</th>
                       </tr>
                     </thead>
