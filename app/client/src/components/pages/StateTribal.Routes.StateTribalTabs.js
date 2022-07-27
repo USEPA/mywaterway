@@ -42,7 +42,9 @@ function StateTribalTabs() {
     if (pathname === `/tribe/${stateCode.toLowerCase()}`) return;
 
     if (stateCode && !tabName) {
-      navigate(`/state/${stateCode.toUpperCase()}/water-quality-overview`);
+      navigate(`/state/${stateCode.toUpperCase()}/water-quality-overview`, {
+        replace: true,
+      });
     }
   }, [navigate, stateCode, tabName]);
 
@@ -60,7 +62,7 @@ function StateTribalTabs() {
     );
 
     if (tabIndex === -1) {
-      navigate('/state-and-tribal');
+      navigate('/state-and-tribal', { replace: true });
     }
 
     if (activeTabIndex !== tabIndex) {
@@ -72,7 +74,7 @@ function StateTribalTabs() {
   // string, so we'll need to query the attains states service for the states
   useEffect(() => {
     if (tribeMapping.status === 'fetching') return;
-    if (activeState.value === '') {
+    if (activeState.value === '' || activeState.value !== stateCode) {
       // check if the stateID is a tribe id by checking the control table
       const matchTribes = tribeMapping.data.filter(
         (tribe) => tribe.attainsId === stateCode.toUpperCase(),
@@ -96,7 +98,7 @@ function StateTribalTabs() {
           )[0];
 
           // redirect to /state if no state was found
-          if (!match) navigate('/state-and-tribal');
+          if (!match) navigate('/state-and-tribal', { replace: true });
 
           setActiveState({
             value: match.code,
@@ -105,7 +107,7 @@ function StateTribalTabs() {
           });
         })
         .catch((_err) => {
-          navigate('/state-and-tribal');
+          navigate('/state-and-tribal', { replace: true });
         });
     }
   }, [
