@@ -17,6 +17,7 @@ import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
 import {
+  useOrganizationsContext,
   useServicesContext,
   useTribeMappingContext,
 } from 'contexts/LookupFiles';
@@ -26,7 +27,7 @@ import { fetchCheck } from 'utils/fetchUtils';
 function StateTribalTabs() {
   const { stateCode, tabName } = useParams();
   const navigate = useNavigate();
-
+  const organizations = useOrganizationsContext();
   const services = useServicesContext();
   const tribeMapping = useTribeMappingContext();
 
@@ -71,12 +72,25 @@ function StateTribalTabs() {
   // if user navigation directly to the url, activeState.value will be an empty
   // string, so we'll need to query the attains states service for the states
   useEffect(() => {
-    if (tribeMapping.status === 'fetching') return;
+    if (
+      organizations.status === 'fetching' ||
+      tribeMapping.status === 'fetching'
+    ) {
+      return;
+    }
     if (activeState.value === '') {
       // check if the stateID is a tribe id by checking the control table
-      const matchTribes = tribeMapping.data.filter(
-        (tribe) => tribe.attainsId === stateCode.toUpperCase(),
-      )[0];
+      const matchTribes = tribeMapping.data.find((tribe) => {
+        const tribeAttains = organizations.data.features.find(
+          (item) =>
+            item.attributes.orgtype === 'Tribe' &&
+            item.attributes.organizationid.toUpperCase() ===
+              tribe.attainsId.toUpperCase(),
+        );
+        if (!tribeAttains) return false;
+
+        return tribe.attainsId.toUpperCase() === stateCode.toUpperCase();
+      });
 
       fetchCheck(`${services.data.attains.serviceUrl}states`)
         .then((res) => {
@@ -111,10 +125,11 @@ function StateTribalTabs() {
   }, [
     activeState,
     navigate,
-    tribeMapping,
+    organizations,
     services,
     setActiveState,
     stateCode,
+    tribeMapping,
   ]);
 
   const tabListRef = useRef();
