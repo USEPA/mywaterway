@@ -189,23 +189,29 @@ function Documents({
         </>
       )}
 
-      <h3>Documents Related to Statewide Statistical Surveys</h3>
-
-      {surveyLoading || documentOrder.status === 'fetching' ? (
-        <LoadingSpinner />
-      ) : surveyServiceError ? (
-        <div css={modifiedErrorBoxStyles}>
-          <p>{stateSurveyError(activeState.label)}</p>
-        </div>
-      ) : (
+      {activeState.source !== 'Tribe' && (
         <>
-          {documentOrder.status === 'failure' && (
-            <div css={modifiedInfoBoxStyles}>{stateDocumentSortingError}</div>
+          <h3>Documents Related to Statewide Statistical Surveys</h3>
+
+          {surveyLoading || documentOrder.status === 'fetching' ? (
+            <LoadingSpinner />
+          ) : surveyServiceError ? (
+            <div css={modifiedErrorBoxStyles}>
+              <p>{stateSurveyError(activeState.label)}</p>
+            </div>
+          ) : (
+            <>
+              {documentOrder.status === 'failure' && (
+                <div css={modifiedInfoBoxStyles}>
+                  {stateDocumentSortingError}
+                </div>
+              )}
+              <DocumentsTable
+                documents={surveyDocumentsSorted}
+                type="statewide statistical survey"
+              />
+            </>
           )}
-          <DocumentsTable
-            documents={surveyDocumentsSorted}
-            type="statewide statistical survey"
-          />
         </>
       )}
     </div>
