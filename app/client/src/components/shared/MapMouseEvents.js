@@ -109,12 +109,15 @@ function MapMouseEvents({ view }: Props) {
             setSelectedGraphic('');
           }
 
+          const onTribePage = window.location.pathname.startsWith('/tribe/');
+
           // get the currently selected huc boundaries, if applicable
           const hucBoundaries = getHucBoundaries();
           // only look for huc boundaries if no graphics were clicked and the
           // user clicked outside of the selected huc boundaries
           if (
             !graphic &&
+            !onTribePage &&
             (!hucBoundaries ||
               hucBoundaries.features.length === 0 ||
               !hucBoundaries.features[0].geometry.contains(location))
