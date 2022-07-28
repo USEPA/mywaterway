@@ -836,7 +836,6 @@ function TribalMap({
   }, [
     activeState,
     mapView,
-    navigate,
     selectedTribeLayer,
     setTribalBoundaryError,
     tribalLayer,
