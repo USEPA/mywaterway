@@ -1,6 +1,5 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import Point from '@arcgis/core/geometry/Point';
 import Query from '@arcgis/core/rest/support/Query';
 import QueryTask from '@arcgis/core/tasks/QueryTask';
@@ -8,7 +7,6 @@ import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
-import { FullscreenContext } from 'contexts/Fullscreen';
 import { MapHighlightContext } from 'contexts/MapHighlight';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
@@ -23,15 +21,6 @@ import {
 import { useDynamicPopup } from 'utils/hooks';
 
 // --- helpers ---
-async function getClusterExtent(cluster, mapView, layer) {
-  const layerView = await mapView.whenLayerView(layer);
-  const query = layerView.createQuery();
-  query.aggregateIds = [cluster.getObjectId()];
-  await reactiveUtils.whenOnce(() => !layerView.updating);
-  const { extent } = await layerView.queryExtent(query);
-  return extent;
-}
-
 function parseAttributes(structuredAttributes, attributes) {
   const parsed = {};
   for (const property of structuredAttributes) {
@@ -72,14 +61,13 @@ function MapMouseEvents({ view }: Props) {
 
   const {
     getHucBoundaries,
+    homeWidget,
     monitoringFeatureUpdates,
     monitoringLocations,
     monitoringLocationsLayer,
     resetData,
     protectedAreasLayer,
   } = useContext(LocationSearchContext);
-
-  const { fullscreenActive } = useContext(FullscreenContext);
 
   const getDynamicPopup = useDynamicPopup();
 
@@ -113,15 +101,7 @@ function MapMouseEvents({ view }: Props) {
               graphic.layer.id === 'monitoringLocationsLayer' &&
               graphic.isAggregate
             ) {
-              // zoom in towards the cluster
-              getClusterExtent(graphic, view, monitoringLocationsLayer).then(
-                (extent) => {
-                  if (graphic.attributes.cluster_count <= 20) {
-                    monitoringLocationsLayer.featureReduction = null;
-                  }
-                  view.goTo(extent);
-                },
-              );
+              monitoringLocationsLayer.featureReduction = null;
             } else {
               setSelectedGraphic(graphic);
             }
@@ -381,42 +361,39 @@ function MapMouseEvents({ view }: Props) {
     };
   }, [monitoringLocations]);
 
-  // restores cluster settings on change of
-  // location or on entering/exiting fullscreen
+  // restores cluster settings on change of location
   useEffect(() => {
     if (!locationCount || locationCount <= 20) return;
     if (!monitoringLocationsLayer || monitoringLocationsLayer.featureReduction)
       return;
     monitoringLocationsLayer.featureReduction = monitoringClusterSettings;
-  }, [fullscreenActive, locationCount, monitoringLocationsLayer]);
+  }, [locationCount, monitoringLocationsLayer]);
 
-  // sets a watcher on the zoom level, and restores
-  // cluster settings if the user zooms out
-  const [zoomWatchHandler, setZoomWatchHandler] = useState(null);
+  // sets an event listener on the home widget, and
+  // restores cluster settings if clicked
+  const [homeClickHandler, setHomeClickHandler] = useState(null);
   useEffect(() => {
     return function cleanup() {
-      zoomWatchHandler?.remove();
+      homeClickHandler?.remove();
     };
-  }, [zoomWatchHandler]);
+  }, [homeClickHandler]);
 
   useEffect(() => {
     if (!locationCount || locationCount <= 20) return;
-    if (!view || !monitoringLocationsLayer) return;
-    const handler = view.watch('zoom', (newZoom, oldZoom) => {
+    if (!homeWidget || !monitoringLocationsLayer) return;
+    const handler = homeWidget.on('go', (_ev) => {
       if (
         !monitoringLocationsLayer ||
         monitoringLocationsLayer.featureReduction
       )
         return;
-      if (newZoom < oldZoom) {
-        monitoringLocationsLayer.featureReduction = monitoringClusterSettings;
-      }
+      monitoringLocationsLayer.featureReduction = monitoringClusterSettings;
     });
-    setZoomWatchHandler(handler);
+    setHomeClickHandler(handler);
     return function cleanup() {
-      setZoomWatchHandler(null);
+      setHomeClickHandler(null);
     };
-  }, [locationCount, monitoringLocationsLayer, view]);
+  }, [locationCount, monitoringLocationsLayer, homeWidget]);
 
   function getGraphicFromResponse(
     res: Object,
