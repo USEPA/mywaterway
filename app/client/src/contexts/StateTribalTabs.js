@@ -5,7 +5,7 @@ import type { Node } from 'react';
 
 // --- components ---
 export const StateTribalTabsContext: Object = createContext({
-  currentReportStatus: '',
+  organizationData: { status: 'fetching', data: '' },
   currentSummary: { status: 'fetching', data: {} },
   currentReportingCycle: { status: 'fetching', currentReportingCycle: '' },
   activeState: { value: '', label: '', source: 'All' },
@@ -18,7 +18,7 @@ type Props = {
 };
 
 type State = {
-  currentReportStatus: string,
+  organizationData: string,
   currentSummary: object,
   currentReportingCycle: object,
   activeState: {
@@ -33,7 +33,7 @@ type State = {
 export class StateTribalTabsProvider extends Component<Props, State> {
   state: State = {
     activeTabIndex: 0,
-    currentReportStatus: '',
+    organizationData: { status: 'fetching', data: '' },
     currentSummary: {
       status: 'fetching',
       data: {},
@@ -53,8 +53,8 @@ export class StateTribalTabsProvider extends Component<Props, State> {
     setActiveTabIndex: (activeTabIndex: number) => {
       this.setState({ activeTabIndex });
     },
-    setCurrentReportStatus: (currentReportStatus: string) => {
-      this.setState({ currentReportStatus });
+    setOrganizationData: (organizationData: object) => {
+      this.setState({ organizationData });
     },
     setCurrentSummary: (currentSummary: string) => {
       this.setState({ currentSummary });

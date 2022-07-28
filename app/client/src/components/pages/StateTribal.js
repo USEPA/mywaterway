@@ -211,7 +211,6 @@ function StateTribal() {
         value: tribe.attainsId,
         label: tribe.name,
         source: 'Tribe',
-        reportingCycle: tribeAttains.attributes.reportingcycle,
       });
     });
 

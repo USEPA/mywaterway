@@ -19,6 +19,7 @@ import {
   AccordionList,
   AccordionItem,
 } from 'components/shared/AccordionMapHighlight';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import {
   keyMetricsStyles,
   keyMetricStyles,
@@ -40,11 +41,15 @@ import {
   LocationSearchContext,
   LocationSearchProvider,
 } from 'contexts/locationSearch';
-import { useServicesContext } from 'contexts/LookupFiles';
+import {
+  useReportStatusMappingContext,
+  useServicesContext,
+} from 'contexts/LookupFiles';
 import {
   MapHighlightContext,
   MapHighlightProvider,
 } from 'contexts/MapHighlight';
+import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 // helpers
 import { fetchCheck } from 'utils/fetchUtils';
 import {
@@ -65,6 +70,8 @@ import { monitoringClusterSettings } from 'components/shared/LocationMap';
 import {
   esriMapLoadingFailure,
   huc12SummaryError,
+  status303dError,
+  status303dShortError,
   tribalBoundaryErrorMessage,
   zeroAssessedWaterbodies,
 } from 'config/errorMessages';
@@ -106,11 +113,37 @@ const modifiedErrorBoxStyles = css`
   margin-bottom: 0.75em;
 `;
 
-const modifiedTabStyles = css`
-  ${tabsStyles}
-  max-height: ${mapListHeight};
+const modifiedTabStyles = (footerHeight) => {
+  return css`
+    ${tabsStyles}
+    max-height: calc(${mapListHeight} - ${footerHeight}px);
+    width: 100%;
+    overflow: auto;
+  `;
+};
+
+const mapFooterStyles = css`
   width: 100%;
-  overflow: auto;
+  /* match ESRI map footer text */
+  padding: 3px 5px;
+  border: 1px solid #aebac3;
+  border-top: none;
+  font-size: 0.75em;
+  background-color: whitesmoke;
+`;
+
+const mapFooterMessageStyles = css`
+  margin-bottom: 5px;
+`;
+
+const mapFooterStatusStyles = css`
+  display: flex;
+  align-items: center;
+
+  svg {
+    margin: 0 -0.875rem;
+    height: 0.6875rem;
+  }
 `;
 
 const switchContainerStyles = css`
@@ -132,6 +165,9 @@ function TribalMapList({
   windowHeight,
   windowWidth,
 }: Props) {
+  const { currentReportingCycle, organizationData } = useContext(
+    StateTribalTabsContext,
+  );
   const {
     areasLayer,
     linesLayer,
@@ -153,6 +189,7 @@ function TribalMapList({
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
   const [tribeMapLoadError, setTribeMapLoadError] = useState(false);
 
+  const reportStatusMapping = useReportStatusMappingContext();
   const services = useServicesContext();
 
   // switch the base map to
@@ -324,6 +361,13 @@ function TribalMapList({
     ],
   );
 
+  // calculate height of div holding the footer content
+  const [footerHeight, setFooterHeight] = useState(0);
+  const measuredRef = useCallback((node) => {
+    if (!node) return;
+    setFooterHeight(node.getBoundingClientRect().height);
+  }, []);
+
   // check for browser compatibility with map
   if (!browserIsCompatibleWithArcGIS() && !tribeMapLoadError) {
     setTribeMapLoadError(true);
@@ -465,11 +509,11 @@ function TribalMapList({
         style={
           layout === 'fullscreen'
             ? {
-                height: windowHeight,
+                height: windowHeight - footerHeight,
                 width: windowWidth,
               }
             : {
-                height: mapListHeight,
+                height: mapListHeight - footerHeight,
                 minHeight: '400px',
                 width: '100%',
                 display: displayMode === 'map' ? 'block' : 'none',
@@ -482,8 +526,58 @@ function TribalMapList({
           setTribalBoundaryError={setTribalBoundaryError}
         />
       </div>
+      <div ref={measuredRef}>
+        <div
+          css={mapFooterStyles}
+          style={{ width: layout === 'fullscreen' ? windowWidth : '100%' }}
+        >
+          {reportStatusMapping.status === 'failure' && (
+            <div css={mapFooterMessageStyles}>{status303dError}</div>
+          )}
+          <div css={mapFooterStatusStyles}>
+            <strong>
+              <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
+                303(d) List Status
+              </GlossaryTerm>{' '}
+              / Year Last Reported:
+            </strong>
+            &nbsp;&nbsp;
+            {organizationData.status === 'fetching' && <LoadingSpinner />}
+            {organizationData.status === 'failure' && (
+              <>{status303dShortError}</>
+            )}
+            {organizationData.status === 'success' && (
+              <>
+                {reportStatusMapping.status === 'fetching' && (
+                  <LoadingSpinner />
+                )}
+                {reportStatusMapping.status === 'failure' && (
+                  <>{organizationData.data.reportStatusCode}</>
+                )}
+                {reportStatusMapping.status === 'success' && (
+                  <>
+                    {reportStatusMapping.data.hasOwnProperty(
+                      organizationData.data.reportStatusCode,
+                    )
+                      ? reportStatusMapping.data[
+                          organizationData.data.reportStatusCode
+                        ]
+                      : organizationData.data.reportStatusCode}
+                  </>
+                )}
+              </>
+            )}
+            <> / </>
+            {currentReportingCycle.status === 'fetching' && <LoadingSpinner />}
+            {currentReportingCycle.status === 'success' && (
+              <>{currentReportingCycle.reportingCycle}</>
+            )}
+          </div>
+        </div>
+      </div>
+
       {displayMode === 'list' && (
-        <div css={modifiedTabStyles}>
+        <div css={modifiedTabStyles(footerHeight)}>
           <Tabs>
             <TabList>
               <Tab>Waterbodies</Tab>
