@@ -226,6 +226,7 @@ const leftColumnStyles = css`
   ${splitLayoutColumnStyles}
 
   @media (min-width: 960px) {
+    width: 50%;
     max-width: 582px;
   }
 `;
@@ -315,7 +316,7 @@ const rightColumnStyles = css`
 
   @media (min-width: 960px) {
     flex-grow: 3;
-    width: auto;
+    width: 50%;
   }
 `;
 
@@ -770,6 +771,34 @@ const sectionRowInline = (label, value, dataStatus = 'success') => {
   return sectionRow(label, value, inlineBoxSectionStyles, dataStatus);
 };
 
+function sortMeasurements(measurements) {
+  // store in arrays by unit,fraction,speciation and sort by date
+  Object.entries(measurements).forEach(([unitKey, unitMeasurements]) => {
+    Object.entries(unitMeasurements).forEach(
+      ([fractionKey, fractionMeasurements]) => {
+        Object.entries(fractionMeasurements).forEach(
+          ([specKey, specMeasurements]) => {
+            Object.values(specMeasurements).forEach((date) => {
+              date.measurement = parseFloat(
+                (
+                  date.measurement.reduce((a, b) => a + b) /
+                  date.measurement.length
+                ).toFixed(3),
+              );
+            });
+            measurements[unitKey][fractionKey][specKey] = Object.values(
+              specMeasurements,
+            )
+              .sort((a, b) => a.day - b.day)
+              .sort((a, b) => a.month - b.month)
+              .sort((a, b) => a.year - b.year);
+          },
+        );
+      },
+    );
+  });
+}
+
 function toggle(state, id, entity, level) {
   const newSelected = entity.selected === 0 ? 1 : 0;
 
@@ -1018,14 +1047,14 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
   const [specs, setSpecs] = useState(null);
   // Logarithmic or linear
   const [scaleType, setScaleType] = useState('linear');
-  useEffect(() => {
-    if (!records) return;
-    // TODO: refactor this effect
+
+  const parseMeasurements = useCallback((newRecords) => {
     const newMeasurements = {};
     const fractionValues = new Set();
     const specValues = new Set();
     const unitValues = new Set();
-    records.forEach((record) => {
+
+    newRecords.forEach((record) => {
       if (!record.unit || !Number.isFinite(record.measurement)) return;
 
       unitValues.add(record.unit);
@@ -1056,6 +1085,7 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
         specMeasurements[date].measurement.push(record.measurement);
       }
     });
+
     setFractions(
       Array.from(fractionValues).map((value) => {
         return { value: value, label: value };
@@ -1071,32 +1101,14 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
         return { value: value, label: value };
       }),
     );
+    return newMeasurements;
+  }, []);
 
-    // store in arrays by unit,fraction,speciation and sort by date
-    Object.entries(newMeasurements).forEach(([unitKey, unitMeasurements]) => {
-      Object.entries(unitMeasurements).forEach(
-        ([fractionKey, fractionMeasurements]) => {
-          Object.entries(fractionMeasurements).forEach(
-            ([specKey, specMeasurements]) => {
-              Object.values(specMeasurements).forEach((date) => {
-                date.measurement = parseFloat(
-                  (
-                    date.measurement.reduce((a, b) => a + b) /
-                    date.measurement.length
-                  ).toFixed(3),
-                );
-              });
-              newMeasurements[unitKey][fractionKey][specKey] = Object.values(
-                specMeasurements,
-              )
-                .sort((a, b) => a.day - b.day)
-                .sort((a, b) => a.month - b.month)
-                .sort((a, b) => a.year - b.year);
-            },
-          );
-        },
-      );
-    });
+  useEffect(() => {
+    if (!records) return;
+    const newMeasurements = parseMeasurements(records);
+
+    sortMeasurements(newMeasurements);
 
     // initialize selected unit
     const units = Object.keys(newMeasurements);
@@ -1114,7 +1126,7 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
       setSpec(null);
     }
     setScaleType('linear');
-  }, [records]);
+  }, [parseMeasurements, records]);
 
   const [chartData, setChartData] = useState(null);
   const [domain, setDomain] = useState(null);

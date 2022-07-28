@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { css } from 'styled-components/macro';
 import {
   useTable,
@@ -202,9 +202,19 @@ function ReactTable({
   );
 
   // measures the table width
-  const measuredTableRef = useCallback((node) => {
-    if (!node) return;
-    setTableWidth(node.getBoundingClientRect().width);
+  const measuredTableRef = useRef(null);
+  const getWidth = () =>
+    setTableWidth(
+      (prevWidth) =>
+        measuredTableRef.current?.getBoundingClientRect().width ?? prevWidth,
+    );
+  useLayoutEffect(() => {
+    if (!measuredTableRef.current) return;
+    setTableWidth(measuredTableRef.current.getBoundingClientRect().width);
+    window.addEventListener('resize', getWidth);
+    return function cleanup() {
+      window.removeEventListener('resize', getWidth);
+    };
   }, []);
 
   const hasFilters = columns.some((column) => column.filterable);
