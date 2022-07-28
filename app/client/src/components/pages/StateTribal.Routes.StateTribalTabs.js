@@ -66,13 +66,15 @@ function StateTribalTabs() {
   // activeState, so we need to set it.
   const { states, tribes } = useOutletContext();
   useEffect(() => {
+    if (tribes.status !== 'success' || states.status !== 'success') return;
     if (activeState.value === '' || activeState.value !== stateCode) {
-      const match = [...tribes, ...states.data].find((stateTribe) => {
+      const match = [...tribes.data, ...states.data].find((stateTribe) => {
         return stateTribe.value === stateCode.toUpperCase();
       });
       if (match) setActiveState(match);
+      else navigate('/state-and-tribal', { replace: true });
     }
-  }, [activeState.value, setActiveState, stateCode, states, tribes]);
+  }, [activeState.value, navigate, setActiveState, stateCode, states, tribes]);
 
   const tabListRef = useRef();
 

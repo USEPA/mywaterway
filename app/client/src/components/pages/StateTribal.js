@@ -185,7 +185,7 @@ function StateTribal() {
   }, [navigate]);
 
   // get tribes from the tribeMapping data
-  const [tribes, setTribes] = useState([]);
+  const [tribes, setTribes] = useState({ status: 'fetching', data: [] });
   useEffect(() => {
     if (tribeMapping.status !== 'success') return;
 
@@ -199,7 +199,7 @@ function StateTribal() {
       });
     });
 
-    setTribes(tempTribes);
+    setTribes({ status: 'success', data: tempTribes });
   }, [tribeMapping]);
 
   // query attains for the list of states
@@ -260,11 +260,11 @@ function StateTribal() {
       });
       options.push({
         label: 'Tribe',
-        options: tribes,
+        options: tribes.data,
       });
     }
     if (selectedSource === 'State') options.push(...states.data);
-    if (selectedSource === 'Tribe') options.push(...tribes);
+    if (selectedSource === 'Tribe') options.push(...tribes.data);
 
     setSelectOptions(options);
   }, [selectedSource, states, tribes]);
