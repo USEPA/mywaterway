@@ -924,9 +924,11 @@ function MapPopup({
   const huc12 = clickedHuc?.data?.huc12;
   const watershed = clickedHuc?.data?.watershed;
 
+  const onTribePage = window.location.pathname.startsWith('/tribe/');
+
   return (
     <div css={popupContainerStyles}>
-      {clickedHuc && (
+      {clickedHuc && !onTribePage && (
         <>
           {clickedHuc.status === 'no-data' && null}
           {clickedHuc.status === 'fetching' && <LoadingSpinner />}
