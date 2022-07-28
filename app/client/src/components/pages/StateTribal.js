@@ -182,12 +182,12 @@ function StateTribal() {
   useEffect(() => {
     const pathname = window.location.pathname.toLowerCase();
     if (['/state', '/state/', '/tribe', '/tribe/'].includes(pathname)) {
-      navigate('/state-and-tribal');
+      navigate('/state-and-tribal', { replace: true });
     }
   }, [navigate]);
 
   // get tribes from the tribeMapping data
-  const [tribes, setTribes] = useState([]);
+  const [tribes, setTribes] = useState({ status: 'fetching', data: [] });
   useEffect(() => {
     if (
       organizations.status !== 'success' ||
@@ -214,7 +214,7 @@ function StateTribal() {
       });
     });
 
-    setTribes(tempTribes);
+    setTribes({ status: 'success', data: tempTribes });
   }, [organizations, tribeMapping]);
 
   // query attains for the list of states
@@ -275,11 +275,11 @@ function StateTribal() {
       });
       options.push({
         label: 'Tribe',
-        options: tribes,
+        options: tribes.data,
       });
     }
     if (selectedSource === 'State') options.push(...states.data);
-    if (selectedSource === 'Tribe') options.push(...tribes);
+    if (selectedSource === 'Tribe') options.push(...tribes.data);
 
     setSelectOptions(options);
   }, [selectedSource, states, tribes]);
@@ -370,6 +370,18 @@ function StateTribal() {
     }
   }, [sourceCursor, sourceEnterPress]);
 
+  const handleSubmit = (selection) => {
+    if (!selection) return;
+    setActiveState(selection);
+
+    if (selection.source === 'State') {
+      navigate(`/state/${selection.value}/water-quality-overview`);
+    }
+    if (selection.source === 'Tribe') {
+      navigate(`/tribe/${selection.value}`);
+    }
+  };
+
   return (
     <Page>
       <TabLinks />
@@ -393,22 +405,7 @@ function StateTribal() {
               </em>
             </label>
 
-            <form
-              css={formStyles}
-              onSubmit={(ev) => {
-                ev.preventDefault();
-                setActiveState(selectedStateTribe);
-
-                if (selectedStateTribe.source === 'State') {
-                  navigate(
-                    `/state/${selectedStateTribe.value}/water-quality-overview`,
-                  );
-                }
-                if (selectedStateTribe.source === 'Tribe') {
-                  navigate(`/tribe/${selectedStateTribe.value}`);
-                }
-              }}
-            >
+            <div css={formStyles}>
               <div
                 css={searchContainerStyles}
                 role="presentation"
@@ -507,20 +504,9 @@ function StateTribal() {
                   value={selectedStateTribe}
                   onKeyDown={(ev) => {
                     if (ev.key !== 'Enter') return;
-
                     const selection = statesSelect.current.state.focusedOption;
                     if (!selection) return;
-
-                    setActiveState(selection);
-
-                    if (selectedStateTribe.source === 'State') {
-                      navigate(
-                        `/state/${selectedStateTribe.value}/water-quality-overview`,
-                      );
-                    }
-                    if (selectedStateTribe.source === 'Tribe') {
-                      navigate(`/tribe/${selectedStateTribe.value}`);
-                    }
+                    handleSubmit(statesSelect.current.state.focusedOption);
                   }}
                   onChange={(ev) => {
                     setSelectedStateTribe(ev);
@@ -529,11 +515,15 @@ function StateTribal() {
                 />
               </div>
 
-              <button type="submit" className="btn" css={buttonStyles}>
+              <button
+                onClick={() => handleSubmit(selectedStateTribe)}
+                className="btn"
+                css={buttonStyles}
+              >
                 <i className="fas fa-angle-double-right" aria-hidden="true" />{' '}
                 Go
               </button>
-            </form>
+            </div>
           </>
         )}
 
@@ -657,7 +647,7 @@ function StateTribal() {
             )}
 
             {/* Outlet is either StateIntro or StateTabs */}
-            <Outlet />
+            <Outlet context={{ tribes, states }} />
           </div>
         )}
       </div>

@@ -1247,7 +1247,7 @@ function MapWidgets({
 
     // change the minScale of the waterbodies layer for the tribal page
     if (pathname.includes('/tribe')) {
-      allWaterbodiesLayer.minScale = 4622324;
+      allWaterbodiesLayer.minScale = 4622350;
       allWaterbodiesLayer.layers.forEach((layer) => {
         layer.minScale = allWaterbodiesLayer.minScale;
       });
@@ -1261,11 +1261,10 @@ function MapWidgets({
 
     // display and enable the all waterbodies widget
     setAllWaterbodiesWidgetDisabled(false);
-    if (allWaterbodiesLayerVisible) allWaterbodiesLayer.visible = true;
+    allWaterbodiesLayer.visible = true;
   }, [
     huc12,
     allWaterbodiesLayer,
-    allWaterbodiesLayerVisible,
     allWaterbodiesWidget,
     setAllWaterbodiesWidgetDisabled,
   ]);
