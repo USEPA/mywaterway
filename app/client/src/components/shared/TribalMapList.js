@@ -730,7 +730,7 @@ function TribalMap({
     });
     setMonitoringLocationsLayer(monitoringLocationsLayer);
 
-    // add the shared layers to the map and set the tribal layer visible
+    // add the shared layers to the map
     const sharedLayers = getSharedLayers();
 
     setLayers([
