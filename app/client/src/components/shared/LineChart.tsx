@@ -3,13 +3,12 @@ import { createGlobalStyle } from 'styled-components/macro';
 import {
   Axis,
   buildChartTheme,
-  LineSeries,
+  GlyphSeries,
   Tooltip,
   XYChart,
 } from '@visx/xychart';
 // types
 import type { ReactChildren, ReactChild } from 'react';
-import { curveCatmullRom } from '@visx/curve';
 import type { XYChartTheme } from '@visx/xychart';
 
 // NOTE: EPA's _reboot.css file causes the tooltip series glyph to be clipped
@@ -111,9 +110,9 @@ function LineChart({
       <VisxStyles />
       <XYChart
         height={500}
-        margin={{ top: 10, bottom: 45, left: 70, right: 30 }}
+        margin={{ top: 20, bottom: 45, left: 70, right: 30 }}
         theme={theme}
-        xScale={{ type: 'band', paddingInner: 1, paddingOuter: 0.2 }}
+        xScale={{ type: 'band', paddingInner: 1, paddingOuter: 0.5 }}
         yScale={{ type: yScale, domain: range }}
       >
         <Axis
@@ -138,8 +137,7 @@ function LineChart({
           orientation="left"
           strokeWidth={2}
         />
-        <LineSeries
-          curve={curveCatmullRom}
+        <GlyphSeries
           data={data}
           dataKey={dataKey}
           xAccessor={xAccessor}

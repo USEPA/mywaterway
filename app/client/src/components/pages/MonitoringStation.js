@@ -125,8 +125,8 @@ const charcsTableStyles = css`
 `;
 
 const chartContainerStyles = css`
-  margin-top: 0.625em;
-  margin-right: 0.625em;
+  margin-top: 1rem;
+  margin-right: 0.625rem;
 `;
 
 const containerStyles = css`
@@ -263,6 +263,53 @@ const modifiedSplitLayoutColumnsStyles = css`
   }
 `;
 
+const pageErrorBoxStyles = css`
+  ${errorBoxStyles};
+  margin: 1rem;
+  text-align: center;
+`;
+
+const radioStyles = css`
+  input {
+    appearance: none;
+    margin: 0;
+  }
+  input:checked + label:before {
+    background-color: #38a6ee;
+    box-shadow: 0 0 0 1px ${colors.steel()}, inset 0 0 0 1px ${colors.white()};
+  }
+  label {
+    cursor: pointer;
+    font-size: inherit;
+    margin: auto;
+    padding-left: 1em;
+    text-indent: -1em;
+    &:before {
+      background: ${colors.white()};
+      border-radius: 100%;
+      box-shadow: 0 0 0 1px ${colors.steel()};
+      content: ' ';
+      display: inline-block;
+      height: 1em;
+      line-height: 1.25em;
+      margin-right: 0.5em;
+      position: relative;
+      text-indent: 0;
+      top: -1px;
+      vertical-align: middle;
+      white-space: pre;
+      width: 1em;
+    }
+  }
+`;
+
+const radioTableStyles = css`
+  ${radioStyles}
+  display: flex;
+  height: 100%;
+  width: 100%;
+`;
+
 const rightColumnStyles = css`
   ${splitLayoutColumnStyles}
 
@@ -277,28 +324,45 @@ const selectContainerStyles = css`
   flex-wrap: wrap;
   gap: 1em;
   justify-content: center;
-  margin-top: 0.625rem;
+  margin-top: 1rem;
   width: 100%;
+
+  label {
+    margin-right: 0.625rem;
+    margin-bottom: 0.125rem;
+    font-size: 0.875rem;
+    font-weight: bold;
+    white-space: nowrap;
+
+    @media (min-width: 560px) {
+      margin-bottom: 0;
+    }
+  }
 
   @media (min-width: 560px) {
     flex-wrap: nowrap;
   }
-`;
 
-const selectLabelStyles = css`
-  margin-right: 0.625rem;
-  margin-bottom: 0.125rem;
-  font-size: 0.875rem;
-  font-weight: bold;
-  white-space: nowrap;
-
-  @media (min-width: 560px) {
-    margin-bottom: 0;
+  .radio-container {
+    display: inline-flex;
+    flex-direction: column;
   }
-`;
 
-const selectStyles = css`
-  width: 100%;
+  .radios {
+    ${radioStyles}
+    display: inline-flex;
+    flex-direction: row;
+    gap: 1em;
+    margin: auto;
+
+    label {
+      font-weight: normal;
+    }
+  }
+
+  .select {
+    width: 100%;
+  }
 `;
 
 const sliderContainerStyles = css`
@@ -313,49 +377,6 @@ const sliderContainerStyles = css`
     }
     &:last-of-type {
       margin-right: 1em;
-    }
-  }
-`;
-
-const pageErrorBoxStyles = css`
-  ${errorBoxStyles};
-  margin: 1rem;
-  text-align: center;
-`;
-
-const radioStyles = css`
-  display: flex;
-  height: 100%;
-  width: 100%;
-  input {
-    appearance: none;
-    margin: 0;
-  }
-  input:checked + label:before {
-    background-color: #38a6ee;
-    box-shadow: 0 0 0 1px ${colors.steel()}, inset 0 0 0 1px ${colors.white()};
-  }
-  label {
-    cursor: pointer;
-    font-size: 0.875em;
-    margin: auto;
-    padding-left: 1em;
-    text-indent: -1em;
-    &:before {
-      background: ${colors.white()};
-      border-radius: 100%;
-      box-shadow: 0 0 0 1px ${colors.steel()};
-      content: ' ';
-      display: inline-block;
-      height: 1em;
-      line-height: 1.25em;
-      margin-right: 1em;
-      position: relative;
-      text-indent: 0;
-      top: -1px;
-      vertical-align: middle;
-      white-space: pre;
-      width: 1em;
     }
   }
 `;
@@ -986,12 +1007,17 @@ function useStationDetails(provider, orgId, siteId) {
 
 function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
   const [measurements, setMeasurements] = useState(null);
+  // Selected and available units
   const [unit, setUnit] = useState(null);
   const [units, setUnits] = useState(null);
+  // Selected and available sample fractions
   const [fraction, setFraction] = useState(null);
   const [fractions, setFractions] = useState(null);
+  // Selected and available speciations
   const [spec, setSpec] = useState(null);
   const [specs, setSpecs] = useState(null);
+  // Logarithmic or linear
+  const [scaleType, setScaleType] = useState('linear');
   useEffect(() => {
     if (!records) return;
     // TODO: refactor this effect
@@ -1087,12 +1113,12 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
       setFraction(null);
       setSpec(null);
     }
+    setScaleType('linear');
   }, [records]);
 
   const [chartData, setChartData] = useState(null);
   const [domain, setDomain] = useState(null);
   const [range, setRange] = useState(null);
-  const [scaleType, setScaleType] = useState(null);
   const [mean, setMean] = useState(null);
   const [median, setMedian] = useState(null);
   const [stdDev, setStdDev] = useState(null);
@@ -1110,11 +1136,6 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
     const yValues = newChartData.map((datum) => datum.y);
     const newRange = [Math.min(...yValues), Math.max(...yValues)];
     setRange(newRange);
-
-    // Calculate the proper Y scale type
-    // TODO: try comparing regression lines
-    const minPositive = Math.min(...yValues.filter((y) => y > 0));
-    setScaleType(newRange[1] > minPositive * 1000 ? 'log' : 'linear');
 
     const newMean = getMean(yValues);
     setMean(newMean);
@@ -1190,11 +1211,9 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
           </div>
           <div css={selectContainerStyles}>
             <span>
-              <label css={selectLabelStyles} htmlFor="unit">
-                Unit:
-              </label>
+              <label htmlFor="unit">Unit:</label>
               <Select
-                css={selectStyles}
+                className="select"
                 inputId={'unit'}
                 isSearchable={false}
                 options={units}
@@ -1206,11 +1225,9 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
               />
             </span>
             <span>
-              <label css={selectLabelStyles} htmlFor="sample-fraction">
-                Sample Fraction:
-              </label>
+              <label htmlFor="sample-fraction">Sample Fraction:</label>
               <Select
-                css={selectStyles}
+                className="select"
                 inputId={'sample-fraction'}
                 isSearchable={false}
                 options={fractions}
@@ -1222,11 +1239,9 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
               />
             </span>
             <span>
-              <label css={selectLabelStyles} htmlFor="speciation">
-                Method Speciation:
-              </label>
+              <label htmlFor="speciation">Method Speciation:</label>
               <Select
-                css={selectStyles}
+                className="select"
                 inputId={'speciation'}
                 isSearchable={false}
                 options={specs}
@@ -1236,6 +1251,31 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
                 }}
                 styles={reactSelectStyles}
               />
+            </span>
+            <span className="radio-container">
+              <label>Scale Type:</label>
+              <span className="radios">
+                <span>
+                  <input
+                    checked={scaleType === 'linear'}
+                    id={'linear'}
+                    onChange={(e) => setScaleType(e.target.value)}
+                    type="radio"
+                    value={'linear'}
+                  />
+                  <label htmlFor={'linear'}>Linear</label>
+                </span>
+                <span>
+                  <input
+                    checked={scaleType === 'log'}
+                    id={'log'}
+                    onChange={(e) => setScaleType(e.target.value)}
+                    type="radio"
+                    value={'log'}
+                  />
+                  <label htmlFor={'log'}>Log</label>
+                </span>
+              </span>
             </span>
           </div>
           <div ref={chartRef}>
@@ -1313,7 +1353,7 @@ function CharacteristicsTable({ charcs, charcsStatus, selected, setSelected }) {
     return Object.values(charcs)
       .map((charc) => {
         const selector = (
-          <div css={radioStyles}>
+          <div css={radioTableStyles}>
             <input
               checked={selected === charc.name}
               id={charc.name}
