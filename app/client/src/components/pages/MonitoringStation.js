@@ -650,8 +650,8 @@ const initialCheckboxes = {
 };
 
 function isEmpty(obj) {
-  for (let _ in obj) {
-    return false;
+  for (let prop in obj) {
+    if (obj.hasOwnProperty(prop)) return false;
   }
   return true;
 }
