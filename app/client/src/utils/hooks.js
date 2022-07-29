@@ -1983,7 +1983,6 @@ function useMonitoringLocations() {
       const stations = buildStations(
         monitoringLocations,
         monitoringLocationsLayer,
-        services,
       );
       if (!stations) return;
 

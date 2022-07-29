@@ -562,6 +562,13 @@ function getFilteredCount(range, records, count) {
   return count;
 }
 
+function getCheckedStatus(numberSelected, children) {
+  let status = 2;
+  if (numberSelected === 0) status = 0;
+  else if (numberSelected === children.length) status = 1;
+  return status;
+}
+
 function getMean(values) {
   const sum = values.reduce((a, b) => a + b, 0);
   const mean = sum / values.length;
@@ -601,11 +608,10 @@ async function getZoomParams(layer) {
   const graphics = featureSet.features;
   if (graphics.length === 1 && graphics[0].geometry.type === 'point') {
     // handle zooming to a single point graphic
-    const zoomParams = {
+    return {
       target: graphics[0],
-      zoom: 16, // set zoom 1 higher since it gets decremented later
+      zoom: 16,
     };
-    return zoomParams;
   }
 }
 
@@ -644,7 +650,7 @@ const initialCheckboxes = {
 };
 
 function isEmpty(obj) {
-  for (var _x in obj) {
+  for (let _ in obj) {
     return false;
   }
   return true;
@@ -843,8 +849,7 @@ function toggle(state, id, entity, level) {
   groupIds.forEach((groupId) => {
     groupsSelected += newGroups[groupId].selected;
   });
-  const allSelected =
-    groupsSelected === 0 ? 0 : groupsSelected === groupIds.length ? 1 : 2;
+  let allSelected = getCheckedStatus(groupsSelected, groupIds);
 
   return {
     all: allSelected,
@@ -908,8 +913,7 @@ function updateParent(parentObj, childObj, parentId, childIds) {
   childIds.forEach((childId) => {
     childrenSelected += childObj[childId].selected;
   });
-  const parentSelected =
-    childrenSelected === 0 ? 0 : childrenSelected === childIds.length ? 1 : 2;
+  let parentSelected = getCheckedStatus(childrenSelected, childIds);
   parentObj[parentId] = {
     ...parentObj[parentId],
     selected: parentSelected,
@@ -924,24 +928,15 @@ function updateSelected(charcs, types, groups) {
     types[charc.type].selected += charc.selected;
   });
   Object.values(types).forEach((type) => {
-    type.selected =
-      type.selected === 0 ? 0 : type.selected === type.charcs.length ? 1 : 2;
+    type.selected = getCheckedStatus(type.selected, type.charcs);
     groups[type.group].selected += type.selected;
   });
   Object.values(groups).forEach((group) => {
-    group.selected =
-      group.selected === 0 ? 0 : group.selected === group.types.length ? 1 : 2;
+    group.selected = getCheckedStatus(group.selected, group.types);
     groupsSelected += group.selected;
   });
 
-  const allSelected =
-    groupsSelected === 0
-      ? 0
-      : groupsSelected === Object.keys(groups).length
-      ? 1
-      : 2;
-
-  return allSelected;
+  return getCheckedStatus(groupsSelected, Object.keys(groups));
 }
 
 function useCharacteristics(provider, orgId, siteId) {
@@ -1063,12 +1058,13 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
       if (!record.unit || !Number.isFinite(record.measurement)) return;
 
       unitValues.add(record.unit);
-      const fraction = record.sampleFraction || 'Not Specified';
-      fractionValues.add(fraction);
+      const sampleFraction = record.sampleFraction || 'Not Specified';
+      fractionValues.add(sampleFraction);
       if (!newMeasurements[record.unit]) newMeasurements[record.unit] = {};
       const unitMeasurements = newMeasurements[record.unit];
-      if (!unitMeasurements[fraction]) unitMeasurements[fraction] = {};
-      const fractionMeasurements = unitMeasurements[fraction];
+      if (!unitMeasurements[sampleFraction])
+        unitMeasurements[sampleFraction] = {};
+      const fractionMeasurements = unitMeasurements[sampleFraction];
       const speciation = record.speciation || 'Not Specified';
       specValues.add(speciation);
       if (!fractionMeasurements[speciation])
@@ -1076,10 +1072,11 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
       const specMeasurements = fractionMeasurements[speciation];
 
       // group by unit and date
-      const date =
-        `${record.year}` +
-        `-${record.month < 10 ? `0${record.month}` : record.month}` +
-        `-${record.day < 10 ? `0${record.day}` : record.day}`;
+      let month = record.month.toString();
+      if (record.month < 10) month = '0' + month;
+      let day = record.day.toString();
+      if (record.day < 10) day = '0' + day;
+      const date = `${record.year}-${month}-${day}`;
       if (!specMeasurements[date]) {
         specMeasurements[date] = {
           ...record,
@@ -1116,14 +1113,16 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
     sortMeasurements(newMeasurements);
 
     // initialize selected unit
-    const units = Object.keys(newMeasurements);
-    if (units.length) {
-      const fractions = Object.keys(newMeasurements[units[0]]);
-      const specs = Object.keys(newMeasurements[units[0]][fractions[0]]);
+    const newUnits = Object.keys(newMeasurements);
+    if (newUnits.length) {
+      const newFractions = Object.keys(newMeasurements[newUnits[0]]);
+      const newSpecs = Object.keys(
+        newMeasurements[newUnits[0]][newFractions[0]],
+      );
       setMeasurements(newMeasurements);
-      setUnit(units[0]);
-      setFraction(fractions[0]);
-      setSpec(specs[0]);
+      setUnit(newUnits[0]);
+      setFraction(newFractions[0]);
+      setSpec(newSpecs[0]);
     } else {
       setMeasurements(null);
       setUnit(null);
@@ -1139,10 +1138,10 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
   const [mean, setMean] = useState(null);
   const [median, setMedian] = useState(null);
   const [stdDev, setStdDev] = useState(null);
-  const getChartData = useCallback((domain, msmts) => {
+  const getChartData = useCallback((newDomain, newMsmts) => {
     let newChartData = [];
-    msmts.forEach((msmt) => {
-      if (msmt.year >= domain[0] && msmt.year <= domain[1]) {
+    newMsmts.forEach((msmt) => {
+      if (msmt.year >= newDomain[0] && msmt.year <= newDomain[1]) {
         newChartData.push({ x: msmt.date, y: msmt.measurement });
       }
     });
@@ -1965,7 +1964,9 @@ function MonitoringStation({ fullscreen }) {
   switch (stationStatus) {
     case 'empty':
       return noStationView;
-    case 'success' || 'fetching':
+    case 'success':
+      return fullscreen.fullscreenActive ? fullScreenView : twoColumnView;
+    case 'fetching':
       return fullscreen.fullscreenActive ? fullScreenView : twoColumnView;
     case 'failure':
       return <p css={modifiedErrorBoxStyles}>{monitoringError}</p>;
@@ -2093,7 +2094,7 @@ function StationMap({ layout, station, stationStatus, widthRef }) {
   // Draw the station on the map
   useEffect(() => {
     if (!layersInitialized || doneDrawing) return;
-    drawStation(station, monitoringLocationsLayer, services).then((result) => {
+    drawStation(station, monitoringLocationsLayer).then((result) => {
       setDoneDrawing(result);
     });
   }, [
