@@ -267,8 +267,9 @@ function WaterQualityOverview() {
     setCurrentReportingCycle,
     introText,
     setIntroText,
-    setCurrentReportStatus,
     setCurrentSummary,
+    organizationData,
+    setOrganizationData,
     setUsesStateSummaryServiceError,
     stateAndOrganization,
     setStateAndOrganization,
@@ -276,9 +277,7 @@ function WaterQualityOverview() {
 
   const [loading, setLoading] = useState(true);
   const [surveyLoading, setSurveyLoading] = useState(true);
-  const [assessmentsLoading, setAssessmentsLoading] = useState(true);
   const [serviceError, setServiceError] = useState(false);
-  const [documentServiceError, setDocumentServiceError] = useState(false);
   const [surveyServiceError, setSurveyServiceError] = useState(false);
   const [noDataError, setNoDataError] = useState(false);
   const [currentState, setCurrentState] = useState('');
@@ -291,7 +290,6 @@ function WaterQualityOverview() {
   const [waterTypeData, setWaterTypeData] = useState(null);
 
   const [surveyData, setSurveyData] = useState(null);
-  const [assessmentDocuments, setAssessmentDocuments] = useState(null);
 
   const [fishingAdvisoryData, setFishingAdvisoryData] = useState({
     status: 'fetching',
@@ -328,26 +326,15 @@ function WaterQualityOverview() {
       const url = `${services.data.attains.serviceUrl}assessments?organizationId=${orgID}&reportingCycle=${year}&excludeAssessments=Y`;
       fetchCheck(url)
         .then((res) => {
-          setAssessmentsLoading(false);
-
-          if (!res || !res.items || res.items.length === 0) {
-            setAssessmentDocuments([]);
-          }
-
           const orgData = res.items[0];
-          if (orgData) {
-            setAssessmentDocuments(orgData.documents);
-            setCurrentReportStatus(orgData.reportStatusCode);
-          }
+          setOrganizationData({ status: 'success', data: orgData ?? {} });
         })
         .catch((err) => {
           console.error(err);
-          setDocumentServiceError(true);
-          setAssessmentsLoading(false);
-          setCurrentReportStatus('Error getting 303(d) List Status');
+          setOrganizationData({ status: 'failure', data: {} });
         });
     },
-    [setCurrentReportStatus, services],
+    [services, setOrganizationData],
   );
 
   // Get the state intro text
@@ -626,14 +613,11 @@ function WaterQualityOverview() {
       setWaterType('');
       setUseSelected('');
       setServiceError(false);
-      setDocumentServiceError(false);
       setSurveyServiceError(false);
       setNoDataError(false);
       setSurveyData(null);
-      setAssessmentsLoading(true);
-      setAssessmentDocuments([]);
       setSubPopulationCodes([]);
-      setCurrentReportStatus('');
+      setOrganizationData({ status: 'fetching', data: {} });
       setUsesStateSummaryCalled(false);
       setCurrentReportingCycle({
         status: 'fetching',
@@ -662,9 +646,9 @@ function WaterQualityOverview() {
     currentState,
     activeState,
     setCurrentReportingCycle,
-    setCurrentReportStatus,
     setCurrentSummary,
     setIntroText,
+    setOrganizationData,
     fetchStateOrgId,
     fetchFishingAdvisoryData,
     services,
@@ -1191,9 +1175,7 @@ function WaterQualityOverview() {
               activeState={activeState}
               surveyLoading={surveyLoading}
               surveyDocuments={surveyDocuments}
-              assessmentsLoading={assessmentsLoading}
-              assessmentDocuments={assessmentDocuments}
-              documentServiceError={documentServiceError}
+              organizationData={organizationData}
               surveyServiceError={surveyServiceError}
             />
           </div>

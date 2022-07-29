@@ -144,8 +144,10 @@ export const stateGeneralError = (source = 'State') =>
 export const stateNoDataError = (stateName) =>
   `No data available ${stateName && 'for ' + stateName}.`; // conditionals in case state name is undefined or an empty string
 
-export const state303dStatusError =
+export const status303dError =
   'There was an issue looking up the 303(d) List Status code. Because of this, the status code may not look familiar.';
+
+export const status303dShortError = 'Error getting 303(d) List Status';
 
 // this message is displayed in the State metrics section and more information section when the metrics service is down
 export const stateMetricsError = (source) =>

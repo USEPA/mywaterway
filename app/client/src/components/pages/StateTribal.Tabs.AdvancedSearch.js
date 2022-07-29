@@ -42,7 +42,11 @@ import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
 // styles
 import { reactSelectStyles } from 'styles/index.js';
 // errors
-import { stateGeneralError, state303dStatusError } from 'config/errorMessages';
+import {
+  stateGeneralError,
+  status303dError,
+  status303dShortError,
+} from 'config/errorMessages';
 
 const defaultDisplayOption = {
   label: 'Overall Waterbody Condition',
@@ -228,7 +232,7 @@ function AdvancedSearch() {
   const services = useServicesContext();
 
   const {
-    currentReportStatus,
+    organizationData,
     currentSummary,
     currentReportingCycle,
     setCurrentReportingCycle,
@@ -1028,7 +1032,7 @@ function AdvancedSearch() {
         style={{ width: fullscreenActive ? width : '100%' }}
       >
         {reportStatusMapping.status === 'failure' && (
-          <div css={mapFooterMessageStyles}>{state303dStatusError}</div>
+          <div css={mapFooterMessageStyles}>{status303dError}</div>
         )}
         <div css={mapFooterStatusStyles}>
           <strong>
@@ -1038,28 +1042,32 @@ function AdvancedSearch() {
             / Year Last Reported:
           </strong>
           &nbsp;&nbsp;
-          {!currentReportStatus ? (
-            <LoadingSpinner />
-          ) : (
+          {organizationData.status === 'fetching' && <LoadingSpinner />}
+          {organizationData.status === 'failure' && <>{status303dShortError}</>}
+          {organizationData.status === 'success' && (
             <>
               {reportStatusMapping.status === 'fetching' && <LoadingSpinner />}
               {reportStatusMapping.status === 'failure' && (
-                <>{currentReportStatus}</>
+                <>{organizationData.data.reportStatusCode}</>
               )}
               {reportStatusMapping.status === 'success' && (
                 <>
-                  {reportStatusMapping.data.hasOwnProperty(currentReportStatus)
-                    ? reportStatusMapping.data[currentReportStatus]
-                    : currentReportStatus}
+                  {reportStatusMapping.data.hasOwnProperty(
+                    organizationData.data.reportStatusCode,
+                  )
+                    ? reportStatusMapping.data[
+                        organizationData.data.reportStatusCode
+                      ]
+                    : organizationData.data.reportStatusCode}
                 </>
               )}
             </>
           )}
           <> / </>
+          {currentReportingCycle.status === 'fetching' && <LoadingSpinner />}
           {currentReportingCycle.status === 'success' && (
             <>{currentReportingCycle.reportingCycle}</>
           )}
-          {currentReportingCycle.status === 'fetching' && <LoadingSpinner />}
         </div>
       </div>
     </StateMap>

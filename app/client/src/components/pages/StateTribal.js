@@ -25,6 +25,7 @@ import {
   StateTribalTabsProvider,
 } from 'contexts/StateTribalTabs';
 import {
+  useOrganizationsContext,
   useServicesContext,
   useTribeMappingContext,
 } from 'contexts/LookupFiles';
@@ -173,6 +174,7 @@ const searchSourceButtonStyles = css`
 function StateTribal() {
   const location = useLocation();
   const navigate = useNavigate();
+  const organizations = useOrganizationsContext();
   const services = useServicesContext();
   const tribeMapping = useTribeMappingContext();
 
@@ -187,10 +189,23 @@ function StateTribal() {
   // get tribes from the tribeMapping data
   const [tribes, setTribes] = useState({ status: 'fetching', data: [] });
   useEffect(() => {
-    if (tribeMapping.status !== 'success') return;
+    if (
+      organizations.status !== 'success' ||
+      tribeMapping.status !== 'success'
+    ) {
+      return;
+    }
 
     const tempTribes = [];
     tribeMapping.data.forEach((tribe) => {
+      const tribeAttains = organizations.data.features.find(
+        (item) =>
+          item.attributes.orgtype === 'Tribe' &&
+          item.attributes.organizationid.toUpperCase() ===
+            tribe.attainsId.toUpperCase(),
+      );
+      if (!tribeAttains) return;
+
       tempTribes.push({
         ...tribe,
         value: tribe.attainsId,
@@ -200,7 +215,7 @@ function StateTribal() {
     });
 
     setTribes({ status: 'success', data: tempTribes });
-  }, [tribeMapping]);
+  }, [organizations, tribeMapping]);
 
   // query attains for the list of states
   const [states, setStates] = useState({ status: 'fetching', data: [] });
