@@ -246,6 +246,9 @@ const modifiedDisclaimerStyles = css`
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles};
   text-align: center;
+  margin: 1rem auto;
+  padding: 0.7rem 1rem !important;
+  width: max-content;
 `;
 
 const modifiedInfoBoxStyles = css`
@@ -479,7 +482,7 @@ async function drawStation(station, layer) {
 async function fetchStationDetails(url, setData, setStatus) {
   const res = await fetchCheck(url);
   if (res.features.length < 1) {
-    setStatus('idle');
+    setStatus('empty');
     setData({});
     return;
   }
@@ -955,7 +958,8 @@ function useCharacteristics(provider, orgId, siteId) {
         return;
       } else if (!records.length) {
         setCharcs({});
-        setStatus('idle');
+        setStatus('empty');
+        return;
       }
       const recordsByCharc = {};
       records.forEach((record) => {
@@ -1185,19 +1189,20 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
         {!charcName
           ? 'Selected Characteristic'
           : titleCaseWithExceptions(charcName)}
-        {/* unit && ` (${unit})` */}
       </h2>
       {charcsStatus === 'fetching' ? (
         <LoadingSpinner />
-      ) : charcsStatus === 'idle' ? (
+      ) : charcsStatus === 'empty' ? (
         <p css={modifiedInfoBoxStyles}>
           No data available for this monitoring location.
         </p>
-      ) : !charcName ? (
+      ) : charcsStatus === 'failure' ? (
+        <p css={modifiedErrorBoxStyles}>{monitoringError}</p>
+      ) : charcsStatus === 'success' && !charcName ? (
         <p css={modifiedInfoBoxStyles}>
           Select a characteristic from the table above to graph its results.
         </p>
-      ) : !measurements ? (
+      ) : charcsStatus === 'success' && !measurements ? (
         <p css={modifiedInfoBoxStyles}>
           No measurements available to be charted for this characteristic.
         </p>
@@ -1353,9 +1358,7 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
             </div>
           )}
         </>
-      ) : (
-        <p css={modifiedErrorBoxStyles}>{monitoringError}</p>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -1396,72 +1399,74 @@ function CharacteristicsTable({ charcs, charcsStatus, selected, setSelected }) {
     <div css={boxStyles}>
       <h2 css={infoBoxHeadingStyles}>Characteristics</h2>
       <div css={charcsTableStyles}>
-        {charcsStatus === 'fetching' && <LoadingSpinner />}
-        {charcsStatus === 'success' &&
-          (isEmpty(charcs) ? (
-            <p css={modifiedInfoBoxStyles}>
-              No records found for this location.
-            </p>
-          ) : (
-            <>
-              {sectionRowInline(
-                'Selected Characteristic',
-                selected,
-                charcsStatus,
-              )}
-              <ReactTable
-                autoResetFilters={false}
-                autoResetSortBy={false}
-                data={tableData}
-                placeholder="Filter..."
-                striped={false}
-                getColumns={(tableWidth) => {
-                  const columnWidth = 2 * (tableWidth / 7) - 6;
-                  const halfColumnWidth = tableWidth / 7 - 6;
+        {charcsStatus === 'fetching' ? (
+          <LoadingSpinner />
+        ) : charcsStatus === 'empty' ? (
+          <p css={modifiedInfoBoxStyles}>No records found for this location.</p>
+        ) : charcsStatus === 'failure' ? (
+          <div css={modifiedErrorBoxStyles}>
+            <p>{monitoringError}</p>
+          </div>
+        ) : charcsStatus === 'success' ? (
+          <>
+            {sectionRowInline(
+              'Selected Characteristic',
+              selected,
+              charcsStatus,
+            )}
+            <ReactTable
+              autoResetFilters={false}
+              autoResetSortBy={false}
+              data={tableData}
+              placeholder="Filter..."
+              striped={false}
+              getColumns={(tableWidth) => {
+                const columnWidth = 2 * (tableWidth / 7) - 6;
+                const halfColumnWidth = tableWidth / 7 - 6;
 
-                  return [
-                    {
-                      Header: '',
-                      accessor: 'select',
-                      minWidth: 24,
-                      width: 24,
-                      filterable: false,
-                    },
-                    {
-                      Header: 'Name',
-                      accessor: 'name',
-                      width: columnWidth,
-                      filterable: true,
-                    },
-                    {
-                      Header: 'Type',
-                      accessor: 'type',
-                      width: columnWidth,
-                      filterable: true,
-                    },
-                    {
-                      Header: 'Group',
-                      accessor: 'group',
-                      width: halfColumnWidth,
-                      filterable: true,
-                    },
-                    {
-                      Header: 'Total Result Count',
-                      accessor: 'resultCount',
-                      width: halfColumnWidth,
-                      filterable: false,
-                    },
-                    {
-                      Header: 'Detectable Result Count',
-                      accessor: 'measurementCount',
-                      width: halfColumnWidth,
-                      filterable: false,
-                    },
-                  ];
-                }}
-              />
-            </>
-          ))}
+                return [
+                  {
+                    Header: '',
+                    accessor: 'select',
+                    minWidth: 24,
+                    width: 24,
+                    filterable: false,
+                  },
+                  {
+                    Header: 'Name',
+                    accessor: 'name',
+                    width: columnWidth,
+                    filterable: true,
+                  },
+                  {
+                    Header: 'Type',
+                    accessor: 'type',
+                    width: columnWidth,
+                    filterable: true,
+                  },
+                  {
+                    Header: 'Group',
+                    accessor: 'group',
+                    width: halfColumnWidth,
+                    filterable: true,
+                  },
+                  {
+                    Header: 'Total Result Count',
+                    accessor: 'resultCount',
+                    width: halfColumnWidth,
+                    filterable: false,
+                  },
+                  {
+                    Header: 'Detectable Result Count',
+                    accessor: 'measurementCount',
+                    width: halfColumnWidth,
+                    filterable: false,
+                  },
+                ];
+              }}
+            />
+          </>
+        ) : null}
       </div>
     </div>
   );
@@ -1527,9 +1532,13 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
       <h2 css={boxHeadingStyles}>Download Station Data</h2>
       {charcsStatus === 'fetching' ? (
         <LoadingSpinner />
-      ) : Object.keys(charcs).length === 0 ? (
-        <p>No data available for this monitoring location.</p>
-      ) : (
+      ) : charcsStatus === 'empty' ? (
+        <p css={modifiedInfoBoxStyles}>
+          No data available for this monitoring location.
+        </p>
+      ) : charcsStatus === 'failure' ? (
+        <p css={modifiedErrorBoxStyles}>{monitoringError}</p>
+      ) : charcsStatus === 'success' ? (
         <>
           <div css={sliderContainerStyles}>
             {!range ? (
@@ -1544,183 +1553,175 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
             )}
           </div>
           <div css={flexboxSectionStyles}>
-            {charcsStatus === 'idle' || charcsStatus === 'fetching' ? (
-              <LoadingSpinner />
-            ) : charcsStatus === 'failure' ? (
-              <div css={modifiedErrorBoxStyles}>
-                <p>{monitoringError}</p>
-              </div>
-            ) : charcsStatus === 'success' ? (
-              <div css={accordionStyles}>
-                <AccordionList
-                  className="accordion-list"
-                  onExpandCollapse={(newExpanded) => setExpanded(newExpanded)}
-                  title={
-                    <span className="checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={checkboxes.all === 1}
-                        ref={(input) => {
-                          if (input) input.indeterminate = checkboxes.all === 2;
-                        }}
-                        onChange={(_ev) => checkboxDispatch({ type: 'all' })}
-                      />
-                      <strong>Toggle All</strong>
-                    </span>
-                  }
-                >
-                  <p css={accordionHeadingStyles}>
-                    <strong>
-                      <em>
-                        <GlossaryTerm term="Characteristic Group">
-                          Character&shy;istic Groups
-                        </GlossaryTerm>
-                      </em>
-                    </strong>
-                    <strong>
-                      <em>
-                        <GlossaryTerm
-                          className="count"
-                          term="Monitoring Measurements"
-                        >
-                          Number of Measurements
-                        </GlossaryTerm>
-                      </em>
-                    </strong>
-                  </p>
-                  {Object.values(checkboxes.groups)
-                    .sort((a, b) => a.id.localeCompare(b.id))
-                    .map((group) => (
-                      <AccordionItem
-                        allExpanded={expanded}
-                        key={group.id}
-                        highlightContent={false}
-                        title={
-                          <span css={accordionFlexStyles}>
-                            <span className="checkbox-label">
-                              <input
-                                type="checkbox"
-                                checked={group.selected === 1}
-                                ref={(input) => {
-                                  if (input)
-                                    input.indeterminate = group.selected === 2;
-                                }}
-                                onChange={(_ev) => {
-                                  checkboxDispatch({
-                                    type: 'group',
-                                    payload: { id: group.id },
-                                  });
-                                }}
-                                onClick={(ev) => ev.stopPropagation()}
-                              />
-                              <strong>{group.id}</strong>
-                            </span>
-                            <span>
-                              <strong>{group.count.toLocaleString()}</strong>
-                            </span>
-                          </span>
-                        }
+            <div css={accordionStyles}>
+              <AccordionList
+                className="accordion-list"
+                onExpandCollapse={(newExpanded) => setExpanded(newExpanded)}
+                title={
+                  <span className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={checkboxes.all === 1}
+                      ref={(input) => {
+                        if (input) input.indeterminate = checkboxes.all === 2;
+                      }}
+                      onChange={(_ev) => checkboxDispatch({ type: 'all' })}
+                    />
+                    <strong>Toggle All</strong>
+                  </span>
+                }
+              >
+                <p css={accordionHeadingStyles}>
+                  <strong>
+                    <em>
+                      <GlossaryTerm term="Characteristic Group">
+                        Character&shy;istic Groups
+                      </GlossaryTerm>
+                    </em>
+                  </strong>
+                  <strong>
+                    <em>
+                      <GlossaryTerm
+                        className="count"
+                        term="Monitoring Measurements"
                       >
-                        <p className="charc-type" css={accordionHeadingStyles}>
-                          <strong>
-                            <em>Character&shy;istic Types</em>
-                          </strong>
-                        </p>
-                        {group.types
-                          .sort((a, b) => a.localeCompare(b))
-                          .map((typeId) => {
-                            const type = checkboxes.types[typeId];
-                            return (
-                              <div className="charc-type" key={typeId}>
-                                <AccordionItem
-                                  allExpanded={expanded}
-                                  highlightContent={false}
-                                  title={
-                                    <span css={accordionFlexStyles}>
-                                      <span className="checkbox-label">
-                                        <input
-                                          type="checkbox"
-                                          checked={type.selected === 1}
-                                          ref={(input) => {
-                                            if (input)
-                                              input.indeterminate =
-                                                type.selected === 2;
-                                          }}
-                                          onChange={(_ev) =>
-                                            checkboxDispatch({
-                                              type: 'type',
-                                              payload: { id: typeId },
-                                            })
-                                          }
-                                          onClick={(ev) => ev.stopPropagation()}
-                                        />
-                                        <strong>{typeId}</strong>
-                                      </span>
-                                      <strong>
-                                        {type.count.toLocaleString()}
-                                      </strong>
+                        Number of Measurements
+                      </GlossaryTerm>
+                    </em>
+                  </strong>
+                </p>
+                {Object.values(checkboxes.groups)
+                  .sort((a, b) => a.id.localeCompare(b.id))
+                  .map((group) => (
+                    <AccordionItem
+                      allExpanded={expanded}
+                      key={group.id}
+                      highlightContent={false}
+                      title={
+                        <span css={accordionFlexStyles}>
+                          <span className="checkbox-label">
+                            <input
+                              type="checkbox"
+                              checked={group.selected === 1}
+                              ref={(input) => {
+                                if (input)
+                                  input.indeterminate = group.selected === 2;
+                              }}
+                              onChange={(_ev) => {
+                                checkboxDispatch({
+                                  type: 'group',
+                                  payload: { id: group.id },
+                                });
+                              }}
+                              onClick={(ev) => ev.stopPropagation()}
+                            />
+                            <strong>{group.id}</strong>
+                          </span>
+                          <span>
+                            <strong>{group.count.toLocaleString()}</strong>
+                          </span>
+                        </span>
+                      }
+                    >
+                      <p className="charc-type" css={accordionHeadingStyles}>
+                        <strong>
+                          <em>Character&shy;istic Types</em>
+                        </strong>
+                      </p>
+                      {group.types
+                        .sort((a, b) => a.localeCompare(b))
+                        .map((typeId) => {
+                          const type = checkboxes.types[typeId];
+                          return (
+                            <div className="charc-type" key={typeId}>
+                              <AccordionItem
+                                allExpanded={expanded}
+                                highlightContent={false}
+                                title={
+                                  <span css={accordionFlexStyles}>
+                                    <span className="checkbox-label">
+                                      <input
+                                        type="checkbox"
+                                        checked={type.selected === 1}
+                                        ref={(input) => {
+                                          if (input)
+                                            input.indeterminate =
+                                              type.selected === 2;
+                                        }}
+                                        onChange={(_ev) =>
+                                          checkboxDispatch({
+                                            type: 'type',
+                                            payload: { id: typeId },
+                                          })
+                                        }
+                                        onClick={(ev) => ev.stopPropagation()}
+                                      />
+                                      <strong>{typeId}</strong>
                                     </span>
-                                  }
-                                >
-                                  <p
-                                    className="charc-name"
-                                    css={accordionHeadingStyles}
-                                  >
                                     <strong>
-                                      <em>Character&shy;istic Names</em>
+                                      {type.count.toLocaleString()}
                                     </strong>
-                                  </p>
-                                  {type.charcs
-                                    .sort((a, b) => a.localeCompare(b))
-                                    .map((charcId) => {
-                                      const charc = checkboxes.charcs[charcId];
-                                      return (
-                                        <div
-                                          className="charc-name"
-                                          css={accordionRowStyles}
-                                          key={charcId}
-                                        >
-                                          <span className="checkbox-label">
-                                            <input
-                                              type="checkbox"
-                                              checked={charc.selected === 1}
-                                              ref={(input) => {
-                                                if (input)
-                                                  input.indeterminate =
-                                                    charc.selected === 2;
-                                              }}
-                                              onChange={(_ev) =>
-                                                checkboxDispatch({
-                                                  type: 'characteristic',
-                                                  payload: { id: charcId },
-                                                })
-                                              }
-                                            />
-                                            <strong>{charcId}</strong>
-                                          </span>
-                                          <strong>
-                                            {charc.count.toLocaleString()}
-                                          </strong>
-                                        </div>
-                                      );
-                                    })}
-                                </AccordionItem>
-                              </div>
-                            );
-                          })}
-                      </AccordionItem>
-                    ))}
-                  <p className="total-row" css={accordionHeadingStyles}>
-                    <strong>
-                      <em>Total Measurements Selected:</em>
-                    </strong>
-                    <strong className="count">
-                      {getTotalCount(checkboxes.charcs).toLocaleString()}
-                    </strong>
-                  </p>
-                </AccordionList>
-              </div>
-            ) : null}
+                                  </span>
+                                }
+                              >
+                                <p
+                                  className="charc-name"
+                                  css={accordionHeadingStyles}
+                                >
+                                  <strong>
+                                    <em>Character&shy;istic Names</em>
+                                  </strong>
+                                </p>
+                                {type.charcs
+                                  .sort((a, b) => a.localeCompare(b))
+                                  .map((charcId) => {
+                                    const charc = checkboxes.charcs[charcId];
+                                    return (
+                                      <div
+                                        className="charc-name"
+                                        css={accordionRowStyles}
+                                        key={charcId}
+                                      >
+                                        <span className="checkbox-label">
+                                          <input
+                                            type="checkbox"
+                                            checked={charc.selected === 1}
+                                            ref={(input) => {
+                                              if (input)
+                                                input.indeterminate =
+                                                  charc.selected === 2;
+                                            }}
+                                            onChange={(_ev) =>
+                                              checkboxDispatch({
+                                                type: 'characteristic',
+                                                payload: { id: charcId },
+                                              })
+                                            }
+                                          />
+                                          <strong>{charcId}</strong>
+                                        </span>
+                                        <strong>
+                                          {charc.count.toLocaleString()}
+                                        </strong>
+                                      </div>
+                                    );
+                                  })}
+                              </AccordionItem>
+                            </div>
+                          );
+                        })}
+                    </AccordionItem>
+                  ))}
+                <p className="total-row" css={accordionHeadingStyles}>
+                  <strong>
+                    <em>Total Measurements Selected:</em>
+                  </strong>
+                  <strong className="count">
+                    {getTotalCount(checkboxes.charcs).toLocaleString()}
+                  </strong>
+                </p>
+              </AccordionList>
+            </div>
           </div>
           <div id="download-links" css={downloadLinksStyles}>
             <div>
@@ -1774,7 +1775,7 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
             </div>
           </div>
         </>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -1878,7 +1879,7 @@ function MonitoringStation({ fullscreen }) {
 
   const noStationView = (
     <Page>
-      <NavBar title="Plan Summary" />
+      <NavBar title="Monitoring Station Details" />
 
       <div css={containerStyles}>
         <div css={pageErrorBoxStyles}>
@@ -1961,18 +1962,14 @@ function MonitoringStation({ fullscreen }) {
   );
 
   switch (stationStatus) {
-    case 'idle':
+    case 'empty':
       return noStationView;
-    case 'success':
+    case 'success' || 'fetching':
       return fullscreen.fullscreenActive ? fullScreenView : twoColumnView;
     case 'failure':
-      return (
-        <div css={modifiedErrorBoxStyles}>
-          <p>{monitoringError}</p>
-        </div>
-      );
+      return <p css={modifiedErrorBoxStyles}>{monitoringError}</p>;
     default:
-      return fullscreen.fullscreenActive ? fullScreenView : twoColumnView;
+      return null;
   }
 }
 
