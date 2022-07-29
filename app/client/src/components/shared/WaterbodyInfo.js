@@ -1248,11 +1248,7 @@ function MonitoringLocationsContent({ attributes, services }) {
             </td>
             <td>
               {Number(stationTotalSamples).toLocaleString()}
-              {timeframe && (
-                <span css={dateRangeStyles}>
-                  ({timeframe[0]} - {timeframe[1]})
-                </span>
-              )}
+              <span css={dateRangeStyles}>(all time)</span>
             </td>
           </tr>
           <tr>
