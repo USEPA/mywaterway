@@ -18,7 +18,7 @@ type Props = {
 };
 
 type State = {
-  organizationData: string,
+  organizationData: object,
   currentSummary: object,
   currentReportingCycle: object,
   activeState: {
