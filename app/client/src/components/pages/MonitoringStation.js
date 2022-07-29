@@ -329,6 +329,7 @@ const selectContainerStyles = css`
   gap: 1em;
   justify-content: center;
   margin-top: 1rem;
+  padding: 0 0.5rem;
   width: 100%;
 
   label {

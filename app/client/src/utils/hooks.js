@@ -43,7 +43,7 @@ const allWaterbodiesAlpha = {
   outline: 1,
 };
 
-function buildStations(locations, layer, services) {
+function buildStations(locations, layer) {
   if (!layer) return;
   if (!locations.data.features || locations.status !== 'success') {
     return;
@@ -71,7 +71,7 @@ function buildStations(locations, layer, services) {
       // TODO: explore if the built up locationUrl below is ever different from
       // `station.properties.siteUrl`. from a quick test, they seem the same
       locationUrl:
-        `${services.data.waterQualityPortal.monitoringLocationDetails}` +
+        `/station/` +
         `${station.properties.ProviderName}/` +
         `${station.properties.OrganizationIdentifier}/` +
         `${station.properties.MonitoringLocationIdentifier}/`,
