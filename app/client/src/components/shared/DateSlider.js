@@ -66,10 +66,10 @@ const trackStyles = {
   margin: '0.5em 0',
 };
 
-function DateSlider({ disabled, min, max, onChange }) {
-  const [minYear, setMinYear] = useState(0);
-  const [maxYear, setMaxYear] = useState(100);
-  const [range, setRange] = useState([minYear, maxYear]);
+function DateSlider({ disabled, min = 0, max = 100, onChange }) {
+  const [minYear, setMinYear] = useState(min);
+  const [maxYear, setMaxYear] = useState(max);
+  const [range, setRange] = useState([min, max]);
   useEffect(() => {
     if (!min || !max) return;
     setRange([min, max]);

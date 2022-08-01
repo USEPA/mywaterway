@@ -48,7 +48,7 @@ import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { fetchCheck } from 'utils/fetchUtils';
 import { useSharedLayers } from 'utils/hooks';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
-import { titleCaseWithExceptions } from 'utils/utils';
+import { parseAttributes, titleCaseWithExceptions } from 'utils/utils';
 // styles
 import { boxStyles, boxHeadingStyles } from 'components/shared/Box';
 import { colors, disclaimerStyles, reactSelectStyles } from 'styles';
@@ -469,7 +469,7 @@ async function drawStation(station, layer) {
       stationProviderName: station.providerName,
       stationTotalSamples: station.totalSamples,
       stationTotalMeasurements: station.totalMeasurements,
-      stationTotalsByCategory: JSON.stringify(station.charcTypeCounts),
+      stationTotalsByGroup: JSON.stringify(station.charcTypeCounts),
     },
   });
   const featureSet = await layer.queryFeatures();
@@ -998,12 +998,12 @@ function useCharacteristics(provider, orgId, siteId) {
       `${services.data.waterQualityPortal.resultSearch}` +
       `&mimeType=csv&zip=no&dataProfile=narrowResult` +
       `&providers=${provider}&organization=${orgId}&siteid=${siteId}`;
-    try {
-      fetchParseCsv(url).then((results) => structureRecords(results.data));
-    } catch (err) {
-      setStatus('failure');
-      console.error('Papa Parse error');
-    }
+    fetchParseCsv(url)
+      .then((results) => structureRecords(results.data))
+      .catch((_err) => {
+        setStatus('failure');
+        console.error('Papa Parse error');
+      });
   }, [orgId, provider, services, siteId, structureRecords]);
 
   return [charcs, status];
@@ -1859,7 +1859,6 @@ function MonitoringStation({ fullscreen }) {
 
   const mapWide = (
     <div
-      id="waterbody-report-map"
       style={{
         height: mapWidth,
         minHeight: '400px',
@@ -2044,7 +2043,7 @@ function StationMap({ layout, station, stationStatus, widthRef }) {
           { name: 'stationProviderName', type: 'string' },
           { name: 'stationTotalSamples', type: 'integer' },
           { name: 'stationTotalMeasurements', type: 'integer' },
-          { name: 'stationTotalsByCategory', type: 'string' },
+          { name: 'stationTotalsByGroup', type: 'string' },
           { name: 'uniqueId', type: 'string' },
         ],
         outFields: ['*'],
@@ -2058,8 +2057,8 @@ function StationMap({ layout, station, stationStatus, widthRef }) {
           type: 'simple',
           symbol: {
             type: 'simple-marker',
-            style: 'square',
-            color: colors.lightPurple(),
+            style: 'circle',
+            color: colors.lightPurple(0.75),
             outline: {
               width: 0.75,
             },
@@ -2068,8 +2067,13 @@ function StationMap({ layout, station, stationStatus, widthRef }) {
         popupTemplate: {
           outFields: ['*'],
           title: (feature) => getPopupTitle(feature.graphic.attributes),
-          content: (feature) =>
-            getPopupContent({ feature: feature.graphic, services }),
+          content: (feature) => {
+            feature.graphic.attributes = parseAttributes(
+              ['stationTotalsByGroup'],
+              feature.graphic.attributes,
+            );
+            return getPopupContent({ feature: feature.graphic, services });
+          },
         },
       });
       setMonitoringLocationsLayer(newMonitoringLocationsLayer);

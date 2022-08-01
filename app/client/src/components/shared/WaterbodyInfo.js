@@ -1204,6 +1204,9 @@ function MonitoringLocationsContent({ attributes, services }) {
     `&mimeType=xlsx&dataProfile=resultPhysChem` +
     `&providers=NWIS&providers=STEWARDS&providers=STORET`;
 
+  const onMonitoringReportPage =
+    window.location.pathname.indexOf('station') === 1;
+
   return (
     <>
       <table css={modifiedTableStyles} className="table">
@@ -1275,18 +1278,20 @@ function MonitoringLocationsContent({ attributes, services }) {
         </tbody>
       </table>
 
-      <p>
-        <a rel="noopener noreferrer" target="_blank" href={locationUrl}>
-          <i
-            css={iconStyles}
-            className="fas fa-info-circle"
-            aria-hidden="true"
-          />
-          Monitoring Report page
-        </a>
-        &nbsp;&nbsp;
-        <small css={modifiedDisclaimerStyles}>(opens new browser tab)</small>
-      </p>
+      {!onMonitoringReportPage && (
+        <p>
+          <a rel="noopener noreferrer" target="_blank" href={locationUrl}>
+            <i
+              css={iconStyles}
+              className="fas fa-info-circle"
+              aria-hidden="true"
+            />
+            Monitoring Report page
+          </a>
+          &nbsp;&nbsp;
+          <small css={modifiedDisclaimerStyles}>(opens new browser tab)</small>
+        </p>
+      )}
 
       {Object.keys(groups).length === 0 && (
         <p>No data available for this monitoring location.</p>
