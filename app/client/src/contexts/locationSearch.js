@@ -295,11 +295,7 @@ export class LocationSearchProvider extends Component<Props, State> {
 
     // monitoring panel
     monitoringGroups: null,
-    monitoringFeatureUpdates: {
-      stationTotalMeasurements: 0,
-      stationTotalsByGroup: {},
-      timeframe: null,
-    },
+    monitoringFeatureUpdates: null,
 
     // identified issues panel
     showAllPolluted: true,

@@ -294,7 +294,6 @@ function MapMouseEvents({ view }: Props) {
 
   const updateSingleFeature = useCallback(
     (graphic) => {
-      view.popup.clear();
       updateAttributes(graphic, updates);
       const structuredProps = ['stationTotalsByGroup', 'timeframe'];
       graphic.attributes = parseAttributes(structuredProps, graphic.attributes);
