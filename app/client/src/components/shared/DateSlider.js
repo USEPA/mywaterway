@@ -66,7 +66,12 @@ const trackStyles = {
   margin: '0.5em 0',
 };
 
-function DateSlider({ disabled, min = 0, max = 100, onChange }) {
+function DateSlider({
+  disabled,
+  min = 0,
+  max = new Date().getFullYear(),
+  onChange,
+}) {
   const [minYear, setMinYear] = useState(min);
   const [maxYear, setMaxYear] = useState(max);
   const [range, setRange] = useState([min, max]);
