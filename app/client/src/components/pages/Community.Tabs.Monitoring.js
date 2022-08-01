@@ -88,6 +88,14 @@ const sliderContainerStyles = css`
   justify-content: center;
   padding-bottom: 10px;
   width: 100%;
+  span {
+    &:first-of-type {
+      margin-left: 1em;
+    }
+    &:last-of-type {
+      margin-right: 1em;
+    }
+  }
 `;
 
 const sliderHeaderStyles = css`
@@ -901,7 +909,8 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                 <LoadingSpinner />
               ) : (
                 <DateSlider
-                  bounds={[minYear, maxYear]}
+                  max={maxYear}
+                  min={minYear}
                   disabled={!Boolean(Object.keys(annualData).length)}
                   onChange={(newRange) => setYearsRange(newRange)}
                 />
