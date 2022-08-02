@@ -182,6 +182,7 @@ function MapMouseEvents({ view }: Props) {
             view.popup.open({ features: graphics, location: point });
           } else {
             setSelectedGraphic('');
+            view.popup.close();
           }
 
           // get the currently selected huc boundaries, if applicable

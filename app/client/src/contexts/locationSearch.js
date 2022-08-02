@@ -210,7 +210,7 @@ type State = {
 
   // monitoring panel
   monitoringGroups: MonitoringLocationGroups,
-  monitoringFeatureUpdates: Object,
+  monitoringFeatureUpdates: ?Object,
 
   // identified issues panel
   showDischargers: boolean,
