@@ -12,36 +12,92 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // config
 import { monitoringClusterSettings } from 'components/shared/LocationMap';
-import {
-  getPopupContent,
-  getPopupTitle,
-  graphicComparison,
-} from 'utils/mapFunctions';
+import { getPopupContent, graphicComparison } from 'utils/mapFunctions';
 // utilities
 import { useDynamicPopup } from 'utils/hooks';
 
 // --- helpers ---
-function parseAttributes(structuredAttributes, attributes) {
-  const parsed = {};
-  for (const property of structuredAttributes) {
-    try {
-      parsed[property] = JSON.parse(attributes[property]);
-    } catch {
-      parsed[property] = attributes[property];
+function getGraphicsFromResponse(
+  res: Object,
+  additionalLayers: Array<string> = [],
+) {
+  if (!res.results || res.results.length === 0) return null;
+
+  const matches = res.results.filter((result) => {
+    const { attributes: attr, layer } = result.graphic;
+    // ignore huc 12 boundaries, map-marker, highlight and provider graphics
+    const excludedLayers = [
+      'stateBoundariesLayer',
+      'mappedWaterLayer',
+      'watershedsLayer',
+      'boundaries',
+      'map-marker',
+      'highlight',
+      'providers',
+      'allWaterbodiesLayer',
+      ...additionalLayers,
+    ];
+    if (!result.graphic.layer?.id) return null;
+    if (attr.name && excludedLayers.indexOf(attr.name) !== -1) return null;
+    if (excludedLayers.indexOf(layer.id) !== -1) return null;
+    if (excludedLayers.indexOf(layer.parent.id) !== -1) return null;
+
+    // filter out graphics on basemap layers
+    if (result.graphic.layer.type === 'vector-tile') return null;
+
+    return result;
+  });
+
+  return matches.map((match) => match.graphic);
+}
+
+function getGraphicFromResponse(
+  res: Object,
+  additionalLayers: Array<string> = [],
+) {
+  const graphics = getGraphicsFromResponse(res, additionalLayers);
+  return graphics?.length ? graphics[0] : null;
+}
+
+function prioritizePopup(graphics) {
+  graphics.sort((a, b) => {
+    if (a.attributes.assessmentunitname) return -1;
+    else if (a.layer.id === 'monitoringLocationsLayer') {
+      if (b.attributes.assessmentunitname) return 1;
+      return -1;
+    } else if (a.attributes.TRIBE_NAME) {
+      if (
+        b.attributes.assessmentunitname ||
+        b.layer.id === 'monitoringLocationsLayer'
+      )
+        return 1;
+      return -1;
     }
-  }
-  return { ...attributes, ...parsed };
+    return 1;
+  });
 }
 
 function updateAttributes(graphic, updates) {
   const graphicId = graphic?.attributes?.uniqueId;
-  if (updates.current?.[graphicId]) {
-    const stationUpdates = updates.current[graphicId];
+  const stationUpdates = updates[graphicId];
+  if (stationUpdates) {
     Object.keys(stationUpdates).forEach((attribute) => {
       graphic.setAttribute(attribute, stationUpdates[attribute]);
     });
     return graphic;
   }
+}
+
+function updateGraphics(graphics, updates) {
+  if (!updates) return;
+  graphics.forEach((graphic) => {
+    if (
+      graphic.layer?.id === 'monitoringLocationsLayer' &&
+      !graphic.isAggregate
+    ) {
+      updateAttributes(graphic, updates);
+    }
+  });
 }
 
 // --- components ---
@@ -70,6 +126,15 @@ function MapMouseEvents({ view }: Props) {
   } = useContext(LocationSearchContext);
 
   const getDynamicPopup = useDynamicPopup();
+  view.popup.autoOpenEnabled = false;
+
+  // reference to a dictionary of date-filtered updates
+  // applicable to graphics visible on the map
+  const updates = useRef(null);
+  useEffect(() => {
+    if (view?.popup.visible) view.popup.close();
+    updates.current = monitoringFeatureUpdates;
+  }, [monitoringFeatureUpdates, view.popup]);
 
   const handleMapClick = useCallback(
     (event, view) => {
@@ -81,12 +146,19 @@ function MapMouseEvents({ view }: Props) {
       });
       const location = webMercatorUtils.geographicToWebMercator(point);
 
+      const onTribePage = window.location.pathname.startsWith('/tribe/');
+
       // perform a hittest on the click location
       view
         .hitTest(event)
         .then((res) => {
           // get and update the selected graphic
-          const graphic = getGraphicFromResponse(res);
+          const extraLayersToIgnore = [
+            'allWaterbodiesLayer',
+            'selectedTribeLayer',
+          ];
+          const graphics = getGraphicsFromResponse(res, extraLayersToIgnore);
+          const graphic = graphics?.length ? graphics[0] : null;
 
           if (graphic && graphic.attributes) {
             // if upstream watershed is clicked:
@@ -102,14 +174,15 @@ function MapMouseEvents({ view }: Props) {
               graphic.isAggregate
             ) {
               monitoringLocationsLayer.featureReduction = null;
-            } else {
-              setSelectedGraphic(graphic);
+              return;
             }
+            updateGraphics(graphics, updates?.current);
+            if (onTribePage) prioritizePopup(graphics);
+            setSelectedGraphic(graphic);
+            view.popup.open({ features: graphics, location: point });
           } else {
             setSelectedGraphic('');
           }
-
-          const onTribePage = window.location.pathname.startsWith('/tribe/');
 
           // get the currently selected huc boundaries, if applicable
           const hucBoundaries = getHucBoundaries();
@@ -284,71 +357,6 @@ function MapMouseEvents({ view }: Props) {
     view,
   ]);
 
-  // reference to a dictionary of date-filtered updates
-  // applicable to graphics visible on the map
-  const updates = useRef(null);
-  useEffect(() => {
-    if (view?.popup.visible) view.popup.close();
-    updates.current = monitoringFeatureUpdates;
-  }, [monitoringFeatureUpdates, view.popup]);
-
-  const updateSingleFeature = useCallback(
-    (graphic) => {
-      updateAttributes(graphic, updates);
-      const structuredProps = ['stationTotalsByGroup', 'timeframe'];
-      graphic.attributes = parseAttributes(structuredProps, graphic.attributes);
-      view.popup.open({
-        title: getPopupTitle(graphic.attributes),
-        content: getPopupContent({
-          feature: graphic,
-          services,
-          navigate,
-        }),
-        location: graphic.geometry,
-      });
-    },
-    [navigate, services, view.popup],
-  );
-
-  const updateGraphics = useCallback(
-    (graphics) => {
-      if (!updates?.current) return;
-      graphics.forEach((graphic) => {
-        if (
-          graphic.layer?.id === 'monitoringLocationsLayer' &&
-          !graphic.isAggregate
-        ) {
-          if (graphics.length === 1) {
-            updateSingleFeature(graphic);
-          } else {
-            updateAttributes(graphic, updates);
-          }
-        }
-      });
-    },
-    [updateSingleFeature],
-  );
-
-  // watches for popups, and updates them if
-  // they represent monitoring location features
-  const [popupWatchHandler, setPopupWatchHandler] = useState(null);
-  useEffect(() => {
-    return function cleanup() {
-      popupWatchHandler?.remove();
-    };
-  }, [popupWatchHandler]);
-
-  useEffect(() => {
-    if (services.status === 'fetching') return;
-    const handler = view.popup.watch('features', (graphics) => {
-      updateGraphics(graphics, updates);
-    });
-    setPopupWatchHandler(handler);
-    return function cleanup() {
-      setPopupWatchHandler(null);
-    };
-  }, [services.status, updateGraphics, view]);
-
   // recalculates stored total location count on change of location
   const [locationCount, setLocationCount] = useState(null);
   useEffect(() => {
@@ -396,39 +404,6 @@ function MapMouseEvents({ view }: Props) {
       setHomeClickHandler(null);
     };
   }, [locationCount, monitoringLocationsLayer, homeWidget]);
-
-  function getGraphicFromResponse(
-    res: Object,
-    additionalLayers: Array<string> = [],
-  ) {
-    if (!res.results || res.results.length === 0) return null;
-
-    const match = res.results.filter((result) => {
-      const { attributes: attr, layer } = result.graphic;
-      // ignore huc 12 boundaries, map-marker, highlight and provider graphics
-      const excludedLayers = [
-        'stateBoundariesLayer',
-        'mappedWaterLayer',
-        'watershedsLayer',
-        'boundaries',
-        'map-marker',
-        'highlight',
-        'providers',
-        ...additionalLayers,
-      ];
-      if (!result.graphic.layer?.id) return null;
-      if (attr.name && excludedLayers.indexOf(attr.name) !== -1) return null;
-      if (excludedLayers.indexOf(layer.id) !== -1) return null;
-      if (excludedLayers.indexOf(layer.parent.id) !== -1) return null;
-
-      // filter out graphics on basemap layers
-      if (result.graphic.layer.type === 'vector-tile') return null;
-
-      return result;
-    });
-
-    return match[0] ? match[0].graphic : null;
-  }
 
   return null;
 }
