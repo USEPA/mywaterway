@@ -1193,6 +1193,14 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   if (spec !== 'Not Specified') yTitle += ', ' + spec;
   yTitle += ', ' + unit;
 
+  let infoText = null;
+  if (!charcName)
+    infoText =
+      'Select a characteristic from the table above to graph its results.';
+  else if (!measurements)
+    infoText =
+      'No measurements available to be charted for this characteristic.';
+
   return (
     <div css={boxStyles}>
       <h2 css={infoBoxHeadingStyles}>
@@ -1211,14 +1219,8 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
         fetching={<LoadingSpinner />}
         status={charcsStatus}
       >
-        {!charcName ? (
-          <p css={modifiedInfoBoxStyles}>
-            Select a characteristic from the table above to graph its results.
-          </p>
-        ) : !measurements ? (
-          <p css={modifiedInfoBoxStyles}>
-            No measurements available to be charted for this characteristic.
-          </p>
+        {infoText ? (
+          <p css={modifiedInfoBoxStyles}>{infoText}</p>
         ) : (
           <>
             <SliderContainer
