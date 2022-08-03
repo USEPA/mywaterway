@@ -659,6 +659,15 @@ const initialCheckboxes = {
   charcs: {},
 };
 
+function handleCheckbox(id, accessor, dispatch) {
+  return () => {
+    dispatch({
+      type: accessor,
+      payload: { id },
+    });
+  };
+}
+
 function isEmpty(obj) {
   for (let prop in obj) {
     if (obj.hasOwnProperty(prop)) return false;
@@ -1358,12 +1367,7 @@ function CheckboxRow({ accessor, id, level, state, dispatch }) {
           ref={(input) => {
             if (input) input.indeterminate = item.selected === 0.5;
           }}
-          onChange={(_ev) =>
-            dispatch({
-              type: accessor,
-              payload: { id },
-            })
-          }
+          onChange={handleCheckbox(id, accessor, dispatch)}
           style={{ top: '1px' }}
         />
         <strong>{id}</strong>
@@ -1493,29 +1497,28 @@ function ChartContainer({ range, data, charcName, scaleType, yTitle, unit }) {
   );
   const chartRef = useRef(null);
 
+  if (!range) return <LoadingSpinner />;
+
+  if (!data?.length)
+    return (
+      <p css={modifiedInfoBoxStyles}>
+        No measurements available for the selected options.
+      </p>
+    );
+
   return (
-    <div ref={chartRef}>
-      {!range ? (
-        <LoadingSpinner />
-      ) : !data?.length ? (
-        <p css={modifiedInfoBoxStyles}>
-          No measurements available for the selected options.
-        </p>
-      ) : (
-        <div css={chartContainerStyles}>
-          <LineChart
-            color={lineColors[charcGroup]}
-            containerRef={chartRef.current}
-            data={data}
-            dataKey={charcName}
-            range={range}
-            xTitle="Date"
-            yScale={scaleType}
-            yTitle={yTitle}
-            yUnit={unit}
-          />
-        </div>
-      )}
+    <div ref={chartRef} css={chartContainerStyles}>
+      <LineChart
+        color={lineColors[charcGroup]}
+        containerRef={chartRef.current}
+        data={data}
+        dataKey={charcName}
+        range={range}
+        xTitle="Date"
+        yScale={scaleType}
+        yTitle={yTitle}
+        yUnit={unit}
+      />
     </div>
   );
 }
@@ -1545,12 +1548,7 @@ function CheckboxAccordion({
                 ref={(input) => {
                   if (input) input.indeterminate = item.selected === 0.5;
                 }}
-                onChange={(_ev) =>
-                  dispatch({
-                    type: accessor,
-                    payload: { id },
-                  })
-                }
+                onChange={handleCheckbox(id, accessor, dispatch)}
                 onClick={(ev) => ev.stopPropagation()}
                 style={{ top: '2px' }}
               />
