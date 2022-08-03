@@ -92,7 +92,6 @@ const accordionStyles = css`
   }
 
   input[type='checkbox'] {
-    margin: auto;
     margin-right: 1em;
     position: relative;
     transform: scale(1.2);
@@ -404,7 +403,7 @@ function buildCharcsFilter(checkboxes) {
   Object.values(checkboxes.types).forEach((type) => {
     if (type.selected === 1) {
       filter += `&characteristicType=${type.id}`;
-    } else if (type.selected === 2) {
+    } else if (type.selected === 0.5) {
       type.charcs.forEach((charcId) => {
         const charc = checkboxes.charcs[charcId];
         if (charc.selected === 1) {
@@ -573,7 +572,8 @@ function getFilteredCount(range, records, count) {
 }
 
 function getCheckedStatus(numberSelected, children) {
-  let status = 2;
+  // Using 0.5 for indeterminate to prevent a false positive
+  let status = 0.5;
   if (numberSelected === 0) status = 0;
   else if (numberSelected === children.length) status = 1;
   return status;
@@ -853,7 +853,7 @@ function toggle(state, id, entity, level) {
   const newGroups = { ...state.groups };
 
   switch (level) {
-    case 'characteristic': {
+    case 'charcs': {
       updateEntity(newCharcs, id, entity, newSelected);
       const charcIds = newTypes[entity.type].charcs;
       updateParent(newTypes, newCharcs, entity.type, charcIds);
@@ -861,14 +861,14 @@ function toggle(state, id, entity, level) {
       updateParent(newGroups, newTypes, entity.group, typeIds);
       break;
     }
-    case 'group': {
+    case 'groups': {
       const ref = 'group';
       updateEntity(newGroups, id, entity, newSelected);
       updateDescendants(newTypes, ref, id, newSelected);
       updateDescendants(newCharcs, ref, id, newSelected);
       break;
     }
-    case 'type': {
+    case 'types': {
       const ref = 'type';
       updateEntity(newTypes, id, entity, newSelected);
       updateDescendants(newCharcs, ref, id, newSelected);
@@ -1356,7 +1356,7 @@ function CheckboxRow({ accessor, id, level, state, dispatch }) {
           type="checkbox"
           checked={item.selected === 1}
           ref={(input) => {
-            if (input) input.indeterminate = item.selected === 2;
+            if (input) input.indeterminate = item.selected === 0.5;
           }}
           onChange={(_ev) =>
             dispatch({
@@ -1364,6 +1364,7 @@ function CheckboxRow({ accessor, id, level, state, dispatch }) {
               payload: { id },
             })
           }
+          style={{ top: '1px' }}
         />
         <strong>{id}</strong>
       </span>
@@ -1537,12 +1538,12 @@ function CheckboxAccordion({
         highlightContent={false}
         title={
           <span css={accordionFlexStyles}>
-            <span className="checkbox-label">
+            <span>
               <input
                 type="checkbox"
                 checked={item.selected === 1}
                 ref={(input) => {
-                  if (input) input.indeterminate = item.selected === 2;
+                  if (input) input.indeterminate = item.selected === 0.5;
                 }}
                 onChange={(_ev) =>
                   dispatch({
@@ -1551,6 +1552,7 @@ function CheckboxAccordion({
                   })
                 }
                 onClick={(ev) => ev.stopPropagation()}
+                style={{ top: '2px' }}
               />
               <strong>{id}</strong>
             </span>
@@ -1651,12 +1653,12 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
               className="accordion-list"
               onExpandCollapse={(newExpanded) => setExpanded(newExpanded)}
               title={
-                <span className="checkbox-label">
+                <span>
                   <input
                     type="checkbox"
                     checked={checkboxes.all === 1}
                     ref={(input) => {
-                      if (input) input.indeterminate = checkboxes.all === 2;
+                      if (input) input.indeterminate = checkboxes.all === 0.5;
                     }}
                     onChange={(_ev) => checkboxDispatch({ type: 'all' })}
                   />
