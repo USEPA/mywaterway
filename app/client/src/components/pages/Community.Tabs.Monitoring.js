@@ -933,7 +933,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                       <span>All Monitoring Locations</span>
                     </div>
                   </th>
-                  <th colspan="2">Location Count</th>
+                  <th colSpan="2">Location Count</th>
                   <th>Measurement Count</th>
                 </tr>
               </thead>
@@ -965,7 +965,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                             <span>{group.label}</span>
                           </div>
                         </td>
-                        <td colspan="2">{locationCount.toLocaleString()}</td>
+                        <td colSpan="2">{locationCount.toLocaleString()}</td>
                         <td>{measurementCount.toLocaleString()}</td>
                       </tr>
                     );
@@ -984,7 +984,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                       <span>Totals</span>
                     </div>
                   </td>
-                  <td colspan="2">
+                  <td colSpan="2">
                     {Number(totalDisplayedLocations).toLocaleString()}
                   </td>
                   <td>{Number(totalDisplayedMeasurements).toLocaleString()}</td>
