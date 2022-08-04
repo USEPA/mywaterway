@@ -43,7 +43,6 @@ import { monitoringError } from 'config/errorMessages';
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
-import { MapHighlightProvider } from 'contexts/MapHighlight';
 // helpers
 import { fetchCheck } from 'utils/fetchUtils';
 import { useSharedLayers } from 'utils/hooks';
@@ -73,6 +72,9 @@ const accordionRowStyles = css`
   ${accordionFlexStyles}
   ${accordionHeadingStyles}
   border-top: 1px solid #d8dfe2;
+  span {
+    display: flex;
+  }
 `;
 
 const accordionStyles = css`
@@ -85,20 +87,6 @@ const accordionStyles = css`
     text-align: left;
   }
 
-  .charc-name {
-    margin-left: 2em;
-    margin-right: 2.5em;
-  }
-
-  .charc-type {
-    margin-left: 1em;
-    margin-right: 1.25em;
-  }
-
-  .checkbox-label {
-    display: flex;
-  }
-
   .total-row {
     margin-right: 1.75em;
   }
@@ -106,7 +94,6 @@ const accordionStyles = css`
   input[type='checkbox'] {
     margin-right: 1em;
     position: relative;
-    top: 0.35em;
     transform: scale(1.2);
   }
 `;
@@ -386,6 +373,14 @@ const sliderContainerStyles = css`
   }
 `;
 
+const treeStyles = (level, styles) => {
+  return css`
+    ${styles}
+    margin-left: calc(${level} * 1em);
+    margin-right: calc(${level} * 1.25em);
+  `;
+};
+
 /*
 ## Helpers
 */
@@ -408,7 +403,7 @@ function buildCharcsFilter(checkboxes) {
   Object.values(checkboxes.types).forEach((type) => {
     if (type.selected === 1) {
       filter += `&characteristicType=${type.id}`;
-    } else if (type.selected === 2) {
+    } else if (type.selected === 0.5) {
       type.charcs.forEach((charcId) => {
         const charc = checkboxes.charcs[charcId];
         if (charc.selected === 1) {
@@ -420,6 +415,12 @@ function buildCharcsFilter(checkboxes) {
   return filter;
 }
 
+function buildOptions(values) {
+  return Array.from(values).map((value) => {
+    return { value: value, label: value };
+  });
+}
+
 function checkboxReducer(state, action) {
   switch (action.type) {
     case 'all': {
@@ -429,17 +430,17 @@ function checkboxReducer(state, action) {
       const { data } = action.payload;
       return loadNewData(data, state);
     }
-    case 'group': {
+    case 'groups': {
       const { id } = action.payload;
       const entity = state.groups[id];
       return toggle(state, id, entity, action.type);
     }
-    case 'type': {
+    case 'types': {
       const { id } = action.payload;
       const entity = state.types[id];
       return toggle(state, id, entity, action.type);
     }
-    case 'characteristic': {
+    case 'charcs': {
       const { id } = action.payload;
       const entity = state.charcs[id];
       return toggle(state, id, entity, action.type);
@@ -549,6 +550,14 @@ function getCharcType(charcName, typeMappings) {
   return 'Not Assigned';
 }
 
+function getDate(record) {
+  let month = record.month.toString();
+  if (record.month < 10) month = '0' + month;
+  let day = record.day.toString();
+  if (record.day < 10) day = '0' + day;
+  return `${record.year}-${month}-${day}`;
+}
+
 function getFilteredCount(range, records, count) {
   if (range) {
     let filteredCount = 0;
@@ -563,7 +572,8 @@ function getFilteredCount(range, records, count) {
 }
 
 function getCheckedStatus(numberSelected, children) {
-  let status = 2;
+  // Using 0.5 for indeterminate to prevent a false positive
+  let status = 0.5;
   if (numberSelected === 0) status = 0;
   else if (numberSelected === children.length) status = 1;
   return status;
@@ -648,6 +658,15 @@ const initialCheckboxes = {
   types: {},
   charcs: {},
 };
+
+function handleCheckbox(id, accessor, dispatch) {
+  return () => {
+    dispatch({
+      type: accessor,
+      payload: { id },
+    });
+  };
+}
 
 function isEmpty(obj) {
   for (let prop in obj) {
@@ -764,6 +783,32 @@ function parseCharcs(charcs, range) {
   return result;
 }
 
+function parseRecord(record, measurements) {
+  const unit = record.unit;
+  const fraction = record.sampleFraction || 'Not Specified';
+  if (!measurements[unit]) measurements[unit] = {};
+  const unitMeasurements = measurements[unit];
+
+  if (!unitMeasurements[fraction]) unitMeasurements[fraction] = {};
+  const fractionMeasurements = unitMeasurements[fraction];
+  const speciation = record.speciation || 'Not Specified';
+  if (!fractionMeasurements[speciation]) fractionMeasurements[speciation] = {};
+  const specMeasurements = fractionMeasurements[speciation];
+
+  // group by unit and date
+  const date = getDate(record);
+  if (!specMeasurements[date]) {
+    specMeasurements[date] = {
+      ...record,
+      measurement: [record.measurement],
+      date,
+    };
+  } else {
+    specMeasurements[date].measurement.push(record.measurement);
+  }
+  return { unit, speciation, fraction };
+}
+
 const sectionRow = (label, value, style, dataStatus) => (
   <div css={style}>
     <h3>{label}:</h3>
@@ -817,7 +862,7 @@ function toggle(state, id, entity, level) {
   const newGroups = { ...state.groups };
 
   switch (level) {
-    case 'characteristic': {
+    case 'charcs': {
       updateEntity(newCharcs, id, entity, newSelected);
       const charcIds = newTypes[entity.type].charcs;
       updateParent(newTypes, newCharcs, entity.type, charcIds);
@@ -825,14 +870,14 @@ function toggle(state, id, entity, level) {
       updateParent(newGroups, newTypes, entity.group, typeIds);
       break;
     }
-    case 'group': {
+    case 'groups': {
       const ref = 'group';
       updateEntity(newGroups, id, entity, newSelected);
       updateDescendants(newTypes, ref, id, newSelected);
       updateDescendants(newCharcs, ref, id, newSelected);
       break;
     }
-    case 'type': {
+    case 'types': {
       const ref = 'type';
       updateEntity(newTypes, id, entity, newSelected);
       updateDescendants(newCharcs, ref, id, newSelected);
@@ -1034,7 +1079,7 @@ function useStationDetails(provider, orgId, siteId) {
 ## Components
 */
 
-function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
+function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   const [measurements, setMeasurements] = useState(null);
   // Selected and available units
   const [unit, setUnit] = useState(null);
@@ -1057,52 +1102,17 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
     newRecords.forEach((record) => {
       if (!record.unit || !Number.isFinite(record.measurement)) return;
 
-      unitValues.add(record.unit);
-      const sampleFraction = record.sampleFraction || 'Not Specified';
-      fractionValues.add(sampleFraction);
-      if (!newMeasurements[record.unit]) newMeasurements[record.unit] = {};
-      const unitMeasurements = newMeasurements[record.unit];
-      if (!unitMeasurements[sampleFraction])
-        unitMeasurements[sampleFraction] = {};
-      const fractionMeasurements = unitMeasurements[sampleFraction];
-      const speciation = record.speciation || 'Not Specified';
-      specValues.add(speciation);
-      if (!fractionMeasurements[speciation])
-        fractionMeasurements[speciation] = {};
-      const specMeasurements = fractionMeasurements[speciation];
-
-      // group by unit and date
-      let month = record.month.toString();
-      if (record.month < 10) month = '0' + month;
-      let day = record.day.toString();
-      if (record.day < 10) day = '0' + day;
-      const date = `${record.year}-${month}-${day}`;
-      if (!specMeasurements[date]) {
-        specMeasurements[date] = {
-          ...record,
-          measurement: [record.measurement],
-          date,
-        };
-      } else {
-        specMeasurements[date].measurement.push(record.measurement);
-      }
+      // Adds record measurement to newMeasurements and gets select options
+      const recordOptions = parseRecord(record, newMeasurements);
+      unitValues.add(recordOptions.unit);
+      fractionValues.add(recordOptions.fraction);
+      specValues.add(recordOptions.speciation);
     });
 
-    setFractions(
-      Array.from(fractionValues).map((value) => {
-        return { value: value, label: value };
-      }),
-    );
-    setSpecs(
-      Array.from(specValues).map((value) => {
-        return { value: value, label: value };
-      }),
-    );
-    setUnits(
-      Array.from(unitValues).map((value) => {
-        return { value: value, label: value };
-      }),
-    );
+    setFractions(buildOptions(fractionValues));
+    setSpecs(buildOptions(specValues));
+    setUnits(buildOptions(unitValues));
+
     return newMeasurements;
   }, []);
 
@@ -1112,7 +1122,7 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
 
     sortMeasurements(newMeasurements);
 
-    // initialize selected unit
+    // initialize the selected unit
     const newUnits = Object.keys(newMeasurements);
     if (newUnits.length) {
       const newFractions = Object.keys(newMeasurements[newUnits[0]]);
@@ -1138,6 +1148,7 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
   const [mean, setMean] = useState(null);
   const [median, setMedian] = useState(null);
   const [stdDev, setStdDev] = useState(null);
+
   const getChartData = useCallback((newDomain, newMsmts) => {
     let newChartData = [];
     newMsmts.forEach((msmt) => {
@@ -1161,6 +1172,7 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
 
   const [minYear, setMinYear] = useState(null);
   const [maxYear, setMaxYear] = useState(null);
+  // Initialize the chart
   useEffect(() => {
     const specMeasurements = measurements?.[unit]?.[fraction]?.[spec];
     if (specMeasurements && specMeasurements.length) {
@@ -1174,13 +1186,20 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
     }
   }, [charcsStatus, fraction, getChartData, measurements, spec, unit]);
 
-  const chartRef = useRef(null);
-
+  // Title for the y-axis
   let yTitle = charcName;
   if (fraction !== 'Not Specified')
     yTitle += ', ' + fraction?.replace(',', ' -');
   if (spec !== 'Not Specified') yTitle += ', ' + spec;
   yTitle += ', ' + unit;
+
+  let infoText = null;
+  if (!charcName)
+    infoText =
+      'Select a characteristic from the table above to graph its results.';
+  else if (!measurements)
+    infoText =
+      'No measurements available to be charted for this characteristic.';
 
   return (
     <div css={boxStyles}>
@@ -1190,180 +1209,182 @@ function CharacteristicChart({ charcGroup, charcName, charcsStatus, records }) {
           ? 'Selected Characteristic'
           : titleCaseWithExceptions(charcName)}
       </h2>
-      {charcsStatus === 'fetching' ? (
-        <LoadingSpinner />
-      ) : charcsStatus === 'empty' ? (
-        <p css={modifiedInfoBoxStyles}>
-          No data available for this monitoring location.
-        </p>
-      ) : charcsStatus === 'failure' ? (
-        <p css={modifiedErrorBoxStyles}>{monitoringError}</p>
-      ) : charcsStatus === 'success' && !charcName ? (
-        <p css={modifiedInfoBoxStyles}>
-          Select a characteristic from the table above to graph its results.
-        </p>
-      ) : charcsStatus === 'success' && !measurements ? (
-        <p css={modifiedInfoBoxStyles}>
-          No measurements available to be charted for this characteristic.
-        </p>
-      ) : charcsStatus === 'success' ? (
-        <>
-          <div css={sliderContainerStyles}>
-            {!minYear || !maxYear ? (
-              <LoadingSpinner />
-            ) : (
-              <DateSlider
-                disabled={!Boolean(records.length)}
-                min={minYear}
-                max={maxYear}
-                onChange={(newDomain) => {
-                  const specMeasurements =
-                    measurements?.[unit]?.[fraction]?.[spec];
-                  if (specMeasurements) {
-                    getChartData(newDomain, specMeasurements);
-                  }
-                }}
-              />
-            )}
-          </div>
-          <div css={selectContainerStyles}>
-            <span>
-              <label htmlFor="unit">Unit:</label>
-              <Select
-                className="select"
-                inputId={'unit'}
-                isSearchable={false}
-                options={units}
-                value={units.find((u) => u.value === unit)}
-                onChange={(ev) => {
-                  setUnit(ev.value);
-                }}
-                styles={reactSelectStyles}
-              />
-            </span>
-            <span>
-              <label htmlFor="sample-fraction">Sample Fraction:</label>
-              <Select
-                className="select"
-                inputId={'sample-fraction'}
-                isSearchable={false}
-                options={fractions}
-                value={fractions.find((f) => f.value === fraction)}
-                onChange={(ev) => {
-                  setFraction(ev.value);
-                }}
-                styles={reactSelectStyles}
-              />
-            </span>
-            <span>
-              <label htmlFor="speciation">Method Speciation:</label>
-              <Select
-                className="select"
-                inputId={'speciation'}
-                isSearchable={false}
-                options={specs}
-                value={specs.find((s) => s.value === spec)}
-                onChange={(ev) => {
-                  setSpec(ev.value);
-                }}
-                styles={reactSelectStyles}
-              />
-            </span>
-            <span className="radio-container">
-              <label>Scale Type:</label>
-              <span className="radios">
-                <span>
-                  <input
-                    checked={scaleType === 'linear'}
-                    id={'linear'}
-                    onChange={(e) => setScaleType(e.target.value)}
-                    type="radio"
-                    value={'linear'}
-                  />
-                  <label htmlFor={'linear'}>Linear</label>
-                </span>
-                <span>
-                  <input
-                    checked={scaleType === 'log'}
-                    id={'log'}
-                    onChange={(e) => setScaleType(e.target.value)}
-                    type="radio"
-                    value={'log'}
-                  />
-                  <label htmlFor={'log'}>Log</label>
+      <StatusContent
+        empty={
+          <p css={modifiedInfoBoxStyles}>
+            No data available for this monitoring location.
+          </p>
+        }
+        failure={<p css={modifiedErrorBoxStyles}>{monitoringError}</p>}
+        fetching={<LoadingSpinner />}
+        status={charcsStatus}
+      >
+        {infoText ? (
+          <p css={modifiedInfoBoxStyles}>{infoText}</p>
+        ) : (
+          <>
+            <SliderContainer
+              min={minYear}
+              max={maxYear}
+              disabled={!Boolean(records.length)}
+              onChange={(newDomain) => {
+                const specMeasurements =
+                  measurements?.[unit]?.[fraction]?.[spec];
+                if (specMeasurements) {
+                  getChartData(newDomain, specMeasurements);
+                }
+              }}
+            />
+            <div css={selectContainerStyles}>
+              <span>
+                <label htmlFor="unit">Unit:</label>
+                <Select
+                  className="select"
+                  inputId={'unit'}
+                  isSearchable={false}
+                  options={units}
+                  value={units.find((u) => u.value === unit)}
+                  onChange={(ev) => {
+                    setUnit(ev.value);
+                  }}
+                  styles={reactSelectStyles}
+                />
+              </span>
+              <span>
+                <label htmlFor="sample-fraction">Sample Fraction:</label>
+                <Select
+                  className="select"
+                  inputId={'sample-fraction'}
+                  isSearchable={false}
+                  options={fractions}
+                  value={fractions.find((f) => f.value === fraction)}
+                  onChange={(ev) => {
+                    setFraction(ev.value);
+                  }}
+                  styles={reactSelectStyles}
+                />
+              </span>
+              <span>
+                <label htmlFor="speciation">Method Speciation:</label>
+                <Select
+                  className="select"
+                  inputId={'speciation'}
+                  isSearchable={false}
+                  options={specs}
+                  value={specs.find((s) => s.value === spec)}
+                  onChange={(ev) => {
+                    setSpec(ev.value);
+                  }}
+                  styles={reactSelectStyles}
+                />
+              </span>
+              <span className="radio-container">
+                <label>Scale Type:</label>
+                <span className="radios">
+                  <span>
+                    <input
+                      checked={scaleType === 'linear'}
+                      id={'linear'}
+                      onChange={(e) => setScaleType(e.target.value)}
+                      type="radio"
+                      value={'linear'}
+                    />
+                    <label htmlFor={'linear'}>Linear</label>
+                  </span>
+                  <span>
+                    <input
+                      checked={scaleType === 'log'}
+                      id={'log'}
+                      onChange={(e) => setScaleType(e.target.value)}
+                      type="radio"
+                      value={'log'}
+                    />
+                    <label htmlFor={'log'}>Log</label>
+                  </span>
                 </span>
               </span>
-            </span>
-          </div>
-          <div ref={chartRef}>
-            {!range ? (
-              <LoadingSpinner />
-            ) : !chartData?.length ? (
-              <p css={modifiedInfoBoxStyles}>
-                No measurements available for the selected options.
-              </p>
-            ) : (
-              <div css={chartContainerStyles}>
-                <LineChart
-                  color={lineColors[charcGroup]}
-                  containerRef={chartRef.current}
-                  data={chartData}
-                  dataKey={charcName}
-                  range={range}
-                  xTitle="Date"
-                  yScale={scaleType}
-                  yTitle={yTitle}
-                  yUnit={unit}
-                />
-              </div>
-            )}
-          </div>
-          {chartData?.length && (
-            <div css={boxSectionStyles}>
-              {sectionRowInline(
-                'Selected Date Range',
-                `${new Date(domain[0]).toLocaleDateString(
-                  'en-us',
-                  dateOptions,
-                )}` +
-                  ` - ${new Date(domain[1]).toLocaleDateString(
+            </div>
+            <ChartContainer
+              range={range}
+              charcName={charcName}
+              data={chartData}
+              scaleType={scaleType}
+              yTitle={yTitle}
+              unit={unit}
+            />
+            {chartData?.length && (
+              <div css={boxSectionStyles}>
+                {sectionRowInline(
+                  'Selected Date Range',
+                  `${new Date(domain[0]).toLocaleDateString(
                     'en-us',
                     dateOptions,
-                  )}`,
-              )}
-              {sectionRowInline(
-                'Number of Measurements Shown',
-                chartData.length.toLocaleString(),
-              )}
-              {sectionRowInline(
-                'Average of Values',
-                `${mean.toLocaleString('en-US')} ${String.fromCharCode(
-                  177,
-                )} ${stdDev.toLocaleString()} ${unit}`,
-              )}
-              {sectionRowInline(
-                'Median Value',
-                `${median.toLocaleString()} ${unit}`,
-              )}
-              {range &&
-                sectionRowInline(
-                  'Minimum Value',
-                  `${range[0].toLocaleString()} ${unit}`,
+                  )}` +
+                    ` - ${new Date(domain[1]).toLocaleDateString(
+                      'en-us',
+                      dateOptions,
+                    )}`,
                 )}
-              {range &&
-                sectionRowInline(
-                  'Maximum Value',
-                  `${range[1].toLocaleString()} ${unit}`,
+                {sectionRowInline(
+                  'Number of Measurements Shown',
+                  chartData.length.toLocaleString(),
                 )}
-            </div>
-          )}
-        </>
-      ) : null}
+                {sectionRowInline(
+                  'Average of Values',
+                  `${mean.toLocaleString('en-US')} ${String.fromCharCode(
+                    177,
+                  )} ${stdDev.toLocaleString()} ${unit}`,
+                )}
+                {sectionRowInline(
+                  'Median Value',
+                  `${median.toLocaleString()} ${unit}`,
+                )}
+                {range &&
+                  sectionRowInline(
+                    'Minimum Value',
+                    `${range[0].toLocaleString()} ${unit}`,
+                  )}
+                {range &&
+                  sectionRowInline(
+                    'Maximum Value',
+                    `${range[1].toLocaleString()} ${unit}`,
+                  )}
+              </div>
+            )}
+          </>
+        )}
+      </StatusContent>
     </div>
   );
 }
 
-function CharacteristicsTable({ charcs, charcsStatus, selected, setSelected }) {
+function CheckboxRow({ accessor, id, level, state, dispatch }) {
+  const item = state[accessor][id];
+  return (
+    <div css={treeStyles(level, accordionRowStyles)}>
+      <span>
+        <input
+          type="checkbox"
+          checked={item.selected === 1}
+          ref={(input) => {
+            if (input) input.indeterminate = item.selected === 0.5;
+          }}
+          onChange={handleCheckbox(id, accessor, dispatch)}
+          style={{ top: '1px' }}
+        />
+        <strong>{id}</strong>
+      </span>
+      <strong>{item.count.toLocaleString()}</strong>
+    </div>
+  );
+}
+
+function CharacteristicsTableSection({
+  charcs,
+  charcsStatus,
+  selected,
+  setSelected,
+}) {
   const tableData = useMemo(() => {
     return Object.values(charcs)
       .map((charc) => {
@@ -1399,75 +1420,155 @@ function CharacteristicsTable({ charcs, charcsStatus, selected, setSelected }) {
     <div css={boxStyles}>
       <h2 css={infoBoxHeadingStyles}>Characteristics</h2>
       <div css={charcsTableStyles}>
-        {charcsStatus === 'fetching' ? (
-          <LoadingSpinner />
-        ) : charcsStatus === 'empty' ? (
-          <p css={modifiedInfoBoxStyles}>No records found for this location.</p>
-        ) : charcsStatus === 'failure' ? (
-          <div css={modifiedErrorBoxStyles}>
-            <p>{monitoringError}</p>
-          </div>
-        ) : charcsStatus === 'success' ? (
-          <>
-            {sectionRowInline(
-              'Selected Characteristic',
-              selected,
-              charcsStatus,
-            )}
-            <ReactTable
-              autoResetFilters={false}
-              autoResetSortBy={false}
-              data={tableData}
-              placeholder="Filter..."
-              striped={false}
-              getColumns={(tableWidth) => {
-                const columnWidth = 2 * (tableWidth / 7) - 6;
-                const halfColumnWidth = tableWidth / 7 - 6;
+        <StatusContent
+          empty={
+            <p css={modifiedInfoBoxStyles}>
+              No records found for this location.
+            </p>
+          }
+          failure={
+            <div css={modifiedErrorBoxStyles}>
+              <p>{monitoringError}</p>
+            </div>
+          }
+          fetching={<LoadingSpinner />}
+          status={charcsStatus}
+        >
+          {sectionRowInline('Selected Characteristic', selected, charcsStatus)}
+          <ReactTable
+            autoResetFilters={false}
+            autoResetSortBy={false}
+            data={tableData}
+            placeholder="Filter..."
+            striped={false}
+            getColumns={(tableWidth) => {
+              const columnWidth = 2 * (tableWidth / 7) - 6;
+              const halfColumnWidth = tableWidth / 7 - 6;
 
-                return [
-                  {
-                    Header: '',
-                    accessor: 'select',
-                    minWidth: 24,
-                    width: 24,
-                    filterable: false,
-                  },
-                  {
-                    Header: 'Name',
-                    accessor: 'name',
-                    width: columnWidth,
-                    filterable: true,
-                  },
-                  {
-                    Header: 'Type',
-                    accessor: 'type',
-                    width: columnWidth,
-                    filterable: true,
-                  },
-                  {
-                    Header: 'Group',
-                    accessor: 'group',
-                    width: halfColumnWidth,
-                    filterable: true,
-                  },
-                  {
-                    Header: 'Total Result Count',
-                    accessor: 'resultCount',
-                    width: halfColumnWidth,
-                    filterable: false,
-                  },
-                  {
-                    Header: 'Detectable Result Count',
-                    accessor: 'measurementCount',
-                    width: halfColumnWidth,
-                    filterable: false,
-                  },
-                ];
-              }}
-            />
-          </>
-        ) : null}
+              return [
+                {
+                  Header: '',
+                  accessor: 'select',
+                  minWidth: 24,
+                  width: 24,
+                  filterable: false,
+                },
+                {
+                  Header: 'Name',
+                  accessor: 'name',
+                  width: columnWidth,
+                  filterable: true,
+                },
+                {
+                  Header: 'Type',
+                  accessor: 'type',
+                  width: columnWidth,
+                  filterable: true,
+                },
+                {
+                  Header: 'Group',
+                  accessor: 'group',
+                  width: halfColumnWidth,
+                  filterable: true,
+                },
+                {
+                  Header: 'Total Result Count',
+                  accessor: 'resultCount',
+                  width: halfColumnWidth,
+                  filterable: false,
+                },
+                {
+                  Header: 'Detectable Result Count',
+                  accessor: 'measurementCount',
+                  width: halfColumnWidth,
+                  filterable: false,
+                },
+              ];
+            }}
+          />
+        </StatusContent>
       </div>
+    </div>
+  );
+}
+
+function ChartContainer({ range, data, charcName, scaleType, yTitle, unit }) {
+  const charcGroup = getCharcGroup(
+    getCharcType(charcName, characteristicsByType),
+    characteristicGroupMappings,
+  );
+  const chartRef = useRef(null);
+
+  if (!range) return <LoadingSpinner />;
+
+  if (!data?.length)
+    return (
+      <p css={modifiedInfoBoxStyles}>
+        No measurements available for the selected options.
+      </p>
+    );
+
+  return (
+    <div ref={chartRef} css={chartContainerStyles}>
+      <LineChart
+        color={lineColors[charcGroup]}
+        containerRef={chartRef.current}
+        data={data}
+        dataKey={charcName}
+        range={range}
+        xTitle="Date"
+        yScale={scaleType}
+        yTitle={yTitle}
+        yUnit={unit}
+      />
+    </div>
+  );
+}
+
+function CheckboxAccordion({
+  accessor,
+  children,
+  id,
+  level,
+  dispatch,
+  state,
+  expanded,
+  subHeading,
+}) {
+  const item = state[accessor][id];
+  return (
+    <div css={treeStyles(level)}>
+      <AccordionItem
+        allExpanded={expanded}
+        highlightContent={false}
+        title={
+          <span css={accordionFlexStyles}>
+            <span>
+              <input
+                type="checkbox"
+                checked={item.selected === 1}
+                ref={(input) => {
+                  if (input) input.indeterminate = item.selected === 0.5;
+                }}
+                onChange={handleCheckbox(id, accessor, dispatch)}
+                onClick={(ev) => ev.stopPropagation()}
+                style={{ top: '2px' }}
+              />
+              <strong>{id}</strong>
+            </span>
+            <strong>{item.count.toLocaleString()}</strong>
+          </span>
+        }
+      >
+        {subHeading && (
+          <p css={treeStyles(level + 1, accordionHeadingStyles)}>
+            <strong>
+              <em>{subHeading}</em>
+            </strong>
+          </p>
+        )}
+        {children}
+      </AccordionItem>
     </div>
   );
 }
@@ -1530,253 +1631,171 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
   return (
     <div css={boxStyles}>
       <h2 css={boxHeadingStyles}>Download Station Data</h2>
-      {charcsStatus === 'fetching' ? (
-        <LoadingSpinner />
-      ) : charcsStatus === 'empty' ? (
-        <p css={modifiedInfoBoxStyles}>
-          No data available for this monitoring location.
-        </p>
-      ) : charcsStatus === 'failure' ? (
-        <p css={modifiedErrorBoxStyles}>{monitoringError}</p>
-      ) : charcsStatus === 'success' ? (
-        <>
-          <div css={sliderContainerStyles}>
-            {!range ? (
-              <LoadingSpinner />
-            ) : (
-              <DateSlider
-                max={maxYear}
-                min={minYear}
-                disabled={!Boolean(Object.keys(charcs).length)}
-                onChange={(newRange) => setRange(newRange)}
-              />
-            )}
-          </div>
-          <div css={flexboxSectionStyles}>
-            <div css={accordionStyles}>
-              <AccordionList
-                className="accordion-list"
-                onExpandCollapse={(newExpanded) => setExpanded(newExpanded)}
-                title={
-                  <span className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={checkboxes.all === 1}
-                      ref={(input) => {
-                        if (input) input.indeterminate = checkboxes.all === 2;
-                      }}
-                      onChange={(_ev) => checkboxDispatch({ type: 'all' })}
-                    />
-                    <strong>Toggle All</strong>
-                  </span>
-                }
-              >
-                <p css={accordionHeadingStyles}>
-                  <strong>
-                    <em>
-                      <GlossaryTerm term="Characteristic Group">
-                        Character&shy;istic Groups
-                      </GlossaryTerm>
-                    </em>
-                  </strong>
-                  <strong>
-                    <em>
-                      <GlossaryTerm
-                        className="count"
-                        term="Monitoring Measurements"
-                      >
-                        Number of Measurements
-                      </GlossaryTerm>
-                    </em>
-                  </strong>
-                </p>
-                {Object.values(checkboxes.groups)
-                  .sort((a, b) => a.id.localeCompare(b.id))
-                  .map((group) => (
-                    <AccordionItem
-                      allExpanded={expanded}
-                      key={group.id}
-                      highlightContent={false}
-                      title={
-                        <span css={accordionFlexStyles}>
-                          <span className="checkbox-label">
-                            <input
-                              type="checkbox"
-                              checked={group.selected === 1}
-                              ref={(input) => {
-                                if (input)
-                                  input.indeterminate = group.selected === 2;
-                              }}
-                              onChange={(_ev) => {
-                                checkboxDispatch({
-                                  type: 'group',
-                                  payload: { id: group.id },
-                                });
-                              }}
-                              onClick={(ev) => ev.stopPropagation()}
-                            />
-                            <strong>{group.id}</strong>
-                          </span>
-                          <span>
-                            <strong>{group.count.toLocaleString()}</strong>
-                          </span>
-                        </span>
-                      }
+      <StatusContent
+        empty={
+          <p css={modifiedInfoBoxStyles}>
+            No data available for this monitoring location.
+          </p>
+        }
+        failure={<p css={modifiedErrorBoxStyles}>{monitoringError}</p>}
+        fetching={<LoadingSpinner />}
+        status={charcsStatus}
+      >
+        <SliderContainer
+          disabled={!Boolean(Object.keys(charcs).length)}
+          max={maxYear}
+          min={minYear}
+          onChange={(newRange) => setRange(newRange)}
+        />
+        <div css={flexboxSectionStyles}>
+          <div css={accordionStyles}>
+            <AccordionList
+              className="accordion-list"
+              onExpandCollapse={(newExpanded) => setExpanded(newExpanded)}
+              title={
+                <span>
+                  <input
+                    type="checkbox"
+                    checked={checkboxes.all === 1}
+                    ref={(input) => {
+                      if (input) input.indeterminate = checkboxes.all === 0.5;
+                    }}
+                    onChange={(_ev) => checkboxDispatch({ type: 'all' })}
+                  />
+                  <strong>Toggle All</strong>
+                </span>
+              }
+            >
+              <p css={accordionHeadingStyles}>
+                <strong>
+                  <em>
+                    <GlossaryTerm term="Characteristic Group">
+                      Character&shy;istic Groups
+                    </GlossaryTerm>
+                  </em>
+                </strong>
+                <strong>
+                  <em>
+                    <GlossaryTerm
+                      className="count"
+                      term="Monitoring Measurements"
                     >
-                      <p className="charc-type" css={accordionHeadingStyles}>
-                        <strong>
-                          <em>Character&shy;istic Types</em>
-                        </strong>
-                      </p>
-                      {group.types
-                        .sort((a, b) => a.localeCompare(b))
-                        .map((typeId) => {
-                          const type = checkboxes.types[typeId];
-                          return (
-                            <div className="charc-type" key={typeId}>
-                              <AccordionItem
-                                allExpanded={expanded}
-                                highlightContent={false}
-                                title={
-                                  <span css={accordionFlexStyles}>
-                                    <span className="checkbox-label">
-                                      <input
-                                        type="checkbox"
-                                        checked={type.selected === 1}
-                                        ref={(input) => {
-                                          if (input)
-                                            input.indeterminate =
-                                              type.selected === 2;
-                                        }}
-                                        onChange={(_ev) =>
-                                          checkboxDispatch({
-                                            type: 'type',
-                                            payload: { id: typeId },
-                                          })
-                                        }
-                                        onClick={(ev) => ev.stopPropagation()}
-                                      />
-                                      <strong>{typeId}</strong>
-                                    </span>
-                                    <strong>
-                                      {type.count.toLocaleString()}
-                                    </strong>
-                                  </span>
-                                }
-                              >
-                                <p
-                                  className="charc-name"
-                                  css={accordionHeadingStyles}
-                                >
-                                  <strong>
-                                    <em>Character&shy;istic Names</em>
-                                  </strong>
-                                </p>
-                                {type.charcs
-                                  .sort((a, b) => a.localeCompare(b))
-                                  .map((charcId) => {
-                                    const charc = checkboxes.charcs[charcId];
-                                    return (
-                                      <div
-                                        className="charc-name"
-                                        css={accordionRowStyles}
-                                        key={charcId}
-                                      >
-                                        <span className="checkbox-label">
-                                          <input
-                                            type="checkbox"
-                                            checked={charc.selected === 1}
-                                            ref={(input) => {
-                                              if (input)
-                                                input.indeterminate =
-                                                  charc.selected === 2;
-                                            }}
-                                            onChange={(_ev) =>
-                                              checkboxDispatch({
-                                                type: 'characteristic',
-                                                payload: { id: charcId },
-                                              })
-                                            }
-                                          />
-                                          <strong>{charcId}</strong>
-                                        </span>
-                                        <strong>
-                                          {charc.count.toLocaleString()}
-                                        </strong>
-                                      </div>
-                                    );
-                                  })}
-                              </AccordionItem>
-                            </div>
-                          );
-                        })}
-                    </AccordionItem>
-                  ))}
-                <p className="total-row" css={accordionHeadingStyles}>
-                  <strong>
-                    <em>Total Measurements Selected:</em>
-                  </strong>
-                  <strong className="count">
-                    {getTotalCount(checkboxes.charcs).toLocaleString()}
-                  </strong>
-                </p>
-              </AccordionList>
-            </div>
+                      Number of Measurements
+                    </GlossaryTerm>
+                  </em>
+                </strong>
+              </p>
+              {Object.keys(checkboxes.groups)
+                .sort((a, b) => a.localeCompare(b))
+                .map((groupId) => (
+                  <CheckboxAccordion
+                    accessor="groups"
+                    level={0}
+                    id={groupId}
+                    key={groupId}
+                    dispatch={checkboxDispatch}
+                    state={checkboxes}
+                    expanded={expanded}
+                    subHeading="Character&shy;istic Types"
+                  >
+                    {checkboxes.groups[groupId].types
+                      .sort((a, b) => a.localeCompare(b))
+                      .map((typeId) => (
+                        <CheckboxAccordion
+                          accessor="types"
+                          level={1}
+                          id={typeId}
+                          dispatch={checkboxDispatch}
+                          key={typeId}
+                          state={checkboxes}
+                          expanded={expanded}
+                          subHeading="Character&shy;istic Names"
+                        >
+                          {checkboxes.types[typeId].charcs
+                            .sort((a, b) => a.localeCompare(b))
+                            .map((charcId) => (
+                              <CheckboxRow
+                                accessor="charcs"
+                                level={2}
+                                id={charcId}
+                                key={charcId}
+                                dispatch={checkboxDispatch}
+                                state={checkboxes}
+                              />
+                            ))}
+                        </CheckboxAccordion>
+                      ))}
+                  </CheckboxAccordion>
+                ))}
+              <p className="total-row" css={accordionHeadingStyles}>
+                <strong>
+                  <em>Total Measurements Selected:</em>
+                </strong>
+                <strong className="count">
+                  {getTotalCount(checkboxes.charcs).toLocaleString()}
+                </strong>
+              </p>
+            </AccordionList>
           </div>
-          <div id="download-links" css={downloadLinksStyles}>
-            <div>
-              <a
-                rel="noopener noreferrer"
-                target="_blank"
-                data-cy="portal"
-                href={portalUrl}
-                style={{ fontWeight: 'normal' }}
-              >
-                <i
-                  css={iconStyles}
-                  className="fas fa-filter"
-                  aria-hidden="true"
-                />
-                Advanced Filtering
-              </a>
+        </div>
+        <div id="download-links" css={downloadLinksStyles}>
+          <div>
+            <a
+              rel="noopener noreferrer"
+              target="_blank"
+              data-cy="portal"
+              href={portalUrl}
+              style={{ fontWeight: 'normal' }}
+            >
+              <i
+                css={iconStyles}
+                className="fas fa-filter"
+                aria-hidden="true"
+              />
+              Advanced Filtering
+            </a>
+            &nbsp;&nbsp;
+            <small css={modifiedDisclaimerStyles}>
+              (opens new browser tab)
+            </small>
+          </div>
+          <div>
+            <span>Download Selected Data</span>
+            <span>
               &nbsp;&nbsp;
-              <small css={modifiedDisclaimerStyles}>
-                (opens new browser tab)
-              </small>
-            </div>
-            <div>
-              <span>Download Selected Data</span>
-              <span>
-                &nbsp;&nbsp;
-                {checkboxes.all > 0 ? (
-                  <a href={`${downloadUrl}&mimeType=xlsx`}>
-                    <i className="fas fa-file-excel" aria-hidden="true" />
-                  </a>
-                ) : (
-                  <i
-                    className="fas fa-file-excel"
-                    aria-hidden="true"
-                    style={{ color: '#ccc' }}
-                  />
-                )}
-                &nbsp;&nbsp;
-                {checkboxes.all > 0 ? (
-                  <a href={`${downloadUrl}&mimeType=csv`}>
-                    <i className="fas fa-file-csv" aria-hidden="true" />
-                  </a>
-                ) : (
-                  <i
-                    className="fas fa-file-csv"
-                    aria-hidden="true"
-                    style={{ color: '#ccc' }}
-                  />
-                )}
-              </span>
-            </div>
+              <FileLink
+                disabled={checkboxes.all === 0}
+                fileType="excel"
+                url={downloadUrl}
+              />
+              &nbsp;&nbsp;
+              <FileLink
+                disabled={checkboxes.all === 0}
+                fileType="csv"
+                url={downloadUrl}
+              />
+            </span>
           </div>
-        </>
-      ) : null}
+        </div>
+      </StatusContent>
     </div>
+  );
+}
+
+function FileLink({ disabled, fileType, url }) {
+  const mimeTypes = { excel: 'xlsx', csv: 'csv' };
+  if (disabled)
+    return (
+      <i
+        className={`fas fa-file-${fileType}`}
+        aria-hidden="true"
+        style={{ color: '#ccc' }}
+      />
+    );
+  return (
+    <a href={`${url}&mimeType=${mimeTypes[fileType]}`}>
+      <i className={`fas fa-file-${fileType}`} aria-hidden="true" />
+    </a>
   );
 }
 
@@ -1816,7 +1835,7 @@ function InformationSection({ orgId, siteId, station, stationStatus }) {
   );
 }
 
-function MonitoringStation({ fullscreen }) {
+function MonitoringStationContent({ fullscreen }) {
   const { orgId, provider, siteId } = useParams();
   const [station, stationStatus] = useStationDetails(provider, orgId, siteId);
   const [characteristics, characteristicsStatus] = useCharacteristics(
@@ -1929,20 +1948,13 @@ function MonitoringStation({ fullscreen }) {
                   />
                 </div>
                 <div css={rightColumnStyles}>
-                  <CharacteristicsTable
+                  <CharacteristicsTableSection
                     charcs={characteristics}
                     charcsStatus={characteristicsStatus}
                     selected={selectedCharc}
                     setSelected={setSelectedCharc}
                   />
-                  <CharacteristicChart
-                    charcGroup={
-                      selectedCharc &&
-                      getCharcGroup(
-                        characteristics[selectedCharc]?.type,
-                        characteristicGroupMappings,
-                      )
-                    }
+                  <CharacteristicChartSection
                     charcName={selectedCharc}
                     charcsStatus={characteristicsStatus}
                     records={
@@ -1960,31 +1972,45 @@ function MonitoringStation({ fullscreen }) {
     </Page>
   );
 
-  switch (stationStatus) {
-    case 'empty':
-      return noStationView;
-    case 'success':
-      return fullscreen.fullscreenActive ? fullScreenView : twoColumnView;
-    case 'fetching':
-      return fullscreen.fullscreenActive ? fullScreenView : twoColumnView;
-    case 'failure':
-      return <p css={modifiedErrorBoxStyles}>{monitoringError}</p>;
-    default:
-      return null;
-  }
+  const content = fullscreen.fullscreenActive ? fullScreenView : twoColumnView;
+
+  return (
+    <StatusContent
+      empty={noStationView}
+      failure={<p css={modifiedErrorBoxStyles}>{monitoringError}</p>}
+      fetching={content}
+      success={content}
+      status={stationStatus}
+    />
+  );
 }
 
-function MonitoringStationContainer(props) {
+function MonitoringStation(props) {
   return (
-    <MapHighlightProvider>
-      <FullscreenProvider>
-        <FullscreenContext.Consumer>
-          {(fullscreen) => (
-            <MonitoringStation fullscreen={fullscreen} {...props} />
-          )}
-        </FullscreenContext.Consumer>
-      </FullscreenProvider>
-    </MapHighlightProvider>
+    <FullscreenProvider>
+      <FullscreenContext.Consumer>
+        {(fullscreen) => (
+          <MonitoringStationContent fullscreen={fullscreen} {...props} />
+        )}
+      </FullscreenContext.Consumer>
+    </FullscreenProvider>
+  );
+}
+
+function SliderContainer({ min, max, disabled = false, onChange }) {
+  return (
+    <div css={sliderContainerStyles}>
+      {!min || !max ? (
+        <LoadingSpinner />
+      ) : (
+        <DateSlider
+          disabled={disabled}
+          min={min}
+          max={max}
+          onChange={onChange}
+        />
+      )}
+    </div>
   );
 }
 
@@ -2164,4 +2190,27 @@ function StationMapContainer({ ...props }) {
   );
 }
 
-export default MonitoringStationContainer;
+function StatusContent({
+  children,
+  empty,
+  idle = null,
+  failure,
+  fetching,
+  status,
+  success = null,
+}) {
+  switch (status) {
+    case 'fetching':
+      return fetching;
+    case 'empty':
+      return empty;
+    case 'failure':
+      return failure;
+    case 'success':
+      return success ?? children;
+    default:
+      return idle;
+  }
+}
+
+export default MonitoringStation;
