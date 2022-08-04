@@ -1239,7 +1239,7 @@ function MonitoringLocationsContent({ attributes, services }) {
             <td>
               <em>Monitor&shy;ing Site ID:</em>
             </td>
-            <td>{siteId.replace(`${orgId}-`, '')}</td>
+            <td>{siteId}</td>
           </tr>
           <tr>
             <td>
@@ -1490,7 +1490,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
             <td>
               <em>Monitor&shy;ing Site ID:</em>
             </td>
-            <td>{siteId.replace(`${orgId}-`, '')}</td>
+            <td>{siteId}</td>
           </tr>
         </tbody>
       </table>

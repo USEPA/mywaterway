@@ -8,8 +8,8 @@ import {
   XYChart,
 } from '@visx/xychart';
 // types
-import type { ReactChildren, ReactChild } from 'react';
-import type { XYChartTheme } from '@visx/xychart';
+import type { ReactChildren, ReactChild, ReactNode } from 'react';
+import type { TooltipData, XYChartTheme } from '@visx/xychart';
 
 // NOTE: EPA's _reboot.css file causes the tooltip series glyph to be clipped
 const VisxStyles = createGlobalStyle`
@@ -43,26 +43,26 @@ type Props = {
   data: Datum[];
   dataKey: string;
   range?: number[];
+  buildTooltip?: (tooltipData?: TooltipData<Datum>) => ReactNode;
   xAccessor?: (d: Datum) => string;
   xTitle?: string;
   yAccessor?: (d: Datum) => number;
   yScale?: 'log' | 'linear';
   yTitle?: string;
-  yUnit: string;
 };
 
-function LineChart({
+function ScatterPlot({
   data,
   dataKey,
   range,
   color,
   containerRef,
+  buildTooltip,
   xAccessor = (d: Datum) => d.x,
   xTitle,
   yAccessor = (d: Datum) => d.y,
   yScale = 'linear',
   yTitle,
-  yUnit,
 }: Props) {
   const [theme, setTheme] = useState<XYChartTheme>(customTheme);
   useEffect(() => {
@@ -105,6 +105,14 @@ function LineChart({
     };
   }, [containerRef]);
 
+  const defaultBuildTooltip = (tooltipData?: TooltipData<Datum>) => (
+    <>
+      {tooltipData?.nearestDatum && xAccessor(tooltipData.nearestDatum.datum)}:{' '}
+      {tooltipData?.nearestDatum && yAccessor(tooltipData.nearestDatum.datum)}{' '}
+    </>
+  );
+  const renderTooltip = buildTooltip ?? defaultBuildTooltip;
+
   return (
     <>
       <VisxStyles />
@@ -144,24 +152,14 @@ function LineChart({
           yAccessor={yAccessor}
         />
         <Tooltip<Datum>
-          // detectBounds={false}
           showDatumGlyph
           showVerticalCrosshair
           snapTooltipToDatumX
-          renderTooltip={({ tooltipData }) => (
-            <>
-              {tooltipData?.nearestDatum &&
-                xAccessor(tooltipData.nearestDatum.datum)}
-              :{' '}
-              {tooltipData?.nearestDatum &&
-                yAccessor(tooltipData.nearestDatum.datum)}{' '}
-              {yUnit}
-            </>
-          )}
+          renderTooltip={({ tooltipData }) => renderTooltip(tooltipData)}
         />
       </XYChart>
     </>
   );
 }
 
-export default LineChart;
+export default ScatterPlot;

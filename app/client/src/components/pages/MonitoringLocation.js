@@ -21,7 +21,7 @@ import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import DateSlider from 'components/shared/DateSlider';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import LineChart from 'components/shared/LineChart';
+import ScatterPlot from 'components/shared/ScatterPlot';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Map from 'components/shared/Map';
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
@@ -421,6 +421,17 @@ function buildOptions(values) {
   });
 }
 
+function buildTooltip(unit) {
+  return (tooltipData) => (
+    <>
+      {tooltipData?.nearestDatum && tooltipData.nearestDatum.datum.x}:{' '}
+      {tooltipData?.nearestDatum &&
+        tooltipData.nearestDatum.datum.daily.join(', ')}{' '}
+      {unit}
+    </>
+  );
+}
+
 function checkboxReducer(state, action) {
   switch (action.type) {
     case 'all': {
@@ -456,21 +467,21 @@ const dateOptions = {
   day: 'numeric',
 };
 
-async function drawStation(station, layer) {
-  if (isEmpty(station)) return false;
+async function drawSite(site, layer) {
+  if (isEmpty(site)) return false;
   const newFeature = new Graphic({
     geometry: {
       type: 'point',
-      latitude: station.locationLatitude,
-      longitude: station.locationLongitude,
+      latitude: site.locationLatitude,
+      longitude: site.locationLongitude,
     },
     attributes: {
-      ...station,
+      ...site,
       locationUrl: window.location.href,
-      stationProviderName: station.providerName,
-      stationTotalSamples: station.totalSamples,
-      stationTotalMeasurements: station.totalMeasurements,
-      stationTotalsByGroup: JSON.stringify(station.charcTypeCounts),
+      stationProviderName: site.providerName,
+      stationTotalSamples: site.totalSamples,
+      stationTotalMeasurements: site.totalMeasurements,
+      stationTotalsByGroup: JSON.stringify(site.charcTypeCounts),
     },
   });
   const featureSet = await layer.queryFeatures();
@@ -481,7 +492,7 @@ async function drawStation(station, layer) {
   return editResults?.addFeatureResults?.length ? true : false;
 }
 
-async function fetchStationDetails(url, setData, setStatus) {
+async function fetchSiteDetails(url, setData, setStatus) {
   const res = await fetchCheck(url);
   if (res.features.length < 1) {
     setStatus('empty');
@@ -489,7 +500,7 @@ async function fetchStationDetails(url, setData, setStatus) {
     return;
   }
   const feature = res.features[0];
-  const stationDetails = {
+  const siteDetails = {
     county: feature.properties.CountyName,
     charcTypeCounts: feature.properties.characteristicGroupResultCount,
     charcGroups: groupTypes(
@@ -514,12 +525,12 @@ async function fetchStationDetails(url, setData, setStatus) {
       `${feature.properties.ProviderName}/` +
       `${feature.properties.OrganizationIdentifier}`,
   };
-  stationDetails.charcGroupCounts = parseGroupCounts(
-    stationDetails.charcTypeCounts,
-    stationDetails.charcGroups,
+  siteDetails.charcGroupCounts = parseGroupCounts(
+    siteDetails.charcTypeCounts,
+    siteDetails.charcGroups,
     characteristicGroupMappings,
   );
-  setData(stationDetails);
+  setData(siteDetails);
   setStatus('success');
 }
 
@@ -598,6 +609,7 @@ function getMedian(values) {
 }
 
 function getStdDev(values, mean = null) {
+  if (values.length <= 1) return null;
   const sampleMean = mean ?? getMean(values);
   const tss = values.reduce((a, b) => a + (b - sampleMean) ** 2, 0);
   const variance = tss / (values.length - 1);
@@ -800,11 +812,11 @@ function parseRecord(record, measurements) {
   if (!specMeasurements[date]) {
     specMeasurements[date] = {
       ...record,
-      measurement: [record.measurement],
+      measurements: [record.measurement],
       date,
     };
   } else {
-    specMeasurements[date].measurement.push(record.measurement);
+    specMeasurements[date].measurements.push(record.measurement);
   }
   return { unit, speciation, fraction };
 }
@@ -834,11 +846,14 @@ function sortMeasurements(measurements) {
         Object.entries(fractionMeasurements).forEach(
           ([specKey, specMeasurements]) => {
             Object.values(specMeasurements).forEach((date) => {
-              date.measurement = parseFloat(
+              /* date.measurement = parseFloat(
                 (
                   date.measurement.reduce((a, b) => a + b) /
                   date.measurement.length
                 ).toFixed(3),
+              ); */
+              date.measurements = date.measurements.map((measurement) =>
+                parseFloat(measurement.toFixed(3)),
               );
             });
             measurements[unitKey][fractionKey][specKey] = Object.values(
@@ -1054,25 +1069,25 @@ function useCharacteristics(provider, orgId, siteId) {
   return [charcs, status];
 }
 
-function useStationDetails(provider, orgId, siteId) {
+function useSiteDetails(provider, orgId, siteId) {
   const services = useServicesContext();
 
-  const [station, setStation] = useState({});
-  const [stationStatus, setStationStatus] = useState('fetching');
+  const [site, setSite] = useState({});
+  const [siteStatus, setSiteStatus] = useState('fetching');
 
   useEffect(() => {
     const url =
       `${services.data.waterQualityPortal.monitoringLocation}` +
       `search?mimeType=geojson&zip=no&provider=${provider}&organization=${orgId}&siteid=${siteId}`;
 
-    fetchStationDetails(url, setStation, setStationStatus).catch((err) => {
+    fetchSiteDetails(url, setSite, setSiteStatus).catch((err) => {
       console.error(err);
-      setStationStatus('failure');
-      setStation({});
+      setSiteStatus('failure');
+      setSite({});
     });
-  }, [provider, services, setStation, setStationStatus, orgId, siteId]);
+  }, [provider, services, setSite, setSiteStatus, orgId, siteId]);
 
-  return [station, stationStatus];
+  return [site, siteStatus];
 }
 
 /*
@@ -1151,9 +1166,15 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
 
   const getChartData = useCallback((newDomain, newMsmts) => {
     let newChartData = [];
-    newMsmts.forEach((msmt) => {
-      if (msmt.year >= newDomain[0] && msmt.year <= newDomain[1]) {
-        newChartData.push({ x: msmt.date, y: msmt.measurement });
+    newMsmts.forEach((day) => {
+      if (day.year >= newDomain[0] && day.year <= newDomain[1]) {
+        day.measurements.forEach((msmt) => {
+          newChartData.push({
+            x: day.date,
+            y: msmt,
+            daily: day.measurements.sort(),
+          });
+        });
       }
     });
     setChartData(newChartData);
@@ -1200,6 +1221,11 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   else if (!measurements)
     infoText =
       'No measurements available to be charted for this characteristic.';
+
+  let average = mean?.toLocaleString('en-US');
+  if (stdDev)
+    average += ` ${String.fromCharCode(177)} ${stdDev.toLocaleString()}`;
+  average += ` ${unit}`;
 
   return (
     <div css={boxStyles}>
@@ -1329,12 +1355,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                   'Number of Measurements Shown',
                   chartData.length.toLocaleString(),
                 )}
-                {sectionRowInline(
-                  'Average of Values',
-                  `${mean.toLocaleString('en-US')} ${String.fromCharCode(
-                    177,
-                  )} ${stdDev.toLocaleString()} ${unit}`,
-                )}
+                {sectionRowInline('Average of Values', average)}
                 {sectionRowInline(
                   'Median Value',
                   `${median.toLocaleString()} ${unit}`,
@@ -1439,6 +1460,7 @@ function CharacteristicsTableSection({
             autoResetFilters={false}
             autoResetSortBy={false}
             data={tableData}
+            defaultSort="name"
             placeholder="Filter..."
             striped={false}
             getColumns={(tableWidth) => {
@@ -1510,7 +1532,8 @@ function ChartContainer({ range, data, charcName, scaleType, yTitle, unit }) {
 
   return (
     <div ref={chartRef} css={chartContainerStyles}>
-      <LineChart
+      <ScatterPlot
+        buildTooltip={buildTooltip(unit)}
         color={lineColors[charcGroup]}
         containerRef={chartRef.current}
         data={data}
@@ -1573,7 +1596,7 @@ function CheckboxAccordion({
   );
 }
 
-function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
+function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
   const [range, setRange] = useState(null);
   const [minYear, setMinYear] = useState(null);
   const [maxYear, setMaxYear] = useState(null);
@@ -1586,22 +1609,22 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
   const services = useServicesContext();
 
   const downloadUrl =
-    stationStatus === 'success' &&
+    siteStatus === 'success' &&
     `${services.data.waterQualityPortal.resultSearch}` +
       `zip=no&dataProfile=narrowResult` +
-      `&organization=${station.orgId}` +
-      `&siteid=${station.siteId}` +
-      `&providers=${station.providerName}` +
+      `&organization=${site.orgId}` +
+      `&siteid=${site.siteId}` +
+      `&providers=${site.providerName}` +
       `${buildCharcsFilter(checkboxes)}` +
       `${buildDateFilter(range, minYear, maxYear)}`;
 
   const portalUrl =
-    stationStatus === 'success' &&
+    siteStatus === 'success' &&
     `${services.data.waterQualityPortal.userInterface}#` +
       `mimeType=xlsx&dataProfile=narrowResult` +
-      `&organization=${station.orgId}` +
-      `&siteid=${station.siteId}` +
-      `&providers=${station.providerName}` +
+      `&organization=${site.orgId}` +
+      `&siteid=${site.siteId}` +
+      `&providers=${site.providerName}` +
       `${buildCharcsFilter(checkboxes)}` +
       `${buildDateFilter(range, minYear, maxYear)}`;
 
@@ -1630,7 +1653,7 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
 
   return (
     <div css={boxStyles}>
-      <h2 css={boxHeadingStyles}>Download Station Data</h2>
+      <h2 css={boxHeadingStyles}>Download Location Data</h2>
       <StatusContent
         empty={
           <p css={modifiedInfoBoxStyles}>
@@ -1799,45 +1822,43 @@ function FileLink({ disabled, fileType, url }) {
   );
 }
 
-function InformationSection({ orgId, siteId, station, stationStatus }) {
-  const trimmedSiteId = siteId.replace(orgId + '-', '');
-
+function InformationSection({ orgId, siteId, site, siteStatus }) {
   return (
     <div css={boxStyles}>
       <h2 css={infoBoxHeadingStyles}>
-        {stationStatus === 'fetching' && <LoadingSpinner />}
+        {siteStatus === 'fetching' && <LoadingSpinner />}
         <span>
-          {stationStatus === 'success' && station.locationName}
+          {siteStatus === 'success' && site.locationName}
           <small>
-            <strong>Monitoring Station ID:</strong>&nbsp; {trimmedSiteId}
+            <strong>Site ID:</strong>&nbsp; {siteId}
           </small>
         </span>
       </h2>
-      {sectionRowInline('Organization Name', station.orgName, stationStatus)}
-      {sectionRowInline('Organization ID', station.orgId, stationStatus)}
+      {sectionRowInline('Organization Name', site.orgName, siteStatus)}
+      {sectionRowInline('Organization ID', site.orgId, siteStatus)}
       {sectionRowInline(
         'Location',
-        `${station.county}, ${station.state}`,
-        stationStatus,
+        `${site.county}, ${site.state}`,
+        siteStatus,
       )}
-      {sectionRowInline('Water Type', station.locationType, stationStatus)}
+      {sectionRowInline('Water Type', site.locationType, siteStatus)}
       {sectionRowInline(
         'Total Sample Count',
-        station.totalSamples?.toLocaleString(),
-        stationStatus,
+        site.totalSamples?.toLocaleString(),
+        siteStatus,
       )}
       {sectionRowInline(
         'Total Measurement Count',
-        station.totalMeasurements?.toLocaleString(),
-        stationStatus,
+        site.totalMeasurements?.toLocaleString(),
+        siteStatus,
       )}
     </div>
   );
 }
 
-function MonitoringStationContent({ fullscreen }) {
+function MonitoringSiteContent({ fullscreen }) {
   const { orgId, provider, siteId } = useParams();
-  const [station, stationStatus] = useStationDetails(provider, orgId, siteId);
+  const [site, siteStatus] = useSiteDetails(provider, orgId, siteId);
   const [characteristics, characteristicsStatus] = useCharacteristics(
     provider,
     orgId,
@@ -1864,10 +1885,10 @@ function MonitoringStationContent({ fullscreen }) {
               ${boxStyles};
             `}
           >
-            <StationMapContainer
+            <SiteMapContainer
               layout="narrow"
-              station={station}
-              stationStatus={stationStatus}
+              site={site}
+              siteStatus={siteStatus}
               widthRef={widthRef}
             />
           </div>
@@ -1886,18 +1907,18 @@ function MonitoringStationContent({ fullscreen }) {
         ${boxStyles};
       `}
     >
-      <StationMapContainer
+      <SiteMapContainer
         layout="wide"
-        station={station}
-        stationStatus={stationStatus}
+        site={site}
+        siteStatus={siteStatus}
         widthRef={widthRef}
       />
     </div>
   );
 
-  const noStationView = (
+  const noSiteView = (
     <Page>
-      <NavBar title="Monitoring Station Details" />
+      <NavBar title="Monitoring Location Details" />
 
       <div css={containerStyles}>
         <div css={pageErrorBoxStyles}>
@@ -1913,10 +1934,10 @@ function MonitoringStationContent({ fullscreen }) {
   const fullScreenView = (
     <WindowSize>
       {({ width, height }) => (
-        <div data-content="stationmap" style={{ width, height }}>
-          <StationMapContainer
+        <div data-content="location-map" style={{ width, height }}>
+          <SiteMapContainer
             layout="fullscreen"
-            station={station}
+            site={site}
             widthRef={widthRef}
           />
         </div>
@@ -1926,7 +1947,7 @@ function MonitoringStationContent({ fullscreen }) {
 
   const twoColumnView = (
     <Page>
-      <NavBar title="Monitoring Station Details" />
+      <NavBar title="Monitoring Location Details" />
       <div css={containerStyles} data-content="container">
         <WindowSize>
           {({ width, height }) => {
@@ -1935,16 +1956,16 @@ function MonitoringStationContent({ fullscreen }) {
                 <div className="static" css={leftColumnStyles}>
                   <InformationSection
                     orgId={orgId}
-                    station={station}
-                    stationStatus={stationStatus}
+                    site={site}
+                    siteStatus={siteStatus}
                     siteId={siteId}
                   />
                   {width < 960 ? mapNarrow(height) : mapWide}
                   <DownloadSection
                     charcs={characteristics}
                     charcsStatus={characteristicsStatus}
-                    station={station}
-                    stationStatus={stationStatus}
+                    site={site}
+                    siteStatus={siteStatus}
                   />
                 </div>
                 <div css={rightColumnStyles}>
@@ -1976,21 +1997,21 @@ function MonitoringStationContent({ fullscreen }) {
 
   return (
     <StatusContent
-      empty={noStationView}
+      empty={noSiteView}
       failure={<p css={modifiedErrorBoxStyles}>{monitoringError}</p>}
       fetching={content}
       success={content}
-      status={stationStatus}
+      status={siteStatus}
     />
   );
 }
 
-function MonitoringStation(props) {
+function MonitoringSite(props) {
   return (
     <FullscreenProvider>
       <FullscreenContext.Consumer>
         {(fullscreen) => (
-          <MonitoringStationContent fullscreen={fullscreen} {...props} />
+          <MonitoringSiteContent fullscreen={fullscreen} {...props} />
         )}
       </FullscreenContext.Consumer>
     </FullscreenProvider>
@@ -2014,7 +2035,7 @@ function SliderContainer({ min, max, disabled = false, onChange }) {
   );
 }
 
-function StationMap({ layout, station, stationStatus, widthRef }) {
+function SiteMap({ layout, site, siteStatus, widthRef }) {
   const [layersInitialized, setLayersInitialized] = useState(false);
   const [doneDrawing, setDoneDrawing] = useState(false);
   const [mapLoading, setMapLoading] = useState(true);
@@ -2117,25 +2138,25 @@ function StationMap({ layout, station, stationStatus, widthRef }) {
     setLayers,
     setMonitoringLocationsLayer,
     setVisibleLayers,
-    station,
-    stationStatus,
+    site,
+    siteStatus,
   ]);
 
-  // Draw the station on the map
+  // Draw the site on the map
   useEffect(() => {
     if (!layersInitialized || doneDrawing) return;
-    drawStation(station, monitoringLocationsLayer).then((result) => {
+    drawSite(site, monitoringLocationsLayer).then((result) => {
       setDoneDrawing(result);
     });
   }, [
     doneDrawing,
     layersInitialized,
-    station,
+    site,
     monitoringLocationsLayer,
     services,
   ]);
 
-  // Zoom to the location of the station
+  // Zoom to the location of the site
   useEffect(() => {
     if (!doneDrawing || !mapView || !monitoringLocationsLayer || !homeWidget)
       return;
@@ -2161,7 +2182,7 @@ function StationMap({ layout, station, stationStatus, widthRef }) {
 
   // Scrolls to the map when switching layouts
   useEffect(() => {
-    const itemName = layout === 'fullscreen' ? 'stationmap' : 'container';
+    const itemName = layout === 'fullscreen' ? 'location-map' : 'container';
     const content = document.querySelector(`[data-content="${itemName}"]`);
     if (content) {
       let pos = content.getBoundingClientRect();
@@ -2171,21 +2192,17 @@ function StationMap({ layout, station, stationStatus, widthRef }) {
   }, [layout]);
 
   return (
-    <div css={mapContainerStyles} data-testid="hmw-station-map" ref={widthRef}>
-      {stationStatus === 'fetching' ? (
-        <LoadingSpinner />
-      ) : (
-        <Map layers={layers} />
-      )}
+    <div css={mapContainerStyles} data-testid="hmw-site-map" ref={widthRef}>
+      {siteStatus === 'fetching' ? <LoadingSpinner /> : <Map layers={layers} />}
       {mapView && mapLoading && <MapLoadingSpinner />}
     </div>
   );
 }
 
-function StationMapContainer({ ...props }) {
+function SiteMapContainer({ ...props }) {
   return (
     <MapErrorBoundary>
-      <StationMap {...props} />
+      <SiteMap {...props} />
     </MapErrorBoundary>
   );
 }
@@ -2213,4 +2230,4 @@ function StatusContent({
   }
 }
 
-export default MonitoringStation;
+export default MonitoringSite;
