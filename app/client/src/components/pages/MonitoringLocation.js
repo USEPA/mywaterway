@@ -21,6 +21,7 @@ import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import DateSlider from 'components/shared/DateSlider';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+import HelpTooltip from 'components/shared/HelpTooltip';
 import ScatterPlot from 'components/shared/ScatterPlot';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Map from 'components/shared/Map';
@@ -44,7 +45,7 @@ import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
-import { fetchCheck } from 'utils/fetchUtils';
+import { fetchCheck, fetchPost } from 'utils/fetchUtils';
 import { useSharedLayers } from 'utils/hooks';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
 import { parseAttributes, titleCaseWithExceptions } from 'utils/utils';
@@ -158,6 +159,15 @@ const downloadLinksStyles = css`
       text-align: end;
     }
   }
+`;
+
+const fileLinkStyles = css`
+  background: none;
+  border: none;
+  color: #0071bc;
+  margin: 0;
+  outline: inherit;
+  padding: 0;
 `;
 
 const flexboxSectionStyles = css`
@@ -385,36 +395,6 @@ const treeStyles = (level, styles) => {
 ## Helpers
 */
 
-function buildDateFilter(range, minYear, maxYear) {
-  if (!range) return;
-  let filter = '';
-  if (range[0] !== minYear) {
-    filter += `&startDateLo=01-01-${range[0]}`;
-  }
-  if (range[1] !== maxYear) {
-    filter += `&startDateHi=12-31-${range[1]}`;
-  }
-  return filter;
-}
-
-function buildCharcsFilter(checkboxes) {
-  let filter = '';
-  if (checkboxes.all === 1 || checkboxes.all === 0) return filter;
-  Object.values(checkboxes.types).forEach((type) => {
-    if (type.selected === 1) {
-      filter += `&characteristicType=${type.id}`;
-    } else if (type.selected === 0.5) {
-      type.charcs.forEach((charcId) => {
-        const charc = checkboxes.charcs[charcId];
-        if (charc.selected === 1) {
-          filter += `&characteristicName=${charc.id}`;
-        }
-      });
-    }
-  });
-  return filter;
-}
-
 function buildOptions(values) {
   return Array.from(values).map((value) => {
     return { value: value, label: value };
@@ -460,6 +440,12 @@ function checkboxReducer(state, action) {
       throw new Error('Invalid action type');
   }
 }
+
+const Checkbox = {
+  checked: 1,
+  indeterminate: 0.5,
+  unchecked: 0,
+};
 
 const dateOptions = {
   year: 'numeric',
@@ -583,10 +569,9 @@ function getFilteredCount(range, records, count) {
 }
 
 function getCheckedStatus(numberSelected, children) {
-  // Using 0.5 for indeterminate to prevent a false positive
-  let status = 0.5;
-  if (numberSelected === 0) status = 0;
-  else if (numberSelected === children.length) status = 1;
+  let status = Checkbox.indeterminate;
+  if (numberSelected === 0) status = Checkbox.unchecked;
+  else if (numberSelected === children.length) status = Checkbox.checked;
   return status;
 }
 
@@ -709,20 +694,20 @@ function loadNewData(data, state) {
   Object.values(charcs).forEach((charc) => {
     newCharcs[charc.id] = {
       ...charc,
-      selected: state.charcs[charc.id]?.selected ?? 1,
+      selected: state.charcs[charc.id]?.selected ?? Checkbox.checked,
     };
   });
   Object.values(types).forEach((type) => {
     newTypes[type.id] = {
       ...type,
       charcs: Array.from(type.charcs),
-      selected: 0,
+      selected: Checkbox.unchecked,
     };
   });
   Object.values(groups).forEach((group) => {
     newGroups[group.id] = {
       ...group,
-      selected: 0,
+      selected: Checkbox.unchecked,
       types: Array.from(group.types),
     };
   });
@@ -1386,9 +1371,10 @@ function CheckboxRow({ accessor, id, level, state, dispatch }) {
       <span>
         <input
           type="checkbox"
-          checked={item.selected === 1}
+          checked={item.selected === Checkbox.checked}
           ref={(input) => {
-            if (input) input.indeterminate = item.selected === 0.5;
+            if (input)
+              input.indeterminate = item.selected === Checkbox.indeterminate;
           }}
           onChange={handleCheckbox(id, accessor, dispatch)}
           style={{ top: '1px' }}
@@ -1569,9 +1555,11 @@ function CheckboxAccordion({
             <span>
               <input
                 type="checkbox"
-                checked={item.selected === 1}
+                checked={item.selected === Checkbox.checked}
                 ref={(input) => {
-                  if (input) input.indeterminate = item.selected === 0.5;
+                  if (input)
+                    input.indeterminate =
+                      item.selected === Checkbox.indeterminate;
                 }}
                 onChange={handleCheckbox(id, accessor, dispatch)}
                 onClick={(ev) => ev.stopPropagation()}
@@ -1608,25 +1596,44 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
 
   const services = useServicesContext();
 
-  const downloadUrl =
-    siteStatus === 'success' &&
-    `${services.data.waterQualityPortal.resultSearch}` +
-      `zip=no&dataProfile=narrowResult` +
-      `&organization=${site.orgId}` +
-      `&siteid=${site.siteId}` +
-      `&providers=${site.providerName}` +
-      `${buildCharcsFilter(checkboxes)}` +
-      `${buildDateFilter(range, minYear, maxYear)}`;
+  // fields common to the download and portal queries
+  const queryData =
+    siteStatus === 'success'
+      ? {
+          dataProfile: 'narrowResult',
+          siteid: [site.siteId],
+          organization: [site.orgId],
+          providers: [site.providerName],
+        }
+      : {};
+  if (range && range[0] !== minYear)
+    queryData.startDateLo = `01-01-${range[0]}`;
+  if (range && range[1] !== maxYear)
+    queryData.startDateHi = `12-31-${range[1]}`;
 
-  const portalUrl =
-    siteStatus === 'success' &&
-    `${services.data.waterQualityPortal.userInterface}#` +
-      `mimeType=xlsx&dataProfile=narrowResult` +
-      `&organization=${site.orgId}` +
-      `&siteid=${site.siteId}` +
-      `&providers=${site.providerName}` +
-      `${buildCharcsFilter(checkboxes)}` +
-      `${buildDateFilter(range, minYear, maxYear)}`;
+  const selectedCharcs = Object.values(checkboxes.charcs)
+    .filter((charc) => charc.selected === Checkbox.checked)
+    .map((charc) => charc.id);
+  const selectedTypes = Object.values(checkboxes.types)
+    .filter((type) => type.selected !== Checkbox.unchecked)
+    .map((type) => type.id);
+
+  let portalUrl =
+    services.status === 'success' &&
+    Object.entries(queryData).reduce((query, [key, value]) => {
+      let queryPartial = '';
+      if (Array.isArray(value))
+        value.forEach((item) => (queryPartial += `&${key}=${item}`));
+      else queryPartial += `&${key}=${value}`;
+      return query + queryPartial;
+    }, `${services.data.waterQualityPortal.userInterface}#dataProfile=narrowResult`);
+
+  if (checkboxes.all === Checkbox.indeterminate) {
+    selectedTypes.forEach(
+      (type) => (portalUrl += `&characteristicType=${type}`),
+    );
+    if (selectedCharcs.length) queryData.characteristicName = selectedCharcs;
+  }
 
   useEffect(() => {
     if (charcsStatus !== 'success') return;
@@ -1679,9 +1686,11 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
                 <span>
                   <input
                     type="checkbox"
-                    checked={checkboxes.all === 1}
+                    checked={checkboxes.all === Checkbox.checked}
                     ref={(input) => {
-                      if (input) input.indeterminate = checkboxes.all === 0.5;
+                      if (input)
+                        input.indeterminate =
+                          checkboxes.all === Checkbox.indeterminate;
                     }}
                     onChange={(_ev) => checkboxDispatch({ type: 'all' })}
                   />
@@ -1761,52 +1770,73 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
             </AccordionList>
           </div>
         </div>
-        <div id="download-links" css={downloadLinksStyles}>
-          <div>
-            <a
-              rel="noopener noreferrer"
-              target="_blank"
-              data-cy="portal"
-              href={portalUrl}
-              style={{ fontWeight: 'normal' }}
-            >
-              <i
-                css={iconStyles}
-                className="fas fa-filter"
-                aria-hidden="true"
-              />
-              Advanced Filtering
-            </a>
-            &nbsp;&nbsp;
-            <small css={modifiedDisclaimerStyles}>
-              (opens new browser tab)
-            </small>
-          </div>
-          <div>
-            <span>Download Selected Data</span>
-            <span>
+        {services.status === 'success' && (
+          <div id="download-links" css={downloadLinksStyles}>
+            <div>
+              <a
+                rel="noopener noreferrer"
+                target="_blank"
+                data-cy="portal"
+                href={portalUrl}
+                style={{ fontWeight: 'normal' }}
+              >
+                <i
+                  css={iconStyles}
+                  className="fas fa-filter"
+                  aria-hidden="true"
+                />
+                Advanced Filtering
+              </a>
               &nbsp;&nbsp;
-              <FileLink
-                disabled={checkboxes.all === 0}
-                fileType="excel"
-                url={downloadUrl}
-              />
-              &nbsp;&nbsp;
-              <FileLink
-                disabled={checkboxes.all === 0}
-                fileType="csv"
-                url={downloadUrl}
-              />
-            </span>
+              <small css={modifiedDisclaimerStyles}>
+                (opens new browser tab)
+              </small>
+            </div>
+            <div>
+              <span>Download Selected Data</span>
+              <span>
+                &nbsp;&nbsp;
+                <FileLink
+                  data={queryData}
+                  disabled={checkboxes.all === Checkbox.unchecked}
+                  fileType="excel"
+                  url={services.data.waterQualityPortal.resultSearch}
+                />
+                &nbsp;&nbsp;
+                <FileLink
+                  data={queryData}
+                  disabled={checkboxes.all === Checkbox.unchecked}
+                  fileType="csv"
+                  url={services.data.waterQualityPortal.resultSearch}
+                />
+              </span>
+            </div>
           </div>
-        </div>
+        )}
       </StatusContent>
     </div>
   );
 }
 
-function FileLink({ disabled, fileType, url }) {
+function FileLink({ disabled, fileType, data, url }) {
   const mimeTypes = { excel: 'xlsx', csv: 'csv' };
+  const fileTypeUrl = `${url}zip=no&mimeType=${mimeTypes[fileType]}`;
+  const fetchFile = async () => {
+    try {
+      const blob = await fetchPost(
+        fileTypeUrl,
+        data,
+        { 'Content-Type': 'application/json' },
+        60000,
+        'blob',
+      );
+      const file = window.URL.createObjectURL(blob);
+      window.location.assign(file);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   if (disabled)
     return (
       <i
@@ -1816,13 +1846,13 @@ function FileLink({ disabled, fileType, url }) {
       />
     );
   return (
-    <a href={`${url}&mimeType=${mimeTypes[fileType]}`}>
+    <button css={fileLinkStyles} onClick={fetchFile}>
       <i className={`fas fa-file-${fileType}`} aria-hidden="true" />
-    </a>
+    </button>
   );
 }
 
-function InformationSection({ orgId, siteId, site, siteStatus }) {
+function InformationSection({ siteId, site, siteStatus }) {
   return (
     <div css={boxStyles}>
       <h2 css={infoBoxHeadingStyles}>
@@ -1830,7 +1860,10 @@ function InformationSection({ orgId, siteId, site, siteStatus }) {
         <span>
           {siteStatus === 'success' && site.locationName}
           <small>
-            <strong>Site ID:</strong>&nbsp; {siteId}
+            <HelpTooltip label="Identifies a monitoring location by a unique name, number, or code" />
+            &nbsp;
+            <strong>Site ID:</strong>
+            &nbsp; {siteId}
           </small>
         </span>
       </h2>

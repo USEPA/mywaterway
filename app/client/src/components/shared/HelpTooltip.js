@@ -25,7 +25,7 @@ const tooltipIconStyles = css`
 `;
 
 const tooltipStyles = css`
-  background: ${colors.steel(0.9)};
+  background: ${colors.steel(0.95)};
   border: none;
   border-radius: 6px;
   color: white;
