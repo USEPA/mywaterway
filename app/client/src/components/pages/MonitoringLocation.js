@@ -1398,6 +1398,7 @@ function CharacteristicsTableSection({
         const selector = (
           <div css={radioTableStyles}>
             <input
+              aria-label={charc.name}
               checked={selected === charc.name}
               id={charc.name}
               onChange={(e) => setSelected(e.target.value)}

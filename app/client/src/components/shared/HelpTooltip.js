@@ -76,6 +76,7 @@ function HelpTooltip({ label }) {
     <Tooltip label={label} triggerRef={triggerRef}>
       <button
         css={tooltipIconStyles}
+        data-testid="tooltip-trigger"
         onClick={(_ev) => triggerRef.current?.focus()}
         ref={triggerRef}
       >
