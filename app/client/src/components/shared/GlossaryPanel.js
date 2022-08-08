@@ -262,8 +262,8 @@ export default GlossaryPanel;
 
 type Props = {
   term: string,
-  className: string,
-  style: Object,
+  className?: string,
+  style?: Object,
   children: Node,
 };
 

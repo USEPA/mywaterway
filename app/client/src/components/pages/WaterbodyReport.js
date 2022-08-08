@@ -29,7 +29,7 @@ import {
   boxSectionStyles,
 } from 'components/shared/Box';
 // contexts
-import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
+import { useFullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
@@ -216,8 +216,9 @@ const conditions = {
   unknown: 'Condition Unknown',
 };
 
-function WaterbodyReport({ fullscreen }: Props) {
+function WaterbodyReport() {
   const { orgId, auId, reportingCycle } = useParams();
+  const { fullscreenActive } = useFullscreenContext();
 
   const services = useServicesContext();
 
@@ -1024,7 +1025,7 @@ function WaterbodyReport({ fullscreen }: Props) {
     );
   }
 
-  if (fullscreen.fullscreenActive) {
+  if (fullscreenActive) {
     return (
       <WindowSize>
         {({ width, height }) => {
@@ -1536,9 +1537,7 @@ export default function WaterbodyReportContainer() {
   return (
     <MapHighlightProvider>
       <FullscreenProvider>
-        <FullscreenContext.Consumer>
-          {(fullscreen) => <WaterbodyReport fullscreen={fullscreen} />}
-        </FullscreenContext.Consumer>
+        <WaterbodyReport />
       </FullscreenProvider>
     </MapHighlightProvider>
   );

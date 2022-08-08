@@ -1,9 +1,10 @@
 import React, { Component, createContext } from 'react';
+import type { ReactNode } from 'react';
 
 export const LocationSearchContext = createContext();
 
 type Props = {
-  children: Node,
+  children: ReactNode,
 };
 
 type Status = 'fetching' | 'success' | 'failure';

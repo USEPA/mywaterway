@@ -1,6 +1,4 @@
-// @flow
-
-import React, { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -17,6 +15,7 @@ import {
   convertDomainCode,
   formatNumber,
   getSelectedCommunityTab,
+  parseAttributes,
   titleCaseWithExceptions,
 } from 'utils/utils';
 // data
@@ -30,13 +29,26 @@ import {
   iconStyles,
   modifiedTableStyles,
 } from 'styles/index.js';
+// types
+import type { ReactNode } from 'react';
+import type { NavigateFunction } from 'react-router-dom';
+import type {
+  ClickedHucState,
+  Feature,
+  ServicesState,
+  StreamgageMeasurement,
+  UsgsStreamgage,
+} from 'types';
 
-function bool(value) {
+/*
+## Helpers
+*/
+function bool(value: string) {
   // Return 'Yes' for truthy values and non-zero strings
   return value && parseInt(value, 10) ? 'Yes' : 'No';
 }
 
-function renderLink(label, link) {
+function renderLink(label: string, link: string) {
   if (!link) return;
 
   // link will not work correctly if it's just 'tk.org
@@ -55,7 +67,11 @@ function renderLink(label, link) {
   );
 }
 
-function labelValue(label, value, icon = null) {
+function labelValue(
+  label: ReactNode | string,
+  value: string,
+  icon: ReactNode | null = null,
+) {
   return (
     <p>
       <strong>{label}: </strong>
@@ -70,13 +86,15 @@ function labelValue(label, value, icon = null) {
   );
 }
 
+/*
+## Styles
+*/
 const dateRangeStyles = css`
   font-size: 0.8em;
   margin-left: 1em;
 `;
 
 const popupContainerStyles = css`
-  font-size: 14px;
   margin: 0;
   overflow-y: auto;
 
@@ -120,9 +138,6 @@ const checkboxCellStyles = css`
 
 const checkboxStyles = css`
   appearance: checkbox;
-  left: 2px;
-  position: relative;
-  top: 2px;
   transform: scale(1.2);
 `;
 
@@ -238,23 +253,73 @@ const tableFooterStyles = css`
   }
 `;
 
-type Props = {
-  type: string,
-  feature: Object,
-  fieldName: ?string,
-  extraContent: ?Object,
-  services: ?Object,
-  fields: ?Object,
+/*
+## Types
+*/
+interface ActionData {
+  actionIdentifier: string;
+  actionName: string;
+  agencyCode: string;
+  actionTypeCode: string;
+  actionStatusCode: string;
+  completionDate: string;
+  organizationId: string;
+  documents: ActionDocument[];
+  TMDLReportDetails: {
+    TMDLOtherIdentifier: string | null;
+    TMDLDate: string;
+    indianCountryIndicator: string;
+  };
+  associatedPollutants: Array<{ pollutantName: string; auCount: string }>;
+  parameters: Array<{ parameterName: string; auCount: string }>;
+  associatedActions: string[];
+}
+
+interface ActionDocument {
+  agencyCode: string;
+  documentTypes: Array<{ documentTypeCode: string }>;
+  documentFileType: string;
+  documentFileName: string;
+  documentName: string;
+  documentDescription: string | null;
+  documentComments: string | null;
+  documentURL: string | null;
+}
+
+interface AttainsProjectsDatum {
+  id: string;
+  orgId: string;
+  name: string;
+  pollutants: string[];
+  type: string;
+  date: string;
+}
+
+type AttainsProjectsState =
+  | { status: 'fetching'; data: [] }
+  | { status: 'failure'; data: [] }
+  | { status: 'success'; data: AttainsProjectsDatum[] };
+
+type WaterbodyInfoProps = {
+  type: string;
+  feature: Feature;
+  fieldName?: string | null;
+  extraContent?: ReactNode | null;
+  services?: ServicesState;
+  fields?: __esri.Field[] | null;
 };
 
+/*
+## Components
+*/
 function WaterbodyInfo({
   type,
   feature,
-  fieldName,
+  fieldName = null,
   extraContent,
   services,
   fields,
-}: Props) {
+}: WaterbodyInfoProps) {
   const { attributes } = feature;
   const onWaterbodyReportPage =
     window.location.pathname.indexOf('waterbody-report') !== -1;
@@ -316,7 +381,7 @@ function WaterbodyInfo({
       // For map clicks we need to get the field from the feature layer renderer.
       // This allows us to differentiate between fishconsumption_use and ecological_use
       // which are both on the fishing tab.
-      field = feature.layer.renderer.field;
+      field = feature.layer.renderer.field ?? null;
     }
 
     // Get the label
@@ -333,8 +398,8 @@ function WaterbodyInfo({
     const useBasedCondition = getWaterbodyCondition(attributes, field);
 
     // create applicable fields to check against when displaying the table
-    const waterbodyConditions = useFields.map((field) => {
-      return getWaterbodyCondition(attributes, field.value).label;
+    const waterbodyConditions = useFields.map((useField) => {
+      return getWaterbodyCondition(attributes, useField.value).label;
     });
 
     const applicableFields =
@@ -384,16 +449,16 @@ function WaterbodyInfo({
                   </tr>
                 </thead>
                 <tbody>
-                  {useFields.map((field, index) => {
+                  {useFields.map((useField, index) => {
                     const value = getWaterbodyCondition(
                       attributes,
-                      field.value,
+                      useField.value,
                     ).label;
 
                     if (value === 'Not Applicable') return null;
                     return (
                       <tr key={index}>
-                        <td>{field.label}</td>
+                        <td>{useField.label}</td>
                         <td>{value}</td>
                       </tr>
                     );
@@ -674,7 +739,7 @@ function WaterbodyInfo({
   const actionContent = <>{extraContent}</>;
 
   // Fetch attains projects data
-  const [attainsProjects, setAttainsProjects] = useState({
+  const [attainsProjects, setAttainsProjects] = useState<AttainsProjectsState>({
     status: 'fetching',
     data: [],
   });
@@ -683,46 +748,52 @@ function WaterbodyInfo({
 
     const auId = attributes.assessmentunitidentifier;
     const url =
-      services.data.attains.serviceUrl +
-      `actions?assessmentUnitIdentifier=${auId}` +
-      `&organizationIdentifier=${attributes.organizationid}` +
-      `&summarize=Y`;
+      services?.status === 'success'
+        ? services.data.attains.serviceUrl +
+          `actions?assessmentUnitIdentifier=${auId}` +
+          `&organizationIdentifier=${attributes.organizationid}` +
+          `&summarize=Y`
+        : null;
 
-    fetchCheck(url)
-      .then((res) => {
-        let attainsProjectsData = [];
+    if (url) {
+      fetchCheck(url)
+        .then((res) => {
+          let attainsProjectsData: AttainsProjectsDatum[] = [];
 
-        if (res.items.length > 0) {
-          attainsProjectsData = res.items[0].actions.map((action) => {
-            const pollutants = action
-              ? action.parameters.map((p) =>
-                  titleCaseWithExceptions(p.parameterName),
-                )
-              : [];
+          if (res.items.length > 0) {
+            attainsProjectsData = res.items[0].actions.map(
+              (action: ActionData) => {
+                const pollutants = action
+                  ? action.parameters.map((p) =>
+                      titleCaseWithExceptions(p.parameterName),
+                    )
+                  : [];
 
-            return {
-              id: action.actionIdentifier,
-              orgId: attributes.organizationid,
-              name: action.actionName,
-              pollutants,
-              type: action.actionTypeCode,
-              date: action.completionDate,
-            };
+                return {
+                  id: action.actionIdentifier,
+                  orgId: attributes.organizationid,
+                  name: action.actionName,
+                  pollutants,
+                  type: action.actionTypeCode,
+                  date: action.completionDate,
+                };
+              },
+            );
+          }
+
+          setAttainsProjects({
+            status: 'success',
+            data: attainsProjectsData,
           });
-        }
-
-        setAttainsProjects({
-          status: 'success',
-          data: attainsProjectsData,
+        })
+        .catch((err) => {
+          console.error(err);
+          setAttainsProjects({
+            status: 'failure',
+            data: [],
+          });
         });
-      })
-      .catch((err) => {
-        console.error(err);
-        setAttainsProjects({
-          status: 'failure',
-          data: [],
-        });
-      });
+    }
   }, [
     attributes.assessmentunitidentifier,
     attributes.organizationid,
@@ -745,8 +816,7 @@ function WaterbodyInfo({
     return (
       <>
         <div css={projectsContainerStyles}>
-          {(attainsProjects.status === 'fetching' ||
-            attainsProjects.status === 'pending') && <LoadingSpinner />}
+          {attainsProjects.status === 'fetching' && <LoadingSpinner />}
           {attainsProjects.status === 'failure' && (
             <div css={errorBoxStyles}>
               <p>{waterbodyReportError('Plans')}</p>
@@ -764,7 +834,7 @@ function WaterbodyInfo({
                       <tr>
                         <th>Plan (ID)</th>
                         <th>Impairments</th>
-                        <th style={{ minWidth: '4em' }}>Type</th>
+                        <th style={{ width: '25%' }}>Type</th>
                         <th>Date</th>
                       </tr>
                     </thead>
@@ -828,7 +898,7 @@ function WaterbodyInfo({
     content = (
       <MonitoringLocationsContent
         attributes={feature.attributes}
-        services={services}
+        services={services ?? null}
       />
     );
   }
@@ -851,15 +921,15 @@ function WaterbodyInfo({
 }
 
 type MapPopupProps = {
-  type: string,
-  feature: Object,
-  fieldName: ?string,
-  extraContent: ?Object,
-  getClickedHuc: ?Function,
-  resetData: ?Function,
-  services: ?Object,
-  fields: ?Object,
-  navigate: Function,
+  type: string;
+  feature: Feature;
+  navigate: NavigateFunction;
+  fieldName?: string | null;
+  extraContent?: ReactNode | null;
+  getClickedHuc?: Promise<ClickedHucState> | null;
+  resetData?: () => void;
+  services?: ServicesState;
+  fields?: __esri.Field[] | null;
 };
 
 function MapPopup({
@@ -874,10 +944,10 @@ function MapPopup({
   navigate,
 }: MapPopupProps) {
   // Gets the response of what huc was clicked, if provided.
-  const [clickedHuc, setClickedHuc] = useState<{
-    status: 'none' | 'fetching' | 'success' | 'failure',
-    data: { huc12: any, watershed: any } | null,
-  }>({ status: 'none', data: null });
+  const [clickedHuc, setClickedHuc] = useState<ClickedHucState>({
+    status: 'none',
+    data: null,
+  });
 
   useEffect(() => {
     if (!getClickedHuc || clickedHuc.status !== 'none') return;
@@ -900,9 +970,9 @@ function MapPopup({
       'Change Location',
       'Waterbody State Overview',
     ];
-    if (typesToSkip.includes(type)) return null;
+    if (!type || typesToSkip.includes(type)) return null;
 
-    let title = type;
+    let title: string | ReactNode = type;
     if (type === 'Demographic Indicators') {
       title = `${type} - ${feature.layer.title}`;
     }
@@ -924,11 +994,9 @@ function MapPopup({
   const huc12 = clickedHuc?.data?.huc12;
   const watershed = clickedHuc?.data?.watershed;
 
-  const onTribePage = window.location.pathname.startsWith('/tribe/');
-
   return (
     <div css={popupContainerStyles}>
-      {clickedHuc && !onTribePage && (
+      {clickedHuc && (
         <>
           {clickedHuc.status === 'no-data' && null}
           {clickedHuc.status === 'fetching' && <LoadingSpinner />}
@@ -989,8 +1057,6 @@ function MapPopup({
           feature={feature}
           fieldName={fieldName}
           extraContent={extraContent}
-          getClickedHuc={getClickedHuc}
-          resetData={resetData}
           services={services}
           fields={fields}
         />
@@ -999,21 +1065,47 @@ function MapPopup({
   );
 }
 
-function parseAttributes(structuredAttributes, attributes) {
-  const parsed = {};
-  for (const property of structuredAttributes) {
-    try {
-      parsed[property] = JSON.parse(attributes[property]);
-    } catch {
-      parsed[property] = attributes[property];
-    }
-  }
-  return { ...attributes, ...parsed };
+interface MonitoringLocationAttributes {
+  monitoringType: 'Past Water Conditions';
+  siteId: string;
+  orgId: string;
+  orgName: string;
+  locationLongitude: number;
+  locationLatitude: number;
+  locationName: string;
+  locationType: string;
+  locationUrl: string;
+  stationProviderName: string;
+  stationTotalSamples: number;
+  stationTotalsByGroup:
+    | string
+    | {
+        [groupName: string]: number;
+      };
+  stationTotalMeasurements: number;
+  timeframe: string | [number, number] | null;
+  uniqueId: string;
 }
 
-function buildGroups(checkMappings, totalsByGroup) {
+interface MappedGroups {
+  [groupLabel: string]: {
+    characteristicGroups: string[];
+    resultCount: number;
+  };
+}
+
+interface SelectedGroups {
+  [groupLabel: string]: boolean;
+}
+
+function buildGroups(
+  checkMappings: (groupName: string) => boolean,
+  totalsByGroup: string | { [groupName: string]: number },
+): { newGroups: MappedGroups; newSelected: SelectedGroups } {
+  const newGroups: MappedGroups = {};
+  const newSelected: SelectedGroups = {};
+  if (typeof totalsByGroup === 'string') return { newGroups, newSelected };
   const stationGroups = totalsByGroup;
-  const newGroups = {};
   // get the feature where the provider matches this stations provider
   characteristicGroupMappings.forEach((mapping) => {
     for (const groupName in stationGroups) {
@@ -1046,7 +1138,6 @@ function buildGroups(checkMappings, totalsByGroup) {
     }
   });
 
-  const newSelected = {};
   Object.keys(newGroups).forEach((group) => {
     newSelected[group] = true;
   });
@@ -1054,21 +1145,34 @@ function buildGroups(checkMappings, totalsByGroup) {
   return { newGroups, newSelected };
 }
 
-function checkIfGroupInMapping(groupName) {
-  return characteristicGroupMappings.find((mapping) =>
+function checkIfGroupInMapping(groupName: string): boolean {
+  const result = characteristicGroupMappings.find((mapping) =>
     mapping.groupNames.includes(groupName),
   );
+  return result ? true : false;
 }
 
-function MonitoringLocationsContent({ attributes, services }) {
+type MonitoringLocationsContentProps = {
+  attributes: MonitoringLocationAttributes;
+  services: ServicesState | null;
+};
+
+function MonitoringLocationsContent({
+  attributes,
+  services,
+}: MonitoringLocationsContentProps) {
   const [charGroupFilters, setCharGroupFilters] = useState('');
   const [selectAll, setSelectAll] = useState(1);
-  const [selected, setSelected] = useState({});
-  const [totalMeasurements, setTotalMeasurements] = useState(null);
+  const [totalMeasurements, setTotalMeasurements] = useState<number | null>(
+    null,
+  );
 
   const structuredProps = ['stationTotalsByGroup', 'timeframe'];
 
-  const parsed = parseAttributes(structuredProps, attributes);
+  const parsed = parseAttributes<MonitoringLocationAttributes>(
+    structuredProps,
+    attributes,
+  );
   const {
     locationName,
     locationType,
@@ -1089,6 +1193,13 @@ function MonitoringLocationsContent({ attributes, services }) {
       stationTotalsByGroup,
     );
     return newGroups;
+  });
+  const [selected, setSelected] = useState(() => {
+    const newSelected: { [Property in keyof typeof groups]: boolean } = {};
+    Object.keys(groups).forEach((group) => {
+      newSelected[group] = true;
+    });
+    return newSelected;
   });
 
   useEffect(() => {
@@ -1127,8 +1238,8 @@ function MonitoringLocationsContent({ attributes, services }) {
   );
 
   useEffect(() => {
-    buildFilter(selected, groups, timeframe);
-  }, [buildFilter, groups, selected, timeframe]);
+    buildFilter(selected, groups);
+  }, [buildFilter, groups, selected]);
 
   useEffect(() => {
     setTotalMeasurements(stationTotalMeasurements);
@@ -1175,7 +1286,7 @@ function MonitoringLocationsContent({ attributes, services }) {
 
   //Toggle all rows and call the provided onChange event handler
   const toggleAllCheckboxes = () => {
-    let selectedGroups = {};
+    let selectedGroups: SelectedGroups = {};
 
     if (Object.keys(groups).length > 0) {
       const newValue = selectAll === 0 ? true : false;
@@ -1195,17 +1306,18 @@ function MonitoringLocationsContent({ attributes, services }) {
   // parameters in the download URL string
   // (see setCharGroupFilters in Table's onChange handler)
   const downloadUrl =
-    `${services.data.waterQualityPortal.resultSearch}zip=no&siteid=` +
-    `${siteId}&providers=${stationProviderName}` +
-    `${charGroupFilters}`;
+    services?.status === 'success'
+      ? `${services.data.waterQualityPortal.resultSearch}zip=no&siteid=` +
+        `${siteId}&providers=${stationProviderName}` +
+        `${charGroupFilters}`
+      : null;
   const portalUrl =
-    `${services.data.waterQualityPortal.userInterface}#` +
-    `siteid=${siteId}${charGroupFilters}` +
-    `&mimeType=xlsx&dataProfile=resultPhysChem` +
-    `&providers=NWIS&providers=STEWARDS&providers=STORET`;
-
-  const onMonitoringReportPage =
-    window.location.pathname.indexOf('station') === 1;
+    services?.status === 'success'
+      ? `${services.data.waterQualityPortal.userInterface}#` +
+        `siteid=${siteId}${charGroupFilters}` +
+        `&mimeType=xlsx&dataProfile=resultPhysChem` +
+        `&providers=NWIS&providers=STEWARDS&providers=STORET`
+      : null;
 
   return (
     <>
@@ -1251,7 +1363,11 @@ function MonitoringLocationsContent({ attributes, services }) {
             </td>
             <td>
               {Number(stationTotalSamples).toLocaleString()}
-              <span css={dateRangeStyles}>(all time)</span>
+              {timeframe && (
+                <span css={dateRangeStyles}>
+                  ({timeframe[0]} - {timeframe[1]})
+                </span>
+              )}
             </td>
           </tr>
           <tr>
@@ -1274,20 +1390,18 @@ function MonitoringLocationsContent({ attributes, services }) {
         </tbody>
       </table>
 
-      {!onMonitoringReportPage && (
-        <p>
-          <a rel="noopener noreferrer" target="_blank" href={locationUrl}>
-            <i
-              css={iconStyles}
-              className="fas fa-info-circle"
-              aria-hidden="true"
-            />
-            Monitoring Report page
-          </a>
-          &nbsp;&nbsp;
-          <small css={modifiedDisclaimerStyles}>(opens new browser tab)</small>
-        </p>
-      )}
+      <p>
+        <a rel="noopener noreferrer" target="_blank" href={locationUrl}>
+          <i
+            css={iconStyles}
+            className="fas fa-info-circle"
+            aria-hidden="true"
+          />
+          More Information
+        </a>
+        &nbsp;&nbsp;
+        <small css={modifiedDisclaimerStyles}>(opens new browser tab)</small>
+      </p>
 
       {Object.keys(groups).length === 0 && (
         <p>No data available for this monitoring location.</p>
@@ -1355,12 +1469,12 @@ function MonitoringLocationsContent({ attributes, services }) {
 
           <tfoot css={tableFooterStyles}>
             <tr>
-              <td colSpan="2">
+              <td colSpan={2}>
                 <a
                   rel="noopener noreferrer"
                   target="_blank"
                   data-cy="portal"
-                  href={portalUrl}
+                  href={portalUrl ?? undefined}
                   style={{ fontWeight: 'normal' }}
                 >
                   <i
@@ -1375,15 +1489,23 @@ function MonitoringLocationsContent({ attributes, services }) {
                   (opens new browser tab)
                 </small>
               </td>
-              <td colSpan="2">
+              <td colSpan={2}>
                 <span>Download Station Data</span>
                 <span>
                   &nbsp;&nbsp;
-                  <a href={`${downloadUrl}&mimeType=xlsx`}>
+                  <a
+                    href={
+                      downloadUrl ? `${downloadUrl}&mimeType=xlsx` : undefined
+                    }
+                  >
                     <i className="fas fa-file-excel" aria-hidden="true" />
                   </a>
                   &nbsp;&nbsp;
-                  <a href={`${downloadUrl}&mimeType=csv`}>
+                  <a
+                    href={
+                      downloadUrl ? `${downloadUrl}&mimeType=csv` : undefined
+                    }
+                  >
                     <i className="fas fa-file-csv" aria-hidden="true" />
                   </a>
                 </span>
@@ -1396,7 +1518,7 @@ function MonitoringLocationsContent({ attributes, services }) {
   );
 }
 
-function UsgsStreamgagesContent({ feature }: { feature: Object }) {
+function UsgsStreamgagesContent({ feature }: { feature: Feature }) {
   const {
     streamgageMeasurements,
     orgName,
@@ -1405,12 +1527,15 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
     siteId,
     orgId,
     locationUrl,
-  } = feature.attributes;
+  }: UsgsStreamgage = feature.attributes;
 
   const [additionalMeasurementsShown, setAdditionalMeasurementsShown] =
     useState(false);
 
-  function addUniqueMeasurement(measurement, array) {
+  function addUniqueMeasurement(
+    measurement: StreamgageMeasurement,
+    array: StreamgageMeasurement[],
+  ) {
     const measurementAlreadyAdded = array.find((m) => {
       return m.parameterCode === measurement.parameterCode;
     });
@@ -1422,8 +1547,8 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
     }
   }
 
-  const primaryMeasurements = [];
-  const secondaryMeasurements = [];
+  const primaryMeasurements: StreamgageMeasurement[] = [];
+  const secondaryMeasurements: StreamgageMeasurement[] = [];
 
   streamgageMeasurements.primary.forEach((measurement) => {
     addUniqueMeasurement(measurement, primaryMeasurements);
@@ -1563,7 +1688,13 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
   );
 }
 
-function UsgsStreamgageParameter({ url, data }) {
+function UsgsStreamgageParameter({
+  url,
+  data,
+}: {
+  url: string;
+  data: StreamgageMeasurement;
+}) {
   return (
     <tr>
       <td>

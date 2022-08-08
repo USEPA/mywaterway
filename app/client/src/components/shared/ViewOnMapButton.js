@@ -4,7 +4,7 @@ import React, { useContext } from 'react';
 import { css } from 'styled-components/macro';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { MapHighlightContext } from 'contexts/MapHighlight';
+import { useMapHighlightContext } from 'contexts/MapHighlight';
 // styles
 import { colors } from 'styles/index.js';
 
@@ -29,12 +29,12 @@ const buttonStyles = css`
 
 type Props = {
   feature: Object,
-  fieldName: ?fieldName,
-  idField: ?string,
-  layers: ?Array<Object>,
-  customQuery: ?Function,
-  onClick: ?Function,
-  disabled: boolean,
+  fieldName?: ?fieldName,
+  idField?: ?string,
+  layers?: ?Array<Object>,
+  customQuery?: ?Function,
+  onClick?: ?Function,
+  disabled?: boolean,
 };
 
 function ViewOnMapButton({
@@ -50,7 +50,7 @@ function ViewOnMapButton({
     LocationSearchContext,
   );
 
-  const { setSelectedGraphic } = useContext(MapHighlightContext);
+  const { setSelectedGraphic } = useMapHighlightContext();
 
   function viewClick(featureParam) {
     // update context with the new selected graphic

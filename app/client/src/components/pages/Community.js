@@ -20,7 +20,7 @@ import {
 } from 'contexts/CommunityTabs';
 import { EsriMapProvider } from 'contexts/EsriMap';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
-import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
+import { useFullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
 // config
 import { tabs } from 'config/communityConfig.js';
 // styles
@@ -109,7 +109,7 @@ function Community() {
 
   const { activeTabIndex } = useContext(CommunityTabsContext);
 
-  const { fullscreenActive } = useContext(FullscreenContext);
+  const { fullscreenActive } = useFullscreenContext();
 
   // CommunityIntro is rendered in Outlet when at the '/community' and '/community/' routes
   const atCommunityIntroRoute =

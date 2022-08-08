@@ -3,7 +3,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { css } from 'styled-components/macro';
 // contexts
-import { MapHighlightContext } from 'contexts/MapHighlight';
+import { useMapHighlightContext } from 'contexts/MapHighlight';
 // styles
 import { colors } from 'styles/index.js';
 
@@ -25,7 +25,7 @@ type Props = {
 };
 
 function MapVisibilityButton({ children }: Props) {
-  const { selectedGraphic } = useContext(MapHighlightContext);
+  const { selectedGraphic } = useMapHighlightContext();
   const [mapShown, setMapShown] = useState(false);
 
   const iconClassName = mapShown ? 'far fa-eye-slash' : 'far fa-eye';

@@ -45,6 +45,8 @@
     "@types/papaparse": "5.3.2",
     "@types/react": "17.0.45",
     "@types/react-dom": "17.0.17",
+    "@types/react-ranger": "2.0.1",
+    "@types/smoothscroll-polyfill": "0.3.1",
     "@types/styled-components": "5.1.25",
     "husky": "8.0.1",
     "lint-staged": "13.0.0",

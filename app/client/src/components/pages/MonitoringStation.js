@@ -40,7 +40,7 @@ import { characteristicGroupMappings } from 'config/characteristicGroupMappings'
 import { characteristicsByType } from 'config/characteristicsByType';
 import { monitoringError } from 'config/errorMessages';
 // contexts
-import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
+import { useFullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
@@ -1835,8 +1835,9 @@ function InformationSection({ orgId, siteId, station, stationStatus }) {
   );
 }
 
-function MonitoringStationContent({ fullscreen }) {
+function MonitoringStationContent() {
   const { orgId, provider, siteId } = useParams();
+  const { fullscreenActive } = useFullscreenContext();
   const [station, stationStatus] = useStationDetails(provider, orgId, siteId);
   const [characteristics, characteristicsStatus] = useCharacteristics(
     provider,
@@ -1972,7 +1973,7 @@ function MonitoringStationContent({ fullscreen }) {
     </Page>
   );
 
-  const content = fullscreen.fullscreenActive ? fullScreenView : twoColumnView;
+  const content = fullscreenActive ? fullScreenView : twoColumnView;
 
   return (
     <StatusContent
@@ -1985,14 +1986,10 @@ function MonitoringStationContent({ fullscreen }) {
   );
 }
 
-function MonitoringStation(props) {
+function MonitoringStation() {
   return (
     <FullscreenProvider>
-      <FullscreenContext.Consumer>
-        {(fullscreen) => (
-          <MonitoringStationContent fullscreen={fullscreen} {...props} />
-        )}
-      </FullscreenContext.Consumer>
+      <MonitoringStationContent />
     </FullscreenProvider>
   );
 }
