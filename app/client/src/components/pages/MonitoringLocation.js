@@ -44,6 +44,7 @@ import { monitoringError } from 'config/errorMessages';
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
+import { MapHighlightProvider } from 'contexts/MapHighlight';
 // helpers
 import { fetchCheck, fetchPost } from 'utils/fetchUtils';
 import { useSharedLayers } from 'utils/hooks';
@@ -2241,7 +2242,9 @@ function SiteMap({ layout, site, siteStatus, widthRef }) {
 function SiteMapContainer({ ...props }) {
   return (
     <MapErrorBoundary>
-      <SiteMap {...props} />
+      <MapHighlightProvider>
+        <SiteMap {...props} />
+      </MapHighlightProvider>
     </MapErrorBoundary>
   );
 }
