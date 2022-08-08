@@ -1896,7 +1896,7 @@ function InformationSection({ siteId, site, siteStatus }) {
   );
 }
 
-function MonitoringSiteContent({ fullscreen }) {
+function MonitoringLocationContent({ fullscreen }) {
   const { orgId, provider, siteId } = useParams();
   const [site, siteStatus] = useSiteDetails(provider, orgId, siteId);
   const [characteristics, characteristicsStatus] = useCharacteristics(
@@ -2046,12 +2046,12 @@ function MonitoringSiteContent({ fullscreen }) {
   );
 }
 
-function MonitoringSite(props) {
+function MonitoringLocation(props) {
   return (
     <FullscreenProvider>
       <FullscreenContext.Consumer>
         {(fullscreen) => (
-          <MonitoringSiteContent fullscreen={fullscreen} {...props} />
+          <MonitoringLocationContent fullscreen={fullscreen} {...props} />
         )}
       </FullscreenContext.Consumer>
     </FullscreenProvider>
@@ -2272,4 +2272,4 @@ function StatusContent({
   }
 }
 
-export default MonitoringSite;
+export default MonitoringLocation;
