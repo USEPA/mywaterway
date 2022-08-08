@@ -1036,9 +1036,11 @@ function useCharacteristics(provider, orgId, siteId) {
     const url =
       `${services.data.waterQualityPortal.resultSearch}` +
       `&mimeType=csv&zip=no&dataProfile=narrowResult` +
-      `&providers=${provider}&organization=${encodeURIComponent(
-        orgId,
-      )}&siteid=${encodeURIComponent(siteId)}`;
+      `&providers=${encodeURIComponent(
+        provider,
+      )}&organization=${encodeURIComponent(orgId)}&siteid=${encodeURIComponent(
+        siteId,
+      )}`;
     fetchParseCsv(url)
       .then((results) => structureRecords(results.data))
       .catch((_err) => {
@@ -1059,9 +1061,11 @@ function useSiteDetails(provider, orgId, siteId) {
   useEffect(() => {
     const url =
       `${services.data.waterQualityPortal.monitoringLocation}` +
-      `search?mimeType=geojson&zip=no&provider=${provider}&organization=${encodeURIComponent(
-        orgId,
-      )}&siteid=${encodeURIComponent(siteId)}`;
+      `search?mimeType=geojson&zip=no&provider=${encodeURIComponent(
+        provider,
+      )}&organization=${encodeURIComponent(orgId)}&siteid=${encodeURIComponent(
+        siteId,
+      )}`;
 
     fetchSiteDetails(url, setSite, setSiteStatus).catch((err) => {
       console.error(err);
