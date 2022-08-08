@@ -831,12 +831,6 @@ function sortMeasurements(measurements) {
         Object.entries(fractionMeasurements).forEach(
           ([specKey, specMeasurements]) => {
             Object.values(specMeasurements).forEach((date) => {
-              /* date.measurement = parseFloat(
-                (
-                  date.measurement.reduce((a, b) => a + b) /
-                  date.measurement.length
-                ).toFixed(3),
-              ); */
               date.measurements = date.measurements.map((measurement) =>
                 parseFloat(measurement.toFixed(3)),
               );
