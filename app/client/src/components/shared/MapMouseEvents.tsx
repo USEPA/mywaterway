@@ -339,8 +339,8 @@ function MapMouseEvents({ view }: Props) {
     // by the hitTest async events occurring out of order. The global scoped variables
     // are needed because the esri hit test event won't be able to read react state
     // variables.
-    var lastFeature: __esri.Graphic | null = null;
-    var lastEventId = -1;
+    let lastFeature: __esri.Graphic | null = null;
+    let lastEventId = -1;
 
     const handleMapMouseOver = (
       event: PointerMoveEvent,

@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { css } from 'styled-components/macro';
 // contexts
 import { useMapHighlightContext } from 'contexts/MapHighlight';
