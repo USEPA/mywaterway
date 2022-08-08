@@ -43,6 +43,7 @@ import { monitoringError } from 'config/errorMessages';
 import { useFullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
+import { MapHighlightProvider } from 'contexts/MapHighlight';
 // helpers
 import { fetchCheck } from 'utils/fetchUtils';
 import { useSharedLayers } from 'utils/hooks';
@@ -2182,7 +2183,9 @@ function StationMap({ layout, station, stationStatus, widthRef }) {
 function StationMapContainer({ ...props }) {
   return (
     <MapErrorBoundary>
-      <StationMap {...props} />
+      <MapHighlightProvider>
+        <StationMap {...props} />
+      </MapHighlightProvider>
     </MapErrorBoundary>
   );
 }
