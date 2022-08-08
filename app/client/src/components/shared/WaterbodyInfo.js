@@ -1205,7 +1205,7 @@ function MonitoringLocationsContent({ attributes, services }) {
     `&providers=NWIS&providers=STEWARDS&providers=STORET`;
 
   const onMonitoringReportPage =
-    window.location.pathname.indexOf('station') === 1;
+    window.location.pathname.indexOf('location') === 1;
 
   return (
     <>
@@ -1251,7 +1251,7 @@ function MonitoringLocationsContent({ attributes, services }) {
             </td>
             <td>
               {Number(stationTotalSamples).toLocaleString()}
-              <span css={dateRangeStyles}>(all time)</span>
+              {timeframe && <span css={dateRangeStyles}>(all time)</span>}
             </td>
           </tr>
           <tr>
