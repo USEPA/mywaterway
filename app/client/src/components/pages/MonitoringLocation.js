@@ -1036,7 +1036,9 @@ function useCharacteristics(provider, orgId, siteId) {
     const url =
       `${services.data.waterQualityPortal.resultSearch}` +
       `&mimeType=csv&zip=no&dataProfile=narrowResult` +
-      `&providers=${provider}&organization=${orgId}&siteid=${siteId}`;
+      `&providers=${provider}&organization=${encodeURIComponent(
+        orgId,
+      )}&siteid=${encodeURIComponent(siteId)}`;
     fetchParseCsv(url)
       .then((results) => structureRecords(results.data))
       .catch((_err) => {
@@ -1057,7 +1059,9 @@ function useSiteDetails(provider, orgId, siteId) {
   useEffect(() => {
     const url =
       `${services.data.waterQualityPortal.monitoringLocation}` +
-      `search?mimeType=geojson&zip=no&provider=${provider}&organization=${orgId}&siteid=${siteId}`;
+      `search?mimeType=geojson&zip=no&provider=${provider}&organization=${encodeURIComponent(
+        orgId,
+      )}&siteid=${encodeURIComponent(siteId)}`;
 
     fetchSiteDetails(url, setSite, setSiteStatus).catch((err) => {
       console.error(err);
@@ -1606,28 +1610,31 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
   if (range && range[1] !== maxYear)
     queryData.startDateHi = `12-31-${range[1]}`;
 
-  const selectedCharcs = Object.values(checkboxes.charcs)
-    .filter((charc) => charc.selected === Checkbox.checked)
-    .map((charc) => charc.id);
-  const selectedTypes = Object.values(checkboxes.types)
-    .filter((type) => type.selected !== Checkbox.unchecked)
-    .map((type) => type.id);
-
   let portalUrl =
     services.status === 'success' &&
     Object.entries(queryData).reduce((query, [key, value]) => {
       let queryPartial = '';
       if (Array.isArray(value))
-        value.forEach((item) => (queryPartial += `&${key}=${item}`));
-      else queryPartial += `&${key}=${value}`;
+        value.forEach(
+          (item) => (queryPartial += `&${key}=${encodeURIComponent(item)}`),
+        );
+      else queryPartial += `&${key}=${encodeURIComponent(value)}`;
       return query + queryPartial;
     }, `${services.data.waterQualityPortal.userInterface}#dataProfile=narrowResult`);
 
   if (checkboxes.all === Checkbox.indeterminate) {
+    const selectedTypes = Object.values(checkboxes.types)
+      .filter((type) => type.selected !== Checkbox.unchecked)
+      .map((type) => type.id);
     selectedTypes.forEach(
-      (type) => (portalUrl += `&characteristicType=${type}`),
+      (type) =>
+        (portalUrl += `&characteristicType=${encodeURIComponent(type)}`),
     );
-    if (selectedCharcs.length) queryData.characteristicName = selectedCharcs;
+
+    const selectedCharcs = Object.values(checkboxes.charcs)
+      .filter((charc) => charc.selected === Checkbox.checked)
+      .map((charc) => charc.id);
+    queryData.characteristicName = selectedCharcs;
   }
 
   useEffect(() => {

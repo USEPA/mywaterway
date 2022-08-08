@@ -73,8 +73,10 @@ function buildStations(locations, layer) {
       locationUrl:
         `/location/` +
         `${station.properties.ProviderName}/` +
-        `${station.properties.OrganizationIdentifier}/` +
-        `${station.properties.MonitoringLocationIdentifier}/`,
+        `${encodeURIComponent(station.properties.OrganizationIdentifier)}/` +
+        `${encodeURIComponent(
+          station.properties.MonitoringLocationIdentifier,
+        )}/`,
       // monitoring station specific properties:
       stationProviderName: station.properties.ProviderName,
       stationTotalSamples: parseInt(station.properties.activityCount),
