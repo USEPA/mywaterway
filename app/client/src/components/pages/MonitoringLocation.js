@@ -111,11 +111,14 @@ const charcsTableStyles = css`
   .rt-table .rt-td {
     margin: auto;
   }
+  .selected div {
+    border-bottom: 1px solid #d8dfe2;
+    margin-bottom: 0.5rem;
+  }
 `;
 
 const chartContainerStyles = css`
-  margin-top: 1rem;
-  margin-right: 0.625rem;
+  margin: 1rem 0.625rem;
 `;
 
 const containerStyles = css`
@@ -174,6 +177,7 @@ const fileLinkStyles = css`
 const flexboxSectionStyles = css`
   ${boxSectionStyles}
   display: flex;
+  justify-content: flex-start;
 `;
 
 const iconStyles = css`
@@ -184,6 +188,7 @@ const infoBoxHeadingStyles = css`
   ${boxHeadingStyles};
   display: flex;
   align-items: flex-start;
+  margin-bottom: 0;
 
   small {
     display: block;
@@ -198,8 +203,14 @@ const infoBoxHeadingStyles = css`
 `;
 
 const inlineBoxSectionStyles = css`
-  padding: 0.4375rem 0.875rem;
-
+  ${boxSectionStyles}
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid #d8dfe2;
+  padding: 0.5em;
+  &:last-of-type {
+    border-bottom: none;
+  }
   /* loading icon */
   svg {
     display: inline-block;
@@ -208,15 +219,21 @@ const inlineBoxSectionStyles = css`
   }
 
   h3 {
+    grid-column: 1;
     margin-right: 0.5em;
   }
 
-  h3,
+  div,
   p {
+    grid-column: 2;
+  }
+
+  .label,
+  .value {
     display: inline-block;
-    margin-top: 0;
-    margin-bottom: 0;
     line-height: 1.25;
+    margin-bottom: auto;
+    margin-top: auto;
   }
 `;
 
@@ -235,6 +252,11 @@ const mapContainerStyles = css`
   position: relative;
 `;
 
+const modifiedBoxStyles = css`
+  ${boxStyles}
+  padding-bottom: 0;
+`;
+
 const modifiedDisclaimerStyles = css`
   ${disclaimerStyles};
 
@@ -246,7 +268,7 @@ const modifiedErrorBoxStyles = css`
   text-align: center;
   margin: 1rem auto;
   padding: 0.7rem 1rem !important;
-  width: max-content;
+  width: min(100%, max-content);
 `;
 
 const modifiedInfoBoxStyles = css`
@@ -285,7 +307,7 @@ const radioStyles = css`
     font-size: inherit;
     margin: auto;
     padding-left: 1em;
-    text-indent: -1em;
+    text-indent: -1.1em;
     &:before {
       background: ${colors.white()};
       border-radius: 100%;
@@ -337,18 +359,15 @@ const selectContainerStyles = css`
     font-weight: bold;
     white-space: nowrap;
 
-    @media (min-width: 560px) {
+    @media (min-width: 960px) {
       margin-bottom: 0;
     }
-  }
-
-  @media (min-width: 560px) {
-    flex-wrap: nowrap;
   }
 
   .radio-container {
     display: inline-flex;
     flex-direction: column;
+    gap: 0.2em;
   }
 
   .radios {
@@ -368,10 +387,16 @@ const selectContainerStyles = css`
   }
 `;
 
+const shadedBoxSectionStyles = css`
+  ${boxSectionStyles}
+  background-color: #f0f6f9;
+`;
+
 const sliderContainerStyles = css`
   align-items: flex-end;
   display: flex;
   justify-content: center;
+  margin-top: 0.4375rem;
   width: 100%;
   span {
     margin-bottom: 0.1em;
@@ -807,16 +832,12 @@ function parseRecord(record, measurements) {
   return { unit, speciation, fraction };
 }
 
-const sectionRow = (label, value, style, dataStatus) => (
+const sectionRow = (label, value, style, dataStatus = 'success') => (
   <div css={style}>
-    <h3>{label}:</h3>
+    <h3 className="label">{label}:</h3>
     {dataStatus === 'fetching' && <LoadingSpinner />}
-    {dataStatus === 'failure' && (
-      <div css={modifiedErrorBoxStyles}>
-        <p>{monitoringError}</p>
-      </div>
-    )}
-    {dataStatus === 'success' && <p>{value}</p>}
+    {dataStatus === 'failure' && <p className="value">N/A</p>}
+    {dataStatus === 'success' && <p className="value">{value}</p>}
   </div>
 );
 
@@ -1216,7 +1237,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   average += ` ${unit}`;
 
   return (
-    <div css={boxStyles}>
+    <div css={modifiedBoxStyles}>
       <h2 css={infoBoxHeadingStyles}>
         Chart of Results for{' '}
         {!charcName
@@ -1327,7 +1348,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
               unit={unit}
             />
             {chartData?.length && (
-              <div css={boxSectionStyles}>
+              <div css={shadedBoxSectionStyles}>
                 {sectionRowInline(
                   'Selected Date Range',
                   `${new Date(domain[0]).toLocaleDateString(
@@ -1445,14 +1466,20 @@ function CharacteristicsTableSection({
           fetching={<LoadingSpinner />}
           status={charcsStatus}
         >
-          {sectionRowInline('Selected Characteristic', selected, charcsStatus)}
+          <span className="selected">
+            {sectionRowInline(
+              'Selected Characteristic',
+              selected,
+              charcsStatus,
+            )}
+          </span>
           <ReactTable
             autoResetFilters={false}
             autoResetSortBy={false}
             data={tableData}
             defaultSort="name"
             placeholder="Filter..."
-            striped={false}
+            striped={true}
             getColumns={(tableWidth) => {
               const columnWidth = 2 * (tableWidth / 7) - 6;
               const halfColumnWidth = tableWidth / 7 - 6;
@@ -1667,7 +1694,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
 
   return (
     <div css={boxStyles}>
-      <h2 css={boxHeadingStyles}>Download Location Data</h2>
+      <h2 css={infoBoxHeadingStyles}>Download Location Data</h2>
       <StatusContent
         empty={
           <p css={modifiedInfoBoxStyles}>
@@ -1692,6 +1719,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
               title={
                 <span>
                   <input
+                    style={{ top: '2px' }}
                     type="checkbox"
                     checked={checkboxes.all === Checkbox.checked}
                     ref={(input) => {
@@ -1861,7 +1889,7 @@ function FileLink({ disabled, fileType, data, url }) {
 
 function InformationSection({ siteId, site, siteStatus }) {
   return (
-    <div css={boxStyles}>
+    <div css={modifiedBoxStyles}>
       <h2 css={infoBoxHeadingStyles}>
         {siteStatus === 'fetching' && <LoadingSpinner />}
         <span>
@@ -1874,24 +1902,26 @@ function InformationSection({ siteId, site, siteStatus }) {
           </small>
         </span>
       </h2>
-      {sectionRowInline('Organization Name', site.orgName, siteStatus)}
-      {sectionRowInline('Organization ID', site.orgId, siteStatus)}
-      {sectionRowInline(
-        'Location',
-        `${site.county}, ${site.state}`,
-        siteStatus,
-      )}
-      {sectionRowInline('Water Type', site.locationType, siteStatus)}
-      {sectionRowInline(
-        'Total Sample Count',
-        site.totalSamples?.toLocaleString(),
-        siteStatus,
-      )}
-      {sectionRowInline(
-        'Total Measurement Count',
-        site.totalMeasurements?.toLocaleString(),
-        siteStatus,
-      )}
+      <div css={boxSectionStyles}>
+        {sectionRowInline('Organization Name', site.orgName, siteStatus)}
+        {sectionRowInline('Organization ID', site.orgId, siteStatus)}
+        {sectionRowInline(
+          'Location',
+          `${site.county}, ${site.state}`,
+          siteStatus,
+        )}
+        {sectionRowInline('Water Type', site.locationType, siteStatus)}
+        {sectionRowInline(
+          'Total Sample Count',
+          site.totalSamples?.toLocaleString(),
+          siteStatus,
+        )}
+        {sectionRowInline(
+          'Total Measurement Count',
+          site.totalMeasurements?.toLocaleString(),
+          siteStatus,
+        )}
+      </div>
     </div>
   );
 }
