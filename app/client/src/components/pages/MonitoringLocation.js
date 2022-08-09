@@ -223,7 +223,6 @@ const inlineBoxSectionStyles = css`
     margin-right: 0.5em;
   }
 
-  div,
   p {
     grid-column: 2;
   }
@@ -252,6 +251,17 @@ const mapContainerStyles = css`
   position: relative;
 `;
 
+const messageBoxStyles = (baseStyles) => {
+  return css`
+    ${baseStyles};
+    text-align: center;
+    margin: 1rem auto;
+    padding: 0.7rem 1rem !important;
+    max-width: max-content;
+    width: 90%;
+  `;
+};
+
 const modifiedBoxStyles = css`
   ${boxStyles}
   padding-bottom: 0;
@@ -261,22 +271,6 @@ const modifiedDisclaimerStyles = css`
   ${disclaimerStyles};
 
   padding-bottom: 0;
-`;
-
-const modifiedErrorBoxStyles = css`
-  ${errorBoxStyles};
-  text-align: center;
-  margin: 1rem auto;
-  padding: 0.7rem 1rem !important;
-  width: min(100%, max-content);
-`;
-
-const modifiedInfoBoxStyles = css`
-  ${infoBoxStyles};
-  text-align: center;
-  margin: 1rem auto;
-  padding: 0.7rem 1rem !important;
-  width: max-content;
 `;
 
 const modifiedSplitLayoutColumnsStyles = css`
@@ -416,6 +410,11 @@ const treeStyles = (level, styles) => {
     margin-right: calc(${level} * 1.25em);
   `;
 };
+
+const wideBoxSectionStyles = css`
+  ${inlineBoxSectionStyles}
+  grid-template-columns: minmax(100px, 300px) minmax(100px, 1fr);
+`;
 
 /*
 ## Helpers
@@ -845,6 +844,10 @@ const sectionRowInline = (label, value, dataStatus = 'success') => {
   return sectionRow(label, value, inlineBoxSectionStyles, dataStatus);
 };
 
+const sectionRowWide = (label, value, dataStatus = 'success') => {
+  return sectionRow(label, value, wideBoxSectionStyles, dataStatus);
+};
+
 function sortMeasurements(measurements) {
   // store in arrays by unit,fraction,speciation and sort by date
   Object.entries(measurements).forEach(([unitKey, unitMeasurements]) => {
@@ -1246,16 +1249,18 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
       </h2>
       <StatusContent
         empty={
-          <p css={modifiedInfoBoxStyles}>
+          <p css={messageBoxStyles(infoBoxStyles)}>
             No data available for this monitoring location.
           </p>
         }
-        failure={<p css={modifiedErrorBoxStyles}>{monitoringError}</p>}
+        failure={
+          <p css={messageBoxStyles(errorBoxStyles)}>{monitoringError}</p>
+        }
         fetching={<LoadingSpinner />}
         status={charcsStatus}
       >
         {infoText ? (
-          <p css={modifiedInfoBoxStyles}>{infoText}</p>
+          <p css={messageBoxStyles(infoBoxStyles)}>{infoText}</p>
         ) : (
           <>
             <SliderContainer
@@ -1349,7 +1354,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
             />
             {chartData?.length && (
               <div css={shadedBoxSectionStyles}>
-                {sectionRowInline(
+                {sectionRowWide(
                   'Selected Date Range',
                   `${new Date(domain[0]).toLocaleDateString(
                     'en-us',
@@ -1360,22 +1365,22 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                       dateOptions,
                     )}`,
                 )}
-                {sectionRowInline(
+                {sectionRowWide(
                   'Number of Measurements Shown',
                   chartData.length.toLocaleString(),
                 )}
-                {sectionRowInline('Average of Values', average)}
-                {sectionRowInline(
+                {sectionRowWide('Average of Values', average)}
+                {sectionRowWide(
                   'Median Value',
                   `${median.toLocaleString()} ${unit}`,
                 )}
                 {range &&
-                  sectionRowInline(
+                  sectionRowWide(
                     'Minimum Value',
                     `${range[0].toLocaleString()} ${unit}`,
                   )}
                 {range &&
-                  sectionRowInline(
+                  sectionRowWide(
                     'Maximum Value',
                     `${range[1].toLocaleString()} ${unit}`,
                   )}
@@ -1454,12 +1459,12 @@ function CharacteristicsTableSection({
       <div css={charcsTableStyles}>
         <StatusContent
           empty={
-            <p css={modifiedInfoBoxStyles}>
+            <p css={messageBoxStyles(infoBoxStyles)}>
               No records found for this location.
             </p>
           }
           failure={
-            <div css={modifiedErrorBoxStyles}>
+            <div css={messageBoxStyles(errorBoxStyles)}>
               <p>{monitoringError}</p>
             </div>
           }
@@ -1469,7 +1474,7 @@ function CharacteristicsTableSection({
           <span className="selected">
             {sectionRowInline(
               'Selected Characteristic',
-              selected,
+              selected ?? 'None',
               charcsStatus,
             )}
           </span>
@@ -1542,7 +1547,7 @@ function ChartContainer({ range, data, charcName, scaleType, yTitle, unit }) {
 
   if (!data?.length)
     return (
-      <p css={modifiedInfoBoxStyles}>
+      <p css={messageBoxStyles(infoBoxStyles)}>
         No measurements available for the selected options.
       </p>
     );
@@ -1697,11 +1702,13 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
       <h2 css={infoBoxHeadingStyles}>Download Location Data</h2>
       <StatusContent
         empty={
-          <p css={modifiedInfoBoxStyles}>
+          <p css={messageBoxStyles(infoBoxStyles)}>
             No data available for this monitoring location.
           </p>
         }
-        failure={<p css={modifiedErrorBoxStyles}>{monitoringError}</p>}
+        failure={
+          <p css={messageBoxStyles(errorBoxStyles)}>{monitoringError}</p>
+        }
         fetching={<LoadingSpinner />}
         status={charcsStatus}
       >
@@ -2068,7 +2075,7 @@ function MonitoringLocationContent({ fullscreen }) {
   return (
     <StatusContent
       empty={noSiteView}
-      failure={<p css={modifiedErrorBoxStyles}>{monitoringError}</p>}
+      failure={<p css={messageBoxStyles(errorBoxStyles)}>{monitoringError}</p>}
       fetching={content}
       success={content}
       status={siteStatus}
