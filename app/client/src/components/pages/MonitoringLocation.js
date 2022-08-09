@@ -38,7 +38,7 @@ import {
 } from 'components/shared/SplitLayout';
 // config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
-import { characteristicsByType } from 'config/characteristicsByType';
+import { characteristicsByGroup } from 'config/characteristicsByGroup';
 import { monitoringError } from 'config/errorMessages';
 // contexts
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
@@ -121,6 +121,16 @@ const chartContainerStyles = css`
   margin: 1rem 0.625rem;
 `;
 
+const chartTooltipStyles = css`
+  p {
+    margin-bottom: 0.5em;
+    padding: 0;
+  }
+  div {
+    margin-bottom: 0.2em;
+  }
+`;
+
 const containerStyles = css`
   ${splitLayoutContainerStyles};
   max-width: 1800px;
@@ -172,6 +182,12 @@ const fileLinkStyles = css`
   margin: 0;
   outline: inherit;
   padding: 0;
+  svg {
+    display: inline-block;
+    height: auto;
+    margin: 0;
+    width: 12px;
+  }
 `;
 
 const flexboxSectionStyles = css`
@@ -427,14 +443,20 @@ function buildOptions(values) {
 }
 
 function buildTooltip(unit) {
-  return (tooltipData) => (
-    <>
-      {tooltipData?.nearestDatum && tooltipData.nearestDatum.datum.x}:{' '}
-      {tooltipData?.nearestDatum &&
-        tooltipData.nearestDatum.datum.daily.join(', ')}{' '}
-      {unit}
-    </>
-  );
+  return (tooltipData) =>
+    tooltipData?.nearestDatum && (
+      <div css={chartTooltipStyles}>
+        <p>{tooltipData.nearestDatum.datum.x}:</p>
+        {tooltipData.nearestDatum.datum.daily.map((msmt, i) => (
+          <p key={i}>
+            {msmt.depth && msmt.depthUnit && (
+              <div>Depth: {`${msmt.depth} ${msmt.depthUnit}`}</div>
+            )}
+            Value: {`${msmt.value} ${unit}`}
+          </p>
+        ))}
+      </div>
+    );
 }
 
 function checkboxReducer(state, action) {
@@ -446,14 +468,14 @@ function checkboxReducer(state, action) {
       const { data } = action.payload;
       return loadNewData(data, state);
     }
+    case 'labels': {
+      const { id } = action.payload;
+      const entity = state.labels[id];
+      return toggle(state, id, entity, action.type);
+    }
     case 'groups': {
       const { id } = action.payload;
       const entity = state.groups[id];
-      return toggle(state, id, entity, action.type);
-    }
-    case 'types': {
-      const { id } = action.payload;
-      const entity = state.types[id];
       return toggle(state, id, entity, action.type);
     }
     case 'charcs': {
@@ -492,7 +514,7 @@ async function drawSite(site, layer) {
       stationProviderName: site.providerName,
       stationTotalSamples: site.totalSamples,
       stationTotalMeasurements: site.totalMeasurements,
-      stationTotalsByGroup: JSON.stringify(site.charcTypeCounts),
+      stationTotalsByGroup: JSON.stringify(site.charcGroupCounts),
     },
   });
   const featureSet = await layer.queryFeatures();
@@ -513,8 +535,8 @@ async function fetchSiteDetails(url, setData, setStatus) {
   const feature = res.features[0];
   const siteDetails = {
     county: feature.properties.CountyName,
-    charcTypeCounts: feature.properties.characteristicGroupResultCount,
-    charcGroups: groupTypes(
+    charcGroupCounts: feature.properties.characteristicGroupResultCount,
+    charcLabels: labelGroups(
       feature.properties.characteristicGroupResultCount,
       characteristicGroupMappings,
     ),
@@ -536,9 +558,9 @@ async function fetchSiteDetails(url, setData, setStatus) {
       `${feature.properties.ProviderName}/` +
       `${feature.properties.OrganizationIdentifier}`,
   };
-  siteDetails.charcGroupCounts = parseGroupCounts(
-    siteDetails.charcTypeCounts,
-    siteDetails.charcGroups,
+  siteDetails.charcLabelCounts = parseLabelCounts(
+    siteDetails.charcGroupCounts,
+    siteDetails.charcLabels,
     characteristicGroupMappings,
   );
   setData(siteDetails);
@@ -558,16 +580,16 @@ function fetchParseCsv(url) {
   });
 }
 
-function getCharcGroup(charcType, groupMappings) {
-  for (let mapping of groupMappings) {
-    if (mapping.groupNames.includes(charcType)) return mapping.label;
+function getCharcLabel(charcGroup, labelMappings) {
+  for (let mapping of labelMappings) {
+    if (mapping.groupNames.includes(charcGroup)) return mapping.label;
   }
   return 'Other';
 }
 
-function getCharcType(charcName, typeMappings) {
-  for (let mapping of Object.keys(typeMappings)) {
-    if (typeMappings[mapping].includes(charcName)) return mapping;
+function getCharcGroup(charcName, groupMappings) {
+  for (let mapping of Object.keys(groupMappings)) {
+    if (groupMappings[mapping].includes(charcName)) return mapping;
   }
   return 'Not Assigned';
 }
@@ -647,37 +669,37 @@ async function getZoomParams(layer) {
   }
 }
 
-function groupTypes(charcTypes, mappings) {
-  const groups = {};
+function labelGroups(charcGroups, mappings) {
+  const labels = {};
   mappings
     .filter((mapping) => mapping.label !== 'All')
     .forEach((mapping) => {
-      for (const charcType in charcTypes) {
-        if (mapping.groupNames.includes(charcType)) {
-          if (!groups[mapping.label]) groups[mapping.label] = [];
-          groups[mapping.label].push(charcType);
+      for (const charcGroup in charcGroups) {
+        if (mapping.groupNames.includes(charcGroup)) {
+          if (!labels[mapping.label]) labels[mapping.label] = [];
+          labels[mapping.label].push(charcGroup);
         }
       }
     });
 
   // add any leftover lower-tier group counts to the 'Other' category
-  const typesGrouped = Object.values(groups).reduce((a, b) => {
+  const groupsLabelled = Object.values(labels).reduce((a, b) => {
     a.push(...b);
     return a;
   }, []);
-  for (const charcType in charcTypes) {
-    if (!typesGrouped.includes(charcType)) {
-      if (!groups['Other']) groups['Other'] = [];
-      groups['Other'].push(charcType);
+  for (const charcGroup in charcGroups) {
+    if (!groupsLabelled.includes(charcGroup)) {
+      if (!labels['Other']) labels['Other'] = [];
+      labels['Other'].push(charcGroup);
     }
   }
-  return groups;
+  return labels;
 }
 
 const initialCheckboxes = {
   all: 0,
+  labels: {},
   groups: {},
-  types: {},
   charcs: {},
 };
 
@@ -710,10 +732,10 @@ const lineColors = {
 
 function loadNewData(data, state) {
   const newCharcs = {};
+  const newLabels = {};
   const newGroups = {};
-  const newTypes = {};
 
-  const { charcs, groups, types } = data;
+  const { charcs, groups, labels } = data;
 
   // loop once to build the new data structure
   Object.values(charcs).forEach((charc) => {
@@ -722,87 +744,87 @@ function loadNewData(data, state) {
       selected: state.charcs[charc.id]?.selected ?? Checkbox.checked,
     };
   });
-  Object.values(types).forEach((type) => {
-    newTypes[type.id] = {
-      ...type,
-      charcs: Array.from(type.charcs),
-      selected: Checkbox.unchecked,
-    };
-  });
   Object.values(groups).forEach((group) => {
     newGroups[group.id] = {
       ...group,
+      charcs: Array.from(group.charcs),
       selected: Checkbox.unchecked,
-      types: Array.from(group.types),
+    };
+  });
+  Object.values(labels).forEach((label) => {
+    newLabels[label.id] = {
+      ...label,
+      selected: Checkbox.unchecked,
+      groups: Array.from(label.groups),
     };
   });
 
-  const allSelected = updateSelected(newCharcs, newTypes, newGroups);
+  const allSelected = updateSelected(newCharcs, newGroups, newLabels);
 
   return {
     all: allSelected,
     charcs: newCharcs,
     groups: newGroups,
-    types: newTypes,
+    labels: newLabels,
   };
-}
-
-function parseGroupCounts(typeCounts, charcGroups, mappings) {
-  const groupCounts = {};
-  mappings
-    .filter((mapping) => mapping.label !== 'All')
-    .forEach((mapping) => (groupCounts[mapping.label] = 0));
-  Object.entries(charcGroups).forEach(([charcGroup, charcTypes]) => {
-    charcTypes.forEach(
-      (charcType) => (groupCounts[charcGroup] += typeCounts[charcType]),
-    );
-  });
-
-  return groupCounts;
 }
 
 function parseCharcs(charcs, range) {
   const result = {
+    labels: {},
     groups: {},
-    types: {},
     charcs: {},
   };
-  // structure characteristcs by group, then type
+  // structure characteristics by label, then group
   Object.entries(charcs).forEach(([charc, data]) => {
-    const { group, type, count, records } = data;
+    const { label, group, count, records } = data;
 
     let newCount = getFilteredCount(range, records, count);
 
     if (newCount > 0) {
-      if (!result.groups[group]) {
-        result.groups[group] = {
+      if (!result.labels[label]) {
+        result.labels[label] = {
           count: 0,
-          id: group,
-          types: new Set(),
+          id: label,
+          groups: new Set(),
         };
       }
-      if (!result.types[type]) {
-        result.types[type] = {
+      if (!result.groups[group]) {
+        result.groups[group] = {
           charcs: new Set(),
           count: 0,
-          group,
-          id: type,
+          label,
+          id: group,
         };
       }
       result.charcs[charc] = {
         count: newCount,
-        group,
+        label,
         id: charc,
-        type,
+        group,
       };
 
+      result.labels[label].count += newCount;
       result.groups[group].count += newCount;
-      result.types[type].count += newCount;
-      result.groups[group].types.add(type);
-      result.types[type].charcs.add(charc);
+      result.labels[label].groups.add(group);
+      result.groups[group].charcs.add(charc);
     }
   });
   return result;
+}
+
+function parseLabelCounts(groupCounts, charcLabels, mappings) {
+  const labelCounts = {};
+  mappings
+    .filter((mapping) => mapping.label !== 'All')
+    .forEach((mapping) => (labelCounts[mapping.label] = 0));
+  Object.entries(charcLabels).forEach(([charcLabel, charcGroups]) => {
+    charcGroups.forEach(
+      (charcGroup) => (labelCounts[charcLabel] += groupCounts[charcGroup]),
+    );
+  });
+
+  return labelCounts;
 }
 
 function parseRecord(record, measurements) {
@@ -819,14 +841,19 @@ function parseRecord(record, measurements) {
 
   // group by unit and date
   const date = getDate(record);
+  const measurement = {
+    value: record.measurement,
+    depth: record.depth,
+    depthUnit: record.depthUnit,
+  };
   if (!specMeasurements[date]) {
     specMeasurements[date] = {
       ...record,
-      measurements: [record.measurement],
+      measurements: [measurement],
       date,
     };
   } else {
-    specMeasurements[date].measurements.push(record.measurement);
+    specMeasurements[date].measurements.push(measurement);
   }
   return { unit, speciation, fraction };
 }
@@ -856,8 +883,13 @@ function sortMeasurements(measurements) {
         Object.entries(fractionMeasurements).forEach(
           ([specKey, specMeasurements]) => {
             Object.values(specMeasurements).forEach((date) => {
-              date.measurements = date.measurements.map((measurement) =>
-                parseFloat(measurement.toFixed(3)),
+              date.measurements = date.measurements.map(
+                ({ value, ...rest }) => {
+                  return {
+                    ...rest,
+                    value: parseFloat(value.toFixed(3)),
+                  };
+                },
               );
             });
             measurements[unitKey][fractionKey][specKey] = Object.values(
@@ -877,49 +909,49 @@ function toggle(state, id, entity, level) {
   const newSelected = entity.selected === 0 ? 1 : 0;
 
   const newCharcs = { ...state.charcs };
-  const newTypes = { ...state.types };
   const newGroups = { ...state.groups };
+  const newLabels = { ...state.labels };
 
   switch (level) {
     case 'charcs': {
       updateEntity(newCharcs, id, entity, newSelected);
-      const charcIds = newTypes[entity.type].charcs;
-      updateParent(newTypes, newCharcs, entity.type, charcIds);
-      const typeIds = newGroups[entity.group].types;
-      updateParent(newGroups, newTypes, entity.group, typeIds);
+      const charcIds = newGroups[entity.group].charcs;
+      updateParent(newGroups, newCharcs, entity.group, charcIds);
+      const groupIds = newLabels[entity.label].groups;
+      updateParent(newLabels, newGroups, entity.label, groupIds);
+      break;
+    }
+    case 'labels': {
+      const ref = 'label';
+      updateEntity(newLabels, id, entity, newSelected);
+      updateDescendants(newGroups, ref, id, newSelected);
+      updateDescendants(newCharcs, ref, id, newSelected);
       break;
     }
     case 'groups': {
       const ref = 'group';
       updateEntity(newGroups, id, entity, newSelected);
-      updateDescendants(newTypes, ref, id, newSelected);
       updateDescendants(newCharcs, ref, id, newSelected);
-      break;
-    }
-    case 'types': {
-      const ref = 'type';
-      updateEntity(newTypes, id, entity, newSelected);
-      updateDescendants(newCharcs, ref, id, newSelected);
-      const typeIds = newGroups[entity.group].types;
-      updateParent(newGroups, newTypes, entity.group, typeIds);
+      const groupIds = newLabels[entity.label].groups;
+      updateParent(newLabels, newGroups, entity.label, groupIds);
       break;
     }
     default:
       throw new Error('Invalid action type');
   }
 
-  const groupIds = Object.keys(newGroups);
-  let groupsSelected = 0;
-  groupIds.forEach((groupId) => {
-    groupsSelected += newGroups[groupId].selected;
+  const labelIds = Object.keys(newLabels);
+  let labelsSelected = 0;
+  labelIds.forEach((labelId) => {
+    labelsSelected += newLabels[labelId].selected;
   });
-  let allSelected = getCheckedStatus(groupsSelected, groupIds);
+  let allSelected = getCheckedStatus(labelsSelected, labelIds);
 
   return {
     all: allSelected,
     charcs: newCharcs,
     groups: newGroups,
-    types: newTypes,
+    labels: newLabels,
   };
 }
 
@@ -939,10 +971,10 @@ function toggleAll(state) {
       selected: newSelected,
     };
   });
-  const newTypes = {};
-  Object.values(state.types).forEach((type) => {
-    newTypes[type.id] = {
-      ...type,
+  const newLabels = {};
+  Object.values(state.labels).forEach((label) => {
+    newLabels[label.id] = {
+      ...label,
       selected: newSelected,
     };
   });
@@ -950,7 +982,7 @@ function toggleAll(state) {
     all: newSelected,
     charcs: newCharcs,
     groups: newGroups,
-    types: newTypes,
+    labels: newLabels,
   };
 }
 
@@ -984,23 +1016,23 @@ function updateParent(parentObj, childObj, parentId, childIds) {
   };
 }
 
-function updateSelected(charcs, types, groups) {
-  let groupsSelected = 0;
+function updateSelected(charcs, groups, labels) {
+  let labelsSelected = 0;
 
   // loop over again to get checkbox values
   Object.values(charcs).forEach((charc) => {
-    types[charc.type].selected += charc.selected;
-  });
-  Object.values(types).forEach((type) => {
-    type.selected = getCheckedStatus(type.selected, type.charcs);
-    groups[type.group].selected += type.selected;
+    groups[charc.group].selected += charc.selected;
   });
   Object.values(groups).forEach((group) => {
-    group.selected = getCheckedStatus(group.selected, group.types);
-    groupsSelected += group.selected;
+    group.selected = getCheckedStatus(group.selected, group.charcs);
+    labels[group.label].selected += group.selected;
+  });
+  Object.values(labels).forEach((label) => {
+    label.selected = getCheckedStatus(label.selected, label.groups);
+    labelsSelected += label.selected;
   });
 
-  return getCheckedStatus(groupsSelected, Object.keys(groups));
+  return getCheckedStatus(labelsSelected, Object.keys(labels));
 }
 
 function useCharacteristics(provider, orgId, siteId) {
@@ -1024,15 +1056,15 @@ function useCharacteristics(provider, orgId, siteId) {
       const recordsByCharc = {};
       records.forEach((record) => {
         if (!recordsByCharc[record.CharacteristicName]) {
-          const charcType = getCharcType(
+          const charcGroup = getCharcGroup(
             record.CharacteristicName,
-            characteristicsByType,
+            characteristicsByGroup,
           );
           recordsByCharc[record.CharacteristicName] = {
             name: record.CharacteristicName,
-            group: getCharcGroup(charcType, characteristicGroupMappings),
+            label: getCharcLabel(charcGroup, characteristicGroupMappings),
             records: [],
-            type: charcType,
+            group: charcGroup,
             count: 0,
           };
         }
@@ -1046,6 +1078,8 @@ function useCharacteristics(provider, orgId, siteId) {
           measurement: record.ResultMeasureValue ?? null,
           sampleFraction: record.ResultSampleFractionText || null,
           speciation: record.MethodSpecificationName || null,
+          depth: record['ResultDepthHeightMeasure/MeasureValue'] || null,
+          depthUnit: record['ResultDepthHeightMeasure/MeasureUnitCode'] || null,
           unit: record['ResultMeasure/MeasureUnitCode'] || null,
         });
       });
@@ -1183,8 +1217,10 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
         day.measurements.forEach((msmt) => {
           newChartData.push({
             x: day.date,
-            y: msmt,
-            daily: day.measurements.sort(),
+            y: msmt.value,
+            daily: day.measurements.sort((a, b) =>
+              a.depth < b.depth ? -1 : 1,
+            ),
           });
         });
       }
@@ -1442,12 +1478,12 @@ function CharacteristicsTableSection({
           return a;
         }, 0);
         return {
-          group: charc.group,
+          label: charc.label,
           measurementCount: measurementCount.toLocaleString(),
           name: charc.name,
           resultCount: charc.count.toLocaleString(),
           select: selector,
-          type: charc.type,
+          group: charc.group,
         };
       })
       .sort((a, b) => a.name.localeCompare(b.name));
@@ -1504,14 +1540,14 @@ function CharacteristicsTableSection({
                   filterable: true,
                 },
                 {
-                  Header: 'Type',
-                  accessor: 'type',
+                  Header: 'Group',
+                  accessor: 'group',
                   width: columnWidth,
                   filterable: true,
                 },
                 {
-                  Header: 'Group',
-                  accessor: 'group',
+                  Header: 'Category',
+                  accessor: 'label',
                   width: halfColumnWidth,
                   filterable: true,
                 },
@@ -1537,8 +1573,8 @@ function CharacteristicsTableSection({
 }
 
 function ChartContainer({ range, data, charcName, scaleType, yTitle, unit }) {
-  const charcGroup = getCharcGroup(
-    getCharcType(charcName, characteristicsByType),
+  const charcLabel = getCharcLabel(
+    getCharcGroup(charcName, characteristicsByGroup),
     characteristicGroupMappings,
   );
   const chartRef = useRef(null);
@@ -1556,7 +1592,7 @@ function ChartContainer({ range, data, charcName, scaleType, yTitle, unit }) {
     <div ref={chartRef} css={chartContainerStyles}>
       <ScatterPlot
         buildTooltip={buildTooltip(unit)}
-        color={lineColors[charcGroup]}
+        color={lineColors[charcLabel]}
         containerRef={chartRef.current}
         data={data}
         dataKey={charcName}
@@ -1660,12 +1696,12 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
     }, `${services.data.waterQualityPortal.userInterface}#dataProfile=narrowResult`);
 
   if (checkboxes.all === Checkbox.indeterminate) {
-    const selectedTypes = Object.values(checkboxes.types)
-      .filter((type) => type.selected !== Checkbox.unchecked)
-      .map((type) => type.id);
-    selectedTypes.forEach(
-      (type) =>
-        (portalUrl += `&characteristicType=${encodeURIComponent(type)}`),
+    const selectedGroups = Object.values(checkboxes.groups)
+      .filter((group) => group.selected !== Checkbox.unchecked)
+      .map((group) => group.id);
+    selectedGroups.forEach(
+      (group) =>
+        (portalUrl += `&characteristicType=${encodeURIComponent(group)}`),
     );
 
     const selectedCharcs = Object.values(checkboxes.charcs)
@@ -1770,34 +1806,19 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
                     dispatch={checkboxDispatch}
                     state={checkboxes}
                     expanded={expanded}
-                    subHeading="Character&shy;istic Types"
+                    subHeading="Character&shy;istic Names"
                   >
-                    {checkboxes.groups[groupId].types
+                    {checkboxes.groups[groupId].charcs
                       .sort((a, b) => a.localeCompare(b))
-                      .map((typeId) => (
-                        <CheckboxAccordion
-                          accessor="types"
+                      .map((charcId) => (
+                        <CheckboxRow
+                          accessor="charcs"
                           level={1}
-                          id={typeId}
+                          id={charcId}
+                          key={charcId}
                           dispatch={checkboxDispatch}
-                          key={typeId}
                           state={checkboxes}
-                          expanded={expanded}
-                          subHeading="Character&shy;istic Names"
-                        >
-                          {checkboxes.types[typeId].charcs
-                            .sort((a, b) => a.localeCompare(b))
-                            .map((charcId) => (
-                              <CheckboxRow
-                                accessor="charcs"
-                                level={2}
-                                id={charcId}
-                                key={charcId}
-                                dispatch={checkboxDispatch}
-                                state={checkboxes}
-                              />
-                            ))}
-                        </CheckboxAccordion>
+                        />
                       ))}
                   </CheckboxAccordion>
                 ))}
@@ -1861,9 +1882,11 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
 }
 
 function FileLink({ disabled, fileType, data, url }) {
+  const [fetching, setFetching] = useState(false);
   const mimeTypes = { excel: 'xlsx', csv: 'csv' };
   const fileTypeUrl = `${url}zip=no&mimeType=${mimeTypes[fileType]}`;
   const fetchFile = async () => {
+    setFetching(true);
     try {
       const blob = await fetchPost(
         fileTypeUrl,
@@ -1876,6 +1899,8 @@ function FileLink({ disabled, fileType, data, url }) {
       window.location.assign(file);
     } catch (err) {
       console.error(err);
+    } finally {
+      setFetching(false);
     }
   };
 
@@ -1887,6 +1912,13 @@ function FileLink({ disabled, fileType, data, url }) {
         style={{ color: '#ccc' }}
       />
     );
+  else if (fetching)
+    return (
+      <span css={fileLinkStyles}>
+        <LoadingSpinner />
+      </span>
+    );
+
   return (
     <button css={fileLinkStyles} onClick={fetchFile}>
       <i className={`fas fa-file-${fileType}`} aria-hidden="true" />

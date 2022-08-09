@@ -1,4 +1,4 @@
-export const characteristicsByType = {
+export const characteristicsByGroup = {
   "Information": [
     "% undercut bank",
     "Abrupt lower boundary present (Y/N) (choicelist)",
