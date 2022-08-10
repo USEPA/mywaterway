@@ -121,16 +121,6 @@ const chartContainerStyles = css`
   margin: 1rem 0.625rem;
 `;
 
-const chartTooltipStyles = css`
-  p {
-    margin-bottom: 0.5em;
-    padding: 0;
-  }
-  div {
-    margin-bottom: 0.2em;
-  }
-`;
-
 const containerStyles = css`
   ${splitLayoutContainerStyles};
   max-width: 1800px;
@@ -443,20 +433,14 @@ function buildOptions(values) {
 }
 
 function buildTooltip(unit) {
-  return (tooltipData) =>
-    tooltipData?.nearestDatum && (
-      <div css={chartTooltipStyles}>
-        <p>{tooltipData.nearestDatum.datum.x}:</p>
-        {tooltipData.nearestDatum.datum.daily.map((msmt, i) => (
-          <p key={i}>
-            {msmt.depth && msmt.depthUnit && (
-              <div>Depth: {`${msmt.depth} ${msmt.depthUnit}`}</div>
-            )}
-            Value: {`${msmt.value} ${unit}`}
-          </p>
-        ))}
-      </div>
-    );
+  return (tooltipData) => (
+    <>
+      {tooltipData?.nearestDatum && tooltipData.nearestDatum.datum.x}:{' '}
+      {tooltipData?.nearestDatum &&
+        tooltipData.nearestDatum.datum.daily.join(', ')}{' '}
+      {unit}
+    </>
+  );
 }
 
 function checkboxReducer(state, action) {
@@ -467,11 +451,6 @@ function checkboxReducer(state, action) {
     case 'load': {
       const { data } = action.payload;
       return loadNewData(data, state);
-    }
-    case 'labels': {
-      const { id } = action.payload;
-      const entity = state.labels[id];
-      return toggle(state, id, entity, action.type);
     }
     case 'groups': {
       const { id } = action.payload;
@@ -698,7 +677,6 @@ function labelGroups(charcGroups, mappings) {
 
 const initialCheckboxes = {
   all: 0,
-  labels: {},
   groups: {},
   charcs: {},
 };
@@ -732,10 +710,9 @@ const lineColors = {
 
 function loadNewData(data, state) {
   const newCharcs = {};
-  const newLabels = {};
   const newGroups = {};
 
-  const { charcs, groups, labels } = data;
+  const { charcs, groups } = data;
 
   // loop once to build the new data structure
   Object.values(charcs).forEach((charc) => {
@@ -751,62 +728,42 @@ function loadNewData(data, state) {
       selected: Checkbox.unchecked,
     };
   });
-  Object.values(labels).forEach((label) => {
-    newLabels[label.id] = {
-      ...label,
-      selected: Checkbox.unchecked,
-      groups: Array.from(label.groups),
-    };
-  });
 
-  const allSelected = updateSelected(newCharcs, newGroups, newLabels);
+  const allSelected = updateSelected(newCharcs, newGroups);
 
   return {
     all: allSelected,
     charcs: newCharcs,
     groups: newGroups,
-    labels: newLabels,
   };
 }
 
 function parseCharcs(charcs, range) {
   const result = {
-    labels: {},
     groups: {},
     charcs: {},
   };
-  // structure characteristics by label, then group
+  // structure characteristics by then group
   Object.entries(charcs).forEach(([charc, data]) => {
-    const { label, group, count, records } = data;
+    const { group, count, records } = data;
 
     let newCount = getFilteredCount(range, records, count);
 
     if (newCount > 0) {
-      if (!result.labels[label]) {
-        result.labels[label] = {
-          count: 0,
-          id: label,
-          groups: new Set(),
-        };
-      }
       if (!result.groups[group]) {
         result.groups[group] = {
           charcs: new Set(),
           count: 0,
-          label,
           id: group,
         };
       }
       result.charcs[charc] = {
         count: newCount,
-        label,
         id: charc,
         group,
       };
 
-      result.labels[label].count += newCount;
       result.groups[group].count += newCount;
-      result.labels[label].groups.add(group);
       result.groups[group].charcs.add(charc);
     }
   });
@@ -841,19 +798,14 @@ function parseRecord(record, measurements) {
 
   // group by unit and date
   const date = getDate(record);
-  const measurement = {
-    value: record.measurement,
-    depth: record.depth,
-    depthUnit: record.depthUnit,
-  };
   if (!specMeasurements[date]) {
     specMeasurements[date] = {
       ...record,
-      measurements: [measurement],
+      measurements: [record.measurement],
       date,
     };
   } else {
-    specMeasurements[date].measurements.push(measurement);
+    specMeasurements[date].measurements.push(record.measurement);
   }
   return { unit, speciation, fraction };
 }
@@ -883,13 +835,8 @@ function sortMeasurements(measurements) {
         Object.entries(fractionMeasurements).forEach(
           ([specKey, specMeasurements]) => {
             Object.values(specMeasurements).forEach((date) => {
-              date.measurements = date.measurements.map(
-                ({ value, ...rest }) => {
-                  return {
-                    ...rest,
-                    value: parseFloat(value.toFixed(3)),
-                  };
-                },
+              date.measurements = date.measurements.map((measurement) =>
+                parseFloat(measurement.toFixed(3)),
               );
             });
             measurements[unitKey][fractionKey][specKey] = Object.values(
@@ -910,48 +857,35 @@ function toggle(state, id, entity, level) {
 
   const newCharcs = { ...state.charcs };
   const newGroups = { ...state.groups };
-  const newLabels = { ...state.labels };
 
   switch (level) {
     case 'charcs': {
       updateEntity(newCharcs, id, entity, newSelected);
       const charcIds = newGroups[entity.group].charcs;
       updateParent(newGroups, newCharcs, entity.group, charcIds);
-      const groupIds = newLabels[entity.label].groups;
-      updateParent(newLabels, newGroups, entity.label, groupIds);
-      break;
-    }
-    case 'labels': {
-      const ref = 'label';
-      updateEntity(newLabels, id, entity, newSelected);
-      updateDescendants(newGroups, ref, id, newSelected);
-      updateDescendants(newCharcs, ref, id, newSelected);
       break;
     }
     case 'groups': {
       const ref = 'group';
       updateEntity(newGroups, id, entity, newSelected);
       updateDescendants(newCharcs, ref, id, newSelected);
-      const groupIds = newLabels[entity.label].groups;
-      updateParent(newLabels, newGroups, entity.label, groupIds);
       break;
     }
     default:
       throw new Error('Invalid action type');
   }
 
-  const labelIds = Object.keys(newLabels);
-  let labelsSelected = 0;
-  labelIds.forEach((labelId) => {
-    labelsSelected += newLabels[labelId].selected;
+  const groupIds = Object.keys(newGroups);
+  let groupsSelected = 0;
+  groupIds.forEach((groupId) => {
+    groupsSelected += newGroups[groupId].selected;
   });
-  let allSelected = getCheckedStatus(labelsSelected, labelIds);
+  let allSelected = getCheckedStatus(groupsSelected, groupIds);
 
   return {
     all: allSelected,
     charcs: newCharcs,
     groups: newGroups,
-    labels: newLabels,
   };
 }
 
@@ -971,18 +905,10 @@ function toggleAll(state) {
       selected: newSelected,
     };
   });
-  const newLabels = {};
-  Object.values(state.labels).forEach((label) => {
-    newLabels[label.id] = {
-      ...label,
-      selected: newSelected,
-    };
-  });
   return {
     all: newSelected,
     charcs: newCharcs,
     groups: newGroups,
-    labels: newLabels,
   };
 }
 
@@ -1016,8 +942,8 @@ function updateParent(parentObj, childObj, parentId, childIds) {
   };
 }
 
-function updateSelected(charcs, groups, labels) {
-  let labelsSelected = 0;
+function updateSelected(charcs, groups) {
+  let groupsSelected = 0;
 
   // loop over again to get checkbox values
   Object.values(charcs).forEach((charc) => {
@@ -1025,14 +951,10 @@ function updateSelected(charcs, groups, labels) {
   });
   Object.values(groups).forEach((group) => {
     group.selected = getCheckedStatus(group.selected, group.charcs);
-    labels[group.label].selected += group.selected;
-  });
-  Object.values(labels).forEach((label) => {
-    label.selected = getCheckedStatus(label.selected, label.groups);
-    labelsSelected += label.selected;
+    groupsSelected += group.selected;
   });
 
-  return getCheckedStatus(labelsSelected, Object.keys(labels));
+  return getCheckedStatus(groupsSelected, Object.keys(groups));
 }
 
 function useCharacteristics(provider, orgId, siteId) {
@@ -1217,10 +1139,8 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
         day.measurements.forEach((msmt) => {
           newChartData.push({
             x: day.date,
-            y: msmt.value,
-            daily: day.measurements.sort((a, b) =>
-              a.depth < b.depth ? -1 : 1,
-            ),
+            y: msmt,
+            daily: day.measurements.sort(),
           });
         });
       }
