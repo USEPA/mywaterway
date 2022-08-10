@@ -83,6 +83,7 @@ function HelpTooltip({ label }) {
         <span aria-hidden>
           <i className="fas fa-question-circle" />
         </span>
+        <span className="sr-only">Information Tooltip</span>
       </button>
     </Tooltip>
   );

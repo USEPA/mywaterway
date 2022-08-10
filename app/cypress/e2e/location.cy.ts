@@ -14,10 +14,10 @@ const siteId = "IL_EPA_WQX-C-19";
 describe("Entering URL parameters for a nonexistent location", () => {
   const gibberishSiteId = "sdfsdfasdf";
 
-  it("Should display an 'information unavailable' error message when the parameters are invalid", () => {
+  it("Should display a 'location could not be found' error message when the parameters are for a nonexistent location", () => {
     cy.visit(`/location/${provider}/${orgId}/${gibberishSiteId}`);
-    cy.findByText(
-      `Sample locations information is temporarily unavailable, please try again later.`
+    cy.contains(
+      `The monitoring location ${gibberishSiteId} could not be found.`
     ).should("be.visible");
   });
 });
@@ -27,8 +27,8 @@ describe("Entering URL parameters for an existent site", () => {
     cy.visit(`/location/${provider}/${orgId}/${siteId}`);
   });
 
-  it("Should display the site ID", () => {
-    cy.contains(`Site ID: ${siteId}`).should("be.visible");
+  it("Should display the organization name", () => {
+    cy.findByText("illinois epa").should("be.visible");
   });
 
   it("Should instruct the user to select a characteristic for the graph", () => {
@@ -59,7 +59,7 @@ describe("The characteristic chart section", () => {
 describe("The Site ID tooltip", () => {
   it("Should be displayed when focusing the help icon", () => {
     cy.visit(`/location/${provider}/${orgId}/${siteId}`);
-    cy.findByTestId("tooltip-trigger").focus();
+    cy.findByRole("button", { name: "Information Tooltip" }).focus();
     cy.findByRole("tooltip").should("be.visible");
   });
 });

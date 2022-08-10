@@ -14,6 +14,10 @@ export const streamgagesError =
 export const monitoringError =
   'Sample locations information is temporarily unavailable, please try again later.';
 
+// waterqualitydata.us - Result Search (downloads)
+export const monitoringDownloadError =
+  'There was an error downloading the monitoring location data, please try again later.';
+
 // attains.epa.gov - Huc12summary Service
 export const huc12SummaryError =
   'Waterbody information is temporarily unavailable, please try again later.';
