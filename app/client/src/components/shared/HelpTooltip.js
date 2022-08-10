@@ -25,7 +25,7 @@ const tooltipIconStyles = css`
 `;
 
 const tooltipStyles = css`
-  background: ${colors.steel(0.9)};
+  background: ${colors.steel(0.95)};
   border: none;
   border-radius: 6px;
   color: white;
@@ -82,6 +82,7 @@ function HelpTooltip({ label }) {
         <span aria-hidden>
           <i className="fas fa-question-circle" />
         </span>
+        <span className="sr-only">Information Tooltip</span>
       </button>
     </Tooltip>
   );

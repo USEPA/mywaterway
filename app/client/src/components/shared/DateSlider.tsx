@@ -36,6 +36,7 @@ const sliderContainerStyles = css`
   align-items: flex-end;
   display: flex;
   gap: 1em;
+  height: 3.5em;
   justify-content: center;
   width: 100%;
 `;
@@ -43,7 +44,6 @@ const sliderContainerStyles = css`
 const sliderStyles = css`
   align-items: flex-end;
   display: inline-flex;
-  height: 3.5em;
   width: 100%;
   z-index: 0;
 `;
@@ -101,31 +101,37 @@ function DateSlider({
   return (
     <div css={sliderContainerStyles}>
       <span>{!disabled && minYear}</span>
-      <div css={sliderStyles}>
-        <div {...getTrackProps({ style: trackStyles })}>
-          {segments.map(({ getSegmentProps }, i) => (
-            <div
-              {...getSegmentProps({
-                key: i,
-                style:
-                  !disabled && i === 1 ? segmentStylesActive : segmentStyles,
-              })}
-            />
-          ))}
-          {!disabled &&
-            handles.map(({ value, active, getHandleProps }, i) => (
-              <div
-                {...getHandleProps({
-                  key: i,
-                  style: active ? handleStylesActive : handleStyles,
-                })}
-              >
-                <div css={tooltipStyles}>{value}</div>
-              </div>
-            ))}
-        </div>
-      </div>
-      <span>{!disabled && maxYear}</span>
+      {minYear !== maxYear && (
+        <>
+          <div css={sliderStyles}>
+            <div {...getTrackProps({ style: trackStyles })}>
+              {segments.map(({ getSegmentProps }, i) => (
+                <div
+                  {...getSegmentProps({
+                    key: i,
+                    style:
+                      !disabled && i === 1
+                        ? segmentStylesActive
+                        : segmentStyles,
+                  })}
+                />
+              ))}
+              {!disabled &&
+                handles.map(({ value, active, getHandleProps }, i) => (
+                  <div
+                    {...getHandleProps({
+                      key: i,
+                      style: active ? handleStylesActive : handleStyles,
+                    })}
+                  >
+                    <div css={tooltipStyles}>{value}</div>
+                  </div>
+                ))}
+            </div>
+          </div>
+          <span>{!disabled && maxYear}</span>
+        </>
+      )}
     </div>
   );
 }

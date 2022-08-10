@@ -1316,7 +1316,7 @@ function MonitoringLocationsContent({
       : null;
 
   const onMonitoringReportPage =
-    window.location.pathname.indexOf('station') === 1;
+    window.location.pathname.indexOf('location') === 1;
 
   return (
     <>
@@ -1350,7 +1350,7 @@ function MonitoringLocationsContent({
             <td>
               <em>Monitor&shy;ing Site ID:</em>
             </td>
-            <td>{siteId.replace(`${orgId}-`, '')}</td>
+            <td>{siteId}</td>
           </tr>
           <tr>
             <td>
@@ -1362,7 +1362,7 @@ function MonitoringLocationsContent({
             </td>
             <td>
               {Number(stationTotalSamples).toLocaleString()}
-              <span css={dateRangeStyles}>(all time)</span>
+              {timeframe && <span css={dateRangeStyles}>(all time)</span>}
             </td>
           </tr>
           <tr>
@@ -1612,7 +1612,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Feature }) {
             <td>
               <em>Monitor&shy;ing Site ID:</em>
             </td>
-            <td>{siteId.replace(`${orgId}-`, '')}</td>
+            <td>{siteId}</td>
           </tr>
         </tbody>
       </table>

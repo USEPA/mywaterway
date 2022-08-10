@@ -127,6 +127,10 @@ const containerStyles = css`
     }
 
     .rt-col-title {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: space-between;
       padding: 2px;
     }
 
@@ -148,6 +152,7 @@ type Props = {
   autoResetFilters?: boolean,
   autoResetSortBy?: boolean,
   data: Array<Object>,
+  defaultSort: ?string,
   getColumns: Function,
   placeholder: ?string,
   striped: ?boolean,
@@ -157,6 +162,7 @@ function ReactTable({
   autoResetFilters = true,
   autoResetSortBy = true,
   data,
+  defaultSort = null,
   getColumns,
   placeholder,
   striped = false,
@@ -193,6 +199,9 @@ function ReactTable({
       columns,
       data,
       defaultColumn,
+      initialState: {
+        sortBy: defaultSort ? [{ id: defaultSort }] : [],
+      },
     },
     useResizeColumns,
     useBlockLayout,
