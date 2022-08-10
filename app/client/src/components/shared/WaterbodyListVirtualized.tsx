@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -14,7 +14,7 @@ import {
   getOrganizationLabel,
 } from 'utils/mapFunctions';
 // contexts
-import { useMapHighlightContext } from 'contexts/MapHighlight';
+import { useMapHighlightState } from 'contexts/MapHighlight';
 
 const textStyles = css`
   margin: 1em;
@@ -71,7 +71,7 @@ function WaterbodyListVirtualized({ waterbodies, fieldName = null }: Props) {
   // Sort the waterbodies
   const [sortBy, setSortBy] = useState('assessmentunitname');
 
-  const { highlightedGraphic, selectedGraphic } = useMapHighlightContext();
+  const { highlightedGraphic, selectedGraphic } = useMapHighlightState();
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
 
   if (loading || !waterbodies) return <LoadingSpinner />;

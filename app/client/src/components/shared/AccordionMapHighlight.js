@@ -9,7 +9,7 @@ import {
 } from 'components/shared/Accordion';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useMapHighlightContext } from 'contexts/MapHighlight';
+import { useMapHighlightState } from 'contexts/MapHighlight';
 
 type AccordionItemProps = {
   icon: ?Object,
@@ -37,7 +37,7 @@ function AccordionItem({
   const { mapView } = useContext(LocationSearchContext);
 
   const { highlightedGraphic, selectedGraphic, setHighlightedGraphic } =
-    useMapHighlightContext();
+    useMapHighlightState();
 
   // the accordion item's highlight status
   const [status, setStatus] = useState(null);

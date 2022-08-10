@@ -29,7 +29,7 @@ import {
   boxSectionStyles,
 } from 'components/shared/Box';
 // contexts
-import { useFullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
+import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
@@ -206,10 +206,6 @@ const disclaimerStyles = css`
   display: inline-block;
 `;
 
-type Props = {
-  fullscreen: Object,
-};
-
 const conditions = {
   impaired: 'Impaired (Issues Identified)',
   good: 'Good',
@@ -218,7 +214,7 @@ const conditions = {
 
 function WaterbodyReport() {
   const { orgId, auId, reportingCycle } = useParams();
-  const { fullscreenActive } = useFullscreenContext();
+  const { fullscreenActive } = useFullscreenState();
 
   const services = useServicesContext();
 

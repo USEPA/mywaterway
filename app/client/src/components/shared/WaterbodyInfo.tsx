@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -745,17 +745,14 @@ function WaterbodyInfo({
   });
   useEffect(() => {
     if (type !== 'Restoration Plans' && type !== 'Protection Plans') return;
+    if (services?.status !== 'success') return;
 
     const auId = attributes.assessmentunitidentifier;
-    const url =
-      services?.status === 'success'
-        ? services.data.attains.serviceUrl +
+    const url = services.data.attains.serviceUrl +
           `actions?assessmentUnitIdentifier=${auId}` +
           `&organizationIdentifier=${attributes.organizationid}` +
-          `&summarize=Y`
-        : null;
+          `&summarize=Y`;
 
-    if (url) {
       fetchCheck(url)
         .then((res) => {
           let attainsProjectsData: AttainsProjectsDatum[] = [];
@@ -793,7 +790,6 @@ function WaterbodyInfo({
             data: [],
           });
         });
-    }
   }, [
     attributes.assessmentunitidentifier,
     attributes.organizationid,

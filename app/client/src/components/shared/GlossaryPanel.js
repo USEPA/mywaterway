@@ -6,7 +6,7 @@ import { css, createGlobalStyle } from 'styled-components/macro';
 // components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { GlossaryContext } from 'contexts/Glossary';
+import { useGlossaryState } from 'contexts/Glossary';
 // styles
 import { colors, fonts } from 'styles/index.js';
 // errors
@@ -181,7 +181,7 @@ const listStyles = css`
 // --- components ---
 function GlossaryPanel({ path }) {
   const { initialized, setInitialized, glossaryStatus, setGlossaryStatus } =
-    useContext(GlossaryContext);
+    useGlossaryState();
 
   // initialize Glossary panel
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { createContext, useState } from 'react';
+import { createContext, useContext, useMemo, useState } from 'react';
 // types
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import type { WidgetLayer } from 'types';
@@ -7,27 +7,18 @@ type SearchResultsState =
   | { status: 'idle' | 'fetching' | 'failure'; data: null }
   | { status: 'success'; data: __esri.PortalQueryResult | null };
 
-type AddDataWidget = {
+type State = {
   addDataWidgetVisible: boolean;
-  setAddDataWidgetVisible: (addDataWidgetVisible: boolean) => void;
+  setAddDataWidgetVisible: Dispatch<SetStateAction<boolean>>;
   pageNumber: number;
-  setPageNumber: Function;
+  setPageNumber: Dispatch<SetStateAction<number>>;
   searchResults: SearchResultsState;
   setSearchResults: Dispatch<SetStateAction<SearchResultsState>>;
   widgetLayers: WidgetLayer[];
   setWidgetLayers: Dispatch<SetStateAction<WidgetLayer[]>>;
 };
 
-export const AddDataWidgetContext = createContext<AddDataWidget>({
-  addDataWidgetVisible: false,
-  setAddDataWidgetVisible: () => undefined,
-  pageNumber: 1,
-  setPageNumber: () => undefined,
-  searchResults: { status: 'idle', data: null },
-  setSearchResults: () => undefined,
-  widgetLayers: [],
-  setWidgetLayers: () => undefined,
-});
+const StateContext = createContext<State | undefined>(undefined);
 
 type Props = {
   children: ReactNode;
@@ -42,20 +33,30 @@ export function AddDataWidgetProvider({ children }: Props) {
   });
   const [widgetLayers, setWidgetLayers] = useState<WidgetLayer[]>([]);
 
+  const state: State = useMemo(() => {
+    return {
+      addDataWidgetVisible,
+      pageNumber,
+      searchResults,
+      setAddDataWidgetVisible,
+      setPageNumber,
+      setSearchResults,
+      setWidgetLayers,
+      widgetLayers,
+    };
+  }, [addDataWidgetVisible, pageNumber, searchResults, widgetLayers]);
+
   return (
-    <AddDataWidgetContext.Provider
-      value={{
-        addDataWidgetVisible,
-        setAddDataWidgetVisible,
-        pageNumber,
-        setPageNumber,
-        searchResults,
-        setSearchResults,
-        widgetLayers,
-        setWidgetLayers,
-      }}
-    >
-      {children}
-    </AddDataWidgetContext.Provider>
+    <StateContext.Provider value={state}>{children}</StateContext.Provider>
   );
+}
+
+export function useAddDataWidgetState() {
+  const context = useContext(StateContext);
+  if (context === undefined) {
+    throw new Error(
+      'useAddDataWidgetState must be called within an AddDataWidgetProvider',
+    );
+  }
+  return context;
 }

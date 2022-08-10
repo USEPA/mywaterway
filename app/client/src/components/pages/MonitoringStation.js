@@ -40,7 +40,7 @@ import { characteristicGroupMappings } from 'config/characteristicGroupMappings'
 import { characteristicsByType } from 'config/characteristicsByType';
 import { monitoringError } from 'config/errorMessages';
 // contexts
-import { useFullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
+import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
@@ -1838,7 +1838,7 @@ function InformationSection({ orgId, siteId, station, stationStatus }) {
 
 function MonitoringStationContent() {
   const { orgId, provider, siteId } = useParams();
-  const { fullscreenActive } = useFullscreenContext();
+  const { fullscreenActive } = useFullscreenState();
   const [station, stationStatus] = useStationDetails(provider, orgId, siteId);
   const [characteristics, characteristicsStatus] = useCharacteristics(
     provider,

@@ -1,5 +1,5 @@
-import { createContext, useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import type { Dispatch, ReactNode, SetStateAction } from 'react';
 // contexts
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
@@ -32,30 +32,34 @@ declare global {
 }
 
 // --- components ---
-type GlossaryContextProps = {
+type State = {
   initialized: boolean;
-  setInitialized: (initialized: boolean) => void;
+  setInitialized: Dispatch<SetStateAction<boolean>>;
   glossaryStatus: GlossaryStatus;
-  setGlossaryStatus: (status: GlossaryStatus) => void;
+  setGlossaryStatus: Dispatch<SetStateAction<GlossaryStatus>>;
 };
 
-const GlossaryContext = createContext<GlossaryContextProps>({
-  initialized: false,
-  setInitialized: () => undefined,
-  glossaryStatus: 'fetching',
-  setGlossaryStatus: () => undefined,
-});
+const StateContext = createContext<State | undefined>(undefined);
 
 type Props = {
   children: ReactNode;
 };
 
-function GlossaryProvider({ children }: Props) {
+export function GlossaryProvider({ children }: Props) {
   const services = useServicesContext();
 
   const [initialized, setInitialized] = useState(false);
   const [glossaryStatus, setGlossaryStatus] =
     useState<GlossaryStatus>('fetching');
+
+  const state: State = useMemo(() => {
+    return {
+      initialized,
+      glossaryStatus,
+      setInitialized,
+      setGlossaryStatus,
+    };
+  }, [glossaryStatus, initialized]);
 
   // the components/GlossaryTerm component uses glossary terms fetched below.
   // some GlossaryTerm components are rendered outside of the main React tree
@@ -122,12 +126,16 @@ function GlossaryProvider({ children }: Props) {
   }, [promiseInitialized, services]);
 
   return (
-    <GlossaryContext.Provider
-      value={{ initialized, setInitialized, glossaryStatus, setGlossaryStatus }}
-    >
-      {children}
-    </GlossaryContext.Provider>
+    <StateContext.Provider value={state}>{children}</StateContext.Provider>
   );
 }
 
-export { GlossaryContext, GlossaryProvider };
+export function useGlossaryState() {
+  const context = useContext(StateContext);
+  if (context === undefined) {
+    throw new Error(
+      'useGlossaryState must be called within a GlossaryProvider',
+    );
+  }
+  return context;
+}

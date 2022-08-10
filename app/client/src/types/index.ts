@@ -38,10 +38,6 @@ export interface EjScreen {
   T_OVR64PCT: string;
 }
 
-export interface EventHandler {
-  remove: () => void;
-}
-
 export interface Facility {
   CWPName: string;
   CWPNAICSCodes: string | null;

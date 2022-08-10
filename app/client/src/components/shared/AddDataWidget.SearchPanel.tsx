@@ -18,7 +18,7 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { AddDataWidgetContext } from 'contexts/AddDataWidget';
+import { useAddDataWidgetState } from 'contexts/AddDataWidget';
 // config
 import { webServiceErrorMessage } from 'config/errorMessages';
 // styles
@@ -211,7 +211,7 @@ function isTileLayer(
 // --- components (SearchPanel) ---
 function SearchPanel() {
   const { pageNumber, setPageNumber, searchResults, setSearchResults } =
-    useContext(AddDataWidgetContext);
+    useAddDataWidgetState();
 
   const locationList = [
     { value: '161a24e10b8d405d97492264589afd0b', label: 'Suggested Content' },
@@ -396,12 +396,11 @@ function SearchPanel() {
               options={locationList}
               value={location}
               onChange={(ev) => {
-                if (ev) {
-                  setLocation(ev);
+                if (!ev) return;
+                setLocation(ev);
 
-                  // trigger a re-query
-                  setSearch(searchText);
-                }
+                // trigger a re-query
+                setSearch(searchText);
               }}
               styles={reactSelectStyles}
             />
@@ -761,7 +760,7 @@ type ResultCardProps = {
 };
 
 function ResultCard({ result }: ResultCardProps) {
-  const { widgetLayers, setWidgetLayers } = useContext(AddDataWidgetContext);
+  const { widgetLayers, setWidgetLayers } = useAddDataWidgetState();
   const { mapView } = useContext(LocationSearchContext);
 
   // Used to determine if the layer for this card has been added or not

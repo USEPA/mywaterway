@@ -1,24 +1,24 @@
 import { createContext, useContext, useMemo, useState } from 'react';
-import type { ReactNode } from 'react';
-import Graphic from '@arcgis/core/Graphic';
+import type { Dispatch, ReactNode, SetStateAction } from 'react';
 
 type State = {
-  highlightedGraphic: Graphic | null;
-  selectedGraphic: Graphic | null;
-  setHighlightedGraphic: (graphic: Graphic | null) => void;
-  setSelectedGraphic: (graphic: Graphic | null) => void;
+  highlightedGraphic: __esri.Graphic | null;
+  selectedGraphic: __esri.Graphic | null;
+  setHighlightedGraphic: Dispatch<SetStateAction<__esri.Graphic | null>>;
+  setSelectedGraphic: Dispatch<SetStateAction<__esri.Graphic | null>>;
 };
 
-const MapHighlightContext = createContext<State | undefined>(undefined);
+const StateContext = createContext<State | undefined>(undefined);
 
 type Props = { children: ReactNode };
 
 export function MapHighlightProvider({ children }: Props) {
-  const [highlightedGraphic, setHighlightedGraphic] = useState<Graphic | null>(
+  const [highlightedGraphic, setHighlightedGraphic] =
+    useState<__esri.Graphic | null>(null);
+  const [selectedGraphic, setSelectedGraphic] = useState<__esri.Graphic | null>(
     null,
   );
-  const [selectedGraphic, setSelectedGraphic] = useState<Graphic | null>(null);
-  const context: State = useMemo(() => {
+  const state: State = useMemo(() => {
     return {
       highlightedGraphic,
       setHighlightedGraphic,
@@ -28,17 +28,15 @@ export function MapHighlightProvider({ children }: Props) {
   }, [highlightedGraphic, selectedGraphic]);
 
   return (
-    <MapHighlightContext.Provider value={context}>
-      {children}
-    </MapHighlightContext.Provider>
+    <StateContext.Provider value={state}>{children}</StateContext.Provider>
   );
 }
 
-export function useMapHighlightContext() {
-  const context = useContext(MapHighlightContext);
+export function useMapHighlightState() {
+  const context = useContext(StateContext);
   if (context === undefined) {
     throw new Error(
-      'useMapHighlightContext must be called within a MapHighlightProvider',
+      'useMapHighlightState must be called within a MapHighlightProvider',
     );
   }
   return context;

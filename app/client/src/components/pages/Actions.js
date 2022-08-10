@@ -33,7 +33,7 @@ import {
   boxSectionStyles,
 } from 'components/shared/Box';
 // contexts
-import { useFullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
+import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
@@ -246,7 +246,7 @@ const strongBottomMarginStyles = css`
 function Actions() {
   const { orgId, actionId } = useParams();
 
-  const { fullscreenActive } = useFullscreenContext();
+  const { fullscreenActive } = useFullscreenState();
 
   const services = useServicesContext();
 

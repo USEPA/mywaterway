@@ -29,9 +29,9 @@ import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtil
 import AddDataWidget from 'components/shared/AddDataWidget';
 import MapLegend from 'components/shared/MapLegend';
 // contexts
-import { AddDataWidgetContext } from 'contexts/AddDataWidget';
+import { useAddDataWidgetState } from 'contexts/AddDataWidget';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useFullscreenContext } from 'contexts/Fullscreen';
+import { useFullscreenState } from 'contexts/Fullscreen';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
@@ -236,7 +236,7 @@ function MapWidgets({
   onHomeWidgetRendered = () => {},
 }: Props) {
   const { addDataWidgetVisible, setAddDataWidgetVisible, widgetLayers } =
-    useContext(AddDataWidgetContext);
+    useAddDataWidgetState();
 
   const {
     homeWidget,
@@ -278,7 +278,7 @@ function MapWidgets({
   const {
     fullscreenActive,
     setFullscreenActive, //
-  } = useFullscreenContext();
+  } = useFullscreenState();
 
   const [mapEventHandlersSet, setMapEventHandlersSet] = useState(false);
 

@@ -20,7 +20,7 @@ import { monitoringClusterSettings } from 'components/shared/LocationMap';
 import { usgsStaParameters } from 'config/usgsStaParameters';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { useMapHighlightContext } from 'contexts/MapHighlight';
+import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import {
@@ -402,7 +402,7 @@ function useWaterbodyOnMap(
   const {
     setHighlightedGraphic,
     setSelectedGraphic, //
-  } = useMapHighlightContext();
+  } = useMapHighlightState();
   const { allWaterbodiesLayer, pointsLayer, linesLayer, areasLayer, mapView } =
     useContext(LocationSearchContext);
 
@@ -481,7 +481,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
   const {
     highlightedGraphic,
     selectedGraphic, //
-  } = useMapHighlightContext();
+  } = useMapHighlightState();
   const {
     mapView,
     pointsLayer, //part of waterbody group layer
@@ -870,7 +870,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
   const {
     setHighlightedGraphic,
     setSelectedGraphic, //
-  } = useMapHighlightContext();
+  } = useMapHighlightState();
   useEffect(() => {
     closePopup({ mapView, setHighlightedGraphic, setSelectedGraphic });
   }, [mapView, setHighlightedGraphic, setSelectedGraphic, visibleLayers]);

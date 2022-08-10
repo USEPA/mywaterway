@@ -7,7 +7,7 @@ import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
-import { useMapHighlightContext } from 'contexts/MapHighlight';
+import { useMapHighlightState } from 'contexts/MapHighlight';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // config
@@ -17,7 +17,6 @@ import { getPopupContent, graphicComparison } from 'utils/mapFunctions';
 import { useDynamicPopup } from 'utils/hooks';
 // types
 import type {
-  EventHandler,
   MonitoringFeatureUpdate,
   MonitoringFeatureUpdates,
   Layer,
@@ -160,8 +159,7 @@ function MapMouseEvents({ view }: Props) {
   const fetchedDataDispatch = useFetchedDataDispatch();
 
   const services = useServicesContext();
-  const { setHighlightedGraphic, setSelectedGraphic } =
-    useMapHighlightContext();
+  const { setHighlightedGraphic, setSelectedGraphic } = useMapHighlightState();
 
   const {
     getHucBoundaries,
@@ -434,7 +432,7 @@ function MapMouseEvents({ view }: Props) {
 
   // sets an event listener on the home widget, and
   // restores cluster settings if clicked
-  const [homeClickHandler, setHomeClickHandler] = useState<EventHandler | null>(
+  const [homeClickHandler, setHomeClickHandler] = useState<IHandle | null>(
     null,
   );
   useEffect(() => {
@@ -446,7 +444,7 @@ function MapMouseEvents({ view }: Props) {
   useEffect(() => {
     if (!locationCount || locationCount <= 20) return;
     if (!homeWidget || !monitoringLocationsLayer) return;
-    const handler = homeWidget.on('go', (_ev: any) => {
+    const handler: IHandle = homeWidget.on('go', (_ev: any) => {
       if (
         !monitoringLocationsLayer ||
         monitoringLocationsLayer.featureReduction

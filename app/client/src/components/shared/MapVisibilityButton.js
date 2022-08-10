@@ -1,9 +1,9 @@
 // @flow
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 // contexts
-import { useMapHighlightContext } from 'contexts/MapHighlight';
+import { useMapHighlightState } from 'contexts/MapHighlight';
 // styles
 import { colors } from 'styles/index.js';
 
@@ -25,7 +25,7 @@ type Props = {
 };
 
 function MapVisibilityButton({ children }: Props) {
-  const { selectedGraphic } = useMapHighlightContext();
+  const { selectedGraphic } = useMapHighlightState();
   const [mapShown, setMapShown] = useState(false);
 
   const iconClassName = mapShown ? 'far fa-eye-slash' : 'far fa-eye';
