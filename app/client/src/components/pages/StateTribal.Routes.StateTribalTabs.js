@@ -89,9 +89,20 @@ function StateTribalTabs() {
     />
   );
 
-  if (activeState.source === 'All') return <LoadingSpinner />;
+  if (activeState.source === 'All') {
+    if (states.status === 'failure' || tribes.status === 'failure') {
+      return null;
+    }
+
+    return <LoadingSpinner />;
+  }
+
+  if (activeState.source === 'State' && states.status === 'failure') {
+    return null;
+  }
 
   if (activeState.source === 'Tribe') {
+    if (tribes.status === 'failure') return null;
     if (fullscreenActive) return mapContent;
 
     return (

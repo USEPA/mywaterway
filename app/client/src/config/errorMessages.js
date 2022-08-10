@@ -133,8 +133,8 @@ export const stateSurveyError = (stateName) =>
   `${stateName} survey documents are temporarily unavailable, please try again later.`;
 
 // attains state list service
-export const stateListError =
-  'State information is temporarily unavailable, please try again later.';
+export const stateListError = (source) =>
+  `${source} list information is temporarily unavailable, please try again later.`;
 
 // grts.epa.gov stories service
 export const stateStoriesError =
