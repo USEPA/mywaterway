@@ -753,43 +753,43 @@ function WaterbodyInfo({
           `&organizationIdentifier=${attributes.organizationid}` +
           `&summarize=Y`;
 
-      fetchCheck(url)
-        .then((res) => {
-          let attainsProjectsData: AttainsProjectsDatum[] = [];
+    fetchCheck(url)
+      .then((res) => {
+        let attainsProjectsData: AttainsProjectsDatum[] = [];
 
-          if (res.items.length > 0) {
-            attainsProjectsData = res.items[0].actions.map(
-              (action: ActionData) => {
-                const pollutants = action
-                  ? action.parameters.map((p) =>
-                      titleCaseWithExceptions(p.parameterName),
-                    )
-                  : [];
+        if (res.items.length > 0) {
+          attainsProjectsData = res.items[0].actions.map(
+            (action: ActionData) => {
+              const pollutants = action
+                ? action.parameters.map((p) =>
+                    titleCaseWithExceptions(p.parameterName),
+                  )
+                : [];
 
-                return {
-                  id: action.actionIdentifier,
-                  orgId: attributes.organizationid,
-                  name: action.actionName,
-                  pollutants,
-                  type: action.actionTypeCode,
-                  date: action.completionDate,
-                };
-              },
-            );
-          }
+              return {
+                id: action.actionIdentifier,
+                orgId: attributes.organizationid,
+                name: action.actionName,
+                pollutants,
+                type: action.actionTypeCode,
+                date: action.completionDate,
+              };
+            },
+          );
+        }
 
-          setAttainsProjects({
-            status: 'success',
-            data: attainsProjectsData,
-          });
-        })
-        .catch((err) => {
-          console.error(err);
-          setAttainsProjects({
-            status: 'failure',
-            data: [],
-          });
+        setAttainsProjects({
+          status: 'success',
+          data: attainsProjectsData,
         });
+      })
+      .catch((err) => {
+        console.error(err);
+        setAttainsProjects({
+          status: 'failure',
+          data: [],
+        });
+      });
   }, [
     attributes.assessmentunitidentifier,
     attributes.organizationid,

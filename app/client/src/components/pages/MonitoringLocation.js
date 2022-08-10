@@ -1967,8 +1967,9 @@ function InformationSection({ siteId, site, siteStatus }) {
   );
 }
 
-function MonitoringLocationContent({ fullscreen }) {
+function MonitoringLocationContent() {
   const { orgId, provider, siteId } = useParams();
+  const { fullscreenActive } = useFullscreenState();
   const [site, siteStatus] = useSiteDetails(provider, orgId, siteId);
   const [characteristics, characteristicsStatus] = useCharacteristics(
     provider,
@@ -2117,14 +2118,10 @@ function MonitoringLocationContent({ fullscreen }) {
   );
 }
 
-function MonitoringLocation(props) {
+function MonitoringLocation() {
   return (
     <FullscreenProvider>
-      <FullscreenContext.Consumer>
-        {(fullscreen) => (
-          <MonitoringLocationContent fullscreen={fullscreen} {...props} />
-        )}
-      </FullscreenContext.Consumer>
+      <MonitoringLocationContent />
     </FullscreenProvider>
   );
 }
