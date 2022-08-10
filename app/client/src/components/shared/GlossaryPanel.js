@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { Node } from 'react';
 import { css, createGlobalStyle } from 'styled-components/macro';
 // components
