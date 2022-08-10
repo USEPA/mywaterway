@@ -21,7 +21,8 @@ import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import DateSlider from 'components/shared/DateSlider';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import LineChart from 'components/shared/LineChart';
+import HelpTooltip from 'components/shared/HelpTooltip';
+import ScatterPlot from 'components/shared/ScatterPlot';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Map from 'components/shared/Map';
 import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
@@ -38,13 +39,14 @@ import {
 // config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 import { characteristicsByType } from 'config/characteristicsByType';
-import { monitoringError } from 'config/errorMessages';
+import { monitoringDownloadError, monitoringError } from 'config/errorMessages';
 // contexts
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
+import { MapHighlightProvider } from 'contexts/MapHighlight';
 // helpers
-import { fetchCheck } from 'utils/fetchUtils';
+import { fetchCheck, fetchPost } from 'utils/fetchUtils';
 import { useSharedLayers } from 'utils/hooks';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
 import { parseAttributes, titleCaseWithExceptions } from 'utils/utils';
@@ -109,11 +111,14 @@ const charcsTableStyles = css`
   .rt-table .rt-td {
     margin: auto;
   }
+  .selected div {
+    border-bottom: 1px solid #d8dfe2;
+    margin-bottom: 0.5rem;
+  }
 `;
 
 const chartContainerStyles = css`
-  margin-top: 1rem;
-  margin-right: 0.625rem;
+  margin: 1rem 0.625rem;
 `;
 
 const containerStyles = css`
@@ -160,9 +165,25 @@ const downloadLinksStyles = css`
   }
 `;
 
+const fileLinkStyles = css`
+  background: none;
+  border: none;
+  color: #0071bc;
+  margin: 0;
+  outline: inherit;
+  padding: 0;
+  svg {
+    display: inline-block;
+    height: auto;
+    margin: 0;
+    width: 12px;
+  }
+`;
+
 const flexboxSectionStyles = css`
   ${boxSectionStyles}
   display: flex;
+  justify-content: flex-start;
 `;
 
 const iconStyles = css`
@@ -173,6 +194,7 @@ const infoBoxHeadingStyles = css`
   ${boxHeadingStyles};
   display: flex;
   align-items: flex-start;
+  margin-bottom: 0;
 
   small {
     display: block;
@@ -187,8 +209,14 @@ const infoBoxHeadingStyles = css`
 `;
 
 const inlineBoxSectionStyles = css`
-  padding: 0.4375rem 0.875rem;
-
+  ${boxSectionStyles}
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid #d8dfe2;
+  padding: 0.5em;
+  &:last-of-type {
+    border-bottom: none;
+  }
   /* loading icon */
   svg {
     display: inline-block;
@@ -197,15 +225,20 @@ const inlineBoxSectionStyles = css`
   }
 
   h3 {
+    grid-column: 1;
     margin-right: 0.5em;
   }
 
-  h3,
   p {
+    grid-column: 2;
+  }
+
+  .label,
+  .value {
     display: inline-block;
-    margin-top: 0;
-    margin-bottom: 0;
     line-height: 1.25;
+    margin-bottom: auto;
+    margin-top: auto;
   }
 `;
 
@@ -224,26 +257,26 @@ const mapContainerStyles = css`
   position: relative;
 `;
 
+const messageBoxStyles = (baseStyles) => {
+  return css`
+    ${baseStyles};
+    text-align: center;
+    margin: 1rem auto;
+    padding: 0.7rem 1rem !important;
+    max-width: max-content;
+    width: 90%;
+  `;
+};
+
+const modifiedBoxStyles = css`
+  ${boxStyles}
+  padding-bottom: 0;
+`;
+
 const modifiedDisclaimerStyles = css`
   ${disclaimerStyles};
 
   padding-bottom: 0;
-`;
-
-const modifiedErrorBoxStyles = css`
-  ${errorBoxStyles};
-  text-align: center;
-  margin: 1rem auto;
-  padding: 0.7rem 1rem !important;
-  width: max-content;
-`;
-
-const modifiedInfoBoxStyles = css`
-  ${infoBoxStyles};
-  text-align: center;
-  margin: 1rem auto;
-  padding: 0.7rem 1rem !important;
-  width: max-content;
 `;
 
 const modifiedSplitLayoutColumnsStyles = css`
@@ -274,7 +307,7 @@ const radioStyles = css`
     font-size: inherit;
     margin: auto;
     padding-left: 1em;
-    text-indent: -1em;
+    text-indent: -1.1em;
     &:before {
       background: ${colors.white()};
       border-radius: 100%;
@@ -326,18 +359,15 @@ const selectContainerStyles = css`
     font-weight: bold;
     white-space: nowrap;
 
-    @media (min-width: 560px) {
+    @media (min-width: 960px) {
       margin-bottom: 0;
     }
-  }
-
-  @media (min-width: 560px) {
-    flex-wrap: nowrap;
   }
 
   .radio-container {
     display: inline-flex;
     flex-direction: column;
+    gap: 0.2em;
   }
 
   .radios {
@@ -357,10 +387,16 @@ const selectContainerStyles = css`
   }
 `;
 
+const shadedBoxSectionStyles = css`
+  ${boxSectionStyles}
+  background-color: #f0f6f9;
+`;
+
 const sliderContainerStyles = css`
   align-items: flex-end;
   display: flex;
   justify-content: center;
+  margin-top: 0.4375rem;
   width: 100%;
   span {
     margin-bottom: 0.1em;
@@ -381,44 +417,30 @@ const treeStyles = (level, styles) => {
   `;
 };
 
+const wideBoxSectionStyles = css`
+  ${inlineBoxSectionStyles}
+  grid-template-columns: minmax(100px, 300px) minmax(100px, 1fr);
+`;
+
 /*
 ## Helpers
 */
-
-function buildDateFilter(range, minYear, maxYear) {
-  if (!range) return;
-  let filter = '';
-  if (range[0] !== minYear) {
-    filter += `&startDateLo=01-01-${range[0]}`;
-  }
-  if (range[1] !== maxYear) {
-    filter += `&startDateHi=12-31-${range[1]}`;
-  }
-  return filter;
-}
-
-function buildCharcsFilter(checkboxes) {
-  let filter = '';
-  if (checkboxes.all === 1 || checkboxes.all === 0) return filter;
-  Object.values(checkboxes.types).forEach((type) => {
-    if (type.selected === 1) {
-      filter += `&characteristicType=${type.id}`;
-    } else if (type.selected === 0.5) {
-      type.charcs.forEach((charcId) => {
-        const charc = checkboxes.charcs[charcId];
-        if (charc.selected === 1) {
-          filter += `&characteristicName=${charc.id}`;
-        }
-      });
-    }
-  });
-  return filter;
-}
 
 function buildOptions(values) {
   return Array.from(values).map((value) => {
     return { value: value, label: value };
   });
+}
+
+function buildTooltip(unit) {
+  return (tooltipData) => (
+    <>
+      {tooltipData?.nearestDatum && tooltipData.nearestDatum.datum.x}:{' '}
+      {tooltipData?.nearestDatum &&
+        tooltipData.nearestDatum.datum.daily.join(', ')}{' '}
+      {unit}
+    </>
+  );
 }
 
 function checkboxReducer(state, action) {
@@ -450,27 +472,33 @@ function checkboxReducer(state, action) {
   }
 }
 
+const Checkbox = {
+  checked: 1,
+  indeterminate: 0.5,
+  unchecked: 0,
+};
+
 const dateOptions = {
   year: 'numeric',
   month: 'short',
   day: 'numeric',
 };
 
-async function drawStation(station, layer) {
-  if (isEmpty(station)) return false;
+async function drawSite(site, layer) {
+  if (isEmpty(site)) return false;
   const newFeature = new Graphic({
     geometry: {
       type: 'point',
-      latitude: station.locationLatitude,
-      longitude: station.locationLongitude,
+      latitude: site.locationLatitude,
+      longitude: site.locationLongitude,
     },
     attributes: {
-      ...station,
+      ...site,
       locationUrl: window.location.href,
-      stationProviderName: station.providerName,
-      stationTotalSamples: station.totalSamples,
-      stationTotalMeasurements: station.totalMeasurements,
-      stationTotalsByGroup: JSON.stringify(station.charcTypeCounts),
+      stationProviderName: site.providerName,
+      stationTotalSamples: site.totalSamples,
+      stationTotalMeasurements: site.totalMeasurements,
+      stationTotalsByGroup: JSON.stringify(site.charcTypeCounts),
     },
   });
   const featureSet = await layer.queryFeatures();
@@ -481,7 +509,7 @@ async function drawStation(station, layer) {
   return editResults?.addFeatureResults?.length ? true : false;
 }
 
-async function fetchStationDetails(url, setData, setStatus) {
+async function fetchSiteDetails(url, setData, setStatus) {
   const res = await fetchCheck(url);
   if (res.features.length < 1) {
     setStatus('empty');
@@ -489,7 +517,7 @@ async function fetchStationDetails(url, setData, setStatus) {
     return;
   }
   const feature = res.features[0];
-  const stationDetails = {
+  const siteDetails = {
     county: feature.properties.CountyName,
     charcTypeCounts: feature.properties.characteristicGroupResultCount,
     charcGroups: groupTypes(
@@ -514,12 +542,12 @@ async function fetchStationDetails(url, setData, setStatus) {
       `${feature.properties.ProviderName}/` +
       `${feature.properties.OrganizationIdentifier}`,
   };
-  stationDetails.charcGroupCounts = parseGroupCounts(
-    stationDetails.charcTypeCounts,
-    stationDetails.charcGroups,
+  siteDetails.charcGroupCounts = parseGroupCounts(
+    siteDetails.charcTypeCounts,
+    siteDetails.charcGroups,
     characteristicGroupMappings,
   );
-  setData(stationDetails);
+  setData(siteDetails);
   setStatus('success');
 }
 
@@ -572,10 +600,9 @@ function getFilteredCount(range, records, count) {
 }
 
 function getCheckedStatus(numberSelected, children) {
-  // Using 0.5 for indeterminate to prevent a false positive
-  let status = 0.5;
-  if (numberSelected === 0) status = 0;
-  else if (numberSelected === children.length) status = 1;
+  let status = Checkbox.indeterminate;
+  if (numberSelected === 0) status = Checkbox.unchecked;
+  else if (numberSelected === children.length) status = Checkbox.checked;
   return status;
 }
 
@@ -598,6 +625,7 @@ function getMedian(values) {
 }
 
 function getStdDev(values, mean = null) {
+  if (values.length <= 1) return null;
   const sampleMean = mean ?? getMean(values);
   const tss = values.reduce((a, b) => a + (b - sampleMean) ** 2, 0);
   const variance = tss / (values.length - 1);
@@ -697,20 +725,20 @@ function loadNewData(data, state) {
   Object.values(charcs).forEach((charc) => {
     newCharcs[charc.id] = {
       ...charc,
-      selected: state.charcs[charc.id]?.selected ?? 1,
+      selected: state.charcs[charc.id]?.selected ?? Checkbox.checked,
     };
   });
   Object.values(types).forEach((type) => {
     newTypes[type.id] = {
       ...type,
       charcs: Array.from(type.charcs),
-      selected: 0,
+      selected: Checkbox.unchecked,
     };
   });
   Object.values(groups).forEach((group) => {
     newGroups[group.id] = {
       ...group,
-      selected: 0,
+      selected: Checkbox.unchecked,
       types: Array.from(group.types),
     };
   });
@@ -800,30 +828,30 @@ function parseRecord(record, measurements) {
   if (!specMeasurements[date]) {
     specMeasurements[date] = {
       ...record,
-      measurement: [record.measurement],
+      measurements: [record.measurement],
       date,
     };
   } else {
-    specMeasurements[date].measurement.push(record.measurement);
+    specMeasurements[date].measurements.push(record.measurement);
   }
   return { unit, speciation, fraction };
 }
 
-const sectionRow = (label, value, style, dataStatus) => (
+const sectionRow = (label, value, style, dataStatus = 'success') => (
   <div css={style}>
-    <h3>{label}:</h3>
+    <h3 className="label">{label}:</h3>
     {dataStatus === 'fetching' && <LoadingSpinner />}
-    {dataStatus === 'failure' && (
-      <div css={modifiedErrorBoxStyles}>
-        <p>{monitoringError}</p>
-      </div>
-    )}
-    {dataStatus === 'success' && <p>{value}</p>}
+    {dataStatus === 'failure' && <p className="value">N/A</p>}
+    {dataStatus === 'success' && <p className="value">{value}</p>}
   </div>
 );
 
 const sectionRowInline = (label, value, dataStatus = 'success') => {
   return sectionRow(label, value, inlineBoxSectionStyles, dataStatus);
+};
+
+const sectionRowWide = (label, value, dataStatus = 'success') => {
+  return sectionRow(label, value, wideBoxSectionStyles, dataStatus);
 };
 
 function sortMeasurements(measurements) {
@@ -834,11 +862,8 @@ function sortMeasurements(measurements) {
         Object.entries(fractionMeasurements).forEach(
           ([specKey, specMeasurements]) => {
             Object.values(specMeasurements).forEach((date) => {
-              date.measurement = parseFloat(
-                (
-                  date.measurement.reduce((a, b) => a + b) /
-                  date.measurement.length
-                ).toFixed(3),
+              date.measurements = date.measurements.map((measurement) =>
+                parseFloat(measurement.toFixed(3)),
               );
             });
             measurements[unitKey][fractionKey][specKey] = Object.values(
@@ -1042,7 +1067,11 @@ function useCharacteristics(provider, orgId, siteId) {
     const url =
       `${services.data.waterQualityPortal.resultSearch}` +
       `&mimeType=csv&zip=no&dataProfile=narrowResult` +
-      `&providers=${provider}&organization=${orgId}&siteid=${siteId}`;
+      `&providers=${encodeURIComponent(
+        provider,
+      )}&organization=${encodeURIComponent(orgId)}&siteid=${encodeURIComponent(
+        siteId,
+      )}`;
     fetchParseCsv(url)
       .then((results) => structureRecords(results.data))
       .catch((_err) => {
@@ -1054,25 +1083,29 @@ function useCharacteristics(provider, orgId, siteId) {
   return [charcs, status];
 }
 
-function useStationDetails(provider, orgId, siteId) {
+function useSiteDetails(provider, orgId, siteId) {
   const services = useServicesContext();
 
-  const [station, setStation] = useState({});
-  const [stationStatus, setStationStatus] = useState('fetching');
+  const [site, setSite] = useState({});
+  const [siteStatus, setSiteStatus] = useState('fetching');
 
   useEffect(() => {
     const url =
       `${services.data.waterQualityPortal.monitoringLocation}` +
-      `search?mimeType=geojson&zip=no&provider=${provider}&organization=${orgId}&siteid=${siteId}`;
+      `search?mimeType=geojson&zip=no&provider=${encodeURIComponent(
+        provider,
+      )}&organization=${encodeURIComponent(orgId)}&siteid=${encodeURIComponent(
+        siteId,
+      )}`;
 
-    fetchStationDetails(url, setStation, setStationStatus).catch((err) => {
+    fetchSiteDetails(url, setSite, setSiteStatus).catch((err) => {
       console.error(err);
-      setStationStatus('failure');
-      setStation({});
+      setSiteStatus('failure');
+      setSite({});
     });
-  }, [provider, services, setStation, setStationStatus, orgId, siteId]);
+  }, [provider, services, setSite, setSiteStatus, orgId, siteId]);
 
-  return [station, stationStatus];
+  return [site, siteStatus];
 }
 
 /*
@@ -1151,9 +1184,15 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
 
   const getChartData = useCallback((newDomain, newMsmts) => {
     let newChartData = [];
-    newMsmts.forEach((msmt) => {
-      if (msmt.year >= newDomain[0] && msmt.year <= newDomain[1]) {
-        newChartData.push({ x: msmt.date, y: msmt.measurement });
+    newMsmts.forEach((day) => {
+      if (day.year >= newDomain[0] && day.year <= newDomain[1]) {
+        day.measurements.forEach((msmt) => {
+          newChartData.push({
+            x: day.date,
+            y: msmt,
+            daily: day.measurements.sort(),
+          });
+        });
       }
     });
     setChartData(newChartData);
@@ -1201,8 +1240,13 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
     infoText =
       'No measurements available to be charted for this characteristic.';
 
+  let average = mean?.toLocaleString('en-US');
+  if (stdDev)
+    average += ` ${String.fromCharCode(177)} ${stdDev.toLocaleString()}`;
+  average += ` ${unit}`;
+
   return (
-    <div css={boxStyles}>
+    <div css={modifiedBoxStyles}>
       <h2 css={infoBoxHeadingStyles}>
         Chart of Results for{' '}
         {!charcName
@@ -1211,16 +1255,18 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
       </h2>
       <StatusContent
         empty={
-          <p css={modifiedInfoBoxStyles}>
+          <p css={messageBoxStyles(infoBoxStyles)}>
             No data available for this monitoring location.
           </p>
         }
-        failure={<p css={modifiedErrorBoxStyles}>{monitoringError}</p>}
+        failure={
+          <p css={messageBoxStyles(errorBoxStyles)}>{monitoringError}</p>
+        }
         fetching={<LoadingSpinner />}
         status={charcsStatus}
       >
         {infoText ? (
-          <p css={modifiedInfoBoxStyles}>{infoText}</p>
+          <p css={messageBoxStyles(infoBoxStyles)}>{infoText}</p>
         ) : (
           <>
             <SliderContainer
@@ -1313,8 +1359,8 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
               unit={unit}
             />
             {chartData?.length && (
-              <div css={boxSectionStyles}>
-                {sectionRowInline(
+              <div css={shadedBoxSectionStyles}>
+                {sectionRowWide(
                   'Selected Date Range',
                   `${new Date(domain[0]).toLocaleDateString(
                     'en-us',
@@ -1325,27 +1371,22 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                       dateOptions,
                     )}`,
                 )}
-                {sectionRowInline(
+                {sectionRowWide(
                   'Number of Measurements Shown',
                   chartData.length.toLocaleString(),
                 )}
-                {sectionRowInline(
-                  'Average of Values',
-                  `${mean.toLocaleString('en-US')} ${String.fromCharCode(
-                    177,
-                  )} ${stdDev.toLocaleString()} ${unit}`,
-                )}
-                {sectionRowInline(
+                {sectionRowWide('Average of Values', average)}
+                {sectionRowWide(
                   'Median Value',
                   `${median.toLocaleString()} ${unit}`,
                 )}
                 {range &&
-                  sectionRowInline(
+                  sectionRowWide(
                     'Minimum Value',
                     `${range[0].toLocaleString()} ${unit}`,
                   )}
                 {range &&
-                  sectionRowInline(
+                  sectionRowWide(
                     'Maximum Value',
                     `${range[1].toLocaleString()} ${unit}`,
                   )}
@@ -1365,9 +1406,10 @@ function CheckboxRow({ accessor, id, level, state, dispatch }) {
       <span>
         <input
           type="checkbox"
-          checked={item.selected === 1}
+          checked={item.selected === Checkbox.checked}
           ref={(input) => {
-            if (input) input.indeterminate = item.selected === 0.5;
+            if (input)
+              input.indeterminate = item.selected === Checkbox.indeterminate;
           }}
           onChange={handleCheckbox(id, accessor, dispatch)}
           style={{ top: '1px' }}
@@ -1397,7 +1439,9 @@ function CharacteristicsTableSection({
               type="radio"
               value={charc.name}
             />
-            <label htmlFor={charc.name}></label>
+            <label htmlFor={charc.name}>
+              <span className="sr-only">{charc.name}</span>
+            </label>
           </div>
         );
         const measurementCount = charc.records.reduce((a, b) => {
@@ -1422,25 +1466,32 @@ function CharacteristicsTableSection({
       <div css={charcsTableStyles}>
         <StatusContent
           empty={
-            <p css={modifiedInfoBoxStyles}>
+            <p css={messageBoxStyles(infoBoxStyles)}>
               No records found for this location.
             </p>
           }
           failure={
-            <div css={modifiedErrorBoxStyles}>
+            <div css={messageBoxStyles(errorBoxStyles)}>
               <p>{monitoringError}</p>
             </div>
           }
           fetching={<LoadingSpinner />}
           status={charcsStatus}
         >
-          {sectionRowInline('Selected Characteristic', selected, charcsStatus)}
+          <span className="selected">
+            {sectionRowInline(
+              'Selected Characteristic',
+              selected ?? 'None',
+              charcsStatus,
+            )}
+          </span>
           <ReactTable
             autoResetFilters={false}
             autoResetSortBy={false}
             data={tableData}
+            defaultSort="name"
             placeholder="Filter..."
-            striped={false}
+            striped={true}
             getColumns={(tableWidth) => {
               const columnWidth = 2 * (tableWidth / 7) - 6;
               const halfColumnWidth = tableWidth / 7 - 6;
@@ -1503,14 +1554,15 @@ function ChartContainer({ range, data, charcName, scaleType, yTitle, unit }) {
 
   if (!data?.length)
     return (
-      <p css={modifiedInfoBoxStyles}>
+      <p css={messageBoxStyles(infoBoxStyles)}>
         No measurements available for the selected options.
       </p>
     );
 
   return (
     <div ref={chartRef} css={chartContainerStyles}>
-      <LineChart
+      <ScatterPlot
+        buildTooltip={buildTooltip(unit)}
         color={lineColors[charcGroup]}
         containerRef={chartRef.current}
         data={data}
@@ -1546,9 +1598,11 @@ function CheckboxAccordion({
             <span>
               <input
                 type="checkbox"
-                checked={item.selected === 1}
+                checked={item.selected === Checkbox.checked}
                 ref={(input) => {
-                  if (input) input.indeterminate = item.selected === 0.5;
+                  if (input)
+                    input.indeterminate =
+                      item.selected === Checkbox.indeterminate;
                 }}
                 onChange={handleCheckbox(id, accessor, dispatch)}
                 onClick={(ev) => ev.stopPropagation()}
@@ -1573,7 +1627,7 @@ function CheckboxAccordion({
   );
 }
 
-function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
+function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
   const [range, setRange] = useState(null);
   const [minYear, setMinYear] = useState(null);
   const [maxYear, setMaxYear] = useState(null);
@@ -1585,25 +1639,49 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
 
   const services = useServicesContext();
 
-  const downloadUrl =
-    stationStatus === 'success' &&
-    `${services.data.waterQualityPortal.resultSearch}` +
-      `zip=no&dataProfile=narrowResult` +
-      `&organization=${station.orgId}` +
-      `&siteid=${station.siteId}` +
-      `&providers=${station.providerName}` +
-      `${buildCharcsFilter(checkboxes)}` +
-      `${buildDateFilter(range, minYear, maxYear)}`;
+  const [downloadError, setDownloadError] = useState(null);
 
-  const portalUrl =
-    stationStatus === 'success' &&
-    `${services.data.waterQualityPortal.userInterface}#` +
-      `mimeType=xlsx&dataProfile=narrowResult` +
-      `&organization=${station.orgId}` +
-      `&siteid=${station.siteId}` +
-      `&providers=${station.providerName}` +
-      `${buildCharcsFilter(checkboxes)}` +
-      `${buildDateFilter(range, minYear, maxYear)}`;
+  // fields common to the download and portal queries
+  const queryData =
+    siteStatus === 'success'
+      ? {
+          dataProfile: 'narrowResult',
+          siteid: [site.siteId],
+          organization: [site.orgId],
+          providers: [site.providerName],
+        }
+      : {};
+  if (range && range[0] !== minYear)
+    queryData.startDateLo = `01-01-${range[0]}`;
+  if (range && range[1] !== maxYear)
+    queryData.startDateHi = `12-31-${range[1]}`;
+
+  let portalUrl =
+    services.status === 'success' &&
+    Object.entries(queryData).reduce((query, [key, value]) => {
+      let queryPartial = '';
+      if (Array.isArray(value))
+        value.forEach(
+          (item) => (queryPartial += `&${key}=${encodeURIComponent(item)}`),
+        );
+      else queryPartial += `&${key}=${encodeURIComponent(value)}`;
+      return query + queryPartial;
+    }, `${services.data.waterQualityPortal.userInterface}#dataProfile=narrowResult`);
+
+  if (checkboxes.all === Checkbox.indeterminate) {
+    const selectedTypes = Object.values(checkboxes.types)
+      .filter((type) => type.selected !== Checkbox.unchecked)
+      .map((type) => type.id);
+    selectedTypes.forEach(
+      (type) =>
+        (portalUrl += `&characteristicType=${encodeURIComponent(type)}`),
+    );
+
+    const selectedCharcs = Object.values(checkboxes.charcs)
+      .filter((charc) => charc.selected === Checkbox.checked)
+      .map((charc) => charc.id);
+    queryData.characteristicName = selectedCharcs;
+  }
 
   useEffect(() => {
     if (charcsStatus !== 'success') return;
@@ -1630,14 +1708,16 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
 
   return (
     <div css={boxStyles}>
-      <h2 css={boxHeadingStyles}>Download Station Data</h2>
+      <h2 css={infoBoxHeadingStyles}>Download Location Data</h2>
       <StatusContent
         empty={
-          <p css={modifiedInfoBoxStyles}>
+          <p css={messageBoxStyles(infoBoxStyles)}>
             No data available for this monitoring location.
           </p>
         }
-        failure={<p css={modifiedErrorBoxStyles}>{monitoringError}</p>}
+        failure={
+          <p css={messageBoxStyles(errorBoxStyles)}>{monitoringError}</p>
+        }
         fetching={<LoadingSpinner />}
         status={charcsStatus}
       >
@@ -1655,10 +1735,13 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
               title={
                 <span>
                   <input
+                    style={{ top: '2px' }}
                     type="checkbox"
-                    checked={checkboxes.all === 1}
+                    checked={checkboxes.all === Checkbox.checked}
                     ref={(input) => {
-                      if (input) input.indeterminate = checkboxes.all === 0.5;
+                      if (input)
+                        input.indeterminate =
+                          checkboxes.all === Checkbox.indeterminate;
                     }}
                     onChange={(_ev) => checkboxDispatch({ type: 'all' })}
                   />
@@ -1738,52 +1821,86 @@ function DownloadSection({ charcs, charcsStatus, station, stationStatus }) {
             </AccordionList>
           </div>
         </div>
-        <div id="download-links" css={downloadLinksStyles}>
-          <div>
-            <a
-              rel="noopener noreferrer"
-              target="_blank"
-              data-cy="portal"
-              href={portalUrl}
-              style={{ fontWeight: 'normal' }}
-            >
-              <i
-                css={iconStyles}
-                className="fas fa-filter"
-                aria-hidden="true"
-              />
-              Advanced Filtering
-            </a>
-            &nbsp;&nbsp;
-            <small css={modifiedDisclaimerStyles}>
-              (opens new browser tab)
-            </small>
-          </div>
-          <div>
-            <span>Download Selected Data</span>
-            <span>
+        {services.status === 'success' && (
+          <div id="download-links" css={downloadLinksStyles}>
+            <div>
+              <a
+                rel="noopener noreferrer"
+                target="_blank"
+                data-cy="portal"
+                href={portalUrl}
+                style={{ fontWeight: 'normal' }}
+              >
+                <i
+                  css={iconStyles}
+                  className="fas fa-filter"
+                  aria-hidden="true"
+                />
+                Advanced Filtering
+              </a>
               &nbsp;&nbsp;
-              <FileLink
-                disabled={checkboxes.all === 0}
-                fileType="excel"
-                url={downloadUrl}
-              />
-              &nbsp;&nbsp;
-              <FileLink
-                disabled={checkboxes.all === 0}
-                fileType="csv"
-                url={downloadUrl}
-              />
-            </span>
+              <small css={modifiedDisclaimerStyles}>
+                (opens new browser tab)
+              </small>
+            </div>
+            <div>
+              <span>Download Selected Data</span>
+              <span>
+                &nbsp;&nbsp;
+                <FileLink
+                  data={queryData}
+                  disabled={checkboxes.all === Checkbox.unchecked}
+                  fileType="excel"
+                  setError={setDownloadError}
+                  url={services.data.waterQualityPortal.resultSearch}
+                />
+                &nbsp;&nbsp;
+                <FileLink
+                  data={queryData}
+                  disabled={checkboxes.all === Checkbox.unchecked}
+                  fileType="csv"
+                  setError={setDownloadError}
+                  url={services.data.waterQualityPortal.resultSearch}
+                />
+              </span>
+            </div>
           </div>
-        </div>
+        )}
+        {downloadError && (
+          <p css={messageBoxStyles(errorBoxStyles)}>
+            {monitoringDownloadError}
+          </p>
+        )}
       </StatusContent>
     </div>
   );
 }
 
-function FileLink({ disabled, fileType, url }) {
+function FileLink({ disabled, fileType, data, setError, url }) {
+  const [fetching, setFetching] = useState(false);
   const mimeTypes = { excel: 'xlsx', csv: 'csv' };
+  const fileTypeUrl = `${url}zip=no&mimeType=${mimeTypes[fileType]}`;
+  const fetchFile = async () => {
+    setFetching(true);
+    try {
+      setError(null);
+      const blob = await fetchPost(
+        fileTypeUrl,
+        data,
+        { 'Content-Type': 'application/json' },
+        60000,
+        'blob',
+      );
+      const file = window.URL.createObjectURL(blob);
+      window.location.assign(file);
+    } catch (err) {
+      setError(err);
+      console.error(err);
+    } finally {
+      setFetching(false);
+    }
+  };
+
   if (disabled)
     return (
       <i
@@ -1792,52 +1909,67 @@ function FileLink({ disabled, fileType, url }) {
         style={{ color: '#ccc' }}
       />
     );
+  else if (fetching)
+    return (
+      <span css={fileLinkStyles}>
+        <LoadingSpinner />
+      </span>
+    );
+
   return (
-    <a href={`${url}&mimeType=${mimeTypes[fileType]}`}>
+    <button css={fileLinkStyles} onClick={fetchFile}>
       <i className={`fas fa-file-${fileType}`} aria-hidden="true" />
-    </a>
+      <span className="sr-only">
+        Download location data as a {fileType} file.
+      </span>
+    </button>
   );
 }
 
-function InformationSection({ orgId, siteId, station, stationStatus }) {
-  const trimmedSiteId = siteId.replace(orgId + '-', '');
-
+function InformationSection({ siteId, site, siteStatus }) {
   return (
-    <div css={boxStyles}>
+    <div css={modifiedBoxStyles}>
       <h2 css={infoBoxHeadingStyles}>
-        {stationStatus === 'fetching' && <LoadingSpinner />}
+        {siteStatus === 'fetching' && <LoadingSpinner />}
         <span>
-          {stationStatus === 'success' && station.locationName}
+          {siteStatus === 'success' && site.locationName}
           <small>
-            <strong>Monitoring Station ID:</strong>&nbsp; {trimmedSiteId}
+            <strong>
+              Site ID{' '}
+              <HelpTooltip label="Identifies a monitoring location by a unique name, number, or code" />
+              :{' '}
+            </strong>
+            {siteId}
           </small>
         </span>
       </h2>
-      {sectionRowInline('Organization Name', station.orgName, stationStatus)}
-      {sectionRowInline('Organization ID', station.orgId, stationStatus)}
-      {sectionRowInline(
-        'Location',
-        `${station.county}, ${station.state}`,
-        stationStatus,
-      )}
-      {sectionRowInline('Water Type', station.locationType, stationStatus)}
-      {sectionRowInline(
-        'Total Sample Count',
-        station.totalSamples?.toLocaleString(),
-        stationStatus,
-      )}
-      {sectionRowInline(
-        'Total Measurement Count',
-        station.totalMeasurements?.toLocaleString(),
-        stationStatus,
-      )}
+      <div css={boxSectionStyles}>
+        {sectionRowInline('Organization Name', site.orgName, siteStatus)}
+        {sectionRowInline('Organization ID', site.orgId, siteStatus)}
+        {sectionRowInline(
+          'Location',
+          `${site.county}, ${site.state}`,
+          siteStatus,
+        )}
+        {sectionRowInline('Water Type', site.locationType, siteStatus)}
+        {sectionRowInline(
+          'Total Sample Count',
+          site.totalSamples?.toLocaleString(),
+          siteStatus,
+        )}
+        {sectionRowInline(
+          'Total Measurement Count',
+          site.totalMeasurements?.toLocaleString(),
+          siteStatus,
+        )}
+      </div>
     </div>
   );
 }
 
-function MonitoringStationContent({ fullscreen }) {
+function MonitoringLocationContent({ fullscreen }) {
   const { orgId, provider, siteId } = useParams();
-  const [station, stationStatus] = useStationDetails(provider, orgId, siteId);
+  const [site, siteStatus] = useSiteDetails(provider, orgId, siteId);
   const [characteristics, characteristicsStatus] = useCharacteristics(
     provider,
     orgId,
@@ -1864,10 +1996,10 @@ function MonitoringStationContent({ fullscreen }) {
               ${boxStyles};
             `}
           >
-            <StationMapContainer
+            <SiteMapContainer
               layout="narrow"
-              station={station}
-              stationStatus={stationStatus}
+              site={site}
+              siteStatus={siteStatus}
               widthRef={widthRef}
             />
           </div>
@@ -1886,18 +2018,18 @@ function MonitoringStationContent({ fullscreen }) {
         ${boxStyles};
       `}
     >
-      <StationMapContainer
+      <SiteMapContainer
         layout="wide"
-        station={station}
-        stationStatus={stationStatus}
+        site={site}
+        siteStatus={siteStatus}
         widthRef={widthRef}
       />
     </div>
   );
 
-  const noStationView = (
+  const noSiteView = (
     <Page>
-      <NavBar title="Monitoring Station Details" />
+      <NavBar title="Monitoring Location Details" />
 
       <div css={containerStyles}>
         <div css={pageErrorBoxStyles}>
@@ -1913,10 +2045,10 @@ function MonitoringStationContent({ fullscreen }) {
   const fullScreenView = (
     <WindowSize>
       {({ width, height }) => (
-        <div data-content="stationmap" style={{ width, height }}>
-          <StationMapContainer
+        <div data-content="location-map" style={{ width, height }}>
+          <SiteMapContainer
             layout="fullscreen"
-            station={station}
+            site={site}
             widthRef={widthRef}
           />
         </div>
@@ -1926,7 +2058,7 @@ function MonitoringStationContent({ fullscreen }) {
 
   const twoColumnView = (
     <Page>
-      <NavBar title="Monitoring Station Details" />
+      <NavBar title="Monitoring Location Details" />
       <div css={containerStyles} data-content="container">
         <WindowSize>
           {({ width, height }) => {
@@ -1935,16 +2067,16 @@ function MonitoringStationContent({ fullscreen }) {
                 <div className="static" css={leftColumnStyles}>
                   <InformationSection
                     orgId={orgId}
-                    station={station}
-                    stationStatus={stationStatus}
+                    site={site}
+                    siteStatus={siteStatus}
                     siteId={siteId}
                   />
                   {width < 960 ? mapNarrow(height) : mapWide}
                   <DownloadSection
                     charcs={characteristics}
                     charcsStatus={characteristicsStatus}
-                    station={station}
-                    stationStatus={stationStatus}
+                    site={site}
+                    siteStatus={siteStatus}
                   />
                 </div>
                 <div css={rightColumnStyles}>
@@ -1976,21 +2108,21 @@ function MonitoringStationContent({ fullscreen }) {
 
   return (
     <StatusContent
-      empty={noStationView}
-      failure={<p css={modifiedErrorBoxStyles}>{monitoringError}</p>}
+      empty={noSiteView}
+      failure={<p css={messageBoxStyles(errorBoxStyles)}>{monitoringError}</p>}
       fetching={content}
       success={content}
-      status={stationStatus}
+      status={siteStatus}
     />
   );
 }
 
-function MonitoringStation(props) {
+function MonitoringLocation(props) {
   return (
     <FullscreenProvider>
       <FullscreenContext.Consumer>
         {(fullscreen) => (
-          <MonitoringStationContent fullscreen={fullscreen} {...props} />
+          <MonitoringLocationContent fullscreen={fullscreen} {...props} />
         )}
       </FullscreenContext.Consumer>
     </FullscreenProvider>
@@ -2014,7 +2146,7 @@ function SliderContainer({ min, max, disabled = false, onChange }) {
   );
 }
 
-function StationMap({ layout, station, stationStatus, widthRef }) {
+function SiteMap({ layout, site, siteStatus, widthRef }) {
   const [layersInitialized, setLayersInitialized] = useState(false);
   const [doneDrawing, setDoneDrawing] = useState(false);
   const [mapLoading, setMapLoading] = useState(true);
@@ -2117,25 +2249,25 @@ function StationMap({ layout, station, stationStatus, widthRef }) {
     setLayers,
     setMonitoringLocationsLayer,
     setVisibleLayers,
-    station,
-    stationStatus,
+    site,
+    siteStatus,
   ]);
 
-  // Draw the station on the map
+  // Draw the site on the map
   useEffect(() => {
     if (!layersInitialized || doneDrawing) return;
-    drawStation(station, monitoringLocationsLayer).then((result) => {
+    drawSite(site, monitoringLocationsLayer).then((result) => {
       setDoneDrawing(result);
     });
   }, [
     doneDrawing,
     layersInitialized,
-    station,
+    site,
     monitoringLocationsLayer,
     services,
   ]);
 
-  // Zoom to the location of the station
+  // Zoom to the location of the site
   useEffect(() => {
     if (!doneDrawing || !mapView || !monitoringLocationsLayer || !homeWidget)
       return;
@@ -2161,7 +2293,7 @@ function StationMap({ layout, station, stationStatus, widthRef }) {
 
   // Scrolls to the map when switching layouts
   useEffect(() => {
-    const itemName = layout === 'fullscreen' ? 'stationmap' : 'container';
+    const itemName = layout === 'fullscreen' ? 'location-map' : 'container';
     const content = document.querySelector(`[data-content="${itemName}"]`);
     if (content) {
       let pos = content.getBoundingClientRect();
@@ -2171,21 +2303,19 @@ function StationMap({ layout, station, stationStatus, widthRef }) {
   }, [layout]);
 
   return (
-    <div css={mapContainerStyles} data-testid="hmw-station-map" ref={widthRef}>
-      {stationStatus === 'fetching' ? (
-        <LoadingSpinner />
-      ) : (
-        <Map layers={layers} />
-      )}
+    <div css={mapContainerStyles} data-testid="hmw-site-map" ref={widthRef}>
+      {siteStatus === 'fetching' ? <LoadingSpinner /> : <Map layers={layers} />}
       {mapView && mapLoading && <MapLoadingSpinner />}
     </div>
   );
 }
 
-function StationMapContainer({ ...props }) {
+function SiteMapContainer({ ...props }) {
   return (
     <MapErrorBoundary>
-      <StationMap {...props} />
+      <MapHighlightProvider>
+        <SiteMap {...props} />
+      </MapHighlightProvider>
     </MapErrorBoundary>
   );
 }
@@ -2213,4 +2343,4 @@ function StatusContent({
   }
 }
 
-export default MonitoringStation;
+export default MonitoringLocation;

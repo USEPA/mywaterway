@@ -69,6 +69,7 @@ export function fetchPost(
   data: object,
   headers: object,
   timeout: number = defaultTimeout,
+  responseType = 'json',
 ) {
   const startTime = performance.now();
   return timeoutPromise(
@@ -81,7 +82,7 @@ export function fetchPost(
   )
     .then((response) => {
       logCallToGoogleAnalytics(apiUrl, response.status, startTime);
-      return checkResponse(response);
+      return checkResponse(response, responseType);
     })
     .catch((err) => {
       onError(err, apiUrl, startTime);
@@ -184,10 +185,13 @@ function timeoutPromise(timeout, promise) {
   });
 }
 
-export function checkResponse(response) {
+export function checkResponse(response, responseType = 'json') {
   return new Promise((resolve, reject) => {
     if (response.status === 200) {
-      response.json().then((json) => resolve(json));
+      if (responseType === 'json')
+        response.json().then((json) => resolve(json));
+      else if (responseType === 'blob')
+        response.blob().then((blob) => resolve(blob));
     } else {
       reject(response);
     }
