@@ -11,6 +11,9 @@ import {
 import type { ReactChildren, ReactChild, ReactNode } from 'react';
 import type { TooltipData, XYChartTheme } from '@visx/xychart';
 
+/*
+## Styles
+*/
 // NOTE: EPA's _reboot.css file causes the tooltip series glyph to be clipped
 const VisxStyles = createGlobalStyle`
   .visx-tooltip-glyph svg {
@@ -20,11 +23,38 @@ const VisxStyles = createGlobalStyle`
   }
 `;
 
+/*
+## Types
+*/
 interface Datum {
-  key: string;
   x: string;
-  y: number;
+  y: {
+    [dataKey: string]: {
+      value: number;
+      [meta: string]: string | number;
+    };
+  };
 }
+
+/*
+## Helpers
+*/
+const defaultBuildTooltip = (tooltipData?: TooltipData<Datum>) => {
+  if (!tooltipData?.nearestDatum) return null;
+  const dataKey = tooltipData.nearestDatum.key;
+  const datum = tooltipData.nearestDatum.datum;
+  const yAccessor = getYAccessor(dataKey);
+  return (
+    <>
+      {tooltipData?.nearestDatum && xAccessor(tooltipData.nearestDatum.datum)}:{' '}
+      {tooltipData?.nearestDatum && yAccessor(datum)}
+    </>
+  );
+};
+
+const getYAccessor = (dataKey: string) => {
+  return (datum: Datum) => datum.y[dataKey]?.value;
+};
 
 const customTheme = buildChartTheme({
   backgroundColor: '#526571',
@@ -36,31 +66,29 @@ const customTheme = buildChartTheme({
   tickLength: 8,
 });
 
+const xAccessor = (d: Datum) => d.x;
+
 type Props = {
+  buildTooltip?: (tooltipData?: TooltipData<Datum>) => ReactNode;
   children: ReactChild | ReactChildren;
   color?: string;
   containerRef?: HTMLElement | null;
   data: Datum[];
-  dataKey: string;
   range?: number[];
-  buildTooltip?: (tooltipData?: TooltipData<Datum>) => ReactNode;
-  xAccessor?: (d: Datum) => string;
+  seriesCount?: number;
   xTitle?: string;
-  yAccessor?: (d: Datum) => number;
   yScale?: 'log' | 'linear';
   yTitle?: string;
 };
 
 function ScatterPlot({
-  data,
-  dataKey,
-  range,
+  buildTooltip,
   color,
   containerRef,
-  buildTooltip,
-  xAccessor = (d: Datum) => d.x,
+  data,
+  range,
+  seriesCount = 1,
   xTitle,
-  yAccessor = (d: Datum) => d.y,
   yScale = 'linear',
   yTitle,
 }: Props) {
@@ -105,12 +133,6 @@ function ScatterPlot({
     };
   }, [containerRef]);
 
-  const defaultBuildTooltip = (tooltipData?: TooltipData<Datum>) => (
-    <>
-      {tooltipData?.nearestDatum && xAccessor(tooltipData.nearestDatum.datum)}:{' '}
-      {tooltipData?.nearestDatum && yAccessor(tooltipData.nearestDatum.datum)}{' '}
-    </>
-  );
   const renderTooltip = buildTooltip ?? defaultBuildTooltip;
 
   return (
@@ -145,12 +167,17 @@ function ScatterPlot({
           orientation="left"
           strokeWidth={2}
         />
-        <GlyphSeries
-          data={data}
-          dataKey={dataKey}
-          xAccessor={xAccessor}
-          yAccessor={yAccessor}
-        />
+        {[...Array(seriesCount).keys()].map((n) => {
+          return (
+            <GlyphSeries
+              key={n}
+              data={data}
+              dataKey={n.toString()}
+              xAccessor={xAccessor}
+              yAccessor={getYAccessor(n.toString())}
+            />
+          );
+        })}
         <Tooltip<Datum>
           showDatumGlyph
           showVerticalCrosshair

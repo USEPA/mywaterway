@@ -121,6 +121,17 @@ const chartContainerStyles = css`
   margin: 1rem 0.625rem;
 `;
 
+const chartTooltipStyles = css`
+  p {
+    line-height: 1.2em;
+    margin-bottom: 0;
+    padding: 0;
+    &:first-of-type {
+      margin-bottom: 0.5em;
+    }
+  }
+`;
+
 const containerStyles = css`
   ${splitLayoutContainerStyles};
   max-width: 1800px;
@@ -433,14 +444,30 @@ function buildOptions(values) {
 }
 
 function buildTooltip(unit) {
-  return (tooltipData) => (
-    <>
-      {tooltipData?.nearestDatum && tooltipData.nearestDatum.datum.x}:{' '}
-      {tooltipData?.nearestDatum &&
-        tooltipData.nearestDatum.datum.daily.join(', ')}{' '}
-      {unit}
-    </>
-  );
+  return (tooltipData) => {
+    if (!tooltipData?.nearestDatum) return null;
+    const datum = tooltipData.nearestDatum.datum;
+    const msmt = datum.y[tooltipData.nearestDatum.key];
+    if (!msmt) return null;
+    const depth =
+      msmt.depth !== null && msmt.depthUnit !== null
+        ? `${msmt.depth} ${msmt.depthUnit}`
+        : null;
+    return (
+      <div css={chartTooltipStyles}>
+        <p>{datum.x}:</p>
+        <p>
+          <em>Value</em>: {`${msmt.value} ${unit}`}
+          <br />
+          {depth && (
+            <>
+              <em>Depth</em>: {depth}
+            </>
+          )}
+        </p>
+      </div>
+    );
+  };
 }
 
 function checkboxReducer(state, action) {
@@ -825,14 +852,19 @@ function parseRecord(record, measurements) {
 
   // group by unit and date
   const date = getDate(record);
+  const measurement = {
+    value: record.measurement,
+    depth: record.depth,
+    depthUnit: record.depthUnit,
+  };
   if (!specMeasurements[date]) {
     specMeasurements[date] = {
       ...record,
-      measurements: [record.measurement],
+      measurements: [measurement],
       date,
     };
   } else {
-    specMeasurements[date].measurements.push(record.measurement);
+    specMeasurements[date].measurements.push(measurement);
   }
   return { unit, speciation, fraction };
 }
@@ -862,8 +894,13 @@ function sortMeasurements(measurements) {
         Object.entries(fractionMeasurements).forEach(
           ([specKey, specMeasurements]) => {
             Object.values(specMeasurements).forEach((date) => {
-              date.measurements = date.measurements.map((measurement) =>
-                parseFloat(measurement.toFixed(3)),
+              date.measurements = date.measurements.map(
+                ({ value, ...rest }) => {
+                  return {
+                    ...rest,
+                    value: parseFloat(value.toFixed(3)),
+                  };
+                },
               );
             });
             measurements[unitKey][fractionKey][specKey] = Object.values(
@@ -1053,6 +1090,8 @@ function useCharacteristics(provider, orgId, siteId) {
           sampleFraction: record.ResultSampleFractionText || null,
           speciation: record.MethodSpecificationName || null,
           unit: record['ResultMeasure/MeasureUnitCode'] || null,
+          depth: record['ResultDepthHeightMeasure/MeasureValue'] ?? null,
+          depthUnit: record['ResultDepthHeightMeasure/MeasureUnitCode'] || null,
         });
       });
       setCharcs(recordsByCharc);
@@ -1182,24 +1221,32 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   const [median, setMedian] = useState(null);
   const [stdDev, setStdDev] = useState(null);
 
+  const [maxConcurrent, setMaxConcurrent] = useState(1);
   const getChartData = useCallback((newDomain, newMsmts) => {
-    let newChartData = [];
+    const newChartData = [];
+    let maxDayCount = 0;
     newMsmts.forEach((day) => {
       if (day.year >= newDomain[0] && day.year <= newDomain[1]) {
-        day.measurements.forEach((msmt) => {
-          newChartData.push({
-            x: day.date,
-            y: msmt,
-            daily: day.measurements.sort(),
-          });
+        const datum = {
+          x: day.date,
+          y: {},
+        };
+        day.measurements.forEach((msmt, i) => {
+          datum.y[i.toString()] = msmt;
+          if (i + 1 > maxDayCount) maxDayCount = i + 1;
         });
+        newChartData.push(datum);
       }
     });
     setChartData(newChartData);
+    setMaxConcurrent(maxDayCount);
     // data is already sorted by date
     setDomain([newChartData[0].x, newChartData[newChartData.length - 1].x]);
 
-    const yValues = newChartData.map((datum) => datum.y);
+    const yValues = [];
+    newChartData.forEach((datum) => {
+      Object.values(datum.y).forEach((msmt) => yValues.push(msmt.value));
+    });
     const newRange = [Math.min(...yValues), Math.max(...yValues)];
     setRange(newRange);
 
@@ -1355,6 +1402,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
               charcName={charcName}
               data={chartData}
               scaleType={scaleType}
+              seriesCount={maxConcurrent}
               yTitle={yTitle}
               unit={unit}
             />
@@ -1543,7 +1591,15 @@ function CharacteristicsTableSection({
   );
 }
 
-function ChartContainer({ range, data, charcName, scaleType, yTitle, unit }) {
+function ChartContainer({
+  range,
+  data,
+  charcName,
+  scaleType,
+  seriesCount,
+  yTitle,
+  unit,
+}) {
   const charcGroup = getCharcGroup(
     getCharcType(charcName, characteristicsByType),
     characteristicGroupMappings,
@@ -1566,8 +1622,8 @@ function ChartContainer({ range, data, charcName, scaleType, yTitle, unit }) {
         color={lineColors[charcGroup]}
         containerRef={chartRef.current}
         data={data}
-        dataKey={charcName}
         range={range}
+        seriesCount={seriesCount}
         xTitle="Date"
         yScale={scaleType}
         yTitle={yTitle}
