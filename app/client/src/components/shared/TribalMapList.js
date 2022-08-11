@@ -79,7 +79,7 @@ import {
 import { colors } from 'styles/index.js';
 import { tabsStyles } from 'components/shared/ContentTabs';
 
-const mapListHeight = '70vh';
+const mapPadding = 20;
 
 const accordionContentStyles = css`
   padding: 0.4375em 0.875em 0.875em;
@@ -113,10 +113,10 @@ const modifiedErrorBoxStyles = css`
   margin-bottom: 0.75em;
 `;
 
-const modifiedTabStyles = (footerHeight) => {
+const modifiedTabStyles = (height) => {
   return css`
     ${tabsStyles}
-    max-height: calc(${mapListHeight} - ${footerHeight}px);
+    height: ${height}px;
     width: 100%;
     overflow: auto;
   `;
@@ -361,9 +361,23 @@ function TribalMapList({
     ],
   );
 
+  // calculate height of div holding the view mode buttons
+  const [viewModeHeight, setViewModeHeight] = useState(0);
+  const viewModeRef = useCallback((node) => {
+    if (!node) return;
+    setViewModeHeight(node.getBoundingClientRect().height);
+  }, []);
+
+  // calculate height of div holding the layer toggles
+  const [layerTogglesHeight, setLayerTogglesHeight] = useState(0);
+  const layerTogglesRef = useCallback((node) => {
+    if (!node) return;
+    setLayerTogglesHeight(node.getBoundingClientRect().height);
+  }, []);
+
   // calculate height of div holding the footer content
   const [footerHeight, setFooterHeight] = useState(0);
-  const measuredRef = useCallback((node) => {
+  const footerRef = useCallback((node) => {
     if (!node) return;
     setFooterHeight(node.getBoundingClientRect().height);
   }, []);
@@ -377,9 +391,12 @@ function TribalMapList({
     return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
   }
 
+  const mapListHeight =
+    windowHeight - viewModeHeight - layerTogglesHeight - 3 * mapPadding;
+
   return (
     <div>
-      <div css={inputStyles}>
+      <div css={inputStyles} ref={viewModeRef}>
         <div className="btn-group" role="group">
           <button
             css={buttonStyles}
@@ -424,7 +441,7 @@ function TribalMapList({
       )}
 
       {displayMode !== 'none' && (
-        <div css={keyMetricsStyles}>
+        <div css={keyMetricsStyles} ref={layerTogglesRef}>
           <div css={keyMetricStyles}>
             {waterbodies.status === 'pending' && <LoadingSpinner />}
             {(waterbodies.status === 'success' ||
@@ -512,8 +529,7 @@ function TribalMapList({
                 width: windowWidth,
               }
             : {
-                height: `calc(${mapListHeight} - ${footerHeight}px)`,
-                minHeight: '400px',
+                height: mapListHeight - footerHeight,
                 width: '100%',
                 display: displayMode === 'map' ? 'block' : 'none',
               }
@@ -526,7 +542,7 @@ function TribalMapList({
         />
       </div>
       {displayMode === 'map' && (
-        <div ref={measuredRef}>
+        <div ref={footerRef}>
           <div
             css={mapFooterStyles}
             style={{ width: layout === 'fullscreen' ? windowWidth : '100%' }}
@@ -580,7 +596,7 @@ function TribalMapList({
       )}
 
       {displayMode === 'list' && (
-        <div css={modifiedTabStyles(footerHeight)}>
+        <div css={modifiedTabStyles(mapListHeight)}>
           <Tabs>
             <TabList>
               <Tab>Waterbodies</Tab>
