@@ -29,9 +29,9 @@ import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtil
 import AddDataWidget from 'components/shared/AddDataWidget';
 import MapLegend from 'components/shared/MapLegend';
 // contexts
-import { AddDataWidgetContext } from 'contexts/AddDataWidget';
+import { useAddDataWidgetState } from 'contexts/AddDataWidget';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { FullscreenContext } from 'contexts/Fullscreen';
+import { useFullscreenState } from 'contexts/Fullscreen';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
@@ -236,7 +236,7 @@ function MapWidgets({
   onHomeWidgetRendered = () => {},
 }: Props) {
   const { addDataWidgetVisible, setAddDataWidgetVisible, widgetLayers } =
-    useContext(AddDataWidgetContext);
+    useAddDataWidgetState();
 
   const {
     homeWidget,
@@ -276,9 +276,9 @@ function MapWidgets({
   const { getTemplate } = getDynamicPopup();
 
   const {
-    getFullscreenActive,
+    fullscreenActive,
     setFullscreenActive, //
-  } = useContext(FullscreenContext);
+  } = useFullscreenState();
 
   const [mapEventHandlersSet, setMapEventHandlersSet] = useState(false);
 
@@ -308,7 +308,7 @@ function MapWidgets({
           const point = new Point({
             x: view.popup.location.longitude,
             y: view.popup.location.latitude,
-            spatialReference: SpatialReference.WQGS84,
+            spatialReference: SpatialReference.WGS84,
           });
           const location = webMercatorUtils.geographicToWebMercator(point);
 
@@ -888,7 +888,7 @@ function MapWidgets({
     render(
       <ExpandCollapse
         scrollToComponent={scrollToComponent}
-        fullscreenActive={getFullscreenActive}
+        fullscreenActive={fullscreenActive}
         setFullscreenActive={setFullscreenActive}
         mapViewSetter={setMapView}
       />,
@@ -896,7 +896,7 @@ function MapWidgets({
     );
     setFullScreenWidgetCreated(true);
   }, [
-    getFullscreenActive,
+    fullscreenActive,
     setFullscreenActive,
     scrollToComponent,
     view,
@@ -1522,7 +1522,7 @@ function ExpandCollapse({
   return (
     <div
       title={
-        fullscreenActive()
+        fullscreenActive
           ? 'Exit Fullscreen Map View'
           : 'Enter Fullscreen Map View'
       }
@@ -1531,19 +1531,19 @@ function ExpandCollapse({
       onMouseOut={() => setHover(false)}
       onClick={(ev) => {
         // Toggle scroll bars
-        document.documentElement.style.overflow = fullscreenActive()
+        document.documentElement.style.overflow = fullscreenActive
           ? 'auto'
           : 'hidden';
 
         // Toggle fullscreen mode
-        setFullscreenActive(!fullscreenActive());
+        setFullscreenActive(!fullscreenActive);
 
         mapViewSetter(null);
       }}
     >
       <span
         className={
-          fullscreenActive()
+          fullscreenActive
             ? 'esri-icon esri-icon-zoom-in-fixed'
             : 'esri-icon esri-icon-zoom-out-fixed'
         }

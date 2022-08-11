@@ -1,13 +1,10 @@
-// @flow
-
-import React from 'react';
 // styles
 import { colors } from 'styles/index.js';
 
 // --- components ---
 type Props = {
-  condition: 'good' | 'polluted' | 'unassessed',
-  selected: boolean,
+  condition: 'good' | 'polluted' | 'unassessed' | 'hidden';
+  selected: boolean;
 };
 
 function WaterbodyIcon({ condition, selected = false }: Props) {

@@ -46,7 +46,7 @@ import {
   useServicesContext,
 } from 'contexts/LookupFiles';
 import {
-  MapHighlightContext,
+  useMapHighlightState,
   MapHighlightProvider,
 } from 'contexts/MapHighlight';
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
@@ -314,7 +314,7 @@ function TribalMapList({
   // Makes the view on map button work for the state page
   // (i.e. switches and scrolls to the map when the selected graphic changes)
   const [displayMode, setDisplayMode] = useState('map');
-  const { selectedGraphic } = useContext(MapHighlightContext);
+  const { selectedGraphic } = useMapHighlightState();
   useEffect(() => {
     if (!selectedGraphic) return;
 
