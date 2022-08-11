@@ -100,19 +100,84 @@ const accordionStyles = css`
   }
 `;
 
-const boxSectionStyles = css`
+const sectionStyles = css`
   padding: 0.4375rem 0.875rem;
 `;
 
+const sectionInlineStyles = css`
+  ${sectionStyles}
+  border-bottom: 1px solid #d8dfe2;
+  width: 100%;
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+
+  &:first-of-type {
+    border-bottom: 1px solid #d8dfe2;
+  }
+
+  /* loading icon */
+  svg {
+    display: inline-block;
+    margin: -0.5rem;
+    height: 1.25rem;
+  }
+
+  h3 {
+    margin-right: 0.5em;
+  }
+
+  .label,
+  .value {
+    display: inline-block;
+    line-height: 1.25;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+`;
+
+const sectionInlineFlexStyles = css`
+  ${sectionInlineStyles}
+  align-items: flex-end;
+  display: flex;
+  justify-content: flex-start;
+`;
+
+const sectionInlineGridStyles = css`
+  ${sectionInlineStyles}
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0.5em;
+
+  h3 {
+    grid-column: 1;
+  }
+
+  p {
+    grid-column: 2;
+  }
+
+  .label,
+  .value {
+    margin-bottom: auto;
+    margin-top: auto;
+  }
+`;
+
+const sectionInlineGridWideStyles = css`
+  ${sectionInlineGridStyles}
+  grid-template-columns: minmax(100px, 300px) minmax(100px, 1fr);
+`;
+
 const charcsTableStyles = css`
-  ${boxSectionStyles}
+  ${sectionStyles}
   height: 50vh;
   overflow-y: scroll;
   .rt-table .rt-td {
     margin: auto;
   }
-  .selected div {
-    border-bottom: 1px solid #d8dfe2;
+  .row-container {
     margin-bottom: 0.5rem;
   }
 `;
@@ -191,12 +256,6 @@ const fileLinkStyles = css`
   }
 `;
 
-const flexboxSectionStyles = css`
-  ${boxSectionStyles}
-  display: flex;
-  justify-content: flex-start;
-`;
-
 const iconStyles = css`
   margin-right: 5px;
 `;
@@ -216,40 +275,6 @@ const infoBoxHeadingStyles = css`
   svg {
     margin: 0 -0.375rem 0 -0.875rem;
     height: 1.5rem;
-  }
-`;
-
-const inlineBoxSectionStyles = css`
-  ${boxSectionStyles}
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  border-bottom: 1px solid #d8dfe2;
-  padding: 0.5em;
-  &:last-of-type {
-    border-bottom: none;
-  }
-  /* loading icon */
-  svg {
-    display: inline-block;
-    margin: -0.5rem;
-    height: 1.25rem;
-  }
-
-  h3 {
-    grid-column: 1;
-    margin-right: 0.5em;
-  }
-
-  p {
-    grid-column: 2;
-  }
-
-  .label,
-  .value {
-    display: inline-block;
-    line-height: 1.25;
-    margin-bottom: auto;
-    margin-top: auto;
   }
 `;
 
@@ -399,14 +424,16 @@ const selectContainerStyles = css`
 `;
 
 const shadedBoxSectionStyles = css`
-  ${boxSectionStyles}
+  ${sectionStyles}
   background-color: #f0f6f9;
 `;
 
 const sliderContainerStyles = css`
+  ${sectionStyles}
   align-items: flex-end;
   display: flex;
   justify-content: center;
+  height: 3.5em;
   margin-top: 0.4375rem;
   width: 100%;
   span {
@@ -418,6 +445,9 @@ const sliderContainerStyles = css`
       margin-right: 1em;
     }
   }
+  .container {
+    border-bottom: 1px solid #d8dfe2;
+  }
 `;
 
 const treeStyles = (level, styles) => {
@@ -427,11 +457,6 @@ const treeStyles = (level, styles) => {
     margin-right: calc(${level} * 1.25em);
   `;
 };
-
-const wideBoxSectionStyles = css`
-  ${inlineBoxSectionStyles}
-  grid-template-columns: minmax(100px, 300px) minmax(100px, 1fr);
-`;
 
 /*
 ## Helpers
@@ -457,7 +482,7 @@ function buildTooltip(unit) {
       <div css={chartTooltipStyles}>
         <p>{datum.x}:</p>
         <p>
-          <em>Value</em>: {`${msmt.value} ${unit}`}
+          <em>Measurement</em>: {`${msmt.value} ${unit}`}
           <br />
           {depth && (
             <>
@@ -869,8 +894,8 @@ function parseRecord(record, measurements) {
   return { unit, speciation, fraction };
 }
 
-const sectionRow = (label, value, style, dataStatus = 'success') => (
-  <div css={style}>
+const row = (label, value, style, dataStatus = 'success') => (
+  <div className="row-container" css={style}>
     <h3 className="label">{label}:</h3>
     {dataStatus === 'fetching' && <LoadingSpinner />}
     {dataStatus === 'failure' && <p className="value">N/A</p>}
@@ -878,12 +903,16 @@ const sectionRow = (label, value, style, dataStatus = 'success') => (
   </div>
 );
 
-const sectionRowInline = (label, value, dataStatus = 'success') => {
-  return sectionRow(label, value, inlineBoxSectionStyles, dataStatus);
+const rowFlex = (label, value, dataStatus = 'success') => {
+  return row(label, value, sectionInlineFlexStyles, dataStatus);
 };
 
-const sectionRowWide = (label, value, dataStatus = 'success') => {
-  return sectionRow(label, value, wideBoxSectionStyles, dataStatus);
+const rowGrid = (label, value, dataStatus = 'success') => {
+  return row(label, value, sectionInlineGridStyles, dataStatus);
+};
+
+const rowWideGrid = (label, value, dataStatus = 'success') => {
+  return row(label, value, sectionInlineGridWideStyles, dataStatus);
 };
 
 function sortMeasurements(measurements) {
@@ -1408,7 +1437,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
             />
             {chartData?.length && (
               <div css={shadedBoxSectionStyles}>
-                {sectionRowWide(
+                {rowWideGrid(
                   'Selected Date Range',
                   `${new Date(domain[0]).toLocaleDateString(
                     'en-us',
@@ -1419,22 +1448,22 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                       dateOptions,
                     )}`,
                 )}
-                {sectionRowWide(
+                {rowWideGrid(
                   'Number of Measurements Shown',
                   chartData.length.toLocaleString(),
                 )}
-                {sectionRowWide('Average of Values', average)}
-                {sectionRowWide(
+                {rowWideGrid('Average of Values', average)}
+                {rowWideGrid(
                   'Median Value',
                   `${median.toLocaleString()} ${unit}`,
                 )}
                 {range &&
-                  sectionRowWide(
+                  rowWideGrid(
                     'Minimum Value',
                     `${range[0].toLocaleString()} ${unit}`,
                   )}
                 {range &&
-                  sectionRowWide(
+                  rowWideGrid(
                     'Maximum Value',
                     `${range[1].toLocaleString()} ${unit}`,
                   )}
@@ -1526,13 +1555,7 @@ function CharacteristicsTableSection({
           fetching={<LoadingSpinner />}
           status={charcsStatus}
         >
-          <span className="selected">
-            {sectionRowInline(
-              'Selected Characteristic',
-              selected ?? 'None',
-              charcsStatus,
-            )}
-          </span>
+          {rowFlex('Selected Characteristic', selected ?? 'None', charcsStatus)}
           <ReactTable
             autoResetFilters={false}
             autoResetSortBy={false}
@@ -1783,7 +1806,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
           min={minYear}
           onChange={(newRange) => setRange(newRange)}
         />
-        <div css={flexboxSectionStyles}>
+        <div css={sectionStyles}>
           <div css={accordionStyles}>
             <AccordionList
               className="accordion-list"
@@ -1999,21 +2022,17 @@ function InformationSection({ siteId, site, siteStatus }) {
           </small>
         </span>
       </h2>
-      <div css={boxSectionStyles}>
-        {sectionRowInline('Organization Name', site.orgName, siteStatus)}
-        {sectionRowInline('Organization ID', site.orgId, siteStatus)}
-        {sectionRowInline(
-          'Location',
-          `${site.county}, ${site.state}`,
-          siteStatus,
-        )}
-        {sectionRowInline('Water Type', site.locationType, siteStatus)}
-        {sectionRowInline(
+      <div css={sectionStyles}>
+        {rowGrid('Organization Name', site.orgName, siteStatus)}
+        {rowGrid('Organization ID', site.orgId, siteStatus)}
+        {rowGrid('Location', `${site.county}, ${site.state}`, siteStatus)}
+        {rowGrid('Water Type', site.locationType, siteStatus)}
+        {rowGrid(
           'Total Sample Count',
           site.totalSamples?.toLocaleString(),
           siteStatus,
         )}
-        {sectionRowInline(
+        {rowGrid(
           'Total Measurement Count',
           site.totalMeasurements?.toLocaleString(),
           siteStatus,
@@ -2186,18 +2205,13 @@ function MonitoringLocation(props) {
 }
 
 function SliderContainer({ min, max, disabled = false, onChange }) {
+  if (!min || !max) return <LoadingSpinner />;
+  else if (min === max)
+    return <div css={sliderContainerStyles}>{rowFlex('Year', min)}</div>;
+
   return (
     <div css={sliderContainerStyles}>
-      {!min || !max ? (
-        <LoadingSpinner />
-      ) : (
-        <DateSlider
-          disabled={disabled}
-          min={min}
-          max={max}
-          onChange={onChange}
-        />
-      )}
+      <DateSlider disabled={disabled} min={min} max={max} onChange={onChange} />
     </div>
   );
 }
