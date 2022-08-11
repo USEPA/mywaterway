@@ -68,7 +68,6 @@ function getGraphicsFromResponse(
       'map-marker',
       'highlight',
       'providers',
-      'allWaterbodiesLayer',
       ...additionalLayers,
     ];
     if (!result.graphic.layer?.id) return null;
@@ -200,7 +199,6 @@ function MapMouseEvents({ view }: Props) {
         .then((res: __esri.HitTestResult) => {
           // get and update the selected graphic
           const extraLayersToIgnore = [
-            'allWaterbodiesLayer',
             'selectedTribeLayer',
           ];
           const graphics = getGraphicsFromResponse(res, extraLayersToIgnore);
