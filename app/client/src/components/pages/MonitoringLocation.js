@@ -753,7 +753,7 @@ function parseCharcs(charcs, range) {
     groups: {},
     charcs: {},
   };
-  // structure characteristics by then group
+  // structure characteristics by group
   Object.entries(charcs).forEach(([charc, data]) => {
     const { group, count, records } = data;
 
