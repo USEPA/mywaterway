@@ -154,6 +154,7 @@ const downloadLinksStyles = css`
     width: 50%;
 
     &:first-child {
+      font-weight: normal;
       padding-left: 1rem;
       text-align: start;
     }
@@ -161,6 +162,15 @@ const downloadLinksStyles = css`
       font-weight: bold;
       padding-right: 1rem;
       text-align: end;
+    }
+  }
+
+  p {
+    margin-top: 0;
+    line-height: 1em;
+    font-size: 1em;
+    &:nth-child(n + 2) {
+      margin-top: 0.5em;
     }
   }
 `;
@@ -1756,24 +1766,38 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
         {services.status === 'success' && (
           <div id="download-links" css={downloadLinksStyles}>
             <div>
-              <a
-                rel="noopener noreferrer"
-                target="_blank"
-                data-cy="portal"
-                href={portalUrl}
-                style={{ fontWeight: 'normal' }}
-              >
-                <i
-                  css={iconStyles}
-                  className="fas fa-filter"
-                  aria-hidden="true"
-                />
-                Advanced Filtering
-              </a>
-              &nbsp;&nbsp;
-              <small css={modifiedDisclaimerStyles}>
-                (opens new browser tab)
-              </small>
+              <p>
+                <a rel="noopener noreferrer" target="_blank" href={portalUrl}>
+                  <i
+                    css={iconStyles}
+                    className="fas fa-filter"
+                    ariaHidden="true"
+                  />
+                  Advanced Filtering
+                </a>
+                &nbsp;&nbsp;
+                <small css={modifiedDisclaimerStyles}>
+                  (opens new browser tab)
+                </small>
+              </p>
+              <p>
+                <a
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  href="https://www.waterqualitydata.us/portal_userguide/"
+                >
+                  <i
+                    css={iconStyles}
+                    className="fas fa-book-open"
+                    ariaHidden="true"
+                  />
+                  Water Quality Portal User Guide
+                </a>
+                &nbsp;&nbsp;
+                <small css={modifiedDisclaimerStyles}>
+                  (opens new browser tab)
+                </small>
+              </p>
             </div>
             <div>
               <span>Download Selected Data</span>
@@ -1828,7 +1852,7 @@ function FileLink({ disabled, fileType, data, url }) {
     return (
       <i
         className={`fas fa-file-${fileType}`}
-        aria-hidden="true"
+        ariaHidden="true"
         style={{ color: '#ccc' }}
       />
     );
@@ -1841,7 +1865,7 @@ function FileLink({ disabled, fileType, data, url }) {
 
   return (
     <button css={fileLinkStyles} onClick={fetchFile}>
-      <i className={`fas fa-file-${fileType}`} aria-hidden="true" />
+      <i className={`fas fa-file-${fileType}`} ariaHidden="true" />
     </button>
   );
 }
