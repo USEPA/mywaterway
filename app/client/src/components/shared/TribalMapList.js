@@ -465,8 +465,7 @@ function TribalMapList({
             ) : (
               <>
                 <span css={keyMetricNumberStyles}>
-                  {Boolean(monitoringLocations.data?.features?.length) &&
-                  monitoringLocations.status === 'success'
+                  {Boolean(monitoringLocations.data?.features?.length)
                     ? monitoringLocations.data.features.length
                     : 'N/A'}
                 </span>
