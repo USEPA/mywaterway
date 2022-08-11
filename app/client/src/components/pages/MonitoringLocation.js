@@ -39,7 +39,7 @@ import {
 // config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 import { characteristicsByGroup } from 'config/characteristicsByGroup';
-import { monitoringError } from 'config/errorMessages';
+import { monitoringDownloadError, monitoringError } from 'config/errorMessages';
 // contexts
 import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -1393,14 +1393,15 @@ function CharacteristicsTableSection({
         const selector = (
           <div css={radioTableStyles}>
             <input
-              aria-label={charc.name}
               checked={selected === charc.name}
               id={charc.name}
               onChange={(e) => setSelected(e.target.value)}
               type="radio"
               value={charc.name}
             />
-            <label htmlFor={charc.name}></label>
+            <label htmlFor={charc.name}>
+              <span className="sr-only">{charc.name}</span>
+            </label>
           </div>
         );
         const measurementCount = charc.records.reduce((a, b) => {
@@ -1597,6 +1598,8 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
   const [expanded, setExpanded] = useState(false);
 
   const services = useServicesContext();
+
+  const [downloadError, setDownloadError] = useState(null);
 
   // fields common to the download and portal queries
   const queryData =
@@ -1807,6 +1810,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
                   data={queryData}
                   disabled={checkboxes.all === Checkbox.unchecked}
                   fileType="excel"
+                  setError={setDownloadError}
                   url={services.data.waterQualityPortal.resultSearch}
                 />
                 &nbsp;&nbsp;
@@ -1814,24 +1818,31 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
                   data={queryData}
                   disabled={checkboxes.all === Checkbox.unchecked}
                   fileType="csv"
+                  setError={setDownloadError}
                   url={services.data.waterQualityPortal.resultSearch}
                 />
               </span>
             </div>
           </div>
         )}
+        {downloadError && (
+          <p css={messageBoxStyles(errorBoxStyles)}>
+            {monitoringDownloadError}
+          </p>
+        )}
       </StatusContent>
     </div>
   );
 }
 
-function FileLink({ disabled, fileType, data, url }) {
+function FileLink({ disabled, fileType, data, setError, url }) {
   const [fetching, setFetching] = useState(false);
   const mimeTypes = { excel: 'xlsx', csv: 'csv' };
   const fileTypeUrl = `${url}zip=no&mimeType=${mimeTypes[fileType]}`;
   const fetchFile = async () => {
     setFetching(true);
     try {
+      setError(null);
       const blob = await fetchPost(
         fileTypeUrl,
         data,
@@ -1842,6 +1853,7 @@ function FileLink({ disabled, fileType, data, url }) {
       const file = window.URL.createObjectURL(blob);
       window.location.assign(file);
     } catch (err) {
+      setError(err);
       console.error(err);
     } finally {
       setFetching(false);
@@ -1866,6 +1878,9 @@ function FileLink({ disabled, fileType, data, url }) {
   return (
     <button css={fileLinkStyles} onClick={fetchFile}>
       <i className={`fas fa-file-${fileType}`} ariaHidden="true" />
+      <span className="sr-only">
+        Download location data as a {fileType} file.
+      </span>
     </button>
   );
 }
@@ -1878,10 +1893,12 @@ function InformationSection({ siteId, site, siteStatus }) {
         <span>
           {siteStatus === 'success' && site.locationName}
           <small>
-            <HelpTooltip label="Identifies a monitoring location by a unique name, number, or code" />
-            &nbsp;
-            <strong>Site ID:</strong>
-            &nbsp; {siteId}
+            <strong>
+              Site ID{' '}
+              <HelpTooltip label="Identifies a monitoring location by a unique name, number, or code" />
+              :{' '}
+            </strong>
+            {siteId}
           </small>
         </span>
       </h2>

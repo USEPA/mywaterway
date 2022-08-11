@@ -452,7 +452,7 @@ function Monitoring() {
                     setVisibleLayers(newVisibleLayers);
                   }}
                   disabled={!Boolean(monitoringLocations.data.features?.length)}
-                  ariaLabel="Monitoring Locations"
+                  ariaLabel="Past Water Conditions"
                 />
               </div>
             </>
