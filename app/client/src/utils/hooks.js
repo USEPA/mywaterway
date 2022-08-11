@@ -1419,6 +1419,7 @@ function useSharedLayers() {
   }
 
   function getCountyLayer() {
+    const countyLayerOutFields = ['NAME', 'CNTY_FIPS', 'STATE_NAME'];
     return new FeatureLayer({
       id: 'countyLayer',
       url: services.data.counties,
@@ -1426,6 +1427,7 @@ function useSharedLayers() {
       listMode: 'show',
       visible: false,
       legendEnabled: false,
+      outFields: countyLayerOutFields,
       renderer: {
         type: 'simple',
         symbol: {
@@ -1441,7 +1443,7 @@ function useSharedLayers() {
       popupTemplate: {
         title: getTitle,
         content: getTemplate,
-        outFields: ['NAME', 'CNTY_FIPS', 'STATE_NAME'],
+        outFields: countyLayerOutFields,
       },
     });
   }
@@ -1465,6 +1467,7 @@ function useSharedLayers() {
       title: 'Watersheds',
       listMode: 'show',
       visible: false,
+      outFields: ['*'],
     });
   }
 
