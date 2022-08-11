@@ -465,7 +465,7 @@ function TribalMapList({
             ) : (
               <>
                 <span css={keyMetricNumberStyles}>
-                  {Boolean(monitoringLocations.data.features.length) &&
+                  {Boolean(monitoringLocations.data?.features?.length) &&
                   monitoringLocations.status === 'success'
                     ? monitoringLocations.data.features.length
                     : 'N/A'}
@@ -474,7 +474,7 @@ function TribalMapList({
                 <div css={switchContainerStyles}>
                   <Switch
                     checked={
-                      Boolean(monitoringLocations.data.features.length) &&
+                      Boolean(monitoringLocations.data?.features?.length) &&
                       monitoringLocationsDisplayed
                     }
                     onChange={(_checked) => {
@@ -492,7 +492,7 @@ function TribalMapList({
                       });
                     }}
                     disabled={
-                      !Boolean(monitoringLocations.data.features.length)
+                      !Boolean(monitoringLocations.data?.features?.length)
                     }
                     ariaLabel="Monitoring Stations"
                   />
@@ -526,55 +526,59 @@ function TribalMapList({
           setTribalBoundaryError={setTribalBoundaryError}
         />
       </div>
-      <div ref={measuredRef}>
-        <div
-          css={mapFooterStyles}
-          style={{ width: layout === 'fullscreen' ? windowWidth : '100%' }}
-        >
-          {reportStatusMapping.status === 'failure' && (
-            <div css={mapFooterMessageStyles}>{status303dError}</div>
-          )}
-          <div css={mapFooterStatusStyles}>
-            <strong>
-              <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
-                303(d) List Status
-              </GlossaryTerm>{' '}
-              / Year Last Reported:
-            </strong>
-            &nbsp;&nbsp;
-            {organizationData.status === 'fetching' && <LoadingSpinner />}
-            {organizationData.status === 'failure' && (
-              <>{status303dShortError}</>
+      {displayMode === 'map' && (
+        <div ref={measuredRef}>
+          <div
+            css={mapFooterStyles}
+            style={{ width: layout === 'fullscreen' ? windowWidth : '100%' }}
+          >
+            {reportStatusMapping.status === 'failure' && (
+              <div css={mapFooterMessageStyles}>{status303dError}</div>
             )}
-            {organizationData.status === 'success' && (
-              <>
-                {reportStatusMapping.status === 'fetching' && (
-                  <LoadingSpinner />
-                )}
-                {reportStatusMapping.status === 'failure' && (
-                  <>{organizationData.data.reportStatusCode}</>
-                )}
-                {reportStatusMapping.status === 'success' && (
-                  <>
-                    {reportStatusMapping.data.hasOwnProperty(
-                      organizationData.data.reportStatusCode,
-                    )
-                      ? reportStatusMapping.data[
-                          organizationData.data.reportStatusCode
-                        ]
-                      : organizationData.data.reportStatusCode}
-                  </>
-                )}
-              </>
-            )}
-            <> / </>
-            {currentReportingCycle.status === 'fetching' && <LoadingSpinner />}
-            {currentReportingCycle.status === 'success' && (
-              <>{currentReportingCycle.reportingCycle}</>
-            )}
+            <div css={mapFooterStatusStyles}>
+              <strong>
+                <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
+                  303(d) List Status
+                </GlossaryTerm>{' '}
+                / Year Last Reported:
+              </strong>
+              &nbsp;&nbsp;
+              {organizationData.status === 'fetching' && <LoadingSpinner />}
+              {organizationData.status === 'failure' && (
+                <>{status303dShortError}</>
+              )}
+              {organizationData.status === 'success' && (
+                <>
+                  {reportStatusMapping.status === 'fetching' && (
+                    <LoadingSpinner />
+                  )}
+                  {reportStatusMapping.status === 'failure' && (
+                    <>{organizationData.data.reportStatusCode}</>
+                  )}
+                  {reportStatusMapping.status === 'success' && (
+                    <>
+                      {reportStatusMapping.data.hasOwnProperty(
+                        organizationData.data.reportStatusCode,
+                      )
+                        ? reportStatusMapping.data[
+                            organizationData.data.reportStatusCode
+                          ]
+                        : organizationData.data.reportStatusCode}
+                    </>
+                  )}
+                </>
+              )}
+              <> / </>
+              {currentReportingCycle.status === 'fetching' && (
+                <LoadingSpinner />
+              )}
+              {currentReportingCycle.status === 'success' && (
+                <>{currentReportingCycle.reportingCycle}</>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {displayMode === 'list' && (
         <div css={modifiedTabStyles(footerHeight)}>
