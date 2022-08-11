@@ -513,7 +513,7 @@ function TribalMapList({
                 width: windowWidth,
               }
             : {
-                height: mapListHeight - footerHeight,
+                height: `calc(${mapListHeight} - ${footerHeight})`,
                 minHeight: '400px',
                 width: '100%',
                 display: displayMode === 'map' ? 'block' : 'none',
