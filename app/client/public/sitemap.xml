@@ -25,11 +25,47 @@
         <changefreq>weekly</changefreq>
     </url>
     <url>
+        <loc>https://mywaterway.epa.gov/state-and-tribal</loc>
+        <changefreq>weekly</changefreq>
+    </url>
+    <url>
         <loc>https://mywaterway.epa.gov/state</loc>
         <changefreq>weekly</changefreq>
     </url>
     <url>
+        <loc>https://mywaterway.epa.gov/tribe</loc>
+        <changefreq>weekly</changefreq>
+    </url>
+    <url>
         <loc>https://mywaterway.epa.gov/swimming</loc>
+        <changefreq>weekly</changefreq>
+    </url>
+    <url>
+        <loc>https://mywaterway.epa.gov/about</loc>
+        <changefreq>weekly</changefreq>
+    </url>
+    <url>
+        <loc>https://mywaterway.epa.gov/data</loc>
+        <changefreq>weekly</changefreq>
+    </url>
+    <url>
+        <loc>https://mywaterway.epa.gov/attains</loc>
+        <changefreq>weekly</changefreq>
+    </url>
+    <url>
+        <loc>https://mywaterway.epa.gov/plan-summary</loc>
+        <changefreq>weekly</changefreq>
+    </url>
+    <url>
+        <loc>https://mywaterway.epa.gov/location</loc>
+        <changefreq>weekly</changefreq>
+    </url>
+    <url>
+        <loc>https://mywaterway.epa.gov/waterbody-report</loc>
+        <changefreq>weekly</changefreq>
+    </url>
+    <url>
+        <loc>https://mywaterway.epa.gov/educators</loc>
         <changefreq>weekly</changefreq>
     </url>
 </urlset>
