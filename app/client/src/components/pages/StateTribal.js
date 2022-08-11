@@ -637,8 +637,8 @@ function StateTribal() {
                             The condition of a waterbody is dynamic and can
                             change at any time, and the information in How’s My
                             Waterway should only be used for general reference.
-                            If available, refer to local or state real-time
-                            water quality reports.
+                            If available, refer to local, state, or tribal
+                            real-time water quality reports.
                           </p>
                           <p>
                             Furthermore, users of this application should not
