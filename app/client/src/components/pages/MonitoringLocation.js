@@ -493,7 +493,7 @@ function buildTooltip(unit) {
       <div css={chartTooltipStyles}>
         <p>{datum.x}:</p>
         <p>
-          <em>Measurement</em>: {`${msmt.value} ${unit}`}
+          <em>Measurement</em>: {`${msmt.value} ${unit === 'None' ? '' : unit}`}
           <br />
           {depth && (
             <>
@@ -1014,11 +1014,11 @@ function useCharacteristics(provider, orgId, siteId) {
           day: parseInt(recordDate[2]),
           depth: record['ResultDepthHeightMeasure/MeasureValue'] ?? null,
           depthUnit: record['ResultDepthHeightMeasure/MeasureUnitCode'] || null,
-          fraction: record.ResultSampleFractionText || 'Not Specified',
+          fraction: record.ResultSampleFractionText || 'None',
           measurement: record.ResultMeasureValue ?? null,
-          medium: record.ActivityMediaName || 'Not Specified',
+          medium: record.ActivityMediaName || 'None',
           month: parseInt(recordDate[1]),
-          /* speciation: record.MethodSpecificationName || null, */
+          /* speciation: record.MethodSpecificationName || 'None', */
           unit: record['ResultMeasure/MeasureUnitCode'] || null,
           year: parseInt(recordDate[0]),
         });
@@ -1166,7 +1166,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   const parseMeasurements = useCallback((newDomain, newMsmts) => {
     const newChartData = [];
 
-    let maxDayCount = 0;
+    let maxCount = 0;
     let curDatum = null;
     let curCount = 0;
     newMsmts.forEach((msmt) => {
@@ -1187,35 +1187,32 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
         } else {
           curDatum.y[curCount.toString()] = dataPoint;
         }
-        if (curCount > maxDayCount) maxDayCount = curCount;
+        if (curCount > maxCount) maxCount = curCount;
       }
     });
     curDatum && newChartData.push(curDatum);
-    setChartData(newChartData);
-    setDataKeys([...Array(maxDayCount).keys()]);
-    // data is already sorted by date
+    setChartData(newChartData.length ? newChartData : null);
+    setDataKeys([...Array(maxCount).keys()]);
     return newChartData;
   }, []);
 
   const getChartData = useCallback(
     (newDomain, newMsmts) => {
       // newMsmts must already be sorted by date
-      const filteredMsmts = newMsmts?.filter((msmt) => {
-        return (
-          msmt.fraction === fraction &&
-          msmt.unit === unit &&
-          msmt.medium === medium
-        );
-      });
-      if (!filteredMsmts?.length) return setChartData(null);
+      const filteredMsmts =
+        newMsmts?.filter((msmt) => {
+          return (
+            msmt.fraction === fraction &&
+            msmt.unit === unit &&
+            msmt.medium === medium
+          );
+        }) || [];
 
       const newChartData = parseMeasurements(newDomain, filteredMsmts);
 
-      setDomain(
-        newChartData.length
-          ? [newChartData[0].x, newChartData[newChartData.length - 1].x]
-          : null,
-      );
+      if (!newChartData.length) return;
+
+      setDomain([newChartData[0].x, newChartData[newChartData.length - 1].x]);
 
       const yValues = [];
       newChartData.forEach((datum) => {
@@ -1253,9 +1250,8 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
 
   // Title for the y-axis
   let yTitle = charcName;
-  if (fraction !== 'Not Specified' && fraction !== 'None')
-    yTitle += ', ' + fraction?.replace(',', ' -');
-  /* if (spec !== 'Not Specified') yTitle += ', ' + spec; */
+  if (fraction !== 'None') yTitle += ', ' + fraction?.replace(',', ' -');
+  /* if (spec !== 'None') yTitle += ', ' + spec; */
   if (unit !== 'None') yTitle += ', ' + unit;
 
   let infoText = null;
