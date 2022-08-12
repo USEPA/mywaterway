@@ -184,6 +184,7 @@ const charcsTableStyles = css`
 
 const chartContainerStyles = css`
   margin: 1rem 0.625rem;
+  height: 500px;
 `;
 
 const chartTooltipStyles = css`
@@ -863,37 +864,6 @@ function parseCharcs(charcs, range) {
   return result;
 }
 
-function parseRecord(record, measurements) {
-  const unit = record.unit;
-  const fraction = record.sampleFraction || 'Not Specified';
-  if (!measurements[unit]) measurements[unit] = {};
-  const unitMeasurements = measurements[unit];
-
-  if (!unitMeasurements[fraction]) unitMeasurements[fraction] = {};
-  const fractionMeasurements = unitMeasurements[fraction];
-  const speciation = record.speciation || 'Not Specified';
-  if (!fractionMeasurements[speciation]) fractionMeasurements[speciation] = {};
-  const specMeasurements = fractionMeasurements[speciation];
-
-  // group by unit and date
-  const date = getDate(record);
-  const measurement = {
-    value: record.measurement,
-    depth: record.depth,
-    depthUnit: record.depthUnit,
-  };
-  if (!specMeasurements[date]) {
-    specMeasurements[date] = {
-      ...record,
-      measurements: [measurement],
-      date,
-    };
-  } else {
-    specMeasurements[date].measurements.push(measurement);
-  }
-  return { unit, speciation, fraction };
-}
-
 const row = (label, value, style, dataStatus = 'success') => (
   <div className="row-container" css={style}>
     <h3 className="label">{label}:</h3>
@@ -914,36 +884,6 @@ const rowGrid = (label, value, dataStatus = 'success') => {
 const rowWideGrid = (label, value, dataStatus = 'success') => {
   return row(label, value, sectionInlineGridWideStyles, dataStatus);
 };
-
-function sortMeasurements(measurements) {
-  // store in arrays by unit,fraction,speciation and sort by date
-  Object.entries(measurements).forEach(([unitKey, unitMeasurements]) => {
-    Object.entries(unitMeasurements).forEach(
-      ([fractionKey, fractionMeasurements]) => {
-        Object.entries(fractionMeasurements).forEach(
-          ([specKey, specMeasurements]) => {
-            Object.values(specMeasurements).forEach((date) => {
-              date.measurements = date.measurements.map(
-                ({ value, ...rest }) => {
-                  return {
-                    ...rest,
-                    value: parseFloat(value.toFixed(3)),
-                  };
-                },
-              );
-            });
-            measurements[unitKey][fractionKey][specKey] = Object.values(
-              specMeasurements,
-            )
-              .sort((a, b) => a.day - b.day)
-              .sort((a, b) => a.month - b.month)
-              .sort((a, b) => a.year - b.year);
-          },
-        );
-      },
-    );
-  });
-}
 
 function toggle(state, id, entity, level) {
   const newSelected = entity.selected === 0 ? 1 : 0;
@@ -1095,6 +1035,7 @@ function useCharacteristics(provider, orgId, siteId) {
       }
       const recordsByCharc = {};
       records.forEach((record) => {
+        if (record.ActivityTypeCode.toLowerCase().includes('control')) return;
         if (!recordsByCharc[record.CharacteristicName]) {
           const charcType = getCharcType(
             record.CharacteristicName,
@@ -1112,15 +1053,16 @@ function useCharacteristics(provider, orgId, siteId) {
         curCharc.count += 1;
         const recordDate = record.ActivityStartDate.split('-');
         curCharc.records.push({
-          year: parseInt(recordDate[0]),
-          month: parseInt(recordDate[1]),
           day: parseInt(recordDate[2]),
-          measurement: record.ResultMeasureValue ?? null,
-          sampleFraction: record.ResultSampleFractionText || null,
-          speciation: record.MethodSpecificationName || null,
-          unit: record['ResultMeasure/MeasureUnitCode'] || null,
           depth: record['ResultDepthHeightMeasure/MeasureValue'] ?? null,
           depthUnit: record['ResultDepthHeightMeasure/MeasureUnitCode'] || null,
+          fraction: record.ResultSampleFractionText || 'Not Specified',
+          measurement: record.ResultMeasureValue ?? null,
+          medium: record.ActivityMediaName || 'Not Specified',
+          month: parseInt(recordDate[1]),
+          /* speciation: record.MethodSpecificationName || null, */
+          unit: record['ResultMeasure/MeasureUnitCode'] || null,
+          year: parseInt(recordDate[0]),
         });
       });
       setCharcs(recordsByCharc);
@@ -1134,7 +1076,7 @@ function useCharacteristics(provider, orgId, siteId) {
     setStatus('fetching');
     const url =
       `${services.data.waterQualityPortal.resultSearch}` +
-      `&mimeType=csv&zip=no&dataProfile=narrowResult` +
+      `&mimeType=csv&zip=no&dataProfile=resultPhysChem` +
       `&providers=${encodeURIComponent(
         provider,
       )}&organization=${encodeURIComponent(orgId)}&siteid=${encodeURIComponent(
@@ -1182,66 +1124,78 @@ function useSiteDetails(provider, orgId, siteId) {
 
 function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   const [measurements, setMeasurements] = useState(null);
+
   // Selected and available units
   const [unit, setUnit] = useState(null);
   const [units, setUnits] = useState(null);
+  useEffect(() => {
+    if (units?.length) setUnit(units[0].value);
+  }, [units]);
+
   // Selected and available sample fractions
   const [fraction, setFraction] = useState(null);
   const [fractions, setFractions] = useState(null);
+  useEffect(() => {
+    if (fractions?.length) setFraction(fractions[0].value);
+  }, [fractions]);
+
+  // Selected and available activity media names
+  const [medium, setMedium] = useState(null);
+  const [media, setMedia] = useState(null);
+  useEffect(() => {
+    if (media?.length) setMedium(media[0].value);
+  }, [media]);
+
+  /* This will be added back with the new service
   // Selected and available speciations
   const [spec, setSpec] = useState(null);
-  const [specs, setSpecs] = useState(null);
+  const [specs, setSpecs] = useState(null); */
+
   // Logarithmic or linear
   const [scaleType, setScaleType] = useState('linear');
 
-  const parseMeasurements = useCallback((newRecords) => {
-    const newMeasurements = {};
-    const fractionValues = new Set();
-    const specValues = new Set();
-    const unitValues = new Set();
-
-    newRecords.forEach((record) => {
-      if (!record.unit || !Number.isFinite(record.measurement)) return;
-
-      // Adds record measurement to newMeasurements and gets select options
-      const recordOptions = parseRecord(record, newMeasurements);
-      unitValues.add(recordOptions.unit);
-      fractionValues.add(recordOptions.fraction);
-      specValues.add(recordOptions.speciation);
-    });
-
-    setFractions(buildOptions(fractionValues));
-    setSpecs(buildOptions(specValues));
-    setUnits(buildOptions(unitValues));
-
-    return newMeasurements;
-  }, []);
-
   useEffect(() => {
     if (!records) return;
-    const newMeasurements = parseMeasurements(records);
+    const newMeasurements = [];
+    const fractionValues = new Set();
+    /* const specValues = new Set(); */
+    const unitValues = new Set();
+    const mediumValues = new Set();
 
-    sortMeasurements(newMeasurements);
+    records.forEach((record) => {
+      if (!record.unit || !Number.isFinite(record.measurement)) return;
 
-    // initialize the selected unit
-    const newUnits = Object.keys(newMeasurements);
-    if (newUnits.length) {
-      const newFractions = Object.keys(newMeasurements[newUnits[0]]);
-      const newSpecs = Object.keys(
-        newMeasurements[newUnits[0]][newFractions[0]],
-      );
+      // Adds record measurement to newMeasurements
+      unitValues.add(record.unit);
+      fractionValues.add(record.fraction);
+      mediumValues.add(record.medium);
+      /* specValues.add(record.speciation); */
+
+      record.date = getDate(record);
+      record.measurement = parseFloat(record.measurement.toFixed(3));
+      newMeasurements.push(record);
+    });
+
+    newMeasurements
+      .sort((a, b) => a.day - b.day)
+      .sort((a, b) => a.month - b.month)
+      .sort((a, b) => a.year - b.year);
+
+    if (newMeasurements.length) {
+      setFractions(buildOptions(fractionValues));
+      /* setSpecs(buildOptions(specValues)); */
+      setUnits(buildOptions(unitValues));
+      setMedia(buildOptions(mediumValues));
       setMeasurements(newMeasurements);
-      setUnit(newUnits[0]);
-      setFraction(newFractions[0]);
-      setSpec(newSpecs[0]);
     } else {
+      setFractions(null);
+      setUnits(null);
+      setMedia(null);
       setMeasurements(null);
-      setUnit(null);
-      setFraction(null);
-      setSpec(null);
     }
+
     setScaleType('linear');
-  }, [parseMeasurements, records]);
+  }, [records]);
 
   const [chartData, setChartData] = useState(null);
   const [domain, setDomain] = useState(null);
@@ -1249,63 +1203,100 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   const [mean, setMean] = useState(null);
   const [median, setMedian] = useState(null);
   const [stdDev, setStdDev] = useState(null);
-
   const [maxConcurrent, setMaxConcurrent] = useState(1);
-  const getChartData = useCallback((newDomain, newMsmts) => {
+
+  const parseMeasurements = useCallback((newDomain, newMsmts) => {
     const newChartData = [];
+
     let maxDayCount = 0;
-    newMsmts.forEach((day) => {
-      if (day.year >= newDomain[0] && day.year <= newDomain[1]) {
-        const datum = {
-          x: day.date,
-          y: {},
+    let curDatum = null;
+    let curCount = 0;
+    newMsmts.forEach((msmt) => {
+      if (msmt.year >= newDomain[0] && msmt.year <= newDomain[1]) {
+        curCount++;
+        const dataPoint = {
+          value: msmt.measurement,
+          depth: msmt.depth,
+          depthUnit: msmt.depthUnit,
         };
-        day.measurements.forEach((msmt, i) => {
-          datum.y[i.toString()] = msmt;
-          if (i + 1 > maxDayCount) maxDayCount = i + 1;
-        });
-        newChartData.push(datum);
+        if (!curDatum || curDatum.x !== msmt.date) {
+          curDatum && newChartData.push(curDatum);
+          curCount = 1;
+          curDatum = {
+            x: msmt.date,
+            y: { 0: dataPoint },
+          };
+        } else {
+          curDatum.y[curCount.toString()] = dataPoint;
+        }
+        if (curCount > maxDayCount) maxDayCount = curCount;
       }
     });
+    curDatum && newChartData.push(curDatum);
     setChartData(newChartData);
     setMaxConcurrent(maxDayCount);
-    // data is already sorted by date
-    setDomain([newChartData[0].x, newChartData[newChartData.length - 1].x]);
-
-    const yValues = [];
-    newChartData.forEach((datum) => {
-      Object.values(datum.y).forEach((msmt) => yValues.push(msmt.value));
-    });
-    const newRange = [Math.min(...yValues), Math.max(...yValues)];
-    setRange(newRange);
-
-    const newMean = getMean(yValues);
-    setMean(newMean);
-    setMedian(getMedian(yValues));
-    setStdDev(getStdDev(yValues, newMean));
+    return newChartData;
   }, []);
+
+  const getChartData = useCallback(
+    (newDomain, newMsmts) => {
+      // newMsmts must already be sorted by date
+      const filteredMsmts = newMsmts?.filter((msmt) => {
+        return (
+          msmt.fraction === fraction &&
+          msmt.unit === unit &&
+          msmt.medium === medium
+        );
+      });
+      if (!filteredMsmts?.length) return setChartData(null);
+
+      const newChartData = parseMeasurements(newDomain, filteredMsmts);
+
+      setDomain(
+        newChartData.length
+          ? [newChartData[0].x, newChartData[newChartData.length - 1].x]
+          : null,
+      );
+
+      const yValues = [];
+      newChartData.forEach((datum) => {
+        Object.values(datum.y).forEach((msmt) => yValues.push(msmt.value));
+      });
+
+      const newRange = [Math.min(...yValues), Math.max(...yValues)];
+      setRange(newRange);
+
+      const newMean = getMean(yValues);
+
+      setMean(newMean);
+      setMedian(getMedian(yValues));
+      setStdDev(getStdDev(yValues, newMean));
+    },
+    [fraction, medium, parseMeasurements, unit],
+  );
 
   const [minYear, setMinYear] = useState(null);
   const [maxYear, setMaxYear] = useState(null);
   // Initialize the chart
   useEffect(() => {
-    const specMeasurements = measurements?.[unit]?.[fraction]?.[spec];
-    if (specMeasurements && specMeasurements.length) {
-      const yearLow = specMeasurements[0].year;
-      const yearHigh = specMeasurements[specMeasurements.length - 1].year;
+    if (measurements?.length) {
+      const yearLow = measurements[0].year;
+      const yearHigh = measurements[measurements.length - 1].year;
       setMinYear(yearLow);
       setMaxYear(yearHigh);
-      getChartData([yearLow, yearHigh], specMeasurements);
+      getChartData([yearLow, yearHigh], measurements);
     } else {
       setChartData(null);
+      setMinYear(null);
+      setMaxYear(null);
     }
-  }, [charcsStatus, fraction, getChartData, measurements, spec, unit]);
+  }, [getChartData, measurements]);
 
   // Title for the y-axis
   let yTitle = charcName;
   if (fraction !== 'Not Specified')
     yTitle += ', ' + fraction?.replace(',', ' -');
-  if (spec !== 'Not Specified') yTitle += ', ' + spec;
+  /* if (spec !== 'Not Specified') yTitle += ', ' + spec; */
   yTitle += ', ' + unit;
 
   let infoText = null;
@@ -1349,13 +1340,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
               min={minYear}
               max={maxYear}
               disabled={!Boolean(records.length)}
-              onChange={(newDomain) => {
-                const specMeasurements =
-                  measurements?.[unit]?.[fraction]?.[spec];
-                if (specMeasurements) {
-                  getChartData(newDomain, specMeasurements);
-                }
-              }}
+              onChange={(newDomain) => getChartData(newDomain, measurements)}
             />
             <div css={selectContainerStyles}>
               <span>
@@ -1387,6 +1372,21 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                 />
               </span>
               <span>
+                <label htmlFor="media-name">Media Name:</label>
+                <Select
+                  className="select"
+                  inputId={'media-name'}
+                  isSearchable={false}
+                  options={media}
+                  value={media.find((f) => f.value === medium)}
+                  onChange={(ev) => {
+                    setMedium(ev.value);
+                  }}
+                  styles={reactSelectStyles}
+                />
+              </span>
+              {/*
+              <span>
                 <label htmlFor="speciation">Method Speciation:</label>
                 <Select
                   className="select"
@@ -1400,6 +1400,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                   styles={reactSelectStyles}
                 />
               </span>
+              */}
               <span className="radio-container">
                 <label>Scale Type:</label>
                 <span className="radios">
@@ -1435,7 +1436,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
               yTitle={yTitle}
               unit={unit}
             />
-            {chartData?.length && (
+            {chartData?.length > 0 && (
               <div css={shadedBoxSectionStyles}>
                 {rowWideGrid(
                   'Selected Date Range',
@@ -1522,7 +1523,7 @@ function CharacteristicsTableSection({
           </div>
         );
         const measurementCount = charc.records.reduce((a, b) => {
-          if (b.measurement) return a + 1;
+          if (Number.isFinite(b.measurement)) return a + 1;
           return a;
         }, 0);
         return {
@@ -1629,13 +1630,20 @@ function ChartContainer({
   );
   const chartRef = useRef(null);
 
-  if (!range) return <LoadingSpinner />;
-
   if (!data?.length)
     return (
-      <p css={messageBoxStyles(infoBoxStyles)}>
-        No measurements available for the selected options.
-      </p>
+      <div css={chartContainerStyles}>
+        <p css={messageBoxStyles(infoBoxStyles)}>
+          No measurements available for the selected options.
+        </p>
+      </div>
+    );
+
+  if (!range)
+    return (
+      <div css={chartContainerStyles}>
+        <LoadingSpinner />
+      </div>
     );
 
   return (
@@ -1724,7 +1732,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
   const queryData =
     siteStatus === 'success'
       ? {
-          dataProfile: 'narrowResult',
+          dataProfile: 'resultPhysChem',
           siteid: [site.siteId],
           organization: [site.orgId],
           providers: [site.providerName],
@@ -1745,7 +1753,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
         );
       else queryPartial += `&${key}=${encodeURIComponent(value)}`;
       return query + queryPartial;
-    }, `${services.data.waterQualityPortal.userInterface}#dataProfile=narrowResult`);
+    }, `${services.data.waterQualityPortal.userInterface}#dataProfile=resultPhysChem`);
 
   if (checkboxes.all === Checkbox.indeterminate) {
     const selectedTypes = Object.values(checkboxes.types)
