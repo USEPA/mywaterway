@@ -28,10 +28,12 @@ import {
   disclaimerStyles,
   iconStyles,
   modifiedTableStyles,
+  tableStyles,
 } from 'styles/index.js';
 // types
 import type { ReactNode } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
+import type { FlattenSimpleInterpolation } from 'styled-components';
 import type {
   ClickedHucState,
   Feature,
@@ -65,6 +67,30 @@ function renderLink(label: string, link: string) {
       </a>
     </p>
   );
+}
+
+function row(
+  label: ReactNode | string,
+  value: ReactNode | string,
+  style: FlattenSimpleInterpolation,
+  dataStatus = 'success',
+) {
+  return (
+    <div className="row-container" css={style}>
+      <em className="label">{label}:</em>
+      {dataStatus === 'fetching' && <LoadingSpinner />}
+      {dataStatus === 'failure' && <p className="value">N/A</p>}
+      {dataStatus === 'success' && <p className="value">{value}</p>}
+    </div>
+  );
+}
+
+function rowGrid(
+  label: ReactNode | string,
+  value: ReactNode | string,
+  dataStatus = 'success',
+) {
+  return row(label, value, sectionInlineGridStyles, dataStatus);
 }
 
 function labelValue(
@@ -237,6 +263,66 @@ const changeWatershedContainerStyles = css`
 
   p {
     padding-bottom: 0;
+  }
+`;
+
+const sectionInlineStyles = css`
+  padding: 0.7rem 0;
+  border-bottom: 1px solid #d8dfe2;
+  width: 100%;
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+
+  &:first-of-type {
+    border-bottom: 1px solid #d8dfe2;
+    border-top: 1px solid #d8dfe2;
+  }
+
+  /* loading icon */
+  svg {
+    display: inline-block;
+    margin: -0.5rem;
+    height: 1.25rem;
+  }
+
+  h3,
+  em {
+    margin-right: 0.5em;
+  }
+
+  p {
+    padding-bottom: 0;
+  }
+
+  .label,
+  .value {
+    display: inline-block;
+    line-height: 1.25;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+`;
+
+const sectionInlineGridStyles = css`
+  ${sectionInlineStyles}
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  h3,
+  em {
+    grid-column: 1;
+  }
+
+  p {
+    grid-column: 2;
+  }
+
+  .label,
+  .value {
+    margin-bottom: auto;
+    margin-top: auto;
   }
 `;
 
@@ -500,46 +586,14 @@ function WaterbodyInfo({
 
   const dischargerContent = (
     <>
-      <table css={modifiedTableStyles} className="table">
-        <tbody>
-          <tr>
-            <td>
-              <em>Compliance Status:</em>
-            </td>
-            <td>{attributes.CWPStatus}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Permit Status:</em>
-            </td>
-            <td>{attributes.CWPPermitStatusDesc}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Significant Effluent Violation within the last 3 years:</em>
-            </td>
-            <td>{hasEffluentViolations ? 'Yes' : 'No'}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Inspection within the last 5 years:</em>
-            </td>
-            <td>{bool(attributes.CWPInspectionCount)}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Formal Enforcement Action in the last 5 years:</em>
-            </td>
-            <td>{bool(attributes.CWPFormalEaCnt)}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>NPDES ID:</em>
-            </td>
-            <td>{attributes.SourceID}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div css={tableStyles} className="table">
+        {rowGrid('Compliance Status', attributes.CWPStatus)}
+        {rowGrid('Permit Status', attributes.CWPPermitStatusDesc)}
+        {rowGrid('Significant Effluent Violation within the last 3 years', hasEffluentViolations ? 'Yes' : 'No')}
+        {rowGrid('Inspection within the last 5 years', bool(attributes.CWPInspectionCount))}
+        {rowGrid('Formal Enforcement Action in the last 5 years', bool(attributes.CWPFormalEaCnt))}
+        {rowGrid('NPDES ID', attributes.SourceID)}
+      </div>
 
       <p>
         <a
@@ -650,34 +704,12 @@ function WaterbodyInfo({
   // jsx
   const wsioContent = (
     <>
-      <table css={modifiedTableStyles} className="table">
-        <tbody>
-          <tr>
-            <td>
-              <em>Watershed Name:</em>
-            </td>
-            <td>{attributes.NAME_HUC12}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Watershed:</em>
-            </td>
-            <td>{attributes.HUC12_TEXT}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>State:</em>
-            </td>
-            <td>{attributes.STATES_ALL}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Watershed Health Score:</em>
-            </td>
-            <td>({Math.round(attributes.PHWA_HEALTH_NDX_ST * 100) / 100})</td>
-          </tr>
-        </tbody>
-      </table>
+      <div css={tableStyles} className="table">
+        {rowGrid('Watershed Name', attributes.NAME_HUC12)}
+        {rowGrid('Watershed', attributes.HUC12_TEXT)}
+        {rowGrid('State', attributes.STATES_ALL)}
+        {rowGrid('Watershed Health Score', Math.round(attributes.PHWA_HEALTH_NDX_ST * 100) / 100)}
+      </div>
     </>
   );
 
@@ -748,10 +780,11 @@ function WaterbodyInfo({
     if (services?.status !== 'success') return;
 
     const auId = attributes.assessmentunitidentifier;
-    const url = services.data.attains.serviceUrl +
-          `actions?assessmentUnitIdentifier=${auId}` +
-          `&organizationIdentifier=${attributes.organizationid}` +
-          `&summarize=Y`;
+    const url =
+      services.data.attains.serviceUrl +
+      `actions?assessmentUnitIdentifier=${auId}` +
+      `&organizationIdentifier=${attributes.organizationid}` +
+      `&summarize=Y`;
 
     fetchCheck(url)
       .then((res) => {
@@ -1322,70 +1355,35 @@ function MonitoringLocationsContent({
 
   return (
     <>
-      <table css={modifiedTableStyles} className="table">
-        <tbody>
-          <tr>
-            <td>
-              <em>Organ&shy;ization Name:</em>
-            </td>
-            <td>{orgName}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Location Name:</em>
-            </td>
-            <td>{locationName}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Water Type:</em>
-            </td>
-            <td>{locationType}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Organization ID:</em>
-            </td>
-            <td>{orgId}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Monitor&shy;ing Site ID:</em>
-            </td>
-            <td>{siteId}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>
-                <GlossaryTerm term="Monitoring Samples">
-                  Monitor&shy;ing Samples:
-                </GlossaryTerm>
-              </em>
-            </td>
-            <td>
-              {Number(stationTotalSamples).toLocaleString()}
-              {timeframe && <span css={dateRangeStyles}>(all time)</span>}
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <em>
-                <GlossaryTerm term="Monitoring Measurements">
-                  Monitor&shy;ing Measure&shy;ments:
-                </GlossaryTerm>
-              </em>
-            </td>
-            <td>
-              {Number(stationTotalMeasurements).toLocaleString()}
-              {timeframe && (
-                <span css={dateRangeStyles}>
-                  ({timeframe[0]} - {timeframe[1]})
-                </span>
-              )}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div css={tableStyles} className="table">
+        {rowGrid(<>Organ&shy;ization Name</>, orgName)}
+        {rowGrid('Location Name', locationName)}
+        {rowGrid('Water Type', locationType)}
+        {rowGrid('Organization ID', orgId)}
+        {rowGrid(<>Monitor&shy;ing Site ID</>, siteId)}
+        {rowGrid(
+          <GlossaryTerm term="Monitoring Samples">
+            Monitor&shy;ing Samples
+          </GlossaryTerm>,
+          <>
+            {Number(stationTotalSamples).toLocaleString()}
+            {timeframe ? <span css={dateRangeStyles}>(all time)</span> : null}
+          </>,
+        )}
+        {rowGrid(
+          <GlossaryTerm term="Monitoring Measurements">
+            Monitor&shy;ing Measure&shy;ments
+          </GlossaryTerm>,
+          <>
+            {Number(stationTotalMeasurements).toLocaleString()}
+            {timeframe && (
+              <span css={dateRangeStyles}>
+                ({timeframe[0]} - {timeframe[1]})
+              </span>
+            )}
+          </>,
+        )}
+      </div>
 
       {!onMonitoringReportPage && (
         <p>
@@ -1584,40 +1582,13 @@ function UsgsStreamgagesContent({ feature }: { feature: Feature }) {
 
   return (
     <>
-      <table css={modifiedTableStyles} className="table">
-        <tbody>
-          <tr>
-            <td>
-              <em>Organ&shy;ization Name:</em>
-            </td>
-            <td>{orgName}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Locat&shy;ion Name:</em>
-            </td>
-            <td>{locationName}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Water Type:</em>
-            </td>
-            <td>{locationType}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Organization ID:</em>
-            </td>
-            <td>{orgId}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Monitor&shy;ing Site ID:</em>
-            </td>
-            <td>{siteId}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div css={tableStyles} className="table">
+        {rowGrid(<>Organ&shy;ization Name</>, orgName)}
+        {rowGrid(<>Locat&shy;ion Name</>, locationName)}
+        {rowGrid('Water Type', locationType)}
+        {rowGrid('Organization ID', orgId)}
+        {rowGrid(<>Monitor&shy;ing Site ID</>, siteId)}
+      </div>
 
       <table css={measurementTableStyles} className="table">
         <thead>

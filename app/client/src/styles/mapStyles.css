@@ -132,12 +132,17 @@
   padding: 0.35rem;
 }
 
-.esri-popup tr:nth-child(even) {
+.esri-popup tr:nth-child(even),
+.esri-popup .row-container:nth-child(even) {
   background-color: #f0f5f9;
 }
 
 .esri-popup td {
   padding: 0.35rem;
+}
+
+.esri-popup .row-container {
+  padding: 0.35rem 0;
 }
 
 .esri-feature p {
