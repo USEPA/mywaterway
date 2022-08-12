@@ -41,7 +41,7 @@ import { characteristicGroupMappings } from 'config/characteristicGroupMappings'
 import { characteristicsByType } from 'config/characteristicsByType';
 import { monitoringDownloadError, monitoringError } from 'config/errorMessages';
 // contexts
-import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
+import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
@@ -2041,8 +2041,9 @@ function InformationSection({ siteId, site, siteStatus }) {
   );
 }
 
-function MonitoringLocationContent({ fullscreen }) {
+function MonitoringLocationContent() {
   const { orgId, provider, siteId } = useParams();
+  const { fullscreenActive } = useFullscreenState();
   const [site, siteStatus] = useSiteDetails(provider, orgId, siteId);
   const [characteristics, characteristicsStatus] = useCharacteristics(
     provider,
@@ -2178,7 +2179,7 @@ function MonitoringLocationContent({ fullscreen }) {
     </Page>
   );
 
-  const content = fullscreen.fullscreenActive ? fullScreenView : twoColumnView;
+  const content = fullscreenActive ? fullScreenView : twoColumnView;
 
   return (
     <StatusContent
@@ -2191,14 +2192,10 @@ function MonitoringLocationContent({ fullscreen }) {
   );
 }
 
-function MonitoringLocation(props) {
+function MonitoringLocation() {
   return (
     <FullscreenProvider>
-      <FullscreenContext.Consumer>
-        {(fullscreen) => (
-          <MonitoringLocationContent fullscreen={fullscreen} {...props} />
-        )}
-      </FullscreenContext.Consumer>
+      <MonitoringLocationContent />
     </FullscreenProvider>
   );
 }

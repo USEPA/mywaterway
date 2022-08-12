@@ -1232,7 +1232,8 @@ function WaterQualityOverview() {
               <>
                 {introText.data.organizationURLs.length === 0 ? (
                   <p css={noDataMessageStyles}>
-                    No additional information available for this state.
+                    No additional information available for this{' '}
+                    {activeState.source.toLowerCase()}.
                   </p>
                 ) : (
                   <>

@@ -26,7 +26,7 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
-import { MapHighlightContext } from 'contexts/MapHighlight';
+import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { getUrlFromMarkup, getTitleFromMarkup } from 'components/shared/Regex';
@@ -181,7 +181,7 @@ function Protect() {
   // draw the waterbody on the map
   useWaterbodyOnMap('hasprotectionplan', 'overallstatus');
 
-  const { setSelectedGraphic } = useContext(MapHighlightContext);
+  const { setSelectedGraphic } = useMapHighlightState();
   const {
     mapView,
     attainsPlans,
@@ -1567,7 +1567,7 @@ type FeatureItemProps = {
 
 function FeatureItem({ feature, title, children }: FeatureItemProps) {
   const { mapView } = useContext(LocationSearchContext);
-  const { setHighlightedGraphic } = useContext(MapHighlightContext);
+  const { setHighlightedGraphic } = useMapHighlightState();
 
   const addHighlight = () => {
     if (!feature || !mapView) return;

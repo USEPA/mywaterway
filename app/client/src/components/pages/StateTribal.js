@@ -190,6 +190,13 @@ function StateTribal() {
   const [tribes, setTribes] = useState({ status: 'fetching', data: [] });
   useEffect(() => {
     if (
+      organizations.status === 'failure' ||
+      tribeMapping.status === 'failure'
+    ) {
+      setTribes({ status: 'failure', data: [] });
+      return;
+    }
+    if (
       organizations.status !== 'success' ||
       tribeMapping.status !== 'success'
     ) {
@@ -387,15 +394,21 @@ function StateTribal() {
       <TabLinks />
 
       <div css={containerStyles} className="container" data-content="state">
-        {states.status === 'fetching' && <LoadingSpinner />}
+        {states.status === 'fetching' ||
+          (tribes.status === 'fetching' && <LoadingSpinner />)}
 
         {states.status === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
-            <p>{stateListError}</p>
+            <p>{stateListError('State')}</p>
+          </div>
+        )}
+        {tribes.status === 'failure' && (
+          <div css={modifiedErrorBoxStyles}>
+            <p>{stateListError('Tribe')}</p>
           </div>
         )}
 
-        {states.status === 'success' && (
+        {(states.status === 'success' || tribes.status === 'success') && (
           <>
             <label css={promptStyles} htmlFor="hmw-state-select-input">
               <strong>Let’s get started!</strong>&nbsp;&nbsp;
@@ -624,8 +637,8 @@ function StateTribal() {
                             The condition of a waterbody is dynamic and can
                             change at any time, and the information in How’s My
                             Waterway should only be used for general reference.
-                            If available, refer to local or state real-time
-                            water quality reports.
+                            If available, refer to local, state, or tribal
+                            real-time water quality reports.
                           </p>
                           <p>
                             Furthermore, users of this application should not

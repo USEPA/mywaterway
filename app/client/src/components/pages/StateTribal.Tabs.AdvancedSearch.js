@@ -25,10 +25,10 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
-  MapHighlightContext,
+  useMapHighlightState,
   MapHighlightProvider,
 } from 'contexts/MapHighlight';
-import { FullscreenContext } from 'contexts/Fullscreen';
+import { useFullscreenState } from 'contexts/Fullscreen';
 import {
   useReportStatusMappingContext,
   useServicesContext,
@@ -241,7 +241,7 @@ function AdvancedSearch() {
     setStateAndOrganization,
   } = useContext(StateTribalTabsContext);
 
-  const { fullscreenActive } = useContext(FullscreenContext);
+  const { fullscreenActive } = useFullscreenState();
 
   const {
     mapView,
@@ -718,7 +718,7 @@ function AdvancedSearch() {
 
   // Makes the view on map button work for the state page
   // (i.e. switches and scrolls to the map when the selected graphic changes)
-  const { selectedGraphic } = useContext(MapHighlightContext);
+  const { selectedGraphic } = useMapHighlightState();
   useEffect(() => {
     if (!selectedGraphic) return;
 

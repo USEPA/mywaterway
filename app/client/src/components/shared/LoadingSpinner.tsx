@@ -1,6 +1,3 @@
-// @flow
-
-import React from 'react';
 import { css, keyframes } from 'styled-components/macro';
 // styles
 import { colors } from 'styles/index.js';

@@ -1,6 +1,6 @@
 import 'react-app-polyfill/stable';
 import smoothscroll from 'smoothscroll-polyfill';
-import React, { StrictMode } from 'react';
+import { StrictMode } from 'react';
 import { render } from 'react-dom';
 import { BrowserRouter } from 'react-router-dom';
 import { createGlobalStyle } from 'styled-components';
@@ -16,6 +16,9 @@ import { LookupFilesProvider } from 'contexts/LookupFiles';
 import { FetchedDataProvider } from 'contexts/FetchedData';
 // errors
 import { defaultErrorBoundaryMessage } from 'config/errorMessages';
+// types
+// required once project-wide
+import type {} from 'styled-components/cssprop';
 
 smoothscroll.polyfill();
 
@@ -52,7 +55,7 @@ function Root() {
   );
 }
 
-const rootElement: ?HTMLElement = document.getElementById('root');
+const rootElement: HTMLElement | null = document.getElementById('root');
 
 if (rootElement)
   render(

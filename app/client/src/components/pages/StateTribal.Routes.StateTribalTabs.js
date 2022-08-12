@@ -15,7 +15,7 @@ import TribalMapList from 'components/shared/TribalMapList';
 import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 // contexts
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
-import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
+import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 
 function StateTribalTabs() {
   const { stateCode, tabName } = useParams();
@@ -24,7 +24,7 @@ function StateTribalTabs() {
   const { activeState, setActiveState, activeTabIndex, setActiveTabIndex } =
     useContext(StateTribalTabsContext);
 
-  const { fullscreenActive } = useContext(FullscreenContext);
+  const { fullscreenActive } = useFullscreenState();
 
   // redirect to overview tab if tabName param wasn't provided in the url
   // (e.g. '/state/al' redirects to '/state/AL/water-quality-overview')
@@ -89,9 +89,20 @@ function StateTribalTabs() {
     />
   );
 
-  if (activeState.source === 'All') return <LoadingSpinner />;
+  if (activeState.source === 'All') {
+    if (states.status === 'failure' || tribes.status === 'failure') {
+      return null;
+    }
+
+    return <LoadingSpinner />;
+  }
+
+  if (activeState.source === 'State' && states.status === 'failure') {
+    return null;
+  }
 
   if (activeState.source === 'Tribe') {
+    if (tribes.status === 'failure') return null;
     if (fullscreenActive) return mapContent;
 
     return (

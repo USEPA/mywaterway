@@ -46,7 +46,7 @@ import {
   useServicesContext,
 } from 'contexts/LookupFiles';
 import {
-  MapHighlightContext,
+  useMapHighlightState,
   MapHighlightProvider,
 } from 'contexts/MapHighlight';
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
@@ -79,7 +79,7 @@ import {
 import { colors } from 'styles/index.js';
 import { tabsStyles } from 'components/shared/ContentTabs';
 
-const mapListHeight = '70vh';
+const mapPadding = 20;
 
 const accordionContentStyles = css`
   padding: 0.4375em 0.875em 0.875em;
@@ -113,10 +113,10 @@ const modifiedErrorBoxStyles = css`
   margin-bottom: 0.75em;
 `;
 
-const modifiedTabStyles = (footerHeight) => {
+const modifiedTabStyles = (height) => {
   return css`
     ${tabsStyles}
-    max-height: calc(${mapListHeight} - ${footerHeight}px);
+    height: ${height}px;
     width: 100%;
     overflow: auto;
   `;
@@ -314,7 +314,7 @@ function TribalMapList({
   // Makes the view on map button work for the state page
   // (i.e. switches and scrolls to the map when the selected graphic changes)
   const [displayMode, setDisplayMode] = useState('map');
-  const { selectedGraphic } = useContext(MapHighlightContext);
+  const { selectedGraphic } = useMapHighlightState();
   useEffect(() => {
     if (!selectedGraphic) return;
 
@@ -361,9 +361,23 @@ function TribalMapList({
     ],
   );
 
+  // calculate height of div holding the view mode buttons
+  const [viewModeHeight, setViewModeHeight] = useState(0);
+  const viewModeRef = useCallback((node) => {
+    if (!node) return;
+    setViewModeHeight(node.getBoundingClientRect().height);
+  }, []);
+
+  // calculate height of div holding the layer toggles
+  const [layerTogglesHeight, setLayerTogglesHeight] = useState(0);
+  const layerTogglesRef = useCallback((node) => {
+    if (!node) return;
+    setLayerTogglesHeight(node.getBoundingClientRect().height);
+  }, []);
+
   // calculate height of div holding the footer content
   const [footerHeight, setFooterHeight] = useState(0);
-  const measuredRef = useCallback((node) => {
+  const footerRef = useCallback((node) => {
     if (!node) return;
     setFooterHeight(node.getBoundingClientRect().height);
   }, []);
@@ -377,9 +391,12 @@ function TribalMapList({
     return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
   }
 
+  const mapListHeight =
+    windowHeight - viewModeHeight - layerTogglesHeight - 3 * mapPadding;
+
   return (
     <div>
-      <div css={inputStyles}>
+      <div css={inputStyles} ref={viewModeRef}>
         <div className="btn-group" role="group">
           <button
             css={buttonStyles}
@@ -424,7 +441,7 @@ function TribalMapList({
       )}
 
       {displayMode !== 'none' && (
-        <div css={keyMetricsStyles}>
+        <div css={keyMetricsStyles} ref={layerTogglesRef}>
           <div css={keyMetricStyles}>
             {waterbodies.status === 'pending' && <LoadingSpinner />}
             {(waterbodies.status === 'success' ||
@@ -465,8 +482,7 @@ function TribalMapList({
             ) : (
               <>
                 <span css={keyMetricNumberStyles}>
-                  {Boolean(monitoringLocations.data.features.length) &&
-                  monitoringLocations.status === 'success'
+                  {Boolean(monitoringLocations.data?.features?.length)
                     ? monitoringLocations.data.features.length
                     : 'N/A'}
                 </span>
@@ -474,7 +490,7 @@ function TribalMapList({
                 <div css={switchContainerStyles}>
                   <Switch
                     checked={
-                      Boolean(monitoringLocations.data.features.length) &&
+                      Boolean(monitoringLocations.data?.features?.length) &&
                       monitoringLocationsDisplayed
                     }
                     onChange={(_checked) => {
@@ -492,7 +508,7 @@ function TribalMapList({
                       });
                     }}
                     disabled={
-                      !Boolean(monitoringLocations.data.features.length)
+                      !Boolean(monitoringLocations.data?.features?.length)
                     }
                     ariaLabel="Monitoring Stations"
                   />
@@ -514,7 +530,6 @@ function TribalMapList({
               }
             : {
                 height: mapListHeight - footerHeight,
-                minHeight: '400px',
                 width: '100%',
                 display: displayMode === 'map' ? 'block' : 'none',
               }
@@ -526,58 +541,62 @@ function TribalMapList({
           setTribalBoundaryError={setTribalBoundaryError}
         />
       </div>
-      <div ref={measuredRef}>
-        <div
-          css={mapFooterStyles}
-          style={{ width: layout === 'fullscreen' ? windowWidth : '100%' }}
-        >
-          {reportStatusMapping.status === 'failure' && (
-            <div css={mapFooterMessageStyles}>{status303dError}</div>
-          )}
-          <div css={mapFooterStatusStyles}>
-            <strong>
-              <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
-                303(d) List Status
-              </GlossaryTerm>{' '}
-              / Year Last Reported:
-            </strong>
-            &nbsp;&nbsp;
-            {organizationData.status === 'fetching' && <LoadingSpinner />}
-            {organizationData.status === 'failure' && (
-              <>{status303dShortError}</>
+      {displayMode === 'map' && (
+        <div ref={footerRef}>
+          <div
+            css={mapFooterStyles}
+            style={{ width: layout === 'fullscreen' ? windowWidth : '100%' }}
+          >
+            {reportStatusMapping.status === 'failure' && (
+              <div css={mapFooterMessageStyles}>{status303dError}</div>
             )}
-            {organizationData.status === 'success' && (
-              <>
-                {reportStatusMapping.status === 'fetching' && (
-                  <LoadingSpinner />
-                )}
-                {reportStatusMapping.status === 'failure' && (
-                  <>{organizationData.data.reportStatusCode}</>
-                )}
-                {reportStatusMapping.status === 'success' && (
-                  <>
-                    {reportStatusMapping.data.hasOwnProperty(
-                      organizationData.data.reportStatusCode,
-                    )
-                      ? reportStatusMapping.data[
-                          organizationData.data.reportStatusCode
-                        ]
-                      : organizationData.data.reportStatusCode}
-                  </>
-                )}
-              </>
-            )}
-            <> / </>
-            {currentReportingCycle.status === 'fetching' && <LoadingSpinner />}
-            {currentReportingCycle.status === 'success' && (
-              <>{currentReportingCycle.reportingCycle}</>
-            )}
+            <div css={mapFooterStatusStyles}>
+              <strong>
+                <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
+                  303(d) List Status
+                </GlossaryTerm>{' '}
+                / Year Last Reported:
+              </strong>
+              &nbsp;&nbsp;
+              {organizationData.status === 'fetching' && <LoadingSpinner />}
+              {organizationData.status === 'failure' && (
+                <>{status303dShortError}</>
+              )}
+              {organizationData.status === 'success' && (
+                <>
+                  {reportStatusMapping.status === 'fetching' && (
+                    <LoadingSpinner />
+                  )}
+                  {reportStatusMapping.status === 'failure' && (
+                    <>{organizationData.data.reportStatusCode}</>
+                  )}
+                  {reportStatusMapping.status === 'success' && (
+                    <>
+                      {reportStatusMapping.data.hasOwnProperty(
+                        organizationData.data.reportStatusCode,
+                      )
+                        ? reportStatusMapping.data[
+                            organizationData.data.reportStatusCode
+                          ]
+                        : organizationData.data.reportStatusCode}
+                    </>
+                  )}
+                </>
+              )}
+              <> / </>
+              {currentReportingCycle.status === 'fetching' && (
+                <LoadingSpinner />
+              )}
+              {currentReportingCycle.status === 'success' && (
+                <>{currentReportingCycle.reportingCycle}</>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {displayMode === 'list' && (
-        <div css={modifiedTabStyles(footerHeight)}>
+        <div css={modifiedTabStyles(mapListHeight)}>
           <Tabs>
             <TabList>
               <Tab>Waterbodies</Tab>

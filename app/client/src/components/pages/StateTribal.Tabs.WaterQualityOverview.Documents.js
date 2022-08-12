@@ -75,12 +75,14 @@ const modifiedErrorBoxStyles = css`
 `;
 
 // --- components (Documents) ---
+type ActiveState = {
+  value: string,
+  label: string,
+  source: 'All' | 'State' | 'Tribe',
+};
+
 type Props = {
-  activeState: {
-    value: string,
-    label: string,
-    source: 'All' | 'State' | 'Tribe',
-  },
+  activeState: ActiveState,
   organizationData: Object,
   surveyLoading: boolean,
   surveyDocuments: Object,
@@ -198,6 +200,7 @@ function Documents({
             <div css={modifiedInfoBoxStyles}>{stateDocumentSortingError}</div>
           )}
           <DocumentsTable
+            activeState={activeState}
             documents={assessmentDocumentsSorted}
             type="integrated report"
           />
@@ -222,6 +225,7 @@ function Documents({
                 </div>
               )}
               <DocumentsTable
+                activeState={activeState}
                 documents={surveyDocumentsSorted}
                 type="statewide statistical survey"
               />
@@ -235,13 +239,20 @@ function Documents({
 
 // --- components (DocumentsTable) ---
 type DocumentsTableProps = {
+  activeState: ActiveState,
   documents: Array<Object>,
   type: string,
 };
 
-function DocumentsTable({ documents, type }: DocumentsTableProps) {
-  if (documents.length === 0)
-    return <p>No {type} documents available for this state.</p>;
+function DocumentsTable({ activeState, documents, type }: DocumentsTableProps) {
+  if (documents.length === 0) {
+    return (
+      <p>
+        No {type} documents available for this{' '}
+        {activeState.source.toLowerCase()}.
+      </p>
+    );
+  }
 
   return (
     <ReactTable
