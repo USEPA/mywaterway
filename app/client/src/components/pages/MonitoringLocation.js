@@ -1253,10 +1253,10 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
 
   // Title for the y-axis
   let yTitle = charcName;
-  if (fraction !== 'Not Specified')
+  if (fraction !== 'Not Specified' && fraction !== 'None')
     yTitle += ', ' + fraction?.replace(',', ' -');
   /* if (spec !== 'Not Specified') yTitle += ', ' + spec; */
-  yTitle += ', ' + unit;
+  if (unit !== 'None') yTitle += ', ' + unit;
 
   let infoText = null;
   if (!charcName)
