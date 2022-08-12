@@ -74,8 +74,8 @@ type Props = {
   color?: string;
   containerRef?: HTMLElement | null;
   data: Datum[];
+  dataKeys: string[];
   range?: number[];
-  seriesCount?: number;
   xTitle?: string;
   yScale?: 'log' | 'linear';
   yTitle?: string;
@@ -86,8 +86,8 @@ function ScatterPlot({
   color,
   containerRef,
   data,
+  dataKeys,
   range,
-  seriesCount = 1,
   xTitle,
   yScale = 'linear',
   yTitle,
@@ -167,14 +167,14 @@ function ScatterPlot({
           orientation="left"
           strokeWidth={2}
         />
-        {[...Array(seriesCount).keys()].map((n) => {
+        {dataKeys.map((dataKey) => {
           return (
             <GlyphSeries
-              key={n}
+              key={dataKey}
               data={data}
-              dataKey={n.toString()}
+              dataKey={dataKey}
               xAccessor={xAccessor}
-              yAccessor={getYAccessor(n.toString())}
+              yAccessor={getYAccessor(dataKey)}
             />
           );
         })}

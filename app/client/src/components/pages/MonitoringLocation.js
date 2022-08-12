@@ -1244,13 +1244,12 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   }, [parseMeasurements, records]);
 
   const [chartData, setChartData] = useState(null);
+  const [dataKeys, setDataKeys] = useState(null);
   const [domain, setDomain] = useState(null);
   const [range, setRange] = useState(null);
   const [mean, setMean] = useState(null);
   const [median, setMedian] = useState(null);
   const [stdDev, setStdDev] = useState(null);
-
-  const [maxConcurrent, setMaxConcurrent] = useState(1);
   const getChartData = useCallback((newDomain, newMsmts) => {
     const newChartData = [];
     let maxDayCount = 0;
@@ -1268,7 +1267,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
       }
     });
     setChartData(newChartData);
-    setMaxConcurrent(maxDayCount);
+    setDataKeys([...Array(maxDayCount).keys()]);
     // data is already sorted by date
     setDomain([newChartData[0].x, newChartData[newChartData.length - 1].x]);
 
@@ -1431,7 +1430,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
               charcName={charcName}
               data={chartData}
               scaleType={scaleType}
-              seriesCount={maxConcurrent}
+              dataKeys={dataKeys}
               yTitle={yTitle}
               unit={unit}
             />
@@ -1618,8 +1617,8 @@ function ChartContainer({
   range,
   data,
   charcName,
+  dataKeys,
   scaleType,
-  seriesCount,
   yTitle,
   unit,
 }) {
@@ -1646,7 +1645,7 @@ function ChartContainer({
         containerRef={chartRef.current}
         data={data}
         range={range}
-        seriesCount={seriesCount}
+        dataKeys={dataKeys}
         xTitle="Date"
         yScale={scaleType}
         yTitle={yTitle}
