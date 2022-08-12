@@ -100,25 +100,101 @@ const accordionStyles = css`
   }
 `;
 
-const boxSectionStyles = css`
+const sectionStyles = css`
   padding: 0.4375rem 0.875rem;
 `;
 
+const sectionInlineStyles = css`
+  ${sectionStyles}
+  border-bottom: 1px solid #d8dfe2;
+  width: 100%;
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+
+  &:first-of-type {
+    border-bottom: 1px solid #d8dfe2;
+  }
+
+  /* loading icon */
+  svg {
+    display: inline-block;
+    margin: -0.5rem;
+    height: 1.25rem;
+  }
+
+  h3 {
+    margin-right: 0.5em;
+  }
+
+  .label,
+  .value {
+    display: inline-block;
+    line-height: 1.25;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+`;
+
+const sectionInlineFlexStyles = css`
+  ${sectionInlineStyles}
+  align-items: flex-end;
+  display: flex;
+  justify-content: flex-start;
+`;
+
+const sectionInlineGridStyles = css`
+  ${sectionInlineStyles}
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0.5em;
+
+  h3 {
+    grid-column: 1;
+  }
+
+  p {
+    grid-column: 2;
+  }
+
+  .label,
+  .value {
+    margin-bottom: auto;
+    margin-top: auto;
+  }
+`;
+
+const sectionInlineGridWideStyles = css`
+  ${sectionInlineGridStyles}
+  grid-template-columns: minmax(100px, 300px) minmax(100px, 1fr);
+`;
+
 const charcsTableStyles = css`
-  ${boxSectionStyles}
+  ${sectionStyles}
   height: 50vh;
   overflow-y: scroll;
   .rt-table .rt-td {
     margin: auto;
   }
-  .selected div {
-    border-bottom: 1px solid #d8dfe2;
+  .row-container {
     margin-bottom: 0.5rem;
   }
 `;
 
 const chartContainerStyles = css`
   margin: 1rem 0.625rem;
+`;
+
+const chartTooltipStyles = css`
+  p {
+    line-height: 1.2em;
+    margin-bottom: 0;
+    padding: 0;
+    &:first-of-type {
+      margin-bottom: 0.5em;
+    }
+  }
 `;
 
 const containerStyles = css`
@@ -190,12 +266,6 @@ const fileLinkStyles = css`
   }
 `;
 
-const flexboxSectionStyles = css`
-  ${boxSectionStyles}
-  display: flex;
-  justify-content: flex-start;
-`;
-
 const iconStyles = css`
   margin-right: 5px;
 `;
@@ -215,40 +285,6 @@ const infoBoxHeadingStyles = css`
   svg {
     margin: 0 -0.375rem 0 -0.875rem;
     height: 1.5rem;
-  }
-`;
-
-const inlineBoxSectionStyles = css`
-  ${boxSectionStyles}
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  border-bottom: 1px solid #d8dfe2;
-  padding: 0.5em;
-  &:last-of-type {
-    border-bottom: none;
-  }
-  /* loading icon */
-  svg {
-    display: inline-block;
-    margin: -0.5rem;
-    height: 1.25rem;
-  }
-
-  h3 {
-    grid-column: 1;
-    margin-right: 0.5em;
-  }
-
-  p {
-    grid-column: 2;
-  }
-
-  .label,
-  .value {
-    display: inline-block;
-    line-height: 1.25;
-    margin-bottom: auto;
-    margin-top: auto;
   }
 `;
 
@@ -398,14 +434,16 @@ const selectContainerStyles = css`
 `;
 
 const shadedBoxSectionStyles = css`
-  ${boxSectionStyles}
+  ${sectionStyles}
   background-color: #f0f6f9;
 `;
 
 const sliderContainerStyles = css`
+  ${sectionStyles}
   align-items: flex-end;
   display: flex;
   justify-content: center;
+  height: 3.5em;
   margin-top: 0.4375rem;
   width: 100%;
   span {
@@ -417,6 +455,9 @@ const sliderContainerStyles = css`
       margin-right: 1em;
     }
   }
+  .container {
+    border-bottom: 1px solid #d8dfe2;
+  }
 `;
 
 const treeStyles = (level, styles) => {
@@ -426,11 +467,6 @@ const treeStyles = (level, styles) => {
     margin-right: calc(${level} * 1.25em);
   `;
 };
-
-const wideBoxSectionStyles = css`
-  ${inlineBoxSectionStyles}
-  grid-template-columns: minmax(100px, 300px) minmax(100px, 1fr);
-`;
 
 /*
 ## Helpers
@@ -443,14 +479,30 @@ function buildOptions(values) {
 }
 
 function buildTooltip(unit) {
-  return (tooltipData) => (
-    <>
-      {tooltipData?.nearestDatum && tooltipData.nearestDatum.datum.x}:{' '}
-      {tooltipData?.nearestDatum &&
-        tooltipData.nearestDatum.datum.daily.join(', ')}{' '}
-      {unit}
-    </>
-  );
+  return (tooltipData) => {
+    if (!tooltipData?.nearestDatum) return null;
+    const datum = tooltipData.nearestDatum.datum;
+    const msmt = datum.y[tooltipData.nearestDatum.key];
+    if (!msmt) return null;
+    const depth =
+      msmt.depth !== null && msmt.depthUnit !== null
+        ? `${msmt.depth} ${msmt.depthUnit}`
+        : null;
+    return (
+      <div css={chartTooltipStyles}>
+        <p>{datum.x}:</p>
+        <p>
+          <em>Measurement</em>: {`${msmt.value} ${unit}`}
+          <br />
+          {depth && (
+            <>
+              <em>Depth</em>: {depth}
+            </>
+          )}
+        </p>
+      </div>
+    );
+  };
 }
 
 function checkboxReducer(state, action) {
@@ -808,20 +860,25 @@ function parseRecord(record, measurements) {
 
   // group by unit and date
   const date = getDate(record);
+  const measurement = {
+    value: record.measurement,
+    depth: record.depth,
+    depthUnit: record.depthUnit,
+  };
   if (!specMeasurements[date]) {
     specMeasurements[date] = {
       ...record,
-      measurements: [record.measurement],
+      measurements: [measurement],
       date,
     };
   } else {
-    specMeasurements[date].measurements.push(record.measurement);
+    specMeasurements[date].measurements.push(measurement);
   }
   return { unit, speciation, fraction };
 }
 
-const sectionRow = (label, value, style, dataStatus = 'success') => (
-  <div css={style}>
+const row = (label, value, style, dataStatus = 'success') => (
+  <div className="row-container" css={style}>
     <h3 className="label">{label}:</h3>
     {dataStatus === 'fetching' && <LoadingSpinner />}
     {dataStatus === 'failure' && <p className="value">N/A</p>}
@@ -829,12 +886,16 @@ const sectionRow = (label, value, style, dataStatus = 'success') => (
   </div>
 );
 
-const sectionRowInline = (label, value, dataStatus = 'success') => {
-  return sectionRow(label, value, inlineBoxSectionStyles, dataStatus);
+const rowFlex = (label, value, dataStatus = 'success') => {
+  return row(label, value, sectionInlineFlexStyles, dataStatus);
 };
 
-const sectionRowWide = (label, value, dataStatus = 'success') => {
-  return sectionRow(label, value, wideBoxSectionStyles, dataStatus);
+const rowGrid = (label, value, dataStatus = 'success') => {
+  return row(label, value, sectionInlineGridStyles, dataStatus);
+};
+
+const rowWideGrid = (label, value, dataStatus = 'success') => {
+  return row(label, value, sectionInlineGridWideStyles, dataStatus);
 };
 
 function sortMeasurements(measurements) {
@@ -845,8 +906,13 @@ function sortMeasurements(measurements) {
         Object.entries(fractionMeasurements).forEach(
           ([specKey, specMeasurements]) => {
             Object.values(specMeasurements).forEach((date) => {
-              date.measurements = date.measurements.map((measurement) =>
-                parseFloat(measurement.toFixed(3)),
+              date.measurements = date.measurements.map(
+                ({ value, ...rest }) => {
+                  return {
+                    ...rest,
+                    value: parseFloat(value.toFixed(3)),
+                  };
+                },
               );
             });
             measurements[unitKey][fractionKey][specKey] = Object.values(
@@ -1010,9 +1076,9 @@ function useCharacteristics(provider, orgId, siteId) {
           measurement: record.ResultMeasureValue ?? null,
           sampleFraction: record.ResultSampleFractionText || null,
           speciation: record.MethodSpecificationName || null,
-          depth: record['ResultDepthHeightMeasure/MeasureValue'] || null,
           depthUnit: record['ResultDepthHeightMeasure/MeasureUnitCode'] || null,
           unit: record['ResultMeasure/MeasureUnitCode'] || null,
+          depth: record['ResultDepthHeightMeasure/MeasureValue'] ?? null,
         });
       });
       setCharcs(recordsByCharc);
@@ -1136,30 +1202,37 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   }, [parseMeasurements, records]);
 
   const [chartData, setChartData] = useState(null);
+  const [dataKeys, setDataKeys] = useState(null);
   const [domain, setDomain] = useState(null);
   const [range, setRange] = useState(null);
   const [mean, setMean] = useState(null);
   const [median, setMedian] = useState(null);
   const [stdDev, setStdDev] = useState(null);
-
   const getChartData = useCallback((newDomain, newMsmts) => {
-    let newChartData = [];
+    const newChartData = [];
+    let maxDayCount = 0;
     newMsmts.forEach((day) => {
       if (day.year >= newDomain[0] && day.year <= newDomain[1]) {
-        day.measurements.forEach((msmt) => {
-          newChartData.push({
-            x: day.date,
-            y: msmt,
-            daily: day.measurements.sort(),
-          });
+        const datum = {
+          x: day.date,
+          y: {},
+        };
+        day.measurements.forEach((msmt, i) => {
+          datum.y[i.toString()] = msmt;
+          if (i + 1 > maxDayCount) maxDayCount = i + 1;
         });
+        newChartData.push(datum);
       }
     });
     setChartData(newChartData);
+    setDataKeys([...Array(maxDayCount).keys()]);
     // data is already sorted by date
     setDomain([newChartData[0].x, newChartData[newChartData.length - 1].x]);
 
-    const yValues = newChartData.map((datum) => datum.y);
+    const yValues = [];
+    newChartData.forEach((datum) => {
+      Object.values(datum.y).forEach((msmt) => yValues.push(msmt.value));
+    });
     const newRange = [Math.min(...yValues), Math.max(...yValues)];
     setRange(newRange);
 
@@ -1315,12 +1388,13 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
               charcName={charcName}
               data={chartData}
               scaleType={scaleType}
+              dataKeys={dataKeys}
               yTitle={yTitle}
               unit={unit}
             />
             {chartData?.length && (
               <div css={shadedBoxSectionStyles}>
-                {sectionRowWide(
+                {rowWideGrid(
                   'Selected Date Range',
                   `${new Date(domain[0]).toLocaleDateString(
                     'en-us',
@@ -1331,22 +1405,22 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                       dateOptions,
                     )}`,
                 )}
-                {sectionRowWide(
+                {rowWideGrid(
                   'Number of Measurements Shown',
                   chartData.length.toLocaleString(),
                 )}
-                {sectionRowWide('Average of Values', average)}
-                {sectionRowWide(
+                {rowWideGrid('Average of Values', average)}
+                {rowWideGrid(
                   'Median Value',
                   `${median.toLocaleString()} ${unit}`,
                 )}
                 {range &&
-                  sectionRowWide(
+                  rowWideGrid(
                     'Minimum Value',
                     `${range[0].toLocaleString()} ${unit}`,
                   )}
                 {range &&
-                  sectionRowWide(
+                  rowWideGrid(
                     'Maximum Value',
                     `${range[1].toLocaleString()} ${unit}`,
                   )}
@@ -1438,13 +1512,7 @@ function CharacteristicsTableSection({
           fetching={<LoadingSpinner />}
           status={charcsStatus}
         >
-          <span className="selected">
-            {sectionRowInline(
-              'Selected Characteristic',
-              selected ?? 'None',
-              charcsStatus,
-            )}
-          </span>
+          {rowFlex('Selected Characteristic', selected ?? 'None', charcsStatus)}
           <ReactTable
             autoResetFilters={false}
             autoResetSortBy={false}
@@ -1503,7 +1571,15 @@ function CharacteristicsTableSection({
   );
 }
 
-function ChartContainer({ range, data, charcName, scaleType, yTitle, unit }) {
+function ChartContainer({
+  range,
+  data,
+  charcName,
+  dataKeys,
+  scaleType,
+  yTitle,
+  unit,
+}) {
   const charcLabel = getCharcLabel(
     getCharcGroup(charcName, characteristicsByGroup),
     characteristicGroupMappings,
@@ -1526,8 +1602,8 @@ function ChartContainer({ range, data, charcName, scaleType, yTitle, unit }) {
         color={lineColors[charcLabel]}
         containerRef={chartRef.current}
         data={data}
-        dataKey={charcName}
         range={range}
+        dataKeys={dataKeys}
         xTitle="Date"
         yScale={scaleType}
         yTitle={yTitle}
@@ -1687,7 +1763,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
           min={minYear}
           onChange={(newRange) => setRange(newRange)}
         />
-        <div css={flexboxSectionStyles}>
+        <div css={sectionStyles}>
           <div css={accordionStyles}>
             <AccordionList
               className="accordion-list"
@@ -1902,21 +1978,17 @@ function InformationSection({ siteId, site, siteStatus }) {
           </small>
         </span>
       </h2>
-      <div css={boxSectionStyles}>
-        {sectionRowInline('Organization Name', site.orgName, siteStatus)}
-        {sectionRowInline('Organization ID', site.orgId, siteStatus)}
-        {sectionRowInline(
-          'Location',
-          `${site.county}, ${site.state}`,
-          siteStatus,
-        )}
-        {sectionRowInline('Water Type', site.locationType, siteStatus)}
-        {sectionRowInline(
+      <div css={sectionStyles}>
+        {rowGrid('Organization Name', site.orgName, siteStatus)}
+        {rowGrid('Organization ID', site.orgId, siteStatus)}
+        {rowGrid('Location', `${site.county}, ${site.state}`, siteStatus)}
+        {rowGrid('Water Type', site.locationType, siteStatus)}
+        {rowGrid(
           'Total Sample Count',
           site.totalSamples?.toLocaleString(),
           siteStatus,
         )}
-        {sectionRowInline(
+        {rowGrid(
           'Total Measurement Count',
           site.totalMeasurements?.toLocaleString(),
           siteStatus,
@@ -2086,18 +2158,13 @@ function MonitoringLocation() {
 }
 
 function SliderContainer({ min, max, disabled = false, onChange }) {
+  if (!min || !max) return <LoadingSpinner />;
+  else if (min === max)
+    return <div css={sliderContainerStyles}>{rowFlex('Year', min)}</div>;
+
   return (
     <div css={sliderContainerStyles}>
-      {!min || !max ? (
-        <LoadingSpinner />
-      ) : (
-        <DateSlider
-          disabled={disabled}
-          min={min}
-          max={max}
-          onChange={onChange}
-        />
-      )}
+      <DateSlider disabled={disabled} min={min} max={max} onChange={onChange} />
     </div>
   );
 }
