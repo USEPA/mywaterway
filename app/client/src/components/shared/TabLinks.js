@@ -97,11 +97,15 @@ function TabLinks() {
     <div css={containerStyles}>
       <div css={tabsStyles}>
         <TabLink to="/community">Community</TabLink>
-        <TabLink
+        {/* TODO-Tribal - Uncomment below and remove the State TabLink */}
+        {/* <TabLink
           to="/state-and-tribal"
           possiblePaths={['/state-and-tribal', '/state', '/tribe']}
         >
           State & Tribal
+        </TabLink> */}
+        <TabLink to="/state" possiblePaths={['/state']}>
+          State
         </TabLink>
         <TabLink to="/national">National</TabLink>
       </div>
