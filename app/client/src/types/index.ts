@@ -62,6 +62,7 @@ export interface Feature extends __esri.Graphic {
 
 export interface Layer extends __esri.Layer {
   parent?: __esri.Layer;
+  popupTemplate?: __esri.PopupTemplate;
   renderer?: {
     classBreakInfos?: Array<{
       minValue: number;
