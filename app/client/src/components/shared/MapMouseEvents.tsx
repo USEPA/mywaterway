@@ -73,8 +73,12 @@ function getGraphicsFromResponse(
     if (!result.graphic.layer?.id) return null;
     if (attr.name && excludedLayers.indexOf(attr.name) !== -1) return null;
     if (excludedLayers.indexOf(layer.id) !== -1) return null;
-    if (layer.parent && excludedLayers.indexOf(layer.parent.id) !== -1)
+    if (layer.parent && excludedLayers.indexOf(layer.parent.id) !== -1) {
       return null;
+    }
+    if (!result.graphic.popupTemplate && !layer.popupTemplate) {
+      return null;
+    }
 
     // filter out graphics on basemap layers
     if (result.graphic.layer.type === 'vector-tile') return null;
@@ -171,7 +175,10 @@ function MapMouseEvents({ view }: Props) {
   } = useContext(LocationSearchContext);
 
   const getDynamicPopup = useDynamicPopup();
-  view.popup.autoOpenEnabled = false;
+  const onTribePage = window.location.pathname.startsWith('/tribe/');
+  const onMonitoringPanel = window.location.pathname.endsWith('/monitoring');
+  if(onTribePage || onMonitoringPanel) view.popup.autoOpenEnabled = false;
+  else view.popup.autoOpenEnabled = true;
 
   // reference to a dictionary of date-filtered updates
   // applicable to graphics visible on the map
