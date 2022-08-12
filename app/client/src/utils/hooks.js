@@ -1176,6 +1176,7 @@ function useSharedLayers() {
       title: 'Protected Areas',
       url: services.data.protectedAreasDatabase,
       legendEnabled: false,
+      outFields: ['*'],
       sublayers: [
         {
           id: 0,
