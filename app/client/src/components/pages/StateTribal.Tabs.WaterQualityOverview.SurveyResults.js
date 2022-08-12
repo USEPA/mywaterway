@@ -453,8 +453,9 @@ function SurveyResults({
 
           <div css={inputStyles}>
             <p>
-              State statistical surveys provide an overall picture of water
-              quality condition across the state and look at changes over time.
+              {activeState.source} statistical surveys provide an overall
+              picture of water quality condition across the{' '}
+              {activeState.source.toLowerCase()} and look at changes over time.
             </p>
           </div>
         </div>

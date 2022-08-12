@@ -33,7 +33,7 @@ import {
   boxSectionStyles,
 } from 'components/shared/Box';
 // contexts
-import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
+import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
@@ -243,12 +243,10 @@ const strongBottomMarginStyles = css`
   margin-bottom: 0.25em !important;
 `;
 
-type Props = {
-  fullscreen: Object, // passed from FullscreenContext.Consumer
-};
-
-function Actions({ fullscreen }: Props) {
+function Actions() {
   const { orgId, actionId } = useParams();
+
+  const { fullscreenActive } = useFullscreenState();
 
   const services = useServicesContext();
 
@@ -578,7 +576,7 @@ function Actions({ fullscreen }: Props) {
     );
   }
 
-  if (fullscreen.fullscreenActive) {
+  if (fullscreenActive) {
     return (
       <WindowSize>
         {({ width, height }) => {
@@ -813,9 +811,7 @@ export default function ActionsContainer() {
   return (
     <MapHighlightProvider>
       <FullscreenProvider>
-        <FullscreenContext.Consumer>
-          {(fullscreen) => <Actions fullscreen={fullscreen} />}
-        </FullscreenContext.Consumer>
+        <Actions />
       </FullscreenProvider>
     </MapHighlightProvider>
   );

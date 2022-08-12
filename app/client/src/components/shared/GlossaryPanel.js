@@ -1,12 +1,12 @@
 // @flow
 
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { Node } from 'react';
 import { css, createGlobalStyle } from 'styled-components/macro';
 // components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { GlossaryContext } from 'contexts/Glossary';
+import { useGlossaryState } from 'contexts/Glossary';
 // styles
 import { colors, fonts } from 'styles/index.js';
 // errors
@@ -181,7 +181,7 @@ const listStyles = css`
 // --- components ---
 function GlossaryPanel({ path }) {
   const { initialized, setInitialized, glossaryStatus, setGlossaryStatus } =
-    useContext(GlossaryContext);
+    useGlossaryState();
 
   // initialize Glossary panel
   useEffect(() => {
@@ -262,8 +262,8 @@ export default GlossaryPanel;
 
 type Props = {
   term: string,
-  className: string,
-  style: Object,
+  className?: string,
+  style?: Object,
   children: Node,
 };
 

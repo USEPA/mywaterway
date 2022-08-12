@@ -12,6 +12,17 @@ import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import { colors } from 'styles/index.js';
 // utilities
 import { getSelectedCommunityTab } from 'utils/utils';
+// types
+import type { ClickedHucState } from 'types';
+
+type WaterbodyStatus =
+  | { condition: 'good', label: 'Good' }
+  | {
+      condition: 'polluted',
+      label: 'Impaired' | 'Impaired (Issues Identified)',
+    }
+  | { condition: 'unassessed', label: 'Condition Unknown' }
+  | { condition: 'hidden', label: 'Not Applicable' };
 
 const waterbodyStatuses = {
   good: { condition: 'good', label: 'Good' },
@@ -41,7 +52,7 @@ export function getWaterbodyCondition(
   attributes: Object,
   fieldName: ?string,
   showNulls: boolean = false,
-) {
+): WaterbodyStatus {
   // when no fieldName is provided, use the isassessed/isimpaired logic
   const statusValue = fieldName
     ? attributes[fieldName]
@@ -377,7 +388,8 @@ export function plotIssues(
         popupTemplate: {
           title: getPopupTitle(waterbody.attributes),
           content: getPopupContent({
-            feature: { attributes: waterbody.attributes, navigate },
+            feature: { attributes: waterbody.attributes },
+            navigate,
           }),
         },
       }),
@@ -589,12 +601,12 @@ export function getPopupContent({
   navigate,
 }: {
   feature: Object,
-  fieldName: ?string,
-  extraContent: ?Object,
-  getClickedHuc: ?Function,
-  resetData: ?Function,
-  services: ?Object,
-  fields: ?Object,
+  fieldName?: string,
+  extraContent?: Object,
+  getClickedHuc?: Promise<ClickedHucState> | null,
+  resetData?: Function,
+  services?: Object,
+  fields?: Object,
   navigate: Function,
 }) {
   let type = 'Unknown';
