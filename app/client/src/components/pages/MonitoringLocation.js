@@ -496,7 +496,7 @@ function buildTooltip(unit) {
       <div css={chartTooltipStyles}>
         <p>{datum.x}:</p>
         <p>
-          <em>Measurement</em>: {`${msmt.value} ${unit === 'None' ? '' : unit}`}
+          <em>Measurement</em>: {`${msmt.value} ${unit}`}
           <br />
           {depth && (
             <>
@@ -1021,7 +1021,6 @@ function useCharacteristics(provider, orgId, siteId) {
           measurement: record.ResultMeasureValue ?? null,
           medium: record.ActivityMediaName || 'None',
           month: parseInt(recordDate[1]),
-          /* speciation: record.MethodSpecificationName || 'None', */
           unit: record['ResultMeasure/MeasureUnitCode'] || 'None',
           year: parseInt(recordDate[0]),
         });
@@ -1107,19 +1106,14 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
     if (media?.length) setMedium(media[0].value);
   }, [media]);
 
-  /* This will be added back with the new service
-  // Selected and available speciations
-  const [spec, setSpec] = useState(null);
-  const [specs, setSpecs] = useState(null); */
-
   // Logarithmic or linear
   const [scaleType, setScaleType] = useState('linear');
 
+  // Get the records with measurements and their filter options
   useEffect(() => {
     if (!records) return;
     const newMeasurements = [];
     const fractionValues = new Set();
-    /* const specValues = new Set(); */
     const unitValues = new Set();
     const mediumValues = new Set();
 
@@ -1130,21 +1124,18 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
       unitValues.add(record.unit);
       fractionValues.add(record.fraction);
       mediumValues.add(record.medium);
-      /* specValues.add(record.speciation); */
 
       record.date = getDate(record);
       record.measurement = parseFloat(record.measurement.toFixed(3));
       newMeasurements.push(record);
     });
 
-    newMeasurements
-      .sort((a, b) => a.day - b.day)
-      .sort((a, b) => a.month - b.month)
-      .sort((a, b) => a.year - b.year);
+    newMeasurements.sort((a, b) => a.day - b.day);
+    newMeasurements.sort((a, b) => a.month - b.month);
+    newMeasurements.sort((a, b) => a.year - b.year);
 
     if (newMeasurements.length) {
       setFractions(buildOptions(fractionValues));
-      /* setSpecs(buildOptions(specValues)); */
       setUnits(buildOptions(unitValues));
       setMedia(buildOptions(mediumValues));
       setMeasurements(newMeasurements);
@@ -1166,6 +1157,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   const [median, setMedian] = useState(null);
   const [stdDev, setStdDev] = useState(null);
 
+  // Parse the measurements into chartable data points
   const parseMeasurements = useCallback((newDomain, newMsmts) => {
     const newChartData = [];
 
@@ -1199,6 +1191,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
     return newChartData;
   }, []);
 
+  // Get the selected chart data and statistics
   const getChartData = useCallback(
     (newDomain, newMsmts) => {
       // newMsmts must already be sorted by date
@@ -1251,11 +1244,11 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
     }
   }, [getChartData, measurements]);
 
+  const displayUnit = unit === 'None' ? '' : unit;
   // Title for the y-axis
   let yTitle = charcName;
   if (fraction !== 'None') yTitle += ', ' + fraction?.replace(',', ' -');
-  /* if (spec !== 'None') yTitle += ', ' + spec; */
-  if (unit !== 'None') yTitle += ', ' + unit;
+  if (displayUnit) yTitle += ', ' + unit;
 
   let infoText = null;
   if (!charcName)
@@ -1268,7 +1261,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   let average = mean?.toLocaleString('en-US');
   if (stdDev)
     average += ` ${String.fromCharCode(177)} ${stdDev.toLocaleString()}`;
-  if (unit !== 'None') average += ` ${unit}`;
+  average += ` ${displayUnit}`;
 
   return (
     <div css={modifiedBoxStyles}>
@@ -1355,23 +1348,6 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                   styles={reactSelectStyles}
                 />
               </span>
-              {/*
-              <span>
-                <label htmlFor="speciation">Method Speciation:</label>
-                <Select
-                  aria-label="Media Name"
-                  className="select"
-                  inputId={'speciation'}
-                  isSearchable={false}
-                  options={specs}
-                  value={specs.find((s) => s.value === spec)}
-                  onChange={(ev) => {
-                    setSpec(ev.value);
-                  }}
-                  styles={reactSelectStyles}
-                />
-              </span>
-              */}
               <span className="radio-container">
                 <span css={screenLabelStyles}>
                   <GlossaryTerm term="Scale Type">Scale Type</GlossaryTerm>:
@@ -1407,7 +1383,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
               scaleType={scaleType}
               dataKeys={dataKeys}
               yTitle={yTitle}
-              unit={unit}
+              unit={displayUnit}
             />
             {chartData?.length > 0 && (
               <div css={shadedBoxSectionStyles}>
@@ -1429,21 +1405,17 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                 {rowWideGrid('Average of Values', average)}
                 {rowWideGrid(
                   'Median Value',
-                  `${median.toLocaleString()} ${unit !== 'None' ? unit : ''}`,
+                  `${median.toLocaleString()} ${displayUnit}`,
                 )}
                 {range &&
                   rowWideGrid(
                     'Minimum Value',
-                    `${range[0].toLocaleString()} ${
-                      unit !== 'None' ? unit : ''
-                    }`,
+                    `${range[0].toLocaleString()} ${displayUnit}`,
                   )}
                 {range &&
                   rowWideGrid(
                     'Maximum Value',
-                    `${range[1].toLocaleString()} ${
-                      unit !== 'None' ? unit : ''
-                    }`,
+                    `${range[1].toLocaleString()} ${displayUnit}`,
                   )}
               </div>
             )}
