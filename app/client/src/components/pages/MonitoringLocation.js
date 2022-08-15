@@ -51,7 +51,11 @@ import { useSharedLayers } from 'utils/hooks';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
 import { parseAttributes, titleCaseWithExceptions } from 'utils/utils';
 // styles
-import { boxStyles, boxHeadingStyles } from 'components/shared/Box';
+import {
+  boxStyles,
+  boxHeadingStyles,
+  boxSectionStyles,
+} from 'components/shared/Box';
 import { colors, disclaimerStyles, reactSelectStyles } from 'styles';
 
 /*
@@ -100,78 +104,8 @@ const accordionStyles = css`
   }
 `;
 
-const sectionStyles = css`
-  padding: 0.4375rem 0.875rem;
-`;
-
-const sectionInlineStyles = css`
-  ${sectionStyles}
-  border-bottom: 1px solid #d8dfe2;
-  width: 100%;
-
-  &:last-of-type {
-    border-bottom: none;
-  }
-
-  &:first-of-type {
-    border-bottom: 1px solid #d8dfe2;
-  }
-
-  /* loading icon */
-  svg {
-    display: inline-block;
-    margin: -0.5rem;
-    height: 1.25rem;
-  }
-
-  h3 {
-    margin-right: 0.5em;
-  }
-
-  .label,
-  .value {
-    display: inline-block;
-    line-height: 1.25;
-    margin-top: 0;
-    margin-bottom: 0;
-  }
-`;
-
-const sectionInlineFlexStyles = css`
-  ${sectionInlineStyles}
-  align-items: flex-end;
-  display: flex;
-  justify-content: flex-start;
-`;
-
-const sectionInlineGridStyles = css`
-  ${sectionInlineStyles}
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  padding: 0.5em;
-
-  h3 {
-    grid-column: 1;
-  }
-
-  p {
-    grid-column: 2;
-  }
-
-  .label,
-  .value {
-    margin-bottom: auto;
-    margin-top: auto;
-  }
-`;
-
-const sectionInlineGridWideStyles = css`
-  ${sectionInlineGridStyles}
-  grid-template-columns: minmax(100px, 300px) minmax(100px, 1fr);
-`;
-
 const charcsTableStyles = css`
-  ${sectionStyles}
+  ${boxSectionStyles}
   height: 50vh;
   overflow-y: scroll;
   .rt-table .rt-td {
@@ -390,6 +324,79 @@ const rightColumnStyles = css`
   }
 `;
 
+const screenLabelStyles = css`
+  display: inline-block;
+  font-size: 0.875rem;
+  font-weight: bold;
+  margin-bottom: 0.125rem;
+`;
+
+const sectionInlineStyles = css`
+  ${boxSectionStyles}
+  border-bottom: 1px solid #d8dfe2;
+  width: 100%;
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+
+  &:first-of-type {
+    border-bottom: 1px solid #d8dfe2;
+  }
+
+  /* loading icon */
+  svg {
+    display: inline-block;
+    margin: -0.5rem;
+    height: 1.25rem;
+  }
+
+  h3 {
+    margin-right: 0.5em;
+  }
+
+  .label,
+  .value {
+    display: inline-block;
+    line-height: 1.25;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+`;
+
+const sectionInlineFlexStyles = css`
+  ${sectionInlineStyles}
+  align-items: flex-end;
+  display: flex;
+  justify-content: flex-start;
+`;
+
+const sectionInlineGridStyles = css`
+  ${sectionInlineStyles}
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0.5em;
+
+  h3 {
+    grid-column: 1;
+  }
+
+  p {
+    grid-column: 2;
+  }
+
+  .label,
+  .value {
+    margin-bottom: auto;
+    margin-top: auto;
+  }
+`;
+
+const sectionInlineGridWideStyles = css`
+  ${sectionInlineGridStyles}
+  grid-template-columns: minmax(100px, 300px) minmax(100px, 1fr);
+`;
+
 const selectContainerStyles = css`
   display: flex;
   flex-wrap: wrap;
@@ -405,10 +412,6 @@ const selectContainerStyles = css`
     font-size: 0.875rem;
     font-weight: bold;
     white-space: nowrap;
-
-    @media (min-width: 960px) {
-      margin-bottom: 0;
-    }
   }
 
   .radio-container {
@@ -435,12 +438,12 @@ const selectContainerStyles = css`
 `;
 
 const shadedBoxSectionStyles = css`
-  ${sectionStyles}
+  ${boxSectionStyles}
   background-color: #f0f6f9;
 `;
 
 const sliderContainerStyles = css`
-  ${sectionStyles}
+  ${boxSectionStyles}
   align-items: flex-end;
   display: flex;
   justify-content: center;
@@ -1299,8 +1302,11 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
             />
             <div css={selectContainerStyles}>
               <span>
-                <label htmlFor="unit">Unit:</label>
+                <span css={screenLabelStyles}>
+                  <GlossaryTerm term="Unit">Unit</GlossaryTerm>:
+                </span>
                 <Select
+                  aria-label="Unit"
                   className="select"
                   inputId={'unit'}
                   isSearchable={false}
@@ -1313,8 +1319,14 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                 />
               </span>
               <span>
-                <label htmlFor="sample-fraction">Sample Fraction:</label>
+                <span css={screenLabelStyles}>
+                  <GlossaryTerm term="Sample Fraction">
+                    Sample Fraction
+                  </GlossaryTerm>
+                  :
+                </span>
                 <Select
+                  aria-label="Sample Fraction"
                   className="select"
                   inputId={'sample-fraction'}
                   isSearchable={false}
@@ -1327,8 +1339,11 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                 />
               </span>
               <span>
-                <label htmlFor="media-name">Media Name:</label>
+                <span css={screenLabelStyles}>
+                  <GlossaryTerm term="Media Name">Media Name</GlossaryTerm>:
+                </span>
                 <Select
+                  aria-label="Media Name"
                   className="select"
                   inputId={'media-name'}
                   isSearchable={false}
@@ -1357,7 +1372,9 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
               </span>
               */}
               <span className="radio-container">
-                <label>Scale Type:</label>
+                <span css={screenLabelStyles}>
+                  <GlossaryTerm term="Scale Type">Scale Type</GlossaryTerm>:
+                </span>
                 <span className="radios">
                   <span>
                     <input
@@ -1772,7 +1789,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
           min={minYear}
           onChange={(newRange) => setRange(newRange)}
         />
-        <div css={sectionStyles}>
+        <div css={boxSectionStyles}>
           <div css={accordionStyles}>
             <AccordionList
               className="accordion-list"
@@ -1859,7 +1876,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
                   <i
                     css={iconStyles}
                     className="fas fa-filter"
-                    ariaHidden="true"
+                    aria-hidden="true"
                   />
                   Advanced Filtering
                 </a>
@@ -1877,7 +1894,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
                   <i
                     css={iconStyles}
                     className="fas fa-book-open"
-                    ariaHidden="true"
+                    aria-hidden="true"
                   />
                   Water Quality Portal User Guide
                 </a>
@@ -1949,7 +1966,7 @@ function FileLink({ disabled, fileType, data, setError, url }) {
     return (
       <i
         className={`fas fa-file-${fileType}`}
-        ariaHidden="true"
+        aria-hidden="true"
         style={{ color: '#ccc' }}
       />
     );
@@ -1962,7 +1979,7 @@ function FileLink({ disabled, fileType, data, setError, url }) {
 
   return (
     <button css={fileLinkStyles} onClick={fetchFile}>
-      <i className={`fas fa-file-${fileType}`} ariaHidden="true" />
+      <i className={`fas fa-file-${fileType}`} aria-hidden="true" />
       <span className="sr-only">
         Download location data as a {fileType} file.
       </span>
@@ -1987,7 +2004,7 @@ function InformationSection({ siteId, site, siteStatus }) {
           </small>
         </span>
       </h2>
-      <div css={sectionStyles}>
+      <div css={boxSectionStyles}>
         {rowGrid('Organization Name', site.orgName, siteStatus)}
         {rowGrid('Organization ID', site.orgId, siteStatus)}
         {rowGrid('Location', `${site.county}, ${site.state}`, siteStatus)}
@@ -2161,7 +2178,9 @@ function MonitoringLocationContent() {
 function MonitoringLocation() {
   return (
     <FullscreenProvider>
-      <MonitoringLocationContent />
+      <MapHighlightProvider>
+        <MonitoringLocationContent />
+      </MapHighlightProvider>
     </FullscreenProvider>
   );
 }
@@ -2345,9 +2364,7 @@ function SiteMap({ layout, site, siteStatus, widthRef }) {
 function SiteMapContainer({ ...props }) {
   return (
     <MapErrorBoundary>
-      <MapHighlightProvider>
-        <SiteMap {...props} />
-      </MapHighlightProvider>
+      <SiteMap {...props} />
     </MapErrorBoundary>
   );
 }
