@@ -75,12 +75,8 @@ const accordionHeadingStyles = css`
 `;
 
 const accordionRowStyles = css`
-  ${accordionFlexStyles}
   ${accordionHeadingStyles}
   border-top: 1px solid #d8dfe2;
-  span {
-    display: flex;
-  }
 `;
 
 const accordionStyles = css`
@@ -95,12 +91,6 @@ const accordionStyles = css`
 
   .total-row {
     margin-right: 1.75em;
-  }
-
-  input[type='checkbox'] {
-    margin-right: 1em;
-    position: relative;
-    transform: scale(1.2);
   }
 `;
 
@@ -129,6 +119,22 @@ const chartTooltipStyles = css`
     &:first-of-type {
       margin-bottom: 0.5em;
     }
+  }
+`;
+
+const checkboxInputStyles = css`
+  display: flex;
+  gap: 1em;
+  font-weight: bold;
+  margin-bottom: 0;
+
+  & > * {
+    margin-bottom: auto;
+    margin-top: auto;
+  }
+
+  input[type='checkbox'] {
+    transform: scale(1.2);
   }
 `;
 
@@ -1426,28 +1432,6 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   );
 }
 
-function CheckboxRow({ accessor, id, level, state, dispatch }) {
-  const item = state[accessor][id];
-  return (
-    <div css={treeStyles(level, accordionRowStyles)}>
-      <span>
-        <input
-          type="checkbox"
-          checked={item.selected === Checkbox.checked}
-          ref={(input) => {
-            if (input)
-              input.indeterminate = item.selected === Checkbox.indeterminate;
-          }}
-          onChange={handleCheckbox(id, accessor, dispatch)}
-          style={{ top: '1px' }}
-        />
-        <strong>{id}</strong>
-      </span>
-      <strong>{item.count.toLocaleString()}</strong>
-    </div>
-  );
-}
-
 function CharacteristicsTableSection({
   charcs,
   charcsStatus,
@@ -1630,7 +1614,10 @@ function CheckboxAccordion({
         highlightContent={false}
         title={
           <span css={accordionFlexStyles}>
-            <span>
+            <label
+              onClick={(ev) => ev.stopPropagation()}
+              css={checkboxInputStyles}
+            >
               <input
                 type="checkbox"
                 checked={item.selected === Checkbox.checked}
@@ -1640,11 +1627,9 @@ function CheckboxAccordion({
                       item.selected === Checkbox.indeterminate;
                 }}
                 onChange={handleCheckbox(id, accessor, dispatch)}
-                onClick={(ev) => ev.stopPropagation()}
-                style={{ top: '2px' }}
               />
-              <strong>{id}</strong>
-            </span>
+              {id}
+            </label>
             <strong>{item.count.toLocaleString()}</strong>
           </span>
         }
@@ -1658,6 +1643,27 @@ function CheckboxAccordion({
         )}
         {children}
       </AccordionItem>
+    </div>
+  );
+}
+
+function CheckboxRow({ accessor, id, level, state, dispatch }) {
+  const item = state[accessor][id];
+  return (
+    <div css={treeStyles(level, accordionRowStyles)}>
+      <label css={checkboxInputStyles}>
+        <input
+          type="checkbox"
+          checked={item.selected === Checkbox.checked}
+          ref={(input) => {
+            if (input)
+              input.indeterminate = item.selected === Checkbox.indeterminate;
+          }}
+          onChange={handleCheckbox(id, accessor, dispatch)}
+        />
+        {id}
+      </label>
+      <strong>{item.count.toLocaleString()}</strong>
     </div>
   );
 }
@@ -1768,9 +1774,8 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
               className="accordion-list"
               onExpandCollapse={(newExpanded) => setExpanded(newExpanded)}
               title={
-                <span>
+                <label css={checkboxInputStyles}>
                   <input
-                    style={{ top: '2px' }}
                     type="checkbox"
                     checked={checkboxes.all === Checkbox.checked}
                     ref={(input) => {
@@ -1780,8 +1785,8 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
                     }}
                     onChange={(_ev) => checkboxDispatch({ type: 'all' })}
                   />
-                  <strong>Toggle All</strong>
-                </span>
+                  Toggle All
+                </label>
               }
             >
               <p css={accordionHeadingStyles}>
@@ -1808,8 +1813,8 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
                 .map((groupId) => (
                   <CheckboxAccordion
                     accessor="groups"
-                    level={0}
                     id={groupId}
+                    level={0}
                     key={groupId}
                     dispatch={checkboxDispatch}
                     state={checkboxes}
@@ -1821,8 +1826,8 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
                       .map((charcId) => (
                         <CheckboxRow
                           accessor="charcs"
-                          level={1}
                           id={charcId}
+                          level={1}
                           key={charcId}
                           dispatch={checkboxDispatch}
                           state={checkboxes}
