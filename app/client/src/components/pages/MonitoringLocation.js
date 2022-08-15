@@ -1019,7 +1019,7 @@ function useCharacteristics(provider, orgId, siteId) {
           medium: record.ActivityMediaName || 'None',
           month: parseInt(recordDate[1]),
           /* speciation: record.MethodSpecificationName || 'None', */
-          unit: record['ResultMeasure/MeasureUnitCode'] || null,
+          unit: record['ResultMeasure/MeasureUnitCode'] || 'None',
           year: parseInt(recordDate[0]),
         });
       });
@@ -1121,7 +1121,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
     const mediumValues = new Set();
 
     records.forEach((record) => {
-      if (!record.unit || !Number.isFinite(record.measurement)) return;
+      if (!Number.isFinite(record.measurement)) return;
 
       // Adds record measurement to newMeasurements
       unitValues.add(record.unit);
@@ -1608,12 +1608,11 @@ function ChartContainer({
         color={lineColors[charcLabel]}
         containerRef={chartRef.current}
         data={data}
-        range={range}
         dataKeys={dataKeys}
+        range={range}
         xTitle="Date"
         yScale={scaleType}
         yTitle={yTitle}
-        yUnit={unit}
       />
     </div>
   );
