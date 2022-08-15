@@ -1359,6 +1359,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
               <span>
                 <label htmlFor="speciation">Method Speciation:</label>
                 <Select
+                  aria-label="Media Name"
                   className="select"
                   inputId={'speciation'}
                   isSearchable={false}
