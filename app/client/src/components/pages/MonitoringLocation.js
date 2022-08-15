@@ -1123,7 +1123,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
     records.forEach((record) => {
       if (!Number.isFinite(record.measurement)) return;
 
-      // Adds record measurement to newMeasurements
+      // Add record measurement to newMeasurements
       unitValues.add(record.unit);
       fractionValues.add(record.fraction);
       mediumValues.add(record.medium);
@@ -1265,7 +1265,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   let average = mean?.toLocaleString('en-US');
   if (stdDev)
     average += ` ${String.fromCharCode(177)} ${stdDev.toLocaleString()}`;
-  average += ` ${unit}`;
+  if (unit !== 'None') average += ` ${unit}`;
 
   return (
     <div css={modifiedBoxStyles}>
@@ -1411,17 +1411,21 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                 {rowWideGrid('Average of Values', average)}
                 {rowWideGrid(
                   'Median Value',
-                  `${median.toLocaleString()} ${unit}`,
+                  `${median.toLocaleString()} ${unit !== 'None' ? unit : ''}`,
                 )}
                 {range &&
                   rowWideGrid(
                     'Minimum Value',
-                    `${range[0].toLocaleString()} ${unit}`,
+                    `${range[0].toLocaleString()} ${
+                      unit !== 'None' ? unit : ''
+                    }`,
                   )}
                 {range &&
                   rowWideGrid(
                     'Maximum Value',
-                    `${range[1].toLocaleString()} ${unit}`,
+                    `${range[1].toLocaleString()} ${
+                      unit !== 'None' ? unit : ''
+                    }`,
                   )}
               </div>
             )}
