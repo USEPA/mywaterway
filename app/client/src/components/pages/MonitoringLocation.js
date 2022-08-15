@@ -389,6 +389,12 @@ const rightColumnStyles = css`
   }
 `;
 
+const screenLabelStyles = css`
+  display: inline-block;
+  font-size: 0.875rem;
+  font-weight: bold;
+`;
+
 const selectContainerStyles = css`
   display: flex;
   flex-wrap: wrap;
@@ -1316,8 +1322,11 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
             />
             <div css={selectContainerStyles}>
               <span>
-                <label htmlFor="unit">Unit:</label>
+                <span css={screenLabelStyles}>
+                  <GlossaryTerm term="Unit">Unit</GlossaryTerm>:
+                </span>
                 <Select
+                  aria-label="Unit"
                   className="select"
                   inputId={'unit'}
                   isSearchable={false}
@@ -1330,8 +1339,14 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                 />
               </span>
               <span>
-                <label htmlFor="sample-fraction">Sample Fraction:</label>
+                <span css={screenLabelStyles}>
+                  <GlossaryTerm term="Sample Fraction">
+                    Sample Fraction
+                  </GlossaryTerm>
+                  :
+                </span>
                 <Select
+                  aria-label="Sample Fraction"
                   className="select"
                   inputId={'sample-fraction'}
                   isSearchable={false}
@@ -1358,7 +1373,9 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                 />
               </span>
               <span className="radio-container">
-                <label>Scale Type:</label>
+                <span css={screenLabelStyles}>
+                  <GlossaryTerm term="Scale Type">Scale Type</GlossaryTerm>:
+                </span>
                 <span className="radios">
                   <span>
                     <input
