@@ -395,9 +395,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     getUpstreamWidgetDisabled: () => {
       return this.state.upstreamWidgetDisabled;
     },
-    getAllWaterbodiesLayer: () => {
-      return this.state.allWaterbodiesLayer;
-    },
     getCurrentExtent: () => {
       return this.state.currentExtent;
     },

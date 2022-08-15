@@ -262,7 +262,6 @@ function MapWidgets({
     setErrorMessage,
     getWatershed,
     allWaterbodiesLayer,
-    getAllWaterbodiesLayer,
     allWaterbodiesWidgetDisabled,
     setAllWaterbodiesWidgetDisabled,
     getAllWaterbodiesWidgetDisabled,
@@ -1320,7 +1319,6 @@ function MapWidgets({
     setAllWaterbodiesWidget(node); // store the widget in context so it can be shown or hidden later
     render(
       <ShowAllWaterbodies
-        getLayer={getAllWaterbodiesLayer}
         getDisabled={getAllWaterbodiesWidgetDisabled}
         mapView={view}
       />,
@@ -1329,24 +1327,18 @@ function MapWidgets({
     setAllWaterbodiesWidgetCreated(true);
   }, [
     allWaterbodiesWidgetCreated,
-    getAllWaterbodiesLayer,
     getAllWaterbodiesWidgetDisabled,
     setAllWaterbodiesWidget,
     view,
   ]);
 
   type allWaterbodiesProps = {
-    getLayer: Function,
     getDisabled: Function,
     mapView: Object,
   };
 
   // Defines the show all waterbodies widget
-  function ShowAllWaterbodies({
-    getLayer,
-    getDisabled,
-    mapView,
-  }: allWaterbodiesProps) {
+  function ShowAllWaterbodies({ getDisabled, mapView }: allWaterbodiesProps) {
     const [firstLoad, setFirstLoad] = useState(true);
     const [hover, setHover] = useState(false);
 
@@ -1374,11 +1366,15 @@ function MapWidgets({
     }
 
     const widgetDisabled = getDisabled();
-    const layer = getLayer();
+
+    // get the layer from the mapView
+    const layer = mapView.map.layers.find(
+      (l) => l.id === 'allWaterbodiesLayer',
+    );
 
     let title = 'View Surrounding Waterbodies';
     if (widgetDisabled) title = 'Surrounding Waterbodies Widget Not Available';
-    else if (layer.visible) title = 'Hide Surrounding Waterbodies';
+    else if (layer?.visible) title = 'Hide Surrounding Waterbodies';
 
     return (
       <div
@@ -1388,7 +1384,7 @@ function MapWidgets({
         onMouseOut={() => setHover(false)}
         onClick={(ev) => {
           // if widget is disabled do nothing
-          if (widgetDisabled) return;
+          if (widgetDisabled || !layer) return;
 
           layer.visible = !layer.visible;
           setAllWaterbodiesLayerVisible(layer.visible);
