@@ -18,6 +18,7 @@ import Select from 'react-select';
 import { css } from 'styled-components/macro';
 // components
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
+import { BoxRowFlex, BoxRowGrid } from 'components/shared/BoxRow';
 import DateSlider from 'components/shared/DateSlider';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -102,72 +103,6 @@ const accordionStyles = css`
 
 const sectionStyles = css`
   padding: 0.4375rem 0.875rem;
-`;
-
-const sectionInlineStyles = css`
-  ${sectionStyles}
-  border-bottom: 1px solid #d8dfe2;
-  width: 100%;
-
-  &:last-of-type {
-    border-bottom: none;
-  }
-
-  &:first-of-type {
-    border-bottom: 1px solid #d8dfe2;
-  }
-
-  /* loading icon */
-  svg {
-    display: inline-block;
-    margin: -0.5rem;
-    height: 1.25rem;
-  }
-
-  h3 {
-    margin-right: 0.5em;
-  }
-
-  .label,
-  .value {
-    display: inline-block;
-    line-height: 1.25;
-    margin-top: 0;
-    margin-bottom: 0;
-  }
-`;
-
-const sectionInlineFlexStyles = css`
-  ${sectionInlineStyles}
-  align-items: flex-end;
-  display: flex;
-  justify-content: flex-start;
-`;
-
-const sectionInlineGridStyles = css`
-  ${sectionInlineStyles}
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  padding: 0.5em;
-
-  h3 {
-    grid-column: 1;
-  }
-
-  p {
-    grid-column: 2;
-  }
-
-  .label,
-  .value {
-    margin-bottom: auto;
-    margin-top: auto;
-  }
-`;
-
-const sectionInlineGridWideStyles = css`
-  ${sectionInlineGridStyles}
-  grid-template-columns: minmax(100px, 300px) minmax(100px, 1fr);
 `;
 
 const charcsTableStyles = css`
@@ -263,6 +198,14 @@ const fileLinkStyles = css`
     height: auto;
     margin: 0;
     width: 12px;
+  }
+`;
+
+const flexRowStyles = css`
+  .row-value {
+    margin-bottom: 0;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
 `;
 
@@ -473,6 +416,12 @@ const treeStyles = (level, styles) => {
     margin-right: calc(${level} * 1.25em);
   `;
 };
+
+const wideRowStyles = css`
+  p {
+    grid-template-columns: minmax(100px, 300px) minmax(100px, 1fr);
+  }
+`;
 
 /*
 ## Helpers
@@ -882,27 +831,6 @@ function parseRecord(record, measurements) {
   }
   return { unit, speciation, fraction };
 }
-
-const row = (label, value, style, dataStatus = 'success') => (
-  <div className="row-container" css={style}>
-    <h3 className="label">{label}:</h3>
-    {dataStatus === 'fetching' && <LoadingSpinner />}
-    {dataStatus === 'failure' && <p className="value">N/A</p>}
-    {dataStatus === 'success' && <p className="value">{value}</p>}
-  </div>
-);
-
-const rowFlex = (label, value, dataStatus = 'success') => {
-  return row(label, value, sectionInlineFlexStyles, dataStatus);
-};
-
-const rowGrid = (label, value, dataStatus = 'success') => {
-  return row(label, value, sectionInlineGridStyles, dataStatus);
-};
-
-const rowWideGrid = (label, value, dataStatus = 'success') => {
-  return row(label, value, sectionInlineGridWideStyles, dataStatus);
-};
 
 function sortMeasurements(measurements) {
   // store in arrays by unit,fraction,speciation and sort by date
@@ -1416,36 +1344,49 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
             />
             {chartData?.length && (
               <div css={shadedBoxSectionStyles}>
-                {rowWideGrid(
-                  'Selected Date Range',
-                  `${new Date(domain[0]).toLocaleDateString(
-                    'en-us',
-                    dateOptions,
-                  )}` +
+                <BoxRowGrid
+                  label="Selected Date Range"
+                  value={
+                    `${new Date(domain[0]).toLocaleDateString(
+                      'en-us',
+                      dateOptions,
+                    )}` +
                     ` - ${new Date(domain[1]).toLocaleDateString(
                       'en-us',
                       dateOptions,
-                    )}`,
+                    )}`
+                  }
+                  styles={wideRowStyles}
+                />
+                <BoxRowGrid
+                  label="Number of Measurements Shown"
+                  value={chartData.length.toLocaleString()}
+                  styles={wideRowStyles}
+                />
+                <BoxRowGrid
+                  label="Average of Values"
+                  value={average}
+                  styles={wideRowStyles}
+                />
+                <BoxRowGrid
+                  label="Median Value"
+                  value={`${median.toLocaleString()} ${unit}`}
+                  styles={wideRowStyles}
+                />
+                {range && (
+                  <BoxRowGrid
+                    label="Minimum Value"
+                    value={`${range[0].toLocaleString()} ${unit}`}
+                    styles={wideRowStyles}
+                  />
                 )}
-                {rowWideGrid(
-                  'Number of Measurements Shown',
-                  chartData.length.toLocaleString(),
+                {range && (
+                  <BoxRowGrid
+                    label="Maximum Value"
+                    value={`${range[1].toLocaleString()} ${unit}`}
+                    styles={wideRowStyles}
+                  />
                 )}
-                {rowWideGrid('Average of Values', average)}
-                {rowWideGrid(
-                  'Median Value',
-                  `${median.toLocaleString()} ${unit}`,
-                )}
-                {range &&
-                  rowWideGrid(
-                    'Minimum Value',
-                    `${range[0].toLocaleString()} ${unit}`,
-                  )}
-                {range &&
-                  rowWideGrid(
-                    'Maximum Value',
-                    `${range[1].toLocaleString()} ${unit}`,
-                  )}
               </div>
             )}
           </>
@@ -1534,7 +1475,11 @@ function CharacteristicsTableSection({
           fetching={<LoadingSpinner />}
           status={charcsStatus}
         >
-          {rowFlex('Selected Characteristic', selected ?? 'None', charcsStatus)}
+          <BoxRowFlex
+            label="Selected Characteristic"
+            value={selected ?? 'None'}
+            status={charcsStatus}
+          />
           <ReactTable
             autoResetFilters={false}
             autoResetSortBy={false}
@@ -2001,20 +1946,36 @@ function InformationSection({ siteId, site, siteStatus }) {
         </span>
       </h2>
       <div css={sectionStyles}>
-        {rowGrid('Organization Name', site.orgName, siteStatus)}
-        {rowGrid('Organization ID', site.orgId, siteStatus)}
-        {rowGrid('Location', `${site.county}, ${site.state}`, siteStatus)}
-        {rowGrid('Water Type', site.locationType, siteStatus)}
-        {rowGrid(
-          'Total Sample Count',
-          site.totalSamples?.toLocaleString(),
-          siteStatus,
-        )}
-        {rowGrid(
-          'Total Measurement Count',
-          site.totalMeasurements?.toLocaleString(),
-          siteStatus,
-        )}
+        <BoxRowGrid
+          label="Organization Name"
+          value={site.orgName}
+          status={siteStatus}
+        />
+        <BoxRowGrid
+          label="Organization ID"
+          value={site.orgId}
+          status={siteStatus}
+        />
+        <BoxRowGrid
+          label="Location"
+          value={`${site.county}, ${site.state}`}
+          status={siteStatus}
+        />
+        <BoxRowGrid
+          label="Water Type"
+          value={site.locationType}
+          status={siteStatus}
+        />
+        <BoxRowGrid
+          label="Total Sample Count"
+          value={site.totalSamples?.toLocaleString()}
+          status={siteStatus}
+        />
+        <BoxRowGrid
+          label="Total Measurement Count"
+          value={site.totalMeasurements?.toLocaleString()}
+          status={siteStatus}
+        />
       </div>
     </div>
   );
@@ -2110,6 +2071,7 @@ function MonitoringLocationContent() {
     </WindowSize>
   );
 
+  console.log(containerStyles);
   const twoColumnView = (
     <Page>
       <NavBar title="Monitoring Location Details" />
@@ -2182,7 +2144,11 @@ function MonitoringLocation() {
 function SliderContainer({ min, max, disabled = false, onChange }) {
   if (!min || !max) return <LoadingSpinner />;
   else if (min === max)
-    return <div css={sliderContainerStyles}>{rowFlex('Year', min)}</div>;
+    return (
+      <div css={sliderContainerStyles}>
+        <BoxRowFlex label="Year" value={min} styles={flexRowStyles} />
+      </div>
+    );
 
   return (
     <div css={sliderContainerStyles}>
