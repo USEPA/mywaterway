@@ -45,7 +45,7 @@ function StateTribalTabs() {
     const validRoutes = [
       `/state/${stateCode.toLowerCase()}/water-quality-overview`,
       `/state/${stateCode.toLowerCase()}/advanced-search`,
-      `/tribe/${stateCode.toLowerCase()}`,
+      // `/tribe/${stateCode.toLowerCase()}`, // TODO-Tribal - Uncomment this line
     ];
 
     const tabIndex = validRoutes.indexOf(
@@ -53,7 +53,8 @@ function StateTribalTabs() {
     );
 
     if (tabIndex === -1) {
-      navigate('/state-and-tribal', { replace: true });
+      // TODO-Tribal - Replace /state with /state-and-tribal
+      navigate('/state', { replace: true });
     }
 
     if (activeTabIndex !== tabIndex) {
@@ -72,7 +73,8 @@ function StateTribalTabs() {
         return stateTribe.value === stateCode.toUpperCase();
       });
       if (match) setActiveState(match);
-      else navigate('/state-and-tribal', { replace: true });
+      // TODO-Tribal - Replace /state with /state-and-tribal
+      else navigate('/state', { replace: true });
     }
   }, [activeState.value, navigate, setActiveState, stateCode, states, tribes]);
 

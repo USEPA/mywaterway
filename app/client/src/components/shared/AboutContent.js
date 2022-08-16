@@ -196,8 +196,9 @@ function AboutContent() {
                 within each of these. For example, the category "Metals" may
                 include lead, cadmium, zinc, or copper as water pollutants. A
                 filtering tool for these impairments can be found on the{' '}
-                <a href="/data">data page</a>; which will allow you to find out
-                the subcategories for the impairment.{' '}
+                <a href="/data">data page</a> (Impairment Category Filtering
+                Tool: How ATTAINS data are grouped in How’s My Waterway); which
+                will allow you to find out the subcategories for the impairment.{' '}
                 <em>How’s My Waterway </em> provides simple descriptions of each
                 major category, where the impairment comes from, its effect on
                 the environment and on beneficial waterway uses, what citizens
