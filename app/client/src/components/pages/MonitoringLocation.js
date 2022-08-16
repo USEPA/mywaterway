@@ -1850,7 +1850,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
                   <i
                     css={iconStyles}
                     className="fas fa-filter"
-                    ariaHidden="true"
+                    aria-hidden="true"
                   />
                   Advanced Filtering
                 </a>
@@ -1868,7 +1868,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
                   <i
                     css={iconStyles}
                     className="fas fa-book-open"
-                    ariaHidden="true"
+                    aria-hidden="true"
                   />
                   Water Quality Portal User Guide
                 </a>
@@ -1940,7 +1940,7 @@ function FileLink({ disabled, fileType, data, setError, url }) {
     return (
       <i
         className={`fas fa-file-${fileType}`}
-        ariaHidden="true"
+        aria-hidden="true"
         style={{ color: '#ccc' }}
       />
     );
@@ -1953,7 +1953,7 @@ function FileLink({ disabled, fileType, data, setError, url }) {
 
   return (
     <button css={fileLinkStyles} onClick={fetchFile}>
-      <i className={`fas fa-file-${fileType}`} ariaHidden="true" />
+      <i className={`fas fa-file-${fileType}`} aria-hidden="true" />
       <span className="sr-only">
         Download location data as a {fileType} file.
       </span>
