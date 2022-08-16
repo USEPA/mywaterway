@@ -51,7 +51,11 @@ import { useSharedLayers } from 'utils/hooks';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
 import { parseAttributes, titleCaseWithExceptions } from 'utils/utils';
 // styles
-import { boxStyles, boxHeadingStyles } from 'components/shared/Box';
+import {
+  boxStyles,
+  boxHeadingStyles,
+  boxSectionStyles,
+} from 'components/shared/Box';
 import { colors, disclaimerStyles, reactSelectStyles } from 'styles';
 
 /*
@@ -71,12 +75,8 @@ const accordionHeadingStyles = css`
 `;
 
 const accordionRowStyles = css`
-  ${accordionFlexStyles}
   ${accordionHeadingStyles}
   border-top: 1px solid #d8dfe2;
-  span {
-    display: flex;
-  }
 `;
 
 const accordionStyles = css`
@@ -92,86 +92,10 @@ const accordionStyles = css`
   .total-row {
     margin-right: 1.75em;
   }
-
-  input[type='checkbox'] {
-    margin-right: 1em;
-    position: relative;
-    transform: scale(1.2);
-  }
-`;
-
-const sectionStyles = css`
-  padding: 0.4375rem 0.875rem;
-`;
-
-const sectionInlineStyles = css`
-  ${sectionStyles}
-  border-bottom: 1px solid #d8dfe2;
-  width: 100%;
-
-  &:last-of-type {
-    border-bottom: none;
-  }
-
-  &:first-of-type {
-    border-bottom: 1px solid #d8dfe2;
-  }
-
-  /* loading icon */
-  svg {
-    display: inline-block;
-    margin: -0.5rem;
-    height: 1.25rem;
-  }
-
-  h3 {
-    margin-right: 0.5em;
-  }
-
-  .label,
-  .value {
-    display: inline-block;
-    line-height: 1.25;
-    margin-top: 0;
-    margin-bottom: 0;
-  }
-`;
-
-const sectionInlineFlexStyles = css`
-  ${sectionInlineStyles}
-  align-items: flex-end;
-  display: flex;
-  justify-content: flex-start;
-`;
-
-const sectionInlineGridStyles = css`
-  ${sectionInlineStyles}
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  padding: 0.5em;
-
-  h3 {
-    grid-column: 1;
-  }
-
-  p {
-    grid-column: 2;
-  }
-
-  .label,
-  .value {
-    margin-bottom: auto;
-    margin-top: auto;
-  }
-`;
-
-const sectionInlineGridWideStyles = css`
-  ${sectionInlineGridStyles}
-  grid-template-columns: minmax(100px, 300px) minmax(100px, 1fr);
 `;
 
 const charcsTableStyles = css`
-  ${sectionStyles}
+  ${boxSectionStyles}
   height: 50vh;
   overflow-y: scroll;
   .rt-table .rt-td {
@@ -184,6 +108,7 @@ const charcsTableStyles = css`
 
 const chartContainerStyles = css`
   margin: 1rem 0.625rem;
+  height: 500px;
 `;
 
 const chartTooltipStyles = css`
@@ -194,6 +119,22 @@ const chartTooltipStyles = css`
     &:first-of-type {
       margin-bottom: 0.5em;
     }
+  }
+`;
+
+const checkboxInputStyles = css`
+  display: flex;
+  gap: 1em;
+  font-weight: bold;
+  margin-bottom: 0;
+
+  & > * {
+    margin-bottom: auto;
+    margin-top: auto;
+  }
+
+  input[type='checkbox'] {
+    transform: scale(1.2);
   }
 `;
 
@@ -393,6 +334,73 @@ const screenLabelStyles = css`
   display: inline-block;
   font-size: 0.875rem;
   font-weight: bold;
+  margin-bottom: 0.125rem;
+`;
+
+const sectionInlineStyles = css`
+  ${boxSectionStyles}
+  border-bottom: 1px solid #d8dfe2;
+  width: 100%;
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+
+  &:first-of-type {
+    border-bottom: 1px solid #d8dfe2;
+  }
+
+  /* loading icon */
+  svg {
+    display: inline-block;
+    margin: -0.5rem;
+    height: 1.25rem;
+  }
+
+  h3 {
+    margin-right: 0.5em;
+  }
+
+  .label,
+  .value {
+    display: inline-block;
+    line-height: 1.25;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+`;
+
+const sectionInlineFlexStyles = css`
+  ${sectionInlineStyles}
+  align-items: flex-end;
+  display: flex;
+  justify-content: flex-start;
+`;
+
+const sectionInlineGridStyles = css`
+  ${sectionInlineStyles}
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0.5em;
+
+  h3 {
+    grid-column: 1;
+  }
+
+  p {
+    grid-column: 2;
+  }
+
+  .label,
+  .value {
+    margin-bottom: auto;
+    margin-top: auto;
+  }
+`;
+
+const sectionInlineGridWideStyles = css`
+  ${sectionInlineGridStyles}
+  grid-template-columns: minmax(100px, 300px) minmax(100px, 1fr);
 `;
 
 const selectContainerStyles = css`
@@ -410,10 +418,6 @@ const selectContainerStyles = css`
     font-size: 0.875rem;
     font-weight: bold;
     white-space: nowrap;
-
-    @media (min-width: 960px) {
-      margin-bottom: 0;
-    }
   }
 
   .radio-container {
@@ -440,12 +444,12 @@ const selectContainerStyles = css`
 `;
 
 const shadedBoxSectionStyles = css`
-  ${sectionStyles}
+  ${boxSectionStyles}
   background-color: #f0f6f9;
 `;
 
 const sliderContainerStyles = css`
-  ${sectionStyles}
+  ${boxSectionStyles}
   align-items: flex-end;
   display: flex;
   justify-content: center;
@@ -852,37 +856,6 @@ function parseLabelCounts(groupCounts, charcLabels, mappings) {
   return labelCounts;
 }
 
-function parseRecord(record, measurements) {
-  const unit = record.unit;
-  const fraction = record.sampleFraction || 'Not Specified';
-  if (!measurements[unit]) measurements[unit] = {};
-  const unitMeasurements = measurements[unit];
-
-  if (!unitMeasurements[fraction]) unitMeasurements[fraction] = {};
-  const fractionMeasurements = unitMeasurements[fraction];
-  const speciation = record.speciation || 'Not Specified';
-  if (!fractionMeasurements[speciation]) fractionMeasurements[speciation] = {};
-  const specMeasurements = fractionMeasurements[speciation];
-
-  // group by unit and date
-  const date = getDate(record);
-  const measurement = {
-    value: record.measurement,
-    depth: record.depth,
-    depthUnit: record.depthUnit,
-  };
-  if (!specMeasurements[date]) {
-    specMeasurements[date] = {
-      ...record,
-      measurements: [measurement],
-      date,
-    };
-  } else {
-    specMeasurements[date].measurements.push(measurement);
-  }
-  return { unit, speciation, fraction };
-}
-
 const row = (label, value, style, dataStatus = 'success') => (
   <div className="row-container" css={style}>
     <h3 className="label">{label}:</h3>
@@ -903,36 +876,6 @@ const rowGrid = (label, value, dataStatus = 'success') => {
 const rowWideGrid = (label, value, dataStatus = 'success') => {
   return row(label, value, sectionInlineGridWideStyles, dataStatus);
 };
-
-function sortMeasurements(measurements) {
-  // store in arrays by unit,fraction,speciation and sort by date
-  Object.entries(measurements).forEach(([unitKey, unitMeasurements]) => {
-    Object.entries(unitMeasurements).forEach(
-      ([fractionKey, fractionMeasurements]) => {
-        Object.entries(fractionMeasurements).forEach(
-          ([specKey, specMeasurements]) => {
-            Object.values(specMeasurements).forEach((date) => {
-              date.measurements = date.measurements.map(
-                ({ value, ...rest }) => {
-                  return {
-                    ...rest,
-                    value: parseFloat(value.toFixed(3)),
-                  };
-                },
-              );
-            });
-            measurements[unitKey][fractionKey][specKey] = Object.values(
-              specMeasurements,
-            )
-              .sort((a, b) => a.day - b.day)
-              .sort((a, b) => a.month - b.month)
-              .sort((a, b) => a.year - b.year);
-          },
-        );
-      },
-    );
-  });
-}
 
 function toggle(state, id, entity, level) {
   const newSelected = entity.selected === 0 ? 1 : 0;
@@ -1059,6 +1002,7 @@ function useCharacteristics(provider, orgId, siteId) {
       }
       const recordsByCharc = {};
       records.forEach((record) => {
+        if (record.ActivityTypeCode.toLowerCase().includes('control')) return;
         if (!recordsByCharc[record.CharacteristicName]) {
           const charcGroup = getCharcGroup(
             record.CharacteristicName,
@@ -1076,15 +1020,15 @@ function useCharacteristics(provider, orgId, siteId) {
         curCharc.count += 1;
         const recordDate = record.ActivityStartDate.split('-');
         curCharc.records.push({
-          year: parseInt(recordDate[0]),
-          month: parseInt(recordDate[1]),
           day: parseInt(recordDate[2]),
-          measurement: record.ResultMeasureValue ?? null,
-          sampleFraction: record.ResultSampleFractionText || null,
-          speciation: record.MethodSpecificationName || null,
-          depthUnit: record['ResultDepthHeightMeasure/MeasureUnitCode'] || null,
-          unit: record['ResultMeasure/MeasureUnitCode'] || null,
           depth: record['ResultDepthHeightMeasure/MeasureValue'] ?? null,
+          depthUnit: record['ResultDepthHeightMeasure/MeasureUnitCode'] || null,
+          fraction: record.ResultSampleFractionText || 'None',
+          measurement: record.ResultMeasureValue ?? null,
+          medium: record.ActivityMediaName || 'None',
+          month: parseInt(recordDate[1]),
+          unit: record['ResultMeasure/MeasureUnitCode'] || 'None',
+          year: parseInt(recordDate[0]),
         });
       });
       setCharcs(recordsByCharc);
@@ -1098,7 +1042,7 @@ function useCharacteristics(provider, orgId, siteId) {
     setStatus('fetching');
     const url =
       `${services.data.waterQualityPortal.resultSearch}` +
-      `&mimeType=csv&zip=no&dataProfile=narrowResult` +
+      `&mimeType=csv&zip=no&dataProfile=resultPhysChem` +
       `&providers=${encodeURIComponent(
         provider,
       )}&organization=${encodeURIComponent(orgId)}&siteid=${encodeURIComponent(
@@ -1146,66 +1090,70 @@ function useSiteDetails(provider, orgId, siteId) {
 
 function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   const [measurements, setMeasurements] = useState(null);
+
   // Selected and available units
   const [unit, setUnit] = useState(null);
   const [units, setUnits] = useState(null);
+  useEffect(() => {
+    if (units?.length) setUnit(units[0].value);
+  }, [units]);
+
   // Selected and available sample fractions
   const [fraction, setFraction] = useState(null);
   const [fractions, setFractions] = useState(null);
-  // Selected and available speciations
-  const [spec, setSpec] = useState(null);
-  const [specs, setSpecs] = useState(null);
+  useEffect(() => {
+    if (fractions?.length) setFraction(fractions[0].value);
+  }, [fractions]);
+
+  // Selected and available activity media names
+  const [medium, setMedium] = useState(null);
+  const [media, setMedia] = useState(null);
+  useEffect(() => {
+    if (media?.length) setMedium(media[0].value);
+  }, [media]);
+
   // Logarithmic or linear
   const [scaleType, setScaleType] = useState('linear');
 
-  const parseMeasurements = useCallback((newRecords) => {
-    const newMeasurements = {};
-    const fractionValues = new Set();
-    const specValues = new Set();
-    const unitValues = new Set();
-
-    newRecords.forEach((record) => {
-      if (!record.unit || !Number.isFinite(record.measurement)) return;
-
-      // Adds record measurement to newMeasurements and gets select options
-      const recordOptions = parseRecord(record, newMeasurements);
-      unitValues.add(recordOptions.unit);
-      fractionValues.add(recordOptions.fraction);
-      specValues.add(recordOptions.speciation);
-    });
-
-    setFractions(buildOptions(fractionValues));
-    setSpecs(buildOptions(specValues));
-    setUnits(buildOptions(unitValues));
-
-    return newMeasurements;
-  }, []);
-
+  // Get the records with measurements and their filter options
   useEffect(() => {
     if (!records) return;
-    const newMeasurements = parseMeasurements(records);
+    const newMeasurements = [];
+    const fractionValues = new Set();
+    const unitValues = new Set();
+    const mediumValues = new Set();
 
-    sortMeasurements(newMeasurements);
+    records.forEach((record) => {
+      if (!Number.isFinite(record.measurement)) return;
 
-    // initialize the selected unit
-    const newUnits = Object.keys(newMeasurements);
-    if (newUnits.length) {
-      const newFractions = Object.keys(newMeasurements[newUnits[0]]);
-      const newSpecs = Object.keys(
-        newMeasurements[newUnits[0]][newFractions[0]],
-      );
+      // Add record measurement to newMeasurements
+      unitValues.add(record.unit);
+      fractionValues.add(record.fraction);
+      mediumValues.add(record.medium);
+
+      record.date = getDate(record);
+      record.measurement = parseFloat(record.measurement.toFixed(3));
+      newMeasurements.push(record);
+    });
+
+    newMeasurements.sort((a, b) => a.day - b.day);
+    newMeasurements.sort((a, b) => a.month - b.month);
+    newMeasurements.sort((a, b) => a.year - b.year);
+
+    if (newMeasurements.length) {
+      setFractions(buildOptions(fractionValues));
+      setUnits(buildOptions(unitValues));
+      setMedia(buildOptions(mediumValues));
       setMeasurements(newMeasurements);
-      setUnit(newUnits[0]);
-      setFraction(newFractions[0]);
-      setSpec(newSpecs[0]);
     } else {
+      setFractions(null);
+      setUnits(null);
+      setMedia(null);
       setMeasurements(null);
-      setUnit(null);
-      setFraction(null);
-      setSpec(null);
     }
+
     setScaleType('linear');
-  }, [parseMeasurements, records]);
+  }, [records]);
 
   const [chartData, setChartData] = useState(null);
   const [dataKeys, setDataKeys] = useState(null);
@@ -1214,62 +1162,99 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   const [mean, setMean] = useState(null);
   const [median, setMedian] = useState(null);
   const [stdDev, setStdDev] = useState(null);
-  const getChartData = useCallback((newDomain, newMsmts) => {
+
+  // Parse the measurements into chartable data points
+  const parseMeasurements = useCallback((newDomain, newMsmts) => {
     const newChartData = [];
-    let maxDayCount = 0;
-    newMsmts.forEach((day) => {
-      if (day.year >= newDomain[0] && day.year <= newDomain[1]) {
-        const datum = {
-          x: day.date,
-          y: {},
+
+    let maxCount = 0;
+    let curDatum = null;
+    let curCount = 0;
+    newMsmts.forEach((msmt) => {
+      if (msmt.year >= newDomain[0] && msmt.year <= newDomain[1]) {
+        curCount++;
+        const dataPoint = {
+          value: msmt.measurement,
+          depth: msmt.depth,
+          depthUnit: msmt.depthUnit,
         };
-        day.measurements.forEach((msmt, i) => {
-          datum.y[i.toString()] = msmt;
-          if (i + 1 > maxDayCount) maxDayCount = i + 1;
-        });
-        newChartData.push(datum);
+        if (!curDatum || curDatum.x !== msmt.date) {
+          curDatum && newChartData.push(curDatum);
+          curCount = 1;
+          curDatum = {
+            x: msmt.date,
+            y: { 0: dataPoint },
+          };
+        } else {
+          curDatum.y[curCount.toString()] = dataPoint;
+        }
+        if (curCount > maxCount) maxCount = curCount;
       }
     });
-    setChartData(newChartData);
-    setDataKeys([...Array(maxDayCount).keys()]);
-    // data is already sorted by date
-    setDomain([newChartData[0].x, newChartData[newChartData.length - 1].x]);
-
-    const yValues = [];
-    newChartData.forEach((datum) => {
-      Object.values(datum.y).forEach((msmt) => yValues.push(msmt.value));
-    });
-    const newRange = [Math.min(...yValues), Math.max(...yValues)];
-    setRange(newRange);
-
-    const newMean = getMean(yValues);
-    setMean(newMean);
-    setMedian(getMedian(yValues));
-    setStdDev(getStdDev(yValues, newMean));
+    curDatum && newChartData.push(curDatum);
+    setChartData(newChartData.length ? newChartData : null);
+    setDataKeys([...Array(maxCount).keys()]);
+    return newChartData;
   }, []);
+
+  // Get the selected chart data and statistics
+  const getChartData = useCallback(
+    (newDomain, newMsmts) => {
+      // newMsmts must already be sorted by date
+      const filteredMsmts =
+        newMsmts?.filter((msmt) => {
+          return (
+            msmt.fraction === fraction &&
+            msmt.unit === unit &&
+            msmt.medium === medium
+          );
+        }) || [];
+
+      const newChartData = parseMeasurements(newDomain, filteredMsmts);
+
+      if (!newChartData.length) return;
+
+      setDomain([newChartData[0].x, newChartData[newChartData.length - 1].x]);
+
+      const yValues = [];
+      newChartData.forEach((datum) => {
+        Object.values(datum.y).forEach((msmt) => yValues.push(msmt.value));
+      });
+
+      const newRange = [Math.min(...yValues), Math.max(...yValues)];
+      setRange(newRange);
+
+      const newMean = getMean(yValues);
+
+      setMean(newMean);
+      setMedian(getMedian(yValues));
+      setStdDev(getStdDev(yValues, newMean));
+    },
+    [fraction, medium, parseMeasurements, unit],
+  );
 
   const [minYear, setMinYear] = useState(null);
   const [maxYear, setMaxYear] = useState(null);
   // Initialize the chart
   useEffect(() => {
-    const specMeasurements = measurements?.[unit]?.[fraction]?.[spec];
-    if (specMeasurements && specMeasurements.length) {
-      const yearLow = specMeasurements[0].year;
-      const yearHigh = specMeasurements[specMeasurements.length - 1].year;
+    if (measurements?.length) {
+      const yearLow = measurements[0].year;
+      const yearHigh = measurements[measurements.length - 1].year;
       setMinYear(yearLow);
       setMaxYear(yearHigh);
-      getChartData([yearLow, yearHigh], specMeasurements);
+      getChartData([yearLow, yearHigh], measurements);
     } else {
       setChartData(null);
+      setMinYear(null);
+      setMaxYear(null);
     }
-  }, [charcsStatus, fraction, getChartData, measurements, spec, unit]);
+  }, [getChartData, measurements]);
 
+  const displayUnit = unit === 'None' ? '' : unit;
   // Title for the y-axis
   let yTitle = charcName;
-  if (fraction !== 'Not Specified')
-    yTitle += ', ' + fraction?.replace(',', ' -');
-  if (spec !== 'Not Specified') yTitle += ', ' + spec;
-  yTitle += ', ' + unit;
+  if (fraction !== 'None') yTitle += ', ' + fraction?.replace(',', ' -');
+  if (displayUnit) yTitle += ', ' + unit;
 
   let infoText = null;
   if (!charcName)
@@ -1282,7 +1267,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
   let average = mean?.toLocaleString('en-US');
   if (stdDev)
     average += ` ${String.fromCharCode(177)} ${stdDev.toLocaleString()}`;
-  average += ` ${unit}`;
+  average += ` ${displayUnit}`;
 
   return (
     <div css={modifiedBoxStyles}>
@@ -1312,13 +1297,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
               min={minYear}
               max={maxYear}
               disabled={!Boolean(records.length)}
-              onChange={(newDomain) => {
-                const specMeasurements =
-                  measurements?.[unit]?.[fraction]?.[spec];
-                if (specMeasurements) {
-                  getChartData(newDomain, specMeasurements);
-                }
-              }}
+              onChange={(newDomain) => getChartData(newDomain, measurements)}
             />
             <div css={selectContainerStyles}>
               <span>
@@ -1360,19 +1339,17 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
               </span>
               <span>
                 <span css={screenLabelStyles}>
-                  <GlossaryTerm term="Media Name">
-                    Method Speciation:
-                  </GlossaryTerm>
+                  <GlossaryTerm term="Media Name">Media Name</GlossaryTerm>:
                 </span>
                 <Select
                   aria-label="Media Name"
                   className="select"
-                  inputId={'speciation'}
+                  inputId={'media-name'}
                   isSearchable={false}
-                  options={specs}
-                  value={specs.find((s) => s.value === spec)}
+                  options={media}
+                  value={media.find((f) => f.value === medium)}
                   onChange={(ev) => {
-                    setSpec(ev.value);
+                    setMedium(ev.value);
                   }}
                   styles={reactSelectStyles}
                 />
@@ -1412,9 +1389,9 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
               scaleType={scaleType}
               dataKeys={dataKeys}
               yTitle={yTitle}
-              unit={unit}
+              unit={displayUnit}
             />
-            {chartData?.length && (
+            {chartData?.length > 0 && (
               <div css={shadedBoxSectionStyles}>
                 {rowWideGrid(
                   'Selected Date Range',
@@ -1434,45 +1411,23 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
                 {rowWideGrid('Average of Values', average)}
                 {rowWideGrid(
                   'Median Value',
-                  `${median.toLocaleString()} ${unit}`,
+                  `${median.toLocaleString()} ${displayUnit}`,
                 )}
                 {range &&
                   rowWideGrid(
                     'Minimum Value',
-                    `${range[0].toLocaleString()} ${unit}`,
+                    `${range[0].toLocaleString()} ${displayUnit}`,
                   )}
                 {range &&
                   rowWideGrid(
                     'Maximum Value',
-                    `${range[1].toLocaleString()} ${unit}`,
+                    `${range[1].toLocaleString()} ${displayUnit}`,
                   )}
               </div>
             )}
           </>
         )}
       </StatusContent>
-    </div>
-  );
-}
-
-function CheckboxRow({ accessor, id, level, state, dispatch }) {
-  const item = state[accessor][id];
-  return (
-    <div css={treeStyles(level, accordionRowStyles)}>
-      <span>
-        <input
-          type="checkbox"
-          checked={item.selected === Checkbox.checked}
-          ref={(input) => {
-            if (input)
-              input.indeterminate = item.selected === Checkbox.indeterminate;
-          }}
-          onChange={handleCheckbox(id, accessor, dispatch)}
-          style={{ top: '1px' }}
-        />
-        <strong>{id}</strong>
-      </span>
-      <strong>{item.count.toLocaleString()}</strong>
     </div>
   );
 }
@@ -1501,7 +1456,7 @@ function CharacteristicsTableSection({
           </div>
         );
         const measurementCount = charc.records.reduce((a, b) => {
-          if (b.measurement) return a + 1;
+          if (Number.isFinite(b.measurement)) return a + 1;
           return a;
         }, 0);
         return {
@@ -1608,13 +1563,20 @@ function ChartContainer({
   );
   const chartRef = useRef(null);
 
-  if (!range) return <LoadingSpinner />;
-
   if (!data?.length)
     return (
-      <p css={messageBoxStyles(infoBoxStyles)}>
-        No measurements available for the selected options.
-      </p>
+      <div css={chartContainerStyles}>
+        <p css={messageBoxStyles(infoBoxStyles)}>
+          No measurements available for the selected options.
+        </p>
+      </div>
+    );
+
+  if (!range)
+    return (
+      <div css={chartContainerStyles}>
+        <LoadingSpinner />
+      </div>
     );
 
   return (
@@ -1624,12 +1586,11 @@ function ChartContainer({
         color={lineColors[charcLabel]}
         containerRef={chartRef.current}
         data={data}
-        range={range}
         dataKeys={dataKeys}
+        range={range}
         xTitle="Date"
         yScale={scaleType}
         yTitle={yTitle}
-        yUnit={unit}
       />
     </div>
   );
@@ -1653,7 +1614,10 @@ function CheckboxAccordion({
         highlightContent={false}
         title={
           <span css={accordionFlexStyles}>
-            <span>
+            <label
+              onClick={(ev) => ev.stopPropagation()}
+              css={checkboxInputStyles}
+            >
               <input
                 type="checkbox"
                 checked={item.selected === Checkbox.checked}
@@ -1663,11 +1627,9 @@ function CheckboxAccordion({
                       item.selected === Checkbox.indeterminate;
                 }}
                 onChange={handleCheckbox(id, accessor, dispatch)}
-                onClick={(ev) => ev.stopPropagation()}
-                style={{ top: '2px' }}
               />
-              <strong>{id}</strong>
-            </span>
+              {id}
+            </label>
             <strong>{item.count.toLocaleString()}</strong>
           </span>
         }
@@ -1681,6 +1643,27 @@ function CheckboxAccordion({
         )}
         {children}
       </AccordionItem>
+    </div>
+  );
+}
+
+function CheckboxRow({ accessor, id, level, state, dispatch }) {
+  const item = state[accessor][id];
+  return (
+    <div css={treeStyles(level, accordionRowStyles)}>
+      <label css={checkboxInputStyles}>
+        <input
+          type="checkbox"
+          checked={item.selected === Checkbox.checked}
+          ref={(input) => {
+            if (input)
+              input.indeterminate = item.selected === Checkbox.indeterminate;
+          }}
+          onChange={handleCheckbox(id, accessor, dispatch)}
+        />
+        {id}
+      </label>
+      <strong>{item.count.toLocaleString()}</strong>
     </div>
   );
 }
@@ -1703,7 +1686,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
   const queryData =
     siteStatus === 'success'
       ? {
-          dataProfile: 'narrowResult',
+          dataProfile: 'resultPhysChem',
           siteid: [site.siteId],
           organization: [site.orgId],
           providers: [site.providerName],
@@ -1724,7 +1707,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
         );
       else queryPartial += `&${key}=${encodeURIComponent(value)}`;
       return query + queryPartial;
-    }, `${services.data.waterQualityPortal.userInterface}#dataProfile=narrowResult`);
+    }, `${services.data.waterQualityPortal.userInterface}#dataProfile=resultPhysChem`);
 
   if (checkboxes.all === Checkbox.indeterminate) {
     const selectedGroups = Object.values(checkboxes.groups)
@@ -1785,15 +1768,14 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
           min={minYear}
           onChange={(newRange) => setRange(newRange)}
         />
-        <div css={sectionStyles}>
+        <div css={boxSectionStyles}>
           <div css={accordionStyles}>
             <AccordionList
               className="accordion-list"
               onExpandCollapse={(newExpanded) => setExpanded(newExpanded)}
               title={
-                <span>
+                <label css={checkboxInputStyles}>
                   <input
-                    style={{ top: '2px' }}
                     type="checkbox"
                     checked={checkboxes.all === Checkbox.checked}
                     ref={(input) => {
@@ -1803,8 +1785,8 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
                     }}
                     onChange={(_ev) => checkboxDispatch({ type: 'all' })}
                   />
-                  <strong>Toggle All</strong>
-                </span>
+                  Toggle All
+                </label>
               }
             >
               <p css={accordionHeadingStyles}>
@@ -1831,8 +1813,8 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
                 .map((groupId) => (
                   <CheckboxAccordion
                     accessor="groups"
-                    level={0}
                     id={groupId}
+                    level={0}
                     key={groupId}
                     dispatch={checkboxDispatch}
                     state={checkboxes}
@@ -1844,8 +1826,8 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
                       .map((charcId) => (
                         <CheckboxRow
                           accessor="charcs"
-                          level={1}
                           id={charcId}
+                          level={1}
                           key={charcId}
                           dispatch={checkboxDispatch}
                           state={checkboxes}
@@ -1872,7 +1854,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
                   <i
                     css={iconStyles}
                     className="fas fa-filter"
-                    ariaHidden="true"
+                    aria-hidden="true"
                   />
                   Advanced Filtering
                 </a>
@@ -1890,7 +1872,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
                   <i
                     css={iconStyles}
                     className="fas fa-book-open"
-                    ariaHidden="true"
+                    aria-hidden="true"
                   />
                   Water Quality Portal User Guide
                 </a>
@@ -1962,7 +1944,7 @@ function FileLink({ disabled, fileType, data, setError, url }) {
     return (
       <i
         className={`fas fa-file-${fileType}`}
-        ariaHidden="true"
+        aria-hidden="true"
         style={{ color: '#ccc' }}
       />
     );
@@ -1975,7 +1957,7 @@ function FileLink({ disabled, fileType, data, setError, url }) {
 
   return (
     <button css={fileLinkStyles} onClick={fetchFile}>
-      <i className={`fas fa-file-${fileType}`} ariaHidden="true" />
+      <i className={`fas fa-file-${fileType}`} aria-hidden="true" />
       <span className="sr-only">
         Download location data as a {fileType} file.
       </span>
@@ -2000,7 +1982,7 @@ function InformationSection({ siteId, site, siteStatus }) {
           </small>
         </span>
       </h2>
-      <div css={sectionStyles}>
+      <div css={boxSectionStyles}>
         {rowGrid('Organization Name', site.orgName, siteStatus)}
         {rowGrid('Organization ID', site.orgId, siteStatus)}
         {rowGrid('Location', `${site.county}, ${site.state}`, siteStatus)}
@@ -2174,7 +2156,9 @@ function MonitoringLocationContent() {
 function MonitoringLocation() {
   return (
     <FullscreenProvider>
-      <MonitoringLocationContent />
+      <MapHighlightProvider>
+        <MonitoringLocationContent />
+      </MapHighlightProvider>
     </FullscreenProvider>
   );
 }
@@ -2358,9 +2342,7 @@ function SiteMap({ layout, site, siteStatus, widthRef }) {
 function SiteMapContainer({ ...props }) {
   return (
     <MapErrorBoundary>
-      <MapHighlightProvider>
-        <SiteMap {...props} />
-      </MapHighlightProvider>
+      <SiteMap {...props} />
     </MapErrorBoundary>
   );
 }
