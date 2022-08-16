@@ -11,8 +11,8 @@ import Handles from '@arcgis/core/core/Handles';
 import MapImageLayer from '@arcgis/core/layers/MapImageLayer';
 import Point from '@arcgis/core/geometry/Point';
 import Polygon from '@arcgis/core/geometry/Polygon';
+import * as query from '@arcgis/core/rest/query';
 import Query from '@arcgis/core/rest/support/Query';
-import QueryTask from '@arcgis/core/tasks/QueryTask';
 import * as watchUtils from '@arcgis/core/core/watchUtils';
 // config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
@@ -935,14 +935,13 @@ function useDynamicPopup() {
         };
 
         //get the huc boundaries of where the user clicked
-        const query = new Query({
+        const queryParams = {
           returnGeometry: true,
           geometry: location,
           outFields: ['*'],
-        });
-
-        new QueryTask({ url: services.data.wbd })
-          .execute(query)
+        };
+        query
+          .executeQueryJSON(services.data.wbd, queryParams)
           .then((boundaries) => {
             if (boundaries.features.length === 0) {
               resolve({

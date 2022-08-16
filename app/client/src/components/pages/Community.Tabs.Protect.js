@@ -9,8 +9,7 @@ import React, {
 } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
-import Query from '@arcgis/core/rest/support/Query';
-import QueryTask from '@arcgis/core/tasks/QueryTask';
+import * as query from '@arcgis/core/rest/query';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 // components
 import { tabsStyles } from 'components/shared/ContentTabs';
@@ -1114,16 +1113,15 @@ function Protect() {
                                     fieldName={protectedAreasIdKey}
                                     customQuery={(viewClick) => {
                                       // query for the item
-                                      const query = new Query({
+                                      const url = `${services.data.protectedAreasDatabase}0`;
+                                      const queryParams = {
                                         where: `${protectedAreasIdKey} = ${attributes[protectedAreasIdKey]}`,
                                         returnGeometry: true,
                                         outFields: ['*'],
-                                      });
+                                      };
 
-                                      new QueryTask({
-                                        url: `${services.data.protectedAreasDatabase}0`,
-                                      })
-                                        .execute(query)
+                                      query
+                                        .executeQueryJSON(url, queryParams)
                                         .then((res) => {
                                           if (res.features.length === 0) return;
 

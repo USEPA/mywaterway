@@ -18,8 +18,7 @@ import LayerList from '@arcgis/core/widgets/LayerList';
 import Legend from '@arcgis/core/widgets/Legend';
 import Point from '@arcgis/core/geometry/Point';
 import PortalBasemapsSource from '@arcgis/core/widgets/BasemapGallery/support/PortalBasemapsSource';
-import Query from '@arcgis/core/rest/support/Query';
-import QueryTask from '@arcgis/core/tasks/QueryTask';
+import * as query from '@arcgis/core/rest/query';
 import ScaleBar from '@arcgis/core/widgets/ScaleBar';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import Viewpoint from '@arcgis/core/Viewpoint';
@@ -1132,18 +1131,17 @@ function MapWidgets({
 
       // fetch the upstream catchment
       const filter = `xwalk_huc12='${currentHuc12}'`;
-      const query = new Query({
-        returnGeometry: true,
-        where: filter,
-        outFields: ['*'],
-      });
 
       setUpstreamLoading(true);
 
-      new QueryTask({
-        url: services.data.upstreamWatershed,
-      })
-        .execute(query)
+      const url = services.data.upstreamWatershed;
+      const queryParams = {
+        returnGeometry: true,
+        where: filter,
+        outFields: ['*'],
+      };
+      query
+        .executeQueryJSON(url, queryParams)
         .then((res) => {
           setUpstreamLoading(false);
           const upstreamLayer = getUpstreamLayer();

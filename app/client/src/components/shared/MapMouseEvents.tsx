@@ -1,8 +1,7 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Point from '@arcgis/core/geometry/Point';
-import Query from '@arcgis/core/rest/support/Query';
-import QueryTask from '@arcgis/core/tasks/QueryTask';
+import * as query from '@arcgis/core/rest/query';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // contexts
@@ -56,7 +55,7 @@ function getGraphicsFromResponse(
 ) {
   if (!res.results || res.results.length === 0) return null;
 
-  const matches = res.results.filter((result) => {
+  const matches = res.results.filter((result: any) => {
     const { attributes: attr } = result.graphic;
     const layer = result.graphic.layer as Layer;
     // ignore huc 12 boundaries, map-marker, highlight and provider graphics
@@ -86,7 +85,7 @@ function getGraphicsFromResponse(
     return result;
   });
 
-  return matches.map((match) => match.graphic);
+  return matches.map((match: any) => match.graphic);
 }
 
 function getGraphicFromResponse(
@@ -248,14 +247,12 @@ function MapMouseEvents({ view }: Props) {
               !hucBoundaries.features[0].geometry.contains(location))
           ) {
             //get the huc boundaries of where the user clicked
-            const query = new Query({
+            const queryParams = {
               returnGeometry: true,
               geometry: location,
               outFields: ['*'],
-            });
-
-            new QueryTask({ url: services.data.wbd })
-              .execute(query)
+            };
+            query.executeQueryJSON(services.data.wbd, queryParams)
               .then((boundaries) => {
                 if (boundaries.features.length === 0) return;
 
@@ -296,15 +293,13 @@ function MapMouseEvents({ view }: Props) {
                   openChangeLocationPopup();
                 } else {
                   // check if protected areas layer was clicked on
-                  const queryPadUs = new Query({
+                  const url = `${services.data.protectedAreasDatabase}0`;
+                  const queryPadUs = {
                     returnGeometry: false,
                     geometry: location,
                     outFields: ['*'],
-                  });
-                  new QueryTask({
-                    url: `${services.data.protectedAreasDatabase}0`,
-                  })
-                    .execute(queryPadUs)
+                  };
+                  query.executeQueryJSON(url, queryPadUs)
                     .then((padRes) => {
                       if (padRes.features.length === 0) {
                         // user did not click on a protected area, open the popup
