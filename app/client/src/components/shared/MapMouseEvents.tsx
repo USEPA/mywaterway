@@ -55,9 +55,8 @@ function getGraphicsFromResponse(
 ) {
   if (!res.results || res.results.length === 0) return null;
 
-  const matches = res.results.filter((item) => {
-    const result = item as __esri.GraphicHit;
-    if(!result.graphic) return null;
+  const matches = res.results.filter((result) => {
+    if(result.type !== 'graphic') return null;
 
     const { attributes: attr } = result.graphic;
     const layer = result.graphic.layer as Layer;
