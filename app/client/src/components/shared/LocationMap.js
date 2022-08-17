@@ -16,10 +16,9 @@ import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
-import Locator from '@arcgis/core/tasks/Locator';
+import * as locator from '@arcgis/core/rest/locator';
 import PictureMarkerSymbol from '@arcgis/core/symbols/PictureMarkerSymbol';
-import Query from '@arcgis/core/rest/support/Query';
-import QueryTask from '@arcgis/core/tasks/QueryTask';
+import * as query from '@arcgis/core/rest/query';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import Viewpoint from '@arcgis/core/Viewpoint';
 // components
@@ -850,14 +849,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // Gets the lines data and builds the associated feature layer
   const retrieveLines = useCallback(
     (filter, boundaries) => {
-      const query = new Query({
+      const url = services.data.waterbodyService.lines;
+      const queryParams = {
         returnGeometry: true,
         where: filter,
         outFields: ['*'],
-      });
-
-      new QueryTask({ url: services.data.waterbodyService.lines })
-        .execute(query)
+      };
+      query
+        .executeQueryJSON(url, queryParams)
         .then((res) => {
           // build a list of features that still has the original uncropped
           // geometry and set context
@@ -917,14 +916,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // Gets the areas data and builds the associated feature layer
   const retrieveAreas = useCallback(
     (filter, boundaries) => {
-      const query = new Query({
+      const url = services.data.waterbodyService.areas;
+      const queryParams = {
         returnGeometry: true,
         where: filter,
         outFields: ['*'],
-      });
-
-      new QueryTask({ url: services.data.waterbodyService.areas })
-        .execute(query)
+      };
+      query
+        .executeQueryJSON(url, queryParams)
         .then((res) => {
           // build a list of features that still has the original uncropped
           // geometry and set context
@@ -984,14 +983,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // Gets the points data and builds the associated feature layer
   const retrievePoints = useCallback(
     (filter) => {
-      const query = new Query({
+      const url = services.data.waterbodyService.points;
+      const queryParams = {
         returnGeometry: true,
         where: filter,
         outFields: ['*'],
-      });
-
-      new QueryTask({ url: services.data.waterbodyService.points })
-        .execute(query)
+      };
+      query
+        .executeQueryJSON(url, queryParams)
         .then((res) => {
           setPointsData(res);
 
@@ -1460,22 +1459,19 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         return;
       }
 
-      const query = new Query({
-        geometry: boundaries.features[0].geometry,
-        returnGeometry: false,
-        spatialReference: 102100,
-        outFields: ['*'],
-      });
-
       setWildScenicRiversData({
         data: [],
         status: 'fetching',
       });
 
-      new QueryTask({
-        url: services.data.wildScenicRivers,
-      })
-        .execute(query)
+      const queryParams = {
+        geometry: boundaries.features[0].geometry,
+        returnGeometry: false,
+        spatialReference: 102100,
+        outFields: ['*'],
+      };
+      query
+        .executeQueryJSON(services.data.wildScenicRivers, queryParams)
         .then((res) => {
           setWildScenicRiversData({
             data: res.features,
@@ -1519,23 +1515,21 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       fetchCheck(`${services.data.protectedAreasDatabase}0?f=json`)
         .then((layerInfo) => {
-          const query = new Query({
-            geometry: boundaries.features[0].geometry,
-            returnGeometry: false,
-            spatialReference: 102100,
-            outFields: ['*'],
-          });
-
           setProtectedAreasData({
             data: [],
             fields: [],
             status: 'fetching',
           });
 
-          new QueryTask({
-            url: `${services.data.protectedAreasDatabase}0`,
-          })
-            .execute(query)
+          const url = `${services.data.protectedAreasDatabase}0`;
+          const queryParams = {
+            geometry: boundaries.features[0].geometry,
+            returnGeometry: false,
+            spatialReference: 102100,
+            outFields: ['*'],
+          };
+          query
+            .executeQueryJSON(url, queryParams)
             .then((res) => {
               // build/set the filter
               let filter = '';
@@ -1739,9 +1733,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         callback();
       };
 
-      const locator = new Locator({ url: services.data.locatorUrl });
-      locator.outSpatialReference = SpatialReference.WebMercator;
-
       // Parse the search text to see if it is from a non-esri search suggestion
       const { searchPart, coordinatesPart } = splitSuggestedSearch(searchText);
 
@@ -1753,14 +1744,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         : getPointFromCoordinates(searchText);
 
       let getCandidates;
+      const url = services.data.locatorUrl;
       if (point === null) {
         // if the user searches for guam use guam's state code instead
         if (searchText.toLowerCase() === 'guam') searchText = 'GU';
 
         // If not coordinates, perform regular geolocation
-        getCandidates = locator.addressToLocations({
+        getCandidates = locator.addressToLocations(url, {
           address: { SingleLine: searchText },
           countryCode: 'USA',
+          outSpatialReference: SpatialReference.WebMercator,
           outFields: [
             'Loc_name',
             'City',
@@ -1773,7 +1766,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
       } else {
         // If coordinates, perform reverse geolocation
-        getCandidates = locator.locationToAddress({ location: point });
+        getCandidates = locator.locationToAddress(url, {
+          location: point,
+          outSpatialReference: SpatialReference.WebMercator,
+        });
       }
 
       getCandidates
@@ -1823,14 +1819,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               () => handleHUC12(hucRes),
             );
           } else {
-            const hucQuery = new Query({
+            const hucQuery = {
               returnGeometry: true,
               geometry: location.location,
               outFields: ['*'],
-            });
-
-            new QueryTask({ url: services.data.wbd })
-              .execute(hucQuery)
+            };
+            query
+              .executeQueryJSON(services.data.wbd, hucQuery)
               .then((hucRes) => {
                 renderMapAndZoomTo(
                   location.location.longitude,
@@ -1846,20 +1841,20 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               });
           }
 
-          const countiesQuery = new Query({
-            returnGeometry: true,
-            geometry: location.location.clone(),
-            outFields: ['*'],
-          });
-
           setFIPS({
             stateCode: '',
             countyCode: '',
             status: 'fetching',
           });
 
-          new QueryTask({ url: `${services.data.counties}/query` })
-            .execute(countiesQuery)
+          const url = `${services.data.counties}/query`;
+          const countiesQuery = {
+            returnGeometry: true,
+            geometry: location.location.clone(),
+            outFields: ['*'],
+          };
+          query
+            .executeQueryJSON(url, countiesQuery)
             .then((countiesRes) => {
               // not all locations have a State and County code, check for it
               if (
@@ -1952,14 +1947,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       // Get whether HUC 12
       if (isHuc12(searchText)) {
-        const query = new Query({
+        const queryParams = {
           returnGeometry: true,
           where: "HUC12 = '" + searchText + "'",
           outFields: ['*'],
-        });
-
-        new QueryTask({ url: services.data.wbd })
-          .execute(query)
+        };
+        query
+          .executeQueryJSON(services.data.wbd, queryParams)
           .then((response) => {
             if (response.features.length === 0) {
               // flag no data available for no response
@@ -2143,15 +2137,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       return;
     }
 
-    const query = new Query({
+    const queryParams = {
       geometry: boundaries.features[0].geometry,
       returnGeometry: true,
       spatialReference: 4326,
       outFields: ['*'],
-    });
-
-    new QueryTask({ url: nonprofits })
-      .execute(query)
+    };
+    query
+      .executeQueryJSON(nonprofits, queryParams)
       .then((res) => {
         console.log('nonprofits data: ', res);
         setNonprofits({

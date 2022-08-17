@@ -684,7 +684,7 @@ function WaterbodyInfo({
   // jsx
   const alaskaNativeVillageContent = labelValue(
     'Village Name',
-    attributes.NAME,
+    attributes.TRIBE_NAME,
   );
 
   // jsx

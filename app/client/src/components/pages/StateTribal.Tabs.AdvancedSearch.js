@@ -11,8 +11,7 @@ import { css } from 'styled-components/macro';
 import { useWindowSize } from '@reach/window-size';
 import Select, { createFilter } from 'react-select';
 import { VariableSizeList } from 'react-window';
-import Query from '@arcgis/core/rest/support/Query';
-import QueryTask from '@arcgis/core/tasks/QueryTask';
+import * as query from '@arcgis/core/rest/query';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -83,10 +82,8 @@ function retrieveFeatures({
 }) {
   return new Promise((resolve, reject) => {
     // query to get just the ids since there is a maxRecordCount
-    const queryTask = new QueryTask({ url: url });
-    const idsQuery = new Query(queryParams);
-    queryTask
-      .executeForIds(idsQuery)
+    query
+      .executeForIds(url, queryParams)
       .then((objectIds) => {
         // set the features value of the data to an empty array if no objectIds
         // were returned.
@@ -102,11 +99,11 @@ function retrieveFeatures({
         const requests = [];
 
         chunkedObjectIds.forEach((chunk: Array<string>) => {
-          const queryChunk = new Query({
+          const queryChunk = {
             ...queryParams,
             where: `OBJECTID in (${chunk.join(',')})`,
-          });
-          const request = queryTask.execute(queryChunk);
+          };
+          const request = query.executeQueryJSON(url, queryChunk);
           requests.push(request);
         });
 
@@ -522,18 +519,15 @@ function AdvancedSearch() {
   useEffect(() => {
     if (!nextFilter || serviceError) return;
 
-    let query = new Query({
+    // query to get just the ids since there is a maxRecordCount
+    const url = services.data.waterbodyService.summary;
+    const queryParams = {
       returnGeometry: false,
       where: nextFilter,
       outFields: ['*'],
-    });
-
-    // query to get just the ids since there is a maxRecordCount
-    let queryTask = new QueryTask({
-      url: services.data.waterbodyService.summary,
-    });
-    queryTask
-      .executeForCount(query)
+    };
+    query
+      .executeForCount(url, queryParams)
       .then((res) => {
         setNumberOfRecords(res ? res : 0);
         setSearchLoading(false);
