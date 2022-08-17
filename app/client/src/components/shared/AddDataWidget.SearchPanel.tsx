@@ -12,7 +12,7 @@ import Layer from '@arcgis/core/layers/Layer';
 import Portal from '@arcgis/core/portal/Portal';
 import PortalItem from '@arcgis/core/portal/PortalItem';
 import PortalQueryParams from '@arcgis/core/portal/PortalQueryParams';
-import * as watchUtils from '@arcgis/core/core/watchUtils';
+import * as reactiveUtils from "@arcgis/core/core/reactiveUtils";
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
@@ -796,10 +796,10 @@ function ResultCard({ result }: ResultCardProps) {
       }),
     }).then((layer) => {
       // setup the watch event to see when the layer finishes loading
-      const newWatcher = watchUtils.watch(
-        layer,
-        'loadStatus',
-        (loadStatus: string) => {
+      const newWatcher = reactiveUtils.watch(
+        () => layer.loadStatus,
+        () => {
+          const loadStatus = layer.loadStatus;
           // set the status based on the load status
           if (loadStatus === 'loaded') {
             setStatus('');

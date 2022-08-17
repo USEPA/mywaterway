@@ -13,7 +13,7 @@ import Point from '@arcgis/core/geometry/Point';
 import Polygon from '@arcgis/core/geometry/Polygon';
 import * as query from '@arcgis/core/rest/query';
 import Query from '@arcgis/core/rest/support/Query';
-import * as watchUtils from '@arcgis/core/core/watchUtils';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 // config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 import { monitoringClusterSettings } from 'components/shared/LocationMap';
@@ -1145,10 +1145,9 @@ function useSharedLayers() {
 
     // Toggles the shading of the watershed graphic based on
     // whether or not the wsio layer is on or off
-    watchUtils.watch(
-      wsioHealthIndexLayer,
-      'visible',
-      (newVal, oldVal, propName, target) => {
+    reactiveUtils.watch(
+      () => wsioHealthIndexLayer.visible,
+      () => {
         // find the boundaries layer
         wsioHealthIndexLayer.parent.layers.items.forEach((layer) => {
           if (layer.id !== 'boundariesLayer') return;
@@ -1157,7 +1156,7 @@ function useSharedLayers() {
           // shading back in when wsio layer is off
           const newGraphics = layer.graphics.clone();
           newGraphics.forEach((graphic) => {
-            graphic.symbol.color.a = newVal ? 0 : 0.5;
+            graphic.symbol.color.a = wsioHealthIndexLayer.visible ? 0 : 0.5;
           });
 
           // re-draw the graphics

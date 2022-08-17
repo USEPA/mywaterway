@@ -9,12 +9,12 @@ import React, {
 } from 'react';
 import { css } from 'styled-components/macro';
 import { useNavigate } from 'react-router-dom';
-import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import * as locator from '@arcgis/core/rest/locator';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import Point from '@arcgis/core/geometry/Point';
 import Search from '@arcgis/core/widgets/Search';
-import * as watchUtils from '@arcgis/core/core/watchUtils';
+import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 // components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
@@ -336,20 +336,19 @@ function LocationSearch({ route, label }: Props) {
     });
 
     // create a watcher for the input text
-    watchUtils.watch(
-      search,
-      'searchTerm',
-      (newVal, oldVal, propName, event) => {
-        setInputText(newVal);
+    reactiveUtils.watch(
+      () => search.searchTerm,
+      () => {
+        setInputText(search.searchTerm);
       },
     );
 
     // create a watcher for the suggestions based on search input
-    watchUtils.watch(
-      search,
-      'suggestions',
-      (newVal, oldVal, propName, event) => {
-        setSuggestions(newVal ? newVal : []);
+    reactiveUtils.watch(
+      () => search.suggestions,
+      () => {
+        const suggestions = search.suggestions;
+        setSuggestions(suggestions ? suggestions : []);
       },
     );
 
