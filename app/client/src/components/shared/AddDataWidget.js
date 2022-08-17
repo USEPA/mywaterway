@@ -11,7 +11,7 @@ import FilePanel from 'components/shared/AddDataWidget.FilePanel';
 import SearchPanel from 'components/shared/AddDataWidget.SearchPanel';
 import URLPanel from 'components/shared/AddDataWidget.URLPanel';
 // contexts
-import { AddDataWidgetContext } from 'contexts/AddDataWidget';
+import { useAddDataWidgetState } from 'contexts/AddDataWidget';
 import { LocationSearchContext } from 'contexts/locationSearch';
 
 // --- styles (AddData) ---
@@ -162,7 +162,7 @@ function AddDataWidget() {
     searchResults,
     widgetLayers,
     setWidgetLayers,
-  } = useContext(AddDataWidgetContext);
+  } = useAddDataWidgetState();
 
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [layerPanelVisible, setLayerPanelVisible] = useState(false);

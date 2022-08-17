@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { css } from 'styled-components/macro';
 import {
   useTable,
@@ -127,24 +127,46 @@ const containerStyles = css`
     }
 
     .rt-col-title {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: space-between;
       padding: 2px;
     }
 
     .rt-filter {
       padding-top: 10px;
     }
+
+    .rt-th-content {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      justify-content: space-between;
+    }
   }
 `;
 
 // --- components ---
 type Props = {
+  autoResetFilters?: boolean,
+  autoResetSortBy?: boolean,
   data: Array<Object>,
+  defaultSort: ?string,
   getColumns: Function,
   placeholder: ?string,
   striped: ?boolean,
 };
 
-function ReactTable({ data, getColumns, placeholder, striped = false }: Props) {
+function ReactTable({
+  autoResetFilters = true,
+  autoResetSortBy = true,
+  data,
+  defaultSort = null,
+  getColumns,
+  placeholder,
+  striped = false,
+}: Props) {
   // Initializes the column widths based on the table width
   const [tableWidth, setTableWidth] = useState(0);
   const columns = useMemo(() => {
@@ -172,9 +194,14 @@ function ReactTable({ data, getColumns, placeholder, striped = false }: Props) {
     setAllFilters,
   } = useTable(
     {
+      autoResetFilters,
+      autoResetSortBy,
       columns,
       data,
       defaultColumn,
+      initialState: {
+        sortBy: defaultSort ? [{ id: defaultSort }] : [],
+      },
     },
     useResizeColumns,
     useBlockLayout,
@@ -184,9 +211,19 @@ function ReactTable({ data, getColumns, placeholder, striped = false }: Props) {
   );
 
   // measures the table width
-  const measuredTableRef = useCallback((node) => {
-    if (!node) return;
-    setTableWidth(node.getBoundingClientRect().width);
+  const measuredTableRef = useRef(null);
+  const getWidth = () =>
+    setTableWidth(
+      (prevWidth) =>
+        measuredTableRef.current?.getBoundingClientRect().width ?? prevWidth,
+    );
+  useLayoutEffect(() => {
+    if (!measuredTableRef.current) return;
+    setTableWidth(measuredTableRef.current.getBoundingClientRect().width);
+    window.addEventListener('resize', getWidth);
+    return function cleanup() {
+      window.removeEventListener('resize', getWidth);
+    };
   }, []);
 
   const hasFilters = columns.some((column) => column.filterable);
@@ -217,7 +254,7 @@ function ReactTable({ data, getColumns, placeholder, striped = false }: Props) {
                     role="columnheader"
                     {...column.getHeaderProps(column.getSortByToggleProps())}
                   >
-                    <div>
+                    <div className="rt-th-content">
                       <div className="rt-col-title">
                         {column.render('Header')}
                         <span>

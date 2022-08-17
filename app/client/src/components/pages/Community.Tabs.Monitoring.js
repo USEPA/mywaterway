@@ -70,6 +70,17 @@ const modifiedErrorBoxStyles = css`
   text-align: center;
 `;
 
+const modifiedToggleTableStyles = css`
+  ${toggleTableStyles}
+  th, td {
+    text-align: right;
+    width: 33%;
+    &:first-of-type {
+      text-align: left;
+    }
+  }
+`;
+
 const sliderContainerStyles = css`
   align-items: flex-end;
   display: flex;
@@ -77,6 +88,14 @@ const sliderContainerStyles = css`
   justify-content: center;
   padding-bottom: 10px;
   width: 100%;
+  span {
+    &:first-of-type {
+      margin-left: 1em;
+    }
+    &:last-of-type {
+      margin-right: 1em;
+    }
+  }
 `;
 
 const sliderHeaderStyles = css`
@@ -433,7 +452,7 @@ function Monitoring() {
                     setVisibleLayers(newVisibleLayers);
                   }}
                   disabled={!Boolean(monitoringLocations.data.features?.length)}
-                  ariaLabel="Monitoring Stations"
+                  ariaLabel="Past Water Conditions"
                 />
               </div>
             </>
@@ -797,7 +816,6 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   const [totalDisplayedLocations, setTotalDisplayedLocations] = useState(0);
   const [totalDisplayedMeasurements, setTotalDisplayedMeasurements] =
     useState(0);
-  const [totalDisplayedSamples, setTotalDisplayedSamples] = useState(0);
   useEffect(() => {
     if (Object.keys(annualData).length === 0) return;
     if (yearsRange) return;
@@ -808,12 +826,10 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   useEffect(() => {
     if (monitoringGroups) {
       let newTotalLocations = 0;
-      let newTotalSamples = 0;
       let newTotalMeasurements = 0;
 
       // update the watershed total measurements and samples counts
       displayedLocations.forEach((station) => {
-        newTotalSamples += station.stationTotalSamples;
         newTotalLocations++;
         Object.keys(monitoringGroups)
           .filter((group) => group !== 'All')
@@ -826,7 +842,6 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
       setTotalDisplayedLocations(newTotalLocations);
       setTotalDisplayedMeasurements(newTotalMeasurements);
-      setTotalDisplayedSamples(newTotalSamples);
       buildFilter(monitoringGroups);
     }
   }, [buildFilter, displayedLocations, monitoringGroups]);
@@ -894,14 +909,15 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                 <LoadingSpinner />
               ) : (
                 <DateSlider
-                  bounds={[minYear, maxYear]}
+                  max={maxYear}
+                  min={minYear}
                   disabled={!Boolean(Object.keys(annualData).length)}
                   onChange={(newRange) => setYearsRange(newRange)}
                 />
               )}
             </div>
             <table
-              css={toggleTableStyles}
+              css={modifiedToggleTableStyles}
               aria-label="Monitoring Location Summary"
               className="table"
             >
@@ -917,8 +933,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                       <span>All Monitoring Locations</span>
                     </div>
                   </th>
-                  <th>Location Count</th>
-                  <th>Sample Count</th>
+                  <th colSpan="2">Location Count</th>
                   <th>Measurement Count</th>
                 </tr>
               </thead>
@@ -928,12 +943,10 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                   .filter((group) => group.label !== 'All')
                   .map((group) => {
                     // get the number of measurements for this group type
-                    let sampleCount = 0;
                     let measurementCount = 0;
                     let locationCount = 0;
                     currentLocations.forEach((station) => {
                       if (station.stationTotalsByLabel[group.label] > 0) {
-                        sampleCount += station.stationTotalSamples;
                         measurementCount +=
                           station.stationTotalsByLabel[group.label];
                         locationCount++;
@@ -952,8 +965,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                             <span>{group.label}</span>
                           </div>
                         </td>
-                        <td>{locationCount.toLocaleString()}</td>
-                        <td>{sampleCount.toLocaleString()}</td>
+                        <td colSpan="2">{locationCount.toLocaleString()}</td>
                         <td>{measurementCount.toLocaleString()}</td>
                       </tr>
                     );
@@ -972,8 +984,9 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                       <span>Totals</span>
                     </div>
                   </td>
-                  <td>{Number(totalDisplayedLocations).toLocaleString()}</td>
-                  <td>{Number(totalDisplayedSamples).toLocaleString()}</td>
+                  <td colSpan="2">
+                    {Number(totalDisplayedLocations).toLocaleString()}
+                  </td>
                   <td>{Number(totalDisplayedMeasurements).toLocaleString()}</td>
                 </tr>
               </tbody>

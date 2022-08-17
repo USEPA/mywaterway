@@ -11,16 +11,16 @@ import Handles from '@arcgis/core/core/Handles';
 import MapImageLayer from '@arcgis/core/layers/MapImageLayer';
 import Point from '@arcgis/core/geometry/Point';
 import Polygon from '@arcgis/core/geometry/Polygon';
+import * as query from '@arcgis/core/rest/query';
 import Query from '@arcgis/core/rest/support/Query';
-import QueryTask from '@arcgis/core/tasks/QueryTask';
-import * as watchUtils from '@arcgis/core/core/watchUtils';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 // config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 import { monitoringClusterSettings } from 'components/shared/LocationMap';
 import { usgsStaParameters } from 'config/usgsStaParameters';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { MapHighlightContext } from 'contexts/MapHighlight';
+import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import {
@@ -43,7 +43,7 @@ const allWaterbodiesAlpha = {
   outline: 1,
 };
 
-function buildStations(locations, layer, services) {
+function buildStations(locations, layer) {
   if (!layer) return;
   if (!locations.data.features || locations.status !== 'success') {
     return;
@@ -71,16 +71,20 @@ function buildStations(locations, layer, services) {
       // TODO: explore if the built up locationUrl below is ever different from
       // `station.properties.siteUrl`. from a quick test, they seem the same
       locationUrl:
-        `${services.data.waterQualityPortal.monitoringLocationDetails}` +
+        `/location/` +
         `${station.properties.ProviderName}/` +
-        `${station.properties.OrganizationIdentifier}/` +
-        `${station.properties.MonitoringLocationIdentifier}/`,
+        `${encodeURIComponent(station.properties.OrganizationIdentifier)}/` +
+        `${encodeURIComponent(
+          station.properties.MonitoringLocationIdentifier,
+        )}/`,
       // monitoring station specific properties:
+      stationDataByYear: null,
       stationProviderName: station.properties.ProviderName,
       stationTotalSamples: parseInt(station.properties.activityCount),
       stationTotalMeasurements: parseInt(station.properties.resultCount),
       // counts for each lower-tier characteristic group
       stationTotalsByGroup: station.properties.characteristicGroupResultCount,
+      stationTotalsByLabel: null,
       timeframe: null,
       // create a unique id, so we can check if the monitoring station has
       // already been added to the display (since a monitoring station id
@@ -122,12 +126,6 @@ function updateMonitoringGroups(stations, mappings) {
   // build up monitoring stations, toggles, and groups
   let locationGroups = {
     All: { label: 'All', stations: [], toggled: true },
-    Other: {
-      label: 'Other',
-      stations: [],
-      toggled: true,
-      characteristicGroups: [],
-    },
   };
 
   stations.forEach((station) => {
@@ -169,10 +167,19 @@ function updateMonitoringGroups(stations, mappings) {
     // add any leftover lower-tier group counts to the 'Other' top-tier group
     for (const subGroup in station.stationTotalsByGroup) {
       if (subGroupsAdded.has(subGroup)) continue;
-      locationGroups['Other'].stations.push(station);
+      if (!locationGroups['Other']) {
+        locationGroups['Other'] = {
+          label: 'Other',
+          stations: [station],
+          toggled: true,
+          characteristicGroups: [subGroup],
+        };
+      } else {
+        locationGroups['Other'].stations.push(station);
+        locationGroups['Other'].characteristicGroups.push(subGroup);
+      }
       station.stationTotalsByLabel['Other'] +=
         station.stationTotalsByGroup[subGroup];
-      locationGroups['Other'].characteristicGroups.push(subGroup);
     }
   });
   Object.keys(locationGroups).forEach((label) => {
@@ -397,7 +404,7 @@ function useWaterbodyOnMap(
   const {
     setHighlightedGraphic,
     setSelectedGraphic, //
-  } = useContext(MapHighlightContext);
+  } = useMapHighlightState();
   const { allWaterbodiesLayer, pointsLayer, linesLayer, areasLayer, mapView } =
     useContext(LocationSearchContext);
 
@@ -476,7 +483,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
   const {
     highlightedGraphic,
     selectedGraphic, //
-  } = useContext(MapHighlightContext);
+  } = useMapHighlightState();
   const {
     mapView,
     pointsLayer, //part of waterbody group layer
@@ -865,7 +872,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
   const {
     setHighlightedGraphic,
     setSelectedGraphic, //
-  } = useContext(MapHighlightContext);
+  } = useMapHighlightState();
   useEffect(() => {
     closePopup({ mapView, setHighlightedGraphic, setSelectedGraphic });
   }, [mapView, setHighlightedGraphic, setSelectedGraphic, visibleLayers]);
@@ -928,14 +935,13 @@ function useDynamicPopup() {
         };
 
         //get the huc boundaries of where the user clicked
-        const query = new Query({
+        const queryParams = {
           returnGeometry: true,
           geometry: location,
           outFields: ['*'],
-        });
-
-        new QueryTask({ url: services.data.wbd })
-          .execute(query)
+        };
+        query
+          .executeQueryJSON(services.data.wbd, queryParams)
           .then((boundaries) => {
             if (boundaries.features.length === 0) {
               resolve({
@@ -1139,10 +1145,9 @@ function useSharedLayers() {
 
     // Toggles the shading of the watershed graphic based on
     // whether or not the wsio layer is on or off
-    watchUtils.watch(
-      wsioHealthIndexLayer,
-      'visible',
-      (newVal, oldVal, propName, target) => {
+    reactiveUtils.watch(
+      () => wsioHealthIndexLayer.visible,
+      () => {
         // find the boundaries layer
         wsioHealthIndexLayer.parent.layers.items.forEach((layer) => {
           if (layer.id !== 'boundariesLayer') return;
@@ -1151,7 +1156,7 @@ function useSharedLayers() {
           // shading back in when wsio layer is off
           const newGraphics = layer.graphics.clone();
           newGraphics.forEach((graphic) => {
-            graphic.symbol.color.a = newVal ? 0 : 0.5;
+            graphic.symbol.color.a = wsioHealthIndexLayer.visible ? 0 : 0.5;
           });
 
           // re-draw the graphics
@@ -1169,6 +1174,7 @@ function useSharedLayers() {
       title: 'Protected Areas',
       url: services.data.protectedAreasDatabase,
       legendEnabled: false,
+      outFields: ['*'],
       sublayers: [
         {
           id: 0,
@@ -1412,6 +1418,7 @@ function useSharedLayers() {
   }
 
   function getCountyLayer() {
+    const countyLayerOutFields = ['NAME', 'CNTY_FIPS', 'STATE_NAME'];
     return new FeatureLayer({
       id: 'countyLayer',
       url: services.data.counties,
@@ -1419,6 +1426,7 @@ function useSharedLayers() {
       listMode: 'show',
       visible: false,
       legendEnabled: false,
+      outFields: countyLayerOutFields,
       renderer: {
         type: 'simple',
         symbol: {
@@ -1434,7 +1442,7 @@ function useSharedLayers() {
       popupTemplate: {
         title: getTitle,
         content: getTemplate,
-        outFields: ['NAME', 'CNTY_FIPS', 'STATE_NAME'],
+        outFields: countyLayerOutFields,
       },
     });
   }
@@ -1458,6 +1466,7 @@ function useSharedLayers() {
       title: 'Watersheds',
       listMode: 'show',
       visible: false,
+      outFields: ['*'],
     });
   }
 
@@ -1983,7 +1992,6 @@ function useMonitoringLocations() {
       const stations = buildStations(
         monitoringLocations,
         monitoringLocationsLayer,
-        services,
       );
       if (!stations) return;
 

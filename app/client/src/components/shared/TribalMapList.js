@@ -19,6 +19,7 @@ import {
   AccordionList,
   AccordionItem,
 } from 'components/shared/AccordionMapHighlight';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import {
   keyMetricsStyles,
   keyMetricStyles,
@@ -40,11 +41,15 @@ import {
   LocationSearchContext,
   LocationSearchProvider,
 } from 'contexts/locationSearch';
-import { useServicesContext } from 'contexts/LookupFiles';
 import {
-  MapHighlightContext,
+  useReportStatusMappingContext,
+  useServicesContext,
+} from 'contexts/LookupFiles';
+import {
+  useMapHighlightState,
   MapHighlightProvider,
 } from 'contexts/MapHighlight';
+import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 // helpers
 import { fetchCheck } from 'utils/fetchUtils';
 import {
@@ -65,6 +70,8 @@ import { monitoringClusterSettings } from 'components/shared/LocationMap';
 import {
   esriMapLoadingFailure,
   huc12SummaryError,
+  status303dError,
+  status303dShortError,
   tribalBoundaryErrorMessage,
   zeroAssessedWaterbodies,
 } from 'config/errorMessages';
@@ -72,7 +79,7 @@ import {
 import { colors } from 'styles/index.js';
 import { tabsStyles } from 'components/shared/ContentTabs';
 
-const mapListHeight = '70vh';
+const mapPadding = 20;
 
 const accordionContentStyles = css`
   padding: 0.4375em 0.875em 0.875em;
@@ -106,11 +113,37 @@ const modifiedErrorBoxStyles = css`
   margin-bottom: 0.75em;
 `;
 
-const modifiedTabStyles = css`
-  ${tabsStyles}
-  max-height: ${mapListHeight};
+const modifiedTabStyles = (height) => {
+  return css`
+    ${tabsStyles}
+    height: ${height}px;
+    width: 100%;
+    overflow: auto;
+  `;
+};
+
+const mapFooterStyles = css`
   width: 100%;
-  overflow: auto;
+  /* match ESRI map footer text */
+  padding: 3px 5px;
+  border: 1px solid #aebac3;
+  border-top: none;
+  font-size: 0.75em;
+  background-color: whitesmoke;
+`;
+
+const mapFooterMessageStyles = css`
+  margin-bottom: 5px;
+`;
+
+const mapFooterStatusStyles = css`
+  display: flex;
+  align-items: center;
+
+  svg {
+    margin: 0 -0.875rem;
+    height: 0.6875rem;
+  }
 `;
 
 const switchContainerStyles = css`
@@ -132,6 +165,9 @@ function TribalMapList({
   windowHeight,
   windowWidth,
 }: Props) {
+  const { currentReportingCycle, organizationData } = useContext(
+    StateTribalTabsContext,
+  );
   const {
     areasLayer,
     linesLayer,
@@ -153,6 +189,7 @@ function TribalMapList({
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
   const [tribeMapLoadError, setTribeMapLoadError] = useState(false);
 
+  const reportStatusMapping = useReportStatusMappingContext();
   const services = useServicesContext();
 
   // switch the base map to
@@ -277,7 +314,7 @@ function TribalMapList({
   // Makes the view on map button work for the state page
   // (i.e. switches and scrolls to the map when the selected graphic changes)
   const [displayMode, setDisplayMode] = useState('map');
-  const { selectedGraphic } = useContext(MapHighlightContext);
+  const { selectedGraphic } = useMapHighlightState();
   useEffect(() => {
     if (!selectedGraphic) return;
 
@@ -324,6 +361,27 @@ function TribalMapList({
     ],
   );
 
+  // calculate height of div holding the view mode buttons
+  const [viewModeHeight, setViewModeHeight] = useState(0);
+  const viewModeRef = useCallback((node) => {
+    if (!node) return;
+    setViewModeHeight(node.getBoundingClientRect().height);
+  }, []);
+
+  // calculate height of div holding the layer toggles
+  const [layerTogglesHeight, setLayerTogglesHeight] = useState(0);
+  const layerTogglesRef = useCallback((node) => {
+    if (!node) return;
+    setLayerTogglesHeight(node.getBoundingClientRect().height);
+  }, []);
+
+  // calculate height of div holding the footer content
+  const [footerHeight, setFooterHeight] = useState(0);
+  const footerRef = useCallback((node) => {
+    if (!node) return;
+    setFooterHeight(node.getBoundingClientRect().height);
+  }, []);
+
   // check for browser compatibility with map
   if (!browserIsCompatibleWithArcGIS() && !tribeMapLoadError) {
     setTribeMapLoadError(true);
@@ -333,9 +391,12 @@ function TribalMapList({
     return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
   }
 
+  const mapListHeight =
+    windowHeight - viewModeHeight - layerTogglesHeight - 3 * mapPadding;
+
   return (
     <div>
-      <div css={inputStyles}>
+      <div css={inputStyles} ref={viewModeRef}>
         <div className="btn-group" role="group">
           <button
             css={buttonStyles}
@@ -380,7 +441,7 @@ function TribalMapList({
       )}
 
       {displayMode !== 'none' && (
-        <div css={keyMetricsStyles}>
+        <div css={keyMetricsStyles} ref={layerTogglesRef}>
           <div css={keyMetricStyles}>
             {waterbodies.status === 'pending' && <LoadingSpinner />}
             {(waterbodies.status === 'success' ||
@@ -421,8 +482,7 @@ function TribalMapList({
             ) : (
               <>
                 <span css={keyMetricNumberStyles}>
-                  {Boolean(monitoringLocations.data.features.length) &&
-                  monitoringLocations.status === 'success'
+                  {Boolean(monitoringLocations.data?.features?.length)
                     ? monitoringLocations.data.features.length
                     : 'N/A'}
                 </span>
@@ -430,7 +490,7 @@ function TribalMapList({
                 <div css={switchContainerStyles}>
                   <Switch
                     checked={
-                      Boolean(monitoringLocations.data.features.length) &&
+                      Boolean(monitoringLocations.data?.features?.length) &&
                       monitoringLocationsDisplayed
                     }
                     onChange={(_checked) => {
@@ -448,7 +508,7 @@ function TribalMapList({
                       });
                     }}
                     disabled={
-                      !Boolean(monitoringLocations.data.features.length)
+                      !Boolean(monitoringLocations.data?.features?.length)
                     }
                     ariaLabel="Monitoring Stations"
                   />
@@ -465,12 +525,11 @@ function TribalMapList({
         style={
           layout === 'fullscreen'
             ? {
-                height: windowHeight,
+                height: windowHeight - footerHeight,
                 width: windowWidth,
               }
             : {
-                height: mapListHeight,
-                minHeight: '400px',
+                height: mapListHeight - footerHeight,
                 width: '100%',
                 display: displayMode === 'map' ? 'block' : 'none',
               }
@@ -482,8 +541,62 @@ function TribalMapList({
           setTribalBoundaryError={setTribalBoundaryError}
         />
       </div>
+      {displayMode === 'map' && (
+        <div ref={footerRef}>
+          <div
+            css={mapFooterStyles}
+            style={{ width: layout === 'fullscreen' ? windowWidth : '100%' }}
+          >
+            {reportStatusMapping.status === 'failure' && (
+              <div css={mapFooterMessageStyles}>{status303dError}</div>
+            )}
+            <div css={mapFooterStatusStyles}>
+              <strong>
+                <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
+                  303(d) List Status
+                </GlossaryTerm>{' '}
+                / Year Last Reported:
+              </strong>
+              &nbsp;&nbsp;
+              {organizationData.status === 'fetching' && <LoadingSpinner />}
+              {organizationData.status === 'failure' && (
+                <>{status303dShortError}</>
+              )}
+              {organizationData.status === 'success' && (
+                <>
+                  {reportStatusMapping.status === 'fetching' && (
+                    <LoadingSpinner />
+                  )}
+                  {reportStatusMapping.status === 'failure' && (
+                    <>{organizationData.data.reportStatusCode}</>
+                  )}
+                  {reportStatusMapping.status === 'success' && (
+                    <>
+                      {reportStatusMapping.data.hasOwnProperty(
+                        organizationData.data.reportStatusCode,
+                      )
+                        ? reportStatusMapping.data[
+                            organizationData.data.reportStatusCode
+                          ]
+                        : organizationData.data.reportStatusCode}
+                    </>
+                  )}
+                </>
+              )}
+              <> / </>
+              {currentReportingCycle.status === 'fetching' && (
+                <LoadingSpinner />
+              )}
+              {currentReportingCycle.status === 'success' && (
+                <>{currentReportingCycle.reportingCycle}</>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {displayMode === 'list' && (
-        <div css={modifiedTabStyles}>
+        <div css={modifiedTabStyles(mapListHeight)}>
           <Tabs>
             <TabList>
               <Tab>Waterbodies</Tab>
@@ -730,15 +843,8 @@ function TribalMap({
     });
     setMonitoringLocationsLayer(monitoringLocationsLayer);
 
-    // add the shared layers to the map and set the tribal layer visible
+    // add the shared layers to the map
     const sharedLayers = getSharedLayers();
-
-    // turn the tribal layer on by default on the tribal tab
-    sharedLayers.forEach((layer) => {
-      if (layer.id !== 'tribalLayer') return;
-
-      layer.visible = true;
-    });
 
     setLayers([
       ...sharedLayers,
@@ -836,7 +942,6 @@ function TribalMap({
   }, [
     activeState,
     mapView,
-    navigate,
     selectedTribeLayer,
     setTribalBoundaryError,
     tribalLayer,

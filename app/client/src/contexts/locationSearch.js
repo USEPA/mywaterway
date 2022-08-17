@@ -1,9 +1,10 @@
 import React, { Component, createContext } from 'react';
+import type { ReactNode } from 'react';
 
 export const LocationSearchContext = createContext();
 
 type Props = {
-  children: Node,
+  children: ReactNode,
 };
 
 type Status = 'fetching' | 'success' | 'failure';
@@ -210,7 +211,7 @@ type State = {
 
   // monitoring panel
   monitoringGroups: MonitoringLocationGroups,
-  monitoringFeatureUpdates: Object,
+  monitoringFeatureUpdates: ?Object,
 
   // identified issues panel
   showDischargers: boolean,
@@ -295,11 +296,7 @@ export class LocationSearchProvider extends Component<Props, State> {
 
     // monitoring panel
     monitoringGroups: null,
-    monitoringFeatureUpdates: {
-      stationTotalMeasurements: 0,
-      stationTotalsByGroup: {},
-      timeframe: null,
-    },
+    monitoringFeatureUpdates: null,
 
     // identified issues panel
     showAllPolluted: true,
@@ -397,9 +394,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
     getUpstreamWidgetDisabled: () => {
       return this.state.upstreamWidgetDisabled;
-    },
-    getAllWaterbodiesLayer: () => {
-      return this.state.allWaterbodiesLayer;
     },
     getCurrentExtent: () => {
       return this.state.currentExtent;

@@ -75,26 +75,25 @@ const modifiedErrorBoxStyles = css`
 `;
 
 // --- components (Documents) ---
+type ActiveState = {
+  value: string,
+  label: string,
+  source: 'All' | 'State' | 'Tribe',
+};
+
 type Props = {
-  activeState: {
-    value: string,
-    label: string,
-    source: 'All' | 'State' | 'Tribe',
-  },
+  activeState: ActiveState,
+  organizationData: Object,
   surveyLoading: boolean,
   surveyDocuments: Object,
-  assessmentsLoading: boolean,
-  documentServiceError: boolean,
   surveyServiceError: boolean,
 };
 
 function Documents({
   activeState,
+  organizationData,
   surveyLoading,
   surveyDocuments,
-  assessmentsLoading,
-  assessmentDocuments,
-  documentServiceError,
   surveyServiceError,
 }: Props) {
   const [surveyDocumentsRanked, setSurveyDocumentsRanked] = useState([]);
@@ -117,16 +116,33 @@ function Documents({
   }, [surveyDocuments, documentOrder]);
 
   useEffect(() => {
-    if (documentOrder.status === 'fetching') return;
+    if (
+      organizationData.status === 'fetching' ||
+      documentOrder.status === 'fetching'
+    ) {
+      return;
+    }
+
+    if (
+      organizationData.status === 'failure' ||
+      (organizationData.status === 'success' &&
+        !organizationData.data?.documents)
+    ) {
+      setAssessmentDocumentsRanked([]);
+      return;
+    }
 
     const rankings =
       documentOrder.status === 'success'
         ? documentOrder.data.integratedReportOrdering
         : {};
-    const documentsRanked = getDocumentTypeOrder(assessmentDocuments, rankings);
+    const documentsRanked = getDocumentTypeOrder(
+      organizationData.data.documents,
+      rankings,
+    );
 
     setAssessmentDocumentsRanked(documentsRanked);
-  }, [assessmentDocuments, documentOrder]);
+  }, [organizationData, documentOrder]);
 
   const getDocumentTypeOrder = (documents: Array<Object>, ranks: Object) => {
     let documentsRanked = [];
@@ -171,41 +187,50 @@ function Documents({
     <div css={containerStyles}>
       <h3>Documents Related to Integrated Report</h3>
       <em>Select a document below to download a copy of the report.</em>
-      {assessmentsLoading || documentOrder.status === 'fetching' ? (
-        <LoadingSpinner />
-      ) : documentServiceError ? (
+      {(organizationData.status === 'fetching' ||
+        documentOrder.status === 'fetching') && <LoadingSpinner />}
+      {organizationData.status === 'failure' && (
         <div css={modifiedErrorBoxStyles}>
           <p>{stateDocumentError(activeState.label)}</p>
         </div>
-      ) : (
+      )}
+      {organizationData.status === 'success' && (
         <>
           {documentOrder.status === 'failure' && (
             <div css={modifiedInfoBoxStyles}>{stateDocumentSortingError}</div>
           )}
           <DocumentsTable
+            activeState={activeState}
             documents={assessmentDocumentsSorted}
             type="integrated report"
           />
         </>
       )}
 
-      <h3>Documents Related to Statewide Statistical Surveys</h3>
-
-      {surveyLoading || documentOrder.status === 'fetching' ? (
-        <LoadingSpinner />
-      ) : surveyServiceError ? (
-        <div css={modifiedErrorBoxStyles}>
-          <p>{stateSurveyError(activeState.label)}</p>
-        </div>
-      ) : (
+      {activeState.source !== 'Tribe' && (
         <>
-          {documentOrder.status === 'failure' && (
-            <div css={modifiedInfoBoxStyles}>{stateDocumentSortingError}</div>
+          <h3>Documents Related to Statewide Statistical Surveys</h3>
+
+          {surveyLoading || documentOrder.status === 'fetching' ? (
+            <LoadingSpinner />
+          ) : surveyServiceError ? (
+            <div css={modifiedErrorBoxStyles}>
+              <p>{stateSurveyError(activeState.label)}</p>
+            </div>
+          ) : (
+            <>
+              {documentOrder.status === 'failure' && (
+                <div css={modifiedInfoBoxStyles}>
+                  {stateDocumentSortingError}
+                </div>
+              )}
+              <DocumentsTable
+                activeState={activeState}
+                documents={surveyDocumentsSorted}
+                type="statewide statistical survey"
+              />
+            </>
           )}
-          <DocumentsTable
-            documents={surveyDocumentsSorted}
-            type="statewide statistical survey"
-          />
         </>
       )}
     </div>
@@ -214,13 +239,20 @@ function Documents({
 
 // --- components (DocumentsTable) ---
 type DocumentsTableProps = {
+  activeState: ActiveState,
   documents: Array<Object>,
   type: string,
 };
 
-function DocumentsTable({ documents, type }: DocumentsTableProps) {
-  if (documents.length === 0)
-    return <p>No {type} documents available for this state.</p>;
+function DocumentsTable({ activeState, documents, type }: DocumentsTableProps) {
+  if (documents.length === 0) {
+    return (
+      <p>
+        No {type} documents available for this{' '}
+        {activeState.source.toLowerCase()}.
+      </p>
+    );
+  }
 
   return (
     <ReactTable

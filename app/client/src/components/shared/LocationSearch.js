@@ -10,10 +10,11 @@ import React, {
 import { css } from 'styled-components/macro';
 import { useNavigate } from 'react-router-dom';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
-import Locator from '@arcgis/core/tasks/Locator';
+import * as locator from '@arcgis/core/rest/locator';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import Point from '@arcgis/core/geometry/Point';
 import Search from '@arcgis/core/widgets/Search';
-import * as watchUtils from '@arcgis/core/core/watchUtils';
+import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 // components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
@@ -219,25 +220,13 @@ function LocationSearch({ route, label }: Props) {
       sources: [
         {
           layer: new FeatureLayer({
-            url: `${services.data.tribal}/4`,
+            url: `${services.data.tribal}/1`,
             listMode: 'hide',
           }),
           searchFields: ['TRIBE_NAME'],
           suggestionTemplate: '{TRIBE_NAME}',
           exactMatch: false,
           outFields: ['TRIBE_NAME'],
-          placeholder: placeholder,
-          name: 'EPA Tribal Areas - Lower 48 States',
-        },
-        {
-          layer: new FeatureLayer({
-            url: `${services.data.tribal}/1`,
-            listMode: 'hide',
-          }),
-          searchFields: ['NAME'],
-          suggestionTemplate: '{NAME}',
-          exactMatch: false,
-          outFields: ['NAME'],
           placeholder: placeholder,
           name: 'EPA Tribal Areas - Alaska Native Villages',
         },
@@ -251,7 +240,43 @@ function LocationSearch({ route, label }: Props) {
           exactMatch: false,
           outFields: ['TRIBE_NAME'],
           placeholder: placeholder,
-          name: 'EPA Tribal Areas - Alaska Reservations',
+          name: 'EPA Tribal Areas - American Indian Reservations',
+        },
+        {
+          layer: new FeatureLayer({
+            url: `${services.data.tribal}/3`,
+            listMode: 'hide',
+          }),
+          searchFields: ['TRIBE_NAME'],
+          suggestionTemplate: '{TRIBE_NAME}',
+          exactMatch: false,
+          outFields: ['TRIBE_NAME'],
+          placeholder: placeholder,
+          name: 'EPA Tribal Areas - American Indian Off-Reservation Trust Lands',
+        },
+        {
+          layer: new FeatureLayer({
+            url: `${services.data.tribal}/4`,
+            listMode: 'hide',
+          }),
+          searchFields: ['TRIBE_NAME'],
+          suggestionTemplate: '{TRIBE_NAME}',
+          exactMatch: false,
+          outFields: ['TRIBE_NAME'],
+          placeholder: placeholder,
+          name: 'EPA Tribal Areas - American Indian Oklahoma Statistical Areas',
+        },
+        {
+          layer: new FeatureLayer({
+            url: `${services.data.tribal}/5`,
+            listMode: 'hide',
+          }),
+          searchFields: ['TRIBE_NAME'],
+          suggestionTemplate: '{TRIBE_NAME}',
+          exactMatch: false,
+          outFields: ['TRIBE_NAME'],
+          placeholder: placeholder,
+          name: 'Virginia Federally Recognized Tribes',
         },
       ],
     },
@@ -311,20 +336,19 @@ function LocationSearch({ route, label }: Props) {
     });
 
     // create a watcher for the input text
-    watchUtils.watch(
-      search,
-      'searchTerm',
-      (newVal, oldVal, propName, event) => {
-        setInputText(newVal);
+    reactiveUtils.watch(
+      () => search.searchTerm,
+      () => {
+        setInputText(search.searchTerm);
       },
     );
 
     // create a watcher for the suggestions based on search input
-    watchUtils.watch(
-      search,
-      'suggestions',
-      (newVal, oldVal, propName, event) => {
-        setSuggestions(newVal ? newVal : []);
+    reactiveUtils.watch(
+      () => search.suggestions,
+      () => {
+        const suggestions = search.suggestions;
+        setSuggestions(suggestions ? suggestions : []);
       },
     );
 
@@ -572,12 +596,15 @@ function LocationSearch({ route, label }: Props) {
                     // query to get the feature and search based on the centroid
                     const params = result.source.layer.createQuery();
                     params.returnGeometry = true;
+                    params.outSpatialReference = SpatialReference.WGS84;
                     params.where = `${result.source.layer.objectIdField} = ${result.key}`;
                     result.source.layer
                       .queryFeatures(params)
                       .then((res) => {
                         if (res.features.length > 0) {
-                          const center = res.features[0].geometry.centroid;
+                          const center =
+                            res.features[0].geometry.centroid ??
+                            res.features[0].geometry;
                           formSubmit(result.text, center);
                           searchWidget.search(result.text);
                         }
@@ -974,9 +1001,7 @@ function LocationSearch({ route, label }: Props) {
                   navigator.geolocation.getCurrentPosition(
                     // success function called when geolocation succeeds
                     (position) => {
-                      const locatorTask = new Locator({
-                        url: services.data.locatorUrl,
-                      });
+                      const url = services.data.locatorUrl;
                       const params = {
                         location: new Point({
                           x: position.coords.longitude,
@@ -984,8 +1009,8 @@ function LocationSearch({ route, label }: Props) {
                         }),
                       };
 
-                      locatorTask
-                        .locationToAddress(params)
+                      locator
+                        .locationToAddress(url, params)
                         .then((candidate) => {
                           setGeolocating(false);
                           navigate(

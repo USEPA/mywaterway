@@ -25,8 +25,9 @@ import {
   StateTribalTabsProvider,
 } from 'contexts/StateTribalTabs';
 import {
+  // useOrganizationsContext, // TODO-Tribal - uncomment this
   useServicesContext,
-  useTribeMappingContext,
+  // useTribeMappingContext, // TODO-Tribal - uncomment this
 } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
@@ -164,33 +165,61 @@ const searchContainerStyles = css`
   }
 `;
 
-const searchSourceButtonStyles = css`
-  height: 38px;
-  border-top-left-radius: 4px;
-  border-bottom-left-radius: 4px;
-`;
+// TODO-Tribal - Uncomment the block below
+// const searchSourceButtonStyles = css`
+//   height: 38px;
+//   border-top-left-radius: 4px;
+//   border-bottom-left-radius: 4px;
+// `;
 
 function StateTribal() {
   const location = useLocation();
   const navigate = useNavigate();
+  // const organizations = useOrganizationsContext(); // TODO-Tribal - uncomment this
   const services = useServicesContext();
-  const tribeMapping = useTribeMappingContext();
+  // const tribeMapping = useTribeMappingContext(); // TODO-Tribal - uncomment this
 
   // redirect to '/stateandtribe' if the url is /state or /tribe
   useEffect(() => {
     const pathname = window.location.pathname.toLowerCase();
-    if (['/state', '/state/', '/tribe', '/tribe/'].includes(pathname)) {
-      navigate('/state-and-tribal');
+    // TODO-Tribal - Uncomment lines below and remove the 3 state lines
+    // if (['/state', '/state/', '/tribe', '/tribe/'].includes(pathname)) {
+    //   navigate('/state-and-tribal', { replace: true });
+    // }
+    if (['/state', '/state/'].includes(pathname)) {
+      navigate('/state', { replace: true });
     }
   }, [navigate]);
 
   // get tribes from the tribeMapping data
-  const [tribes, setTribes] = useState([]);
-  useEffect(() => {
-    if (tribeMapping.status !== 'success') return;
+  // const [tribes, setTribes] = useState({ status: 'success', data: [] }); // TODO-Tribal - Uncomment this
+  const [tribes] = useState({ status: 'success', data: [] }); // TODO-Tribal - Delete this
+  // TODO-Tribal - Uncomment the block below
+  /* useEffect(() => {
+    if (
+      organizations.status === 'failure' ||
+      tribeMapping.status === 'failure'
+    ) {
+      setTribes({ status: 'failure', data: [] });
+      return;
+    }
+    if (
+      organizations.status !== 'success' ||
+      tribeMapping.status !== 'success'
+    ) {
+      return;
+    }
 
     const tempTribes = [];
     tribeMapping.data.forEach((tribe) => {
+      const tribeAttains = organizations.data.features.find(
+        (item) =>
+          item.attributes.orgtype === 'Tribe' &&
+          item.attributes.organizationid.toUpperCase() ===
+            tribe.attainsId.toUpperCase(),
+      );
+      if (!tribeAttains) return;
+
       tempTribes.push({
         ...tribe,
         value: tribe.attainsId,
@@ -199,8 +228,8 @@ function StateTribal() {
       });
     });
 
-    setTribes(tempTribes);
-  }, [tribeMapping]);
+    setTribes({ status: 'success', data: tempTribes });
+  }, [organizations, tribeMapping]); */
 
   // query attains for the list of states
   const [states, setStates] = useState({ status: 'fetching', data: [] });
@@ -232,7 +261,8 @@ function StateTribal() {
 
   // reset active state if on state intro page
   useEffect(() => {
-    if (location.pathname === '/state-and-tribal') {
+    // TODO-Tribal - Replace with /state with /state-and-tribal
+    if (location.pathname === '/state') {
       setSelectedStateTribe(null);
       setActiveState({
         label: '',
@@ -253,18 +283,21 @@ function StateTribal() {
   // updates the selectOptions based on the selectedSource
   useEffect(() => {
     const options = [];
-    if (selectedSource === 'All') {
+    options.push(...states.data); // TODO-Tribal - Delete this line
+
+    // TODO-Tribal - Uncomment the block below
+    /* if (selectedSource === 'All') {
       options.push({
         label: 'State',
         options: states.data,
       });
       options.push({
         label: 'Tribe',
-        options: tribes,
+        options: tribes.data,
       });
     }
     if (selectedSource === 'State') options.push(...states.data);
-    if (selectedSource === 'Tribe') options.push(...tribes);
+    if (selectedSource === 'Tribe') options.push(...tribes.data); */
 
     setSelectOptions(options);
   }, [selectedSource, states, tribes]);
@@ -355,20 +388,38 @@ function StateTribal() {
     }
   }, [sourceCursor, sourceEnterPress]);
 
+  const handleSubmit = (selection) => {
+    if (!selection) return;
+    setActiveState(selection);
+
+    if (selection.source === 'State') {
+      navigate(`/state/${selection.value}/water-quality-overview`);
+    }
+    if (selection.source === 'Tribe') {
+      navigate(`/tribe/${selection.value}`);
+    }
+  };
+
   return (
     <Page>
       <TabLinks />
 
       <div css={containerStyles} className="container" data-content="state">
-        {states.status === 'fetching' && <LoadingSpinner />}
+        {states.status === 'fetching' ||
+          (tribes.status === 'fetching' && <LoadingSpinner />)}
 
         {states.status === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
-            <p>{stateListError}</p>
+            <p>{stateListError('State')}</p>
+          </div>
+        )}
+        {tribes.status === 'failure' && (
+          <div css={modifiedErrorBoxStyles}>
+            <p>{stateListError('Tribe')}</p>
           </div>
         )}
 
-        {states.status === 'success' && (
+        {(states.status === 'success' || tribes.status === 'success') && (
           <>
             <label css={promptStyles} htmlFor="hmw-state-select-input">
               <strong>Let’s get started!</strong>&nbsp;&nbsp;
@@ -378,22 +429,7 @@ function StateTribal() {
               </em>
             </label>
 
-            <form
-              css={formStyles}
-              onSubmit={(ev) => {
-                ev.preventDefault();
-                setActiveState(selectedStateTribe);
-
-                if (selectedStateTribe.source === 'State') {
-                  navigate(
-                    `/state/${selectedStateTribe.value}/water-quality-overview`,
-                  );
-                }
-                if (selectedStateTribe.source === 'Tribe') {
-                  navigate(`/tribe/${selectedStateTribe.value}`);
-                }
-              }}
-            >
+            <div css={formStyles}>
               <div
                 css={searchContainerStyles}
                 role="presentation"
@@ -402,7 +438,8 @@ function StateTribal() {
                   `${sourcesVisible ? 'esri-search--sources' : ''} `
                 }
               >
-                <div
+                {/* TODO-Tribal - Uncomment the block below */}
+                {/* <div
                   css={searchSourceButtonStyles}
                   role="button"
                   title="Search in"
@@ -474,38 +511,29 @@ function StateTribal() {
                       );
                     })}
                   </ul>
-                </div>
+                </div> */}
                 <Select
                   id="hmw-state-select"
                   inputId="hmw-state-select-input"
                   ref={statesSelect}
                   css={selectStyles}
                   classNamePrefix="Select"
-                  placeholder={
-                    selectedSource === 'All'
-                      ? 'Select a state or tribe...'
-                      : selectedSource === 'State'
-                      ? 'Select a state...'
-                      : 'Select a tribe...'
-                  }
+                  // TODO-Tribal - Uncomment the placeholder below
+                  // placeholder={
+                  //   selectedSource === 'All'
+                  //     ? 'Select a state or tribe...'
+                  //     : selectedSource === 'State'
+                  //     ? 'Select a state...'
+                  //     : 'Select a tribe...'
+                  // }
+                  placeholder="Select a state..." // TODO-Tribal - Delete this
                   options={selectOptions}
                   value={selectedStateTribe}
                   onKeyDown={(ev) => {
                     if (ev.key !== 'Enter') return;
-
                     const selection = statesSelect.current.state.focusedOption;
                     if (!selection) return;
-
-                    setActiveState(selection);
-
-                    if (selectedStateTribe.source === 'State') {
-                      navigate(
-                        `/state/${selectedStateTribe.value}/water-quality-overview`,
-                      );
-                    }
-                    if (selectedStateTribe.source === 'Tribe') {
-                      navigate(`/tribe/${selectedStateTribe.value}`);
-                    }
+                    handleSubmit(statesSelect.current.state.focusedOption);
                   }}
                   onChange={(ev) => {
                     setSelectedStateTribe(ev);
@@ -514,11 +542,15 @@ function StateTribal() {
                 />
               </div>
 
-              <button type="submit" className="btn" css={buttonStyles}>
+              <button
+                onClick={() => handleSubmit(selectedStateTribe)}
+                className="btn"
+                css={buttonStyles}
+              >
                 <i className="fas fa-angle-double-right" aria-hidden="true" />{' '}
                 Go
               </button>
-            </form>
+            </div>
           </>
         )}
 
@@ -615,6 +647,7 @@ function StateTribal() {
                         )}
 
                         <DisclaimerModal css={disclaimerStyles}>
+                          {/* TODO-Tribal - Replace "local or state" with "local, state, or tribal" */}
                           <p>
                             The condition of a waterbody is dynamic and can
                             change at any time, and the information in How’s My
@@ -642,7 +675,7 @@ function StateTribal() {
             )}
 
             {/* Outlet is either StateIntro or StateTabs */}
-            <Outlet />
+            <Outlet context={{ tribes, states }} />
           </div>
         )}
       </div>

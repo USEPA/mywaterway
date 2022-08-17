@@ -11,8 +11,7 @@ import { css } from 'styled-components/macro';
 import { useWindowSize } from '@reach/window-size';
 import Select, { createFilter } from 'react-select';
 import { VariableSizeList } from 'react-window';
-import Query from '@arcgis/core/rest/support/Query';
-import QueryTask from '@arcgis/core/tasks/QueryTask';
+import * as query from '@arcgis/core/rest/query';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -25,10 +24,10 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import {
-  MapHighlightContext,
+  useMapHighlightState,
   MapHighlightProvider,
 } from 'contexts/MapHighlight';
-import { FullscreenContext } from 'contexts/Fullscreen';
+import { useFullscreenState } from 'contexts/Fullscreen';
 import {
   useReportStatusMappingContext,
   useServicesContext,
@@ -42,7 +41,11 @@ import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
 // styles
 import { reactSelectStyles } from 'styles/index.js';
 // errors
-import { stateGeneralError, state303dStatusError } from 'config/errorMessages';
+import {
+  stateGeneralError,
+  status303dError,
+  status303dShortError,
+} from 'config/errorMessages';
 
 const defaultDisplayOption = {
   label: 'Overall Waterbody Condition',
@@ -79,10 +82,8 @@ function retrieveFeatures({
 }) {
   return new Promise((resolve, reject) => {
     // query to get just the ids since there is a maxRecordCount
-    const queryTask = new QueryTask({ url: url });
-    const idsQuery = new Query(queryParams);
-    queryTask
-      .executeForIds(idsQuery)
+    query
+      .executeForIds(url, queryParams)
       .then((objectIds) => {
         // set the features value of the data to an empty array if no objectIds
         // were returned.
@@ -98,11 +99,11 @@ function retrieveFeatures({
         const requests = [];
 
         chunkedObjectIds.forEach((chunk: Array<string>) => {
-          const queryChunk = new Query({
+          const queryChunk = {
             ...queryParams,
             where: `OBJECTID in (${chunk.join(',')})`,
-          });
-          const request = queryTask.execute(queryChunk);
+          };
+          const request = query.executeQueryJSON(url, queryChunk);
           requests.push(request);
         });
 
@@ -228,7 +229,7 @@ function AdvancedSearch() {
   const services = useServicesContext();
 
   const {
-    currentReportStatus,
+    organizationData,
     currentSummary,
     currentReportingCycle,
     setCurrentReportingCycle,
@@ -237,7 +238,7 @@ function AdvancedSearch() {
     setStateAndOrganization,
   } = useContext(StateTribalTabsContext);
 
-  const { fullscreenActive } = useContext(FullscreenContext);
+  const { fullscreenActive } = useFullscreenState();
 
   const {
     mapView,
@@ -518,18 +519,15 @@ function AdvancedSearch() {
   useEffect(() => {
     if (!nextFilter || serviceError) return;
 
-    let query = new Query({
+    // query to get just the ids since there is a maxRecordCount
+    const url = services.data.waterbodyService.summary;
+    const queryParams = {
       returnGeometry: false,
       where: nextFilter,
       outFields: ['*'],
-    });
-
-    // query to get just the ids since there is a maxRecordCount
-    let queryTask = new QueryTask({
-      url: services.data.waterbodyService.summary,
-    });
-    queryTask
-      .executeForCount(query)
+    };
+    query
+      .executeForCount(url, queryParams)
       .then((res) => {
         setNumberOfRecords(res ? res : 0);
         setSearchLoading(false);
@@ -714,7 +712,7 @@ function AdvancedSearch() {
 
   // Makes the view on map button work for the state page
   // (i.e. switches and scrolls to the map when the selected graphic changes)
-  const { selectedGraphic } = useContext(MapHighlightContext);
+  const { selectedGraphic } = useMapHighlightState();
   useEffect(() => {
     if (!selectedGraphic) return;
 
@@ -1028,7 +1026,7 @@ function AdvancedSearch() {
         style={{ width: fullscreenActive ? width : '100%' }}
       >
         {reportStatusMapping.status === 'failure' && (
-          <div css={mapFooterMessageStyles}>{state303dStatusError}</div>
+          <div css={mapFooterMessageStyles}>{status303dError}</div>
         )}
         <div css={mapFooterStatusStyles}>
           <strong>
@@ -1038,28 +1036,32 @@ function AdvancedSearch() {
             / Year Last Reported:
           </strong>
           &nbsp;&nbsp;
-          {!currentReportStatus ? (
-            <LoadingSpinner />
-          ) : (
+          {organizationData.status === 'fetching' && <LoadingSpinner />}
+          {organizationData.status === 'failure' && <>{status303dShortError}</>}
+          {organizationData.status === 'success' && (
             <>
               {reportStatusMapping.status === 'fetching' && <LoadingSpinner />}
               {reportStatusMapping.status === 'failure' && (
-                <>{currentReportStatus}</>
+                <>{organizationData.data.reportStatusCode}</>
               )}
               {reportStatusMapping.status === 'success' && (
                 <>
-                  {reportStatusMapping.data.hasOwnProperty(currentReportStatus)
-                    ? reportStatusMapping.data[currentReportStatus]
-                    : currentReportStatus}
+                  {reportStatusMapping.data.hasOwnProperty(
+                    organizationData.data.reportStatusCode,
+                  )
+                    ? reportStatusMapping.data[
+                        organizationData.data.reportStatusCode
+                      ]
+                    : organizationData.data.reportStatusCode}
                 </>
               )}
             </>
           )}
           <> / </>
+          {currentReportingCycle.status === 'fetching' && <LoadingSpinner />}
           {currentReportingCycle.status === 'success' && (
             <>{currentReportingCycle.reportingCycle}</>
           )}
-          {currentReportingCycle.status === 'fetching' && <LoadingSpinner />}
         </div>
       </div>
     </StateMap>

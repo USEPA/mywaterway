@@ -102,8 +102,12 @@ function Home() {
           <Link to="/community" css={placeButtonLinkStyles}>
             Community
           </Link>
-          <Link to="/state-and-tribal" css={placeButtonLinkStyles}>
+          {/* TODO-Tribal - Uncomment lines below and remove State Link */}
+          {/* <Link to="/state-and-tribal" css={placeButtonLinkStyles}>
             State & Tribal
+          </Link> */}
+          <Link to="/state" css={placeButtonLinkStyles}>
+            State
           </Link>
           <Link to="/national" css={placeButtonLinkStyles}>
             National

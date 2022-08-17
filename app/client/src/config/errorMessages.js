@@ -14,6 +14,10 @@ export const streamgagesError =
 export const monitoringError =
   'Sample locations information is temporarily unavailable, please try again later.';
 
+// waterqualitydata.us - Result Search (downloads)
+export const monitoringDownloadError =
+  'There was an error downloading the monitoring location data, please try again later.';
+
 // attains.epa.gov - Huc12summary Service
 export const huc12SummaryError =
   'Waterbody information is temporarily unavailable, please try again later.';
@@ -129,8 +133,8 @@ export const stateSurveyError = (stateName) =>
   `${stateName} survey documents are temporarily unavailable, please try again later.`;
 
 // attains state list service
-export const stateListError =
-  'State information is temporarily unavailable, please try again later.';
+export const stateListError = (source) =>
+  `${source} list information is temporarily unavailable, please try again later.`;
 
 // grts.epa.gov stories service
 export const stateStoriesError =
@@ -144,8 +148,10 @@ export const stateGeneralError = (source = 'State') =>
 export const stateNoDataError = (stateName) =>
   `No data available ${stateName && 'for ' + stateName}.`; // conditionals in case state name is undefined or an empty string
 
-export const state303dStatusError =
+export const status303dError =
   'There was an issue looking up the 303(d) List Status code. Because of this, the status code may not look familiar.';
+
+export const status303dShortError = 'Error getting 303(d) List Status';
 
 // this message is displayed in the State metrics section and more information section when the metrics service is down
 export const stateMetricsError = (source) =>

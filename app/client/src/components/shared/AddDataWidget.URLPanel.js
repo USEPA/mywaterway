@@ -20,7 +20,7 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { errorBoxStyles, noteBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { AddDataWidgetContext } from 'contexts/AddDataWidget';
+import { useAddDataWidgetState } from 'contexts/AddDataWidget';
 // config
 import {
   unsupportedLayerMessage,
@@ -82,7 +82,7 @@ const modifiedLinkButtonStyles = css`
 
 // --- components (URLPanel) ---
 function URLPanel() {
-  const { widgetLayers, setWidgetLayers } = useContext(AddDataWidgetContext);
+  const { widgetLayers, setWidgetLayers } = useAddDataWidgetState();
   const { mapView } = useContext(LocationSearchContext);
 
   // filters
