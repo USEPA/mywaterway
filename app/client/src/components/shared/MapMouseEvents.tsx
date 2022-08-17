@@ -55,7 +55,10 @@ function getGraphicsFromResponse(
 ) {
   if (!res.results || res.results.length === 0) return null;
 
-  const matches = res.results.filter((result: any) => {
+  const matches = res.results.filter((item) => {
+    const result = item as __esri.GraphicHit;
+    if(!result.graphic) return null;
+
     const { attributes: attr } = result.graphic;
     const layer = result.graphic.layer as Layer;
     // ignore huc 12 boundaries, map-marker, highlight and provider graphics
@@ -83,9 +86,9 @@ function getGraphicsFromResponse(
     if (result.graphic.layer.type === 'vector-tile') return null;
 
     return result;
-  });
+  }) as __esri.GraphicHit[];
 
-  return matches.map((match: any) => match.graphic);
+  return matches.map((match) => match.graphic);
 }
 
 function getGraphicFromResponse(
