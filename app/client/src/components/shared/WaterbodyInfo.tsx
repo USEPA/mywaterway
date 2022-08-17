@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 // components
+import { BoxRowGrid } from 'components/shared/BoxRow';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -33,7 +34,6 @@ import {
 // types
 import type { ReactNode } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
-import type { FlattenSimpleInterpolation } from 'styled-components';
 import type {
   ClickedHucState,
   Feature,
@@ -67,30 +67,6 @@ function renderLink(label: string, link: string) {
       </a>
     </p>
   );
-}
-
-function row(
-  label: ReactNode | string,
-  value: ReactNode | string,
-  style: FlattenSimpleInterpolation,
-  dataStatus = 'success',
-) {
-  return (
-    <div className="row-container" css={style}>
-      <em className="label">{label}:</em>
-      {dataStatus === 'fetching' && <LoadingSpinner />}
-      {dataStatus === 'failure' && <p className="value">N/A</p>}
-      {dataStatus === 'success' && <p className="value">{value}</p>}
-    </div>
-  );
-}
-
-function rowGrid(
-  label: ReactNode | string,
-  value: ReactNode | string,
-  dataStatus = 'success',
-) {
-  return row(label, value, sectionInlineGridStyles, dataStatus);
 }
 
 function labelValue(
@@ -266,63 +242,23 @@ const changeWatershedContainerStyles = css`
   }
 `;
 
-const sectionInlineStyles = css`
-  padding: 0.7rem 0;
+const boxRowStyles = css`
   border-bottom: 1px solid #d8dfe2;
-  width: 100%;
 
-  &:last-of-type {
-    border-bottom: none;
+  .row-content {
+    padding: 0.7rem 0;
   }
 
-  &:first-of-type {
-    border-bottom: 1px solid #d8dfe2;
-    border-top: 1px solid #d8dfe2;
-  }
-
-  /* loading icon */
-  svg {
-    display: inline-block;
-    margin: -0.5rem;
-    height: 1.25rem;
-  }
-
-  h3,
-  em {
-    margin-right: 0.5em;
-  }
-
-  p {
-    padding-bottom: 0;
-  }
-
-  .label,
-  .value {
-    display: inline-block;
-    line-height: 1.25;
-    margin-top: 0;
-    margin-bottom: 0;
+  strong {
+    font-weight: normal;
+    font-style: italic;
   }
 `;
 
-const sectionInlineGridStyles = css`
-  ${sectionInlineStyles}
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-
-  h3,
-  em {
-    grid-column: 1;
-  }
-
+const boxRowWideStyles = css`
+  ${boxRowStyles}
   p {
-    grid-column: 2;
-  }
-
-  .label,
-  .value {
-    margin-bottom: auto;
-    margin-top: auto;
+    grid-template-columns: 2fr 1fr;
   }
 `;
 
@@ -587,12 +523,36 @@ function WaterbodyInfo({
   const dischargerContent = (
     <>
       <div css={tableStyles} className="table">
-        {rowGrid('Compliance Status', attributes.CWPStatus)}
-        {rowGrid('Permit Status', attributes.CWPPermitStatusDesc)}
-        {rowGrid('Significant Effluent Violation within the last 3 years', hasEffluentViolations ? 'Yes' : 'No')}
-        {rowGrid('Inspection within the last 5 years', bool(attributes.CWPInspectionCount))}
-        {rowGrid('Formal Enforcement Action in the last 5 years', bool(attributes.CWPFormalEaCnt))}
-        {rowGrid('NPDES ID', attributes.SourceID)}
+        <BoxRowGrid
+          label='Compliance Status'
+          value={attributes.CWPStatus}
+          styles={boxRowWideStyles}
+        />
+        <BoxRowGrid
+          label='Permit Status'
+          value={attributes.CWPPermitStatusDesc}
+          styles={boxRowWideStyles}
+        />
+        <BoxRowGrid
+          label='Significant Effluent Violation within the last 3 years'
+          value={hasEffluentViolations ? 'Yes' : 'No'}
+          styles={boxRowWideStyles}
+        />
+        <BoxRowGrid
+          label='Inspection within the last 5 years'
+          value={bool(attributes.CWPInspectionCount)}
+          styles={boxRowWideStyles}
+        />
+        <BoxRowGrid
+          label='Formal Enforcement Action in the last 5 years'
+          value={bool(attributes.CWPFormalEaCnt)}
+          styles={boxRowWideStyles}
+        />
+        <BoxRowGrid
+          label='NPDES ID'
+          value={attributes.SourceID}
+          styles={boxRowWideStyles}
+        />
       </div>
 
       <p>
@@ -705,10 +665,26 @@ function WaterbodyInfo({
   const wsioContent = (
     <>
       <div css={tableStyles} className="table">
-        {rowGrid('Watershed Name', attributes.NAME_HUC12)}
-        {rowGrid('Watershed', attributes.HUC12_TEXT)}
-        {rowGrid('State', attributes.STATES_ALL)}
-        {rowGrid('Watershed Health Score', Math.round(attributes.PHWA_HEALTH_NDX_ST * 100) / 100)}
+        <BoxRowGrid
+          label='Watershed Name'
+          value={attributes.NAME_HUC12}
+          styles={boxRowStyles}
+        />
+        <BoxRowGrid
+          label='Watershed'
+          value={attributes.HUC12_TEXT}
+          styles={boxRowStyles}
+        />
+        <BoxRowGrid
+          label='State'
+          value={attributes.STATES_ALL}
+          styles={boxRowStyles}
+        />
+        <BoxRowGrid
+          label='Watershed Health Score'
+          value={Math.round(attributes.PHWA_HEALTH_NDX_ST * 100) / 100}
+          styles={boxRowStyles}
+        />
       </div>
     </>
   );
@@ -1356,33 +1332,63 @@ function MonitoringLocationsContent({
   return (
     <>
       <div css={tableStyles} className="table">
-        {rowGrid(<>Organ&shy;ization Name</>, orgName)}
-        {rowGrid('Location Name', locationName)}
-        {rowGrid('Water Type', locationType)}
-        {rowGrid('Organization ID', orgId)}
-        {rowGrid(<>Monitor&shy;ing Site ID</>, siteId)}
-        {rowGrid(
-          <GlossaryTerm term="Monitoring Samples">
-            Monitor&shy;ing Samples
-          </GlossaryTerm>,
-          <>
-            {Number(stationTotalSamples).toLocaleString()}
-            {timeframe ? <span css={dateRangeStyles}>(all time)</span> : null}
-          </>,
-        )}
-        {rowGrid(
-          <GlossaryTerm term="Monitoring Measurements">
-            Monitor&shy;ing Measure&shy;ments
-          </GlossaryTerm>,
-          <>
-            {Number(stationTotalMeasurements).toLocaleString()}
-            {timeframe && (
-              <span css={dateRangeStyles}>
-                ({timeframe[0]} - {timeframe[1]})
-              </span>
-            )}
-          </>,
-        )}
+        <BoxRowGrid
+          label={<>Organ&shy;ization Name</>}
+          value={orgName}
+          styles={boxRowStyles}
+        />
+        <BoxRowGrid
+          label='Location Name'
+          value={locationName}
+          styles={boxRowStyles}
+        />
+        <BoxRowGrid
+          label='Water Type'
+          value={locationType}
+          styles={boxRowStyles}
+        />
+        <BoxRowGrid
+          label='Organization ID'
+          value={orgId}
+          styles={boxRowStyles}
+        />
+        <BoxRowGrid
+          label={<>Monitor&shy;ing Site ID</>}
+          value={siteId}
+          styles={boxRowStyles}
+        />
+        <BoxRowGrid
+          label={(
+            <GlossaryTerm term="Monitoring Samples">
+              Monitor&shy;ing Samples
+            </GlossaryTerm>
+          )}
+          value={(
+            <>
+              {Number(stationTotalSamples).toLocaleString()}
+              {timeframe ? <span css={dateRangeStyles}>(all time)</span> : null}
+            </>
+          )}
+          styles={boxRowStyles}
+        />
+        <BoxRowGrid
+          label={(
+            <GlossaryTerm term="Monitoring Measurements">
+              Monitor&shy;ing Measure&shy;ments
+            </GlossaryTerm>
+          )}
+          value={(
+            <>
+              {Number(stationTotalMeasurements).toLocaleString()}
+              {timeframe && (
+                <span css={dateRangeStyles}>
+                  ({timeframe[0]} - {timeframe[1]})
+                </span>
+              )}
+            </>
+          )}
+          styles={boxRowStyles}
+        />
       </div>
 
       {!onMonitoringReportPage && (
@@ -1583,11 +1589,31 @@ function UsgsStreamgagesContent({ feature }: { feature: Feature }) {
   return (
     <>
       <div css={tableStyles} className="table">
-        {rowGrid(<>Organ&shy;ization Name</>, orgName)}
-        {rowGrid(<>Locat&shy;ion Name</>, locationName)}
-        {rowGrid('Water Type', locationType)}
-        {rowGrid('Organization ID', orgId)}
-        {rowGrid(<>Monitor&shy;ing Site ID</>, siteId)}
+        <BoxRowGrid
+          label={<>Organ&shy;ization Name</>}
+          value={orgName}
+          styles={boxRowStyles}
+        />
+        <BoxRowGrid
+          label={<>Locat&shy;ion Name</>}
+          value={locationName}
+          styles={boxRowStyles}
+        />
+        <BoxRowGrid
+          label='Water Type'
+          value={locationType}
+          styles={boxRowStyles}
+        />
+        <BoxRowGrid
+          label='Organization ID'
+          value={orgId}
+          styles={boxRowStyles}
+        />
+        <BoxRowGrid
+          label={<>Monitor&shy;ing Site ID</>}
+          value={siteId}
+          styles={boxRowStyles}
+        />
       </div>
 
       <table css={measurementTableStyles} className="table">
