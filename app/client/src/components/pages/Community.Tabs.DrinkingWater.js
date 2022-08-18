@@ -7,6 +7,7 @@ import Graphic from '@arcgis/core/Graphic';
 import Polygon from '@arcgis/core/geometry/Polygon';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 // components
+import { ListContent } from 'components/shared/BoxContent';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -27,7 +28,7 @@ import { summarizeAssessments } from 'utils/utils';
 // errors
 import { countyError, withdrawerError } from 'config/errorMessages';
 // styles
-import { colors, tableStyles, toggleTableStyles } from 'styles/index.js';
+import { colors, toggleTableStyles } from 'styles/index.js';
 
 const containerStyles = css`
   @media (min-width: 960px) {
@@ -158,83 +159,61 @@ function createAccordionItem(
         </>
       }
     >
-      <table css={tableStyles} className="table">
-        <tbody>
-          <tr>
-            <td>
-              <em>Public Water System ID (PWSID):</em>
-            </td>
-            <td>{item.pwsid}</td>
-          </tr>
-          {item.tribal_name && (
-            <tr>
-              <td>
-                <em>Tribal Name:</em>
-              </td>
-              <td>{item.tribal_name}</td>
-            </tr>
-          )}
-          {item.tribal_code && (
-            <tr>
-              <td>
-                <em>Tribal ID:</em>
-              </td>
-              <td>{item.tribal_code}</td>
-            </tr>
-          )}
-          <tr>
-            <td>
-              <em>Public Water System Status (PWS Activity):</em>
-            </td>
-            <td>{item.pws_activity}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Public Water System Population Served:</em>
-            </td>
-            <td>
-              {item.population_served_count &&
-                item.population_served_count.toLocaleString()}
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <em>Drinking Water System Type:</em>
-            </td>
-            <td>{item.pws_type}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Drinking Water Health Based Violations:</em>
-            </td>
-            <td>{item.violations === 'Y' ? 'Yes' : 'No'}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>
-                Drinking Water {isWithdrawer ? 'Facility' : 'System'} Source:
-              </em>
-            </td>
-            <td>
-              {fixCapitalization(
-                isWithdrawer ? item.water_type_calc : item.gw_sw,
-              )}
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <em>Drinking Water System Information:</em>
-            </td>
-            <td>
-              <a href={url} target="_blank" rel="noopener noreferrer">
-                More Details
-              </a>
-              &nbsp;&nbsp;
-              <small css={disclaimerStyles}>(opens new browser tab)</small>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <ListContent
+        rows={[
+          {
+            label: 'Public Water System ID (PWSID)',
+            value: item.pwsid,
+          },
+          item.tribal_name
+            ? {
+                label: 'Tribal Name',
+                value: item.tribal_name,
+              }
+            : null,
+          item.tribal_code
+            ? {
+                label: 'Tribal ID',
+                value: item.tribal_code,
+              }
+            : null,
+          {
+            label: 'Public Water System Status (PWS Activity)',
+            value: item.pws_activity,
+          },
+          {
+            label: 'Public Water System Population Served',
+            value: item.population_served_count?.toLocaleString(),
+          },
+          {
+            label: 'Drinking Water System Type',
+            value: item.pws_type,
+          },
+          {
+            label: 'Drinking Water Health Based Violations',
+            value: item.violations === 'Y' ? 'Yes' : 'No',
+          },
+          {
+            label: `Drinking Water ${
+              isWithdrawer ? 'Facility' : 'System'
+            } Source`,
+            value: fixCapitalization(
+              isWithdrawer ? item.water_type_calc : item.gw_sw,
+            ),
+          },
+          {
+            label: 'Drinking Water System Information',
+            value: (
+              <>
+                <a href={url} target="_blank" rel="noopener noreferrer">
+                  More Details
+                </a>
+                <small css={disclaimerStyles}>(opens new browser tab)</small>
+              </>
+            ),
+          },
+        ]}
+      />
     </AccordionItem>
   );
 }

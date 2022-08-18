@@ -13,7 +13,7 @@ const contentStyles = css`
 `;
 
 const flexRowStyles = css`
-  align-items: flex-end;
+  align-items: baseline;
   border-bottom: 1px solid #d8dfe2;
   display: flex;
   justify-content: flex-start;
@@ -27,7 +27,7 @@ const flexRowStyles = css`
     border-bottom: 1px solid #d8dfe2;
   }
 
-  strong {
+  .row-label {
     width: auto;
   }
 `;
@@ -37,40 +37,71 @@ const gridStyles = css`
   display: grid;
   grid-template-columns: auto 1fr;
 
-  span,
-  strong {
+  .row-cell {
     border-bottom: 1px solid #d8dfe2;
     width: 100%;
 
-    &:last-of-type {
+    &:nth-last-of-type(-n + 2) {
       border-bottom: none;
     }
 
-    &:first-of-type {
+    &:nth-of-type(-n + 2) {
       border-bottom: 1px solid #d8dfe2;
     }
   }
 `;
 
-const rowStyles = css`
-  align-items: flex-end;
+const listContentStyles = css`
+  border-top: 1px solid #d8dfe2;
+  margin-bottom: 1rem;
+
+  .row-cell {
+    padding: 0.75rem;
+    &:nth-of-type(even) {
+      padding-right: 0.75rem;
+    }
+    &:nth-of-type(odd) {
+      padding-left: 0.75rem;
+    }
+    small {
+      align-self: flex-end;
+      margin-bottom: 0;
+    }
+  }
+
+  strong {
+    font-weight: 400;
+    font-style: italic;
+  }
+`;
+
+const rowCellStyles = css`
+  align-items: flex-start;
   display: inline-flex;
-  font-size: 1em;
+  flex-wrap: wrap;
+  font-size: 0.875em;
+  gap: 0.3em;
   height: 100%;
-  line-height: 1.25;
-  margin: auto 0;
-  padding: 0.5em 0;
-`;
+  line-height: 1.125;
+  padding: 0.5em;
 
-const rowLabelStyles = css`
-  ${rowStyles}
-  grid-column: 1;
-  padding-right: 0.5em;
-`;
+  @media (min-width: 560px) {
+    font-size: 1em;
+  }
 
-const rowValueStyles = css`
-  ${rowStyles}
-  grid-column: 2;
+  & > * {
+    margin-bottom: auto;
+  }
+
+  &:nth-of-type(odd) {
+    grid-column: 1;
+    padding-left: 0;
+  }
+
+  &:nth-of-type(even) {
+    grid-column: 2;
+    padding-right: 0;
+  }
 
   /* loading icon */
   svg {
@@ -93,14 +124,37 @@ export function BoxContent({ layout = 'grid', rows, styles }: BoxContentProps) {
     ${layout === 'grid' ? gridStyles : contentStyles}
     ${styles}
   `;
+
   const BoxRow = layout === 'flex' ? FlexRow : Row;
+
   return (
     <section css={mergedStyles}>
-      {rows.map(({ label, value, status = 'success' }) => (
-        <BoxRow label={label} value={value} status={status} />
-      ))}
+      {rows.map(
+        (item, i) =>
+          item && (
+            <BoxRow
+              key={i}
+              label={item.label}
+              value={item.value}
+              status={item.status ?? 'success'}
+            />
+          ),
+      )}
     </section>
   );
+}
+
+export function ListContent({
+  layout = 'grid',
+  rows,
+  styles,
+}: BoxContentProps) {
+  const mergedStyles = css`
+    ${listContentStyles}
+    ${styles}
+  `;
+
+  return <BoxContent layout={layout} rows={rows} styles={mergedStyles} />;
 }
 
 interface RowProps {
@@ -116,10 +170,10 @@ function Row({ label, value, status = 'success' }: RowProps) {
 
   return (
     <>
-      <strong className="row-label" css={rowLabelStyles}>
-        {label}:
-      </strong>
-      <span className="row-value" css={rowValueStyles}>
+      <span className="row-cell" css={rowCellStyles}>
+        <strong>{label}:</strong>
+      </span>
+      <span className="row-cell" css={rowCellStyles}>
         {displayValue}
       </span>
     </>

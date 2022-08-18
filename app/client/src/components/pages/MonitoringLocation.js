@@ -102,15 +102,13 @@ const accordionStyles = css`
 `;
 
 const boxContentStyles = css`
-  font-size: 0.875rem;
-
-  span {
-    padding-right: 0.5em;
-  }
-
-  strong {
-    font-size: 1.1em;
-    padding-left: 0.5em;
+  .row-cell {
+    &:nth-of-type(even) {
+      padding-right: 0.5em;
+    }
+    &:nth-of-type(odd) {
+      padding-left: 0.5em;
+    }
   }
 `;
 
@@ -216,6 +214,9 @@ const fileLinkStyles = css`
 
 const flexRowStyles = css`
   ${boxContentStyles}
+  &.flex-row {
+    font-size: 1em;
+  }
   margin-bottom: 0.5rem;
 
   span {
@@ -2137,7 +2138,9 @@ function MonitoringLocationContent() {
 function MonitoringLocation() {
   return (
     <FullscreenProvider>
-      <MonitoringLocationContent />
+      <MapHighlightProvider>
+        <MonitoringLocationContent />
+      </MapHighlightProvider>
     </FullscreenProvider>
   );
 }
@@ -2325,9 +2328,7 @@ function SiteMap({ layout, site, siteStatus, widthRef }) {
 function SiteMapContainer({ ...props }) {
   return (
     <MapErrorBoundary>
-      <MapHighlightProvider>
-        <SiteMap {...props} />
-      </MapHighlightProvider>
+      <SiteMap {...props} />
     </MapErrorBoundary>
   );
 }

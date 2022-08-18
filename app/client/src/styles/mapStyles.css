@@ -133,16 +133,14 @@
 }
 
 .esri-popup tr:nth-child(even),
-.esri-popup .row-container:nth-child(even) {
+.esri-popup .row-cell:nth-of-type(4n + 3),
+.esri-popup .row-cell:nth-of-type(4n + 3) + * {
   background-color: #f0f5f9;
 }
 
-.esri-popup td {
+.esri-popup td,
+.esri-popup span.row-cell {
   padding: 0.35rem;
-}
-
-.esri-popup .row-container {
-  padding: 0.35rem 0;
 }
 
 .esri-feature p {
