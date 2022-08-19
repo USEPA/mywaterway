@@ -33,6 +33,7 @@ import {
 import type { ReactNode } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import type {
+  ChangeLocation,
   ClickedHucState,
   Feature,
   ServicesState,
@@ -46,6 +47,10 @@ import type {
 function bool(value: string) {
   // Return 'Yes' for truthy values and non-zero strings
   return value && parseInt(value, 10) ? 'Yes' : 'No';
+}
+
+function isChangeLocationPopup(feature: Feature | ChangeLocationPopup): feature is ChangeLocationPopup {
+  return (feature as ChangeLocationPopup).attributes.type === 'Change Location';
 }
 
 function renderLink(label: string, link: string) {
@@ -299,6 +304,10 @@ type AttainsProjectsState =
   | { status: 'fetching'; data: [] }
   | { status: 'failure'; data: [] }
   | { status: 'success'; data: AttainsProjectsDatum[] };
+
+type ChangeLocationPopup = {
+  attributes: ChangeLocation;
+};
 
 type WaterbodyInfoProps = {
   type: string;
@@ -918,7 +927,7 @@ function WaterbodyInfo({
 
 type MapPopupProps = {
   type: string;
-  feature: Feature;
+  feature: Feature | ChangeLocationPopup;
   navigate: NavigateFunction;
   fieldName?: string | null;
   extraContent?: ReactNode | null;
@@ -960,7 +969,7 @@ function MapPopup({
 
   const { attributes } = feature;
 
-  const getTypeTitle = () => {
+  const getTypeTitle = (feature: Feature) => {
     const typesToSkip = [
       'Action',
       'Change Location',
@@ -1047,18 +1056,20 @@ function MapPopup({
         </>
       )}
 
-      {getTypeTitle()}
+      {!isChangeLocationPopup(feature) && getTypeTitle(feature)}
 
-      <div css={popupContentStyles}>
-        <WaterbodyInfo
-          type={type}
-          feature={feature}
-          fieldName={fieldName}
-          extraContent={extraContent}
-          services={services}
-          fields={fields}
-        />
-      </div>
+      {!isChangeLocationPopup(feature) && (
+        <div css={popupContentStyles}>
+          <WaterbodyInfo
+            type={type}
+            feature={feature}
+            fieldName={fieldName}
+            extraContent={extraContent}
+            services={services}
+            fields={fields}
+          />
+        </div>
+      )}
     </div>
   );
 }
