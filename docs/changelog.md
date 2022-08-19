@@ -19,7 +19,9 @@
 
 - Updated the graphics on the Community page to have the same outline thickness across all layers.
 
-- Updated to the latest version of the ArcGIS JS API.
+- Updated to the latest version of the ArcGIS JS API (v4.24).
+
+- Updated to the latest version of Node.js (v18.7.0).
 
 - Improved the table layout in the Plans popups. 
 
