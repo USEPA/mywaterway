@@ -63,10 +63,6 @@ const listContentStyles = css`
     &:nth-of-type(odd) {
       padding-left: 0.75rem;
     }
-    small {
-      align-self: flex-end;
-      margin-bottom: 0;
-    }
   }
 
   strong {
@@ -76,7 +72,7 @@ const listContentStyles = css`
 `;
 
 const rowCellStyles = css`
-  align-items: flex-start;
+  align-items: baseline;
   display: inline-flex;
   flex-wrap: wrap;
   font-size: 0.875em;
@@ -87,10 +83,6 @@ const rowCellStyles = css`
 
   @media (min-width: 560px) {
     font-size: 1em;
-  }
-
-  & > * {
-    margin-bottom: auto;
   }
 
   &:nth-of-type(odd) {
@@ -144,6 +136,8 @@ export function BoxContent({ layout = 'grid', rows, styles }: BoxContentProps) {
   );
 }
 
+// This is a simple wrapper around the BoxContent
+// component with common style overrides
 export function ListContent({
   layout = 'grid',
   rows,
