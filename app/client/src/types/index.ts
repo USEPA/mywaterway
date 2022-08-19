@@ -19,7 +19,6 @@ export interface AnnualStationData {
 
 export interface ChangeLocation {
   changelocationpopup: 'changelocationpopup';
-  type?: 'Change Location';
 }
 
 export type ClickedHucState =
@@ -30,23 +29,19 @@ export interface CongressionalDistrict {
   CDFIPS: string;
   DISTRICTID: string;
   STATE_ABBR: string;
-  type?: 'Congressional District';
 }
 
 export interface County {
   CNTY_FIPS: string;
   STATE_NAME: string;
-  type?: 'County';
 }
 
 export interface Discharger {
   CWPName: string;
-  type?: 'Permitted Discharger';
 }
 
 export interface EjScreen {
   T_OVR64PCT: string;
-  type?: 'Demographic Indicators';
 }
 
 export interface Facility {
@@ -67,8 +62,8 @@ export interface Facility {
   SourceID: string;
 }
 
-export interface Feature extends __esri.Graphic {
-  layer: Layer;
+export interface Feature {
+  graphic: __esri.Graphic;
 }
 
 export interface Layer extends __esri.Layer {
@@ -118,13 +113,12 @@ export interface MonitoringLocation {
   stationTotalsByGroup: { [groups: string]: number };
   stationTotalsByLabel: { [label: string]: number };
   timeframe: [number, number] | null;
-  type?: 'Past Water Conditions';
   uniqueId: string;
 }
 
 export interface NonProfit {
   Name?: string;
-  type: 'nonprofit' | 'Nonprofit';
+  type: 'nonprofit';
 }
 
 export type ParentLayer =
@@ -144,7 +138,6 @@ export type PopupAttributes =
   | NonProfit
   | ProtectedArea
   | Tribe
-  | Unknown
   | UpstreamWatershed
   | UsgsStreamgage
   | Village
@@ -155,7 +148,6 @@ export type PopupAttributes =
 export interface ProtectedArea {
   GAPCdSrc: string;
   Loc_Nm: string;
-  type?: 'Protected Areas';
 }
 
 export interface ScaledLayer extends __esri.Layer {
@@ -193,16 +185,10 @@ export interface StreamgageMeasurement {
 
 export interface Tribe {
   TRIBE_NAME: string;
-  type?: 'Tribe' | 'Alaska Native Village';
-}
-
-export interface Unknown {
-  type?: 'Unknown';
 }
 
 export interface UpstreamWatershed {
   xwalk_huc12: string;
-  type?: 'Upstream Watershed';
 }
 
 export interface UsgsStreamgage {
@@ -219,12 +205,10 @@ export interface UsgsStreamgage {
     primary: StreamgageMeasurement[];
     secondary: StreamgageMeasurement[];
   };
-  type?: 'Current Water Conditions';
 }
 
 export interface Village extends Tribe {
   NAME: string;
-  type?: 'Alaska Native Village';
 }
 
 export interface Waterbody {
@@ -233,12 +217,6 @@ export interface Waterbody {
   organizationid: string;
   orgtype: string;
   overallstatus: string;
-  type?:
-    | 'Waterbody'
-    | 'Waterbody State Overview'
-    | 'Restoration Plans'
-    | 'Protection Plans'
-    | 'Action';
 }
 
 export interface WidgetLayer extends __esri.Layer {
@@ -247,11 +225,9 @@ export interface WidgetLayer extends __esri.Layer {
 
 export interface WildScenicRiver {
   WSR_RIVER_NAME: string;
-  type?: 'Wild and Scenic Rivers';
 }
 
 export interface WsioHealthIndex {
   NAME_HUC12: string;
   PHWA_HEALTH_NDX_ST: string;
-  type?: 'State Watershed Health Index';
 }

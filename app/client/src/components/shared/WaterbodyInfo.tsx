@@ -35,7 +35,7 @@ import type { NavigateFunction } from 'react-router-dom';
 import type {
   ChangeLocation,
   ClickedHucState,
-  Feature,
+  Layer,
   ServicesState,
   StreamgageMeasurement,
   UsgsStreamgage,
@@ -49,8 +49,8 @@ function bool(value: string) {
   return value && parseInt(value, 10) ? 'Yes' : 'No';
 }
 
-function isChangeLocationPopup(feature: Feature | ChangeLocationPopup): feature is ChangeLocationPopup {
-  return (feature as ChangeLocationPopup).attributes.type === 'Change Location';
+function isChangeLocationPopup(feature: __esri.Graphic | ChangeLocationPopup): feature is ChangeLocationPopup {
+  return 'changelocationpopup' in (feature as ChangeLocationPopup).attributes;
 }
 
 function renderLink(label: string, link: string) {
@@ -311,7 +311,7 @@ type ChangeLocationPopup = {
 
 type WaterbodyInfoProps = {
   type: string;
-  feature: Feature;
+  feature: __esri.Graphic;
   fieldName?: string | null;
   extraContent?: ReactNode | null;
   services?: ServicesState;
@@ -386,11 +386,11 @@ function WaterbodyInfo({
 
     // Get the waterbody condition field (drinkingwater_use, recreation_use, etc.)
     let field = fieldName;
-    if (!fieldName && feature && feature.layer && feature.layer.renderer) {
+    if (!fieldName && feature && feature.layer && (feature.layer as Layer).renderer) {
       // For map clicks we need to get the field from the feature layer renderer.
       // This allows us to differentiate between fishconsumption_use and ecological_use
       // which are both on the fishing tab.
-      field = feature.layer.renderer.field ?? null;
+      field = (feature.layer as Layer).renderer?.field ?? null;
     }
 
     // Get the label
@@ -927,7 +927,7 @@ function WaterbodyInfo({
 
 type MapPopupProps = {
   type: string;
-  feature: Feature | ChangeLocationPopup;
+  feature: __esri.Graphic | ChangeLocationPopup;
   navigate: NavigateFunction;
   fieldName?: string | null;
   extraContent?: ReactNode | null;
@@ -969,7 +969,7 @@ function MapPopup({
 
   const { attributes } = feature;
 
-  const getTypeTitle = (feature: Feature) => {
+  const getTypeTitle = (feature: __esri.Graphic) => {
     const typesToSkip = [
       'Action',
       'Change Location',
@@ -1528,7 +1528,7 @@ function MonitoringLocationsContent({
   );
 }
 
-function UsgsStreamgagesContent({ feature }: { feature: Feature }) {
+function UsgsStreamgagesContent({ feature }: { feature: __esri.Graphic }) {
   const {
     streamgageMeasurements,
     orgName,

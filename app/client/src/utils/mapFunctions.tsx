@@ -22,6 +22,7 @@ import type {
   ClickedHucState,
   Facility,
   Feature,
+  Layer,
   ParentLayer,
   PopupAttributes,
   ScaledLayer,
@@ -443,9 +444,9 @@ export function plotIssues(
         },
         popupTemplate: {
           title: getPopupTitle(waterbody.attributes),
-          content: (feature: __esri.Graphic) =>
+          content: (feature: Feature) =>
             getPopupContent({
-              feature: new Graphic({ attributes: feature.attributes }),
+              feature: feature.graphic,
               navigate,
             }),
         },
@@ -489,9 +490,9 @@ export function plotFacilities({
         attributes: facility,
         popupTemplate: {
           title: getPopupTitle(facility),
-          content: (graphic: __esri.Graphic) =>
+          content: (feature: Feature) =>
             getPopupContent({
-              feature: graphic,
+              feature: feature.graphic,
               navigate,
             }),
         },
@@ -516,9 +517,9 @@ export const openPopup = (
   ) {
     feature.popupTemplate = new PopupTemplate({
       title: getPopupTitle(feature.attributes),
-      content: (graphic: __esri.Graphic) =>
+      content: (feature: Feature) =>
         getPopupContent({
-          feature: graphic,
+          feature: feature.graphic,
           fields,
           fieldName,
           services,
@@ -660,7 +661,7 @@ export function getPopupContent({
   fields,
   navigate,
 }: {
-  feature: Feature | { attributes: ChangeLocation };
+  feature: __esri.Graphic | { attributes: ChangeLocation };
   fieldName?: string;
   extraContent?: Object;
   getClickedHuc?: Promise<ClickedHucState> | null;
@@ -669,17 +670,18 @@ export function getPopupContent({
   fields?: __esri.Field[] | null;
   navigate: NavigateFunction;
 }) {
+  let type = 'Unknown';
   const attributes: PopupAttributes | null = feature.attributes;
   if (!attributes) return null;
 
   // stand alone change location popup
   if ('changelocationpopup' in attributes) {
-    attributes.type = 'Change Location';
+    type = 'Change Location';
   } else if ('layer' in feature) {
     // actions popup (has the same attributes as waterbody and an additional
     // layerType attribute)
     if ('layerType' in attributes && attributes.layerType === 'actions') {
-      attributes.type = 'Action';
+      type = 'Action';
     }
 
     // line, area, point for waterbody
@@ -687,81 +689,80 @@ export function getPopupContent({
       const communityTab = getSelectedCommunityTab();
       const pathname = window.location.pathname;
       const isAllWaterbodiesLayer =
-        feature.layer?.parent?.id === 'allWaterbodiesLayer';
+        (feature.layer as Layer)?.parent?.id === 'allWaterbodiesLayer';
 
-      attributes.type = 'Waterbody';
+      type = 'Waterbody';
       if (pathname.includes('advanced-search'))
-        attributes.type = 'Waterbody State Overview';
+        type = 'Waterbody State Overview';
       if (!isAllWaterbodiesLayer) {
-        if (communityTab === 'restore') attributes.type = 'Restoration Plans';
-        if (communityTab === 'protect') attributes.type = 'Protection Plans';
+        if (communityTab === 'restore') type = 'Restoration Plans';
+        if (communityTab === 'protect') type = 'Protection Plans';
       }
     }
 
     // discharger
     else if ('CWPName' in attributes) {
-      attributes.type = 'Permitted Discharger';
-    } else if ('monitoringType' in attributes) {
-      // usgs streamgage
+      type = 'Permitted Discharger';
+    }
+
+    // usgs streamgage or monitoring location
+    else if ('monitoringType' in attributes) {
       if (attributes.monitoringType === 'Current Water Conditions')
-        attributes.type = 'Current Water Conditions';
-      // monitoring location
+        type = 'Current Water Conditions';
       else if (attributes.monitoringType === 'Past Water Conditions')
-        attributes.type = 'Past Water Conditions';
+        type = 'Past Water Conditions';
     }
 
     // protect tab teal nonprofits
-    else if (attributes.type === 'nonprofit') {
-      attributes.type = 'Nonprofit';
+    else if ('type' in attributes && attributes.type === 'nonprofit') {
+      type = 'Nonprofit';
     }
 
     // county
     else if ('CNTY_FIPS' in attributes) {
-      attributes.type = 'County';
+      type = 'County';
     }
 
     // congressional district
     else if ('DISTRICTID' in attributes) {
-      attributes.type = 'Congressional District';
-    } else if ('TRIBE_NAME' in attributes) {
-      if ('NAME' in attributes)
-        // want to display name for Alaska Native Villages
-        attributes.type = 'Alaska Native Village';
-      // other tribal layers just use the tribe name
-      else attributes.type = 'Tribe';
+      type = 'Congressional District';
+    }
+
+    // Alaska Native Village or other tribal feature
+    else if ('TRIBE_NAME' in attributes) {
+      if ('NAME' in attributes) type = 'Alaska Native Village';
+      else type = 'Tribe';
     }
 
     // upstream watershed
     else if ('xwalk_huc12' in attributes) {
-      attributes.type = 'Upstream Watershed';
+      type = 'Upstream Watershed';
     }
 
     // wild scenic rivers
     else if ('WSR_RIVER_NAME' in attributes) {
-      attributes.type = 'Wild and Scenic Rivers';
+      type = 'Wild and Scenic Rivers';
     }
 
     // WSIO Health Index
     else if ('PHWA_HEALTH_NDX_ST' in attributes) {
-      attributes.type = 'State Watershed Health Index';
+      type = 'State Watershed Health Index';
     }
 
     // Protected areas
     else if ('GAPCdSrc' in attributes) {
-      attributes.type = 'Protected Areas';
+      type = 'Protected Areas';
     }
 
     // EJSCREEN
     else if ('T_OVR64PCT' in attributes) {
-      attributes.type = 'Demographic Indicators';
+      type = 'Demographic Indicators';
     }
   }
 
-  if (!attributes.type) attributes.type = 'Unknown';
-
   const content = (
     <MapPopup
-      type={attributes.type}
+      type={type}
       feature={feature}
       fieldName={fieldName}
       extraContent={extraContent}
