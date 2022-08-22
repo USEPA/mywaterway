@@ -1,15 +1,15 @@
-// @flow
-
 import React, { useRef } from 'react';
 import { TooltipPopup, useTooltip } from '@reach/tooltip';
 import { css } from 'styled-components/macro';
 // styles
 import '@reach/tooltip/styles.css';
 import { colors } from 'styles';
+// types
+import type { MutableRefObject, ReactElement } from 'react';
 
 /*
- * Styles
- */
+## Styles
+*/
 const tooltipIconStyles = css`
   background: none;
   border: none;
@@ -36,9 +36,9 @@ const tooltipStyles = css`
 `;
 
 /*
- * Helpers
- */
-function centered(triggerRect, tooltipRect) {
+## Helpers
+*/
+function centered(triggerRect: any, tooltipRect: any) {
   const triggerCenter = triggerRect.left + triggerRect.width / 2;
   const left = triggerCenter - tooltipRect.width / 2;
   const maxLeft = document.body.clientWidth - tooltipRect.width;
@@ -49,10 +49,15 @@ function centered(triggerRect, tooltipRect) {
 }
 
 /*
- * Components
- */
+## Components
+*/
+type TooltipProps = {
+  children: ReactElement;
+  label: string;
+  triggerRef: MutableRefObject<HTMLButtonElement | null>;
+};
 
-function Tooltip({ children, label, triggerRef }) {
+function Tooltip({ children, label, triggerRef }: TooltipProps) {
   const [trigger, tooltip] = useTooltip({
     ref: triggerRef,
   });
@@ -70,8 +75,12 @@ function Tooltip({ children, label, triggerRef }) {
   );
 }
 
-function HelpTooltip({ label }) {
-  const triggerRef = useRef();
+type HelpTooltipProps = {
+  label: string;
+};
+
+function HelpTooltip({ label }: HelpTooltipProps) {
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
   return (
     <Tooltip label={label} triggerRef={triggerRef}>
       <button

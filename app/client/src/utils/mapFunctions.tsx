@@ -951,7 +951,7 @@ export function isInScale(layer: ParentLayer | ScaledLayer, scale: number) {
     });
 
     // get the min/max scale from the sourceJSON
-    layer.sourceJSON.layers.forEach((sourceLayer: any) => {
+    layer.sourceJSON.layers?.forEach((sourceLayer: any) => {
       if (!sublayerIds.includes(sourceLayer.id)) return;
 
       if (sourceLayer.minScale === 0 || sourceLayer.minScale > minScale) {
@@ -963,7 +963,7 @@ export function isInScale(layer: ParentLayer | ScaledLayer, scale: number) {
     });
   } else if (isGroupLayer(layer)) {
     // get the min/max scale from the sourceJSON
-    layer.layers.forEach((subLayer: ScaledLayer) => {
+    layer.layers?.forEach((subLayer: ScaledLayer) => {
       if (
         subLayer.minScale &&
         (subLayer.minScale === 0 || subLayer.minScale > minScale)

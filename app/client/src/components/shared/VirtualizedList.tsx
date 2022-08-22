@@ -1,18 +1,18 @@
-// @flow
-
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useWindowSize } from '@reach/window-size';
 import { VariableSizeList } from 'react-window';
 import throttle from 'lodash/throttle';
 // utils
 import { useOnScreen } from 'utils/hooks';
+// types
+import type { MutableRefObject } from 'react';
 
 type RowRendererProps = {
-  index: number,
-  width: number,
-  listRef: React.MutableRefObject<undefined>,
-  setSize: Function,
-  renderer: Function,
+  index: number;
+  width: number;
+  listRef: MutableRefObject<VariableSizeList<any> | null>;
+  setSize: Function;
+  renderer: Function;
 };
 
 function RowRenderer({
@@ -22,7 +22,7 @@ function RowRenderer({
   setSize,
   renderer,
 }: RowRendererProps) {
-  const rowRef = useRef();
+  const rowRef = useRef<HTMLDivElement | null>(null);
 
   // keep track of the height of the rows to autosize rows
   useEffect(() => {
@@ -35,14 +35,14 @@ function RowRenderer({
 }
 
 type Props = {
-  items: Array<Object>,
-  renderer: Function,
+  items: Array<Object>;
+  renderer: Function;
 };
 
 function VirtualizedListInner({ items, renderer }: Props) {
-  const innerRef = useRef();
+  const innerRef = useRef<VariableSizeList<any> | null>(null);
   const outerRef = useRef();
-  const sizeMap = useRef({});
+  const sizeMap = useRef<{ [index: string]: number }>({});
   const setSize = useCallback((index: number, size: number, listRef: any) => {
     sizeMap.current = { ...sizeMap.current, [index]: size };
     listRef.current.resetAfterIndex(index);
@@ -54,7 +54,7 @@ function VirtualizedListInner({ items, renderer }: Props) {
   useEffect(() => {
     const throttleTime = 10;
     const handleWindowScroll = throttle(() => {
-      const { offsetTop = 0 } = outerRef.current || {};
+      const { offsetTop } = outerRef.current || { offsetTop: 0 };
 
       const scrollPosition =
         window['pageYOffset'] ||
@@ -109,7 +109,7 @@ function VirtualizedListInner({ items, renderer }: Props) {
 // or jump around when the list is not immediatly visible
 // on the dom (i.e., the list is on the second tab).
 function VirtualizedList({ items, renderer }: Props) {
-  const ref = useRef();
+  const ref = useRef<HTMLDivElement | null>(null);
   const isVisible = useOnScreen(ref);
 
   return (
