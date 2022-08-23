@@ -1,7 +1,7 @@
 
 # Change Log
 
-## 2.2.1 (September 2022)
+## 2.3.0 (September 2022)
 
 ### Added
 
