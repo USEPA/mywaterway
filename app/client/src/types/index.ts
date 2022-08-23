@@ -1,9 +1,9 @@
-export interface Action extends Waterbody {
+export interface ActionAttributes extends WaterbodyAttributes {
   layerType: 'actions';
   type?: 'Action';
 }
 
-export interface Allotment {
+export interface AllotmentAttributes {
   PARCEL_NO: string;
   type?: 'Allotment';
 }
@@ -17,7 +17,7 @@ export interface AnnualStationData {
   stationTotalsByLabel: { [label: string]: number };
 }
 
-export interface ChangeLocation {
+export interface ChangeLocationAttributes {
   changelocationpopup: 'changelocationpopup';
 }
 
@@ -25,22 +25,22 @@ export type ClickedHucState =
   | { status: 'fetching' | 'no-data' | 'none' | 'failure'; data: null }
   | { status: 'success'; data: { huc12: string; watershed: string } };
 
-export interface CongressionalDistrict {
+export interface CongressionalDistrictAttributes {
   CDFIPS: string;
   DISTRICTID: string;
   STATE_ABBR: string;
 }
 
-export interface County {
+export interface CountyAttributes {
   CNTY_FIPS: string;
   STATE_NAME: string;
 }
 
-export interface Discharger {
+export interface DischargerAttributes {
   CWPName: string;
 }
 
-export interface EjScreen {
+export interface EjScreenAttributes {
   T_OVR64PCT: string;
 }
 
@@ -66,24 +66,24 @@ export interface Feature {
   graphic: __esri.Graphic;
 }
 
-export interface Layer extends __esri.Layer {
-  parent?: __esri.Layer;
-  popupTemplate?: __esri.PopupTemplate;
-  renderer?: {
-    classBreakInfos?: Array<{
-      minValue: number;
-      maxValue: number;
-      symbol: Object;
-    }>;
-    defaultSymbol?: Object;
-    field?: string;
-    field2?: string;
-    field3?: string;
-    fieldDelimiter?: string;
-    symbol: Object;
-    type: string;
-    uniqueValueInfos?: Array<{ value: string; symbol: Object }>;
-  };
+interface FetchEmptyState {
+  status: 'empty' | 'idle' | 'fetching' | 'failure' | 'pending';
+  data: {} | [] | null;
+}
+
+interface FetchSuccessState<Type> {
+  status: 'success';
+  data: Type;
+}
+
+export type FetchState<Type> = FetchEmptyState | FetchSuccessState<Type>;
+
+export interface ExtendedGraphic extends __esri.Graphic {
+  originalGeometry?: __esri.Geometry;
+}
+
+export interface ExtendedLayer extends __esri.Layer {
+  parent?: __esri.Layer | __esri.Map;
 }
 
 export interface MonitoringFeatureUpdate {
@@ -96,7 +96,7 @@ export type MonitoringFeatureUpdates = {
   [locationId: string]: MonitoringFeatureUpdate;
 } | null;
 
-export interface MonitoringLocation {
+export interface MonitoringLocationAttributes {
   monitoringType: 'Past Water Conditions';
   siteId: string;
   orgId: string;
@@ -106,17 +106,55 @@ export interface MonitoringLocation {
   locationName: string;
   locationType: string;
   locationUrl: string;
-  stationDataByYear?: { [year: string | number]: AnnualStationData };
+  stationDataByYear: { [year: string | number]: AnnualStationData } | null;
   stationProviderName: string;
   stationTotalSamples: number;
   stationTotalMeasurements: number;
   stationTotalsByGroup: { [groups: string]: number };
-  stationTotalsByLabel: { [label: string]: number };
+  stationTotalsByLabel: { [label: string]: number } | null;
   timeframe: [number, number] | null;
   uniqueId: string;
 }
 
-export interface NonProfit {
+export interface MonitoringLocationGroups {
+  [label: string]: {
+    label: string;
+    characteristicGroups: Array<string>;
+    stations: MonitoringLocationAttributes[];
+    toggled: boolean;
+  };
+}
+
+export interface MonitoringLocationsData {
+  features: {
+    geometry: {
+      coordinates: [number, number];
+      type: 'Point';
+    };
+    properties: {
+      CountyName: string;
+      HUCEightDigitCode: string;
+      MonitoringLocationIdentifier: string;
+      MonitoringLocationName: string;
+      MonitoringLocationTypeName: string;
+      OrganizationFormalName: string;
+      OrganizationIdentifier: string;
+      ProviderName: string;
+      ResolvedMonitoringLocationTypeName: string;
+      StateName: string;
+      activityCount: string;
+      characteristicGroupResultCount: {
+        Physical: number;
+      };
+      resultCount: string;
+      siteUrl: string;
+    };
+    type: 'Feature';
+  }[];
+  type: 'FeatureCollection';
+}
+
+export interface NonProfitAttributes {
   Name?: string;
   type: 'nonprofit';
 }
@@ -127,25 +165,25 @@ export type ParentLayer =
   | __esri.TileLayer;
 
 export type PopupAttributes =
-  | Action
-  | Allotment
-  | ChangeLocation
-  | CongressionalDistrict
-  | County
-  | Discharger
-  | EjScreen
-  | MonitoringLocation
-  | NonProfit
-  | ProtectedArea
-  | Tribe
-  | UpstreamWatershed
-  | UsgsStreamgage
-  | Village
-  | Waterbody
-  | WildScenicRiver
-  | WsioHealthIndex;
+  | ActionAttributes
+  | AllotmentAttributes
+  | ChangeLocationAttributes
+  | CongressionalDistrictAttributes
+  | CountyAttributes
+  | DischargerAttributes
+  | EjScreenAttributes
+  | MonitoringLocationAttributes
+  | NonProfitAttributes
+  | ProtectedAreaAttributes
+  | TribeAttributes
+  | UpstreamWatershedAttributes
+  | UsgsStreamgageAttributes
+  | VillageAttributes
+  | WaterbodyAttributes
+  | WildScenicRiverAttributes
+  | WsioHealthIndexAttributes;
 
-export interface ProtectedArea {
+export interface ProtectedAreaAttributes {
   GAPCdSrc: string;
   Loc_Nm: string;
 }
@@ -183,15 +221,15 @@ export interface StreamgageMeasurement {
   multiple?: boolean;
 }
 
-export interface Tribe {
+export interface TribeAttributes {
   TRIBE_NAME: string;
 }
 
-export interface UpstreamWatershed {
+export interface UpstreamWatershedAttributes {
   xwalk_huc12: string;
 }
 
-export interface UsgsStreamgage {
+export interface UsgsStreamgageAttributes {
   monitoringType: 'Current Water Conditions';
   siteId: string;
   orgId: string;
@@ -207,11 +245,117 @@ export interface UsgsStreamgage {
   };
 }
 
-export interface Village extends Tribe {
+export interface UsgsDailyAveragesData {
+  allParamsMean: UsgsPrecipitationData;
+  precipitationSum: UsgsPrecipitationData;
+}
+
+export interface UsgsPrecipitationData {
+  declaredType: 'org.cuahsi.waterml.TimeSeriesResponseType';
+  globalScope: true;
+  name: 'ns1:timeSeriesResponseType';
+  nil: false;
+  scope: 'javax.xml.bind.JAXBElement$GlobalScope';
+  typeSubstituted: false;
+  value: {
+    queryInfo: Object;
+    timeSeries: {
+      name: string;
+      sourceInfo: {
+        siteName: string;
+        siteCode: [
+          {
+            agencyCode: string;
+            network: string;
+            value: string; // number
+          },
+        ];
+        timeZoneInfo: Object;
+        geoLocation: Object;
+        note: [];
+        siteType: [];
+        siteProperty: Object[];
+      };
+      values: {
+        censorCode: [];
+        method: [Object];
+        offset: [];
+        qualifier: [Object];
+        qualityControlLevel: [];
+        sample: [];
+        source: [];
+        value: [
+          {
+            dateTime: string; // ISO format datetime
+            qualifiers: ['P'];
+            value: string; // number
+          },
+        ];
+      }[];
+      variable: {
+        noDataValue: -999999;
+        note: [];
+        oid: string;
+        options: Object;
+        unit: Object;
+        valueType: string;
+        variableCode: {
+          default: boolean;
+          network: string;
+          value: string;
+          variableID: number;
+          vocabulary: string;
+        }[];
+        variableDescription: string;
+        variableName: string;
+        variableProperty: [];
+      };
+    }[];
+  };
+}
+
+export interface UsgsStreamgagesData {
+  value: {
+    name: string;
+    properties: {
+      active: boolean;
+      agency: string;
+      agencyCode: string;
+      hydrologicUnit: string;
+      monitoringLocationName: string;
+      monitoringLocationNumber: string;
+      monitoringLocationType: string;
+      monitoringLocationUrl: string;
+    };
+    Locations: {
+      location: {
+        coordinates: [number, number];
+        type: 'Point';
+      };
+    }[];
+    Datastreams: {
+      description: string;
+      properties: {
+        ParameterCode: string;
+        WebDescription: string;
+      };
+      unitOfMeasurement: {
+        name: string;
+        symbol: string;
+      };
+      Observations: {
+        phenomenonTime: string; // ISO format datetime
+        result: string; // number
+      }[];
+    }[];
+  }[];
+}
+
+export interface VillageAttributes extends TribeAttributes {
   NAME: string;
 }
 
-export interface Waterbody {
+export interface WaterbodyAttributes {
   assessmentunitidentifier: string;
   assessmentunitname: string;
   organizationid: string;
@@ -223,11 +367,11 @@ export interface WidgetLayer extends __esri.Layer {
   portalItem?: __esri.PortalItem;
 }
 
-export interface WildScenicRiver {
+export interface WildScenicRiverAttributes {
   WSR_RIVER_NAME: string;
 }
 
-export interface WsioHealthIndex {
+export interface WsioHealthIndexAttributes {
   NAME_HUC12: string;
   PHWA_HEALTH_NDX_ST: string;
 }

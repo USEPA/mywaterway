@@ -18,7 +18,7 @@ import { useDynamicPopup } from 'utils/hooks';
 import type {
   MonitoringFeatureUpdate,
   MonitoringFeatureUpdates,
-  Layer,
+  ExtendedLayer,
 } from 'types';
 
 // --- types ---
@@ -59,7 +59,7 @@ function getGraphicsFromResponse(
     if (result.type !== 'graphic') return null;
 
     const { attributes: attr } = result.graphic;
-    const layer = result.graphic.layer as Layer;
+    const layer = result.graphic.layer as ExtendedLayer;
     // ignore huc 12 boundaries, map-marker, highlight and provider graphics
     const excludedLayers = [
       'stateBoundariesLayer',
@@ -74,10 +74,14 @@ function getGraphicsFromResponse(
     if (!result.graphic.layer?.id) return null;
     if (attr.name && excludedLayers.indexOf(attr.name) !== -1) return null;
     if (excludedLayers.indexOf(layer.id) !== -1) return null;
-    if (layer.parent && excludedLayers.indexOf(layer.parent.id) !== -1) {
+    if (
+      layer.parent &&
+      'id' in layer.parent &&
+      excludedLayers.indexOf(layer.parent.id) !== -1
+    ) {
       return null;
     }
-    if (!result.graphic.popupTemplate && !layer.popupTemplate) {
+    if (!result.graphic.popupTemplate && !('popupTemplate' in layer)) {
       return null;
     }
 

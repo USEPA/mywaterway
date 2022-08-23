@@ -8,7 +8,7 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { Sparkline } from 'components/shared/Sparkline';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
-import { getWaterbodyCondition } from 'utils/mapFunctions';
+import { getWaterbodyCondition, isClassBreaksRenderer, isFeatureLayer, isUniqueValueRenderer } from 'utils/mapFunctions';
 import { fetchCheck } from 'utils/fetchUtils';
 import {
   convertAgencyCode,
@@ -33,12 +33,11 @@ import {
 import type { ReactNode } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import type {
-  ChangeLocation,
+  ChangeLocationAttributes,
   ClickedHucState,
-  Layer,
   ServicesState,
   StreamgageMeasurement,
-  UsgsStreamgage,
+  UsgsStreamgageAttributes,
 } from 'types';
 
 /*
@@ -306,7 +305,7 @@ type AttainsProjectsState =
   | { status: 'success'; data: AttainsProjectsDatum[] };
 
 type ChangeLocationPopup = {
-  attributes: ChangeLocation;
+  attributes: ChangeLocationAttributes;
 };
 
 type WaterbodyInfoProps = {
@@ -386,11 +385,13 @@ function WaterbodyInfo({
 
     // Get the waterbody condition field (drinkingwater_use, recreation_use, etc.)
     let field = fieldName;
-    if (!fieldName && feature && feature.layer && (feature.layer as Layer).renderer) {
+    if (!fieldName && feature?.layer && isFeatureLayer(feature.layer)) {
       // For map clicks we need to get the field from the feature layer renderer.
       // This allows us to differentiate between fishconsumption_use and ecological_use
       // which are both on the fishing tab.
-      field = (feature.layer as Layer).renderer?.field ?? null;
+      const renderer: __esri.Renderer = feature.layer.renderer;
+      if (isClassBreaksRenderer(renderer) || isUniqueValueRenderer(renderer))
+        field = renderer?.field ?? null;
     }
 
     // Get the label
@@ -1537,7 +1538,7 @@ function UsgsStreamgagesContent({ feature }: { feature: __esri.Graphic }) {
     siteId,
     orgId,
     locationUrl,
-  }: UsgsStreamgage = feature.attributes;
+  }: UsgsStreamgageAttributes = feature.attributes;
 
   const [additionalMeasurementsShown, setAdditionalMeasurementsShown] =
     useState(false);

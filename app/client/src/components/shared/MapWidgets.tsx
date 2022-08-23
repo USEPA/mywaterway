@@ -43,7 +43,7 @@ import resizeIcon from 'images/resize.png';
 // types
 import type { CSSProperties, Dispatch, SetStateAction } from 'react';
 import type { Container } from 'react-dom';
-import type { Feature, Layer, ScaledLayer, ServicesState } from 'types';
+import type { Feature, ExtendedLayer, ScaledLayer, ServicesState } from 'types';
 
 const layersToAllowPopups = ['restore', 'protect'];
 
@@ -274,7 +274,7 @@ function MapWidgets({
   const services = useServicesContext();
 
   const getDynamicPopup = useDynamicPopup();
-  let getTemplate = getDynamicPopup()?.getTemplate ?? null;
+  let { getTemplate } = getDynamicPopup();
 
   const {
     fullscreenActive,
@@ -323,7 +323,8 @@ function MapWidgets({
           // filter out popups for allWaterbodiesLayer inside of the huc
           const pathParts = window.location.pathname.split('/');
           const panelName = pathParts[pathParts.length - 1];
-          const layerParentId = (item.layer as Layer)?.parent?.id;
+          const layerParent = (item.layer as ExtendedLayer)?.parent;
+          const layerParentId = layerParent && 'id' in layerParent && layerParent.id;
           if (
             clickedInHuc &&
             layerParentId === 'allWaterbodiesLayer' &&
@@ -1344,7 +1345,7 @@ type ShowUpstreamWatershedProps = {
   getUpstreamLayer: () => __esri.GraphicsLayer & { error?: boolean } | '';
   getUpstreamWidgetDisabled: () => boolean;
   getWatershedName: () => string;
-  getTemplate: ((graphic: Feature) => HTMLDivElement | null) | null;
+  getTemplate: ((graphic: Feature) => HTMLDivElement | null);
   services: ServicesState;
   setErrorMessage: (errorMessage: string) => void;
   setUpstreamExtent: (upstreamExtent: __esri.Viewpoint) => void;

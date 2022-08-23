@@ -169,15 +169,15 @@ function LocationSearch({ route, label }: Props) {
   const navigate = useNavigate();
 
   const services = useServicesContext();
-  const searchBox = useRef();
+  const searchBox = useRef(null);
   const downPress = useKeyPress('ArrowDown', searchBox);
   const upPress = useKeyPress('ArrowUp', searchBox);
   const enterPress = useKeyPress('Enter', searchBox);
-  const sourceList = useRef();
+  const sourceList = useRef(null);
   const sourceDownPress = useKeyPress('ArrowDown', sourceList);
   const sourceUpPress = useKeyPress('ArrowUp', sourceList);
   const sourceEnterPress = useKeyPress('Enter', sourceList);
-  const clearButton = useRef();
+  const clearButton = useRef(null);
   const clearEnterPress = useKeyPress('Enter', clearButton);
   const { searchText, watershed, huc12 } = useContext(LocationSearchContext);
 

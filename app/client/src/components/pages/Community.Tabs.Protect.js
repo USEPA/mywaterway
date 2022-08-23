@@ -209,7 +209,7 @@ function Protect() {
 
   // normalize grts projects data with attains plans data
   useEffect(() => {
-    if (grts.status === 'fetching' || grts.data.items.length === 0) return;
+    if (grts.status !== 'success' || grts.data.items.length === 0) return;
 
     const grtsProjects = grts.data.items
       .filter(

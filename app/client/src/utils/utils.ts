@@ -255,7 +255,7 @@ function browserIsCompatibleWithArcGIS() {
     start > -1
   ) {
     const iosVersion = window.Number(
-      agent.substr(start + 3, 3).replace('_', '.'),
+      agent.substring(start + 3, start + 6).replace('_', '.'),
     );
 
     if (isNaN(iosVersion)) {

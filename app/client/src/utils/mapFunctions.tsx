@@ -18,18 +18,18 @@ import { getSelectedCommunityTab } from 'utils/utils';
 // types
 import type { NavigateFunction } from 'react-router-dom';
 import type {
-  ChangeLocation,
+  ChangeLocationAttributes,
   ClickedHucState,
   Facility,
   Feature,
-  Layer,
+  ExtendedLayer,
   ParentLayer,
   PopupAttributes,
   ScaledLayer,
   ServicesState,
-  Tribe,
-  Village,
-  Waterbody,
+  TribeAttributes,
+  VillageAttributes,
+  WaterbodyAttributes,
 } from 'types';
 
 const waterbodyStatuses = {
@@ -62,7 +62,7 @@ export function getTypeFromAttributes(graphic: __esri.Graphic) {
 }
 
 export function getWaterbodyCondition<
-  Type extends Waterbody,
+  Type extends WaterbodyAttributes,
   Key extends keyof Type,
 >(
   attributes: Type,
@@ -376,8 +376,37 @@ function encode(str: string): string {
 }
 
 // Functions used for narrowing types
+export function isClassBreaksRenderer(
+  renderer: __esri.Renderer,
+): renderer is __esri.ClassBreaksRenderer {
+  return (renderer as __esri.ClassBreaksRenderer).type === 'class-breaks';
+}
+
+export function isFeatureLayer(
+  layer: __esri.Layer,
+): layer is __esri.FeatureLayer {
+  return (layer as __esri.FeatureLayer).type === 'feature';
+}
+
+export function isGraphicsLayer(
+  layer: __esri.Layer,
+): layer is __esri.GraphicsLayer {
+  return (layer as __esri.GraphicsLayer).type === 'graphics';
+}
+
 export function isGroupLayer(layer: __esri.Layer): layer is __esri.GroupLayer {
   return (layer as __esri.GroupLayer).type === 'group';
+}
+
+type HighlightLayerView = __esri.FeatureLayerView | __esri.GraphicsLayerView;
+
+export function isHighlightLayerView(
+  layerView: __esri.LayerView,
+): layerView is HighlightLayerView {
+  return (
+    (layerView as HighlightLayerView).layer.type === 'feature' ||
+    (layerView as HighlightLayerView).layer.type === 'graphics'
+  );
 }
 
 export function isMapImageLayer(
@@ -412,8 +441,16 @@ export function isTileLayer(layer: __esri.Layer): layer is __esri.TileLayer {
   return (layer as __esri.TileLayer).type === 'tile';
 }
 
-function isVillage(tribe: Tribe | Village): tribe is Village {
-  return (tribe as Village).NAME !== undefined;
+export function isUniqueValueRenderer(
+  renderer: __esri.Renderer,
+): renderer is __esri.UniqueValueRenderer {
+  return (renderer as __esri.UniqueValueRenderer).type === 'unique-value';
+}
+
+function isVillage(
+  tribe: TribeAttributes | VillageAttributes,
+): tribe is VillageAttributes {
+  return (tribe as VillageAttributes).NAME !== undefined;
 }
 
 // plot issues on map
@@ -661,7 +698,7 @@ export function getPopupContent({
   fields,
   navigate,
 }: {
-  feature: __esri.Graphic | { attributes: ChangeLocation };
+  feature: __esri.Graphic | { attributes: ChangeLocationAttributes };
   fieldName?: string;
   extraContent?: Object;
   getClickedHuc?: Promise<ClickedHucState> | null;
@@ -688,8 +725,9 @@ export function getPopupContent({
     else if ('assessmentunitname' in attributes) {
       const communityTab = getSelectedCommunityTab();
       const pathname = window.location.pathname;
+      const parent = (feature.layer as ExtendedLayer)?.parent;
       const isAllWaterbodiesLayer =
-        (feature.layer as Layer)?.parent?.id === 'allWaterbodiesLayer';
+        parent && 'id' in parent && parent.id === 'allWaterbodiesLayer';
 
       type = 'Waterbody';
       if (pathname.includes('advanced-search'))
@@ -913,7 +951,7 @@ export function getHighlightSymbol(
   geometry: __esri.Geometry,
   color: string | number[],
 ) {
-  let symbol: Object = { color };
+  let symbol: __esri.Symbol | null = null;
   if (isPolyline(geometry)) {
     return new SimpleLineSymbol({
       width: 5,
