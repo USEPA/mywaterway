@@ -989,7 +989,7 @@ export function isInScale(layer: ParentLayer | ScaledLayer, scale: number) {
     });
 
     // get the min/max scale from the sourceJSON
-    layer.sourceJSON.layers?.forEach((sourceLayer: any) => {
+    layer.sourceJSON?.layers?.forEach((sourceLayer: any) => {
       if (!sublayerIds.includes(sourceLayer.id)) return;
 
       if (sourceLayer.minScale === 0 || sourceLayer.minScale > minScale) {

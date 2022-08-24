@@ -1076,7 +1076,7 @@ function AdvancedSearch() {
   if (serviceError) {
     return (
       <div css={errorBoxStyles}>
-        <p>{stateGeneralError}</p>
+        <p>{stateGeneralError()}</p>
       </div>
     );
   }

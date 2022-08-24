@@ -1749,9 +1749,11 @@ function UsgsStreamgageParameter({
             </div>
 
             <div css={unitStyles}>
-              <strong>{data.measurement}</strong>
+              <strong>{data.measurement ?? 'N/A'}</strong>
               &nbsp;
-              <small title={data.unitName}>{data.unitAbbr}</small>
+              {data.measurement && (
+                <small title={data.unitName}>{data.unitAbbr}</small>
+              )}
               <br />
               <small css={additionalTextStyles}>{data.datetime}</small>
             </div>

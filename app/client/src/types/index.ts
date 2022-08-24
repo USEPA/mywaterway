@@ -213,7 +213,7 @@ export interface StreamgageMeasurement {
   parameterName: string;
   parameterUsgsName: string;
   parameterCode: string;
-  measurement: number;
+  measurement: number | null;
   datetime: string;
   dailyAverages: Array<{ measurement: number; date: Date }>;
   unitAbbr: string;

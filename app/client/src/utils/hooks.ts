@@ -57,6 +57,7 @@ import type {
   MonitoringLocationAttributes,
   MonitoringLocationGroups,
   MonitoringLocationsData,
+  StreamgageMeasurement,
   UsgsDailyAveragesData,
   UsgsPrecipitationData,
   UsgsStreamgageAttributes,
@@ -1793,19 +1794,6 @@ function useSharedLayers() {
   };
 }
 
-interface StreamgageMeasurement {
-  parameterCategory: string;
-  parameterOrder: number;
-  parameterName: string;
-  parameterUsgsName: string;
-  parameterCode: string;
-  measurement: number;
-  datetime: string;
-  dailyAverages: { measurement: number, date: Date }[];
-  unitAbbr: string;
-  unitName: string;
-};
-
 /** Normalizes USGS streamgage data with monitoring stations data. */
 function useStreamgageData(
   usgsStreamgages: FetchState<UsgsStreamgagesData>,
@@ -1834,9 +1822,9 @@ function useStreamgageData(
           const parameterDesc = item.description.split(' / USGS-')[0];
           const parameterUnit = item.unitOfMeasurement;
 
-          let measurement = parseFloat(observation.result);
+          let measurement = parseFloat(observation.result) || null;
           // convert measurements recorded in celsius to fahrenheit
-          if (['00010', '00020', '85583'].includes(parameterCode)) {
+          if (measurement && ['00010', '00020', '85583'].includes(parameterCode)) {
             measurement = measurement * (9 / 5) + 32;
 
             // round to 1 decimal place
@@ -1901,7 +1889,7 @@ function useStreamgageData(
             parameterName: 'Total Daily Rainfall',
             parameterUsgsName: 'Precipitation (USGS Daily Value)',
             parameterCode: '00045',
-            measurement: parseFloat(observation.value),
+            measurement: parseFloat(observation.value) || null,
             datetime: new Date(observation.dateTime).toLocaleDateString(),
             dailyAverages: [], // NOTE: will be set below
             unitAbbr: 'in',
@@ -1929,17 +1917,19 @@ function useStreamgageData(
           const streamgage = gages.find((gage) => gage.siteId === siteId);
 
           const paramCode = site.variable.variableCode[0].value;
-          const observations = site.values[0].value.map((observation) => {
-            let measurement = parseFloat(observation.value);
-            // convert measurements recorded in celsius to fahrenheit
-            if (['00010', '00020', '85583'].includes(paramCode)) {
-              measurement = measurement * (9 / 5) + 32;
+          const observations = site.values[0].value
+            .filter((observation) => observation.value !== null)
+            .map((observation) => {
+              let measurement = parseFloat(observation.value);
+              // convert measurements recorded in celsius to fahrenheit
+              if (['00010', '00020', '85583'].includes(paramCode)) {
+                measurement = measurement * (9 / 5) + 32;
 
-              // round to 1 decimal place
-              measurement = Math.round(measurement * 10) / 10;
-            }
+                // round to 1 decimal place
+                measurement = Math.round(measurement * 10) / 10;
+              }
 
-            return { measurement, date: new Date(observation.dateTime) };
+              return { measurement, date: new Date(observation.dateTime) };
           });
 
           const measurements = streamgage?.streamgageMeasurements;
