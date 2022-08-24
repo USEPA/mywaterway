@@ -2065,7 +2065,7 @@ function MonitoringLocationContent() {
 
   const noSiteView = (
     <Page>
-      <NavBar title="Monitoring Location Details" />
+      <NavBar title="Monitoring Report" />
 
       <div css={containerStyles}>
         <div css={pageErrorBoxStyles}>
@@ -2094,7 +2094,7 @@ function MonitoringLocationContent() {
 
   const twoColumnView = (
     <Page>
-      <NavBar title="Monitoring Location Details" />
+      <NavBar title="Monitoring Report" />
       <div css={containerStyles} data-content="container">
         <WindowSize>
           {({ width, height }) => {
