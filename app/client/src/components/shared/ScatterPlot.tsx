@@ -137,16 +137,12 @@ function ScatterPlot({
 
   const renderTooltip = buildTooltip ?? defaultBuildTooltip;
 
-  let displayedYTitle = yTitle;
-  if (yTitle && yTitle.length >= height / 8)
-    displayedYTitle = `${yTitle.slice(0, height / 8)}...`;
-
   return (
     <>
       <VisxStyles />
       <XYChart
         height={height}
-        margin={{ top: 20, bottom: 45, left: 70, right: 30 }}
+        margin={{ top: 20, bottom: 45, left: 85, right: 30 }}
         theme={theme}
         xScale={{ type: 'band', paddingInner: 1, paddingOuter: 0.5 }}
         yScale={{ type: yScale, domain: range }}
@@ -163,12 +159,15 @@ function ScatterPlot({
           strokeWidth={2}
         />
         <Axis
-          label={displayedYTitle}
+          label={yTitle}
           labelProps={{
             fill: '#2C2E43',
             dx: -30,
+            lineHeight: '1.2em',
             style: { fontWeight: 'bold' },
+            scaleToFit: false,
             textAnchor: 'middle',
+            width: height,
           }}
           orientation="left"
           strokeWidth={2}
