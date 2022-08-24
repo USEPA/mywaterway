@@ -5,7 +5,7 @@
 
 ### Added
 
-- Added Monitoring Location Details pages for each monitoring location, listed under Past Water Conditions, where users can view/download historical data and view graphs for sample results of characteristics.
+- Added Monitoring Report pages for each monitoring location, listed under Past Water Conditions, where users can view/download historical data and view graphs for sample results of characteristics.
 
 - Added historical data and a date slider to the Monitoring panel on the Community page.
 

@@ -1395,7 +1395,7 @@ function MonitoringLocationsContent({
               className="fas fa-info-circle"
               aria-hidden="true"
             />
-            Monitoring Report page
+            View Monitoring Report
           </a>
           &nbsp;&nbsp;
           <small css={modifiedDisclaimerStyles}>(opens new browser tab)</small>
