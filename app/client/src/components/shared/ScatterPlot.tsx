@@ -75,6 +75,7 @@ type Props = {
   containerRef?: HTMLElement | null;
   data: Datum[];
   dataKeys: string[];
+  height?: number;
   range?: number[];
   xTitle?: string;
   yScale?: 'log' | 'linear';
@@ -87,6 +88,7 @@ function ScatterPlot({
   containerRef,
   data,
   dataKeys,
+  height = 500,
   range,
   xTitle,
   yScale = 'linear',
@@ -135,11 +137,15 @@ function ScatterPlot({
 
   const renderTooltip = buildTooltip ?? defaultBuildTooltip;
 
+  let displayedYTitle = yTitle;
+  if (yTitle && yTitle.length >= height / 8)
+    displayedYTitle = `${yTitle.slice(0, height / 8)}...`;
+
   return (
     <>
       <VisxStyles />
       <XYChart
-        height={500}
+        height={height}
         margin={{ top: 20, bottom: 45, left: 70, right: 30 }}
         theme={theme}
         xScale={{ type: 'band', paddingInner: 1, paddingOuter: 0.5 }}
@@ -157,7 +163,7 @@ function ScatterPlot({
           strokeWidth={2}
         />
         <Axis
-          label={yTitle}
+          label={displayedYTitle}
           labelProps={{
             fill: '#2C2E43',
             dx: -30,
