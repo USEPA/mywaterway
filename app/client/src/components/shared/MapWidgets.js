@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -236,6 +237,18 @@ function MapWidgets({
 }: Props) {
   const { addDataWidgetVisible, setAddDataWidgetVisible, widgetLayers } =
     useAddDataWidgetState();
+
+  const mounted = useRef(false);
+  const watchHandles = useMemo(() => [], []);
+  const observers = useMemo(() => [], []);
+  useEffect(() => {
+    mounted.current = true;
+    return function cleanup() {
+      mounted.current = false;
+      watchHandles.forEach((handle) => handle.remove());
+      observers.forEach((observer) => observer.disconnect());
+    };
+  }, [observers, watchHandles]);
 
   const {
     homeWidget,
@@ -532,8 +545,9 @@ function MapWidgets({
       subtree: true,
     });
 
+    observers.push(observer);
     setEsriLegend(tempLegend);
-  }, [view, esriLegend, esriLegendNode]);
+  }, [view, esriLegend, esriLegendNode, observers]);
 
   // Creates and adds the legend widget to the map
   const rnd = useRef();
@@ -651,7 +665,8 @@ function MapWidgets({
             mappedWaterLayer: responses[2],
           },
         };
-        setAdditionalLegendInfo(additionalLegendInfoNonState);
+        if (mounted.current)
+          setAdditionalLegendInfo(additionalLegendInfoNonState);
       })
       .catch((err) => {
         console.error(err);
@@ -659,7 +674,8 @@ function MapWidgets({
           status: 'failure',
           data: {},
         };
-        setAdditionalLegendInfo(additionalLegendInfoNonState);
+        if (mounted.current)
+          setAdditionalLegendInfo(additionalLegendInfoNonState);
       });
   }, [additionalLegendInitialized, services]);
 
@@ -718,19 +734,21 @@ function MapWidgets({
             additionalLegendInfoNonState,
           );
 
-          item.watch('visible', function (event) {
-            updateVisibleLayers(
-              view,
-              displayEsriLegendNonState,
-              hmwLegendNode,
-              additionalLegendInfoNonState,
-            );
-            const dict = {
-              layerId: item.layer.id,
-              visible: item.layer.visible,
-            };
-            setToggledLayer(dict);
-          });
+          watchHandles.push(
+            item.watch('visible', function (event) {
+              updateVisibleLayers(
+                view,
+                displayEsriLegendNonState,
+                hmwLegendNode,
+                additionalLegendInfoNonState,
+              );
+              const dict = {
+                layerId: item.layer.id,
+                visible: item.layer.visible,
+              };
+              setToggledLayer(dict);
+            }),
+          );
         }
       }
     }
@@ -776,6 +794,7 @@ function MapWidgets({
     hmwLegendNode,
     layerListWidget,
     view,
+    watchHandles,
   ]);
 
   // Sets up the zoom event handler that is used for determining if layers
@@ -1146,6 +1165,7 @@ function MapWidgets({
       query
         .executeQueryJSON(url, queryParams)
         .then((res) => {
+          if (!mounted.current) return;
           setUpstreamLoading(false);
           const upstreamLayer = getUpstreamLayer();
           const watershed = getWatershedName() || 'Unknown Watershed';
@@ -1206,6 +1226,7 @@ function MapWidgets({
           view.goTo(upstreamExtent);
         })
         .catch((err) => {
+          if (!mounted.current) return;
           setUpstreamLoading(false);
           setUpstreamWidgetDisabled(true);
           setErrorMessage(
@@ -1350,22 +1371,26 @@ function MapWidgets({
     if (firstLoad) {
       setFirstLoad(false);
 
-      reactiveUtils.watch(
-        () => mapView.updating,
-        () => {
-          setAllWaterbodiesLoading(mapView.updating);
-        },
+      watchHandles.push(
+        reactiveUtils.watch(
+          () => mapView.updating,
+          () => {
+            setAllWaterbodiesLoading(mapView.updating);
+          },
+        ),
       );
 
-      reactiveUtils.watch(
-        () => mapView.scale,
-        () => {
-          const newWidgetDisabledVal =
-            mapView.scale >= allWaterbodiesLayer.minScale;
-          if (newWidgetDisabledVal !== getAllWaterbodiesWidgetDisabled()) {
-            setAllWaterbodiesWidgetDisabled(newWidgetDisabledVal);
-          }
-        },
+      watchHandles.push(
+        reactiveUtils.watch(
+          () => mapView.scale,
+          () => {
+            const newWidgetDisabledVal =
+              mapView.scale >= allWaterbodiesLayer.minScale;
+            if (newWidgetDisabledVal !== getAllWaterbodiesWidgetDisabled()) {
+              setAllWaterbodiesWidgetDisabled(newWidgetDisabledVal);
+            }
+          },
+        ),
       );
     }
 

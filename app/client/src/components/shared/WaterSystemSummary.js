@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { css } from 'styled-components/macro';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
@@ -103,6 +103,14 @@ type Props = {
 };
 
 function WaterSystemSummary({ state }: Props) {
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return function cleanup() {
+      mounted.current = false;
+    };
+  }, []);
+
   const services = useServicesContext();
 
   const [lastCountsCode, setLastCountsCode] = useState(null);
@@ -129,6 +137,7 @@ function WaterSystemSummary({ state }: Props) {
       `${services.data.dwmaps.getGPRASystemCountsByType}${state.value}`,
     )
       .then((res) => {
+        if (!mounted.current) return;
         if (!res || !res.items || res.items.length === 0) {
           setSystemTypeRes({
             status: 'failure',
@@ -174,14 +183,16 @@ function WaterSystemSummary({ state }: Props) {
       })
       .catch((err) => {
         console.error(err);
-        setSystemTypeRes({
-          status: 'failure',
-          data: {
-            cwsCount: 0,
-            ntncwsCount: 0,
-            tncwsCount: 0,
-          },
-        });
+        if (mounted.current) {
+          setSystemTypeRes({
+            status: 'failure',
+            data: {
+              cwsCount: 0,
+              ntncwsCount: 0,
+              tncwsCount: 0,
+            },
+          });
+        }
       });
   }, [state, services, lastCountsCode]);
 
@@ -204,13 +215,17 @@ function WaterSystemSummary({ state }: Props) {
     setLastSummaryCode(state.value);
 
     fetchCheck(`${services.data.dwmaps.getGPRASummary}${state.value}`)
-      .then((res) =>
-        setGpraData({
-          status: 'success',
-          data: res.items.length > 0 ? res.items[0] : null,
-        }),
-      )
-      .catch((err) => setGpraData({ status: 'failure', data: {} }));
+      .then((res) => {
+        if (mounted.current) {
+          setGpraData({
+            status: 'success',
+            data: res.items.length > 0 ? res.items[0] : null,
+          });
+        }
+      })
+      .catch((err) => {
+        if (mounted.current) setGpraData({ status: 'failure', data: {} });
+      });
   }, [state, services, lastSummaryCode]);
 
   return (

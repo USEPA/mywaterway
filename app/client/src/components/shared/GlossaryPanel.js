@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { Node } from 'react';
 import { css, createGlobalStyle } from 'styled-components/macro';
 // components
@@ -183,6 +183,14 @@ function GlossaryPanel({ path }) {
   const { initialized, setInitialized, glossaryStatus, setGlossaryStatus } =
     useGlossaryState();
 
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return function cleanup() {
+      mounted.current = false;
+    };
+  }, []);
+
   // initialize Glossary panel
   useEffect(() => {
     if (!window.fetchGlossaryTerms) return;
@@ -195,6 +203,7 @@ function GlossaryPanel({ path }) {
 
       // initialize the glossary
       window.fetchGlossaryTerms.then((terms) => {
+        if (!mounted.current) return;
         setGlossaryStatus(terms.status);
         try {
           new Glossary(terms.data);
@@ -270,8 +279,18 @@ type Props = {
 function GlossaryTerm({ term, className, style, children }: Props) {
   const [status, setStatus] = useState('fetching');
 
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return function cleanup() {
+      mounted.current = false;
+    };
+  }, []);
+
   if (window.fetchGlossaryTerms) {
-    window.fetchGlossaryTerms.then((terms) => setStatus(terms.status));
+    window.fetchGlossaryTerms.then((terms) => {
+      if (mounted.current) setStatus(terms.status);
+    });
   }
 
   return (

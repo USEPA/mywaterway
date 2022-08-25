@@ -613,7 +613,9 @@ function IdentifiedIssues() {
             <TabPanel>
               {cipSummary.status === 'fetching' && <LoadingSpinner />}
 
-              {(cipSummary.status === 'failure' || !cipSummary.data?.items) && (
+              {(cipSummary.status === 'failure' ||
+                (cipSummary.status === 'success' &&
+                  !cipSummary.data?.items)) && (
                 <div css={errorBoxStyles}>
                   <p>{huc12SummaryError}</p>
                 </div>
