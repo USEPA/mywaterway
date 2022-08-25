@@ -5,21 +5,21 @@ export const useFields = [
   {
     value: 'drinkingwater_use',
     label: 'Drinking Water',
-    term: 'drinking water use',
+    term: 'Drinking Water Use',
   },
-  { value: 'ecological_use', label: 'Aquatic Life', term: 'aquatic life' },
+  { value: 'ecological_use', label: 'Aquatic Life', term: 'Aquatic Life' },
   {
     value: 'fishconsumption_use',
     label: 'Fish and Shellfish Consumption',
-    term: 'fish and shellfish consumption',
+    term: 'Fish and Shellfish Consumption',
   },
   {
     value: 'recreation_use',
     label: 'Swimming and Boating',
-    term: 'swimming and boating',
+    term: 'Swimming and Boating',
   },
-  { value: 'cultural_use', label: 'Cultural', term: 'cultural use' },
-  { value: 'other_use', label: 'Other', term: 'other use' },
+  { value: 'cultural_use', label: 'Cultural', term: 'Cultural Use' },
+  { value: 'other_use', label: 'Other', term: 'Other Use' },
 ];
 
 export const impairmentFields = [
