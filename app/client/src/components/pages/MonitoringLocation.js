@@ -215,7 +215,17 @@ const infoBoxHeadingStyles = css`
   ${boxHeadingStyles};
   display: flex;
   align-items: flex-start;
+  justify-content: space-between;
   margin-bottom: 0;
+
+  & > * {
+    margin-bottom: auto;
+    margin-top: auto;
+  }
+
+  button {
+    font-size: 1rem;
+  }
 
   small {
     display: block;
@@ -224,6 +234,7 @@ const infoBoxHeadingStyles = css`
 
   /* loading icon */
   svg {
+    display: inline-block;
     margin: 0 -0.375rem 0 -0.875rem;
     height: 1.5rem;
   }
@@ -1276,6 +1287,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
         {!charcName
           ? 'Selected Characteristic'
           : titleCaseWithExceptions(charcName)}
+        <HelpTooltip label="Adjust the slider handles to filter the data displayed on the chart by the selected year range, and use the drop-down inputs to filter  the data by the corresponding fields" />
       </h2>
       <StatusContent
         empty={
@@ -1749,7 +1761,10 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
 
   return (
     <div css={boxStyles}>
-      <h2 css={infoBoxHeadingStyles}>Download Location Data</h2>
+      <h2 css={infoBoxHeadingStyles}>
+        Download Location Data
+        <HelpTooltip label="Adjust the slider handles to filter download results by the selected year range, and use the checkboxes to filter the results by individual characteristics and characteristic groups" />
+      </h2>
       <StatusContent
         empty={
           <p css={messageBoxStyles(infoBoxStyles)}>
@@ -1969,8 +1984,8 @@ function InformationSection({ siteId, site, siteStatus }) {
   return (
     <div css={modifiedBoxStyles}>
       <h2 css={infoBoxHeadingStyles}>
-        {siteStatus === 'fetching' && <LoadingSpinner />}
         <span>
+          {siteStatus === 'fetching' && <LoadingSpinner />}
           {siteStatus === 'success' && site.locationName}
           <small>
             <strong>
