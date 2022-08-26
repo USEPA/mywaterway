@@ -145,6 +145,7 @@ const titleStyles = css`
   font-family: ${fonts.secondary};
   font-size: 1.5em;
   color: white;
+  cursor: pointer;
 
   @media (min-width: 25em) {
     font-size: 2em;

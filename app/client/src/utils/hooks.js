@@ -71,7 +71,7 @@ function buildStations(locations, layer) {
       // TODO: explore if the built up locationUrl below is ever different from
       // `station.properties.siteUrl`. from a quick test, they seem the same
       locationUrl:
-        `/location/` +
+        `/monitoring-report/` +
         `${station.properties.ProviderName}/` +
         `${encodeURIComponent(station.properties.OrganizationIdentifier)}/` +
         `${encodeURIComponent(

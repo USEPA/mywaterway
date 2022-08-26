@@ -1322,7 +1322,7 @@ function MonitoringLocationsContent({
       : null;
 
   const onMonitoringReportPage =
-    window.location.pathname.indexOf('location') === 1;
+    window.location.pathname.indexOf('monitoring-report') === 1;
 
   return (
     <>
@@ -1493,7 +1493,7 @@ function MonitoringLocationsContent({
                 </small>
               </td>
               <td colSpan={2}>
-                <span>Download Station Data</span>
+                <span>Download Selected Data</span>
                 <span>
                   &nbsp;&nbsp;
                   <a
