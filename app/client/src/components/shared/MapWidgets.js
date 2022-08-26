@@ -36,8 +36,9 @@ import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 import { isInScale, shallowCompare } from 'utils/mapFunctions';
+import { isAbort } from 'utils/utils';
 // helpers
-import { useDynamicPopup } from 'utils/hooks';
+import { useAbortSignal, useDynamicPopup } from 'utils/hooks';
 // icons
 import resizeIcon from 'images/resize.png';
 
@@ -238,13 +239,11 @@ function MapWidgets({
   const { addDataWidgetVisible, setAddDataWidgetVisible, widgetLayers } =
     useAddDataWidgetState();
 
-  const mounted = useRef(false);
+  const abortSignal = useAbortSignal();
   const watchHandles = useMemo(() => [], []);
   const observers = useMemo(() => [], []);
   useEffect(() => {
-    mounted.current = true;
     return function cleanup() {
-      mounted.current = false;
       watchHandles.forEach((handle) => handle.remove());
       observers.forEach((observer) => observer.disconnect());
     };
@@ -649,11 +648,11 @@ function MapWidgets({
 
     const requests = [];
     let url = `${services.data.protectedAreasDatabase}/legend?f=json`;
-    requests.push(fetchCheck(url));
+    requests.push(fetchCheck(url, abortSignal));
     url = `${services.data.ejscreen}legend?f=json`;
-    requests.push(fetchCheck(url));
+    requests.push(fetchCheck(url, abortSignal));
     url = `${services.data.mappedWater}/legend?f=json`;
-    requests.push(fetchCheck(url));
+    requests.push(fetchCheck(url, abortSignal));
 
     Promise.all(requests)
       .then((responses) => {
@@ -665,19 +664,18 @@ function MapWidgets({
             mappedWaterLayer: responses[2],
           },
         };
-        if (mounted.current)
-          setAdditionalLegendInfo(additionalLegendInfoNonState);
+        setAdditionalLegendInfo(additionalLegendInfoNonState);
       })
       .catch((err) => {
+        if (isAbort(err)) return;
         console.error(err);
         additionalLegendInfoNonState = {
           status: 'failure',
           data: {},
         };
-        if (mounted.current)
-          setAdditionalLegendInfo(additionalLegendInfoNonState);
+        setAdditionalLegendInfo(additionalLegendInfoNonState);
       });
-  }, [additionalLegendInitialized, services]);
+  }, [abortSignal, additionalLegendInitialized, services]);
 
   // Creates and adds the basemap/layer list widget to the map
   const [layerListWidget, setLayerListWidget] = useState(null);
@@ -1161,11 +1159,11 @@ function MapWidgets({
         returnGeometry: true,
         where: filter,
         outFields: ['*'],
+        signal: abortSignal,
       };
       query
         .executeQueryJSON(url, queryParams)
         .then((res) => {
-          if (!mounted.current) return;
           setUpstreamLoading(false);
           const upstreamLayer = getUpstreamLayer();
           const watershed = getWatershedName() || 'Unknown Watershed';
@@ -1226,7 +1224,7 @@ function MapWidgets({
           view.goTo(upstreamExtent);
         })
         .catch((err) => {
-          if (!mounted.current) return;
+          if (isAbort(err)) return;
           setUpstreamLoading(false);
           setUpstreamWidgetDisabled(true);
           setErrorMessage(
@@ -1239,7 +1237,7 @@ function MapWidgets({
           setUpstreamLayer(upstreamLayer);
         });
     },
-    [view, services.data.upstreamWatershed],
+    [abortSignal, view, services.data.upstreamWatershed],
   );
 
   const [allWaterbodiesWidget, setAllWaterbodiesWidget] = useState(null);

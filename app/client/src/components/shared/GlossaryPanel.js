@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { Node } from 'react';
 import { css, createGlobalStyle } from 'styled-components/macro';
 // components
@@ -11,6 +11,8 @@ import { useGlossaryState } from 'contexts/Glossary';
 import { colors, fonts } from 'styles/index.js';
 // errors
 import { glossaryError } from 'config/errorMessages';
+// helpers
+import { isAbort } from 'utils/utils';
 
 const Glossary = require('glossary-panel');
 
@@ -183,14 +185,6 @@ function GlossaryPanel({ path }) {
   const { initialized, setInitialized, glossaryStatus, setGlossaryStatus } =
     useGlossaryState();
 
-  const mounted = useRef(false);
-  useEffect(() => {
-    mounted.current = true;
-    return function cleanup() {
-      mounted.current = false;
-    };
-  }, []);
-
   // initialize Glossary panel
   useEffect(() => {
     if (!window.fetchGlossaryTerms) return;
@@ -202,15 +196,19 @@ function GlossaryPanel({ path }) {
       if (termsInDOM()) return;
 
       // initialize the glossary
-      window.fetchGlossaryTerms.then((terms) => {
-        if (!mounted.current) return;
-        setGlossaryStatus(terms.status);
-        try {
-          new Glossary(terms.data);
-        } catch (err) {
+      window.fetchGlossaryTerms
+        .then((terms) => {
+          setGlossaryStatus(terms.status);
+          try {
+            new Glossary(terms.data);
+          } catch (err) {
+            console.error(err);
+          }
+        })
+        .catch((err) => {
+          if (isAbort(err)) return;
           console.error(err);
-        }
-      });
+        });
     }
   });
 
@@ -279,18 +277,13 @@ type Props = {
 function GlossaryTerm({ term, className, style, children }: Props) {
   const [status, setStatus] = useState('fetching');
 
-  const mounted = useRef(false);
-  useEffect(() => {
-    mounted.current = true;
-    return function cleanup() {
-      mounted.current = false;
-    };
-  }, []);
-
   if (window.fetchGlossaryTerms) {
-    window.fetchGlossaryTerms.then((terms) => {
-      if (mounted.current) setStatus(terms.status);
-    });
+    window.fetchGlossaryTerms
+      .then((terms) => setStatus(terms.status))
+      .catch((err) => {
+        if (isAbort(err)) return;
+        console.error(err);
+      });
   }
 
   return (

@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
@@ -14,7 +14,8 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
 import { fetchCheck } from 'utils/fetchUtils';
-import { formatNumber } from 'utils/utils';
+import { formatNumber, isAbort } from 'utils/utils';
+import { useAbortSignal } from 'utils/hooks';
 // errors
 import { grpaError } from 'config/errorMessages';
 
@@ -103,15 +104,8 @@ type Props = {
 };
 
 function WaterSystemSummary({ state }: Props) {
-  const mounted = useRef(false);
-  useEffect(() => {
-    mounted.current = true;
-    return function cleanup() {
-      mounted.current = false;
-    };
-  }, []);
-
   const services = useServicesContext();
+  const abortSignal = useAbortSignal();
 
   const [lastCountsCode, setLastCountsCode] = useState(null);
   const [systemTypeRes, setSystemTypeRes] = useState({
@@ -135,9 +129,9 @@ function WaterSystemSummary({ state }: Props) {
 
     fetchCheck(
       `${services.data.dwmaps.getGPRASystemCountsByType}${state.value}`,
+      abortSignal,
     )
       .then((res) => {
-        if (!mounted.current) return;
         if (!res || !res.items || res.items.length === 0) {
           setSystemTypeRes({
             status: 'failure',
@@ -182,19 +176,18 @@ function WaterSystemSummary({ state }: Props) {
         });
       })
       .catch((err) => {
+        if (isAbort(err)) return;
         console.error(err);
-        if (mounted.current) {
-          setSystemTypeRes({
-            status: 'failure',
-            data: {
-              cwsCount: 0,
-              ntncwsCount: 0,
-              tncwsCount: 0,
-            },
-          });
-        }
+        setSystemTypeRes({
+          status: 'failure',
+          data: {
+            cwsCount: 0,
+            ntncwsCount: 0,
+            tncwsCount: 0,
+          },
+        });
       });
-  }, [state, services, lastCountsCode]);
+  }, [abortSignal, state, services, lastCountsCode]);
 
   // fetch GPRA data
   const [lastSummaryCode, setLastSummaryCode] = useState(null);
@@ -214,19 +207,21 @@ function WaterSystemSummary({ state }: Props) {
 
     setLastSummaryCode(state.value);
 
-    fetchCheck(`${services.data.dwmaps.getGPRASummary}${state.value}`)
-      .then((res) => {
-        if (mounted.current) {
-          setGpraData({
-            status: 'success',
-            data: res.items.length > 0 ? res.items[0] : null,
-          });
-        }
-      })
+    fetchCheck(
+      `${services.data.dwmaps.getGPRASummary}${state.value}`,
+      abortSignal,
+    )
+      .then((res) =>
+        setGpraData({
+          status: 'success',
+          data: res.items.length > 0 ? res.items[0] : null,
+        }),
+      )
       .catch((err) => {
-        if (mounted.current) setGpraData({ status: 'failure', data: {} });
+        if (isAbort(err)) return;
+        setGpraData({ status: 'failure', data: {} });
       });
-  }, [state, services, lastSummaryCode]);
+  }, [abortSignal, state, services, lastSummaryCode]);
 
   return (
     <>
