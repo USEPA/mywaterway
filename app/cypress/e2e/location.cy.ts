@@ -15,7 +15,7 @@ describe("Entering URL parameters for a nonexistent location", () => {
   const gibberishSiteId = "sdfsdfasdf";
 
   it("Should display a 'location could not be found' error message when the parameters are for a nonexistent location", () => {
-    cy.visit(`/location/${provider}/${orgId}/${gibberishSiteId}`);
+    cy.visit(`/monitoring-report/${provider}/${orgId}/${gibberishSiteId}`);
     cy.contains(
       `The monitoring location ${gibberishSiteId} could not be found.`
     ).should("be.visible");
@@ -24,7 +24,7 @@ describe("Entering URL parameters for a nonexistent location", () => {
 
 describe("Entering URL parameters for an existent site", () => {
   beforeEach(() => {
-    cy.visit(`/location/${provider}/${orgId}/${siteId}`);
+    cy.visit(`/monitoring-report/${provider}/${orgId}/${siteId}`);
   });
 
   it("Should display the organization name", () => {
@@ -40,7 +40,7 @@ describe("Entering URL parameters for an existent site", () => {
 
 describe("The characteristic chart section", () => {
   beforeEach(() => {
-    cy.visit(`/location/${provider}/${orgId}/${siteId}`);
+    cy.visit(`/monitoring-report/${provider}/${orgId}/${siteId}`);
   });
 
   it("Should display a graph when a characteristic with measured results is selected", () => {
@@ -58,8 +58,8 @@ describe("The characteristic chart section", () => {
 
 describe("The Site ID tooltip", () => {
   it("Should be displayed when focusing the help icon", () => {
-    cy.visit(`/location/${provider}/${orgId}/${siteId}`);
-    cy.findByRole("button", { name: "Information Tooltip" }).focus();
-    cy.findByRole("tooltip").should("be.visible");
+    cy.visit(`/monitoring-report/${provider}/${orgId}/${siteId}`);
+    cy.findByText("Site ID").click();
+    cy.findByText('A Site ID is a designator used to describe', { exact: false });
   });
 });
