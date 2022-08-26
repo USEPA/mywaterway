@@ -2018,7 +2018,7 @@ function InformationSection({ siteId, site, siteStatus }) {
   );
 }
 
-function MonitoringLocationContent() {
+function MonitoringReportContent() {
   const { orgId, provider, siteId } = useParams();
   const { fullscreenActive } = useFullscreenState();
   const [site, siteStatus] = useSiteDetails(provider, orgId, siteId);
@@ -2169,11 +2169,11 @@ function MonitoringLocationContent() {
   );
 }
 
-function MonitoringLocation() {
+function MonitoringReport() {
   return (
     <FullscreenProvider>
       <MapHighlightProvider>
-        <MonitoringLocationContent />
+        <MonitoringReportContent />
       </MapHighlightProvider>
     </FullscreenProvider>
   );
@@ -2386,4 +2386,4 @@ function StatusContent({
   }
 }
 
-export default MonitoringLocation;
+export default MonitoringReport;
