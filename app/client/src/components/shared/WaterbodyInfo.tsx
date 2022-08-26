@@ -1322,7 +1322,7 @@ function MonitoringLocationsContent({
       : null;
 
   const onMonitoringReportPage =
-    window.location.pathname.indexOf('location') === 1;
+    window.location.pathname.indexOf('monitoring-report') === 1;
 
   return (
     <>
