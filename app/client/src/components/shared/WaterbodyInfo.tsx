@@ -458,7 +458,11 @@ function WaterbodyInfo({
                     if (value === 'Not Applicable') return null;
                     return (
                       <tr key={index}>
-                        <td>{useField.label}</td>
+                        <td>
+                          <GlossaryTerm term={useField.term}>
+                            {useField.label}
+                          </GlossaryTerm>
+                        </td>
                         <td>{value}</td>
                       </tr>
                     );
@@ -1395,7 +1399,7 @@ function MonitoringLocationsContent({
               className="fas fa-info-circle"
               aria-hidden="true"
             />
-            Monitoring Report page
+            View Monitoring Report
           </a>
           &nbsp;&nbsp;
           <small css={modifiedDisclaimerStyles}>(opens new browser tab)</small>
