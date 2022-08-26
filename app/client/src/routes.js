@@ -98,7 +98,7 @@ function AppRoutes() {
         <Route path="/aquatic-life" element={<AquaticLife />} />
         <Route path="/plan-summary/:orgId/:actionId" element={<Actions />} />
         <Route
-          path="/location/:provider/:orgId/:siteId"
+          path="/monitoring-report/:provider/:orgId/:siteId"
           element={<MonitoringLocation />}
         />
         <Route
