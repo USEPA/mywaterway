@@ -1762,7 +1762,7 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
   return (
     <div css={boxStyles}>
       <h2 css={infoBoxHeadingStyles}>
-        Download Location Data
+        Download Data
         <HelpTooltip label="Adjust the slider handles to filter download results by the selected year range, and use the checkboxes to filter the results by individual characteristics and characteristic groups" />
       </h2>
       <StatusContent
@@ -1985,13 +1985,14 @@ function InformationSection({ siteId, site, siteStatus }) {
     <div css={modifiedBoxStyles}>
       <h2 css={infoBoxHeadingStyles}>
         <span>
-          {siteStatus === 'fetching' && <LoadingSpinner />}
-          {siteStatus === 'success' && site.locationName}
+          <small>
+            <strong>Location Name: </strong>
+            {siteStatus === 'fetching' && <LoadingSpinner />}
+            {siteStatus === 'success' && site.locationName}
+          </small>
           <small>
             <strong>
-              Site ID{' '}
-              <HelpTooltip label="Identifies a monitoring location by a unique name, number, or code" />
-              :{' '}
+              <GlossaryTerm term="Monitoring Site ID">Site ID</GlossaryTerm>:{' '}
             </strong>
             {siteId}
           </small>
@@ -2000,7 +2001,7 @@ function InformationSection({ siteId, site, siteStatus }) {
       <div css={boxSectionStyles}>
         {rowGrid('Organization Name', site.orgName, siteStatus)}
         {rowGrid('Organization ID', site.orgId, siteStatus)}
-        {rowGrid('Location', `${site.county}, ${site.state}`, siteStatus)}
+        {rowGrid('County, State', `${site.county}, ${site.state}`, siteStatus)}
         {rowGrid('Water Type', site.locationType, siteStatus)}
         {rowGrid(
           'Total Sample Count',
@@ -2017,7 +2018,7 @@ function InformationSection({ siteId, site, siteStatus }) {
   );
 }
 
-function MonitoringLocationContent() {
+function MonitoringReportContent() {
   const { orgId, provider, siteId } = useParams();
   const { fullscreenActive } = useFullscreenState();
   const [site, siteStatus] = useSiteDetails(provider, orgId, siteId);
@@ -2168,11 +2169,11 @@ function MonitoringLocationContent() {
   );
 }
 
-function MonitoringLocation() {
+function MonitoringReport() {
   return (
     <FullscreenProvider>
       <MapHighlightProvider>
-        <MonitoringLocationContent />
+        <MonitoringReportContent />
       </MapHighlightProvider>
     </FullscreenProvider>
   );
@@ -2385,4 +2386,4 @@ function StatusContent({
   }
 }
 
-export default MonitoringLocation;
+export default MonitoringReport;
