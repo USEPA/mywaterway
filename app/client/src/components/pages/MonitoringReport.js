@@ -214,7 +214,6 @@ const iconStyles = css`
 const infoBoxHeadingStyles = css`
   ${boxHeadingStyles};
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 0;
 
