@@ -78,16 +78,12 @@ function Tooltip({ children, label, triggerRef }: TooltipProps) {
 }
 
 type HelpTooltipProps = {
-  description?: string | null;
+  description?: string;
   children?: ReactElement;
   label: string;
 };
 
-function HelpTooltip({
-  description = null,
-  children,
-  label,
-}: HelpTooltipProps) {
+function HelpTooltip({ description, children, label }: HelpTooltipProps) {
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   return (
     <Tooltip label={label} triggerRef={triggerRef}>
@@ -103,7 +99,7 @@ function HelpTooltip({
             <i css={helpIconStyles} className="fas fa-question-circle" />
           )}
         </span>
-        <span className="sr-only">{description ?? 'Information Tooltip'}</span>
+        <span className="sr-only">{description || 'Information Tooltip'}</span>
       </button>
     </Tooltip>
   );
