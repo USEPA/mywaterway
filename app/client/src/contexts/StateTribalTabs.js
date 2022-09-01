@@ -4,11 +4,11 @@ import React, { Component, createContext } from 'react';
 import type { Node } from 'react';
 
 // --- components ---
-export const StateTabsContext: Object = createContext({
-  currentReportStatus: '',
+export const StateTribalTabsContext: Object = createContext({
+  organizationData: { status: 'fetching', data: '' },
   currentSummary: { status: 'fetching', data: {} },
   currentReportingCycle: { status: 'fetching', currentReportingCycle: '' },
-  activeState: { code: '', name: '' },
+  activeState: { value: '', label: '', source: 'All' },
   introText: { status: 'fetching', data: {} },
   stateAndOrganizationId: null,
 });
@@ -18,18 +18,22 @@ type Props = {
 };
 
 type State = {
-  currentReportStatus: string,
+  organizationData: object,
   currentSummary: object,
   currentReportingCycle: object,
-  activeState: { code: string, name: string },
+  activeState: {
+    value: string,
+    label: string,
+    source: 'All' | 'State' | 'Tribe',
+  },
   introText: object,
   stateAndOrganization: object,
 };
 
-export class StateTabsProvider extends Component<Props, State> {
+export class StateTribalTabsProvider extends Component<Props, State> {
   state: State = {
     activeTabIndex: 0,
-    currentReportStatus: '',
+    organizationData: { status: 'fetching', data: '' },
     currentSummary: {
       status: 'fetching',
       data: {},
@@ -38,7 +42,7 @@ export class StateTabsProvider extends Component<Props, State> {
       status: 'fetching',
       currentReportingCycle: '',
     },
-    activeState: { code: '', name: '' },
+    activeState: { value: '', label: '', source: 'All' },
     introText: {
       status: 'fetching',
       data: {},
@@ -49,8 +53,8 @@ export class StateTabsProvider extends Component<Props, State> {
     setActiveTabIndex: (activeTabIndex: number) => {
       this.setState({ activeTabIndex });
     },
-    setCurrentReportStatus: (currentReportStatus: string) => {
-      this.setState({ currentReportStatus });
+    setOrganizationData: (organizationData: object) => {
+      this.setState({ organizationData });
     },
     setCurrentSummary: (currentSummary: string) => {
       this.setState({ currentSummary });
@@ -58,7 +62,11 @@ export class StateTabsProvider extends Component<Props, State> {
     setCurrentReportingCycle: (currentReportingCycle: object) => {
       this.setState({ currentReportingCycle });
     },
-    setActiveState: (activeState: { code: string, name: string }) => {
+    setActiveState: (activeState: {
+      value: string,
+      label: string,
+      source: 'All' | 'State' | 'Tribe',
+    }) => {
       this.setState({ activeState });
     },
     setIntroText: (introText: object) => {
@@ -76,9 +84,9 @@ export class StateTabsProvider extends Component<Props, State> {
 
   render() {
     return (
-      <StateTabsContext.Provider value={this.state}>
+      <StateTribalTabsContext.Provider value={this.state}>
         {this.props.children}
-      </StateTabsContext.Provider>
+      </StateTribalTabsContext.Provider>
     );
   }
 }

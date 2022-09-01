@@ -80,6 +80,10 @@ module.exports = function (app) {
 
         // Disable cache for all proxy requests
         response.headers['cache-control'] = 'no-cache';
+
+        // This is a workaround for the attains dev services (54.209.48.156 or serviceUrlDev)
+        // never returning a response.
+        delete response.headers['transfer-encoding'];
       }
 
       axios({

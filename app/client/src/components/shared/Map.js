@@ -23,7 +23,7 @@ type Props = {
 };
 
 function Map({ layers = null, startingExtent = null, children }: Props) {
-  const { initialExtent, highlightOptions, getBasemap, mapView, setMapView } =
+  const { basemap, highlightOptions, initialExtent, mapView, setMapView } =
     useContext(LocationSearchContext);
 
   const [map, setMap] = useState(null);
@@ -34,7 +34,7 @@ function Map({ layers = null, startingExtent = null, children }: Props) {
     if (mapInitialized) return;
 
     const esriMap = new EsriMap({
-      basemap: getBasemap(),
+      basemap,
       layers: [],
     });
 
@@ -55,7 +55,7 @@ function Map({ layers = null, startingExtent = null, children }: Props) {
     setMapInitialized(true);
   }, [
     mapInitialized,
-    getBasemap,
+    basemap,
     highlightOptions,
     initialExtent,
     startingExtent,
