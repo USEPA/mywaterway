@@ -1,6 +1,4 @@
-// @flow
-
-import React, { useState, useEffect, useContext } from 'react';
+import { useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -16,7 +14,7 @@ import {
   getOrganizationLabel,
 } from 'utils/mapFunctions';
 // contexts
-import { MapHighlightContext } from 'contexts/MapHighlight';
+import { useMapHighlightState } from 'contexts/MapHighlight';
 
 const textStyles = css`
   margin: 1em;
@@ -44,17 +42,18 @@ const waterbodyContentStyles = css`
   }
 `;
 
+interface SortOption {
+  value: string;
+  label: string;
+}
+
 type Props = {
-  waterbodies: Array<Object>,
-  type: string,
-  fieldName: string,
+  waterbodies: __esri.Graphic[];
+  type: string;
+  fieldName: string | null;
 };
 
-function WaterbodyListVirtualized({
-  waterbodies,
-  type = 'Waterbody',
-  fieldName = '',
-}: Props) {
+function WaterbodyListVirtualized({ waterbodies, fieldName = null }: Props) {
   // Triggers the loading spinner. When a search is complete the loading
   // spinner will be displayed for 250ms.
   const [loading, setLoading] = useState(true);
@@ -72,9 +71,8 @@ function WaterbodyListVirtualized({
   // Sort the waterbodies
   const [sortBy, setSortBy] = useState('assessmentunitname');
 
-  const { highlightedGraphic, selectedGraphic } =
-    useContext(MapHighlightContext);
-  const [expandedRows, setExpandedRows] = useState([]);
+  const { highlightedGraphic, selectedGraphic } = useMapHighlightState();
+  const [expandedRows, setExpandedRows] = useState<number[]>([]);
 
   if (loading || !waterbodies) return <LoadingSpinner />;
   if (!loading && waterbodies && waterbodies.length <= 0) {
@@ -109,12 +107,18 @@ function WaterbodyListVirtualized({
           { value: 'assessmentunitname', label: 'Waterbody Name' },
           { value: 'assessmentunitidentifier', label: 'Assessment Unit Id' },
         ]}
-        onSortChange={(sortBy) => setSortBy(sortBy.value)}
+        onSortChange={(newSortBy: SortOption) => setSortBy(newSortBy.value)}
+        onExpandCollapse={(allExpanded: boolean) => {
+          if (allExpanded) {
+            setExpandedRows([...Array(waterbodies.length).keys()]);
+          } else {
+            setExpandedRows([]);
+          }
+        }}
       >
         <VirtualizedList
           items={waterbodies}
-          expandedRowsSetter={setExpandedRows}
-          renderer={({ index, resizeCell, allExpanded }) => {
+          renderer={({ index }: { index: number }) => {
             const graphic = waterbodies[index];
 
             const condition = getWaterbodyCondition(
@@ -159,7 +163,6 @@ function WaterbodyListVirtualized({
             return (
               <AccordionItem
                 key={symbolType + orgId + auId}
-                index={symbolType + orgId + auId}
                 title={<strong>{name}</strong>}
                 subTitle={
                   <>
@@ -167,14 +170,9 @@ function WaterbodyListVirtualized({
                   </>
                 }
                 icon={<WaterbodyIcon condition={condition} selected={false} />}
-                feature={graphic}
-                idKey="assessmentunitidentifier"
                 status={status}
-                allExpanded={allExpanded || expandedRows.includes(index)}
+                allExpanded={expandedRows.includes(index)}
                 onChange={() => {
-                  // ensure the cell is sized appropriately
-                  resizeCell();
-
                   // add the item to the expandedRows array so the accordion item
                   // will stay expanded when the user scrolls or highlights map items
                   if (expandedRows.includes(index)) {

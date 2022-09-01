@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Node } from 'react';
 import { css } from 'styled-components/macro';
 import { useNavigate } from 'react-router-dom';
@@ -12,7 +12,7 @@ import AboutContent from 'components/shared/AboutContent';
 import EducatorsContent from 'components/shared/EducatorsContent';
 import GlossaryPanel from 'components/shared/GlossaryPanel';
 // contexts
-import { GlossaryContext } from 'contexts/Glossary';
+import { useGlossaryState } from 'contexts/Glossary';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import {
@@ -145,6 +145,7 @@ const titleStyles = css`
   font-family: ${fonts.secondary};
   font-size: 1.5em;
   color: white;
+  cursor: pointer;
 
   @media (min-width: 25em) {
     font-size: 2em;
@@ -176,7 +177,7 @@ type Props = {
 function Page({ children }: Props) {
   const navigate = useNavigate();
 
-  const { initialized, glossaryStatus } = useContext(GlossaryContext);
+  const { initialized, glossaryStatus } = useGlossaryState();
 
   const services = useServicesContext();
 

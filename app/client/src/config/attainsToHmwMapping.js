@@ -2,11 +2,24 @@ import React from 'react';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 
 export const useFields = [
-  { value: 'drinkingwater_use', label: 'Drinking Water' },
-  { value: 'ecological_use', label: 'Aquatic Life' },
-  { value: 'fishconsumption_use', label: 'Fish and Shellfish Consumption' },
-  { value: 'recreation_use', label: 'Swimming and Boating' },
-  { value: 'other_use', label: 'Other' },
+  {
+    value: 'drinkingwater_use',
+    label: 'Drinking Water',
+    term: 'Drinking Water Use',
+  },
+  { value: 'ecological_use', label: 'Aquatic Life', term: 'Aquatic Life' },
+  {
+    value: 'fishconsumption_use',
+    label: 'Fish and Shellfish Consumption',
+    term: 'Fish and Shellfish Consumption',
+  },
+  {
+    value: 'recreation_use',
+    label: 'Swimming and Boating',
+    term: 'Swimming and Boating',
+  },
+  { value: 'cultural_use', label: 'Cultural', term: 'Cultural Use' },
+  { value: 'other_use', label: 'Other', term: 'Other Use' },
 ];
 
 export const impairmentFields = [

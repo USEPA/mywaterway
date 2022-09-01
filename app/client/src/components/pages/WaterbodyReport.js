@@ -1,6 +1,6 @@
 // @flow
 
-import React, { Fragment, useCallback, useEffect, useState } from 'react';
+import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import WindowSize from '@reach/window-size';
 import { css } from 'styled-components/macro';
@@ -29,7 +29,7 @@ import {
   boxSectionStyles,
 } from 'components/shared/Box';
 // contexts
-import { FullscreenContext, FullscreenProvider } from 'contexts/Fullscreen';
+import { useFullscreenState, FullscreenProvider } from 'contexts/Fullscreen';
 import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
@@ -206,18 +206,15 @@ const disclaimerStyles = css`
   display: inline-block;
 `;
 
-type Props = {
-  fullscreen: Object,
-};
-
 const conditions = {
   impaired: 'Impaired (Issues Identified)',
   good: 'Good',
   unknown: 'Condition Unknown',
 };
 
-function WaterbodyReport({ fullscreen }: Props) {
+function WaterbodyReport() {
   const { orgId, auId, reportingCycle } = useParams();
+  const { fullscreenActive } = useFullscreenState();
 
   const services = useServicesContext();
 
@@ -830,10 +827,17 @@ function WaterbodyReport({ fullscreen }: Props) {
 
   // calculate height of div holding waterbody info
   const [infoHeight, setInfoHeight] = useState(0);
-  const measuredRef = useCallback((node) => {
-    if (!node) return;
-    setInfoHeight(node.getBoundingClientRect().height);
-  }, []);
+  const measuredRef = useRef();
+  useEffect(() => {
+    if (!measuredRef?.current) return;
+    setInfoHeight(measuredRef.current.getBoundingClientRect().height);
+  }, [
+    measuredRef,
+    reportingCycleFetch,
+    waterbodyLocation,
+    waterbodyStatus,
+    waterbodyTypes,
+  ]);
 
   const infoBox = (
     <div css={boxStyles} ref={measuredRef}>
@@ -1017,7 +1021,7 @@ function WaterbodyReport({ fullscreen }: Props) {
     );
   }
 
-  if (fullscreen.fullscreenActive) {
+  if (fullscreenActive) {
     return (
       <WindowSize>
         {({ width, height }) => {
@@ -1027,6 +1031,7 @@ function WaterbodyReport({ fullscreen }: Props) {
                 layout="fullscreen"
                 unitIds={unitIds}
                 onLoad={setMapLayer}
+                includePhoto
               />
             </div>
           );
@@ -1083,6 +1088,7 @@ function WaterbodyReport({ fullscreen }: Props) {
                               layout="narrow"
                               unitIds={unitIds}
                               onLoad={setMapLayer}
+                              includePhoto
                             />
                           </div>
                         )}
@@ -1102,6 +1108,7 @@ function WaterbodyReport({ fullscreen }: Props) {
                           layout="wide"
                           unitIds={unitIds}
                           onLoad={setMapLayer}
+                          includePhoto
                         />
                       </div>
                     </StickyBox>
@@ -1526,9 +1533,7 @@ export default function WaterbodyReportContainer() {
   return (
     <MapHighlightProvider>
       <FullscreenProvider>
-        <FullscreenContext.Consumer>
-          {(fullscreen) => <WaterbodyReport fullscreen={fullscreen} />}
-        </FullscreenContext.Consumer>
+        <WaterbodyReport />
       </FullscreenProvider>
     </MapHighlightProvider>
   );

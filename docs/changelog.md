@@ -1,6 +1,37 @@
 
 # Change Log
 
+## 2.3.0 (September 2022)
+
+### Added
+
+- Added Monitoring Report pages for each monitoring location, listed under Past Water Conditions, where users can view/download historical data and view graphs for sample results of characteristics.
+
+- Added historical data and a date slider to the Monitoring panel on the Community page.
+
+- Added the capability to display images on the Waterbody Report page.
+ 
+### Changed
+
+- Updated the Past Water Conditions layer so that clustering can be broken up by a single click on a cluster.
+
+- Updated the Past Water Conditions layer to have clustering turned off if there are less than 20 stations in the selected HUC.
+
+- Updated the graphics on the Community page to have the same outline thickness across all layers.
+
+- Updated to the latest version of the ArcGIS JS API (v4.24).
+
+- Updated to the latest version of Node.js (v18.7.0).
+
+- Improved the table layout in the Plans popups. 
+
+- Removed the "Sample Count" column from the Monitoring panel of the Community page.
+
+- Fixed a bug on the waterbody report page where the "Unable to find a waterbody report for this waterbody" text was displayed on the bottom of the map popup.
+
+- Fixed a bug on the state page where using the browser's back/forward buttons would change the URL but the data on the page would not change.
+
+
 ## 2.2.0 (June 2022)
 
 ### Added

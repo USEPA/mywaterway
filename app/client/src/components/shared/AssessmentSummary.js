@@ -38,7 +38,12 @@ function AssessmentSummary({ waterbodies, fieldName, usageName }: Props) {
 
   const summary = summarizeAssessments(waterbodies, fieldName);
 
-  const glossaryUsageNames = ['aquatic life', 'fish and shellfish consumption'];
+  const glossaryUsageNames = [
+    'aquatic life',
+    'drinking water use',
+    'fish and shellfish consumption',
+    'swimming and boating',
+  ];
 
   return (
     <>

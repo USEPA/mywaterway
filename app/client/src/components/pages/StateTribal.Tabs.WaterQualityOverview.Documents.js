@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 // components
+import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import ReactTable from 'components/shared/ReactTable';
 // contexts
@@ -74,22 +75,25 @@ const modifiedErrorBoxStyles = css`
 `;
 
 // --- components (Documents) ---
+type ActiveState = {
+  value: string,
+  label: string,
+  source: 'All' | 'State' | 'Tribe',
+};
+
 type Props = {
-  activeState: { code: string, name: string },
+  activeState: ActiveState,
+  organizationData: Object,
   surveyLoading: boolean,
   surveyDocuments: Object,
-  assessmentsLoading: boolean,
-  documentServiceError: boolean,
   surveyServiceError: boolean,
 };
 
 function Documents({
   activeState,
+  organizationData,
   surveyLoading,
   surveyDocuments,
-  assessmentsLoading,
-  assessmentDocuments,
-  documentServiceError,
   surveyServiceError,
 }: Props) {
   const [surveyDocumentsRanked, setSurveyDocumentsRanked] = useState([]);
@@ -112,23 +116,40 @@ function Documents({
   }, [surveyDocuments, documentOrder]);
 
   useEffect(() => {
-    if (documentOrder.status === 'fetching') return;
+    if (
+      organizationData.status === 'fetching' ||
+      documentOrder.status === 'fetching'
+    ) {
+      return;
+    }
+
+    if (
+      organizationData.status === 'failure' ||
+      (organizationData.status === 'success' &&
+        !organizationData.data?.documents)
+    ) {
+      setAssessmentDocumentsRanked([]);
+      return;
+    }
 
     const rankings =
       documentOrder.status === 'success'
         ? documentOrder.data.integratedReportOrdering
         : {};
-    const documentsRanked = getDocumentTypeOrder(assessmentDocuments, rankings);
+    const documentsRanked = getDocumentTypeOrder(
+      organizationData.data.documents,
+      rankings,
+    );
 
     setAssessmentDocumentsRanked(documentsRanked);
-  }, [assessmentDocuments, documentOrder]);
+  }, [organizationData, documentOrder]);
 
   const getDocumentTypeOrder = (documents: Array<Object>, ranks: Object) => {
     let documentsRanked = [];
     documents.forEach((document) => {
       // get document ordering
       let order = 999; // large initial order
-      if (document.documentTypes.length === 0) {
+      if (!document.documentTypes || document.documentTypes.length === 0) {
         const documentRanked = {
           ...document,
           order: order,
@@ -160,47 +181,56 @@ function Documents({
     documentOrder.status,
   );
 
-  if (activeState.code === '') return null;
+  if (activeState.value === '') return null;
 
   return (
     <div css={containerStyles}>
       <h3>Documents Related to Integrated Report</h3>
       <em>Select a document below to download a copy of the report.</em>
-      {assessmentsLoading || documentOrder.status === 'fetching' ? (
-        <LoadingSpinner />
-      ) : documentServiceError ? (
+      {(organizationData.status === 'fetching' ||
+        documentOrder.status === 'fetching') && <LoadingSpinner />}
+      {organizationData.status === 'failure' && (
         <div css={modifiedErrorBoxStyles}>
-          <p>{stateDocumentError(activeState.name)}</p>
+          <p>{stateDocumentError(activeState.label)}</p>
         </div>
-      ) : (
+      )}
+      {organizationData.status === 'success' && (
         <>
           {documentOrder.status === 'failure' && (
             <div css={modifiedInfoBoxStyles}>{stateDocumentSortingError}</div>
           )}
           <DocumentsTable
+            activeState={activeState}
             documents={assessmentDocumentsSorted}
             type="integrated report"
           />
         </>
       )}
 
-      <h3>Documents Related to Statewide Statistical Surveys</h3>
-
-      {surveyLoading || documentOrder.status === 'fetching' ? (
-        <LoadingSpinner />
-      ) : surveyServiceError ? (
-        <div css={modifiedErrorBoxStyles}>
-          <p>{stateSurveyError(activeState.name)}</p>
-        </div>
-      ) : (
+      {activeState.source !== 'Tribe' && (
         <>
-          {documentOrder.status === 'failure' && (
-            <div css={modifiedInfoBoxStyles}>{stateDocumentSortingError}</div>
+          <h3>Documents Related to Statewide Statistical Surveys</h3>
+
+          {surveyLoading || documentOrder.status === 'fetching' ? (
+            <LoadingSpinner />
+          ) : surveyServiceError ? (
+            <div css={modifiedErrorBoxStyles}>
+              <p>{stateSurveyError(activeState.label)}</p>
+            </div>
+          ) : (
+            <>
+              {documentOrder.status === 'failure' && (
+                <div css={modifiedInfoBoxStyles}>
+                  {stateDocumentSortingError}
+                </div>
+              )}
+              <DocumentsTable
+                activeState={activeState}
+                documents={surveyDocumentsSorted}
+                type="statewide statistical survey"
+              />
+            </>
           )}
-          <DocumentsTable
-            documents={surveyDocumentsSorted}
-            type="statewide statistical survey"
-          />
         </>
       )}
     </div>
@@ -209,13 +239,20 @@ function Documents({
 
 // --- components (DocumentsTable) ---
 type DocumentsTableProps = {
+  activeState: ActiveState,
   documents: Array<Object>,
   type: string,
 };
 
-function DocumentsTable({ documents, type }: DocumentsTableProps) {
-  if (documents.length === 0)
-    return <p>No {type} documents available for this state.</p>;
+function DocumentsTable({ activeState, documents, type }: DocumentsTableProps) {
+  if (documents.length === 0) {
+    return (
+      <p>
+        No {type} documents available for this{' '}
+        {activeState.source.toLowerCase()}.
+      </p>
+    );
+  }
 
   return (
     <ReactTable
@@ -242,18 +279,21 @@ function DocumentsTable({ documents, type }: DocumentsTableProps) {
             width: docNameWidth,
             Render: (cell) => {
               return (
-                <a
-                  href={cell.row.original.documentURL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {cell.value} (
-                  {getExtensionFromPath(
-                    cell.row.original.documentFileName,
-                    cell.row.original.documentURL,
-                  )}
-                  )
-                </a>
+                <>
+                  <a
+                    href={cell.row.original.documentURL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {cell.value} (
+                    {getExtensionFromPath(
+                      cell.row.original.documentFileName,
+                      cell.row.original.documentURL,
+                    )}
+                    )
+                  </a>
+                  <DynamicExitDisclaimer url={cell.row.original.documentURL} />
+                </>
               );
             },
           },

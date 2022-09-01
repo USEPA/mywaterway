@@ -6,7 +6,7 @@ jobs:
   develop-branch:
     working_directory: ~/project/app # directory where steps will run
     docker:
-      - image: cimg/node:16.13.1
+      - image: cimg/node:18.7.0
     resource_class: large
     environment:
       APP_NAME: mywaterway-dev
@@ -95,7 +95,7 @@ jobs:
   stage-branch:
     working_directory: ~/project/app # directory where steps will run
     docker:
-      - image: cimg/node:16.13.1
+      - image: cimg/node:18.7.0
     resource_class: large
     environment:
       APP_NAME: mywaterway-stage
