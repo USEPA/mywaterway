@@ -488,13 +488,18 @@ function WaterQualityOverview() {
             return;
           }
 
-          const fishingInfo = [
-            {
-              url: res.features[0].attributes.STATEURL,
-            },
-          ];
+          try {
+            const url = new URL(res.features[0].attributes.STATEURL);
+            const fishingInfo = [
+              {
+                url: url.href,
+              },
+            ];
 
-          setFishingAdvisoryData({ status: 'success', data: fishingInfo });
+            setFishingAdvisoryData({ status: 'success', data: fishingInfo });
+          } catch (ex) {
+            setFishingAdvisoryData({ status: 'success', data: [] });
+          }
         })
         .catch((err) => {
           console.error(err);
