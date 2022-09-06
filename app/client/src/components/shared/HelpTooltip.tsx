@@ -92,13 +92,15 @@ function HelpTooltip({ description, children, label }: HelpTooltipProps) {
         onClick={(_ev) => triggerRef.current?.focus()}
         ref={triggerRef}
       >
-        <span aria-hidden>
-          {children ? (
-            children
-          ) : (
-            <i css={helpIconStyles} className="fas fa-question-circle" />
-          )}
-        </span>
+        {children ? (
+          children
+        ) : (
+          <i
+            aria-hidden
+            css={helpIconStyles}
+            className="fas fa-question-circle"
+          />
+        )}
         <span className="sr-only">{description || 'Information Tooltip'}</span>
       </button>
     </Tooltip>
