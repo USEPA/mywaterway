@@ -67,6 +67,7 @@ function formatTopic(topic) {
   if (topic === 'swimming') return 'Recreation';
   if (topic === 'fishing') return 'Fish and Shellfish Consumption';
   if (topic === 'ecological') return 'Ecological Life';
+  if (topic === 'cultural') return 'Cultural';
   if (topic === 'other') return 'Other';
 }
 
