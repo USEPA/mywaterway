@@ -222,8 +222,6 @@ function filterStation(station, timeframe) {
   const result = {
     ...station,
     stationTotalMeasurements: 0,
-    // TODO: investigate discrepancy between periodOfRecord
-    // sample counts and summary counts
     stationTotalsByGroup: {},
     stationTotalsByLabel: {},
     timeframe: [...timeframe],

@@ -9,7 +9,7 @@ import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import Handles from '@arcgis/core/core/Handles';
 import MapImageLayer from '@arcgis/core/layers/MapImageLayer';
-import Map from "@arcgis/core/Map";
+import Map from '@arcgis/core/Map';
 import Point from '@arcgis/core/geometry/Point';
 import Polygon from '@arcgis/core/geometry/Polygon';
 import ClassBreaksRenderer from '@arcgis/core/renderers/ClassBreaksRenderer';
@@ -737,8 +737,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
     if (!layer) return;
     const parent = (graphic.layer as ExtendedLayer)?.parent;
-    if (parent && 'id' in parent && parent.id === 'allWaterbodiesLayer')
-      return;
+    if (parent && 'id' in parent && parent.id === 'allWaterbodiesLayer') return;
 
     // remove the highlights
     handles.remove(group);
@@ -975,7 +974,7 @@ function useDynamicPopup() {
   };
 
   return function getDynamicPopup() {
-    var hucInfo: ClickedHucState = {
+    let hucInfo: ClickedHucState = {
       status: 'none',
       data: null,
     };
@@ -988,7 +987,7 @@ function useDynamicPopup() {
 
     if (!resetData || services.status === 'fetching') return funcs;
 
-    var lastLocation: { latitude: number; longitude: number } | null = null;
+    let lastLocation: { latitude: number; longitude: number } | null = null;
     function getClickedHuc(location: __esri.Point) {
       return new Promise<ClickedHucState>((resolve, reject) => {
         const testLocation = {
@@ -1239,18 +1238,11 @@ function useSharedLayers() {
       () => wsioHealthIndexLayer.visible,
       () => {
         const parent = wsioHealthIndexLayer.parent;
-        if (
-          !parent ||
-          (!(parent instanceof Map) && !isGroupLayer(parent))
-        )
+        if (!parent || (!(parent instanceof Map) && !isGroupLayer(parent)))
           return;
         // find the boundaries layer
         parent.layers.forEach((layer) => {
-          if (
-            layer.id !== 'boundariesLayer' ||
-            !isGraphicsLayer(layer)
-          )
-            return;
+          if (layer.id !== 'boundariesLayer' || !isGraphicsLayer(layer)) return;
 
           // remove shading when wsio layer is on and add
           // shading back in when wsio layer is off
@@ -1800,7 +1792,9 @@ function useStreamgageData(
   usgsPrecipitation: FetchState<UsgsPrecipitationData>,
   usgsDailyAverages: FetchState<UsgsDailyAveragesData>,
 ) {
-  const [normalizedStreamgages, setNormalizedStreamgages] = useState<UsgsStreamgageAttributes[]>([]);
+  const [normalizedStreamgages, setNormalizedStreamgages] = useState<
+    UsgsStreamgageAttributes[]
+  >([]);
 
   useEffect(() => {
     if (
@@ -1812,7 +1806,10 @@ function useStreamgageData(
     }
 
     const gages = usgsStreamgages.data.value.map((gage) => {
-      const streamgageMeasurements: { primary: StreamgageMeasurement[], secondary: StreamgageMeasurement[] } = { primary: [], secondary: [] };
+      const streamgageMeasurements: {
+        primary: StreamgageMeasurement[];
+        secondary: StreamgageMeasurement[];
+      } = { primary: [], secondary: [] };
 
       [...gage.Datastreams]
         .filter((item) => item.Observations.length > 0)
@@ -1824,7 +1821,10 @@ function useStreamgageData(
 
           let measurement = parseFloat(observation.result) || null;
           // convert measurements recorded in celsius to fahrenheit
-          if (measurement && ['00010', '00020', '85583'].includes(parameterCode)) {
+          if (
+            measurement &&
+            ['00010', '00020', '85583'].includes(parameterCode)
+          ) {
             measurement = measurement * (9 / 5) + 32;
 
             // round to 1 decimal place
@@ -1930,7 +1930,7 @@ function useStreamgageData(
               }
 
               return { measurement, date: new Date(observation.dateTime) };
-          });
+            });
 
           const measurements = streamgage?.streamgageMeasurements;
           if (!measurements) return;
@@ -1954,7 +1954,10 @@ function useStreamgageData(
 
 // Custom hook that is used for handling key presses. This can be used for
 // navigating lists with a keyboard.
-function useKeyPress(targetKey: string, ref: MutableRefObject<HTMLElement | null>) {
+function useKeyPress(
+  targetKey: string,
+  ref: MutableRefObject<HTMLElement | null>,
+) {
   const [keyPressed, setKeyPressed] = useState(false);
 
   function downHandler(ev: KeyboardEvent) {
@@ -1996,7 +1999,10 @@ function useGeometryUtils() {
   // then subtract the huc from this box. This results in a large box that has
   // a hole in it that is in the shape of the huc. Finally we subtract this
   // box from the waterbodies graphics.
-  const cropGeometryToHuc = function (resFeatures: __esri.Graphic[], hucGeometry: __esri.Geometry) {
+  const cropGeometryToHuc = function (
+    resFeatures: __esri.Graphic[],
+    hucGeometry: __esri.Geometry,
+  ) {
     // start by getting the extend of the huc boundaries
     let extent = hucGeometry.extent;
 
@@ -2032,7 +2038,9 @@ function useGeometryUtils() {
         Array.isArray(subtractor) ? subtractor[0] : subtractor,
       );
 
-      feature.geometry = Array.isArray(newGeometry) ? newGeometry[0] : newGeometry;
+      feature.geometry = Array.isArray(newGeometry)
+        ? newGeometry[0]
+        : newGeometry;
       features.push(feature);
     });
 

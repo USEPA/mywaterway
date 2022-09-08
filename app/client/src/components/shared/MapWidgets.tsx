@@ -225,10 +225,10 @@ const resizeHandleStyles = css`
 // --- components ---
 type Props = {
   // map and view props auto passed from parent Map component by react-arcgis
-  map: __esri.Map,
-  view: __esri.MapView,
-  layers: Array<__esri.Layer> | null,
-  onHomeWidgetRendered?: (homeWidget: __esri.Home) => void,
+  map: __esri.Map;
+  view: __esri.MapView;
+  layers: Array<__esri.Layer> | null;
+  onHomeWidgetRendered?: (homeWidget: __esri.Home) => void;
 };
 
 function MapWidgets({
@@ -283,7 +283,9 @@ function MapWidgets({
 
   const [mapEventHandlersSet, setMapEventHandlersSet] = useState(false);
 
-  const [popupWatcher, setPopupWatcher] = useState<__esri.WatchHandle | null>(null);
+  const [popupWatcher, setPopupWatcher] = useState<__esri.WatchHandle | null>(
+    null,
+  );
   useEffect(() => {
     if (!view || popupWatcher) return;
 
@@ -324,7 +326,8 @@ function MapWidgets({
           const pathParts = window.location.pathname.split('/');
           const panelName = pathParts[pathParts.length - 1];
           const layerParent = (item.layer as ExtendedLayer)?.parent;
-          const layerParentId = layerParent && 'id' in layerParent && layerParent.id;
+          const layerParentId =
+            layerParent && 'id' in layerParent && layerParent.id;
           if (
             clickedInHuc &&
             layerParentId === 'allWaterbodiesLayer' &&
@@ -544,7 +547,9 @@ function MapWidgets({
 
   // Creates and adds the legend widget to the map
   const rnd = useRef<Rnd | null>(null);
-  const [addDataWidget, setAddDataWidget] = useState<HTMLDivElement | null>(null);
+  const [addDataWidget, setAddDataWidget] = useState<HTMLDivElement | null>(
+    null,
+  );
   useEffect(() => {
     if (!view?.ui || addDataWidget) return;
 
@@ -596,7 +601,7 @@ function MapWidgets({
   function ShowAddDataWidget({
     setAddDataWidgetVisibleParam,
   }: {
-    setAddDataWidgetVisibleParam: Dispatch<SetStateAction<boolean>>,
+    setAddDataWidgetVisibleParam: Dispatch<SetStateAction<boolean>>;
   }) {
     const [hover, setHover] = useState(false);
 
@@ -673,7 +678,8 @@ function MapWidgets({
   }, [additionalLegendInitialized, services]);
 
   // Creates and adds the basemap/layer list widget to the map
-  const [layerListWidget, setLayerListWidget] = useState<__esri.LayerList | null>(null);
+  const [layerListWidget, setLayerListWidget] =
+    useState<__esri.LayerList | null>(null);
   useEffect(() => {
     if (
       !view ||
@@ -999,7 +1005,8 @@ function MapWidgets({
     setUpstreamLayerVisible,
   ]);
 
-  const [allWaterbodiesWidget, setAllWaterbodiesWidget] = useState<HTMLDivElement | null>(null);
+  const [allWaterbodiesWidget, setAllWaterbodiesWidget] =
+    useState<HTMLDivElement | null>(null);
   const [allWaterbodiesLayerVisible, setAllWaterbodiesLayerVisible] =
     useState(true);
 
@@ -1113,7 +1120,7 @@ function MapWidgets({
     getAllWaterbodiesWidgetDisabled,
     setAllWaterbodiesWidget,
     setAllWaterbodiesWidgetDisabled,
-    view
+    view,
   ]);
 
   if (!addDataWidget) return null;
@@ -1216,9 +1223,9 @@ const divHoverStyle = {
 };
 
 type ExpandeCollapseProps = {
-  fullscreenActive: boolean,
-  setFullscreenActive: Function,
-  mapViewSetter: Function,
+  fullscreenActive: boolean;
+  setFullscreenActive: Function;
+  mapViewSetter: Function;
 };
 
 function ExpandCollapse({
@@ -1263,15 +1270,21 @@ function ExpandCollapse({
 }
 
 type ShowAllWaterbodiesProps = {
-  allWaterbodiesLayer: __esri.GroupLayer | '',
-  getDisabled: () => boolean,
-  mapView: __esri.MapView,
-  setAllWaterbodiesLayerVisible: (visible: boolean) => void,
-  setDisabled: (disabled: boolean) => void,
+  allWaterbodiesLayer: __esri.GroupLayer | '';
+  getDisabled: () => boolean;
+  mapView: __esri.MapView;
+  setAllWaterbodiesLayerVisible: (visible: boolean) => void;
+  setDisabled: (disabled: boolean) => void;
 };
 
 // Defines the show all waterbodies widget
-function ShowAllWaterbodies({ allWaterbodiesLayer, getDisabled, mapView, setAllWaterbodiesLayerVisible, setDisabled }: ShowAllWaterbodiesProps) {
+function ShowAllWaterbodies({
+  allWaterbodiesLayer,
+  getDisabled,
+  mapView,
+  setAllWaterbodiesLayerVisible,
+  setDisabled,
+}: ShowAllWaterbodiesProps) {
   const [firstLoad, setFirstLoad] = useState(true);
   const [hover, setHover] = useState(false);
 
@@ -1279,34 +1292,42 @@ function ShowAllWaterbodies({ allWaterbodiesLayer, getDisabled, mapView, setAllW
   const [allWaterbodiesLoading, setAllWaterbodiesLoading] = useState(false);
 
   // create a watcher to control the loading spinner for the widget
-  if (firstLoad) {
-    setFirstLoad(false);
+  useEffect(() => {
+    if (firstLoad) {
+      setFirstLoad(false);
 
-    reactiveUtils.watch(
-      () => mapView.updating,
-      () => {
-        setAllWaterbodiesLoading(mapView.updating);
-      },
-    );
+      reactiveUtils.watch(
+        () => mapView.updating,
+        () => {
+          setAllWaterbodiesLoading(mapView.updating);
+        },
+      );
 
-    reactiveUtils.watch(
-      () => mapView.scale,
-      () => {
-        const newWidgetDisabledVal = allWaterbodiesLayer ?
-          mapView.scale >= allWaterbodiesLayer.minScale : true;
-        if (newWidgetDisabledVal !== getDisabled()) {
-          setDisabled(newWidgetDisabledVal);
-        }
-      },
-    );
-  }
+      reactiveUtils.watch(
+        () => mapView.scale,
+        () => {
+          const newWidgetDisabledVal = allWaterbodiesLayer
+            ? mapView.scale >= allWaterbodiesLayer.minScale
+            : true;
+          if (newWidgetDisabledVal !== getDisabled()) {
+            setDisabled(newWidgetDisabledVal);
+          }
+        },
+      );
+    }
+  }, [
+    allWaterbodiesLayer,
+    firstLoad,
+    getDisabled,
+    mapView.scale,
+    mapView.updating,
+    setDisabled,
+  ]);
 
   const widgetDisabled = getDisabled();
 
   // get the layer from the mapView
-  const layer = mapView.map.layers.find(
-    (l) => l.id === 'allWaterbodiesLayer',
-  );
+  const layer = mapView.map.layers.find((l) => l.id === 'allWaterbodiesLayer');
 
   let title = 'View Surrounding Waterbodies';
   if (widgetDisabled) title = 'Surrounding Waterbodies Widget Not Available';
@@ -1342,10 +1363,10 @@ type ShowUpstreamWatershedProps = {
   getCurrentExtent: () => __esri.Viewpoint | null;
   getHuc12: () => string;
   getUpstreamExtent: () => __esri.Viewpoint | null;
-  getUpstreamLayer: () => __esri.GraphicsLayer & { error?: boolean } | '';
+  getUpstreamLayer: () => (__esri.GraphicsLayer & { error?: boolean }) | '';
   getUpstreamWidgetDisabled: () => boolean;
   getWatershedName: () => string;
-  getTemplate: ((graphic: Feature) => HTMLDivElement | null);
+  getTemplate: (graphic: Feature) => HTMLDivElement | null;
   services: ServicesState;
   setErrorMessage: (errorMessage: string) => void;
   setUpstreamExtent: (upstreamExtent: __esri.Viewpoint) => void;
