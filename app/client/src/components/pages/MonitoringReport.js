@@ -215,7 +215,17 @@ const infoBoxHeadingStyles = css`
   ${boxHeadingStyles};
   display: flex;
   align-items: flex-start;
+  justify-content: space-between;
   margin-bottom: 0;
+
+  & > * {
+    margin-bottom: auto;
+    margin-top: auto;
+  }
+
+  button {
+    font-size: 1rem;
+  }
 
   small {
     display: block;
@@ -224,6 +234,7 @@ const infoBoxHeadingStyles = css`
 
   /* loading icon */
   svg {
+    display: inline-block;
     margin: 0 -0.375rem 0 -0.875rem;
     height: 1.5rem;
   }
@@ -1276,6 +1287,7 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
         {!charcName
           ? 'Selected Characteristic'
           : titleCaseWithExceptions(charcName)}
+        <HelpTooltip label="Adjust the slider handles to filter the data displayed on the chart by the selected year range, and use the drop-down inputs to filter  the data by the corresponding fields" />
       </h2>
       <StatusContent
         empty={
@@ -1749,7 +1761,10 @@ function DownloadSection({ charcs, charcsStatus, site, siteStatus }) {
 
   return (
     <div css={boxStyles}>
-      <h2 css={infoBoxHeadingStyles}>Download Location Data</h2>
+      <h2 css={infoBoxHeadingStyles}>
+        Download Data
+        <HelpTooltip label="Adjust the slider handles to filter download results by the selected year range, and use the checkboxes to filter the results by individual characteristics and characteristic groups" />
+      </h2>
       <StatusContent
         empty={
           <p css={messageBoxStyles(infoBoxStyles)}>
@@ -1969,14 +1984,15 @@ function InformationSection({ siteId, site, siteStatus }) {
   return (
     <div css={modifiedBoxStyles}>
       <h2 css={infoBoxHeadingStyles}>
-        {siteStatus === 'fetching' && <LoadingSpinner />}
         <span>
-          {siteStatus === 'success' && site.locationName}
+          <small>
+            <strong>Location Name: </strong>
+            {siteStatus === 'fetching' && <LoadingSpinner />}
+            {siteStatus === 'success' && site.locationName}
+          </small>
           <small>
             <strong>
-              Site ID{' '}
-              <HelpTooltip label="Identifies a monitoring location by a unique name, number, or code" />
-              :{' '}
+              <GlossaryTerm term="Monitoring Site ID">Site ID</GlossaryTerm>:{' '}
             </strong>
             {siteId}
           </small>
@@ -1985,7 +2001,7 @@ function InformationSection({ siteId, site, siteStatus }) {
       <div css={boxSectionStyles}>
         {rowGrid('Organization Name', site.orgName, siteStatus)}
         {rowGrid('Organization ID', site.orgId, siteStatus)}
-        {rowGrid('Location', `${site.county}, ${site.state}`, siteStatus)}
+        {rowGrid('County, State', `${site.county}, ${site.state}`, siteStatus)}
         {rowGrid('Water Type', site.locationType, siteStatus)}
         {rowGrid(
           'Total Sample Count',
@@ -2002,7 +2018,7 @@ function InformationSection({ siteId, site, siteStatus }) {
   );
 }
 
-function MonitoringLocationContent() {
+function MonitoringReportContent() {
   const { orgId, provider, siteId } = useParams();
   const { fullscreenActive } = useFullscreenState();
   const [site, siteStatus] = useSiteDetails(provider, orgId, siteId);
@@ -2065,7 +2081,7 @@ function MonitoringLocationContent() {
 
   const noSiteView = (
     <Page>
-      <NavBar title="Monitoring Location Details" />
+      <NavBar title="Monitoring Report" />
 
       <div css={containerStyles}>
         <div css={pageErrorBoxStyles}>
@@ -2094,7 +2110,7 @@ function MonitoringLocationContent() {
 
   const twoColumnView = (
     <Page>
-      <NavBar title="Monitoring Location Details" />
+      <NavBar title="Monitoring Report" />
       <div css={containerStyles} data-content="container">
         <WindowSize>
           {({ width, height }) => {
@@ -2153,11 +2169,11 @@ function MonitoringLocationContent() {
   );
 }
 
-function MonitoringLocation() {
+function MonitoringReport() {
   return (
     <FullscreenProvider>
       <MapHighlightProvider>
-        <MonitoringLocationContent />
+        <MonitoringReportContent />
       </MapHighlightProvider>
     </FullscreenProvider>
   );
@@ -2370,4 +2386,4 @@ function StatusContent({
   }
 }
 
-export default MonitoringLocation;
+export default MonitoringReport;

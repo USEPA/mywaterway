@@ -25,8 +25,7 @@
         <changefreq>weekly</changefreq>
     </url>
     <url>
-        <!-- TODO-Tribal - Replace state with state-and-tribal -->
-        <loc>https://mywaterway.epa.gov/state</loc>
+        <loc>https://mywaterway.epa.gov/state-and-tribal</loc>
         <changefreq>weekly</changefreq>
     </url>
     <url>

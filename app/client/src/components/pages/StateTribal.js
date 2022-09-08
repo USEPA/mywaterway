@@ -25,9 +25,9 @@ import {
   StateTribalTabsProvider,
 } from 'contexts/StateTribalTabs';
 import {
-  // useOrganizationsContext, // TODO-Tribal - uncomment this
+  useOrganizationsContext,
   useServicesContext,
-  // useTribeMappingContext, // TODO-Tribal - uncomment this
+  useTribeMappingContext,
 } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
@@ -165,37 +165,30 @@ const searchContainerStyles = css`
   }
 `;
 
-// TODO-Tribal - Uncomment the block below
-// const searchSourceButtonStyles = css`
-//   height: 38px;
-//   border-top-left-radius: 4px;
-//   border-bottom-left-radius: 4px;
-// `;
+const searchSourceButtonStyles = css`
+  height: 38px;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+`;
 
 function StateTribal() {
   const location = useLocation();
   const navigate = useNavigate();
-  // const organizations = useOrganizationsContext(); // TODO-Tribal - uncomment this
+  const organizations = useOrganizationsContext();
   const services = useServicesContext();
-  // const tribeMapping = useTribeMappingContext(); // TODO-Tribal - uncomment this
+  const tribeMapping = useTribeMappingContext();
 
   // redirect to '/stateandtribe' if the url is /state or /tribe
   useEffect(() => {
     const pathname = window.location.pathname.toLowerCase();
-    // TODO-Tribal - Uncomment lines below and remove the 3 state lines
-    // if (['/state', '/state/', '/tribe', '/tribe/'].includes(pathname)) {
-    //   navigate('/state-and-tribal', { replace: true });
-    // }
-    if (['/state', '/state/'].includes(pathname)) {
-      navigate('/state', { replace: true });
+    if (['/state', '/state/', '/tribe', '/tribe/'].includes(pathname)) {
+      navigate('/state-and-tribal', { replace: true });
     }
   }, [navigate]);
 
   // get tribes from the tribeMapping data
-  // const [tribes, setTribes] = useState({ status: 'success', data: [] }); // TODO-Tribal - Uncomment this
-  const [tribes] = useState({ status: 'success', data: [] }); // TODO-Tribal - Delete this
-  // TODO-Tribal - Uncomment the block below
-  /* useEffect(() => {
+  const [tribes, setTribes] = useState({ status: 'success', data: [] });
+  useEffect(() => {
     if (
       organizations.status === 'failure' ||
       tribeMapping.status === 'failure'
@@ -229,7 +222,7 @@ function StateTribal() {
     });
 
     setTribes({ status: 'success', data: tempTribes });
-  }, [organizations, tribeMapping]); */
+  }, [organizations, tribeMapping]);
 
   // query attains for the list of states
   const [states, setStates] = useState({ status: 'fetching', data: [] });
@@ -261,8 +254,7 @@ function StateTribal() {
 
   // reset active state if on state intro page
   useEffect(() => {
-    // TODO-Tribal - Replace with /state with /state-and-tribal
-    if (location.pathname === '/state') {
+    if (location.pathname === '/state-and-tribal') {
       setSelectedStateTribe(null);
       setActiveState({
         label: '',
@@ -283,10 +275,7 @@ function StateTribal() {
   // updates the selectOptions based on the selectedSource
   useEffect(() => {
     const options = [];
-    options.push(...states.data); // TODO-Tribal - Delete this line
-
-    // TODO-Tribal - Uncomment the block below
-    /* if (selectedSource === 'All') {
+    if (selectedSource === 'All') {
       options.push({
         label: 'State',
         options: states.data,
@@ -297,7 +286,7 @@ function StateTribal() {
       });
     }
     if (selectedSource === 'State') options.push(...states.data);
-    if (selectedSource === 'Tribe') options.push(...tribes.data); */
+    if (selectedSource === 'Tribe') options.push(...tribes.data);
 
     setSelectOptions(options);
   }, [selectedSource, states, tribes]);
@@ -438,8 +427,7 @@ function StateTribal() {
                   `${sourcesVisible ? 'esri-search--sources' : ''} `
                 }
               >
-                {/* TODO-Tribal - Uncomment the block below */}
-                {/* <div
+                <div
                   css={searchSourceButtonStyles}
                   role="button"
                   title="Search in"
@@ -511,22 +499,20 @@ function StateTribal() {
                       );
                     })}
                   </ul>
-                </div> */}
+                </div>
                 <Select
                   id="hmw-state-select"
                   inputId="hmw-state-select-input"
                   ref={statesSelect}
                   css={selectStyles}
                   classNamePrefix="Select"
-                  // TODO-Tribal - Uncomment the placeholder below
-                  // placeholder={
-                  //   selectedSource === 'All'
-                  //     ? 'Select a state or tribe...'
-                  //     : selectedSource === 'State'
-                  //     ? 'Select a state...'
-                  //     : 'Select a tribe...'
-                  // }
-                  placeholder="Select a state..." // TODO-Tribal - Delete this
+                  placeholder={
+                    selectedSource === 'All'
+                      ? 'Select a state or tribe...'
+                      : selectedSource === 'State'
+                      ? 'Select a state...'
+                      : 'Select a tribe...'
+                  }
                   options={selectOptions}
                   value={selectedStateTribe}
                   onKeyDown={(ev) => {
@@ -647,13 +633,12 @@ function StateTribal() {
                         )}
 
                         <DisclaimerModal css={disclaimerStyles}>
-                          {/* TODO-Tribal - Replace "local or state" with "local, state, or tribal" */}
                           <p>
                             The condition of a waterbody is dynamic and can
                             change at any time, and the information in How’s My
                             Waterway should only be used for general reference.
-                            If available, refer to local or state real-time
-                            water quality reports.
+                            If available, refer to local, state, or tribal
+                            real-time water quality reports.
                           </p>
                           <p>
                             Furthermore, users of this application should not

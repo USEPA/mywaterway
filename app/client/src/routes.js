@@ -15,7 +15,7 @@ import StateTribal from 'components/pages/StateTribal';
 import StateTribalIntro from 'components/pages/StateTribal.Routes.StateTribalIntro';
 import StateTribalTabs from 'components/pages/StateTribal.Routes.StateTribalTabs';
 import National from 'components/pages/National';
-import MonitoringLocation from 'components/pages/MonitoringLocation';
+import MonitoringReport from 'components/pages/MonitoringReport';
 import DrinkingWater from 'components/pages/DrinkingWater';
 import Swimming from 'components/pages/Swimming';
 import EatingFish from 'components/pages/EatingFish';
@@ -74,23 +74,19 @@ function AppRoutes() {
           <Route path=":urlSearch" element={<CommunityTabs />} />
           <Route path=":urlSearch/:tabName" element={<CommunityTabs />} />
         </Route>
-        {/* TODO-Tribal - Uncomment the below lines */}
-        {/* <Route path="/state-and-tribal" element={<StateTribal />}>
+        <Route path="/state-and-tribal" element={<StateTribal />}>
           <Route index element={<StateTribalIntro />} />
-        </Route> */}
+        </Route>
         <Route path="/state" element={<StateTribal />}>
-          {/* TODO-Tribal - Remove the next line */}
-          <Route index element={<StateTribalIntro />} />
           <Route path="/state/:stateCode" element={<StateTribalTabs />} />
           <Route
             path="/state/:stateCode/:tabName"
             element={<StateTribalTabs />}
           />
         </Route>
-        {/* TODO-Tribal - Uncomment the below lines */}
-        {/* <Route path="/tribe" element={<StateTribal />}>
+        <Route path="/tribe" element={<StateTribal />}>
           <Route path="/tribe/:stateCode" element={<StateTribalTabs />} />
-        </Route> */}
+        </Route>
         <Route path="/national" element={<National />} />
         <Route path="/drinking-water" element={<DrinkingWater />} />
         <Route path="/swimming" element={<Swimming />} />
@@ -98,8 +94,8 @@ function AppRoutes() {
         <Route path="/aquatic-life" element={<AquaticLife />} />
         <Route path="/plan-summary/:orgId/:actionId" element={<Actions />} />
         <Route
-          path="/location/:provider/:orgId/:siteId"
-          element={<MonitoringLocation />}
+          path="/monitoring-report/:provider/:orgId/:siteId"
+          element={<MonitoringReport />}
         />
         <Route
           path="/waterbody-report/:orgId/:auId"
