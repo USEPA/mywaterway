@@ -1,6 +1,6 @@
 {
   "name": "mywaterway-server",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "A tool to learn about your water resources.",
   "keywords": [
     "MyWaterway",
@@ -25,7 +25,7 @@
     "Max Diebold <max.diebold@erg.com>"
   ],
   "engines": {
-    "node": "16.x"
+    "node": "18.x"
   },
   "main": "app/server.js",
   "scripts": {
@@ -36,16 +36,16 @@
     "dotenv": "16.0.1",
     "express": "4.18.1",
     "express-basic-auth": "1.2.1",
-    "helmet": "5.1.0",
-    "log4js": "6.5.2",
+    "helmet": "5.1.1",
+    "log4js": "6.6.1",
     "serve-favicon": "2.5.0"
   },
   "devDependencies": {
     "browser-sync": "2.27.10",
     "husky": "8.0.1",
-    "lint-staged": "13.0.0",
-    "nodemon": "2.0.16",
-    "prettier": "2.6.2"
+    "lint-staged": "13.0.3",
+    "nodemon": "2.0.19",
+    "prettier": "2.7.1"
   },
   "husky": {
     "hooks": {

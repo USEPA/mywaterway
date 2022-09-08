@@ -3,8 +3,7 @@ import { css } from 'styled-components/macro';
 import { useNavigate } from 'react-router-dom';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
-import Query from '@arcgis/core/rest/support/Query';
-import QueryTask from '@arcgis/core/tasks/QueryTask';
+import * as query from '@arcgis/core/rest/query';
 import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
@@ -144,30 +143,20 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
       actionsLayer.graphics.removeAll();
 
       // set up ESRI Queries for ATTAINS lines, area, and points web services
-      const lineQuery = new Query();
-      const areaQuery = new Query();
-      const pointQuery = new Query();
+      const linesUrl = services.data.waterbodyService.lines;
+      const areasUrl = services.data.waterbodyService.areas;
+      const pointsUrl = services.data.waterbodyService.points;
 
-      [lineQuery, areaQuery, pointQuery].forEach((query) => {
-        const auIds = Object.keys(unitIds).join("','");
-        query.returnGeometry = true;
-        query.outFields = ['*'];
-        query.where = `assessmentunitidentifier in ('${auIds}')`;
-      });
+      const auIds = Object.keys(unitIds).join("','");
+      const queryParams = {
+        returnGeometry: true,
+        outFields: ['*'],
+        where: `assessmentunitidentifier in ('${auIds}')`,
+      };
 
-      const lineQueryTask = new QueryTask({
-        url: services.data.waterbodyService.lines,
-      });
-      const areaQueryTask = new QueryTask({
-        url: services.data.waterbodyService.areas,
-      });
-      const pointQueryTask = new QueryTask({
-        url: services.data.waterbodyService.points,
-      });
-
-      const linePromise = lineQueryTask.execute(lineQuery);
-      const areaPromise = areaQueryTask.execute(areaQuery);
-      const pointPromise = pointQueryTask.execute(pointQuery);
+      const linePromise = query.executeQueryJSON(linesUrl, queryParams);
+      const areaPromise = query.executeQueryJSON(areasUrl, queryParams);
+      const pointPromise = query.executeQueryJSON(pointsUrl, queryParams);
 
       Promise.all([linePromise, areaPromise, pointPromise])
         .then(([lineResponse, areaResponse, pointResponse]) => {

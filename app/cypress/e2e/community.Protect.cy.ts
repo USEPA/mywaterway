@@ -21,7 +21,7 @@ describe('Protect Tab', () => {
     cy.get('.hmw-accordion').then((elms) => {
       cy.wrap(elms[3]).click();
     });
-    cy.findByText('Cypress Creek WPP Imp - Years 1-3');
+    cy.findAllByText('Cypress Creek WPP Imp - Years 1-3');
 
     // navigate to Protect tab of Community page
     cy.findByPlaceholderText('Search by address', { exact: false })

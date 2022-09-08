@@ -11,9 +11,9 @@ import Handles from '@arcgis/core/core/Handles';
 import MapImageLayer from '@arcgis/core/layers/MapImageLayer';
 import Point from '@arcgis/core/geometry/Point';
 import Polygon from '@arcgis/core/geometry/Polygon';
+import * as query from '@arcgis/core/rest/query';
 import Query from '@arcgis/core/rest/support/Query';
-import QueryTask from '@arcgis/core/tasks/QueryTask';
-import * as watchUtils from '@arcgis/core/core/watchUtils';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 // config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 import { monitoringClusterSettings } from 'components/shared/LocationMap';
@@ -71,7 +71,7 @@ function buildStations(locations, layer) {
       // TODO: explore if the built up locationUrl below is ever different from
       // `station.properties.siteUrl`. from a quick test, they seem the same
       locationUrl:
-        `/location/` +
+        `/monitoring-report/` +
         `${station.properties.ProviderName}/` +
         `${encodeURIComponent(station.properties.OrganizationIdentifier)}/` +
         `${encodeURIComponent(
@@ -935,14 +935,13 @@ function useDynamicPopup() {
         };
 
         //get the huc boundaries of where the user clicked
-        const query = new Query({
+        const queryParams = {
           returnGeometry: true,
           geometry: location,
           outFields: ['*'],
-        });
-
-        new QueryTask({ url: services.data.wbd })
-          .execute(query)
+        };
+        query
+          .executeQueryJSON(services.data.wbd, queryParams)
           .then((boundaries) => {
             if (boundaries.features.length === 0) {
               resolve({
@@ -1146,10 +1145,9 @@ function useSharedLayers() {
 
     // Toggles the shading of the watershed graphic based on
     // whether or not the wsio layer is on or off
-    watchUtils.watch(
-      wsioHealthIndexLayer,
-      'visible',
-      (newVal, oldVal, propName, target) => {
+    reactiveUtils.watch(
+      () => wsioHealthIndexLayer.visible,
+      () => {
         // find the boundaries layer
         wsioHealthIndexLayer.parent.layers.items.forEach((layer) => {
           if (layer.id !== 'boundariesLayer') return;
@@ -1158,7 +1156,7 @@ function useSharedLayers() {
           // shading back in when wsio layer is off
           const newGraphics = layer.graphics.clone();
           newGraphics.forEach((graphic) => {
-            graphic.symbol.color.a = newVal ? 0 : 0.5;
+            graphic.symbol.color.a = wsioHealthIndexLayer.visible ? 0 : 0.5;
           });
 
           // re-draw the graphics
