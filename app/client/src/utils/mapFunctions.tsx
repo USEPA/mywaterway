@@ -979,7 +979,7 @@ export function isInScale(layer: ParentLayer | ScaledLayer, scale: number) {
   let maxScale = 0;
 
   // get the extreme min and max scales of the layer
-  if (isTileLayer(layer) || isMapImageLayer(layer)) {
+  if ((isTileLayer(layer) || isMapImageLayer(layer)) && layer.sourceJSON) {
     // get sublayers included in the parentlayer
     // note: the sublayer has maxScale and minScale, but these are always 0
     //       even if the sublayer does actually have a min/max scale.
@@ -989,7 +989,7 @@ export function isInScale(layer: ParentLayer | ScaledLayer, scale: number) {
     });
 
     // get the min/max scale from the sourceJSON
-    layer.sourceJSON?.layers?.forEach((sourceLayer: any) => {
+    layer.sourceJSON.layers.forEach((sourceLayer: any) => {
       if (!sublayerIds.includes(sourceLayer.id)) return;
 
       if (sourceLayer.minScale === 0 || sourceLayer.minScale > minScale) {
@@ -1000,8 +1000,8 @@ export function isInScale(layer: ParentLayer | ScaledLayer, scale: number) {
       }
     });
   } else if (isGroupLayer(layer)) {
-    // get the min/max scale from the sourceJSON
-    layer.layers?.forEach((subLayer: ScaledLayer) => {
+    // get the min/max scale from the sublayers
+    layer.layers.forEach((subLayer: ScaledLayer) => {
       if (
         subLayer.minScale &&
         (subLayer.minScale === 0 || subLayer.minScale > minScale)
