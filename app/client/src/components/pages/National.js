@@ -461,7 +461,7 @@ function NationalDrinkingWaterPanel() {
 
       <h3>EPA has defined three types of public water systems:</h3>
 
-      <WaterSystemSummary state={{ name: 'US', code: 'National' }} />
+      <WaterSystemSummary state={{ label: 'US', value: 'National' }} />
     </>
   );
 }

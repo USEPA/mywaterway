@@ -1,12 +1,22 @@
 import React, { Component, createContext } from 'react';
+import type { ReactNode } from 'react';
 
 export const LocationSearchContext = createContext();
 
 type Props = {
-  children: Node,
+  children: ReactNode,
 };
 
 type Status = 'fetching' | 'success' | 'failure';
+
+type MonitoringLocationGroups = {
+  [label: string]: {
+    label: string,
+    characteristicGroups?: Array<string>,
+    stations: StationData[],
+    toggled: boolean,
+  },
+};
 
 type MonitoringLocationsData = {
   features: {
@@ -200,7 +210,8 @@ type State = {
   FIPS: Object,
 
   // monitoring panel
-  monitoringGroups: Object,
+  monitoringGroups: MonitoringLocationGroups,
+  monitoringFeatureUpdates: ?Object,
 
   // identified issues panel
   showDischargers: boolean,
@@ -262,7 +273,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     upstreamWidgetDisabled: false,
     allWaterbodiesWidgetDisabled: false,
     visibleLayers: {},
-    basemap: {},
+    basemap: 'gray-vector',
     hucBoundaries: '',
     atHucBoundaries: false,
     countyBoundaries: '',
@@ -285,6 +296,7 @@ export class LocationSearchProvider extends Component<Props, State> {
 
     // monitoring panel
     monitoringGroups: null,
+    monitoringFeatureUpdates: null,
 
     // identified issues panel
     showAllPolluted: true,
@@ -382,9 +394,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
     getUpstreamWidgetDisabled: () => {
       return this.state.upstreamWidgetDisabled;
-    },
-    getAllWaterbodiesLayer: () => {
-      return this.state.allWaterbodiesLayer;
     },
     getCurrentExtent: () => {
       return this.state.currentExtent;
@@ -515,6 +524,9 @@ export class LocationSearchProvider extends Component<Props, State> {
     setMonitoringGroups: (monitoringGroups) => {
       this.setState({ monitoringGroups });
     },
+    setMonitoringFeatureUpdates: (monitoringFeatureUpdates) => {
+      this.setState({ monitoringFeatureUpdates });
+    },
     setShowAllPolluted: (showAllPolluted) => {
       this.setState({ showAllPolluted });
     },
@@ -548,13 +560,6 @@ export class LocationSearchProvider extends Component<Props, State> {
       if (pointsData) features = features.concat(pointsData.features);
 
       return features;
-    },
-
-    // default basemap is gray but use basemap in context if it exists
-    getBasemap: () => {
-      return Object.keys(this.state.basemap).length === 0
-        ? 'gray-vector'
-        : this.state.basemap;
     },
 
     resetMap: (useDefaultZoom = false) => {
@@ -702,6 +707,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         atHucBoundaries: false,
         hucBoundaries: '',
         monitoringGroups: null,
+        monitoringFeatureUpdates: null,
         monitoringLocations: { status: 'fetching', data: {} },
         permittedDischargers: { status: 'fetching', data: {} },
         nonprofits: { status: 'fetching', data: [] },

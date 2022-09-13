@@ -99,7 +99,7 @@ const modifiedErrorBoxStyles = css`
 
 // --- components ---
 type Props = {
-  state: { name: string, code: string },
+  state: { label: string, value: string },
 };
 
 function WaterSystemSummary({ state }: Props) {
@@ -116,16 +116,18 @@ function WaterSystemSummary({ state }: Props) {
   });
   useEffect(() => {
     if (
-      !state.code ||
-      lastCountsCode === state.code ||
+      !state.value ||
+      lastCountsCode === state.value ||
       services.status !== 'success'
     ) {
       return;
     }
 
-    setLastCountsCode(state.code);
+    setLastCountsCode(state.value);
 
-    fetchCheck(`${services.data.dwmaps.getGPRASystemCountsByType}${state.code}`)
+    fetchCheck(
+      `${services.data.dwmaps.getGPRASystemCountsByType}${state.value}`,
+    )
       .then((res) => {
         if (!res || !res.items || res.items.length === 0) {
           setSystemTypeRes({
@@ -143,7 +145,7 @@ function WaterSystemSummary({ state }: Props) {
         let ntncwsCount = 0;
         let tncwsCount = 0;
         res.items.forEach((item) => {
-          if (item.primacy_agency_code !== state.code) return;
+          if (item.primacy_agency_code !== state.value) return;
 
           const { pws_type_code, number_of_systems } = item;
           switch (pws_type_code) {
@@ -192,17 +194,22 @@ function WaterSystemSummary({ state }: Props) {
 
   useEffect(() => {
     if (
-      !state.code ||
-      lastSummaryCode === state.code ||
+      !state.value ||
+      lastSummaryCode === state.value ||
       services.status !== 'success'
     ) {
       return;
     }
 
-    setLastSummaryCode(state.code);
+    setLastSummaryCode(state.value);
 
-    fetchCheck(`${services.data.dwmaps.getGPRASummary}${state.code}`)
-      .then((res) => setGpraData({ status: 'success', data: res.items[0] }))
+    fetchCheck(`${services.data.dwmaps.getGPRASummary}${state.value}`)
+      .then((res) =>
+        setGpraData({
+          status: 'success',
+          data: res.items.length > 0 ? res.items[0] : null,
+        }),
+      )
       .catch((err) => setGpraData({ status: 'failure', data: {} }));
   }, [state, services, lastSummaryCode]);
 
@@ -246,7 +253,7 @@ function WaterSystemSummary({ state }: Props) {
           <HighchartsReact
             highcharts={Highcharts}
             options={{
-              title: { text: `${state.name} Drinking Water Systems By Type` },
+              title: { text: `${state.label} Drinking Water Systems By Type` },
               credits: { enabled: false },
               chart: {
                 plotBackgroundColor: null,
@@ -274,7 +281,7 @@ function WaterSystemSummary({ state }: Props) {
               },
               series: [
                 {
-                  name: `${state.name} Drinking Water Systems By Type`,
+                  name: `${state.label} Drinking Water Systems By Type`,
                   innerSize: '50%',
                   colorByPoint: true,
                   data: [
@@ -332,6 +339,10 @@ function WaterSystemSummary({ state }: Props) {
         {gpraData.status === 'success' && (
           <WindowSize>
             {({ width, height }) => {
+              if (!gpraData.data || gpraData.data.length === 0) {
+                return <>No data available...</>;
+              }
+
               const labels = [
                 'Submission Year Quarter',
                 'Violations',

@@ -9,8 +9,7 @@ import React, {
 } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
-import Query from '@arcgis/core/rest/support/Query';
-import QueryTask from '@arcgis/core/tasks/QueryTask';
+import * as query from '@arcgis/core/rest/query';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 // components
 import { tabsStyles } from 'components/shared/ContentTabs';
@@ -26,7 +25,7 @@ import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
-import { MapHighlightContext } from 'contexts/MapHighlight';
+import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { getUrlFromMarkup, getTitleFromMarkup } from 'components/shared/Regex';
@@ -181,7 +180,7 @@ function Protect() {
   // draw the waterbody on the map
   useWaterbodyOnMap('hasprotectionplan', 'overallstatus');
 
-  const { setSelectedGraphic } = useContext(MapHighlightContext);
+  const { setSelectedGraphic } = useMapHighlightState();
   const {
     mapView,
     attainsPlans,
@@ -1114,16 +1113,15 @@ function Protect() {
                                     fieldName={protectedAreasIdKey}
                                     customQuery={(viewClick) => {
                                       // query for the item
-                                      const query = new Query({
+                                      const url = `${services.data.protectedAreasDatabase}0`;
+                                      const queryParams = {
                                         where: `${protectedAreasIdKey} = ${attributes[protectedAreasIdKey]}`,
                                         returnGeometry: true,
                                         outFields: ['*'],
-                                      });
+                                      };
 
-                                      new QueryTask({
-                                        url: `${services.data.protectedAreasDatabase}0`,
-                                      })
-                                        .execute(query)
+                                      query
+                                        .executeQueryJSON(url, queryParams)
                                         .then((res) => {
                                           if (res.features.length === 0) return;
 
@@ -1567,7 +1565,7 @@ type FeatureItemProps = {
 
 function FeatureItem({ feature, title, children }: FeatureItemProps) {
   const { mapView } = useContext(LocationSearchContext);
-  const { setHighlightedGraphic } = useContext(MapHighlightContext);
+  const { setHighlightedGraphic } = useMapHighlightState();
 
   const addHighlight = () => {
     if (!feature || !mapView) return;
