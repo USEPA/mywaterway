@@ -67,6 +67,7 @@ function formatTopic(topic) {
   if (topic === 'swimming') return 'Recreation';
   if (topic === 'fishing') return 'Fish and Shellfish Consumption';
   if (topic === 'ecological') return 'Ecological Life';
+  if (topic === 'cultural') return 'Cultural';
   if (topic === 'other') return 'Other';
 }
 
@@ -488,13 +489,18 @@ function WaterQualityOverview() {
             return;
           }
 
-          const fishingInfo = [
-            {
-              url: res.features[0].attributes.STATEURL,
-            },
-          ];
+          try {
+            const url = new URL(res.features[0].attributes.STATEURL);
+            const fishingInfo = [
+              {
+                url: url.href,
+              },
+            ];
 
-          setFishingAdvisoryData({ status: 'success', data: fishingInfo });
+            setFishingAdvisoryData({ status: 'success', data: fishingInfo });
+          } catch (ex) {
+            setFishingAdvisoryData({ status: 'success', data: [] });
+          }
         })
         .catch((err) => {
           console.error(err);
@@ -693,7 +699,12 @@ function WaterQualityOverview() {
     //get the list of possible uses
     let possibleUses = {};
     stateNationalUses.data.forEach((item) => {
-      if (item.state === activeState.value && item.category === category) {
+      if (
+        item.category === category &&
+        ((activeState.source === 'State' && item.state === activeState.value) ||
+          (activeState.source === 'Tribe' &&
+            item.orgId === activeState.attainsId))
+      ) {
         // make sure to use upper case to prevent duplicate uses
         possibleUses[normalizeString(item.name)] = item;
       }
