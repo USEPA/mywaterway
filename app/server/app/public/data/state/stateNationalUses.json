@@ -2207,7 +2207,21 @@
   {
     "region": 5,
     "state": "IL",
+    "name": "Primary Contact",
+    "category": "Recreation",
+    "surveyuseCode": ""
+  },
+  {
+    "region": 5,
+    "state": "IL",
     "name": "Public and Food Processing Water Supplies",
+    "category": "Drinking Water",
+    "surveyuseCode": ""
+  },
+  {
+    "region": 5,
+    "state": "IL",
+    "name": "Public and Food Processing Water Supply",
     "category": "Drinking Water",
     "surveyuseCode": ""
   },
@@ -2258,6 +2272,20 @@
     "state": "IL",
     "name": "Secondary Contact Recreation",
     "category": "Recreation",
+    "surveyuseCode": ""
+  },
+  {
+    "region": 5,
+    "state": "IL",
+    "name": "Secondary Contact",
+    "category": "Recreation",
+    "surveyuseCode": ""
+  },
+  {
+    "region": 5,
+    "state": "IL",
+    "name": "Upper Dresden Island Pool Aquatic Life Use",
+    "category": "Ecological Life",
     "surveyuseCode": ""
   },
   {

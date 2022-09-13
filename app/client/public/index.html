@@ -149,7 +149,9 @@
       const pathnameMapping = {
         default: "How's My Waterway - Home",
         community: "How's My Waterway - Community",
+        'state-and-tribal': "How's My Waterway - State and Tribal",
         state: "How's My Waterway - State",
+        tribe: "How's My Waterway - Tribe",
         national: "How's My Waterway - National",
         'waterbody-report': "How's My Waterway - Waterbody Report",
         'plan-summary': "How's My Waterway - Plan Summary",
@@ -160,6 +162,8 @@
         'aquatic-life': "How's My Waterway - Explore - Aquatic Life",
         'drinking-water': "How's My Waterway - Explore - Drinking Water",
         attains: "How's My Waterway - ATTAINS",
+        educators: "How's My Waterway - Educators",
+        'monitoring-report': "How's My Waterway - Monitoring Report",
       };
 
       const descriptionMapping = {
@@ -167,14 +171,22 @@
           'An application for learning the condition of local streams, lakes and other waters anywhere in the US... quickly and in plain language.',
         community:
           'Enter a location to learn about water quality in your community. Explore information about local stream conditions, watershed protection, restoration, drinking water and whether your waterways are suitable for swimming or eating fish and aquatic life.',
+        'state-and-tribal':
+          'Choose a state, tribe, or territory to get the most recent information on water quality submitted to EPA, including success stories, documents, and links to organizational websites.',
         state:
-          'Choose a state or territory to get a comprehensive picture of water quality statewide. Search for water conditions throughout your state with the advanced search tool.',
+          'Choose a state or territory to get the most recent information on water quality submitted to EPA, including success stories, documents, and links to organizational websites. Search for water conditions throughout your state with the advanced search tool.',
+        tribe:
+          'Choose a tribe to get the most recent information on water quality submitted to EPA, documents, and links to organizational websites.',
         national:
           'Explore information about overall water quality in the United State and the basics of EPA’s drinking water program.',
         'waterbody-report':
           'Use the waterbody report page to find information on individual waterbodies including uses, probable sources of impairments and plans to restore water quality. ',
         'plan-summary':
           'The restoration plan summary page includes basic plan information, submitted documents, impairments addressed, and waters covered. ',
+        educators:
+          'Find How’s My Waterway resources for educators including lesson plans and other materials.',
+        'monitoring-report':
+          'Use the monitoring report page to find information on individual monitoring locations including historical data from the Water Quality Portal.',
       };
 
       // update page title and description using mapping
@@ -565,8 +577,8 @@
             >
             <br />
             How's My Waterway utilizes Esri's ArcGIS JavaScript API for advanced
-            mapping features, which are not supported by this browser. For
-            more information visit the following links:
+            mapping features, which are not supported by this browser. For more
+            information visit the following links:
             <a
               href="https://developers.arcgis.com/javascript/latest/system-requirements/#:~:text=Supported%20browsers&text=Firefox%2093%20or%20later,Safari%2014%20or%20later"
               >ArcGIS API for JavaScript System Requirements</a

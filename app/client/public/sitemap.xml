@@ -25,11 +25,28 @@
         <changefreq>weekly</changefreq>
     </url>
     <url>
+        <!-- TODO-Tribal - Replace state with state-and-tribal -->
         <loc>https://mywaterway.epa.gov/state</loc>
         <changefreq>weekly</changefreq>
     </url>
     <url>
         <loc>https://mywaterway.epa.gov/swimming</loc>
+        <changefreq>weekly</changefreq>
+    </url>
+    <url>
+        <loc>https://mywaterway.epa.gov/about</loc>
+        <changefreq>weekly</changefreq>
+    </url>
+    <url>
+        <loc>https://mywaterway.epa.gov/data</loc>
+        <changefreq>weekly</changefreq>
+    </url>
+    <url>
+        <loc>https://mywaterway.epa.gov/attains</loc>
+        <changefreq>weekly</changefreq>
+    </url>
+    <url>
+        <loc>https://mywaterway.epa.gov/educators</loc>
         <changefreq>weekly</changefreq>
     </url>
 </urlset>

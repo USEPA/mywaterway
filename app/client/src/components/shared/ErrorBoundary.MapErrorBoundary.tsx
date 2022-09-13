@@ -1,14 +1,11 @@
-// @flow
-
-import React from 'react';
-import type { Node } from 'react';
+import type { ReactNode } from 'react';
 import ErrorBoundary from './ErrorBoundary.js';
 // errors
 import { mapErrorBoundaryMessage } from 'config/errorMessages';
 
 // --- components ---
 type Props = {
-  children: Node,
+  children: ReactNode;
 };
 
 function MapErrorBoundary({ children }: Props) {

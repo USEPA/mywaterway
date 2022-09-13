@@ -14,13 +14,17 @@ export const streamgagesError =
 export const monitoringError =
   'Sample locations information is temporarily unavailable, please try again later.';
 
+// waterqualitydata.us - Result Search (downloads)
+export const monitoringDownloadError =
+  'There was an error downloading the monitoring location data, please try again later.';
+
 // attains.epa.gov - Huc12summary Service
 export const huc12SummaryError =
   'Waterbody information is temporarily unavailable, please try again later.';
 
 // message show on the Community page when number of assessed waterbodies is 0
-export const zeroAssessedWaterbodies = (watershed) =>
-  `There are no waterbodies assessed in the ${watershed} watershed.`;
+export const zeroAssessedWaterbodies = (watershed, type = 'watershed') =>
+  `There are no waterbodies assessed in the ${watershed} ${type}.`;
 
 // geocode.arcgis.com - Geolocation Service
 export const geocodeError =
@@ -108,9 +112,9 @@ export const grpaError =
 // State errors //
 
 // for where ATTAINS usesStateSummaryService response is an internal error or missing data for a state
-export const usesStateSummaryServiceInvalidResponse = (stateName) =>
-  `There is no State-level assessment data available${
-    stateName && ' for ' + stateName
+export const usesStateSummaryServiceInvalidResponse = (source, name) =>
+  `There is no ${source}-level assessment data available${
+    name && ' for ' + name
   }.`; // add conditional check for stateName as it is sometimes undefined
 
 // attains state document service
@@ -121,35 +125,41 @@ export const stateDocumentSortingError =
   'There was an issue sorting the below documents. Because of this, the documents have been sorted alphabetically on document type.';
 
 // this message is displayed in the State Survey Use section when the Survey service is down
-export const stateSurveySectionError =
-  'State survey information is temporarily unavailable, please try again later.';
+export const stateSurveySectionError = (source) =>
+  `${source} survey information is temporarily unavailable, please try again later.`;
 
 // this message is displayed in the State Documents accordion when the Survey service is down
 export const stateSurveyError = (stateName) =>
   `${stateName} survey documents are temporarily unavailable, please try again later.`;
 
 // attains state list service
-export const stateListError =
-  'State information is temporarily unavailable, please try again later.';
+export const stateListError = (source) =>
+  `${source} list information is temporarily unavailable, please try again later.`;
 
 // grts.epa.gov stories service
 export const stateStoriesError =
   'State water stories are temporarily unavailable, please try again later.';
 
 // if one of the main State services goes down and there is no data to display
-export const stateGeneralError =
-  'State information is temporarily unavailable, please try again later.';
+export const stateGeneralError = (source = 'State') =>
+  `${source} information is temporarily unavailable, please try again later.`;
 
 // if an invalid state is entered
 export const stateNoDataError = (stateName) =>
   `No data available ${stateName && 'for ' + stateName}.`; // conditionals in case state name is undefined or an empty string
 
-export const state303dStatusError =
+export const status303dError =
   'There was an issue looking up the 303(d) List Status code. Because of this, the status code may not look familiar.';
 
+export const status303dShortError = 'Error getting 303(d) List Status';
+
 // this message is displayed in the State metrics section and more information section when the metrics service is down
-export const stateMetricsError =
-  'State metrics information is temporarily unavailable, please try again later.';
+export const stateMetricsError = (source) =>
+  `${source} metrics information is temporarily unavailable, please try again later.`;
+
+// geopub.epa.gov - Tribal Service
+export const tribalBoundaryErrorMessage =
+  'Tribal boundary information is temporarily unavailable, please try again later.';
 
 // Waterbody Report errors //
 export const waterbodyReportError = (type) =>

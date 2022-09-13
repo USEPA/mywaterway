@@ -18,20 +18,19 @@ import LayerList from '@arcgis/core/widgets/LayerList';
 import Legend from '@arcgis/core/widgets/Legend';
 import Point from '@arcgis/core/geometry/Point';
 import PortalBasemapsSource from '@arcgis/core/widgets/BasemapGallery/support/PortalBasemapsSource';
-import Query from '@arcgis/core/rest/support/Query';
-import QueryTask from '@arcgis/core/tasks/QueryTask';
+import * as query from '@arcgis/core/rest/query';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import ScaleBar from '@arcgis/core/widgets/ScaleBar';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import Viewpoint from '@arcgis/core/Viewpoint';
-import * as watchUtils from '@arcgis/core/core/watchUtils';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // components
 import AddDataWidget from 'components/shared/AddDataWidget';
 import MapLegend from 'components/shared/MapLegend';
 // contexts
-import { AddDataWidgetContext } from 'contexts/AddDataWidget';
+import { useAddDataWidgetState } from 'contexts/AddDataWidget';
 import { LocationSearchContext } from 'contexts/locationSearch';
-import { FullscreenContext } from 'contexts/Fullscreen';
+import { useFullscreenState } from 'contexts/Fullscreen';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
@@ -104,6 +103,7 @@ const orderedLayers = [
   'mappedWaterLayer',
   'stateBoundariesLayer',
   'congressionalLayer',
+  'selectedTribeLayer',
   'tribalLayer',
   'tribalLayer-1',
   'tribalLayer-2',
@@ -119,14 +119,14 @@ const orderedLayers = [
 ];
 
 // function called whenever the map's zoom changes
-function handleMapZoomChange(newVal: number, target: any) {
+function handleMapZoomChange(view: __esri.View) {
   // return early if zoom is not set to an integer
-  if (newVal % 1 !== 0) return;
+  if (view.zoom % 1 !== 0) return;
   // set listMode for each layer, when zoom changes (practically, this shows/
   // hides 'County' or 'Mapped Water (all)' layers, depending on zoom level)
-  target.map.layers.items.forEach((layer) => {
+  view.map.layers.items.forEach((layer) => {
     if (zoomDependentLayers.includes(layer.id)) {
-      if (isInScale(layer, target.scale)) {
+      if (isInScale(layer, view.scale)) {
         layer.listMode = layer.hasOwnProperty('sublayers')
           ? 'hide-children'
           : 'show';
@@ -235,7 +235,7 @@ function MapWidgets({
   onHomeWidgetRendered = () => {},
 }: Props) {
   const { addDataWidgetVisible, setAddDataWidgetVisible, widgetLayers } =
-    useContext(AddDataWidgetContext);
+    useAddDataWidgetState();
 
   const {
     homeWidget,
@@ -261,7 +261,6 @@ function MapWidgets({
     setErrorMessage,
     getWatershed,
     allWaterbodiesLayer,
-    getAllWaterbodiesLayer,
     allWaterbodiesWidgetDisabled,
     setAllWaterbodiesWidgetDisabled,
     getAllWaterbodiesWidgetDisabled,
@@ -275,9 +274,9 @@ function MapWidgets({
   const { getTemplate } = getDynamicPopup();
 
   const {
-    getFullscreenActive,
+    fullscreenActive,
     setFullscreenActive, //
-  } = useContext(FullscreenContext);
+  } = useFullscreenState();
 
   const [mapEventHandlersSet, setMapEventHandlersSet] = useState(false);
 
@@ -285,21 +284,21 @@ function MapWidgets({
   useEffect(() => {
     if (!view || popupWatcher) return;
 
-    const watcher = watchUtils.watch(
-      view.popup,
-      'features',
-      (newVal, oldVal, propName, target) => {
-        if (newVal.length === 0) return;
+    const watcher = reactiveUtils.watch(
+      () => view.popup.features,
+      () => {
+        const features = view.popup.features;
+        if (features.length === 0) return;
 
-        const features = [];
+        const newFeatures = [];
         const idsAdded = [];
-        newVal.forEach((item) => {
+        features.forEach((item) => {
           const id = item.attributes?.assessmentunitidentifier;
           const geometryType = item.geometry?.type;
 
           // exit early if the feature is not a waterbody
           if (!id || !geometryType) {
-            features.push(item);
+            newFeatures.push(item);
             return;
           }
 
@@ -307,7 +306,7 @@ function MapWidgets({
           const point = new Point({
             x: view.popup.location.longitude,
             y: view.popup.location.latitude,
-            spatialReference: SpatialReference.WQGS84,
+            spatialReference: SpatialReference.WGS84,
           });
           const location = webMercatorUtils.geographicToWebMercator(point);
 
@@ -334,14 +333,14 @@ function MapWidgets({
           const idType = `${id}-${geometryType}`;
           if (idsAdded.includes(idType)) return;
 
-          features.push(item);
+          newFeatures.push(item);
           idsAdded.push(idType);
         });
 
-        if (features.length === 0) {
+        if (newFeatures.length === 0) {
           view.popup.close();
-        } else if (features.length !== view.popup.features.length) {
-          view.popup.features = features;
+        } else if (newFeatures.length !== view.popup.features.length) {
+          view.popup.features = newFeatures;
         }
       },
     );
@@ -785,16 +784,19 @@ function MapWidgets({
     if (!view || mapEventHandlersSet) return;
 
     // setup map event handlers
-    watchUtils.watch(view, 'zoom', (newVal, oldVal, propName, target) => {
-      handleMapZoomChange(newVal, target);
+    reactiveUtils.watch(
+      () => view.zoom,
+      () => {
+        handleMapZoomChange(view);
 
-      updateVisibleLayers(
-        view,
-        displayEsriLegendNonState,
-        hmwLegendNode,
-        additionalLegendInfoNonState,
-      );
-    });
+        updateVisibleLayers(
+          view,
+          displayEsriLegendNonState,
+          hmwLegendNode,
+          additionalLegendInfoNonState,
+        );
+      },
+    );
 
     // when basemap changes, update the basemap in context for persistent basemaps
     // across fullscreen and mobile/desktop layout changes
@@ -887,7 +889,7 @@ function MapWidgets({
     render(
       <ExpandCollapse
         scrollToComponent={scrollToComponent}
-        fullscreenActive={getFullscreenActive}
+        fullscreenActive={fullscreenActive}
         setFullscreenActive={setFullscreenActive}
         mapViewSetter={setMapView}
       />,
@@ -895,7 +897,7 @@ function MapWidgets({
     );
     setFullScreenWidgetCreated(true);
   }, [
-    getFullscreenActive,
+    fullscreenActive,
     setFullscreenActive,
     scrollToComponent,
     view,
@@ -1132,18 +1134,17 @@ function MapWidgets({
 
       // fetch the upstream catchment
       const filter = `xwalk_huc12='${currentHuc12}'`;
-      const query = new Query({
-        returnGeometry: true,
-        where: filter,
-        outFields: ['*'],
-      });
 
       setUpstreamLoading(true);
 
-      new QueryTask({
-        url: services.data.upstreamWatershed,
-      })
-        .execute(query)
+      const url = services.data.upstreamWatershed;
+      const queryParams = {
+        returnGeometry: true,
+        where: filter,
+        outFields: ['*'],
+      };
+      query
+        .executeQueryJSON(url, queryParams)
         .then((res) => {
           setUpstreamLoading(false);
           const upstreamLayer = getUpstreamLayer();
@@ -1229,36 +1230,51 @@ function MapWidgets({
   useEffect(() => {
     if (!allWaterbodiesWidget) return;
 
-    if (!window.location.pathname.includes('/community')) {
+    const pathname = window.location.pathname;
+    if (!pathname.includes('/community') && !pathname.includes('/tribe')) {
       // hide all waterbodies widget on other pages
       allWaterbodiesWidget.style.display = 'none';
       allWaterbodiesLayer.visible = false;
       return;
     }
 
-    if (!huc12 || window.location.pathname === '/community') {
+    if (!pathname.includes('/tribe') && (!huc12 || pathname === '/community')) {
       // disable all waterbodies widget on community home or invalid searches
       setAllWaterbodiesWidgetDisabled(true);
       allWaterbodiesLayer.visible = false;
       return;
     }
 
+    // change the minScale of the waterbodies layer for the tribal page
+    if (pathname.includes('/tribe')) {
+      allWaterbodiesLayer.minScale = 4622350;
+      allWaterbodiesLayer.layers.forEach((layer) => {
+        layer.minScale = allWaterbodiesLayer.minScale;
+      });
+
+      // enable the all waterbodies widget but default visibility to off
+      setAllWaterbodiesWidgetDisabled(false);
+      setAllWaterbodiesLayerVisible(false);
+      allWaterbodiesLayer.visible = false;
+      return;
+    }
+
     // display and enable the all waterbodies widget
     setAllWaterbodiesWidgetDisabled(false);
-    if (allWaterbodiesLayerVisible) allWaterbodiesLayer.visible = true;
+    allWaterbodiesLayer.visible = true;
   }, [
     huc12,
     allWaterbodiesLayer,
-    allWaterbodiesLayerVisible,
     allWaterbodiesWidget,
     setAllWaterbodiesWidgetDisabled,
   ]);
 
   // disable the all waterbodies widget if on the community home page
   useEffect(() => {
+    const pathname = window.location.pathname;
     if (
       !allWaterbodiesWidget ||
-      !window.location.pathname.includes('/community')
+      (!pathname.includes('/community') && !pathname.includes('/tribe'))
     ) {
       return;
     }
@@ -1304,7 +1320,6 @@ function MapWidgets({
     setAllWaterbodiesWidget(node); // store the widget in context so it can be shown or hidden later
     render(
       <ShowAllWaterbodies
-        getLayer={getAllWaterbodiesLayer}
         getDisabled={getAllWaterbodiesWidgetDisabled}
         mapView={view}
       />,
@@ -1313,24 +1328,18 @@ function MapWidgets({
     setAllWaterbodiesWidgetCreated(true);
   }, [
     allWaterbodiesWidgetCreated,
-    getAllWaterbodiesLayer,
     getAllWaterbodiesWidgetDisabled,
     setAllWaterbodiesWidget,
     view,
   ]);
 
   type allWaterbodiesProps = {
-    getLayer: Function,
     getDisabled: Function,
     mapView: Object,
   };
 
   // Defines the show all waterbodies widget
-  function ShowAllWaterbodies({
-    getLayer,
-    getDisabled,
-    mapView,
-  }: allWaterbodiesProps) {
+  function ShowAllWaterbodies({ getDisabled, mapView }: allWaterbodiesProps) {
     const [firstLoad, setFirstLoad] = useState(true);
     const [hover, setHover] = useState(false);
 
@@ -1341,28 +1350,35 @@ function MapWidgets({
     if (firstLoad) {
       setFirstLoad(false);
 
-      watchUtils.watch(
-        mapView,
-        'updating',
-        (newVal, oldVal, propName, event) => {
-          setAllWaterbodiesLoading(newVal);
+      reactiveUtils.watch(
+        () => mapView.updating,
+        () => {
+          setAllWaterbodiesLoading(mapView.updating);
         },
       );
 
-      watchUtils.watch(mapView, 'scale', (newVal, oldVal, propName, event) => {
-        const newWidgetDisabledVal = newVal >= allWaterbodiesLayer.minScale;
-        if (newWidgetDisabledVal !== getAllWaterbodiesWidgetDisabled()) {
-          setAllWaterbodiesWidgetDisabled(newWidgetDisabledVal);
-        }
-      });
+      reactiveUtils.watch(
+        () => mapView.scale,
+        () => {
+          const newWidgetDisabledVal =
+            mapView.scale >= allWaterbodiesLayer.minScale;
+          if (newWidgetDisabledVal !== getAllWaterbodiesWidgetDisabled()) {
+            setAllWaterbodiesWidgetDisabled(newWidgetDisabledVal);
+          }
+        },
+      );
     }
 
     const widgetDisabled = getDisabled();
-    const layer = getLayer();
+
+    // get the layer from the mapView
+    const layer = mapView.map.layers.find(
+      (l) => l.id === 'allWaterbodiesLayer',
+    );
 
     let title = 'View Surrounding Waterbodies';
     if (widgetDisabled) title = 'Surrounding Waterbodies Widget Not Available';
-    else if (layer.visible) title = 'Hide Surrounding Waterbodies';
+    else if (layer?.visible) title = 'Hide Surrounding Waterbodies';
 
     return (
       <div
@@ -1372,7 +1388,7 @@ function MapWidgets({
         onMouseOut={() => setHover(false)}
         onClick={(ev) => {
           // if widget is disabled do nothing
-          if (widgetDisabled) return;
+          if (widgetDisabled || !layer) return;
 
           layer.visible = !layer.visible;
           setAllWaterbodiesLayerVisible(layer.visible);
@@ -1506,7 +1522,7 @@ function ExpandCollapse({
   return (
     <div
       title={
-        fullscreenActive()
+        fullscreenActive
           ? 'Exit Fullscreen Map View'
           : 'Enter Fullscreen Map View'
       }
@@ -1515,19 +1531,19 @@ function ExpandCollapse({
       onMouseOut={() => setHover(false)}
       onClick={(ev) => {
         // Toggle scroll bars
-        document.documentElement.style.overflow = fullscreenActive()
+        document.documentElement.style.overflow = fullscreenActive
           ? 'auto'
           : 'hidden';
 
         // Toggle fullscreen mode
-        setFullscreenActive(!fullscreenActive());
+        setFullscreenActive(!fullscreenActive);
 
         mapViewSetter(null);
       }}
     >
       <span
         className={
-          fullscreenActive()
+          fullscreenActive
             ? 'esri-icon esri-icon-zoom-in-fixed'
             : 'esri-icon esri-icon-zoom-out-fixed'
         }

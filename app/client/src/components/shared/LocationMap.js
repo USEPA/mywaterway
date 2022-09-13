@@ -16,10 +16,9 @@ import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
-import Locator from '@arcgis/core/tasks/Locator';
+import * as locator from '@arcgis/core/rest/locator';
 import PictureMarkerSymbol from '@arcgis/core/symbols/PictureMarkerSymbol';
-import Query from '@arcgis/core/rest/support/Query';
-import QueryTask from '@arcgis/core/tasks/QueryTask';
+import * as query from '@arcgis/core/rest/query';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import Viewpoint from '@arcgis/core/Viewpoint';
 // components
@@ -59,6 +58,7 @@ import {
 import {
   useDynamicPopup,
   useGeometryUtils,
+  useMonitoringLocations,
   useSharedLayers,
   useStreamgageData,
   useWaterbodyHighlight,
@@ -74,6 +74,7 @@ import {
   browserIsCompatibleWithArcGIS,
   resetCanonicalLink,
   removeJsonLD,
+  parseAttributes,
 } from 'utils/utils';
 // styled components
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
@@ -88,6 +89,54 @@ function createQueryString(array) {
 
 const mapPadding = 20;
 
+export const monitoringClusterSettings = {
+  type: 'cluster',
+  clusterRadius: '100px',
+  clusterMinSize: '24px',
+  clusterMaxSize: '60px',
+  popupEnabled: true,
+  popupTemplate: {
+    title: 'Cluster summary',
+    content: (feature) => {
+      const content = (
+        <div style={{ margin: '0.625em' }}>
+          This cluster represents {feature.graphic.attributes.cluster_count}{' '}
+          stations
+        </div>
+      );
+
+      const contentContainer = document.createElement('div');
+      render(content, contentContainer);
+
+      // return an esri popup item
+      return contentContainer;
+    },
+    fieldInfos: [
+      {
+        fieldName: 'cluster_count',
+        format: {
+          places: 0,
+          digitSeparator: true,
+        },
+      },
+    ],
+  },
+  labelingInfo: [
+    {
+      deconflictionStrategy: 'none',
+      labelExpressionInfo: {
+        expression: "Text($feature.cluster_count, '#,###')",
+      },
+      symbol: {
+        type: 'text',
+        color: '#000000',
+        font: { size: 10, weight: 'bold' },
+      },
+      labelPlacement: 'center-center',
+    },
+  ],
+};
+
 const containerStyles = css`
   display: flex;
   position: relative;
@@ -95,7 +144,6 @@ const containerStyles = css`
   background-color: #fff;
 `;
 
-// --- components ---
 type Props = {
   layout: 'narrow' | 'wide' | 'fullscreen',
   windowHeight: number,
@@ -116,7 +164,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     lastSearchText,
     setLastSearchText,
     setCurrentExtent,
-    //
     boundariesLayer,
     searchIconLayer,
     waterbodyLayer,
@@ -148,7 +195,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setHucBoundaries,
     setAtHucBoundaries,
     mapView,
-    monitoringLocations,
     setMonitoringLocations,
     // setNonprofits,
     setPermittedDischargers,
@@ -182,7 +228,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     getAllFeatures,
     waterbodyCountMismatch,
     setWaterbodyCountMismatch,
-    monitoringLocationsLayer,
     usgsStreamgagesLayer,
   } = useContext(LocationSearchContext);
 
@@ -626,10 +671,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         { name: 'locationType', type: 'string' },
         { name: 'locationUrl', type: 'string' },
         { name: 'stationProviderName', type: 'string' },
-        { name: 'stationTotalSamples', type: 'string' },
-        { name: 'stationTotalMeasurements', type: 'string' },
-        { name: 'stationTotalMeasurementsPercentile', type: 'double' },
-        { name: 'stationTotalsByCategory', type: 'string' },
+        { name: 'stationTotalSamples', type: 'integer' },
+        { name: 'stationTotalsByGroup', type: 'string' },
+        { name: 'stationTotalMeasurements', type: 'integer' },
+        { name: 'timeframe', type: 'string' },
         { name: 'uniqueId', type: 'string' },
       ],
       objectIdField: 'OBJECTID',
@@ -647,60 +692,28 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           type: 'simple-marker',
           style: 'circle',
           color: colors.lightPurple(0.5),
+          outline: {
+            width: 0.75,
+          },
         },
       },
-      featureReduction: {
-        type: 'cluster',
-        clusterRadius: '100px',
-        clusterMinSize: '24px',
-        clusterMaxSize: '60px',
-        popupEnabled: true,
-        popupTemplate: {
-          title: 'Cluster summary',
-          content: (feature) => {
-            const content = (
-              <div style={{ margin: '0.625em' }}>
-                This cluster represents{' '}
-                {feature.graphic.attributes.cluster_count} stations
-              </div>
-            );
-
-            const contentContainer = document.createElement('div');
-            render(content, contentContainer);
-
-            // return an esri popup item
-            return contentContainer;
-          },
-          fieldInfos: [
-            {
-              fieldName: 'cluster_count',
-              format: {
-                places: 0,
-                digitSeparator: true,
-              },
-            },
-          ],
-        },
-        labelingInfo: [
-          {
-            deconflictionStrategy: 'none',
-            labelExpressionInfo: {
-              expression: "Text($feature.cluster_count, '#,###')",
-            },
-            symbol: {
-              type: 'text',
-              color: '#000000',
-              font: { size: 10, weight: 'bold' },
-            },
-            labelPlacement: 'center-center',
-          },
-        ],
-      },
+      featureReduction: monitoringClusterSettings,
       popupTemplate: {
         outFields: ['*'],
         title: (feature) => getPopupTitle(feature.graphic.attributes),
-        content: (feature) =>
-          getPopupContent({ feature: feature.graphic, services, navigate }),
+        content: (feature) => {
+          // Parse non-scalar variables
+          const structuredProps = ['stationTotalsByGroup', 'timeframe'];
+          feature.graphic.attributes = parseAttributes(
+            structuredProps,
+            feature.graphic.attributes,
+          );
+          return getPopupContent({
+            feature: feature.graphic,
+            services,
+            navigate,
+          });
+        },
       },
     });
 
@@ -724,8 +737,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         { name: 'locationUrl', type: 'string' },
         { name: 'streamgageMeasurements', type: 'blob' },
       ],
-      outFields: ['*'],
       objectIdField: 'OBJECTID',
+      outFields: ['*'],
       // NOTE: initial graphic below will be replaced with UGSG streamgages
       source: [
         new Graphic({
@@ -739,6 +752,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           type: 'simple-marker',
           style: 'square',
           color: '#fffe00', // '#989fa2'
+          outline: {
+            width: 0.75,
+          },
         },
       },
       popupTemplate: {
@@ -833,14 +849,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // Gets the lines data and builds the associated feature layer
   const retrieveLines = useCallback(
     (filter, boundaries) => {
-      const query = new Query({
+      const url = services.data.waterbodyService.lines;
+      const queryParams = {
         returnGeometry: true,
         where: filter,
         outFields: ['*'],
-      });
-
-      new QueryTask({ url: services.data.waterbodyService.lines })
-        .execute(query)
+      };
+      query
+        .executeQueryJSON(url, queryParams)
         .then((res) => {
           // build a list of features that still has the original uncropped
           // geometry and set context
@@ -900,14 +916,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // Gets the areas data and builds the associated feature layer
   const retrieveAreas = useCallback(
     (filter, boundaries) => {
-      const query = new Query({
+      const url = services.data.waterbodyService.areas;
+      const queryParams = {
         returnGeometry: true,
         where: filter,
         outFields: ['*'],
-      });
-
-      new QueryTask({ url: services.data.waterbodyService.areas })
-        .execute(query)
+      };
+      query
+        .executeQueryJSON(url, queryParams)
         .then((res) => {
           // build a list of features that still has the original uncropped
           // geometry and set context
@@ -967,14 +983,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   // Gets the points data and builds the associated feature layer
   const retrievePoints = useCallback(
     (filter) => {
-      const query = new Query({
+      const url = services.data.waterbodyService.points;
+      const queryParams = {
         returnGeometry: true,
         where: filter,
         outFields: ['*'],
-      });
-
-      new QueryTask({ url: services.data.waterbodyService.points })
-        .execute(query)
+      };
+      query
+        .executeQueryJSON(url, queryParams)
         .then((res) => {
           setPointsData(res);
 
@@ -1100,68 +1116,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   );
 
   // updates the features on the monitoringStationsLayer
-  useEffect(() => {
-    if (!monitoringLocationsLayer) return;
-    if (
-      !monitoringLocations.data.features ||
-      monitoringLocations.status !== 'success'
-    ) {
-      return;
-    }
-
-    const graphics = monitoringLocations.data.features.map((station) => {
-      return new Graphic({
-        geometry: {
-          type: 'point',
-          longitude: station.geometry.coordinates[0],
-          latitude: station.geometry.coordinates[1],
-        },
-        attributes: {
-          monitoringType: 'Past Water Conditions',
-          siteId: station.properties.MonitoringLocationIdentifier,
-          orgId: station.properties.OrganizationIdentifier,
-          orgName: station.properties.OrganizationFormalName,
-          locationLongitude: station.geometry.coordinates[0],
-          locationLatitude: station.geometry.coordinates[1],
-          locationName: station.properties.MonitoringLocationName,
-          locationType: station.properties.MonitoringLocationTypeName,
-          // TODO: explore if the built up locationUrl below is ever different from
-          // `station.properties.siteUrl`. from a quick test, they seem the same
-          locationUrl:
-            `${services.data.waterQualityPortal.monitoringLocationDetails}` +
-            `${station.properties.ProviderName}/` +
-            `${station.properties.OrganizationIdentifier}/` +
-            `${station.properties.MonitoringLocationIdentifier}/`,
-          // monitoring station specific properties:
-          stationProviderName: station.properties.ProviderName,
-          stationTotalSamples: station.properties.activityCount,
-          stationTotalMeasurements: station.properties.resultCount,
-          stationTotalMeasurementsPercentile:
-            station.properties.stationTotalMeasurementsPercentile,
-          // counts for each lower-tier characteristic group
-          stationTotalsByCategory: JSON.stringify(
-            station.properties.characteristicGroupResultCount,
-          ),
-          // counts for each top-tier characteristic group
-          stationTotalsByGroup: {},
-          // create a unique id, so we can check if the monitoring station has
-          // already been added to the display (since a monitoring station id
-          // isn't universally unique)
-          uniqueId:
-            `${station.properties.MonitoringLocationIdentifier}-` +
-            `${station.properties.ProviderName}-` +
-            `${station.properties.OrganizationIdentifier}`,
-        },
-      });
-    });
-
-    monitoringLocationsLayer.queryFeatures().then((featureSet) => {
-      monitoringLocationsLayer.applyEdits({
-        deleteFeatures: featureSet.features,
-        addFeatures: graphics,
-      });
-    });
-  }, [monitoringLocationsLayer, monitoringLocations, services]);
+  // and the monitoring groups
+  useMonitoringLocations();
 
   const fetchUsgsStreamgages = useCallback(
     (huc12) => {
@@ -1503,22 +1459,19 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         return;
       }
 
-      const query = new Query({
-        geometry: boundaries.features[0].geometry,
-        returnGeometry: false,
-        spatialReference: 102100,
-        outFields: ['*'],
-      });
-
       setWildScenicRiversData({
         data: [],
         status: 'fetching',
       });
 
-      new QueryTask({
-        url: services.data.wildScenicRivers,
-      })
-        .execute(query)
+      const queryParams = {
+        geometry: boundaries.features[0].geometry,
+        returnGeometry: false,
+        spatialReference: 102100,
+        outFields: ['*'],
+      };
+      query
+        .executeQueryJSON(services.data.wildScenicRivers, queryParams)
         .then((res) => {
           setWildScenicRiversData({
             data: res.features,
@@ -1562,23 +1515,21 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       fetchCheck(`${services.data.protectedAreasDatabase}0?f=json`)
         .then((layerInfo) => {
-          const query = new Query({
-            geometry: boundaries.features[0].geometry,
-            returnGeometry: false,
-            spatialReference: 102100,
-            outFields: ['*'],
-          });
-
           setProtectedAreasData({
             data: [],
             fields: [],
             status: 'fetching',
           });
 
-          new QueryTask({
-            url: `${services.data.protectedAreasDatabase}0`,
-          })
-            .execute(query)
+          const url = `${services.data.protectedAreasDatabase}0`;
+          const queryParams = {
+            geometry: boundaries.features[0].geometry,
+            returnGeometry: false,
+            spatialReference: 102100,
+            outFields: ['*'],
+          };
+          query
+            .executeQueryJSON(url, queryParams)
             .then((res) => {
               // build/set the filter
               let filter = '';
@@ -1782,9 +1733,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         callback();
       };
 
-      const locator = new Locator({ url: services.data.locatorUrl });
-      locator.outSpatialReference = SpatialReference.WebMercator;
-
       // Parse the search text to see if it is from a non-esri search suggestion
       const { searchPart, coordinatesPart } = splitSuggestedSearch(searchText);
 
@@ -1796,14 +1744,16 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         : getPointFromCoordinates(searchText);
 
       let getCandidates;
+      const url = services.data.locatorUrl;
       if (point === null) {
         // if the user searches for guam use guam's state code instead
         if (searchText.toLowerCase() === 'guam') searchText = 'GU';
 
         // If not coordinates, perform regular geolocation
-        getCandidates = locator.addressToLocations({
+        getCandidates = locator.addressToLocations(url, {
           address: { SingleLine: searchText },
           countryCode: 'USA',
+          outSpatialReference: SpatialReference.WebMercator,
           outFields: [
             'Loc_name',
             'City',
@@ -1816,7 +1766,10 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
       } else {
         // If coordinates, perform reverse geolocation
-        getCandidates = locator.locationToAddress({ location: point });
+        getCandidates = locator.locationToAddress(url, {
+          location: point,
+          outSpatialReference: SpatialReference.WebMercator,
+        });
       }
 
       getCandidates
@@ -1866,14 +1819,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               () => handleHUC12(hucRes),
             );
           } else {
-            const hucQuery = new Query({
+            const hucQuery = {
               returnGeometry: true,
               geometry: location.location,
               outFields: ['*'],
-            });
-
-            new QueryTask({ url: services.data.wbd })
-              .execute(hucQuery)
+            };
+            query
+              .executeQueryJSON(services.data.wbd, hucQuery)
               .then((hucRes) => {
                 renderMapAndZoomTo(
                   location.location.longitude,
@@ -1889,20 +1841,20 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               });
           }
 
-          const countiesQuery = new Query({
-            returnGeometry: true,
-            geometry: location.location.clone(),
-            outFields: ['*'],
-          });
-
           setFIPS({
             stateCode: '',
             countyCode: '',
             status: 'fetching',
           });
 
-          new QueryTask({ url: `${services.data.counties}/query` })
-            .execute(countiesQuery)
+          const url = `${services.data.counties}/query`;
+          const countiesQuery = {
+            returnGeometry: true,
+            geometry: location.location.clone(),
+            outFields: ['*'],
+          };
+          query
+            .executeQueryJSON(url, countiesQuery)
             .then((countiesRes) => {
               // not all locations have a State and County code, check for it
               if (
@@ -1995,14 +1947,13 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       // Get whether HUC 12
       if (isHuc12(searchText)) {
-        const query = new Query({
+        const queryParams = {
           returnGeometry: true,
           where: "HUC12 = '" + searchText + "'",
           outFields: ['*'],
-        });
-
-        new QueryTask({ url: services.data.wbd })
-          .execute(query)
+        };
+        query
+          .executeQueryJSON(services.data.wbd, queryParams)
           .then((response) => {
             if (response.features.length === 0) {
               // flag no data available for no response
@@ -2110,7 +2061,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
   }, [
     mapView,
     hucBoundaries,
-    boundariesLayer.graphics,
+    boundariesLayer,
     setCurrentExtent,
     setAtHucBoundaries,
     homeWidget,
@@ -2186,15 +2137,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       return;
     }
 
-    const query = new Query({
+    const queryParams = {
       geometry: boundaries.features[0].geometry,
       returnGeometry: true,
       spatialReference: 4326,
       outFields: ['*'],
-    });
-
-    new QueryTask({ url: nonprofits })
-      .execute(query)
+    };
+    query
+      .executeQueryJSON(nonprofits, queryParams)
       .then((res) => {
         console.log('nonprofits data: ', res);
         setNonprofits({

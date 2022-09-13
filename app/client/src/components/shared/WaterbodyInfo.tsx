@@ -1,6 +1,4 @@
-// @flow
-
-import React, { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -17,6 +15,7 @@ import {
   convertDomainCode,
   formatNumber,
   getSelectedCommunityTab,
+  parseAttributes,
   titleCaseWithExceptions,
 } from 'utils/utils';
 // data
@@ -30,13 +29,26 @@ import {
   iconStyles,
   modifiedTableStyles,
 } from 'styles/index.js';
+// types
+import type { ReactNode } from 'react';
+import type { NavigateFunction } from 'react-router-dom';
+import type {
+  ClickedHucState,
+  Feature,
+  ServicesState,
+  StreamgageMeasurement,
+  UsgsStreamgage,
+} from 'types';
 
-function bool(value) {
+/*
+## Helpers
+*/
+function bool(value: string) {
   // Return 'Yes' for truthy values and non-zero strings
   return value && parseInt(value, 10) ? 'Yes' : 'No';
 }
 
-function renderLink(label, link) {
+function renderLink(label: string, link: string) {
   if (!link) return;
 
   // link will not work correctly if it's just 'tk.org
@@ -55,7 +67,11 @@ function renderLink(label, link) {
   );
 }
 
-function labelValue(label, value, icon = null) {
+function labelValue(
+  label: ReactNode | string,
+  value: string,
+  icon: ReactNode | null = null,
+) {
   return (
     <p>
       <strong>{label}: </strong>
@@ -69,6 +85,14 @@ function labelValue(label, value, icon = null) {
     </p>
   );
 }
+
+/*
+## Styles
+*/
+const dateRangeStyles = css`
+  font-size: 0.8em;
+  margin-left: 1em;
+`;
 
 const popupContainerStyles = css`
   margin: 0;
@@ -216,11 +240,6 @@ const changeWatershedContainerStyles = css`
   }
 `;
 
-const totalRowStyles = css`
-  border-top: 2px solid #dee2e6;
-  font-weight: bold;
-`;
-
 const tableFooterStyles = css`
   span {
     display: inline-block;
@@ -234,27 +253,76 @@ const tableFooterStyles = css`
   }
 `;
 
-type Props = {
-  type: string,
-  feature: Object,
-  fieldName: ?string,
-  extraContent: ?Object,
-  services: ?Object,
-  fields: ?Object,
+/*
+## Types
+*/
+interface ActionData {
+  actionIdentifier: string;
+  actionName: string;
+  agencyCode: string;
+  actionTypeCode: string;
+  actionStatusCode: string;
+  completionDate: string;
+  organizationId: string;
+  documents: ActionDocument[];
+  TMDLReportDetails: {
+    TMDLOtherIdentifier: string | null;
+    TMDLDate: string;
+    indianCountryIndicator: string;
+  };
+  associatedPollutants: Array<{ pollutantName: string; auCount: string }>;
+  parameters: Array<{ parameterName: string; auCount: string }>;
+  associatedActions: string[];
+}
+
+interface ActionDocument {
+  agencyCode: string;
+  documentTypes: Array<{ documentTypeCode: string }>;
+  documentFileType: string;
+  documentFileName: string;
+  documentName: string;
+  documentDescription: string | null;
+  documentComments: string | null;
+  documentURL: string | null;
+}
+
+interface AttainsProjectsDatum {
+  id: string;
+  orgId: string;
+  name: string;
+  pollutants: string[];
+  type: string;
+  date: string;
+}
+
+type AttainsProjectsState =
+  | { status: 'fetching'; data: [] }
+  | { status: 'failure'; data: [] }
+  | { status: 'success'; data: AttainsProjectsDatum[] };
+
+type WaterbodyInfoProps = {
+  type: string;
+  feature: Feature;
+  fieldName?: string | null;
+  extraContent?: ReactNode | null;
+  services?: ServicesState;
+  fields?: __esri.Field[] | null;
 };
 
+/*
+## Components
+*/
 function WaterbodyInfo({
   type,
   feature,
-  fieldName,
+  fieldName = null,
   extraContent,
   services,
   fields,
-}: Props) {
+}: WaterbodyInfoProps) {
   const { attributes } = feature;
   const onWaterbodyReportPage =
     window.location.pathname.indexOf('waterbody-report') !== -1;
-
   const waterbodyPollutionCategories = (label: string) => {
     const pollutionCategories = impairmentFields
       .filter((field) => attributes[field.value] === 'Cause')
@@ -280,7 +348,7 @@ function WaterbodyInfo({
   };
 
   const waterbodyReportLink =
-    !onWaterbodyReportPage && attributes.organizationid ? (
+    onWaterbodyReportPage ? null : attributes.organizationid ? (
       <p css={paragraphStyles}>
         <a
           rel="noopener noreferrer"
@@ -313,7 +381,7 @@ function WaterbodyInfo({
       // For map clicks we need to get the field from the feature layer renderer.
       // This allows us to differentiate between fishconsumption_use and ecological_use
       // which are both on the fishing tab.
-      field = feature.layer.renderer.field;
+      field = feature.layer.renderer.field ?? null;
     }
 
     // Get the label
@@ -330,8 +398,8 @@ function WaterbodyInfo({
     const useBasedCondition = getWaterbodyCondition(attributes, field);
 
     // create applicable fields to check against when displaying the table
-    const waterbodyConditions = useFields.map((field) => {
-      return getWaterbodyCondition(attributes, field.value).label;
+    const waterbodyConditions = useFields.map((useField) => {
+      return getWaterbodyCondition(attributes, useField.value).label;
     });
 
     const applicableFields =
@@ -342,6 +410,7 @@ function WaterbodyInfo({
     const reportingCycle = attributes && attributes.reportingcycle;
     return (
       <>
+        {extraContent}
         {reportingCycle && (
           <p css={paragraphStyles}>
             <strong>Year Last Reported: </strong>
@@ -380,16 +449,20 @@ function WaterbodyInfo({
                   </tr>
                 </thead>
                 <tbody>
-                  {useFields.map((field, index) => {
+                  {useFields.map((useField, index) => {
                     const value = getWaterbodyCondition(
                       attributes,
-                      field.value,
+                      useField.value,
                     ).label;
 
                     if (value === 'Not Applicable') return null;
                     return (
                       <tr key={index}>
-                        <td>{field.label}</td>
+                        <td>
+                          <GlossaryTerm term={useField.term}>
+                            {useField.label}
+                          </GlossaryTerm>
+                        </td>
                         <td>{value}</td>
                       </tr>
                     );
@@ -486,338 +559,6 @@ function WaterbodyInfo({
       </p>
     </>
   );
-
-  function checkIfGroupInMapping(groupName) {
-    return characteristicGroupMappings.find((mapping) =>
-      mapping.groupNames.includes(groupName),
-    );
-  }
-
-  const [charGroupFilters, setCharGroupFilters] = useState('');
-  const [selected, setSelected] = useState({});
-  const [selectAll, setSelectAll] = useState(1);
-  const [totalMeasurements, setTotalMeasurements] = useState(
-    attributes.stationTotalMeasurements,
-  );
-
-  function monitoringLocationsContent() {
-    const stationGroups = JSON.parse(attributes.stationTotalsByCategory);
-
-    const groups = { Other: { characteristicGroups: [], resultCount: 0 } };
-    // get the feature where the provider matches this stations provider
-    characteristicGroupMappings.forEach((mapping) => {
-      for (const groupName in stationGroups) {
-        if (
-          mapping.groupNames.includes(groupName) &&
-          !groups[mapping.label]?.characteristicGroups.includes(groupName)
-        ) {
-          // push to existing group
-          if (groups[mapping.label]) {
-            groups[mapping.label].characteristicGroups.push(groupName);
-            groups[mapping.label].resultCount += stationGroups[groupName];
-          }
-          // create a new group
-          else {
-            groups[mapping.label] = {
-              characteristicGroups: [groupName],
-              resultCount: stationGroups[groupName],
-            };
-          }
-        }
-        // push to Other
-        else if (
-          !checkIfGroupInMapping(groupName) &&
-          !groups['Other'].characteristicGroups.includes(groupName)
-        ) {
-          groups['Other'].characteristicGroups.push(groupName);
-          groups['Other'].resultCount += stationGroups[groupName];
-        }
-      }
-    });
-
-    if (!Object.keys(selected).length) {
-      let selectedGroups = {};
-      Object.keys(groups).forEach((key) => {
-        selectedGroups[key] = true;
-      });
-      setSelected(selectedGroups);
-    }
-
-    function buildFilter(selectedNames, monitoringLocationData) {
-      let filter = '';
-
-      for (const name in selectedNames) {
-        if (selectedNames[name]) {
-          filter +=
-            '&characteristicType=' +
-            monitoringLocationData[name].characteristicGroups.join(
-              '&characteristicType=',
-            );
-        }
-      }
-
-      setCharGroupFilters(filter);
-    }
-
-    //Toggle an individual row and call the provided onChange event handler
-    function toggleRow(mappedGroup: string, monitoringLocationData: Object) {
-      const selectedGroups = { ...selected };
-
-      selectedGroups[mappedGroup] = !selected[mappedGroup];
-
-      buildFilter(selectedGroups, monitoringLocationData);
-      setSelected(selectedGroups);
-
-      // find the number of toggles currently true
-      let numberSelected = 0;
-      Object.values(selectedGroups).forEach((value) => {
-        if (value) numberSelected++;
-      });
-
-      // total number of toggles displayed
-      const totalSelections = Object.keys(monitoringLocationData).length;
-
-      // if all selected
-      if (numberSelected === totalSelections) {
-        setSelectAll(1);
-        setCharGroupFilters('');
-        setTotalMeasurements(attributes.stationTotalMeasurements);
-      }
-      // if none selected
-      else if (numberSelected === 0) {
-        setSelectAll(0);
-        setCharGroupFilters('');
-        setTotalMeasurements(0);
-      }
-      // if some selected
-      else {
-        setSelectAll(2);
-        let newTotalMeasurementCount = 0;
-        Object.keys(groups).forEach((group) => {
-          if (selectedGroups[group] === true) {
-            newTotalMeasurementCount += groups[group].resultCount;
-          }
-        });
-        setTotalMeasurements(newTotalMeasurementCount);
-      }
-    }
-
-    //Toggle all rows and call the provided onChange event handler
-    function toggleAllCheckboxes() {
-      let selectedGroups = {};
-
-      if (Object.keys(groups).length > 0) {
-        const newValue = selectAll === 0 ? true : false;
-
-        Object.keys(groups).forEach((key) => {
-          selectedGroups[key] = newValue;
-        });
-      }
-
-      setSelected(selectedGroups);
-      setSelectAll(selectAll === 0 ? 1 : 0);
-      setTotalMeasurements(
-        selectAll === 0 ? attributes.stationTotalMeasurements : 0,
-      );
-      setCharGroupFilters('');
-    }
-
-    // if a user has filtered out certain characteristic groups for
-    // a given table, that'll be used as additional query string
-    // parameters in the download URL string
-    // (see setCharGroupFilters in Table's onChange handler)
-    const downloadUrl =
-      `${services.data.waterQualityPortal.resultSearch}zip=no&siteid=` +
-      `${attributes.siteId}&providers=${attributes.stationProviderName}` +
-      `${charGroupFilters}`;
-    const portalUrl =
-      `${services.data.waterQualityPortal.userInterface}#` +
-      `siteid=${attributes.siteId}${charGroupFilters}` +
-      `&mimeType=xlsx&dataProfile=resultPhysChem` +
-      `&providers=NWIS&providers=STEWARDS&providers=STORET`;
-
-    return (
-      <>
-        <table css={modifiedTableStyles} className="table">
-          <tbody>
-            <tr>
-              <td>
-                <em>Organ&shy;ization Name:</em>
-              </td>
-              <td>{attributes.orgName}</td>
-            </tr>
-            <tr>
-              <td>
-                <em>Location Name:</em>
-              </td>
-              <td>{attributes.locationName}</td>
-            </tr>
-            <tr>
-              <td>
-                <em>Water Type:</em>
-              </td>
-              <td>{attributes.locationType}</td>
-            </tr>
-            <tr>
-              <td>
-                <em>Organization ID:</em>
-              </td>
-              <td>{attributes.orgId}</td>
-            </tr>
-            <tr>
-              <td>
-                <em>Monitor&shy;ing Site ID:</em>
-              </td>
-              <td>{attributes.siteId.replace(`${attributes.orgId}-`, '')}</td>
-            </tr>
-            <tr>
-              <td>
-                <em>
-                  <GlossaryTerm term="Monitoring Samples">
-                    Monitor&shy;ing Samples:
-                  </GlossaryTerm>
-                </em>
-              </td>
-              <td>{Number(attributes.stationTotalSamples).toLocaleString()}</td>
-            </tr>
-            <tr>
-              <td>
-                <em>
-                  <GlossaryTerm term="Monitoring Measurements">
-                    Monitor&shy;ing Measure&shy;ments:
-                  </GlossaryTerm>
-                </em>
-              </td>
-              <td>
-                {Number(attributes.stationTotalMeasurements).toLocaleString()}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <p>
-          <a
-            rel="noopener noreferrer"
-            target="_blank"
-            href={attributes.locationUrl}
-          >
-            <i
-              css={iconStyles}
-              className="fas fa-info-circle"
-              aria-hidden="true"
-            />
-            More Information
-          </a>
-          &nbsp;&nbsp;
-          <small css={modifiedDisclaimerStyles}>(opens new browser tab)</small>
-        </p>
-
-        {Object.keys(groups).length === 0 && (
-          <p>No data available for this monitoring location.</p>
-        )}
-
-        {Object.keys(groups).length > 0 && (
-          <table css={measurementTableStyles} className="table">
-            <thead>
-              <tr>
-                <th css={checkboxCellStyles}>
-                  <input
-                    css={checkboxStyles}
-                    type="checkbox"
-                    className="checkbox"
-                    checked={selectAll === 1}
-                    ref={(input) => {
-                      if (input) input.indeterminate = selectAll === 2;
-                    }}
-                    onChange={(ev) => toggleAllCheckboxes()}
-                  />
-                </th>
-                <th>
-                  <GlossaryTerm term="Characteristic Group">
-                    Char&shy;acter&shy;istic Group
-                  </GlossaryTerm>
-                </th>
-                <th>
-                  <GlossaryTerm term="Monitoring Measurements">
-                    Number of Measure&shy;ments
-                  </GlossaryTerm>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.keys(groups).map((key, index) => {
-                // ignore groups with 0 results
-                if (groups[key].resultCount === 0) {
-                  return null;
-                }
-
-                return (
-                  <tr key={index}>
-                    <td css={checkboxCellStyles}>
-                      <input
-                        css={checkboxStyles}
-                        type="checkbox"
-                        className="checkbox"
-                        checked={selected[key] === true || selectAll === 1}
-                        onChange={(ev) => {
-                          toggleRow(key, groups);
-                        }}
-                      />
-                    </td>
-                    <td>{key}</td>
-                    <td>{groups[key].resultCount.toLocaleString()}</td>
-                  </tr>
-                );
-              })}
-              <tr css={totalRowStyles}>
-                <td></td>
-                <td>Total</td>
-                <td>{Number(totalMeasurements).toLocaleString()}</td>
-              </tr>
-            </tbody>
-
-            <tfoot css={tableFooterStyles}>
-              <tr>
-                <td colSpan="2">
-                  <a
-                    rel="noopener noreferrer"
-                    target="_blank"
-                    data-cy="portal"
-                    href={portalUrl}
-                    style={{ fontWeight: 'normal' }}
-                  >
-                    <i
-                      css={iconStyles}
-                      className="fas fa-filter"
-                      aria-hidden="true"
-                    />
-                    Advanced Filtering
-                  </a>
-                  &nbsp;&nbsp;
-                  <small css={modifiedDisclaimerStyles}>
-                    (opens new browser tab)
-                  </small>
-                </td>
-                <td colSpan="2">
-                  <span>Download Station Data</span>
-                  <span>
-                    &nbsp;&nbsp;
-                    <a href={`${downloadUrl}&mimeType=xlsx`}>
-                      <i className="fas fa-file-excel" aria-hidden="true" />
-                    </a>
-                    &nbsp;&nbsp;
-                    <a href={`${downloadUrl}&mimeType=csv`}>
-                      <i className="fas fa-file-csv" aria-hidden="true" />
-                    </a>
-                  </span>
-                </td>
-              </tr>
-            </tfoot>
-          </table>
-        )}
-      </>
-    );
-  }
 
   // Default popup for monitoring popups, when opened a listener will populate the popup with everything the Listview item has
   const nonprofitContent = (
@@ -947,7 +688,7 @@ function WaterbodyInfo({
   // jsx
   const alaskaNativeVillageContent = labelValue(
     'Village Name',
-    attributes.NAME,
+    attributes.TRIBE_NAME,
   );
 
   // jsx
@@ -1002,41 +743,43 @@ function WaterbodyInfo({
   const actionContent = <>{extraContent}</>;
 
   // Fetch attains projects data
-  const [attainsProjects, setAttainsProjects] = useState({
+  const [attainsProjects, setAttainsProjects] = useState<AttainsProjectsState>({
     status: 'fetching',
     data: [],
   });
   useEffect(() => {
     if (type !== 'Restoration Plans' && type !== 'Protection Plans') return;
+    if (services?.status !== 'success') return;
 
     const auId = attributes.assessmentunitidentifier;
-    const url =
-      services.data.attains.serviceUrl +
-      `actions?assessmentUnitIdentifier=${auId}` +
-      `&organizationIdentifier=${attributes.organizationid}` +
-      `&summarize=Y`;
+    const url = services.data.attains.serviceUrl +
+          `actions?assessmentUnitIdentifier=${auId}` +
+          `&organizationIdentifier=${attributes.organizationid}` +
+          `&summarize=Y`;
 
     fetchCheck(url)
       .then((res) => {
-        let attainsProjectsData = [];
+        let attainsProjectsData: AttainsProjectsDatum[] = [];
 
         if (res.items.length > 0) {
-          attainsProjectsData = res.items[0].actions.map((action) => {
-            const pollutants = action
-              ? action.parameters.map((p) =>
-                  titleCaseWithExceptions(p.parameterName),
-                )
-              : [];
+          attainsProjectsData = res.items[0].actions.map(
+            (action: ActionData) => {
+              const pollutants = action
+                ? action.parameters.map((p) =>
+                    titleCaseWithExceptions(p.parameterName),
+                  )
+                : [];
 
-            return {
-              id: action.actionIdentifier,
-              orgId: attributes.organizationid,
-              name: action.actionName,
-              pollutants,
-              type: action.actionTypeCode,
-              date: action.completionDate,
-            };
-          });
+              return {
+                id: action.actionIdentifier,
+                orgId: attributes.organizationid,
+                name: action.actionName,
+                pollutants,
+                type: action.actionTypeCode,
+                date: action.completionDate,
+              };
+            },
+          );
         }
 
         setAttainsProjects({
@@ -1073,8 +816,7 @@ function WaterbodyInfo({
     return (
       <>
         <div css={projectsContainerStyles}>
-          {(attainsProjects.status === 'fetching' ||
-            attainsProjects.status === 'pending') && <LoadingSpinner />}
+          {attainsProjects.status === 'fetching' && <LoadingSpinner />}
           {attainsProjects.status === 'failure' && (
             <div css={errorBoxStyles}>
               <p>{waterbodyReportError('Plans')}</p>
@@ -1092,7 +834,7 @@ function WaterbodyInfo({
                       <tr>
                         <th>Plan (ID)</th>
                         <th>Impairments</th>
-                        <th>Type</th>
+                        <th style={{ width: '25%' }}>Type</th>
                         <th>Date</th>
                       </tr>
                     </thead>
@@ -1152,7 +894,14 @@ function WaterbodyInfo({
   if (type === 'Current Water Conditions') {
     content = <UsgsStreamgagesContent feature={feature} />;
   }
-  if (type === 'Past Water Conditions') content = monitoringLocationsContent();
+  if (type === 'Past Water Conditions') {
+    content = (
+      <MonitoringLocationsContent
+        attributes={feature.attributes}
+        services={services ?? null}
+      />
+    );
+  }
   if (type === 'Nonprofit') content = nonprofitContent;
   if (type === 'Waterbody State Overview') content = waterbodyStateContent;
   if (type === 'Action') content = actionContent;
@@ -1172,15 +921,15 @@ function WaterbodyInfo({
 }
 
 type MapPopupProps = {
-  type: string,
-  feature: Object,
-  fieldName: ?string,
-  extraContent: ?Object,
-  getClickedHuc: ?Function,
-  resetData: ?Function,
-  services: ?Object,
-  fields: ?Object,
-  navigate: Function,
+  type: string;
+  feature: Feature;
+  navigate: NavigateFunction;
+  fieldName?: string | null;
+  extraContent?: ReactNode | null;
+  getClickedHuc?: Promise<ClickedHucState> | null;
+  resetData?: () => void;
+  services?: ServicesState;
+  fields?: __esri.Field[] | null;
 };
 
 function MapPopup({
@@ -1195,10 +944,10 @@ function MapPopup({
   navigate,
 }: MapPopupProps) {
   // Gets the response of what huc was clicked, if provided.
-  const [clickedHuc, setClickedHuc] = useState<{
-    status: 'none' | 'fetching' | 'success' | 'failure',
-    data: { huc12: any, watershed: any } | null,
-  }>({ status: 'none', data: null });
+  const [clickedHuc, setClickedHuc] = useState<ClickedHucState>({
+    status: 'none',
+    data: null,
+  });
 
   useEffect(() => {
     if (!getClickedHuc || clickedHuc.status !== 'none') return;
@@ -1221,9 +970,9 @@ function MapPopup({
       'Change Location',
       'Waterbody State Overview',
     ];
-    if (typesToSkip.includes(type)) return null;
+    if (!type || typesToSkip.includes(type)) return null;
 
-    let title = type;
+    let title: string | ReactNode = type;
     if (type === 'Demographic Indicators') {
       title = `${type} - ${feature.layer.title}`;
     }
@@ -1245,9 +994,11 @@ function MapPopup({
   const huc12 = clickedHuc?.data?.huc12;
   const watershed = clickedHuc?.data?.watershed;
 
+  const onTribePage = window.location.pathname.startsWith('/tribe/');
+
   return (
     <div css={popupContainerStyles}>
-      {clickedHuc && (
+      {clickedHuc && !onTribePage && (
         <>
           {clickedHuc.status === 'no-data' && null}
           {clickedHuc.status === 'fetching' && <LoadingSpinner />}
@@ -1266,7 +1017,7 @@ function MapPopup({
                     css={buttonStyles}
                     title="Change to this location"
                     className="btn"
-                    onClick={(ev) => {
+                    onClick={(_ev) => {
                       // Clear all data before navigating.
                       // The main reason for this is better performance
                       // when doing a huc search by clicking on the state map. The app
@@ -1308,8 +1059,6 @@ function MapPopup({
           feature={feature}
           fieldName={fieldName}
           extraContent={extraContent}
-          getClickedHuc={getClickedHuc}
-          resetData={resetData}
           services={services}
           fields={fields}
         />
@@ -1318,7 +1067,461 @@ function MapPopup({
   );
 }
 
-function UsgsStreamgagesContent({ feature }: { feature: Object }) {
+interface MonitoringLocationAttributes {
+  monitoringType: 'Past Water Conditions';
+  siteId: string;
+  orgId: string;
+  orgName: string;
+  locationLongitude: number;
+  locationLatitude: number;
+  locationName: string;
+  locationType: string;
+  locationUrl: string;
+  stationProviderName: string;
+  stationTotalSamples: number;
+  stationTotalsByGroup:
+    | string
+    | {
+        [groupName: string]: number;
+      };
+  stationTotalMeasurements: number;
+  timeframe: string | [number, number] | null;
+  uniqueId: string;
+}
+
+interface MappedGroups {
+  [groupLabel: string]: {
+    characteristicGroups: string[];
+    resultCount: number;
+  };
+}
+
+interface SelectedGroups {
+  [groupLabel: string]: boolean;
+}
+
+function buildGroups(
+  checkMappings: (groupName: string) => boolean,
+  totalsByGroup: string | { [groupName: string]: number },
+): { newGroups: MappedGroups; newSelected: SelectedGroups } {
+  const newGroups: MappedGroups = {};
+  const newSelected: SelectedGroups = {};
+  if (typeof totalsByGroup === 'string') return { newGroups, newSelected };
+  const stationGroups = totalsByGroup;
+  // get the feature where the provider matches this stations provider
+  characteristicGroupMappings.forEach((mapping) => {
+    for (const groupName in stationGroups) {
+      if (
+        mapping.groupNames.includes(groupName) &&
+        !newGroups[mapping.label]?.characteristicGroups.includes(groupName)
+      ) {
+        // push to existing group
+        if (newGroups[mapping.label]) {
+          newGroups[mapping.label].characteristicGroups.push(groupName);
+          newGroups[mapping.label].resultCount += stationGroups[groupName];
+        }
+        // create a new group
+        else {
+          newGroups[mapping.label] = {
+            characteristicGroups: [groupName],
+            resultCount: stationGroups[groupName],
+          };
+        }
+      } else if (!checkMappings(groupName)) {
+        if (!newGroups['Other']) {
+          newGroups['Other'] = { characteristicGroups: [], resultCount: 0 };
+        }
+        if (!newGroups['Other'].characteristicGroups.includes(groupName)) {
+          // push to Other
+          newGroups['Other'].characteristicGroups.push(groupName);
+          newGroups['Other'].resultCount += stationGroups[groupName];
+        }
+      }
+    }
+  });
+
+  Object.keys(newGroups).forEach((group) => {
+    newSelected[group] = true;
+  });
+
+  return { newGroups, newSelected };
+}
+
+function checkIfGroupInMapping(groupName: string): boolean {
+  const result = characteristicGroupMappings.find((mapping) =>
+    mapping.groupNames.includes(groupName),
+  );
+  return result ? true : false;
+}
+
+type MonitoringLocationsContentProps = {
+  attributes: MonitoringLocationAttributes;
+  services: ServicesState | null;
+};
+
+function MonitoringLocationsContent({
+  attributes,
+  services,
+}: MonitoringLocationsContentProps) {
+  const [charGroupFilters, setCharGroupFilters] = useState('');
+  const [selectAll, setSelectAll] = useState(1);
+  const [totalMeasurements, setTotalMeasurements] = useState<number | null>(
+    null,
+  );
+
+  const structuredProps = ['stationTotalsByGroup', 'timeframe'];
+
+  const parsed = parseAttributes<MonitoringLocationAttributes>(
+    structuredProps,
+    attributes,
+  );
+  const {
+    locationName,
+    locationType,
+    locationUrl,
+    orgId,
+    orgName,
+    siteId,
+    stationProviderName,
+    stationTotalSamples,
+    stationTotalsByGroup,
+    stationTotalMeasurements,
+    timeframe,
+  } = parsed;
+
+  const [groups, setGroups] = useState(() => {
+    const { newGroups } = buildGroups(
+      checkIfGroupInMapping,
+      stationTotalsByGroup,
+    );
+    return newGroups;
+  });
+  const [selected, setSelected] = useState(() => {
+    const newSelected: { [Property in keyof typeof groups]: boolean } = {};
+    Object.keys(groups).forEach((group) => {
+      newSelected[group] = true;
+    });
+    return newSelected;
+  });
+
+  useEffect(() => {
+    const { newGroups, newSelected } = buildGroups(
+      checkIfGroupInMapping,
+      stationTotalsByGroup,
+    );
+    setGroups(newGroups);
+    setSelected(newSelected);
+    setSelectAll(1);
+  }, [stationTotalsByGroup]);
+
+  const buildFilter = useCallback(
+    (selectedNames, monitoringLocationData) => {
+      let filter = '';
+
+      if (selectAll === 2) {
+        for (const name in selectedNames) {
+          if (selectedNames[name]) {
+            filter +=
+              '&characteristicType=' +
+              monitoringLocationData[name].characteristicGroups.join(
+                '&characteristicType=',
+              );
+          }
+        }
+      }
+
+      if (timeframe) {
+        filter += `&startDateLo=01-01-${timeframe[0]}&startDateHi=12-31-${timeframe[1]}`;
+      }
+
+      setCharGroupFilters(filter);
+    },
+    [setCharGroupFilters, selectAll, timeframe],
+  );
+
+  useEffect(() => {
+    buildFilter(selected, groups);
+  }, [buildFilter, groups, selected]);
+
+  useEffect(() => {
+    setTotalMeasurements(stationTotalMeasurements);
+  }, [stationTotalMeasurements]);
+
+  //Toggle an individual row and call the provided onChange event handler
+  const toggleRow = (groupLabel: string, allGroups: Object) => {
+    // flip the current toggle
+    const selectedGroups = { ...selected };
+    selectedGroups[groupLabel] = !selected[groupLabel];
+    setSelected(selectedGroups);
+
+    // find the number of toggles currently true
+    let numberSelected = 0;
+    Object.values(selectedGroups).forEach((value) => {
+      if (value) numberSelected++;
+    });
+
+    // total number of toggles displayed
+    const totalSelections = Object.keys(allGroups).length;
+
+    // if all selected
+    if (numberSelected === totalSelections) {
+      setSelectAll(1);
+      setTotalMeasurements(stationTotalMeasurements);
+    }
+    // if none selected
+    else if (numberSelected === 0) {
+      setSelectAll(0);
+      setTotalMeasurements(0);
+    }
+    // if some selected
+    else {
+      setSelectAll(2);
+      let newTotalMeasurementCount = 0;
+      Object.keys(groups).forEach((group) => {
+        if (selectedGroups[group] === true) {
+          newTotalMeasurementCount += groups[group].resultCount;
+        }
+      });
+      setTotalMeasurements(newTotalMeasurementCount);
+    }
+  };
+
+  //Toggle all rows and call the provided onChange event handler
+  const toggleAllCheckboxes = () => {
+    let selectedGroups: SelectedGroups = {};
+
+    if (Object.keys(groups).length > 0) {
+      const newValue = selectAll === 0 ? true : false;
+
+      Object.keys(groups).forEach((key) => {
+        selectedGroups[key] = newValue;
+      });
+    }
+
+    setSelected(selectedGroups);
+    setSelectAll(selectAll === 0 ? 1 : 0);
+    setTotalMeasurements(selectAll === 0 ? stationTotalMeasurements : 0);
+  };
+
+  // if a user has filtered out certain characteristic groups for
+  // a given table, that'll be used as additional query string
+  // parameters in the download URL string
+  // (see setCharGroupFilters in Table's onChange handler)
+  const downloadUrl =
+    services?.status === 'success'
+      ? `${services.data.waterQualityPortal.resultSearch}zip=no&siteid=` +
+        `${siteId}&providers=${stationProviderName}` +
+        `${charGroupFilters}`
+      : null;
+  const portalUrl =
+    services?.status === 'success'
+      ? `${services.data.waterQualityPortal.userInterface}#` +
+        `siteid=${siteId}${charGroupFilters}` +
+        `&mimeType=xlsx&dataProfile=resultPhysChem` +
+        `&providers=NWIS&providers=STEWARDS&providers=STORET`
+      : null;
+
+  const onMonitoringReportPage =
+    window.location.pathname.indexOf('monitoring-report') === 1;
+
+  return (
+    <>
+      <table css={modifiedTableStyles} className="table">
+        <tbody>
+          <tr>
+            <td>
+              <em>Organ&shy;ization Name:</em>
+            </td>
+            <td>{orgName}</td>
+          </tr>
+          <tr>
+            <td>
+              <em>Location Name:</em>
+            </td>
+            <td>{locationName}</td>
+          </tr>
+          <tr>
+            <td>
+              <em>Water Type:</em>
+            </td>
+            <td>{locationType}</td>
+          </tr>
+          <tr>
+            <td>
+              <em>Organization ID:</em>
+            </td>
+            <td>{orgId}</td>
+          </tr>
+          <tr>
+            <td>
+              <em>Monitor&shy;ing Site ID:</em>
+            </td>
+            <td>{siteId}</td>
+          </tr>
+          <tr>
+            <td>
+              <em>
+                <GlossaryTerm term="Monitoring Samples">
+                  Monitor&shy;ing Samples:
+                </GlossaryTerm>
+              </em>
+            </td>
+            <td>
+              {Number(stationTotalSamples).toLocaleString()}
+              {timeframe && <span css={dateRangeStyles}>(all time)</span>}
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <em>
+                <GlossaryTerm term="Monitoring Measurements">
+                  Monitor&shy;ing Measure&shy;ments:
+                </GlossaryTerm>
+              </em>
+            </td>
+            <td>
+              {Number(stationTotalMeasurements).toLocaleString()}
+              {timeframe && (
+                <span css={dateRangeStyles}>
+                  ({timeframe[0]} - {timeframe[1]})
+                </span>
+              )}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      {!onMonitoringReportPage && (
+        <p>
+          <a rel="noopener noreferrer" target="_blank" href={locationUrl}>
+            <i
+              css={iconStyles}
+              className="fas fa-info-circle"
+              aria-hidden="true"
+            />
+            View Monitoring Report
+          </a>
+          &nbsp;&nbsp;
+          <small css={modifiedDisclaimerStyles}>(opens new browser tab)</small>
+        </p>
+      )}
+
+      {Object.keys(groups).length === 0 && (
+        <p>No data available for this monitoring location.</p>
+      )}
+
+      {Object.keys(groups).length > 0 && (
+        <table css={measurementTableStyles} className="table">
+          <thead>
+            <tr>
+              <th css={checkboxCellStyles}>
+                <input
+                  css={checkboxStyles}
+                  type="checkbox"
+                  className="checkbox"
+                  checked={selectAll === 1}
+                  ref={(input) => {
+                    if (input) input.indeterminate = selectAll === 2;
+                  }}
+                  onChange={(_ev) => toggleAllCheckboxes()}
+                />
+              </th>
+              <th>
+                <GlossaryTerm term="Characteristic Group">
+                  Char&shy;acter&shy;istic Group
+                </GlossaryTerm>
+              </th>
+              <th>
+                <GlossaryTerm term="Monitoring Measurements">
+                  Number of Measure&shy;ments
+                </GlossaryTerm>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.keys(groups).map((key, index) => {
+              // ignore groups with 0 results
+              if (groups[key].resultCount === 0) {
+                return null;
+              }
+
+              return (
+                <tr key={index}>
+                  <td css={checkboxCellStyles}>
+                    <input
+                      css={checkboxStyles}
+                      type="checkbox"
+                      className="checkbox"
+                      checked={selected[key] === true || selectAll === 1}
+                      onChange={(_ev) => {
+                        toggleRow(key, groups);
+                      }}
+                    />
+                  </td>
+                  <td>{key}</td>
+                  <td>{groups[key].resultCount.toLocaleString()}</td>
+                </tr>
+              );
+            })}
+            <tr>
+              <td></td>
+              <td>Total</td>
+              <td>{Number(totalMeasurements).toLocaleString()}</td>
+            </tr>
+          </tbody>
+
+          <tfoot css={tableFooterStyles}>
+            <tr>
+              <td colSpan={2}>
+                <a
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  data-cy="portal"
+                  href={portalUrl ?? undefined}
+                  style={{ fontWeight: 'normal' }}
+                >
+                  <i
+                    css={iconStyles}
+                    className="fas fa-filter"
+                    aria-hidden="true"
+                  />
+                  Advanced Filtering
+                </a>
+                &nbsp;&nbsp;
+                <small css={modifiedDisclaimerStyles}>
+                  (opens new browser tab)
+                </small>
+              </td>
+              <td colSpan={2}>
+                <span>Download Selected Data</span>
+                <span>
+                  &nbsp;&nbsp;
+                  <a
+                    href={
+                      downloadUrl ? `${downloadUrl}&mimeType=xlsx` : undefined
+                    }
+                  >
+                    <i className="fas fa-file-excel" aria-hidden="true" />
+                  </a>
+                  &nbsp;&nbsp;
+                  <a
+                    href={
+                      downloadUrl ? `${downloadUrl}&mimeType=csv` : undefined
+                    }
+                  >
+                    <i className="fas fa-file-csv" aria-hidden="true" />
+                  </a>
+                </span>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      )}
+    </>
+  );
+}
+
+function UsgsStreamgagesContent({ feature }: { feature: Feature }) {
   const {
     streamgageMeasurements,
     orgName,
@@ -1327,12 +1530,15 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
     siteId,
     orgId,
     locationUrl,
-  } = feature.attributes;
+  }: UsgsStreamgage = feature.attributes;
 
   const [additionalMeasurementsShown, setAdditionalMeasurementsShown] =
     useState(false);
 
-  function addUniqueMeasurement(measurement, array) {
+  function addUniqueMeasurement(
+    measurement: StreamgageMeasurement,
+    array: StreamgageMeasurement[],
+  ) {
     const measurementAlreadyAdded = array.find((m) => {
       return m.parameterCode === measurement.parameterCode;
     });
@@ -1344,8 +1550,8 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
     }
   }
 
-  const primaryMeasurements = [];
-  const secondaryMeasurements = [];
+  const primaryMeasurements: StreamgageMeasurement[] = [];
+  const secondaryMeasurements: StreamgageMeasurement[] = [];
 
   streamgageMeasurements.primary.forEach((measurement) => {
     addUniqueMeasurement(measurement, primaryMeasurements);
@@ -1412,7 +1618,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
             <td>
               <em>Monitor&shy;ing Site ID:</em>
             </td>
-            <td>{siteId.replace(`${orgId}-`, '')}</td>
+            <td>{siteId}</td>
           </tr>
         </tbody>
       </table>
@@ -1442,7 +1648,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
                 <td css={moreLessRowStyles} colSpan={2}>
                   <button
                     css={buttonStyles}
-                    onClick={(ev) => {
+                    onClick={(_ev) => {
                       setAdditionalMeasurementsShown(
                         !additionalMeasurementsShown,
                       );
@@ -1485,7 +1691,13 @@ function UsgsStreamgagesContent({ feature }: { feature: Object }) {
   );
 }
 
-function UsgsStreamgageParameter({ url, data }) {
+function UsgsStreamgageParameter({
+  url,
+  data,
+}: {
+  url: string;
+  data: StreamgageMeasurement;
+}) {
   return (
     <tr>
       <td>

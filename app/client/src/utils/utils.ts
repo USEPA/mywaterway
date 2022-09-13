@@ -295,7 +295,11 @@ function convertAgencyCode(agencyShortCode: string) {
 
 // Lookup the value of an attribute using domain coded values from
 // the arcgis feature layer fields.
-function convertDomainCode(fields: __esri.Field[], name: string, value: string) {
+function convertDomainCode(
+  fields: __esri.Field[] | null | undefined,
+  name: string,
+  value: string,
+) {
   if (!fields) return value;
 
   // look for the field using name
@@ -337,7 +341,10 @@ function normalizeString(str: string) {
 }
 
 // Summarizes assessment counts by the status of the provided fieldname.
-function summarizeAssessments(waterbodies: __esri.Graphic[], fieldName: string) {
+function summarizeAssessments(
+  waterbodies: __esri.Graphic[],
+  fieldName: string,
+) {
   const summary = {
     total: 0,
     unassessed: 0,
@@ -402,6 +409,27 @@ function indicesOf(text: string, searchString: string) {
   return indices;
 }
 
+// Parses ArcGIS attributes including stringified JSON
+function parseAttributes<Type>(
+  structuredAttributes: string[],
+  attributes: Type,
+): Type {
+  const parsed: {
+    [property: string]: Type[keyof Type];
+  } = {};
+  for (const property of structuredAttributes) {
+    if (property in attributes) {
+      const value = attributes[property as keyof Type];
+      if (typeof value === 'string') {
+        parsed[property] = JSON.parse(value);
+      } else {
+        parsed[property] = value;
+      }
+    }
+  }
+  return { ...attributes, ...parsed };
+}
+
 export {
   chunkArray,
   containsScriptTag,
@@ -426,4 +454,5 @@ export {
   normalizeString,
   summarizeAssessments,
   indicesOf,
+  parseAttributes,
 };

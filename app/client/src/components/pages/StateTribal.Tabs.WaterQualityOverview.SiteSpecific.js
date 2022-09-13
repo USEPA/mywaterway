@@ -7,12 +7,13 @@ import HighchartsReact from 'highcharts-react-official';
 import highchartsAccessibility from 'highcharts/modules/accessibility';
 // components
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
+import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 // styled components
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
-import { StateTabsContext } from 'contexts/StateTabs';
+import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 // utilities
 import { formatNumber } from 'utils/utils';
 // data
@@ -84,7 +85,11 @@ const modifiedInfoBoxStyles = css`
 
 // --- components ---
 type Props = {
-  activeState: { code: string, name: string },
+  activeState: {
+    value: string,
+    label: string,
+    source: 'All' | 'State' | 'Tribe',
+  },
   waterType: string,
   waterTypeData: any,
   completeUseList: Array<Object>,
@@ -100,7 +105,7 @@ function SiteSpecific({
   useSelected,
   fishingAdvisoryData,
 }: Props) {
-  const { currentReportingCycle } = useContext(StateTabsContext);
+  const { currentReportingCycle } = useContext(StateTribalTabsContext);
 
   const [waterTypeUnits, setWaterTypeUnits] = useState('');
   useEffect(() => {
@@ -397,7 +402,7 @@ function SiteSpecific({
           <AccordionItem
             title={
               <h3>
-                Top Reasons for Impairment for {activeState.name}{' '}
+                Top Reasons for Impairment for {activeState.label}{' '}
                 <strong>
                   <em>{waterType}</em>
                 </strong>{' '}
@@ -442,17 +447,10 @@ function SiteSpecific({
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                {activeState.name}
+                {activeState.label}
               </a>{' '}
             </h3>
-            <a
-              className="exit-disclaimer"
-              href="https://www.epa.gov/home/exit-epa"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              EXIT
-            </a>
+            <DynamicExitDisclaimer url={fishingAdvisoryData.data[0].url} />
           </>
         )}
     </>

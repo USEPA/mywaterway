@@ -474,8 +474,8 @@ function DataContent() {
         </h2>
         <p>
           Information from this database can be found on the Community page
-          under the Overview tab (monitoring locations) and under the Monitoring
-          tab after performing a search.
+          under the Overview tab (monitoring locations) and on the Monitoring
+          tab and Monitoring Report pages.
         </p>
         <ScrollToTop />
       </div>
