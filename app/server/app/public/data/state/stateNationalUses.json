@@ -1671,7 +1671,7 @@
     "orgId": "21FL303D",
     "name": "Fish and Wildlife Propagation - Freshwater",
     "category": "Ecological Life",
-    "surveyuseCode": "FISH"
+    "surveyuseCode": "Fish, Shellfish, and Wildlife Protection and Propagation"
   },
   {
     "region": 4,
@@ -1680,7 +1680,7 @@
     "orgId": "21FL303D",
     "name": "Fish and Wildlife Propagation - Marine",
     "category": "Ecological Life",
-    "surveyuseCode": ""
+    "surveyuseCode": "Fish, Shellfish, and Wildlife Protection and Propagation"
   },
   {
     "region": 4,

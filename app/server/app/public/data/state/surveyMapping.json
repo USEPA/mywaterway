@@ -5,7 +5,7 @@
     "year": "2022",
     "subPopulationCode": "Statewide",
     "waterTypeGroupCode": "LAKE/RESERVOIR/POND",
-    "surveyUseCode": "Fish and Wildlife Propagation - Freshwater",
+    "surveyUseCode": "Fish, Shellfish, and Wildlife Protection and Propagation",
     "categoryCodeMapping": [
       {
         "surveyCategoryCode": "Not supporting",
@@ -249,7 +249,7 @@
     "year": "2022",
     "subPopulationCode": "Statewide",
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
-    "surveyUseCode": "Fish and Wildlife Propagation - Freshwater",
+    "surveyUseCode": "Fish, Shellfish, and Wildlife Protection and Propagation",
     "categoryCodeMapping": [
       {
         "surveyCategoryCode": "Not supporting",
@@ -367,7 +367,7 @@
     "year": "2022",
     "subPopulationCode": "Statewide",
     "waterTypeGroupCode": "STREAM/CREEK/RIVER",
-    "surveyUseCode": "Fish and Wildlife Propagation - Freshwater",
+    "surveyUseCode": "Fish, Shellfish, and Wildlife Protection and Propagation",
     "categoryCodeMapping": [
       {
         "surveyCategoryCode": "Not supporting",
