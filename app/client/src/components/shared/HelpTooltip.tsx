@@ -1,15 +1,20 @@
-// @flow
-
 import React, { useRef } from 'react';
 import { TooltipPopup, useTooltip } from '@reach/tooltip';
 import { css } from 'styled-components/macro';
 // styles
 import '@reach/tooltip/styles.css';
 import { colors } from 'styles';
+// types
+import type { Position } from '@reach/tooltip';
+import type { ReactElement, Ref } from 'react';
 
 /*
  * Styles
  */
+const helpIconStyles = css`
+  cursor: help;
+`;
+
 const tooltipIconStyles = css`
   background: none;
   border: none;
@@ -18,10 +23,6 @@ const tooltipIconStyles = css`
   margin: 0;
   outline: inherit;
   padding: 0;
-
-  i {
-    cursor: help;
-  }
 `;
 
 const tooltipStyles = css`
@@ -29,16 +30,17 @@ const tooltipStyles = css`
   border: none;
   border-radius: 6px;
   color: white;
+  max-width: 320px;
   padding: 0.5em 1em;
   text-align: center;
   white-space: normal;
-  width: 320px;
 `;
 
 /*
  * Helpers
  */
-function centered(triggerRect, tooltipRect) {
+const centered: Position = (triggerRect, tooltipRect) => {
+  if (!triggerRect || !tooltipRect) return {};
   const triggerCenter = triggerRect.left + triggerRect.width / 2;
   const left = triggerCenter - tooltipRect.width / 2;
   const maxLeft = document.body.clientWidth - tooltipRect.width;
@@ -46,13 +48,18 @@ function centered(triggerRect, tooltipRect) {
     left: Math.min(Math.max(2, left), maxLeft) + window.scrollX,
     top: triggerRect.bottom + 8 + window.scrollY,
   };
-}
+};
 
 /*
  * Components
  */
+type TooltipProps = {
+  children: ReactElement;
+  label: string;
+  triggerRef: Ref<HTMLElement>;
+};
 
-function Tooltip({ children, label, triggerRef }) {
+function Tooltip({ children, label, triggerRef }: TooltipProps) {
   const [trigger, tooltip] = useTooltip({
     ref: triggerRef,
   });
@@ -70,8 +77,14 @@ function Tooltip({ children, label, triggerRef }) {
   );
 }
 
-function HelpTooltip({ label }) {
-  const triggerRef = useRef();
+type HelpTooltipProps = {
+  description?: string;
+  children?: ReactElement;
+  label: string;
+};
+
+function HelpTooltip({ description, children, label }: HelpTooltipProps) {
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
   return (
     <Tooltip label={label} triggerRef={triggerRef}>
       <button
@@ -79,10 +92,16 @@ function HelpTooltip({ label }) {
         onClick={(_ev) => triggerRef.current?.focus()}
         ref={triggerRef}
       >
-        <span aria-hidden>
-          <i className="fas fa-question-circle" />
-        </span>
-        <span className="sr-only">Information Tooltip</span>
+        {children ? (
+          children
+        ) : (
+          <i
+            aria-hidden
+            css={helpIconStyles}
+            className="fas fa-question-circle"
+          />
+        )}
+        <span className="sr-only">{description || 'Information Tooltip'}</span>
       </button>
     </Tooltip>
   );

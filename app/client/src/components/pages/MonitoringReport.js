@@ -214,7 +214,6 @@ const iconStyles = css`
 const infoBoxHeadingStyles = css`
   ${boxHeadingStyles};
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 0;
 
@@ -1972,10 +1971,14 @@ function FileLink({ disabled, fileType, data, setError, url }) {
 
   return (
     <button css={fileLinkStyles} onClick={fetchFile}>
-      <i className={`fas fa-file-${fileType}`} aria-hidden="true" />
-      <span className="sr-only">
-        Download location data as a {fileType} file.
-      </span>
+      <HelpTooltip
+        label={`Download ${mimeTypes[fileType].toUpperCase()}`}
+        description={`Download selected data as ${
+          fileType === 'excel' ? 'an' : 'a'
+        } ${mimeTypes[fileType].toUpperCase()} file.`}
+      >
+        <i className={`fas fa-file-${fileType}`} aria-hidden="true" />
+      </HelpTooltip>
     </button>
   );
 }
