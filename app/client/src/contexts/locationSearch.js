@@ -697,6 +697,7 @@ export class LocationSearchProvider extends Component<Props, State> {
       this.setState({
         huc12: '',
         assessmentUnitIDs: null,
+        errorMessage: '',
         watershed: '',
         pointsData: null,
         linesData: null,

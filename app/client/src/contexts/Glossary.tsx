@@ -4,6 +4,9 @@ import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { proxyFetch } from 'utils/fetchUtils';
+// helpers
+import { useAbortSignal } from 'utils/hooks';
+import { isAbort } from 'utils/utils';
 
 // types
 interface GlossaryData {
@@ -47,6 +50,7 @@ type Props = {
 
 export function GlossaryProvider({ children }: Props) {
   const services = useServicesContext();
+  const abortSignal = useAbortSignal();
 
   const [initialized, setInitialized] = useState(false);
   const [glossaryStatus, setGlossaryStatus] =
@@ -71,12 +75,12 @@ export function GlossaryProvider({ children }: Props) {
 
     setPromiseInitialized(true);
 
-    window.fetchGlossaryTerms = new Promise((resolve, _reject) => {
+    window.fetchGlossaryTerms = new Promise((resolve, reject) => {
       // Function that fetches the glossary terms.
       // This will retry the fetch 3 times if the fetch fails with a
       // 1 second delay between each retry.
       const fetchTerms = (retryCount: number = 0) => {
-        proxyFetch(services.data.glossaryURL)
+        proxyFetch(services.data.glossaryURL, abortSignal)
           .then((res) => {
             let data = res
               .filter(
@@ -104,6 +108,7 @@ export function GlossaryProvider({ children }: Props) {
             resolve({ status: 'success', data });
           })
           .catch((err) => {
+            if (isAbort(err)) return reject(err);
             console.error(err);
 
             // resolve the request when the max retry count of 3 is hit
@@ -123,7 +128,7 @@ export function GlossaryProvider({ children }: Props) {
 
       fetchTerms();
     });
-  }, [promiseInitialized, services]);
+  }, [abortSignal, promiseInitialized, services]);
 
   return (
     <StateContext.Provider value={state}>{children}</StateContext.Provider>
