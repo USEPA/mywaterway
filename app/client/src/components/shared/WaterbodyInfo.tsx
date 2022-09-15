@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import HelpTooltip from 'components/shared/HelpTooltip';
+import { ListContent } from 'components/shared/BoxContent';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -29,6 +30,7 @@ import {
   disclaimerStyles,
   iconStyles,
   modifiedTableStyles,
+  tableStyles,
 } from 'styles/index.js';
 // types
 import type { ReactNode } from 'react';
@@ -90,11 +92,6 @@ function labelValue(
 /*
 ## Styles
 */
-const dateRangeStyles = css`
-  font-size: 0.8em;
-  margin-left: 1em;
-`;
-
 const popupContainerStyles = css`
   margin: 0;
   overflow-y: auto;
@@ -238,6 +235,17 @@ const changeWatershedContainerStyles = css`
 
   p {
     padding-bottom: 0;
+  }
+`;
+
+const listContentStyles = css`
+  .row-cell {
+    &:nth-of-type(even) {
+      padding-right: 0;
+    }
+    &:nth-of-type(odd) {
+      padding-left: 0;
+    }
   }
 `;
 
@@ -505,46 +513,35 @@ function WaterbodyInfo({
 
   const dischargerContent = (
     <>
-      <table css={modifiedTableStyles} className="table">
-        <tbody>
-          <tr>
-            <td>
-              <em>Compliance Status:</em>
-            </td>
-            <td>{attributes.CWPStatus}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Permit Status:</em>
-            </td>
-            <td>{attributes.CWPPermitStatusDesc}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Significant Effluent Violation within the last 3 years:</em>
-            </td>
-            <td>{hasEffluentViolations ? 'Yes' : 'No'}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Inspection within the last 5 years:</em>
-            </td>
-            <td>{bool(attributes.CWPInspectionCount)}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Formal Enforcement Action in the last 5 years:</em>
-            </td>
-            <td>{bool(attributes.CWPFormalEaCnt)}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>NPDES ID:</em>
-            </td>
-            <td>{attributes.SourceID}</td>
-          </tr>
-        </tbody>
-      </table>
+      <ListContent
+        rows={[
+          {
+            label: 'Compliance Status',
+            value: attributes.CWPStatus,
+          },
+          {
+            label: 'Permit Status',
+            value: attributes.CWPPermitStatusDesc,
+          },
+          {
+            label: 'Significant Effluent Violation within the last 3 years',
+            value: hasEffluentViolations ? 'Yes' : 'No',
+          },
+          {
+            label: 'Inspection within the last 5 years',
+            value: bool(attributes.CWPInspectionCount),
+          },
+          {
+            label: 'Formal Enforcement Action in the last 5 years',
+            value: bool(attributes.CWPFormalEaCnt),
+          },
+          {
+            label: 'NPDES ID',
+            value: attributes.SourceID,
+          },
+        ]}
+        styles={listContentStyles}
+      />
 
       <p>
         <a
@@ -655,34 +652,29 @@ function WaterbodyInfo({
   // jsx
   const wsioContent = (
     <>
-      <table css={modifiedTableStyles} className="table">
-        <tbody>
-          <tr>
-            <td>
-              <em>Watershed Name:</em>
-            </td>
-            <td>{attributes.NAME_HUC12}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Watershed:</em>
-            </td>
-            <td>{attributes.HUC12_TEXT}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>State:</em>
-            </td>
-            <td>{attributes.STATES_ALL}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Watershed Health Score:</em>
-            </td>
-            <td>({Math.round(attributes.PHWA_HEALTH_NDX_ST * 100) / 100})</td>
-          </tr>
-        </tbody>
-      </table>
+      <div css={tableStyles} className="table">
+        <ListContent
+          rows={[
+            {
+              label: 'Watershed Name',
+              value: attributes.NAME_HUC12,
+            },
+            {
+              label: 'Watershed',
+              value: attributes.HUC12_TEXT,
+            },
+            {
+              label: 'State',
+              value: attributes.STATES_ALL,
+            },
+            {
+              label: 'Watershed Health Score',
+              value: Math.round(attributes.PHWA_HEALTH_NDX_ST * 100) / 100,
+            },
+          ]}
+          styles={listContentStyles}
+        />
+      </div>
     </>
   );
 
@@ -753,10 +745,11 @@ function WaterbodyInfo({
     if (services?.status !== 'success') return;
 
     const auId = attributes.assessmentunitidentifier;
-    const url = services.data.attains.serviceUrl +
-          `actions?assessmentUnitIdentifier=${auId}` +
-          `&organizationIdentifier=${attributes.organizationid}` +
-          `&summarize=Y`;
+    const url =
+      services.data.attains.serviceUrl +
+      `actions?assessmentUnitIdentifier=${auId}` +
+      `&organizationIdentifier=${attributes.organizationid}` +
+      `&summarize=Y`;
 
     fetchCheck(url)
       .then((res) => {
@@ -1327,70 +1320,65 @@ function MonitoringLocationsContent({
 
   return (
     <>
-      <table css={modifiedTableStyles} className="table">
-        <tbody>
-          <tr>
-            <td>
-              <em>Organ&shy;ization Name:</em>
-            </td>
-            <td>{orgName}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Location Name:</em>
-            </td>
-            <td>{locationName}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Water Type:</em>
-            </td>
-            <td>{locationType}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Organization ID:</em>
-            </td>
-            <td>{orgId}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Monitor&shy;ing Site ID:</em>
-            </td>
-            <td>{siteId}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>
+      <div css={tableStyles} className="table">
+        <ListContent
+          rows={[
+            {
+              label: <>Organ&shy;ization Name</>,
+              value: orgName,
+            },
+            {
+              label: 'Location Name',
+              value: locationName,
+            },
+            {
+              label: 'Water Type',
+              value: locationType,
+            },
+            {
+              label: 'Organization ID',
+              value: orgId,
+            },
+            {
+              label: <>Monitor&shy;ing Site ID</>,
+              value: siteId,
+            },
+            {
+              label: (
                 <GlossaryTerm term="Monitoring Samples">
-                  Monitor&shy;ing Samples:
+                  Monitor&shy;ing Samples
                 </GlossaryTerm>
-              </em>
-            </td>
-            <td>
-              {Number(stationTotalSamples).toLocaleString()}
-              {timeframe && <span css={dateRangeStyles}>(all time)</span>}
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <em>
+              ),
+              value: (
+                <>
+                  {Number(stationTotalSamples).toLocaleString()}
+                  {timeframe ? (
+                    <small>(all time)</small>
+                  ) : null}
+                </>
+              ),
+            },
+            {
+              label: (
                 <GlossaryTerm term="Monitoring Measurements">
-                  Monitor&shy;ing Measure&shy;ments:
+                  Monitor&shy;ing Measure&shy;ments
                 </GlossaryTerm>
-              </em>
-            </td>
-            <td>
-              {Number(stationTotalMeasurements).toLocaleString()}
-              {timeframe && (
-                <span css={dateRangeStyles}>
-                  ({timeframe[0]} - {timeframe[1]})
-                </span>
-              )}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              ),
+              value: (
+                <>
+                  {Number(stationTotalMeasurements).toLocaleString()}
+                  {timeframe && (
+                    <small>
+                      ({timeframe[0]} - {timeframe[1]})
+                    </small>
+                  )}
+                </>
+              ),
+            },
+          ]}
+          styles={listContentStyles}
+        />
+      </div>
 
       {!onMonitoringReportPage && (
         <p>
@@ -1593,40 +1581,33 @@ function UsgsStreamgagesContent({ feature }: { feature: Feature }) {
 
   return (
     <>
-      <table css={modifiedTableStyles} className="table">
-        <tbody>
-          <tr>
-            <td>
-              <em>Organ&shy;ization Name:</em>
-            </td>
-            <td>{orgName}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Locat&shy;ion Name:</em>
-            </td>
-            <td>{locationName}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Water Type:</em>
-            </td>
-            <td>{locationType}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Organization ID:</em>
-            </td>
-            <td>{orgId}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Monitor&shy;ing Site ID:</em>
-            </td>
-            <td>{siteId}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div css={tableStyles} className="table">
+        <ListContent
+          rows={[
+            {
+              label: <>Organ&shy;ization Name</>,
+              value: orgName,
+            },
+            {
+              label: <>Locat&shy;ion Name</>,
+              value: locationName,
+            },
+            {
+              label: 'Water Type',
+              value: locationType,
+            },
+            {
+              label: 'Organization ID',
+              value: orgId,
+            },
+            {
+              label: <>Monitor&shy;ing Site ID</>,
+              value: siteId,
+            },
+          ]}
+          styles={listContentStyles}
+        />
+      </div>
 
       <table css={measurementTableStyles} className="table">
         <thead>
