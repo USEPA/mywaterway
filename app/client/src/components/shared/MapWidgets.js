@@ -96,7 +96,7 @@ const orderedLayers = [
   'nonprofitsLayer',
   'providersLayer',
   'upstreamWatershed',
-  'boundariesLayer',
+  'currentLocationLayer',
   'actionsWaterbodies',
   'watershedsLayer',
   'countyLayer',
@@ -115,7 +115,6 @@ const orderedLayers = [
   'protectedAreasHighlightLayer',
   'protectedAreasLayer',
   'ejscreenLayer',
-  'searchIconLayer',
 ];
 
 // function called whenever the map's zoom changes
@@ -151,7 +150,7 @@ function updateVisibleLayers(
   const visibleLayers = [];
   orderedLayers.forEach((layerId) => {
     // get the esri layer from the map view
-    let layer = view.map.layers.items.find((layer) => layer.id === layerId);
+    let layer = view.map.findLayerById(layerId);
     if (!layer) return;
 
     // Verify there is atleast one child layer visible before adding the layer
@@ -174,15 +173,12 @@ function updateVisibleLayers(
       }
     }
 
-    // add the layer if it is visible on the map. Boundaries and actions
+    // add the layer if it is visible on the map. Actions &
     // waterbodies layers are handled separately here because it is always
     // hidden from the layer list widget, but still needs to be in the legend.
     // The boundaries layer is entirely hidden from the community home page.
     if (
       (layer.visible && layer.listMode !== 'hide') ||
-      (layer.visible &&
-        layer.id === 'boundariesLayer' &&
-        window.location.pathname !== '/community') ||
       (layer.visible && layer.id === 'actionsWaterbodies') ||
       (layer.visible && layer.id === 'upstreamWatershed') ||
       (layer.visible && layer.id === 'allWaterbodiesLayer')
@@ -707,7 +703,12 @@ function MapWidgets({
     const uniqueParentItems = [];
     function defineActions(event) {
       const item = event.item;
-      if (!item.parent || item.parent.title === 'Demographic Indicators') {
+      console.log(item);
+      if (
+        !item.parent ||
+        item.parent.title === 'Demographic Indicators' ||
+        item.parent.title === 'Current Location'
+      ) {
         //only add the item if it has not been added before
         if (!uniqueParentItems.includes(item.title)) {
           uniqueParentItems.push(item.title);
@@ -846,11 +847,11 @@ function MapWidgets({
             layer.visible = false;
             layer.listMode = 'hide';
           }
-        } else if (layer.id === 'boundariesLayer') {
+        } else if (layer.id === 'currentLocationLayer') {
           if (visibleLayers.hasOwnProperty('boundariesLayer')) {
-            layer.visible = visibleLayers['boundariesLayer'];
-          } else {
-            layer.visible = true;
+            const boundariesLayer = layer.findLayerById('boundariesLayer');
+            if (boundariesLayer)
+              boundariesLayer.visible = visibleLayers['boundariesLayer'];
           }
         }
       });

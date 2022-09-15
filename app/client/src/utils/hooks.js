@@ -1150,17 +1150,20 @@ function useSharedLayers() {
       () => {
         // find the boundaries layer
         wsioHealthIndexLayer.parent.layers.items.forEach((layer) => {
-          if (layer.id !== 'boundariesLayer') return;
+          if (layer.id !== 'currentLocationLayer') return;
+          const boundariesLayer = layer.layers.find((subLayer) => {
+            return subLayer.id === 'boundariesLayer';
+          });
 
           // remove shading when wsio layer is on and add
           // shading back in when wsio layer is off
-          const newGraphics = layer.graphics.clone();
+          const newGraphics = boundariesLayer.graphics.clone();
           newGraphics.forEach((graphic) => {
             graphic.symbol.color.a = wsioHealthIndexLayer.visible ? 0 : 0.5;
           });
 
           // re-draw the graphics
-          layer.graphics = newGraphics;
+          boundariesLayer.graphics = newGraphics;
         });
       },
     );

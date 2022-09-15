@@ -194,6 +194,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setFishingInfo,
     setHucBoundaries,
     setAtHucBoundaries,
+    setCurrentLocationLayer,
     mapView,
     setMonitoringLocations,
     // setNonprofits,
@@ -632,7 +633,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     const boundariesLayer = new GraphicsLayer({
       id: 'boundariesLayer',
       title: 'Boundaries',
-      listMode: 'hide',
+      listMode: 'show',
     });
 
     setBoundariesLayer(boundariesLayer);
@@ -640,10 +641,19 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     const searchIconLayer = new GraphicsLayer({
       id: 'searchIconLayer',
       title: 'Search Location',
-      listMode: 'hide',
+      listMode: 'show',
     });
 
     setSearchIconLayer(searchIconLayer);
+
+    const currentLocationLayer = new GroupLayer({
+      id: 'currentLocationLayer',
+      title: 'Current Location',
+      layers: [boundariesLayer, searchIconLayer],
+      listMode: 'show',
+    });
+
+    setCurrentLocationLayer(currentLocationLayer);
 
     const upstreamLayer = new GraphicsLayer({
       id: 'upstreamWatershed',
@@ -794,14 +804,15 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setLayers([
       ...getSharedLayers(),
       providersLayer,
-      boundariesLayer,
+      // boundariesLayer,
+      currentLocationLayer,
       upstreamLayer,
       monitoringLocationsLayer,
       usgsStreamgagesLayer,
       issuesLayer,
       dischargersLayer,
       nonprofitsLayer,
-      searchIconLayer,
+      // searchIconLayer,
     ]);
 
     setLayersInitialized(true);
@@ -811,6 +822,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     getTitle,
     layers,
     setBoundariesLayer,
+    setCurrentLocationLayer,
     setDischargersLayer,
     setIssuesLayer,
     setLayers,
@@ -1074,7 +1086,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     const newLayers = [];
     layers.forEach((layer) => {
       newLayers.push(layer);
-      if (layer.id === 'boundariesLayer') {
+      if (layer.id === 'currentLocationLayer') {
         newLayers.push(newWaterbodyLayer);
       }
     });
