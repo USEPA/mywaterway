@@ -34,6 +34,7 @@ import {
 } from 'components/shared/KeyMetrics';
 // contexts
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
+import { useFetchedDataState } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { formatNumber } from 'utils/utils';
@@ -85,6 +86,7 @@ function IdentifiedIssues() {
   const {
     permittedDischargers,
     dischargersLayer,
+    monitoringLocations,
     issuesLayer,
     waterbodyLayer,
     showAllPolluted,
@@ -97,6 +99,8 @@ function IdentifiedIssues() {
     cipSummary,
     watershed,
   } = useContext(LocationSearchContext);
+
+  const { usgsStreamgages } = useFetchedDataState();
 
   const [permittedDischargersData, setPermittedDischargersData] = useState({});
 
@@ -322,6 +326,7 @@ function IdentifiedIssues() {
   const updateVisibleLayers = useCallback(
     ({ key = null, newValue = null, useCurrentValue = false }) => {
       const newVisibleLayers = {};
+
       if (cipSummary.status !== 'failure') {
         newVisibleLayers['issuesLayer'] =
           !issuesLayer || useCurrentValue
@@ -335,6 +340,16 @@ function IdentifiedIssues() {
             : showDischargersLayer;
       }
 
+      if (monitoringLocations.status !== 'failure') {
+        newVisibleLayers['monitoringLocationsLayer'] =
+          visibleLayers['monitoringLocationsLayer'];
+      }
+
+      if (usgsStreamgages.status !== 'failure') {
+        newVisibleLayers['usgsStreamgagesLayer'] =
+          visibleLayers['usgsStreamgagesLayer'];
+      }
+
       if (newVisibleLayers.hasOwnProperty(key)) {
         newVisibleLayers[key] = newValue;
       }
@@ -345,13 +360,15 @@ function IdentifiedIssues() {
       }
     },
     [
-      dischargersLayer,
-      showDischargersLayer,
+      cipSummary,
       permittedDischargers,
+      monitoringLocations,
+      usgsStreamgages,
+      visibleLayers,
       issuesLayer,
       showIssuesLayer,
-      cipSummary,
-      visibleLayers,
+      dischargersLayer,
+      showDischargersLayer,
       setVisibleLayers,
     ],
   );

@@ -23,6 +23,7 @@ import ShowLessMore from 'components/shared/ShowLessMore';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 // contexts
+import { useFetchedDataState } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { useMapHighlightState } from 'contexts/MapHighlight';
@@ -188,6 +189,7 @@ function Protect() {
     watershed,
     highlightOptions,
     huc12,
+    monitoringLocations,
     statesData,
     visibleLayers,
     setVisibleLayers,
@@ -202,6 +204,8 @@ function Protect() {
     cipSummary,
     allWaterbodiesLayer,
   } = useContext(LocationSearchContext);
+
+  const { usgsStreamgages } = useFetchedDataState();
 
   const { infoToggleChecked } = useContext(CommunityTabsContext);
 
@@ -315,6 +319,16 @@ function Protect() {
             : false;
       }
 
+      if (monitoringLocations.status !== 'failure') {
+        newVisibleLayers['monitoringLocationsLayer'] =
+          visibleLayers['monitoringLocationsLayer'];
+      }
+
+      if (usgsStreamgages.status !== 'failure') {
+        newVisibleLayers['usgsStreamgagesLayer'] =
+          visibleLayers['usgsStreamgagesLayer'];
+      }
+
       if (newVisibleLayers.hasOwnProperty(key)) {
         newVisibleLayers[key] = newValue;
       }
@@ -326,6 +340,8 @@ function Protect() {
     },
     [
       healthScoresDisplayed,
+      monitoringLocations,
+      usgsStreamgages,
       wsioHealthIndexLayer,
       wsioHealthIndexData,
       protectedAreasDisplayed,

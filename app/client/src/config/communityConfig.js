@@ -308,10 +308,10 @@ const tabs = [
     upper: <OverviewUpper />,
     lower: <Overview />,
     layers: {
-      waterbodyLayer: true,
+      dischargersLayer: false,
       monitoringLocationsLayer: false,
       usgsStreamgagesLayer: false,
-      dischargersLayer: false,
+      waterbodyLayer: true,
     },
   },
   {
@@ -321,6 +321,8 @@ const tabs = [
     upper: <SwimmingUpper />,
     lower: <Swimming />,
     layers: {
+      monitoringLocationsLayer: false,
+      usgsStreamgagesLayer: false,
       waterbodyLayer: true,
     },
   },
@@ -331,6 +333,8 @@ const tabs = [
     upper: <EatingFishUpper />,
     lower: <EatingFish />,
     layers: {
+      monitoringLocationsLayer: false,
+      usgsStreamgagesLayer: false,
       waterbodyLayer: true,
     },
   },
@@ -341,6 +345,8 @@ const tabs = [
     upper: <AquaticLifeUpper />,
     lower: <AquaticLife />,
     layers: {
+      monitoringLocationsLayer: false,
+      usgsStreamgagesLayer: false,
       waterbodyLayer: true,
     },
   },
@@ -352,6 +358,8 @@ const tabs = [
     lower: <DrinkingWater />,
     layers: {
       boundariesLayer: false,
+      monitoringLocationsLayer: false,
+      usgsStreamgagesLayer: false,
       waterbodyLayer: false,
       providersLayer: true,
     },
@@ -378,6 +386,8 @@ const tabs = [
     layers: {
       issuesLayer: true,
       dischargersLayer: true,
+      monitoringLocationsLayer: false,
+      usgsStreamgagesLayer: false,
     },
   },
   {
@@ -387,6 +397,8 @@ const tabs = [
     upper: <RestoreUpper />,
     lower: <Restore />,
     layers: {
+      monitoringLocationsLayer: false,
+      usgsStreamgagesLayer: false,
       waterbodyLayer: false,
     },
   },
@@ -397,6 +409,8 @@ const tabs = [
     upper: <ProtectUpper />,
     lower: <Protect />,
     layers: {
+      monitoringLocationsLayer: false,
+      usgsStreamgagesLayer: false,
       wsioHealthIndexLayer: false,
       wildScenicRiversLayer: false,
       protectedAreasLayer: false,
