@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Color from '@arcgis/core/Color';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
@@ -352,6 +352,24 @@ function highlightFeature({
         .catch((err) => console.error(err));
     }
   });
+}
+
+function useAbortSignal() {
+  const abortController = useRef(new AbortController());
+
+  useEffect(() => {
+    if (abortController.current.signal.aborted) {
+      abortController.current = new AbortController();
+    }
+  }, [abortController.current.signal.aborted]);
+
+  useEffect(() => {
+    return function abort() {
+      abortController.current.abort();
+    };
+  }, []);
+
+  return abortController.current.signal;
 }
 
 // custom hook that combines lines, area, and points features from context,
@@ -2124,6 +2142,7 @@ function useMonitoringLocations() {
 }
 
 export {
+  useAbortSignal,
   useDynamicPopup,
   useGeometryUtils,
   useKeyPress,

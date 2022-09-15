@@ -202,7 +202,10 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
     currentExtent: '',
     upstreamExtent: '',
-    highlightOptions: { color: '#32C5FD', fillOpacity: 1 },
+    highlightOptions: {
+      color: [50, 197, 253, 0.5],
+      fillOpacity: 1,
+    },
     searchText: '',
     lastSearchText: '',
     huc12: '',
@@ -669,6 +672,7 @@ export class LocationSearchProvider extends Component<Props, State> {
       this.setState({
         huc12: '',
         assessmentUnitIDs: null,
+        errorMessage: '',
         watershed: '',
         pointsData: null,
         linesData: null,

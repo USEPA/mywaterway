@@ -1,4 +1,11 @@
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { render } from 'react-dom';
 import { Rnd } from 'react-rnd';
 import { css } from 'styled-components/macro';
@@ -36,8 +43,9 @@ import {
   isTileLayer,
   shallowCompare,
 } from 'utils/mapFunctions';
+import { isAbort } from 'utils/utils';
 // helpers
-import { useDynamicPopup } from 'utils/hooks';
+import { useAbortSignal, useDynamicPopup } from 'utils/hooks';
 // icons
 import resizeIcon from 'images/resize.png';
 // types
@@ -239,6 +247,16 @@ function MapWidgets({
 }: Props) {
   const { addDataWidgetVisible, setAddDataWidgetVisible, widgetLayers } =
     useAddDataWidgetState();
+
+  const abortSignal = useAbortSignal();
+  const watchHandles = useMemo<IHandle[]>(() => [], []);
+  const observers = useMemo<MutationObserver[]>(() => [], []);
+  useEffect(() => {
+    return function cleanup() {
+      watchHandles.forEach((handle) => handle.remove());
+      observers.forEach((observer) => observer.disconnect());
+    };
+  }, [observers, watchHandles]);
 
   const {
     homeWidget,
@@ -542,8 +560,9 @@ function MapWidgets({
       subtree: true,
     });
 
+    observers.push(observer);
     setEsriLegend(tempLegend);
-  }, [view, esriLegend, esriLegendNode]);
+  }, [view, esriLegend, esriLegendNode, observers]);
 
   // Creates and adds the legend widget to the map
   const rnd = useRef<Rnd | null>(null);
@@ -649,11 +668,11 @@ function MapWidgets({
 
     const requests = [];
     let url = `${services.data.protectedAreasDatabase}/legend?f=json`;
-    requests.push(fetchCheck(url));
+    requests.push(fetchCheck(url, abortSignal));
     url = `${services.data.ejscreen}legend?f=json`;
-    requests.push(fetchCheck(url));
+    requests.push(fetchCheck(url, abortSignal));
     url = `${services.data.mappedWater}/legend?f=json`;
-    requests.push(fetchCheck(url));
+    requests.push(fetchCheck(url, abortSignal));
 
     Promise.all(requests)
       .then((responses) => {
@@ -668,6 +687,7 @@ function MapWidgets({
         setAdditionalLegendInfo(additionalLegendInfoNonState);
       })
       .catch((err) => {
+        if (isAbort(err)) return;
         console.error(err);
         additionalLegendInfoNonState = {
           status: 'failure',
@@ -675,7 +695,7 @@ function MapWidgets({
         };
         setAdditionalLegendInfo(additionalLegendInfoNonState);
       });
-  }, [additionalLegendInitialized, services]);
+  }, [abortSignal, additionalLegendInitialized, services]);
 
   // Creates and adds the basemap/layer list widget to the map
   const [layerListWidget, setLayerListWidget] =
@@ -733,19 +753,21 @@ function MapWidgets({
             additionalLegendInfoNonState,
           );
 
-          item.watch('visible', function (_ev) {
-            updateVisibleLayers(
-              view,
-              displayEsriLegendNonState,
-              hmwLegendNode,
-              additionalLegendInfoNonState,
-            );
-            const dict = {
-              layerId: item.layer.id,
-              visible: item.layer.visible,
-            };
-            setToggledLayer(dict);
-          });
+          watchHandles.push(
+            item.watch('visible', function (_ev) {
+              updateVisibleLayers(
+                view,
+                displayEsriLegendNonState,
+                hmwLegendNode,
+                additionalLegendInfoNonState,
+              );
+              const dict = {
+                layerId: item.layer.id,
+                visible: item.layer.visible,
+              };
+              setToggledLayer(dict);
+            }),
+          );
         }
       }
     }
@@ -793,6 +815,7 @@ function MapWidgets({
     hmwLegendNode,
     layerListWidget,
     view,
+    watchHandles,
   ]);
 
   // Sets up the zoom event handler that is used for determining if layers
@@ -968,6 +991,7 @@ function MapWidgets({
     setUpstreamWidget(node); // store the widget in context so it can be shown or hidden later
     render(
       <ShowUpstreamWatershed
+        abortSignal={abortSignal}
         getWatershedName={getWatershed}
         getHuc12={getHuc12}
         getCurrentExtent={getCurrentExtent}
@@ -987,6 +1011,7 @@ function MapWidgets({
     );
     setUpstreamWidgetCreated(true);
   }, [
+    abortSignal,
     setUpstreamWidget,
     services,
     getTemplate,
@@ -1360,6 +1385,7 @@ function ShowAllWaterbodies({
 }
 
 type ShowUpstreamWatershedProps = {
+  abortSignal: AbortSignal;
   getCurrentExtent: () => __esri.Viewpoint | null;
   getHuc12: () => string;
   getUpstreamExtent: () => __esri.Viewpoint | null;
@@ -1379,6 +1405,7 @@ type ShowUpstreamWatershedProps = {
 };
 
 function ShowUpstreamWatershed({
+  abortSignal,
   getWatershedName,
   getHuc12,
   getCurrentExtent,
@@ -1477,6 +1504,7 @@ function ShowUpstreamWatershed({
         returnGeometry: true,
         where: filter,
         outFields: ['*'],
+        signal: abortSignal,
       };
       query
         .executeQueryJSON(url, queryParams)
@@ -1541,7 +1569,8 @@ function ShowUpstreamWatershed({
           // zoom out to full extent
           view.goTo(upstreamExtent);
         })
-        .catch((_err) => {
+        .catch((err) => {
+          if (isAbort(err)) return;
           setUpstreamLoading(false);
           setUpstreamWidgetDisabled(true);
           setErrorMessage(
@@ -1554,7 +1583,7 @@ function ShowUpstreamWatershed({
           setUpstreamLayer(upstreamLayer);
         });
     },
-    [view, services],
+    [abortSignal, view, services],
   );
 
   const upstreamWidgetDisabled = getUpstreamWidgetDisabled();

@@ -12,6 +12,7 @@ import { css } from 'styled-components/macro';
 import * as query from '@arcgis/core/rest/query';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 // components
+import { ListContent } from 'components/shared/BoxContent';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
@@ -39,8 +40,6 @@ import {
   wildScenicRiversError,
   wsioHealthIndexError,
 } from 'config/errorMessages';
-// styles
-import { tableStyles } from 'styles/index.js';
 
 const protectedAreasIdKey = 'OBJECTID';
 
@@ -480,6 +479,19 @@ function Protect() {
     };
   }, [allWaterbodiesLayer, initialAllWaterbodiesVisibility]);
 
+  let watershedStateStatus = 'failure';
+  if (
+    wsioHealthIndexData.status === 'fetching' ||
+    statesData.status === 'fetching'
+  ) {
+    watershedStateStatus = 'fetching';
+  } else if (
+    wsioHealthIndexData.status === 'success' ||
+    statesData.status === 'success'
+  ) {
+    watershedStateStatus = 'success';
+  }
+
   ///////// Workaround End /////////
 
   return (
@@ -561,52 +573,31 @@ function Protect() {
                     {wsioHealthIndexData.status === 'success' &&
                       wsioHealthIndexData.data.length > 0 && (
                         <div css={watershedAccordionStyles}>
-                          <table css={tableStyles} className="table">
-                            <tbody>
-                              <tr>
-                                <td>
-                                  <em>Watershed Name:</em>
-                                </td>
-                                <td>{watershed}</td>
-                              </tr>
-                              <tr>
-                                <td>
-                                  <em>Watershed:</em>
-                                </td>
-                                <td>{huc12}</td>
-                              </tr>
-                              <tr>
-                                <td>
-                                  <em>State:</em>
-                                </td>
-                                <td>
-                                  {(wsioHealthIndexData.status === 'fetching' ||
-                                    statesData.status === 'fetching') && (
-                                    <LoadingSpinner />
-                                  )}
-
-                                  {wsioHealthIndexData.status === 'success' &&
-                                    statesData.status === 'success' &&
-                                    convertStateCode(
-                                      wsioData.states,
-                                      statesData.data,
-                                    )}
-                                </td>
-                              </tr>
-                              <tr>
-                                <td>
-                                  <em>Watershed Health Score:</em>
-                                </td>
-                                <td>
-                                  {wsioHealthIndexData.status ===
-                                    'fetching' && <LoadingSpinner />}
-                                  {wsioHealthIndexData.status === 'success' && (
-                                    <>{wsioScore}</>
-                                  )}
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
+                          <ListContent
+                            rows={[
+                              {
+                                label: 'Watershed Name',
+                                value: watershed,
+                              },
+                              {
+                                label: 'Watershed',
+                                value: huc12,
+                              },
+                              {
+                                label: 'State',
+                                value: convertStateCode(
+                                  wsioData.states,
+                                  statesData.data,
+                                ),
+                                status: watershedStateStatus,
+                              },
+                              {
+                                label: 'Watershed Health Score',
+                                value: wsioScore,
+                                status: wsioHealthIndexData.status,
+                              },
+                            ]}
+                          />
 
                           <div css={watershedGradientStyles}>
                             <p>More Healthy</p>
@@ -832,85 +823,60 @@ function Protect() {
                                   </strong>
                                 }
                               >
-                                <table css={tableStyles} className="table">
-                                  <tbody>
-                                    <tr>
-                                      <td>
-                                        <em>Agency</em>
-                                      </td>
-                                      <td>
-                                        {convertAgencyCode(attributes.AGENCY)}
-                                      </td>
-                                    </tr>
-
-                                    <tr>
-                                      <td>
-                                        <em>Management Plan</em>
-                                      </td>
-                                      <td>
-                                        {attributes.MANAGEMENT_PLAN === 'Y'
+                                <ListContent
+                                  rows={[
+                                    {
+                                      label: 'Agency',
+                                      value: convertAgencyCode(
+                                        attributes.AGENCY,
+                                      ),
+                                    },
+                                    {
+                                      label: 'Management Plan',
+                                      value:
+                                        attributes.MANAGEMENT_PLAN === 'Y'
                                           ? 'Yes'
-                                          : 'No'}
-                                      </td>
-                                    </tr>
-
-                                    <tr>
-                                      <td>
-                                        <em>Managing Entities</em>
-                                      </td>
-                                      <td>
-                                        {convertAgencyCode(
-                                          attributes.MANAGING_ENTITIES,
-                                        )}
-                                      </td>
-                                    </tr>
-
-                                    <tr>
-                                      <td>
-                                        <em>Public Law Name</em>
-                                      </td>
-                                      <td>{attributes.PUBLIC_LAW_NAME}</td>
-                                    </tr>
-
-                                    <tr>
-                                      <td>
-                                        <em>State</em>
-                                      </td>
-                                      <td>{attributes.STATE}</td>
-                                    </tr>
-
-                                    <tr>
-                                      <td>
-                                        <em>River Category</em>
-                                      </td>
-                                      <td>{attributes.RiverCategory}</td>
-                                    </tr>
-
-                                    <tr>
-                                      <td>
-                                        <em>Website</em>
-                                      </td>
-                                      <td>
-                                        {attributes.WEBLINK ? (
-                                          <>
-                                            <a
-                                              href={attributes.WEBLINK}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                            >
-                                              More information
-                                            </a>{' '}
-                                            <small css={disclaimerStyles}>
-                                              (opens new browser tab)
-                                            </small>
-                                          </>
-                                        ) : (
-                                          'Not available.'
-                                        )}
-                                      </td>
-                                    </tr>
-                                  </tbody>
-                                </table>
+                                          : 'No',
+                                    },
+                                    {
+                                      label: 'Managing Entities',
+                                      value: convertAgencyCode(
+                                        attributes.MANAGING_ENTITIES,
+                                      ),
+                                    },
+                                    {
+                                      label: 'Public Law Name',
+                                      value: attributes.PUBLIC_LAW_NAME,
+                                    },
+                                    {
+                                      label: 'State',
+                                      value: attributes.STATE,
+                                    },
+                                    {
+                                      label: 'River Category',
+                                      value: attributes.RiverCategory,
+                                    },
+                                    {
+                                      label: 'Website',
+                                      value: attributes.WEBLINK ? (
+                                        <>
+                                          <a
+                                            href={attributes.WEBLINK}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                          >
+                                            More information
+                                          </a>
+                                          <small css={disclaimerStyles}>
+                                            (opens new browser tab)
+                                          </small>
+                                        </>
+                                      ) : (
+                                        'Not available.'
+                                      ),
+                                    },
+                                  ]}
+                                />
 
                                 <div css={buttonContainerStyles}>
                                   <ViewOnMapButton
@@ -1053,58 +1019,42 @@ function Protect() {
                                   </strong>
                                 }
                               >
-                                <table css={tableStyles} className="table">
-                                  <tbody>
-                                    <tr>
-                                      <td>
-                                        <em>Manager Type:</em>
-                                      </td>
-                                      <td>
-                                        {convertDomainCode(
-                                          fields,
-                                          'Mang_Type',
-                                          attributes.Mang_Type,
-                                        )}
-                                      </td>
-                                    </tr>
-                                    <tr>
-                                      <td>
-                                        <em>Manager Name:</em>
-                                      </td>
-                                      <td>
-                                        {convertDomainCode(
-                                          fields,
-                                          'Mang_Name',
-                                          attributes.Mang_Name,
-                                        )}
-                                      </td>
-                                    </tr>
-                                    <tr>
-                                      <td>
-                                        <em>Protection Category:</em>
-                                      </td>
-                                      <td>
-                                        {convertDomainCode(
-                                          fields,
-                                          'Category',
-                                          attributes.Category,
-                                        )}
-                                      </td>
-                                    </tr>
-                                    <tr>
-                                      <td>
-                                        <em>Public Access:</em>
-                                      </td>
-                                      <td>
-                                        {convertDomainCode(
-                                          fields,
-                                          'Pub_Access',
-                                          attributes.Pub_Access,
-                                        )}
-                                      </td>
-                                    </tr>
-                                  </tbody>
-                                </table>
+                                <ListContent
+                                  rows={[
+                                    {
+                                      label: 'Manager Type',
+                                      value: convertDomainCode(
+                                        fields,
+                                        'Mang_Type',
+                                        attributes.Mang_Type,
+                                      ),
+                                    },
+                                    {
+                                      label: 'Manager Name',
+                                      value: convertDomainCode(
+                                        fields,
+                                        'Mang_Name',
+                                        attributes.Mang_Name,
+                                      ),
+                                    },
+                                    {
+                                      label: 'Protection Category',
+                                      value: convertDomainCode(
+                                        fields,
+                                        'Category',
+                                        attributes.Category,
+                                      ),
+                                    },
+                                    {
+                                      label: 'Public Access',
+                                      value: convertDomainCode(
+                                        fields,
+                                        'Pub_Access',
+                                        attributes.Pub_Access,
+                                      ),
+                                    },
+                                  ]}
+                                />
 
                                 <div css={buttonContainerStyles}>
                                   <ViewOnMapButton
@@ -1269,6 +1219,29 @@ function Protect() {
                                     (plan) => plan && plan.url && plan.title,
                                   );
 
+                                const protectionPlanLinks =
+                                  filteredProtectionPlans &&
+                                  filteredProtectionPlans.length > 0
+                                    ? filteredProtectionPlans.map(
+                                        (plan, index) => {
+                                          if (plan && plan.url && plan.title) {
+                                            return (
+                                              <div key={index}>
+                                                <a
+                                                  href={plan.url}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                >
+                                                  {plan.title}
+                                                </a>
+                                              </div>
+                                            );
+                                          }
+                                          return false;
+                                        },
+                                      )
+                                    : 'Document not available';
+
                                 return (
                                   <FeatureItem
                                     key={index}
@@ -1285,154 +1258,96 @@ function Protect() {
                                     }
                                   >
                                     {item.source === 'grts' && (
-                                      <table
-                                        css={tableStyles}
-                                        className="table"
-                                      >
-                                        <tbody>
-                                          {item.pollutants && (
-                                            <tr>
-                                              <td>
-                                                <em>Impairments:</em>
-                                              </td>
-                                              <td>{item.pollutants}</td>
-                                            </tr>
-                                          )}
-                                          <tr>
-                                            <td>
-                                              <em>Total Funds:</em>
-                                            </td>
-                                            <td>{item.total319Funds}</td>
-                                          </tr>
-                                          <tr>
-                                            <td>
-                                              <em>Project Start Date:</em>
-                                            </td>
-                                            <td>{item.projectStartDate}</td>
-                                          </tr>
-                                          <tr>
-                                            <td>
-                                              <em>Project Status:</em>
-                                            </td>
-                                            <td>{item.status}</td>
-                                          </tr>
-                                          <tr>
-                                            <td>
-                                              <em>Project Details:</em>
-                                            </td>
-                                            <td>
-                                              {url && (
-                                                <>
-                                                  <a
-                                                    href={url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                  >
-                                                    Open Project Summary
-                                                  </a>
-                                                  &nbsp;&nbsp;
-                                                  <small css={disclaimerStyles}>
-                                                    (opens new browser tab)
-                                                  </small>
-                                                </>
-                                              )}
-                                            </td>
-                                          </tr>
-
-                                          <tr>
-                                            <td>
-                                              <em>Protection Plans:</em>
-                                            </td>
-                                            {filteredProtectionPlans &&
-                                            filteredProtectionPlans.length >
-                                              0 ? (
-                                              <td>
-                                                {filteredProtectionPlans.map(
-                                                  (plan, index) => {
-                                                    if (
-                                                      plan &&
-                                                      plan.url &&
-                                                      plan.title
-                                                    ) {
-                                                      return (
-                                                        <div key={index}>
-                                                          <a
-                                                            href={plan.url}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                          >
-                                                            {plan.title}
-                                                          </a>
-                                                        </div>
-                                                      );
-                                                    }
-                                                    return false;
-                                                  },
-                                                )}
-                                              </td>
-                                            ) : (
-                                              <td>Document not available</td>
-                                            )}
-                                          </tr>
-                                        </tbody>
-                                      </table>
-                                    )}
-
-                                    {item.source === 'attains' && (
-                                      <table
-                                        css={tableStyles}
-                                        className="table"
-                                      >
-                                        <tbody>
-                                          <tr>
-                                            <td>
-                                              <em>Plan Type:</em>
-                                            </td>
-                                            <td>
-                                              <GlossaryTerm term="Protection Approach">
-                                                Protection Approach
-                                              </GlossaryTerm>
-                                            </td>
-                                          </tr>
-                                          <tr>
-                                            <td>
-                                              <em>Status:</em>
-                                            </td>
-                                            <td>
-                                              {item.status ===
-                                              'EPA Final Action'
-                                                ? 'Final'
-                                                : item.status}
-                                            </td>
-                                          </tr>
-                                          <tr>
-                                            <td>
-                                              <em>Completion Date:</em>
-                                            </td>
-                                            <td>{item.completionDate}</td>
-                                          </tr>
-                                          {item.id && (
-                                            <tr>
-                                              <td>
-                                                <em>Plan Details:</em>
-                                              </td>
-                                              <td>
+                                      <ListContent
+                                        rows={[
+                                          item.pollutants
+                                            ? {
+                                                label: 'Impairments',
+                                                value: item.pollutants,
+                                              }
+                                            : null,
+                                          {
+                                            label: 'Total Funds',
+                                            value: item.total319Funds,
+                                          },
+                                          {
+                                            label: 'Project Start Date',
+                                            value: item.projectStartDate,
+                                          },
+                                          {
+                                            label: 'Project Status',
+                                            value: item.status,
+                                          },
+                                          {
+                                            label: 'Project Details',
+                                            value: url ? (
+                                              <>
                                                 <a
-                                                  href={`/plan-summary/${item.organizationId}/${item.id}`}
+                                                  href={url}
                                                   target="_blank"
                                                   rel="noopener noreferrer"
                                                 >
-                                                  Open Plan Summary
+                                                  Open Project Summary
                                                 </a>
-                                                &nbsp;&nbsp;
                                                 <small css={disclaimerStyles}>
                                                   (opens new browser tab)
                                                 </small>
-                                              </td>
-                                            </tr>
-                                          )}
-                                        </tbody>
-                                      </table>
+                                              </>
+                                            ) : null,
+                                          },
+                                          {
+                                            label: 'Protection Plans',
+                                            value: protectionPlanLinks,
+                                          },
+                                        ]}
+                                      />
+                                    )}
+
+                                    {item.source === 'attains' && (
+                                      <ListContent
+                                        rows={[
+                                          {
+                                            label: 'Plan Type',
+                                            value: (
+                                              <GlossaryTerm term="Protection Approach">
+                                                Protection Approach
+                                              </GlossaryTerm>
+                                            ),
+                                          },
+                                          {
+                                            label: 'Status',
+                                            value:
+                                              item.status === 'EPA Final Action'
+                                                ? 'Final'
+                                                : item.status,
+                                          },
+                                          {
+                                            label: 'Completion Date',
+                                            value: item.completionDate,
+                                          },
+                                          item.id
+                                            ? {
+                                                label: 'Plan Details',
+                                                value: (
+                                                  <>
+                                                    <a
+                                                      href={`/plan-summary/${item.organizationId}/${item.id}`}
+                                                      target="_blank"
+                                                      rel="noopener noreferrer"
+                                                    >
+                                                      Open Plan Summary
+                                                    </a>
+                                                    <small
+                                                      css={disclaimerStyles}
+                                                    >
+                                                      (opens new browser tab)
+                                                    </small>
+                                                  </>
+                                                ),
+                                              }
+                                            : null,
+                                        ]}
+                                      />
                                     )}
                                   </FeatureItem>
                                 );
