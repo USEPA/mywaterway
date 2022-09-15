@@ -3980,5 +3980,277 @@
         "categoryCode_color": "#20800c"
       }
     ]
+  },
+  {
+    "state": "OK",
+    "organizationIdentifier": "OKDEQ",
+    "year": "2022",
+    "subPopulationCode": "Statewide",
+    "waterTypeGroupCode": "STREAM/CREEK/RIVER",
+    "surveyUseCode": "Benthic Algae Condition",
+    "categoryCodeMapping": [
+      {
+        "surveyCategoryCode": "Not Assessed",
+        "categoryCode_label": "Not Assessed",
+        "categoryCode_order": "4",
+        "categoryCode_color": "#BCBEC0"
+      },
+      {
+        "surveyCategoryCode": "Poor",
+        "categoryCode_label": "Poor",
+        "categoryCode_order": "3",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "surveyCategoryCode": "Fair",
+        "categoryCode_label": "Fair",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#FFFF00"
+      },
+      {
+        "surveyCategoryCode": "Good",
+        "categoryCode_label": "Good",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#27AAE1"
+      }
+    ]
+  },
+{
+    "state": "OK",
+    "organizationIdentifier": "OKDEQ",
+    "year": "2022",
+    "subPopulationCode": "Statewide",
+    "waterTypeGroupCode": "STREAM/CREEK/RIVER",
+    "surveyUseCode": "Conductivity Condition",
+    "categoryCodeMapping": [
+      {
+        "surveyCategoryCode": "Not Assessed",
+        "categoryCode_label": "Not Assessed",
+        "categoryCode_order": "4",
+        "categoryCode_color": "#BCBEC0"
+      },
+      {
+        "surveyCategoryCode": "Poor",
+        "categoryCode_label": "Poor",
+        "categoryCode_order": "3",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "surveyCategoryCode": "Fair",
+        "categoryCode_label": "Fair",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#FFFF00"
+      },
+      {
+        "surveyCategoryCode": "Good",
+        "categoryCode_label": "Good",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#27AAE1"
+      }
+    ]
+  },
+{
+    "state": "OK",
+    "organizationIdentifier": "OKDEQ",
+    "year": "2022",
+    "subPopulationCode": "Statewide",
+    "waterTypeGroupCode": "STREAM/CREEK/RIVER",
+    "surveyUseCode": "Fish Condition",
+    "categoryCodeMapping": [
+      {
+        "surveyCategoryCode": "Not Assessed",
+        "categoryCode_label": "Not Assessed",
+        "categoryCode_order": "4",
+        "categoryCode_color": "#BCBEC0"
+      },
+      {
+        "surveyCategoryCode": "Poor",
+        "categoryCode_label": "Poor",
+        "categoryCode_order": "3",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "surveyCategoryCode": "Fair",
+        "categoryCode_label": "Fair",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#FFFF00"
+      },
+      {
+        "surveyCategoryCode": "Good",
+        "categoryCode_label": "Good",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#27AAE1"
+      }
+    ]
+  },
+{
+    "state": "OK",
+    "organizationIdentifier": "OKDEQ",
+    "year": "2022",
+    "subPopulationCode": "Statewide",
+    "waterTypeGroupCode": "STREAM/CREEK/RIVER",
+    "surveyUseCode": "Macroinvertebrate Condition",
+    "categoryCodeMapping": [
+      {
+        "surveyCategoryCode": "Not Assessed",
+        "categoryCode_label": "Not Assessed",
+        "categoryCode_order": "4",
+        "categoryCode_color": "#BCBEC0"
+      },
+      {
+        "surveyCategoryCode": "Poor",
+        "categoryCode_label": "Poor",
+        "categoryCode_order": "3",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "surveyCategoryCode": "Fair",
+        "categoryCode_label": "Fair",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#FFFF00"
+      },
+      {
+        "surveyCategoryCode": "Good",
+        "categoryCode_label": "Good",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#27AAE1"
+      }
+    ]
+  },
+{
+    "state": "OK",
+    "organizationIdentifier": "OKDEQ",
+    "year": "2022",
+    "subPopulationCode": "Statewide",
+    "waterTypeGroupCode": "STREAM/CREEK/RIVER",
+    "surveyUseCode": "Sestonic Algae Condition",
+    "categoryCodeMapping": [
+      {
+        "surveyCategoryCode": "Not Assessed",
+        "categoryCode_label": "Not Assessed",
+        "categoryCode_order": "4",
+        "categoryCode_color": "#BCBEC0"
+      },
+      {
+        "surveyCategoryCode": "Poor",
+        "categoryCode_label": "Poor",
+        "categoryCode_order": "3",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "surveyCategoryCode": "Fair",
+        "categoryCode_label": "Fair",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#FFFF00"
+      },
+      {
+        "surveyCategoryCode": "Good",
+        "categoryCode_label": "Good",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#27AAE1"
+      }
+    ]
+  },
+{
+    "state": "OK",
+    "organizationIdentifier": "OKDEQ",
+    "year": "2022",
+    "subPopulationCode": "Statewide",
+    "waterTypeGroupCode": "STREAM/CREEK/RIVER",
+    "surveyUseCode": "Total Nitrogen Condition",
+    "categoryCodeMapping": [
+      {
+        "surveyCategoryCode": "Not Assessed",
+        "categoryCode_label": "Not Assessed",
+        "categoryCode_order": "4",
+        "categoryCode_color": "#BCBEC0"
+      },
+      {
+        "surveyCategoryCode": "Poor",
+        "categoryCode_label": "Poor",
+        "categoryCode_order": "3",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "surveyCategoryCode": "Fair",
+        "categoryCode_label": "Fair",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#FFFF00"
+      },
+      {
+        "surveyCategoryCode": "Good",
+        "categoryCode_label": "Good",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#27AAE1"
+      }
+    ]
+  },
+{
+    "state": "OK",
+    "organizationIdentifier": "OKDEQ",
+    "year": "2022",
+    "subPopulationCode": "Statewide",
+    "waterTypeGroupCode": "STREAM/CREEK/RIVER",
+    "surveyUseCode": "Total Phosphorus Condition",
+    "categoryCodeMapping": [
+      {
+        "surveyCategoryCode": "Not Assessed",
+        "categoryCode_label": "Not Assessed",
+        "categoryCode_order": "4",
+        "categoryCode_color": "#BCBEC0"
+      },
+      {
+        "surveyCategoryCode": "Poor",
+        "categoryCode_label": "Poor",
+        "categoryCode_order": "3",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "surveyCategoryCode": "Fair",
+        "categoryCode_label": "Fair",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#FFFF00"
+      },
+      {
+        "surveyCategoryCode": "Good",
+        "categoryCode_label": "Good",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#27AAE1"
+      }
+    ]
+  },
+{
+    "state": "OK",
+    "organizationIdentifier": "OKDEQ",
+    "year": "2022",
+    "subPopulationCode": "Statewide",
+    "waterTypeGroupCode": "STREAM/CREEK/RIVER",
+    "surveyUseCode": "Turbidity Condition",
+    "categoryCodeMapping": [
+      {
+        "surveyCategoryCode": "Not Assessed",
+        "categoryCode_label": "Not Assessed",
+        "categoryCode_order": "4",
+        "categoryCode_color": "#BCBEC0"
+      },
+      {
+        "surveyCategoryCode": "Poor",
+        "categoryCode_label": "Poor",
+        "categoryCode_order": "3",
+        "categoryCode_color": "#cb223e"
+      },
+      {
+        "surveyCategoryCode": "Fair",
+        "categoryCode_label": "Fair",
+        "categoryCode_order": "2",
+        "categoryCode_color": "#FFFF00"
+      },
+      {
+        "surveyCategoryCode": "Good",
+        "categoryCode_label": "Good",
+        "categoryCode_order": "1",
+        "categoryCode_color": "#27AAE1"
+      }
+    ]
   }
 ]
