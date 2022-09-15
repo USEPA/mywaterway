@@ -107,4 +107,4 @@ function HelpTooltip({ description, children, label }: HelpTooltipProps) {
   );
 }
 
-export default HelpTooltip;
+export { HelpTooltip, Tooltip };

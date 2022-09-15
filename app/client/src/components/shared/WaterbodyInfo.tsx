@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 // components
-import HelpTooltip from 'components/shared/HelpTooltip';
+import { HelpTooltip } from 'components/shared/HelpTooltip';
 import { ListContent } from 'components/shared/BoxContent';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
@@ -10,7 +10,12 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { Sparkline } from 'components/shared/Sparkline';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
-import { getWaterbodyCondition, isClassBreaksRenderer, isFeatureLayer, isUniqueValueRenderer } from 'utils/mapFunctions';
+import {
+  getWaterbodyCondition,
+  isClassBreaksRenderer,
+  isFeatureLayer,
+  isUniqueValueRenderer,
+} from 'utils/mapFunctions';
 import { fetchCheck } from 'utils/fetchUtils';
 import {
   convertAgencyCode,
@@ -51,7 +56,9 @@ function bool(value: string) {
   return value && parseInt(value, 10) ? 'Yes' : 'No';
 }
 
-function isChangeLocationPopup(feature: __esri.Graphic | ChangeLocationPopup): feature is ChangeLocationPopup {
+function isChangeLocationPopup(
+  feature: __esri.Graphic | ChangeLocationPopup,
+): feature is ChangeLocationPopup {
   return 'changelocationpopup' in (feature as ChangeLocationPopup).attributes;
 }
 
@@ -1364,9 +1371,7 @@ function MonitoringLocationsContent({
               value: (
                 <>
                   {Number(stationTotalSamples).toLocaleString()}
-                  {timeframe ? (
-                    <small>(all time)</small>
-                  ) : null}
+                  {timeframe ? <small>(all time)</small> : null}
                 </>
               ),
             },
@@ -1502,7 +1507,10 @@ function MonitoringLocationsContent({
                       downloadUrl ? `${downloadUrl}&mimeType=xlsx` : undefined
                     }
                   >
-                    <HelpTooltip label="Download XLSX" description="Download selected data as an XLSX file.">
+                    <HelpTooltip
+                      label="Download XLSX"
+                      description="Download selected data as an XLSX file."
+                    >
                       <i className="fas fa-file-excel" aria-hidden="true" />
                     </HelpTooltip>
                   </a>
@@ -1512,7 +1520,10 @@ function MonitoringLocationsContent({
                       downloadUrl ? `${downloadUrl}&mimeType=csv` : undefined
                     }
                   >
-                    <HelpTooltip label="Download CSV" description="Download selected data as a CSV file.">
+                    <HelpTooltip
+                      label="Download CSV"
+                      description="Download selected data as a CSV file."
+                    >
                       <i className="fas fa-file-csv" aria-hidden="true" />
                     </HelpTooltip>
                   </a>
