@@ -1945,7 +1945,6 @@ function InformationSection({ siteId, site, siteStatus }) {
   const rows = [
     {
       label: 'Organization Name',
-      // value: site.orgName,
       value: site.orgName,
     },
     {
