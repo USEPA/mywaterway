@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -35,8 +36,9 @@ import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 import { isInScale, shallowCompare } from 'utils/mapFunctions';
+import { isAbort } from 'utils/utils';
 // helpers
-import { useDynamicPopup } from 'utils/hooks';
+import { useAbortSignal, useDynamicPopup } from 'utils/hooks';
 // icons
 import resizeIcon from 'images/resize.png';
 
@@ -236,6 +238,16 @@ function MapWidgets({
 }: Props) {
   const { addDataWidgetVisible, setAddDataWidgetVisible, widgetLayers } =
     useAddDataWidgetState();
+
+  const abortSignal = useAbortSignal();
+  const watchHandles = useMemo(() => [], []);
+  const observers = useMemo(() => [], []);
+  useEffect(() => {
+    return function cleanup() {
+      watchHandles.forEach((handle) => handle.remove());
+      observers.forEach((observer) => observer.disconnect());
+    };
+  }, [observers, watchHandles]);
 
   const {
     homeWidget,
@@ -532,8 +544,9 @@ function MapWidgets({
       subtree: true,
     });
 
+    observers.push(observer);
     setEsriLegend(tempLegend);
-  }, [view, esriLegend, esriLegendNode]);
+  }, [view, esriLegend, esriLegendNode, observers]);
 
   // Creates and adds the legend widget to the map
   const rnd = useRef();
@@ -635,11 +648,11 @@ function MapWidgets({
 
     const requests = [];
     let url = `${services.data.protectedAreasDatabase}/legend?f=json`;
-    requests.push(fetchCheck(url));
+    requests.push(fetchCheck(url, abortSignal));
     url = `${services.data.ejscreen}legend?f=json`;
-    requests.push(fetchCheck(url));
+    requests.push(fetchCheck(url, abortSignal));
     url = `${services.data.mappedWater}/legend?f=json`;
-    requests.push(fetchCheck(url));
+    requests.push(fetchCheck(url, abortSignal));
 
     Promise.all(requests)
       .then((responses) => {
@@ -654,6 +667,7 @@ function MapWidgets({
         setAdditionalLegendInfo(additionalLegendInfoNonState);
       })
       .catch((err) => {
+        if (isAbort(err)) return;
         console.error(err);
         additionalLegendInfoNonState = {
           status: 'failure',
@@ -661,7 +675,7 @@ function MapWidgets({
         };
         setAdditionalLegendInfo(additionalLegendInfoNonState);
       });
-  }, [additionalLegendInitialized, services]);
+  }, [abortSignal, additionalLegendInitialized, services]);
 
   // Creates and adds the basemap/layer list widget to the map
   const [layerListWidget, setLayerListWidget] = useState(null);
@@ -718,19 +732,21 @@ function MapWidgets({
             additionalLegendInfoNonState,
           );
 
-          item.watch('visible', function (event) {
-            updateVisibleLayers(
-              view,
-              displayEsriLegendNonState,
-              hmwLegendNode,
-              additionalLegendInfoNonState,
-            );
-            const dict = {
-              layerId: item.layer.id,
-              visible: item.layer.visible,
-            };
-            setToggledLayer(dict);
-          });
+          watchHandles.push(
+            item.watch('visible', function (event) {
+              updateVisibleLayers(
+                view,
+                displayEsriLegendNonState,
+                hmwLegendNode,
+                additionalLegendInfoNonState,
+              );
+              const dict = {
+                layerId: item.layer.id,
+                visible: item.layer.visible,
+              };
+              setToggledLayer(dict);
+            }),
+          );
         }
       }
     }
@@ -776,6 +792,7 @@ function MapWidgets({
     hmwLegendNode,
     layerListWidget,
     view,
+    watchHandles,
   ]);
 
   // Sets up the zoom event handler that is used for determining if layers
@@ -1142,6 +1159,7 @@ function MapWidgets({
         returnGeometry: true,
         where: filter,
         outFields: ['*'],
+        signal: abortSignal,
       };
       query
         .executeQueryJSON(url, queryParams)
@@ -1206,6 +1224,7 @@ function MapWidgets({
           view.goTo(upstreamExtent);
         })
         .catch((err) => {
+          if (isAbort(err)) return;
           setUpstreamLoading(false);
           setUpstreamWidgetDisabled(true);
           setErrorMessage(
@@ -1218,7 +1237,7 @@ function MapWidgets({
           setUpstreamLayer(upstreamLayer);
         });
     },
-    [view, services.data.upstreamWatershed],
+    [abortSignal, view, services.data.upstreamWatershed],
   );
 
   const [allWaterbodiesWidget, setAllWaterbodiesWidget] = useState(null);
@@ -1350,22 +1369,26 @@ function MapWidgets({
     if (firstLoad) {
       setFirstLoad(false);
 
-      reactiveUtils.watch(
-        () => mapView.updating,
-        () => {
-          setAllWaterbodiesLoading(mapView.updating);
-        },
+      watchHandles.push(
+        reactiveUtils.watch(
+          () => mapView.updating,
+          () => {
+            setAllWaterbodiesLoading(mapView.updating);
+          },
+        ),
       );
 
-      reactiveUtils.watch(
-        () => mapView.scale,
-        () => {
-          const newWidgetDisabledVal =
-            mapView.scale >= allWaterbodiesLayer.minScale;
-          if (newWidgetDisabledVal !== getAllWaterbodiesWidgetDisabled()) {
-            setAllWaterbodiesWidgetDisabled(newWidgetDisabledVal);
-          }
-        },
+      watchHandles.push(
+        reactiveUtils.watch(
+          () => mapView.scale,
+          () => {
+            const newWidgetDisabledVal =
+              mapView.scale >= allWaterbodiesLayer.minScale;
+            if (newWidgetDisabledVal !== getAllWaterbodiesWidgetDisabled()) {
+              setAllWaterbodiesWidgetDisabled(newWidgetDisabledVal);
+            }
+          },
+        ),
       );
     }
 

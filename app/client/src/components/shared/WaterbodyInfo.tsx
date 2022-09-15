@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 // components
+import HelpTooltip from 'components/shared/HelpTooltip';
 import { ListContent } from 'components/shared/BoxContent';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
@@ -1489,7 +1490,9 @@ function MonitoringLocationsContent({
                       downloadUrl ? `${downloadUrl}&mimeType=xlsx` : undefined
                     }
                   >
-                    <i className="fas fa-file-excel" aria-hidden="true" />
+                    <HelpTooltip label="Download XLSX" description="Download selected data as an XLSX file.">
+                      <i className="fas fa-file-excel" aria-hidden="true" />
+                    </HelpTooltip>
                   </a>
                   &nbsp;&nbsp;
                   <a
@@ -1497,7 +1500,9 @@ function MonitoringLocationsContent({
                       downloadUrl ? `${downloadUrl}&mimeType=csv` : undefined
                     }
                   >
-                    <i className="fas fa-file-csv" aria-hidden="true" />
+                    <HelpTooltip label="Download CSV" description="Download selected data as a CSV file.">
+                      <i className="fas fa-file-csv" aria-hidden="true" />
+                    </HelpTooltip>
                   </a>
                 </span>
               </td>

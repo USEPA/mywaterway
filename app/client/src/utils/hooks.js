@@ -1,6 +1,6 @@
 // @flow
 
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
@@ -278,6 +278,24 @@ function highlightFeature({
         .catch((err) => console.error(err));
     }
   });
+}
+
+function useAbortSignal() {
+  const abortController = useRef(new AbortController());
+
+  useEffect(() => {
+    if (abortController.current.signal.aborted) {
+      abortController.current = new AbortController();
+    }
+  }, [abortController.current.signal.aborted]);
+
+  useEffect(() => {
+    return function abort() {
+      abortController.current.abort();
+    };
+  }, []);
+
+  return abortController.current.signal;
 }
 
 // custom hook that combines lines, area, and points features from context,
@@ -2013,6 +2031,7 @@ function useMonitoringLocations() {
 }
 
 export {
+  useAbortSignal,
   useDynamicPopup,
   useGeometryUtils,
   useKeyPress,
