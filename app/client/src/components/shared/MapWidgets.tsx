@@ -36,11 +36,10 @@ import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 import {
+  hasSublayers,
   isGroupLayer,
   isInScale,
-  isMapImageLayer,
   isPolygon,
-  isTileLayer,
   shallowCompare,
 } from 'utils/mapFunctions';
 import { isAbort } from 'utils/utils';
@@ -156,9 +155,7 @@ function updateVisibleLayers(
   hmwLegendNode: Container,
   additionalLegendInfo: Object,
 ) {
-  if (!view || !view.map || !view.map.layers) {
-    return;
-  }
+  if (!view?.map?.layers) return;
 
   // build an array of layers that are visible based on the ordering above
   const visibleLayers: __esri.Layer[] = [];
@@ -178,10 +175,10 @@ function updateVisibleLayers(
         });
         if (!anyVisible) return;
       }
-      if (isTileLayer(layer) || isMapImageLayer(layer)) {
+      if (hasSublayers(layer)) {
         let anyVisible = false;
         layer.sublayers.forEach((sublayer) => {
-          if (sublayer.visible) anyVisible = true;
+          if ('visible' in sublayer && sublayer.visible) anyVisible = true;
         });
         if (!anyVisible) return;
       }
@@ -292,7 +289,7 @@ function MapWidgets({
   const services = useServicesContext();
 
   const getDynamicPopup = useDynamicPopup();
-  let { getTemplate } = getDynamicPopup();
+  const { getTemplate } = getDynamicPopup();
 
   const {
     fullscreenActive,

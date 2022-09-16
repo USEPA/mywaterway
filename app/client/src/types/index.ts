@@ -159,10 +159,7 @@ export interface NonProfitAttributes {
   type: 'nonprofit';
 }
 
-export type ParentLayer =
-  | __esri.GroupLayer
-  | __esri.MapImageLayer
-  | __esri.TileLayer;
+export type ParentLayer = __esri.GroupLayer | SuperLayer;
 
 export type PopupAttributes =
   | ActionAttributes
@@ -220,6 +217,15 @@ export interface StreamgageMeasurement {
   unitName: string;
   multiple?: boolean;
 }
+
+export type SuperLayer =
+  | __esri.BuildingSceneLayer
+  | __esri.KMLLayer
+  | __esri.MapImageLayer
+  | __esri.SubtypeGroupLayer
+  | __esri.TileLayer
+  | __esri.WMSLayer
+  | __esri.WMTSLayer;
 
 export interface TribeAttributes {
   TRIBE_NAME: string;
@@ -293,7 +299,7 @@ export interface UsgsPrecipitationData {
         ];
       }[];
       variable: {
-        noDataValue: -999999;
+        noDataValue: number;
         note: [];
         oid: string;
         options: Object;

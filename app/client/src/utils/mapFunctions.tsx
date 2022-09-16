@@ -27,6 +27,7 @@ import type {
   PopupAttributes,
   ScaledLayer,
   ServicesState,
+  SuperLayer,
   TribeAttributes,
   VillageAttributes,
   WaterbodyAttributes,
@@ -361,12 +362,12 @@ export function createWaterbodySymbol({
   if (geometryType === 'polygon') {
     const polyOutline = selected
       ? { color: [0, 255, 255, alpha ? alpha.outline : 0.5], width: 3 }
-      : null;
+      : undefined;
 
     return new SimpleFillSymbol({
       color,
       style: 'solid',
-      outline: polyOutline || undefined,
+      outline: polyOutline,
     });
   }
 }
@@ -376,6 +377,10 @@ function encode(str: string): string {
 }
 
 // Functions used for narrowing types
+export function hasSublayers(layer: __esri.Layer): layer is SuperLayer {
+  return 'sublayers' in layer;
+}
+
 export function isClassBreaksRenderer(
   renderer: __esri.Renderer,
 ): renderer is __esri.ClassBreaksRenderer {
@@ -604,9 +609,9 @@ export function getOrganizationLabel(
   if (!attributes) return 'Waterbody ID:';
 
   const { organizationid, orgtype } = attributes;
-  Object.values(organizationMapping).forEach(([label, value]) => {
-    if (label === organizationid) return `${value} Waterbody ID:`;
-  });
+  for (const [key, value] of Object.entries(organizationMapping)) {
+    if (key === organizationid) return `${value} Waterbody ID:`;
+  }
   if (orgtype === 'Tribe') return 'Tribal Waterbody ID:';
   if (orgtype === 'State') return 'State Waterbody ID:';
   return 'Waterbody ID:'; // catch all
@@ -973,32 +978,38 @@ export function getHighlightSymbol(
 }
 
 // helper method used in handleMapZoomChange() for determining a map layer’s listMode
-export function isInScale(layer: ParentLayer | ScaledLayer, scale: number) {
+export function isInScale(
+  layer: __esri.Layer | ParentLayer | ScaledLayer,
+  scale: number,
+) {
   let inScale = true;
   let minScale = 0;
   let maxScale = 0;
 
   // get the extreme min and max scales of the layer
-  if ((isTileLayer(layer) || isMapImageLayer(layer)) && layer.sourceJSON) {
+  if ('sublayers' in layer && 'sourceJSON' in layer) {
     // get sublayers included in the parentlayer
     // note: the sublayer has maxScale and minScale, but these are always 0
     //       even if the sublayer does actually have a min/max scale.
     const sublayerIds: number[] = [];
     layer.sublayers.forEach((sublayer) => {
-      sublayerIds.push(sublayer.id);
+      if ('id' in sublayer) sublayerIds.push(sublayer.id);
     });
 
     // get the min/max scale from the sourceJSON
-    layer.sourceJSON.layers.forEach((sourceLayer: any) => {
-      if (!sublayerIds.includes(sourceLayer.id)) return;
+    layer.sourceJSON.layers.forEach(
+      (sourceLayer: __esri.Sublayer | __esri.SubtypeSublayer) => {
+        if (!('id' in sourceLayer) || !sublayerIds.includes(sourceLayer.id))
+          return;
 
-      if (sourceLayer.minScale === 0 || sourceLayer.minScale > minScale) {
-        minScale = sourceLayer.minScale;
-      }
-      if (sourceLayer.maxScale === 0 || sourceLayer.maxScale < maxScale) {
-        maxScale = sourceLayer.maxScale;
-      }
-    });
+        if (sourceLayer.minScale === 0 || sourceLayer.minScale > minScale) {
+          minScale = sourceLayer.minScale;
+        }
+        if (sourceLayer.maxScale === 0 || sourceLayer.maxScale < maxScale) {
+          maxScale = sourceLayer.maxScale;
+        }
+      },
+    );
   } else if (isGroupLayer(layer)) {
     // get the min/max scale from the sublayers
     layer.layers.forEach((subLayer: ScaledLayer) => {
@@ -1015,7 +1026,7 @@ export function isInScale(layer: ParentLayer | ScaledLayer, scale: number) {
         maxScale = subLayer.maxScale;
       }
     });
-  } else {
+  } else if ('minScale' in layer && 'maxScale' in layer) {
     minScale = layer.minScale ?? 0;
     maxScale = layer.maxScale ?? 0;
   }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useWindowSize } from '@reach/window-size';
 import { VariableSizeList } from 'react-window';
 import throttle from 'lodash/throttle';
@@ -109,12 +109,8 @@ function VirtualizedListInner({ items, renderer }: Props) {
 // or jump around when the list is not immediatly visible
 // on the dom (i.e., the list is on the second tab).
 function VirtualizedList({ items, renderer }: Props) {
-  const [container, setContainer] = useState(null);
-  const ref = useCallback((node) => {
-    setContainer(node);
-  }, []);
-
-  const isVisible = useOnScreen(container);
+  const ref = useRef<HTMLDivElement | null>(null);
+  const isVisible = useOnScreen(ref?.current);
 
   return (
     <div ref={ref}>
