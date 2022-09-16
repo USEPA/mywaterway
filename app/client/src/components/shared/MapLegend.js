@@ -91,7 +91,7 @@ const nestedUl = css`
   }
 `;
 
-const ignoreLayers = ['watershedsLayer', 'searchIconLayer'];
+const ignoreLayers = ['watershedsLayer'];
 
 // --- components ---
 type Props = {
@@ -354,15 +354,6 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
       <li>
         <div css={legendItemStyles}>
           <div css={imageContainerStyles}>
-            <PinIcon />
-          </div>
-          <span css={labelStyles}>Searched Location</span>
-        </div>
-      </li>
-
-      <li>
-        <div css={legendItemStyles}>
-          <div css={imageContainerStyles}>
             {squareIcon({
               color: '#CBCBCB',
               strokeWidth: 3,
@@ -376,35 +367,36 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   );
 
   // jsx
-  const boundariesLegend = (
-    <>
-      <li>
-        <div css={legendItemStyles}>
-          <div css={imageContainerStyles}>
-            <PinIcon />
-          </div>
-          <span css={labelStyles}>Searched Location</span>
+  const searchIconLegend = (
+    <li>
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>
+          <PinIcon />
         </div>
-      </li>
+        <span css={labelStyles}>Searched Location</span>
+      </div>
+    </li>
+  );
 
-      <li>
-        <div css={legendItemStyles}>
-          <div css={imageContainerStyles}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="26"
-              height="26"
-              viewBox="0 0 26 26"
-              aria-hidden="true"
-            >
-              <rect x="0" y="12" width="10" height="3" fill="#000" />
-              <rect x="16" y="12" width="10" height="3" fill="#000" />
-            </svg>
-          </div>
-          <span css={labelStyles}>HUC12 Boundaries</span>
+  // jsx
+  const boundariesLegend = (
+    <li>
+      <div css={legendItemStyles}>
+        <div css={imageContainerStyles}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="26"
+            height="26"
+            viewBox="0 0 26 26"
+            aria-hidden="true"
+          >
+            <rect x="0" y="12" width="10" height="3" fill="#000" />
+            <rect x="16" y="12" width="10" height="3" fill="#000" />
+          </svg>
         </div>
-      </li>
-    </>
+        <span css={labelStyles}>HUC12 Boundaries</span>
+      </div>
+    </li>
   );
 
   // jsx
@@ -838,6 +830,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
   if (layer.id === 'nonprofitsLayer') return nonprofitsLegend;
   if (layer.id === 'providersLayer') return providersLegend;
   if (layer.id === 'boundariesLayer') return boundariesLegend;
+  if (layer.id === 'searchIconLayer') return searchIconLegend;
   if (layer.id === 'actionsWaterbodies') return actionsWaterbodiesLegend;
   if (layer.id === 'countyLayer') return countyLegend;
   if (layer.id === 'tribalLayer') return tribalLegend;

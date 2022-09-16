@@ -161,7 +161,7 @@ function updateVisibleLayers(
   const visibleLayers: __esri.Layer[] = [];
   orderedLayers.forEach((layerId) => {
     // get the esri layer from the map view
-    let layer = view.map.layers.find((layer) => layer.id === layerId);
+    let layer = view.map.findLayerById(layerId);
     if (!layer) return;
 
     // Verify there is atleast one child layer visible before adding the layer
@@ -184,15 +184,12 @@ function updateVisibleLayers(
       }
     }
 
-    // add the layer if it is visible on the map. Boundaries and actions
+    // add the layer if it is visible on the map. Actions &
     // waterbodies layers are handled separately here because it is always
     // hidden from the layer list widget, but still needs to be in the legend.
     // The boundaries layer is entirely hidden from the community home page.
     if (
       (layer.visible && layer.listMode !== 'hide') ||
-      (layer.visible &&
-        layer.id === 'boundariesLayer' &&
-        window.location.pathname !== '/community') ||
       (layer.visible && layer.id === 'actionsWaterbodies') ||
       (layer.visible && layer.id === 'upstreamWatershed') ||
       (layer.visible && layer.id === 'allWaterbodiesLayer')

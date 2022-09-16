@@ -636,7 +636,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     const boundariesLayer = new GraphicsLayer({
       id: 'boundariesLayer',
       title: 'Boundaries',
-      listMode: 'hide',
+      listMode: 'show',
     });
 
     setBoundariesLayer(boundariesLayer);
@@ -644,7 +644,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     const searchIconLayer = new GraphicsLayer({
       id: 'searchIconLayer',
       title: 'Search Location',
-      listMode: 'hide',
+      listMode: 'show',
     });
 
     setSearchIconLayer(searchIconLayer);
