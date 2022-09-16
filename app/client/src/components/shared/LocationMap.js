@@ -804,7 +804,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setLayers([
       ...getSharedLayers(),
       providersLayer,
-      // boundariesLayer,
       currentLocationLayer,
       upstreamLayer,
       monitoringLocationsLayer,
@@ -812,7 +811,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       issuesLayer,
       dischargersLayer,
       nonprofitsLayer,
-      // searchIconLayer,
     ]);
 
     setLayersInitialized(true);
