@@ -1,11 +1,10 @@
-// @flow
-
-import React, { Children, cloneElement, useEffect, useState } from 'react';
-import type { Node } from 'react';
+import { Children, cloneElement, useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 import Select from 'react-select';
 // styles
 import { colors, reactSelectStyles } from 'styles/index.js';
+// types
+import type { ReactElement, ReactNode } from 'react';
 
 const accordionListContainerStyles = css`
   border-bottom: 1px solid #d8dfe2;
@@ -64,14 +63,24 @@ const titleStyles = css`
   background-color: #f0f6f9;
 `;
 
+function isReactElement(child: ReactNode): child is ReactElement {
+  return (
+    typeof child !== 'string' &&
+    typeof child !== 'number' &&
+    typeof child !== 'boolean' &&
+    child !== undefined &&
+    child !== null
+  );
+}
+
 type AccordionListProps = {
-  children: Node,
-  className?: string,
-  title?: Node,
-  expandDisabled: boolean,
-  sortOptions: { value: string, label: string }[],
-  onSortChange: Function,
-  onExpandCollapse: Function,
+  children: ReactNode;
+  className?: string;
+  title?: ReactNode;
+  expandDisabled: boolean;
+  sortOptions: { value: string; label: string }[];
+  onSortChange: Function;
+  onExpandCollapse: Function;
 };
 
 function AccordionList({
@@ -140,7 +149,9 @@ function AccordionList({
 
       {/* implicitly pass 'allExpanded' prop down to children (AccordionItem's) */}
       {Children.map(children, (childElement) => {
-        return cloneElement(childElement, { allExpanded });
+        if (isReactElement(childElement)) {
+          return cloneElement(childElement, { allExpanded });
+        }
       })}
     </div>
   );
@@ -207,16 +218,16 @@ const colorMap = {
 };
 
 type AccordionItemProps = {
-  children: Node,
-  icon: ?Object,
-  title: Node,
-  subTitle: ?Node,
-  status: ?string,
-  onAddHighlight?: () => void,
-  onRemoveHighlight?: () => void,
-  onChange: (isOpen: boolean) => void,
-  allExpanded: boolean,
-  highlightContent?: ?boolean,
+  children: ReactNode;
+  icon?: Object;
+  title: ReactNode;
+  subTitle?: ReactNode;
+  status?: string | null;
+  onAddHighlight?: () => void;
+  onRemoveHighlight?: () => void;
+  onChange?: (isOpen: boolean) => void;
+  allExpanded?: boolean;
+  highlightContent?: boolean;
 };
 
 function AccordionItem({
@@ -256,17 +267,17 @@ function AccordionItem({
     <div
       css={accordionItemContainerStyles}
       className={`hmw-accordion`}
-      onMouseEnter={(ev) => addHighlight()}
-      onMouseLeave={(ev) => removeHighlight()}
-      onFocus={(ev) => addHighlight()}
-      onBlur={(ev) => removeHighlight()}
+      onMouseEnter={(_ev) => addHighlight()}
+      onMouseLeave={(_ev) => removeHighlight()}
+      onFocus={(_ev) => addHighlight()}
+      onBlur={(_ev) => removeHighlight()}
     >
       <header
         css={headerStyles}
         className="hmw-accordion-header"
         style={{ backgroundColor }}
-        tabIndex="0"
-        onClick={(ev) => {
+        tabIndex={0}
+        onClick={(_ev) => {
           const newIsOpen = !isOpen;
           setIsOpen(newIsOpen);
           onChange(newIsOpen);

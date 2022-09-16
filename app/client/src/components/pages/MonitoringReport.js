@@ -22,7 +22,7 @@ import { BoxContent, FlexRow } from 'components/shared/BoxContent';
 import DateSlider from 'components/shared/DateSlider';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import HelpTooltip from 'components/shared/HelpTooltip';
+import { HelpTooltip, Tooltip } from 'components/shared/HelpTooltip';
 import ScatterPlot from 'components/shared/ScatterPlot';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Map from 'components/shared/Map';
@@ -1891,6 +1891,8 @@ function FileLink({ disabled, fileType, data, setError, url }) {
   const [fetching, setFetching] = useState(false);
   const mimeTypes = { excel: 'xlsx', csv: 'csv' };
   const fileTypeUrl = `${url}zip=no&mimeType=${mimeTypes[fileType]}`;
+  const triggerRef = useRef(null);
+
   const fetchFile = async () => {
     setFetching(true);
     try {
@@ -1928,16 +1930,16 @@ function FileLink({ disabled, fileType, data, setError, url }) {
     );
 
   return (
-    <button css={fileLinkStyles} onClick={fetchFile}>
-      <HelpTooltip
-        label={`Download ${mimeTypes[fileType].toUpperCase()}`}
-        description={`Download selected data as ${
-          fileType === 'excel' ? 'an' : 'a'
-        } ${mimeTypes[fileType].toUpperCase()} file.`}
-      >
+    <Tooltip label={`Download ${mimeTypes[fileType].toUpperCase()}`}>
+      <button css={fileLinkStyles} onClick={fetchFile} ref={triggerRef}>
         <i className={`fas fa-file-${fileType}`} aria-hidden="true" />
-      </HelpTooltip>
-    </button>
+        <span className="sr-only">
+          {`Download selected data as ${
+            fileType === 'excel' ? 'an' : 'a'
+          } ${mimeTypes[fileType].toUpperCase()} file.`}
+        </span>
+      </button>
+    </Tooltip>
   );
 }
 

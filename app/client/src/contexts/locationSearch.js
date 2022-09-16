@@ -1,5 +1,6 @@
 import React, { Component, createContext } from 'react';
 import type { ReactNode } from 'react';
+import type { MonitoringLocationsData } from 'types';
 
 export const LocationSearchContext = createContext();
 
@@ -16,35 +17,6 @@ type MonitoringLocationGroups = {
     stations: StationData[],
     toggled: boolean,
   },
-};
-
-type MonitoringLocationsData = {
-  features: {
-    geometry: {
-      coordinates: [number, number],
-      type: 'Point',
-    },
-    properties: {
-      CountyName: string,
-      HUCEightDigitCode: string,
-      MonitoringLocationIdentifier: string,
-      MonitoringLocationName: string,
-      MonitoringLocationTypeName: string,
-      OrganizationFormalName: string,
-      OrganizationIdentifier: string,
-      ProviderName: string,
-      ResolvedMonitoringLocationTypeName: string,
-      StateName: string,
-      activityCount: string,
-      characteristicGroupResultCount: {
-        Physical: number,
-      },
-      resultCount: string,
-      siteUrl: string,
-    },
-    type: 'Feature',
-  }[],
-  type: 'FeatureCollection',
 };
 
 type PermittedDischargersData = {

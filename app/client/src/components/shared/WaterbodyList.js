@@ -14,7 +14,6 @@ import {
 } from 'components/shared/AccordionMapHighlight';
 // utilities
 import {
-  createWaterbodySymbol,
   getWaterbodyCondition,
   getUniqueWaterbodies,
   getOrganizationLabel,
@@ -132,7 +131,6 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
         {sortedWaterbodies.map((graphic, index) => {
           /* prettier-ignore */
           const condition = getWaterbodyCondition(graphic.attributes, fieldName).condition;
-          const icon = createWaterbodySymbol({ condition, selected: true });
 
           return (
             <AccordionItem
@@ -151,7 +149,6 @@ function WaterbodyList({ waterbodies, title, fieldName }: Props) {
                 </>
               }
               icon={<WaterbodyIcon condition={condition} selected={false} />}
-              mapIcon={icon}
               feature={graphic}
               idKey="assessmentunitidentifier"
             >

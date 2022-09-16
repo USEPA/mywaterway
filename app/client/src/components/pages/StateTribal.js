@@ -302,7 +302,7 @@ function StateTribal() {
   // get the state intro and metrics data
   const stateIntro = introText.status === 'success' ? introText.data : null;
 
-  const sourceList = useRef();
+  const sourceList = useRef(null);
   const sourceDownPress = useKeyPress('ArrowDown', sourceList);
   const sourceUpPress = useKeyPress('ArrowUp', sourceList);
   const sourceEnterPress = useKeyPress('Enter', sourceList);

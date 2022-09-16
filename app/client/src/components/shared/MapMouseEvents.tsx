@@ -18,7 +18,7 @@ import { useDynamicPopup } from 'utils/hooks';
 import type {
   MonitoringFeatureUpdate,
   MonitoringFeatureUpdates,
-  Layer,
+  ExtendedLayer,
 } from 'types';
 
 // --- types ---
@@ -56,10 +56,10 @@ function getGraphicsFromResponse(
   if (!res.results || res.results.length === 0) return null;
 
   const matches = res.results.filter((result) => {
-    if(result.type !== 'graphic') return null;
+    if (result.type !== 'graphic') return null;
 
     const { attributes: attr } = result.graphic;
-    const layer = result.graphic.layer as Layer;
+    const layer = result.graphic.layer as ExtendedLayer;
     // ignore huc 12 boundaries, map-marker, highlight and provider graphics
     const excludedLayers = [
       'stateBoundariesLayer',
@@ -74,10 +74,14 @@ function getGraphicsFromResponse(
     if (!result.graphic.layer?.id) return null;
     if (attr.name && excludedLayers.indexOf(attr.name) !== -1) return null;
     if (excludedLayers.indexOf(layer.id) !== -1) return null;
-    if (layer.parent && excludedLayers.indexOf(layer.parent.id) !== -1) {
+    if (
+      layer.parent &&
+      'id' in layer.parent &&
+      excludedLayers.indexOf(layer.parent.id) !== -1
+    ) {
       return null;
     }
-    if (!result.graphic.popupTemplate && !layer.popupTemplate) {
+    if (!result.graphic.popupTemplate && !('popupTemplate' in layer)) {
       return null;
     }
 
@@ -178,7 +182,7 @@ function MapMouseEvents({ view }: Props) {
   const getDynamicPopup = useDynamicPopup();
   const onTribePage = window.location.pathname.startsWith('/tribe/');
   const onMonitoringPanel = window.location.pathname.endsWith('/monitoring');
-  if(onTribePage || onMonitoringPanel) view.popup.autoOpenEnabled = false;
+  if (onTribePage || onMonitoringPanel) view.popup.autoOpenEnabled = false;
   else view.popup.autoOpenEnabled = true;
 
   // reference to a dictionary of date-filtered updates
@@ -206,9 +210,7 @@ function MapMouseEvents({ view }: Props) {
         .hitTest(event)
         .then((res: __esri.HitTestResult) => {
           // get and update the selected graphic
-          const extraLayersToIgnore = [
-            'selectedTribeLayer',
-          ];
+          const extraLayersToIgnore = ['selectedTribeLayer'];
           const graphics = getGraphicsFromResponse(res, extraLayersToIgnore);
           const graphic = graphics?.length ? graphics[0] : null;
 
@@ -254,7 +256,8 @@ function MapMouseEvents({ view }: Props) {
               geometry: location,
               outFields: ['*'],
             };
-            query.executeQueryJSON(services.data.wbd, queryParams)
+            query
+              .executeQueryJSON(services.data.wbd, queryParams)
               .then((boundaries) => {
                 if (boundaries.features.length === 0) return;
 
@@ -275,7 +278,6 @@ function MapMouseEvents({ view }: Props) {
                         attributes: {
                           changelocationpopup: 'changelocationpopup',
                         },
-                        view: view,
                       },
                       getClickedHuc: Promise.resolve({
                         status: 'success',
@@ -301,7 +303,8 @@ function MapMouseEvents({ view }: Props) {
                     geometry: location,
                     outFields: ['*'],
                   };
-                  query.executeQueryJSON(url, queryPadUs)
+                  query
+                    .executeQueryJSON(url, queryPadUs)
                     .then((padRes) => {
                       if (padRes.features.length === 0) {
                         // user did not click on a protected area, open the popup

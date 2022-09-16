@@ -9,8 +9,8 @@ import type { Position } from '@reach/tooltip';
 import type { ReactElement, Ref } from 'react';
 
 /*
- * Styles
- */
+## Styles
+*/
 const helpIconStyles = css`
   cursor: help;
 `;
@@ -37,7 +37,7 @@ const tooltipStyles = css`
 `;
 
 /*
- * Helpers
+## Helpers
  */
 const centered: Position = (triggerRect, tooltipRect) => {
   if (!triggerRect || !tooltipRect) return {};
@@ -51,7 +51,7 @@ const centered: Position = (triggerRect, tooltipRect) => {
 };
 
 /*
- * Components
+## Components
  */
 type TooltipProps = {
   children: ReactElement;
@@ -107,4 +107,4 @@ function HelpTooltip({ description, children, label }: HelpTooltipProps) {
   );
 }
 
-export default HelpTooltip;
+export { HelpTooltip, Tooltip };

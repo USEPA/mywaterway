@@ -1,10 +1,13 @@
-// @flow
-
-import React from 'react';
 import { render } from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { css } from 'styled-components/macro';
+import Color from '@arcgis/core/Color';
+import Point from '@arcgis/core/geometry/Point';
 import Graphic from '@arcgis/core/Graphic';
+import PopupTemplate from '@arcgis/core/PopupTemplate';
+import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
+import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
+import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 // components
 import { MapPopup } from 'components/shared/WaterbodyInfo';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
@@ -13,31 +16,42 @@ import { colors } from 'styles/index.js';
 // utilities
 import { getSelectedCommunityTab } from 'utils/utils';
 // types
-import type { ClickedHucState } from 'types';
-
-type WaterbodyStatus =
-  | { condition: 'good', label: 'Good' }
-  | {
-      condition: 'polluted',
-      label: 'Impaired' | 'Impaired (Issues Identified)',
-    }
-  | { condition: 'unassessed', label: 'Condition Unknown' }
-  | { condition: 'hidden', label: 'Not Applicable' };
+import type { NavigateFunction } from 'react-router-dom';
+import type {
+  ChangeLocationAttributes,
+  ClickedHucState,
+  Facility,
+  Feature,
+  ExtendedLayer,
+  ParentLayer,
+  PopupAttributes,
+  ScaledLayer,
+  ServicesState,
+  SuperLayer,
+  TribeAttributes,
+  VillageAttributes,
+  WaterbodyAttributes,
+} from 'types';
 
 const waterbodyStatuses = {
   good: { condition: 'good', label: 'Good' },
   polluted: { condition: 'polluted', label: 'Impaired' },
   unassessed: { condition: 'unassessed', label: 'Condition Unknown' },
   notApplicable: { condition: 'hidden', label: 'Not Applicable' },
-};
+} as const;
+
+type WaterbodyStatus = typeof waterbodyStatuses[keyof typeof waterbodyStatuses];
 
 const waterbodyOverallStatuses = {
   ...waterbodyStatuses,
   polluted: { condition: 'polluted', label: 'Impaired (Issues Identified)' },
-};
+} as const;
+
+type WaterbodyOverallStatus =
+  typeof waterbodyOverallStatuses[keyof typeof waterbodyOverallStatuses];
 
 // Gets the type of symbol using the shape's attributes.
-export function getTypeFromAttributes(graphic) {
+export function getTypeFromAttributes(graphic: __esri.Graphic) {
   let type = 'point';
   if (graphic.attributes.Shape_Length && graphic.attributes.Shape_Area) {
     type = 'polygon';
@@ -48,11 +62,14 @@ export function getTypeFromAttributes(graphic) {
   return type;
 }
 
-export function getWaterbodyCondition(
-  attributes: Object,
-  fieldName: ?string,
+export function getWaterbodyCondition<
+  Type extends WaterbodyAttributes,
+  Key extends keyof Type,
+>(
+  attributes: Type,
+  fieldName: Key | null | undefined,
   showNulls: boolean = false,
-): WaterbodyStatus {
+): WaterbodyStatus | WaterbodyOverallStatus {
   // when no fieldName is provided, use the isassessed/isimpaired logic
   const statusValue = fieldName
     ? attributes[fieldName]
@@ -78,9 +95,9 @@ export function getWaterbodyCondition(
 export function createUniqueValueInfos(
   geometryType: string,
   alpha: {
-    base: number,
-    poly: number,
-    outline: number,
+    base: number;
+    poly: number;
+    outline: number;
   } | null,
 ) {
   return [
@@ -162,9 +179,9 @@ export function createUniqueValueInfos(
 export function createUniqueValueInfosRestore(
   geometryType: string,
   alpha: {
-    base: number,
-    poly: number,
-    outline: number,
+    base: number;
+    poly: number;
+    outline: number;
   } | null,
 ) {
   return [
@@ -248,8 +265,8 @@ export function createWaterbodySymbolSvg({
   condition,
   selected,
 }: {
-  condition: 'good' | 'polluted' | 'unassessed',
-  selected: boolean,
+  condition: 'good' | 'polluted' | 'unassessed';
+  selected: boolean;
 }) {
   const markup = renderToStaticMarkup(
     <WaterbodyIcon condition={condition} selected={selected} />,
@@ -257,7 +274,7 @@ export function createWaterbodySymbolSvg({
 
   return {
     type: 'picture-marker', // autocasts as new PictureMarkerSymbol()
-    url: `data:image/svg+xml;base64,${btoa(markup)}`,
+    url: `data:image/svg+xml;base64,${encode(markup)}`,
     width: '26px',
     height: '26px',
     condition: condition,
@@ -270,33 +287,34 @@ export function createWaterbodySymbol({
   geometryType = 'point',
   alpha = null,
 }: {
-  condition: 'good' | 'polluted' | 'unassessed' | 'nostatus' | 'hidden',
-  selected: boolean,
-  geometryType: string,
-  alpha: {
-    base: number,
-    poly: number,
-    outline: number,
-  } | null,
+  condition: 'good' | 'polluted' | 'unassessed' | 'nostatus' | 'hidden';
+  selected: boolean;
+  geometryType: string;
+  alpha?: {
+    base: number;
+    poly: number;
+    outline: number;
+  } | null;
 }) {
   const outline = selected
     ? { color: [0, 255, 255, alpha ? alpha.outline : 0.5], width: 1 }
     : { color: [0, 0, 0, alpha ? alpha.outline : 1], width: 1 };
 
   // from colors.highlightedPurple() and colors.purple()
-  let color = selected ? { r: 84, g: 188, b: 236 } : { r: 107, g: 65, b: 149 };
+  let rgb = selected ? { r: 84, g: 188, b: 236 } : { r: 107, g: 65, b: 149 };
   if (condition === 'good') {
     // from colors.highlightedGreen() and colors.green()
-    color = selected ? { r: 70, g: 227, b: 159 } : { r: 32, g: 128, b: 12 };
+    rgb = selected ? { r: 70, g: 227, b: 159 } : { r: 32, g: 128, b: 12 };
   }
   if (condition === 'polluted') {
     // from colors.highlightedRed() and colors.red()
-    color = selected ? { r: 124, g: 157, b: 173 } : { r: 203, g: 34, b: 62 };
+    rgb = selected ? { r: 124, g: 157, b: 173 } : { r: 203, g: 34, b: 62 };
   }
   if (condition === 'nostatus') {
-    color = selected ? { r: 93, g: 153, b: 227 } : { r: 0, g: 123, b: 255 };
+    rgb = selected ? { r: 93, g: 153, b: 227 } : { r: 0, g: 123, b: 255 };
   }
 
+  let color = new Color(rgb);
   // for polygons, add transparency to the color so that lines can be seen
   if (geometryType === 'polygon') color.a = 0.75;
   if (alpha) {
@@ -304,25 +322,23 @@ export function createWaterbodySymbol({
     if (geometryType === 'polygon') color.a = alpha.poly;
   }
 
-  let symbol = {
-    type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
+  let symbol = new SimpleMarkerSymbol({
     color,
     size: 14,
     style: 'triangle',
     outline,
-    condition,
-  };
+  });
 
   if (condition === 'hidden') {
-    symbol.outline = { color: [0, 0, 0, 0], width: 0 };
-    symbol.color = [0, 0, 0, 0];
+    symbol.outline = new SimpleLineSymbol({ color: [0, 0, 0, 0], width: 0 });
+    symbol.color.setColor([0, 0, 0, 0]);
     return symbol;
   }
 
   if (geometryType === 'point') {
-    symbol.outline = {
+    symbol.outline = new SimpleLineSymbol({
       width: 0.65,
-    };
+    });
     if (condition === 'good' || condition === 'nostatus') {
       symbol.style = 'circle';
     }
@@ -337,33 +353,116 @@ export function createWaterbodySymbol({
   }
 
   if (geometryType === 'polyline') {
-    return {
-      type: 'simple-line', // autocasts as SimpleLineSymbol() or SimpleFillSymbol()
+    return new SimpleLineSymbol({
       color,
       width: 3,
-    };
+    });
   }
 
   if (geometryType === 'polygon') {
     const polyOutline = selected
       ? { color: [0, 255, 255, alpha ? alpha.outline : 0.5], width: 3 }
-      : null;
+      : undefined;
 
-    return {
-      type: 'simple-fill', // autocasts as SimpleFillSymbol()
+    return new SimpleFillSymbol({
       color,
-      width: 3,
       style: 'solid',
       outline: polyOutline,
-    };
+    });
   }
+}
+
+function encode(str: string): string {
+  return Buffer.from(str, 'binary').toString('base64');
+}
+
+// Functions used for narrowing types
+export function hasSublayers(layer: __esri.Layer): layer is SuperLayer {
+  return 'sublayers' in layer;
+}
+
+export function isClassBreaksRenderer(
+  renderer: __esri.Renderer,
+): renderer is __esri.ClassBreaksRenderer {
+  return (renderer as __esri.ClassBreaksRenderer).type === 'class-breaks';
+}
+
+export function isFeatureLayer(
+  layer: __esri.Layer,
+): layer is __esri.FeatureLayer {
+  return (layer as __esri.FeatureLayer).type === 'feature';
+}
+
+export function isGraphicsLayer(
+  layer: __esri.Layer,
+): layer is __esri.GraphicsLayer {
+  return (layer as __esri.GraphicsLayer).type === 'graphics';
+}
+
+export function isGroupLayer(layer: __esri.Layer): layer is __esri.GroupLayer {
+  return (layer as __esri.GroupLayer).type === 'group';
+}
+
+type HighlightLayerView = __esri.FeatureLayerView | __esri.GraphicsLayerView;
+
+export function isHighlightLayerView(
+  layerView: __esri.LayerView,
+): layerView is HighlightLayerView {
+  return (
+    (layerView as HighlightLayerView).layer.type === 'feature' ||
+    (layerView as HighlightLayerView).layer.type === 'graphics'
+  );
+}
+
+export function isMapImageLayer(
+  layer: __esri.Layer,
+): layer is __esri.MapImageLayer {
+  return (layer as __esri.MapImageLayer).type === 'map-image';
+}
+
+export function isMultipoint(
+  geometry: __esri.Geometry,
+): geometry is __esri.Multipoint {
+  return (geometry as __esri.Multipoint).type === 'multipoint';
+}
+
+export function isPoint(geometry: __esri.Geometry): geometry is __esri.Point {
+  return (geometry as __esri.Point).type === 'point';
+}
+
+export function isPolygon(
+  geometry: __esri.Geometry,
+): geometry is __esri.Polygon {
+  return (geometry as __esri.Polygon).type === 'polygon';
+}
+
+export function isPolyline(
+  geometry: __esri.Geometry,
+): geometry is __esri.Polyline {
+  return (geometry as __esri.Polyline).type === 'polyline';
+}
+
+export function isTileLayer(layer: __esri.Layer): layer is __esri.TileLayer {
+  return (layer as __esri.TileLayer).type === 'tile';
+}
+
+export function isUniqueValueRenderer(
+  renderer: __esri.Renderer,
+): renderer is __esri.UniqueValueRenderer {
+  return (renderer as __esri.UniqueValueRenderer).type === 'unique-value';
+}
+
+function isVillage(
+  tribe: TribeAttributes | VillageAttributes,
+): tribe is VillageAttributes {
+  return (tribe as VillageAttributes).NAME !== undefined;
 }
 
 // plot issues on map
 export function plotIssues(
-  features: Array<Object>,
+  features: __esri.Graphic[],
   layer: any,
-  navigate: function,
+  navigate: NavigateFunction,
 ) {
   if (!features || !layer) return;
 
@@ -387,10 +486,11 @@ export function plotIssues(
         },
         popupTemplate: {
           title: getPopupTitle(waterbody.attributes),
-          content: getPopupContent({
-            feature: { attributes: waterbody.attributes },
-            navigate,
-          }),
+          content: (feature: Feature) =>
+            getPopupContent({
+              feature: feature.graphic,
+              navigate,
+            }),
         },
       }),
     );
@@ -403,9 +503,9 @@ export function plotFacilities({
   layer,
   navigate,
 }: {
-  facilities: Array<Object>,
-  layer: any,
-  navigate: Function,
+  facilities: Facility[];
+  layer: any;
+  navigate: NavigateFunction;
 }) {
   if (!facilities || !layer) return;
 
@@ -416,13 +516,11 @@ export function plotFacilities({
   facilities.forEach((facility) => {
     layer.graphics.add(
       new Graphic({
-        geometry: {
-          type: 'point', // autocasts as new Point()
-          longitude: facility['FacLong'],
-          latitude: facility['FacLat'],
-        },
-        symbol: {
-          type: 'simple-marker', // autocasts as new SimpleMarkerSymbol()
+        geometry: new Point({
+          longitude: parseFloat(facility['FacLong']),
+          latitude: parseFloat(facility['FacLat']),
+        }),
+        symbol: new SimpleMarkerSymbol({
           color: colors.orange,
           style: 'diamond',
           size: 15,
@@ -430,14 +528,15 @@ export function plotFacilities({
             // width units differ between FeatureLayers and GraphicsLayers
             width: 0.65,
           },
-        },
+        }),
         attributes: facility,
         popupTemplate: {
           title: getPopupTitle(facility),
-          content: getPopupContent({
-            feature: { attributes: facility },
-            navigate,
-          }),
+          content: (feature: Feature) =>
+            getPopupContent({
+              feature: feature.graphic,
+              navigate,
+            }),
         },
       }),
     );
@@ -445,11 +544,11 @@ export function plotFacilities({
 }
 
 export const openPopup = (
-  view: Object,
-  feature: Object,
-  fields: Object,
-  services: Object,
-  navigate: Function,
+  view: __esri.MapView,
+  feature: __esri.Graphic,
+  fields: __esri.Field[],
+  services: ServicesState,
+  navigate: NavigateFunction,
 ) => {
   const fieldName = feature.attributes && feature.attributes.fieldName;
 
@@ -458,28 +557,30 @@ export const openPopup = (
     !feature.popupTemplate ||
     (fieldName && fieldName !== 'hmw-extra-content')
   ) {
-    feature.popupTemplate = {
+    feature.popupTemplate = new PopupTemplate({
       title: getPopupTitle(feature.attributes),
-      content: getPopupContent({
-        feature,
-        fields,
-        fieldName,
-        services,
-        navigate,
-      }),
-    };
+      content: (feature: Feature) =>
+        getPopupContent({
+          feature: feature.graphic,
+          fields,
+          fieldName,
+          services,
+          navigate,
+        }),
+    });
   }
 
   // get the location placement of the popup
   let popupPoint;
-  if (feature.geometry.type === 'polyline') {
-    const pointIndex = Math.round(feature.geometry.paths[0].length / 2);
-    popupPoint = feature.geometry.getPoint(0, pointIndex);
-  } else if (feature.geometry.type === 'polygon') {
-    const pointIndex = Math.round(feature.geometry.rings[0].length / 4);
-    popupPoint = feature.geometry.getPoint(0, pointIndex);
-  } else if (feature.geometry.type === 'multipoint') {
-    popupPoint = feature.geometry.getPoint(0);
+  const geometry = feature.geometry;
+  if (isPolyline(geometry)) {
+    const pointIndex = Math.round(geometry.paths[0].length / 2);
+    popupPoint = geometry.getPoint(0, pointIndex);
+  } else if (isPolygon(geometry)) {
+    const pointIndex = Math.round(geometry.rings[0].length / 4);
+    popupPoint = geometry.getPoint(0, pointIndex);
+  } else if (isMultipoint(geometry)) {
+    popupPoint = geometry.getPoint(0);
   } else {
     //point objects
     popupPoint = feature.geometry;
@@ -502,88 +603,90 @@ const organizationMapping = {
   '21GUAM': 'Territory',
 };
 
-export function getOrganizationLabel(attributes: Object) {
+export function getOrganizationLabel(
+  attributes: { organizationid?: string; orgtype?: string } | undefined,
+) {
   if (!attributes) return 'Waterbody ID:';
 
-  const mappedLabel = organizationMapping[attributes.organizationid];
-  if (mappedLabel) return `${mappedLabel} Waterbody ID:`;
-  if (attributes.orgtype === 'Tribe') return 'Tribal Waterbody ID:';
-  if (attributes.orgtype === 'State') return 'State Waterbody ID:';
+  const { organizationid, orgtype } = attributes;
+  for (const [key, value] of Object.entries(organizationMapping)) {
+    if (key === organizationid) return `${value} Waterbody ID:`;
+  }
+  if (orgtype === 'Tribe') return 'Tribal Waterbody ID:';
+  if (orgtype === 'State') return 'State Waterbody ID:';
   return 'Waterbody ID:'; // catch all
 }
 
-export function getPopupTitle(attributes: Object) {
+export function getPopupTitle(attributes: PopupAttributes | null) {
   let title = 'Unknown';
 
   if (!attributes) return title;
 
   // line, area, point for waterbody
-  if (attributes.assessmentunitname) {
+  if ('assessmentunitname' in attributes) {
     title = `${attributes.assessmentunitname} (${getOrganizationLabel(
       attributes,
     )} ${attributes.assessmentunitidentifier})`;
   }
 
   // discharger
-  else if (attributes.CWPName) {
+  else if ('CWPName' in attributes) {
     title = attributes.CWPName;
   }
 
   // monitoring station
   else if (
-    attributes.monitoringType === 'Past Water Conditions' ||
-    attributes.monitoringType === 'Current Water Conditions'
+    'monitoringType' in attributes &&
+    (attributes.monitoringType === 'Past Water Conditions' ||
+      attributes.monitoringType === 'Current Water Conditions')
   ) {
     title = attributes.locationName;
   }
 
   // protect tab teal nonprofits
-  else if (attributes.type === 'nonprofit') {
+  else if ('type' in attributes && attributes.type === 'nonprofit') {
     title = attributes.Name || 'Unknown name';
   }
 
   // county
-  else if (attributes.CNTY_FIPS) {
+  else if ('CNTY_FIPS' in attributes) {
     title = `${attributes.STATE_NAME} County ${attributes.CNTY_FIPS}`;
   }
 
   // congressional district
-  else if (attributes.DISTRICTID) {
+  else if ('DISTRICTID' in attributes) {
     title = `${attributes.STATE_ABBR} District ${attributes.CDFIPS}`;
   }
 
-  // want to display name for Alaska Native Villages
-  else if (attributes.NAME && attributes.TRIBE_NAME) {
-    title = attributes.NAME;
-  }
-
   // other tribal layers just use the tribe name
-  else if (attributes.TRIBE_NAME) {
-    title = attributes.TRIBE_NAME;
+  else if ('TRIBE_NAME' in attributes) {
+    // want to display name for Alaska Native Villages
+    if (isVillage(attributes)) title = attributes.NAME;
+    else title = attributes.TRIBE_NAME;
   }
 
   // want to display allotment for Alaska Native Allotments
-  else if (attributes.PARCEL_NO) {
+  else if ('PARCEL_NO' in attributes) {
     title = attributes.PARCEL_NO;
   }
 
   // wild scenic rivers
-  else if (attributes.WSR_RIVER_NAME) {
+  else if ('WSR_RIVER_NAME' in attributes) {
     title = attributes.WSR_RIVER_NAME;
   }
 
   // WSIO Health Index
-  else if (attributes.PHWA_HEALTH_NDX_ST) {
+  else if ('PHWA_HEALTH_NDX_ST' in attributes) {
     title = attributes.NAME_HUC12;
   }
 
   // Protected areas
-  else if (attributes.GAPCdSrc) {
+  else if ('GAPCdSrc' in attributes) {
     title = attributes.Loc_Nm;
   }
 
   // EJSCREEN
-  else if (attributes.T_OVR64PCT) {
+  else if ('T_OVR64PCT' in attributes) {
     title = '';
   }
 
@@ -600,114 +703,104 @@ export function getPopupContent({
   fields,
   navigate,
 }: {
-  feature: Object,
-  fieldName?: string,
-  extraContent?: Object,
-  getClickedHuc?: Promise<ClickedHucState> | null,
-  resetData?: Function,
-  services?: Object,
-  fields?: Object,
-  navigate: Function,
+  feature: __esri.Graphic | { attributes: ChangeLocationAttributes };
+  fieldName?: string;
+  extraContent?: Object;
+  getClickedHuc?: Promise<ClickedHucState> | null;
+  resetData?: () => void;
+  services?: ServicesState;
+  fields?: __esri.Field[] | null;
+  navigate: NavigateFunction;
 }) {
   let type = 'Unknown';
-
-  const attributes = feature.attributes;
-
-  // actions popup (has the same attributes as waterbody and an additional
-  // layerType attribute)
-  if (attributes && attributes.layerType === 'actions') {
-    type = 'Action';
-  }
-
-  // line, area, point for waterbody
-  else if (attributes && attributes.assessmentunitname) {
-    const communityTab = getSelectedCommunityTab();
-    const pathname = window.location.pathname;
-    const isAllWaterbodiesLayer =
-      feature.layer?.parent?.id === 'allWaterbodiesLayer';
-
-    type = 'Waterbody';
-    if (pathname.includes('advanced-search')) type = 'Waterbody State Overview';
-    if (!isAllWaterbodiesLayer) {
-      if (communityTab === 'restore') type = 'Restoration Plans';
-      if (communityTab === 'protect') type = 'Protection Plans';
-    }
-  }
-
-  // discharger
-  else if (attributes && attributes.CWPName) {
-    type = 'Permitted Discharger';
-  }
-
-  // usgs streamgage
-  else if (
-    attributes &&
-    attributes.monitoringType === 'Current Water Conditions'
-  ) {
-    type = 'Current Water Conditions';
-  }
-
-  // monitoring station
-  else if (
-    attributes &&
-    attributes.monitoringType === 'Past Water Conditions'
-  ) {
-    type = 'Past Water Conditions';
-  }
-
-  // protect tab teal nonprofits
-  else if (attributes && attributes.type === 'nonprofit') {
-    type = 'Nonprofit';
-  }
-
-  // county
-  else if (attributes.CNTY_FIPS) {
-    type = 'County';
-  }
-
-  // congressional district
-  else if (attributes.DISTRICTID) {
-    type = 'Congressional District';
-  }
-
-  // want to display name for Alaska Native Villages
-  else if (attributes.NAME && attributes.TRIBE_NAME) {
-    type = 'Alaska Native Village';
-  }
-
-  // other tribal layers just use the tribe name
-  else if (attributes.TRIBE_NAME) {
-    type = 'Tribe';
-  }
-
-  // upstream watershed
-  else if (attributes.xwalk_huc12) {
-    type = 'Upstream Watershed';
-  }
+  const attributes: PopupAttributes | null = feature.attributes;
+  if (!attributes) return null;
 
   // stand alone change location popup
-  else if (attributes.changelocationpopup) {
+  if ('changelocationpopup' in attributes) {
     type = 'Change Location';
-  }
+  } else if ('layer' in feature) {
+    // actions popup (has the same attributes as waterbody and an additional
+    // layerType attribute)
+    if ('layerType' in attributes && attributes.layerType === 'actions') {
+      type = 'Action';
+    }
 
-  // wild scenic rivers
-  else if (attributes.WSR_RIVER_NAME) {
-    type = 'Wild and Scenic Rivers';
-  }
+    // line, area, point for waterbody
+    else if ('assessmentunitname' in attributes) {
+      const communityTab = getSelectedCommunityTab();
+      const pathname = window.location.pathname;
+      const parent = (feature.layer as ExtendedLayer)?.parent;
+      const isAllWaterbodiesLayer =
+        parent && 'id' in parent && parent.id === 'allWaterbodiesLayer';
 
-  // WSIO Health Index
-  else if (attributes.PHWA_HEALTH_NDX_ST) {
-    type = 'State Watershed Health Index';
-  }
+      type = 'Waterbody';
+      if (pathname.includes('advanced-search'))
+        type = 'Waterbody State Overview';
+      if (!isAllWaterbodiesLayer) {
+        if (communityTab === 'restore') type = 'Restoration Plans';
+        if (communityTab === 'protect') type = 'Protection Plans';
+      }
+    }
 
-  // Protected areas
-  else if (attributes.GAPCdSrc) {
-    type = 'Protected Areas';
-  }
+    // discharger
+    else if ('CWPName' in attributes) {
+      type = 'Permitted Discharger';
+    }
 
-  // EJSCREEN
-  else if (attributes.T_OVR64PCT) {
-    type = 'Demographic Indicators';
+    // usgs streamgage or monitoring location
+    else if ('monitoringType' in attributes) {
+      if (attributes.monitoringType === 'Current Water Conditions')
+        type = 'Current Water Conditions';
+      else if (attributes.monitoringType === 'Past Water Conditions')
+        type = 'Past Water Conditions';
+    }
+
+    // protect tab teal nonprofits
+    else if ('type' in attributes && attributes.type === 'nonprofit') {
+      type = 'Nonprofit';
+    }
+
+    // county
+    else if ('CNTY_FIPS' in attributes) {
+      type = 'County';
+    }
+
+    // congressional district
+    else if ('DISTRICTID' in attributes) {
+      type = 'Congressional District';
+    }
+
+    // Alaska Native Village or other tribal feature
+    else if ('TRIBE_NAME' in attributes) {
+      if ('NAME' in attributes) type = 'Alaska Native Village';
+      else type = 'Tribe';
+    }
+
+    // upstream watershed
+    else if ('xwalk_huc12' in attributes) {
+      type = 'Upstream Watershed';
+    }
+
+    // wild scenic rivers
+    else if ('WSR_RIVER_NAME' in attributes) {
+      type = 'Wild and Scenic Rivers';
+    }
+
+    // WSIO Health Index
+    else if ('PHWA_HEALTH_NDX_ST' in attributes) {
+      type = 'State Watershed Health Index';
+    }
+
+    // Protected areas
+    else if ('GAPCdSrc' in attributes) {
+      type = 'Protected Areas';
+    }
+
+    // EJSCREEN
+    else if ('T_OVR64PCT' in attributes) {
+      type = 'Demographic Indicators';
+    }
   }
 
   const content = (
@@ -732,24 +825,28 @@ export function getPopupContent({
   return contentContainer;
 }
 
-export function getUniqueWaterbodies(waterbodies: Object[]) {
+export function getUniqueWaterbodies(waterbodies: __esri.Graphic[]) {
   if (!waterbodies) return [];
 
-  const flags = {};
+  const flags: { [key: string]: boolean } = {};
   return waterbodies.filter((waterbody) => {
     if (!waterbody?.attributes) return false;
 
     const orgid = waterbody.attributes.organizationidentifier;
     const auid = waterbody.attributes.assessmentunitidentifier;
     const key = `${orgid}${auid}`;
-    if (flags[key]) return false;
+    if (key in flags) return false;
     flags[key] = true;
     return true;
   });
 }
 
+type MaybeObject = {
+  [key: string]: any;
+} | null;
+
 // helper function for doing shallow comparisons of objects
-export function shallowCompare(obj1, obj2) {
+export function shallowCompare(obj1: MaybeObject, obj2: MaybeObject) {
   if (!obj1 || !obj2) return obj1 === obj2;
 
   return (
@@ -764,7 +861,10 @@ export function shallowCompare(obj1, obj2) {
 }
 
 // used for shallow comparing graphics attributes to see if the are the same.
-export function graphicComparison(graphic1, graphic2) {
+export function graphicComparison(
+  graphic1?: __esri.Graphic | null,
+  graphic2?: __esri.Graphic | null,
+) {
   if (!graphic1 && !graphic2) return true; // no change
 
   // change occurred
@@ -773,7 +873,7 @@ export function graphicComparison(graphic1, graphic2) {
     (graphic1 && graphic1.attributes && graphic2 && !graphic2.attributes) ||
     (graphic2 && graphic2.attributes && !graphic1) ||
     (graphic2 && graphic2.attributes && graphic1 && !graphic1.attributes) ||
-    !shallowCompare(graphic1.attributes, graphic2.attributes)
+    !shallowCompare(graphic1?.attributes, graphic2?.attributes)
   ) {
     return false;
   }
@@ -799,7 +899,13 @@ const tickMarkStyles = css`
   }
 `;
 
-export function GradientIcon({ id, stops }) {
+export function GradientIcon({
+  id,
+  stops,
+}: {
+  id: string;
+  stops: Array<{ label: string; color: string }>;
+}) {
   const divisions = stops.length - 1;
   return (
     <div css={{ display: 'flex', margin: 'auto' }}>
@@ -846,61 +952,83 @@ export function GradientIcon({ id, stops }) {
 }
 
 // Gets the highlight symbol styles based on the provided geometry.
-export function getHighlightSymbol(geometry, color) {
-  let symbol: Object = { color };
-  if (geometry.type === 'polyline') {
-    symbol['type'] = 'simple-line';
-    symbol['width'] = 5;
-  } else if (geometry.type === 'polygon') {
-    symbol['type'] = 'simple-fill';
-    symbol['outline'] = { color, width: 2 };
-  } else if (geometry.type === 'point' || geometry.type === 'multipoint') {
-    symbol['type'] = 'simple-marker';
-    symbol['outline'] = { color, width: 2 };
+export function getHighlightSymbol(
+  geometry: __esri.Geometry,
+  color: string | number[],
+) {
+  let symbol: __esri.Symbol | null = null;
+  if (isPolyline(geometry)) {
+    return new SimpleLineSymbol({
+      width: 5,
+      color,
+    });
+  } else if (isPolygon(geometry)) {
+    return new SimpleFillSymbol({
+      outline: { color, width: 2 },
+      color,
+    });
+  } else if (isPoint(geometry) || isMultipoint(geometry)) {
+    return new SimpleMarkerSymbol({
+      outline: { color, width: 2 },
+      color,
+    });
   }
 
   return symbol;
 }
 
 // helper method used in handleMapZoomChange() for determining a map layer’s listMode
-export function isInScale(layer: any, scale: number) {
+export function isInScale(
+  layer: __esri.Layer | ParentLayer | ScaledLayer,
+  scale: number,
+) {
   let inScale = true;
   let minScale = 0;
   let maxScale = 0;
 
   // get the extreme min and max scales of the layer
-  if (layer.sublayers && layer.sourceJSON) {
+  if ('sublayers' in layer && 'sourceJSON' in layer) {
     // get sublayers included in the parentlayer
     // note: the sublayer has maxScale and minScale, but these are always 0
     //       even if the sublayer does actually have a min/max scale.
-    const sublayerIds = [];
+    const sublayerIds: number[] = [];
     layer.sublayers.forEach((sublayer) => {
-      sublayerIds.push(sublayer.id);
+      if ('id' in sublayer) sublayerIds.push(sublayer.id);
     });
 
     // get the min/max scale from the sourceJSON
-    layer.sourceJSON.layers.forEach((sourceLayer) => {
-      if (!sublayerIds.includes(sourceLayer.id)) return;
+    layer.sourceJSON.layers.forEach(
+      (sourceLayer: __esri.Sublayer | __esri.SubtypeSublayer) => {
+        if (!('id' in sourceLayer) || !sublayerIds.includes(sourceLayer.id))
+          return;
 
-      if (sourceLayer.minScale === 0 || sourceLayer.minScale > minScale) {
-        minScale = sourceLayer.minScale;
-      }
-      if (sourceLayer.maxScale === 0 || sourceLayer.maxScale < maxScale) {
-        maxScale = sourceLayer.maxScale;
-      }
-    });
-  } else if (layer.layers) {
-    // get the min/max scale from the sourceJSON
-    layer.layers.forEach((subLayer) => {
-      if (subLayer.minScale === 0 || subLayer.minScale > minScale) {
+        if (sourceLayer.minScale === 0 || sourceLayer.minScale > minScale) {
+          minScale = sourceLayer.minScale;
+        }
+        if (sourceLayer.maxScale === 0 || sourceLayer.maxScale < maxScale) {
+          maxScale = sourceLayer.maxScale;
+        }
+      },
+    );
+  } else if (isGroupLayer(layer)) {
+    // get the min/max scale from the sublayers
+    layer.layers.forEach((subLayer: ScaledLayer) => {
+      if (
+        subLayer.minScale &&
+        (subLayer.minScale === 0 || subLayer.minScale > minScale)
+      ) {
         minScale = subLayer.minScale;
       }
-      if (subLayer.maxScale === 0 || subLayer.maxScale < maxScale) {
+      if (
+        subLayer.maxScale &&
+        (subLayer.maxScale === 0 || subLayer.maxScale < maxScale)
+      ) {
         maxScale = subLayer.maxScale;
       }
     });
-  } else {
-    ({ maxScale, minScale } = layer);
+  } else if ('minScale' in layer && 'maxScale' in layer) {
+    minScale = layer.minScale ?? 0;
+    maxScale = layer.maxScale ?? 0;
   }
 
   // check if the map zoom is within scale

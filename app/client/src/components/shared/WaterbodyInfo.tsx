@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 // components
-import HelpTooltip from 'components/shared/HelpTooltip';
+import { HelpTooltip } from 'components/shared/HelpTooltip';
 import { ListContent } from 'components/shared/BoxContent';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
@@ -10,7 +10,12 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { Sparkline } from 'components/shared/Sparkline';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
-import { getWaterbodyCondition } from 'utils/mapFunctions';
+import {
+  getWaterbodyCondition,
+  isClassBreaksRenderer,
+  isFeatureLayer,
+  isUniqueValueRenderer,
+} from 'utils/mapFunctions';
 import { fetchCheck } from 'utils/fetchUtils';
 import {
   convertAgencyCode,
@@ -36,11 +41,11 @@ import {
 import type { ReactNode } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import type {
+  ChangeLocationAttributes,
   ClickedHucState,
-  Feature,
   ServicesState,
   StreamgageMeasurement,
-  UsgsStreamgage,
+  UsgsStreamgageAttributes,
 } from 'types';
 
 /*
@@ -49,6 +54,12 @@ import type {
 function bool(value: string) {
   // Return 'Yes' for truthy values and non-zero strings
   return value && parseInt(value, 10) ? 'Yes' : 'No';
+}
+
+function isChangeLocationPopup(
+  feature: __esri.Graphic | ChangeLocationPopup,
+): feature is ChangeLocationPopup {
+  return 'changelocationpopup' in (feature as ChangeLocationPopup).attributes;
 }
 
 function renderLink(label: string, link: string) {
@@ -309,9 +320,13 @@ type AttainsProjectsState =
   | { status: 'failure'; data: [] }
   | { status: 'success'; data: AttainsProjectsDatum[] };
 
+type ChangeLocationPopup = {
+  attributes: ChangeLocationAttributes;
+};
+
 type WaterbodyInfoProps = {
   type: string;
-  feature: Feature;
+  feature: __esri.Graphic;
   fieldName?: string | null;
   extraContent?: ReactNode | null;
   services?: ServicesState;
@@ -386,11 +401,13 @@ function WaterbodyInfo({
 
     // Get the waterbody condition field (drinkingwater_use, recreation_use, etc.)
     let field = fieldName;
-    if (!fieldName && feature && feature.layer && feature.layer.renderer) {
+    if (!fieldName && feature?.layer && isFeatureLayer(feature.layer)) {
       // For map clicks we need to get the field from the feature layer renderer.
       // This allows us to differentiate between fishconsumption_use and ecological_use
       // which are both on the fishing tab.
-      field = feature.layer.renderer.field ?? null;
+      const renderer: __esri.Renderer = feature.layer.renderer;
+      if (isClassBreaksRenderer(renderer) || isUniqueValueRenderer(renderer))
+        field = renderer?.field ?? null;
     }
 
     // Get the label
@@ -916,7 +933,7 @@ function WaterbodyInfo({
 
 type MapPopupProps = {
   type: string;
-  feature: Feature;
+  feature: __esri.Graphic | ChangeLocationPopup;
   navigate: NavigateFunction;
   fieldName?: string | null;
   extraContent?: ReactNode | null;
@@ -958,7 +975,7 @@ function MapPopup({
 
   const { attributes } = feature;
 
-  const getTypeTitle = () => {
+  const getTypeTitle = (feature: __esri.Graphic) => {
     const typesToSkip = [
       'Action',
       'Change Location',
@@ -1045,18 +1062,20 @@ function MapPopup({
         </>
       )}
 
-      {getTypeTitle()}
+      {!isChangeLocationPopup(feature) && getTypeTitle(feature)}
 
-      <div css={popupContentStyles}>
-        <WaterbodyInfo
-          type={type}
-          feature={feature}
-          fieldName={fieldName}
-          extraContent={extraContent}
-          services={services}
-          fields={fields}
-        />
-      </div>
+      {!isChangeLocationPopup(feature) && (
+        <div css={popupContentStyles}>
+          <WaterbodyInfo
+            type={type}
+            feature={feature}
+            fieldName={fieldName}
+            extraContent={extraContent}
+            services={services}
+            fields={fields}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -1352,9 +1371,7 @@ function MonitoringLocationsContent({
               value: (
                 <>
                   {Number(stationTotalSamples).toLocaleString()}
-                  {timeframe ? (
-                    <small>(all time)</small>
-                  ) : null}
+                  {timeframe ? <small>(all time)</small> : null}
                 </>
               ),
             },
@@ -1490,7 +1507,10 @@ function MonitoringLocationsContent({
                       downloadUrl ? `${downloadUrl}&mimeType=xlsx` : undefined
                     }
                   >
-                    <HelpTooltip label="Download XLSX" description="Download selected data as an XLSX file.">
+                    <HelpTooltip
+                      label="Download XLSX"
+                      description="Download selected data as an XLSX file."
+                    >
                       <i className="fas fa-file-excel" aria-hidden="true" />
                     </HelpTooltip>
                   </a>
@@ -1500,7 +1520,10 @@ function MonitoringLocationsContent({
                       downloadUrl ? `${downloadUrl}&mimeType=csv` : undefined
                     }
                   >
-                    <HelpTooltip label="Download CSV" description="Download selected data as a CSV file.">
+                    <HelpTooltip
+                      label="Download CSV"
+                      description="Download selected data as a CSV file."
+                    >
                       <i className="fas fa-file-csv" aria-hidden="true" />
                     </HelpTooltip>
                   </a>
@@ -1514,7 +1537,7 @@ function MonitoringLocationsContent({
   );
 }
 
-function UsgsStreamgagesContent({ feature }: { feature: Feature }) {
+function UsgsStreamgagesContent({ feature }: { feature: __esri.Graphic }) {
   const {
     streamgageMeasurements,
     orgName,
@@ -1523,7 +1546,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Feature }) {
     siteId,
     orgId,
     locationUrl,
-  }: UsgsStreamgage = feature.attributes;
+  }: UsgsStreamgageAttributes = feature.attributes;
 
   const [additionalMeasurementsShown, setAdditionalMeasurementsShown] =
     useState(false);
@@ -1727,9 +1750,11 @@ function UsgsStreamgageParameter({
             </div>
 
             <div css={unitStyles}>
-              <strong>{data.measurement}</strong>
+              <strong>{data.measurement ?? 'N/A'}</strong>
               &nbsp;
-              <small title={data.unitName}>{data.unitAbbr}</small>
+              {data.measurement && (
+                <small title={data.unitName}>{data.unitAbbr}</small>
+              )}
               <br />
               <small css={additionalTextStyles}>{data.datetime}</small>
             </div>

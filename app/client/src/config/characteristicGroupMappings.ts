@@ -51,3 +51,5 @@ export const characteristicGroupMappings = [
     ],
   },
 ];
+
+export type CharacteristicGroupMappings = typeof characteristicGroupMappings;

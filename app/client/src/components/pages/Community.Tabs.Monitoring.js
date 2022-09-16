@@ -12,7 +12,7 @@ import {
 import { tabsStyles } from 'components/shared/ContentTabs';
 import DateSlider from 'components/shared/DateSlider';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
-import HelpTooltip from 'components/shared/HelpTooltip';
+import { HelpTooltip } from 'components/shared/HelpTooltip';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import {
   keyMetricsStyles,
@@ -222,8 +222,6 @@ function filterStation(station, timeframe) {
   const result = {
     ...station,
     stationTotalMeasurements: 0,
-    // TODO: investigate discrepancy between periodOfRecord
-    // sample counts and summary counts
     stationTotalsByGroup: {},
     stationTotalsByLabel: {},
     timeframe: [...timeframe],
