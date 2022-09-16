@@ -154,7 +154,6 @@ type State = {
   providersLayer: Object,
   boundariesLayer: Object,
   searchIconLayer: Object,
-  currentLocationLayer: Object,
   actionsLayer: Object,
   selWaterBodyLayer: Object,
   wsioHealthIndexLayer: Object,
@@ -240,7 +239,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     providersLayer: '',
     boundariesLayer: '',
     searchIconLayer: '',
-    currentLocationLayer: '',
     actionsLayer: '',
     selWaterBodyLayer: '',
     wsioHealthIndexLayer: '',
@@ -419,9 +417,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
     setSearchIconLayer: (searchIconLayer) => {
       this.setState({ searchIconLayer });
-    },
-    setCurrentLocationLayer: (currentLocationLayer) => {
-      this.setState({ currentLocationLayer });
     },
     setActionsLayer: (actionsLayer) => {
       this.setState({ actionsLayer });

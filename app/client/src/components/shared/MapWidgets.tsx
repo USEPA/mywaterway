@@ -108,7 +108,7 @@ const orderedLayers = [
   'nonprofitsLayer',
   'providersLayer',
   'upstreamWatershed',
-  'currentLocationLayer',
+  'boundariesLayer',
   'actionsWaterbodies',
   'watershedsLayer',
   'countyLayer',
@@ -127,6 +127,7 @@ const orderedLayers = [
   'protectedAreasHighlightLayer',
   'protectedAreasLayer',
   'ejscreenLayer',
+  'searchIconLayer',
 ];
 
 // function called whenever the map's zoom changes
@@ -735,11 +736,7 @@ function MapWidgets({
     const uniqueParentItems: string[] = [];
     function defineActions(event: { item: __esri.ListItem }) {
       const item = event.item;
-      if (
-        !item.parent ||
-        item.parent.title === 'Demographic Indicators' ||
-        item.parent.title === 'Current Location'
-      ) {
+      if (!item.parent || item.parent.title === 'Demographic Indicators') {
         //only add the item if it has not been added before
         if (!uniqueParentItems.includes(item.title)) {
           uniqueParentItems.push(item.title);
@@ -883,14 +880,10 @@ function MapWidgets({
             layer.visible = false;
             layer.listMode = 'hide';
           }
-        } else if (layer.id === 'currentLocationLayer' && isGroupLayer(layer)) {
-          let boundariesVisible = true;
+        } else if (layer.id === 'boundariesLayer') {
           if (visibleLayers.hasOwnProperty('boundariesLayer')) {
-            boundariesVisible = visibleLayers['boundariesLayer'];
+            layer.visible = visibleLayers['boundariesLayer'];
           }
-
-          const boundariesLayer = layer.findLayerById('boundariesLayer');
-          if (boundariesLayer) boundariesLayer.visible = boundariesVisible;
         }
       });
     }

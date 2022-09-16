@@ -198,7 +198,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setFishingInfo,
     setHucBoundaries,
     setAtHucBoundaries,
-    setCurrentLocationLayer,
     mapView,
     setMonitoringLocations,
     // setNonprofits,
@@ -650,15 +649,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setSearchIconLayer(searchIconLayer);
 
-    const currentLocationLayer = new GroupLayer({
-      id: 'currentLocationLayer',
-      title: 'Current Location',
-      layers: [boundariesLayer, searchIconLayer],
-      listMode: 'show',
-    });
-
-    setCurrentLocationLayer(currentLocationLayer);
-
     const upstreamLayer = new GraphicsLayer({
       id: 'upstreamWatershed',
       title: 'Upstream Watershed',
@@ -808,13 +798,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setLayers([
       ...getSharedLayers(),
       providersLayer,
-      currentLocationLayer,
+      boundariesLayer,
       upstreamLayer,
       monitoringLocationsLayer,
       usgsStreamgagesLayer,
       issuesLayer,
       dischargersLayer,
       nonprofitsLayer,
+      searchIconLayer,
     ]);
 
     setLayersInitialized(true);
@@ -824,7 +815,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     getTitle,
     layers,
     setBoundariesLayer,
-    setCurrentLocationLayer,
     setDischargersLayer,
     setIssuesLayer,
     setLayers,
@@ -1089,7 +1079,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     const newLayers = [];
     layers.forEach((layer) => {
       newLayers.push(layer);
-      if (layer.id === 'currentLocationLayer') {
+      if (layer.id === 'boundariesLayer') {
         newLayers.push(newWaterbodyLayer);
       }
     });
