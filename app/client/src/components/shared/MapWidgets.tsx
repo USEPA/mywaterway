@@ -884,11 +884,13 @@ function MapWidgets({
             layer.listMode = 'hide';
           }
         } else if (layer.id === 'currentLocationLayer' && isGroupLayer(layer)) {
+          let boundariesVisible = true;
           if (visibleLayers.hasOwnProperty('boundariesLayer')) {
-            const boundariesLayer = layer.findLayerById('boundariesLayer');
-            if (boundariesLayer)
-              boundariesLayer.visible = visibleLayers['boundariesLayer'];
+            boundariesVisible = visibleLayers['boundariesLayer'];
           }
+
+          const boundariesLayer = layer.findLayerById('boundariesLayer');
+          if (boundariesLayer) boundariesLayer.visible = boundariesVisible;
         }
       });
     }
