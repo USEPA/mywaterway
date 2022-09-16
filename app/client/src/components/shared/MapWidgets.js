@@ -703,7 +703,6 @@ function MapWidgets({
     const uniqueParentItems = [];
     function defineActions(event) {
       const item = event.item;
-      console.log(item);
       if (
         !item.parent ||
         item.parent.title === 'Demographic Indicators' ||

@@ -1151,9 +1151,7 @@ function useSharedLayers() {
         // find the boundaries layer
         wsioHealthIndexLayer.parent.layers.items.forEach((layer) => {
           if (layer.id !== 'currentLocationLayer') return;
-          const boundariesLayer = layer.layers.find((subLayer) => {
-            return subLayer.id === 'boundariesLayer';
-          });
+          const boundariesLayer = layer.findLayerById('boundariesLayer');
 
           // remove shading when wsio layer is on and add
           // shading back in when wsio layer is off
