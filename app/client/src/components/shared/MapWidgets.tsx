@@ -883,6 +883,8 @@ function MapWidgets({
         } else if (layer.id === 'boundariesLayer') {
           if (visibleLayers.hasOwnProperty('boundariesLayer')) {
             layer.visible = visibleLayers['boundariesLayer'];
+          } else {
+            layer.visible = true;
           }
         }
       });
