@@ -296,7 +296,7 @@ function Protect() {
   // Updates the visible layers. This function also takes into account whether
   // or not the underlying webservices failed.
   const updateVisibleLayers = useCallback(
-    ({ newValues = [], useCurrentValue = false }) => {
+    ({ key = null, newValue = null, useCurrentValue = false }) => {
       const newVisibleLayers = {};
       if (wsioHealthIndexData.status !== 'failure') {
         newVisibleLayers['wsioHealthIndexLayer'] =
@@ -337,11 +337,9 @@ function Protect() {
             : usgsStreamgagesLayer.visible;
       }
 
-      newValues.forEach(({ key, value }) => {
-        if (newVisibleLayers.hasOwnProperty(key)) {
-          newVisibleLayers[key] = value;
-        }
-      });
+      if (newVisibleLayers.hasOwnProperty(key)) {
+        newVisibleLayers[key] = newValue;
+      }
 
       // set the visible layers if something changed
       if (JSON.stringify(visibleLayers) !== JSON.stringify(newVisibleLayers)) {
@@ -432,32 +430,32 @@ function Protect() {
 
     setHealthScoresDisplayed(newValue);
     updateVisibleLayers({
-      newValues: [{ key: 'wsioHealthIndexLayer', value: newValue }],
+      key: 'wsioHealthIndexLayer',
+      newValue,
     });
   }
 
   function onWildScenicToggle() {
     setWildScenicRiversDisplayed(!wildScenicRiversDisplayed);
     updateVisibleLayers({
-      newValues: [
-        { key: 'wildScenicRiversLayer', value: !wildScenicRiversDisplayed },
-      ],
+      key: 'wildScenicRiversLayer',
+      newValue: !wildScenicRiversDisplayed,
     });
   }
 
   function onProtectedAreasToggle() {
     setProtectedAreasDisplayed(!protectedAreasDisplayed);
     updateVisibleLayers({
-      newValues: [
-        { key: 'protectedAreasLayer', value: !protectedAreasDisplayed },
-      ],
+      key: 'protectedAreasLayer',
+      newValue: !protectedAreasDisplayed,
     });
   }
 
   function onWaterbodyLayerToggle() {
     setWaterbodyLayerDisplayed(!waterbodyLayerDisplayed);
     updateVisibleLayers({
-      newValues: [{ key: 'waterbodyLayer', value: !waterbodyLayerDisplayed }],
+      key: 'waterbodyLayer',
+      newValue: !waterbodyLayerDisplayed,
     });
   }
 
@@ -803,9 +801,8 @@ function Protect() {
 
                     setWildScenicRiversDisplayed(true);
                     updateVisibleLayers({
-                      newValues: [
-                        { key: 'wildScenicRiversLayer', value: true },
-                      ],
+                      key: 'wildScenicRiversLayer',
+                      newValue: true,
                     });
                   }}
                   title={
@@ -997,12 +994,8 @@ function Protect() {
 
                                       setWildScenicRiversDisplayed(true);
                                       updateVisibleLayers({
-                                        newValues: [
-                                          {
-                                            key: 'wildScenicRiversLayer',
-                                            value: true,
-                                          },
-                                        ],
+                                        key: 'wildScenicRiversLayer',
+                                        newValue: true,
                                       });
                                     }}
                                   />
