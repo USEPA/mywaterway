@@ -1,7 +1,7 @@
-// @flow
-
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Color from '@arcgis/core/Color';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
 import Graphic from '@arcgis/core/Graphic';
@@ -9,11 +9,18 @@ import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import Handles from '@arcgis/core/core/Handles';
 import MapImageLayer from '@arcgis/core/layers/MapImageLayer';
+import Map from '@arcgis/core/Map';
 import Point from '@arcgis/core/geometry/Point';
 import Polygon from '@arcgis/core/geometry/Polygon';
+import ClassBreaksRenderer from '@arcgis/core/renderers/ClassBreaksRenderer';
+import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
+import UniqueValueRenderer from '@arcgis/core/renderers/UniqueValueRenderer';
+import UniqueValueInfo from '@arcgis/core/renderers/support/UniqueValueInfo';
 import * as query from '@arcgis/core/rest/query';
 import Query from '@arcgis/core/rest/support/Query';
-import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
+import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
+import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
+import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 // config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 import { monitoringClusterSettings } from 'components/shared/LocationMap';
@@ -31,11 +38,33 @@ import {
   getPopupTitle,
   getHighlightSymbol,
   graphicComparison,
+  isGraphicsLayer,
+  isGroupLayer,
+  isHighlightLayerView,
+  isPoint,
   openPopup,
   shallowCompare,
 } from 'utils/mapFunctions';
+// types
+import type { CharacteristicGroupMappings } from 'config/characteristicGroupMappings';
+import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
+import type {
+  ClickedHucState,
+  ExtendedGraphic,
+  ExtendedLayer,
+  Feature,
+  FetchState,
+  MonitoringLocationAttributes,
+  MonitoringLocationGroups,
+  MonitoringLocationsData,
+  StreamgageMeasurement,
+  UsgsDailyAveragesData,
+  UsgsPrecipitationData,
+  UsgsStreamgageAttributes,
+  UsgsStreamgagesData,
+} from 'types';
 
-let dynamicPopupFields = [];
+let dynamicPopupFields: __esri.Field[] = [];
 
 const allWaterbodiesAlpha = {
   base: 1,
@@ -43,9 +72,12 @@ const allWaterbodiesAlpha = {
   outline: 1,
 };
 
-function buildStations(locations, layer) {
+function buildStations(
+  locations: FetchState<MonitoringLocationsData>,
+  layer: __esri.Layer,
+) {
   if (!layer) return;
-  if (!locations.data.features || locations.status !== 'success') {
+  if (locations.status !== 'success' || !locations.data.features?.length) {
     return;
   }
 
@@ -60,7 +92,7 @@ function buildStations(locations, layer) {
   // attributes common to both the layer and the context object
   return stationsSorted.map((station) => {
     return {
-      monitoringType: 'Past Water Conditions',
+      monitoringType: 'Past Water Conditions' as const,
       siteId: station.properties.MonitoringLocationIdentifier,
       orgId: station.properties.OrganizationIdentifier,
       orgName: station.properties.OrganizationFormalName,
@@ -100,16 +132,18 @@ function buildStations(locations, layer) {
 /*
  * Helpers for passing data to the map layers
  */
-function updateMonitoringLocationsLayer(stations, layer) {
+function updateMonitoringLocationsLayer(
+  stations: MonitoringLocationAttributes[],
+  layer: __esri.FeatureLayer,
+) {
   const structuredProps = ['stationTotalsByGroup', 'timeframe'];
   const graphics = stations.map((station) => {
     const attributes = stringifyAttributes(structuredProps, station);
     return new Graphic({
-      geometry: {
-        type: 'point',
+      geometry: new Point({
         longitude: attributes.locationLongitude,
         latitude: attributes.locationLatitude,
-      },
+      }),
       attributes: {
         ...attributes,
       },
@@ -118,14 +152,23 @@ function updateMonitoringLocationsLayer(stations, layer) {
   editLayer(layer, graphics);
 
   // turn off clustering if there are 20 or less stations
+  // @ts-ignore
   layer.featureReduction =
     graphics.length > 20 ? monitoringClusterSettings : null;
 }
 
-function updateMonitoringGroups(stations, mappings) {
+function updateMonitoringGroups(
+  stations: MonitoringLocationAttributes[],
+  mappings: CharacteristicGroupMappings,
+) {
   // build up monitoring stations, toggles, and groups
-  let locationGroups = {
-    All: { label: 'All', stations: [], toggled: true },
+  let locationGroups: MonitoringLocationGroups = {
+    All: {
+      characteristicGroups: [],
+      label: 'All',
+      stations: [],
+      toggled: true,
+    },
   };
 
   stations.forEach((station) => {
@@ -138,7 +181,7 @@ function updateMonitoringGroups(stations, mappings) {
     mappings
       .filter((mapping) => mapping.label !== 'All')
       .forEach((mapping) => {
-        station.stationTotalsByLabel[mapping.label] = 0;
+        station.stationTotalsByLabel![mapping.label] = 0;
         for (const subGroup in station.stationTotalsByGroup) {
           // if characteristic group exists in switch config object
           if (!mapping.groupNames.includes(subGroup)) continue;
@@ -157,7 +200,7 @@ function updateMonitoringGroups(stations, mappings) {
             locationGroups[mapping.label].characteristicGroups.push(subGroup);
           }
           // add the lower-tier group counts to the corresponding top-tier group counts
-          station.stationTotalsByLabel[mapping.label] +=
+          station.stationTotalsByLabel![mapping.label] +=
             station.stationTotalsByGroup[subGroup];
         }
       });
@@ -190,7 +233,10 @@ function updateMonitoringGroups(stations, mappings) {
   return locationGroups;
 }
 
-const editLayer = async (layer, graphics) => {
+const editLayer = async (
+  layer: __esri.FeatureLayer,
+  graphics: __esri.Graphic[],
+) => {
   const featureSet = await layer.queryFeatures();
   const edits = {
     deleteFeatures: featureSet.features,
@@ -199,8 +245,11 @@ const editLayer = async (layer, graphics) => {
   return layer.applyEdits(edits);
 };
 
-function stringifyAttributes(structuredAttributes, attributes) {
-  const stringified = {};
+function stringifyAttributes(
+  structuredAttributes: string[],
+  attributes: { [property: string]: any },
+) {
+  const stringified: { [property: string]: string } = {};
   for (const property of structuredAttributes) {
     try {
       stringified[property] = JSON.stringify(attributes[property]);
@@ -215,7 +264,17 @@ function stringifyAttributes(structuredAttributes, attributes) {
 // tabs. This function is called from the useWaterbodyHighlight hook (handles
 // tab changes) and from the use useWaterbodyOnMap hook (handles sub tab changes
 // and the "Display By" dropdown on the state page).
-function closePopup({ mapView, setHighlightedGraphic, setSelectedGraphic }) {
+interface ClosePopupParams {
+  mapView: __esri.MapView;
+  setHighlightedGraphic: Dispatch<SetStateAction<__esri.Graphic | null>>;
+  setSelectedGraphic: Dispatch<SetStateAction<__esri.Graphic | null>>;
+}
+
+function closePopup({
+  mapView,
+  setHighlightedGraphic,
+  setSelectedGraphic,
+}: ClosePopupParams) {
   // remove highlights
   setHighlightedGraphic(null);
   setSelectedGraphic(null);
@@ -228,10 +287,10 @@ function closePopup({ mapView, setHighlightedGraphic, setSelectedGraphic }) {
 // assessmentunitidentifier. Any features found are added to the provided
 // features array.
 function getMatchingFeatures(
-  features,
-  layerData,
-  organizationid,
-  assessmentunitidentifier,
+  features: ExtendedGraphic[],
+  layerData: { features: ExtendedGraphic[] } | null,
+  organizationid: string,
+  assessmentunitidentifier: string,
 ) {
   layerData?.features?.forEach((feature) => {
     if (
@@ -248,6 +307,16 @@ function getMatchingFeatures(
 // method is used if the feature has an "originalGeometry" attribute, which
 // indicates that this feature has been clipped and the highlighting should
 // use the full original feature.
+interface HighlightFeatureParams {
+  mapView: __esri.MapView;
+  features: Array<ExtendedGraphic>;
+  highlightOptions: { color: string; fillOpacity: number };
+  handles: Handles;
+  group: string;
+  layer?: __esri.Layer | null;
+  callback?: ((feature: __esri.Graphic) => void) | null;
+}
+
 function highlightFeature({
   mapView,
   features,
@@ -256,21 +325,26 @@ function highlightFeature({
   group,
   layer = null,
   callback = null,
-}) {
+}: HighlightFeatureParams) {
   features.forEach((feature) => {
     if (feature.originalGeometry) {
-      mapView.graphics.add({
-        ...feature,
-        geometry: feature.originalGeometry,
-        symbol: getHighlightSymbol(
-          feature.originalGeometry,
-          highlightOptions.color,
-        ),
-      });
+      const symbol = getHighlightSymbol(
+        feature.originalGeometry,
+        highlightOptions.color,
+      );
+      if (!symbol) return;
+      mapView.graphics.add(
+        new Graphic({
+          ...feature,
+          geometry: feature.originalGeometry,
+          symbol,
+        }),
+      );
     } else {
       mapView
         .whenLayerView(layer ?? feature.layer)
         .then((layerView) => {
+          if (!isHighlightLayerView(layerView)) return;
           const highlightObject = layerView.highlight(feature);
           handles.add(highlightObject, group);
           if (callback) callback(feature);
@@ -278,6 +352,24 @@ function highlightFeature({
         .catch((err) => console.error(err));
     }
   });
+}
+
+function useAbortSignal() {
+  const abortController = useRef(new AbortController());
+
+  useEffect(() => {
+    if (abortController.current.signal.aborted) {
+      abortController.current = new AbortController();
+    }
+  }, [abortController.current.signal.aborted]);
+
+  useEffect(() => {
+    return function abort() {
+      abortController.current.abort();
+    };
+  }, []);
+
+  return abortController.current.signal;
 }
 
 // custom hook that combines lines, area, and points features from context,
@@ -295,9 +387,9 @@ function useWaterbodyFeatures() {
     orphanFeatures,
   } = useContext(LocationSearchContext);
 
-  const [features, setFeatures] = useState(null);
+  const [features, setFeatures] = useState<__esri.Graphic[] | null>(null);
 
-  const [lastHuc12, setLastHuc12] = useState(null);
+  const [lastHuc12, setLastHuc12] = useState<string | null>(null);
   useEffect(() => {
     // Ensure the lastHuc12 is reset when huc12 is reset.
     // This is to prevent issues of searching for the same huc
@@ -332,7 +424,7 @@ function useWaterbodyFeatures() {
     setLastHuc12(huc12);
 
     // combine lines, area, and points features
-    let featuresArray: Array<any> = [];
+    let featuresArray: Array<__esri.Graphic> = [];
     if (linesData.features && linesData.features.length > 0) {
       featuresArray = featuresArray.concat(linesData.features);
     }
@@ -371,7 +463,7 @@ function useWaterbodyFeatures() {
 function useWaterbodyFeaturesState() {
   const { waterbodyData } = useContext(LocationSearchContext);
 
-  const [features, setFeatures] = useState(null);
+  const [features, setFeatures] = useState<__esri.Graphic[] | null>(null);
 
   useEffect(() => {
     // if features has already been set, don't set again
@@ -384,7 +476,7 @@ function useWaterbodyFeaturesState() {
     }
 
     // combine lines, area, and points features
-    let featuresArray: Array<any> = [];
+    let featuresArray: Array<__esri.Graphic> = [];
     if (waterbodyData.features && waterbodyData.features.length > 0) {
       featuresArray = featuresArray.concat(waterbodyData.features);
     }
@@ -396,32 +488,37 @@ function useWaterbodyFeaturesState() {
 
 // custom hook that when given an (optional) waterbody attribute name,
 // draws waterbodies on the map
+type WaterbodyCondition =
+  | 'hidden'
+  | 'unassessed'
+  | 'good'
+  | 'polluted'
+  | 'nostatus';
+
 function useWaterbodyOnMap(
   attributeName: string = '',
   allWaterbodiesAttribute: string = '',
-  defaultCondition: string = 'hidden',
+  defaultCondition: WaterbodyCondition = 'hidden',
 ) {
-  const {
-    setHighlightedGraphic,
-    setSelectedGraphic, //
-  } = useMapHighlightState();
+  const { setHighlightedGraphic, setSelectedGraphic } = useMapHighlightState();
   const { allWaterbodiesLayer, pointsLayer, linesLayer, areasLayer, mapView } =
     useContext(LocationSearchContext);
 
   const setRenderer = useCallback(
     (layer, geometryType, attribute, alpha = null) => {
-      const renderer = {
-        type: 'unique-value',
-        field: attribute ? attribute : 'overallstatus',
-        fieldDelimiter: ', ',
+      const renderer = new UniqueValueRenderer({
         defaultSymbol: createWaterbodySymbol({
           condition: defaultCondition,
           selected: false,
           geometryType,
           alpha,
         }),
-        uniqueValueInfos: createUniqueValueInfos(geometryType, alpha),
-      };
+        field: attribute ? attribute : 'overallstatus',
+        fieldDelimiter: ', ',
+        uniqueValueInfos: createUniqueValueInfos(geometryType, alpha).map(
+          (info) => new UniqueValueInfo(info),
+        ),
+      });
 
       // for the restore tab use 3 fields for the unique value renderer
       if (attribute === 'restoreTab') {
@@ -431,7 +528,7 @@ function useWaterbodyOnMap(
         renderer.uniqueValueInfos = createUniqueValueInfosRestore(
           geometryType,
           alpha,
-        );
+        ).map((info) => new UniqueValueInfo(info));
       }
 
       layer.renderer = renderer;
@@ -480,10 +577,7 @@ function useWaterbodyOnMap(
 // parameter is true, this will also attempt to highlight waterbodies on
 // other layers that have the same organization id and assessment unit id.
 function useWaterbodyHighlight(findOthers: boolean = true) {
-  const {
-    highlightedGraphic,
-    selectedGraphic, //
-  } = useMapHighlightState();
+  const { highlightedGraphic, selectedGraphic } = useMapHighlightState();
   const {
     mapView,
     pointsLayer, //part of waterbody group layer
@@ -525,13 +619,13 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       selectedGraphic.originalGeometry ?? selectedGraphic.geometry;
     if (!geometry) return;
 
-    let params = geometry;
-    if (!geometry.extent && geometry.longitude && geometry.latitude) {
+    let params: __esri.Geometry | { target: __esri.Geometry; zoom: number } =
+      geometry;
+    if (isPoint(geometry)) {
       params = {
         target: new Point({
           latitude: geometry.latitude,
           longitude: geometry.longitude,
-          type: 'point',
         }),
         zoom: 18, // need to set the zoom level for points
       };
@@ -550,7 +644,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
   }, [mapView, selectedGraphic, services, navigate]);
 
   // Initializes a handles object for more efficient handling of highlight handlers
-  const [handles, setHandles] = useState(null);
+  const [handles, setHandles] = useState<Handles | null>(null);
   useEffect(() => {
     if (handles) return;
 
@@ -559,7 +653,14 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
 
   // Clears the cache when users change searches. This is to fix issues
   // with layer mismatch in ArcGIS API 4.14+
-  const [highlightState, setHighlightState] = useState({
+  type HighlightState = {
+    currentHighlight: ExtendedGraphic | null;
+    currentSelection: ExtendedGraphic | null;
+    cachedHighlights: {
+      [key: string]: ExtendedGraphic[];
+    };
+  };
+  const [highlightState, setHighlightState] = useState<HighlightState>({
     currentHighlight: null,
     currentSelection: null,
     cachedHighlights: {},
@@ -578,7 +679,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     if (!mapView || !handles) return;
 
     // use selected if there is not a highlighted graphic
-    let graphic;
+    let graphic: ExtendedGraphic | null = null;
     const group = 'highlights-group';
     if (highlightedGraphic) graphic = highlightedGraphic;
     else if (selectedGraphic) graphic = selectedGraphic;
@@ -653,7 +754,8 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     }
 
     if (!layer) return;
-    if (graphic.layer?.parent?.id === 'allWaterbodiesLayer') return;
+    const parent = (graphic.layer as ExtendedLayer)?.parent;
+    if (parent && 'id' in parent && parent.id === 'allWaterbodiesLayer') return;
 
     // remove the highlights
     handles.remove(group);
@@ -715,7 +817,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
           graphicAuId === selectedGraphicAuId))
     ) {
       // get features across all layers that have the same organizationid and assessmentunitid
-      const features = [];
+      const features: ExtendedGraphic[] = [];
       getMatchingFeatures(features, areasData, graphicOrgId, graphicAuId);
       getMatchingFeatures(features, linesData, graphicOrgId, graphicAuId);
       getMatchingFeatures(features, pointsData, graphicOrgId, graphicAuId);
@@ -801,7 +903,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         }
 
         Promise.all(requests).then((responses) => {
-          const featuresToCache = [];
+          const featuresToCache: ExtendedGraphic[] = [];
           responses.forEach((response) => {
             if (!response || !response.features) return;
 
@@ -815,7 +917,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
             });
 
             // build the new cachedHighlights object
-            const keyToSet = {};
+            const keyToSet: { [key: string]: ExtendedGraphic[] } = {};
             keyToSet[key] = featuresToCache;
             cachedHighlights = { ...cachedHighlights, ...keyToSet };
 
@@ -885,26 +987,39 @@ function useDynamicPopup() {
     LocationSearchContext,
   );
 
-  const setDynamicPopupFields = (fields) => {
+  const setDynamicPopupFields = (fields: __esri.Field[]) => {
     dynamicPopupFields = fields;
   };
 
   return function getDynamicPopup() {
-    var hucInfo = {
+    let hucInfo: ClickedHucState = {
       status: 'none',
       data: null,
     };
 
-    if (!resetData || services.status === 'fetching') return null;
+    const funcs = {
+      getClickedHuc: (_location: __esri.Point) => null,
+      getTemplate: (_graphic: Feature) => null,
+      getTitle: (_graphic: Feature) => null,
+    };
 
-    var lastLocation = null;
-    function getClickedHuc(location) {
-      return new Promise((resolve, reject) => {
+    if (!resetData || services.status === 'fetching') return funcs;
+
+    let lastLocation: { latitude: number; longitude: number } | null = null;
+    function getClickedHuc(location: __esri.Point) {
+      return new Promise<ClickedHucState>((resolve, reject) => {
         const testLocation = {
           latitude: location.latitude,
           longitude: location.longitude,
         };
 
+        function poll(timeout: number) {
+          if (['none', 'fetching'].includes(hucInfo.status)) {
+            setTimeout(poll, timeout);
+          } else {
+            resolve(hucInfo);
+          }
+        }
         // check if the location changed
         if (
           testLocation &&
@@ -915,14 +1030,6 @@ function useDynamicPopup() {
           // polls the dom, based on provided timeout, until the esri search input
           // is added. Once the input is added this sets the id attribute and stops
           // the polling.
-          function poll(timeout: number) {
-            if (['none', 'fetching'].includes(hucInfo.status)) {
-              setTimeout(poll, timeout);
-            } else {
-              resolve(hucInfo);
-            }
-          }
-
           poll(1000);
 
           return;
@@ -969,7 +1076,7 @@ function useDynamicPopup() {
     }
 
     // Wrapper function for getting the content of the popup
-    function getTemplate(graphic) {
+    function getTemplate(graphic: Feature) {
       // get the currently selected huc boundaries, if applicable
       const hucBoundaries = getHucBoundaries();
       const mapView = getMapView();
@@ -1002,7 +1109,7 @@ function useDynamicPopup() {
     }
 
     // Wrapper function for getting the title of the popup
-    function getTitle(graphic) {
+    function getTitle(graphic: Feature) {
       return getPopupTitle(graphic.graphic.attributes);
     }
 
@@ -1032,8 +1139,7 @@ function useSharedLayers() {
     };
 
     // define the color ramp renderer
-    const wsioHealthIndexRenderer = {
-      type: 'class-breaks',
+    const wsioHealthIndexRenderer = new ClassBreaksRenderer({
       field: 'PHWA_HEALTH_NDX_ST',
       classBreakInfos: [
         {
@@ -1041,7 +1147,7 @@ function useSharedLayers() {
           maxValue: 0.11,
           symbol: {
             ...symbol,
-            color: { r: 180, g: 238, b: 239 },
+            color: new Color({ r: 180, g: 238, b: 239 }),
           },
         },
         {
@@ -1049,7 +1155,7 @@ function useSharedLayers() {
           maxValue: 0.21,
           symbol: {
             ...symbol,
-            color: { r: 154, g: 209, b: 238 },
+            color: new Color({ r: 154, g: 209, b: 238 }),
           },
         },
         {
@@ -1057,7 +1163,7 @@ function useSharedLayers() {
           maxValue: 0.31,
           symbol: {
             ...symbol,
-            color: { r: 124, g: 187, b: 234 },
+            color: new Color({ r: 124, g: 187, b: 234 }),
           },
         },
         {
@@ -1065,7 +1171,7 @@ function useSharedLayers() {
           maxValue: 0.41,
           symbol: {
             ...symbol,
-            color: { r: 90, g: 162, b: 227 },
+            color: new Color({ r: 90, g: 162, b: 227 }),
           },
         },
         {
@@ -1073,7 +1179,7 @@ function useSharedLayers() {
           maxValue: 0.51,
           symbol: {
             ...symbol,
-            color: { r: 54, g: 140, b: 225 },
+            color: new Color({ r: 54, g: 140, b: 225 }),
           },
         },
         {
@@ -1081,7 +1187,7 @@ function useSharedLayers() {
           maxValue: 0.61,
           symbol: {
             ...symbol,
-            color: { r: 32, g: 118, b: 217 },
+            color: new Color({ r: 32, g: 118, b: 217 }),
           },
         },
         {
@@ -1089,7 +1195,7 @@ function useSharedLayers() {
           maxValue: 0.71,
           symbol: {
             ...symbol,
-            color: { r: 35, g: 88, b: 198 },
+            color: new Color({ r: 35, g: 88, b: 198 }),
           },
         },
         {
@@ -1097,7 +1203,7 @@ function useSharedLayers() {
           maxValue: 0.81,
           symbol: {
             ...symbol,
-            color: { r: 30, g: 61, b: 181 },
+            color: new Color({ r: 30, g: 61, b: 181 }),
           },
         },
         {
@@ -1105,7 +1211,7 @@ function useSharedLayers() {
           maxValue: 0.91,
           symbol: {
             ...symbol,
-            color: { r: 23, g: 38, b: 163 },
+            color: new Color({ r: 23, g: 38, b: 163 }),
           },
         },
         {
@@ -1113,33 +1219,34 @@ function useSharedLayers() {
           maxValue: 1.01,
           symbol: {
             ...symbol,
-            color: { r: 10, g: 8, b: 145 },
+            color: new Color({ r: 10, g: 8, b: 145 }),
           },
         },
       ],
-    };
+    });
 
     // return the layer properties object
-    const wsioHealthIndexLayer = new FeatureLayer({
-      id: 'wsioHealthIndexLayer',
-      url: services.data.wsio,
-      title: 'State Watershed Health Index',
-      outFields: ['HUC12_TEXT', 'STATES_ALL', 'PHWA_HEALTH_NDX_ST'],
-      renderer: wsioHealthIndexRenderer,
-      listMode: 'show',
-      visible: false,
-      legendEnabled: false,
-      popupTemplate: {
-        title: getTitle,
-        content: getTemplate,
-        outFields: [
-          'PHWA_HEALTH_NDX_ST',
-          'HUC12_TEXT',
-          'NAME_HUC12',
-          'STATES_ALL',
-        ],
-      },
-    });
+    const wsioHealthIndexLayer: __esri.FeatureLayer & ExtendedLayer =
+      new FeatureLayer({
+        id: 'wsioHealthIndexLayer',
+        url: services.data.wsio,
+        title: 'State Watershed Health Index',
+        outFields: ['HUC12_TEXT', 'STATES_ALL', 'PHWA_HEALTH_NDX_ST'],
+        renderer: wsioHealthIndexRenderer,
+        listMode: 'show',
+        visible: false,
+        legendEnabled: false,
+        popupTemplate: {
+          title: getTitle,
+          content: getTemplate,
+          outFields: [
+            'PHWA_HEALTH_NDX_ST',
+            'HUC12_TEXT',
+            'NAME_HUC12',
+            'STATES_ALL',
+          ],
+        },
+      });
 
     setWsioHealthIndexLayer(wsioHealthIndexLayer);
 
@@ -1148,10 +1255,16 @@ function useSharedLayers() {
     reactiveUtils.watch(
       () => wsioHealthIndexLayer.visible,
       () => {
+        const parent = wsioHealthIndexLayer.parent;
+        if (!parent || (!(parent instanceof Map) && !isGroupLayer(parent)))
+          return;
         // find the boundaries layer
-        wsioHealthIndexLayer.parent.layers.items.forEach((layer) => {
-          if (layer.id !== 'currentLocationLayer') return;
+        parent.layers.forEach((layer) => {
+          if (layer.id !== 'currentLocationLayer' || !isGroupLayer(layer))
+            return;
+
           const boundariesLayer = layer.findLayerById('boundariesLayer');
+          if (!boundariesLayer || !isGraphicsLayer(boundariesLayer)) return;
 
           // remove shading when wsio layer is on and add
           // shading back in when wsio layer is off
@@ -1175,7 +1288,6 @@ function useSharedLayers() {
       title: 'Protected Areas',
       url: services.data.protectedAreasDatabase,
       legendEnabled: false,
-      outFields: ['*'],
       sublayers: [
         {
           id: 0,
@@ -1198,7 +1310,6 @@ function useSharedLayers() {
       id: 'protectedAreasHighlightLayer',
       title: 'Protected Areas Highlight Layer',
       listMode: 'hide',
-      legendEnabled: false,
     });
 
     setProtectedAreasHighlightLayer(protectedAreasHighlightLayer);
@@ -1207,14 +1318,12 @@ function useSharedLayers() {
   }
 
   function getWildScenicRiversLayer() {
-    const wildScenicRiversRenderer = {
-      type: 'simple',
-      symbol: {
-        type: 'simple-line',
-        color: [0, 123, 255],
+    const wildScenicRiversRenderer = new SimpleRenderer({
+      symbol: new SimpleLineSymbol({
+        color: new Color([0, 123, 255]),
         width: 3,
-      },
-    };
+      }),
+    });
 
     const wildScenicRiversLayer = new FeatureLayer({
       id: 'wildScenicRiversLayer',
@@ -1240,10 +1349,8 @@ function useSharedLayers() {
   function getTribalLayer() {
     // redefining the renderer for the alaska native villages and other tribes
     // layers so the default size value is used
-    let renderer = {
-      type: 'simple',
-      symbol: {
-        type: 'simple-marker',
+    let renderer = new SimpleRenderer({
+      symbol: new SimpleMarkerSymbol({
         style: 'circle',
         color: [158, 0, 124, 1],
         outline: {
@@ -1251,8 +1358,8 @@ function useSharedLayers() {
           color: [0, 0, 0, 1],
           width: 0.75,
         },
-      },
-    };
+      }),
+    });
 
     const alaskaNativeVillageOutFields = ['NAME', 'TRIBE_NAME'];
     const alaskaNativeVillages = new FeatureLayer({
@@ -1263,6 +1370,7 @@ function useSharedLayers() {
       listMode: 'hide',
       visible: true,
       labelsVisible: false,
+      legendEnabled: false,
       renderer,
       popupTemplate: {
         title: getTitle,
@@ -1271,7 +1379,7 @@ function useSharedLayers() {
       },
     });
 
-    renderer.symbol.color = [168, 112, 0, 1];
+    renderer.symbol.color = new Color([168, 112, 0, 1]);
     const lower48TribalOutFields = ['TRIBE_NAME'];
     const otherTribes = new FeatureLayer({
       id: 'tribalLayer-5',
@@ -1280,6 +1388,7 @@ function useSharedLayers() {
       outFields: lower48TribalOutFields,
       listMode: 'hide',
       visible: true,
+      legendEnabled: false,
       labelsVisible: false,
       renderer,
       popupTemplate: {
@@ -1289,19 +1398,17 @@ function useSharedLayers() {
       },
     });
 
-    renderer = {
-      type: 'simple',
-      symbol: {
-        type: 'simple-fill',
+    renderer = new SimpleRenderer({
+      symbol: new SimpleFillSymbol({
         style: 'solid',
-        color: [154, 154, 154, 0.75],
+        color: new Color([154, 154, 154, 0.75]),
         outline: {
           style: 'solid',
           color: [110, 110, 110, 0.75],
           width: 1,
         },
-      },
-    };
+      }),
+    });
     const americanIndianReservations = new FeatureLayer({
       id: 'tribalLayer-2',
       url: `${services.data.tribal}/2`,
@@ -1310,6 +1417,7 @@ function useSharedLayers() {
       listMode: 'hide',
       visible: true,
       labelsVisible: false,
+      legendEnabled: false,
       renderer,
       popupTemplate: {
         title: getTitle,
@@ -1326,6 +1434,7 @@ function useSharedLayers() {
       listMode: 'hide',
       visible: true,
       labelsVisible: false,
+      legendEnabled: false,
       renderer,
       popupTemplate: {
         title: getTitle,
@@ -1341,6 +1450,7 @@ function useSharedLayers() {
       outFields: lower48TribalOutFields,
       listMode: 'hide',
       visible: true,
+      legendEnabled: false,
       labelsVisible: false,
       renderer,
       popupTemplate: {
@@ -1355,7 +1465,6 @@ function useSharedLayers() {
       title: 'Tribal Areas',
       listMode: 'show',
       visible: false,
-      legendEnabled: false,
       layers: [
         alaskaNativeVillages,
         americanIndianReservations,
@@ -1385,18 +1494,16 @@ function useSharedLayers() {
       listMode: 'hide-children',
       visible: false,
       legendEnabled: false,
-      renderer: {
-        type: 'simple',
-        symbol: {
-          type: 'simple-fill',
+      renderer: new SimpleRenderer({
+        symbol: new SimpleFillSymbol({
           style: 'none',
           outline: {
             style: 'solid',
             color: '#FF00C5',
             width: 2,
           },
-        },
-      },
+        }),
+      }),
       outFields: congressionalLayerOutFields,
       popupTemplate: {
         title: getTitle,
@@ -1428,18 +1535,16 @@ function useSharedLayers() {
       visible: false,
       legendEnabled: false,
       outFields: countyLayerOutFields,
-      renderer: {
-        type: 'simple',
-        symbol: {
-          type: 'simple-fill',
+      renderer: new SimpleRenderer({
+        symbol: new SimpleFillSymbol({
           style: 'none',
           outline: {
             color: [251, 164, 93, 255],
             width: 0.75,
             style: 'solid',
           },
-        },
-      },
+        }),
+      }),
       popupTemplate: {
         title: getTitle,
         content: getTemplate,
@@ -1489,65 +1594,72 @@ function useSharedLayers() {
     };
 
     const ejDemographicIndex = new FeatureLayer({
-      id: 0,
+      id: '0',
       url: `${services.data.ejscreen}0`,
       title: 'Demographic Index',
       outFields: ejOutFields,
       visible: true,
+      legendEnabled: false,
       popupTemplate: ejscreenPopupTemplate,
     });
 
     const ejUnderAge5 = new FeatureLayer({
-      id: 1,
+      id: '1',
       url: `${services.data.ejscreen}1`,
       title: 'Individuals under age 5',
       outFields: ejOutFields,
       visible: false,
+      legendEnabled: false,
       popupTemplate: ejscreenPopupTemplate,
     });
 
     const ejOverAge64 = new FeatureLayer({
-      id: 2,
+      id: '2',
       url: `${services.data.ejscreen}2`,
       title: 'Individuals over age 64',
       outFields: ejOutFields,
       visible: false,
+      legendEnabled: false,
       popupTemplate: ejscreenPopupTemplate,
     });
 
     const ejLowIncome = new FeatureLayer({
-      id: 3,
+      id: '3',
       url: `${services.data.ejscreen}3`,
       title: 'Percent Low-Income',
       outFields: ejOutFields,
       visible: false,
+      legendEnabled: false,
       popupTemplate: ejscreenPopupTemplate,
     });
 
     const ejLinguistIsolated = new FeatureLayer({
-      id: 4,
+      id: '4',
       url: `${services.data.ejscreen}4`,
       title: 'Linguistic Isolation',
       outFields: ejOutFields,
       visible: false,
+      legendEnabled: false,
       popupTemplate: ejscreenPopupTemplate,
     });
 
     const ejMinority = new FeatureLayer({
-      id: 5,
+      id: '5',
       url: `${services.data.ejscreen}5`,
       title: 'Percent People of Color',
       outFields: ejOutFields,
       visible: false,
+      legendEnabled: false,
       popupTemplate: ejscreenPopupTemplate,
     });
 
     const ejLessThanHS = new FeatureLayer({
-      id: 6,
+      id: '6',
       url: `${services.data.ejscreen}6`,
       title: 'Less than High School Education',
       outFields: ejOutFields,
       visible: false,
+      legendEnabled: false,
       popupTemplate: ejscreenPopupTemplate,
     });
 
@@ -1556,7 +1668,6 @@ function useSharedLayers() {
       title: 'Demographic Indicators',
       listMode: 'show',
       visible: false,
-      legendEnabled: false,
       layers: [
         ejLessThanHS,
         ejMinority,
@@ -1579,8 +1690,7 @@ function useSharedLayers() {
     const minScale = 577791;
 
     // Build the feature layers that will make up the waterbody layer
-    const pointsRenderer = {
-      type: 'unique-value',
+    const pointsRenderer = new UniqueValueRenderer({
       field: 'overallstatus',
       fieldDelimiter: ', ',
       defaultSymbol: createWaterbodySymbol({
@@ -1590,17 +1700,17 @@ function useSharedLayers() {
         alpha: allWaterbodiesAlpha,
       }),
       uniqueValueInfos: createUniqueValueInfos('point', allWaterbodiesAlpha),
-    };
+    });
     const pointsLayer = new FeatureLayer({
       url: services.data.waterbodyService.points,
       outFields: ['*'],
       renderer: pointsRenderer,
+      legendEnabled: false,
       popupTemplate,
       minScale,
     });
 
-    const linesRenderer = {
-      type: 'unique-value',
+    const linesRenderer = new UniqueValueRenderer({
       field: 'overallstatus',
       fieldDelimiter: ', ',
       defaultSymbol: createWaterbodySymbol({
@@ -1610,17 +1720,17 @@ function useSharedLayers() {
         alpha: allWaterbodiesAlpha,
       }),
       uniqueValueInfos: createUniqueValueInfos('polyline', allWaterbodiesAlpha),
-    };
+    });
     const linesLayer = new FeatureLayer({
       url: services.data.waterbodyService.lines,
       outFields: ['*'],
       renderer: linesRenderer,
+      legendEnabled: false,
       popupTemplate,
       minScale,
     });
 
-    const areasRenderer = {
-      type: 'unique-value',
+    const areasRenderer = new UniqueValueRenderer({
       field: 'overallstatus',
       fieldDelimiter: ', ',
       defaultSymbol: createWaterbodySymbol({
@@ -1630,11 +1740,12 @@ function useSharedLayers() {
         alpha: allWaterbodiesAlpha,
       }),
       uniqueValueInfos: createUniqueValueInfos('polygon', allWaterbodiesAlpha),
-    };
+    });
     const areasLayer = new FeatureLayer({
       url: services.data.waterbodyService.areas,
       outFields: ['*'],
       renderer: areasRenderer,
+      legendEnabled: false,
       popupTemplate,
       minScale,
     });
@@ -1645,7 +1756,6 @@ function useSharedLayers() {
       title: 'All Waterbodies',
       listMode: 'hide',
       visible: true,
-      legendEnabled: false,
       minScale,
       opacity: 0.3,
     });
@@ -1700,11 +1810,13 @@ function useSharedLayers() {
 
 /** Normalizes USGS streamgage data with monitoring stations data. */
 function useStreamgageData(
-  usgsStreamgages,
-  usgsPrecipitation,
-  usgsDailyAverages,
+  usgsStreamgages: FetchState<UsgsStreamgagesData>,
+  usgsPrecipitation: FetchState<UsgsPrecipitationData>,
+  usgsDailyAverages: FetchState<UsgsDailyAveragesData>,
 ) {
-  const [normalizedStreamgages, setNormalizedStreamgages] = useState([]);
+  const [normalizedStreamgages, setNormalizedStreamgages] = useState<
+    UsgsStreamgageAttributes[]
+  >([]);
 
   useEffect(() => {
     if (
@@ -1716,7 +1828,10 @@ function useStreamgageData(
     }
 
     const gages = usgsStreamgages.data.value.map((gage) => {
-      const streamgageMeasurements = { primary: [], secondary: [] };
+      const streamgageMeasurements: {
+        primary: StreamgageMeasurement[];
+        secondary: StreamgageMeasurement[];
+      } = { primary: [], secondary: [] };
 
       [...gage.Datastreams]
         .filter((item) => item.Observations.length > 0)
@@ -1726,9 +1841,12 @@ function useStreamgageData(
           const parameterDesc = item.description.split(' / USGS-')[0];
           const parameterUnit = item.unitOfMeasurement;
 
-          let measurement = observation.result;
+          let measurement = parseFloat(observation.result) || null;
           // convert measurements recorded in celsius to fahrenheit
-          if (['00010', '00020', '85583'].includes(parameterCode)) {
+          if (
+            measurement &&
+            ['00010', '00020', '85583'].includes(parameterCode)
+          ) {
             measurement = measurement * (9 / 5) + 32;
 
             // round to 1 decimal place
@@ -1762,7 +1880,7 @@ function useStreamgageData(
         });
 
       return {
-        monitoringType: 'Current Water Conditions',
+        monitoringType: 'Current Water Conditions' as const,
         siteId: gage.properties.monitoringLocationNumber,
         orgId: gage.properties.agencyCode,
         orgName: gage.properties.agency,
@@ -1793,7 +1911,7 @@ function useStreamgageData(
             parameterName: 'Total Daily Rainfall',
             parameterUsgsName: 'Precipitation (USGS Daily Value)',
             parameterCode: '00045',
-            measurement: observation.value,
+            measurement: parseFloat(observation.value) || null,
             datetime: new Date(observation.dateTime).toLocaleDateString(),
             dailyAverages: [], // NOTE: will be set below
             unitAbbr: 'in',
@@ -1821,27 +1939,31 @@ function useStreamgageData(
           const streamgage = gages.find((gage) => gage.siteId === siteId);
 
           const paramCode = site.variable.variableCode[0].value;
-          const observations = site.values[0].value.map((observation) => {
-            let measurement = observation.value;
-            // convert measurements recorded in celsius to fahrenheit
-            if (['00010', '00020', '85583'].includes(paramCode)) {
-              measurement = measurement * (9 / 5) + 32;
+          const observations = site.values[0].value
+            .filter((observation) => observation.value !== null)
+            .map((observation) => {
+              let measurement = parseFloat(observation.value);
+              // convert measurements recorded in celsius to fahrenheit
+              if (['00010', '00020', '85583'].includes(paramCode)) {
+                measurement = measurement * (9 / 5) + 32;
 
-              // round to 1 decimal place
-              measurement = Math.round(measurement * 10) / 10;
-            }
+                // round to 1 decimal place
+                measurement = Math.round(measurement * 10) / 10;
+              }
 
-            return { measurement, date: new Date(observation.dateTime) };
-          });
+              return { measurement, date: new Date(observation.dateTime) };
+            });
 
+          const measurements = streamgage?.streamgageMeasurements;
+          if (!measurements) return;
           // NOTE: 'type' is either 'primary' or 'secondary' – loop over both
-          for (const type in streamgage?.streamgageMeasurements) {
-            streamgage.streamgageMeasurements[type].forEach((measurement) => {
+          Object.values(measurements).forEach((measurementType) => {
+            measurementType.forEach((measurement) => {
               if (measurement.parameterCode === paramCode.toString()) {
                 measurement.dailyAverages = observations;
               }
             });
-          }
+          });
         }
       });
     }
@@ -1854,11 +1976,15 @@ function useStreamgageData(
 
 // Custom hook that is used for handling key presses. This can be used for
 // navigating lists with a keyboard.
-function useKeyPress(targetKey: string, ref: Object) {
+function useKeyPress(
+  targetKey: string,
+  ref: MutableRefObject<HTMLElement | null>,
+) {
   const [keyPressed, setKeyPressed] = useState(false);
 
-  function downHandler({ key }: { key: string }) {
-    if (key === targetKey) {
+  function downHandler(ev: KeyboardEvent) {
+    if (ev.key === targetKey) {
+      ev.preventDefault();
       setKeyPressed(true);
     }
   }
@@ -1895,12 +2021,15 @@ function useGeometryUtils() {
   // then subtract the huc from this box. This results in a large box that has
   // a hole in it that is in the shape of the huc. Finally we subtract this
   // box from the waterbodies graphics.
-  const cropGeometryToHuc = function (resFeatures, hucGeometry) {
+  const cropGeometryToHuc = function (
+    resFeatures: __esri.Graphic[],
+    hucGeometry: __esri.Geometry,
+  ) {
     // start by getting the extend of the huc boundaries
     let extent = hucGeometry.extent;
 
     // add the extent of all of the waterbodies
-    const features = [];
+    const features: __esri.Graphic[] = [];
     resFeatures.forEach((feature) => {
       extent.union(feature.geometry.extent);
     });
@@ -1928,10 +2057,12 @@ function useGeometryUtils() {
       // crop the waterbodies that extend outside of the huc
       const newGeometry = geometryEngine.difference(
         feature.geometry,
-        subtractor,
+        Array.isArray(subtractor) ? subtractor[0] : subtractor,
       );
 
-      feature.geometry = newGeometry;
+      feature.geometry = Array.isArray(newGeometry)
+        ? newGeometry[0]
+        : newGeometry;
       features.push(feature);
     });
 
@@ -1959,20 +2090,21 @@ function useGeometryUtils() {
 
 // Custom hook that is used to determine if the provided ref is
 // visible on the screen.
-function useOnScreen(ref) {
+function useOnScreen(node: HTMLDivElement | null) {
   const [isIntersecting, setIntersecting] = useState(false);
 
   useEffect(() => {
+    if (!node) return;
     const observer = new IntersectionObserver(([entry]) =>
       setIntersecting(entry.isIntersecting),
     );
 
-    observer.observe(ref.current);
+    observer.observe(node);
     // Remove the observer as soon as the component is unmounted
     return () => {
       observer.disconnect();
     };
-  }, [ref]);
+  }, [node]);
 
   return isIntersecting;
 }
@@ -2014,6 +2146,7 @@ function useMonitoringLocations() {
 }
 
 export {
+  useAbortSignal,
   useDynamicPopup,
   useGeometryUtils,
   useKeyPress,

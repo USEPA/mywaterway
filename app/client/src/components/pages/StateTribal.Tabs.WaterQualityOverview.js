@@ -40,7 +40,8 @@ import {
 } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
-import { normalizeString, titleCase } from 'utils/utils';
+import { isAbort, normalizeString, titleCase } from 'utils/utils';
+import { useAbortSignal } from 'utils/hooks';
 // images
 import drinkingWaterIcon from 'images/drinking-water.png';
 // errors
@@ -259,6 +260,7 @@ const noDataMessageStyles = css`
 `;
 
 function WaterQualityOverview() {
+  const abortSignal = useAbortSignal();
   const services = useServicesContext();
   const stateNationalUses = useStateNationalUsesContext();
   const waterTypeOptions = useWaterTypeOptionsContext();
@@ -325,24 +327,25 @@ function WaterQualityOverview() {
       // use the excludeAsssessments flag to improve performance, since we only
       // need the documents and reportStatusCode
       const url = `${services.data.attains.serviceUrl}assessments?organizationId=${orgID}&reportingCycle=${year}&excludeAssessments=Y`;
-      fetchCheck(url)
+      fetchCheck(url, abortSignal)
         .then((res) => {
           const orgData = res.items[0];
           setOrganizationData({ status: 'success', data: orgData ?? {} });
         })
         .catch((err) => {
+          if (isAbort(err)) return;
           console.error(err);
           setOrganizationData({ status: 'failure', data: {} });
         });
     },
-    [services, setOrganizationData],
+    [abortSignal, services, setOrganizationData],
   );
 
   // Get the state intro text
   const fetchIntroText = useCallback(
     (orgID) => {
       const url = `${services.data.attains.serviceUrl}metrics?organizationId=${orgID}`;
-      fetchCheck(url)
+      fetchCheck(url, abortSignal)
         .then((res) => {
           // check for missing data
           if (res.length === 0) {
@@ -353,12 +356,13 @@ function WaterQualityOverview() {
           setIntroText({ status: 'success', data: res[0] });
         })
         .catch((err) => {
+          if (isAbort(err)) return;
           console.error('Error with metrics org ID web service: ', err);
           setSurveyServiceError(true);
           setIntroText({ status: 'failure', data: {} });
         });
     },
-    [setIntroText, services],
+    [abortSignal, setIntroText, services],
   );
 
   // summary service has the different years of data for recreation/eco/fish/water/other
@@ -396,7 +400,7 @@ function WaterQualityOverview() {
       `?organizationId=${stateAndOrganization.organizationId}` +
       reportingCycleParam;
 
-    fetchCheck(url)
+    fetchCheck(url, abortSignal)
       .then((res) => {
         // for states like Alaska that have no reporting cycles
         if (
@@ -442,6 +446,7 @@ function WaterQualityOverview() {
         );
       })
       .catch((err) => {
+        if (isAbort(err)) return;
         console.error('Error with attains summary web service: ', err);
 
         // for states like Arkansas that cause internal server errors in ATTAINS when queried
@@ -460,6 +465,7 @@ function WaterQualityOverview() {
 
     setUsesStateSummaryCalled(true);
   }, [
+    abortSignal,
     activeState,
     currentReportingCycle,
     fetchAssessments,
@@ -482,7 +488,7 @@ function WaterQualityOverview() {
         `'${stateCode}'` +
         services.data.fishingInformationService.queryStringSecondPart;
 
-      fetchCheck(url)
+      fetchCheck(url, abortSignal)
         .then((res) => {
           if (!res || !res.features || res.features.length === 0) {
             setFishingAdvisoryData({ status: 'success', data: [] });
@@ -503,18 +509,19 @@ function WaterQualityOverview() {
           }
         })
         .catch((err) => {
+          if (isAbort(err)) return;
           console.error(err);
           setFishingAdvisoryData({ status: 'failure', data: [] });
         });
     },
-    [setFishingAdvisoryData, services],
+    [abortSignal, setFishingAdvisoryData, services],
   );
 
   // Get the survey data and survey documents
   const fetchSurveyData = useCallback(
     (orgID) => {
       const url = `${services.data.attains.serviceUrl}surveys?organizationId=${orgID}`;
-      fetchCheck(url)
+      fetchCheck(url, abortSignal)
         .then((res) => {
           setSurveyLoading(false);
 
@@ -539,12 +546,13 @@ function WaterQualityOverview() {
           setSurveyDocuments(surveys[0].documents);
         })
         .catch((err) => {
+          if (isAbort(err)) return;
           console.error('Error with surveys org ID web service: ', err);
           setSurveyServiceError(true);
           setSurveyLoading(false);
         });
     },
-    [services],
+    [abortSignal, services],
   );
 
   // get state organization ID for summary service
@@ -562,7 +570,7 @@ function WaterQualityOverview() {
       }
 
       const url = `${services.data.attains.serviceUrl}states/${stateID}/organizations`;
-      fetchCheck(url)
+      fetchCheck(url, abortSignal)
         .then((res) => {
           let orgID;
 
@@ -592,12 +600,14 @@ function WaterQualityOverview() {
           }
         })
         .catch((err) => {
+          if (isAbort(err)) return;
           console.error('Error with attains org ID web service: ', err);
           setServiceError(true);
           setLoading(false);
         });
     },
     [
+      abortSignal,
       fetchIntroText,
       fetchSurveyData,
       services,
@@ -666,7 +676,7 @@ function WaterQualityOverview() {
   useEffect(() => {
     if (!stories.nextUrl) return;
 
-    fetchCheck(stories.nextUrl)
+    fetchCheck(stories.nextUrl, abortSignal)
       .then((res) => {
         // filter stories that have no description text or url
         const filteredItems = res.items.filter(
@@ -679,6 +689,7 @@ function WaterQualityOverview() {
         });
       })
       .catch((err) => {
+        if (isAbort(err)) return;
         console.error(err);
         setStories({
           status: 'failure',
@@ -686,7 +697,7 @@ function WaterQualityOverview() {
           nextUrl: '',
         });
       });
-  }, [stories]);
+  }, [abortSignal, stories]);
 
   // Gets a list of uses that pertain to the current topic
   useEffect(() => {

@@ -1,28 +1,29 @@
-// @flow
-
-import React, {
+import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
 import { render } from 'react-dom';
 import { Rnd } from 'react-rnd';
 import { css } from 'styled-components/macro';
+import Polygon from '@arcgis/core/geometry/Polygon';
 import BasemapGallery from '@arcgis/core/widgets/BasemapGallery';
 import Expand from '@arcgis/core/widgets/Expand';
 import Graphic from '@arcgis/core/Graphic';
+import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import Home from '@arcgis/core/widgets/Home';
 import LayerList from '@arcgis/core/widgets/LayerList';
 import Legend from '@arcgis/core/widgets/Legend';
 import Point from '@arcgis/core/geometry/Point';
 import PortalBasemapsSource from '@arcgis/core/widgets/BasemapGallery/support/PortalBasemapsSource';
 import * as query from '@arcgis/core/rest/query';
-import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import ScaleBar from '@arcgis/core/widgets/ScaleBar';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import Viewpoint from '@arcgis/core/Viewpoint';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // components
 import AddDataWidget from 'components/shared/AddDataWidget';
@@ -34,11 +35,22 @@ import { useFullscreenState } from 'contexts/Fullscreen';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
-import { isInScale, shallowCompare } from 'utils/mapFunctions';
+import {
+  hasSublayers,
+  isGroupLayer,
+  isInScale,
+  isPolygon,
+  shallowCompare,
+} from 'utils/mapFunctions';
+import { isAbort } from 'utils/utils';
 // helpers
-import { useDynamicPopup } from 'utils/hooks';
+import { useAbortSignal, useDynamicPopup } from 'utils/hooks';
 // icons
 import resizeIcon from 'images/resize.png';
+// types
+import type { CSSProperties, Dispatch, SetStateAction } from 'react';
+import type { Container } from 'react-dom';
+import type { Feature, ExtendedLayer, ScaledLayer, ServicesState } from 'types';
 
 const layersToAllowPopups = ['restore', 'protect'];
 
@@ -118,12 +130,12 @@ const orderedLayers = [
 ];
 
 // function called whenever the map's zoom changes
-function handleMapZoomChange(view: __esri.View) {
+function handleMapZoomChange(view: __esri.MapView) {
   // return early if zoom is not set to an integer
   if (view.zoom % 1 !== 0) return;
   // set listMode for each layer, when zoom changes (practically, this shows/
   // hides 'County' or 'Mapped Water (all)' layers, depending on zoom level)
-  view.map.layers.items.forEach((layer) => {
+  view.map.layers.forEach((layer) => {
     if (zoomDependentLayers.includes(layer.id)) {
       if (isInScale(layer, view.scale)) {
         layer.listMode = layer.hasOwnProperty('sublayers')
@@ -137,17 +149,15 @@ function handleMapZoomChange(view: __esri.View) {
 }
 
 function updateVisibleLayers(
-  view: any,
+  view: __esri.MapView,
   displayEsriLegend: boolean,
-  hmwLegendNode: Node,
+  hmwLegendNode: Container,
   additionalLegendInfo: Object,
 ) {
-  if (!view || !view.map || !view.map.layers || !view.map.layers.items) {
-    return;
-  }
+  if (!view?.map?.layers) return;
 
   // build an array of layers that are visible based on the ordering above
-  const visibleLayers = [];
+  const visibleLayers: __esri.Layer[] = [];
   orderedLayers.forEach((layerId) => {
     // get the esri layer from the map view
     let layer = view.map.findLayerById(layerId);
@@ -157,17 +167,17 @@ function updateVisibleLayers(
     // to the legend. Ignoring the waterbodyLayer is a workaround to the waterbodyLayer
     // not having any child layers when the layer is first created.
     if (layerId !== 'waterbodyLayer') {
-      if (layer.layers) {
+      if (isGroupLayer(layer)) {
         let anyVisible = false;
         layer.layers.forEach((sublayer) => {
           if (sublayer.visible) anyVisible = true;
         });
         if (!anyVisible) return;
       }
-      if (layer.sublayers) {
+      if (hasSublayers(layer)) {
         let anyVisible = false;
         layer.sublayers.forEach((sublayer) => {
-          if (sublayer.visible) anyVisible = true;
+          if ('visible' in sublayer && sublayer.visible) anyVisible = true;
         });
         if (!anyVisible) return;
       }
@@ -216,22 +226,30 @@ const resizeHandleStyles = css`
 // --- components ---
 type Props = {
   // map and view props auto passed from parent Map component by react-arcgis
-  map: any,
-  view: any,
-  layers: Array<any>,
-  scrollToComponent: string,
-  onHomeWidgetRendered: (homeWidget: any) => void,
+  map: __esri.Map;
+  view: __esri.MapView;
+  layers: Array<__esri.Layer> | null;
+  onHomeWidgetRendered?: (homeWidget: __esri.Home) => void;
 };
 
 function MapWidgets({
   map,
   view,
   layers,
-  scrollToComponent,
   onHomeWidgetRendered = () => {},
 }: Props) {
   const { addDataWidgetVisible, setAddDataWidgetVisible, widgetLayers } =
     useAddDataWidgetState();
+
+  const abortSignal = useAbortSignal();
+  const watchHandles = useMemo<IHandle[]>(() => [], []);
+  const observers = useMemo<MutationObserver[]>(() => [], []);
+  useEffect(() => {
+    return function cleanup() {
+      watchHandles.forEach((handle) => handle.remove());
+      observers.forEach((observer) => observer.disconnect());
+    };
+  }, [observers, watchHandles]);
 
   const {
     homeWidget,
@@ -276,7 +294,9 @@ function MapWidgets({
 
   const [mapEventHandlersSet, setMapEventHandlersSet] = useState(false);
 
-  const [popupWatcher, setPopupWatcher] = useState(null);
+  const [popupWatcher, setPopupWatcher] = useState<__esri.WatchHandle | null>(
+    null,
+  );
   useEffect(() => {
     if (!view || popupWatcher) return;
 
@@ -286,8 +306,8 @@ function MapWidgets({
         const features = view.popup.features;
         if (features.length === 0) return;
 
-        const newFeatures = [];
-        const idsAdded = [];
+        const newFeatures: __esri.Graphic[] = [];
+        const idsAdded: string[] = [];
         features.forEach((item) => {
           const id = item.attributes?.assessmentunitidentifier;
           const geometryType = item.geometry?.type;
@@ -316,7 +336,9 @@ function MapWidgets({
           // filter out popups for allWaterbodiesLayer inside of the huc
           const pathParts = window.location.pathname.split('/');
           const panelName = pathParts[pathParts.length - 1];
-          const layerParentId = item.layer?.parent?.id;
+          const layerParent = (item.layer as ExtendedLayer)?.parent;
+          const layerParentId =
+            layerParent && 'id' in layerParent && layerParent.id;
           if (
             clickedInHuc &&
             layerParentId === 'allWaterbodiesLayer' &&
@@ -362,7 +384,7 @@ function MapWidgets({
       let type = 'other';
 
       let groupType = '';
-      if (layer.type === 'group') {
+      if (isGroupLayer(layer)) {
         const groupLayer = layer;
         groupLayer.layers.forEach((innerLayer, index) => {
           if (groupType === 'combo') return;
@@ -414,7 +436,10 @@ function MapWidgets({
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Keeps the layer visiblity in sync with the layer list widget visibilities
-  const [toggledLayer, setToggledLayer] = useState({});
+  const [toggledLayer, setToggledLayer] = useState({
+    layerId: '',
+    visible: false,
+  });
   const [lastToggledLayer, setLastToggledLayer] = useState({});
   useEffect(() => {
     // if the toggled layer didn't change exit early
@@ -453,7 +478,7 @@ function MapWidgets({
   }, [onHomeWidgetRendered, setHomeWidget, view, homeWidget]);
 
   // Creates and adds the scale bar widget to the map
-  const [scaleBar, setScaleBar] = useState(null);
+  const [scaleBar, setScaleBar] = useState<__esri.ScaleBar | null>(null);
   useEffect(() => {
     if (!view || scaleBar) return;
 
@@ -479,7 +504,7 @@ function MapWidgets({
   const [legendNode] = useState(legendTemp);
 
   // Creates and adds the legend widget to the map
-  const [legend, setLegend] = useState(null);
+  const [legend, setLegend] = useState<__esri.Expand | null>(null);
   useEffect(() => {
     if (!view || legend) return;
 
@@ -498,7 +523,7 @@ function MapWidgets({
   }, [view, legend, legendNode]);
 
   // Create the layer list toolbar widget
-  const [esriLegend, setEsriLegend] = useState(null);
+  const [esriLegend, setEsriLegend] = useState<__esri.Legend | null>(null);
   const [displayEsriLegend, setDisplayEsriLegend] = useState(false);
   useEffect(() => {
     if (!view || esriLegend) return;
@@ -512,7 +537,7 @@ function MapWidgets({
     });
 
     // Create an observer instance linked to the callback function
-    const observer = new MutationObserver((mutationsList, observerParam) => {
+    const observer = new MutationObserver((_mutationsList, _observerParam) => {
       const esriMessages = esriLegendNode
         ? esriLegendNode.querySelectorAll('.esri-legend__message')
         : [];
@@ -528,12 +553,15 @@ function MapWidgets({
       subtree: true,
     });
 
+    observers.push(observer);
     setEsriLegend(tempLegend);
-  }, [view, esriLegend, esriLegendNode]);
+  }, [view, esriLegend, esriLegendNode, observers]);
 
   // Creates and adds the legend widget to the map
-  const rnd = useRef();
-  const [addDataWidget, setAddDataWidget] = useState(null);
+  const rnd = useRef<Rnd | null>(null);
+  const [addDataWidget, setAddDataWidget] = useState<HTMLDivElement | null>(
+    null,
+  );
   useEffect(() => {
     if (!view?.ui || addDataWidget) return;
 
@@ -542,7 +570,6 @@ function MapWidgets({
 
     render(
       <ShowAddDataWidget
-        addDataWidgetVisible={addDataWidgetVisible}
         setAddDataWidgetVisibleParam={setAddDataWidgetVisible}
       />,
       node,
@@ -557,10 +584,12 @@ function MapWidgets({
 
       let mapRect = document
         .getElementById('hmw-map-container')
-        .getBoundingClientRect();
+        ?.getBoundingClientRect();
       let awdRect = document
         .getElementById('add-data-widget')
-        .getBoundingClientRect();
+        ?.getBoundingClientRect();
+
+      if (!mapRect || !awdRect) return;
 
       const maxLeft = mapRect.width - awdRect.width;
       const curLeft = awdRect.left - mapRect.left;
@@ -582,8 +611,9 @@ function MapWidgets({
   }, [view, addDataWidget, addDataWidgetVisible, setAddDataWidgetVisible]);
 
   function ShowAddDataWidget({
-    addDataWidgetVisibleParam,
     setAddDataWidgetVisibleParam,
+  }: {
+    setAddDataWidgetVisibleParam: Dispatch<SetStateAction<boolean>>;
   }) {
     const [hover, setHover] = useState(false);
 
@@ -597,7 +627,7 @@ function MapWidgets({
         style={hover ? divHoverStyle : divStyle}
         onMouseOver={() => setHover(true)}
         onMouseOut={() => setHover(false)}
-        onClick={(ev) => {
+        onClick={(_ev) => {
           if (!widget) return;
           if (widgetHidden) {
             widget.classList.remove('hidden');
@@ -631,11 +661,11 @@ function MapWidgets({
 
     const requests = [];
     let url = `${services.data.protectedAreasDatabase}/legend?f=json`;
-    requests.push(fetchCheck(url));
+    requests.push(fetchCheck(url, abortSignal));
     url = `${services.data.ejscreen}legend?f=json`;
-    requests.push(fetchCheck(url));
+    requests.push(fetchCheck(url, abortSignal));
     url = `${services.data.mappedWater}/legend?f=json`;
-    requests.push(fetchCheck(url));
+    requests.push(fetchCheck(url, abortSignal));
 
     Promise.all(requests)
       .then((responses) => {
@@ -650,6 +680,7 @@ function MapWidgets({
         setAdditionalLegendInfo(additionalLegendInfoNonState);
       })
       .catch((err) => {
+        if (isAbort(err)) return;
         console.error(err);
         additionalLegendInfoNonState = {
           status: 'failure',
@@ -657,10 +688,11 @@ function MapWidgets({
         };
         setAdditionalLegendInfo(additionalLegendInfoNonState);
       });
-  }, [additionalLegendInitialized, services]);
+  }, [abortSignal, additionalLegendInitialized, services]);
 
   // Creates and adds the basemap/layer list widget to the map
-  const [layerListWidget, setLayerListWidget] = useState(null);
+  const [layerListWidget, setLayerListWidget] =
+    useState<__esri.LayerList | null>(null);
   useEffect(() => {
     if (
       !view ||
@@ -700,8 +732,8 @@ function MapWidgets({
     layersContainer.className = 'hmw-map-layers';
 
     // Creates actions in the LayerList to monitor layer visibility
-    const uniqueParentItems = [];
-    function defineActions(event) {
+    const uniqueParentItems: string[] = [];
+    function defineActions(event: { item: __esri.ListItem }) {
       const item = event.item;
       if (
         !item.parent ||
@@ -718,19 +750,21 @@ function MapWidgets({
             additionalLegendInfoNonState,
           );
 
-          item.watch('visible', function (event) {
-            updateVisibleLayers(
-              view,
-              displayEsriLegendNonState,
-              hmwLegendNode,
-              additionalLegendInfoNonState,
-            );
-            const dict = {
-              layerId: item.layer.id,
-              visible: item.layer.visible,
-            };
-            setToggledLayer(dict);
-          });
+          watchHandles.push(
+            item.watch('visible', function (_ev) {
+              updateVisibleLayers(
+                view,
+                displayEsriLegendNonState,
+                hmwLegendNode,
+                additionalLegendInfoNonState,
+              );
+              const dict = {
+                layerId: item.layer.id,
+                visible: item.layer.visible,
+              };
+              setToggledLayer(dict);
+            }),
+          );
         }
       }
     }
@@ -753,10 +787,12 @@ function MapWidgets({
     layerListHeader.innerHTML = 'Layers:';
 
     container.appendChild(basemapHeader);
-    container.appendChild(basemapWidget.domNode);
+    if (basemapWidget.container instanceof HTMLElement)
+      container.appendChild(basemapWidget.container);
     container.appendChild(document.createElement('hr'));
     container.appendChild(layerListHeader);
-    container.appendChild(layerlist.domNode);
+    if (layerlist.container instanceof HTMLElement)
+      container.appendChild(layerlist.container);
 
     const expandWidget = new Expand({
       expandIconClass: 'esri-icon-layers',
@@ -776,6 +812,7 @@ function MapWidgets({
     hmwLegendNode,
     layerListWidget,
     view,
+    watchHandles,
   ]);
 
   // Sets up the zoom event handler that is used for determining if layers
@@ -800,7 +837,7 @@ function MapWidgets({
 
     // when basemap changes, update the basemap in context for persistent basemaps
     // across fullscreen and mobile/desktop layout changes
-    view.map.allLayers.on('change', function (event) {
+    view.map.allLayers.on('change', function (_ev) {
       if (map.basemap !== basemap) {
         setBasemap(map.basemap);
       }
@@ -841,12 +878,12 @@ function MapWidgets({
         if (layerList.includes(layer.id)) {
           if (visibleLayers.hasOwnProperty(layer.id)) {
             layer.visible = visibleLayers[layer.id];
-            layer.listMode = layer.layers ? 'hide-children' : 'show';
+            layer.listMode = isGroupLayer(layer) ? 'hide-children' : 'show';
           } else {
             layer.visible = false;
             layer.listMode = 'hide';
           }
-        } else if (layer.id === 'currentLocationLayer') {
+        } else if (layer.id === 'currentLocationLayer' && isGroupLayer(layer)) {
           if (visibleLayers.hasOwnProperty('boundariesLayer')) {
             const boundariesLayer = layer.findLayerById('boundariesLayer');
             if (boundariesLayer)
@@ -866,9 +903,9 @@ function MapWidgets({
   useEffect(() => {
     if (!layerListWidget) return;
 
-    const numOperationalItems = layerListWidget.operationalItems.items.length;
+    const numOperationalItems = layerListWidget.operationalItems.length;
     for (let i = numOperationalItems - 1; i >= 0; i--) {
-      const item = layerListWidget.operationalItems.items[i];
+      const item = layerListWidget.operationalItems.at(i);
       if (item.layer.listMode === 'hide') {
         layerListWidget.operationalItems.splice(i, 1);
       }
@@ -888,7 +925,6 @@ function MapWidgets({
     view.ui.add(node, { position: 'bottom-right', index: 0 });
     render(
       <ExpandCollapse
-        scrollToComponent={scrollToComponent}
         fullscreenActive={fullscreenActive}
         setFullscreenActive={setFullscreenActive}
         mapViewSetter={setMapView}
@@ -899,7 +935,6 @@ function MapWidgets({
   }, [
     fullscreenActive,
     setFullscreenActive,
-    scrollToComponent,
     view,
     setMapView,
     fullScreenWidgetCreated,
@@ -953,23 +988,30 @@ function MapWidgets({
     setUpstreamWidget(node); // store the widget in context so it can be shown or hidden later
     render(
       <ShowUpstreamWatershed
+        abortSignal={abortSignal}
         getWatershedName={getWatershed}
         getHuc12={getHuc12}
         getCurrentExtent={getCurrentExtent}
+        getTemplate={getTemplate}
         getUpstreamLayer={getUpstreamLayer}
         setUpstreamLayer={setUpstreamLayer}
         getUpstreamExtent={getUpstreamExtent}
         setUpstreamExtent={setUpstreamExtent}
         setErrorMessage={setErrorMessage}
+        services={services}
         getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
         setUpstreamWidgetDisabled={setUpstreamWidgetDisabled}
         setUpstreamLayerVisible={setUpstreamLayerVisible}
+        view={view}
       />,
       node,
     );
     setUpstreamWidgetCreated(true);
   }, [
+    abortSignal,
     setUpstreamWidget,
+    services,
+    getTemplate,
     view,
     upstreamWidgetCreated,
     getWatershed,
@@ -985,243 +1027,8 @@ function MapWidgets({
     setUpstreamLayerVisible,
   ]);
 
-  type upstreamProps = {
-    getWatershedName: Function,
-    getHuc12: Function,
-    getCurrentExtent: Function,
-    getUpstreamLayer: Function,
-    setUpstreamLayer: Function,
-    getUpstreamExtent: Function,
-    setUpstreamExtent: Function,
-    setErrorMessage: Function,
-    getUpstreamWidgetDisabled: Function,
-    setUpstreamWidgetDisabled: Function,
-    setUpstreamLayerVisible: Function,
-  };
-
-  function ShowUpstreamWatershed({
-    getWatershedName,
-    getHuc12,
-    getCurrentExtent,
-    getUpstreamLayer,
-    setUpstreamLayer,
-    getUpstreamExtent,
-    setUpstreamExtent,
-    setErrorMessage,
-    getUpstreamWidgetDisabled,
-    setUpstreamWidgetDisabled,
-    setUpstreamLayerVisible,
-  }: upstreamProps) {
-    const [hover, setHover] = useState(false);
-    const [lastHuc12, setLastHuc12] = useState('');
-
-    // store loading state to Upstream Watershed map widget icon
-    const [upstreamLoading, setUpstreamLoading] = useState(false);
-
-    const currentHuc12 = getHuc12();
-
-    const upstreamWidgetDisabled = getUpstreamWidgetDisabled();
-    const upstreamLayer = getUpstreamLayer();
-
-    const title = upstreamWidgetDisabled
-      ? 'Upstream Widget Not Available'
-      : upstreamLayer.visible
-      ? 'Hide Upstream Watershed'
-      : 'View Upstream Watershed';
-
-    return (
-      <div
-        title={title}
-        style={!upstreamWidgetDisabled && hover ? divHoverStyle : divStyle}
-        onMouseOver={() => setHover(true)}
-        onMouseOut={() => setHover(false)}
-        onClick={(ev) => {
-          retrieveUpstreamWatershed(
-            getWatershedName,
-            currentHuc12,
-            lastHuc12,
-            setLastHuc12,
-            getCurrentExtent,
-            getUpstreamLayer,
-            setUpstreamLayer,
-            getUpstreamExtent,
-            setUpstreamExtent,
-            setErrorMessage,
-            getUpstreamWidgetDisabled,
-            setUpstreamWidgetDisabled,
-            setUpstreamLoading,
-            getTemplate,
-            setUpstreamLayerVisible,
-          );
-        }}
-      >
-        <span
-          className={
-            upstreamLoading
-              ? 'esri-icon-loading-indicator esri-rotating'
-              : 'esri-icon esri-icon-overview-arrow-top-left'
-          }
-          style={
-            !upstreamWidgetDisabled && hover ? buttonHoverStyle : buttonStyle
-          }
-        />
-      </div>
-    );
-  }
-
-  const retrieveUpstreamWatershed = useCallback(
-    (
-      getWatershedName,
-      currentHuc12,
-      lastHuc12,
-      setLastHuc12,
-      getCurrentExtent,
-      getUpstreamLayer,
-      setUpstreamLayer,
-      getUpstreamExtent,
-      setUpstreamExtent,
-      setErrorMessage,
-      getUpstreamWidgetDisabled,
-      setUpstreamWidgetDisabled,
-      setUpstreamLoading,
-      getTemplate,
-      setUpstreamLayerVisible,
-    ) => {
-      // if widget is disabled do nothing
-      if (getUpstreamWidgetDisabled()) return;
-
-      const upstreamLayer = getUpstreamLayer();
-
-      // if location changed since last widget click, update lastHuc12 state
-      if (currentHuc12 !== lastHuc12) {
-        setLastHuc12(currentHuc12);
-        upstreamLayer.error = false;
-      }
-
-      // already encountered an error for this location - don't retry
-      if (upstreamLayer.error === true) {
-        return;
-      }
-
-      // if location hasn't changed and upstream layer is displayed:
-      // zoom to current location extent and hide the upstream layer
-      if (
-        currentHuc12 === lastHuc12 &&
-        upstreamLayer.visible &&
-        upstreamLayer.graphics.length > 0
-      ) {
-        view.goTo(getCurrentExtent());
-        view.popup.close();
-        upstreamLayer.visible = false;
-        setUpstreamLayerVisible(false);
-        setUpstreamLayer(upstreamLayer);
-        return;
-      }
-
-      // if location hasn't changed and upstream layer is hidden:
-      // zoom to full upstream extent and display the upstream layer
-      if (
-        currentHuc12 === lastHuc12 &&
-        !upstreamLayer.visible &&
-        upstreamLayer.graphics.length > 0
-      ) {
-        view.goTo(getUpstreamExtent());
-        upstreamLayer.visible = true;
-        setUpstreamLayerVisible(true);
-        setUpstreamLayer(upstreamLayer);
-        return;
-      }
-
-      // fetch the upstream catchment
-      const filter = `xwalk_huc12='${currentHuc12}'`;
-
-      setUpstreamLoading(true);
-
-      const url = services.data.upstreamWatershed;
-      const queryParams = {
-        returnGeometry: true,
-        where: filter,
-        outFields: ['*'],
-      };
-      query
-        .executeQueryJSON(url, queryParams)
-        .then((res) => {
-          setUpstreamLoading(false);
-          const upstreamLayer = getUpstreamLayer();
-          const watershed = getWatershedName() || 'Unknown Watershed';
-          const upstreamTitle = `Upstream Watershed for Currently Selected Location: ${watershed} (${currentHuc12})`;
-
-          if (!res || !res.features || res.features.length === 0) {
-            upstreamLayer.error = true;
-            upstreamLayer.graphics.removeAll();
-            setUpstreamLayer(upstreamLayer);
-            setUpstreamWidgetDisabled(true);
-            setUpstreamLayerVisible(false);
-            setErrorMessage(
-              'Unable to get upstream watershed data for this location.',
-            );
-            return;
-          }
-
-          upstreamLayer.graphics.add(
-            new Graphic({
-              geometry: {
-                type: res.geometryType,
-                spatialReference: res.spatialReference,
-                rings: res.features[0].geometry.rings,
-              },
-              symbol: {
-                type: 'simple-fill',
-                style: 'solid',
-                color: [31, 184, 255, 0.2],
-                outline: {
-                  style: 'solid',
-                  color: 'black',
-                  width: 1,
-                },
-              },
-              attributes: res.features[0].attributes,
-              popupTemplate: {
-                title: upstreamTitle,
-                content: getTemplate,
-                outfields: ['*'],
-              },
-            }),
-          );
-
-          const upstreamExtent = res.features[0].geometry.extent;
-
-          const currentViewpoint = new Viewpoint({
-            targetGeometry: upstreamExtent,
-          });
-
-          // store the current viewpoint in context
-          setUpstreamExtent(currentViewpoint);
-
-          upstreamLayer.visible = true;
-          setUpstreamLayer(upstreamLayer);
-          setUpstreamLayerVisible(true);
-
-          // zoom out to full extent
-          view.goTo(upstreamExtent);
-        })
-        .catch((err) => {
-          setUpstreamLoading(false);
-          setUpstreamWidgetDisabled(true);
-          setErrorMessage(
-            'Error fetching upstream watershed data for this location.',
-          );
-          upstreamLayer.error = true;
-          upstreamLayer.visible = false;
-          upstreamLayer.graphics.removeAll();
-          setUpstreamLayerVisible(false);
-          setUpstreamLayer(upstreamLayer);
-        });
-    },
-    [view, services.data.upstreamWatershed],
-  );
-
-  const [allWaterbodiesWidget, setAllWaterbodiesWidget] = useState(null);
+  const [allWaterbodiesWidget, setAllWaterbodiesWidget] =
+    useState<HTMLDivElement | null>(null);
   const [allWaterbodiesLayerVisible, setAllWaterbodiesLayerVisible] =
     useState(true);
 
@@ -1248,7 +1055,7 @@ function MapWidgets({
     // change the minScale of the waterbodies layer for the tribal page
     if (pathname.includes('/tribe')) {
       allWaterbodiesLayer.minScale = 4622350;
-      allWaterbodiesLayer.layers.forEach((layer) => {
+      allWaterbodiesLayer.layers.forEach((layer: ScaledLayer) => {
         layer.minScale = allWaterbodiesLayer.minScale;
       });
 
@@ -1320,97 +1127,30 @@ function MapWidgets({
     setAllWaterbodiesWidget(node); // store the widget in context so it can be shown or hidden later
     render(
       <ShowAllWaterbodies
+        allWaterbodiesLayer={allWaterbodiesLayer}
         getDisabled={getAllWaterbodiesWidgetDisabled}
         mapView={view}
+        setAllWaterbodiesLayerVisible={setAllWaterbodiesLayerVisible}
+        setDisabled={setAllWaterbodiesWidgetDisabled}
       />,
       node,
     );
     setAllWaterbodiesWidgetCreated(true);
   }, [
+    allWaterbodiesLayer,
     allWaterbodiesWidgetCreated,
     getAllWaterbodiesWidgetDisabled,
     setAllWaterbodiesWidget,
+    setAllWaterbodiesWidgetDisabled,
     view,
   ]);
-
-  type allWaterbodiesProps = {
-    getDisabled: Function,
-    mapView: Object,
-  };
-
-  // Defines the show all waterbodies widget
-  function ShowAllWaterbodies({ getDisabled, mapView }: allWaterbodiesProps) {
-    const [firstLoad, setFirstLoad] = useState(true);
-    const [hover, setHover] = useState(false);
-
-    // store loading state to Upstream Watershed map widget icon
-    const [allWaterbodiesLoading, setAllWaterbodiesLoading] = useState(false);
-
-    // create a watcher to control the loading spinner for the widget
-    if (firstLoad) {
-      setFirstLoad(false);
-
-      reactiveUtils.watch(
-        () => mapView.updating,
-        () => {
-          setAllWaterbodiesLoading(mapView.updating);
-        },
-      );
-
-      reactiveUtils.watch(
-        () => mapView.scale,
-        () => {
-          const newWidgetDisabledVal =
-            mapView.scale >= allWaterbodiesLayer.minScale;
-          if (newWidgetDisabledVal !== getAllWaterbodiesWidgetDisabled()) {
-            setAllWaterbodiesWidgetDisabled(newWidgetDisabledVal);
-          }
-        },
-      );
-    }
-
-    const widgetDisabled = getDisabled();
-
-    // get the layer from the mapView
-    const layer = mapView.map.layers.find(
-      (l) => l.id === 'allWaterbodiesLayer',
-    );
-
-    let title = 'View Surrounding Waterbodies';
-    if (widgetDisabled) title = 'Surrounding Waterbodies Widget Not Available';
-    else if (layer?.visible) title = 'Hide Surrounding Waterbodies';
-
-    return (
-      <div
-        title={title}
-        style={!widgetDisabled && hover ? divHoverStyle : divStyle}
-        onMouseOver={() => setHover(true)}
-        onMouseOut={() => setHover(false)}
-        onClick={(ev) => {
-          // if widget is disabled do nothing
-          if (widgetDisabled || !layer) return;
-
-          layer.visible = !layer.visible;
-          setAllWaterbodiesLayerVisible(layer.visible);
-        }}
-      >
-        <span
-          className={
-            allWaterbodiesLoading && !widgetDisabled && layer?.visible
-              ? 'esri-icon-loading-indicator esri-rotating'
-              : 'esri-icon-maps'
-          }
-          style={!widgetDisabled && hover ? buttonHoverStyle : buttonStyle}
-        />
-      </div>
-    );
-  }
 
   if (!addDataWidget) return null;
 
   const mapWidth = document
     .getElementById('hmw-map-container')
-    .getBoundingClientRect().width;
+    ?.getBoundingClientRect().width;
+  if (!mapWidth) return null;
 
   const viewportWidth = window.innerWidth;
 
@@ -1470,7 +1210,7 @@ function MapWidgets({
   );
 }
 
-const buttonStyle = {
+const buttonStyle: CSSProperties = {
   margin: '8.5px',
   fontSize: '15px',
   textAlign: 'center',
@@ -1480,7 +1220,7 @@ const buttonStyle = {
   color: '#6E6E6E',
 };
 
-const buttonHoverStyle = {
+const buttonHoverStyle: CSSProperties = {
   margin: '8.5px',
   fontSize: '15px',
   textAlign: 'center',
@@ -1505,14 +1245,12 @@ const divHoverStyle = {
 };
 
 type ExpandeCollapseProps = {
-  scrollToComponent: string,
-  fullscreenActive: boolean,
-  setFullscreenActive: Function,
-  mapViewSetter: Function,
+  fullscreenActive: boolean;
+  setFullscreenActive: Function;
+  mapViewSetter: Function;
 };
 
 function ExpandCollapse({
-  scrollToComponent,
   fullscreenActive,
   setFullscreenActive,
   mapViewSetter,
@@ -1529,7 +1267,7 @@ function ExpandCollapse({
       style={hover ? divHoverStyle : divStyle}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
-      onClick={(ev) => {
+      onClick={(_ev) => {
         // Toggle scroll bars
         document.documentElement.style.overflow = fullscreenActive
           ? 'auto'
@@ -1548,6 +1286,348 @@ function ExpandCollapse({
             : 'esri-icon esri-icon-zoom-out-fixed'
         }
         style={hover ? buttonHoverStyle : buttonStyle}
+      />
+    </div>
+  );
+}
+
+type ShowAllWaterbodiesProps = {
+  allWaterbodiesLayer: __esri.GroupLayer | '';
+  getDisabled: () => boolean;
+  mapView: __esri.MapView;
+  setAllWaterbodiesLayerVisible: (visible: boolean) => void;
+  setDisabled: (disabled: boolean) => void;
+};
+
+// Defines the show all waterbodies widget
+function ShowAllWaterbodies({
+  allWaterbodiesLayer,
+  getDisabled,
+  mapView,
+  setAllWaterbodiesLayerVisible,
+  setDisabled,
+}: ShowAllWaterbodiesProps) {
+  const [firstLoad, setFirstLoad] = useState(true);
+  const [hover, setHover] = useState(false);
+
+  // store loading state to Upstream Watershed map widget icon
+  const [allWaterbodiesLoading, setAllWaterbodiesLoading] = useState(false);
+
+  // create a watcher to control the loading spinner for the widget
+  useEffect(() => {
+    if (firstLoad) {
+      setFirstLoad(false);
+
+      reactiveUtils.watch(
+        () => mapView.updating,
+        () => {
+          setAllWaterbodiesLoading(mapView.updating);
+        },
+      );
+
+      reactiveUtils.watch(
+        () => mapView.scale,
+        () => {
+          const newWidgetDisabledVal = allWaterbodiesLayer
+            ? mapView.scale >= allWaterbodiesLayer.minScale
+            : true;
+          if (newWidgetDisabledVal !== getDisabled()) {
+            setDisabled(newWidgetDisabledVal);
+          }
+        },
+      );
+    }
+  }, [
+    allWaterbodiesLayer,
+    firstLoad,
+    getDisabled,
+    mapView.scale,
+    mapView.updating,
+    setDisabled,
+  ]);
+
+  const widgetDisabled = getDisabled();
+
+  // get the layer from the mapView
+  const layer = mapView.map.layers.find((l) => l.id === 'allWaterbodiesLayer');
+
+  let title = 'View Surrounding Waterbodies';
+  if (widgetDisabled) title = 'Surrounding Waterbodies Widget Not Available';
+  else if (layer?.visible) title = 'Hide Surrounding Waterbodies';
+
+  return (
+    <div
+      title={title}
+      style={!widgetDisabled && hover ? divHoverStyle : divStyle}
+      onMouseOver={() => setHover(true)}
+      onMouseOut={() => setHover(false)}
+      onClick={(_ev) => {
+        // if widget is disabled do nothing
+        if (widgetDisabled || !layer) return;
+
+        layer.visible = !layer.visible;
+        setAllWaterbodiesLayerVisible(layer.visible);
+      }}
+    >
+      <span
+        className={
+          allWaterbodiesLoading && !widgetDisabled && layer?.visible
+            ? 'esri-icon-loading-indicator esri-rotating'
+            : 'esri-icon-maps'
+        }
+        style={!widgetDisabled && hover ? buttonHoverStyle : buttonStyle}
+      />
+    </div>
+  );
+}
+
+type ShowUpstreamWatershedProps = {
+  abortSignal: AbortSignal;
+  getCurrentExtent: () => __esri.Viewpoint | null;
+  getHuc12: () => string;
+  getUpstreamExtent: () => __esri.Viewpoint | null;
+  getUpstreamLayer: () => (__esri.GraphicsLayer & { error?: boolean }) | '';
+  getUpstreamWidgetDisabled: () => boolean;
+  getWatershedName: () => string;
+  getTemplate: (graphic: Feature) => HTMLDivElement | null;
+  services: ServicesState;
+  setErrorMessage: (errorMessage: string) => void;
+  setUpstreamExtent: (upstreamExtent: __esri.Viewpoint) => void;
+  setUpstreamLayer: (
+    upstreamLayer: __esri.GraphicsLayer & { error?: boolean },
+  ) => void;
+  setUpstreamLayerVisible: (upstreamLayerVisible: boolean) => void;
+  setUpstreamWidgetDisabled: (upstreamWidgetDisabled: boolean) => void;
+  view: __esri.MapView;
+};
+
+function ShowUpstreamWatershed({
+  abortSignal,
+  getWatershedName,
+  getHuc12,
+  getCurrentExtent,
+  getTemplate,
+  getUpstreamLayer,
+  setUpstreamLayer,
+  getUpstreamExtent,
+  services,
+  setUpstreamExtent,
+  setErrorMessage,
+  getUpstreamWidgetDisabled,
+  setUpstreamWidgetDisabled,
+  setUpstreamLayerVisible,
+  view,
+}: ShowUpstreamWatershedProps) {
+  const [hover, setHover] = useState(false);
+  const [lastHuc12, setLastHuc12] = useState('');
+
+  // store loading state to Upstream Watershed map widget icon
+  const [upstreamLoading, setUpstreamLoading] = useState(false);
+
+  const currentHuc12 = getHuc12();
+
+  const retrieveUpstreamWatershed = useCallback(
+    (
+      getWatershedName,
+      currentHuc12,
+      lastHuc12,
+      setLastHuc12,
+      getCurrentExtent,
+      getUpstreamLayer,
+      setUpstreamLayer,
+      getUpstreamExtent,
+      setUpstreamExtent,
+      setErrorMessage,
+      getUpstreamWidgetDisabled,
+      setUpstreamWidgetDisabled,
+      setUpstreamLoading,
+      getTemplate,
+      setUpstreamLayerVisible,
+    ) => {
+      // if widget is disabled do nothing
+      if (getUpstreamWidgetDisabled()) return;
+      const upstreamLayer = getUpstreamLayer();
+      if (!upstreamLayer) return;
+
+      // if location changed since last widget click, update lastHuc12 state
+      if (currentHuc12 !== lastHuc12) {
+        setLastHuc12(currentHuc12);
+        upstreamLayer.error = false;
+      }
+
+      // already encountered an error for this location - don't retry
+      if (upstreamLayer.error === true) {
+        return;
+      }
+
+      // if location hasn't changed and upstream layer is displayed:
+      // zoom to current location extent and hide the upstream layer
+      if (
+        currentHuc12 === lastHuc12 &&
+        upstreamLayer.visible &&
+        upstreamLayer.graphics.length > 0
+      ) {
+        view.goTo(getCurrentExtent());
+        view.popup.close();
+        upstreamLayer.visible = false;
+        setUpstreamLayerVisible(false);
+        setUpstreamLayer(upstreamLayer);
+        return;
+      }
+
+      // if location hasn't changed and upstream layer is hidden:
+      // zoom to full upstream extent and display the upstream layer
+      if (
+        currentHuc12 === lastHuc12 &&
+        !upstreamLayer.visible &&
+        upstreamLayer.graphics.length > 0
+      ) {
+        view.goTo(getUpstreamExtent());
+        upstreamLayer.visible = true;
+        setUpstreamLayerVisible(true);
+        setUpstreamLayer(upstreamLayer);
+        return;
+      }
+
+      // fetch the upstream catchment
+      const filter = `xwalk_huc12='${currentHuc12}'`;
+
+      setUpstreamLoading(true);
+
+      if (services.status !== 'success') return;
+      const url = services.data.upstreamWatershed;
+
+      const queryParams = {
+        returnGeometry: true,
+        where: filter,
+        outFields: ['*'],
+        signal: abortSignal,
+      };
+      query
+        .executeQueryJSON(url, queryParams)
+        .then((res) => {
+          setUpstreamLoading(false);
+          const upstreamLayer = getUpstreamLayer();
+          const watershed = getWatershedName() || 'Unknown Watershed';
+          const upstreamTitle = `Upstream Watershed for Currently Selected Location: ${watershed} (${currentHuc12})`;
+
+          if (!res || !res.features || res.features.length === 0) {
+            upstreamLayer.error = true;
+            upstreamLayer.graphics.removeAll();
+            setUpstreamLayer(upstreamLayer);
+            setUpstreamWidgetDisabled(true);
+            setUpstreamLayerVisible(false);
+            setErrorMessage(
+              'Unable to get upstream watershed data for this location.',
+            );
+            return;
+          }
+
+          const geometry = res.features[0].geometry;
+          if (isPolygon(geometry)) {
+            upstreamLayer.graphics.add(
+              new Graphic({
+                geometry: new Polygon({
+                  spatialReference: res.spatialReference,
+                  rings: geometry.rings,
+                }),
+                symbol: new SimpleFillSymbol({
+                  style: 'solid',
+                  color: [31, 184, 255, 0.2],
+                  outline: {
+                    style: 'solid',
+                    color: 'black',
+                    width: 1,
+                  },
+                }),
+                attributes: res.features[0].attributes,
+                popupTemplate: {
+                  title: upstreamTitle,
+                  content: getTemplate,
+                  outFields: ['*'],
+                },
+              }),
+            );
+          }
+
+          const upstreamExtent = res.features[0].geometry.extent;
+
+          const currentViewpoint = new Viewpoint({
+            targetGeometry: upstreamExtent,
+          });
+
+          // store the current viewpoint in context
+          setUpstreamExtent(currentViewpoint);
+
+          upstreamLayer.visible = true;
+          setUpstreamLayer(upstreamLayer);
+          setUpstreamLayerVisible(true);
+
+          // zoom out to full extent
+          view.goTo(upstreamExtent);
+        })
+        .catch((err) => {
+          if (isAbort(err)) return;
+          setUpstreamLoading(false);
+          setUpstreamWidgetDisabled(true);
+          setErrorMessage(
+            'Error fetching upstream watershed data for this location.',
+          );
+          upstreamLayer.error = true;
+          upstreamLayer.visible = false;
+          upstreamLayer.graphics.removeAll();
+          setUpstreamLayerVisible(false);
+          setUpstreamLayer(upstreamLayer);
+        });
+    },
+    [abortSignal, view, services],
+  );
+
+  const upstreamWidgetDisabled = getUpstreamWidgetDisabled();
+  const upstreamLayer = getUpstreamLayer();
+  if (!upstreamLayer) return null;
+
+  const title = upstreamWidgetDisabled
+    ? 'Upstream Widget Not Available'
+    : upstreamLayer.visible
+    ? 'Hide Upstream Watershed'
+    : 'View Upstream Watershed';
+
+  return (
+    <div
+      title={title}
+      style={!upstreamWidgetDisabled && hover ? divHoverStyle : divStyle}
+      onMouseOver={() => setHover(true)}
+      onMouseOut={() => setHover(false)}
+      onClick={(_ev) => {
+        retrieveUpstreamWatershed(
+          getWatershedName,
+          currentHuc12,
+          lastHuc12,
+          setLastHuc12,
+          getCurrentExtent,
+          getUpstreamLayer,
+          setUpstreamLayer,
+          getUpstreamExtent,
+          setUpstreamExtent,
+          setErrorMessage,
+          getUpstreamWidgetDisabled,
+          setUpstreamWidgetDisabled,
+          setUpstreamLoading,
+          getTemplate,
+          setUpstreamLayerVisible,
+        );
+      }}
+    >
+      <span
+        className={
+          upstreamLoading
+            ? 'esri-icon-loading-indicator esri-rotating'
+            : 'esri-icon esri-icon-overview-arrow-top-left'
+        }
+        style={
+          !upstreamWidgetDisabled && hover ? buttonHoverStyle : buttonStyle
+        }
       />
     </div>
   );

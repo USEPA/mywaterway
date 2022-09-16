@@ -12,7 +12,7 @@ import {
 import { tabsStyles } from 'components/shared/ContentTabs';
 import DateSlider from 'components/shared/DateSlider';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
-import HelpTooltip from 'components/shared/HelpTooltip';
+import { HelpTooltip } from 'components/shared/HelpTooltip';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import {
   keyMetricsStyles,
@@ -222,8 +222,6 @@ function filterStation(station, timeframe) {
   const result = {
     ...station,
     stationTotalMeasurements: 0,
-    // TODO: investigate discrepancy between periodOfRecord
-    // sample counts and summary counts
     stationTotalsByGroup: {},
     stationTotalsByLabel: {},
     timeframe: [...timeframe],
@@ -1020,7 +1018,15 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                       &nbsp;&nbsp;
                       {displayedLocationsCount > 0 ? (
                         <a href={`${downloadUrl}&mimeType=xlsx`}>
-                          <i className="fas fa-file-excel" aria-hidden="true" />
+                          <HelpTooltip
+                            label="Download XLSX"
+                            description="Download selected data as an XLSX file."
+                          >
+                            <i
+                              className="fas fa-file-excel"
+                              aria-hidden="true"
+                            />
+                          </HelpTooltip>
                         </a>
                       ) : (
                         <i
@@ -1032,7 +1038,12 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                       &nbsp;&nbsp;
                       {displayedLocationsCount > 0 ? (
                         <a href={`${downloadUrl}&mimeType=csv`}>
-                          <i className="fas fa-file-csv" aria-hidden="true" />
+                          <HelpTooltip
+                            label="Download CSV"
+                            description="Download selected data as a CSV file."
+                          >
+                            <i className="fas fa-file-csv" aria-hidden="true" />
+                          </HelpTooltip>
                         </a>
                       ) : (
                         <i

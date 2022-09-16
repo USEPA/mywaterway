@@ -56,6 +56,7 @@ import {
 } from 'config/errorMessages';
 // helpers
 import {
+  useAbortSignal,
   useDynamicPopup,
   useGeometryUtils,
   useMonitoringLocations,
@@ -66,6 +67,7 @@ import {
 } from 'utils/hooks';
 import { fetchCheck } from 'utils/fetchUtils';
 import {
+  isAbort,
   isHuc12,
   updateCanonicalLink,
   createJsonLD,
@@ -151,6 +153,8 @@ type Props = {
 };
 
 function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
+  const abortSignal = useAbortSignal();
+
   const fetchedDataDispatch = useFetchedDataDispatch();
   const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
     useFetchedDataState();
@@ -847,6 +851,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const handleMapServiceError = useCallback(
     (err) => {
+      if (isAbort(err)) return;
       setMapLoading(false);
       console.error(err);
       setCipSummary({ status: 'failure', data: {} });
@@ -1353,6 +1358,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       // get the plans for the selected huc
       fetchCheck(
         `${services.data.attains.serviceUrl}plans?huc=${huc12Param}&summarize=Y`,
+        null,
         120000,
       )
         .then((res) => {
@@ -1633,12 +1639,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       fetchCheck(
         `${services.data.attains.serviceUrl}huc12summary?huc=${huc12Param}`,
+        abortSignal,
       ).then(
         (res) => handleMapServices(res, boundaries),
         handleMapServiceError,
       );
     },
     [
+      abortSignal,
       getFishingLinkData,
       getWsioHealthIndexData,
       getWildScenicRivers,
@@ -1760,26 +1768,34 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         if (searchText.toLowerCase() === 'guam') searchText = 'GU';
 
         // If not coordinates, perform regular geolocation
-        getCandidates = locator.addressToLocations(url, {
-          address: { SingleLine: searchText },
-          countryCode: 'USA',
-          outSpatialReference: SpatialReference.WebMercator,
-          outFields: [
-            'Loc_name',
-            'City',
-            'Place_addr',
-            'Region',
-            'RegionAbbr',
-            'Country',
-            'Addr_type',
-          ],
-        });
+        getCandidates = locator.addressToLocations(
+          url,
+          {
+            address: { SingleLine: searchText },
+            countryCode: 'USA',
+            outSpatialReference: SpatialReference.WebMercator,
+            outFields: [
+              'Loc_name',
+              'City',
+              'Place_addr',
+              'Region',
+              'RegionAbbr',
+              'Country',
+              'Addr_type',
+            ],
+          },
+          { signal: abortSignal },
+        );
       } else {
         // If coordinates, perform reverse geolocation
-        getCandidates = locator.locationToAddress(url, {
-          location: point,
-          outSpatialReference: SpatialReference.WebMercator,
-        });
+        getCandidates = locator.locationToAddress(
+          url,
+          {
+            location: point,
+            outSpatialReference: SpatialReference.WebMercator,
+          },
+          { signal: abortSignal },
+        );
       }
 
       getCandidates
@@ -1833,6 +1849,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               returnGeometry: true,
               geometry: location.location,
               outFields: ['*'],
+              signal: abortSignal,
             };
             query
               .executeQueryJSON(services.data.wbd, hucQuery)
@@ -1844,6 +1861,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                 );
               })
               .catch((err) => {
+                if (isAbort(err)) return;
                 console.error(err);
                 const newAddress = coordinatesPart ? searchPart : searchText;
                 setAddress(newAddress); // preserve the user's search so it is displayed
@@ -1862,6 +1880,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             returnGeometry: true,
             geometry: location.location.clone(),
             outFields: ['*'],
+            signal: abortSignal,
           };
           query
             .executeQueryJSON(url, countiesQuery)
@@ -1891,6 +1910,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               setCountyBoundaries(countiesRes);
             })
             .catch((err) => {
+              if (isAbort(err)) return;
               console.error(err);
               setCountyBoundaries(null);
               setMapLoading(false);
@@ -1906,6 +1926,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             });
         })
         .catch((err) => {
+          if (isAbort(err)) return;
           if (!hucRes) {
             console.error(err);
             const newAddress = coordinatesPart ? searchPart : searchText;
@@ -1940,6 +1961,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
     },
     [
+      abortSignal,
       handleHUC12,
       searchIconLayer,
       setAddress,
@@ -1961,6 +1983,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           returnGeometry: true,
           where: "HUC12 = '" + searchText + "'",
           outFields: ['*'],
+          signal: abortSignal,
         };
         query
           .executeQueryJSON(services.data.wbd, queryParams)
@@ -1982,6 +2005,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             }
           })
           .catch((err) => {
+            if (isAbort(err)) return;
             console.error(err);
             handleNoDataAvailable(noDataAvailableError);
           });
@@ -1990,7 +2014,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         processGeocodeServerResults(searchText);
       }
     },
-    [processGeocodeServerResults, handleNoDataAvailable, services],
+    [abortSignal, processGeocodeServerResults, handleNoDataAvailable, services],
   );
 
   useEffect(() => {

@@ -1671,7 +1671,7 @@
     "orgId": "21FL303D",
     "name": "Fish and Wildlife Propagation - Freshwater",
     "category": "Ecological Life",
-    "surveyuseCode": "FISH"
+    "surveyuseCode": "Fish, Shellfish, and Wildlife Protection and Propagation"
   },
   {
     "region": 4,
@@ -1680,7 +1680,7 @@
     "orgId": "21FL303D",
     "name": "Fish and Wildlife Propagation - Marine",
     "category": "Ecological Life",
-    "surveyuseCode": ""
+    "surveyuseCode": "Fish, Shellfish, and Wildlife Protection and Propagation"
   },
   {
     "region": 4,
@@ -5908,6 +5908,24 @@
     "state": "OK",
     "orgType": "State",
     "orgId": "OKDEQ",
+    "name": "Benthic Algae Condition",
+    "category": "Ecological Life",
+    "surveyuseCode": ""
+  },
+  {
+    "region": 6,
+    "state": "OK",
+    "orgType": "State",
+    "orgId": "OKDEQ",
+    "name": "Conductivity Condition",
+    "category": "Ecological Life",
+    "surveyuseCode": ""
+  },
+  {
+    "region": 6,
+    "state": "OK",
+    "orgType": "State",
+    "orgId": "OKDEQ",
     "name": "COOL WATER AQUATIC COMM.",
     "category": "Ecological Life",
     "surveyuseCode": ""
@@ -5954,6 +5972,15 @@
     "orgType": "State",
     "orgId": "OKDEQ",
     "name": "Fish and Wildlife Propagation-Warm Water Aquatic Community Subcategory",
+    "category": "Ecological Life",
+    "surveyuseCode": ""
+  },
+  {
+    "region": 6,
+    "state": "OK",
+    "orgType": "State",
+    "orgId": "OKDEQ",
+    "name": "Fish Condition",
     "category": "Ecological Life",
     "surveyuseCode": ""
   },
@@ -6018,6 +6045,15 @@
     "orgId": "OKDEQ",
     "name": "INDUSTRY",
     "category": "Other",
+    "surveyuseCode": ""
+  },
+  {
+    "region": 6,
+    "state": "OK",
+    "orgType": "State",
+    "orgId": "OKDEQ",
+    "name": "Macroinvertebrate Condition",
+    "category": "Ecological Life",
     "surveyuseCode": ""
   },
   {
@@ -6097,6 +6133,15 @@
     "state": "OK",
     "orgType": "State",
     "orgId": "OKDEQ",
+    "name": "Sestonic Algae Condition",
+    "category": "Ecological Life",
+    "surveyuseCode": ""
+  },
+  {
+    "region": 6,
+    "state": "OK",
+    "orgType": "State",
+    "orgId": "OKDEQ",
     "name": "SWS-SENSITIVE WATER SUP.",
     "category": "Other",
     "surveyuseCode": ""
@@ -6115,7 +6160,34 @@
     "state": "OK",
     "orgType": "State",
     "orgId": "OKDEQ",
+    "name": "Total Nitrogen Condition",
+    "category": "Ecological Life",
+    "surveyuseCode": ""
+  },
+  {
+    "region": 6,
+    "state": "OK",
+    "orgType": "State",
+    "orgId": "OKDEQ",
+    "name": "Total Phosphorus Condition",
+    "category": "Ecological Life",
+    "surveyuseCode": ""
+  },
+  {
+    "region": 6,
+    "state": "OK",
+    "orgType": "State",
+    "orgId": "OKDEQ",
     "name": "TROUT FISHERY",
+    "category": "Ecological Life",
+    "surveyuseCode": ""
+  },
+  {
+    "region": 6,
+    "state": "OK",
+    "orgType": "State",
+    "orgId": "OKDEQ",
+    "name": "Turbidity Condition",
     "category": "Ecological Life",
     "surveyuseCode": ""
   },

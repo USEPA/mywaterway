@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 // components
+import { HelpTooltip } from 'components/shared/HelpTooltip';
+import { ListContent } from 'components/shared/BoxContent';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -8,7 +10,12 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { Sparkline } from 'components/shared/Sparkline';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
-import { getWaterbodyCondition } from 'utils/mapFunctions';
+import {
+  getWaterbodyCondition,
+  isClassBreaksRenderer,
+  isFeatureLayer,
+  isUniqueValueRenderer,
+} from 'utils/mapFunctions';
 import { fetchCheck } from 'utils/fetchUtils';
 import {
   convertAgencyCode,
@@ -28,16 +35,17 @@ import {
   disclaimerStyles,
   iconStyles,
   modifiedTableStyles,
+  tableStyles,
 } from 'styles/index.js';
 // types
 import type { ReactNode } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import type {
+  ChangeLocationAttributes,
   ClickedHucState,
-  Feature,
   ServicesState,
   StreamgageMeasurement,
-  UsgsStreamgage,
+  UsgsStreamgageAttributes,
 } from 'types';
 
 /*
@@ -46,6 +54,12 @@ import type {
 function bool(value: string) {
   // Return 'Yes' for truthy values and non-zero strings
   return value && parseInt(value, 10) ? 'Yes' : 'No';
+}
+
+function isChangeLocationPopup(
+  feature: __esri.Graphic | ChangeLocationPopup,
+): feature is ChangeLocationPopup {
+  return 'changelocationpopup' in (feature as ChangeLocationPopup).attributes;
 }
 
 function renderLink(label: string, link: string) {
@@ -89,11 +103,6 @@ function labelValue(
 /*
 ## Styles
 */
-const dateRangeStyles = css`
-  font-size: 0.8em;
-  margin-left: 1em;
-`;
-
 const popupContainerStyles = css`
   margin: 0;
   overflow-y: auto;
@@ -240,6 +249,17 @@ const changeWatershedContainerStyles = css`
   }
 `;
 
+const listContentStyles = css`
+  .row-cell {
+    &:nth-of-type(even) {
+      padding-right: 0;
+    }
+    &:nth-of-type(odd) {
+      padding-left: 0;
+    }
+  }
+`;
+
 const tableFooterStyles = css`
   span {
     display: inline-block;
@@ -300,9 +320,13 @@ type AttainsProjectsState =
   | { status: 'failure'; data: [] }
   | { status: 'success'; data: AttainsProjectsDatum[] };
 
+type ChangeLocationPopup = {
+  attributes: ChangeLocationAttributes;
+};
+
 type WaterbodyInfoProps = {
   type: string;
-  feature: Feature;
+  feature: __esri.Graphic;
   fieldName?: string | null;
   extraContent?: ReactNode | null;
   services?: ServicesState;
@@ -377,11 +401,13 @@ function WaterbodyInfo({
 
     // Get the waterbody condition field (drinkingwater_use, recreation_use, etc.)
     let field = fieldName;
-    if (!fieldName && feature && feature.layer && feature.layer.renderer) {
+    if (!fieldName && feature?.layer && isFeatureLayer(feature.layer)) {
       // For map clicks we need to get the field from the feature layer renderer.
       // This allows us to differentiate between fishconsumption_use and ecological_use
       // which are both on the fishing tab.
-      field = feature.layer.renderer.field ?? null;
+      const renderer: __esri.Renderer = feature.layer.renderer;
+      if (isClassBreaksRenderer(renderer) || isUniqueValueRenderer(renderer))
+        field = renderer?.field ?? null;
     }
 
     // Get the label
@@ -504,46 +530,35 @@ function WaterbodyInfo({
 
   const dischargerContent = (
     <>
-      <table css={modifiedTableStyles} className="table">
-        <tbody>
-          <tr>
-            <td>
-              <em>Compliance Status:</em>
-            </td>
-            <td>{attributes.CWPStatus}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Permit Status:</em>
-            </td>
-            <td>{attributes.CWPPermitStatusDesc}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Significant Effluent Violation within the last 3 years:</em>
-            </td>
-            <td>{hasEffluentViolations ? 'Yes' : 'No'}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Inspection within the last 5 years:</em>
-            </td>
-            <td>{bool(attributes.CWPInspectionCount)}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Formal Enforcement Action in the last 5 years:</em>
-            </td>
-            <td>{bool(attributes.CWPFormalEaCnt)}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>NPDES ID:</em>
-            </td>
-            <td>{attributes.SourceID}</td>
-          </tr>
-        </tbody>
-      </table>
+      <ListContent
+        rows={[
+          {
+            label: 'Compliance Status',
+            value: attributes.CWPStatus,
+          },
+          {
+            label: 'Permit Status',
+            value: attributes.CWPPermitStatusDesc,
+          },
+          {
+            label: 'Significant Effluent Violation within the last 3 years',
+            value: hasEffluentViolations ? 'Yes' : 'No',
+          },
+          {
+            label: 'Inspection within the last 5 years',
+            value: bool(attributes.CWPInspectionCount),
+          },
+          {
+            label: 'Formal Enforcement Action in the last 5 years',
+            value: bool(attributes.CWPFormalEaCnt),
+          },
+          {
+            label: 'NPDES ID',
+            value: attributes.SourceID,
+          },
+        ]}
+        styles={listContentStyles}
+      />
 
       <p>
         <a
@@ -654,34 +669,29 @@ function WaterbodyInfo({
   // jsx
   const wsioContent = (
     <>
-      <table css={modifiedTableStyles} className="table">
-        <tbody>
-          <tr>
-            <td>
-              <em>Watershed Name:</em>
-            </td>
-            <td>{attributes.NAME_HUC12}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Watershed:</em>
-            </td>
-            <td>{attributes.HUC12_TEXT}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>State:</em>
-            </td>
-            <td>{attributes.STATES_ALL}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Watershed Health Score:</em>
-            </td>
-            <td>({Math.round(attributes.PHWA_HEALTH_NDX_ST * 100) / 100})</td>
-          </tr>
-        </tbody>
-      </table>
+      <div css={tableStyles} className="table">
+        <ListContent
+          rows={[
+            {
+              label: 'Watershed Name',
+              value: attributes.NAME_HUC12,
+            },
+            {
+              label: 'Watershed',
+              value: attributes.HUC12_TEXT,
+            },
+            {
+              label: 'State',
+              value: attributes.STATES_ALL,
+            },
+            {
+              label: 'Watershed Health Score',
+              value: Math.round(attributes.PHWA_HEALTH_NDX_ST * 100) / 100,
+            },
+          ]}
+          styles={listContentStyles}
+        />
+      </div>
     </>
   );
 
@@ -752,10 +762,11 @@ function WaterbodyInfo({
     if (services?.status !== 'success') return;
 
     const auId = attributes.assessmentunitidentifier;
-    const url = services.data.attains.serviceUrl +
-          `actions?assessmentUnitIdentifier=${auId}` +
-          `&organizationIdentifier=${attributes.organizationid}` +
-          `&summarize=Y`;
+    const url =
+      services.data.attains.serviceUrl +
+      `actions?assessmentUnitIdentifier=${auId}` +
+      `&organizationIdentifier=${attributes.organizationid}` +
+      `&summarize=Y`;
 
     fetchCheck(url)
       .then((res) => {
@@ -922,7 +933,7 @@ function WaterbodyInfo({
 
 type MapPopupProps = {
   type: string;
-  feature: Feature;
+  feature: __esri.Graphic | ChangeLocationPopup;
   navigate: NavigateFunction;
   fieldName?: string | null;
   extraContent?: ReactNode | null;
@@ -964,7 +975,7 @@ function MapPopup({
 
   const { attributes } = feature;
 
-  const getTypeTitle = () => {
+  const getTypeTitle = (feature: __esri.Graphic) => {
     const typesToSkip = [
       'Action',
       'Change Location',
@@ -1051,18 +1062,20 @@ function MapPopup({
         </>
       )}
 
-      {getTypeTitle()}
+      {!isChangeLocationPopup(feature) && getTypeTitle(feature)}
 
-      <div css={popupContentStyles}>
-        <WaterbodyInfo
-          type={type}
-          feature={feature}
-          fieldName={fieldName}
-          extraContent={extraContent}
-          services={services}
-          fields={fields}
-        />
-      </div>
+      {!isChangeLocationPopup(feature) && (
+        <div css={popupContentStyles}>
+          <WaterbodyInfo
+            type={type}
+            feature={feature}
+            fieldName={fieldName}
+            extraContent={extraContent}
+            services={services}
+            fields={fields}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -1326,70 +1339,63 @@ function MonitoringLocationsContent({
 
   return (
     <>
-      <table css={modifiedTableStyles} className="table">
-        <tbody>
-          <tr>
-            <td>
-              <em>Organ&shy;ization Name:</em>
-            </td>
-            <td>{orgName}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Location Name:</em>
-            </td>
-            <td>{locationName}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Water Type:</em>
-            </td>
-            <td>{locationType}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Organization ID:</em>
-            </td>
-            <td>{orgId}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Monitor&shy;ing Site ID:</em>
-            </td>
-            <td>{siteId}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>
+      <div css={tableStyles} className="table">
+        <ListContent
+          rows={[
+            {
+              label: <>Organ&shy;ization Name</>,
+              value: orgName,
+            },
+            {
+              label: 'Location Name',
+              value: locationName,
+            },
+            {
+              label: 'Water Type',
+              value: locationType,
+            },
+            {
+              label: 'Organization ID',
+              value: orgId,
+            },
+            {
+              label: <>Monitor&shy;ing Site ID</>,
+              value: siteId,
+            },
+            {
+              label: (
                 <GlossaryTerm term="Monitoring Samples">
-                  Monitor&shy;ing Samples:
+                  Monitor&shy;ing Samples
                 </GlossaryTerm>
-              </em>
-            </td>
-            <td>
-              {Number(stationTotalSamples).toLocaleString()}
-              {timeframe && <span css={dateRangeStyles}>(all time)</span>}
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <em>
+              ),
+              value: (
+                <>
+                  {Number(stationTotalSamples).toLocaleString()}
+                  {timeframe ? <small>(all time)</small> : null}
+                </>
+              ),
+            },
+            {
+              label: (
                 <GlossaryTerm term="Monitoring Measurements">
-                  Monitor&shy;ing Measure&shy;ments:
+                  Monitor&shy;ing Measure&shy;ments
                 </GlossaryTerm>
-              </em>
-            </td>
-            <td>
-              {Number(stationTotalMeasurements).toLocaleString()}
-              {timeframe && (
-                <span css={dateRangeStyles}>
-                  ({timeframe[0]} - {timeframe[1]})
-                </span>
-              )}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              ),
+              value: (
+                <>
+                  {Number(stationTotalMeasurements).toLocaleString()}
+                  {timeframe && (
+                    <small>
+                      ({timeframe[0]} - {timeframe[1]})
+                    </small>
+                  )}
+                </>
+              ),
+            },
+          ]}
+          styles={listContentStyles}
+        />
+      </div>
 
       {!onMonitoringReportPage && (
         <p>
@@ -1501,7 +1507,12 @@ function MonitoringLocationsContent({
                       downloadUrl ? `${downloadUrl}&mimeType=xlsx` : undefined
                     }
                   >
-                    <i className="fas fa-file-excel" aria-hidden="true" />
+                    <HelpTooltip
+                      label="Download XLSX"
+                      description="Download selected data as an XLSX file."
+                    >
+                      <i className="fas fa-file-excel" aria-hidden="true" />
+                    </HelpTooltip>
                   </a>
                   &nbsp;&nbsp;
                   <a
@@ -1509,7 +1520,12 @@ function MonitoringLocationsContent({
                       downloadUrl ? `${downloadUrl}&mimeType=csv` : undefined
                     }
                   >
-                    <i className="fas fa-file-csv" aria-hidden="true" />
+                    <HelpTooltip
+                      label="Download CSV"
+                      description="Download selected data as a CSV file."
+                    >
+                      <i className="fas fa-file-csv" aria-hidden="true" />
+                    </HelpTooltip>
                   </a>
                 </span>
               </td>
@@ -1521,7 +1537,7 @@ function MonitoringLocationsContent({
   );
 }
 
-function UsgsStreamgagesContent({ feature }: { feature: Feature }) {
+function UsgsStreamgagesContent({ feature }: { feature: __esri.Graphic }) {
   const {
     streamgageMeasurements,
     orgName,
@@ -1530,7 +1546,7 @@ function UsgsStreamgagesContent({ feature }: { feature: Feature }) {
     siteId,
     orgId,
     locationUrl,
-  }: UsgsStreamgage = feature.attributes;
+  }: UsgsStreamgageAttributes = feature.attributes;
 
   const [additionalMeasurementsShown, setAdditionalMeasurementsShown] =
     useState(false);
@@ -1588,40 +1604,33 @@ function UsgsStreamgagesContent({ feature }: { feature: Feature }) {
 
   return (
     <>
-      <table css={modifiedTableStyles} className="table">
-        <tbody>
-          <tr>
-            <td>
-              <em>Organ&shy;ization Name:</em>
-            </td>
-            <td>{orgName}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Locat&shy;ion Name:</em>
-            </td>
-            <td>{locationName}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Water Type:</em>
-            </td>
-            <td>{locationType}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Organization ID:</em>
-            </td>
-            <td>{orgId}</td>
-          </tr>
-          <tr>
-            <td>
-              <em>Monitor&shy;ing Site ID:</em>
-            </td>
-            <td>{siteId}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div css={tableStyles} className="table">
+        <ListContent
+          rows={[
+            {
+              label: <>Organ&shy;ization Name</>,
+              value: orgName,
+            },
+            {
+              label: <>Locat&shy;ion Name</>,
+              value: locationName,
+            },
+            {
+              label: 'Water Type',
+              value: locationType,
+            },
+            {
+              label: 'Organization ID',
+              value: orgId,
+            },
+            {
+              label: <>Monitor&shy;ing Site ID</>,
+              value: siteId,
+            },
+          ]}
+          styles={listContentStyles}
+        />
+      </div>
 
       <table css={measurementTableStyles} className="table">
         <thead>
@@ -1741,9 +1750,11 @@ function UsgsStreamgageParameter({
             </div>
 
             <div css={unitStyles}>
-              <strong>{data.measurement}</strong>
+              <strong>{data.measurement ?? 'N/A'}</strong>
               &nbsp;
-              <small title={data.unitName}>{data.unitAbbr}</small>
+              {data.measurement && (
+                <small title={data.unitName}>{data.unitAbbr}</small>
+              )}
               <br />
               <small css={additionalTextStyles}>{data.datetime}</small>
             </div>
