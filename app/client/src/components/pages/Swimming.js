@@ -55,7 +55,7 @@ function Swimming() {
           Learn whether your local waters have been deemed safe for swimming and
           other recreational activities. Find out about what impairments exist
           in your local waterbodies. Water quality can change on very short
-          notice. When deciding if it is safe to swim in a water body, refer to
+          notice. When deciding if it is safe to swim in a waterbody, refer to
           any local or state advisories. If available, refer to local or state
           real-time water quality reports.
         </p>
