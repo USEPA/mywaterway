@@ -75,7 +75,7 @@ function SwimmingUpper() {
         <ShowLessMore
           charLimit={0}
           text=" Water quality can change on very short notice. When deciding if
-            it is safe to swim in a water body, refer to any local or state
+            it is safe to swim in a waterbody, refer to any local or state
             advisories. If available, refer to local or state real-time water
             quality reports."
         />
