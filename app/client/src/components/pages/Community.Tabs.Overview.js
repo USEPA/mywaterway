@@ -86,6 +86,29 @@ const toggleStyles = css`
   }
 `;
 
+const complianceRank = {
+  Significant: 0,
+  'Significant/Category I Noncompliance': 0,
+  'Violation Identified': 1,
+  Unknown: 2,
+  'No Violation Identified': 3,
+};
+
+function sortDischarchers(discharchers, sortBy) {
+  if (sortBy === 'CWPStatus') {
+    return discharchers.sort((a, b) => {
+      return (
+        (complianceRank[a.CWPStatus] ?? complianceRank.Unknown) -
+        (complianceRank[b.CWPStatus] ?? complianceRank.Unknown)
+      );
+    });
+  } else {
+    return discharchers.sort((a, b) => {
+      return a[sortBy].localeCompare(b[sortBy]);
+    });
+  }
+}
+
 function Overview() {
   const { usgsStreamgages } = useFetchedDataState();
 
@@ -810,11 +833,7 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
 
   /* prettier-ignore */
   const sortedPermittedDischargers = permittedDischargers.data.Results?.Facilities
-    ? permittedDischargers.data.Results.Facilities.sort((a, b) => {
-        return a[permittedDischargersSortedBy].localeCompare(
-          b[permittedDischargersSortedBy],
-        );
-      })
+    ? sortDischarchers(permittedDischargers.data.Results.Facilities, permittedDischargersSortedBy)
     : [];
 
   if (permittedDischargers.status === 'fetching') {
@@ -859,6 +878,10 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
               {
                 value: 'SourceID',
                 label: 'NPDES ID',
+              },
+              {
+                value: 'CWPStatus',
+                label: 'Compliance Status',
               },
             ]}
           >
