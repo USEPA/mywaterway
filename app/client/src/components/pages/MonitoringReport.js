@@ -50,7 +50,7 @@ import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { fetchCheck, fetchPost } from 'utils/fetchUtils';
 import { useSharedLayers } from 'utils/hooks';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
-import { parseAttributes, titleCaseWithExceptions } from 'utils/utils';
+import { parseAttributes } from 'utils/utils';
 // styles
 import {
   boxStyles,
@@ -1230,10 +1230,8 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
     <div css={modifiedBoxStyles}>
       <h2 css={infoBoxHeadingStyles}>
         Chart of Results for{' '}
-        {!charcName
-          ? 'Selected Characteristic'
-          : titleCaseWithExceptions(charcName)}
-        <HelpTooltip label="Adjust the slider handles to filter the data displayed on the chart by the selected year range, and use the drop-down inputs to filter  the data by the corresponding fields" />
+        {!charcName ? 'Selected Characteristic' : charcName}
+        <HelpTooltip label="Adjust the slider handles to filter the data displayed on the chart by the selected year range, and use the drop-down inputs to filter the data by the corresponding fields" />
       </h2>
       <StatusContent
         empty={
