@@ -788,6 +788,30 @@ function MonitoringAndSensorsTab({
   return null;
 }
 
+const complianceRank = {
+  Significant: 0,
+  'Significant/Category I Noncompliance': 0,
+  'Violation Identified': 1,
+  'No Violation': 2,
+  'No Violation Identified': 2,
+  Unknown: 3,
+};
+
+function sortDischarchers(discharchers, sortBy) {
+  if (sortBy === 'CWPStatus') {
+    return discharchers.sort((a, b) => {
+      return (
+        (complianceRank[a.CWPStatus] ?? complianceRank.Unknown) -
+        (complianceRank[b.CWPStatus] ?? complianceRank.Unknown)
+      );
+    });
+  } else {
+    return discharchers.sort((a, b) => {
+      return a[sortBy].localeCompare(b[sortBy]);
+    });
+  }
+}
+
 function PermittedDischargersTab({ totalPermittedDischargers }) {
   const navigate = useNavigate();
   const { permittedDischargers, dischargersLayer, watershed } = useContext(
@@ -810,11 +834,7 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
 
   /* prettier-ignore */
   const sortedPermittedDischargers = permittedDischargers.data.Results?.Facilities
-    ? permittedDischargers.data.Results.Facilities.sort((a, b) => {
-        return a[permittedDischargersSortedBy].localeCompare(
-          b[permittedDischargersSortedBy],
-        );
-      })
+    ? sortDischarchers(permittedDischargers.data.Results.Facilities, permittedDischargersSortedBy)
     : [];
 
   if (permittedDischargers.status === 'fetching') {
@@ -860,11 +880,17 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
                 value: 'SourceID',
                 label: 'NPDES ID',
               },
+              {
+                value: 'CWPStatus',
+                label: 'Compliance Status',
+              },
             ]}
           >
             {sortedPermittedDischargers.map((discharger, index) => {
               const id = discharger.SourceID;
               const name = discharger.CWPName;
+              const status = discharger.CWPStatus;
+
               const feature = {
                 geometry: {
                   type: 'point',
@@ -873,11 +899,18 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
                 },
                 attributes: discharger,
               };
+
               return (
                 <AccordionItem
                   key={index}
                   title={<strong>{name || 'Unknown'}</strong>}
-                  subTitle={<>NPDES ID: {id}</>}
+                  subTitle={
+                    <>
+                      NPDES ID: {id}
+                      <br />
+                      Compliance Status: {status}
+                    </>
+                  }
                   feature={feature}
                   idKey="CWPName"
                 >
