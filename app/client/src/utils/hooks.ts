@@ -21,7 +21,6 @@ import Query from '@arcgis/core/rest/support/Query';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
-import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 import { monitoringClusterSettings } from 'components/shared/LocationMap';
@@ -31,8 +30,8 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
-import { fetchCheck } from 'utils/fetchUtils';
 import {
+  buildStations,
   createWaterbodySymbol,
   createUniqueValueInfos,
   createUniqueValueInfosRestore,
@@ -46,8 +45,9 @@ import {
   isPoint,
   openPopup,
   shallowCompare,
+  updateMonitoringLocationsLayer,
 } from 'utils/mapFunctions';
-import { isAbort, parseAttributes } from 'utils/utils';
+import { parseAttributes } from 'utils/utils';
 // styles
 import { colors } from 'styles/index.js';
 // types
@@ -61,7 +61,6 @@ import type {
   FetchState,
   MonitoringLocationAttributes,
   MonitoringLocationGroups,
-  MonitoringLocationsData,
   StreamgageMeasurement,
   UsgsDailyAveragesData,
   UsgsPrecipitationData,
@@ -76,93 +75,6 @@ const allWaterbodiesAlpha = {
   poly: 0.4,
   outline: 1,
 };
-
-function buildStations(
-  locations: FetchState<MonitoringLocationsData>,
-  layer: __esri.Layer,
-) {
-  if (!layer) return;
-  if (locations.status !== 'success' || !locations.data.features?.length) {
-    return;
-  }
-
-  // sort descending order so that smaller graphics show up on top
-  const stationsSorted = [...locations.data.features];
-  stationsSorted.sort((a, b) => {
-    return (
-      parseInt(b.properties.resultCount) - parseInt(a.properties.resultCount)
-    );
-  });
-
-  // attributes common to both the layer and the context object
-  return stationsSorted.map((station) => {
-    return {
-      monitoringType: 'Past Water Conditions' as const,
-      siteId: station.properties.MonitoringLocationIdentifier,
-      orgId: station.properties.OrganizationIdentifier,
-      orgName: station.properties.OrganizationFormalName,
-      locationLongitude: station.geometry.coordinates[0],
-      locationLatitude: station.geometry.coordinates[1],
-      locationName: station.properties.MonitoringLocationName,
-      locationType: station.properties.MonitoringLocationTypeName,
-      // TODO: explore if the built up locationUrl below is ever different from
-      // `station.properties.siteUrl`. from a quick test, they seem the same
-      locationUrl:
-        `/monitoring-report/` +
-        `${station.properties.ProviderName}/` +
-        `${encodeURIComponent(station.properties.OrganizationIdentifier)}/` +
-        `${encodeURIComponent(
-          station.properties.MonitoringLocationIdentifier,
-        )}/`,
-      // monitoring station specific properties:
-      stationDataByYear: null,
-      stationProviderName: station.properties.ProviderName,
-      stationTotalSamples: parseInt(station.properties.activityCount),
-      stationTotalMeasurements: parseInt(station.properties.resultCount),
-      // counts for each lower-tier characteristic group
-      stationTotalsByGroup: station.properties.characteristicGroupResultCount,
-      stationTotalsByLabel: null,
-      timeframe: null,
-      // create a unique id, so we can check if the monitoring station has
-      // already been added to the display (since a monitoring station id
-      // isn't universally unique)
-      uniqueId:
-        `${station.properties.MonitoringLocationIdentifier}-` +
-        `${station.properties.ProviderName}-` +
-        `${station.properties.OrganizationIdentifier}`,
-    };
-  });
-}
-
-/*
- * Helpers for passing data to the map layers
- */
-function updateMonitoringLocationsLayer(
-  stations: MonitoringLocationAttributes[],
-  layer: __esri.FeatureLayer,
-) {
-  const structuredProps = ['stationTotalsByGroup', 'timeframe'];
-  const graphics = stations.map((station) => {
-    const attributes = stringifyAttributes(structuredProps, station);
-    return new Graphic({
-      geometry: new Point({
-        longitude: attributes.locationLongitude,
-        latitude: attributes.locationLatitude,
-      }),
-      attributes: {
-        ...attributes,
-      },
-    });
-  });
-  editLayer(layer, graphics);
-
-  if (layer.id !== 'surroundingMonitoringLocationsLayer') {
-    // turn off clustering if there are 20 or less stations
-    // @ts-ignore
-    layer.featureReduction =
-      graphics.length > 20 ? monitoringClusterSettings : null;
-  }
-}
 
 function updateMonitoringGroups(
   stations: MonitoringLocationAttributes[],
@@ -238,33 +150,6 @@ function updateMonitoringGroups(
     ];
   });
   return locationGroups;
-}
-
-const editLayer = async (
-  layer: __esri.FeatureLayer,
-  graphics: __esri.Graphic[],
-) => {
-  const featureSet = await layer.queryFeatures();
-  const edits = {
-    deleteFeatures: featureSet.features,
-    addFeatures: graphics,
-  };
-  return layer.applyEdits(edits);
-};
-
-function stringifyAttributes(
-  structuredAttributes: string[],
-  attributes: { [property: string]: any },
-) {
-  const stringified: { [property: string]: string } = {};
-  for (const property of structuredAttributes) {
-    try {
-      stringified[property] = JSON.stringify(attributes[property]);
-    } catch {
-      stringified[property] = attributes[property];
-    }
-  }
-  return { ...attributes, ...stringified };
 }
 
 // Closes the map popup and clears highlights whenever the user changes
@@ -1127,18 +1012,12 @@ function useDynamicPopup() {
 function useSharedLayers() {
   const services = useServicesContext();
   const {
-    getMonitoringLocations,
-    getSurroundingMonitoringLocationsWidgetDisabled,
-    mapView,
     setAllWaterbodiesLayer,
     setProtectedAreasLayer,
     setProtectedAreasHighlightLayer,
     setSurroundingMonitoringLocationsLayer,
-    setSurroundingMonitoringLocationsLoading,
-    setSurroundingMonitoringLocationsWidgetDisabled,
     setWsioHealthIndexLayer,
     setWildScenicRiversLayer,
-    surroundingMonitoringLocationsLayer,
   } = useContext(LocationSearchContext);
 
   const navigate = useNavigate();
@@ -1845,174 +1724,6 @@ function useSharedLayers() {
 
     return surroundingMonitoringLocationsLayer;
   }
-
-  const [surroundingMonitoringLocations, setSurroundingMonitoringLocations] =
-    useState<FetchState<MonitoringLocationsData>>({
-      status: 'fetching',
-      data: null,
-    });
-
-  const [watcherInitialized, setWatcherInitialized] = useState(false);
-  useEffect(() => {
-    if (!surroundingMonitoringLocationsLayer || watcherInitialized) return;
-    if (services.status !== 'success') return;
-
-    type SimpleExtent = {
-      xmin: number;
-      xmax: number;
-      ymin: number;
-      ymax: number;
-    };
-    let lastExtent: SimpleExtent | null = null;
-
-    let abortController = new AbortController();
-
-    // watch for extent changes and query the waterquality portal
-    reactiveUtils.watch(
-      () => mapView.stationary,
-      () => {
-        if (!mapView.stationary) return;
-        if (!mapView.ready) return;
-
-        const newExtent: SimpleExtent = {
-          xmin: mapView.extent.xmin,
-          xmax: mapView.extent.xmax,
-          ymin: mapView.extent.ymin,
-          ymax: mapView.extent.ymax,
-        };
-        if (JSON.stringify(newExtent) === JSON.stringify(lastExtent)) return;
-        lastExtent = newExtent;
-        abortController.abort();
-
-        setSurroundingMonitoringLocationsLoading(true);
-        abortController = new AbortController();
-
-        // convert the extent into northwest and southeast corner points
-        const northwestWM = new Point({
-          x: mapView.extent.xmin,
-          y: mapView.extent.ymax,
-        });
-        const southwestWM = new Point({
-          x: mapView.extent.xmax,
-          y: mapView.extent.ymin,
-        });
-
-        // convert the points to geographic
-        const northwest = webMercatorUtils.webMercatorToGeographic(
-          northwestWM,
-          false,
-        ) as __esri.Point;
-        const southwest = webMercatorUtils.webMercatorToGeographic(
-          southwestWM,
-          false,
-        ) as __esri.Point;
-
-        // get the bbox values from the northwest and southeast corner points
-        const north = northwest.latitude;
-        const south = southwest.latitude;
-        const east = southwest.longitude;
-        const west = northwest.longitude;
-
-        const url =
-          services.data.waterQualityPortal.monitoringLocation +
-          `search?mimeType=geojson&zip=no&bBox=${west},${south},${east},${north}`;
-        fetchCheck(url, abortController.signal)
-          .then((res: MonitoringLocationsData) => {
-            const idsToFilterOut: string[] = [];
-            const monitoringLocations = getMonitoringLocations();
-
-            if (monitoringLocations.status === 'success') {
-              (
-                monitoringLocations.data as MonitoringLocationsData
-              ).features.forEach((location) => {
-                idsToFilterOut.push(
-                  location.properties.MonitoringLocationIdentifier,
-                );
-              });
-            }
-
-            const newData: FetchState<MonitoringLocationsData> = {
-              status: 'success',
-              data: {
-                ...res,
-                features: res.features.filter(
-                  (location) =>
-                    !idsToFilterOut.includes(
-                      location.properties.MonitoringLocationIdentifier,
-                    ),
-                ),
-              },
-            };
-            setSurroundingMonitoringLocations(newData);
-
-            const stations = buildStations(
-              newData,
-              surroundingMonitoringLocationsLayer,
-            );
-            if (!stations) {
-              setSurroundingMonitoringLocationsLoading(false);
-              return;
-            }
-
-            updateMonitoringLocationsLayer(
-              stations,
-              surroundingMonitoringLocationsLayer,
-            );
-
-            setSurroundingMonitoringLocationsLoading(false);
-          })
-          .catch((err) => {
-            if (isAbort(err)) return;
-            console.error(err);
-          });
-      },
-    );
-
-    // watch for zoom changes and hide the surroundingMonitoringLocationsLayer when
-    // zoomed out to much
-    reactiveUtils.watch(
-      () => mapView.zoom,
-      () => {
-        let newDisabledValue = false;
-        if (mapView.zoom > 8) {
-          surroundingMonitoringLocationsLayer.listMode = 'hide-children';
-          newDisabledValue = false;
-        } else {
-          surroundingMonitoringLocationsLayer.listMode = 'hide';
-          newDisabledValue = true;
-        }
-
-        if (
-          newDisabledValue !== getSurroundingMonitoringLocationsWidgetDisabled()
-        ) {
-          setSurroundingMonitoringLocationsWidgetDisabled(newDisabledValue);
-        }
-      },
-    );
-
-    setWatcherInitialized(true);
-  }, [
-    getMonitoringLocations,
-    getSurroundingMonitoringLocationsWidgetDisabled,
-    mapView,
-    services,
-    setSurroundingMonitoringLocationsLoading,
-    setSurroundingMonitoringLocationsWidgetDisabled,
-    surroundingMonitoringLocationsLayer,
-    watcherInitialized,
-  ]);
-
-  useEffect(() => {
-    if (!surroundingMonitoringLocationsLayer) return;
-    if (surroundingMonitoringLocations.status !== 'success') return;
-
-    if (!surroundingMonitoringLocationsLayer.featureReduction) return;
-
-    surroundingMonitoringLocationsLayer.featureReduction =
-      surroundingMonitoringLocations.data.features.length > 20
-        ? monitoringClusterSettings
-        : null;
-  }, [surroundingMonitoringLocations, surroundingMonitoringLocationsLayer]);
 
   // Gets the settings for the WSIO Health Index layer.
   return function getSharedLayers() {

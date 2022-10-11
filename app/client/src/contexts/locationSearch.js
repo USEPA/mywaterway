@@ -1,6 +1,8 @@
 import React, { Component, createContext } from 'react';
 import type { ReactNode } from 'react';
 import type { MonitoringLocationsData } from 'types';
+// components
+import { monitoringClusterSettings } from 'components/shared/LocationMap';
 
 export const LocationSearchContext = createContext();
 
@@ -164,7 +166,6 @@ type State = {
   upstreamWidgetDisabled: boolean,
   allWaterbodiesWidgetDisabled: boolean,
   surroundingMonitoringLocationsWidgetDisabled: boolean,
-  surroundingMonitoringLocationsLoading: boolean,
   hucBoundaries: Object,
   atHucBoundaries: boolean,
   countyBoundaries: Object,
@@ -252,7 +253,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     upstreamWidgetDisabled: false,
     allWaterbodiesWidgetDisabled: false,
     surroundingMonitoringLocationsWidgetDisabled: false,
-    surroundingMonitoringLocationsLoading: false,
     visibleLayers: {},
     basemap: 'gray-vector',
     hucBoundaries: '',
@@ -388,9 +388,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     getSurroundingMonitoringLocationsWidgetDisabled: () => {
       return this.state.surroundingMonitoringLocationsWidgetDisabled;
     },
-    getSurroundingMonitoringLocationsLoading: () => {
-      return this.state.surroundingMonitoringLocationsLoading;
-    },
     getMonitoringLocations: () => {
       return this.state.monitoringLocations;
     },
@@ -484,11 +481,6 @@ export class LocationSearchProvider extends Component<Props, State> {
       surroundingMonitoringLocationsWidgetDisabled,
     ) => {
       this.setState({ surroundingMonitoringLocationsWidgetDisabled });
-    },
-    setSurroundingMonitoringLocationsLoading: (
-      surroundingMonitoringLocationsLoading,
-    ) => {
-      this.setState({ surroundingMonitoringLocationsLoading });
     },
     setVisibleLayers: (visibleLayers) => {
       this.setState({ visibleLayers });
@@ -592,6 +584,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         allWaterbodiesLayer,
         surroundingMonitoringLocationsLayer,
       } = this.state;
+      console.log('resetMap...');
 
       // Clear waterbody layers from state
       let newState = {};
@@ -674,6 +667,10 @@ export class LocationSearchProvider extends Component<Props, State> {
           wildScenicRiversLayer.listMode = 'hide';
         }, 100);
       }
+      if (surroundingMonitoringLocationsLayer) {
+        surroundingMonitoringLocationsLayer.featureReduction =
+          monitoringClusterSettings;
+      }
 
       // reset the zoom and home widget to the initial extent
       if (useDefaultZoom && mapView) {
@@ -727,7 +724,6 @@ export class LocationSearchProvider extends Component<Props, State> {
         attainsPlans: { status: 'fetching', data: {} },
         cipSummary: { status: 'fetching', data: {} },
         drinkingWater: { status: 'fetching', data: [] },
-        surroundingMonitoringLocationsLoading: false,
       });
 
       // remove map content

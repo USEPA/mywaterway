@@ -36,11 +36,13 @@ import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { fetchCheck } from 'utils/fetchUtils';
 import {
+  buildStations,
   hasSublayers,
   isGroupLayer,
   isInScale,
   isPolygon,
   shallowCompare,
+  updateMonitoringLocationsLayer,
 } from 'utils/mapFunctions';
 import { isAbort } from 'utils/utils';
 // helpers
@@ -50,7 +52,7 @@ import resizeIcon from 'images/resize.png';
 // types
 import type { CSSProperties, Dispatch, SetStateAction } from 'react';
 import type { Container } from 'react-dom';
-import type { Feature, ExtendedLayer, ScaledLayer, ServicesState } from 'types';
+import type { ExtendedLayer, Feature, FetchState, ScaledLayer, ServicesState, MonitoringLocationsData } from 'types';
 
 const layersToAllowPopups = ['restore', 'protect'];
 
@@ -283,7 +285,7 @@ function MapWidgets({
     getAllWaterbodiesWidgetDisabled,
     setMapView,
     getHucBoundaries,
-    getSurroundingMonitoringLocationsLoading,
+    getMonitoringLocations,
     getSurroundingMonitoringLocationsWidgetDisabled,
     surroundingMonitoringLocationsLayer,
     surroundingMonitoringLocationsWidgetDisabled,
@@ -1224,17 +1226,24 @@ function MapWidgets({
     render(
       <ShowSurroundingMonitoringLocations
         getDisabled={getSurroundingMonitoringLocationsWidgetDisabled}
-        getLoading={getSurroundingMonitoringLocationsLoading}
+        getMonitoringLocations={getMonitoringLocations}
         mapView={view}
+        services={services}
+        setDisabled={setSurroundingMonitoringLocationsWidgetDisabled}
         setVisible={setSurroundingMonitoringLocationsLayerVisible}
+        surroundingMonitoringLocationsLayer={surroundingMonitoringLocationsLayer}
       />,
       node,
     );
     setSurroundingMonitoringLocationsWidgetCreated(true);
   }, [
-    getSurroundingMonitoringLocationsLoading,
+    getMonitoringLocations,
     getSurroundingMonitoringLocationsWidgetDisabled,
+    services,
+    setSurroundingMonitoringLocationsLayerVisible,
     setSurroundingMonitoringLocationsWidget,
+    setSurroundingMonitoringLocationsWidgetDisabled,
+    surroundingMonitoringLocationsLayer,
     surroundingMonitoringLocationsWidgetCreated,
     view,
   ]);
@@ -1497,19 +1506,177 @@ function ShowAllWaterbodies({
 
 type ShowSurroundingMonitoringLocationsProps = {
   getDisabled: () => boolean;
-  getLoading: () => boolean;
+  getMonitoringLocations: () => FetchState<MonitoringLocationsData>;
   mapView: __esri.MapView;
+  services: ServicesState;
+  setDisabled: (disabled: boolean) => void;
   setVisible: (visible: boolean) => void;
+  surroundingMonitoringLocationsLayer: __esri.FeatureLayer | '';
 };
 
 // Defines the show all waterbodies widget
 function ShowSurroundingMonitoringLocations({
   getDisabled,
-  getLoading,
+  getMonitoringLocations,
   mapView,
+  services,
+  setDisabled,
   setVisible,
+  surroundingMonitoringLocationsLayer,
 }: ShowSurroundingMonitoringLocationsProps) {
   const [hover, setHover] = useState(false);
+
+  const [surroundingMonitoringLocations, setSurroundingMonitoringLocations] =
+    useState<FetchState<MonitoringLocationsData>>({
+      status: 'fetching',
+      data: null,
+    });
+
+  const [watcherInitialized, setWatcherInitialized] = useState(false);
+  useEffect(() => {
+    if (!surroundingMonitoringLocationsLayer || watcherInitialized) return;
+    if (services.status !== 'success') return;
+
+    type SimpleExtent = {
+      xmin: number;
+      xmax: number;
+      ymin: number;
+      ymax: number;
+    };
+    let lastExtent: SimpleExtent | null = null;
+
+    let abortController = new AbortController();
+
+    // watch for extent changes and query the waterquality portal
+    reactiveUtils.watch(
+      () => mapView.stationary,
+      () => {
+        if (!mapView.stationary) return;
+        if (!mapView.ready) return;
+
+        const newExtent: SimpleExtent = {
+          xmin: mapView.extent.xmin,
+          xmax: mapView.extent.xmax,
+          ymin: mapView.extent.ymin,
+          ymax: mapView.extent.ymax,
+        };
+        if (JSON.stringify(newExtent) === JSON.stringify(lastExtent)) return;
+        lastExtent = newExtent;
+        abortController.abort();
+
+        setSurroundingMonitoringLocations({
+          status: 'fetching',
+          data: null,
+        });
+        abortController = new AbortController();
+
+        // convert the extent into northwest and southeast corner points
+        const northwestWM = new Point({
+          x: mapView.extent.xmin,
+          y: mapView.extent.ymax,
+        });
+        const southwestWM = new Point({
+          x: mapView.extent.xmax,
+          y: mapView.extent.ymin,
+        });
+
+        // convert the points to geographic
+        const northwest = webMercatorUtils.webMercatorToGeographic(
+          northwestWM,
+          false,
+        ) as __esri.Point;
+        const southwest = webMercatorUtils.webMercatorToGeographic(
+          southwestWM,
+          false,
+        ) as __esri.Point;
+
+        // get the bbox values from the northwest and southeast corner points
+        const north = northwest.latitude;
+        const south = southwest.latitude;
+        const east = southwest.longitude;
+        const west = northwest.longitude;
+
+        const url =
+          services.data.waterQualityPortal.monitoringLocation +
+          `search?mimeType=geojson&zip=no&bBox=${west},${south},${east},${north}`;
+        fetchCheck(url, abortController.signal)
+          .then((res: MonitoringLocationsData) => {
+            const idsToFilterOut: string[] = [];
+            const monitoringLocations = getMonitoringLocations();
+
+            if (monitoringLocations.status === 'success') {
+              (
+                monitoringLocations.data as MonitoringLocationsData
+              ).features.forEach((location) => {
+                idsToFilterOut.push(
+                  location.properties.MonitoringLocationIdentifier,
+                );
+              });
+            }
+
+            const newData: FetchState<MonitoringLocationsData> = {
+              status: 'success',
+              data: {
+                ...res,
+                features: res.features.filter(
+                  (location) =>
+                    !idsToFilterOut.includes(
+                      location.properties.MonitoringLocationIdentifier,
+                    ),
+                ),
+              },
+            };
+            setSurroundingMonitoringLocations(newData);
+
+            const stations = buildStations(
+              newData,
+              surroundingMonitoringLocationsLayer,
+            );
+            if (!stations) return;
+
+            updateMonitoringLocationsLayer(
+              stations,
+              surroundingMonitoringLocationsLayer,
+            );
+          })
+          .catch((err) => {
+            if (isAbort(err)) return;
+            console.error(err);
+            setSurroundingMonitoringLocations({
+              status: 'failure',
+              data: null,
+            });
+          });
+      },
+    );
+
+    // watch for zoom changes and hide the surroundingMonitoringLocationsLayer when
+    // zoomed out to much
+    reactiveUtils.watch(
+      () => mapView.zoom,
+      () => {
+        let newDisabledValue = false;
+        if (mapView.zoom > 8) {
+          surroundingMonitoringLocationsLayer.listMode = 'hide-children';
+          newDisabledValue = false;
+        } else {
+          surroundingMonitoringLocationsLayer.listMode = 'hide';
+          newDisabledValue = true;
+        }
+
+        setDisabled(newDisabledValue);
+      },
+    );
+
+    setWatcherInitialized(true);
+  }, [
+    getMonitoringLocations,
+    setDisabled,
+    mapView,
+    services,
+    surroundingMonitoringLocationsLayer,
+    watcherInitialized,
+  ]);
 
   const widgetDisabled = getDisabled();
 
@@ -1539,8 +1706,8 @@ function ShowSurroundingMonitoringLocations({
     >
       <span
         className={
-          getLoading() && !widgetDisabled && layer?.visible
-            ? 'esri-icon-layerLoading-indicator esri-rotating'
+          surroundingMonitoringLocations.status === 'fetching' && !widgetDisabled && layer?.visible
+            ? 'esri-icon-loading-indicator esri-rotating'
             : 'esri-icon-experimental'
         }
         style={!widgetDisabled && hover ? buttonHoverStyle : buttonStyle}
