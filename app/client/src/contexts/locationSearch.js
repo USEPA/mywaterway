@@ -1,8 +1,6 @@
 import React, { Component, createContext } from 'react';
 import type { ReactNode } from 'react';
 import type { MonitoringLocationsData } from 'types';
-// components
-import { monitoringClusterSettings } from 'components/shared/LocationMap';
 
 export const LocationSearchContext = createContext();
 
@@ -584,7 +582,6 @@ export class LocationSearchProvider extends Component<Props, State> {
         allWaterbodiesLayer,
         surroundingMonitoringLocationsLayer,
       } = this.state;
-      console.log('resetMap...');
 
       // Clear waterbody layers from state
       let newState = {};
@@ -666,10 +663,6 @@ export class LocationSearchProvider extends Component<Props, State> {
           wildScenicRiversLayer.visible = false;
           wildScenicRiversLayer.listMode = 'hide';
         }, 100);
-      }
-      if (surroundingMonitoringLocationsLayer) {
-        surroundingMonitoringLocationsLayer.featureReduction =
-          monitoringClusterSettings;
       }
 
       // reset the zoom and home widget to the initial extent
