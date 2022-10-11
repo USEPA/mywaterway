@@ -1605,9 +1605,7 @@ function ShowSurroundingMonitoringLocations({
             const monitoringLocations = getMonitoringLocations();
 
             if (monitoringLocations.status === 'success') {
-              (
-                monitoringLocations.data as MonitoringLocationsData
-              ).features.forEach((location) => {
+              monitoringLocations.data.features.forEach((location) => {
                 idsToFilterOut.push(
                   location.properties.MonitoringLocationIdentifier,
                 );
@@ -1658,7 +1656,6 @@ function ShowSurroundingMonitoringLocations({
         let newDisabledValue = false;
         if (mapView.zoom > 8) {
           surroundingMonitoringLocationsLayer.listMode = 'hide-children';
-          newDisabledValue = false;
         } else {
           surroundingMonitoringLocationsLayer.listMode = 'hide';
           newDisabledValue = true;
