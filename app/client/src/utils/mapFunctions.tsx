@@ -997,7 +997,7 @@ export function isInScale(
     });
 
     // get the min/max scale from the sourceJSON
-    layer.sourceJSON.layers.forEach(
+    layer.sourceJSON?.layers.forEach(
       (sourceLayer: __esri.Sublayer | __esri.SubtypeSublayer) => {
         if (!('id' in sourceLayer) || !sublayerIds.includes(sourceLayer.id))
           return;
