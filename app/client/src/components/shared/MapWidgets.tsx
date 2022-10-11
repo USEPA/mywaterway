@@ -102,6 +102,7 @@ const orderedLayers = [
   'waterbodyLayer',
   'allWaterbodiesLayer',
   'monitoringLocationsLayer',
+  'surroundingMonitoringLocationsLayer',
   'usgsStreamgagesLayer',
   'issuesLayer',
   'dischargersLayer',
@@ -192,7 +193,8 @@ function updateVisibleLayers(
       (layer.visible && layer.listMode !== 'hide') ||
       (layer.visible && layer.id === 'actionsWaterbodies') ||
       (layer.visible && layer.id === 'upstreamWatershed') ||
-      (layer.visible && layer.id === 'allWaterbodiesLayer')
+      (layer.visible && layer.id === 'allWaterbodiesLayer') ||
+      (layer.visible && layer.id === 'surroundingMonitoringLocationsLayer')
     ) {
       visibleLayers.push(layer);
     }
@@ -281,6 +283,11 @@ function MapWidgets({
     getAllWaterbodiesWidgetDisabled,
     setMapView,
     getHucBoundaries,
+    getSurroundingMonitoringLocationsLoading,
+    getSurroundingMonitoringLocationsWidgetDisabled,
+    surroundingMonitoringLocationsLayer,
+    surroundingMonitoringLocationsWidgetDisabled,
+    setSurroundingMonitoringLocationsWidgetDisabled,
   } = useContext(LocationSearchContext);
 
   const services = useServicesContext();
@@ -1092,25 +1099,6 @@ function MapWidgets({
     }
   }, [allWaterbodiesWidget, allWaterbodiesWidgetDisabled]);
 
-  // watch for changes to all waterbodies layer visibility and update visible
-  // layers accordingly
-  useEffect(() => {
-    updateVisibleLayers(
-      view,
-      displayEsriLegend,
-      hmwLegendNode,
-      additionalLegendInfo,
-    );
-  }, [
-    additionalLegendInfo,
-    allWaterbodiesLayerVisible,
-    displayEsriLegend,
-    hmwLegendNode,
-    upstreamLayerVisible,
-    view,
-    visibleLayers,
-  ]);
-
   // create all waterbodies widget
   const [
     allWaterbodiesWidgetCreated,
@@ -1140,6 +1128,135 @@ function MapWidgets({
     setAllWaterbodiesWidget,
     setAllWaterbodiesWidgetDisabled,
     view,
+  ]);
+
+  const [
+    surroundingMonitoringLocationsWidget,
+    setSurroundingMonitoringLocationsWidget,
+  ] = useState<HTMLDivElement | null>(null);
+  const [
+    surroundingMonitoringLocationsLayerVisible,
+    setSurroundingMonitoringLocationsLayerVisible,
+  ] = useState(true);
+
+  // watch for location changes and disable/enable the surrounding past water
+  // conditions widget accordingly widget should only be displayed on valid
+  // Community, waterbody report, and tribal pages
+  useEffect(() => {
+    if (!surroundingMonitoringLocationsWidget) return;
+
+    const pathname = window.location.pathname;
+    if (
+      !pathname.includes('/community') &&
+      !pathname.includes('/tribe') &&
+      !pathname.includes('/waterbody-report')
+    ) {
+      // hide widget on other pages
+      surroundingMonitoringLocationsWidget.style.display = 'none';
+      surroundingMonitoringLocationsLayer.visible = false;
+      return;
+    }
+
+    if (
+      !pathname.includes('/tribe') &&
+      !pathname.includes('/waterbody-report') &&
+      (!huc12 || pathname === '/community')
+    ) {
+      // disable widget on community home or invalid searches
+      setSurroundingMonitoringLocationsWidgetDisabled(true);
+      surroundingMonitoringLocationsLayer.visible = false;
+      return;
+    }
+
+    if (pathname.includes('/tribe')) {
+      // enable the widget but default visibility to off
+      setSurroundingMonitoringLocationsWidgetDisabled(false);
+      setSurroundingMonitoringLocationsLayerVisible(false);
+      surroundingMonitoringLocationsLayer.visible = false;
+      return;
+    }
+
+    // display and enable the all waterbodies widget
+    setSurroundingMonitoringLocationsWidgetDisabled(false);
+    surroundingMonitoringLocationsLayer.visible = false;
+  }, [
+    huc12,
+    setSurroundingMonitoringLocationsWidgetDisabled,
+    surroundingMonitoringLocationsLayer,
+    surroundingMonitoringLocationsWidget,
+  ]);
+
+  // disable the all waterbodies widget if on the community home page
+  useEffect(() => {
+    const pathname = window.location.pathname;
+    if (
+      !surroundingMonitoringLocationsWidget ||
+      (!pathname.includes('/community') &&
+        !pathname.includes('/tribe') &&
+        !pathname.includes('/waterbody-report'))
+    ) {
+      return;
+    }
+
+    if (surroundingMonitoringLocationsWidgetDisabled) {
+      surroundingMonitoringLocationsWidget.style.opacity = '0.5';
+      surroundingMonitoringLocationsWidget.style.cursor = 'default';
+    } else {
+      surroundingMonitoringLocationsWidget.style.opacity = '1';
+      surroundingMonitoringLocationsWidget.style.cursor = 'pointer';
+    }
+  }, [
+    surroundingMonitoringLocationsWidget,
+    surroundingMonitoringLocationsWidgetDisabled,
+  ]);
+
+  // create surrounding monitoring locations widget
+  const [
+    surroundingMonitoringLocationsWidgetCreated,
+    setSurroundingMonitoringLocationsWidgetCreated,
+  ] = useState(false);
+  useEffect(() => {
+    if (surroundingMonitoringLocationsWidgetCreated || !view?.ui) return;
+
+    const node = document.createElement('div');
+    view.ui.add(node, { position: 'top-right', index: 3 });
+    setSurroundingMonitoringLocationsWidget(node); // store the widget in context so it can be shown or hidden later
+    render(
+      <ShowSurroundingMonitoringLocations
+        getDisabled={getSurroundingMonitoringLocationsWidgetDisabled}
+        getLoading={getSurroundingMonitoringLocationsLoading}
+        mapView={view}
+        setVisible={setSurroundingMonitoringLocationsLayerVisible}
+      />,
+      node,
+    );
+    setSurroundingMonitoringLocationsWidgetCreated(true);
+  }, [
+    getSurroundingMonitoringLocationsLoading,
+    getSurroundingMonitoringLocationsWidgetDisabled,
+    setSurroundingMonitoringLocationsWidget,
+    surroundingMonitoringLocationsWidgetCreated,
+    view,
+  ]);
+
+  // watch for changes to all waterbodies layer visibility and update visible
+  // layers accordingly
+  useEffect(() => {
+    updateVisibleLayers(
+      view,
+      displayEsriLegend,
+      hmwLegendNode,
+      additionalLegendInfo,
+    );
+  }, [
+    additionalLegendInfo,
+    allWaterbodiesLayerVisible,
+    displayEsriLegend,
+    hmwLegendNode,
+    surroundingMonitoringLocationsLayerVisible,
+    upstreamLayerVisible,
+    view,
+    visibleLayers,
   ]);
 
   if (!addDataWidget) return null;
@@ -1371,6 +1488,60 @@ function ShowAllWaterbodies({
           allWaterbodiesLoading && !widgetDisabled && layer?.visible
             ? 'esri-icon-loading-indicator esri-rotating'
             : 'esri-icon-maps'
+        }
+        style={!widgetDisabled && hover ? buttonHoverStyle : buttonStyle}
+      />
+    </div>
+  );
+}
+
+type ShowSurroundingMonitoringLocationsProps = {
+  getDisabled: () => boolean;
+  getLoading: () => boolean;
+  mapView: __esri.MapView;
+  setVisible: (visible: boolean) => void;
+};
+
+// Defines the show all waterbodies widget
+function ShowSurroundingMonitoringLocations({
+  getDisabled,
+  getLoading,
+  mapView,
+  setVisible,
+}: ShowSurroundingMonitoringLocationsProps) {
+  const [hover, setHover] = useState(false);
+
+  const widgetDisabled = getDisabled();
+
+  // get the layer from the mapView
+  const layer = mapView.map.layers.find(
+    (l) => l.id === 'surroundingMonitoringLocationsLayer',
+  );
+
+  let title = 'View Surrounding Past Water Conditions';
+  if (widgetDisabled)
+    title = 'Surrounding Past Water Conditions Widget Not Available';
+  else if (layer?.visible) title = 'Hide Surrounding Past Water Conditions';
+
+  return (
+    <div
+      title={title}
+      style={!widgetDisabled && hover ? divHoverStyle : divStyle}
+      onMouseOver={() => setHover(true)}
+      onMouseOut={() => setHover(false)}
+      onClick={(_ev) => {
+        // if widget is disabled do nothing
+        if (widgetDisabled || !layer) return;
+
+        layer.visible = !layer.visible;
+        setVisible(layer.visible);
+      }}
+    >
+      <span
+        className={
+          getLoading() && !widgetDisabled && layer?.visible
+            ? 'esri-icon-layerLoading-indicator esri-rotating'
+            : 'esri-icon-experimental'
         }
         style={!widgetDisabled && hover ? buttonHoverStyle : buttonStyle}
       />

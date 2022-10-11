@@ -21,6 +21,7 @@ import Query from '@arcgis/core/rest/support/Query';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
+import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils';
 // config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 import { monitoringClusterSettings } from 'components/shared/LocationMap';
@@ -30,6 +31,7 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
+import { fetchCheck } from 'utils/fetchUtils';
 import {
   createWaterbodySymbol,
   createUniqueValueInfos,
@@ -45,6 +47,9 @@ import {
   openPopup,
   shallowCompare,
 } from 'utils/mapFunctions';
+import { isAbort, parseAttributes } from 'utils/utils';
+// styles
+import { colors } from 'styles/index.js';
 // types
 import type { CharacteristicGroupMappings } from 'config/characteristicGroupMappings';
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
@@ -151,10 +156,12 @@ function updateMonitoringLocationsLayer(
   });
   editLayer(layer, graphics);
 
-  // turn off clustering if there are 20 or less stations
-  // @ts-ignore
-  layer.featureReduction =
-    graphics.length > 20 ? monitoringClusterSettings : null;
+  if (layer.id !== 'surroundingMonitoringLocationsLayer') {
+    // turn off clustering if there are 20 or less stations
+    // @ts-ignore
+    layer.featureReduction =
+      graphics.length > 20 ? monitoringClusterSettings : null;
+  }
 }
 
 function updateMonitoringGroups(
@@ -1120,13 +1127,21 @@ function useDynamicPopup() {
 function useSharedLayers() {
   const services = useServicesContext();
   const {
+    getMonitoringLocations,
+    getSurroundingMonitoringLocationsWidgetDisabled,
+    mapView,
     setAllWaterbodiesLayer,
     setProtectedAreasLayer,
     setProtectedAreasHighlightLayer,
+    setSurroundingMonitoringLocationsLayer,
+    setSurroundingMonitoringLocationsLoading,
+    setSurroundingMonitoringLocationsWidgetDisabled,
     setWsioHealthIndexLayer,
     setWildScenicRiversLayer,
+    surroundingMonitoringLocationsLayer,
   } = useContext(LocationSearchContext);
 
+  const navigate = useNavigate();
   const getDynamicPopup = useDynamicPopup();
   const { getTitle, getTemplate } = getDynamicPopup();
 
@@ -1761,6 +1776,244 @@ function useSharedLayers() {
     return allWaterbodiesLayer;
   }
 
+  function getSurroundingMonitoringLocationsLayer() {
+    const surroundingMonitoringLocationsLayer = new FeatureLayer({
+      id: 'surroundingMonitoringLocationsLayer',
+      title: 'Surrounding Past Water Conditions',
+      listMode: 'hide',
+      legendEnabled: true,
+      visible: false,
+      fields: [
+        { name: 'OBJECTID', type: 'oid' },
+        { name: 'monitoringType', type: 'string' },
+        { name: 'siteId', type: 'string' },
+        { name: 'orgId', type: 'string' },
+        { name: 'orgName', type: 'string' },
+        { name: 'locationLongitude', type: 'double' },
+        { name: 'locationLatitude', type: 'double' },
+        { name: 'locationName', type: 'string' },
+        { name: 'locationType', type: 'string' },
+        { name: 'locationUrl', type: 'string' },
+        { name: 'stationProviderName', type: 'string' },
+        { name: 'stationTotalSamples', type: 'integer' },
+        { name: 'stationTotalsByGroup', type: 'string' },
+        { name: 'stationTotalMeasurements', type: 'integer' },
+        { name: 'timeframe', type: 'string' },
+        { name: 'uniqueId', type: 'string' },
+      ],
+      objectIdField: 'OBJECTID',
+      outFields: ['*'],
+      // NOTE: initial graphic below will be replaced with UGSG streamgages
+      source: [
+        new Graphic({
+          geometry: new Point({ longitude: -98.5795, latitude: 39.8283 }),
+          attributes: { OBJECTID: 1 },
+        }),
+      ],
+      renderer: new SimpleRenderer({
+        symbol: new SimpleMarkerSymbol({
+          style: 'circle',
+          color: new Color(colors.lightPurple(0.3)),
+          outline: {
+            width: 0.75,
+            color: new Color(colors.black(0.5)),
+          },
+        }),
+      }),
+      featureReduction: monitoringClusterSettings,
+      popupTemplate: {
+        outFields: ['*'],
+        title: (feature: __esri.Feature) =>
+          getPopupTitle(feature.graphic.attributes),
+        content: (feature: __esri.Feature) => {
+          // Parse non-scalar variables
+          const structuredProps = ['stationTotalsByGroup', 'timeframe'];
+          feature.graphic.attributes = parseAttributes(
+            structuredProps,
+            feature.graphic.attributes,
+          );
+          return getPopupContent({
+            feature: feature.graphic,
+            services,
+            navigate,
+          });
+        },
+      },
+    });
+
+    setSurroundingMonitoringLocationsLayer(surroundingMonitoringLocationsLayer);
+
+    return surroundingMonitoringLocationsLayer;
+  }
+
+  const [surroundingMonitoringLocations, setSurroundingMonitoringLocations] =
+    useState<FetchState<MonitoringLocationsData>>({
+      status: 'fetching',
+      data: null,
+    });
+
+  const [watcherInitialized, setWatcherInitialized] = useState(false);
+  useEffect(() => {
+    if (!surroundingMonitoringLocationsLayer || watcherInitialized) return;
+    if (services.status !== 'success') return;
+
+    type SimpleExtent = {
+      xmin: number;
+      xmax: number;
+      ymin: number;
+      ymax: number;
+    };
+    let lastExtent: SimpleExtent | null = null;
+
+    let abortController = new AbortController();
+
+    // watch for extent changes and query the waterquality portal
+    reactiveUtils.watch(
+      () => mapView.stationary,
+      () => {
+        if (!mapView.stationary) return;
+        if (!mapView.ready) return;
+
+        const newExtent: SimpleExtent = {
+          xmin: mapView.extent.xmin,
+          xmax: mapView.extent.xmax,
+          ymin: mapView.extent.ymin,
+          ymax: mapView.extent.ymax,
+        };
+        if (JSON.stringify(newExtent) === JSON.stringify(lastExtent)) return;
+        lastExtent = newExtent;
+        abortController.abort();
+
+        setSurroundingMonitoringLocationsLoading(true);
+        abortController = new AbortController();
+
+        // convert the extent into northwest and southeast corner points
+        const northwestWM = new Point({
+          x: mapView.extent.xmin,
+          y: mapView.extent.ymax,
+        });
+        const southwestWM = new Point({
+          x: mapView.extent.xmax,
+          y: mapView.extent.ymin,
+        });
+
+        // convert the points to geographic
+        const northwest = webMercatorUtils.webMercatorToGeographic(
+          northwestWM,
+          false,
+        ) as __esri.Point;
+        const southwest = webMercatorUtils.webMercatorToGeographic(
+          southwestWM,
+          false,
+        ) as __esri.Point;
+
+        // get the bbox values from the northwest and southeast corner points
+        const north = northwest.latitude;
+        const south = southwest.latitude;
+        const east = southwest.longitude;
+        const west = northwest.longitude;
+
+        const url =
+          services.data.waterQualityPortal.monitoringLocation +
+          `search?mimeType=geojson&zip=no&bBox=${west},${south},${east},${north}`;
+        fetchCheck(url, abortController.signal)
+          .then((res: MonitoringLocationsData) => {
+            const idsToFilterOut: string[] = [];
+            const monitoringLocations = getMonitoringLocations();
+
+            if (monitoringLocations.status === 'success') {
+              (
+                monitoringLocations.data as MonitoringLocationsData
+              ).features.forEach((location) => {
+                idsToFilterOut.push(
+                  location.properties.MonitoringLocationIdentifier,
+                );
+              });
+            }
+
+            const newData: FetchState<MonitoringLocationsData> = {
+              status: 'success',
+              data: {
+                ...res,
+                features: res.features.filter(
+                  (location) =>
+                    !idsToFilterOut.includes(
+                      location.properties.MonitoringLocationIdentifier,
+                    ),
+                ),
+              },
+            };
+            setSurroundingMonitoringLocations(newData);
+
+            const stations = buildStations(
+              newData,
+              surroundingMonitoringLocationsLayer,
+            );
+            if (!stations) {
+              setSurroundingMonitoringLocationsLoading(false);
+              return;
+            }
+
+            updateMonitoringLocationsLayer(
+              stations,
+              surroundingMonitoringLocationsLayer,
+            );
+
+            setSurroundingMonitoringLocationsLoading(false);
+          })
+          .catch((err) => {
+            if (isAbort(err)) return;
+            console.error(err);
+          });
+      },
+    );
+
+    // watch for zoom changes and hide the surroundingMonitoringLocationsLayer when
+    // zoomed out to much
+    reactiveUtils.watch(
+      () => mapView.zoom,
+      () => {
+        let newDisabledValue = false;
+        if (mapView.zoom > 8) {
+          surroundingMonitoringLocationsLayer.listMode = 'hide-children';
+          newDisabledValue = false;
+        } else {
+          surroundingMonitoringLocationsLayer.listMode = 'hide';
+          newDisabledValue = true;
+        }
+
+        if (
+          newDisabledValue !== getSurroundingMonitoringLocationsWidgetDisabled()
+        ) {
+          setSurroundingMonitoringLocationsWidgetDisabled(newDisabledValue);
+        }
+      },
+    );
+
+    setWatcherInitialized(true);
+  }, [
+    getMonitoringLocations,
+    getSurroundingMonitoringLocationsWidgetDisabled,
+    mapView,
+    services,
+    setSurroundingMonitoringLocationsLoading,
+    setSurroundingMonitoringLocationsWidgetDisabled,
+    surroundingMonitoringLocationsLayer,
+    watcherInitialized,
+  ]);
+
+  useEffect(() => {
+    if (!surroundingMonitoringLocationsLayer) return;
+    if (surroundingMonitoringLocations.status !== 'success') return;
+
+    if (!surroundingMonitoringLocationsLayer.featureReduction) return;
+
+    surroundingMonitoringLocationsLayer.featureReduction =
+      surroundingMonitoringLocations.data.features.length > 20
+        ? monitoringClusterSettings
+        : null;
+  }, [surroundingMonitoringLocations, surroundingMonitoringLocationsLayer]);
+
   // Gets the settings for the WSIO Health Index layer.
   return function getSharedLayers() {
     const wsioHealthIndexLayer = getWsioLayer();
@@ -1787,6 +2040,9 @@ function useSharedLayers() {
 
     const allWaterbodiesLayer = getAllWaterbodiesLayer();
 
+    const surroundingMonitoringLocationsLayer =
+      getSurroundingMonitoringLocationsLayer();
+
     return [
       ejscreen,
       wsioHealthIndexLayer,
@@ -1799,6 +2055,7 @@ function useSharedLayers() {
       mappedWaterLayer,
       countyLayer,
       watershedsLayer,
+      surroundingMonitoringLocationsLayer,
       allWaterbodiesLayer,
     ];
   };

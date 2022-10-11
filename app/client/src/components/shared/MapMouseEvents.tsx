@@ -105,13 +105,17 @@ function getGraphicFromResponse(
 function prioritizePopup(graphics: __esri.Graphic[] | null) {
   graphics?.sort((a, b) => {
     if (a.attributes.assessmentunitname) return -1;
-    else if (a.layer.id === 'monitoringLocationsLayer') {
+    else if (
+      a.layer.id === 'monitoringLocationsLayer' ||
+      a.layer.id === 'surroundingMonitoringLocationsLayer'
+    ) {
       if (b.attributes.assessmentunitname) return 1;
       return -1;
     } else if (a.attributes.TRIBE_NAME) {
       if (
         b.attributes.assessmentunitname ||
-        b.layer.id === 'monitoringLocationsLayer'
+        b.layer.id === 'monitoringLocationsLayer' ||
+        b.layer.id === 'surroundingMonitoringLocationsLayer'
       )
         return 1;
       return -1;
@@ -177,6 +181,7 @@ function MapMouseEvents({ view }: Props) {
     monitoringLocationsLayer,
     resetData,
     protectedAreasLayer,
+    surroundingMonitoringLocationsLayer,
   } = useContext(LocationSearchContext);
 
   const getDynamicPopup = useDynamicPopup();
@@ -230,6 +235,15 @@ function MapMouseEvents({ view }: Props) {
               monitoringLocationsLayer.featureReduction = null;
               return;
             }
+
+            if (
+              graphic.layer.id === 'surroundingMonitoringLocationsLayer' &&
+              graphic.isAggregate
+            ) {
+              surroundingMonitoringLocationsLayer.featureReduction = null;
+              return;
+            }
+
             updateGraphics(graphics, updates?.current);
             if (onTribePage) prioritizePopup(graphics);
             setSelectedGraphic(graphic);
@@ -326,10 +340,11 @@ function MapMouseEvents({ view }: Props) {
       getHucBoundaries,
       monitoringLocationsLayer,
       navigate,
-      setSelectedGraphic,
-      services,
       protectedAreasLayer,
       resetData,
+      services,
+      setSelectedGraphic,
+      surroundingMonitoringLocationsLayer,
     ],
   );
 
@@ -357,7 +372,10 @@ function MapMouseEvents({ view }: Props) {
           lastEventId = event.eventId;
 
           // get the graphic from the hittest
-          const extraLayersToIgnore = ['allWaterbodiesLayer'];
+          const extraLayersToIgnore = [
+            'allWaterbodiesLayer',
+            'surroundingMonitoringLocationsLayer',
+          ];
           let feature = getGraphicFromResponse(res, extraLayersToIgnore);
 
           // if any feature besides the upstream watershed is moused over:
@@ -447,21 +465,35 @@ function MapMouseEvents({ view }: Props) {
   }, [homeClickHandler]);
 
   useEffect(() => {
-    if (!locationCount || locationCount <= 20) return;
-    if (!homeWidget || !monitoringLocationsLayer) return;
+    if (!homeWidget) return;
     const handler: IHandle = homeWidget.on('go', (_ev: any) => {
       if (
-        !monitoringLocationsLayer ||
-        monitoringLocationsLayer.featureReduction
-      )
-        return;
-      monitoringLocationsLayer.featureReduction = monitoringClusterSettings;
+        monitoringLocationsLayer &&
+        !monitoringLocationsLayer.featureReduction &&
+        locationCount &&
+        locationCount > 20
+      ) {
+        monitoringLocationsLayer.featureReduction = monitoringClusterSettings;
+      }
+
+      if (
+        surroundingMonitoringLocationsLayer &&
+        !surroundingMonitoringLocationsLayer.featureReduction
+      ) {
+        surroundingMonitoringLocationsLayer.featureReduction =
+          monitoringClusterSettings;
+      }
     });
     setHomeClickHandler(handler);
     return function cleanup() {
       setHomeClickHandler(null);
     };
-  }, [locationCount, monitoringLocationsLayer, homeWidget]);
+  }, [
+    homeWidget,
+    locationCount,
+    monitoringLocationsLayer,
+    surroundingMonitoringLocationsLayer,
+  ]);
 
   return null;
 }
