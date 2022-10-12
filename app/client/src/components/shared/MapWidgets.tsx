@@ -1575,7 +1575,7 @@ function ShowSurroundingMonitoringLocations({
           x: mapView.extent.xmin,
           y: mapView.extent.ymax,
         });
-        const southwestWM = new Point({
+        const southeastWM = new Point({
           x: mapView.extent.xmax,
           y: mapView.extent.ymin,
         });
@@ -1585,15 +1585,15 @@ function ShowSurroundingMonitoringLocations({
           northwestWM,
           false,
         ) as __esri.Point;
-        const southwest = webMercatorUtils.webMercatorToGeographic(
-          southwestWM,
+        const southeast = webMercatorUtils.webMercatorToGeographic(
+          southeastWM,
           false,
         ) as __esri.Point;
 
         // get the bbox values from the northwest and southeast corner points
         const north = northwest.latitude;
-        const south = southwest.latitude;
-        const east = southwest.longitude;
+        const south = southeast.latitude;
+        const east = southeast.longitude;
         const west = northwest.longitude;
 
         const url =
@@ -1649,7 +1649,7 @@ function ShowSurroundingMonitoringLocations({
     );
 
     // watch for zoom changes and hide the surroundingMonitoringLocationsLayer when
-    // zoomed out to much
+    // zoomed out too much
     reactiveUtils.watch(
       () => mapView.zoom,
       () => {
