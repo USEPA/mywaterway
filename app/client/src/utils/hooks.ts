@@ -31,6 +31,7 @@ import { useMapHighlightState } from 'contexts/MapHighlight';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import {
+  buildStations,
   createWaterbodySymbol,
   createUniqueValueInfos,
   createUniqueValueInfosRestore,
@@ -44,7 +45,11 @@ import {
   isPoint,
   openPopup,
   shallowCompare,
+  updateMonitoringLocationsLayer,
 } from 'utils/mapFunctions';
+import { parseAttributes } from 'utils/utils';
+// styles
+import { colors } from 'styles/index.js';
 // types
 import type { CharacteristicGroupMappings } from 'config/characteristicGroupMappings';
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
@@ -56,7 +61,6 @@ import type {
   FetchState,
   MonitoringLocationAttributes,
   MonitoringLocationGroups,
-  MonitoringLocationsData,
   StreamgageMeasurement,
   UsgsDailyAveragesData,
   UsgsPrecipitationData,
@@ -71,91 +75,6 @@ const allWaterbodiesAlpha = {
   poly: 0.4,
   outline: 1,
 };
-
-function buildStations(
-  locations: FetchState<MonitoringLocationsData>,
-  layer: __esri.Layer,
-) {
-  if (!layer) return;
-  if (locations.status !== 'success' || !locations.data.features?.length) {
-    return;
-  }
-
-  // sort descending order so that smaller graphics show up on top
-  const stationsSorted = [...locations.data.features];
-  stationsSorted.sort((a, b) => {
-    return (
-      parseInt(b.properties.resultCount) - parseInt(a.properties.resultCount)
-    );
-  });
-
-  // attributes common to both the layer and the context object
-  return stationsSorted.map((station) => {
-    return {
-      monitoringType: 'Past Water Conditions' as const,
-      siteId: station.properties.MonitoringLocationIdentifier,
-      orgId: station.properties.OrganizationIdentifier,
-      orgName: station.properties.OrganizationFormalName,
-      locationLongitude: station.geometry.coordinates[0],
-      locationLatitude: station.geometry.coordinates[1],
-      locationName: station.properties.MonitoringLocationName,
-      locationType: station.properties.MonitoringLocationTypeName,
-      // TODO: explore if the built up locationUrl below is ever different from
-      // `station.properties.siteUrl`. from a quick test, they seem the same
-      locationUrl:
-        `/monitoring-report/` +
-        `${station.properties.ProviderName}/` +
-        `${encodeURIComponent(station.properties.OrganizationIdentifier)}/` +
-        `${encodeURIComponent(
-          station.properties.MonitoringLocationIdentifier,
-        )}/`,
-      // monitoring station specific properties:
-      stationDataByYear: null,
-      stationProviderName: station.properties.ProviderName,
-      stationTotalSamples: parseInt(station.properties.activityCount),
-      stationTotalMeasurements: parseInt(station.properties.resultCount),
-      // counts for each lower-tier characteristic group
-      stationTotalsByGroup: station.properties.characteristicGroupResultCount,
-      stationTotalsByLabel: null,
-      timeframe: null,
-      // create a unique id, so we can check if the monitoring station has
-      // already been added to the display (since a monitoring station id
-      // isn't universally unique)
-      uniqueId:
-        `${station.properties.MonitoringLocationIdentifier}-` +
-        `${station.properties.ProviderName}-` +
-        `${station.properties.OrganizationIdentifier}`,
-    };
-  });
-}
-
-/*
- * Helpers for passing data to the map layers
- */
-function updateMonitoringLocationsLayer(
-  stations: MonitoringLocationAttributes[],
-  layer: __esri.FeatureLayer,
-) {
-  const structuredProps = ['stationTotalsByGroup', 'timeframe'];
-  const graphics = stations.map((station) => {
-    const attributes = stringifyAttributes(structuredProps, station);
-    return new Graphic({
-      geometry: new Point({
-        longitude: attributes.locationLongitude,
-        latitude: attributes.locationLatitude,
-      }),
-      attributes: {
-        ...attributes,
-      },
-    });
-  });
-  editLayer(layer, graphics);
-
-  // turn off clustering if there are 20 or less stations
-  // @ts-ignore
-  layer.featureReduction =
-    graphics.length > 20 ? monitoringClusterSettings : null;
-}
 
 function updateMonitoringGroups(
   stations: MonitoringLocationAttributes[],
@@ -231,33 +150,6 @@ function updateMonitoringGroups(
     ];
   });
   return locationGroups;
-}
-
-const editLayer = async (
-  layer: __esri.FeatureLayer,
-  graphics: __esri.Graphic[],
-) => {
-  const featureSet = await layer.queryFeatures();
-  const edits = {
-    deleteFeatures: featureSet.features,
-    addFeatures: graphics,
-  };
-  return layer.applyEdits(edits);
-};
-
-function stringifyAttributes(
-  structuredAttributes: string[],
-  attributes: { [property: string]: any },
-) {
-  const stringified: { [property: string]: string } = {};
-  for (const property of structuredAttributes) {
-    try {
-      stringified[property] = JSON.stringify(attributes[property]);
-    } catch {
-      stringified[property] = attributes[property];
-    }
-  }
-  return { ...attributes, ...stringified };
 }
 
 // Closes the map popup and clears highlights whenever the user changes
@@ -1123,10 +1015,12 @@ function useSharedLayers() {
     setAllWaterbodiesLayer,
     setProtectedAreasLayer,
     setProtectedAreasHighlightLayer,
+    setSurroundingMonitoringLocationsLayer,
     setWsioHealthIndexLayer,
     setWildScenicRiversLayer,
   } = useContext(LocationSearchContext);
 
+  const navigate = useNavigate();
   const getDynamicPopup = useDynamicPopup();
   const { getTitle, getTemplate } = getDynamicPopup();
 
@@ -1761,6 +1655,76 @@ function useSharedLayers() {
     return allWaterbodiesLayer;
   }
 
+  function getSurroundingMonitoringLocationsLayer() {
+    const surroundingMonitoringLocationsLayer = new FeatureLayer({
+      id: 'surroundingMonitoringLocationsLayer',
+      title: 'Surrounding Past Water Conditions',
+      listMode: 'hide',
+      legendEnabled: true,
+      visible: false,
+      fields: [
+        { name: 'OBJECTID', type: 'oid' },
+        { name: 'monitoringType', type: 'string' },
+        { name: 'siteId', type: 'string' },
+        { name: 'orgId', type: 'string' },
+        { name: 'orgName', type: 'string' },
+        { name: 'locationLongitude', type: 'double' },
+        { name: 'locationLatitude', type: 'double' },
+        { name: 'locationName', type: 'string' },
+        { name: 'locationType', type: 'string' },
+        { name: 'locationUrl', type: 'string' },
+        { name: 'stationProviderName', type: 'string' },
+        { name: 'stationTotalSamples', type: 'integer' },
+        { name: 'stationTotalsByGroup', type: 'string' },
+        { name: 'stationTotalMeasurements', type: 'integer' },
+        { name: 'timeframe', type: 'string' },
+        { name: 'uniqueId', type: 'string' },
+      ],
+      objectIdField: 'OBJECTID',
+      outFields: ['*'],
+      // NOTE: initial graphic below will be replaced with UGSG streamgages
+      source: [
+        new Graphic({
+          geometry: new Point({ longitude: -98.5795, latitude: 39.8283 }),
+          attributes: { OBJECTID: 1 },
+        }),
+      ],
+      renderer: new SimpleRenderer({
+        symbol: new SimpleMarkerSymbol({
+          style: 'circle',
+          color: new Color(colors.lightPurple(0.3)),
+          outline: {
+            width: 0.75,
+            color: new Color(colors.black(0.5)),
+          },
+        }),
+      }),
+      featureReduction: monitoringClusterSettings,
+      popupTemplate: {
+        outFields: ['*'],
+        title: (feature: __esri.Feature) =>
+          getPopupTitle(feature.graphic.attributes),
+        content: (feature: __esri.Feature) => {
+          // Parse non-scalar variables
+          const structuredProps = ['stationTotalsByGroup', 'timeframe'];
+          feature.graphic.attributes = parseAttributes(
+            structuredProps,
+            feature.graphic.attributes,
+          );
+          return getPopupContent({
+            feature: feature.graphic,
+            services,
+            navigate,
+          });
+        },
+      },
+    });
+
+    setSurroundingMonitoringLocationsLayer(surroundingMonitoringLocationsLayer);
+
+    return surroundingMonitoringLocationsLayer;
+  }
+
   // Gets the settings for the WSIO Health Index layer.
   return function getSharedLayers() {
     const wsioHealthIndexLayer = getWsioLayer();
@@ -1787,6 +1751,9 @@ function useSharedLayers() {
 
     const allWaterbodiesLayer = getAllWaterbodiesLayer();
 
+    const surroundingMonitoringLocationsLayer =
+      getSurroundingMonitoringLocationsLayer();
+
     return [
       ejscreen,
       wsioHealthIndexLayer,
@@ -1799,6 +1766,7 @@ function useSharedLayers() {
       mappedWaterLayer,
       countyLayer,
       watershedsLayer,
+      surroundingMonitoringLocationsLayer,
       allWaterbodiesLayer,
     ];
   };

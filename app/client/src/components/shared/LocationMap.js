@@ -13,6 +13,7 @@ import { css } from 'styled-components/macro';
 import StickyBox from 'react-sticky-box';
 import { useNavigate } from 'react-router-dom';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import FeatureReductionCluster from '@arcgis/core/layers/support/FeatureReductionCluster';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
@@ -91,8 +92,7 @@ function createQueryString(array) {
 
 const mapPadding = 20;
 
-export const monitoringClusterSettings = {
-  type: 'cluster',
+export const monitoringClusterSettings = new FeatureReductionCluster({
   clusterRadius: '100px',
   clusterMinSize: '24px',
   clusterMaxSize: '60px',
@@ -137,7 +137,7 @@ export const monitoringClusterSettings = {
       labelPlacement: 'center-center',
     },
   ],
-};
+});
 
 const containerStyles = css`
   display: flex;

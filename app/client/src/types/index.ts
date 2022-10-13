@@ -196,6 +196,7 @@ interface ServicesData {
   waterQualityPortal: {
     resultSearch: string;
     userInterface: string;
+    monitoringLocation: string;
   };
 }
 
