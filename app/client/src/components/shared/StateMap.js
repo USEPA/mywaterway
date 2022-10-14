@@ -98,11 +98,8 @@ function StateMap({
 
   const [layers, setLayers] = useState(null);
 
-  // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
-  // and webservice errors
-  const [stateMapLoadError, setStateMapLoadError] = useState('');
-
   const [noGisDataAvailable, setNoGisDataAvailable] = useState(false);
+  const [stateMapLoadError, setStateMapLoadError] = useState(false);
 
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight(false);
@@ -244,8 +241,8 @@ function StateMap({
       numberOfRecords
     ) {
       setLastFilter(filter);
-      setStateMapLoadError('');
       setNoGisDataAvailable(false);
+      setStateMapLoadError(false);
 
       // change the where clause of the feature layers
       if (!filter) return;
@@ -323,17 +320,17 @@ function StateMap({
                 })
                 .catch((err) => {
                   console.error(err);
-                  setStateMapLoadError(huc12SummaryError);
+                  setStateMapLoadError(true);
                 });
             })
             .catch((err) => {
               console.error(err);
-              setStateMapLoadError(huc12SummaryError);
+              setStateMapLoadError(true);
             });
         })
         .catch((err) => {
           console.error(err);
-          setStateMapLoadError(huc12SummaryError);
+          setStateMapLoadError(true);
         });
     }
   }, [
@@ -391,11 +388,6 @@ function StateMap({
   const mapInputs = document.querySelector(`[data-content="stateinputs"]`);
   const mapInputsHeight = mapInputs && mapInputs.getBoundingClientRect().height;
 
-  // check for browser compatibility with map
-  if (!browserIsCompatibleWithArcGIS() && !stateMapLoadError) {
-    setStateMapLoadError(esriMapLoadingFailure);
-  }
-
   // jsx
   const mapContent = (
     <div
@@ -441,8 +433,13 @@ function StateMap({
     </div>
   );
 
+  // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
+  if (!browserIsCompatibleWithArcGIS()) {
+    return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
+  }
+
   if (stateMapLoadError) {
-    return <div css={errorBoxStyles}>{stateMapLoadError}</div>;
+    return <div css={errorBoxStyles}>{huc12SummaryError}</div>;
   }
 
   if (noGisDataAvailable) {
