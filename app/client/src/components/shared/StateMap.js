@@ -25,7 +25,7 @@ import {
 } from 'utils/mapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // styled components
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -99,7 +99,10 @@ function StateMap({
   const [layers, setLayers] = useState(null);
 
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
+  // and webservice errors
   const [stateMapLoadError, setStateMapLoadError] = useState('');
+
+  const [noGisDataAvailable, setNoGisDataAvailable] = useState(false);
 
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight(false);
@@ -242,6 +245,7 @@ function StateMap({
     ) {
       setLastFilter(filter);
       setStateMapLoadError('');
+      setNoGisDataAvailable(false);
 
       // change the where clause of the feature layers
       if (!filter) return;
@@ -314,9 +318,7 @@ function StateMap({
                     }
                   } else {
                     setMapLoading(false);
-                    setStateMapLoadError(
-                      stateNoGisDataError(activeState.label),
-                    );
+                    setNoGisDataAvailable(true);
                   }
                 })
                 .catch((err) => {
@@ -335,7 +337,6 @@ function StateMap({
         });
     }
   }, [
-    activeState.label,
     areasLayer,
     filter,
     homeWidget,
@@ -442,6 +443,12 @@ function StateMap({
 
   if (stateMapLoadError) {
     return <div css={errorBoxStyles}>{stateMapLoadError}</div>;
+  }
+
+  if (noGisDataAvailable) {
+    return (
+      <div css={infoBoxStyles}>{stateNoGisDataError(activeState.label)}</div>
+    );
   }
 
   if (layout === 'wide') {
