@@ -37,7 +37,11 @@ import { browserIsCompatibleWithArcGIS } from 'utils/utils';
 // styles
 import 'styles/mapStyles.css';
 // errors
-import { esriMapLoadingFailure } from 'config/errorMessages';
+import {
+  esriMapLoadingFailure,
+  huc12SummaryError,
+  stateNoGisDataError,
+} from 'config/errorMessages';
 
 const mapPadding = 20;
 
@@ -95,7 +99,7 @@ function StateMap({
   const [layers, setLayers] = useState(null);
 
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
-  const [stateMapLoadError, setStateMapLoadError] = useState(false);
+  const [stateMapLoadError, setStateMapLoadError] = useState('');
 
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight(false);
@@ -237,6 +241,7 @@ function StateMap({
       numberOfRecords
     ) {
       setLastFilter(filter);
+      setStateMapLoadError('');
 
       // change the where clause of the feature layers
       if (!filter) return;
@@ -249,74 +254,100 @@ function StateMap({
       // zoom and set the home widget viewpoint
       let fullExtent = null;
       // get the points layer extent
-      pointsLayer.queryExtent().then((pointsExtent) => {
-        // set the extent if 1 or more features
-        if (pointsExtent.count > 0) fullExtent = pointsExtent.extent;
+      pointsLayer
+        .queryExtent()
+        .then((pointsExtent) => {
+          // set the extent if 1 or more features
+          if (pointsExtent.count > 0) fullExtent = pointsExtent.extent;
 
-        // get the lines layer extent
-        linesLayer.queryExtent().then((linesExtent) => {
-          // set the extent or union the extent if 1 or more features
-          if (linesExtent.count > 0) {
-            if (fullExtent) fullExtent.union(linesExtent.extent);
-            else fullExtent = linesExtent.extent;
-          }
+          // get the lines layer extent
+          linesLayer
+            .queryExtent()
+            .then((linesExtent) => {
+              // set the extent or union the extent if 1 or more features
+              if (linesExtent.count > 0) {
+                if (fullExtent) fullExtent.union(linesExtent.extent);
+                else fullExtent = linesExtent.extent;
+              }
 
-          // get the areas layer extent
-          areasLayer.queryExtent().then((areasExtent) => {
-            // set the extent or union the extent if 1 or more features
-            if (areasExtent.count > 0) {
-              if (fullExtent) fullExtent.union(areasExtent.extent);
-              else fullExtent = areasExtent.extent;
-            }
+              // get the areas layer extent
+              areasLayer
+                .queryExtent()
+                .then((areasExtent) => {
+                  // set the extent or union the extent if 1 or more features
+                  if (areasExtent.count > 0) {
+                    if (fullExtent) fullExtent.union(areasExtent.extent);
+                    else fullExtent = areasExtent.extent;
+                  }
 
-            // if there is an extent then zoom to it and set the home widget
-            if (fullExtent) {
-              let zoomParams = fullExtent;
-              let homeParams = { targetGeometry: fullExtent };
-              if (!selectedGraphic) {
-                if (numberOfRecords === 1 && pointsExtent.count === 1) {
-                  zoomParams = { target: fullExtent, zoom: 15 };
-                  homeParams = {
-                    targetGeometry: fullExtent,
-                    scale: 18056, // same as zoom 15, viewpoint only takes scale
-                  };
-                }
+                  // if there is an extent then zoom to it and set the home widget
+                  if (fullExtent) {
+                    let zoomParams = fullExtent;
+                    let homeParams = { targetGeometry: fullExtent };
+                    if (!selectedGraphic) {
+                      if (numberOfRecords === 1 && pointsExtent.count === 1) {
+                        zoomParams = { target: fullExtent, zoom: 15 };
+                        homeParams = {
+                          targetGeometry: fullExtent,
+                          scale: 18056, // same as zoom 15, viewpoint only takes scale
+                        };
+                      }
 
-                mapView.goTo(zoomParams).then(() => {
-                  // only show the waterbody layer after everything has loaded to
-                  // cut down on unnecessary service calls
-                  waterbodyLayer.listMode = 'hide-children';
-                  waterbodyLayer.visible = true;
+                      mapView.goTo(zoomParams).then(() => {
+                        // only show the waterbody layer after everything has loaded to
+                        // cut down on unnecessary service calls
+                        waterbodyLayer.listMode = 'hide-children';
+                        waterbodyLayer.visible = true;
 
-                  setMapLoading(false);
+                        setMapLoading(false);
+                      });
+                    } else {
+                      waterbodyLayer.listMode = 'hide-children';
+                      waterbodyLayer.visible = true;
+                      setMapLoading(false);
+                    }
+
+                    // only set the home widget if the user selects a different state
+                    if (!homeWidgetSet) {
+                      homeWidget.viewpoint = new Viewpoint(homeParams);
+                      setHomeWidgetSet(true);
+                    }
+                  } else {
+                    setMapLoading(false);
+                    setStateMapLoadError(
+                      stateNoGisDataError(activeState.label),
+                    );
+                  }
+                })
+                .catch((err) => {
+                  console.error(err);
+                  setStateMapLoadError(huc12SummaryError);
                 });
-              } else {
-                waterbodyLayer.listMode = 'hide-children';
-                waterbodyLayer.visible = true;
-              }
-
-              // only set the home widget if the user selects a different state
-              if (!homeWidgetSet) {
-                homeWidget.viewpoint = new Viewpoint(homeParams);
-                setHomeWidgetSet(true);
-              }
-            }
-          });
+            })
+            .catch((err) => {
+              console.error(err);
+              setStateMapLoadError(huc12SummaryError);
+            });
+        })
+        .catch((err) => {
+          console.error(err);
+          setStateMapLoadError(huc12SummaryError);
         });
-      });
     }
   }, [
-    filter,
-    lastFilter,
-    pointsLayer,
-    linesLayer,
+    activeState.label,
     areasLayer,
-    mapView,
+    filter,
     homeWidget,
     homeWidgetSet,
-    selectedGraphic,
-    waterbodyLayer,
+    lastFilter,
+    linesLayer,
+    mapView,
     numberOfRecords,
+    pointsLayer,
+    selectedGraphic,
+    stateMapLoadError,
+    waterbodyLayer,
   ]);
 
   // Used to tell if the homewidget has been set to the selected state.
@@ -361,7 +392,7 @@ function StateMap({
 
   // check for browser compatibility with map
   if (!browserIsCompatibleWithArcGIS() && !stateMapLoadError) {
-    setStateMapLoadError(true);
+    setStateMapLoadError(esriMapLoadingFailure);
   }
 
   // jsx
@@ -410,7 +441,7 @@ function StateMap({
   );
 
   if (stateMapLoadError) {
-    return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
+    return <div css={errorBoxStyles}>{stateMapLoadError}</div>;
   }
 
   if (layout === 'wide') {
