@@ -157,7 +157,7 @@ function IdentifiedIssues() {
       return null;
     }
 
-    return filteredFields.label;
+    return filteredFields;
   };
 
   const checkWaterbodiesToDisplay = useCallback(() => {
@@ -392,7 +392,7 @@ function IdentifiedIssues() {
       );
 
       if (mappedParameterName) {
-        parameters.push(mappedParameterName);
+        parameters.push(mappedParameterName.label);
       }
     });
 
@@ -754,21 +754,29 @@ function IdentifiedIssues() {
                                   if (!mappedParameterName) return false;
 
                                   return (
-                                    <tr key={mappedParameterName}>
+                                    <tr key={mappedParameterName.label}>
                                       <td>
                                         <div css={toggleStyles}>
                                           <Switch
-                                            ariaLabel={mappedParameterName}
+                                            ariaLabel={
+                                              mappedParameterName.label
+                                            }
                                             checked={
                                               parameterToggleObject[
-                                                mappedParameterName
+                                                mappedParameterName.label
                                               ]
                                             }
                                             onChange={(ev) => {
-                                              toggleSwitch(mappedParameterName);
+                                              toggleSwitch(
+                                                mappedParameterName.label,
+                                              );
                                             }}
                                           />
-                                          <span>{mappedParameterName}</span>
+                                          <GlossaryTerm
+                                            term={mappedParameterName.term}
+                                          >
+                                            {mappedParameterName.label}
+                                          </GlossaryTerm>
                                         </div>
                                       </td>
                                       <td>
