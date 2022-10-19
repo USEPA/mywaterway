@@ -146,10 +146,7 @@ function IdentifiedIssues() {
   }, [dischargersLayer, showDischargersLayer, violatingFacilities, navigate]);
 
   // translate scientific parameter names
-  const getMappedParameterName = (
-    parameterFields: Object,
-    parameter: string,
-  ) => {
+  const getMappedParameter = (parameterFields: Object, parameter: string) => {
     const filteredFields = parameterFields.filter(
       (field) => parameter === field.parameterGroup,
     )[0];
@@ -386,13 +383,13 @@ function IdentifiedIssues() {
 
     // get a list of all parameters displayed in table and push them to array
     cipSummaryData.items[0].summaryByParameterImpairments.forEach((param) => {
-      const mappedParameterName = getMappedParameterName(
+      const mappedParameter = getMappedParameter(
         impairmentFields,
         param['parameterGroupName'],
       );
 
-      if (mappedParameterName) {
-        parameters.push(mappedParameterName.label);
+      if (mappedParameter) {
+        parameters.push(mappedParameter.label);
       }
     });
 
@@ -745,37 +742,34 @@ function IdentifiedIssues() {
                                     ),
                                   );
 
-                                  const mappedParameterName =
-                                    getMappedParameterName(
-                                      impairmentFields,
-                                      param['parameterGroupName'],
-                                    );
+                                  const mappedParameter = getMappedParameter(
+                                    impairmentFields,
+                                    param['parameterGroupName'],
+                                  );
                                   // if service contains a parameter we have no mapping for
-                                  if (!mappedParameterName) return false;
+                                  if (!mappedParameter) return false;
 
                                   return (
-                                    <tr key={mappedParameterName.label}>
+                                    <tr key={mappedParameter.label}>
                                       <td>
                                         <div css={toggleStyles}>
                                           <Switch
-                                            ariaLabel={
-                                              mappedParameterName.label
-                                            }
+                                            ariaLabel={mappedParameter.label}
                                             checked={
                                               parameterToggleObject[
-                                                mappedParameterName.label
+                                                mappedParameter.label
                                               ]
                                             }
                                             onChange={(ev) => {
                                               toggleSwitch(
-                                                mappedParameterName.label,
+                                                mappedParameter.label,
                                               );
                                             }}
                                           />
                                           <GlossaryTerm
-                                            term={mappedParameterName.term}
+                                            term={mappedParameter.term}
                                           >
-                                            {mappedParameterName.label}
+                                            {mappedParameter.label}
                                           </GlossaryTerm>
                                         </div>
                                       </td>
