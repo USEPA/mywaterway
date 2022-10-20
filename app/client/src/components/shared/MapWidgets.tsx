@@ -52,7 +52,14 @@ import resizeIcon from 'images/resize.png';
 // types
 import type { CSSProperties, Dispatch, SetStateAction } from 'react';
 import type { Container } from 'react-dom';
-import type { ExtendedLayer, Feature, FetchState, ScaledLayer, ServicesState, MonitoringLocationsData } from 'types';
+import type {
+  ExtendedLayer,
+  Feature,
+  FetchState,
+  ScaledLayer,
+  ServicesState,
+  MonitoringLocationsData,
+} from 'types';
 
 const layersToAllowPopups = ['restore', 'protect'];
 
@@ -1148,11 +1155,7 @@ function MapWidgets({
     if (!surroundingMonitoringLocationsWidget) return;
 
     const pathname = window.location.pathname;
-    if (
-      !pathname.includes('/community') &&
-      !pathname.includes('/tribe') &&
-      !pathname.includes('/waterbody-report')
-    ) {
+    if (pathname.includes('/state')) {
       // hide widget on other pages
       surroundingMonitoringLocationsWidget.style.display = 'none';
       surroundingMonitoringLocationsLayer.visible = false;
@@ -1160,9 +1163,8 @@ function MapWidgets({
     }
 
     if (
-      !pathname.includes('/tribe') &&
-      !pathname.includes('/waterbody-report') &&
-      (!huc12 || pathname === '/community')
+      pathname === '/community' ||
+      (!huc12 && pathname.includes('/community/'))
     ) {
       // disable widget on community home or invalid searches
       setSurroundingMonitoringLocationsWidgetDisabled(true);
@@ -1191,12 +1193,7 @@ function MapWidgets({
   // disable the all waterbodies widget if on the community home page
   useEffect(() => {
     const pathname = window.location.pathname;
-    if (
-      !surroundingMonitoringLocationsWidget ||
-      (!pathname.includes('/community') &&
-        !pathname.includes('/tribe') &&
-        !pathname.includes('/waterbody-report'))
-    ) {
+    if (!surroundingMonitoringLocationsWidget || pathname.includes('/state')) {
       return;
     }
 
@@ -1231,7 +1228,9 @@ function MapWidgets({
         services={services}
         setDisabled={setSurroundingMonitoringLocationsWidgetDisabled}
         setVisible={setSurroundingMonitoringLocationsLayerVisible}
-        surroundingMonitoringLocationsLayer={surroundingMonitoringLocationsLayer}
+        surroundingMonitoringLocationsLayer={
+          surroundingMonitoringLocationsLayer
+        }
       />,
       node,
     );
@@ -1703,7 +1702,9 @@ function ShowSurroundingMonitoringLocations({
     >
       <span
         className={
-          surroundingMonitoringLocations.status === 'fetching' && !widgetDisabled && layer?.visible
+          surroundingMonitoringLocations.status === 'fetching' &&
+          !widgetDisabled &&
+          layer?.visible
             ? 'esri-icon-loading-indicator esri-rotating'
             : 'esri-icon-experimental'
         }

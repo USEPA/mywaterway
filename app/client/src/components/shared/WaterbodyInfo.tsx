@@ -908,7 +908,7 @@ function WaterbodyInfo({
   if (type === 'Past Water Conditions') {
     content = (
       <MonitoringLocationsContent
-        attributes={feature.attributes}
+        feature={feature}
         services={services ?? null}
       />
     );
@@ -1168,12 +1168,12 @@ function checkIfGroupInMapping(groupName: string): boolean {
 }
 
 type MonitoringLocationsContentProps = {
-  attributes: MonitoringLocationAttributes;
+  feature: __esri.Graphic;
   services: ServicesState | null;
 };
 
 function MonitoringLocationsContent({
-  attributes,
+  feature,
   services,
 }: MonitoringLocationsContentProps) {
   const [charGroupFilters, setCharGroupFilters] = useState('');
@@ -1184,6 +1184,8 @@ function MonitoringLocationsContent({
 
   const structuredProps = ['stationTotalsByGroup', 'timeframe'];
 
+  const attributes: MonitoringLocationAttributes = feature.attributes;
+  const layer = feature.layer;
   const parsed = parseAttributes<MonitoringLocationAttributes>(
     structuredProps,
     attributes,
@@ -1397,7 +1399,8 @@ function MonitoringLocationsContent({
         />
       </div>
 
-      {!onMonitoringReportPage && (
+      {(!onMonitoringReportPage ||
+        layer.id === 'surroundingMonitoringLocationsLayer') && (
         <p>
           <a rel="noopener noreferrer" target="_blank" href={locationUrl}>
             <i
