@@ -13,6 +13,7 @@ import StickyBox from 'react-sticky-box';
 import { useNavigate } from 'react-router-dom';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import Viewpoint from '@arcgis/core/Viewpoint';
 // components
 import Map from 'components/shared/Map';
@@ -252,18 +253,37 @@ function StateMap({
         areasLayer.definitionExpression = filter;
       }
 
+      function handleError(err) {
+        console.error(err);
+        setStateMapLoadError(true);
+      }
+
+      function queryExtent(layer) {
+        return new Promise((resolve, reject) => {
+          mapView
+            .whenLayerView(layer)
+            .then((layerView) => {
+              reactiveUtils
+                .whenOnce(() => !layerView.updating)
+                .then(() => {
+                  resolve(layerView.queryExtent());
+                })
+                .catch((err) => reject(err));
+            })
+            .catch((err) => reject(err));
+        });
+      }
+
       // zoom and set the home widget viewpoint
       let fullExtent = null;
       // get the points layer extent
-      pointsLayer
-        .queryExtent()
+      queryExtent(pointsLayer)
         .then((pointsExtent) => {
           // set the extent if 1 or more features
           if (pointsExtent.count > 0) fullExtent = pointsExtent.extent;
 
           // get the lines layer extent
-          linesLayer
-            .queryExtent()
+          queryExtent(linesLayer)
             .then((linesExtent) => {
               // set the extent or union the extent if 1 or more features
               if (linesExtent.count > 0) {
@@ -272,8 +292,7 @@ function StateMap({
               }
 
               // get the areas layer extent
-              areasLayer
-                .queryExtent()
+              queryExtent(areasLayer)
                 .then((areasExtent) => {
                   // set the extent or union the extent if 1 or more features
                   if (areasExtent.count > 0) {
@@ -318,20 +337,11 @@ function StateMap({
                     setNoGisDataAvailable(true);
                   }
                 })
-                .catch((err) => {
-                  console.error(err);
-                  setStateMapLoadError(true);
-                });
+                .catch(handleError);
             })
-            .catch((err) => {
-              console.error(err);
-              setStateMapLoadError(true);
-            });
+            .catch(handleError);
         })
-        .catch((err) => {
-          console.error(err);
-          setStateMapLoadError(true);
-        });
+        .catch(handleError);
     }
   }, [
     areasLayer,
