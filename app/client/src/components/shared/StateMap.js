@@ -44,6 +44,8 @@ import {
   stateNoGisDataError,
 } from 'config/errorMessages';
 
+let selectedGraphicGlobal = null;
+
 const mapPadding = 20;
 
 const containerStyles = css`
@@ -226,6 +228,11 @@ function StateMap({
 
   const [lastFilter, setLastFilter] = useState('');
 
+  // keep the selectedGraphicGlobal variable up to date
+  useEffect(() => {
+    selectedGraphicGlobal = selectedGraphic;
+  }, [selectedGraphic]);
+
   // cDU
   // detect when user changes their search
   const [homeWidgetSet, setHomeWidgetSet] = useState(false);
@@ -266,7 +273,7 @@ function StateMap({
               reactiveUtils
                 .whenOnce(() => !layerView.updating)
                 .then(() => {
-                  resolve(layerView.queryExtent());
+                  resolve(layer.queryExtent());
                 })
                 .catch((err) => reject(err));
             })
@@ -304,7 +311,7 @@ function StateMap({
                   if (fullExtent) {
                     let zoomParams = fullExtent;
                     let homeParams = { targetGeometry: fullExtent };
-                    if (!selectedGraphic) {
+                    if (!selectedGraphicGlobal) {
                       if (numberOfRecords === 1 && pointsExtent.count === 1) {
                         zoomParams = { target: fullExtent, zoom: 15 };
                         homeParams = {
@@ -353,7 +360,6 @@ function StateMap({
     mapView,
     numberOfRecords,
     pointsLayer,
-    selectedGraphic,
     stateMapLoadError,
     waterbodyLayer,
   ]);
