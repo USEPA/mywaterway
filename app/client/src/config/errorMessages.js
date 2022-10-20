@@ -146,7 +146,10 @@ export const stateGeneralError = (source = 'State') =>
 
 // if an invalid state is entered
 export const stateNoDataError = (stateName) =>
-  `No data available ${stateName && 'for ' + stateName}.`; // conditionals in case state name is undefined or an empty string
+  `No data available${stateName && ' for ' + stateName}.`; // conditionals in case state name is undefined or an empty string
+
+export const stateNoGisDataError = (stateName) =>
+  `No map data available${stateName && ' for ' + stateName}.`; // conditionals in case state name is undefined or an empty string
 
 export const status303dError =
   'There was an issue looking up the 303(d) List Status code. Because of this, the status code may not look familiar.';
@@ -251,7 +254,7 @@ export const defaultErrorBoundaryMessage = (
 );
 
 // message displayed when the Esri map fails to load due to incompatible browsers and devices
-export const esriMapLoadingFailure = `The How's My Waterway Map is currently unavailable. Your web browser is
+export const esriMapLoadingFailure = `The How's My Waterway Map is unavailable. Your web browser is
 incompatible or outdated.`;
 
 export const educatorContentError =

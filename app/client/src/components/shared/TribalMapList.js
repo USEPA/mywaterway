@@ -186,9 +186,6 @@ function TribalMapList({
   const [monitoringLocationsDisplayed, setMonitoringLocationsDisplayed] =
     useState(true);
 
-  // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
-  const [tribeMapLoadError, setTribeMapLoadError] = useState(false);
-
   const reportStatusMapping = useReportStatusMappingContext();
   const services = useServicesContext();
 
@@ -382,12 +379,8 @@ function TribalMapList({
     setFooterHeight(node.getBoundingClientRect().height);
   }, []);
 
-  // check for browser compatibility with map
-  if (!browserIsCompatibleWithArcGIS() && !tribeMapLoadError) {
-    setTribeMapLoadError(true);
-  }
-
-  if (tribeMapLoadError) {
+  // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
+  if (!browserIsCompatibleWithArcGIS()) {
     return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
   }
 

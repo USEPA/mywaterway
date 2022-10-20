@@ -608,9 +608,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setWaterbodyCountMismatch,
   ]);
 
-  // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
-  const [communityMapLoadError, setCommunityMapLoadError] = useState(false);
-
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
 
@@ -2219,11 +2216,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setMapLoading(false);
   }, [waterbodyLayer, cipSummary, waterbodyFeatures]);
 
-  // check for browser compatibility with map
-  if (!browserIsCompatibleWithArcGIS() && !communityMapLoadError) {
-    setCommunityMapLoadError(true);
-  }
-
   // jsx
   const mapContent = (
     <>
@@ -2248,7 +2240,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     </>
   );
 
-  if (communityMapLoadError) {
+  // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
+  if (!browserIsCompatibleWithArcGIS()) {
     return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
   }
 
