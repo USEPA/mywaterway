@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { css } from 'styled-components/macro';
 import EsriMap from '@arcgis/core/Map';
 import MapView from '@arcgis/core/views/MapView';
@@ -58,11 +58,18 @@ function Map({ layers = null, startingExtent = null }: Props) {
     setMapView,
   ]);
 
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+
   return (
-    <div id="hmw-map-container" css={mapContainerStyles}>
+    <div id="hmw-map-container" css={mapContainerStyles} ref={mapContainerRef}>
       {map && mapView && (
         <>
-          <MapWidgets map={map} view={mapView} layers={layers} />
+          <MapWidgets
+            map={map}
+            mapRef={mapContainerRef}
+            view={mapView}
+            layers={layers}
+          />
           <MapMouseEvents map={map} view={mapView} />
         </>
       )}

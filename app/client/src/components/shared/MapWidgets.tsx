@@ -38,6 +38,7 @@ import { fetchCheck } from 'utils/fetchUtils';
 import {
   buildStations,
   hasSublayers,
+  isFeatureLayer,
   isGroupLayer,
   isInScale,
   isPolygon,
@@ -50,9 +51,34 @@ import { useAbortSignal, useDynamicPopup } from 'utils/hooks';
 // icons
 import resizeIcon from 'images/resize.png';
 // types
-import type { CSSProperties, Dispatch, SetStateAction } from 'react';
+import type {
+  CSSProperties,
+  Dispatch,
+  MutableRefObject,
+  SetStateAction,
+} from 'react';
 import type { Container } from 'react-dom';
-import type { ExtendedLayer, Feature, FetchState, ScaledLayer, ServicesState, MonitoringLocationsData } from 'types';
+import type {
+  ExtendedLayer,
+  FetchState,
+  ScaledLayer,
+  ServicesState,
+  MonitoringLocationsData,
+} from 'types';
+
+const instructionStyles = css`
+  font-weight: bold;
+  margin: auto;
+  padding: 0.4em;
+
+  p {
+    padding-bottom: 0.4em;
+
+    &:last-of-type {
+      padding-bottom: 0;
+    }
+  }
+`;
 
 const layersToAllowPopups = ['restore', 'protect'];
 
@@ -232,6 +258,7 @@ const resizeHandleStyles = css`
 type Props = {
   // map and view props auto passed from parent Map component by react-arcgis
   map: __esri.Map;
+  mapRef: MutableRefObject<HTMLDivElement | null>;
   view: __esri.MapView;
   layers: Array<__esri.Layer> | null;
   onHomeWidgetRendered?: (homeWidget: __esri.Home) => void;
@@ -239,6 +266,7 @@ type Props = {
 
 function MapWidgets({
   map,
+  mapRef,
   view,
   layers,
   onHomeWidgetRendered = () => {},
@@ -273,6 +301,7 @@ function MapWidgets({
     setUpstreamLayer,
     getUpstreamLayer,
     getCurrentExtent,
+    setCurrentExtent,
     getHuc12,
     huc12,
     getUpstreamExtent,
@@ -946,18 +975,168 @@ function MapWidgets({
     fullScreenWidgetCreated,
   ]);
 
+  // store loading state to Upstream Watershed map widget icon
+  const [lastHuc12, setLastHuc12] = useState<string>('');
+
+  const retrieveUpstreamWatershed = useCallback(
+    (currentHuc12, setUpstreamLoading, canDisable = true) => {
+      // if widget is disabled do nothing
+      if (getUpstreamWidgetDisabled()) return;
+      const upstreamLayer = getUpstreamLayer();
+      if (!upstreamLayer) return;
+
+      // if location changed since last widget click, update lastHuc12 state
+      if (currentHuc12 !== lastHuc12) {
+        setLastHuc12(currentHuc12);
+        upstreamLayer.error = false;
+      }
+
+      // already encountered an error for this location - don't retry
+      if (upstreamLayer.error === true) {
+        return;
+      }
+
+      // if upstream layer is displayed, zoom to
+      // current location extent and hide the upstream layer
+      if (upstreamLayer.visible && upstreamLayer.graphics.length > 0) {
+        const currentExtent = getCurrentExtent();
+        currentExtent && view.goTo(currentExtent);
+        view.popup.close();
+        upstreamLayer.visible = false;
+        setUpstreamLayerVisible(false);
+        setUpstreamLayer(upstreamLayer);
+        return;
+      }
+
+      // if upstream layer is hidden, zoom to full
+      // upstream extent and display the upstream layer
+      if (!upstreamLayer.visible && upstreamLayer.graphics.length > 0) {
+        view.goTo(getUpstreamExtent());
+        upstreamLayer.visible = true;
+        setUpstreamLayerVisible(true);
+        setUpstreamLayer(upstreamLayer);
+        return;
+      }
+
+      // fetch the upstream catchment
+      const filter = `xwalk_huc12='${currentHuc12}'`;
+
+      setUpstreamLoading(true);
+
+      if (services.status !== 'success') return;
+      const url = services.data.upstreamWatershed;
+
+      const queryParams = {
+        returnGeometry: true,
+        where: filter,
+        outFields: ['*'],
+        signal: abortSignal,
+      };
+      query
+        .executeQueryJSON(url, queryParams)
+        .then((res) => {
+          setUpstreamLoading(false);
+          const upstreamLayer = getUpstreamLayer();
+          const watershed = getWatershed() || 'Unknown Watershed';
+          const upstreamTitle = `Upstream Watershed for Currently Selected Location: ${watershed} (${currentHuc12})`;
+
+          if (!res || !res.features || res.features.length === 0) {
+            upstreamLayer.error = true;
+            upstreamLayer.graphics.removeAll();
+            setUpstreamLayer(upstreamLayer);
+            canDisable && setUpstreamWidgetDisabled(true);
+            setUpstreamLayerVisible(false);
+            setErrorMessage(
+              'Unable to get upstream watershed data for this location.',
+            );
+            return;
+          }
+
+          const geometry = res.features[0].geometry;
+          if (isPolygon(geometry)) {
+            upstreamLayer.graphics.add(
+              new Graphic({
+                geometry: new Polygon({
+                  spatialReference: res.spatialReference,
+                  rings: geometry.rings,
+                }),
+                symbol: new SimpleFillSymbol({
+                  style: 'solid',
+                  color: [31, 184, 255, 0.2],
+                  outline: {
+                    style: 'solid',
+                    color: 'black',
+                    width: 1,
+                  },
+                }),
+                attributes: res.features[0].attributes,
+                popupTemplate: {
+                  title: upstreamTitle,
+                  content: getTemplate,
+                  outFields: ['*'],
+                },
+              }),
+            );
+          }
+
+          const upstreamExtent = res.features[0].geometry.extent;
+
+          const currentViewpoint = new Viewpoint({
+            targetGeometry: upstreamExtent,
+          });
+
+          // store the current viewpoint in context
+          setUpstreamExtent(currentViewpoint);
+
+          upstreamLayer.visible = true;
+          setUpstreamLayer(upstreamLayer);
+          setUpstreamLayerVisible(true);
+
+          // zoom out to full extent
+          view.goTo(upstreamExtent);
+        })
+        .catch((err) => {
+          if (isAbort(err)) return;
+          setUpstreamLoading(false);
+          canDisable && setUpstreamWidgetDisabled(true);
+          setErrorMessage(
+            'Error fetching upstream watershed data for this location.',
+          );
+          upstreamLayer.error = true;
+          upstreamLayer.visible = false;
+          upstreamLayer.graphics.removeAll();
+          setUpstreamLayerVisible(false);
+          setUpstreamLayer(upstreamLayer);
+        });
+    },
+    [
+      abortSignal,
+      getCurrentExtent,
+      getTemplate,
+      getUpstreamExtent,
+      getUpstreamLayer,
+      getUpstreamWidgetDisabled,
+      getWatershed,
+      lastHuc12,
+      services,
+      setErrorMessage,
+      setUpstreamExtent,
+      setUpstreamLayer,
+      setUpstreamLayerVisible,
+      setUpstreamWidgetDisabled,
+      view,
+    ],
+  );
+
   // watch for location changes and disable/enable the upstream widget accordingly
-  // widget should only be displayed on valid Community page location
+  // widget should only be displayed on Tribal page or valid Community page location
   useEffect(() => {
     if (!upstreamWidget) return;
 
-    if (!window.location.pathname.includes('/community')) {
-      // hide upstream widget on other pages
-      upstreamWidget.style.display = 'none';
-      return;
-    }
-
-    if (!huc12 || window.location.pathname === '/community') {
+    if (
+      window.location.pathname === '/community' ||
+      (window.location.pathname.includes('/community') && !huc12)
+    ) {
       // disable upstream widget on community home or invalid searches
       setUpstreamWidgetDisabled(true);
       return;
@@ -968,7 +1147,7 @@ function MapWidgets({
   }, [huc12, upstreamWidget, setUpstreamWidgetDisabled]);
 
   useEffect(() => {
-    if (!upstreamWidget || !window.location.pathname.includes('/community')) {
+    if (!upstreamWidget) {
       return;
     }
 
@@ -982,55 +1161,56 @@ function MapWidgets({
   }, [upstreamWidget, upstreamWidgetDisabled]);
 
   // create upstream widget
-  const [
-    upstreamWidgetCreated,
-    setUpstreamWidgetCreated, //
-  ] = useState(false);
+  const [upstreamWidgetCreated, setUpstreamWidgetCreated] = useState(false);
   useEffect(() => {
-    if (upstreamWidgetCreated || !view || !view.ui) return;
+    if (
+      !window.location.pathname.includes('/community') &&
+      !window.location.pathname.includes('/tribe')
+    )
+      return;
+    if (upstreamWidgetCreated || !map || !view?.ui) return;
+
+    const widget = window.location.pathname.includes('/community') ? (
+      <ShowCurrentUpstreamWatershed
+        getHuc12={getHuc12}
+        getUpstreamLayer={getUpstreamLayer}
+        getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
+        retrieveUpstreamWatershed={retrieveUpstreamWatershed}
+      />
+    ) : (
+      <ShowSelectedUpstreamWatershed
+        getCurrentExtent={getCurrentExtent}
+        getUpstreamLayer={getUpstreamLayer}
+        getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
+        map={map}
+        mapRef={mapRef}
+        retrieveUpstreamWatershed={retrieveUpstreamWatershed}
+        services={services}
+        setCurrentExtent={setCurrentExtent}
+        setUpstreamLayerVisible={setUpstreamLayerVisible}
+        view={view}
+      />
+    );
 
     const node = document.createElement('div');
     view.ui.add(node, { position: 'top-right', index: 2 });
     setUpstreamWidget(node); // store the widget in context so it can be shown or hidden later
-    render(
-      <ShowUpstreamWatershed
-        abortSignal={abortSignal}
-        getWatershedName={getWatershed}
-        getHuc12={getHuc12}
-        getCurrentExtent={getCurrentExtent}
-        getTemplate={getTemplate}
-        getUpstreamLayer={getUpstreamLayer}
-        setUpstreamLayer={setUpstreamLayer}
-        getUpstreamExtent={getUpstreamExtent}
-        setUpstreamExtent={setUpstreamExtent}
-        setErrorMessage={setErrorMessage}
-        services={services}
-        getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
-        setUpstreamWidgetDisabled={setUpstreamWidgetDisabled}
-        setUpstreamLayerVisible={setUpstreamLayerVisible}
-        view={view}
-      />,
-      node,
-    );
+    render(widget, node);
     setUpstreamWidgetCreated(true);
   }, [
-    abortSignal,
-    setUpstreamWidget,
-    services,
-    getTemplate,
-    view,
-    upstreamWidgetCreated,
-    getWatershed,
-    getHuc12,
     getCurrentExtent,
-    setUpstreamLayer,
+    getHuc12,
     getUpstreamLayer,
-    getUpstreamExtent,
-    setUpstreamExtent,
-    setErrorMessage,
     getUpstreamWidgetDisabled,
-    setUpstreamWidgetDisabled,
+    map,
+    mapRef,
+    retrieveUpstreamWatershed,
+    services,
+    setCurrentExtent,
     setUpstreamLayerVisible,
+    setUpstreamWidget,
+    upstreamWidgetCreated,
+    view,
   ]);
 
   const [allWaterbodiesWidget, setAllWaterbodiesWidget] =
@@ -1148,11 +1328,7 @@ function MapWidgets({
     if (!surroundingMonitoringLocationsWidget) return;
 
     const pathname = window.location.pathname;
-    if (
-      !pathname.includes('/community') &&
-      !pathname.includes('/tribe') &&
-      !pathname.includes('/waterbody-report')
-    ) {
+    if (pathname.includes('/state')) {
       // hide widget on other pages
       surroundingMonitoringLocationsWidget.style.display = 'none';
       surroundingMonitoringLocationsLayer.visible = false;
@@ -1160,9 +1336,8 @@ function MapWidgets({
     }
 
     if (
-      !pathname.includes('/tribe') &&
-      !pathname.includes('/waterbody-report') &&
-      (!huc12 || pathname === '/community')
+      pathname === '/community' ||
+      (!huc12 && pathname.includes('/community/'))
     ) {
       // disable widget on community home or invalid searches
       setSurroundingMonitoringLocationsWidgetDisabled(true);
@@ -1191,12 +1366,7 @@ function MapWidgets({
   // disable the all waterbodies widget if on the community home page
   useEffect(() => {
     const pathname = window.location.pathname;
-    if (
-      !surroundingMonitoringLocationsWidget ||
-      (!pathname.includes('/community') &&
-        !pathname.includes('/tribe') &&
-        !pathname.includes('/waterbody-report'))
-    ) {
+    if (!surroundingMonitoringLocationsWidget || pathname.includes('/state')) {
       return;
     }
 
@@ -1231,7 +1401,9 @@ function MapWidgets({
         services={services}
         setDisabled={setSurroundingMonitoringLocationsWidgetDisabled}
         setVisible={setSurroundingMonitoringLocationsLayerVisible}
-        surroundingMonitoringLocationsLayer={surroundingMonitoringLocationsLayer}
+        surroundingMonitoringLocationsLayer={
+          surroundingMonitoringLocationsLayer
+        }
       />,
       node,
     );
@@ -1703,7 +1875,9 @@ function ShowSurroundingMonitoringLocations({
     >
       <span
         className={
-          surroundingMonitoringLocations.status === 'fetching' && !widgetDisabled && layer?.visible
+          surroundingMonitoringLocations.status === 'fetching' &&
+          !widgetDisabled &&
+          layer?.visible
             ? 'esri-icon-loading-indicator esri-rotating'
             : 'esri-icon-experimental'
         }
@@ -1714,216 +1888,34 @@ function ShowSurroundingMonitoringLocations({
 }
 
 type ShowUpstreamWatershedProps = {
-  abortSignal: AbortSignal;
-  getCurrentExtent: () => __esri.Viewpoint | null;
-  getHuc12: () => string;
-  getUpstreamExtent: () => __esri.Viewpoint | null;
   getUpstreamLayer: () => (__esri.GraphicsLayer & { error?: boolean }) | '';
   getUpstreamWidgetDisabled: () => boolean;
-  getWatershedName: () => string;
-  getTemplate: (graphic: Feature) => HTMLDivElement | null;
-  services: ServicesState;
-  setErrorMessage: (errorMessage: string) => void;
-  setUpstreamExtent: (upstreamExtent: __esri.Viewpoint) => void;
-  setUpstreamLayer: (
-    upstreamLayer: __esri.GraphicsLayer & { error?: boolean },
-  ) => void;
-  setUpstreamLayerVisible: (upstreamLayerVisible: boolean) => void;
-  setUpstreamWidgetDisabled: (upstreamWidgetDisabled: boolean) => void;
-  view: __esri.MapView;
+  onClick: React.MouseEventHandler<HTMLDivElement>;
+  selectionEnabled?: boolean;
+  upstreamLoading: boolean;
 };
 
 function ShowUpstreamWatershed({
-  abortSignal,
-  getWatershedName,
-  getHuc12,
-  getCurrentExtent,
-  getTemplate,
   getUpstreamLayer,
-  setUpstreamLayer,
-  getUpstreamExtent,
-  services,
-  setUpstreamExtent,
-  setErrorMessage,
   getUpstreamWidgetDisabled,
-  setUpstreamWidgetDisabled,
-  setUpstreamLayerVisible,
-  view,
+  onClick,
+  selectionEnabled = false,
+  upstreamLoading,
 }: ShowUpstreamWatershedProps) {
   const [hover, setHover] = useState(false);
-  const [lastHuc12, setLastHuc12] = useState('');
-
-  // store loading state to Upstream Watershed map widget icon
-  const [upstreamLoading, setUpstreamLoading] = useState(false);
-
-  const currentHuc12 = getHuc12();
-
-  const retrieveUpstreamWatershed = useCallback(
-    (
-      getWatershedName,
-      currentHuc12,
-      lastHuc12,
-      setLastHuc12,
-      getCurrentExtent,
-      getUpstreamLayer,
-      setUpstreamLayer,
-      getUpstreamExtent,
-      setUpstreamExtent,
-      setErrorMessage,
-      getUpstreamWidgetDisabled,
-      setUpstreamWidgetDisabled,
-      setUpstreamLoading,
-      getTemplate,
-      setUpstreamLayerVisible,
-    ) => {
-      // if widget is disabled do nothing
-      if (getUpstreamWidgetDisabled()) return;
-      const upstreamLayer = getUpstreamLayer();
-      if (!upstreamLayer) return;
-
-      // if location changed since last widget click, update lastHuc12 state
-      if (currentHuc12 !== lastHuc12) {
-        setLastHuc12(currentHuc12);
-        upstreamLayer.error = false;
-      }
-
-      // already encountered an error for this location - don't retry
-      if (upstreamLayer.error === true) {
-        return;
-      }
-
-      // if location hasn't changed and upstream layer is displayed:
-      // zoom to current location extent and hide the upstream layer
-      if (
-        currentHuc12 === lastHuc12 &&
-        upstreamLayer.visible &&
-        upstreamLayer.graphics.length > 0
-      ) {
-        view.goTo(getCurrentExtent());
-        view.popup.close();
-        upstreamLayer.visible = false;
-        setUpstreamLayerVisible(false);
-        setUpstreamLayer(upstreamLayer);
-        return;
-      }
-
-      // if location hasn't changed and upstream layer is hidden:
-      // zoom to full upstream extent and display the upstream layer
-      if (
-        currentHuc12 === lastHuc12 &&
-        !upstreamLayer.visible &&
-        upstreamLayer.graphics.length > 0
-      ) {
-        view.goTo(getUpstreamExtent());
-        upstreamLayer.visible = true;
-        setUpstreamLayerVisible(true);
-        setUpstreamLayer(upstreamLayer);
-        return;
-      }
-
-      // fetch the upstream catchment
-      const filter = `xwalk_huc12='${currentHuc12}'`;
-
-      setUpstreamLoading(true);
-
-      if (services.status !== 'success') return;
-      const url = services.data.upstreamWatershed;
-
-      const queryParams = {
-        returnGeometry: true,
-        where: filter,
-        outFields: ['*'],
-        signal: abortSignal,
-      };
-      query
-        .executeQueryJSON(url, queryParams)
-        .then((res) => {
-          setUpstreamLoading(false);
-          const upstreamLayer = getUpstreamLayer();
-          const watershed = getWatershedName() || 'Unknown Watershed';
-          const upstreamTitle = `Upstream Watershed for Currently Selected Location: ${watershed} (${currentHuc12})`;
-
-          if (!res || !res.features || res.features.length === 0) {
-            upstreamLayer.error = true;
-            upstreamLayer.graphics.removeAll();
-            setUpstreamLayer(upstreamLayer);
-            setUpstreamWidgetDisabled(true);
-            setUpstreamLayerVisible(false);
-            setErrorMessage(
-              'Unable to get upstream watershed data for this location.',
-            );
-            return;
-          }
-
-          const geometry = res.features[0].geometry;
-          if (isPolygon(geometry)) {
-            upstreamLayer.graphics.add(
-              new Graphic({
-                geometry: new Polygon({
-                  spatialReference: res.spatialReference,
-                  rings: geometry.rings,
-                }),
-                symbol: new SimpleFillSymbol({
-                  style: 'solid',
-                  color: [31, 184, 255, 0.2],
-                  outline: {
-                    style: 'solid',
-                    color: 'black',
-                    width: 1,
-                  },
-                }),
-                attributes: res.features[0].attributes,
-                popupTemplate: {
-                  title: upstreamTitle,
-                  content: getTemplate,
-                  outFields: ['*'],
-                },
-              }),
-            );
-          }
-
-          const upstreamExtent = res.features[0].geometry.extent;
-
-          const currentViewpoint = new Viewpoint({
-            targetGeometry: upstreamExtent,
-          });
-
-          // store the current viewpoint in context
-          setUpstreamExtent(currentViewpoint);
-
-          upstreamLayer.visible = true;
-          setUpstreamLayer(upstreamLayer);
-          setUpstreamLayerVisible(true);
-
-          // zoom out to full extent
-          view.goTo(upstreamExtent);
-        })
-        .catch((err) => {
-          if (isAbort(err)) return;
-          setUpstreamLoading(false);
-          setUpstreamWidgetDisabled(true);
-          setErrorMessage(
-            'Error fetching upstream watershed data for this location.',
-          );
-          upstreamLayer.error = true;
-          upstreamLayer.visible = false;
-          upstreamLayer.graphics.removeAll();
-          setUpstreamLayerVisible(false);
-          setUpstreamLayer(upstreamLayer);
-        });
-    },
-    [abortSignal, view, services],
-  );
 
   const upstreamWidgetDisabled = getUpstreamWidgetDisabled();
   const upstreamLayer = getUpstreamLayer();
   if (!upstreamLayer) return null;
 
-  const title = upstreamWidgetDisabled
-    ? 'Upstream Widget Not Available'
-    : upstreamLayer.visible
-    ? 'Hide Upstream Watershed'
-    : 'View Upstream Watershed';
+  let title = 'View Upstream Watershed';
+  if (upstreamWidgetDisabled) title = 'Upstream Widget Not Available';
+  else if (upstreamLayer.visible) title = 'Hide Upstream Watershed';
+  else if (selectionEnabled) title = 'Cancel Watershed Selection';
+
+  let iconClass = 'esri-icon esri-icon-overview-arrow-top-left';
+  if (upstreamLoading) iconClass = 'esri-icon-loading-indicator esri-rotating';
+  else if (selectionEnabled) iconClass = 'esri-icon-locate';
 
   return (
     <div
@@ -1931,37 +1923,280 @@ function ShowUpstreamWatershed({
       style={!upstreamWidgetDisabled && hover ? divHoverStyle : divStyle}
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
-      onClick={(_ev) => {
-        retrieveUpstreamWatershed(
-          getWatershedName,
-          currentHuc12,
-          lastHuc12,
-          setLastHuc12,
-          getCurrentExtent,
-          getUpstreamLayer,
-          setUpstreamLayer,
-          getUpstreamExtent,
-          setUpstreamExtent,
-          setErrorMessage,
-          getUpstreamWidgetDisabled,
-          setUpstreamWidgetDisabled,
-          setUpstreamLoading,
-          getTemplate,
-          setUpstreamLayerVisible,
-        );
-      }}
+      onClick={onClick}
     >
       <span
-        className={
-          upstreamLoading
-            ? 'esri-icon-loading-indicator esri-rotating'
-            : 'esri-icon esri-icon-overview-arrow-top-left'
-        }
+        className={iconClass}
         style={
           !upstreamWidgetDisabled && hover ? buttonHoverStyle : buttonStyle
         }
       />
     </div>
+  );
+}
+
+type ShowCurrentUpstreamWatershedProps = {
+  getHuc12: () => string;
+  getUpstreamLayer: () => (__esri.GraphicsLayer & { error?: boolean }) | '';
+  getUpstreamWidgetDisabled: () => boolean;
+  retrieveUpstreamWatershed: (
+    currentHuc12: string,
+    setUpstreamLoading: Dispatch<SetStateAction<boolean>>,
+    canDisable?: boolean,
+  ) => void;
+};
+
+function ShowCurrentUpstreamWatershed({
+  getHuc12,
+  getUpstreamLayer,
+  getUpstreamWidgetDisabled,
+  retrieveUpstreamWatershed,
+}: ShowCurrentUpstreamWatershedProps) {
+  const currentHuc12 = getHuc12();
+  const [upstreamLoading, setUpstreamLoading] = useState(false);
+
+  return (
+    <ShowUpstreamWatershed
+      getUpstreamLayer={getUpstreamLayer}
+      getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
+      onClick={(_ev) =>
+        retrieveUpstreamWatershed(currentHuc12, setUpstreamLoading)
+      }
+      upstreamLoading={upstreamLoading}
+    />
+  );
+}
+
+type ShowSelectedUpstreamWatershedProps = {
+  getCurrentExtent: () => __esri.Extent;
+  getUpstreamLayer: () => (__esri.GraphicsLayer & { error?: boolean }) | '';
+  getUpstreamWidgetDisabled: () => boolean;
+  map: __esri.Map;
+  mapRef: MutableRefObject<HTMLDivElement | null>;
+  retrieveUpstreamWatershed: (
+    currentHuc12: string,
+    setUpstreamLoading: Dispatch<SetStateAction<boolean>>,
+    canDisable?: boolean,
+  ) => void;
+  services: ServicesState;
+  setCurrentExtent: Dispatch<SetStateAction<__esri.Extent>>;
+  setUpstreamLayerVisible: Dispatch<SetStateAction<boolean>>;
+  view: __esri.MapView;
+};
+
+function ShowSelectedUpstreamWatershed({
+  getCurrentExtent,
+  getUpstreamLayer,
+  getUpstreamWidgetDisabled,
+  map,
+  mapRef,
+  retrieveUpstreamWatershed,
+  services,
+  setCurrentExtent,
+  setUpstreamLayerVisible,
+  view,
+}: ShowSelectedUpstreamWatershedProps) {
+  // Record visibility state of watersheds layer to restore later
+  const [watershedsVisible, setWatershedsVisible] = useState(false);
+
+  // Store the watersheds layer instance for later access
+  const [watershedsLayer, setWatershedsLayer] = useState<__esri.Layer | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (!map) return;
+
+    const newWatershedsLayer = map.findLayerById('watershedsLayer');
+    setWatershedsLayer(newWatershedsLayer);
+    newWatershedsLayer && setWatershedsVisible(newWatershedsLayer.visible);
+  }, [map]);
+
+  const [selectionEnabled, setSelectionEnabled] = useState(false);
+
+  useEffect(() => {
+    if (!view) return;
+    if (selectionEnabled) {
+      view.popup.viewModel.includeDefaultActions = false;
+      view.popup.visibleElements.closeButton = false;
+      view.popup.dockOptions.buttonEnabled = false;
+    } else {
+      view.popup.viewModel.includeDefaultActions = true;
+      view.popup.visibleElements.closeButton = true;
+      view.popup.dockOptions.buttonEnabled = true;
+      view.popup.close();
+    }
+  }, [selectionEnabled, view]);
+
+  const [upstreamLoading, setUpstreamLoading] = useState(false);
+
+  // Get the selected watershed, search for
+  // its upstream watershed, and draw it
+  const handleHucSelection = useCallback(
+    (ev) => {
+      setSelectionEnabled(false);
+
+      if (!view) return;
+      if (services.status !== 'success') return;
+
+      // get the point location of the user's click
+      const point = new Point({
+        x: ev.mapPoint.longitude,
+        y: ev.mapPoint.latitude,
+        spatialReference: SpatialReference.WGS84,
+      });
+
+      const location = webMercatorUtils.geographicToWebMercator(point) as Point;
+
+      const queryParams = {
+        returnGeometry: true,
+        geometry: location,
+        outFields: ['*'],
+      };
+
+      query
+        .executeQueryJSON(services.data.wbd, queryParams)
+        .then((boundaries) => {
+          if (boundaries.features.length === 0) return;
+
+          setCurrentExtent(view.extent);
+
+          const { attributes } = boundaries.features[0];
+          retrieveUpstreamWatershed(
+            attributes.huc12,
+            setUpstreamLoading,
+            false,
+          );
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    },
+    [retrieveUpstreamWatershed, services, setCurrentExtent, view],
+  );
+
+  // Create the map click listener, which only
+  // triggers if "selection mode" is enabled
+  useEffect(() => {
+    if (!view) return;
+    const mapClickHandler = view.on('click', (ev) => {
+      if (!selectionEnabled) return;
+      handleHucSelection(ev);
+    });
+
+    return function cleanup() {
+      mapClickHandler.remove();
+    };
+  }, [handleHucSelection, selectionEnabled, view]);
+
+  // Disable "selection mode" and restore the
+  // initial visibility of the watersheds layer
+  const cancelSelection = useCallback(() => {
+    if (watershedsLayer) watershedsLayer.visible = watershedsVisible;
+    setSelectionEnabled(false);
+  }, [watershedsLayer, watershedsVisible]);
+
+  // Create a global click listener to stop "selection mode"
+  // clicks if the user clicks away from the map
+  useEffect(() => {
+    const handleClick = (ev: MouseEvent) => {
+      if (!mapRef.current?.contains(ev.target as Node)) {
+        cancelSelection();
+      }
+    };
+    window.addEventListener('click', handleClick);
+
+    return function cleanup() {
+      window.removeEventListener('click', handleClick);
+    };
+  }, [cancelSelection, mapRef]);
+
+  // Enable triggering of the map click handler if the upstream
+  // watershed is not visible, otherwise hide the upstream watershed
+  const selectUpstream = useCallback(() => {
+    const upstreamLayer = getUpstreamLayer();
+    if (!upstreamLayer) return;
+
+    if (upstreamLayer.visible) {
+      const currentExtent = getCurrentExtent();
+      currentExtent && view.goTo(currentExtent);
+      view?.popup.close();
+      upstreamLayer.visible = false;
+      upstreamLayer.graphics.removeAll();
+      setUpstreamLayerVisible(false);
+      if (watershedsLayer) watershedsLayer.visible = watershedsVisible;
+      return;
+    }
+
+    if (watershedsLayer) {
+      setWatershedsVisible(watershedsLayer.visible);
+      watershedsLayer.visible = true;
+    }
+
+    setSelectionEnabled(true);
+  }, [
+    getCurrentExtent,
+    getUpstreamLayer,
+    setUpstreamLayerVisible,
+    view,
+    watershedsLayer,
+    watershedsVisible,
+  ]);
+
+  // Create an instructional dialogue for the watershed selection mode
+  useEffect(() => {
+    if (!view) return;
+
+    const node = document.createElement('div');
+    render(
+      <div css={instructionStyles}>
+        <p>Click within a watershed boundary to view its upstream watershed.</p>
+        {watershedsLayer &&
+          isFeatureLayer(watershedsLayer) &&
+          view.scale > watershedsLayer.minScale && (
+            <p>Zoom in to see watershed boundary lines.</p>
+          )}
+      </div>,
+      node,
+    );
+
+    const mouseMoveHandler = view.on('pointer-move', (ev) => {
+      if (!selectionEnabled || !mapRef.current) return;
+      let content = `<p style="padding: 0.4em;font-weight:bold">
+          Click within a watershed boundary to view its upstream watershed.
+        </p>`;
+      if (
+        watershedsLayer &&
+        isFeatureLayer(watershedsLayer) &&
+        view.scale > watershedsLayer.minScale
+      ) {
+        content += `<p style="padding:0 0.4em 0.4em 0.4em;font-weight:bold">
+            Zoom in to see watershed boundary lines.
+          </p>`;
+      }
+      view.popup.open({
+        content,
+        location: view.toMap({
+          x: ev.x,
+          y: ev.y,
+        }),
+        title: '',
+      });
+    });
+
+    return function cleanup() {
+      mouseMoveHandler.remove();
+    };
+  }, [mapRef, selectionEnabled, view, watershedsLayer]);
+
+  return (
+    <ShowUpstreamWatershed
+      getUpstreamLayer={getUpstreamLayer}
+      getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
+      onClick={selectionEnabled ? cancelSelection : selectUpstream}
+      selectionEnabled={selectionEnabled}
+      upstreamLoading={upstreamLoading}
+    />
   );
 }
 
