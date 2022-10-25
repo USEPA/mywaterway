@@ -38,7 +38,6 @@ import { fetchCheck } from 'utils/fetchUtils';
 import {
   buildStations,
   hasSublayers,
-  isFeatureLayer,
   isGroupLayer,
   isInScale,
   isPolygon,
@@ -67,15 +66,15 @@ import type {
 } from 'types';
 
 const instructionStyles = css`
-  font-weight: bold;
-  margin: auto;
-  padding: 0.4em;
-
   p {
-    padding-bottom: 0.4em;
+    font-weight: bold;
+
+    &:first-of-type {
+      padding: 0.8em 0.4em 0.4em 0.4em;
+    }
 
     &:last-of-type {
-      padding-bottom: 0;
+      padding: 0 0.4em;
     }
   }
 `;
@@ -2014,19 +2013,39 @@ function ShowSelectedUpstreamWatershed({
 
   const [selectionActive, setSelectionActive] = useState(false);
 
+  // Trim the appearance of the instruction popup
   useEffect(() => {
     if (!view) return;
+
     if (selectionActive) {
-      view.popup.viewModel.includeDefaultActions = false;
-      view.popup.visibleElements.closeButton = false;
+      view.popup.dockEnabled = true;
+      view.popup.dockOptions.breakpoint = false;
       view.popup.dockOptions.buttonEnabled = false;
+      view.popup.dockOptions.position = 'top-center';
+      view.popup.viewModel.includeDefaultActions = false;
+
+      const node = document.createElement('div');
+      render(
+        <div css={instructionStyles}>
+          <p>
+            Click within a watershed boundary to view its upstream watershed.
+          </p>
+          <p>Zoom in to see watershed boundary lines.</p>
+        </div>,
+        node,
+      );
+
+      view.popup.open({ content: node, title: '' });
     } else {
-      view.popup.viewModel.includeDefaultActions = true;
-      view.popup.visibleElements.closeButton = true;
+      view.popup.dockEnabled = false;
+      view.popup.dockOptions.breakpoint = true;
       view.popup.dockOptions.buttonEnabled = true;
+      view.popup.dockOptions.position = 'auto';
+      view.popup.viewModel.includeDefaultActions = true;
+
       view.popup.close();
     }
-  }, [selectionActive, view]);
+  }, [selectionActive, view, watershedsLayer]);
 
   const [upstreamLoading, setUpstreamLoading] = useState(false);
 
@@ -2039,7 +2058,7 @@ function ShowSelectedUpstreamWatershed({
       if (!view) return;
       if (services.status !== 'success') return;
 
-      // get the point location of the user's click
+      // Get the point location of the user's click
       const point = new Point({
         x: ev.mapPoint.longitude,
         y: ev.mapPoint.latitude,
@@ -2054,6 +2073,7 @@ function ShowSelectedUpstreamWatershed({
         outFields: ['*'],
       };
 
+      // Get the huc12 associated with the map point
       query
         .executeQueryJSON(services.data.wbd, queryParams)
         .then((boundaries) => {
@@ -2091,17 +2111,20 @@ function ShowSelectedUpstreamWatershed({
 
   // Disable "selection mode" and restore the
   // initial visibility of the watersheds layer
-  const cancelSelection = useCallback(() => {
-    if (watershedsLayer) watershedsLayer.visible = watershedsVisible;
-    setSelectionActive(false);
-  }, [watershedsLayer, watershedsVisible]);
+  const cancelSelection = useCallback(
+    (_ev) => {
+      if (watershedsLayer) watershedsLayer.visible = watershedsVisible;
+      setSelectionActive(false);
+    },
+    [watershedsLayer, watershedsVisible],
+  );
 
   // Create a global click listener to stop "selection mode"
   // clicks if the user clicks away from the map
   useEffect(() => {
     const handleClick = (ev: MouseEvent) => {
-      if (!mapRef.current?.contains(ev.target as Node)) {
-        cancelSelection();
+      if (selectionActive && !mapRef.current?.contains(ev.target as Node)) {
+        cancelSelection(ev);
       }
     };
     window.addEventListener('click', handleClick);
@@ -2109,85 +2132,45 @@ function ShowSelectedUpstreamWatershed({
     return function cleanup() {
       window.removeEventListener('click', handleClick);
     };
-  }, [cancelSelection, mapRef]);
+  }, [cancelSelection, mapRef, selectionActive]);
 
   // Enable triggering of the map click handler if the upstream
   // watershed is not visible, otherwise hide the upstream watershed
-  const selectUpstream = useCallback(() => {
-    const upstreamLayer = getUpstreamLayer();
-    if (!upstreamLayer) return;
+  const selectUpstream = useCallback(
+    (_ev) => {
+      const upstreamLayer = getUpstreamLayer();
+      if (!upstreamLayer) return;
 
-    if (upstreamLayer.visible) {
-      const currentExtent = getCurrentExtent();
-      currentExtent && view.goTo(currentExtent);
-      view?.popup.close();
-      upstreamLayer.visible = false;
-      upstreamLayer.graphics.removeAll();
-      setUpstreamLayerVisible(false);
-      if (watershedsLayer) watershedsLayer.visible = watershedsVisible;
-      return;
-    }
+      if (upstreamLayer.visible) {
+        const currentExtent = getCurrentExtent();
+        currentExtent && view.goTo(currentExtent);
 
-    if (watershedsLayer) {
-      setWatershedsVisible(watershedsLayer.visible);
-      watershedsLayer.visible = true;
-    }
+        view?.popup.close();
 
-    setSelectionActive(true);
-  }, [
-    getCurrentExtent,
-    getUpstreamLayer,
-    setUpstreamLayerVisible,
-    view,
-    watershedsLayer,
-    watershedsVisible,
-  ]);
+        upstreamLayer.visible = false;
+        upstreamLayer.graphics.removeAll();
+        setUpstreamLayerVisible(false);
 
-  // Create an instructional dialogue for the watershed selection mode
-  useEffect(() => {
-    if (!view) return;
-
-    const node = document.createElement('div');
-    render(
-      <div css={instructionStyles}>
-        <p>Click within a watershed boundary to view its upstream watershed.</p>
-        {watershedsLayer &&
-          isFeatureLayer(watershedsLayer) &&
-          view.scale > watershedsLayer.minScale && (
-            <p>Zoom in to see watershed boundary lines.</p>
-          )}
-      </div>,
-      node,
-    );
-
-    const mouseMoveHandler = view.on('pointer-move', (ev) => {
-      if (!selectionActive || !mapRef.current) return;
-      let content = `<p style="padding: 0.4em;font-weight:bold">
-          Click within a watershed boundary to view its upstream watershed.
-        </p>`;
-      if (
-        watershedsLayer &&
-        isFeatureLayer(watershedsLayer) &&
-        view.scale > watershedsLayer.minScale
-      ) {
-        content += `<p style="padding:0 0.4em 0.4em 0.4em;font-weight:bold">
-            Zoom in to see watershed boundary lines.
-          </p>`;
+        if (watershedsLayer) watershedsLayer.visible = watershedsVisible;
+        return;
       }
-      view.popup.open({
-        content,
-        location: view.toMap({
-          x: ev.x,
-          y: ev.y,
-        }),
-        title: '',
-      });
-    });
 
-    return function cleanup() {
-      mouseMoveHandler.remove();
-    };
-  }, [mapRef, selectionActive, view, watershedsLayer]);
+      if (watershedsLayer) {
+        setWatershedsVisible(watershedsLayer.visible);
+        watershedsLayer.visible = true;
+      }
+
+      setSelectionActive(true);
+    },
+    [
+      getCurrentExtent,
+      getUpstreamLayer,
+      setUpstreamLayerVisible,
+      view,
+      watershedsLayer,
+      watershedsVisible,
+    ],
+  );
 
   return (
     <ShowUpstreamWatershed
