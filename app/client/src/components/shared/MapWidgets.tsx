@@ -1891,7 +1891,7 @@ type ShowUpstreamWatershedProps = {
   getUpstreamLayer: () => (__esri.GraphicsLayer & { error?: boolean }) | '';
   getUpstreamWidgetDisabled: () => boolean;
   onClick: React.MouseEventHandler<HTMLDivElement>;
-  selectionEnabled?: boolean;
+  selectionActive?: boolean;
   upstreamLoading: boolean;
 };
 
@@ -1899,7 +1899,7 @@ function ShowUpstreamWatershed({
   getUpstreamLayer,
   getUpstreamWidgetDisabled,
   onClick,
-  selectionEnabled = false,
+  selectionActive = false,
   upstreamLoading,
 }: ShowUpstreamWatershedProps) {
   const [hover, setHover] = useState(false);
@@ -1911,11 +1911,11 @@ function ShowUpstreamWatershed({
   let title = 'View Upstream Watershed';
   if (upstreamWidgetDisabled) title = 'Upstream Widget Not Available';
   else if (upstreamLayer.visible) title = 'Hide Upstream Watershed';
-  else if (selectionEnabled) title = 'Cancel Watershed Selection';
+  else if (selectionActive) title = 'Cancel Watershed Selection';
 
   let iconClass = 'esri-icon esri-icon-overview-arrow-top-left';
   if (upstreamLoading) iconClass = 'esri-icon-loading-indicator esri-rotating';
-  else if (selectionEnabled) iconClass = 'esri-icon-locate';
+  else if (selectionActive) iconClass = 'esri-icon-locate';
 
   return (
     <div
@@ -2012,11 +2012,11 @@ function ShowSelectedUpstreamWatershed({
     newWatershedsLayer && setWatershedsVisible(newWatershedsLayer.visible);
   }, [map]);
 
-  const [selectionEnabled, setSelectionEnabled] = useState(false);
+  const [selectionActive, setSelectionActive] = useState(false);
 
   useEffect(() => {
     if (!view) return;
-    if (selectionEnabled) {
+    if (selectionActive) {
       view.popup.viewModel.includeDefaultActions = false;
       view.popup.visibleElements.closeButton = false;
       view.popup.dockOptions.buttonEnabled = false;
@@ -2026,7 +2026,7 @@ function ShowSelectedUpstreamWatershed({
       view.popup.dockOptions.buttonEnabled = true;
       view.popup.close();
     }
-  }, [selectionEnabled, view]);
+  }, [selectionActive, view]);
 
   const [upstreamLoading, setUpstreamLoading] = useState(false);
 
@@ -2034,7 +2034,7 @@ function ShowSelectedUpstreamWatershed({
   // its upstream watershed, and draw it
   const handleHucSelection = useCallback(
     (ev) => {
-      setSelectionEnabled(false);
+      setSelectionActive(false);
 
       if (!view) return;
       if (services.status !== 'success') return;
@@ -2080,20 +2080,20 @@ function ShowSelectedUpstreamWatershed({
   useEffect(() => {
     if (!view) return;
     const mapClickHandler = view.on('click', (ev) => {
-      if (!selectionEnabled) return;
+      if (!selectionActive) return;
       handleHucSelection(ev);
     });
 
     return function cleanup() {
       mapClickHandler.remove();
     };
-  }, [handleHucSelection, selectionEnabled, view]);
+  }, [handleHucSelection, selectionActive, view]);
 
   // Disable "selection mode" and restore the
   // initial visibility of the watersheds layer
   const cancelSelection = useCallback(() => {
     if (watershedsLayer) watershedsLayer.visible = watershedsVisible;
-    setSelectionEnabled(false);
+    setSelectionActive(false);
   }, [watershedsLayer, watershedsVisible]);
 
   // Create a global click listener to stop "selection mode"
@@ -2133,7 +2133,7 @@ function ShowSelectedUpstreamWatershed({
       watershedsLayer.visible = true;
     }
 
-    setSelectionEnabled(true);
+    setSelectionActive(true);
   }, [
     getCurrentExtent,
     getUpstreamLayer,
@@ -2161,7 +2161,7 @@ function ShowSelectedUpstreamWatershed({
     );
 
     const mouseMoveHandler = view.on('pointer-move', (ev) => {
-      if (!selectionEnabled || !mapRef.current) return;
+      if (!selectionActive || !mapRef.current) return;
       let content = `<p style="padding: 0.4em;font-weight:bold">
           Click within a watershed boundary to view its upstream watershed.
         </p>`;
@@ -2187,14 +2187,14 @@ function ShowSelectedUpstreamWatershed({
     return function cleanup() {
       mouseMoveHandler.remove();
     };
-  }, [mapRef, selectionEnabled, view, watershedsLayer]);
+  }, [mapRef, selectionActive, view, watershedsLayer]);
 
   return (
     <ShowUpstreamWatershed
       getUpstreamLayer={getUpstreamLayer}
       getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
-      onClick={selectionEnabled ? cancelSelection : selectUpstream}
-      selectionEnabled={selectionEnabled}
+      onClick={selectionActive ? cancelSelection : selectUpstream}
+      selectionActive={selectionActive}
       upstreamLoading={upstreamLoading}
     />
   );
