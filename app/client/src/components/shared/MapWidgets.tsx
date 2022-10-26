@@ -67,19 +67,13 @@ import type {
   MonitoringLocationsData,
 } from 'types';
 
-const instructionContainerStyles = (isVisible: boolean) => css`
-  display: ${isVisible ? 'flex' : 'none'};
-  justify-content: flex-end;
-  position: absolute;
-  right: 62px;
-  top: 99px;
-  width: 100%;
-  z-index: 1;
-`;
-
-const instructionStyles = css`
+const instructionStyles = (isVisible: boolean) => css`
+  display: ${isVisible ? 'block' : 'none'};
   background-color: white;
   box-shadow: 0 1px 4px rgb(0 0 0 / 80%);
+  left: calc(100% - 250px - 32px - 30px);
+  position: absolute;
+  top: 99px;
   width: 250px;
 
   div {
@@ -1822,6 +1816,7 @@ function retrieveUpstreamWatershed(
   setUpstreamLoading: Dispatch<SetStateAction<boolean>>,
   huc12 = null,
   canDisable = true,
+  setError?: (isError: boolean) => void,
 ) {
   // if widget is disabled do nothing
   if (getUpstreamWidgetDisabled()) return;
@@ -1832,6 +1827,7 @@ function retrieveUpstreamWatershed(
   // if location changed since last widget click, update lastHuc12 state
   if (currentHuc12 !== lastHuc12) {
     setLastHuc12(currentHuc12);
+    setErrorMessage('');
     upstreamLayer.error = false;
   }
 
@@ -1898,8 +1894,11 @@ function retrieveUpstreamWatershed(
         canDisable && setUpstreamWidgetDisabled(true);
         setUpstreamLayerVisible(false);
         setErrorMessage(
-          'Unable to get upstream watershed data for this location.',
+          `Unable to get upstream watershed data for ${
+            huc12 ? 'the selected' : 'this'
+          } location.`,
         );
+        setError?.(true);
         return;
       }
 
@@ -1951,8 +1950,11 @@ function retrieveUpstreamWatershed(
       setUpstreamLoading(false);
       canDisable && setUpstreamWidgetDisabled(true);
       setErrorMessage(
-        'Error fetching upstream watershed data for this location.',
+        `Error fetching upstream watershed data for ${
+          huc12 ? 'the selected' : 'this'
+        } location.`,
       );
+      setError?.(true);
       upstreamLayer.error = true;
       upstreamLayer.visible = false;
       upstreamLayer.graphics.removeAll();
@@ -2127,15 +2129,20 @@ function ShowSelectedUpstreamWatershed({
 
   const [selectionActive, setSelectionActive] = useState(false);
   const [instructionsVisible, setInstructionsVisible] = useState(false);
+  const [error, setError] = useState(false);
 
   // Show/hide instruction dialogue when watershed selection activity changes
   useEffect(() => {
+    if (selectionActive) setError(false);
     setInstructionsVisible(selectionActive);
     upstreamWidget.style.filter = selectionActive
-      ? // ? 'invert(0.8)'
-        'invert(0.8) brightness(1.5) contrast(1.5)'
+      ? 'invert(0.8) brightness(1.5) contrast(1.5)'
       : 'none';
   }, [selectionActive, upstreamWidget]);
+
+  useEffect(() => {
+    if (error) setSelectionActive(false);
+  }, [error]);
 
   // Get the selected watershed, search for
   // its upstream watershed, and draw it
@@ -2194,6 +2201,7 @@ function ShowSelectedUpstreamWatershed({
             setUpstreamLoading,
             attributes.huc12,
             false,
+            setError,
           );
         })
         .catch((err) => {
@@ -2316,26 +2324,24 @@ function ShowSelectedUpstreamWatershed({
     <>
       {mapRef.current &&
         createPortal(
-          <div css={instructionContainerStyles(instructionsVisible)}>
-            <div css={instructionStyles}>
-              <header>
-                <i
-                  className="esri-icon-close"
-                  onClick={(_ev) => setInstructionsVisible(false)}
-                />
-              </header>
-              <div>
-                <p>
-                  Click within a watershed boundary to view its upstream
-                  watershed.
-                </p>
-                {currentScale &&
-                  watershedsLayer &&
-                  isFeatureLayer(watershedsLayer) &&
-                  currentScale > watershedsLayer.minScale && (
-                    <p>Zoom in to see watershed boundary lines.</p>
-                  )}
-              </div>
+          <div css={instructionStyles(instructionsVisible)}>
+            <header>
+              <i
+                className="esri-icon-close"
+                onClick={(_ev) => setInstructionsVisible(false)}
+              />
+            </header>
+            <div>
+              <p>
+                Click within a watershed boundary to view its upstream
+                watershed.
+              </p>
+              {currentScale &&
+                watershedsLayer &&
+                isFeatureLayer(watershedsLayer) &&
+                currentScale > watershedsLayer.minScale && (
+                  <p>Zoom in to see watershed boundary lines.</p>
+                )}
             </div>
           </div>,
           mapRef.current,

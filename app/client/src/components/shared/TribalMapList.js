@@ -170,6 +170,7 @@ function TribalMapList({
   );
   const {
     areasLayer,
+    errorMessage,
     linesLayer,
     mapView,
     setMonitoringGroups,
@@ -509,6 +510,12 @@ function TribalMapList({
               </>
             )}
           </div>
+        </div>
+      )}
+
+      {errorMessage && (
+        <div css={modifiedErrorBoxStyles}>
+          <p>{errorMessage}</p>
         </div>
       )}
 
