@@ -186,7 +186,7 @@ function Documents({
   return (
     <div css={containerStyles}>
       <h3>Documents Related to Integrated Report</h3>
-      <em>Select a document below to download a copy of the report.</em>
+
       {(organizationData.status === 'fetching' ||
         documentOrder.status === 'fetching') && <LoadingSpinner />}
       {organizationData.status === 'failure' && (
@@ -227,6 +227,7 @@ function Documents({
               <DocumentsTable
                 activeState={activeState}
                 documents={surveyDocumentsSorted}
+                hideInfoMessage={assessmentDocumentsSorted.length > 0}
                 type="statewide statistical survey"
               />
             </>
@@ -241,10 +242,16 @@ function Documents({
 type DocumentsTableProps = {
   activeState: ActiveState,
   documents: Array<Object>,
+  hideInfoMessage?: boolean,
   type: string,
 };
 
-function DocumentsTable({ activeState, documents, type }: DocumentsTableProps) {
+function DocumentsTable({
+  activeState,
+  documents,
+  hideInfoMessage,
+  type,
+}: DocumentsTableProps) {
   if (documents.length === 0) {
     return (
       <p>
@@ -255,61 +262,69 @@ function DocumentsTable({ activeState, documents, type }: DocumentsTableProps) {
   }
 
   return (
-    <ReactTable
-      data={documents}
-      getColumns={(tableWidth) => {
-        let docNameWidth = 0;
+    <>
+      {!hideInfoMessage && (
+        <em>Select a document below to download a copy of the report.</em>
+      )}
 
-        // make the document name column take up the remaining widht of the table
-        // table width - document type width - agency code width - border
-        if (tableWidth > 425) docNameWidth = tableWidth - 300 - 125 - 3;
+      <ReactTable
+        data={documents}
+        getColumns={(tableWidth) => {
+          let docNameWidth = 0;
 
-        // ensure the document name column is atleast 372px wide
-        if (docNameWidth < 372) docNameWidth = 372;
+          // make the document name column take up the remaining widht of the table
+          // table width - document type width - agency code width - border
+          if (tableWidth > 425) docNameWidth = tableWidth - 300 - 125 - 3;
 
-        return [
-          {
-            accessor: 'documentTypeLabel',
-            Header: 'Document Types',
-            width: 300,
-          },
-          {
-            accessor: 'documentName',
-            Header: 'Document',
-            width: docNameWidth,
-            Render: (cell) => {
-              return (
-                <>
-                  <a
-                    href={cell.row.original.documentURL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {cell.value} (
-                    {getExtensionFromPath(
-                      cell.row.original.documentFileName,
-                      cell.row.original.documentURL,
-                    )}
-                    )
-                  </a>
-                  <DynamicExitDisclaimer url={cell.row.original.documentURL} />
-                </>
-              );
+          // ensure the document name column is atleast 372px wide
+          if (docNameWidth < 372) docNameWidth = 372;
+
+          return [
+            {
+              accessor: 'documentTypeLabel',
+              Header: 'Document Types',
+              width: 300,
             },
-          },
-          {
-            accessor: 'agencyCode',
-            Header: 'Agency Code',
-            width: 125,
-            Render: (cell) => {
-              if (cell.value === 'S') return 'State';
-              if (cell.value === 'E') return 'EPA';
-              return cell.value;
+            {
+              accessor: 'documentName',
+              Header: 'Document',
+              width: docNameWidth,
+              Render: (cell) => {
+                return (
+                  <>
+                    <a
+                      href={cell.row.original.documentURL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {cell.value} (
+                      {getExtensionFromPath(
+                        cell.row.original.documentFileName,
+                        cell.row.original.documentURL,
+                      )}
+                      )
+                    </a>
+                    <DynamicExitDisclaimer
+                      url={cell.row.original.documentURL}
+                    />
+                  </>
+                );
+              },
             },
-          },
-        ];
-      }}
-    />
+            {
+              accessor: 'agencyCode',
+              Header: 'Agency Code',
+              width: 125,
+              Render: (cell) => {
+                if (cell.value === 'S') return 'State';
+                if (cell.value === 'E') return 'EPA';
+                return cell.value;
+              },
+            },
+          ];
+        }}
+      />
+    </>
   );
 }
 
