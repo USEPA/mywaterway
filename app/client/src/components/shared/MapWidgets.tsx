@@ -1833,6 +1833,7 @@ function retrieveUpstreamWatershed(
 
   // already encountered an error for this location - don't retry
   if (upstreamLayer.error === true) {
+    setError?.(true);
     return;
   }
 
@@ -2133,7 +2134,6 @@ function ShowSelectedUpstreamWatershed({
 
   // Show/hide instruction dialogue when watershed selection activity changes
   useEffect(() => {
-    if (selectionActive) setError(false);
     setInstructionsVisible(selectionActive);
     upstreamWidget.style.filter = selectionActive
       ? 'invert(0.8) brightness(1.5) contrast(1.5)'
@@ -2182,7 +2182,10 @@ function ShowSelectedUpstreamWatershed({
       query
         .executeQueryJSON(services.data.wbd, queryParams)
         .then((boundaries) => {
-          if (boundaries.features.length === 0) return;
+          if (boundaries.features.length === 0) {
+            cancelSelection();
+            return;
+          }
 
           setCurrentExtent(view.extent);
 
@@ -2217,6 +2220,7 @@ function ShowSelectedUpstreamWatershed({
     },
     [
       abortSignal,
+      cancelSelection,
       getCurrentExtent,
       getHuc12,
       getTemplate,
@@ -2291,6 +2295,7 @@ function ShowSelectedUpstreamWatershed({
         watershedsLayer.visible = true;
       }
 
+      setError(false);
       setSelectionActive(true);
     },
     [
