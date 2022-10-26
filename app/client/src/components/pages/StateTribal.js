@@ -413,8 +413,8 @@ function StateTribal() {
             <label css={promptStyles} htmlFor="hmw-state-select-input">
               <strong>Let’s get started!</strong>&nbsp;&nbsp;
               <em>
-                Select your state or territory from the drop down to begin
-                exploring water quality.
+                Select your state, tribe, or territory from the drop down to
+                begin exploring water quality.
               </em>
             </label>
 
@@ -508,9 +508,9 @@ function StateTribal() {
                   classNamePrefix="Select"
                   placeholder={
                     selectedSource === 'All'
-                      ? 'Select a state or tribe...'
+                      ? 'Select a state, tribe, or territory...'
                       : selectedSource === 'State'
-                      ? 'Select a state...'
+                      ? 'Select a state or territory...'
                       : 'Select a tribe...'
                   }
                   options={selectOptions}
