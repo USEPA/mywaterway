@@ -2140,9 +2140,16 @@ function ShowSelectedUpstreamWatershed({
       : 'none';
   }, [selectionActive, upstreamWidget]);
 
+  // Disable "selection mode" and restore the
+  // initial visibility of the watersheds layer
+  const cancelSelection = useCallback(() => {
+    if (watershedsLayer) watershedsLayer.visible = watershedsVisible;
+    setSelectionActive(false);
+  }, [watershedsLayer, watershedsVisible]);
+
   useEffect(() => {
-    if (error) setSelectionActive(false);
-  }, [error]);
+    if (error) cancelSelection();
+  }, [cancelSelection, error]);
 
   // Get the selected watershed, search for
   // its upstream watershed, and draw it
@@ -2243,22 +2250,12 @@ function ShowSelectedUpstreamWatershed({
     };
   }, [handleHucSelection, selectionActive, view]);
 
-  // Disable "selection mode" and restore the
-  // initial visibility of the watersheds layer
-  const cancelSelection = useCallback(
-    (_ev) => {
-      if (watershedsLayer) watershedsLayer.visible = watershedsVisible;
-      setSelectionActive(false);
-    },
-    [watershedsLayer, watershedsVisible],
-  );
-
   // Create a global click listener to stop "selection mode"
   // clicks if the user clicks away from the map
   useEffect(() => {
     const handleClick = (ev: MouseEvent) => {
       if (selectionActive && !mapRef.current?.contains(ev.target as Node)) {
-        cancelSelection(ev);
+        cancelSelection();
       }
     };
     window.addEventListener('click', handleClick);
