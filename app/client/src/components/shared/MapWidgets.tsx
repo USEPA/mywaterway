@@ -69,9 +69,10 @@ import type {
 
 const instructionContainerStyles = (isVisible: boolean) => css`
   display: ${isVisible ? 'flex' : 'none'};
-  justify-content: center;
+  justify-content: flex-end;
   position: absolute;
-  top: 15px;
+  right: 62px;
+  top: 99px;
   width: 100%;
   z-index: 1;
 `;
