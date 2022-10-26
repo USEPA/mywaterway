@@ -178,13 +178,24 @@ function StateTribal() {
   const services = useServicesContext();
   const tribeMapping = useTribeMappingContext();
 
+  const {
+    activeState,
+    errorType,
+    introText,
+    setActiveState,
+    setErrorCode,
+    setUsesStateSummaryServiceError,
+    usesStateSummaryServiceError,
+  } = useContext(StateTribalTabsContext);
+
   // redirect to '/stateandtribe' if the url is /state or /tribe
   useEffect(() => {
     const pathname = window.location.pathname.toLowerCase();
     if (['/state', '/state/', '/tribe', '/tribe/'].includes(pathname)) {
+      setErrorCode('');
       navigate('/state-and-tribal', { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, setErrorCode]);
 
   // get tribes from the tribeMapping data
   const [tribes, setTribes] = useState({ status: 'success', data: [] });
@@ -243,14 +254,6 @@ function StateTribal() {
       })
       .catch((_err) => setStates({ status: 'failure', data: [] }));
   }, [services, statesInitialized]);
-
-  const {
-    activeState,
-    setActiveState,
-    introText,
-    usesStateSummaryServiceError,
-    setUsesStateSummaryServiceError,
-  } = useContext(StateTribalTabsContext);
 
   // reset active state if on state intro page
   useEffect(() => {
@@ -405,6 +408,24 @@ function StateTribal() {
         {tribes.status === 'failure' && (
           <div css={modifiedErrorBoxStyles}>
             <p>{stateListError('Tribe')}</p>
+          </div>
+        )}
+
+        {errorType === 'invalid-org-id' && (
+          <div css={modifiedErrorBoxStyles}>
+            <p>
+              Data is not available for this location. Please select a state,
+              territory or tribe from the dropdown below.
+            </p>
+          </div>
+        )}
+
+        {errorType === 'invalid-page' && (
+          <div css={modifiedErrorBoxStyles}>
+            <p>
+              Invalid URL path. Please select a state, territory or tribe from
+              the dropdown below.
+            </p>
           </div>
         )}
 

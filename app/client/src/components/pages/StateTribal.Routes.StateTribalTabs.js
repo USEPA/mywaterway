@@ -21,8 +21,13 @@ function StateTribalTabs() {
   const { stateCode, tabName } = useParams();
   const navigate = useNavigate();
 
-  const { activeState, setActiveState, activeTabIndex, setActiveTabIndex } =
-    useContext(StateTribalTabsContext);
+  const {
+    activeState,
+    activeTabIndex,
+    setActiveState,
+    setActiveTabIndex,
+    setErrorType,
+  } = useContext(StateTribalTabsContext);
 
   const { fullscreenActive } = useFullscreenState();
 
@@ -53,13 +58,14 @@ function StateTribalTabs() {
     );
 
     if (tabIndex === -1) {
+      setErrorType('invalid-page');
       navigate('/state-and-tribal', { replace: true });
     }
 
     if (activeTabIndex !== tabIndex) {
       setActiveTabIndex(tabIndex === -1 ? 0 : tabIndex);
     }
-  }, [navigate, activeTabIndex, setActiveTabIndex, stateCode]);
+  }, [activeTabIndex, navigate, setActiveTabIndex, setErrorType, stateCode]);
 
   // if user navigation directly to the url, activeState.value will be an empty
   // string, and if the back or forward buttons are used, `stateCode` won't match the
@@ -72,9 +78,25 @@ function StateTribalTabs() {
         return stateTribe.value === stateCode.toUpperCase();
       });
       if (match) setActiveState(match);
-      else navigate('/state-and-tribal', { replace: true });
+      else {
+        setErrorType('invalid-org-id');
+        navigate('/state-and-tribal', { replace: true });
+      }
     }
-  }, [activeState.value, navigate, setActiveState, stateCode, states, tribes]);
+  }, [
+    activeState.value,
+    navigate,
+    setActiveState,
+    setErrorType,
+    stateCode,
+    states,
+    tribes,
+  ]);
+
+  // reset the error after a successfull search
+  useEffect(() => {
+    if (activeState.value) setErrorType('');
+  }, [activeState.value, setErrorType]);
 
   const tabListRef = useRef();
 
