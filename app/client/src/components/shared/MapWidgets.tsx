@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { render } from 'react-dom';
+import { createPortal, render } from 'react-dom';
 import { Rnd } from 'react-rnd';
 import { css } from 'styled-components/macro';
 import Polygon from '@arcgis/core/geometry/Polygon';
@@ -38,6 +38,7 @@ import { fetchCheck } from 'utils/fetchUtils';
 import {
   buildStations,
   hasSublayers,
+  isFeatureLayer,
   isGroupLayer,
   isInScale,
   isPolygon,
@@ -65,16 +66,53 @@ import type {
   MonitoringLocationsData,
 } from 'types';
 
+const instructionContainerStyles = (isVisible: boolean) => css`
+  display: ${isVisible ? 'flex' : 'none'};
+  justify-content: center;
+  position: absolute;
+  top: 15px;
+  width: 100%;
+  z-index: 1;
+`;
+
 const instructionStyles = css`
+  background-color: white;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 80%);
+  width: 250px;
+
+  div {
+    padding: 0.4em;
+  }
+
+  header {
+    background-color: #0674ba;
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.2em;
+
+    i {
+      color: white;
+      cursor: pointer;
+      padding: 0.2em;
+
+      &:hover {
+        background-color: #f3f3f3;
+        border-radius: 2px;
+        color: #2e2e2e;
+      }
+    }
+  }
+
   p {
+    font-size: 0.8rem;
     font-weight: bold;
 
     &:first-of-type {
-      padding: 0.8em 0.4em 0.4em 0.4em;
+      padding-bottom: 0.5em;
     }
 
     &:last-of-type {
-      padding: 0 0.4em;
+      padding-bottom: 0;
     }
   }
 `;
@@ -1169,6 +1207,8 @@ function MapWidgets({
       return;
     if (upstreamWidgetCreated || !map || !view?.ui) return;
 
+    const node = document.createElement('div');
+
     const widget = window.location.pathname.includes('/community') ? (
       <ShowCurrentUpstreamWatershed
         getHuc12={getHuc12}
@@ -1187,11 +1227,11 @@ function MapWidgets({
         services={services}
         setCurrentExtent={setCurrentExtent}
         setUpstreamLayerVisible={setUpstreamLayerVisible}
+        upstreamWidget={node}
         view={view}
       />
     );
 
-    const node = document.createElement('div');
     view.ui.add(node, { position: 'top-right', index: 2 });
     setUpstreamWidget(node); // store the widget in context so it can be shown or hidden later
     render(widget, node);
@@ -1914,7 +1954,6 @@ function ShowUpstreamWatershed({
 
   let iconClass = 'esri-icon esri-icon-overview-arrow-top-left';
   if (upstreamLoading) iconClass = 'esri-icon-loading-indicator esri-rotating';
-  else if (selectionActive) iconClass = 'esri-icon-locate';
 
   return (
     <div
@@ -1980,6 +2019,7 @@ type ShowSelectedUpstreamWatershedProps = {
   services: ServicesState;
   setCurrentExtent: Dispatch<SetStateAction<__esri.Extent>>;
   setUpstreamLayerVisible: Dispatch<SetStateAction<boolean>>;
+  upstreamWidget: HTMLDivElement;
   view: __esri.MapView;
 };
 
@@ -1993,6 +2033,7 @@ function ShowSelectedUpstreamWatershed({
   services,
   setCurrentExtent,
   setUpstreamLayerVisible,
+  upstreamWidget,
   view,
 }: ShowSelectedUpstreamWatershedProps) {
   // Record visibility state of watersheds layer to restore later
@@ -2012,40 +2053,16 @@ function ShowSelectedUpstreamWatershed({
   }, [map]);
 
   const [selectionActive, setSelectionActive] = useState(false);
+  const [instructionsVisible, setInstructionsVisible] = useState(false);
 
-  // Trim the appearance of the instruction popup
+  // Show/hide instruction dialogue when watershed selection activity changes
   useEffect(() => {
-    if (!view) return;
-
-    if (selectionActive) {
-      view.popup.dockEnabled = true;
-      view.popup.dockOptions.breakpoint = false;
-      view.popup.dockOptions.buttonEnabled = false;
-      view.popup.dockOptions.position = 'top-center';
-      view.popup.viewModel.includeDefaultActions = false;
-
-      const node = document.createElement('div');
-      render(
-        <div css={instructionStyles}>
-          <p>
-            Click within a watershed boundary to view its upstream watershed.
-          </p>
-          <p>Zoom in to see watershed boundary lines.</p>
-        </div>,
-        node,
-      );
-
-      view.popup.open({ content: node, title: '' });
-    } else {
-      view.popup.dockEnabled = false;
-      view.popup.dockOptions.breakpoint = true;
-      view.popup.dockOptions.buttonEnabled = true;
-      view.popup.dockOptions.position = 'auto';
-      view.popup.viewModel.includeDefaultActions = true;
-
-      view.popup.close();
-    }
-  }, [selectionActive, view, watershedsLayer]);
+    setInstructionsVisible(selectionActive);
+    upstreamWidget.style.filter = selectionActive
+      ? // ? 'invert(0.8)'
+        'invert(0.8) brightness(1.5) contrast(1.5)'
+      : 'none';
+  }, [selectionActive, upstreamWidget]);
 
   const [upstreamLoading, setUpstreamLoading] = useState(false);
 
@@ -2143,9 +2160,9 @@ function ShowSelectedUpstreamWatershed({
 
       if (upstreamLayer.visible) {
         const currentExtent = getCurrentExtent();
-        currentExtent && view.goTo(currentExtent);
+        currentExtent && view?.goTo(currentExtent);
 
-        view?.popup.close();
+        setInstructionsVisible(false);
 
         upstreamLayer.visible = false;
         upstreamLayer.graphics.removeAll();
@@ -2172,14 +2189,56 @@ function ShowSelectedUpstreamWatershed({
     ],
   );
 
+  const [currentScale, setCurrentScale] = useState<number | null>(null);
+  useEffect(() => {
+    if (!view) return;
+    const handle = reactiveUtils.watch(
+      () => view.scale,
+      () => setCurrentScale(view.scale),
+      { initial: true, sync: true },
+    );
+
+    return function cleanup() {
+      handle.remove();
+    };
+  }, [view]);
+
   return (
-    <ShowUpstreamWatershed
-      getUpstreamLayer={getUpstreamLayer}
-      getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
-      onClick={selectionActive ? cancelSelection : selectUpstream}
-      selectionActive={selectionActive}
-      upstreamLoading={upstreamLoading}
-    />
+    <>
+      {mapRef.current &&
+        createPortal(
+          <div css={instructionContainerStyles(instructionsVisible)}>
+            <div css={instructionStyles}>
+              <header>
+                <i
+                  className="esri-icon-close"
+                  onClick={(_ev) => setInstructionsVisible(false)}
+                />
+              </header>
+              <div>
+                <p>
+                  Click within a watershed boundary to view its upstream
+                  watershed.
+                </p>
+                {currentScale &&
+                  watershedsLayer &&
+                  isFeatureLayer(watershedsLayer) &&
+                  currentScale > watershedsLayer.minScale && (
+                    <p>Zoom in to see watershed boundary lines.</p>
+                  )}
+              </div>
+            </div>
+          </div>,
+          mapRef.current,
+        )}
+      <ShowUpstreamWatershed
+        getUpstreamLayer={getUpstreamLayer}
+        getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
+        onClick={selectionActive ? cancelSelection : selectUpstream}
+        selectionActive={selectionActive}
+        upstreamLoading={upstreamLoading}
+      />
+    </>
   );
 }
 
