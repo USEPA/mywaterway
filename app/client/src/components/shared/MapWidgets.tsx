@@ -38,7 +38,6 @@ import { fetchCheck } from 'utils/fetchUtils';
 import {
   buildStations,
   hasSublayers,
-  isFeatureLayer,
   isGroupLayer,
   isInScale,
   isPolygon,
@@ -2161,7 +2160,7 @@ function ShowSelectedUpstreamWatershed({
       : 'none';
   }, [selectionActive, upstreamWidget]);
 
-  // Disable "selection mode" and restore the
+  // Disable "selection mode" and/or restore the
   // initial visibility of the watersheds layer
   const cancelSelection = useCallback(() => {
     if (watershedsLayer) watershedsLayer.visible = watershedsVisible;
@@ -2329,20 +2328,6 @@ function ShowSelectedUpstreamWatershed({
       watershedsVisible,
     ],
   );
-
-  const [currentScale, setCurrentScale] = useState<number | null>(null);
-  useEffect(() => {
-    if (!view) return;
-    const handle = reactiveUtils.watch(
-      () => view.scale,
-      () => setCurrentScale(view.scale),
-      { initial: true, sync: true },
-    );
-
-    return function cleanup() {
-      handle.remove();
-    };
-  }, [view]);
 
   return (
     <>
