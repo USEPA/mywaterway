@@ -198,6 +198,7 @@ interface ServicesData {
     userInterface: string;
     monitoringLocation: string;
   };
+  wbd: string;
 }
 
 export type ServicesState =

@@ -170,6 +170,7 @@ function TribalMapList({
   );
   const {
     areasLayer,
+    errorMessage,
     linesLayer,
     mapView,
     setMonitoringGroups,
@@ -512,6 +513,12 @@ function TribalMapList({
         </div>
       )}
 
+      {errorMessage && (
+        <div css={modifiedErrorBoxStyles}>
+          <p>{errorMessage}</p>
+        </div>
+      )}
+
       <div
         aria-label="Tribal Map"
         css={containerStyles}
@@ -656,6 +663,7 @@ function TribalMap({
     setVisibleLayers,
     waterbodyLayer,
     setWaterbodyLayer,
+    setUpstreamLayer,
   } = useContext(LocationSearchContext);
 
   const navigate = useNavigate();
@@ -836,11 +844,21 @@ function TribalMap({
     });
     setMonitoringLocationsLayer(monitoringLocationsLayer);
 
+    const upstreamLayer = new GraphicsLayer({
+      id: 'upstreamWatershed',
+      title: 'Upstream Watershed',
+      listMode: 'hide',
+      visible: false,
+    });
+
+    setUpstreamLayer(upstreamLayer);
+
     // add the shared layers to the map
     const sharedLayers = getSharedLayers();
 
     setLayers([
       ...sharedLayers,
+      upstreamLayer,
       selectedTribeLayer,
       monitoringLocationsLayer,
       waterbodyLayer,
@@ -859,6 +877,7 @@ function TribalMap({
     setLinesLayer,
     setMonitoringLocationsLayer,
     setPointsLayer,
+    setUpstreamLayer,
     setVisibleLayers,
     setWaterbodyLayer,
   ]);

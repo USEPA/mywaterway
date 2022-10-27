@@ -106,7 +106,7 @@ describe('State page routes', () => {
     cy.visit('/state/%3Cscript%3Evar%20j%20=%201;%3C/script%3E');
 
     cy.findByText(
-      'States Play a Primary Role in Protecting Water Quality',
+      'States and Tribes Play a Primary Role in Protecting Water Quality',
     ).should('exist');
 
     cy.url().should('include', `${window.location.origin}/state`);
