@@ -70,14 +70,21 @@ import type {
 /*
 ## Errors
 */
-class NoHuc12Error extends Error {
+class UpstreamUnavailableException extends Error {
+  constructor() {
+    super();
+    this.message = 'Data for this location is unavailable';
+  }
+}
+
+class NoHuc12Exception extends Error {
   constructor() {
     super();
     this.message = 'No watershed associated with the point selected';
   }
 }
 
-class NoUpstreamWatershedError extends Error {
+class NoUpstreamWatershedException extends Error {
   constructor() {
     super();
     this.message = 'No upstream watershed data available';
@@ -91,7 +98,7 @@ const instructionContainerStyles = (isVisible: boolean) => css`
   display: ${isVisible ? 'flex' : 'none'};
   flex-direction: column;
   height: 100%;
-  justify-content: flex-end;
+  justify-content: flex-start;
   pointer-events: none;
   position: absolute;
   width: 100%;
@@ -100,12 +107,14 @@ const instructionContainerStyles = (isVisible: boolean) => css`
   @media (min-width: 560px) {
     flex-direction: row;
     height: auto;
+    justify-content: flex-end;
   }
 `;
 
 const instructionStyles = css`
   background-color: white;
   box-shadow: 0 1px 4px rgb(0 0 0 / 80%);
+  pointer-events: auto;
 
   div {
     padding: 0.4em;
@@ -1876,7 +1885,7 @@ function retrieveUpstreamWatershed(
 
   // already encountered an error for this location - don't retry
   if (upstreamLayer.error === true) {
-    throw new Error('Upstream layer error');
+    throw new UpstreamUnavailableException();
   }
 
   // if upstream layer is displayed, zoom to
@@ -1923,7 +1932,7 @@ function retrieveUpstreamWatershed(
     outFields: ['*'],
     signal: abortSignal,
   };
-  query
+  return query
     .executeQueryJSON(url, queryParams)
     .then((res) => {
       setUpstreamLoading(false);
@@ -1931,17 +1940,12 @@ function retrieveUpstreamWatershed(
       const upstreamTitle = `Upstream Watershed for Currently Selected Location: ${watershed} (${currentHuc12})`;
 
       if (!res || !res.features || res.features.length === 0) {
-        upstreamLayer.error = true;
-        upstreamLayer.graphics.removeAll();
-        setUpstreamLayer(upstreamLayer);
-        canDisable && setUpstreamWidgetDisabled(true);
-        setUpstreamLayerVisible(false);
         setErrorMessage(
           `No upstream watershed data available for ${
             huc12 ? 'the selected' : 'this'
           } location.`,
         );
-        throw new NoUpstreamWatershedError();
+        throw new NoUpstreamWatershedException();
       }
 
       const geometry = res.features[0].geometry;
@@ -1996,7 +2000,11 @@ function retrieveUpstreamWatershed(
       upstreamLayer.graphics.removeAll();
       setUpstreamLayerVisible(false);
       setUpstreamLayer(upstreamLayer);
-      if (err instanceof NoUpstreamWatershedError) throw err;
+      if (
+        err instanceof NoUpstreamWatershedException ||
+        err instanceof UpstreamUnavailableException
+      )
+        throw err;
       setErrorMessage(
         `Error fetching upstream watershed data for ${
           huc12 ? 'the selected' : 'this'
@@ -2099,9 +2107,9 @@ function ShowCurrentUpstreamWatershed({
     <ShowUpstreamWatershed
       getUpstreamLayer={getUpstreamLayer}
       getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
-      onClick={(_ev) => {
+      onClick={async (_ev) => {
         try {
-          return retrieveUpstreamWatershed(
+          await retrieveUpstreamWatershed(
             abortSignal,
             getCurrentExtent,
             getHuc12,
@@ -2122,7 +2130,10 @@ function ShowCurrentUpstreamWatershed({
             setUpstreamLoading,
           );
         } catch (err) {
-          if (err instanceof NoUpstreamWatershedError)
+          if (
+            err instanceof NoUpstreamWatershedException ||
+            err instanceof UpstreamUnavailableException
+          )
             console.info(err.message);
           else console.error(err);
         }
@@ -2229,44 +2240,49 @@ function ShowSelectedUpstreamWatershed({
             setErrorMessage(
               'No watershed data available for the selected location.',
             );
-            throw new NoHuc12Error();
+            throw new NoHuc12Exception();
           }
 
           setCurrentExtent(view.extent);
 
           const { attributes } = boundaries.features[0];
-          try {
-            retrieveUpstreamWatershed(
-              abortSignal,
-              getCurrentExtent,
-              getHuc12,
-              getTemplate,
-              getUpstreamExtent,
-              getUpstreamLayer,
-              getUpstreamWidgetDisabled,
-              getWatershed,
-              lastHuc12,
-              services,
-              setErrorMessage,
-              setLastHuc12,
-              setUpstreamExtent,
-              setUpstreamLayer,
-              setUpstreamLayerVisible,
-              setUpstreamWidgetDisabled,
-              view,
-              setUpstreamLoading,
-              attributes.huc12,
-              false,
-            );
-          } catch (err) {
-            if (err instanceof NoUpstreamWatershedError)
+          retrieveUpstreamWatershed(
+            abortSignal,
+            getCurrentExtent,
+            getHuc12,
+            getTemplate,
+            getUpstreamExtent,
+            getUpstreamLayer,
+            getUpstreamWidgetDisabled,
+            getWatershed,
+            lastHuc12,
+            services,
+            setErrorMessage,
+            setLastHuc12,
+            setUpstreamExtent,
+            setUpstreamLayer,
+            setUpstreamLayerVisible,
+            setUpstreamWidgetDisabled,
+            view,
+            setUpstreamLoading,
+            attributes.huc12,
+            false,
+          )?.catch((err) => {
+            if (
+              err instanceof NoUpstreamWatershedException ||
+              err instanceof UpstreamUnavailableException
+            )
               console.info(err.message);
             else console.error(err);
             cancelSelection();
-          }
+          });
         })
         .catch((err) => {
-          if (err instanceof NoHuc12Error) console.info(err.message);
+          if (
+            err instanceof NoHuc12Exception ||
+            err instanceof UpstreamUnavailableException
+          )
+            console.info(err.message);
           else console.error(err);
           cancelSelection();
         });
