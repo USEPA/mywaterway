@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
+import { useWindowSize } from '@reach/window-size';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 import { useNavigate } from 'react-router-dom';
@@ -27,8 +28,9 @@ import {
 } from 'components/shared/KeyMetrics';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Map from 'components/shared/Map';
-import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
+import MapLoadingSpinner from 'components/shared/MapLoadingSpinner';
+import MapVisibilityButton from 'components/shared/MapVisibilityButton';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
@@ -37,6 +39,7 @@ import WaterbodyList from 'components/shared/WaterbodyList';
 import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
+import { useFullscreenState } from 'contexts/Fullscreen';
 import {
   LocationSearchContext,
   LocationSearchProvider,
@@ -97,11 +100,11 @@ const containerStyles = css`
   z-index: 1;
 `;
 
-const inputStyles = css`
+const inputStyles = (smallScreen: boolean) => css`
   display: flex;
   justify-content: flex-end;
   width: 100%;
-  margin-bottom: 0.75em;
+  margin-bottom: ${smallScreen ? 0 : '0.75em'};
 `;
 
 const modifiedErrorBoxStyles = css`
@@ -369,6 +372,19 @@ function TribalMapList({
     setFooterHeight(node.getBoundingClientRect().height);
   }, []);
 
+  const { fullscreenActive } = useFullscreenState();
+  const { width } = useWindowSize();
+
+  const [mapShown, setMapShown] = useState(true);
+  const [listShown, setListShown] = useState(true);
+
+  // show the map/list if the user makes their screen large enough
+  useEffect(() => {
+    if (width < 960) return;
+    setMapShown(true);
+    setListShown(true);
+  }, [width]);
+
   // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
   if (!browserIsCompatibleWithArcGIS()) {
     return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
@@ -379,39 +395,6 @@ function TribalMapList({
 
   return (
     <div>
-      <div css={inputStyles} ref={viewModeRef}>
-        <div className="btn-group" role="group">
-          <button
-            css={buttonStyles}
-            type="button"
-            className={`btn btn-secondary${
-              displayMode === 'map' ? ' active' : ''
-            }`}
-            onClick={(_ev) => setDisplayMode('map')}
-          >
-            <i className="fas fa-map-marked-alt" aria-hidden="true" />
-            &nbsp;&nbsp;Map
-          </button>
-          <button
-            css={buttonStyles}
-            type="button"
-            className={`btn btn-secondary${
-              displayMode === 'list' ? ' active' : ''
-            }`}
-            onClick={(_ev) => setDisplayMode('list')}
-          >
-            <i className="fas fa-list" aria-hidden="true" />
-            &nbsp;&nbsp;List
-          </button>
-        </div>
-      </div>
-
-      {tribalBoundaryError && (
-        <div css={modifiedErrorBoxStyles}>
-          <p>{tribalBoundaryErrorMessage}</p>
-        </div>
-      )}
-
       <div css={keyMetricsStyles} ref={layerTogglesRef}>
         <div css={keyMetricStyles}>
           {waterbodies.status === 'pending' && <LoadingSpinner />}
@@ -489,6 +472,70 @@ function TribalMapList({
         </div>
       </div>
 
+      {tribalBoundaryError && (
+        <div css={modifiedErrorBoxStyles}>
+          <p>{tribalBoundaryErrorMessage}</p>
+        </div>
+      )}
+
+      <div
+        css={inputStyles(width < 960 && !fullscreenActive)}
+        ref={viewModeRef}
+      >
+        <div className="btn-group" role="group">
+          <button
+            css={buttonStyles}
+            type="button"
+            className={`btn btn-secondary${
+              displayMode === 'map' ? ' active' : ''
+            }`}
+            onClick={(_ev) => {
+              setDisplayMode('map');
+              setMapShown(true);
+            }}
+          >
+            <i className="fas fa-map-marked-alt" aria-hidden="true" />
+            &nbsp;&nbsp;Map
+          </button>
+          <button
+            css={buttonStyles}
+            type="button"
+            className={`btn btn-secondary${
+              displayMode === 'list' ? ' active' : ''
+            }`}
+            onClick={(_ev) => {
+              setDisplayMode('list');
+              setListShown(true);
+            }}
+          >
+            <i className="fas fa-list" aria-hidden="true" />
+            &nbsp;&nbsp;List
+          </button>
+        </div>
+      </div>
+
+      {width < 960 && !fullscreenActive && (
+        <div>
+          {displayMode === 'map' && (
+            <MapVisibilityButton
+              value={mapShown}
+              callback={(visible) => {
+                setMapShown(visible);
+              }}
+            />
+          )}
+          {displayMode === 'list' && (
+            <MapVisibilityButton
+              text="List"
+              value={listShown}
+              callback={(visible) => {
+                setListShown(visible);
+              }}
+            />
+          )}
+        </div>
+      )}
+
       {errorMessage && (
         <div css={modifiedErrorBoxStyles}>
           <p>{errorMessage}</p>
@@ -507,7 +554,7 @@ function TribalMapList({
             : {
                 height: mapListHeight - footerHeight,
                 width: '100%',
-                display: displayMode === 'map' ? 'block' : 'none',
+                display: displayMode === 'map' && mapShown ? 'block' : 'none',
               }
         }
       >
@@ -517,7 +564,7 @@ function TribalMapList({
           setTribalBoundaryError={setTribalBoundaryError}
         />
       </div>
-      {displayMode === 'map' && (
+      {displayMode === 'map' && mapShown && (
         <div ref={footerRef}>
           <div
             css={mapFooterStyles}
@@ -540,7 +587,7 @@ function TribalMapList({
         </div>
       )}
 
-      {displayMode === 'list' && (
+      {displayMode === 'list' && listShown && (
         <div css={modifiedTabStyles(mapListHeight)}>
           <Tabs>
             <TabList>

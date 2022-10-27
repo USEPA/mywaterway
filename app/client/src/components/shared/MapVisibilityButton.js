@@ -21,12 +21,20 @@ const buttonContainerStyles = css`
 `;
 
 type Props = {
-  children: Function,
+  callback?: (mapShown: boolean) => void,
+  children?: (mapShown: boolean) => void,
+  text?: String,
+  value?: boolean,
 };
 
-function MapVisibilityButton({ children }: Props) {
+function MapVisibilityButton({
+  callback = () => {},
+  children,
+  text = 'Map',
+  value = false,
+}: Props) {
   const { selectedGraphic } = useMapHighlightState();
-  const [mapShown, setMapShown] = useState(false);
+  const [mapShown, setMapShown] = useState(value);
 
   const iconClassName = mapShown ? 'far fa-eye-slash' : 'far fa-eye';
 
@@ -37,16 +45,26 @@ function MapVisibilityButton({ children }: Props) {
     setMapShown(true);
   }, [selectedGraphic]);
 
+  // keep the local value up to date
+  useEffect(() => {
+    setMapShown(value);
+  }, [value]);
+
   return (
     <>
       <div css={buttonContainerStyles} style={{ opacity: mapShown ? 0.6 : 1 }}>
-        <button onClick={(ev) => setMapShown(!mapShown)}>
-          {mapShown ? 'Hide Map' : 'Show Map'}&nbsp;&nbsp;
+        <button
+          onClick={(ev) => {
+            setMapShown(!mapShown);
+            if (callback) callback(!mapShown);
+          }}
+        >
+          {mapShown ? `Hide ${text}` : `Show ${text}`}&nbsp;&nbsp;
           <i className={iconClassName} aria-hidden="true" />
         </button>
       </div>
 
-      {children(mapShown)}
+      {children && children(mapShown)}
     </>
   );
 }
