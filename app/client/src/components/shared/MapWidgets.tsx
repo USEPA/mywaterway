@@ -67,14 +67,45 @@ import type {
   MonitoringLocationsData,
 } from 'types';
 
-const instructionStyles = (isVisible: boolean) => css`
-  display: ${isVisible ? 'block' : 'none'};
+/*
+## Errors
+*/
+class NoHuc12Error extends Error {
+  constructor() {
+    super();
+    this.message = 'No watershed associated with the point selected';
+  }
+}
+
+class NoUpstreamWatershedError extends Error {
+  constructor() {
+    super();
+    this.message = 'No upstream watershed data available';
+  }
+}
+
+/*
+## Styles
+*/
+const instructionContainerStyles = (isVisible: boolean) => css`
+  display: ${isVisible ? 'flex' : 'none'};
+  flex-direction: column;
+  height: 100%;
+  justify-content: flex-end;
+  pointer-events: none;
+  position: absolute;
+  width: 100%;
+  z-index: 1;
+
+  @media (min-width: 560px) {
+    flex-direction: row;
+    height: auto;
+  }
+`;
+
+const instructionStyles = css`
   background-color: white;
   box-shadow: 0 1px 4px rgb(0 0 0 / 80%);
-  left: calc(100% - 250px - 32px - 30px);
-  position: absolute;
-  top: 99px;
-  width: 250px;
 
   div {
     padding: 0.4em;
@@ -85,6 +116,7 @@ const instructionStyles = (isVisible: boolean) => css`
     display: flex;
     justify-content: flex-end;
     padding: 0.2em;
+    width: 100%;
 
     i {
       color: white;
@@ -111,8 +143,18 @@ const instructionStyles = (isVisible: boolean) => css`
       padding-bottom: 0;
     }
   }
+
+  @media (min-width: 560px) {
+    position: relative;
+    right: 62px;
+    top: 99px;
+    width: 250px;
+  }
 `;
 
+/*
+## Utilities
+*/
 const layersToAllowPopups = ['restore', 'protect'];
 
 // workaround for React state variables not being updated inside of
@@ -287,7 +329,9 @@ const resizeHandleStyles = css`
   }
 `;
 
-// --- components ---
+/*
+## Components
+*/
 type Props = {
   // map and view props auto passed from parent Map component by react-arcgis
   map: __esri.Map;
@@ -1893,11 +1937,11 @@ function retrieveUpstreamWatershed(
         canDisable && setUpstreamWidgetDisabled(true);
         setUpstreamLayerVisible(false);
         setErrorMessage(
-          `Unable to get upstream watershed data for ${
+          `No upstream watershed data available for ${
             huc12 ? 'the selected' : 'this'
           } location.`,
         );
-        throw new Error('Could not fetch upstream watershed data');
+        throw new NoUpstreamWatershedError();
       }
 
       const geometry = res.features[0].geometry;
@@ -1947,17 +1991,18 @@ function retrieveUpstreamWatershed(
       if (isAbort(err)) return;
       setUpstreamLoading(false);
       canDisable && setUpstreamWidgetDisabled(true);
-      setErrorMessage(
-        `Error fetching upstream watershed data for ${
-          huc12 ? 'the selected' : 'this'
-        } location.`,
-      );
       upstreamLayer.error = true;
       upstreamLayer.visible = false;
       upstreamLayer.graphics.removeAll();
       setUpstreamLayerVisible(false);
       setUpstreamLayer(upstreamLayer);
-      throw new Error('Error fetching upstream watershed');
+      if (err instanceof NoUpstreamWatershedError) throw err;
+      setErrorMessage(
+        `Error fetching upstream watershed data for ${
+          huc12 ? 'the selected' : 'this'
+        } location.`,
+      );
+      throw err;
     });
 }
 
@@ -2077,7 +2122,9 @@ function ShowCurrentUpstreamWatershed({
             setUpstreamLoading,
           );
         } catch (err) {
-          console.error(err);
+          if (err instanceof NoUpstreamWatershedError)
+            console.info(err.message);
+          else console.error(err);
         }
       }}
       upstreamLoading={upstreamLoading}
@@ -2179,7 +2226,10 @@ function ShowSelectedUpstreamWatershed({
         .executeQueryJSON(services.data.wbd, queryParams)
         .then((boundaries) => {
           if (boundaries.features.length === 0) {
-            throw new Error('No watershed associated with the point selected');
+            setErrorMessage(
+              'No watershed data available for the selected location.',
+            );
+            throw new NoHuc12Error();
           }
 
           setCurrentExtent(view.extent);
@@ -2209,12 +2259,15 @@ function ShowSelectedUpstreamWatershed({
               false,
             );
           } catch (err) {
-            console.error(err);
+            if (err instanceof NoUpstreamWatershedError)
+              console.info(err.message);
+            else console.error(err);
             cancelSelection();
           }
         })
         .catch((err) => {
-          console.error(err);
+          if (err instanceof NoHuc12Error) console.info(err.message);
+          else console.error(err);
           cancelSelection();
         });
     },
@@ -2325,24 +2378,26 @@ function ShowSelectedUpstreamWatershed({
     <>
       {mapRef.current &&
         createPortal(
-          <div css={instructionStyles(instructionsVisible)}>
-            <header>
-              <i
-                className="esri-icon-close"
-                onClick={(_ev) => setInstructionsVisible(false)}
-              />
-            </header>
-            <div>
-              <p>
-                Click within a watershed boundary to view its upstream
-                watershed.
-              </p>
-              {currentScale &&
-                watershedsLayer &&
-                isFeatureLayer(watershedsLayer) &&
-                currentScale > watershedsLayer.minScale && (
-                  <p>Zoom in to see watershed boundary lines.</p>
-                )}
+          <div css={instructionContainerStyles(instructionsVisible)}>
+            <div css={instructionStyles}>
+              <header>
+                <i
+                  className="esri-icon-close"
+                  onClick={(_ev) => setInstructionsVisible(false)}
+                />
+              </header>
+              <div>
+                <p>
+                  Click within a watershed boundary to view its upstream
+                  watershed.
+                </p>
+                {currentScale &&
+                  watershedsLayer &&
+                  isFeatureLayer(watershedsLayer) &&
+                  currentScale > watershedsLayer.minScale && (
+                    <p>Zoom in to see watershed boundary lines.</p>
+                  )}
+              </div>
             </div>
           </div>,
           mapRef.current,
