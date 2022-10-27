@@ -183,7 +183,7 @@ function StateTribal() {
     errorType,
     introText,
     setActiveState,
-    setErrorCode,
+    setErrorType,
     setUsesStateSummaryServiceError,
     usesStateSummaryServiceError,
   } = useContext(StateTribalTabsContext);
@@ -192,10 +192,10 @@ function StateTribal() {
   useEffect(() => {
     const pathname = window.location.pathname.toLowerCase();
     if (['/state', '/state/', '/tribe', '/tribe/'].includes(pathname)) {
-      setErrorCode('');
+      setErrorType('');
       navigate('/state-and-tribal', { replace: true });
     }
-  }, [navigate, setErrorCode]);
+  }, [navigate, setErrorType]);
 
   // get tribes from the tribeMapping data
   const [tribes, setTribes] = useState({ status: 'success', data: [] });
