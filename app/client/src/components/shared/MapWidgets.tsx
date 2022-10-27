@@ -1915,6 +1915,11 @@ function retrieveUpstreamWatershed(
       const upstreamTitle = `Upstream Watershed for Currently Selected Location: ${watershed} (${currentHuc12})`;
 
       if (!res || !res.features || res.features.length === 0) {
+        upstreamLayer.error = true;
+        upstreamLayer.graphics.removeAll();
+        setUpstreamLayer(upstreamLayer);
+        canDisable && setUpstreamWidgetDisabled(true);
+        setUpstreamLayerVisible(false);
         setErrorMessage(
           `No upstream watershed data available for ${
             huc12 ? 'the selected' : 'this'
@@ -1977,6 +1982,7 @@ function retrieveUpstreamWatershed(
       upstreamLayer.graphics.removeAll();
       setUpstreamLayerVisible(false);
       setUpstreamLayer(upstreamLayer);
+      console.error(err);
       setErrorMessage(
         `Error fetching upstream watershed data for ${
           huc12 ? 'the selected' : 'this'
@@ -2233,6 +2239,9 @@ function ShowSelectedUpstreamWatershed({
         })
         .catch((err) => {
           console.error(err);
+          setErrorMessage(
+            'Error fetching watershed data for the selected location.',
+          );
         });
     },
     [
