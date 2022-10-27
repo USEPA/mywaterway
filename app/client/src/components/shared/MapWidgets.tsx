@@ -1816,12 +1816,11 @@ function retrieveUpstreamWatershed(
   setUpstreamLoading: Dispatch<SetStateAction<boolean>>,
   huc12 = null,
   canDisable = true,
-  setError?: (isError: boolean) => void,
 ) {
   // if widget is disabled do nothing
   if (getUpstreamWidgetDisabled()) return;
   const upstreamLayer = getUpstreamLayer();
-  if (!upstreamLayer) return;
+  if (!upstreamLayer) throw new Error('Upstream layer not initialized');
 
   const currentHuc12 = huc12 ?? getHuc12();
   // if location changed since last widget click, update lastHuc12 state
@@ -1833,8 +1832,7 @@ function retrieveUpstreamWatershed(
 
   // already encountered an error for this location - don't retry
   if (upstreamLayer.error === true) {
-    setError?.(true);
-    return;
+    throw new Error('Upstream layer error');
   }
 
   // if upstream layer is displayed, zoom to
@@ -1899,8 +1897,7 @@ function retrieveUpstreamWatershed(
             huc12 ? 'the selected' : 'this'
           } location.`,
         );
-        setError?.(true);
-        return;
+        throw new Error('Could not fetch upstream watershed data');
       }
 
       const geometry = res.features[0].geometry;
@@ -1955,12 +1952,12 @@ function retrieveUpstreamWatershed(
           huc12 ? 'the selected' : 'this'
         } location.`,
       );
-      setError?.(true);
       upstreamLayer.error = true;
       upstreamLayer.visible = false;
       upstreamLayer.graphics.removeAll();
       setUpstreamLayerVisible(false);
       setUpstreamLayer(upstreamLayer);
+      throw new Error('Error fetching upstream watershed');
     });
 }
 
@@ -2058,26 +2055,30 @@ function ShowCurrentUpstreamWatershed({
       getUpstreamLayer={getUpstreamLayer}
       getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
       onClick={(_ev) => {
-        return retrieveUpstreamWatershed(
-          abortSignal,
-          getCurrentExtent,
-          getHuc12,
-          getTemplate,
-          getUpstreamExtent,
-          getUpstreamLayer,
-          getUpstreamWidgetDisabled,
-          getWatershed,
-          lastHuc12,
-          services,
-          setErrorMessage,
-          setLastHuc12,
-          setUpstreamExtent,
-          setUpstreamLayer,
-          setUpstreamLayerVisible,
-          setUpstreamWidgetDisabled,
-          view,
-          setUpstreamLoading,
-        );
+        try {
+          return retrieveUpstreamWatershed(
+            abortSignal,
+            getCurrentExtent,
+            getHuc12,
+            getTemplate,
+            getUpstreamExtent,
+            getUpstreamLayer,
+            getUpstreamWidgetDisabled,
+            getWatershed,
+            lastHuc12,
+            services,
+            setErrorMessage,
+            setLastHuc12,
+            setUpstreamExtent,
+            setUpstreamLayer,
+            setUpstreamLayerVisible,
+            setUpstreamWidgetDisabled,
+            view,
+            setUpstreamLoading,
+          );
+        } catch (err) {
+          console.error(err);
+        }
       }}
       upstreamLoading={upstreamLoading}
     />
@@ -2130,7 +2131,6 @@ function ShowSelectedUpstreamWatershed({
 
   const [selectionActive, setSelectionActive] = useState(false);
   const [instructionsVisible, setInstructionsVisible] = useState(false);
-  const [error, setError] = useState(false);
 
   // Show/hide instruction dialogue when watershed selection activity changes
   useEffect(() => {
@@ -2146,10 +2146,6 @@ function ShowSelectedUpstreamWatershed({
     if (watershedsLayer) watershedsLayer.visible = watershedsVisible;
     setSelectionActive(false);
   }, [watershedsLayer, watershedsVisible]);
-
-  useEffect(() => {
-    if (error) cancelSelection();
-  }, [cancelSelection, error]);
 
   // Get the selected watershed, search for
   // its upstream watershed, and draw it
@@ -2183,39 +2179,43 @@ function ShowSelectedUpstreamWatershed({
         .executeQueryJSON(services.data.wbd, queryParams)
         .then((boundaries) => {
           if (boundaries.features.length === 0) {
-            cancelSelection();
-            return;
+            throw new Error('No watershed associated with the point selected');
           }
 
           setCurrentExtent(view.extent);
 
           const { attributes } = boundaries.features[0];
-          retrieveUpstreamWatershed(
-            abortSignal,
-            getCurrentExtent,
-            getHuc12,
-            getTemplate,
-            getUpstreamExtent,
-            getUpstreamLayer,
-            getUpstreamWidgetDisabled,
-            getWatershed,
-            lastHuc12,
-            services,
-            setErrorMessage,
-            setLastHuc12,
-            setUpstreamExtent,
-            setUpstreamLayer,
-            setUpstreamLayerVisible,
-            setUpstreamWidgetDisabled,
-            view,
-            setUpstreamLoading,
-            attributes.huc12,
-            false,
-            setError,
-          );
+          try {
+            retrieveUpstreamWatershed(
+              abortSignal,
+              getCurrentExtent,
+              getHuc12,
+              getTemplate,
+              getUpstreamExtent,
+              getUpstreamLayer,
+              getUpstreamWidgetDisabled,
+              getWatershed,
+              lastHuc12,
+              services,
+              setErrorMessage,
+              setLastHuc12,
+              setUpstreamExtent,
+              setUpstreamLayer,
+              setUpstreamLayerVisible,
+              setUpstreamWidgetDisabled,
+              view,
+              setUpstreamLoading,
+              attributes.huc12,
+              false,
+            );
+          } catch (err) {
+            console.error(err);
+            cancelSelection();
+          }
         })
         .catch((err) => {
           console.error(err);
+          cancelSelection();
         });
     },
     [
@@ -2295,7 +2295,6 @@ function ShowSelectedUpstreamWatershed({
         watershedsLayer.visible = true;
       }
 
-      setError(false);
       setSelectionActive(true);
     },
     [
