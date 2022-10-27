@@ -461,6 +461,10 @@ function WaterQualityOverview() {
           status: 'failure',
           data: {},
         });
+        setCurrentReportingCycle({
+          status: 'failure',
+          reportingCycle: '',
+        });
       });
 
     setUsesStateSummaryCalled(true);

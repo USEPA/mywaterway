@@ -19,7 +19,6 @@ import {
   AccordionList,
   AccordionItem,
 } from 'components/shared/AccordionMapHighlight';
-import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import {
   keyMetricsStyles,
   keyMetricStyles,
@@ -41,10 +40,7 @@ import {
   LocationSearchContext,
   LocationSearchProvider,
 } from 'contexts/locationSearch';
-import {
-  useReportStatusMappingContext,
-  useServicesContext,
-} from 'contexts/LookupFiles';
+import { useServicesContext } from 'contexts/LookupFiles';
 import {
   useMapHighlightState,
   MapHighlightProvider,
@@ -70,9 +66,8 @@ import { monitoringClusterSettings } from 'components/shared/LocationMap';
 import {
   esriMapLoadingFailure,
   huc12SummaryError,
-  status303dError,
-  status303dShortError,
   tribalBoundaryErrorMessage,
+  yearLastReportedShortError,
   zeroAssessedWaterbodies,
 } from 'config/errorMessages';
 // styles
@@ -132,10 +127,6 @@ const mapFooterStyles = css`
   background-color: whitesmoke;
 `;
 
-const mapFooterMessageStyles = css`
-  margin-bottom: 5px;
-`;
-
 const mapFooterStatusStyles = css`
   display: flex;
   align-items: center;
@@ -165,9 +156,7 @@ function TribalMapList({
   windowHeight,
   windowWidth,
 }: Props) {
-  const { currentReportingCycle, organizationData } = useContext(
-    StateTribalTabsContext,
-  );
+  const { currentReportingCycle } = useContext(StateTribalTabsContext);
   const {
     areasLayer,
     errorMessage,
@@ -187,7 +176,6 @@ function TribalMapList({
   const [monitoringLocationsDisplayed, setMonitoringLocationsDisplayed] =
     useState(true);
 
-  const reportStatusMapping = useReportStatusMappingContext();
   const services = useServicesContext();
 
   // switch the base map to
@@ -547,45 +535,14 @@ function TribalMapList({
             css={mapFooterStyles}
             style={{ width: layout === 'fullscreen' ? windowWidth : '100%' }}
           >
-            {reportStatusMapping.status === 'failure' && (
-              <div css={mapFooterMessageStyles}>{status303dError}</div>
-            )}
             <div css={mapFooterStatusStyles}>
-              <strong>
-                <GlossaryTerm term="303(d) listed impaired waters (Category 5)">
-                  303(d) List Status
-                </GlossaryTerm>{' '}
-                / Year Last Reported:
-              </strong>
+              <strong>Year Last Reported:</strong>
               &nbsp;&nbsp;
-              {organizationData.status === 'fetching' && <LoadingSpinner />}
-              {organizationData.status === 'failure' && (
-                <>{status303dShortError}</>
-              )}
-              {organizationData.status === 'success' && (
-                <>
-                  {reportStatusMapping.status === 'fetching' && (
-                    <LoadingSpinner />
-                  )}
-                  {reportStatusMapping.status === 'failure' && (
-                    <>{organizationData.data.reportStatusCode}</>
-                  )}
-                  {reportStatusMapping.status === 'success' && (
-                    <>
-                      {reportStatusMapping.data.hasOwnProperty(
-                        organizationData.data.reportStatusCode,
-                      )
-                        ? reportStatusMapping.data[
-                            organizationData.data.reportStatusCode
-                          ]
-                        : organizationData.data.reportStatusCode}
-                    </>
-                  )}
-                </>
-              )}
-              <> / </>
               {currentReportingCycle.status === 'fetching' && (
                 <LoadingSpinner />
+              )}
+              {currentReportingCycle.status === 'failure' && (
+                <>{yearLastReportedShortError}</>
               )}
               {currentReportingCycle.status === 'success' && (
                 <>{currentReportingCycle.reportingCycle}</>

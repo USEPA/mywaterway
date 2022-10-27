@@ -156,6 +156,8 @@ export const status303dError =
 
 export const status303dShortError = 'Error getting 303(d) List Status';
 
+export const yearLastReportedShortError = 'Error getting Year Last Reported';
+
 // this message is displayed in the State metrics section and more information section when the metrics service is down
 export const stateMetricsError = (source) =>
   `${source} metrics information is temporarily unavailable, please try again later.`;
