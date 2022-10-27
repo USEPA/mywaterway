@@ -403,17 +403,6 @@ function TribalMapList({
             <i className="fas fa-list" aria-hidden="true" />
             &nbsp;&nbsp;List
           </button>
-          <button
-            css={buttonStyles}
-            type="button"
-            className={`btn btn-secondary${
-              displayMode === 'none' ? ' active' : ''
-            }`}
-            onClick={(_ev) => setDisplayMode('none')}
-          >
-            <i className="far fa-eye-slash" aria-hidden="true" />
-            &nbsp;&nbsp;Hidden
-          </button>
         </div>
       </div>
 
@@ -423,84 +412,82 @@ function TribalMapList({
         </div>
       )}
 
-      {displayMode !== 'none' && (
-        <div css={keyMetricsStyles} ref={layerTogglesRef}>
-          <div css={keyMetricStyles}>
-            {waterbodies.status === 'pending' && <LoadingSpinner />}
-            {(waterbodies.status === 'success' ||
-              waterbodies.status === 'failure') && (
-              <Fragment>
-                <span css={keyMetricNumberStyles}>
-                  {Boolean(waterbodies.data.length) &&
-                  waterbodies.status === 'success'
-                    ? waterbodies.data.length.toLocaleString()
-                    : 'N/A'}
-                </span>
-                <p css={keyMetricLabelStyles}>Waterbodies</p>
-                <div css={switchContainerStyles}>
-                  <Switch
-                    checked={
-                      Boolean(waterbodies.data.length) && waterbodiesDisplayed
-                    }
-                    onChange={(_checked) => {
-                      if (!waterbodyLayer) return;
-                      setWaterbodiesDisplayed(!waterbodiesDisplayed);
-                      updateVisibleLayers({
-                        key: 'waterbodyLayer',
-                        value: !waterbodiesDisplayed,
-                      });
-                    }}
-                    disabled={!Boolean(waterbodies.data.length)}
-                    ariaLabel="Waterbodies"
-                  />
-                </div>
-              </Fragment>
-            )}
-          </div>
-
-          <div css={keyMetricStyles}>
-            {!monitoringLocationsLayer ||
-            monitoringLocations.status === 'fetching' ? (
-              <LoadingSpinner />
-            ) : (
-              <>
-                <span css={keyMetricNumberStyles}>
-                  {Boolean(monitoringLocations.data?.features?.length)
-                    ? monitoringLocations.data.features.length
-                    : 'N/A'}
-                </span>
-                <p css={keyMetricLabelStyles}>Monitoring Locations</p>
-                <div css={switchContainerStyles}>
-                  <Switch
-                    checked={
-                      Boolean(monitoringLocations.data?.features?.length) &&
-                      monitoringLocationsDisplayed
-                    }
-                    onChange={(_checked) => {
-                      if (!monitoringLocationsLayer) return;
-                      setMonitoringLocationsDisplayed(
-                        !monitoringLocationsDisplayed,
-                      );
-                      setMonitoringLocationsDisplayed(
-                        !monitoringLocationsDisplayed,
-                      );
-                      setVisibleLayers({
-                        monitoringLocationsLayer: !monitoringLocationsDisplayed,
-                        // NOTE: no change for the following layers:
-                        waterbodyLayer: waterbodiesDisplayed,
-                      });
-                    }}
-                    disabled={
-                      !Boolean(monitoringLocations.data?.features?.length)
-                    }
-                    ariaLabel="Monitoring Stations"
-                  />
-                </div>
-              </>
-            )}
-          </div>
+      <div css={keyMetricsStyles} ref={layerTogglesRef}>
+        <div css={keyMetricStyles}>
+          {waterbodies.status === 'pending' && <LoadingSpinner />}
+          {(waterbodies.status === 'success' ||
+            waterbodies.status === 'failure') && (
+            <Fragment>
+              <span css={keyMetricNumberStyles}>
+                {Boolean(waterbodies.data.length) &&
+                waterbodies.status === 'success'
+                  ? waterbodies.data.length.toLocaleString()
+                  : 'N/A'}
+              </span>
+              <p css={keyMetricLabelStyles}>Waterbodies</p>
+              <div css={switchContainerStyles}>
+                <Switch
+                  checked={
+                    Boolean(waterbodies.data.length) && waterbodiesDisplayed
+                  }
+                  onChange={(_checked) => {
+                    if (!waterbodyLayer) return;
+                    setWaterbodiesDisplayed(!waterbodiesDisplayed);
+                    updateVisibleLayers({
+                      key: 'waterbodyLayer',
+                      value: !waterbodiesDisplayed,
+                    });
+                  }}
+                  disabled={!Boolean(waterbodies.data.length)}
+                  ariaLabel="Waterbodies"
+                />
+              </div>
+            </Fragment>
+          )}
         </div>
-      )}
+
+        <div css={keyMetricStyles}>
+          {!monitoringLocationsLayer ||
+          monitoringLocations.status === 'fetching' ? (
+            <LoadingSpinner />
+          ) : (
+            <>
+              <span css={keyMetricNumberStyles}>
+                {Boolean(monitoringLocations.data?.features?.length)
+                  ? monitoringLocations.data.features.length
+                  : 'N/A'}
+              </span>
+              <p css={keyMetricLabelStyles}>Monitoring Locations</p>
+              <div css={switchContainerStyles}>
+                <Switch
+                  checked={
+                    Boolean(monitoringLocations.data?.features?.length) &&
+                    monitoringLocationsDisplayed
+                  }
+                  onChange={(_checked) => {
+                    if (!monitoringLocationsLayer) return;
+                    setMonitoringLocationsDisplayed(
+                      !monitoringLocationsDisplayed,
+                    );
+                    setMonitoringLocationsDisplayed(
+                      !monitoringLocationsDisplayed,
+                    );
+                    setVisibleLayers({
+                      monitoringLocationsLayer: !monitoringLocationsDisplayed,
+                      // NOTE: no change for the following layers:
+                      waterbodyLayer: waterbodiesDisplayed,
+                    });
+                  }}
+                  disabled={
+                    !Boolean(monitoringLocations.data?.features?.length)
+                  }
+                  ariaLabel="Monitoring Stations"
+                />
+              </div>
+            </>
+          )}
+        </div>
+      </div>
 
       {errorMessage && (
         <div css={modifiedErrorBoxStyles}>
