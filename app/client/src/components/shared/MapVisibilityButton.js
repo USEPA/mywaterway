@@ -23,7 +23,7 @@ const buttonContainerStyles = css`
 type Props = {
   callback?: (mapShown: boolean) => void,
   children?: (mapShown: boolean) => void,
-  text?: String,
+  text?: string,
   value?: boolean,
 };
 
