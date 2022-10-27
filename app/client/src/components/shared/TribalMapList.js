@@ -34,6 +34,7 @@ import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import WaterbodyInfo from 'components/shared/WaterbodyInfo';
 import WaterbodyList from 'components/shared/WaterbodyList';
 // styled components
+import { largeTabStyles } from 'components/shared/ContentTabs.LargeTab.js';
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import {
@@ -556,8 +557,8 @@ function TribalMapList({
         <div css={modifiedTabStyles(mapListHeight)}>
           <Tabs>
             <TabList>
-              <Tab>Waterbodies</Tab>
-              <Tab>MonitoringLocations</Tab>
+              <Tab css={largeTabStyles}>Waterbodies</Tab>
+              <Tab css={largeTabStyles}>Monitoring Locations</Tab>
             </TabList>
             <TabPanels>
               <TabPanel>
