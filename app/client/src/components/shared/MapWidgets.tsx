@@ -2358,15 +2358,8 @@ function ShowSelectedUpstreamWatershed({
               </header>
               <div>
                 <p>
-                  Click within a watershed boundary to view its upstream
-                  watershed.
+                  Click a location on the map to view its upstream watershed.
                 </p>
-                {currentScale &&
-                  watershedsLayer &&
-                  isFeatureLayer(watershedsLayer) &&
-                  currentScale > watershedsLayer.minScale && (
-                    <p>Zoom in to see watershed boundary lines.</p>
-                  )}
               </div>
             </div>
           </div>,
