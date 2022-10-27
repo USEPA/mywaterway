@@ -974,10 +974,12 @@ function useDynamicPopup() {
       const mapView = getMapView();
       const location = mapView?.popup?.location;
       const fields = dynamicPopupFields;
+      const onTribePage = window.location.pathname.startsWith('/tribe/');
       // only look for huc boundaries if no graphics were clicked and the
       // user clicked outside of the selected huc boundaries
       if (
         !location ||
+        onTribePage ||
         (hucBoundaries &&
           hucBoundaries.features.length > 0 &&
           hucBoundaries.features[0].geometry.contains(location))
