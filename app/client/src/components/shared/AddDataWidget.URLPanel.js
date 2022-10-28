@@ -30,6 +30,8 @@ import {
   urlLayerFailureMessage,
   urlLayerSuccessMessage,
 } from 'config/errorMessages';
+// styles
+import { colors } from 'styles/index.js';
 
 const MessageBoxStyles = `
   margin-bottom: 10px;
@@ -58,6 +60,18 @@ const addButtonStyles = css`
   min-width: 50%;
   font-weight: normal;
   font-size: 12px;
+  color: ${colors.white()};
+  background-color: ${colors.blue()};
+
+  &:not(.btn-danger):hover,
+  &:not(.btn-danger):focus {
+    color: ${colors.white()};
+    background-color: ${colors.navyBlue()};
+  }
+
+  &:disabled {
+    cursor: default;
+  }
 `;
 
 const urlInputStyles = css`
@@ -232,7 +246,13 @@ function URLPanel() {
         >
           SAMPLE URL(S)
         </button>
-        <button css={addButtonStyles} type="submit" onClick={handleAdd}>
+        <button
+          css={addButtonStyles}
+          className="btn"
+          disabled={!url.trim()}
+          type="submit"
+          onClick={handleAdd}
+        >
           ADD
         </button>
       </div>
