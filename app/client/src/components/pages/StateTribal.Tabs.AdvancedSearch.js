@@ -601,12 +601,7 @@ function AdvancedSearch() {
     setNewDisplayOptions([defaultDisplayOption]);
     setDisplayOptions([defaultDisplayOption]);
     setSelectedDisplayOption(defaultDisplayOption);
-  }, [
-    activeState,
-    setWaterbodyData,
-    setCurrentReportingCycle,
-    setStateAndOrganization,
-  ]);
+  }, [activeState, setStateAndOrganization, setWaterbodyData]);
 
   const executeFilter = () => {
     setSearchLoading(true);
