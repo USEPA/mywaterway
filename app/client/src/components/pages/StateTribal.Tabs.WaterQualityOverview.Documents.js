@@ -183,15 +183,18 @@ function Documents({
 
   if (activeState.value === '') return null;
 
+  const docType =
+    activeState.source === 'Tribe' ? 'Assessment' : 'Integrated Report';
+
   return (
     <div css={containerStyles}>
-      <h3>Documents Related to Integrated Report</h3>
+      <h3>Documents Related to {docType}</h3>
 
       {(organizationData.status === 'fetching' ||
         documentOrder.status === 'fetching') && <LoadingSpinner />}
       {organizationData.status === 'failure' && (
         <div css={modifiedErrorBoxStyles}>
-          <p>{stateDocumentError(activeState.label)}</p>
+          <p>{stateDocumentError(activeState.label, docType.toLowerCase())}</p>
         </div>
       )}
       {organizationData.status === 'success' && (
@@ -202,7 +205,7 @@ function Documents({
           <DocumentsTable
             activeState={activeState}
             documents={assessmentDocumentsSorted}
-            type="integrated report"
+            type={docType.toLowerCase()}
           />
         </>
       )}
