@@ -118,8 +118,8 @@ export const usesStateSummaryServiceInvalidResponse = (source, name) =>
   }.`; // add conditional check for stateName as it is sometimes undefined
 
 // attains state document service
-export const stateDocumentError = (stateName) =>
-  `${stateName} integrated report documents are temporarily unavailable, please try again later.`;
+export const stateDocumentError = (stateName, type) =>
+  `${stateName} ${type} documents are temporarily unavailable, please try again later.`;
 
 export const stateDocumentSortingError =
   'There was an issue sorting the below documents. Because of this, the documents have been sorted alphabetically on document type.';
