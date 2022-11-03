@@ -21,6 +21,7 @@ import Query from '@arcgis/core/rest/support/Query';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
+import WMSLayer from '@arcgis/core/layers/WMSLayer';
 // config
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 import { monitoringClusterSettings } from 'components/shared/LocationMap';
@@ -1727,6 +1728,17 @@ function useSharedLayers() {
     return surroundingMonitoringLocationsLayer;
   }
 
+  function getLandCoverLayer() {
+    return new WMSLayer({
+      id: 'landCoverLayer',
+      legendEnabled: true,
+      listMode: 'hide-children',
+      title: 'Land Cover',
+      visible: false,
+      url: services.data.landCover,
+    });
+  }
+
   // Gets the settings for the WSIO Health Index layer.
   return function getSharedLayers() {
     const wsioHealthIndexLayer = getWsioLayer();
@@ -1756,9 +1768,12 @@ function useSharedLayers() {
     const surroundingMonitoringLocationsLayer =
       getSurroundingMonitoringLocationsLayer();
 
+    const landCover = getLandCoverLayer();
+
     return [
       ejscreen,
       wsioHealthIndexLayer,
+      landCover,
       protectedAreasLayer,
       protectedAreasHighlightLayer,
       wildScenicRiversLayer,
