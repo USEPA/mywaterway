@@ -120,11 +120,11 @@
     "epaRegion": 5
   },
   {
-    "name": "Miami Tribe of Oklahoma",
+    "name": "Otoe Missouria Tribe of Oklahoma",
     "attainsId": "O_MTRIBE",
-    "wqxIds": ["MIAMITRIBEOFOKLAHOMA"],
-    "biaTribeCode": "925",
-    "epaId": 100000158,
+    "wqxIds": ["O_MTRIBE_WQX"],
+    "biaTribeCode": "811",
+    "epaId": 100000187,
     "state": "OK",
     "stateList": ["OK"],
     "epaRegion": 6
