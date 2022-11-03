@@ -62,12 +62,12 @@ const legendItemsStyles = css`
   display: flex;
   flex-flow: row wrap;
   justify-content: space-around;
-  margin-bottom: 1em;
 
   span {
     display: flex;
     align-items: center;
     font-size: 0.875em;
+    margin-bottom: 1em;
 
     @media (min-width: 560px) {
       font-size: 1em;
