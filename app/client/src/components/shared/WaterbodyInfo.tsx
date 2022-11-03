@@ -1397,22 +1397,6 @@ function MonitoringLocationsContent({
         />
       </div>
 
-      {(!onMonitoringReportPage ||
-        layer.id === 'surroundingMonitoringLocationsLayer') && (
-        <p>
-          <a rel="noopener noreferrer" target="_blank" href={locationUrl}>
-            <i
-              css={iconStyles}
-              className="fas fa-info-circle"
-              aria-hidden="true"
-            />
-            View Monitoring Report
-          </a>
-          &nbsp;&nbsp;
-          <small css={modifiedDisclaimerStyles}>(opens new browser tab)</small>
-        </p>
-      )}
-
       {Object.keys(groups).length === 0 && (
         <p>No data available for this monitoring location.</p>
       )}
@@ -1533,6 +1517,22 @@ function MonitoringLocationsContent({
             </tr>
           </tfoot>
         </table>
+      )}
+
+      {(!onMonitoringReportPage ||
+        layer.id === 'surroundingMonitoringLocationsLayer') && (
+        <p css={paragraphStyles}>
+          <a rel="noopener noreferrer" target="_blank" href={locationUrl}>
+            <i
+              css={iconStyles}
+              className="fas fa-info-circle"
+              aria-hidden="true"
+            />
+            View Monitoring Report
+          </a>
+          &nbsp;&nbsp;
+          <small css={disclaimerStyles}>(opens new browser tab)</small>
+        </p>
       )}
     </>
   );
