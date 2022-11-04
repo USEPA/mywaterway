@@ -158,74 +158,74 @@ type CardProps = {
 const boxSize = 26;
 const iconSize = 20;
 
+export const squareIcon = ({ color, strokeWidth = 1, stroke = 'black' }) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={boxSize}
+      height={boxSize}
+      viewBox={`0 0 ${boxSize} ${boxSize}`}
+      aria-hidden="true"
+    >
+      <rect
+        x={(boxSize - iconSize) / 2}
+        y={(boxSize - iconSize) / 2}
+        width={iconSize}
+        height={iconSize}
+        fill={color}
+        strokeWidth={strokeWidth}
+        stroke={stroke}
+      />
+    </svg>
+  );
+};
+
+export const diamondIcon = ({ color, strokeWidth = 1, stroke = 'black' }) => {
+  const diamondSize = iconSize / Math.sqrt(2);
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={boxSize}
+      height={boxSize}
+      viewBox={`0 0 ${boxSize} ${boxSize}`}
+      aria-hidden="true"
+    >
+      <rect
+        x={(boxSize - diamondSize) / 2}
+        y={(boxSize - diamondSize) / 2}
+        width={diamondSize}
+        height={diamondSize}
+        fill={color}
+        strokeWidth={strokeWidth}
+        stroke={stroke}
+        transform={`rotate(45, ${boxSize / 2}, ${boxSize / 2})`}
+      />
+    </svg>
+  );
+};
+
+export const circleIcon = ({ color, strokeWidth = 1, stroke = 'black' }) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={boxSize}
+      height={boxSize}
+      viewBox={`0 0 ${boxSize} ${boxSize}`}
+      aria-hidden="true"
+    >
+      <circle
+        cx={boxSize / 2}
+        cy={boxSize / 2}
+        r="10"
+        fill={color}
+        strokeWidth={strokeWidth}
+        stroke={stroke}
+      />
+    </svg>
+  );
+};
+
 function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
-  const squareIcon = ({ color, strokeWidth = 1, stroke = 'black' }) => {
-    return (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width={boxSize}
-        height={boxSize}
-        viewBox={`0 0 ${boxSize} ${boxSize}`}
-        aria-hidden="true"
-      >
-        <rect
-          x={(boxSize - iconSize) / 2}
-          y={(boxSize - iconSize) / 2}
-          width={iconSize}
-          height={iconSize}
-          fill={color}
-          strokeWidth={strokeWidth}
-          stroke={stroke}
-        />
-      </svg>
-    );
-  };
-
-  const diamondIcon = ({ color, strokeWidth = 1, stroke = 'black' }) => {
-    const diamondSize = iconSize / Math.sqrt(2);
-    return (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width={boxSize}
-        height={boxSize}
-        viewBox={`0 0 ${boxSize} ${boxSize}`}
-        aria-hidden="true"
-      >
-        <rect
-          x={(boxSize - diamondSize) / 2}
-          y={(boxSize - diamondSize) / 2}
-          width={diamondSize}
-          height={diamondSize}
-          fill={color}
-          strokeWidth={strokeWidth}
-          stroke={stroke}
-          transform={`rotate(45, ${boxSize / 2}, ${boxSize / 2})`}
-        />
-      </svg>
-    );
-  };
-
-  const circleIcon = ({ color, strokeWidth = 1, stroke = 'black' }) => {
-    return (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width={boxSize}
-        height={boxSize}
-        viewBox={`0 0 ${boxSize} ${boxSize}`}
-        aria-hidden="true"
-      >
-        <circle
-          cx={boxSize / 2}
-          cy={boxSize / 2}
-          r="10"
-          fill={color}
-          strokeWidth={strokeWidth}
-          stroke={stroke}
-        />
-      </svg>
-    );
-  };
-
   // jsx
   const waterbodyLegend = (
     <>
