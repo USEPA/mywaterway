@@ -215,6 +215,7 @@ const orderedLayers = [
   'protectedAreasHighlightLayer',
   'protectedAreasLayer',
   'ejscreenLayer',
+  'landCoverLayer',
   'searchIconLayer',
 ];
 
@@ -265,7 +266,7 @@ function updateVisibleLayers(
       }
       if (hasSublayers(layer)) {
         let anyVisible = false;
-        layer.sublayers.forEach((sublayer) => {
+        layer.sublayers?.forEach((sublayer) => {
           if ('visible' in sublayer && sublayer.visible) anyVisible = true;
         });
         if (!anyVisible) return;
