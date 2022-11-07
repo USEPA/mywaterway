@@ -26,6 +26,7 @@
   },
   "usgsSensorThingsAPI": "https://labs.waterdata.usgs.gov/sta/v1.1/Things",
   "usgsDailyValues": "https://waterservices.usgs.gov/nwis/dv/",
+  "usgsWaterAlert": "https://www.usgs.gov/faqs/there-way-get-alerts-about-streamflow-conditions",
   "echoNPDES": {
     "getFacilities": "https://echodata.epa.gov/echo/cwa_rest_services.get_facilities",
     "metadata": "https://echodata.epa.gov/echo/cwa_rest_services.metadata"
@@ -338,6 +339,11 @@
       "urlLookup": "landCover",
       "wildcardUrl": "{urlLookup}*",
       "name": "Land Cover"
+    },
+    {
+      "urlLookup": "usgsWaterAlert",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "USGS Water Alert"
     }
   ]
 }

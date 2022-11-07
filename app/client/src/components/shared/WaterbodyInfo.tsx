@@ -903,7 +903,7 @@ function WaterbodyInfo({
   if (type === 'Protection Plans') content = projectContent();
   if (type === 'Permitted Discharger') content = dischargerContent;
   if (type === 'Current Water Conditions') {
-    content = <UsgsStreamgagesContent feature={feature} />;
+    content = <UsgsStreamgagesContent feature={feature} services={services ?? null} />;
   }
   if (type === 'Past Water Conditions') {
     content = (
@@ -1538,7 +1538,12 @@ function MonitoringLocationsContent({
   );
 }
 
-function UsgsStreamgagesContent({ feature }: { feature: __esri.Graphic }) {
+type UsgsStreamgagesContentProps = {
+  feature: __esri.Graphic;
+  services: ServicesState | null;
+};
+
+function UsgsStreamgagesContent({ feature, services }: UsgsStreamgagesContentProps) {
   const {
     streamgageMeasurements,
     orgName,
@@ -1602,6 +1607,11 @@ function UsgsStreamgagesContent({ feature }: { feature: __esri.Graphic }) {
     ...sortedPrimaryMeasurements,
     ...sortedSecondaryMeasurements,
   ];
+
+  const alertUrl = 
+    services?.status === 'success'
+      ? services.data.usgsWaterAlert
+      : null;
 
   return (
     <>
@@ -1685,7 +1695,7 @@ function UsgsStreamgagesContent({ feature }: { feature: __esri.Graphic }) {
         </tbody>
       </table>
 
-      <p>
+      <p css={paragraphStyles}>
         <a rel="noopener noreferrer" target="_blank" href={locationUrl}>
           <i
             css={iconStyles}
@@ -1693,6 +1703,19 @@ function UsgsStreamgagesContent({ feature }: { feature: __esri.Graphic }) {
             aria-hidden="true"
           />
           More Information
+        </a>
+        &nbsp;&nbsp;
+        <small css={disclaimerStyles}>(opens new browser tab)</small>
+      </p>
+
+      <p css={paragraphStyles}>
+        <a rel="noopener noreferrer" target="_blank" href={alertUrl ?? undefined}>
+          <i
+            css={iconStyles}
+            className="fas fa-bell"
+            aria-hidden="true"
+          />
+          Sign Up for Alerts
         </a>
         &nbsp;&nbsp;
         <small css={disclaimerStyles}>(opens new browser tab)</small>
