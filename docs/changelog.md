@@ -11,6 +11,8 @@
 
 - Added a Surrounding Monitoring Locations widget that enables users to view Past Water Conditions locations outside the currently focused boundaries.
 
+- Added ability to sort permitted dischargers by compliance status.
+
 ### Changed
 
 - Updated map symbol highlights to have a degree of transparency.
@@ -32,6 +34,10 @@
 - Fixed a bug on the state page where an invalid URL included in a service response caused the page to crash.
 
 - Fixed a bug where certain items were being improperly capitalized on the Monitoring Report page.
+
+- Fixed a bug where the alert message component crashes the app if "all" is not included in the "messages.json" file.
+
+- Fixed a bug where an infinite loading spinner is displayed for American Samoa, which has no GIS data.
 
 
 ## 2.3.0 (September 2022)
