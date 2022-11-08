@@ -762,7 +762,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         outFields: ['*'],
         title: (feature) => getPopupTitle(feature.graphic.attributes),
         content: (feature) =>
-          getPopupContent({ feature: feature.graphic, navigate }),
+          getPopupContent({ feature: feature.graphic, navigate, services }),
       },
     });
 
