@@ -75,7 +75,7 @@ describe('State page links', () => {
 
 describe('State page routes', () => {
   it('Select a state and click “Go” routes to the state water quality overview page for the state abbreviation', () => {
-    cy.visit('/state');
+    cy.visit('/state-and-tribal');
 
     cy.get('#hmw-state-select').click();
     cy.findByText('Florida').click();
@@ -87,7 +87,7 @@ describe('State page routes', () => {
   it('Directly navigating to a state with a non-existent state abbreviation, navigates back to the state page', () => {
     cy.visit('/state/ZZ');
 
-    cy.url().should('equal', `${window.location.origin}/state`);
+    cy.url().should('equal', `${window.location.origin}/state-and-tribal`);
   });
 
   it('Switching state page tabs updates route', () => {
@@ -141,9 +141,9 @@ describe('State page Water Quality Overview sub tabs', () => {
       .should('not.exist');
 
     // verify a tab without data
-    cy.findByTestId('hmw-fishing-tab-button').click();
-    cy.findByTestId('hmw-fishing-tab-panel').contains(noWaterTypes);
-    cy.findByTestId('hmw-fishing-tab-panel').contains(noUses);
+    cy.findByTestId('hmw-other-tab-button').click();
+    cy.findByTestId('hmw-other-tab-panel').contains(noWaterTypes);
+    cy.findByTestId('hmw-other-tab-panel').contains(noUses);
   });
 
   it('Navigating to a sub-tab selection shows correct charts', () => {
@@ -161,10 +161,12 @@ describe('State page Water Quality Overview sub tabs', () => {
       .contains(siteSpecificText)
       .should('exist');
 
-    // Florida > Aquatic Life > Rivers and Streams
+    // Florida > Aquatic Life > Rivers and Streams > Fish and Wildlife Propagation
     // select a dropdown item that has the pie chart
     cy.get('#water-type-ecological').click();
     cy.findByText('Rivers and Streams').click();
+    cy.get('#water-use-ecological').click();
+    cy.findByText('Fish and Wildlife Propagation - Freshwater').click();
 
     // verify the pie chart is not there and the bar chart is
 
