@@ -8,9 +8,9 @@ describe('Homepage links', () => {
     cy.url().should('include', '/community');
   });
 
-  it(`"State" button links to the state page`, () => {
-    cy.findByText('State').click();
-    cy.url().should('include', '/state');
+  it(`"State & Tribal" button links to the state & tribal page`, () => {
+    cy.findByText('State & Tribal').click();
+    cy.url().should('include', '/state-and-tribal');
   });
 
   it(`"National" button links to the national page`, () => {

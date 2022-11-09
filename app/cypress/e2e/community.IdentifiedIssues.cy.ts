@@ -57,7 +57,7 @@ describe('Identified Issues Tab', () => {
   it('Clicking a Discharger accordion item expands it', () => {
     // navigate to Identified Issues tab of Community page
     cy.findByPlaceholderText('Search by address', { exact: false }).type(
-      '020700110102',
+      '020700100204',
     );
     cy.findByText('Go').click();
 
@@ -69,7 +69,7 @@ describe('Identified Issues Tab', () => {
     // switch to Dischargers tab of Identified Issues tab and check that the discharger accordion item exists and expands when clicked
     cy.findByText('Identified Issues').click();
     cy.findByTestId('hmw-dischargers').click();
-    cy.findByText('GALE-BAILEY ELEMENTARY SCHOOL').click();
+    cy.findByText('WASHINGTON NAVY YARD').click();
     cy.findByText('Compliance Status:');
   });
 });

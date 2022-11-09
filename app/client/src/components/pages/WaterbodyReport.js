@@ -2,7 +2,7 @@
 
 import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import WindowSize from '@reach/window-size';
+import { WindowSize } from '@reach/window-size';
 import { css } from 'styled-components/macro';
 import StickyBox from 'react-sticky-box';
 // components

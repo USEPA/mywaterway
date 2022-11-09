@@ -3,7 +3,7 @@ import Graphic from '@arcgis/core/Graphic';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Viewpoint from '@arcgis/core/Viewpoint';
 import Papa from 'papaparse';
-import WindowSize from '@reach/window-size';
+import { WindowSize } from '@reach/window-size';
 import {
   useCallback,
   useContext,
