@@ -1623,6 +1623,13 @@ type ShowSurroundingMonitoringLocationsProps = {
   surroundingMonitoringLocationsLayer: __esri.FeatureLayer | '';
 };
 
+type SimpleExtent = {
+  xmin: number;
+  xmax: number;
+  ymin: number;
+  ymax: number;
+};
+
 // Defines the show all waterbodies widget
 function ShowSurroundingMonitoringLocations({
   getDisabled,
@@ -1641,148 +1648,182 @@ function ShowSurroundingMonitoringLocations({
       data: null,
     });
 
+  const [layerVisible, setLayerVisible] = useState(false);
+  const [viewReady, setViewReady] = useState(false);
+  const [viewStationary, setViewStationary] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(0);
+
+  // setup watchers
   const [watcherInitialized, setWatcherInitialized] = useState(false);
   useEffect(() => {
     if (!surroundingMonitoringLocationsLayer || watcherInitialized) return;
-    if (services.status !== 'success') return;
-
-    type SimpleExtent = {
-      xmin: number;
-      xmax: number;
-      ymin: number;
-      ymax: number;
-    };
-    let lastExtent: SimpleExtent | null = null;
-
-    let abortController = new AbortController();
 
     // watch for extent changes and query the waterquality portal
     reactiveUtils.watch(
       () => mapView.stationary,
       () => {
-        if (!mapView.stationary) return;
-        if (!mapView.ready) return;
-
-        const newExtent: SimpleExtent = {
-          xmin: mapView.extent.xmin,
-          xmax: mapView.extent.xmax,
-          ymin: mapView.extent.ymin,
-          ymax: mapView.extent.ymax,
-        };
-        if (JSON.stringify(newExtent) === JSON.stringify(lastExtent)) return;
-        lastExtent = newExtent;
-        abortController.abort();
-
-        setSurroundingMonitoringLocations({
-          status: 'fetching',
-          data: null,
-        });
-        abortController = new AbortController();
-
-        // convert the extent into northwest and southeast corner points
-        const northwestWM = new Point({
-          x: mapView.extent.xmin,
-          y: mapView.extent.ymax,
-        });
-        const southeastWM = new Point({
-          x: mapView.extent.xmax,
-          y: mapView.extent.ymin,
-        });
-
-        // convert the points to geographic
-        const northwest = webMercatorUtils.webMercatorToGeographic(
-          northwestWM,
-          false,
-        ) as __esri.Point;
-        const southeast = webMercatorUtils.webMercatorToGeographic(
-          southeastWM,
-          false,
-        ) as __esri.Point;
-
-        // get the bbox values from the northwest and southeast corner points
-        const north = northwest.latitude;
-        const south = southeast.latitude;
-        const east = southeast.longitude;
-        const west = northwest.longitude;
-
-        const url =
-          services.data.waterQualityPortal.monitoringLocation +
-          `search?mimeType=geojson&zip=no&bBox=${west},${south},${east},${north}`;
-        fetchCheck(url, abortController.signal)
-          .then((res: MonitoringLocationsData) => {
-            const idsToFilterOut: string[] = [];
-            const monitoringLocations = getMonitoringLocations();
-
-            if (monitoringLocations.status === 'success') {
-              monitoringLocations.data.features.forEach((location) => {
-                idsToFilterOut.push(
-                  location.properties.MonitoringLocationIdentifier,
-                );
-              });
-            }
-
-            const newData: FetchState<MonitoringLocationsData> = {
-              status: 'success',
-              data: {
-                ...res,
-                features: res.features.filter(
-                  (location) =>
-                    !idsToFilterOut.includes(
-                      location.properties.MonitoringLocationIdentifier,
-                    ),
-                ),
-              },
-            };
-            setSurroundingMonitoringLocations(newData);
-
-            const stations = buildStations(
-              newData,
-              surroundingMonitoringLocationsLayer,
-            );
-            if (!stations) return;
-
-            updateMonitoringLocationsLayer(
-              stations,
-              surroundingMonitoringLocationsLayer,
-            );
-          })
-          .catch((err) => {
-            if (isAbort(err)) return;
-            console.error(err);
-            setSurroundingMonitoringLocations({
-              status: 'failure',
-              data: null,
-            });
-          });
+        setViewReady(mapView.ready);
+        setViewStationary(mapView.stationary);
       },
     );
 
-    // watch for zoom changes and hide the surroundingMonitoringLocationsLayer when
-    // zoomed out too much
+    // keep track of layer visibility of surroundingMonitoringLocationsLayer
+    reactiveUtils.watch(
+      () => surroundingMonitoringLocationsLayer.visible,
+      () => {
+        setLayerVisible(surroundingMonitoringLocationsLayer.visible);
+      },
+    );
+
+    // watch for zoom changes
     reactiveUtils.watch(
       () => mapView.zoom,
       () => {
-        let newDisabledValue = false;
-        if (mapView.zoom > 8) {
-          surroundingMonitoringLocationsLayer.listMode = 'hide-children';
-        } else {
-          surroundingMonitoringLocationsLayer.listMode = 'hide';
-          newDisabledValue = true;
-        }
-
-        setDisabled(newDisabledValue);
+        setZoomLevel(mapView.zoom);
       },
     );
 
     setWatcherInitialized(true);
   }, [
-    getMonitoringLocations,
-    setDisabled,
     mapView,
-    services,
     surroundingMonitoringLocationsLayer,
     watcherInitialized,
   ]);
+
+  const [lastExtent, setLastExtent] = useState<SimpleExtent | null>(null);
+  const [lastVisible, setLastVisible] = useState(false);
+
+  // fetch the surrounding monitoring locations
+  useEffect(() => {
+    if (services.status !== 'success' || !watcherInitialized) return;
+    if (!layerVisible || !viewReady || !viewStationary) return;
+    if (!surroundingMonitoringLocationsLayer) return;
+    if (getDisabled()) return;
+
+    let abortController = new AbortController();
+
+    const newExtent: SimpleExtent = {
+      xmin: mapView.extent.xmin,
+      xmax: mapView.extent.xmax,
+      ymin: mapView.extent.ymin,
+      ymax: mapView.extent.ymax,
+    };
+    if (JSON.stringify(newExtent) === JSON.stringify(lastExtent)) return;
+    setLastExtent(newExtent);
+    abortController.abort();
+
+    setSurroundingMonitoringLocations({
+      status: 'fetching',
+      data: null,
+    });
+    abortController = new AbortController();
+
+    // convert the extent into northwest and southeast corner points
+    const northwestWM = new Point({
+      x: mapView.extent.xmin,
+      y: mapView.extent.ymax,
+    });
+    const southeastWM = new Point({
+      x: mapView.extent.xmax,
+      y: mapView.extent.ymin,
+    });
+
+    // convert the points to geographic
+    const northwest = webMercatorUtils.webMercatorToGeographic(
+      northwestWM,
+      false,
+    ) as __esri.Point;
+    const southeast = webMercatorUtils.webMercatorToGeographic(
+      southeastWM,
+      false,
+    ) as __esri.Point;
+
+    // get the bbox values from the northwest and southeast corner points
+    const north = northwest.latitude;
+    const south = southeast.latitude;
+    const east = southeast.longitude;
+    const west = northwest.longitude;
+
+    const url =
+      services.data.waterQualityPortal.monitoringLocation +
+      `search?mimeType=geojson&zip=no&bBox=${west},${south},${east},${north}`;
+    fetchCheck(url, abortController.signal)
+      .then((res: MonitoringLocationsData) => {
+        const idsToFilterOut: string[] = [];
+        const monitoringLocations = getMonitoringLocations();
+
+        if (monitoringLocations.status === 'success') {
+          monitoringLocations.data.features.forEach((location) => {
+            idsToFilterOut.push(
+              location.properties.MonitoringLocationIdentifier,
+            );
+          });
+        }
+
+        const newData: FetchState<MonitoringLocationsData> = {
+          status: 'success',
+          data: {
+            ...res,
+            features: res.features.filter(
+              (location) =>
+                !idsToFilterOut.includes(
+                  location.properties.MonitoringLocationIdentifier,
+                ),
+            ),
+          },
+        };
+        setSurroundingMonitoringLocations(newData);
+
+        const stations = buildStations(
+          newData,
+          surroundingMonitoringLocationsLayer,
+        );
+        if (!stations) return;
+
+        updateMonitoringLocationsLayer(
+          stations,
+          surroundingMonitoringLocationsLayer,
+        );
+      })
+      .catch((err) => {
+        if (isAbort(err)) return;
+        console.error(err);
+        setSurroundingMonitoringLocations({
+          status: 'failure',
+          data: null,
+        });
+      });
+  }, [
+    getDisabled,
+    getMonitoringLocations,
+    lastExtent,
+    layerVisible,
+    mapView,
+    services,
+    setDisabled,
+    surroundingMonitoringLocationsLayer,
+    viewReady,
+    viewStationary,
+    watcherInitialized,
+    zoomLevel,
+  ]);
+
+  // hide the surroundingMonitoringLocationsLayer when zoomed out too much
+  useEffect(() => {
+    if(!surroundingMonitoringLocationsLayer || !watcherInitialized) return;
+
+    let newDisabledValue = false;
+    if (zoomLevel > 8) {
+      surroundingMonitoringLocationsLayer.listMode = 'hide-children';
+      surroundingMonitoringLocationsLayer.visible = lastVisible;
+    } else {
+      surroundingMonitoringLocationsLayer.listMode = 'hide';
+      surroundingMonitoringLocationsLayer.visible = false;
+      newDisabledValue = true;
+    }
+
+    setDisabled(newDisabledValue);
+  }, [lastVisible, setDisabled, surroundingMonitoringLocationsLayer, watcherInitialized, zoomLevel]);
 
   const widgetDisabled = getDisabled();
 
@@ -1808,6 +1849,7 @@ function ShowSurroundingMonitoringLocations({
 
         layer.visible = !layer.visible;
         setVisible(layer.visible);
+        setLastVisible(layer.visible);
       }}
     >
       <span
