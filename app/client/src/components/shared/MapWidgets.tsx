@@ -1793,7 +1793,6 @@ function ShowSurroundingMonitoringLocations({
         });
       });
   }, [
-    abortController,
     getDisabled,
     getMonitoringLocations,
     lastExtent,
