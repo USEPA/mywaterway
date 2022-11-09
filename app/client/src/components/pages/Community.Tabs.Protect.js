@@ -416,6 +416,13 @@ function Protect() {
 
   function onWsioToggle(newValue) {
     if (newValue) {
+      setInitialAllWaterbodiesVisibility(allWaterbodiesLayer.visible);
+      setInitialSurroundingMonitoringVisibility(
+        surroundingMonitoringLocationsLayer.visible,
+      );
+      setInitialMonitoringLocationsVisibility(monitoringLocationsLayer.visible);
+      setInitialUsgsStreamgagesVisibility(usgsStreamgagesLayer.visible);
+
       if (allWaterbodiesLayer) allWaterbodiesLayer.visible = false;
       if (surroundingMonitoringLocationsLayer)
         surroundingMonitoringLocationsLayer.visible = false;
