@@ -19,7 +19,7 @@ describe('Tribe page links', () => {
     cy.findByText('Show more').should('exist');
   });
 
-  it.only('Clicking the “DISCLAIMER” button displays the disclaimer popup', () => {
+  it('Clicking the “DISCLAIMER” button displays the disclaimer popup', () => {
     const text = /^The condition of a waterbody is dynamic and can change/;
 
     // verify opening the disclaimer
