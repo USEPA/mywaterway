@@ -5,7 +5,7 @@ import { css } from 'styled-components/macro';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import highchartsAccessibility from 'highcharts/modules/accessibility';
-import WindowSize from '@reach/window-size';
+import { WindowSize } from '@reach/window-size';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -14,7 +14,8 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
 import { fetchCheck } from 'utils/fetchUtils';
-import { formatNumber } from 'utils/utils';
+import { formatNumber, isAbort } from 'utils/utils';
+import { useAbortSignal } from 'utils/hooks';
 // errors
 import { grpaError } from 'config/errorMessages';
 
@@ -104,6 +105,7 @@ type Props = {
 
 function WaterSystemSummary({ state }: Props) {
   const services = useServicesContext();
+  const abortSignal = useAbortSignal();
 
   const [lastCountsCode, setLastCountsCode] = useState(null);
   const [systemTypeRes, setSystemTypeRes] = useState({
@@ -127,6 +129,7 @@ function WaterSystemSummary({ state }: Props) {
 
     fetchCheck(
       `${services.data.dwmaps.getGPRASystemCountsByType}${state.value}`,
+      abortSignal,
     )
       .then((res) => {
         if (!res || !res.items || res.items.length === 0) {
@@ -173,6 +176,7 @@ function WaterSystemSummary({ state }: Props) {
         });
       })
       .catch((err) => {
+        if (isAbort(err)) return;
         console.error(err);
         setSystemTypeRes({
           status: 'failure',
@@ -183,7 +187,7 @@ function WaterSystemSummary({ state }: Props) {
           },
         });
       });
-  }, [state, services, lastCountsCode]);
+  }, [abortSignal, state, services, lastCountsCode]);
 
   // fetch GPRA data
   const [lastSummaryCode, setLastSummaryCode] = useState(null);
@@ -203,15 +207,21 @@ function WaterSystemSummary({ state }: Props) {
 
     setLastSummaryCode(state.value);
 
-    fetchCheck(`${services.data.dwmaps.getGPRASummary}${state.value}`)
+    fetchCheck(
+      `${services.data.dwmaps.getGPRASummary}${state.value}`,
+      abortSignal,
+    )
       .then((res) =>
         setGpraData({
           status: 'success',
           data: res.items.length > 0 ? res.items[0] : null,
         }),
       )
-      .catch((err) => setGpraData({ status: 'failure', data: {} }));
-  }, [state, services, lastSummaryCode]);
+      .catch((err) => {
+        if (isAbort(err)) return;
+        setGpraData({ status: 'failure', data: {} });
+      });
+  }, [abortSignal, state, services, lastSummaryCode]);
 
   return (
     <>

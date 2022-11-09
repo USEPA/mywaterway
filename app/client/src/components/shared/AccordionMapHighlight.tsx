@@ -1,7 +1,4 @@
-// @flow
-
-import React, { useContext, useState, useCallback, useEffect } from 'react';
-import type { Node } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 // components
 import {
   AccordionList,
@@ -10,22 +7,22 @@ import {
 // contexts
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { useMapHighlightState } from 'contexts/MapHighlight';
+// types
+import type { ReactNode } from 'react';
 
 type AccordionItemProps = {
-  icon: ?Object,
-  mapIcon: Object,
-  title: Node,
-  subTitle: ?Node,
-  feature: ?Object,
-  idKey: ?string,
-  allExpanded: boolean,
-  onChange: (isOpen: boolean) => void,
-  children: Node,
+  icon?: Object;
+  title: ReactNode;
+  subTitle?: ReactNode;
+  feature?: __esri.Graphic;
+  idKey?: string;
+  allExpanded: boolean;
+  onChange: (isOpen: boolean) => void;
+  children: ReactNode;
 };
 
 function AccordionItem({
   icon,
-  mapIcon, // icon for highlights on the esri map
   title,
   subTitle,
   feature,
@@ -40,11 +37,11 @@ function AccordionItem({
     useMapHighlightState();
 
   // the accordion item's highlight status
-  const [status, setStatus] = useState(null);
+  const [status, setStatus] = useState<string | null>(null);
 
   const checkHighlight = useCallback(() => {
     // ensure the key exists prior to deciding to highlight
-    if (feature && feature.attributes && feature.attributes[idKey]) {
+    if (idKey && feature?.attributes?.[idKey]) {
       const id = feature.attributes[idKey];
 
       const isSelected =
@@ -82,13 +79,11 @@ function AccordionItem({
   return (
     <AccordionItemSimple
       icon={icon}
-      mapIcon={mapIcon}
       title={title}
       subTitle={subTitle}
       status={status}
       onAddHighlight={addHighlight}
       onRemoveHighlight={removeHighlight}
-      idKey={idKey}
       allExpanded={allExpanded}
       onChange={onChange}
     >

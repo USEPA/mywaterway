@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
-import WindowSize from '@reach/window-size';
+import { WindowSize } from '@reach/window-size';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import highchartsAccessibility from 'highcharts/modules/accessibility';

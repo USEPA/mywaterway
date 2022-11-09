@@ -1,6 +1,6 @@
 {
   "name": "mywaterway",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "A tool to learn about your water resources.",
   "keywords": [
     "MyWaterway",
@@ -33,22 +33,22 @@
     "start": "concurrently -kc \"blue.dim,green.dim\" \"npm:server\" \"npm:client\"",
     "setup": "echo \"Installing project dependencies...\" && npm ci && echo \"Installing client dependencies...\" && cd client && npm ci && echo \"Installing server dependencies...\" && cd .. && cd server && npm ci",
     "cypress": "concurrently -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server\" \"npm:client\" \"cypress open --env coverage=false\"",
-    "coverage": "concurrently -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server\" \"npm:client\" \"npx rimraf .nyc_output/out.json && cypress run --browser edge\""
+    "coverage": "concurrently -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server\" \"npm:client\" \"npx rimraf .nyc_output/out.json && cypress run --browser electron\""
   },
   "devDependencies": {
     "@cypress/code-coverage": "3.10.0",
     "@testing-library/cypress": "8.0.3",
     "@types/cypress-image-snapshot": "3.1.6",
-    "@types/node": "18.7.4",
+    "@types/node": "18.11.9",
     "@types/testing-library__cypress": "5.0.9",
-    "concurrently": "7.3.0",
-    "cypress": "10.4.0",
+    "concurrently": "7.5.0",
+    "cypress": "10.11.0",
     "cypress-image-snapshot": "4.0.1",
     "eslint-plugin-cypress": "2.12.1",
     "istanbul-lib-coverage": "3.2.0",
     "nyc": "15.1.0",
     "prettier": "2.7.1",
-    "typescript": "4.7.4"
+    "typescript": "4.8.4"
   },
   "eslintConfig": {
     "extends": [

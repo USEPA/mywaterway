@@ -12,7 +12,7 @@ import Layer from '@arcgis/core/layers/Layer';
 import Portal from '@arcgis/core/portal/Portal';
 import PortalItem from '@arcgis/core/portal/PortalItem';
 import PortalQueryParams from '@arcgis/core/portal/PortalQueryParams';
-import * as reactiveUtils from "@arcgis/core/core/reactiveUtils";
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
@@ -25,6 +25,8 @@ import { webServiceErrorMessage } from 'config/errorMessages';
 import { reactSelectStyles } from 'styles/index.js';
 // types
 import type { WidgetLayer } from 'types';
+// utilities
+import { isGroupLayer, isTileLayer } from 'utils/mapFunctions';
 
 const searchFlexBoxStyles = css`
   display: flex;
@@ -194,19 +196,6 @@ type SortBy =
   | { value: 'avg-rating'; label: 'Rating'; defaultSort: 'desc' }
   | { value: 'num-views'; label: 'Views'; defaultSort: 'desc' }
   | { value: 'modified'; label: 'Date'; defaultSort: 'desc' };
-
-// --- helpers ---
-function isGroupLayer(
-  layer: Layer | __esri.TileLayer | __esri.GroupLayer,
-): layer is __esri.GroupLayer {
-  return (layer as __esri.GroupLayer).type === 'group';
-}
-
-function isTileLayer(
-  layer: Layer | __esri.TileLayer | __esri.GroupLayer,
-): layer is __esri.TileLayer {
-  return (layer as __esri.TileLayer).type === 'tile';
-}
 
 // --- components (SearchPanel) ---
 function SearchPanel() {

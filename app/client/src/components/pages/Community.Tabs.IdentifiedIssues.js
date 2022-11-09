@@ -34,6 +34,7 @@ import {
 } from 'components/shared/KeyMetrics';
 // contexts
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
+import { useFetchedDataState } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 // utilities
 import { formatNumber } from 'utils/utils';
@@ -85,6 +86,7 @@ function IdentifiedIssues() {
   const {
     permittedDischargers,
     dischargersLayer,
+    monitoringLocations,
     issuesLayer,
     waterbodyLayer,
     showAllPolluted,
@@ -97,6 +99,8 @@ function IdentifiedIssues() {
     cipSummary,
     watershed,
   } = useContext(LocationSearchContext);
+
+  const { usgsStreamgages } = useFetchedDataState();
 
   const [permittedDischargersData, setPermittedDischargersData] = useState({});
 
@@ -142,10 +146,7 @@ function IdentifiedIssues() {
   }, [dischargersLayer, showDischargersLayer, violatingFacilities, navigate]);
 
   // translate scientific parameter names
-  const getMappedParameterName = (
-    parameterFields: Object,
-    parameter: string,
-  ) => {
+  const getMappedParameter = (parameterFields: Object, parameter: string) => {
     const filteredFields = parameterFields.filter(
       (field) => parameter === field.parameterGroup,
     )[0];
@@ -153,7 +154,7 @@ function IdentifiedIssues() {
       return null;
     }
 
-    return filteredFields.label;
+    return filteredFields;
   };
 
   const checkWaterbodiesToDisplay = useCallback(() => {
@@ -322,6 +323,7 @@ function IdentifiedIssues() {
   const updateVisibleLayers = useCallback(
     ({ key = null, newValue = null, useCurrentValue = false }) => {
       const newVisibleLayers = {};
+
       if (cipSummary.status !== 'failure') {
         newVisibleLayers['issuesLayer'] =
           !issuesLayer || useCurrentValue
@@ -335,6 +337,16 @@ function IdentifiedIssues() {
             : showDischargersLayer;
       }
 
+      if (monitoringLocations.status !== 'failure') {
+        newVisibleLayers['monitoringLocationsLayer'] =
+          visibleLayers['monitoringLocationsLayer'];
+      }
+
+      if (usgsStreamgages.status !== 'failure') {
+        newVisibleLayers['usgsStreamgagesLayer'] =
+          visibleLayers['usgsStreamgagesLayer'];
+      }
+
       if (newVisibleLayers.hasOwnProperty(key)) {
         newVisibleLayers[key] = newValue;
       }
@@ -345,13 +357,15 @@ function IdentifiedIssues() {
       }
     },
     [
-      dischargersLayer,
-      showDischargersLayer,
+      cipSummary,
       permittedDischargers,
+      monitoringLocations,
+      usgsStreamgages,
+      visibleLayers,
       issuesLayer,
       showIssuesLayer,
-      cipSummary,
-      visibleLayers,
+      dischargersLayer,
+      showDischargersLayer,
       setVisibleLayers,
     ],
   );
@@ -369,13 +383,13 @@ function IdentifiedIssues() {
 
     // get a list of all parameters displayed in table and push them to array
     cipSummaryData.items[0].summaryByParameterImpairments.forEach((param) => {
-      const mappedParameterName = getMappedParameterName(
+      const mappedParameter = getMappedParameter(
         impairmentFields,
         param['parameterGroupName'],
       );
 
-      if (mappedParameterName) {
-        parameters.push(mappedParameterName);
+      if (mappedParameter) {
+        parameters.push(mappedParameter.label);
       }
     });
 
@@ -613,7 +627,9 @@ function IdentifiedIssues() {
             <TabPanel>
               {cipSummary.status === 'fetching' && <LoadingSpinner />}
 
-              {(cipSummary.status === 'failure' || !cipSummary.data?.items) && (
+              {(cipSummary.status === 'failure' ||
+                (cipSummary.status === 'success' &&
+                  !cipSummary.data?.items)) && (
                 <div css={errorBoxStyles}>
                   <p>{huc12SummaryError}</p>
                 </div>
@@ -726,30 +742,35 @@ function IdentifiedIssues() {
                                     ),
                                   );
 
-                                  const mappedParameterName =
-                                    getMappedParameterName(
-                                      impairmentFields,
-                                      param['parameterGroupName'],
-                                    );
+                                  const mappedParameter = getMappedParameter(
+                                    impairmentFields,
+                                    param['parameterGroupName'],
+                                  );
                                   // if service contains a parameter we have no mapping for
-                                  if (!mappedParameterName) return false;
+                                  if (!mappedParameter) return false;
 
                                   return (
-                                    <tr key={mappedParameterName}>
+                                    <tr key={mappedParameter.label}>
                                       <td>
                                         <div css={toggleStyles}>
                                           <Switch
-                                            ariaLabel={mappedParameterName}
+                                            ariaLabel={mappedParameter.label}
                                             checked={
                                               parameterToggleObject[
-                                                mappedParameterName
+                                                mappedParameter.label
                                               ]
                                             }
                                             onChange={(ev) => {
-                                              toggleSwitch(mappedParameterName);
+                                              toggleSwitch(
+                                                mappedParameter.label,
+                                              );
                                             }}
                                           />
-                                          <span>{mappedParameterName}</span>
+                                          <GlossaryTerm
+                                            term={mappedParameter.term}
+                                          >
+                                            {mappedParameter.label}
+                                          </GlossaryTerm>
                                         </div>
                                       </td>
                                       <td>

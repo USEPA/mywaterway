@@ -4,7 +4,7 @@ describe('Educational Materials tab', () => {
 
     cy.findByRole('button', { name: 'Educators' }).click();
 
-    cy.findByRole('link', { name: 'Middle School Lesson Plan' })
+    cy.findByRole('link', { name: `How’s My Waterway Middle School Lesson Plan` })
       .should('be.visible')
       .should(
         'have.attr',

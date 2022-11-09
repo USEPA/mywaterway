@@ -13,6 +13,7 @@ import StickyBox from 'react-sticky-box';
 import { useNavigate } from 'react-router-dom';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import Viewpoint from '@arcgis/core/Viewpoint';
 // components
 import Map from 'components/shared/Map';
@@ -25,7 +26,7 @@ import {
 } from 'utils/mapFunctions';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 // styled components
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { useFetchedDataDispatch } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
@@ -37,7 +38,13 @@ import { browserIsCompatibleWithArcGIS } from 'utils/utils';
 // styles
 import 'styles/mapStyles.css';
 // errors
-import { esriMapLoadingFailure } from 'config/errorMessages';
+import {
+  esriMapLoadingFailure,
+  huc12SummaryError,
+  stateNoGisDataError,
+} from 'config/errorMessages';
+
+let selectedGraphicGlobal = null;
 
 const mapPadding = 20;
 
@@ -94,7 +101,7 @@ function StateMap({
 
   const [layers, setLayers] = useState(null);
 
-  // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
+  const [noGisDataAvailable, setNoGisDataAvailable] = useState(false);
   const [stateMapLoadError, setStateMapLoadError] = useState(false);
 
   const getSharedLayers = useSharedLayers();
@@ -221,6 +228,11 @@ function StateMap({
 
   const [lastFilter, setLastFilter] = useState('');
 
+  // keep the selectedGraphicGlobal variable up to date
+  useEffect(() => {
+    selectedGraphicGlobal = selectedGraphic;
+  }, [selectedGraphic]);
+
   // cDU
   // detect when user changes their search
   const [homeWidgetSet, setHomeWidgetSet] = useState(false);
@@ -237,6 +249,8 @@ function StateMap({
       numberOfRecords
     ) {
       setLastFilter(filter);
+      setNoGisDataAvailable(false);
+      setStateMapLoadError(false);
 
       // change the where clause of the feature layers
       if (!filter) return;
@@ -246,77 +260,108 @@ function StateMap({
         areasLayer.definitionExpression = filter;
       }
 
+      function handleError(err) {
+        console.error(err);
+        setStateMapLoadError(true);
+      }
+
+      function queryExtent(layer) {
+        return new Promise((resolve, reject) => {
+          mapView
+            .whenLayerView(layer)
+            .then((layerView) => {
+              reactiveUtils
+                .whenOnce(() => !layerView.updating)
+                .then(() => {
+                  resolve(layer.queryExtent());
+                })
+                .catch((err) => reject(err));
+            })
+            .catch((err) => reject(err));
+        });
+      }
+
       // zoom and set the home widget viewpoint
       let fullExtent = null;
       // get the points layer extent
-      pointsLayer.queryExtent().then((pointsExtent) => {
-        // set the extent if 1 or more features
-        if (pointsExtent.count > 0) fullExtent = pointsExtent.extent;
+      queryExtent(pointsLayer)
+        .then((pointsExtent) => {
+          // set the extent if 1 or more features
+          if (pointsExtent.count > 0) fullExtent = pointsExtent.extent;
 
-        // get the lines layer extent
-        linesLayer.queryExtent().then((linesExtent) => {
-          // set the extent or union the extent if 1 or more features
-          if (linesExtent.count > 0) {
-            if (fullExtent) fullExtent.union(linesExtent.extent);
-            else fullExtent = linesExtent.extent;
-          }
-
-          // get the areas layer extent
-          areasLayer.queryExtent().then((areasExtent) => {
-            // set the extent or union the extent if 1 or more features
-            if (areasExtent.count > 0) {
-              if (fullExtent) fullExtent.union(areasExtent.extent);
-              else fullExtent = areasExtent.extent;
-            }
-
-            // if there is an extent then zoom to it and set the home widget
-            if (fullExtent) {
-              let zoomParams = fullExtent;
-              let homeParams = { targetGeometry: fullExtent };
-              if (!selectedGraphic) {
-                if (numberOfRecords === 1 && pointsExtent.count === 1) {
-                  zoomParams = { target: fullExtent, zoom: 15 };
-                  homeParams = {
-                    targetGeometry: fullExtent,
-                    scale: 18056, // same as zoom 15, viewpoint only takes scale
-                  };
-                }
-
-                mapView.goTo(zoomParams).then(() => {
-                  // only show the waterbody layer after everything has loaded to
-                  // cut down on unnecessary service calls
-                  waterbodyLayer.listMode = 'hide-children';
-                  waterbodyLayer.visible = true;
-
-                  setMapLoading(false);
-                });
-              } else {
-                waterbodyLayer.listMode = 'hide-children';
-                waterbodyLayer.visible = true;
+          // get the lines layer extent
+          queryExtent(linesLayer)
+            .then((linesExtent) => {
+              // set the extent or union the extent if 1 or more features
+              if (linesExtent.count > 0) {
+                if (fullExtent) fullExtent.union(linesExtent.extent);
+                else fullExtent = linesExtent.extent;
               }
 
-              // only set the home widget if the user selects a different state
-              if (!homeWidgetSet) {
-                homeWidget.viewpoint = new Viewpoint(homeParams);
-                setHomeWidgetSet(true);
-              }
-            }
-          });
-        });
-      });
+              // get the areas layer extent
+              queryExtent(areasLayer)
+                .then((areasExtent) => {
+                  // set the extent or union the extent if 1 or more features
+                  if (areasExtent.count > 0) {
+                    if (fullExtent) fullExtent.union(areasExtent.extent);
+                    else fullExtent = areasExtent.extent;
+                  }
+
+                  // if there is an extent then zoom to it and set the home widget
+                  if (fullExtent) {
+                    let zoomParams = fullExtent;
+                    let homeParams = { targetGeometry: fullExtent };
+                    if (!selectedGraphicGlobal) {
+                      if (numberOfRecords === 1 && pointsExtent.count === 1) {
+                        zoomParams = { target: fullExtent, zoom: 15 };
+                        homeParams = {
+                          targetGeometry: fullExtent,
+                          scale: 18056, // same as zoom 15, viewpoint only takes scale
+                        };
+                      }
+
+                      mapView.goTo(zoomParams).then(() => {
+                        // only show the waterbody layer after everything has loaded to
+                        // cut down on unnecessary service calls
+                        waterbodyLayer.listMode = 'hide-children';
+                        waterbodyLayer.visible = true;
+
+                        setMapLoading(false);
+                      });
+                    } else {
+                      waterbodyLayer.listMode = 'hide-children';
+                      waterbodyLayer.visible = true;
+                      setMapLoading(false);
+                    }
+
+                    // only set the home widget if the user selects a different state
+                    if (!homeWidgetSet) {
+                      homeWidget.viewpoint = new Viewpoint(homeParams);
+                      setHomeWidgetSet(true);
+                    }
+                  } else {
+                    setMapLoading(false);
+                    setNoGisDataAvailable(true);
+                  }
+                })
+                .catch(handleError);
+            })
+            .catch(handleError);
+        })
+        .catch(handleError);
     }
   }, [
-    filter,
-    lastFilter,
-    pointsLayer,
-    linesLayer,
     areasLayer,
-    mapView,
+    filter,
     homeWidget,
     homeWidgetSet,
-    selectedGraphic,
-    waterbodyLayer,
+    lastFilter,
+    linesLayer,
+    mapView,
     numberOfRecords,
+    pointsLayer,
+    stateMapLoadError,
+    waterbodyLayer,
   ]);
 
   // Used to tell if the homewidget has been set to the selected state.
@@ -358,11 +403,6 @@ function StateMap({
 
   const mapInputs = document.querySelector(`[data-content="stateinputs"]`);
   const mapInputsHeight = mapInputs && mapInputs.getBoundingClientRect().height;
-
-  // check for browser compatibility with map
-  if (!browserIsCompatibleWithArcGIS() && !stateMapLoadError) {
-    setStateMapLoadError(true);
-  }
 
   // jsx
   const mapContent = (
@@ -409,8 +449,19 @@ function StateMap({
     </div>
   );
 
-  if (stateMapLoadError) {
+  // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
+  if (!browserIsCompatibleWithArcGIS()) {
     return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
+  }
+
+  if (stateMapLoadError) {
+    return <div css={errorBoxStyles}>{huc12SummaryError}</div>;
+  }
+
+  if (noGisDataAvailable) {
+    return (
+      <div css={infoBoxStyles}>{stateNoGisDataError(activeState.label)}</div>
+    );
   }
 
   if (layout === 'wide') {

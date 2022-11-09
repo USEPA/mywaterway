@@ -26,6 +26,7 @@
   },
   "usgsSensorThingsAPI": "https://labs.waterdata.usgs.gov/sta/v1.1/Things",
   "usgsDailyValues": "https://waterservices.usgs.gov/nwis/dv/",
+  "usgsWaterAlert": "https://www.usgs.gov/faqs/there-way-get-alerts-about-streamflow-conditions",
   "echoNPDES": {
     "getFacilities": "https://echodata.epa.gov/echo/cwa_rest_services.get_facilities",
     "metadata": "https://echodata.epa.gov/echo/cwa_rest_services.metadata"
@@ -49,9 +50,10 @@
     "queryStringSecondPart": "%29&outFields=*&returnGeometry=false&returnTrueCurves=false&returnIdsOnly=false&returnCountOnly=false&returnZ=false&returnM=false&returnDistinctValues=false&returnExtentsOnly=false&f=json"
   },
   "wildScenicRivers": "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/WildScenicRiversV2_AGOL/FeatureServer/1/",
-  "protectedAreasDatabase": "https://gis1.usgs.gov/arcgis/rest/services/padus2_1/ProtectionMechanismCategory/MapServer/",
+  "protectedAreasDatabase": "https://gis1.usgs.gov/arcgis/rest/services/padus3/Protection_Mechanism_Category/MapServer/",
   "ejscreen": "https://geopub.epa.gov/arcgis/rest/services/ejscreen/Demographic_Indicators_2018_Public/MapServer/",
   "sfdw": "https://ordspub.epa.gov/ords/sfdw/",
+  "landCover": "https://www.mrlc.gov/geoserver/mrlc_display/NLCD_2019_Land_Cover_L48/wms?service=WMS&request=GetCapabilities",
   "googleAnalyticsMapping": [
     {
       "urlLookup": "attains.serviceUrl",
@@ -332,6 +334,16 @@
       "urlLookup": "sfdw",
       "wildcardUrl": "{urlLookup}*",
       "name": "sfdw"
+    },
+    {
+      "urlLookup": "landCover",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "Land Cover"
+    },
+    {
+      "urlLookup": "usgsWaterAlert",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "USGS Water Alert"
     }
   ]
 }

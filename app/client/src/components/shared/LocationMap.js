@@ -13,6 +13,7 @@ import { css } from 'styled-components/macro';
 import StickyBox from 'react-sticky-box';
 import { useNavigate } from 'react-router-dom';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import FeatureReductionCluster from '@arcgis/core/layers/support/FeatureReductionCluster';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
@@ -56,6 +57,7 @@ import {
 } from 'config/errorMessages';
 // helpers
 import {
+  useAbortSignal,
   useDynamicPopup,
   useGeometryUtils,
   useMonitoringLocations,
@@ -66,6 +68,7 @@ import {
 } from 'utils/hooks';
 import { fetchCheck } from 'utils/fetchUtils';
 import {
+  isAbort,
   isHuc12,
   updateCanonicalLink,
   createJsonLD,
@@ -89,8 +92,7 @@ function createQueryString(array) {
 
 const mapPadding = 20;
 
-export const monitoringClusterSettings = {
-  type: 'cluster',
+export const monitoringClusterSettings = new FeatureReductionCluster({
   clusterRadius: '100px',
   clusterMinSize: '24px',
   clusterMaxSize: '60px',
@@ -135,7 +137,7 @@ export const monitoringClusterSettings = {
       labelPlacement: 'center-center',
     },
   ],
-};
+});
 
 const containerStyles = css`
   display: flex;
@@ -151,6 +153,8 @@ type Props = {
 };
 
 function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
+  const abortSignal = useAbortSignal();
+
   const fetchedDataDispatch = useFetchedDataDispatch();
   const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
     useFetchedDataState();
@@ -604,9 +608,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setWaterbodyCountMismatch,
   ]);
 
-  // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
-  const [communityMapLoadError, setCommunityMapLoadError] = useState(false);
-
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
 
@@ -632,7 +633,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     const boundariesLayer = new GraphicsLayer({
       id: 'boundariesLayer',
       title: 'Boundaries',
-      listMode: 'hide',
+      listMode: 'show',
     });
 
     setBoundariesLayer(boundariesLayer);
@@ -640,7 +641,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     const searchIconLayer = new GraphicsLayer({
       id: 'searchIconLayer',
       title: 'Search Location',
-      listMode: 'hide',
+      listMode: 'show',
     });
 
     setSearchIconLayer(searchIconLayer);
@@ -761,7 +762,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         outFields: ['*'],
         title: (feature) => getPopupTitle(feature.graphic.attributes),
         content: (feature) =>
-          getPopupContent({ feature: feature.graphic, navigate }),
+          getPopupContent({ feature: feature.graphic, navigate, services }),
       },
     });
 
@@ -837,6 +838,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const handleMapServiceError = useCallback(
     (err) => {
+      if (isAbort(err)) return;
       setMapLoading(false);
       console.error(err);
       setCipSummary({ status: 'failure', data: {} });
@@ -1343,6 +1345,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       // get the plans for the selected huc
       fetchCheck(
         `${services.data.attains.serviceUrl}plans?huc=${huc12Param}&summarize=Y`,
+        null,
         120000,
       )
         .then((res) => {
@@ -1623,12 +1626,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
       fetchCheck(
         `${services.data.attains.serviceUrl}huc12summary?huc=${huc12Param}`,
+        abortSignal,
       ).then(
         (res) => handleMapServices(res, boundaries),
         handleMapServiceError,
       );
     },
     [
+      abortSignal,
       getFishingLinkData,
       getWsioHealthIndexData,
       getWildScenicRivers,
@@ -1750,26 +1755,34 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         if (searchText.toLowerCase() === 'guam') searchText = 'GU';
 
         // If not coordinates, perform regular geolocation
-        getCandidates = locator.addressToLocations(url, {
-          address: { SingleLine: searchText },
-          countryCode: 'USA',
-          outSpatialReference: SpatialReference.WebMercator,
-          outFields: [
-            'Loc_name',
-            'City',
-            'Place_addr',
-            'Region',
-            'RegionAbbr',
-            'Country',
-            'Addr_type',
-          ],
-        });
+        getCandidates = locator.addressToLocations(
+          url,
+          {
+            address: { SingleLine: searchText },
+            countryCode: 'USA',
+            outSpatialReference: SpatialReference.WebMercator,
+            outFields: [
+              'Loc_name',
+              'City',
+              'Place_addr',
+              'Region',
+              'RegionAbbr',
+              'Country',
+              'Addr_type',
+            ],
+          },
+          { signal: abortSignal },
+        );
       } else {
         // If coordinates, perform reverse geolocation
-        getCandidates = locator.locationToAddress(url, {
-          location: point,
-          outSpatialReference: SpatialReference.WebMercator,
-        });
+        getCandidates = locator.locationToAddress(
+          url,
+          {
+            location: point,
+            outSpatialReference: SpatialReference.WebMercator,
+          },
+          { signal: abortSignal },
+        );
       }
 
       getCandidates
@@ -1823,6 +1836,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               returnGeometry: true,
               geometry: location.location,
               outFields: ['*'],
+              signal: abortSignal,
             };
             query
               .executeQueryJSON(services.data.wbd, hucQuery)
@@ -1834,6 +1848,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                 );
               })
               .catch((err) => {
+                if (isAbort(err)) return;
                 console.error(err);
                 const newAddress = coordinatesPart ? searchPart : searchText;
                 setAddress(newAddress); // preserve the user's search so it is displayed
@@ -1852,6 +1867,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             returnGeometry: true,
             geometry: location.location.clone(),
             outFields: ['*'],
+            signal: abortSignal,
           };
           query
             .executeQueryJSON(url, countiesQuery)
@@ -1881,6 +1897,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               setCountyBoundaries(countiesRes);
             })
             .catch((err) => {
+              if (isAbort(err)) return;
               console.error(err);
               setCountyBoundaries(null);
               setMapLoading(false);
@@ -1896,6 +1913,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             });
         })
         .catch((err) => {
+          if (isAbort(err)) return;
           if (!hucRes) {
             console.error(err);
             const newAddress = coordinatesPart ? searchPart : searchText;
@@ -1930,6 +1948,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         });
     },
     [
+      abortSignal,
       handleHUC12,
       searchIconLayer,
       setAddress,
@@ -1951,6 +1970,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           returnGeometry: true,
           where: "HUC12 = '" + searchText + "'",
           outFields: ['*'],
+          signal: abortSignal,
         };
         query
           .executeQueryJSON(services.data.wbd, queryParams)
@@ -1972,6 +1992,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             }
           })
           .catch((err) => {
+            if (isAbort(err)) return;
             console.error(err);
             handleNoDataAvailable(noDataAvailableError);
           });
@@ -1980,7 +2001,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         processGeocodeServerResults(searchText);
       }
     },
-    [processGeocodeServerResults, handleNoDataAvailable, services],
+    [abortSignal, processGeocodeServerResults, handleNoDataAvailable, services],
   );
 
   useEffect(() => {
@@ -2195,11 +2216,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setMapLoading(false);
   }, [waterbodyLayer, cipSummary, waterbodyFeatures]);
 
-  // check for browser compatibility with map
-  if (!browserIsCompatibleWithArcGIS() && !communityMapLoadError) {
-    setCommunityMapLoadError(true);
-  }
-
   // jsx
   const mapContent = (
     <>
@@ -2224,7 +2240,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     </>
   );
 
-  if (communityMapLoadError) {
+  // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
+  if (!browserIsCompatibleWithArcGIS()) {
     return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
   }
 

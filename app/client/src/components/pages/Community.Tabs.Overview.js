@@ -10,6 +10,11 @@ import {
   AccordionItem,
 } from 'components/shared/AccordionMapHighlight';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
+import {
+  circleIcon,
+  diamondIcon,
+  squareIcon,
+} from 'components/shared/MapLegend';
 import Switch from 'components/shared/Switch';
 import WaterbodyList from 'components/shared/WaterbodyList';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
@@ -45,11 +50,28 @@ import {
   zeroAssessedWaterbodies,
 } from 'config/errorMessages';
 // styles
-import { toggleTableStyles } from 'styles/index.js';
+import { colors, toggleTableStyles } from 'styles/index.js';
 
 const containerStyles = css`
   @media (min-width: 960px) {
     padding: 1em;
+  }
+`;
+
+const legendItemsStyles = css`
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-around;
+
+  span {
+    display: flex;
+    align-items: center;
+    font-size: 0.875em;
+    margin-bottom: 1em;
+
+    @media (min-width: 560px) {
+      font-size: 1em;
+    }
   }
 `;
 
@@ -562,6 +584,17 @@ function MonitoringAndSensorsTab({
           concerns.
         </p>
 
+        <div css={legendItemsStyles}>
+          <span>
+            {circleIcon({ color: colors.lightPurple() })}
+            &nbsp;Past Water Conditions&nbsp;
+          </span>
+          <span>
+            {squareIcon({ color: '#fffe00' })}
+            &nbsp;Current Water Conditions&nbsp;
+          </span>
+        </div>
+
         <p>
           Water quality monitoring locations are shown on the map as both purple
           circles and yellow squares.
@@ -708,6 +741,9 @@ function MonitoringAndSensorsTab({
                 items={filteredMonitoringAndSensors}
                 renderer={({ index }) => {
                   const item = filteredMonitoringAndSensors[index];
+                  let icon = circleIcon({ color: colors.lightPurple() });
+                  if (item.monitoringType === 'Current Water Conditions')
+                    icon = squareIcon({ color: '#fffe00' });
 
                   const feature = {
                     geometry: {
@@ -720,6 +756,7 @@ function MonitoringAndSensorsTab({
 
                   return (
                     <AccordionItem
+                      icon={icon}
                       key={index}
                       index={index}
                       title={<strong>{item.locationName || 'Unknown'}</strong>}
@@ -788,6 +825,30 @@ function MonitoringAndSensorsTab({
   return null;
 }
 
+const complianceRank = {
+  Significant: 0,
+  'Significant/Category I Noncompliance': 0,
+  'Violation Identified': 1,
+  'No Violation': 2,
+  'No Violation Identified': 2,
+  Unknown: 3,
+};
+
+function sortDischarchers(discharchers, sortBy) {
+  if (sortBy === 'CWPStatus') {
+    return discharchers.sort((a, b) => {
+      return (
+        (complianceRank[a.CWPStatus] ?? complianceRank.Unknown) -
+        (complianceRank[b.CWPStatus] ?? complianceRank.Unknown)
+      );
+    });
+  } else {
+    return discharchers.sort((a, b) => {
+      return a[sortBy].localeCompare(b[sortBy]);
+    });
+  }
+}
+
 function PermittedDischargersTab({ totalPermittedDischargers }) {
   const navigate = useNavigate();
   const { permittedDischargers, dischargersLayer, watershed } = useContext(
@@ -810,11 +871,7 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
 
   /* prettier-ignore */
   const sortedPermittedDischargers = permittedDischargers.data.Results?.Facilities
-    ? permittedDischargers.data.Results.Facilities.sort((a, b) => {
-        return a[permittedDischargersSortedBy].localeCompare(
-          b[permittedDischargersSortedBy],
-        );
-      })
+    ? sortDischarchers(permittedDischargers.data.Results.Facilities, permittedDischargersSortedBy)
     : [];
 
   if (permittedDischargers.status === 'fetching') {
@@ -839,60 +896,84 @@ function PermittedDischargersTab({ totalPermittedDischargers }) {
         )}
 
         {totalPermittedDischargers > 0 && (
-          <AccordionList
-            title={
-              <>
-                There {totalPermittedDischargers === 1 ? 'is' : 'are'}{' '}
-                <strong>{totalPermittedDischargers}</strong> permitted{' '}
-                {totalPermittedDischargers === 1 ? 'discharger' : 'dischargers'}{' '}
-                in the <em>{watershed}</em> watershed.
-              </>
-            }
-            onSortChange={(sortBy) => {
-              setPermittedDischargersSortedBy(sortBy.value);
-            }}
-            sortOptions={[
-              {
-                value: 'CWPName',
-                label: 'Discharger Name',
-              },
-              {
-                value: 'SourceID',
-                label: 'NPDES ID',
-              },
-            ]}
-          >
-            {sortedPermittedDischargers.map((discharger, index) => {
-              const id = discharger.SourceID;
-              const name = discharger.CWPName;
-              const feature = {
-                geometry: {
-                  type: 'point',
-                  longitude: discharger.FacLong,
-                  latitude: discharger.FacLat,
+          <>
+            <div css={legendItemsStyles}>
+              <span>
+                {diamondIcon({ color: colors.orange })}
+                &nbsp;Permitted Dischargers&nbsp;
+              </span>
+            </div>
+            <AccordionList
+              title={
+                <>
+                  There {totalPermittedDischargers === 1 ? 'is' : 'are'}{' '}
+                  <strong>{totalPermittedDischargers}</strong> permitted{' '}
+                  {totalPermittedDischargers === 1
+                    ? 'discharger'
+                    : 'dischargers'}{' '}
+                  in the <em>{watershed}</em> watershed.
+                </>
+              }
+              onSortChange={(sortBy) => {
+                setPermittedDischargersSortedBy(sortBy.value);
+              }}
+              sortOptions={[
+                {
+                  value: 'CWPName',
+                  label: 'Discharger Name',
                 },
-                attributes: discharger,
-              };
-              return (
-                <AccordionItem
-                  key={index}
-                  title={<strong>{name || 'Unknown'}</strong>}
-                  subTitle={<>NPDES ID: {id}</>}
-                  feature={feature}
-                  idKey="CWPName"
-                >
-                  <div css={accordionContentStyles}>
-                    <WaterbodyInfo
-                      type="Permitted Discharger"
-                      feature={feature}
-                    />
+                {
+                  value: 'SourceID',
+                  label: 'NPDES ID',
+                },
+                {
+                  value: 'CWPStatus',
+                  label: 'Compliance Status',
+                },
+              ]}
+            >
+              {sortedPermittedDischargers.map((discharger, index) => {
+                const id = discharger.SourceID;
+                const name = discharger.CWPName;
+                const status = discharger.CWPStatus;
 
-                    <ViewOnMapButton feature={feature} />
-                  </div>
-                </AccordionItem>
-              );
-            })}
-          </AccordionList>
+                const feature = {
+                  geometry: {
+                    type: 'point',
+                    longitude: discharger.FacLong,
+                    latitude: discharger.FacLat,
+                  },
+                  attributes: discharger,
+                };
+
+                return (
+                  <AccordionItem
+                    icon={diamondIcon({ color: colors.orange })}
+                    key={index}
+                    title={<strong>{name || 'Unknown'}</strong>}
+                    subTitle={
+                      <>
+                        NPDES ID: {id}
+                        <br />
+                        Compliance Status: {status}
+                      </>
+                    }
+                    feature={feature}
+                    idKey="CWPName"
+                  >
+                    <div css={accordionContentStyles}>
+                      <WaterbodyInfo
+                        type="Permitted Discharger"
+                        feature={feature}
+                      />
+
+                      <ViewOnMapButton feature={feature} />
+                    </div>
+                  </AccordionItem>
+                );
+              })}
+            </AccordionList>
+          </>
         )}
       </>
     );

@@ -36,6 +36,10 @@ function formatNumber(number: number, digits: number = 0) {
   });
 }
 
+function isAbort(error: Error) {
+  return error.name === 'AbortError';
+}
+
 // Gets the file extension from a url or path. The backup parameter was added
 // because the state page documents section sometimes has the file extension
 // on the documentFileName and other times its on the documentURL attribute.
@@ -255,7 +259,7 @@ function browserIsCompatibleWithArcGIS() {
     start > -1
   ) {
     const iosVersion = window.Number(
-      agent.substr(start + 3, 3).replace('_', '.'),
+      agent.substring(start + 3, start + 6).replace('_', '.'),
     );
 
     if (isNaN(iosVersion)) {
@@ -436,6 +440,7 @@ export {
   escapeRegex,
   formatNumber,
   getExtensionFromPath,
+  isAbort,
   isHuc12,
   titleCase,
   titleCaseWithExceptions,

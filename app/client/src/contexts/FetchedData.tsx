@@ -5,136 +5,52 @@ import {
   useContext,
   useReducer,
 } from 'react';
+import type {
+  UsgsDailyAveragesData,
+  UsgsPrecipitationData,
+  UsgsStreamgagesData,
+} from 'types';
 
 type Props = {
   children: ReactNode;
 };
 
-type UsgsStreamgagesData = {
-  value: {
-    name: string,
-    properties: {
-      active: boolean,
-      agency: string,
-      agencyCode: string,
-      hydrologicUnit: string,
-      monitoringLocationName: string,
-      monitoringLocationNumber: string,
-      monitoringLocationType: string,
-      monitoringLocationUrl: string,
-    },
-    Locations: {
-      location: {
-        coordinates: [number, number],
-        type: 'Point',
-      },
-    }[],
-    Datastreams: {
-      description: string,
-      properties: {
-        ParameterCode: string,
-        WebDescription: string,
-      },
-      unitOfMeasurement: {
-        name: string,
-        symbol: string,
-      },
-      Observations: {
-        phenomenonTime: string, // ISO format datetime
-        result: string, // number
-      }[],
-    }[],
-  }[],
-};
-
-type UsgsPrecipitationData = {
-  declaredType: 'org.cuahsi.waterml.TimeSeriesResponseType',
-  globalScope: true,
-  name: 'ns1:timeSeriesResponseType',
-  nil: false,
-  scope: 'javax.xml.bind.JAXBElement$GlobalScope',
-  typeSubstituted: false,
-  value: {
-    queryInfo: Object,
-    timeSeries: {
-      name: string,
-      sourceInfo: {
-        siteName: string,
-        siteCode: [
-          {
-            agencyCode: string,
-            network: string,
-            value: string, // number
-          },
-        ],
-        timeZoneInfo: Object,
-        geoLocation: Object,
-        note: [],
-        siteType: [],
-        siteProperty: Object[],
-      },
-      values: {
-        censorCode: [],
-        method: [Object],
-        offset: [],
-        qualifier: [Object],
-        qualityControlLevel: [],
-        sample: [],
-        source: [],
-        value: [
-          {
-            dateTime: string, // ISO format datetime
-            qualifiers: ['P'],
-            value: string, // number
-          },
-        ],
-      }[],
-      variable: Object,
-    }[],
-  },
-};
-
-type UsgsDailyAveragesData = {
-  allParamsMean: Object,
-  precipitationSum: Object,
-};
-
 type State = {
   usgsStreamgages:
-    | { status: 'idle', data: {} }
-    | { status: 'pending', data: {} }
-    | { status: 'success', data: UsgsStreamgagesData }
-    | { status: 'failure', data: {} },
+    | { status: 'idle'; data: {} }
+    | { status: 'pending'; data: {} }
+    | { status: 'success'; data: UsgsStreamgagesData }
+    | { status: 'failure'; data: {} };
   usgsPrecipitation:
-    | { status: 'idle', data: {} }
-    | { status: 'pending', data: {} }
-    | { status: 'success', data: UsgsPrecipitationData }
-    | { status: 'failure', data: {} },
+    | { status: 'idle'; data: {} }
+    | { status: 'pending'; data: {} }
+    | { status: 'success'; data: UsgsPrecipitationData }
+    | { status: 'failure'; data: {} };
   usgsDailyAverages:
-    | { status: 'idle', data: {} }
-    | { status: 'pending', data: {} }
-    | { status: 'success', data: UsgsDailyAveragesData }
-    | { status: 'failure', data: {} },
+    | { status: 'idle'; data: {} }
+    | { status: 'pending'; data: {} }
+    | { status: 'success'; data: UsgsDailyAveragesData }
+    | { status: 'failure'; data: {} };
 };
 
 export type Action =
   | { type: 'RESET_FETCHED_DATA' }
   | { type: 'USGS_STREAMGAGES/FETCH_REQUEST' }
   | {
-      type: 'USGS_STREAMGAGES/FETCH_SUCCESS',
-      payload: UsgsStreamgagesData,
+      type: 'USGS_STREAMGAGES/FETCH_SUCCESS';
+      payload: UsgsStreamgagesData;
     }
   | { type: 'USGS_STREAMGAGES/FETCH_FAILURE' }
   | { type: 'USGS_PRECIPITATION/FETCH_REQUEST' }
   | {
-      type: 'USGS_PRECIPITATION/FETCH_SUCCESS',
-      payload: UsgsPrecipitationData,
+      type: 'USGS_PRECIPITATION/FETCH_SUCCESS';
+      payload: UsgsPrecipitationData;
     }
   | { type: 'USGS_PRECIPITATION/FETCH_FAILURE' }
   | { type: 'USGS_DAILY_AVERAGES/FETCH_REQUEST' }
   | {
-      type: 'USGS_DAILY_AVERAGES/FETCH_SUCCESS',
-      payload: UsgsDailyAveragesData,
+      type: 'USGS_DAILY_AVERAGES/FETCH_SUCCESS';
+      payload: UsgsDailyAveragesData;
     }
   | { type: 'USGS_DAILY_AVERAGES/FETCH_FAILURE' };
 

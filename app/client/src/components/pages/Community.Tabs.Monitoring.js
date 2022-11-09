@@ -12,7 +12,7 @@ import {
 import { tabsStyles } from 'components/shared/ContentTabs';
 import DateSlider from 'components/shared/DateSlider';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
-import HelpTooltip from 'components/shared/HelpTooltip';
+import { HelpTooltip } from 'components/shared/HelpTooltip';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import {
   keyMetricsStyles,
@@ -20,6 +20,7 @@ import {
   keyMetricNumberStyles,
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
+import { circleIcon, squareIcon } from 'components/shared/MapLegend';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
@@ -38,6 +39,7 @@ import { characteristicGroupMappings } from 'config/characteristicGroupMappings'
 import { monitoringError } from 'config/errorMessages';
 // styles
 import {
+  colors,
   disclaimerStyles,
   iconStyles,
   toggleTableStyles,
@@ -57,6 +59,23 @@ const centeredTextStyles = css`
 const containerStyles = css`
   @media (min-width: 960px) {
     padding: 1em;
+  }
+`;
+
+const legendItemsStyles = css`
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-around;
+  margin-bottom: 1em;
+
+  span {
+    display: flex;
+    align-items: center;
+    font-size: 0.875em;
+
+    @media (min-width: 560px) {
+      font-size: 1em;
+    }
   }
 `;
 
@@ -222,8 +241,6 @@ function filterStation(station, timeframe) {
   const result = {
     ...station,
     stationTotalMeasurements: 0,
-    // TODO: investigate discrepancy between periodOfRecord
-    // sample counts and summary counts
     stationTotalsByGroup: {},
     stationTotalsByLabel: {},
     timeframe: [...timeframe],
@@ -476,6 +493,13 @@ function Monitoring() {
                 deployed at each location.
               </p>
 
+              <div css={legendItemsStyles}>
+                <span>
+                  {squareIcon({ color: '#fffe00' })}
+                  &nbsp;Current Water Conditions&nbsp;
+                </span>
+              </div>
+
               <SensorsTab
                 usgsStreamgagesDisplayed={usgsStreamgagesDisplayed}
                 setUsgsStreamgagesDisplayed={setUsgsStreamgagesDisplayed}
@@ -490,6 +514,13 @@ function Monitoring() {
                 week, to multiple decades old, or anywhere in between, depending
                 on the location.
               </p>
+
+              <div css={legendItemsStyles}>
+                <span>
+                  {circleIcon({ color: colors.lightPurple() })}
+                  &nbsp;Past Water Conditions&nbsp;
+                </span>
+              </div>
 
               <MonitoringTab
                 monitoringDisplayed={monitoringDisplayed}
@@ -580,6 +611,7 @@ function SensorsTab() {
 
           return (
             <AccordionItem
+              icon={squareIcon({ color: '#fffe00' })}
               key={index}
               title={<strong>{item.locationName || 'Unknown'}</strong>}
               subTitle={
@@ -1020,7 +1052,15 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                       &nbsp;&nbsp;
                       {displayedLocationsCount > 0 ? (
                         <a href={`${downloadUrl}&mimeType=xlsx`}>
-                          <i className="fas fa-file-excel" aria-hidden="true" />
+                          <HelpTooltip
+                            label="Download XLSX"
+                            description="Download selected data as an XLSX file."
+                          >
+                            <i
+                              className="fas fa-file-excel"
+                              aria-hidden="true"
+                            />
+                          </HelpTooltip>
                         </a>
                       ) : (
                         <i
@@ -1032,7 +1072,12 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                       &nbsp;&nbsp;
                       {displayedLocationsCount > 0 ? (
                         <a href={`${downloadUrl}&mimeType=csv`}>
-                          <i className="fas fa-file-csv" aria-hidden="true" />
+                          <HelpTooltip
+                            label="Download CSV"
+                            description="Download selected data as a CSV file."
+                          >
+                            <i className="fas fa-file-csv" aria-hidden="true" />
+                          </HelpTooltip>
                         </a>
                       ) : (
                         <i
@@ -1112,6 +1157,7 @@ function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
 
                   return (
                     <AccordionItem
+                      icon={circleIcon({ color: colors.lightPurple() })}
                       key={index}
                       index={index}
                       title={<strong>{item.locationName || 'Unknown'}</strong>}

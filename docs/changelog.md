@@ -1,6 +1,45 @@
 
 # Change Log
 
+## 2.4.0 (November 2022)
+
+### Added
+
+- Added a Tribe page, which includes a water quality data section similar to the "State Water Quality Overview" section of the State page, a map displaying tribal boundaries, waterbodies and monitoring locations specific to each tribe, and a list view of those waterbodies and monitoring locations.
+
+- Added a variation of the Upstream Watershed widget that takes user input instead of using the current location.
+
+- Added a Surrounding Monitoring Locations widget that enables users to view Past Water Conditions locations outside the currently focused boundaries.
+
+- Added ability to sort permitted dischargers by compliance status.
+
+### Changed
+
+- Updated map symbol highlights to have a degree of transparency.
+
+- Updated to version 3 of the Protected Areas Database (PADUS).
+
+- Updated the Layer List widget to include the NLCD Land Cover layer, the Watershed Boundaries layer, and the Search Icon layer. The monitoring locations layers are also now included in the list on every page.
+
+- Updated the Add Data Widget to support WFS layers.
+
+- Updated the State and Tribe pages to display an error message for invalid URL path segments.
+
+- Updated the Identified Issues tab of the Community page to link impairment labels to the glossary.
+
+- Updated the list views on the Community page to include map symbols next to each item.
+
+- Improved accessibility by converting tables used exclusively for layout to CSS Grid.
+
+- Fixed a bug on the state page where an invalid URL included in a service response caused the page to crash.
+
+- Fixed a bug where certain items were being improperly capitalized on the Monitoring Report page.
+
+- Fixed a bug where the alert message component crashes the app if "all" is not included in the "messages.json" file.
+
+- Fixed a bug where an infinite loading spinner is displayed for American Samoa, which has no GIS data.
+
+
 ## 2.3.0 (September 2022)
 
 ### Added

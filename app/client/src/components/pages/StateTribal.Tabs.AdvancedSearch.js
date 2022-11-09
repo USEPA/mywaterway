@@ -34,8 +34,12 @@ import {
 } from 'contexts/LookupFiles';
 // utilities
 import { getEnvironmentString, fetchCheck } from 'utils/fetchUtils';
-import { chunkArray } from 'utils/utils';
-import { useWaterbodyFeaturesState, useWaterbodyOnMap } from 'utils/hooks';
+import { chunkArray, isAbort } from 'utils/utils';
+import {
+  useAbortSignal,
+  useWaterbodyFeaturesState,
+  useWaterbodyOnMap,
+} from 'utils/hooks';
 // data
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
 // styles
@@ -53,7 +57,7 @@ const defaultDisplayOption = {
 };
 
 // Gets the maxRecordCount of the layer at the provided url
-function retrieveMaxRecordCount(url) {
+function retrieveMaxRecordCount(url, signal) {
   return new Promise((resolve, reject) => {
     // add an environment specific parameter to workaround an ESRI CORS bug
     const envParam = getEnvironmentString()
@@ -61,7 +65,7 @@ function retrieveMaxRecordCount(url) {
       : '';
 
     // get the max record count and then get the data
-    fetchCheck(`${url}?f=json${envParam}`)
+    fetchCheck(`${url}?f=json${envParam}`, signal)
       .then((res) => {
         resolve(res.maxRecordCount);
       })
@@ -85,6 +89,8 @@ function retrieveFeatures({
     query
       .executeForIds(url, queryParams)
       .then((objectIds) => {
+        // this block sometimes still executes when the request is aborted
+        if (queryParams.signal?.aborted) reject({ name: 'AbortError' });
         // set the features value of the data to an empty array if no objectIds
         // were returned.
         if (!objectIds) {
@@ -226,6 +232,7 @@ const screenLabelWithPaddingStyles = css`
 `;
 
 function AdvancedSearch() {
+  const abortSignal = useAbortSignal();
   const services = useServicesContext();
 
   const {
@@ -303,17 +310,19 @@ function AdvancedSearch() {
   useEffect(() => {
     if (watershedsLayerMaxRecordCount || watershedMrcError) return;
 
-    retrieveMaxRecordCount(services.data.wbd)
+    retrieveMaxRecordCount(services.data.wbd, abortSignal)
       .then((maxRecordCount) => {
         setWatershedsLayerMaxRecordCount(maxRecordCount);
       })
       .catch((err) => {
+        if (isAbort(err)) return;
         console.error(err);
         setSearchLoading(false);
         setServiceError(true);
         setWatershedMrcError(true);
       });
   }, [
+    abortSignal,
     watershedsLayerMaxRecordCount,
     setWatershedsLayerMaxRecordCount,
     watershedMrcError,
@@ -328,6 +337,7 @@ function AdvancedSearch() {
     const queryParams = {
       where: `UPPER(STATES) LIKE '%${activeState.value}%' AND STATES <> 'CAN' AND STATES <> 'MEX'`,
       outFields: ['huc12', 'name'],
+      signal: abortSignal,
     };
 
     retrieveFeatures({
@@ -348,29 +358,32 @@ function AdvancedSearch() {
         setWatersheds(hucs);
       })
       .catch((err) => {
+        if (isAbort(err)) return;
         console.error(err);
         setSearchLoading(false);
         setServiceError(true);
         setWatersheds([]);
       });
-  }, [activeState, watershedsLayerMaxRecordCount, services]);
+  }, [abortSignal, activeState, watershedsLayerMaxRecordCount, services]);
 
   // Get the maxRecordCount of the summary (waterbody) layer
   const [summaryMrcError, setSummaryMrcError] = useState(false);
   useEffect(() => {
     if (summaryLayerMaxRecordCount || summaryMrcError) return;
 
-    retrieveMaxRecordCount(services.data.waterbodyService.summary)
+    retrieveMaxRecordCount(services.data.waterbodyService.summary, abortSignal)
       .then((maxRecordCount) => {
         setSummaryLayerMaxRecordCount(maxRecordCount);
       })
       .catch((err) => {
+        if (isAbort(err)) return;
         console.error(err);
         setSearchLoading(false);
         setServiceError(true);
         setSummaryMrcError(true);
       });
   }, [
+    abortSignal,
     summaryLayerMaxRecordCount,
     setSummaryLayerMaxRecordCount,
     summaryMrcError,
@@ -398,6 +411,7 @@ function AdvancedSearch() {
           'orgtype',
           'reportingcycle',
         ],
+        signal: abortSignal,
       };
 
       retrieveFeatures({
@@ -430,6 +444,7 @@ function AdvancedSearch() {
           });
         })
         .catch((err) => {
+          if (isAbort(err)) return;
           console.error(err);
           setSearchLoading(false);
           setServiceError(true);
@@ -444,6 +459,7 @@ function AdvancedSearch() {
         returnGeometry: false,
         where: currentFilter,
         outFields: ['*'],
+        signal: abortSignal,
       };
 
       retrieveFeatures({
@@ -453,6 +469,7 @@ function AdvancedSearch() {
       })
         .then((data) => setWaterbodyData(data))
         .catch((err) => {
+          if (isAbort(err)) return;
           console.error(err);
           setSearchLoading(false);
           setServiceError(true);
@@ -460,6 +477,7 @@ function AdvancedSearch() {
         });
     }
   }, [
+    abortSignal,
     setWaterbodyData,
     currentFilter,
     summaryLayerMaxRecordCount,
@@ -583,12 +601,7 @@ function AdvancedSearch() {
     setNewDisplayOptions([defaultDisplayOption]);
     setDisplayOptions([defaultDisplayOption]);
     setSelectedDisplayOption(defaultDisplayOption);
-  }, [
-    activeState,
-    setWaterbodyData,
-    setCurrentReportingCycle,
-    setStateAndOrganization,
-  ]);
+  }, [activeState, setStateAndOrganization, setWaterbodyData]);
 
   const executeFilter = () => {
     setSearchLoading(true);
@@ -1076,7 +1089,7 @@ function AdvancedSearch() {
   if (serviceError) {
     return (
       <div css={errorBoxStyles}>
-        <p>{stateGeneralError}</p>
+        <p>{stateGeneralError()}</p>
       </div>
     );
   }

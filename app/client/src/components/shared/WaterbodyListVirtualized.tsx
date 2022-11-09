@@ -160,6 +160,11 @@ function WaterbodyListVirtualized({ waterbodies, fieldName = null }: Props) {
             const auId = graphic.attributes.assessmentunitidentifier;
             const name = graphic.attributes.assessmentunitname;
 
+            const viewOnMapDisabled = 
+              graphic.attributes.area_count === 0 &&
+              graphic.attributes.line_count === 0 &&
+              graphic.attributes.point_count === 0;
+
             return (
               <AccordionItem
                 key={symbolType + orgId + auId}
@@ -187,7 +192,7 @@ function WaterbodyListVirtualized({ waterbodies, fieldName = null }: Props) {
                     type="Waterbody State Overview"
                     feature={graphic}
                   />
-                  <ViewOnMapButton feature={graphic} />
+                  <ViewOnMapButton feature={graphic} disabled={viewOnMapDisabled} />
                 </div>
               </AccordionItem>
             );
