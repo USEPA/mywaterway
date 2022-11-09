@@ -1692,6 +1692,7 @@ function ShowSurroundingMonitoringLocations({
 
   const [lastExtent, setLastExtent] = useState<SimpleExtent | null>(null);
   const [lastVisible, setLastVisible] = useState(false);
+  const abortController = useRef(new AbortController());
 
   // fetch the surrounding monitoring locations
   useEffect(() => {
@@ -1699,8 +1700,6 @@ function ShowSurroundingMonitoringLocations({
     if (!layerVisible || !viewReady || !viewStationary) return;
     if (!surroundingMonitoringLocationsLayer) return;
     if (getDisabled()) return;
-
-    let abortController = new AbortController();
 
     const newExtent: SimpleExtent = {
       xmin: mapView.extent.xmin,
@@ -1710,13 +1709,13 @@ function ShowSurroundingMonitoringLocations({
     };
     if (JSON.stringify(newExtent) === JSON.stringify(lastExtent)) return;
     setLastExtent(newExtent);
-    abortController.abort();
+    abortController.current.abort();
 
     setSurroundingMonitoringLocations({
       status: 'fetching',
       data: null,
     });
-    abortController = new AbortController();
+    abortController.current = new AbortController();
 
     // convert the extent into northwest and southeast corner points
     const northwestWM = new Point({
@@ -1747,7 +1746,7 @@ function ShowSurroundingMonitoringLocations({
     const url =
       services.data.waterQualityPortal.monitoringLocation +
       `search?mimeType=geojson&zip=no&bBox=${west},${south},${east},${north}`;
-    fetchCheck(url, abortController.signal)
+    fetchCheck(url, abortController.current.signal)
       .then((res: MonitoringLocationsData) => {
         const idsToFilterOut: string[] = [];
         const monitoringLocations = getMonitoringLocations();
@@ -1794,6 +1793,7 @@ function ShowSurroundingMonitoringLocations({
         });
       });
   }, [
+    abortController,
     getDisabled,
     getMonitoringLocations,
     lastExtent,
