@@ -694,6 +694,10 @@ export function getPopupTitle(attributes: PopupAttributes | null) {
     title = '';
   }
 
+  // CyAN waterbody
+  else if ('GNIS_NAME' in attributes) {
+    title = attributes.GNIS_NAME;
+  }
   return title;
 }
 
@@ -804,6 +808,11 @@ export function getPopupContent({
     // EJSCREEN
     else if ('T_OVR64PCT' in attributes) {
       type = 'Demographic Indicators';
+    }
+
+    // CyAN waterbody
+    else if ('GNIS_NAME' in attributes) {
+      type = 'CyAN Waterbodies';
     }
   }
 

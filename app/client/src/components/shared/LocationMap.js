@@ -12,6 +12,8 @@ import { render } from 'react-dom';
 import { css } from 'styled-components/macro';
 import StickyBox from 'react-sticky-box';
 import { useNavigate } from 'react-router-dom';
+import FeatureEffect from '@arcgis/core/layers/support/FeatureEffect';
+import FeatureFilter from '@arcgis/core/layers/support/FeatureFilter';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import FeatureReductionCluster from '@arcgis/core/layers/support/FeatureReductionCluster';
 import Graphic from '@arcgis/core/Graphic';
@@ -169,6 +171,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setLastSearchText,
     setCurrentExtent,
     boundariesLayer,
+    cyanLayer,
     searchIconLayer,
     waterbodyLayer,
     countyBoundaries,
@@ -792,10 +795,17 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setNonprofitsLayer(nonprofitsLayer);
 
+    const sharedLayers = getSharedLayers();
+    const cyanIndex = sharedLayers.findIndex(
+      (layer) => layer.id === 'cyanWaterbodyLayer',
+    );
+    const cyanLayer = cyanIndex > -1 ? sharedLayers.splice(cyanIndex, 1) : [];
+
     setLayers([
-      ...getSharedLayers(),
+      ...sharedLayers,
       providersLayer,
       boundariesLayer,
+      ...cyanLayer,
       upstreamLayer,
       monitoringLocationsLayer,
       usgsStreamgagesLayer,
@@ -2065,6 +2075,14 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     boundariesLayer.graphics.removeAll();
     boundariesLayer.graphics.add(graphic);
 
+    cyanLayer.featureEffect = new FeatureEffect({
+      filter: new FeatureFilter({
+        geometry: graphic.geometry,
+        spatialRelationship: 'intersects',
+      }),
+      excludedEffect: 'opacity(30%)',
+    });
+
     const currentViewpoint = new Viewpoint({
       targetGeometry: graphic.geometry.extent,
     });
@@ -2083,6 +2101,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     mapView,
     hucBoundaries,
     boundariesLayer,
+    cyanLayer,
     setCurrentExtent,
     setAtHucBoundaries,
     homeWidget,

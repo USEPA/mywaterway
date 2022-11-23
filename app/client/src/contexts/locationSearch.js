@@ -154,6 +154,7 @@ type State = {
   protectedAreasLayer: Object,
   providersLayer: Object,
   boundariesLayer: Object,
+  cyanLayer: Object,
   searchIconLayer: Object,
   actionsLayer: Object,
   selWaterBodyLayer: Object,
@@ -241,6 +242,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     protectedAreasHighlightLayer: '',
     providersLayer: '',
     boundariesLayer: '',
+    cyanLayer: '',
     searchIconLayer: '',
     actionsLayer: '',
     selWaterBodyLayer: '',
@@ -430,6 +432,9 @@ export class LocationSearchProvider extends Component<Props, State> {
     setBoundariesLayer: (boundariesLayer) => {
       this.setState({ boundariesLayer });
     },
+    setCyanLayer: (cyanLayer) => {
+      this.setState({ cyanLayer });
+    },
     setSearchIconLayer: (searchIconLayer) => {
       this.setState({ searchIconLayer });
     },
@@ -566,6 +571,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         areasLayer,
         providersLayer,
         boundariesLayer,
+        cyanLayer,
         searchIconLayer,
         monitoringLocationsLayer,
         usgsStreamgagesLayer,
@@ -623,6 +629,7 @@ export class LocationSearchProvider extends Component<Props, State> {
       // remove all map content defined in this file
       if (providersLayer) providersLayer.graphics.removeAll();
       if (boundariesLayer) boundariesLayer.graphics.removeAll();
+      if (cyanLayer) cyanLayer.featureEffect = null;
       if (searchIconLayer) {
         searchIconLayer.visible = false;
         searchIconLayer.graphics.removeAll();

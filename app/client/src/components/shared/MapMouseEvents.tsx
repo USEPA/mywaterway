@@ -447,14 +447,22 @@ function MapMouseEvents({ view }: Props) {
 
   // restores cluster settings on change of location
   useEffect(() => {
-    if (surroundingMonitoringLocationsLayer && !surroundingMonitoringLocationsLayer.featureReduction) {
-      surroundingMonitoringLocationsLayer.featureReduction = monitoringClusterSettings;
+    if (
+      surroundingMonitoringLocationsLayer &&
+      !surroundingMonitoringLocationsLayer.featureReduction
+    ) {
+      surroundingMonitoringLocationsLayer.featureReduction =
+        monitoringClusterSettings;
     }
     if (!locationCount || locationCount <= 20) return;
     if (!monitoringLocationsLayer || monitoringLocationsLayer.featureReduction)
       return;
     monitoringLocationsLayer.featureReduction = monitoringClusterSettings;
-  }, [locationCount, monitoringLocationsLayer, surroundingMonitoringLocationsLayer]);
+  }, [
+    locationCount,
+    monitoringLocationsLayer,
+    surroundingMonitoringLocationsLayer,
+  ]);
 
   // sets an event listener on the home widget, and
   // restores cluster settings if clicked

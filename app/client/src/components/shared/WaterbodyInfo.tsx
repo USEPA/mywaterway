@@ -895,6 +895,23 @@ function WaterbodyInfo({
     );
   };
 
+  // jsx
+  const cyanContent = () => (
+    <>
+      {labelValue(
+        'Area',
+        attributes.AREASQKM
+          ? `${formatNumber(attributes.AREASQKM)} sq. km.`
+          : '',
+      )}
+
+      {labelValue(
+        'Elevation',
+        attributes.ELEVATION ? `${formatNumber(attributes.ELEVATION)} m.` : '',
+      )}
+    </>
+  );
+
   if (!attributes) return null;
 
   let content = null;
@@ -903,7 +920,9 @@ function WaterbodyInfo({
   if (type === 'Protection Plans') content = projectContent();
   if (type === 'Permitted Discharger') content = dischargerContent;
   if (type === 'Current Water Conditions') {
-    content = <UsgsStreamgagesContent feature={feature} services={services ?? null} />;
+    content = (
+      <UsgsStreamgagesContent feature={feature} services={services ?? null} />
+    );
   }
   if (type === 'Past Water Conditions') {
     content = (
@@ -927,6 +946,7 @@ function WaterbodyInfo({
   if (type === 'Congressional District') {
     content = congressionalDistrictContent();
   }
+  if (type === 'CyAN Waterbodies') content = cyanContent();
 
   return content;
 }
@@ -1543,7 +1563,10 @@ type UsgsStreamgagesContentProps = {
   services: ServicesState | null;
 };
 
-function UsgsStreamgagesContent({ feature, services }: UsgsStreamgagesContentProps) {
+function UsgsStreamgagesContent({
+  feature,
+  services,
+}: UsgsStreamgagesContentProps) {
   const {
     streamgageMeasurements,
     orgName,
@@ -1608,10 +1631,8 @@ function UsgsStreamgagesContent({ feature, services }: UsgsStreamgagesContentPro
     ...sortedSecondaryMeasurements,
   ];
 
-  const alertUrl = 
-    services?.status === 'success'
-      ? services.data.usgsWaterAlert
-      : null;
+  const alertUrl =
+    services?.status === 'success' ? services.data.usgsWaterAlert : null;
 
   return (
     <>
@@ -1709,12 +1730,12 @@ function UsgsStreamgagesContent({ feature, services }: UsgsStreamgagesContentPro
       </p>
 
       <p css={paragraphStyles}>
-        <a rel="noopener noreferrer" target="_blank" href={alertUrl ?? undefined}>
-          <i
-            css={iconStyles}
-            className="fas fa-bell"
-            aria-hidden="true"
-          />
+        <a
+          rel="noopener noreferrer"
+          target="_blank"
+          href={alertUrl ?? undefined}
+        >
+          <i css={iconStyles} className="fas fa-bell" aria-hidden="true" />
           Sign Up for Alerts
         </a>
         &nbsp;&nbsp;

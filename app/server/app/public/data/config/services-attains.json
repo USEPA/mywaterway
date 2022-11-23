@@ -54,6 +54,7 @@
   "ejscreen": "https://geopub.epa.gov/arcgis/rest/services/ejscreen/Demographic_Indicators_2018_Public/MapServer/",
   "sfdw": "https://ordspub.epa.gov/ords/sfdw/",
   "landCover": "https://www.mrlc.gov/geoserver/mrlc_display/NLCD_2019_Land_Cover_L48/wms?service=WMS&request=GetCapabilities",
+  "cyan": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/waterbodies_9/FeatureServer/0",
   "googleAnalyticsMapping": [
     {
       "urlLookup": "attains.serviceUrl",
@@ -344,6 +345,11 @@
       "urlLookup": "usgsWaterAlert",
       "wildcardUrl": "{urlLookup}*",
       "name": "USGS Water Alert"
+    },
+    {
+      "urlLookup": "cyan",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "CyAN - waterbodies"
     }
   ]
 }

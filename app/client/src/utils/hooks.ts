@@ -1016,6 +1016,7 @@ function useSharedLayers() {
   const services = useServicesContext();
   const {
     setAllWaterbodiesLayer,
+    setCyanLayer,
     setProtectedAreasLayer,
     setProtectedAreasHighlightLayer,
     setSurroundingMonitoringLocationsLayer,
@@ -1739,6 +1740,38 @@ function useSharedLayers() {
     });
   }
 
+  function getCyanLayer() {
+    const cyanLayer = new FeatureLayer({
+      id: 'cyanWaterbodyLayer',
+      legendEnabled: true,
+      listMode: 'show',
+      outFields: ['*'],
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields: ['*'],
+      },
+      renderer: new SimpleRenderer({
+        symbol: new SimpleFillSymbol({
+          style: 'solid',
+          color: new Color([108, 149, 206, 0.8]),
+          outline: {
+            color: [0, 0, 0, 1],
+            width: 0.75,
+            style: 'solid',
+          },
+        }),
+      }),
+      url: services.data.cyan,
+      title: 'CyAN Waterbodies',
+      visible: false,
+    });
+
+    setCyanLayer(cyanLayer);
+
+    return cyanLayer;
+  }
+
   // Gets the settings for the WSIO Health Index layer.
   return function getSharedLayers() {
     const wsioHealthIndexLayer = getWsioLayer();
@@ -1770,6 +1803,8 @@ function useSharedLayers() {
 
     const landCover = getLandCoverLayer();
 
+    const cyanLayer = getCyanLayer();
+
     return [
       ejscreen,
       wsioHealthIndexLayer,
@@ -1783,6 +1818,7 @@ function useSharedLayers() {
       mappedWaterLayer,
       countyLayer,
       watershedsLayer,
+      cyanLayer,
       surroundingMonitoringLocationsLayer,
       allWaterbodiesLayer,
     ];

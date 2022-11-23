@@ -186,13 +186,14 @@ const zoomDependentLayers = [
 // used to order the layer legends, so the ordering is consistent no matter
 // which layer legends are visible.
 const orderedLayers = [
-  'waterbodyLayer',
-  'allWaterbodiesLayer',
   'monitoringLocationsLayer',
   'surroundingMonitoringLocationsLayer',
   'usgsStreamgagesLayer',
-  'issuesLayer',
   'dischargersLayer',
+  'cyanWaterbodyLayer',
+  'waterbodyLayer',
+  'allWaterbodiesLayer',
+  'issuesLayer',
   'nonprofitsLayer',
   'providersLayer',
   'upstreamWatershed',
@@ -1684,11 +1685,7 @@ function ShowSurroundingMonitoringLocations({
     );
 
     setWatcherInitialized(true);
-  }, [
-    mapView,
-    surroundingMonitoringLocationsLayer,
-    watcherInitialized,
-  ]);
+  }, [mapView, surroundingMonitoringLocationsLayer, watcherInitialized]);
 
   const [lastExtent, setLastExtent] = useState<SimpleExtent | null>(null);
   const [lastVisible, setLastVisible] = useState(false);
@@ -1809,7 +1806,7 @@ function ShowSurroundingMonitoringLocations({
 
   // hide the surroundingMonitoringLocationsLayer when zoomed out too much
   useEffect(() => {
-    if(!surroundingMonitoringLocationsLayer || !watcherInitialized) return;
+    if (!surroundingMonitoringLocationsLayer || !watcherInitialized) return;
 
     let newDisabledValue = false;
     if (zoomLevel > 8) {
@@ -1822,7 +1819,13 @@ function ShowSurroundingMonitoringLocations({
     }
 
     setDisabled(newDisabledValue);
-  }, [lastVisible, setDisabled, surroundingMonitoringLocationsLayer, watcherInitialized, zoomLevel]);
+  }, [
+    lastVisible,
+    setDisabled,
+    surroundingMonitoringLocationsLayer,
+    watcherInitialized,
+    zoomLevel,
+  ]);
 
   const widgetDisabled = getDisabled();
 
