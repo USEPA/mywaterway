@@ -640,6 +640,8 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       layer = monitoringLocationsLayer;
     } else if (attributes.monitoringType === 'Current Water Conditions') {
       layer = usgsStreamgagesLayer;
+    } else if (attributes.monitoringType === 'CyAN') {
+      layer = mapView.map.findLayerById('cyanWaterbodies');
     } else if (attributes.type === 'nonprofit') {
       layer = nonprofitsLayer;
     } else if (attributes.xwalk_huc12) {
@@ -751,6 +753,11 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         const siteId = graphic?.attributes?.siteId || '';
         key = `${orgId} - ${siteId}`;
         where = `orgId = '${orgId}' And siteId = '${siteId}'`;
+      }
+
+      if (layer.id === 'cyanWaterbodies') {
+        key = graphic.attributes.id;
+        where = `PERMANENT_ = '${key}'`;
       }
 
       if (cachedHighlights[key]) {
@@ -1016,7 +1023,6 @@ function useSharedLayers() {
   const services = useServicesContext();
   const {
     setAllWaterbodiesLayer,
-    setCyanLayer,
     setProtectedAreasLayer,
     setProtectedAreasHighlightLayer,
     setSurroundingMonitoringLocationsLayer,
@@ -1740,38 +1746,6 @@ function useSharedLayers() {
     });
   }
 
-  function getCyanLayer() {
-    const cyanLayer = new FeatureLayer({
-      id: 'cyanWaterbodyLayer',
-      legendEnabled: true,
-      listMode: 'show',
-      outFields: ['*'],
-      popupTemplate: {
-        title: getTitle,
-        content: getTemplate,
-        outFields: ['*'],
-      },
-      renderer: new SimpleRenderer({
-        symbol: new SimpleFillSymbol({
-          style: 'solid',
-          color: new Color([108, 149, 206, 0.8]),
-          outline: {
-            color: [0, 0, 0, 1],
-            width: 0.75,
-            style: 'solid',
-          },
-        }),
-      }),
-      url: services.data.cyan,
-      title: 'CyAN Waterbodies',
-      visible: false,
-    });
-
-    setCyanLayer(cyanLayer);
-
-    return cyanLayer;
-  }
-
   // Gets the settings for the WSIO Health Index layer.
   return function getSharedLayers() {
     const wsioHealthIndexLayer = getWsioLayer();
@@ -1803,8 +1777,6 @@ function useSharedLayers() {
 
     const landCover = getLandCoverLayer();
 
-    const cyanLayer = getCyanLayer();
-
     return [
       ejscreen,
       wsioHealthIndexLayer,
@@ -1818,7 +1790,6 @@ function useSharedLayers() {
       mappedWaterLayer,
       countyLayer,
       watershedsLayer,
-      cyanLayer,
       surroundingMonitoringLocationsLayer,
       allWaterbodiesLayer,
     ];
@@ -1989,6 +1960,29 @@ function useStreamgageData(
   }, [usgsStreamgages, usgsPrecipitation, usgsDailyAverages]);
 
   return normalizedStreamgages;
+}
+
+function useStreamgageFeatures(
+  usgsStreamgages: FetchState<UsgsStreamgagesData>,
+  usgsPrecipitation: FetchState<UsgsPrecipitationData>,
+  usgsDailyAverages: FetchState<UsgsDailyAveragesData>,
+) {
+  const streamgageData = useStreamgageData(
+    usgsStreamgages,
+    usgsPrecipitation,
+    usgsDailyAverages,
+  );
+
+  return streamgageData.map((streamgage) => {
+    return {
+      geometry: {
+        type: 'point',
+        longitude: streamgage.locationLongitude,
+        latitude: streamgage.locationLatitude,
+      },
+      attributes: streamgage,
+    };
+  });
 }
 
 // Custom hook that is used for handling key presses. This can be used for
@@ -2171,6 +2165,7 @@ export {
   useOnScreen,
   useSharedLayers,
   useStreamgageData,
+  useStreamgageFeatures,
   useWaterbodyFeatures,
   useWaterbodyFeaturesState,
   useWaterbodyOnMap,

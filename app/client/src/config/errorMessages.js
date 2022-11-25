@@ -8,7 +8,7 @@ export const echoError =
 
 // labs.waterdata.usgs.gov - Monitoring Location Service
 export const streamgagesError =
-  'Current water conditions information is temporarily unavailable, please try again later.';
+  'USGS streamgage information is temporarily unavailable, please try again later.';
 
 // waterqualitydata.us - Monitoring Location Service
 export const monitoringError =

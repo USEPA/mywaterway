@@ -698,6 +698,7 @@ export function getPopupTitle(attributes: PopupAttributes | null) {
   else if ('GNIS_NAME' in attributes) {
     title = attributes.GNIS_NAME;
   }
+
   return title;
 }
 

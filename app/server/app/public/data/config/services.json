@@ -54,7 +54,10 @@
   "ejscreen": "https://geopub.epa.gov/arcgis/rest/services/ejscreen/Demographic_Indicators_2018_Public/MapServer/",
   "sfdw": "https://ordspub.epa.gov/ords/sfdw/",
   "landCover": "https://www.mrlc.gov/geoserver/mrlc_display/NLCD_2019_Land_Cover_L48/wms?service=WMS&request=GetCapabilities",
-  "cyan": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/waterbodies_9/FeatureServer/0",
+  "cyan": {
+    "waterbodies": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/waterbodies_9/FeatureServer/0",
+    "cellConcentration": "https://cyan.epa.gov/cyan/cyano/location/data/"
+  },
   "googleAnalyticsMapping": [
     {
       "urlLookup": "attains.serviceUrl",
@@ -347,9 +350,14 @@
       "name": "USGS Water Alert"
     },
     {
-      "urlLookup": "cyan",
+      "urlLookup": "cyan.waterbodies",
       "wildcardUrl": "{urlLookup}*",
       "name": "CyAN - waterbodies"
+    },
+    {
+      "urlLookup": "cyan.cellConcentration",
+      "wildcardUrl": "{urlLookup}*",
+      "name": "CyAN - cell concentration"
     }
   ]
 }

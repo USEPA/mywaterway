@@ -957,6 +957,7 @@ function MapWidgets({
 
     //build a list of layers that we care about
     const layerList = [
+      'cyanWaterbodyLayer',
       'dischargersLayer',
       'monitoringLocationsLayer',
       'usgsStreamgagesLayer',

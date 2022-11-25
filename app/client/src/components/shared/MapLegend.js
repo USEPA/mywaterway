@@ -204,6 +204,25 @@ export const diamondIcon = ({ color, strokeWidth = 1, stroke = 'black' }) => {
   );
 };
 
+export const triangleIcon = ({ color, strokeWidth = 1, stroke = 'black' }) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={boxSize}
+      height={boxSize}
+      viewBox="0 0 100 100"
+      aria-hidden="true"
+    >
+      <polygon
+        points="50,15 100,100 0,100"
+        fill={color}
+        strokeWidth={strokeWidth}
+        stroke={stroke}
+      />
+    </svg>
+  );
+};
+
 export const circleIcon = ({ color, strokeWidth = 1, stroke = 'black' }) => {
   return (
     <svg

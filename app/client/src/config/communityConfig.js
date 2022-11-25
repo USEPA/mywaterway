@@ -371,6 +371,7 @@ const tabs = [
     upper: <MonitoringUpper />,
     lower: <Monitoring />,
     layers: {
+      cyanWaterbodyLayer: true,
       dischargersLayer: false,
       monitoringLocationsLayer: true,
       usgsStreamgagesLayer: true,

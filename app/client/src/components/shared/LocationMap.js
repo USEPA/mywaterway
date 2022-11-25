@@ -12,8 +12,8 @@ import { render } from 'react-dom';
 import { css } from 'styled-components/macro';
 import StickyBox from 'react-sticky-box';
 import { useNavigate } from 'react-router-dom';
-import FeatureEffect from '@arcgis/core/layers/support/FeatureEffect';
-import FeatureFilter from '@arcgis/core/layers/support/FeatureFilter';
+import Color from '@arcgis/core/Color';
+import Polygon from '@arcgis/core/geometry/Polygon';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import FeatureReductionCluster from '@arcgis/core/layers/support/FeatureReductionCluster';
 import Graphic from '@arcgis/core/Graphic';
@@ -22,6 +22,8 @@ import GroupLayer from '@arcgis/core/layers/GroupLayer';
 import * as locator from '@arcgis/core/rest/locator';
 import PictureMarkerSymbol from '@arcgis/core/symbols/PictureMarkerSymbol';
 import * as query from '@arcgis/core/rest/query';
+import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
+import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 import Viewpoint from '@arcgis/core/Viewpoint';
 // components
@@ -171,7 +173,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setLastSearchText,
     setCurrentExtent,
     boundariesLayer,
-    cyanLayer,
     searchIconLayer,
     waterbodyLayer,
     countyBoundaries,
@@ -190,6 +191,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     setAreasData,
     setLinesData,
     setPointsData,
+    setCyanWaterbodies,
     setAddress,
     setAttainsPlans,
     cipSummary,
@@ -795,17 +797,86 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setNonprofitsLayer(nonprofitsLayer);
 
-    const sharedLayers = getSharedLayers();
-    const cyanIndex = sharedLayers.findIndex(
-      (layer) => layer.id === 'cyanWaterbodyLayer',
-    );
-    const cyanLayer = cyanIndex > -1 ? sharedLayers.splice(cyanIndex, 1) : [];
+    const allCyanWaterbodies = new FeatureLayer({
+      id: 'allCyanWaterbodies',
+      legendEnabled: true,
+      outFields: ['*'],
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields: ['*'],
+      },
+      renderer: new SimpleRenderer({
+        symbol: new SimpleFillSymbol({
+          style: 'solid',
+          color: new Color([108, 149, 206, 0.3]),
+          outline: {
+            color: [0, 0, 0, 1],
+            width: 0.75,
+            style: 'solid',
+          },
+        }),
+      }),
+      url: services.data.cyan.waterbodies,
+    });
+
+    const cyanWaterbodies = new FeatureLayer({
+      id: 'cyanWaterbodies',
+      fields: [
+        { name: 'OBJECTID', type: 'integer' },
+        { name: 'PERMANENT_', type: 'string' },
+        { name: 'FID', type: 'integer' },
+        { name: 'FDATE', type: 'string' },
+        { name: 'RESOLUTION', type: 'integer' },
+        { name: 'GNIS_ID', type: 'string' },
+        { name: 'GNIS_NAME', type: 'string' },
+        { name: 'AREASQKM', type: 'double' },
+        { name: 'ELEVATION', type: 'double' },
+        { name: 'c_lat', type: 'double' },
+        { name: 'c_lng', type: 'double' },
+      ],
+      legendEnabled: false,
+      objectIdField: 'OBJECTID',
+      outFields: ['*'],
+      popupTemplate: {
+        title: getTitle,
+        content: getTemplate,
+        outFields: ['*'],
+      },
+      renderer: new SimpleRenderer({
+        symbol: new SimpleFillSymbol({
+          style: 'solid',
+          color: new Color([108, 149, 206, 0.8]),
+          outline: {
+            color: [0, 0, 0, 1],
+            width: 0.75,
+            style: 'solid',
+          },
+        }),
+      }),
+      // NOTE: initial graphic below will be replaced
+      source: [
+        new Graphic({
+          geometry: new Polygon(),
+          attributes: { OBJECTID: 1 },
+        }),
+      ],
+    });
+
+    const newCyanLayer = new GroupLayer({
+      id: 'cyanWaterbodyLayer',
+      title: 'CyAN Waterbodies',
+      listMode: 'hide-children',
+      visible: false,
+    });
+    newCyanLayer.add(allCyanWaterbodies);
+    newCyanLayer.add(cyanWaterbodies);
 
     setLayers([
-      ...sharedLayers,
+      ...getSharedLayers(),
       providersLayer,
       boundariesLayer,
-      ...cyanLayer,
+      newCyanLayer,
       upstreamLayer,
       monitoringLocationsLayer,
       usgsStreamgagesLayer,
@@ -1565,6 +1636,60 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     [services, setProtectedAreasData, setDynamicPopupFields],
   );
 
+  const getCyanWaterbodies = useCallback(
+    (boundaries) => {
+      const cyanLayer = mapView.map.findLayerById('cyanWaterbodies');
+      if (!cyanLayer) return;
+      const url = services.data.cyan.waterbodies;
+      const queryParams = {
+        geometry: boundaries.features[0].geometry,
+        returnGeometry: true,
+        outFields: ['*'],
+      };
+      query
+        .executeQueryJSON(url, queryParams)
+        .then((res) => {
+          // build a list of features that still has the original uncropped
+          // geometry and set context
+          res.features.forEach((item) => {
+            item['originalGeometry'] = item.geometry;
+          });
+
+          // crop the waterbodies geometry to within the huc
+          const features = cropGeometryToHuc(
+            res.features,
+            boundaries.features[0].geometry,
+          );
+
+          setCyanWaterbodies(
+            features.map((feature) => {
+              return {
+                geometry: feature.geometry,
+                attributes: {
+                  ...feature.attributes,
+                  id: feature.attributes.PERMANENT_,
+                  locationName: feature.attributes.GNIS_NAME,
+                  monitoringType: 'CyAN',
+                  orgName: 'CyAN, EPA',
+                },
+              };
+            }),
+          );
+
+          cyanLayer.queryFeatures().then((featureSet) => {
+            cyanLayer.applyEdits({
+              deleteFeatures: featureSet.features,
+              addFeatures: features,
+            });
+          });
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    },
+    [cropGeometryToHuc, mapView, services, setCyanWaterbodies],
+  );
+
   const handleMapServices = useCallback(
     (results, boundaries) => {
       // sort the parameters by highest percent to lowest
@@ -1619,6 +1744,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       // get Protected Areas data for current huc boundaries
       getProtectedAreas(boundaries);
 
+      // get CyAN data for current huc boundaries
+      getCyanWaterbodies(boundaries);
+
       // call states service for converting statecodes to state names
       // don't re-fetch the states service if it's already populated, it doesn't vary by location
       if (statesData.status !== 'success') {
@@ -1644,6 +1772,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     },
     [
       abortSignal,
+      getCyanWaterbodies,
       getFishingLinkData,
       getWsioHealthIndexData,
       getWildScenicRivers,
@@ -2075,14 +2204,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     boundariesLayer.graphics.removeAll();
     boundariesLayer.graphics.add(graphic);
 
-    cyanLayer.featureEffect = new FeatureEffect({
-      filter: new FeatureFilter({
-        geometry: graphic.geometry,
-        spatialRelationship: 'intersects',
-      }),
-      excludedEffect: 'opacity(30%)',
-    });
-
     const currentViewpoint = new Viewpoint({
       targetGeometry: graphic.geometry.extent,
     });
@@ -2101,7 +2222,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     mapView,
     hucBoundaries,
     boundariesLayer,
-    cyanLayer,
     setCurrentExtent,
     setAtHucBoundaries,
     homeWidget,

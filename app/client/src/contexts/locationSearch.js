@@ -154,7 +154,6 @@ type State = {
   protectedAreasLayer: Object,
   providersLayer: Object,
   boundariesLayer: Object,
-  cyanLayer: Object,
   searchIconLayer: Object,
   actionsLayer: Object,
   selWaterBodyLayer: Object,
@@ -171,6 +170,7 @@ type State = {
   waterbodyData: Array<Object>,
   linesData: Array<Object>,
   areasData: Array<Object>,
+  cyanWaterbodies: Array<Object>,
   pointsData: Array<Object>,
   orphanFeatures: Array<Object>,
   waterbodyCountMismatch: boolean,
@@ -242,7 +242,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     protectedAreasHighlightLayer: '',
     providersLayer: '',
     boundariesLayer: '',
-    cyanLayer: '',
     searchIconLayer: '',
     actionsLayer: '',
     selWaterBodyLayer: '',
@@ -262,6 +261,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     linesData: null,
     areasData: null,
     pointsData: null,
+    cyanWaterbodies: [],
     orphanFeatures: { status: 'fetching', features: [] },
     waterbodyCountMismatch: null,
     FIPS: { status: 'fetching', stateCode: '', countyCode: '' },
@@ -432,9 +432,6 @@ export class LocationSearchProvider extends Component<Props, State> {
     setBoundariesLayer: (boundariesLayer) => {
       this.setState({ boundariesLayer });
     },
-    setCyanLayer: (cyanLayer) => {
-      this.setState({ cyanLayer });
-    },
     setSearchIconLayer: (searchIconLayer) => {
       this.setState({ searchIconLayer });
     },
@@ -509,6 +506,9 @@ export class LocationSearchProvider extends Component<Props, State> {
     setPointsData: (pointsData) => {
       this.setState({ pointsData });
     },
+    setCyanWaterbodies: (cyanWaterbodies) => {
+      this.setState({ cyanWaterbodies });
+    },
     setGrts: (grts) => {
       this.setState({ grts });
     },
@@ -571,7 +571,6 @@ export class LocationSearchProvider extends Component<Props, State> {
         areasLayer,
         providersLayer,
         boundariesLayer,
-        cyanLayer,
         searchIconLayer,
         monitoringLocationsLayer,
         usgsStreamgagesLayer,
@@ -629,7 +628,6 @@ export class LocationSearchProvider extends Component<Props, State> {
       // remove all map content defined in this file
       if (providersLayer) providersLayer.graphics.removeAll();
       if (boundariesLayer) boundariesLayer.graphics.removeAll();
-      if (cyanLayer) cyanLayer.featureEffect = null;
       if (searchIconLayer) {
         searchIconLayer.visible = false;
         searchIconLayer.graphics.removeAll();
@@ -710,6 +708,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         pointsData: null,
         linesData: null,
         areasData: null,
+        cyanWaterbodies: [],
         orphanFeatures: { status: 'fetching', features: [] },
         waterbodyCountMismatch: null,
         countyBoundaries: '',
@@ -743,6 +742,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         pointsData: [],
         linesData: [],
         areasData: [],
+        cyanWaterbodies: [],
         orphanFeatures: { status: 'fetching', features: [] },
         waterbodyCountMismatch: null,
         countyBoundaries: '',

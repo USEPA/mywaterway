@@ -20,7 +20,11 @@ import {
   keyMetricNumberStyles,
   keyMetricLabelStyles,
 } from 'components/shared/KeyMetrics';
-import { circleIcon, squareIcon } from 'components/shared/MapLegend';
+import {
+  circleIcon,
+  squareIcon,
+  triangleIcon,
+} from 'components/shared/MapLegend';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
@@ -32,11 +36,11 @@ import { LocationSearchContext } from 'contexts/locationSearch';
 import { useServicesContext } from 'contexts/LookupFiles';
 // utilities
 import { plotFacilities } from 'utils/mapFunctions';
-import { useStreamgageData, useWaterbodyOnMap } from 'utils/hooks';
+import { useStreamgageFeatures, useWaterbodyOnMap } from 'utils/hooks';
 // data
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // errors
-import { monitoringError } from 'config/errorMessages';
+import { monitoringError, streamgagesError } from 'config/errorMessages';
 // styles
 import {
   colors,
@@ -345,7 +349,9 @@ function Monitoring() {
    */
   const updateVisibleLayers = useCallback(
     ({ useCurrentValue = false }) => {
-      const layers = {};
+      const layers = {
+        cyanWaterbodyLayer: visibleLayers.cyanWaterbodies,
+      };
 
       if (cipSummary.status !== 'failure') {
         layers.waterbodyLayer = visibleLayers.waterbodyLayer;
@@ -500,7 +506,7 @@ function Monitoring() {
                 </span>
               </div>
 
-              <SensorsTab
+              <CurrentConditionsTab
                 usgsStreamgagesDisplayed={usgsStreamgagesDisplayed}
                 setUsgsStreamgagesDisplayed={setUsgsStreamgagesDisplayed}
               />
@@ -522,7 +528,7 @@ function Monitoring() {
                 </span>
               </div>
 
-              <MonitoringTab
+              <PastConditionsTab
                 monitoringDisplayed={monitoringDisplayed}
                 setMonitoringDisplayed={setMonitoringDisplayed}
               />
@@ -534,7 +540,7 @@ function Monitoring() {
   );
 }
 
-function SensorsTab() {
+function CurrentConditionsTab() {
   const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
     useFetchedDataState();
 
@@ -543,47 +549,46 @@ function SensorsTab() {
 
   const services = useServicesContext();
 
-  const { watershed } = useContext(LocationSearchContext);
+  const { cyanWaterbodies, watershed } = useContext(LocationSearchContext);
 
-  const normalizedUsgsStreamgages = useStreamgageData(
+  const normalizedUsgsStreamgages = useStreamgageFeatures(
     usgsStreamgages,
     usgsPrecipitation,
     usgsDailyAverages,
   );
 
-  const [sensorsSortedBy, setSensorsSortedBy] = useState('locationName');
+  const [sortedBy, setSortedBy] = useState('locationName');
 
-  const sortedSensors = [...normalizedUsgsStreamgages].sort((a, b) => {
-    if (sensorsSortedBy === 'siteId') {
-      return a.siteId.localeCompare(b.siteId);
-    }
-
-    return a[sensorsSortedBy].localeCompare(b[sensorsSortedBy]);
+  const sortedLocations = [
+    ...normalizedUsgsStreamgages,
+    ...cyanWaterbodies,
+  ].sort(({ attributes: a }, { attributes: b }) => {
+    if (sortedBy in a && sortedBy in b) {
+      return a[sortedBy].localeCompare(b[sortedBy]);
+    } else if (sortedBy in a) return -1;
+    else return 1;
   });
 
   if (usgsStreamgages.status === 'idle' || usgsStreamgages.status === 'pending')
     return <LoadingSpinner />;
 
-  if (usgsStreamgages.status === 'failure') {
-    return (
-      <div css={modifiedErrorBoxStyles}>
-        <p>{monitoringError}</p>
-      </div>
-    );
-  }
-
-  if (usgsStreamgages.status === 'success') {
-    return (
+  return (
+    <>
+      {usgsStreamgages.status === 'failure' && (
+        <div css={modifiedErrorBoxStyles}>
+          <p>{streamgagesError}</p>
+        </div>
+      )}
       <AccordionList
         title={
           <>
-            There {normalizedUsgsStreamgages.length === 1 ? 'is' : 'are'}{' '}
-            <strong>{normalizedUsgsStreamgages.length}</strong>{' '}
-            {normalizedUsgsStreamgages.length === 1 ? 'location' : 'locations'}{' '}
-            with data in the <em>{watershed}</em> watershed.
+            There {sortedLocations.length === 1 ? 'is' : 'are'}{' '}
+            <strong>{sortedLocations.length}</strong>{' '}
+            {sortedLocations.length === 1 ? 'location' : 'locations'} with data
+            in the <em>{watershed}</em> watershed.
           </>
         }
-        onSortChange={({ value }) => setSensorsSortedBy(value)}
+        onSortChange={({ value }) => setSortedBy(value)}
         sortOptions={[
           {
             label: 'Location Name',
@@ -599,61 +604,69 @@ function SensorsTab() {
           },
         ]}
       >
-        {sortedSensors.map((item, index) => {
-          const feature = {
-            geometry: {
-              type: 'point',
-              longitude: item.locationLongitude,
-              latitude: item.locationLatitude,
-            },
-            attributes: item,
-          };
+        {sortedLocations.map((item, index) => {
+          switch (item.attributes.monitoringType) {
+            case 'Current Water Conditions':
+              return (
+                <AccordionItem
+                  icon={squareIcon({ color: '#fffe00' })}
+                  key={index}
+                  title={
+                    <strong>{item.attributes.locationName || 'Unknown'}</strong>
+                  }
+                  subTitle={
+                    <>
+                      <em>Organization Name:</em>&nbsp;&nbsp;
+                      {item.attributes.orgName}
+                      <br />
+                      <em>Water Type:</em>&nbsp;&nbsp;
+                      {item.attributes.locationType}
+                    </>
+                  }
+                  feature={item}
+                  idKey="siteId"
+                >
+                  <div css={accordionContentStyles}>
+                    <WaterbodyInfo
+                      type="Current Water Conditions"
+                      feature={item}
+                      services={services}
+                    />
 
-          return (
-            <AccordionItem
-              icon={squareIcon({ color: '#fffe00' })}
-              key={index}
-              title={<strong>{item.locationName || 'Unknown'}</strong>}
-              subTitle={
-                <>
-                  <em>Organization Name:</em>&nbsp;&nbsp;
-                  {item.orgName}
-                  <br />
-                  <em>Water Type:</em>&nbsp;&nbsp;
-                  {item.locationType}
-                </>
-              }
-              feature={feature}
-              idKey="siteId"
-            >
-              <div css={accordionContentStyles}>
-                {item.monitoringType === 'Current Water Conditions' && (
-                  <WaterbodyInfo
-                    type="Current Water Conditions"
-                    feature={feature}
-                    services={services}
-                  />
-                )}
-
-                {item.monitoringType === 'Past Water Conditions' && (
-                  <WaterbodyInfo
-                    type="Past Water Conditions"
-                    feature={feature}
-                    services={services}
-                  />
-                )}
-
-                <ViewOnMapButton feature={feature} />
-              </div>
-            </AccordionItem>
-          );
+                    <ViewOnMapButton feature={item} />
+                  </div>
+                </AccordionItem>
+              );
+            case 'CyAN':
+              return (
+                <AccordionItem
+                  icon={triangleIcon({ color: '#6c95ce', strokeWidth: 2 })}
+                  key={index}
+                  title={
+                    <strong>{item.attributes.locationName || 'Unknown'}</strong>
+                  }
+                  subTitle={
+                    <>
+                      <em>Organization Name:</em>&nbsp;&nbsp;
+                      {item.attributes.orgName}
+                    </>
+                  }
+                  feature={item}
+                  idKey="id"
+                >
+                  test
+                </AccordionItem>
+              );
+            default:
+              throw new Error('Unhandled monitoring type');
+          }
         })}
       </AccordionList>
-    );
-  }
+    </>
+  );
 }
 
-function MonitoringTab({ monitoringDisplayed, setMonitoringDisplayed }) {
+function PastConditionsTab({ monitoringDisplayed, setMonitoringDisplayed }) {
   const services = useServicesContext();
 
   const {
