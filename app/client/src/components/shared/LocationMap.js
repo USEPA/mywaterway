@@ -823,7 +823,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     const cyanWaterbodies = new FeatureLayer({
       id: 'cyanWaterbodies',
       fields: [
-        { name: 'OBJECTID', type: 'integer' },
+        { name: 'OBJECTID', type: 'oid' },
         { name: 'PERMANENT_', type: 'string' },
         { name: 'FID', type: 'integer' },
         { name: 'FDATE', type: 'string' },
@@ -835,6 +835,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         { name: 'c_lat', type: 'double' },
         { name: 'c_lng', type: 'double' },
         { name: 'locationName', type: 'string' },
+        { name: 'oid', type: 'integer' },
         { name: 'orgName', type: 'string', defaultValue: 'CyAN, EPA' },
         { name: 'monitoringType', type: 'string', defaultValue: 'CyAN' },
       ],
@@ -1661,6 +1662,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             item.originalGeometry = item.geometry;
             item.attributes.locationName = item.attributes.GNIS_NAME;
             item.attributes.monitoringType = 'CyAN';
+            item.attributes.oid = item.attributes.OBJECTID;
             item.attributes.orgName = 'CyAN, EPA';
             item.geometry = new Polygon({
               rings: item.geometry.rings,

@@ -759,7 +759,7 @@ export function getPopupContent({
 
     // CyAN waterbody
     else if ('GNIS_NAME' in attributes) {
-      type = 'CyAN Waterbodies';
+      type = 'CyAN';
     }
 
     // usgs streamgage or monitoring location

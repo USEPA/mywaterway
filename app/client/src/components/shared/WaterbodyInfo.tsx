@@ -10,6 +10,7 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { Sparkline } from 'components/shared/Sparkline';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
+import { useAbortSignal } from 'utils/hooks';
 import {
   getWaterbodyCondition,
   isClassBreaksRenderer,
@@ -895,23 +896,6 @@ function WaterbodyInfo({
     );
   };
 
-  // jsx
-  const cyanContent = () => (
-    <>
-      {labelValue(
-        'Area',
-        attributes.AREASQKM
-          ? `${formatNumber(attributes.AREASQKM)} sq. km.`
-          : '',
-      )}
-
-      {labelValue(
-        'Elevation',
-        attributes.ELEVATION ? `${formatNumber(attributes.ELEVATION)} m.` : '',
-      )}
-    </>
-  );
-
   if (!attributes) return null;
 
   let content = null;
@@ -946,7 +930,9 @@ function WaterbodyInfo({
   if (type === 'Congressional District') {
     content = congressionalDistrictContent();
   }
-  if (type === 'CyAN Waterbodies') content = cyanContent();
+  if (type === 'CyAN') {
+    content = <CyanContent feature={feature} services={services ?? null} />;
+  }
 
   return content;
 }
@@ -1095,6 +1081,67 @@ function MapPopup({
         </div>
       )}
     </div>
+  );
+}
+
+const oneDay = 1000 * 60 * 60 * 24;
+
+function getDayOfYear(day: Date) {
+  const firstOfYear = new Date(day.getFullYear(), 0, 0);
+  const diff =
+    day.getTime() -
+    firstOfYear.getTime() +
+    (firstOfYear.getTimezoneOffset() - day.getTimezoneOffset()) * 60 * 1000;
+  return Math.floor(diff / oneDay);
+}
+
+type CyanContentProps = {
+  feature: __esri.Graphic;
+  services: ServicesState | null;
+};
+
+function CyanContent({ feature, services }: CyanContentProps) {
+  const { attributes } = feature;
+  const abortSignal = useAbortSignal();
+
+  const [now] = useState(new Date());
+
+  useEffect(() => {
+    if (services?.status !== 'success') return;
+
+    const oneWeekAgo = new Date(now.getTime() - 7 * oneDay);
+
+    const dataUrl = `${services.data.cyan.cellConcentration}/?OBJECTID=${
+      attributes.oid ?? attributes.OBJECTID
+    }&start_year=${oneWeekAgo.getFullYear()}&start_day=${getDayOfYear(
+      oneWeekAgo,
+    )}&end_year=${now.getFullYear()}&end_day=${getDayOfYear(now)}`;
+
+    fetchCheck(dataUrl, abortSignal).then((res) => console.log(res));
+  }, [abortSignal, attributes, now, services]);
+
+  return (
+    <>
+      <div css={tableStyles} className="table">
+        <ListContent
+          rows={[
+            {
+              label: 'Area',
+              value: attributes.AREASQKM
+                ? `${formatNumber(attributes.AREASQKM)} sq. km.`
+                : '',
+            },
+            {
+              label: 'Elevation',
+              value: attributes.ELEVATION
+                ? `${formatNumber(attributes.ELEVATION)} m.`
+                : '',
+            },
+          ]}
+          styles={listContentStyles}
+        />
+      </div>
+    </>
   );
 }
 
