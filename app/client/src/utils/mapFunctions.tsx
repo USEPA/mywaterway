@@ -757,6 +757,11 @@ export function getPopupContent({
       type = 'Permitted Discharger';
     }
 
+    // CyAN waterbody
+    else if ('GNIS_NAME' in attributes) {
+      type = 'CyAN Waterbodies';
+    }
+
     // usgs streamgage or monitoring location
     else if ('monitoringType' in attributes) {
       if (attributes.monitoringType === 'Current Water Conditions')
@@ -809,11 +814,6 @@ export function getPopupContent({
     // EJSCREEN
     else if ('T_OVR64PCT' in attributes) {
       type = 'Demographic Indicators';
-    }
-
-    // CyAN waterbody
-    else if ('GNIS_NAME' in attributes) {
-      type = 'CyAN Waterbodies';
     }
   }
 

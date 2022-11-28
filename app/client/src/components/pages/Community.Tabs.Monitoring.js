@@ -643,7 +643,7 @@ function CurrentConditionsTab() {
                   icon={triangleIcon({ color: '#6c95ce', strokeWidth: 2 })}
                   key={index}
                   title={
-                    <strong>{item.attributes.locationName || 'Unknown'}</strong>
+                    <strong>{item.attributes.GNIS_NAME || 'Unknown'}</strong>
                   }
                   subTitle={
                     <>
@@ -652,7 +652,7 @@ function CurrentConditionsTab() {
                     </>
                   }
                   feature={item}
-                  idKey="id"
+                  idKey="PERMANENT_"
                 >
                   test
                 </AccordionItem>

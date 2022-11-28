@@ -411,7 +411,9 @@ function MapWidgets({
         const newFeatures: __esri.Graphic[] = [];
         const idsAdded: string[] = [];
         features.forEach((item) => {
-          const id = item.attributes?.assessmentunitidentifier;
+          const id =
+            item.attributes?.assessmentunitidentifier ??
+            item.attributes?.PERMANENT_;
           const geometryType = item.geometry?.type;
 
           // exit early if the feature is not a waterbody

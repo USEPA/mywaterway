@@ -70,7 +70,7 @@ import {
   useWaterbodyHighlight,
   useWaterbodyFeatures,
 } from 'utils/hooks';
-import { fetchCheck } from 'utils/fetchUtils';
+import { fetchCheck, fetchPostForm } from 'utils/fetchUtils';
 import {
   isAbort,
   isHuc12,
@@ -834,6 +834,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         { name: 'ELEVATION', type: 'double' },
         { name: 'c_lat', type: 'double' },
         { name: 'c_lng', type: 'double' },
+        { name: 'locationName', type: 'string' },
+        { name: 'orgName', type: 'string', defaultValue: 'CyAN, EPA' },
+        { name: 'monitoringType', type: 'string', defaultValue: 'CyAN' },
       ],
       legendEnabled: false,
       objectIdField: 'OBJECTID',
@@ -1640,41 +1643,39 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     (boundaries) => {
       const cyanLayer = mapView.map.findLayerById('cyanWaterbodies');
       if (!cyanLayer) return;
-      const url = services.data.cyan.waterbodies;
-      const queryParams = {
-        geometry: boundaries.features[0].geometry,
-        returnGeometry: true,
-        outFields: ['*'],
+      const url = services.data.cyan.waterbodies + '/query';
+      const data = {
+        outFields: '*',
+        geometry: {
+          rings: boundaries.features[0].geometry.rings,
+        },
+        geometryType: 'esriGeometryPolygon',
+        f: 'json',
+        spatialRel: 'esriSpatialRelIntersects',
       };
-      query
-        .executeQueryJSON(url, queryParams)
+      fetchPostForm(url, data)
         .then((res) => {
-          // build a list of features that still has the original uncropped
-          // geometry and set context
+          // duplicate the original geometry to a
+          // different field for later reference
           res.features.forEach((item) => {
-            item['originalGeometry'] = item.geometry;
+            item.originalGeometry = item.geometry;
+            item.attributes.locationName = item.attributes.GNIS_NAME;
+            item.attributes.monitoringType = 'CyAN';
+            item.attributes.orgName = 'CyAN, EPA';
+            item.geometry = new Polygon({
+              rings: item.geometry.rings,
+              spatialReference: {
+                wkid: 102100,
+              },
+            });
           });
-
           // crop the waterbodies geometry to within the huc
           const features = cropGeometryToHuc(
             res.features,
             boundaries.features[0].geometry,
           );
 
-          setCyanWaterbodies(
-            features.map((feature) => {
-              return {
-                geometry: feature.geometry,
-                attributes: {
-                  ...feature.attributes,
-                  id: feature.attributes.PERMANENT_,
-                  locationName: feature.attributes.GNIS_NAME,
-                  monitoringType: 'CyAN',
-                  orgName: 'CyAN, EPA',
-                },
-              };
-            }),
-          );
+          setCyanWaterbodies(features);
 
           cyanLayer.queryFeatures().then((featureSet) => {
             cyanLayer.applyEdits({

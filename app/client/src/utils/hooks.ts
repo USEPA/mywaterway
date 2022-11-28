@@ -472,6 +472,7 @@ function useWaterbodyOnMap(
 function useWaterbodyHighlight(findOthers: boolean = true) {
   const { highlightedGraphic, selectedGraphic } = useMapHighlightState();
   const {
+    cyanWaterbodies,
     mapView,
     pointsLayer, //part of waterbody group layer
     linesLayer, //part of waterbody group layer
@@ -724,9 +725,19 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         handles,
         group,
       });
-    }
-    //
-    else if (
+    } else if (layer.id === 'cyanWaterbodies') {
+      const features = cyanWaterbodies.filter(
+        (waterbody: { attributes: { PERMANENT_: string } }) =>
+          waterbody.attributes.PERMANENT_ === attributes.PERMANENT_,
+      );
+      highlightFeature({
+        mapView,
+        features,
+        highlightOptions,
+        handles,
+        group,
+      });
+    } else if (
       layer.type === 'feature' &&
       (findOthers ||
         (graphicOrgId === selectedGraphicOrgId &&
@@ -753,11 +764,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         const siteId = graphic?.attributes?.siteId || '';
         key = `${orgId} - ${siteId}`;
         where = `orgId = '${orgId}' And siteId = '${siteId}'`;
-      }
-
-      if (layer.id === 'cyanWaterbodies') {
-        key = graphic.attributes.id;
-        where = `PERMANENT_ = '${key}'`;
       }
 
       if (cachedHighlights[key]) {
@@ -867,6 +873,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     pointsData,
     linesData,
     areasData,
+    cyanWaterbodies,
   ]);
 
   // Closes the popup and clears highlights whenever the tab changes
