@@ -349,8 +349,7 @@ function Monitoring() {
    */
   const updateVisibleLayers = useCallback(
     ({ useCurrentValue = false }) => {
-      const layers = {};
-      layers.cyanWaterbodyLayer = visibleLayers.cyanWaterbodies;
+      const layers = { ...visibleLayers };
 
       if (cipSummary.status !== 'failure') {
         layers.waterbodyLayer = visibleLayers.waterbodyLayer;
@@ -552,7 +551,9 @@ function CurrentConditionsTab() {
 
   const services = useServicesContext();
 
-  const { cyanWaterbodies, watershed } = useContext(LocationSearchContext);
+  const { cyanWaterbodies, mapView, watershed } = useContext(
+    LocationSearchContext,
+  );
 
   const normalizedUsgsStreamgages = useStreamgageFeatures(
     usgsStreamgages,
@@ -655,15 +656,14 @@ function CurrentConditionsTab() {
                     </>
                   }
                   feature={item}
-                  idKey="PERMANENT_"
+                  idKey="FID"
                 >
                   <WaterbodyInfo
-                    type="CyAN"
                     feature={item}
+                    map={mapView?.map}
                     services={services}
+                    type="CyAN"
                   />
-
-                  <ViewOnMapButton feature={item} />
                 </AccordionItem>
               );
             default:

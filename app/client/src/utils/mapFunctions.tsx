@@ -424,6 +424,10 @@ export function isMapImageLayer(
   return (layer as __esri.MapImageLayer).type === 'map-image';
 }
 
+export function isMediaLayer(layer: __esri.Layer): layer is __esri.MediaLayer {
+  return (layer as __esri.MediaLayer).type === 'media';
+}
+
 export function isMultipoint(
   geometry: __esri.Geometry,
 ): geometry is __esri.Multipoint {

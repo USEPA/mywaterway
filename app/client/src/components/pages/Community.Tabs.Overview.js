@@ -165,7 +165,7 @@ function Overview() {
    */
   const updateVisibleLayers = useCallback(
     ({ key = null, value = null, useCurrentValue = false }) => {
-      const layers = {};
+      const layers = { ...visibleLayers };
 
       if (cipSummary.status !== 'failure') {
         layers.waterbodyLayer =
@@ -294,7 +294,7 @@ function Overview() {
             <>
               <span css={keyMetricNumberStyles}>
                 {Boolean(waterbodies?.length) && cipSummary.status === 'success'
-                  ? waterbodies.length.toLocaleString()
+                  ? totalWaterbodies.toLocaleString()
                   : 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Waterbodies</p>

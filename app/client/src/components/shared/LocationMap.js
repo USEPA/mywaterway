@@ -19,7 +19,9 @@ import FeatureReductionCluster from '@arcgis/core/layers/support/FeatureReductio
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
+import LocalMediaElementSource from '@arcgis/core/layers/support/LocalMediaElementSource';
 import * as locator from '@arcgis/core/rest/locator';
+import MediaLayer from '@arcgis/core/layers/MediaLayer';
 import PictureMarkerSymbol from '@arcgis/core/symbols/PictureMarkerSymbol';
 import * as query from '@arcgis/core/rest/query';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
@@ -823,21 +825,25 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     const cyanWaterbodies = new FeatureLayer({
       id: 'cyanWaterbodies',
       fields: [
-        { name: 'OBJECTID', type: 'oid' },
-        { name: 'PERMANENT_', type: 'string' },
-        { name: 'FID', type: 'integer' },
+        { name: 'AREASQKM', type: 'double' },
         { name: 'FDATE', type: 'string' },
-        { name: 'RESOLUTION', type: 'integer' },
+        { name: 'FID', type: 'integer' },
         { name: 'GNIS_ID', type: 'string' },
         { name: 'GNIS_NAME', type: 'string' },
-        { name: 'AREASQKM', type: 'double' },
-        { name: 'ELEVATION', type: 'double' },
         { name: 'c_lat', type: 'double' },
         { name: 'c_lng', type: 'double' },
+        { name: 'ELEVATION', type: 'double' },
         { name: 'locationName', type: 'string' },
+        { name: 'monitoringType', type: 'string', defaultValue: 'CyAN' },
+        { name: 'OBJECTID', type: 'oid' },
         { name: 'oid', type: 'integer' },
         { name: 'orgName', type: 'string', defaultValue: 'CyAN, EPA' },
-        { name: 'monitoringType', type: 'string', defaultValue: 'CyAN' },
+        { name: 'PERMANENT_', type: 'string' },
+        { name: 'RESOLUTION', type: 'integer' },
+        { name: 'x_max', type: 'double' },
+        { name: 'x_min', type: 'double' },
+        { name: 'y_max', type: 'double' },
+        { name: 'y_min', type: 'double' },
       ],
       legendEnabled: false,
       objectIdField: 'OBJECTID',
@@ -867,14 +873,22 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       ],
     });
 
+    const cyanImages = new MediaLayer({
+      copyright: 'CyAN, EPA',
+      id: 'cyanImages',
+      opacity: 1,
+    });
+
     const newCyanLayer = new GroupLayer({
-      id: 'cyanWaterbodyLayer',
+      id: 'cyanLayer',
       title: 'CyAN Waterbodies',
       listMode: 'hide-children',
+      // minScale: 577791,
       visible: false,
     });
     newCyanLayer.add(allCyanWaterbodies);
     newCyanLayer.add(cyanWaterbodies);
+    newCyanLayer.add(cyanImages);
 
     setLayers([
       ...getSharedLayers(),
@@ -1642,8 +1656,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
   const getCyanWaterbodies = useCallback(
     (boundaries) => {
-      const cyanLayer = mapView.map.findLayerById('cyanWaterbodies');
-      if (!cyanLayer) return;
+      const cyanWaterbodiesLayer = mapView.map.findLayerById('cyanWaterbodies');
+      if (!cyanWaterbodiesLayer) return;
       const url = services.data.cyan.waterbodies + '/query';
       const data = {
         outFields: '*',
@@ -1659,17 +1673,18 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           // duplicate the original geometry to a
           // different field for later reference
           res.features.forEach((item) => {
-            item.originalGeometry = item.geometry;
-            item.attributes.locationName = item.attributes.GNIS_NAME;
-            item.attributes.monitoringType = 'CyAN';
-            item.attributes.oid = item.attributes.OBJECTID;
-            item.attributes.orgName = 'CyAN, EPA';
-            item.geometry = new Polygon({
+            const geometry = new Polygon({
               rings: item.geometry.rings,
               spatialReference: {
                 wkid: 102100,
               },
             });
+            item.originalGeometry = geometry;
+            item.attributes.locationName = item.attributes.GNIS_NAME;
+            item.attributes.monitoringType = 'CyAN';
+            item.attributes.oid = item.attributes.OBJECTID;
+            item.attributes.orgName = 'CyAN, EPA';
+            item.geometry = geometry;
           });
           // crop the waterbodies geometry to within the huc
           const features = cropGeometryToHuc(
@@ -1679,8 +1694,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
           setCyanWaterbodies(features);
 
-          cyanLayer.queryFeatures().then((featureSet) => {
-            cyanLayer.applyEdits({
+          cyanWaterbodiesLayer.queryFeatures().then((featureSet) => {
+            cyanWaterbodiesLayer.applyEdits({
               deleteFeatures: featureSet.features,
               addFeatures: features,
             });

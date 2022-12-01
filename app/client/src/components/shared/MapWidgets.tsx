@@ -190,7 +190,7 @@ const orderedLayers = [
   'surroundingMonitoringLocationsLayer',
   'usgsStreamgagesLayer',
   'dischargersLayer',
-  'cyanWaterbodyLayer',
+  'cyanLayer',
   'waterbodyLayer',
   'allWaterbodiesLayer',
   'issuesLayer',
@@ -412,8 +412,7 @@ function MapWidgets({
         const idsAdded: string[] = [];
         features.forEach((item) => {
           const id =
-            item.attributes?.assessmentunitidentifier ??
-            item.attributes?.PERMANENT_;
+            item.attributes?.assessmentunitidentifier ?? item.attributes?.FID;
           const geometryType = item.geometry?.type;
 
           // exit early if the feature is not a waterbody
@@ -959,7 +958,7 @@ function MapWidgets({
 
     //build a list of layers that we care about
     const layerList = [
-      'cyanWaterbodyLayer',
+      'cyanLayer',
       'dischargersLayer',
       'monitoringLocationsLayer',
       'usgsStreamgagesLayer',

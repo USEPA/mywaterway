@@ -16,8 +16,8 @@ type AccordionItemProps = {
   subTitle?: ReactNode;
   feature?: __esri.Graphic;
   idKey?: string;
-  allExpanded: boolean;
-  onChange: (isOpen: boolean) => void;
+  allExpanded?: boolean;
+  onChange?: (isOpen: boolean) => void;
   children: ReactNode;
 };
 
@@ -27,7 +27,7 @@ function AccordionItem({
   subTitle,
   feature,
   idKey,
-  allExpanded,
+  allExpanded = false,
   onChange = () => {},
   children,
 }: AccordionItemProps) {

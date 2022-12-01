@@ -727,8 +727,8 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       });
     } else if (layer.id === 'cyanWaterbodies') {
       const features = cyanWaterbodies.filter(
-        (waterbody: { attributes: { PERMANENT_: string } }) =>
-          waterbody.attributes.PERMANENT_ === attributes.PERMANENT_,
+        (waterbody: { attributes: { FID: number } }) =>
+          waterbody.attributes.FID === attributes.FID,
       );
       highlightFeature({
         mapView,

@@ -200,6 +200,7 @@ interface ServicesData {
   cyan: {
     waterbodies: string;
     cellConcentration: string;
+    images: string;
   };
   upstreamWatershed: string;
   usgsWaterAlert: string;
