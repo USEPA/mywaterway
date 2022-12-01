@@ -293,8 +293,8 @@ function Overview() {
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {Boolean(waterbodies?.length) && cipSummary.status === 'success'
-                  ? waterbodies.length.toLocaleString()
+                {Boolean(totalWaterbodies) && cipSummary.status === 'success'
+                  ? totalWaterbodies.toLocaleString()
                   : 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Waterbodies</p>
@@ -447,6 +447,12 @@ function WaterbodiesTab() {
   const { watershed } = useContext(LocationSearchContext);
   const waterbodies = useWaterbodyFeatures();
 
+  const uniqueWaterbodies = waterbodies
+    ? getUniqueWaterbodies(waterbodies)
+    : [];
+
+  const totalWaterbodies = uniqueWaterbodies.length;
+
   // draw the waterbody on the map
   useWaterbodyOnMap();
 
@@ -457,8 +463,8 @@ function WaterbodiesTab() {
       title={
         <span data-testid="overview-waterbodies-accordion-title">
           Overall condition of{' '}
-          <strong>{waterbodies?.length.toLocaleString()}</strong>{' '}
-          {waterbodies?.length === 1 ? 'waterbody' : 'waterbodies'} in the{' '}
+          <strong>{totalWaterbodies.toLocaleString()}</strong>{' '}
+          {totalWaterbodies === 1 ? 'waterbody' : 'waterbodies'} in the{' '}
           <em>{watershed}</em> watershed.
         </span>
       }
