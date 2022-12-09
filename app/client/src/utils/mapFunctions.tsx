@@ -711,6 +711,7 @@ export function getPopupContent({
   fieldName,
   extraContent,
   getClickedHuc,
+  map,
   resetData,
   services,
   fields,
@@ -720,6 +721,7 @@ export function getPopupContent({
   fieldName?: string;
   extraContent?: Object;
   getClickedHuc?: Promise<ClickedHucState> | null;
+  map?: __esri.Map;
   resetData?: () => void;
   services?: ServicesState;
   fields?: __esri.Field[] | null;
@@ -828,6 +830,7 @@ export function getPopupContent({
       fieldName={fieldName}
       extraContent={extraContent}
       getClickedHuc={getClickedHuc}
+      map={map}
       resetData={resetData}
       services={services}
       fields={fields}
@@ -972,7 +975,8 @@ export function GradientIcon({
 // Gets the highlight symbol styles based on the provided geometry.
 export function getHighlightSymbol(
   geometry: __esri.Geometry,
-  color: string | number[],
+  color: __esri.Color,
+  fill?: boolean,
 ) {
   let symbol: __esri.Symbol | null = null;
   if (isPolyline(geometry)) {
@@ -983,7 +987,7 @@ export function getHighlightSymbol(
   } else if (isPolygon(geometry)) {
     return new SimpleFillSymbol({
       outline: { color, width: 2 },
-      color,
+      color: fill ? color : new Color([0, 0, 0, 0]),
     });
   } else if (isPoint(geometry) || isMultipoint(geometry)) {
     return new SimpleMarkerSymbol({

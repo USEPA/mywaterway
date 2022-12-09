@@ -1,3 +1,4 @@
+import Color from '@arcgis/core/Color';
 import React, { Component, createContext } from 'react';
 import type { ReactNode } from 'react';
 import type { MonitoringLocationsData } from 'types';
@@ -206,7 +207,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     currentExtent: '',
     upstreamExtent: '',
     highlightOptions: {
-      color: [50, 197, 253, 0.5],
+      color: new Color([50, 197, 253, 0.5]),
       fillOpacity: 1,
     },
     searchText: '',

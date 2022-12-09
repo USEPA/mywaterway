@@ -308,7 +308,6 @@ const tabs = [
     upper: <OverviewUpper />,
     lower: <Overview />,
     layers: {
-      cyanLayer: false,
       dischargersLayer: false,
       monitoringLocationsLayer: false,
       usgsStreamgagesLayer: false,
@@ -322,7 +321,6 @@ const tabs = [
     upper: <SwimmingUpper />,
     lower: <Swimming />,
     layers: {
-      cyanLayer: false,
       monitoringLocationsLayer: false,
       usgsStreamgagesLayer: false,
       waterbodyLayer: true,
@@ -335,7 +333,6 @@ const tabs = [
     upper: <EatingFishUpper />,
     lower: <EatingFish />,
     layers: {
-      cyanLayer: false,
       monitoringLocationsLayer: false,
       usgsStreamgagesLayer: false,
       waterbodyLayer: true,
@@ -348,7 +345,6 @@ const tabs = [
     upper: <AquaticLifeUpper />,
     lower: <AquaticLife />,
     layers: {
-      cyanLayer: false,
       monitoringLocationsLayer: false,
       usgsStreamgagesLayer: false,
       waterbodyLayer: true,
@@ -361,7 +357,6 @@ const tabs = [
     upper: <DrinkingWaterUpper />,
     lower: <DrinkingWater />,
     layers: {
-      cyanLayer: false,
       boundariesLayer: false,
       monitoringLocationsLayer: false,
       usgsStreamgagesLayer: false,
@@ -378,7 +373,7 @@ const tabs = [
     layers: {
       cyanLayer: true,
       dischargersLayer: false,
-      monitoringLocationsLayer: true,
+      monitoringLocationsLayer: false,
       usgsStreamgagesLayer: true,
       waterbodyLayer: false,
     },
@@ -390,7 +385,6 @@ const tabs = [
     upper: <IdentifiedIssuesUpper />,
     lower: <IdentifiedIssues />,
     layers: {
-      cyanLayer: false,
       issuesLayer: true,
       dischargersLayer: true,
       monitoringLocationsLayer: false,
@@ -404,7 +398,6 @@ const tabs = [
     upper: <RestoreUpper />,
     lower: <Restore />,
     layers: {
-      cyanLayer: false,
       monitoringLocationsLayer: false,
       usgsStreamgagesLayer: false,
       waterbodyLayer: false,
@@ -417,7 +410,6 @@ const tabs = [
     upper: <ProtectUpper />,
     lower: <Protect />,
     layers: {
-      cyanLayer: false,
       monitoringLocationsLayer: false,
       usgsStreamgagesLayer: false,
       wsioHealthIndexLayer: false,

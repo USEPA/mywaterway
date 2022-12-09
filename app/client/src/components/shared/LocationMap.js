@@ -19,7 +19,6 @@ import FeatureReductionCluster from '@arcgis/core/layers/support/FeatureReductio
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import GroupLayer from '@arcgis/core/layers/GroupLayer';
-import LocalMediaElementSource from '@arcgis/core/layers/support/LocalMediaElementSource';
 import * as locator from '@arcgis/core/rest/locator';
 import MediaLayer from '@arcgis/core/layers/MediaLayer';
 import PictureMarkerSymbol from '@arcgis/core/symbols/PictureMarkerSymbol';
@@ -820,6 +819,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         }),
       }),
       url: services.data.cyan.waterbodies,
+      // visible: true,
+      visible: false,
     });
 
     const cyanWaterbodies = new FeatureLayer({
@@ -856,9 +857,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       renderer: new SimpleRenderer({
         symbol: new SimpleFillSymbol({
           style: 'solid',
-          color: new Color([108, 149, 206, 0.8]),
+          // color: new Color([108, 149, 206, 0.8]),
+          color: new Color([108, 149, 206, 0.4]),
           outline: {
-            color: [0, 0, 0, 1],
+            // color: [0, 0, 0, 1],
+            color: [0, 0, 0, 0],
             width: 0.75,
             style: 'solid',
           },
@@ -874,7 +877,9 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
     });
 
     const cyanImages = new MediaLayer({
+      blendMode: 'color-burn',
       copyright: 'CyAN, EPA',
+      effect: 'saturate(150%) contrast(150%)',
       id: 'cyanImages',
       opacity: 1,
     });
@@ -886,7 +891,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       // minScale: 577791,
       visible: false,
     });
-    newCyanLayer.add(allCyanWaterbodies);
+    // newCyanLayer.add(allCyanWaterbodies);
     newCyanLayer.add(cyanWaterbodies);
     newCyanLayer.add(cyanImages);
 
@@ -1670,27 +1675,31 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       };
       fetchPostForm(url, data)
         .then((res) => {
-          // duplicate the original geometry to a
+          // duplicate the objectid to a
           // different field for later reference
-          res.features.forEach((item) => {
-            const geometry = new Polygon({
-              rings: item.geometry.rings,
-              spatialReference: {
-                wkid: 102100,
+          const features = res.features.map((item) => {
+            return new Graphic({
+              attributes: {
+                ...item.attributes,
+                locationName: item.attributes.GNIS_NAME,
+                monitoringType: 'CyAN',
+                oid: item.attributes.OBJECTID,
+                orgName: 'CyAN, EPA',
               },
+              geometry: new Polygon({
+                rings: item.geometry.rings,
+                spatialReference: {
+                  wkid: 102100,
+                },
+              }),
+              layer: cyanWaterbodiesLayer,
             });
-            item.originalGeometry = geometry;
-            item.attributes.locationName = item.attributes.GNIS_NAME;
-            item.attributes.monitoringType = 'CyAN';
-            item.attributes.oid = item.attributes.OBJECTID;
-            item.attributes.orgName = 'CyAN, EPA';
-            item.geometry = geometry;
           });
           // crop the waterbodies geometry to within the huc
-          const features = cropGeometryToHuc(
+          /* const features = cropGeometryToHuc(
             res.features,
             boundaries.features[0].geometry,
-          );
+          ); */
 
           setCyanWaterbodies(features);
 

@@ -203,11 +203,12 @@ function getMatchingFeatures(
 interface HighlightFeatureParams {
   mapView: __esri.MapView;
   features: Array<ExtendedGraphic>;
-  highlightOptions: { color: string; fillOpacity: number };
+  highlightOptions: { color: __esri.Color; fillOpacity: number };
   handles: Handles;
   group: string;
   layer?: __esri.Layer | null;
   callback?: ((feature: __esri.Graphic) => void) | null;
+  fill?: boolean;
 }
 
 function highlightFeature({
@@ -218,6 +219,7 @@ function highlightFeature({
   group,
   layer = null,
   callback = null,
+  fill = true,
 }: HighlightFeatureParams) {
   features.forEach((feature) => {
     if (feature.originalGeometry) {
@@ -238,6 +240,12 @@ function highlightFeature({
         .whenLayerView(layer ?? feature.layer)
         .then((layerView) => {
           if (!isHighlightLayerView(layerView)) return;
+          mapView.highlightOptions = fill
+            ? highlightOptions
+            : {
+                fillOpacity: 0,
+                haloColor: new Color([50, 197, 253, 1]),
+              };
           const highlightObject = layerView.highlight(feature);
           handles.add(highlightObject, group);
           if (callback) callback(feature);
@@ -619,6 +627,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     // figure out what layer we the graphic belongs to
     let layer = null;
     let featureLayerType = '';
+    let fill = true;
     if (attributes.layerType === 'issues') {
       layer = issuesLayer;
     } else if (attributes.layerType === 'actions') {
@@ -626,6 +635,9 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     } else if (attributes.WSR_RIVER_NAME) {
       layer = wildScenicRiversLayer;
       featureLayerType = 'wildScenicRivers';
+    } else if (attributes.xwalk_huc12) {
+      layer = upstreamLayer;
+      fill = false;
     } else if (attributes.Shape_Length && attributes.Shape_Area) {
       layer = areasLayer;
       featureLayerType = 'waterbodyLayer';
@@ -643,10 +655,10 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       layer = usgsStreamgagesLayer;
     } else if (attributes.monitoringType === 'CyAN') {
       layer = mapView.map.findLayerById('cyanWaterbodies');
+      featureLayerType = 'cyanWaterbodies';
+      fill = false;
     } else if (attributes.type === 'nonprofit') {
       layer = nonprofitsLayer;
-    } else if (attributes.xwalk_huc12) {
-      layer = upstreamLayer;
     }
 
     if (!layer) return;
@@ -701,6 +713,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         handles,
         group,
         callback: highlightStateCallback,
+        fill,
       });
     }
     //
@@ -724,18 +737,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         highlightOptions,
         handles,
         group,
-      });
-    } else if (layer.id === 'cyanWaterbodies') {
-      const features = cyanWaterbodies.filter(
-        (waterbody: { attributes: { FID: number } }) =>
-          waterbody.attributes.FID === attributes.FID,
-      );
-      highlightFeature({
-        mapView,
-        features,
-        highlightOptions,
-        handles,
-        group,
+        fill,
       });
     } else if (
       layer.type === 'feature' &&
@@ -756,6 +758,11 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         where = `GlobalID = '${key}'`;
       }
 
+      if (featureLayerType === 'cyanWaterbodies') {
+        key = `cyan-${attributes.FID}`;
+        where = `FID = ${attributes.FID}`;
+      }
+
       if (
         layer === monitoringLocationsLayer ||
         layer === usgsStreamgagesLayer
@@ -773,6 +780,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
           highlightOptions,
           handles,
           group,
+          fill,
         });
 
         currentHighlight = graphic;
@@ -820,6 +828,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
               handles,
               group,
               callback: (feature) => featuresToCache.push(feature),
+              fill,
             });
 
             // build the new cachedHighlights object
@@ -847,6 +856,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         handles,
         group,
         callback: highlightStateCallback,
+        fill,
       });
     }
   }, [
@@ -1002,6 +1012,7 @@ function useDynamicPopup() {
         return getPopupContent({
           feature: graphic.graphic,
           fields,
+          map: mapView?.map,
           services,
           navigate,
         });
@@ -1011,6 +1022,7 @@ function useDynamicPopup() {
         feature: graphic.graphic,
         fields,
         getClickedHuc: getClickedHuc(location),
+        map: mapView?.map,
         resetData,
         services,
         navigate,
