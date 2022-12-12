@@ -711,7 +711,7 @@ export function getPopupContent({
   fieldName,
   extraContent,
   getClickedHuc,
-  map,
+  mapView,
   resetData,
   services,
   fields,
@@ -721,7 +721,7 @@ export function getPopupContent({
   fieldName?: string;
   extraContent?: Object;
   getClickedHuc?: Promise<ClickedHucState> | null;
-  map?: __esri.Map;
+  mapView?: __esri.MapView;
   resetData?: () => void;
   services?: ServicesState;
   fields?: __esri.Field[] | null;
@@ -830,7 +830,7 @@ export function getPopupContent({
       fieldName={fieldName}
       extraContent={extraContent}
       getClickedHuc={getClickedHuc}
-      map={map}
+      mapView={mapView}
       resetData={resetData}
       services={services}
       fields={fields}

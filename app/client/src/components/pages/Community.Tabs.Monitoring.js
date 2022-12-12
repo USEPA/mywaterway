@@ -23,7 +23,7 @@ import {
 import {
   circleIcon,
   squareIcon,
-  triangleIcon,
+  waterwayIcon,
 } from 'components/shared/MapLegend';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import Switch from 'components/shared/Switch';
@@ -40,7 +40,11 @@ import { useStreamgageFeatures, useWaterbodyOnMap } from 'utils/hooks';
 // data
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 // errors
-import { monitoringError, streamgagesError } from 'config/errorMessages';
+import {
+  cyanError,
+  monitoringError,
+  streamgagesError,
+} from 'config/errorMessages';
 // styles
 import {
   colors,
@@ -301,19 +305,26 @@ function Monitoring() {
 
   const {
     cipSummary,
+    cyanWaterbodies,
     monitoringLocations,
     dischargersLayer,
     permittedDischargers,
     monitoringLocationsLayer,
+    mapView,
     visibleLayers,
     setVisibleLayers,
     usgsStreamgagesLayer,
   } = useContext(LocationSearchContext);
 
+  const [currentWaterConditionsDisplayed, setCurrentWaterConditionsDisplayed] =
+    useState(true);
+
+  const [cyanDisplayed, setCyanDisplayed] = useState(true);
+
   const [usgsStreamgagesDisplayed, setUsgsStreamgagesDisplayed] =
     useState(true);
 
-  const [monitoringDisplayed, setMonitoringDisplayed] = useState(true);
+  const [monitoringDisplayed, setMonitoringDisplayed] = useState(false);
 
   // draw the permitted dischargers on the map
   useEffect(() => {
@@ -341,6 +352,10 @@ function Monitoring() {
     if (typeof visibleLayers.monitoringLocationsLayer === 'boolean') {
       setMonitoringDisplayed(visibleLayers.monitoringLocationsLayer);
     }
+
+    if (typeof visibleLayers.cyanLayer === 'boolean') {
+      setCyanDisplayed(visibleLayers.cyanLayer);
+    }
   }, [visibleLayers]);
 
   /**
@@ -348,8 +363,8 @@ function Monitoring() {
    * or not the underlying webservices failed.
    */
   const updateVisibleLayers = useCallback(
-    ({ useCurrentValue = false }) => {
-      const layers = { ...visibleLayers };
+    ({ key = null, value = null, useCurrentValue = false }) => {
+      const layers = {};
 
       if (cipSummary.status !== 'failure') {
         layers.waterbodyLayer = visibleLayers.waterbodyLayer;
@@ -369,8 +384,20 @@ function Monitoring() {
             : usgsStreamgagesDisplayed;
       }
 
+      if (cyanWaterbodies.status !== 'failure') {
+        const cyanLayer = mapView?.map.findLayerById('cyanLayer');
+        layers.cyanLayer =
+          !cyanLayer || useCurrentValue
+            ? visibleLayers.cyanLayer
+            : cyanDisplayed;
+      }
+
       if (permittedDischargers.status !== 'failure') {
         layers.dischargersLayer = visibleLayers.dischargersLayer;
+      }
+
+      if (key && layers.hasOwnProperty(key)) {
+        layers[key] = value;
       }
 
       // set the visible layers if something changed
@@ -380,6 +407,9 @@ function Monitoring() {
     },
     [
       cipSummary,
+      cyanWaterbodies,
+      cyanDisplayed,
+      mapView,
       monitoringDisplayed,
       monitoringLocations,
       monitoringLocationsLayer,
@@ -404,6 +434,10 @@ function Monitoring() {
     visibleLayers,
   ]);
 
+  const totalCurrentWaterConditions =
+    (usgsStreamgages.data.value?.length ?? 0) +
+    (cyanWaterbodies.data?.length ?? 0);
+
   return (
     <div css={containerStyles}>
       <div css={keyMetricsStyles}>
@@ -414,29 +448,35 @@ function Monitoring() {
           ) : (
             <>
               <span css={keyMetricNumberStyles}>
-                {usgsStreamgages.status === 'failure'
-                  ? 'N/A'
-                  : `${usgsStreamgages.data.value?.length}`}
+                {usgsStreamgages.status === 'success' ||
+                cyanWaterbodies.status === 'success'
+                  ? totalCurrentWaterConditions
+                  : 'N/A'}
               </span>
               <p css={keyMetricLabelStyles}>Current Water Conditions</p>
               <div css={switchContainerStyles}>
                 <Switch
                   checked={
-                    Boolean(usgsStreamgages.data.value?.length) &&
-                    usgsStreamgagesDisplayed
+                    Boolean(totalCurrentWaterConditions) &&
+                    currentWaterConditionsDisplayed
                   }
                   onChange={(_checked) => {
                     if (!usgsStreamgagesLayer) return;
 
+                    setCyanDisplayed(!cyanDisplayed);
                     setUsgsStreamgagesDisplayed(!usgsStreamgagesDisplayed);
+                    setCurrentWaterConditionsDisplayed(
+                      !currentWaterConditionsDisplayed,
+                    );
 
                     const newVisibleLayers = {
                       ...visibleLayers,
+                      cyanLayer: !cyanDisplayed,
                       usgsStreamgagesLayer: !usgsStreamgagesDisplayed,
                     };
                     setVisibleLayers(newVisibleLayers);
                   }}
-                  disabled={!Boolean(usgsStreamgages.data.value?.length)}
+                  disabled={!Boolean(totalCurrentWaterConditions)}
                   ariaLabel="Current Water Conditions"
                 />
               </div>
@@ -499,7 +539,7 @@ function Monitoring() {
 
               <div css={legendItemsStyles}>
                 <span>
-                  {triangleIcon({ color: '#6c95ce', strokeWidth: 2 })}
+                  {waterwayIcon({ color: '#6c95ce' })}
                   &nbsp;CyAN Waterbodies&nbsp;
                 </span>
                 <span>
@@ -511,6 +551,12 @@ function Monitoring() {
               <CurrentConditionsTab
                 usgsStreamgagesDisplayed={usgsStreamgagesDisplayed}
                 setUsgsStreamgagesDisplayed={setUsgsStreamgagesDisplayed}
+                cyanDisplayed={cyanDisplayed}
+                setCyanDisplayed={setCyanDisplayed}
+                setCurrentWaterConditionsDisplayed={
+                  setCurrentWaterConditionsDisplayed
+                }
+                updateVisibleLayers={updateVisibleLayers}
               />
             </TabPanel>
             <TabPanel>
@@ -542,7 +588,28 @@ function Monitoring() {
   );
 }
 
-function CurrentConditionsTab() {
+function CurrentConditionsTab({
+  usgsStreamgagesDisplayed,
+  setUsgsStreamgagesDisplayed,
+  cyanDisplayed,
+  setCyanDisplayed,
+  setCurrentWaterConditionsDisplayed,
+  updateVisibleLayers,
+}) {
+  useEffect(() => {
+    if (usgsStreamgagesDisplayed || cyanDisplayed) {
+      setCurrentWaterConditionsDisplayed(true);
+    }
+
+    if (!usgsStreamgagesDisplayed && !cyanDisplayed) {
+      setCurrentWaterConditionsDisplayed(false);
+    }
+  }, [
+    usgsStreamgagesDisplayed,
+    cyanDisplayed,
+    setCurrentWaterConditionsDisplayed,
+  ]);
+
   const { usgsStreamgages, usgsPrecipitation, usgsDailyAverages } =
     useFetchedDataState();
 
@@ -565,12 +632,26 @@ function CurrentConditionsTab() {
 
   const sortedLocations = [
     ...normalizedUsgsStreamgages,
-    ...cyanWaterbodies,
+    ...(cyanWaterbodies.status === 'success' ? cyanWaterbodies.data : []),
   ].sort(({ attributes: a }, { attributes: b }) => {
     if (sortedBy in a && sortedBy in b) {
       return a[sortedBy].localeCompare(b[sortedBy]);
     } else if (sortedBy in a) return -1;
     else return 1;
+  });
+
+  const filteredLocations = sortedLocations.filter((item) => {
+    const displayedTypes = [];
+
+    if (usgsStreamgagesDisplayed) {
+      displayedTypes.push('Current Water Conditions');
+    }
+
+    if (cyanDisplayed) {
+      displayedTypes.push('CyAN');
+    }
+
+    return displayedTypes.includes(item.attributes.monitoringType);
   });
 
   if (usgsStreamgages.status === 'idle' || usgsStreamgages.status === 'pending')
@@ -583,10 +664,77 @@ function CurrentConditionsTab() {
           <p>{streamgagesError}</p>
         </div>
       )}
+
+      {cyanWaterbodies.status === 'failure' && (
+        <div css={modifiedErrorBoxStyles}>
+          <p>{cyanError}</p>
+        </div>
+      )}
+
+      <table css={toggleTableStyles} className="table">
+        <thead>
+          <tr>
+            <th>
+              <span>Current Water Conditions</span>
+            </th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div css={toggleStyles}>
+                <Switch
+                  checked={
+                    normalizedUsgsStreamgages.length > 0 &&
+                    usgsStreamgagesDisplayed
+                  }
+                  onChange={(checked) => {
+                    setUsgsStreamgagesDisplayed(checked);
+                    updateVisibleLayers({
+                      key: 'usgsStreamgagesLayer',
+                      value: checked,
+                    });
+                  }}
+                  disabled={normalizedUsgsStreamgages.length === 0}
+                  ariaLabel="USGS Streamgages"
+                />
+                <span>USGS Streamgages</span>
+              </div>
+            </td>
+            <td>{normalizedUsgsStreamgages.length}</td>
+          </tr>
+          <tr>
+            <td>
+              <div css={toggleStyles}>
+                <Switch
+                  checked={cyanWaterbodies.data?.length > 0 && cyanDisplayed}
+                  onChange={(checked) => {
+                    setCyanDisplayed(checked);
+                    updateVisibleLayers({
+                      key: 'cyanLayer',
+                      value: checked,
+                    });
+                  }}
+                  disabled={
+                    cyanWaterbodies.status !== 'success' ||
+                    cyanWaterbodies.data?.length === 0
+                  }
+                  ariaLabel="CyAN Waterbodies"
+                />
+                <span>CyAN Waterbodies</span>
+              </div>
+            </td>
+            <td>{cyanWaterbodies.data?.length ?? 'N/A'}</td>
+          </tr>
+        </tbody>
+      </table>
+
       <AccordionList
         title={
           <>
             There {sortedLocations.length === 1 ? 'is' : 'are'}{' '}
+            <strong>{filteredLocations.length}</strong> of{' '}
             <strong>{sortedLocations.length}</strong>{' '}
             {sortedLocations.length === 1 ? 'location' : 'locations'} with data
             in the <em>{watershed}</em> watershed.
@@ -608,7 +756,7 @@ function CurrentConditionsTab() {
           },
         ]}
       >
-        {sortedLocations.map((item, index) => {
+        {filteredLocations.map((item, index) => {
           switch (item.attributes.monitoringType) {
             case 'Current Water Conditions':
               return (
@@ -644,7 +792,7 @@ function CurrentConditionsTab() {
             case 'CyAN':
               return (
                 <AccordionItem
-                  icon={triangleIcon({ color: '#6c95ce', strokeWidth: 2 })}
+                  icon={waterwayIcon({ color: '#6c95ce' })}
                   key={index}
                   title={
                     <strong>{item.attributes.GNIS_NAME || 'Unknown'}</strong>
@@ -660,7 +808,7 @@ function CurrentConditionsTab() {
                 >
                   <WaterbodyInfo
                     feature={item}
-                    map={mapView?.map}
+                    mapView={mapView}
                     services={services}
                     type="CyAN"
                   />

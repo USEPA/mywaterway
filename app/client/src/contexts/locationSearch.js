@@ -9,7 +9,7 @@ type Props = {
   children: ReactNode,
 };
 
-type Status = 'fetching' | 'success' | 'failure';
+type Status = 'idle' | 'fetching' | 'success' | 'failure' | 'pending';
 
 type MonitoringLocationGroups = {
   [label: string]: {
@@ -171,7 +171,7 @@ type State = {
   waterbodyData: Array<Object>,
   linesData: Array<Object>,
   areasData: Array<Object>,
-  cyanWaterbodies: Array<Object>,
+  cyanWaterbodies: { status: Status, data: Array<Object> },
   pointsData: Array<Object>,
   orphanFeatures: Array<Object>,
   waterbodyCountMismatch: boolean,
@@ -262,7 +262,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     linesData: null,
     areasData: null,
     pointsData: null,
-    cyanWaterbodies: [],
+    cyanWaterbodies: { status: 'idle', data: [] },
     orphanFeatures: { status: 'fetching', features: [] },
     waterbodyCountMismatch: null,
     FIPS: { status: 'fetching', stateCode: '', countyCode: '' },
@@ -709,7 +709,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         pointsData: null,
         linesData: null,
         areasData: null,
-        cyanWaterbodies: [],
+        cyanWaterbodies: { status: 'idle', data: null },
         orphanFeatures: { status: 'fetching', features: [] },
         waterbodyCountMismatch: null,
         countyBoundaries: '',
@@ -743,7 +743,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         pointsData: [],
         linesData: [],
         areasData: [],
-        cyanWaterbodies: [],
+        cyanWaterbodies: { status: 'success', data: [] },
         orphanFeatures: { status: 'fetching', features: [] },
         waterbodyCountMismatch: null,
         countyBoundaries: '',

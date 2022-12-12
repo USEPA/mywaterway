@@ -1673,6 +1673,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         f: 'json',
         spatialRel: 'esriSpatialRelIntersects',
       };
+      setCyanWaterbodies({ status: 'pending', data: null });
       fetchPostForm(url, data)
         .then((res) => {
           // duplicate the objectid to a
@@ -1701,7 +1702,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
             boundaries.features[0].geometry,
           ); */
 
-          setCyanWaterbodies(features);
+          setCyanWaterbodies({ status: 'success', data: features });
 
           cyanWaterbodiesLayer.queryFeatures().then((featureSet) => {
             cyanWaterbodiesLayer.applyEdits({
@@ -1711,6 +1712,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           });
         })
         .catch((err) => {
+          setCyanWaterbodies({ status: 'failure', data: null });
           console.error(err);
         });
     },

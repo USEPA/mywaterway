@@ -297,7 +297,7 @@ function Protect() {
   // or not the underlying webservices failed.
   const updateVisibleLayers = useCallback(
     ({ key = null, newValue = null, useCurrentValue = false }) => {
-      const newVisibleLayers = { ...visibleLayers };
+      const newVisibleLayers = {};
       if (wsioHealthIndexData.status !== 'failure') {
         newVisibleLayers['wsioHealthIndexLayer'] =
           !wsioHealthIndexLayer || useCurrentValue

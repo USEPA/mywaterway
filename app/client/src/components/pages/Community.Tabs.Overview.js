@@ -165,7 +165,7 @@ function Overview() {
    */
   const updateVisibleLayers = useCallback(
     ({ key = null, value = null, useCurrentValue = false }) => {
-      const layers = { ...visibleLayers };
+      const layers = {};
 
       if (cipSummary.status !== 'failure') {
         layers.waterbodyLayer =

@@ -42,6 +42,9 @@ export default function StackedBarChart({
         type: 'column',
       },
       credits: { enabled: false },
+      legend: {
+        verticalAlign: 'top',
+      },
       plotOptions: {
         column: {
           stacking: 'normal',

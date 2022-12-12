@@ -36,7 +36,7 @@ import {
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
 import cyanMetadata from 'config/cyanMetadata';
 // errors
-import { waterbodyReportError } from 'config/errorMessages';
+import { cyanError, waterbodyReportError } from 'config/errorMessages';
 // styles
 import {
   colors,
@@ -338,7 +338,7 @@ type WaterbodyInfoProps = {
   feature: __esri.Graphic;
   fieldName?: string | null;
   fields?: __esri.Field[] | null;
-  map?: __esri.Map;
+  mapView?: __esri.MapView;
   services?: ServicesState;
   type: string;
 };
@@ -351,7 +351,7 @@ function WaterbodyInfo({
   feature,
   fieldName = null,
   extraContent,
-  map,
+  mapView,
   services,
   fields,
 }: WaterbodyInfoProps) {
@@ -942,7 +942,11 @@ function WaterbodyInfo({
   }
   if (type === 'CyAN') {
     content = (
-      <CyanContent feature={feature} map={map} services={services ?? null} />
+      <CyanContent
+        feature={feature}
+        mapView={mapView}
+        services={services ?? null}
+      />
     );
   }
 
@@ -956,7 +960,7 @@ type MapPopupProps = {
   fieldName?: string | null;
   extraContent?: ReactNode | null;
   getClickedHuc?: Promise<ClickedHucState> | null;
-  map?: __esri.Map;
+  mapView?: __esri.MapView;
   resetData?: () => void;
   services?: ServicesState;
   fields?: __esri.Field[] | null;
@@ -968,7 +972,7 @@ function MapPopup({
   fieldName,
   extraContent,
   getClickedHuc,
-  map,
+  mapView,
   resetData,
   services,
   fields,
@@ -1089,7 +1093,7 @@ function MapPopup({
             feature={feature}
             fieldName={fieldName}
             extraContent={extraContent}
-            map={map}
+            mapView={mapView}
             services={services}
             fields={fields}
           />
@@ -1103,6 +1107,21 @@ const chartContainerStyles = css`
   padding: 0 1em 1em 1em;
 `;
 
+const sliderContainerStyles = css`
+  margin: auto;
+  width: 90%;
+`;
+
+const subheadingStyles = css`
+  padding-bottom: 0.5em;
+  padding-top: 1em;
+`;
+
+const sublistContentStyles = css`
+  ${listContentStyles}
+  border-top: 2px solid #d8dfe2;
+`;
+
 const oneDay = 1000 * 60 * 60 * 24;
 
 function getDayOfYear(day: Date) {
@@ -1112,6 +1131,52 @@ function getDayOfYear(day: Date) {
     firstOfYear.getTime() +
     (firstOfYear.getTimezoneOffset() - day.getTimezoneOffset()) * 60 * 1000;
   return Math.floor(diff / oneDay);
+}
+
+function getAverageCellConcentration(counts: number[]) {
+  if (!counts.length) return null;
+  let totalCc = 0;
+  let totalCount = 0;
+  for (let i = 0; i < counts.length; i++) {
+    totalCc += counts[i] * cyanMetadata[i];
+    totalCount += counts[i];
+  }
+  return totalCount > 0 ? totalCc / totalCount : null;
+}
+
+function getMinCellConcentration(counts: number[]) {
+  if (!counts.length) return null;
+  const minIdx = counts.findIndex((count) => count > 0);
+  return minIdx > -1 ? cyanMetadata[minIdx] : null;
+}
+
+function getMaxCellConcentration(counts: number[]) {
+  if (!counts.length) return null;
+  for (let i = counts.length - 1; i >= 0; i--) {
+    if (counts[i] > 0) return cyanMetadata[i];
+  }
+  return null;
+}
+
+function getStdDevCellConcentration(
+  counts: number[],
+  mean: number | null = null,
+) {
+  if (counts.length <= 1) return null;
+
+  const sampleMean = mean ?? getAverageCellConcentration(counts) ?? null;
+
+  if (sampleMean === null) return null;
+
+  const values: number[] = [];
+  counts.forEach((count, i) => {
+    for (let j = 0; j < count; j++) {
+      values.push(cyanMetadata[i]);
+    }
+  });
+  const tss = values.reduce((a, b) => a + (b - sampleMean) ** 2, 0);
+  const variance = tss / (values.length - 1);
+  return Math.sqrt(variance);
 }
 
 function cyanDateToEpoch(yearDay: string) {
@@ -1153,11 +1218,11 @@ type ChartData = {
 
 type CyanContentProps = {
   feature: __esri.Graphic & { originalGeometry?: __esri.Geometry };
-  map?: __esri.Map;
+  mapView?: __esri.MapView;
   services: ServicesState | null;
 };
 
-function CyanContent({ feature, map, services }: CyanContentProps) {
+function CyanContent({ feature, mapView, services }: CyanContentProps) {
   const { attributes, geometry } = feature;
   const abortSignal = useAbortSignal();
 
@@ -1232,6 +1297,34 @@ function CyanContent({ feature, map, services }: CyanContentProps) {
     setSelectedDate(newDates[newDates.length - 1] ?? null);
   }, [cellConcentration]);
 
+  const [minCc, setMinCc] = useState<number | null>(null);
+  const [maxCc, setMaxCc] = useState<number | null>(null);
+  const [averageCc, setAverageCc] = useState<number | null>(null);
+  const [stdDevCc, setStdDevCc] = useState<number | null>(null);
+  const [countCc, setCountCc] = useState<number | null>(null);
+
+  // Calculate statistics for the selected date
+  useEffect(() => {
+    if (cellConcentration.status !== 'success' || selectedDate === null) {
+      setMinCc(null);
+      setMaxCc(null);
+      setAverageCc(null);
+      setStdDevCc(null);
+      setCountCc(null);
+      return;
+    }
+
+    const selectedData = cellConcentration.data[selectedDate.toString()];
+    setCountCc(
+      selectedData.length ? selectedData.reduce((a, b) => a + b, 0) : null,
+    );
+    setMinCc(getMinCellConcentration(selectedData));
+    setMaxCc(getMaxCellConcentration(selectedData));
+    const newAverageCc = getAverageCellConcentration(selectedData);
+    setAverageCc(newAverageCc);
+    setStdDevCc(getStdDevCellConcentration(selectedData, newAverageCc));
+  }, [cellConcentration, selectedDate]);
+
   const [imageStatus, setImageStatus] = useState<
     'idle' | 'pending' | 'failure' | 'success'
   >('idle');
@@ -1241,9 +1334,9 @@ function CyanContent({ feature, map, services }: CyanContentProps) {
   useEffect(() => {
     if (selectedDate === null) return;
     if (services?.status !== 'success') return;
-    if (!map) return;
+    if (!mapView) return;
 
-    const cyanImageLayer = map.findLayerById('cyanImages');
+    const cyanImageLayer = mapView.map.findLayerById('cyanImages');
     if (!cyanImageLayer || !isMediaLayer(cyanImageLayer)) return;
 
     const currentDate = new Date(selectedDate);
@@ -1255,10 +1348,10 @@ function CyanContent({ feature, map, services }: CyanContentProps) {
     const timeout = 60000;
     const imageTimeout = setTimeout(() => abortController.abort(), timeout);
 
+    cyanImageLayer.source.elements.removeAll();
     setImageStatus('pending');
     fetch(imageUrl, { signal: abortController.signal })
       .then((res) => {
-        cyanImageLayer.source.elements.removeAll();
         if (res.headers.get('Content-Type') !== 'image/png') {
           setImageStatus('idle');
           return;
@@ -1291,19 +1384,32 @@ function CyanContent({ feature, map, services }: CyanContentProps) {
     return function cleanup() {
       clearTimeout(imageTimeout);
     };
-  }, [attributes, geometry, map, selectedDate, services]);
+  }, [attributes, geometry, mapView, selectedDate, services]);
 
   // Remove the image when this component unmounts
   useEffect(() => {
-    if (!map) return;
+    if (!mapView) return;
 
-    const cyanImageLayer = map.findLayerById('cyanImages');
+    const cyanImageLayer = mapView.map.findLayerById('cyanImages');
     if (!cyanImageLayer || !isMediaLayer(cyanImageLayer)) return;
+
+    const popupWatchHandle = mapView.popup.watch(
+      'visible',
+      (visible: boolean) => {
+        if (visible) return;
+        mapView.popup.features.forEach((feature) => {
+          if (feature.layer.id === 'cyanWaterbodies') {
+            cyanImageLayer.source.elements.removeAll();
+          }
+        });
+      },
+    );
 
     return function cleanup() {
       cyanImageLayer.source.elements.removeAll();
+      popupWatchHandle.remove();
     };
-  }, [map]);
+  }, [mapView]);
 
   const [chartData, setChartData] = useState<ChartData | null>(null);
 
@@ -1346,6 +1452,18 @@ function CyanContent({ feature, map, services }: CyanContentProps) {
     setChartData(newChartData);
   }, [cellConcentration]);
 
+  // Display the average cell concentration alongside the standard deviation
+  let formattedAverageCc = null;
+  if (averageCc !== null) formattedAverageCc = formatNumber(averageCc, 2);
+  if (formattedAverageCc !== null) {
+    if (stdDevCc !== null)
+      formattedAverageCc += ` ${String.fromCharCode(177)} ${formatNumber(
+        stdDevCc,
+        2,
+      )}`;
+    formattedAverageCc += ' cells/mL';
+  }
+
   return (
     <>
       <div css={tableStyles} className="table">
@@ -1354,14 +1472,22 @@ function CyanContent({ feature, map, services }: CyanContentProps) {
             {
               label: 'Area',
               value: attributes.AREASQKM
-                ? `${formatNumber(attributes.AREASQKM)} sq. km.`
+                ? `${formatNumber(attributes.AREASQKM, 2)} sq. km.`
                 : '',
             },
             {
               label: 'Elevation',
               value: attributes.ELEVATION
-                ? `${formatNumber(attributes.ELEVATION)} m.`
+                ? `${formatNumber(attributes.ELEVATION, 1)} m.`
                 : '',
+            },
+            {
+              label: 'Centroid Latitude',
+              value: attributes.c_lat ? formatNumber(attributes.c_lat, 4) : '',
+            },
+            {
+              label: 'Centroid Longitude',
+              value: attributes.c_lng ? formatNumber(attributes.c_lng, 4) : '',
             },
           ]}
           styles={listContentStyles}
@@ -1370,9 +1496,7 @@ function CyanContent({ feature, map, services }: CyanContentProps) {
       <div css={chartContainerStyles}>
         {cellConcentration.status === 'pending' && <LoadingSpinner />}
         {cellConcentration.status === 'failure' && (
-          <p css={errorBoxStyles}>
-            CyAN data is temporarily unavailable, please try again later.
-          </p>
+          <p css={errorBoxStyles}>{cyanError}</p>
         )}
         {cellConcentration.status === 'success' && (
           <>
@@ -1380,19 +1504,72 @@ function CyanContent({ feature, map, services }: CyanContentProps) {
               <StackedBarChart
                 categories={chartData.categories}
                 series={chartData.series}
-                title="Total Measurement Counts"
+                title="Cell Concentration Counts"
+                yLabel="Measurement count / CC range"
+                xLabel="Date"
               />
             )}
 
             {dates.length > 0 ? (
-              <TickSlider
-                getTickLabel={epochToMonthDay}
-                loading={imageStatus === 'pending'}
-                onChange={(value) => setSelectedDate(value)}
-                steps={dates}
-                stepSize={oneDay}
-                value={selectedDate}
-              />
+              <>
+                <p css={subheadingStyles}>
+                  <HelpTooltip label="Adjust the slider handle to view the day's CyAN satellite imagery on the map" />
+                  &nbsp;&nbsp;
+                  <b>Date Selection:</b>
+                </p>
+                <div css={sliderContainerStyles}>
+                  <TickSlider
+                    getTickLabel={epochToMonthDay}
+                    loading={imageStatus === 'pending'}
+                    onChange={(value) => setSelectedDate(value)}
+                    steps={dates}
+                    stepSize={oneDay}
+                    value={selectedDate}
+                  />
+                </div>
+
+                {selectedDate !== null && (
+                  <>
+                    <p css={subheadingStyles}>
+                      Cell Concentration Statistics for{' '}
+                      <b>
+                        {new Date(selectedDate).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </b>
+                    </p>
+                    <ListContent
+                      rows={[
+                        {
+                          label: 'Count',
+                          value: countCc !== null ? formatNumber(countCc) : 0,
+                        },
+                        {
+                          label: 'Min',
+                          value:
+                            minCc !== null
+                              ? `${formatNumber(minCc, 2)} cells/mL`
+                              : 'N/A',
+                        },
+                        {
+                          label: 'Max',
+                          value:
+                            maxCc !== null
+                              ? `${formatNumber(maxCc, 2)} cells/mL`
+                              : 'N/A',
+                        },
+                        {
+                          label: 'Average',
+                          value: formattedAverageCc ?? 'N/A',
+                        },
+                      ]}
+                      styles={sublistContentStyles}
+                    />
+                  </>
+                )}
+              </>
             ) : (
               <p css={infoBoxStyles}>
                 There is no CyAN data from the past week for the{' '}

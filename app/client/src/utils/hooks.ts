@@ -1012,7 +1012,7 @@ function useDynamicPopup() {
         return getPopupContent({
           feature: graphic.graphic,
           fields,
-          map: mapView?.map,
+          mapView,
           services,
           navigate,
         });
@@ -1022,7 +1022,7 @@ function useDynamicPopup() {
         feature: graphic.graphic,
         fields,
         getClickedHuc: getClickedHuc(location),
-        map: mapView?.map,
+        mapView,
         resetData,
         services,
         navigate,

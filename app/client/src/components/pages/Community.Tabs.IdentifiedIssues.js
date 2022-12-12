@@ -322,7 +322,7 @@ function IdentifiedIssues() {
   // or not the underlying webservices failed.
   const updateVisibleLayers = useCallback(
     ({ key = null, newValue = null, useCurrentValue = false }) => {
-      const newVisibleLayers = { ...visibleLayers };
+      const newVisibleLayers = {};
 
       if (cipSummary.status !== 'failure') {
         newVisibleLayers['issuesLayer'] =

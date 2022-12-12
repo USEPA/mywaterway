@@ -158,7 +158,7 @@ interface RowProps {
 }
 
 function Row({ label, value, status = 'success' }: RowProps) {
-  let displayValue = value || 'N/A';
+  let displayValue = value ?? 'N/A';
   if (status === 'fetching') displayValue = <LoadingSpinner />;
   else if (status === 'failure') displayValue = 'N/A';
 
