@@ -806,12 +806,15 @@ function CurrentConditionsTab({
                   feature={item}
                   idKey="FID"
                 >
-                  <WaterbodyInfo
-                    feature={item}
-                    mapView={mapView}
-                    services={services}
-                    type="CyAN"
-                  />
+                  <div css={accordionContentStyles}>
+                    <WaterbodyInfo
+                      feature={item}
+                      mapView={mapView}
+                      services={services}
+                      type="CyAN"
+                    />
+                    <ViewOnMapButton feature={item} fieldName="FID" />
+                  </div>
                 </AccordionItem>
               );
             default:

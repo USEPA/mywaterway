@@ -1398,7 +1398,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
       (visible: boolean) => {
         if (visible) return;
         mapView.popup.features.forEach((feature) => {
-          if (feature.layer.id === 'cyanWaterbodies') {
+          if (feature.layer?.id === 'cyanWaterbodies') {
             cyanImageLayer.source.elements.removeAll();
           }
         });
