@@ -975,24 +975,31 @@ export function GradientIcon({
 // Gets the highlight symbol styles based on the provided geometry.
 export function getHighlightSymbol(
   geometry: __esri.Geometry,
-  color: __esri.Color,
+  options: __esri.MapViewHighlightOptions,
   fill?: boolean,
 ) {
   let symbol: __esri.Symbol | null = null;
   if (isPolyline(geometry)) {
     return new SimpleLineSymbol({
       width: 5,
-      color,
+      color: new Color({ ...options.haloColor, a: options.haloOpacity }),
     });
   } else if (isPolygon(geometry)) {
     return new SimpleFillSymbol({
-      outline: { color, width: 2 },
-      color: fill ? color : new Color([0, 0, 0, 0]),
+      outline: {
+        color: new Color({ ...options.haloColor, a: options.haloOpacity }),
+        width: 2,
+      },
+      color: new Color({ ...options.color, a: options.fillOpacity }),
+      style: fill ? 'solid' : 'none',
     });
   } else if (isPoint(geometry) || isMultipoint(geometry)) {
     return new SimpleMarkerSymbol({
-      outline: { color, width: 2 },
-      color,
+      outline: {
+        color: new Color({ ...options.haloColor, a: options.haloOpacity }),
+        width: 2,
+      },
+      color: new Color({ ...options.color, a: options.fillOpacity }),
     });
   }
 

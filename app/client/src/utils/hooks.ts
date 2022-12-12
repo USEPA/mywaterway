@@ -203,7 +203,7 @@ function getMatchingFeatures(
 interface HighlightFeatureParams {
   mapView: __esri.MapView;
   features: Array<ExtendedGraphic>;
-  highlightOptions: { color: __esri.Color; fillOpacity: number };
+  highlightOptions: __esri.MapViewHighlightOptions;
   handles: Handles;
   group: string;
   layer?: __esri.Layer | null;
@@ -224,14 +224,15 @@ function highlightFeature({
   features.forEach((feature) => {
     if (feature.originalGeometry) {
       const symbol = getHighlightSymbol(
-        feature.originalGeometry,
-        highlightOptions.color,
+        feature.originalGeometry ?? feature.geometry,
+        highlightOptions,
+        fill,
       );
       if (!symbol) return;
       mapView.graphics.add(
         new Graphic({
           ...feature,
-          geometry: feature.originalGeometry,
+          geometry: feature.originalGeometry ?? feature.geometry,
           symbol,
         }),
       );
@@ -240,12 +241,6 @@ function highlightFeature({
         .whenLayerView(layer ?? feature.layer)
         .then((layerView) => {
           if (!isHighlightLayerView(layerView)) return;
-          mapView.highlightOptions = fill
-            ? highlightOptions
-            : {
-                fillOpacity: 0,
-                haloColor: new Color([50, 197, 253, 1]),
-              };
           const highlightObject = layerView.highlight(feature);
           handles.add(highlightObject, group);
           if (callback) callback(feature);
@@ -480,7 +475,6 @@ function useWaterbodyOnMap(
 function useWaterbodyHighlight(findOthers: boolean = true) {
   const { highlightedGraphic, selectedGraphic } = useMapHighlightState();
   const {
-    cyanWaterbodies,
     mapView,
     pointsLayer, //part of waterbody group layer
     linesLayer, //part of waterbody group layer
@@ -715,9 +709,20 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         callback: highlightStateCallback,
         fill,
       });
-    }
-    //
-    else if (
+      /* } else if (!fill) {
+      // Outline highlights don't use `mapView.highlightOptions`,
+      // so they are handled separately
+      highlightFeature({
+        mapView,
+        layer,
+        features: [graphicToHighlight],
+        highlightOptions,
+        handles,
+        group,
+        callback: highlightStateCallback,
+        fill,
+      }); */
+    } else if (
       window.location.pathname.includes('community') &&
       featureLayerType === 'waterbodyLayer' &&
       layer.type === 'feature' &&
@@ -883,7 +888,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     pointsData,
     linesData,
     areasData,
-    cyanWaterbodies,
   ]);
 
   // Closes the popup and clears highlights whenever the tab changes
