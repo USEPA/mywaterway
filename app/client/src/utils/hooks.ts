@@ -224,7 +224,7 @@ function highlightFeature({
   features.forEach((feature) => {
     if (feature.originalGeometry) {
       const symbol = getHighlightSymbol(
-        feature.originalGeometry ?? feature.geometry,
+        feature.originalGeometry,
         highlightOptions,
         fill,
       );
@@ -232,7 +232,7 @@ function highlightFeature({
       mapView.graphics.add(
         new Graphic({
           ...feature,
-          geometry: feature.originalGeometry ?? feature.geometry,
+          geometry: feature.originalGeometry,
           symbol,
         }),
       );

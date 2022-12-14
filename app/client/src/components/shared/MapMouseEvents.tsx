@@ -392,7 +392,7 @@ function MapMouseEvents({ view }: Props) {
     // auto expands the popup when it is first opened
     view.popup.watch('visible', (_graphic: __esri.Graphic) => {
       if (view.popup.visible) view.popup.collapsed = false;
-      else setSelectedGraphic(null);
+      // else setSelectedGraphic(null);
     });
 
     setInitialized(true);

@@ -198,9 +198,10 @@ export interface ScaledLayer extends __esri.Layer {
 interface ServicesData {
   attains: { serviceUrl: string };
   cyan: {
-    waterbodies: string;
     cellConcentration: string;
     images: string;
+    properties: string;
+    waterbodies: string;
   };
   upstreamWatershed: string;
   usgsWaterAlert: string;

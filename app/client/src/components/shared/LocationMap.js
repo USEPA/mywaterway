@@ -1716,7 +1716,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
           console.error(err);
         });
     },
-    [cropGeometryToHuc, mapView, services, setCyanWaterbodies],
+    [mapView, services, setCyanWaterbodies],
   );
 
   const handleMapServices = useCallback(

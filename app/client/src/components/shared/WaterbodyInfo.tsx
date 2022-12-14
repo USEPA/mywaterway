@@ -1,7 +1,10 @@
+import Extent from '@arcgis/core/geometry/Extent';
 import ExtentAndRotationGeoreference from '@arcgis/core/layers/support/ExtentAndRotationGeoreference';
 import ImageElement from '@arcgis/core/layers/support/ImageElement';
 import { css } from 'styled-components/macro';
+import * as projection from '@arcgis/core/geometry/projection';
 import { useCallback, useEffect, useState } from 'react';
+import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 // components
 import { HelpTooltip } from 'components/shared/HelpTooltip';
 import { ListContent } from 'components/shared/BoxContent';
@@ -1223,7 +1226,7 @@ type CyanContentProps = {
 };
 
 function CyanContent({ feature, mapView, services }: CyanContentProps) {
-  const { attributes, geometry } = feature;
+  const { attributes } = feature;
   const abortSignal = useAbortSignal();
 
   const [today] = useState(() => {
@@ -1325,6 +1328,12 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     setStdDevCc(getStdDevCellConcentration(selectedData, newAverageCc));
   }, [cellConcentration, selectedDate]);
 
+  const [projectionLoaded, setProjectionLoaded] = useState<boolean>(false);
+
+  useEffect(() => {
+    projection.load().then(() => setProjectionLoaded(true));
+  }, []);
+
   const [imageStatus, setImageStatus] = useState<
     'idle' | 'pending' | 'failure' | 'success'
   >('idle');
@@ -1335,6 +1344,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     if (selectedDate === null) return;
     if (services?.status !== 'success') return;
     if (!mapView) return;
+    if (!projectionLoaded) return;
 
     const cyanImageLayer = mapView.map.findLayerById('cyanImages');
     if (!cyanImageLayer || !isMediaLayer(cyanImageLayer)) return;
@@ -1343,28 +1353,39 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     const imageUrl = `${services.data.cyan.images}/?OBJECTID=${
       attributes.oid ?? attributes.OBJECTID
     }&year=${currentDate.getFullYear()}&day=${getDayOfYear(currentDate)}`;
+    const propertiesUrl = `${services.data.cyan.properties}/?OBJECTID=${
+      attributes.oid ?? attributes.OBJECTID
+    }`;
 
     const abortController = new AbortController();
-    const timeout = 60000;
+    const timeout = 60_000;
     const imageTimeout = setTimeout(() => abortController.abort(), timeout);
 
     cyanImageLayer.source.elements.removeAll();
     setImageStatus('pending');
-    fetch(imageUrl, { signal: abortController.signal })
-      .then((res) => {
-        if (res.headers.get('Content-Type') !== 'image/png') {
+    const imagePromise = fetch(imageUrl, { signal: abortController.signal });
+    const propsPromise = fetchCheck(propertiesUrl, abortController.signal);
+    Promise.all([imagePromise, propsPromise])
+      .then(([imageRes, propsRes]) => {
+        if (imageRes.headers.get('Content-Type') !== 'image/png') {
           setImageStatus('idle');
           return;
         }
 
-        res.blob().then((blob) => {
+        imageRes.blob().then((blob) => {
           const image = new Image();
           image.src = URL.createObjectURL(blob);
           image.onload = () => setImageStatus('success');
           const imageElement = new ImageElement({
             image,
             georeference: new ExtentAndRotationGeoreference({
-              extent: geometry.extent,
+              extent: new Extent({
+                spatialReference: SpatialReference.WGS84,
+                xmin: propsRes.properties.x_min,
+                xmax: propsRes.properties.x_max,
+                ymin: propsRes.properties.y_min,
+                ymax: propsRes.properties.y_max,
+              }),
             }),
           });
           cyanImageLayer.source.elements.add(imageElement);
@@ -1384,7 +1405,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     return function cleanup() {
       clearTimeout(imageTimeout);
     };
-  }, [attributes, geometry, mapView, selectedDate, services]);
+  }, [attributes, mapView, projectionLoaded, selectedDate, services]);
 
   // Remove the image when this component unmounts
   useEffect(() => {
