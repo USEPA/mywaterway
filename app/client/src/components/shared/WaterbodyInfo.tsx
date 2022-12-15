@@ -916,7 +916,7 @@ function WaterbodyInfo({
   if (type === 'Restoration Plans') content = projectContent();
   if (type === 'Protection Plans') content = projectContent();
   if (type === 'Permitted Discharger') content = dischargerContent;
-  if (type === 'Current Water Conditions') {
+  if (type === 'USGS Sensors') {
     content = (
       <UsgsStreamgagesContent feature={feature} services={services ?? null} />
     );

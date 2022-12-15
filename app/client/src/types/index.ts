@@ -250,7 +250,7 @@ export interface UpstreamWatershedAttributes {
 }
 
 export interface UsgsStreamgageAttributes {
-  monitoringType: 'Current Water Conditions';
+  monitoringType: 'USGS Sensors';
   siteId: string;
   orgId: string;
   orgName: string;

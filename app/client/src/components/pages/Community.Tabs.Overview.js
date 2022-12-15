@@ -489,7 +489,7 @@ function MonitoringAndSensorsTab({
 
   const [expandedRows, setExpandedRows] = useState([]);
 
-  // if either of the "Current Water Conditions" or "Past Water Conditions" switches
+  // if either of the "USGS Sensors" or "Past Water Conditions" switches
   // are turned on, or if both switches are turned off, keep the "Monitoring
   // Stations" switch in sync
   useEffect(() => {
@@ -552,7 +552,7 @@ function MonitoringAndSensorsTab({
       const displayedTypes = [];
 
       if (usgsStreamgagesDisplayed) {
-        displayedTypes.push('Current Water Conditions');
+        displayedTypes.push('USGS Sensors');
       }
 
       if (monitoringLocationsDisplayed) {
@@ -591,7 +591,7 @@ function MonitoringAndSensorsTab({
           </span>
           <span>
             {squareIcon({ color: '#fffe00' })}
-            &nbsp;Current Water Conditions&nbsp;
+            &nbsp;USGS Sensors&nbsp;
           </span>
         </div>
 
@@ -657,9 +657,9 @@ function MonitoringAndSensorsTab({
                           });
                         }}
                         disabled={normalizedUsgsStreamgages.length === 0}
-                        ariaLabel="Current Water Conditions"
+                        ariaLabel="USGS Sensors"
                       />
-                      <span>Current Water Conditions</span>
+                      <span>USGS Sensors</span>
                     </div>
                   </td>
                   <td>{normalizedUsgsStreamgages.length}</td>
@@ -742,7 +742,7 @@ function MonitoringAndSensorsTab({
                 renderer={({ index }) => {
                   const item = filteredMonitoringAndSensors[index];
                   let icon = circleIcon({ color: colors.lightPurple() });
-                  if (item.monitoringType === 'Current Water Conditions')
+                  if (item.monitoringType === 'USGS Sensors')
                     icon = squareIcon({ color: '#fffe00' });
 
                   const feature = {
@@ -793,9 +793,9 @@ function MonitoringAndSensorsTab({
                       }}
                     >
                       <div css={accordionContentStyles}>
-                        {item.monitoringType === 'Current Water Conditions' && (
+                        {item.monitoringType === 'USGS Sensors' && (
                           <WaterbodyInfo
-                            type="Current Water Conditions"
+                            type="USGS Sensors"
                             feature={feature}
                             services={services}
                           />

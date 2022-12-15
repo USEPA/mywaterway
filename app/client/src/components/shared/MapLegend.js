@@ -314,7 +314,7 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
     <li>
       <div css={legendItemStyles}>
         <div css={imageContainerStyles}>{squareIcon({ color: '#fffe00' })}</div>
-        <span css={labelStyles}>Current Water Conditions</span>
+        <span css={labelStyles}>USGS Sensors</span>
       </div>
     </li>
 

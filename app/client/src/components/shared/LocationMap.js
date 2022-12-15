@@ -728,7 +728,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     const usgsStreamgagesLayer = new FeatureLayer({
       id: 'usgsStreamgagesLayer',
-      title: 'Current Water Conditions',
+      title: 'USGS Sensors',
       listMode: 'hide',
       legendEnabled: false,
       fields: [

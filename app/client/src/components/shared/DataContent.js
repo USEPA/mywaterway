@@ -141,7 +141,7 @@ function DataContent() {
             css={modifiedLinkButtonStyles}
             onClick={() => scrollToItem('current-conditions')}
           >
-            Current Water Conditions (USGS Stream Gages)
+            USGS Sensors (USGS Stream Gages)
           </button>
         </li>
         <li>
@@ -269,9 +269,9 @@ function DataContent() {
 
       <hr />
 
-      <div css={itemStyles} id="current-conditions">
+      <div css={itemStyles} id="usgs-sensors">
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <h2 css={titleStyles}>Current Water Conditions (USGS Stream Gages)</h2>
+        <h2 css={titleStyles}>USGS Sensors (USGS Stream Gages)</h2>
         <p>
           <a
             href="https://waterdata.usgs.gov/nwis/rt"

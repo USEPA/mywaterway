@@ -645,7 +645,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       layer = dischargersLayer;
     } else if (attributes.monitoringType === 'Past Water Conditions') {
       layer = monitoringLocationsLayer;
-    } else if (attributes.monitoringType === 'Current Water Conditions') {
+    } else if (attributes.monitoringType === 'USGS Sensors') {
       layer = usgsStreamgagesLayer;
     } else if (attributes.monitoringType === 'CyAN') {
       layer = mapView.map.findLayerById('cyanWaterbodies');
@@ -1891,7 +1891,7 @@ function useStreamgageData(
         });
 
       return {
-        monitoringType: 'Current Water Conditions' as const,
+        monitoringType: 'USGS Sensors' as const,
         siteId: gage.properties.monitoringLocationNumber,
         orgId: gage.properties.agencyCode,
         orgName: gage.properties.agency,

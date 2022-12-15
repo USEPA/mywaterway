@@ -460,19 +460,17 @@ function Monitoring() {
                     Boolean(totalCurrentWaterConditions) &&
                     currentWaterConditionsDisplayed
                   }
-                  onChange={(_checked) => {
+                  onChange={(checked) => {
                     if (!usgsStreamgagesLayer) return;
 
-                    setCyanDisplayed(!cyanDisplayed);
-                    setUsgsStreamgagesDisplayed(!usgsStreamgagesDisplayed);
-                    setCurrentWaterConditionsDisplayed(
-                      !currentWaterConditionsDisplayed,
-                    );
+                    setCyanDisplayed(checked);
+                    setUsgsStreamgagesDisplayed(checked);
+                    setCurrentWaterConditionsDisplayed(checked);
 
                     const newVisibleLayers = {
                       ...visibleLayers,
-                      cyanLayer: !cyanDisplayed,
-                      usgsStreamgagesLayer: !usgsStreamgagesDisplayed,
+                      cyanLayer: checked,
+                      usgsStreamgagesLayer: checked,
                     };
                     setVisibleLayers(newVisibleLayers);
                   }}
@@ -500,15 +498,14 @@ function Monitoring() {
                     Boolean(monitoringLocations.data.features?.length) &&
                     monitoringDisplayed
                   }
-                  onChange={(_checked) => {
+                  onChange={(checked) => {
                     if (!monitoringLocationsLayer) return;
 
-                    const newMonitoringDisplayed = !monitoringDisplayed;
-                    setMonitoringDisplayed(newMonitoringDisplayed);
+                    setMonitoringDisplayed(checked);
 
                     const newVisibleLayers = {
                       ...visibleLayers,
-                      monitoringLocationsLayer: newMonitoringDisplayed,
+                      monitoringLocationsLayer: checked,
                     };
                     setVisibleLayers(newVisibleLayers);
                   }}
@@ -544,7 +541,7 @@ function Monitoring() {
                 </span>
                 <span>
                   {squareIcon({ color: '#fffe00' })}
-                  &nbsp;Current Water Conditions&nbsp;
+                  &nbsp;USGS Sensors&nbsp;
                 </span>
               </div>
 
@@ -644,7 +641,7 @@ function CurrentConditionsTab({
     const displayedTypes = [];
 
     if (usgsStreamgagesDisplayed) {
-      displayedTypes.push('Current Water Conditions');
+      displayedTypes.push('USGS Sensors');
     }
 
     if (cyanDisplayed) {
@@ -697,9 +694,9 @@ function CurrentConditionsTab({
                     });
                   }}
                   disabled={normalizedUsgsStreamgages.length === 0}
-                  ariaLabel="USGS Streamgages"
+                  ariaLabel="USGS Sensors"
                 />
-                <span>USGS Streamgages</span>
+                <span>USGS Sensors</span>
               </div>
             </td>
             <td>{normalizedUsgsStreamgages.length}</td>
@@ -758,7 +755,7 @@ function CurrentConditionsTab({
       >
         {filteredLocations.map((item, index) => {
           switch (item.attributes.monitoringType) {
-            case 'Current Water Conditions':
+            case 'USGS Sensors':
               return (
                 <AccordionItem
                   icon={squareIcon({ color: '#fffe00' })}
@@ -780,7 +777,7 @@ function CurrentConditionsTab({
                 >
                   <div css={accordionContentStyles}>
                     <WaterbodyInfo
-                      type="Current Water Conditions"
+                      type="USGS Sensors"
                       feature={item}
                       services={services}
                     />
@@ -909,7 +906,6 @@ function PastConditionsTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     resetWorkerData();
     setYearsRange(null);
     setAllToggled(true);
-    setMonitoringDisplayed(true);
   }, [
     monitoringGroups,
     monitoringLocationsLayer,
