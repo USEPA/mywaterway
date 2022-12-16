@@ -198,7 +198,9 @@ export interface ScaledLayer extends __esri.Layer {
 interface ServicesData {
   attains: { serviceUrl: string };
   cyan: {
+    application: string;
     cellConcentration: string;
+    dataDownload: string;
     images: string;
     properties: string;
     waterbodies: string;

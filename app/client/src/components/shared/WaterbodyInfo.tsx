@@ -115,6 +115,16 @@ function labelValue(
 /*
 ## Styles
 */
+const linkSectionStyles = css`
+  p {
+    padding-bottom: 1.5em;
+  }
+
+  small {
+    display: inline-block;
+  }
+`;
+
 const popupContainerStyles = css`
   margin: 0;
   overflow-y: auto;
@@ -209,6 +219,10 @@ const popupIconStyles = css`
 
 const paragraphStyles = css`
   padding-bottom: 0.5em;
+`;
+
+const paragraphLargeStyles = css`
+  padding-bottom: 1.5em;
 `;
 
 const buttonsContainer = css`
@@ -1244,7 +1258,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
   useEffect(() => {
     if (services?.status !== 'success') return;
 
-    const startDate = new Date(today.getTime() - 6 * oneDay);
+    const startDate = new Date(today.getTime() - 7 * oneDay);
 
     const dataUrl = `${services.data.cyan.cellConcentration}/?OBJECTID=${
       attributes.oid ?? attributes.OBJECTID
@@ -1261,7 +1275,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
       .then((res: { data: CellConcentrationData }) => {
         const newData: CellConcentrationData = {};
         let currentDate = startDate.getTime();
-        while (currentDate <= today.getTime()) {
+        while (currentDate <= today.getTime() - oneDay) {
           newData[currentDate] = [];
           currentDate += oneDay;
         }
@@ -1292,12 +1306,20 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
   useEffect(() => {
     if (cellConcentration.status !== 'success') return;
 
-    const newDates = Object.keys(cellConcentration.data).map((date) =>
-      parseInt(date),
+    // Track the latest date with data
+    let newSelectedDate: number | null = null;
+
+    // Parse epoch date strings into integers for the tick slider
+    const newDates = Object.entries(cellConcentration.data).map(
+      ([date, data]) => {
+        const dateInt = parseInt(date);
+        if (data.find((d) => d > 0)) newSelectedDate = dateInt;
+        return dateInt;
+      },
     );
 
     setDates(newDates);
-    setSelectedDate(newDates[newDates.length - 1] ?? null);
+    setSelectedDate(newSelectedDate);
   }, [cellConcentration]);
 
   const [minCc, setMinCc] = useState<number | null>(null);
@@ -1493,13 +1515,16 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
             {
               label: 'Area',
               value: attributes.AREASQKM
-                ? `${formatNumber(attributes.AREASQKM, 2)} sq. km.`
+                ? `${formatNumber(
+                    attributes.AREASQKM,
+                    2,
+                  )} km${String.fromCodePoint(0x00b2)}`
                 : '',
             },
             {
               label: 'Elevation',
               value: attributes.ELEVATION
-                ? `${formatNumber(attributes.ELEVATION, 1)} m.`
+                ? `${formatNumber(attributes.ELEVATION, 1)} m`
                 : '',
             },
             {
@@ -1600,6 +1625,47 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
           </>
         )}
       </div>
+      {services?.status === 'success' && (
+        <div css={linkSectionStyles}>
+          <p>
+            <a
+              rel="noopener noreferrer"
+              target="_blank"
+              href={`${services.data.cyan.dataDownload}?OBJECTID=${
+                attributes.oid ?? attributes.OBJECTID
+              }`}
+            >
+              <HelpTooltip
+                label="Download CSV"
+                description="Download data as a CSV file."
+              >
+                <i
+                  css={iconStyles}
+                  className="fas fa-file-csv"
+                  aria-hidden="true"
+                />
+              </HelpTooltip>
+              Download Cell Concentration Data
+            </a>
+          </p>
+          <p>
+            <a
+              rel="noopener noreferrer"
+              target="_blank"
+              href={services.data.cyan.application}
+            >
+              <i
+                css={iconStyles}
+                className="fas fa-satellite"
+                aria-hidden="true"
+              />
+              CyAN Web Application
+            </a>
+            &nbsp;&nbsp;
+            <small>(opens new browser tab)</small>
+          </p>
+        </div>
+      )}
     </>
   );
 }

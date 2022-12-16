@@ -1,6 +1,8 @@
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import highchartsAccessibility from 'highcharts/modules/accessibility';
+import highchartsExporting from 'highcharts/modules/exporting';
+import highchartsOfflineExporting from 'highcharts/modules/offline-exporting';
 import { useMemo } from 'react';
 // styles
 import { fonts } from 'styles/index.js';
@@ -9,6 +11,10 @@ import type { Options } from 'highcharts';
 
 // add accessibility features to highcharts
 highchartsAccessibility(Highcharts);
+
+// add exporting features to highcharts
+highchartsExporting(Highcharts);
+highchartsOfflineExporting(Highcharts);
 
 type Props = {
   categories: string[];
@@ -42,6 +48,30 @@ export default function StackedBarChart({
         type: 'column',
       },
       credits: { enabled: false },
+      exporting: {
+        buttons: {
+          contextButton: {
+            menuItems: [
+              'downloadPNG',
+              'downloadJPEG',
+              'downloadPDF',
+              'downloadSVG',
+            ],
+            theme: {
+              fill: 'rgba(0, 0, 0, 0)',
+              states: {
+                hover: {
+                  fill: 'rgba(0, 0, 0, 0)',
+                },
+                select: {
+                  fill: 'rgba(0, 0, 0, 0)',
+                  stroke: '#666666',
+                },
+              },
+            },
+          },
+        },
+      },
       legend: {
         verticalAlign: 'top',
       },
