@@ -71,6 +71,15 @@ export default function StackedBarChart({
             },
           },
         },
+        chartOptions: {
+          plotOptions: {
+            series: {
+              dataLabels: {
+                enabled: true,
+              },
+            },
+          },
+        },
       },
       legend: {
         verticalAlign: 'top',
