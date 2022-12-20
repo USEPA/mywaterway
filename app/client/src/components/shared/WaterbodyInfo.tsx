@@ -1234,7 +1234,7 @@ type ChartData = {
 };
 
 type CyanContentProps = {
-  feature: __esri.Graphic & { originalGeometry?: __esri.Geometry };
+  feature: __esri.Graphic;
   mapView?: __esri.MapView;
   services: ServicesState | null;
 };

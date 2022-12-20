@@ -186,14 +186,14 @@ const zoomDependentLayers = [
 // used to order the layer legends, so the ordering is consistent no matter
 // which layer legends are visible.
 const orderedLayers = [
+  'waterbodyLayer',
+  'allWaterbodiesLayer',
   'monitoringLocationsLayer',
   'surroundingMonitoringLocationsLayer',
   'usgsStreamgagesLayer',
+  'issuesLayer',
   'dischargersLayer',
   'cyanLayer',
-  'waterbodyLayer',
-  'allWaterbodiesLayer',
-  'issuesLayer',
   'nonprofitsLayer',
   'providersLayer',
   'upstreamWatershed',
@@ -411,8 +411,7 @@ function MapWidgets({
         const newFeatures: __esri.Graphic[] = [];
         const idsAdded: string[] = [];
         features.forEach((item) => {
-          const id =
-            item.attributes?.assessmentunitidentifier ?? item.attributes?.FID;
+          const id = item.attributes?.assessmentunitidentifier;
           const geometryType = item.geometry?.type;
 
           // exit early if the feature is not a waterbody

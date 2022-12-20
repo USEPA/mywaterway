@@ -798,31 +798,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
 
     setNonprofitsLayer(nonprofitsLayer);
 
-    const allCyanWaterbodies = new FeatureLayer({
-      id: 'allCyanWaterbodies',
-      legendEnabled: true,
-      outFields: ['*'],
-      popupTemplate: {
-        title: getTitle,
-        content: getTemplate,
-        outFields: ['*'],
-      },
-      renderer: new SimpleRenderer({
-        symbol: new SimpleFillSymbol({
-          style: 'solid',
-          color: new Color([108, 149, 206, 0.3]),
-          outline: {
-            color: [0, 0, 0, 1],
-            width: 0.75,
-            style: 'solid',
-          },
-        }),
-      }),
-      url: services.data.cyan.waterbodies,
-      // visible: true,
-      visible: false,
-    });
-
     const cyanWaterbodies = new FeatureLayer({
       id: 'cyanWaterbodies',
       fields: [
@@ -857,10 +832,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       renderer: new SimpleRenderer({
         symbol: new SimpleFillSymbol({
           style: 'solid',
-          // color: new Color([108, 149, 206, 0.8]),
           color: new Color([108, 149, 206, 0.4]),
           outline: {
-            // color: [0, 0, 0, 1],
             color: [0, 0, 0, 0],
             width: 0.75,
             style: 'solid',
@@ -888,10 +861,8 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
       id: 'cyanLayer',
       title: 'CyAN Waterbodies',
       listMode: 'hide-children',
-      // minScale: 577791,
       visible: false,
     });
-    // newCyanLayer.add(allCyanWaterbodies);
     newCyanLayer.add(cyanWaterbodies);
     newCyanLayer.add(cyanImages);
 
@@ -1696,11 +1667,6 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
               layer: cyanWaterbodiesLayer,
             });
           });
-          // crop the waterbodies geometry to within the huc
-          /* const features = cropGeometryToHuc(
-            res.features,
-            boundaries.features[0].geometry,
-          ); */
 
           setCyanWaterbodies({ status: 'success', data: features });
 

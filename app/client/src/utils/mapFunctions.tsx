@@ -975,7 +975,6 @@ export function GradientIcon({
 export function getHighlightSymbol(
   geometry: __esri.Geometry,
   options: __esri.MapViewHighlightOptions,
-  fill?: boolean,
 ) {
   let symbol: __esri.Symbol | null = null;
   if (isPolyline(geometry)) {
@@ -990,7 +989,7 @@ export function getHighlightSymbol(
         width: 2,
       },
       color: new Color({ ...options.color, a: options.fillOpacity }),
-      style: fill ? 'solid' : 'none',
+      style: 'solid',
     });
   } else if (isPoint(geometry) || isMultipoint(geometry)) {
     return new SimpleMarkerSymbol({

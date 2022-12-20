@@ -208,7 +208,6 @@ interface HighlightFeatureParams {
   group: string;
   layer?: __esri.Layer | null;
   callback?: ((feature: __esri.Graphic) => void) | null;
-  fill?: boolean;
 }
 
 function highlightFeature({
@@ -219,14 +218,12 @@ function highlightFeature({
   group,
   layer = null,
   callback = null,
-  fill = true,
 }: HighlightFeatureParams) {
   features.forEach((feature) => {
     if (feature.originalGeometry) {
       const symbol = getHighlightSymbol(
         feature.originalGeometry,
         highlightOptions,
-        fill,
       );
       if (!symbol) return;
       mapView.graphics.add(
@@ -621,7 +618,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     // figure out what layer we the graphic belongs to
     let layer = null;
     let featureLayerType = '';
-    let fill = true;
     if (attributes.layerType === 'issues') {
       layer = issuesLayer;
     } else if (attributes.layerType === 'actions') {
@@ -631,7 +627,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       featureLayerType = 'wildScenicRivers';
     } else if (attributes.xwalk_huc12) {
       layer = upstreamLayer;
-      fill = false;
     } else if (attributes.Shape_Length && attributes.Shape_Area) {
       layer = areasLayer;
       featureLayerType = 'waterbodyLayer';
@@ -650,7 +645,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     } else if (attributes.monitoringType === 'CyAN') {
       layer = mapView.map.findLayerById('cyanWaterbodies');
       featureLayerType = 'cyanWaterbodies';
-      fill = false;
     } else if (attributes.type === 'nonprofit') {
       layer = nonprofitsLayer;
     }
@@ -707,21 +701,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         handles,
         group,
         callback: highlightStateCallback,
-        fill,
       });
-      /* } else if (!fill) {
-      // Outline highlights don't use `mapView.highlightOptions`,
-      // so they are handled separately
-      highlightFeature({
-        mapView,
-        layer,
-        features: [graphicToHighlight],
-        highlightOptions,
-        handles,
-        group,
-        callback: highlightStateCallback,
-        fill,
-      }); */
     } else if (
       window.location.pathname.includes('community') &&
       featureLayerType === 'waterbodyLayer' &&
@@ -742,7 +722,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         highlightOptions,
         handles,
         group,
-        fill,
       });
     } else if (
       layer.type === 'feature' &&
@@ -785,7 +764,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
           highlightOptions,
           handles,
           group,
-          fill,
         });
 
         currentHighlight = graphic;
@@ -833,7 +811,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
               handles,
               group,
               callback: (feature) => featuresToCache.push(feature),
-              fill,
             });
 
             // build the new cachedHighlights object
@@ -861,7 +838,6 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         handles,
         group,
         callback: highlightStateCallback,
-        fill,
       });
     }
   }, [
