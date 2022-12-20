@@ -373,7 +373,9 @@ function summarizeAssessments(
       | 'Not Assessed'
       | 'Not Applicable'
       | 'X';
-    const { assessmentunitidentifier: id } = graphic.attributes;
+    const { assessmentunitidentifier, organizationidentifier } =
+      graphic.attributes;
+    const id = `${organizationidentifier}${assessmentunitidentifier}`;
 
     if (!field || field === 'X') {
       summary['Not Applicable']++;
