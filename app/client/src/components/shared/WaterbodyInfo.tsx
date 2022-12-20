@@ -1,7 +1,7 @@
 import Extent from '@arcgis/core/geometry/Extent';
 import ExtentAndRotationGeoreference from '@arcgis/core/layers/support/ExtentAndRotationGeoreference';
 import ImageElement from '@arcgis/core/layers/support/ImageElement';
-import { css } from 'styled-components/macro';
+import { css, FlattenSimpleInterpolation } from 'styled-components/macro';
 import * as projection from '@arcgis/core/geometry/projection';
 import { useCallback, useEffect, useState } from 'react';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
@@ -219,10 +219,6 @@ const popupIconStyles = css`
 
 const paragraphStyles = css`
   padding-bottom: 0.5em;
-`;
-
-const paragraphLargeStyles = css`
-  padding-bottom: 1.5em;
 `;
 
 const buttonsContainer = css`
@@ -1121,7 +1117,12 @@ function MapPopup({
 }
 
 const chartContainerStyles = css`
-  padding: 0 1em 1em 1em;
+  padding: 0 1em;
+`;
+
+const marginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
+  ${styles}
+  margin: 1em;
 `;
 
 const sliderContainerStyles = css`
@@ -1309,7 +1310,8 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     // Track the latest date with data
     let newSelectedDate: number | null = null;
 
-    // Parse epoch date strings into integers for the tick slider
+    // Parse epoch date strings into integers for the tick slider.
+    // Additionally, select the latest date with data.
     const newDates = Object.entries(cellConcentration.data).map(
       ([date, data]) => {
         const dateInt = parseInt(date);
@@ -1539,30 +1541,34 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
           styles={listContentStyles}
         />
       </div>
-      <div css={chartContainerStyles}>
+      <>
         {cellConcentration.status === 'pending' && <LoadingSpinner />}
         {cellConcentration.status === 'failure' && (
-          <p css={errorBoxStyles}>{cyanError}</p>
+          <p css={marginBoxStyles(errorBoxStyles)}>{cyanError}</p>
         )}
         {cellConcentration.status === 'success' && (
           <>
             {chartData && (
-              <StackedBarChart
-                categories={chartData.categories}
-                series={chartData.series}
-                title="Cell Concentration Counts"
-                yLabel="Measurement count / CC range"
-                xLabel="Date"
-              />
+              <div css={chartContainerStyles}>
+                <StackedBarChart
+                  categories={chartData.categories}
+                  series={chartData.series}
+                  title="Cell Concentration Counts"
+                  yLabel="Measurement count / CC range"
+                  xLabel="Date"
+                />
+              </div>
             )}
 
-            {dates.length > 0 ? (
+            {/* A null `selectedDate` means no date with data was found */}
+            {selectedDate ? (
               <>
                 <p css={subheadingStyles}>
                   <HelpTooltip label="Adjust the slider handle to view the day's CyAN satellite imagery on the map" />
                   &nbsp;&nbsp;
                   <b>Date Selection:</b>
                 </p>
+
                 <div css={sliderContainerStyles}>
                   <TickSlider
                     getTickLabel={epochToMonthDay}
@@ -1574,57 +1580,61 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                   />
                 </div>
 
-                {selectedDate !== null && (
-                  <>
-                    <p css={subheadingStyles}>
-                      Cell Concentration Statistics for{' '}
-                      <b>
-                        {new Date(selectedDate).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </b>
-                    </p>
-                    <ListContent
-                      rows={[
-                        {
-                          label: 'Count',
-                          value: countCc !== null ? formatNumber(countCc) : 0,
-                        },
-                        {
-                          label: 'Min',
-                          value:
-                            minCc !== null
-                              ? `${formatNumber(minCc, 2)} cells/mL`
-                              : 'N/A',
-                        },
-                        {
-                          label: 'Max',
-                          value:
-                            maxCc !== null
-                              ? `${formatNumber(maxCc, 2)} cells/mL`
-                              : 'N/A',
-                        },
-                        {
-                          label: 'Average',
-                          value: formattedAverageCc ?? 'N/A',
-                        },
-                      ]}
-                      styles={sublistContentStyles}
-                    />
-                  </>
+                <p css={subheadingStyles}>
+                  Cell Concentration Statistics for{' '}
+                  <b>
+                    {new Date(selectedDate).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </b>
+                </p>
+                {countCc === null || countCc === 0 ? (
+                  <p css={marginBoxStyles(infoBoxStyles)}>
+                    {countCc === null
+                      ? 'CyAN data is not yet available for the selected date. Please try again later.'
+                      : 'There is no CyAN data available for the selected date.'}
+                  </p>
+                ) : (
+                  <ListContent
+                    rows={[
+                      {
+                        label: 'Count',
+                        value: countCc !== null ? formatNumber(countCc) : 0,
+                      },
+                      {
+                        label: 'Min',
+                        value:
+                          minCc !== null
+                            ? `${formatNumber(minCc, 2)} cells/mL`
+                            : 'N/A',
+                      },
+                      {
+                        label: 'Max',
+                        value:
+                          maxCc !== null
+                            ? `${formatNumber(maxCc, 2)} cells/mL`
+                            : 'N/A',
+                      },
+                      {
+                        label: 'Average',
+                        value: formattedAverageCc ?? 'N/A',
+                      },
+                    ]}
+                    styles={sublistContentStyles}
+                  />
                 )}
               </>
             ) : (
-              <p css={infoBoxStyles}>
+              <p css={marginBoxStyles(infoBoxStyles)}>
                 There is no CyAN data from the past week for the{' '}
                 {attributes.GNIS_NAME} waterbody.
               </p>
             )}
           </>
         )}
-      </div>
+      </>
       {services?.status === 'success' && (
         <div css={linkSectionStyles}>
           <p>
