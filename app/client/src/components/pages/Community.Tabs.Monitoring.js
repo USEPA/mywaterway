@@ -730,7 +730,6 @@ function CurrentConditionsTab({
       <AccordionList
         title={
           <>
-            There {sortedLocations.length === 1 ? 'is' : 'are'}{' '}
             <strong>{filteredLocations.length}</strong> of{' '}
             <strong>{sortedLocations.length}</strong>{' '}
             {sortedLocations.length === 1 ? 'location' : 'locations'} with data
