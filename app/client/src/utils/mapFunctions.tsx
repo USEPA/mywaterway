@@ -942,7 +942,7 @@ export function GradientIcon({
             >
               {stops.map((stop, index) => (
                 <stop
-                  key={index}
+                  key={stop.label}
                   offset={index / divisions}
                   stopColor={stop.color}
                 />
@@ -961,8 +961,8 @@ export function GradientIcon({
       </div>
 
       <div css={{ display: 'flex', flexWrap: 'wrap', width: '45px' }}>
-        {stops.map((stop, index) => (
-          <div key={index} css={tickMarkStyles}>
+        {stops.map((stop) => (
+          <div key={stop.label} css={tickMarkStyles}>
             <p>{stop.label}</p>
           </div>
         ))}

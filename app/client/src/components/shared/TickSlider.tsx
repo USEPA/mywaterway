@@ -19,12 +19,10 @@ const handleStylesActive = {
   cursor: 'grabbing',
 };
 
-const handleStylesLoading = {
-  height: '1em',
-  margin: '0',
-  translate: '-50% -50%',
-  width: '1em',
-};
+const handleStylesLoading = css`
+  height: 1em;
+  width: 1em;
+`;
 
 const sliderContainerStyles = css`
   align-items: flex-end;
@@ -124,13 +122,10 @@ export default function TickSlider({
             );
           })}
           {handles.map(({ active, getHandleProps }, i) => {
+            console.log(getHandleProps());
             return loading ? (
-              <div key={i}>
-                <LoadingSpinner
-                  {...getHandleProps({
-                    style: handleStylesLoading,
-                  })}
-                />
+              <div {...getHandleProps()}>
+                <LoadingSpinner css={handleStylesLoading} />
               </div>
             ) : (
               <div

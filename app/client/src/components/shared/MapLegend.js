@@ -137,7 +137,7 @@ function MapLegend({
 
           return (
             <MapLegendContent
-              key={index}
+              key={layer.id}
               view={view}
               layer={layer}
               additionalLegendInfo={additionalLegendInfo}
@@ -639,14 +639,14 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
           {layerName}
         </GlossaryTerm>
 
-        {Object.entries(subLegends).map(([name, legend], outerIndex) => (
-          <Fragment key={outerIndex}>
+        {Object.entries(subLegends).map(([name, legend]) => (
+          <Fragment key={name}>
             <div css={subLayerLabelStyles}>{name}</div>
 
             <ul css={[nestedUl, { marginBottom: '0.5rem' }]}>
-              {legend.map((item, index) => {
+              {legend.map((item) => {
                 return (
-                  <li key={index}>
+                  <li key={item.label}>
                     <div css={legendItemStyles}>
                       <div css={smallImageContainerStyles}>
                         <img
@@ -696,9 +696,9 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
         <div css={subLayerLabelStyles}>Protection Category:</div>
 
         <ul css={nestedUl}>
-          {padLegend.map((item, index) => {
+          {padLegend.map((item) => {
             return (
-              <li key={index}>
+              <li key={item.label}>
                 <div css={legendItemStyles}>
                   <div css={smallImageContainerStyles}>
                     <img
@@ -828,16 +828,16 @@ function MapLegendContent({ view, layer, additionalLegendInfo }: CardProps) {
 
         {subtitleParts.length > 0 && (
           <div css={[subLayerLabelStyles, { marginBottom: '0.5rem' }]}>
-            {subtitleParts.map((part, index) => {
-              return <div key={index}>{part.glossary}</div>;
+            {subtitleParts.map((part) => {
+              return <div key={part.label}>{part.glossary}</div>;
             })}
           </div>
         )}
 
         <ul css={nestedUl}>
-          {legend.map((item, index) => {
+          {legend.map((item) => {
             return (
-              <li key={index}>
+              <li key={item.label}>
                 <div css={legendItemStyles}>
                   <div css={smallImageContainerStyles}>
                     <img

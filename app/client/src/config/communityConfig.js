@@ -127,7 +127,7 @@ function EatingFishUpper() {
               });
 
               return (
-                <Fragment key={index}>
+                <Fragment key={state.stateCode}>
                   {seperator}
                   <a href={state.url} target="_blank" rel="noopener noreferrer">
                     {matchedState ? matchedState.name : state.stateCode}

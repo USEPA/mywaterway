@@ -712,42 +712,6 @@ function MapWidgets({
     setAddDataWidget(node);
   }, [view, addDataWidget, addDataWidgetVisible, setAddDataWidgetVisible]);
 
-  function ShowAddDataWidget({
-    setAddDataWidgetVisibleParam,
-  }: {
-    setAddDataWidgetVisibleParam: Dispatch<SetStateAction<boolean>>;
-  }) {
-    const [hover, setHover] = useState(false);
-
-    const widget = document.getElementById('add-data-widget');
-    const widgetHidden = widget?.classList.contains('hidden');
-
-    return (
-      <div
-        className="add-data-widget"
-        title={widgetHidden ? 'Open Add Data Widget' : 'Close Add Data Widget'}
-        style={hover ? divHoverStyle : divStyle}
-        onMouseOver={() => setHover(true)}
-        onMouseOut={() => setHover(false)}
-        onClick={(_ev) => {
-          if (!widget) return;
-          if (widgetHidden) {
-            widget.classList.remove('hidden');
-            setAddDataWidgetVisibleParam(true);
-          } else {
-            widget.classList.add('hidden');
-            setAddDataWidgetVisibleParam(false);
-          }
-        }}
-      >
-        <span
-          className="esri-icon-add-attachment"
-          style={hover ? buttonHoverStyle : buttonStyle}
-        />
-      </div>
-    );
-  }
-
   // Fetch additional legend information. Data is stored in a dictionary
   // where the key is the layer id.
   const [additionalLegendInitialized, setAdditionalLegendInitialized] =
@@ -1444,6 +1408,42 @@ function MapWidgets({
   );
 }
 
+function ShowAddDataWidget({
+  setAddDataWidgetVisibleParam,
+}: {
+  setAddDataWidgetVisibleParam: Dispatch<SetStateAction<boolean>>;
+}) {
+  const [hover, setHover] = useState(false);
+
+  const widget = document.getElementById('add-data-widget');
+  const widgetHidden = widget?.classList.contains('hidden');
+
+  return (
+    <div
+      className="add-data-widget"
+      title={widgetHidden ? 'Open Add Data Widget' : 'Close Add Data Widget'}
+      style={hover ? divHoverStyle : divStyle}
+      onMouseOver={() => setHover(true)}
+      onMouseOut={() => setHover(false)}
+      onClick={(_ev) => {
+        if (!widget) return;
+        if (widgetHidden) {
+          widget.classList.remove('hidden');
+          setAddDataWidgetVisibleParam(true);
+        } else {
+          widget.classList.add('hidden');
+          setAddDataWidgetVisibleParam(false);
+        }
+      }}
+    >
+      <span
+        className="esri-icon-add-attachment"
+        style={hover ? buttonHoverStyle : buttonStyle}
+      />
+    </div>
+  );
+}
+
 const buttonStyle: CSSProperties = {
   margin: '8.5px',
   fontSize: '15px',
@@ -2126,32 +2126,53 @@ function ShowCurrentUpstreamWatershed({
   const [lastHuc12, setLastHuc12] = useState<string>('');
   const [upstreamLoading, setUpstreamLoading] = useState(false);
 
+  const handleClick = useCallback(
+    (_ev) => {
+      retrieveUpstreamWatershed(
+        abortSignal,
+        getCurrentExtent,
+        getHuc12,
+        getTemplate,
+        getUpstreamExtent,
+        getUpstreamLayer,
+        getUpstreamWidgetDisabled,
+        getWatershed,
+        lastHuc12,
+        services,
+        setErrorMessage,
+        setLastHuc12,
+        setUpstreamExtent,
+        setUpstreamLayer,
+        setUpstreamLayerVisible,
+        setUpstreamWidgetDisabled,
+        view,
+        setUpstreamLoading,
+      );
+    },
+    [
+      abortSignal,
+      getCurrentExtent,
+      getHuc12,
+      getTemplate,
+      getUpstreamExtent,
+      getUpstreamLayer,
+      getUpstreamWidgetDisabled,
+      getWatershed,
+      lastHuc12,
+      services,
+      setErrorMessage,
+      setUpstreamExtent,
+      setUpstreamLayer,
+      setUpstreamLayerVisible,
+      setUpstreamWidgetDisabled,
+      view,
+    ],
+  );
   return (
     <ShowUpstreamWatershed
       getUpstreamLayer={getUpstreamLayer}
       getUpstreamWidgetDisabled={getUpstreamWidgetDisabled}
-      onClick={(_ev) => {
-        retrieveUpstreamWatershed(
-          abortSignal,
-          getCurrentExtent,
-          getHuc12,
-          getTemplate,
-          getUpstreamExtent,
-          getUpstreamLayer,
-          getUpstreamWidgetDisabled,
-          getWatershed,
-          lastHuc12,
-          services,
-          setErrorMessage,
-          setLastHuc12,
-          setUpstreamExtent,
-          setUpstreamLayer,
-          setUpstreamLayerVisible,
-          setUpstreamWidgetDisabled,
-          view,
-          setUpstreamLoading,
-        );
-      }}
+      onClick={handleClick}
       upstreamLoading={upstreamLoading}
     />
   );

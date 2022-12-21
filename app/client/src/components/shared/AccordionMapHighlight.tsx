@@ -64,17 +64,17 @@ function AccordionItem({
     checkHighlight();
   }, [checkHighlight, feature, highlightedGraphic, selectedGraphic]);
 
-  const addHighlight = () => {
+  const addHighlight = useCallback(() => {
     if (!feature || !mapView) return;
     setHighlightedGraphic(feature);
     checkHighlight();
-  };
+  }, [checkHighlight, feature, mapView, setHighlightedGraphic]);
 
-  const removeHighlight = () => {
+  const removeHighlight = useCallback(() => {
     if (!feature || !mapView) return;
     setHighlightedGraphic(null);
     checkHighlight();
-  };
+  }, [checkHighlight, feature, mapView, setHighlightedGraphic]);
 
   return (
     <AccordionItemSimple

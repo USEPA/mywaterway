@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -117,15 +118,19 @@ export function BoxContent({ layout = 'grid', rows, styles }: BoxContentProps) {
     ${styles}
   `;
 
+  const keyedRows = useMemo(() => {
+    return rows.map((row, i) => ({ ...row, key: i }));
+  }, [rows]);
+
   const BoxRow = layout === 'flex' ? FlexRow : Row;
 
   return (
     <section css={mergedStyles}>
-      {rows.map(
-        (item, i) =>
+      {keyedRows.map(
+        (item) =>
           item && (
             <BoxRow
-              key={i}
+              key={item.key}
               label={item.label}
               value={item.value}
               status={item.status ?? 'success'}

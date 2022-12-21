@@ -377,8 +377,8 @@ function WaterbodyInfo({
       .sort((a, b) =>
         a.label.toUpperCase().localeCompare(b.label.toUpperCase()),
       )
-      .map((field, index) => (
-        <li key={index}>
+      .map((field) => (
+        <li key={field.value}>
           <GlossaryTerm term={field.term}>{field.label}</GlossaryTerm>
         </li>
       ));
@@ -499,7 +499,7 @@ function WaterbodyInfo({
                   </tr>
                 </thead>
                 <tbody>
-                  {useFields.map((useField, index) => {
+                  {useFields.map((useField) => {
                     const value = getWaterbodyCondition(
                       attributes,
                       useField.value,
@@ -507,7 +507,7 @@ function WaterbodyInfo({
 
                     if (value === 'Not Applicable') return null;
                     return (
-                      <tr key={index}>
+                      <tr key={useField.value}>
                         <td>
                           <GlossaryTerm term={useField.term}>
                             {useField.label}
@@ -876,9 +876,9 @@ function WaterbodyInfo({
                     <tbody>
                       {projects
                         .sort((a, b) => a.name.localeCompare(b.name))
-                        .map((action, index) => {
+                        .map((action) => {
                           return (
-                            <tr key={index}>
+                            <tr key={action.id}>
                               <td>
                                 <a
                                   href={`/plan-summary/${action.orgId}/${action.id}`}
@@ -1509,6 +1509,8 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     formattedAverageCc += ' cells/mL';
   }
 
+  const handleSliderChange = useCallback((value) => setSelectedDate(value), []);
+
   return (
     <>
       <div css={tableStyles} className="table">
@@ -1573,7 +1575,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                   <TickSlider
                     getTickLabel={epochToMonthDay}
                     loading={imageStatus === 'pending'}
-                    onChange={(value) => setSelectedDate(value)}
+                    onChange={handleSliderChange}
                     steps={dates}
                     stepSize={oneDay}
                     value={selectedDate}
@@ -2032,14 +2034,14 @@ function MonitoringLocationsContent({
             </tr>
           </thead>
           <tbody>
-            {Object.keys(groups).map((key, index) => {
+            {Object.keys(groups).map((key) => {
               // ignore groups with 0 results
               if (groups[key].resultCount === 0) {
                 return null;
               }
 
               return (
-                <tr key={index}>
+                <tr key={key}>
                   <td css={checkboxCellStyles}>
                     <input
                       css={checkboxStyles}
