@@ -2,7 +2,6 @@ import Extent from '@arcgis/core/geometry/Extent';
 import ExtentAndRotationGeoreference from '@arcgis/core/layers/support/ExtentAndRotationGeoreference';
 import ImageElement from '@arcgis/core/layers/support/ImageElement';
 import { css, FlattenSimpleInterpolation } from 'styled-components/macro';
-import * as projection from '@arcgis/core/geometry/projection';
 import { useCallback, useEffect, useState } from 'react';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 // components
@@ -1352,12 +1351,6 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     setStdDevCc(getStdDevCellConcentration(selectedData, newAverageCc));
   }, [cellConcentration, selectedDate]);
 
-  const [projectionLoaded, setProjectionLoaded] = useState<boolean>(false);
-
-  useEffect(() => {
-    projection.load().then(() => setProjectionLoaded(true));
-  }, []);
-
   const [imageStatus, setImageStatus] = useState<
     'idle' | 'pending' | 'failure' | 'success'
   >('idle');
@@ -1368,7 +1361,6 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     if (selectedDate === null) return;
     if (services?.status !== 'success') return;
     if (!mapView) return;
-    if (!projectionLoaded) return;
 
     const cyanImageLayer = mapView.map.findLayerById('cyanImages');
     if (!cyanImageLayer || !isMediaLayer(cyanImageLayer)) return;
@@ -1429,7 +1421,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     return function cleanup() {
       clearTimeout(imageTimeout);
     };
-  }, [attributes, mapView, projectionLoaded, selectedDate, services]);
+  }, [attributes, mapView, selectedDate, services]);
 
   // Remove the image when this component unmounts
   useEffect(() => {
@@ -1581,6 +1573,13 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                     value={selectedDate}
                   />
                 </div>
+
+                {imageStatus === 'failure' && (
+                  <p css={marginBoxStyles(errorBoxStyles)}>
+                    There was an error retrieving the CyAN satellite image for
+                    the selected day.
+                  </p>
+                )}
 
                 <p css={subheadingStyles}>
                   Cell Concentration Statistics for{' '}
