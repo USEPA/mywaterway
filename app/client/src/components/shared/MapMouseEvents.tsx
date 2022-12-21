@@ -220,14 +220,6 @@ function MapMouseEvents({ view }: Props) {
           const graphic = graphics?.length ? graphics[0] : null;
 
           if (graphic && graphic.attributes) {
-            // if upstream watershed is clicked:
-            // set the view highlight options to 0 fill opacity
-            if (graphic.layer.id === 'upstreamWatershed') {
-              view.highlightOptions.fillOpacity = 0;
-            } else {
-              view.highlightOptions.fillOpacity = 1;
-            }
-
             if (
               graphic.layer.id === 'monitoringLocationsLayer' &&
               graphic.isAggregate
@@ -378,16 +370,6 @@ function MapMouseEvents({ view }: Props) {
           ];
           let feature = getGraphicFromResponse(res, extraLayersToIgnore);
 
-          // if any feature besides the upstream watershed is moused over:
-          // set the view's highlight fill opacity back to 1
-          if (
-            feature?.layer?.id !== 'upstreamWatershed' &&
-            view.highlightOptions.fillOpacity !== 1 &&
-            !view.popup.visible // if popup is not visible then the upstream layer isn't currently selected
-          ) {
-            view.highlightOptions.fillOpacity = 1;
-          }
-
           // ensure the graphic actually changed prior to setting the context variable
           const equal = graphicComparison(feature, lastFeature);
           if (!equal) {
@@ -405,15 +387,6 @@ function MapMouseEvents({ view }: Props) {
 
     view.on('pointer-move', (event: PointerMoveEvent) => {
       handleMapMouseOver(event, view);
-    });
-
-    view.popup.watch('selectedFeature', (graphic: __esri.Graphic) => {
-      // set the view highlight options to 0 fill opacity if upstream watershed is selected
-      if (graphic?.layer?.id === 'upstreamWatershed') {
-        view.highlightOptions.fillOpacity = 0;
-      } else {
-        view.highlightOptions.fillOpacity = 1;
-      }
     });
 
     // auto expands the popup when it is first opened
@@ -447,14 +420,22 @@ function MapMouseEvents({ view }: Props) {
 
   // restores cluster settings on change of location
   useEffect(() => {
-    if (surroundingMonitoringLocationsLayer && !surroundingMonitoringLocationsLayer.featureReduction) {
-      surroundingMonitoringLocationsLayer.featureReduction = monitoringClusterSettings;
+    if (
+      surroundingMonitoringLocationsLayer &&
+      !surroundingMonitoringLocationsLayer.featureReduction
+    ) {
+      surroundingMonitoringLocationsLayer.featureReduction =
+        monitoringClusterSettings;
     }
     if (!locationCount || locationCount <= 20) return;
     if (!monitoringLocationsLayer || monitoringLocationsLayer.featureReduction)
       return;
     monitoringLocationsLayer.featureReduction = monitoringClusterSettings;
-  }, [locationCount, monitoringLocationsLayer, surroundingMonitoringLocationsLayer]);
+  }, [
+    locationCount,
+    monitoringLocationsLayer,
+    surroundingMonitoringLocationsLayer,
+  ]);
 
   // sets an event listener on the home widget, and
   // restores cluster settings if clicked

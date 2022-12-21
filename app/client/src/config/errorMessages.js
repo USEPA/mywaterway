@@ -6,9 +6,13 @@ import React from 'react';
 export const echoError =
   'The permitted discharger information is temporarily unavailable, please try again later.';
 
+// qed.epa.gov
+export const cyanError =
+  'CyAN data is temporarily unavailable, please try again later.';
+
 // labs.waterdata.usgs.gov - Monitoring Location Service
 export const streamgagesError =
-  'Current water conditions information is temporarily unavailable, please try again later.';
+  'USGS streamgage information is temporarily unavailable, please try again later.';
 
 // waterqualitydata.us - Monitoring Location Service
 export const monitoringError =

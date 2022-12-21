@@ -203,7 +203,7 @@ function getMatchingFeatures(
 interface HighlightFeatureParams {
   mapView: __esri.MapView;
   features: Array<ExtendedGraphic>;
-  highlightOptions: { color: string; fillOpacity: number };
+  highlightOptions: __esri.MapViewHighlightOptions;
   handles: Handles;
   group: string;
   layer?: __esri.Layer | null;
@@ -223,7 +223,7 @@ function highlightFeature({
     if (feature.originalGeometry) {
       const symbol = getHighlightSymbol(
         feature.originalGeometry,
-        highlightOptions.color,
+        highlightOptions,
       );
       if (!symbol) return;
       mapView.graphics.add(
@@ -625,6 +625,8 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
     } else if (attributes.WSR_RIVER_NAME) {
       layer = wildScenicRiversLayer;
       featureLayerType = 'wildScenicRivers';
+    } else if (attributes.xwalk_huc12) {
+      layer = upstreamLayer;
     } else if (attributes.Shape_Length && attributes.Shape_Area) {
       layer = areasLayer;
       featureLayerType = 'waterbodyLayer';
@@ -638,12 +640,13 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       layer = dischargersLayer;
     } else if (attributes.monitoringType === 'Past Water Conditions') {
       layer = monitoringLocationsLayer;
-    } else if (attributes.monitoringType === 'Current Water Conditions') {
+    } else if (attributes.monitoringType === 'USGS Sensors') {
       layer = usgsStreamgagesLayer;
+    } else if (attributes.monitoringType === 'CyAN') {
+      layer = mapView.map.findLayerById('cyanWaterbodies');
+      featureLayerType = 'cyanWaterbodies';
     } else if (attributes.type === 'nonprofit') {
       layer = nonprofitsLayer;
-    } else if (attributes.xwalk_huc12) {
-      layer = upstreamLayer;
     }
 
     if (!layer) return;
@@ -699,9 +702,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         group,
         callback: highlightStateCallback,
       });
-    }
-    //
-    else if (
+    } else if (
       window.location.pathname.includes('community') &&
       featureLayerType === 'waterbodyLayer' &&
       layer.type === 'feature' &&
@@ -722,9 +723,7 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
         handles,
         group,
       });
-    }
-    //
-    else if (
+    } else if (
       layer.type === 'feature' &&
       (findOthers ||
         (graphicOrgId === selectedGraphicOrgId &&
@@ -741,6 +740,11 @@ function useWaterbodyHighlight(findOthers: boolean = true) {
       if (featureLayerType === 'wildScenicRivers') {
         key = attributes.GlobalID;
         where = `GlobalID = '${key}'`;
+      }
+
+      if (featureLayerType === 'cyanWaterbodies') {
+        key = `cyan-${attributes.FID}`;
+        where = `FID = ${attributes.FID}`;
       }
 
       if (
@@ -988,6 +992,7 @@ function useDynamicPopup() {
         return getPopupContent({
           feature: graphic.graphic,
           fields,
+          mapView,
           services,
           navigate,
         });
@@ -997,6 +1002,7 @@ function useDynamicPopup() {
         feature: graphic.graphic,
         fields,
         getClickedHuc: getClickedHuc(location),
+        mapView,
         resetData,
         services,
         navigate,
@@ -1861,7 +1867,7 @@ function useStreamgageData(
         });
 
       return {
-        monitoringType: 'Current Water Conditions' as const,
+        monitoringType: 'USGS Sensors' as const,
         siteId: gage.properties.monitoringLocationNumber,
         orgId: gage.properties.agencyCode,
         orgName: gage.properties.agency,
@@ -1953,6 +1959,29 @@ function useStreamgageData(
   }, [usgsStreamgages, usgsPrecipitation, usgsDailyAverages]);
 
   return normalizedStreamgages;
+}
+
+function useStreamgageFeatures(
+  usgsStreamgages: FetchState<UsgsStreamgagesData>,
+  usgsPrecipitation: FetchState<UsgsPrecipitationData>,
+  usgsDailyAverages: FetchState<UsgsDailyAveragesData>,
+) {
+  const streamgageData = useStreamgageData(
+    usgsStreamgages,
+    usgsPrecipitation,
+    usgsDailyAverages,
+  );
+
+  return streamgageData.map((streamgage) => {
+    return {
+      geometry: {
+        type: 'point',
+        longitude: streamgage.locationLongitude,
+        latitude: streamgage.locationLatitude,
+      },
+      attributes: streamgage,
+    };
+  });
 }
 
 // Custom hook that is used for handling key presses. This can be used for
@@ -2135,6 +2164,7 @@ export {
   useOnScreen,
   useSharedLayers,
   useStreamgageData,
+  useStreamgageFeatures,
   useWaterbodyFeatures,
   useWaterbodyFeaturesState,
   useWaterbodyOnMap,

@@ -1,19 +1,27 @@
+import Extent from '@arcgis/core/geometry/Extent';
+import ExtentAndRotationGeoreference from '@arcgis/core/layers/support/ExtentAndRotationGeoreference';
+import ImageElement from '@arcgis/core/layers/support/ImageElement';
+import { css, FlattenSimpleInterpolation } from 'styled-components/macro';
 import { useCallback, useEffect, useState } from 'react';
-import { css } from 'styled-components/macro';
+import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 // components
 import { HelpTooltip } from 'components/shared/HelpTooltip';
 import { ListContent } from 'components/shared/BoxContent';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 import { Sparkline } from 'components/shared/Sparkline';
+import StackedBarChart from 'components/shared/StackedBarChart';
+import TickSlider from 'components/shared/TickSlider';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
+import { useAbortSignal } from 'utils/hooks';
 import {
   getWaterbodyCondition,
   isClassBreaksRenderer,
   isFeatureLayer,
+  isMediaLayer,
   isUniqueValueRenderer,
 } from 'utils/mapFunctions';
 import { fetchCheck } from 'utils/fetchUtils';
@@ -23,12 +31,14 @@ import {
   formatNumber,
   getSelectedCommunityTab,
   parseAttributes,
+  isAbort,
   titleCaseWithExceptions,
 } from 'utils/utils';
 // data
 import { characteristicGroupMappings } from 'config/characteristicGroupMappings';
+import cyanMetadata from 'config/cyanMetadata';
 // errors
-import { waterbodyReportError } from 'config/errorMessages';
+import { cyanError, waterbodyReportError } from 'config/errorMessages';
 // styles
 import {
   colors,
@@ -43,6 +53,7 @@ import type { NavigateFunction } from 'react-router-dom';
 import type {
   ChangeLocationAttributes,
   ClickedHucState,
+  FetchState,
   ServicesState,
   StreamgageMeasurement,
   UsgsStreamgageAttributes,
@@ -103,6 +114,16 @@ function labelValue(
 /*
 ## Styles
 */
+const linkSectionStyles = css`
+  p {
+    padding-bottom: 1.5em;
+  }
+
+  small {
+    display: inline-block;
+  }
+`;
+
 const popupContainerStyles = css`
   margin: 0;
   overflow-y: auto;
@@ -325,12 +346,13 @@ type ChangeLocationPopup = {
 };
 
 type WaterbodyInfoProps = {
-  type: string;
+  extraContent?: ReactNode | null;
   feature: __esri.Graphic;
   fieldName?: string | null;
-  extraContent?: ReactNode | null;
-  services?: ServicesState;
   fields?: __esri.Field[] | null;
+  mapView?: __esri.MapView;
+  services?: ServicesState;
+  type: string;
 };
 
 /*
@@ -341,6 +363,7 @@ function WaterbodyInfo({
   feature,
   fieldName = null,
   extraContent,
+  mapView,
   services,
   fields,
 }: WaterbodyInfoProps) {
@@ -353,8 +376,8 @@ function WaterbodyInfo({
       .sort((a, b) =>
         a.label.toUpperCase().localeCompare(b.label.toUpperCase()),
       )
-      .map((field, index) => (
-        <li key={index}>
+      .map((field) => (
+        <li key={field.value}>
           <GlossaryTerm term={field.term}>{field.label}</GlossaryTerm>
         </li>
       ));
@@ -475,7 +498,7 @@ function WaterbodyInfo({
                   </tr>
                 </thead>
                 <tbody>
-                  {useFields.map((useField, index) => {
+                  {useFields.map((useField) => {
                     const value = getWaterbodyCondition(
                       attributes,
                       useField.value,
@@ -483,7 +506,7 @@ function WaterbodyInfo({
 
                     if (value === 'Not Applicable') return null;
                     return (
-                      <tr key={index}>
+                      <tr key={useField.value}>
                         <td>
                           <GlossaryTerm term={useField.term}>
                             {useField.label}
@@ -852,9 +875,9 @@ function WaterbodyInfo({
                     <tbody>
                       {projects
                         .sort((a, b) => a.name.localeCompare(b.name))
-                        .map((action, index) => {
+                        .map((action) => {
                           return (
-                            <tr key={index}>
+                            <tr key={action.id}>
                               <td>
                                 <a
                                   href={`/plan-summary/${action.orgId}/${action.id}`}
@@ -902,8 +925,10 @@ function WaterbodyInfo({
   if (type === 'Restoration Plans') content = projectContent();
   if (type === 'Protection Plans') content = projectContent();
   if (type === 'Permitted Discharger') content = dischargerContent;
-  if (type === 'Current Water Conditions') {
-    content = <UsgsStreamgagesContent feature={feature} services={services ?? null} />;
+  if (type === 'USGS Sensors') {
+    content = (
+      <UsgsStreamgagesContent feature={feature} services={services ?? null} />
+    );
   }
   if (type === 'Past Water Conditions') {
     content = (
@@ -927,6 +952,15 @@ function WaterbodyInfo({
   if (type === 'Congressional District') {
     content = congressionalDistrictContent();
   }
+  if (type === 'CyAN') {
+    content = (
+      <CyanContent
+        feature={feature}
+        mapView={mapView}
+        services={services ?? null}
+      />
+    );
+  }
 
   return content;
 }
@@ -938,6 +972,7 @@ type MapPopupProps = {
   fieldName?: string | null;
   extraContent?: ReactNode | null;
   getClickedHuc?: Promise<ClickedHucState> | null;
+  mapView?: __esri.MapView;
   resetData?: () => void;
   services?: ServicesState;
   fields?: __esri.Field[] | null;
@@ -949,6 +984,7 @@ function MapPopup({
   fieldName,
   extraContent,
   getClickedHuc,
+  mapView,
   resetData,
   services,
   fields,
@@ -1069,12 +1105,579 @@ function MapPopup({
             feature={feature}
             fieldName={fieldName}
             extraContent={extraContent}
+            mapView={mapView}
             services={services}
             fields={fields}
           />
         </div>
       )}
     </div>
+  );
+}
+
+const chartContainerStyles = css`
+  padding: 0 1em;
+`;
+
+const marginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
+  ${styles}
+  margin: 1em;
+`;
+
+const sliderContainerStyles = css`
+  margin: auto;
+  width: 90%;
+`;
+
+const subheadingStyles = css`
+  padding-bottom: 0.5em;
+  padding-top: 1em;
+`;
+
+const sublistContentStyles = css`
+  ${listContentStyles}
+  border-top: 2px solid #d8dfe2;
+`;
+
+const oneDay = 1000 * 60 * 60 * 24;
+
+function getDayOfYear(day: Date) {
+  const firstOfYear = new Date(day.getFullYear(), 0, 0);
+  const diff =
+    day.getTime() -
+    firstOfYear.getTime() +
+    (firstOfYear.getTimezoneOffset() - day.getTimezoneOffset()) * 60 * 1000;
+  return Math.floor(diff / oneDay);
+}
+
+function getAverageCellConcentration(counts: number[]) {
+  if (!counts.length) return null;
+  let totalCc = 0;
+  let totalCount = 0;
+  for (let i = 0; i < counts.length; i++) {
+    totalCc += counts[i] * cyanMetadata[i];
+    totalCount += counts[i];
+  }
+  return totalCount > 0 ? totalCc / totalCount : null;
+}
+
+function getMinCellConcentration(counts: number[]) {
+  if (!counts.length) return null;
+  const minIdx = counts.findIndex((count) => count > 0);
+  return minIdx > -1 ? cyanMetadata[minIdx] : null;
+}
+
+function getMaxCellConcentration(counts: number[]) {
+  if (!counts.length) return null;
+  for (let i = counts.length - 1; i >= 0; i--) {
+    if (counts[i] > 0) return cyanMetadata[i];
+  }
+  return null;
+}
+
+function getStdDevCellConcentration(
+  counts: number[],
+  mean: number | null = null,
+) {
+  if (counts.length <= 1) return null;
+
+  const sampleMean = mean ?? getAverageCellConcentration(counts) ?? null;
+
+  if (sampleMean === null) return null;
+
+  const values: number[] = [];
+  counts.forEach((count, i) => {
+    for (let j = 0; j < count; j++) {
+      values.push(cyanMetadata[i]);
+    }
+  });
+  const tss = values.reduce((a, b) => a + (b - sampleMean) ** 2, 0);
+  const variance = tss / (values.length - 1);
+  return Math.sqrt(variance);
+}
+
+function cyanDateToEpoch(yearDay: string) {
+  const yearAndDay = yearDay.split(' ');
+  if (yearAndDay.length !== 2) return null;
+  const year = parseInt(yearAndDay[0]);
+  const day = parseInt(yearAndDay[1]);
+  if (Number.isFinite(year) && Number.isFinite(day)) {
+    return new Date(year, 0, day).getTime();
+  }
+  return null;
+}
+
+function epochToMonthDay(epoch: number) {
+  const date = new Date(epoch);
+  return `${date.getMonth() + 1}/${date.getDate()}`;
+}
+
+enum CcIdx {
+  Low = 0,
+  Medium = cyanMetadata.findIndex((cc) => cc >= 100_000),
+  High = cyanMetadata.findIndex((cc) => cc >= 300_000),
+  VeryHigh = cyanMetadata.findIndex((cc) => cc >= 1_000_000),
+}
+
+type CellConcentrationData = {
+  [date: string]: number[];
+};
+
+type ChartData = {
+  categories: string[];
+  series: Array<{
+    color?: string;
+    data: number[];
+    name: string;
+    type: 'column';
+  }>;
+};
+
+type CyanContentProps = {
+  feature: __esri.Graphic;
+  mapView?: __esri.MapView;
+  services: ServicesState | null;
+};
+
+function CyanContent({ feature, mapView, services }: CyanContentProps) {
+  const { attributes } = feature;
+  const abortSignal = useAbortSignal();
+
+  const [today] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  });
+  const [cellConcentration, setCellConcentration] = useState<
+    FetchState<CellConcentrationData>
+  >({
+    data: null,
+    status: 'idle',
+  });
+
+  // Fetch the cell concentration data for the waterbody
+  useEffect(() => {
+    if (services?.status !== 'success') return;
+
+    const startDate = new Date(today.getTime() - 7 * oneDay);
+
+    const dataUrl = `${services.data.cyan.cellConcentration}/?OBJECTID=${
+      attributes.oid ?? attributes.OBJECTID
+    }&start_year=${startDate.getFullYear()}&start_day=${getDayOfYear(
+      startDate,
+    )}&end_year=${today.getFullYear()}&end_day=${getDayOfYear(today)}`;
+
+    setCellConcentration({
+      status: 'pending',
+      data: null,
+    });
+
+    fetchCheck(dataUrl, abortSignal)
+      .then((res: { data: CellConcentrationData }) => {
+        const newData: CellConcentrationData = {};
+        let currentDate = startDate.getTime();
+        while (currentDate <= today.getTime() - oneDay) {
+          newData[currentDate] = [];
+          currentDate += oneDay;
+        }
+        Object.entries(res.data).forEach(([date, values]) => {
+          if (values.length !== 256) return;
+          const epochDate = cyanDateToEpoch(date);
+          // Indices 0, 254, & 255 represent indetectable pixels
+          if (epochDate !== null) newData[epochDate] = values.slice(1, 254);
+        });
+        setCellConcentration({
+          status: 'success',
+          data: newData,
+        });
+      })
+      .catch((err) => {
+        console.error(err);
+        setCellConcentration({
+          status: 'failure',
+          data: null,
+        });
+      });
+  }, [abortSignal, attributes, today, services]);
+
+  const [dates, setDates] = useState<number[]>([]);
+  const [selectedDate, setSelectedDate] = useState<number | null>(null);
+
+  // Parse slider values from the new data
+  useEffect(() => {
+    if (cellConcentration.status !== 'success') return;
+
+    // Track the latest date with data
+    let newSelectedDate: number | null = null;
+
+    // Parse epoch date strings into integers for the tick slider.
+    // Additionally, select the latest date with data.
+    const newDates = Object.entries(cellConcentration.data).map(
+      ([date, data]) => {
+        const dateInt = parseInt(date);
+        if (data.find((d) => d > 0)) newSelectedDate = dateInt;
+        return dateInt;
+      },
+    );
+
+    setDates(newDates);
+    setSelectedDate(newSelectedDate);
+  }, [cellConcentration]);
+
+  const [minCc, setMinCc] = useState<number | null>(null);
+  const [maxCc, setMaxCc] = useState<number | null>(null);
+  const [averageCc, setAverageCc] = useState<number | null>(null);
+  const [stdDevCc, setStdDevCc] = useState<number | null>(null);
+  const [countCc, setCountCc] = useState<number | null>(null);
+
+  // Calculate statistics for the selected date
+  useEffect(() => {
+    if (cellConcentration.status !== 'success' || selectedDate === null) {
+      setMinCc(null);
+      setMaxCc(null);
+      setAverageCc(null);
+      setStdDevCc(null);
+      setCountCc(null);
+      return;
+    }
+
+    const selectedData = cellConcentration.data[selectedDate.toString()];
+    setCountCc(
+      selectedData.length ? selectedData.reduce((a, b) => a + b, 0) : null,
+    );
+    setMinCc(getMinCellConcentration(selectedData));
+    setMaxCc(getMaxCellConcentration(selectedData));
+    const newAverageCc = getAverageCellConcentration(selectedData);
+    setAverageCc(newAverageCc);
+    setStdDevCc(getStdDevCellConcentration(selectedData, newAverageCc));
+  }, [cellConcentration, selectedDate]);
+
+  const [imageStatus, setImageStatus] = useState<
+    'idle' | 'pending' | 'failure' | 'success'
+  >('idle');
+
+  // Fetch the satellite image for the selected date
+  // and add it to the CyAN Media Layer
+  useEffect(() => {
+    if (selectedDate === null) return;
+    if (services?.status !== 'success') return;
+    if (!mapView) return;
+
+    const cyanImageLayer = mapView.map.findLayerById('cyanImages');
+    if (!cyanImageLayer || !isMediaLayer(cyanImageLayer)) return;
+
+    const currentDate = new Date(selectedDate);
+    const imageUrl = `${services.data.cyan.images}/?OBJECTID=${
+      attributes.oid ?? attributes.OBJECTID
+    }&year=${currentDate.getFullYear()}&day=${getDayOfYear(currentDate)}`;
+    const propertiesUrl = `${services.data.cyan.properties}/?OBJECTID=${
+      attributes.oid ?? attributes.OBJECTID
+    }`;
+
+    const abortController = new AbortController();
+    const timeout = 60_000;
+    const imageTimeout = setTimeout(() => abortController.abort(), timeout);
+
+    cyanImageLayer.source.elements.removeAll();
+    setImageStatus('pending');
+    const imagePromise = fetch(imageUrl, { signal: abortController.signal });
+    const propsPromise = fetchCheck(propertiesUrl, abortController.signal);
+    Promise.all([imagePromise, propsPromise])
+      .then(([imageRes, propsRes]) => {
+        if (imageRes.headers.get('Content-Type') !== 'image/png') {
+          setImageStatus('idle');
+          return;
+        }
+
+        imageRes.blob().then((blob) => {
+          const image = new Image();
+          image.src = URL.createObjectURL(blob);
+          image.onload = () => setImageStatus('success');
+          const imageElement = new ImageElement({
+            image,
+            georeference: new ExtentAndRotationGeoreference({
+              extent: new Extent({
+                spatialReference: SpatialReference.WGS84,
+                xmin: propsRes.properties.x_min,
+                xmax: propsRes.properties.x_max,
+                ymin: propsRes.properties.y_min,
+                ymax: propsRes.properties.y_max,
+              }),
+            }),
+          });
+          cyanImageLayer.source.elements.add(imageElement);
+        });
+      })
+      .catch((err) => {
+        setImageStatus('failure');
+        if (isAbort(err)) {
+          console.error(
+            `PROMISE_TIMED_OUT: The promise took more than ${timeout}ms.`,
+          );
+        } else {
+          console.error(err);
+        }
+      });
+
+    return function cleanup() {
+      clearTimeout(imageTimeout);
+    };
+  }, [attributes, mapView, selectedDate, services]);
+
+  // Remove the image when this component unmounts
+  useEffect(() => {
+    if (!mapView) return;
+
+    const cyanImageLayer = mapView.map.findLayerById('cyanImages');
+    if (!cyanImageLayer || !isMediaLayer(cyanImageLayer)) return;
+
+    const popupWatchHandle = mapView.popup.watch(
+      'visible',
+      (visible: boolean) => {
+        if (visible) return;
+        mapView.popup.features.forEach((feature) => {
+          if (feature.layer?.id === 'cyanWaterbodies') {
+            cyanImageLayer.source.elements.removeAll();
+          }
+        });
+      },
+    );
+
+    return function cleanup() {
+      cyanImageLayer.source.elements.removeAll();
+      popupWatchHandle.remove();
+    };
+  }, [mapView]);
+
+  const [chartData, setChartData] = useState<ChartData | null>(null);
+
+  // Group the daily data by predetermined thresholds
+  useEffect(() => {
+    if (cellConcentration.status !== 'success') {
+      setChartData(null);
+      return;
+    }
+
+    const emptyChartData: ChartData = {
+      categories: [],
+      series: [
+        { name: 'very high', data: [], color: '#fa5300', type: 'column' },
+        { name: 'high', data: [], color: '#ffa200', type: 'column' },
+        { name: 'medium', data: [], color: '#00bf46', type: 'column' },
+        { name: 'low', data: [], color: '#3700eb', type: 'column' },
+      ],
+    };
+
+    const newChartData = Object.entries(cellConcentration.data).reduce(
+      (a, [date, ccCounts]) => {
+        a.categories.push(epochToMonthDay(parseInt(date)));
+        a.series[0].data.push(
+          ccCounts.slice(CcIdx.VeryHigh).reduce((x, y) => x + y, 0),
+        );
+        a.series[1].data.push(
+          ccCounts.slice(CcIdx.High, CcIdx.VeryHigh).reduce((x, y) => x + y, 0),
+        );
+        a.series[2].data.push(
+          ccCounts.slice(CcIdx.Medium, CcIdx.High).reduce((x, y) => x + y, 0),
+        );
+        a.series[3].data.push(
+          ccCounts.slice(0, CcIdx.Medium).reduce((x, y) => x + y, 0),
+        );
+        return a;
+      },
+      emptyChartData,
+    );
+    setChartData(newChartData);
+  }, [cellConcentration]);
+
+  // Display the average cell concentration alongside the standard deviation
+  let formattedAverageCc = null;
+  if (averageCc !== null) formattedAverageCc = formatNumber(averageCc, 2);
+  if (formattedAverageCc !== null) {
+    if (stdDevCc !== null)
+      formattedAverageCc += ` ${String.fromCharCode(177)} ${formatNumber(
+        stdDevCc,
+        2,
+      )}`;
+    formattedAverageCc += ' cells/mL';
+  }
+
+  const handleSliderChange = useCallback((value) => setSelectedDate(value), []);
+
+  return (
+    <>
+      <div css={tableStyles} className="table">
+        <ListContent
+          rows={[
+            {
+              label: 'Area',
+              value: attributes.AREASQKM
+                ? `${formatNumber(
+                    attributes.AREASQKM,
+                    2,
+                  )} km${String.fromCodePoint(0x00b2)}`
+                : '',
+            },
+            {
+              label: 'Elevation',
+              value: attributes.ELEVATION
+                ? `${formatNumber(attributes.ELEVATION, 1)} m`
+                : '',
+            },
+            {
+              label: 'Centroid Latitude',
+              value: attributes.c_lat ? formatNumber(attributes.c_lat, 4) : '',
+            },
+            {
+              label: 'Centroid Longitude',
+              value: attributes.c_lng ? formatNumber(attributes.c_lng, 4) : '',
+            },
+          ]}
+          styles={listContentStyles}
+        />
+      </div>
+      <>
+        {cellConcentration.status === 'pending' && <LoadingSpinner />}
+        {cellConcentration.status === 'failure' && (
+          <p css={marginBoxStyles(errorBoxStyles)}>{cyanError}</p>
+        )}
+        {cellConcentration.status === 'success' && (
+          <>
+            {chartData && (
+              <div css={chartContainerStyles}>
+                <StackedBarChart
+                  categories={chartData.categories}
+                  series={chartData.series}
+                  title="Cell Concentration Counts"
+                  yLabel="Measurement count / CC range"
+                  xLabel="Date"
+                />
+              </div>
+            )}
+
+            {/* A null `selectedDate` means no date with data was found */}
+            {selectedDate ? (
+              <>
+                <p css={subheadingStyles}>
+                  <HelpTooltip label="Adjust the slider handle to view the day's CyAN satellite imagery on the map" />
+                  &nbsp;&nbsp;
+                  <b>Date Selection:</b>
+                </p>
+
+                <div css={sliderContainerStyles}>
+                  <TickSlider
+                    getTickLabel={epochToMonthDay}
+                    loading={imageStatus === 'pending'}
+                    onChange={handleSliderChange}
+                    steps={dates}
+                    stepSize={oneDay}
+                    value={selectedDate}
+                  />
+                </div>
+
+                {imageStatus === 'failure' && (
+                  <p css={marginBoxStyles(errorBoxStyles)}>
+                    There was an error retrieving the CyAN satellite image for
+                    the selected day.
+                  </p>
+                )}
+
+                <p css={subheadingStyles}>
+                  Cell Concentration Statistics for{' '}
+                  <b>
+                    {new Date(selectedDate).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </b>
+                </p>
+                {countCc === null || countCc === 0 ? (
+                  <p css={marginBoxStyles(infoBoxStyles)}>
+                    {countCc === null
+                      ? 'CyAN data is not yet available for the selected date. Please try again later.'
+                      : 'There is no CyAN data available for the selected date.'}
+                  </p>
+                ) : (
+                  <ListContent
+                    rows={[
+                      {
+                        label: 'Count',
+                        value: countCc !== null ? formatNumber(countCc) : 0,
+                      },
+                      {
+                        label: 'Min',
+                        value:
+                          minCc !== null
+                            ? `${formatNumber(minCc, 2)} cells/mL`
+                            : 'N/A',
+                      },
+                      {
+                        label: 'Max',
+                        value:
+                          maxCc !== null
+                            ? `${formatNumber(maxCc, 2)} cells/mL`
+                            : 'N/A',
+                      },
+                      {
+                        label: 'Average',
+                        value: formattedAverageCc ?? 'N/A',
+                      },
+                    ]}
+                    styles={sublistContentStyles}
+                  />
+                )}
+              </>
+            ) : (
+              <p css={marginBoxStyles(infoBoxStyles)}>
+                There is no CyAN data from the past week for the{' '}
+                {attributes.GNIS_NAME} waterbody.
+              </p>
+            )}
+          </>
+        )}
+      </>
+      {services?.status === 'success' && (
+        <div css={linkSectionStyles}>
+          <p>
+            <a
+              rel="noopener noreferrer"
+              target="_blank"
+              href={`${services.data.cyan.dataDownload}?OBJECTID=${
+                attributes.oid ?? attributes.OBJECTID
+              }`}
+            >
+              <HelpTooltip
+                label="Download CSV"
+                description="Download data as a CSV file."
+              >
+                <i
+                  css={iconStyles}
+                  className="fas fa-file-csv"
+                  aria-hidden="true"
+                />
+              </HelpTooltip>
+              Download Cell Concentration Data
+            </a>
+          </p>
+          <p>
+            <a
+              rel="noopener noreferrer"
+              target="_blank"
+              href={services.data.cyan.application}
+            >
+              <i
+                css={iconStyles}
+                className="fas fa-satellite"
+                aria-hidden="true"
+              />
+              CyAN Web Application
+            </a>
+            &nbsp;&nbsp;
+            <small>(opens new browser tab)</small>
+          </p>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -1430,14 +2033,14 @@ function MonitoringLocationsContent({
             </tr>
           </thead>
           <tbody>
-            {Object.keys(groups).map((key, index) => {
+            {Object.keys(groups).map((key) => {
               // ignore groups with 0 results
               if (groups[key].resultCount === 0) {
                 return null;
               }
 
               return (
-                <tr key={index}>
+                <tr key={key}>
                   <td css={checkboxCellStyles}>
                     <input
                       css={checkboxStyles}
@@ -1543,7 +2146,10 @@ type UsgsStreamgagesContentProps = {
   services: ServicesState | null;
 };
 
-function UsgsStreamgagesContent({ feature, services }: UsgsStreamgagesContentProps) {
+function UsgsStreamgagesContent({
+  feature,
+  services,
+}: UsgsStreamgagesContentProps) {
   const {
     streamgageMeasurements,
     orgName,
@@ -1608,10 +2214,8 @@ function UsgsStreamgagesContent({ feature, services }: UsgsStreamgagesContentPro
     ...sortedSecondaryMeasurements,
   ];
 
-  const alertUrl = 
-    services?.status === 'success'
-      ? services.data.usgsWaterAlert
-      : null;
+  const alertUrl =
+    services?.status === 'success' ? services.data.usgsWaterAlert : null;
 
   return (
     <>
@@ -1709,12 +2313,12 @@ function UsgsStreamgagesContent({ feature, services }: UsgsStreamgagesContentPro
       </p>
 
       <p css={paragraphStyles}>
-        <a rel="noopener noreferrer" target="_blank" href={alertUrl ?? undefined}>
-          <i
-            css={iconStyles}
-            className="fas fa-bell"
-            aria-hidden="true"
-          />
+        <a
+          rel="noopener noreferrer"
+          target="_blank"
+          href={alertUrl ?? undefined}
+        >
+          <i css={iconStyles} className="fas fa-bell" aria-hidden="true" />
           Sign Up for Alerts
         </a>
         &nbsp;&nbsp;

@@ -28,7 +28,7 @@ function containsScriptTag(string: string) {
 function formatNumber(number: number, digits: number = 0) {
   if (!number) return '0';
 
-  if (number !== 0 && number < 1) return '< 1';
+  if (number !== 0 && Math.abs(number) < 1) return '< 1';
 
   return number.toLocaleString([], {
     minimumFractionDigits: digits,

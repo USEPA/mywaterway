@@ -127,7 +127,7 @@ function EatingFishUpper() {
               });
 
               return (
-                <Fragment key={index}>
+                <Fragment key={state.stateCode}>
                   {seperator}
                   <a href={state.url} target="_blank" rel="noopener noreferrer">
                     {matchedState ? matchedState.name : state.stateCode}
@@ -371,8 +371,9 @@ const tabs = [
     upper: <MonitoringUpper />,
     lower: <Monitoring />,
     layers: {
+      cyanLayer: true,
       dischargersLayer: false,
-      monitoringLocationsLayer: true,
+      monitoringLocationsLayer: false,
       usgsStreamgagesLayer: true,
       waterbodyLayer: false,
     },
