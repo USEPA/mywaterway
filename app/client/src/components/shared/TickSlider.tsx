@@ -121,8 +121,7 @@ export default function TickSlider({
               </div>
             );
           })}
-          {handles.map(({ active, getHandleProps }, i) => {
-            console.log(getHandleProps());
+          {handles.map(({ active, getHandleProps }) => {
             return loading ? (
               <div {...getHandleProps()}>
                 <LoadingSpinner css={handleStylesLoading} />
