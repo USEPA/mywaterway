@@ -1,6 +1,6 @@
 // @flow
 
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 import { useNavigate } from 'react-router-dom';
@@ -434,6 +434,39 @@ function Monitoring() {
     visibleLayers,
   ]);
 
+  const handleCurrentWaterConditionsToggle = useCallback(
+    (checked) => {
+      if (!usgsStreamgagesLayer) return;
+
+      setCyanDisplayed(checked);
+      setUsgsStreamgagesDisplayed(checked);
+      setCurrentWaterConditionsDisplayed(checked);
+
+      const newVisibleLayers = {
+        ...visibleLayers,
+        cyanLayer: checked,
+        usgsStreamgagesLayer: checked,
+      };
+      setVisibleLayers(newVisibleLayers);
+    },
+    [setVisibleLayers, usgsStreamgagesLayer, visibleLayers],
+  );
+
+  const handlePastWaterConditionsToggle = useCallback(
+    (checked) => {
+      if (!monitoringLocationsLayer) return;
+
+      setMonitoringDisplayed(checked);
+
+      const newVisibleLayers = {
+        ...visibleLayers,
+        monitoringLocationsLayer: checked,
+      };
+      setVisibleLayers(newVisibleLayers);
+    },
+    [monitoringLocationsLayer, setVisibleLayers, visibleLayers],
+  );
+
   const totalCurrentWaterConditions =
     (usgsStreamgages.data.value?.length ?? 0) +
     (cyanWaterbodies.data?.length ?? 0);
@@ -460,20 +493,7 @@ function Monitoring() {
                     Boolean(totalCurrentWaterConditions) &&
                     currentWaterConditionsDisplayed
                   }
-                  onChange={(checked) => {
-                    if (!usgsStreamgagesLayer) return;
-
-                    setCyanDisplayed(checked);
-                    setUsgsStreamgagesDisplayed(checked);
-                    setCurrentWaterConditionsDisplayed(checked);
-
-                    const newVisibleLayers = {
-                      ...visibleLayers,
-                      cyanLayer: checked,
-                      usgsStreamgagesLayer: checked,
-                    };
-                    setVisibleLayers(newVisibleLayers);
-                  }}
+                  onChange={handleCurrentWaterConditionsToggle}
                   disabled={!Boolean(totalCurrentWaterConditions)}
                   ariaLabel="Current Water Conditions"
                 />
@@ -498,17 +518,7 @@ function Monitoring() {
                     Boolean(monitoringLocations.data.features?.length) &&
                     monitoringDisplayed
                   }
-                  onChange={(checked) => {
-                    if (!monitoringLocationsLayer) return;
-
-                    setMonitoringDisplayed(checked);
-
-                    const newVisibleLayers = {
-                      ...visibleLayers,
-                      monitoringLocationsLayer: checked,
-                    };
-                    setVisibleLayers(newVisibleLayers);
-                  }}
+                  onChange={handlePastWaterConditionsToggle}
                   disabled={!Boolean(monitoringLocations.data.features?.length)}
                   ariaLabel="Past Water Conditions"
                 />
@@ -651,6 +661,30 @@ function CurrentConditionsTab({
     return displayedTypes.includes(item.attributes.monitoringType);
   });
 
+  const handleUsgsSensorsToggle = useCallback(
+    (checked) => {
+      setUsgsStreamgagesDisplayed(checked);
+      updateVisibleLayers({
+        key: 'usgsStreamgagesLayer',
+        value: checked,
+      });
+    },
+    [setUsgsStreamgagesDisplayed, updateVisibleLayers],
+  );
+
+  const handleCyanWaterbodiesToggle = useCallback(
+    (checked) => {
+      setCyanDisplayed(checked);
+      updateVisibleLayers({
+        key: 'cyanLayer',
+        value: checked,
+      });
+    },
+    [setCyanDisplayed, updateVisibleLayers],
+  );
+
+  const handleSortChange = useCallback(({ value }) => setSortedBy(value), []);
+
   if (usgsStreamgages.status === 'idle' || usgsStreamgages.status === 'pending')
     return <LoadingSpinner />;
 
@@ -686,13 +720,7 @@ function CurrentConditionsTab({
                     normalizedUsgsStreamgages.length > 0 &&
                     usgsStreamgagesDisplayed
                   }
-                  onChange={(checked) => {
-                    setUsgsStreamgagesDisplayed(checked);
-                    updateVisibleLayers({
-                      key: 'usgsStreamgagesLayer',
-                      value: checked,
-                    });
-                  }}
+                  onChange={handleUsgsSensorsToggle}
                   disabled={normalizedUsgsStreamgages.length === 0}
                   ariaLabel="USGS Sensors"
                 />
@@ -706,13 +734,7 @@ function CurrentConditionsTab({
               <div css={toggleStyles}>
                 <Switch
                   checked={cyanWaterbodies.data?.length > 0 && cyanDisplayed}
-                  onChange={(checked) => {
-                    setCyanDisplayed(checked);
-                    updateVisibleLayers({
-                      key: 'cyanLayer',
-                      value: checked,
-                    });
-                  }}
+                  onChange={handleCyanWaterbodiesToggle}
                   disabled={
                     cyanWaterbodies.status !== 'success' ||
                     cyanWaterbodies.data?.length === 0
@@ -736,7 +758,7 @@ function CurrentConditionsTab({
             in the <em>{watershed}</em> watershed.
           </>
         }
-        onSortChange={({ value }) => setSortedBy(value)}
+        onSortChange={handleSortChange}
         sortOptions={[
           {
             label: 'Location Name',
@@ -752,13 +774,13 @@ function CurrentConditionsTab({
           },
         ]}
       >
-        {filteredLocations.map((item, index) => {
+        {filteredLocations.map((item) => {
           switch (item.attributes.monitoringType) {
             case 'USGS Sensors':
               return (
                 <AccordionItem
                   icon={squareIcon({ color: '#fffe00' })}
-                  key={index}
+                  key={item.attributes.siteId}
                   title={
                     <strong>{item.attributes.locationName || 'Unknown'}</strong>
                   }
@@ -789,7 +811,7 @@ function CurrentConditionsTab({
               return (
                 <AccordionItem
                   icon={waterwayIcon({ color: '#6c95ce' })}
-                  key={index}
+                  key={item.attributes.FID}
                   title={
                     <strong>{item.attributes.GNIS_NAME || 'Unknown'}</strong>
                   }
@@ -872,26 +894,39 @@ function PastConditionsTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     setMonitoringGroups,
   ]);
 
-  const toggleRow = useCallback(
+  const groupToggleHandler = useCallback(
     (groupLabel) => {
-      const updatedGroups = { ...monitoringGroups };
-      updatedGroups[groupLabel].toggled = !updatedGroups[groupLabel].toggled;
-      setMonitoringGroups(updatedGroups);
+      return function toggleGroup(_ev) {
+        const updatedGroups = { ...monitoringGroups };
+        updatedGroups[groupLabel].toggled = !updatedGroups[groupLabel].toggled;
+        setMonitoringGroups(updatedGroups);
 
-      let allOthersToggled = true;
-      for (let key in updatedGroups) {
-        if (!updatedGroups[key].toggled) allOthersToggled = false;
-      }
-      setAllToggled(allOthersToggled);
+        let allOthersToggled = true;
+        for (let key in updatedGroups) {
+          if (!updatedGroups[key].toggled) allOthersToggled = false;
+        }
+        setAllToggled(allOthersToggled);
 
-      // only check the toggles that are on the screen (i.e., ignore Bacterial, Sediments, etc.)
-      const someToggled = Object.keys(updatedGroups)
-        .filter((label) => label !== 'All')
-        .some((key) => updatedGroups[key].toggled);
-      setMonitoringDisplayed(someToggled);
+        // only check the toggles that are on the screen (i.e., ignore Bacterial, Sediments, etc.)
+        const someToggled = Object.keys(updatedGroups)
+          .filter((label) => label !== 'All')
+          .some((key) => updatedGroups[key].toggled);
+        setMonitoringDisplayed(someToggled);
+      };
     },
     [monitoringGroups, setMonitoringDisplayed, setMonitoringGroups],
   );
+
+  const groupToggleHandlers = useMemo(() => {
+    if (!monitoringGroups) return null;
+    const toggles = {};
+    Object.values(monitoringGroups)
+      .filter((group) => group.label !== 'All')
+      .forEach((group) => {
+        toggles[group.label] = groupToggleHandler(group.label);
+      });
+    return toggles;
+  }, [monitoringGroups, groupToggleHandler]);
 
   // The data returned by the worker
   const [{ minYear, maxYear, annualData }, resetWorkerData] =
@@ -1057,25 +1092,119 @@ function PastConditionsTab({ monitoringDisplayed, setMonitoringDisplayed }) {
     `&providers=NWIS&providers=STEWARDS&providers=STORET`;
 
   const [sortBy, setSortBy] = useState('locationName');
-  const sortedMonitoringLocations = displayedLocations
-    ? displayedLocations.sort((a, b) => {
-        if (sortBy === 'stationTotalMeasurements') {
-          return b.stationTotalMeasurements - a.stationTotalMeasurements;
-        }
 
-        if (sortBy === 'siteId') {
-          return a.siteId.localeCompare(b.siteId);
-        }
+  const sortedMonitoringLocations = useMemo(() => {
+    return displayedLocations
+      ? displayedLocations.sort((a, b) => {
+          if (sortBy === 'stationTotalMeasurements') {
+            return b.stationTotalMeasurements - a.stationTotalMeasurements;
+          }
 
-        return a[sortBy].localeCompare(b[sortBy]);
-      })
-    : [];
+          if (sortBy === 'siteId') {
+            return a.siteId.localeCompare(b.siteId);
+          }
+
+          return a[sortBy].localeCompare(b[sortBy]);
+        })
+      : [];
+  }, [displayedLocations, sortBy]);
 
   const totalLocationsCount = monitoringGroups?.['All'].stations.length;
   const displayedLocationsCount =
     sortedMonitoringLocations.length.toLocaleString();
 
+  const handleDateSliderChange = useCallback((newRange) => {
+    setYearsRange(newRange);
+  }, []);
+
+  const handleSortChange = useCallback(({ value }) => setSortBy(value), []);
+
   const [expandedRows, setExpandedRows] = useState([]);
+
+  const handleExpandCollapse = useCallback(
+    (allExpanded) => {
+      if (allExpanded) {
+        setExpandedRows([...Array(sortedMonitoringLocations.length).keys()]);
+      } else {
+        setExpandedRows([]);
+      }
+    },
+    [sortedMonitoringLocations],
+  );
+
+  const accordionItemToggleHandler = useCallback(
+    (index) => {
+      return function toggleAccordionItem() {
+        // add the item to the expandedRows array so the accordion item
+        // will stay expanded when the user scrolls or highlights map items
+        if (expandedRows.includes(index)) {
+          setExpandedRows(expandedRows.filter((item) => item !== index));
+        } else setExpandedRows(expandedRows.concat(index));
+      };
+    },
+    [expandedRows],
+  );
+
+  const accordionItemToggleHandlers = useMemo(() => {
+    return sortedMonitoringLocations.map((_item, index) => {
+      return accordionItemToggleHandler(index);
+    });
+  }, [accordionItemToggleHandler, sortedMonitoringLocations]);
+
+  const renderListItem = useCallback(
+    ({ index }) => {
+      const item = sortedMonitoringLocations[index];
+
+      const feature = {
+        geometry: {
+          type: 'point',
+          longitude: item.locationLongitude,
+          latitude: item.locationLatitude,
+        },
+        attributes: item,
+      };
+
+      return (
+        <AccordionItem
+          icon={circleIcon({ color: colors.lightPurple() })}
+          key={index}
+          index={index}
+          title={<strong>{item.locationName || 'Unknown'}</strong>}
+          subTitle={
+            <>
+              <em>Organization Name:</em>&nbsp;&nbsp;
+              {item.orgName}
+              <br />
+              <em>Water Type:</em>&nbsp;&nbsp;
+              {item.locationType}
+              <br />
+              <em>Monitoring Measurements:</em>&nbsp;&nbsp;
+              {item.stationTotalMeasurements}
+            </>
+          }
+          feature={feature}
+          idKey="siteId"
+          allExpanded={expandedRows.includes(index)}
+          onChange={accordionItemToggleHandlers[index]}
+        >
+          <div css={accordionContentStyles}>
+            <WaterbodyInfo
+              type="Past Water Conditions"
+              feature={feature}
+              services={services}
+            />
+            <ViewOnMapButton feature={feature} />
+          </div>
+        </AccordionItem>
+      );
+    },
+    [
+      accordionItemToggleHandlers,
+      expandedRows,
+      services,
+      sortedMonitoringLocations,
+    ],
+  );
 
   if (monitoringLocations.status === 'fetching') return <LoadingSpinner />;
 
@@ -1112,7 +1241,7 @@ function PastConditionsTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                   max={maxYear}
                   min={minYear}
                   disabled={!Boolean(Object.keys(annualData).length)}
-                  onChange={(newRange) => setYearsRange(newRange)}
+                  onChange={handleDateSliderChange}
                 />
               )}
             </div>
@@ -1127,7 +1256,7 @@ function PastConditionsTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                     <div css={toggleStyles}>
                       <Switch
                         checked={allToggled}
-                        onChange={(_ev) => toggleAll()}
+                        onChange={toggleAll}
                         ariaLabel="Toggle all monitoring locations"
                       />
                       <span>All Monitoring Locations</span>
@@ -1159,7 +1288,7 @@ function PastConditionsTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                           <div css={toggleStyles}>
                             <Switch
                               checked={group.toggled}
-                              onChange={(_ev) => toggleRow(group.label)}
+                              onChange={groupToggleHandlers?.[group.label]}
                               ariaLabel={`Toggle ${group.label}`}
                             />
                             <span>{group.label}</span>
@@ -1280,16 +1409,8 @@ function PastConditionsTab({ monitoringDisplayed, setMonitoringDisplayed }) {
                   </span>
                 )
               }
-              onSortChange={({ value }) => setSortBy(value)}
-              onExpandCollapse={(allExpanded) => {
-                if (allExpanded) {
-                  setExpandedRows([
-                    ...Array(sortedMonitoringLocations.length).keys(),
-                  ]);
-                } else {
-                  setExpandedRows([]);
-                }
-              }}
+              onSortChange={handleSortChange}
+              onExpandCollapse={handleExpandCollapse}
               sortOptions={[
                 {
                   label: 'Monitoring Location Name',
@@ -1311,60 +1432,7 @@ function PastConditionsTab({ monitoringDisplayed, setMonitoringDisplayed }) {
             >
               <VirtualizedList
                 items={sortedMonitoringLocations}
-                renderer={({ index }) => {
-                  const item = sortedMonitoringLocations[index];
-
-                  const feature = {
-                    geometry: {
-                      type: 'point',
-                      longitude: item.locationLongitude,
-                      latitude: item.locationLatitude,
-                    },
-                    attributes: item,
-                  };
-
-                  return (
-                    <AccordionItem
-                      icon={circleIcon({ color: colors.lightPurple() })}
-                      key={index}
-                      index={index}
-                      title={<strong>{item.locationName || 'Unknown'}</strong>}
-                      subTitle={
-                        <>
-                          <em>Organization Name:</em>&nbsp;&nbsp;
-                          {item.orgName}
-                          <br />
-                          <em>Water Type:</em>&nbsp;&nbsp;
-                          {item.locationType}
-                          <br />
-                          <em>Monitoring Measurements:</em>&nbsp;&nbsp;
-                          {item.stationTotalMeasurements}
-                        </>
-                      }
-                      feature={feature}
-                      idKey="siteId"
-                      allExpanded={expandedRows.includes(index)}
-                      onChange={() => {
-                        // add the item to the expandedRows array so the accordion item
-                        // will stay expanded when the user scrolls or highlights map items
-                        if (expandedRows.includes(index)) {
-                          setExpandedRows(
-                            expandedRows.filter((item) => item !== index),
-                          );
-                        } else setExpandedRows(expandedRows.concat(index));
-                      }}
-                    >
-                      <div css={accordionContentStyles}>
-                        <WaterbodyInfo
-                          type="Past Water Conditions"
-                          feature={feature}
-                          services={services}
-                        />
-                        <ViewOnMapButton feature={feature} />
-                      </div>
-                    </AccordionItem>
-                  );
-                }}
+                renderer={renderListItem}
               />
             </AccordionList>
           </>
