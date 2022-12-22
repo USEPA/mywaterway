@@ -6,7 +6,7 @@ import '@reach/tooltip/styles.css';
 import { colors } from 'styles';
 // types
 import type { Position } from '@reach/tooltip';
-import type { ReactElement, Ref } from 'react';
+import type { ReactElement, ReactNode, Ref } from 'react';
 
 /*
 ## Styles
@@ -55,7 +55,7 @@ const centered: Position = (triggerRect, tooltipRect) => {
  */
 type TooltipProps = {
   children: ReactElement;
-  label: string;
+  label: ReactNode;
   triggerRef: Ref<HTMLElement>;
 };
 
@@ -80,7 +80,7 @@ function Tooltip({ children, label, triggerRef }: TooltipProps) {
 type HelpTooltipProps = {
   description?: string;
   children?: ReactElement;
-  label: string;
+  label: ReactNode;
 };
 
 function HelpTooltip({ description, children, label }: HelpTooltipProps) {

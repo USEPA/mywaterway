@@ -55,7 +55,7 @@
   "sfdw": "https://ordspub.epa.gov/ords/sfdw/",
   "landCover": "https://www.mrlc.gov/geoserver/mrlc_display/NLCD_2019_Land_Cover_L48/wms?service=WMS&request=GetCapabilities",
   "cyan": {
-    "application": "https://qed.epa.gov/cyanweb",
+    "application": "https://www.epa.gov/water-research/cyanobacteria-assessment-network-application-cyan-app",
     "cellConcentration": "https://qed.epa.gov/waterbody/data",
     "dataDownload": "https://qed.epa.gov/waterbody/data_download",
     "images": "https://qed.epa.gov/waterbody/image",

@@ -813,7 +813,11 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
         { name: 'monitoringType', type: 'string', defaultValue: 'CyAN' },
         { name: 'OBJECTID', type: 'oid' },
         { name: 'oid', type: 'integer' },
-        { name: 'orgName', type: 'string', defaultValue: 'CyAN, EPA' },
+        {
+          name: 'orgName',
+          type: 'string',
+          defaultValue: 'Cyanobacteria Assessment Network (CyAN)',
+        },
         { name: 'PERMANENT_', type: 'string' },
         { name: 'RESOLUTION', type: 'integer' },
         { name: 'x_max', type: 'double' },
@@ -1656,7 +1660,7 @@ function LocationMap({ layout = 'narrow', windowHeight, children }: Props) {
                 locationName: item.attributes.GNIS_NAME,
                 monitoringType: 'CyAN',
                 oid: item.attributes.OBJECTID,
-                orgName: 'CyAN, EPA',
+                orgName: 'Cyanobacteria Assessment Network (CyAN)',
               },
               geometry: new Polygon({
                 rings: item.geometry.rings,

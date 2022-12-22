@@ -18,6 +18,7 @@ highchartsOfflineExporting(Highcharts);
 
 type Props = {
   categories: string[];
+  legendTitle?: string;
   series: Array<{
     color?: string;
     data: number[];
@@ -33,6 +34,7 @@ type Props = {
 
 export default function StackedBarChart({
   categories,
+  legendTitle,
   series,
   subtitle,
   title,
@@ -82,6 +84,10 @@ export default function StackedBarChart({
         },
       },
       legend: {
+        title: {
+          style: { display: 'flex', justifyContent: 'center' },
+          text: legendTitle,
+        },
         verticalAlign: 'top',
       },
       plotOptions: {
@@ -128,7 +134,7 @@ export default function StackedBarChart({
         },
       },
     };
-  }, [categories, series, subtitle, title, xLabel, yLabel, yMin]);
+  }, [categories, legendTitle, series, subtitle, title, xLabel, yLabel, yMin]);
 
   return (
     <div>

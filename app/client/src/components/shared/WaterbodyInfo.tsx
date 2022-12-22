@@ -11,6 +11,7 @@ import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
+import ShowLessMore from 'components/shared/ShowLessMore';
 import { Sparkline } from 'components/shared/Sparkline';
 import StackedBarChart from 'components/shared/StackedBarChart';
 import TickSlider from 'components/shared/TickSlider';
@@ -43,6 +44,7 @@ import { cyanError, waterbodyReportError } from 'config/errorMessages';
 import {
   colors,
   disclaimerStyles,
+  fonts,
   iconStyles,
   modifiedTableStyles,
   tableStyles,
@@ -1124,6 +1126,31 @@ const marginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
   margin: 1em;
 `;
 
+const showLessMoreStyles = css`
+  button {
+    margin-bottom: 1.5em;
+  }
+
+  h3 {
+    font-family: ${fonts.primary};
+    font-size: 1em;
+    font-weight: bold;
+
+    &:first-of-type {
+      display: inline-block;
+    }
+  }
+
+  li,
+  ul {
+    padding-bottom: 0.5em;
+  }
+
+  p {
+    padding-bottom: 0.5em;
+  }
+`;
+
 const sliderContainerStyles = css`
   margin: auto;
   width: 90%;
@@ -1509,27 +1536,13 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
         <ListContent
           rows={[
             {
-              label: 'Area',
+              label: 'Waterbody Area',
               value: attributes.AREASQKM
                 ? `${formatNumber(
                     attributes.AREASQKM,
                     2,
                   )} km${String.fromCodePoint(0x00b2)}`
                 : '',
-            },
-            {
-              label: 'Elevation',
-              value: attributes.ELEVATION
-                ? `${formatNumber(attributes.ELEVATION, 1)} m`
-                : '',
-            },
-            {
-              label: 'Centroid Latitude',
-              value: attributes.c_lat ? formatNumber(attributes.c_lat, 4) : '',
-            },
-            {
-              label: 'Centroid Longitude',
-              value: attributes.c_lng ? formatNumber(attributes.c_lng, 4) : '',
             },
           ]}
           styles={listContentStyles}
@@ -1546,8 +1559,9 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
               <div css={chartContainerStyles}>
                 <StackedBarChart
                   categories={chartData.categories}
+                  legendTitle="Cyanobacteria Concentration Categories"
                   series={chartData.series}
-                  title="Cell Concentration Counts"
+                  title={`Daily Cyanobacteria Estimates for ${attributes.GNIS_NAME}`}
                   yLabel="Measurement count / CC range"
                   xLabel="Date"
                 />
@@ -1558,7 +1572,17 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
             {selectedDate ? (
               <>
                 <p css={subheadingStyles}>
-                  <HelpTooltip label="Adjust the slider handle to view the day's CyAN satellite imagery on the map" />
+                  <HelpTooltip
+                    label={
+                      <>
+                        Adjust the slider handle to view the day's CyAN
+                        satellite imagery on the map.
+                        <br />
+                        Data for the previous day typically becomes available
+                        between 9 - 11am EST.
+                      </>
+                    }
+                  />
                   &nbsp;&nbsp;
                   <b>Date Selection:</b>
                 </p>
@@ -1582,7 +1606,8 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                 )}
 
                 <p css={subheadingStyles}>
-                  Cell Concentration Statistics for{' '}
+                  <HelpTooltip label="Statistics are calculated based on only the detected values in the waterbody area (colored areas in map)" />
+                  &nbsp;&nbsp; Cyanobacteria Concentration Statistics for{' '}
                   <b>
                     {new Date(selectedDate).toLocaleDateString('en-US', {
                       year: 'numeric',
@@ -1601,18 +1626,33 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                   <ListContent
                     rows={[
                       {
-                        label: 'Count',
-                        value: countCc !== null ? formatNumber(countCc) : 0,
-                      },
-                      {
-                        label: 'Min',
+                        label: (
+                          <>
+                            <HelpTooltip
+                              label={
+                                <>
+                                  Minimum detected value in the waterbody area.
+                                  <br />
+                                  Values under 6.5K cells/mL cannot be detected
+                                  by satellite.
+                                </>
+                              }
+                            />
+                            &nbsp;&nbsp; Minimum Value
+                          </>
+                        ),
                         value:
                           minCc !== null
                             ? `${formatNumber(minCc, 2)} cells/mL`
                             : 'N/A',
                       },
                       {
-                        label: 'Max',
+                        label: (
+                          <>
+                            <HelpTooltip label="Maximum detected value in the waterbody area." />
+                            &nbsp;&nbsp; Maximum Value
+                          </>
+                        ),
                         value:
                           maxCc !== null
                             ? `${formatNumber(maxCc, 2)} cells/mL`
@@ -1636,6 +1676,57 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
           </>
         )}
       </>
+
+      <div css={showLessMoreStyles}>
+        <h3>Data Accuracy</h3>
+        <ShowLessMore
+          charLimit={0}
+          text={
+            <>
+              <p>
+                Daily data are a snapshot of cyanobacteria (historically
+                referred to as blue-green algae) at the time of detection. These
+                are provisional satellite derived measures of cyanobacteria,
+                which may contain errors. Information can be used to identify
+                potential problems related to cyanobacteria in larger lakes and
+                reservoirs within the contiguous United States.
+              </p>
+
+              <h3>Data Issues include:</h3>
+              <ul>
+                <li>
+                  <b>Near-shore response:</b> mixed land/water pixels may be
+                  reading land vegetation and/or shallow water bottom foliage.
+                  It is not possible to discount reported concentration
+                  entirely, as a response may be valid due to wind action on a
+                  bloom resulting in shoreline accumulation. Data values
+                  reported should be considered in context of the local
+                  conditions near and within the waterbody. Data reported should
+                  be validated in situ.
+                </li>
+                <li>
+                  <b>Estuaries:</b> data have not been validated for brine/salt
+                  water.
+                </li>
+                <li>
+                  <b>Rivers:</b> large flowing waterways are not masked and can
+                  have a cyanobacteria response that is not validated.
+                </li>
+                <li>
+                  A resolvable waterbody is considered to have, at minimum, a
+                  3x3 raster cell matrix size (900x900m), with the center pixel
+                  being considered valid. Smaller or irregularly shaped
+                  waterbodies (i.e., those not having the minimum 900x900m size)
+                  may be evident in the data, and their cyanobacteria responses
+                  are suspect and open to interpretation. See{' '}
+                  <b>“Near-shore response”</b> above.
+                </li>
+              </ul>
+            </>
+          }
+        />
+      </div>
+
       {services?.status === 'success' && (
         <div css={linkSectionStyles}>
           <p>
@@ -1656,7 +1747,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                   aria-hidden="true"
                 />
               </HelpTooltip>
-              Download Cell Concentration Data
+              Download Cyanobacteria Data
             </a>
           </p>
           <p>
@@ -1667,10 +1758,10 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
             >
               <i
                 css={iconStyles}
-                className="fas fa-satellite"
+                className="fas fa-info-circle"
                 aria-hidden="true"
               />
-              CyAN Web Application
+              More Information
             </a>
             &nbsp;&nbsp;
             <small>(opens new browser tab)</small>
