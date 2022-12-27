@@ -21,14 +21,17 @@ type Props = {
   legendTitle?: string;
   series: Array<{
     color?: string;
+    custom?: {
+      description?: string;
+    };
     data: number[];
     name: string;
     type: 'column';
   }>;
   subtitle?: string;
   title?: string;
-  xLabel?: string | null;
-  yLabel?: string | null;
+  xTitle?: string | null;
+  yTitle?: string | null;
   yMin?: number;
 };
 
@@ -38,14 +41,15 @@ export default function StackedBarChart({
   series,
   subtitle,
   title,
-  xLabel = null,
-  yLabel = null,
+  xTitle = null,
+  yTitle = null,
   yMin = 0,
 }: Props) {
   const options = useMemo<Options>(() => {
     return {
       chart: {
         backgroundColor: 'rgba(0, 0, 0, 0)',
+        height: '500px',
         style: { fontFamily: fonts.primary },
         type: 'column',
       },
@@ -84,11 +88,15 @@ export default function StackedBarChart({
         },
       },
       legend: {
+        labelFormatter: function () {
+          if (this.options.custom?.description) {
+            return `${this.name}<br /><span style="fontWeight:normal">${this.options.custom.description}</span>`;
+          } else return this.name;
+        },
         title: {
-          style: { display: 'flex', justifyContent: 'center' },
           text: legendTitle,
         },
-        verticalAlign: 'top',
+        verticalAlign: 'bottom',
       },
       plotOptions: {
         column: {
@@ -124,17 +132,17 @@ export default function StackedBarChart({
       xAxis: {
         categories,
         title: {
-          text: xLabel,
+          text: xTitle,
         },
       },
       yAxis: {
         min: yMin,
         title: {
-          text: yLabel,
+          text: yTitle,
         },
       },
     };
-  }, [categories, legendTitle, series, subtitle, title, xLabel, yLabel, yMin]);
+  }, [categories, legendTitle, series, subtitle, title, xTitle, yTitle, yMin]);
 
   return (
     <div>

@@ -1253,7 +1253,10 @@ type CellConcentrationData = {
 type ChartData = {
   categories: string[];
   series: Array<{
-    color?: string;
+    color: string;
+    custom: {
+      description: string;
+    };
     data: number[];
     name: string;
     type: 'column';
@@ -1487,10 +1490,38 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     const emptyChartData: ChartData = {
       categories: [],
       series: [
-        { name: 'very high', data: [], color: '#fa5300', type: 'column' },
-        { name: 'high', data: [], color: '#ffa200', type: 'column' },
-        { name: 'medium', data: [], color: '#00bf46', type: 'column' },
-        { name: 'low', data: [], color: '#3700eb', type: 'column' },
+        {
+          name: 'very high',
+          color: '#fa5300',
+          custom: {
+            description: `${String.fromCharCode(0x2265)} 1,000,000 cells/mL`,
+          },
+          data: [],
+          type: 'column',
+        },
+        {
+          name: 'high',
+          color: '#ffa200',
+          custom: { description: '300,000 - 1,000,000 cells/mL' },
+          data: [],
+          type: 'column',
+        },
+        {
+          name: 'medium',
+          color: '#00bf46',
+          custom: { description: '100,000 - 300,000 cells/mL' },
+          data: [],
+          type: 'column',
+        },
+        {
+          name: 'low',
+          color: '#3700eb',
+          custom: {
+            description: `${String.fromCharCode(0x2264)} 100,000 cells/mL`,
+          },
+          data: [],
+          type: 'column',
+        },
       ],
     };
 
@@ -1556,16 +1587,20 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
         {cellConcentration.status === 'success' && (
           <>
             {chartData && (
-              <div css={chartContainerStyles}>
-                <StackedBarChart
-                  categories={chartData.categories}
-                  legendTitle="Cyanobacteria Concentration Categories"
-                  series={chartData.series}
-                  title={`Daily Cyanobacteria Estimates for ${attributes.GNIS_NAME}`}
-                  yLabel="Measurement count / CC range"
-                  xLabel="Date"
-                />
-              </div>
+              <StackedBarChart
+                categories={chartData.categories}
+                legendTitle="Cyanobacteria Concentration Categories:"
+                series={chartData.series}
+                title={`Daily Cyanobacteria Estimates for ${attributes.GNIS_NAME}`}
+                yTitle="
+                    <p>
+                      Number of Image Pixels
+                      <br />
+                      (each pixel represents a 300x300 meter area)
+                    </p>
+                  "
+                xTitle="Date"
+              />
             )}
 
             {/* A null `selectedDate` means no date with data was found */}
@@ -1606,7 +1641,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                 )}
 
                 <p css={subheadingStyles}>
-                  <HelpTooltip label="Statistics are calculated based on only the detected values in the waterbody area (colored areas in map)" />
+                  <HelpTooltip label="Statistics are calculated based on only the detected values in the waterbody area (colored areas in map)." />
                   &nbsp;&nbsp; Cyanobacteria Concentration Statistics for{' '}
                   <b>
                     {new Date(selectedDate).toLocaleDateString('en-US', {
@@ -1695,14 +1730,14 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
               <h3>Data Issues include:</h3>
               <ul>
                 <li>
-                  <b>Near-shore response:</b> mixed land/water pixels may be
-                  reading land vegetation and/or shallow water bottom foliage.
-                  It is not possible to discount reported concentration
-                  entirely, as a response may be valid due to wind action on a
-                  bloom resulting in shoreline accumulation. Data values
-                  reported should be considered in context of the local
-                  conditions near and within the waterbody. Data reported should
-                  be validated in situ.
+                  <b id="near-shore-response">Near-shore response:</b> mixed
+                  land/water pixels may be reading land vegetation and/or
+                  shallow water bottom foliage. It is not possible to discount
+                  reported concentration entirely, as a response may be valid
+                  due to wind action on a bloom resulting in shoreline
+                  accumulation. Data values reported should be considered in
+                  context of the local conditions near and within the waterbody.
+                  Data reported should be validated in situ.
                 </li>
                 <li>
                   <b>Estuaries:</b> data have not been validated for brine/salt
@@ -1719,7 +1754,8 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                   waterbodies (i.e., those not having the minimum 900x900m size)
                   may be evident in the data, and their cyanobacteria responses
                   are suspect and open to interpretation. See{' '}
-                  <b>“Near-shore response”</b> above.
+                  <a href="#near-shore-response">“Near-shore response”</a>{' '}
+                  above.
                 </li>
               </ul>
             </>
