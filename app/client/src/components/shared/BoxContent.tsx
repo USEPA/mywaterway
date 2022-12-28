@@ -128,7 +128,7 @@ export function BoxContent({ layout = 'grid', rows, styles }: BoxContentProps) {
     <section css={mergedStyles}>
       {keyedRows.map(
         (item) =>
-          item && (
+          item?.label && (
             <BoxRow
               key={item.key}
               label={item.label}
