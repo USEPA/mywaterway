@@ -157,8 +157,8 @@ export function ListContent({
 }
 
 interface RowProps {
-  label: ReactNode | string;
-  value: ReactNode | string;
+  label: NonNullable<ReactNode>;
+  value: ReactNode;
   status?: string;
 }
 
