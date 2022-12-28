@@ -1770,18 +1770,19 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
       </>
 
       <div css={showLessMoreStyles}>
-        <h3>Data Accuracy</h3>
+        <h3>Data Accuracy:</h3>
         <ShowLessMore
           charLimit={0}
           text={
             <>
               <p>
-                Daily data are a snapshot of cyanobacteria (historically
-                referred to as blue-green algae) at the time of detection. These
-                are provisional satellite derived measures of cyanobacteria,
-                which may contain errors. Information can be used to identify
-                potential problems related to cyanobacteria in larger lakes and
-                reservoirs within the contiguous United States.
+                Daily data are a snapshot of{' '}
+                <GlossaryTerm term="Cyanobacteria">cyanobacteria</GlossaryTerm>{' '}
+                (historically referred to as blue-green algae) at the time of
+                detection. These are provisional satellite derived measures of
+                cyanobacteria, which may contain errors. Information can be used
+                to identify potential problems related to cyanobacteria in
+                larger lakes and reservoirs within the contiguous United States.
               </p>
 
               <h3>Data Issues include:</h3>

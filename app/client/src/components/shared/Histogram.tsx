@@ -101,6 +101,7 @@ export default function Histogram({
         text: title,
       },
       tooltip: {
+        borderColor: '#000000',
         formatter: function () {
           return `<b>${this.x} cells/mL:</b> ${this.y}`;
         },
