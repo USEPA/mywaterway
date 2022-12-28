@@ -2,6 +2,7 @@ import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import highchartsAccessibility from 'highcharts/modules/accessibility';
 import highchartsExporting from 'highcharts/modules/exporting';
+import highchartsHistogram from 'highcharts/modules/histogram-bellcurve';
 import highchartsOfflineExporting from 'highcharts/modules/offline-exporting';
 import { useMemo } from 'react';
 // styles
@@ -16,19 +17,24 @@ highchartsAccessibility(Highcharts);
 highchartsExporting(Highcharts);
 highchartsOfflineExporting(Highcharts);
 
+// add histogram module to highcharts
+highchartsHistogram(Highcharts);
+
 type Props = {
-  caption?: string;
   categories: string[];
-  height?: string;
   legendTitle?: string;
   series: Array<{
-    color?: string;
     custom?: {
       description?: string;
     };
     data: number[];
     name: string;
-    type: 'column';
+    type: 'histogram';
+    zoneAxis?: 'x' | 'y';
+    zones?: Array<{
+      color: string;
+      value?: number;
+    }>;
   }>;
   subtitle?: string;
   title?: string;
@@ -37,11 +43,8 @@ type Props = {
   yMin?: number;
 };
 
-export default function StackedBarChart({
-  caption,
+export default function Histogram({
   categories,
-  height,
-  legendTitle,
   series,
   subtitle,
   title,
@@ -51,15 +54,14 @@ export default function StackedBarChart({
 }: Props) {
   const options = useMemo<Options>(() => {
     return {
-      caption: {
-        text: caption,
-        useHTML: true,
-      },
       chart: {
         backgroundColor: 'rgba(0, 0, 0, 0)',
-        height: height ?? '500px',
+        height: '400px',
         style: { fontFamily: fonts.primary },
-        type: 'column',
+        type: 'histogram',
+        zooming: {
+          type: 'x',
+        },
       },
       credits: { enabled: false },
       exporting: {
@@ -85,31 +87,9 @@ export default function StackedBarChart({
             },
           },
         },
-        chartOptions: {
-          plotOptions: {
-            series: {
-              dataLabels: {
-                enabled: true,
-              },
-            },
-          },
-        },
       },
       legend: {
-        labelFormatter: function () {
-          if (this.options.custom?.description) {
-            return `${this.name}<br /><span style="fontWeight:normal">${this.options.custom.description}</span>`;
-          } else return this.name;
-        },
-        title: {
-          text: legendTitle,
-        },
-        verticalAlign: 'bottom',
-      },
-      plotOptions: {
-        column: {
-          stacking: 'normal',
-        },
+        enabled: false,
       },
       series,
       subtitle: {
@@ -119,24 +99,9 @@ export default function StackedBarChart({
         text: title,
       },
       tooltip: {
-        borderColor: '#000000',
         formatter: function () {
-          return (
-            this.points?.reduce((s, point) => {
-              return (
-                s +
-                `<tr>
-                <td style="color:${point.series.color};fontWeight:bold">
-                  ${point.series.name}: 
-                </td>
-                <td>${point.y?.toLocaleString()}</td>
-              </tr>`
-              );
-            }, `<b>${this.x}</b><table>`) + '</table>'
-          );
+          return `<b>${this.x} cells/mL:</b> ${this.y}`;
         },
-        shared: true,
-        useHTML: true,
       },
       xAxis: {
         categories,
@@ -151,18 +116,7 @@ export default function StackedBarChart({
         },
       },
     };
-  }, [
-    caption,
-    height,
-    legendTitle,
-    series,
-    subtitle,
-    title,
-    categories,
-    xTitle,
-    yMin,
-    yTitle,
-  ]);
+  }, [series, subtitle, title, categories, xTitle, yMin, yTitle]);
 
   return <HighchartsReact highcharts={Highcharts} options={options} />;
 }

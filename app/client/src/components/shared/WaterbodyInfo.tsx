@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 // components
 import { HelpTooltip } from 'components/shared/HelpTooltip';
+import Histogram from 'components/shared/Histogram';
 import { ListContent } from 'components/shared/BoxContent';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
@@ -1117,10 +1118,6 @@ function MapPopup({
   );
 }
 
-const chartContainerStyles = css`
-  padding: 0 1em;
-`;
-
 const marginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
   ${styles}
   margin: 1em;
@@ -1250,16 +1247,21 @@ type CellConcentrationData = {
   [date: string]: number[];
 };
 
-type ChartData = {
+type ChartData<T> = {
   categories: string[];
   series: Array<{
-    color: string;
-    custom: {
-      description: string;
+    color?: string;
+    custom?: {
+      description?: string;
     };
     data: number[];
     name: string;
-    type: 'column';
+    type: T;
+    zoneAxis?: 'x' | 'y';
+    zones?: Array<{
+      color: string;
+      value?: number;
+    }>;
   }>;
 };
 
@@ -1358,8 +1360,11 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
   const [averageCc, setAverageCc] = useState<number | null>(null);
   const [stdDevCc, setStdDevCc] = useState<number | null>(null);
   const [countCc, setCountCc] = useState<number | null>(null);
+  const [histogramData, setHistogramData] =
+    useState<ChartData<'histogram'> | null>(null);
 
-  // Calculate statistics for the selected date
+  // Calculate statistics for the selected date and
+  // set the data for the daily histogram
   useEffect(() => {
     if (cellConcentration.status !== 'success' || selectedDate === null) {
       setMinCc(null);
@@ -1367,6 +1372,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
       setAverageCc(null);
       setStdDevCc(null);
       setCountCc(null);
+      setHistogramData(null);
       return;
     }
 
@@ -1379,6 +1385,23 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     const newAverageCc = getAverageCellConcentration(selectedData);
     setAverageCc(newAverageCc);
     setStdDevCc(getStdDevCellConcentration(selectedData, newAverageCc));
+    setHistogramData({
+      categories: cyanMetadata.map((c) => c.toString()),
+      series: [
+        {
+          name: 'Cell Concentration Counts',
+          data: selectedData,
+          type: 'histogram',
+          zoneAxis: 'x',
+          zones: [
+            { color: '#3700eb', value: CcIdx.Medium },
+            { color: '#00bf46', value: CcIdx.High },
+            { color: '#ffa200', value: CcIdx.VeryHigh },
+            { color: '#fa5300' },
+          ],
+        },
+      ],
+    });
   }, [cellConcentration, selectedDate]);
 
   const [imageStatus, setImageStatus] = useState<
@@ -1478,20 +1501,23 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     };
   }, [mapView]);
 
-  const [chartData, setChartData] = useState<ChartData | null>(null);
+  const [barChartData, setBarChartData] = useState<ChartData<'column'> | null>(
+    null,
+  );
 
-  // Group the daily data by predetermined thresholds
+  // Group the daily data by predetermined
+  // thresholds for the weekly bar chart
   useEffect(() => {
     if (cellConcentration.status !== 'success') {
-      setChartData(null);
+      setBarChartData(null);
       return;
     }
 
-    const emptyChartData: ChartData = {
+    const emptyBarChartData: ChartData<'column'> = {
       categories: [],
       series: [
         {
-          name: 'very high',
+          name: 'Very High',
           color: '#fa5300',
           custom: {
             description: `${String.fromCharCode(0x2265)} 1,000,000 cells/mL`,
@@ -1500,21 +1526,21 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
           type: 'column',
         },
         {
-          name: 'high',
+          name: 'High',
           color: '#ffa200',
           custom: { description: '300,000 - 1,000,000 cells/mL' },
           data: [],
           type: 'column',
         },
         {
-          name: 'medium',
+          name: 'Medium',
           color: '#00bf46',
           custom: { description: '100,000 - 300,000 cells/mL' },
           data: [],
           type: 'column',
         },
         {
-          name: 'low',
+          name: 'Low',
           color: '#3700eb',
           custom: {
             description: `${String.fromCharCode(0x2264)} 100,000 cells/mL`,
@@ -1525,7 +1551,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
       ],
     };
 
-    const newChartData = Object.entries(cellConcentration.data).reduce(
+    const newBarChartData = Object.entries(cellConcentration.data).reduce(
       (a, [date, ccCounts]) => {
         a.categories.push(epochToMonthDay(parseInt(date)));
         a.series[0].data.push(
@@ -1542,9 +1568,9 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
         );
         return a;
       },
-      emptyChartData,
+      emptyBarChartData,
     );
-    setChartData(newChartData);
+    setBarChartData(newBarChartData);
   }, [cellConcentration]);
 
   // Display the average cell concentration alongside the standard deviation
@@ -1586,11 +1612,12 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
         )}
         {cellConcentration.status === 'success' && (
           <>
-            {chartData && (
+            {barChartData && (
               <StackedBarChart
-                categories={chartData.categories}
+                caption="The categories in this figure are included to assist the user in visually understanding the concentration values. Please review the World Health Organization (WHO) guide, <i><a target='_blank' href='https://www.who.int/publications/m/item/toxic-cyanobacteria-in-water---second-edition'>Toxic cyanobacteria in water - Second edition</a></i>, for information on potential health impacts."
+                categories={barChartData.categories}
                 legendTitle="Cyanobacteria Concentration Categories:"
-                series={chartData.series}
+                series={barChartData.series}
                 title={`Daily Cyanobacteria Estimates for ${attributes.GNIS_NAME}`}
                 yTitle="
                     <p>
@@ -1658,48 +1685,78 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                       : 'There is no CyAN data available for the selected date.'}
                   </p>
                 ) : (
-                  <ListContent
-                    rows={[
-                      {
-                        label: (
-                          <>
-                            <HelpTooltip
-                              label={
-                                <>
-                                  Minimum detected value in the waterbody area.
-                                  <br />
-                                  Values under 6.5K cells/mL cannot be detected
-                                  by satellite.
-                                </>
-                              }
-                            />
-                            &nbsp;&nbsp; Minimum Value
-                          </>
-                        ),
-                        value:
-                          minCc !== null
-                            ? `${formatNumber(minCc, 2)} cells/mL`
-                            : 'N/A',
-                      },
-                      {
-                        label: (
-                          <>
-                            <HelpTooltip label="Maximum detected value in the waterbody area." />
-                            &nbsp;&nbsp; Maximum Value
-                          </>
-                        ),
-                        value:
-                          maxCc !== null
-                            ? `${formatNumber(maxCc, 2)} cells/mL`
-                            : 'N/A',
-                      },
-                      {
-                        label: 'Average',
-                        value: formattedAverageCc ?? 'N/A',
-                      },
-                    ]}
-                    styles={sublistContentStyles}
-                  />
+                  <>
+                    <ListContent
+                      rows={[
+                        {
+                          label: (
+                            <>
+                              <HelpTooltip
+                                label={
+                                  <>
+                                    Minimum detected value in the waterbody
+                                    area.
+                                    <br />
+                                    Values under 6.5K cells/mL cannot be
+                                    detected by satellite.
+                                  </>
+                                }
+                              />
+                              &nbsp;&nbsp; Minimum Value
+                            </>
+                          ),
+                          value:
+                            minCc !== null
+                              ? `${formatNumber(minCc, 2)} cells/mL`
+                              : 'N/A',
+                        },
+                        {
+                          label: (
+                            <>
+                              <HelpTooltip label="Maximum detected value in the waterbody area." />
+                              &nbsp;&nbsp; Maximum Value
+                            </>
+                          ),
+                          value:
+                            maxCc !== null
+                              ? `${formatNumber(maxCc, 2)} cells/mL`
+                              : 'N/A',
+                        },
+                        {
+                          label: (
+                            <span style={{ paddingLeft: '1.5em' }}>
+                              Average
+                            </span>
+                          ),
+                          value: formattedAverageCc ?? 'N/A',
+                        },
+                      ]}
+                      styles={sublistContentStyles}
+                    />
+                    {histogramData && (
+                      <Histogram
+                        categories={histogramData.categories}
+                        series={histogramData.series}
+                        subtitle={new Date(selectedDate).toLocaleDateString(
+                          'en-US',
+                          {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          },
+                        )}
+                        title={`Cell Concentration Histogram for ${attributes.GNIS_NAME}`}
+                        yTitle="
+                        <p>
+                          Number of Image Pixels
+                          <br />
+                          (each pixel represents a 300x300 meter area)
+                        </p>
+                      "
+                        xTitle="Cell Concentration (cells/mL)"
+                      />
+                    )}
+                  </>
                 )}
               </>
             ) : (
@@ -1730,8 +1787,10 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
               <h3>Data Issues include:</h3>
               <ul>
                 <li>
-                  <b id="near-shore-response">Near-shore response:</b> mixed
-                  land/water pixels may be reading land vegetation and/or
+                  <b id={`${attributes.FID}-near-shore-response`}>
+                    Near-shore response:
+                  </b>{' '}
+                  mixed land/water pixels may be reading land vegetation and/or
                   shallow water bottom foliage. It is not possible to discount
                   reported concentration entirely, as a response may be valid
                   due to wind action on a bloom resulting in shoreline
@@ -1754,7 +1813,9 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                   waterbodies (i.e., those not having the minimum 900x900m size)
                   may be evident in the data, and their cyanobacteria responses
                   are suspect and open to interpretation. See{' '}
-                  <a href="#near-shore-response">“Near-shore response”</a>{' '}
+                  <a href={`#${attributes.FID}-near-shore-response`}>
+                    “Near-shore response”
+                  </a>{' '}
                   above.
                 </li>
               </ul>
