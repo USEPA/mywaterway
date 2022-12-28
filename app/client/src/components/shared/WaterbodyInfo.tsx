@@ -1787,7 +1787,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
               <h3>Data Issues include:</h3>
               <ul>
                 <li>
-                  <b id={`${attributes.FID}-near-shore-response`}>
+                  <b id={`near-shore-response-${attributes.FID}`}>
                     Near-shore response:
                   </b>{' '}
                   mixed land/water pixels may be reading land vegetation and/or
@@ -1813,7 +1813,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                   waterbodies (i.e., those not having the minimum 900x900m size)
                   may be evident in the data, and their cyanobacteria responses
                   are suspect and open to interpretation. See{' '}
-                  <a href={`#${attributes.FID}-near-shore-response`}>
+                  <a href={`#near-shore-response-${attributes.FID}`}>
                     “Near-shore response”
                   </a>{' '}
                   above.

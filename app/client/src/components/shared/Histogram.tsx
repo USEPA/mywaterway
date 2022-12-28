@@ -22,6 +22,7 @@ highchartsHistogram(Highcharts);
 
 type Props = {
   categories: string[];
+  height?: string;
   legendTitle?: string;
   series: Array<{
     custom?: {
@@ -45,6 +46,7 @@ type Props = {
 
 export default function Histogram({
   categories,
+  height,
   series,
   subtitle,
   title,
@@ -56,7 +58,7 @@ export default function Histogram({
     return {
       chart: {
         backgroundColor: 'rgba(0, 0, 0, 0)',
-        height: '400px',
+        height: height ?? '300px',
         style: { fontFamily: fonts.primary },
         type: 'histogram',
         zooming: {
@@ -116,7 +118,7 @@ export default function Histogram({
         },
       },
     };
-  }, [series, subtitle, title, categories, xTitle, yMin, yTitle]);
+  }, [height, series, subtitle, title, categories, xTitle, yMin, yTitle]);
 
   return <HighchartsReact highcharts={Highcharts} options={options} />;
 }

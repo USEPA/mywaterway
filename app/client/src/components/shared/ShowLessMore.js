@@ -2,6 +2,8 @@
 
 import React, { isValidElement, useState } from 'react';
 import { css } from 'styled-components/macro';
+// types
+import type { ReactNode } from 'react';
 
 const linkButtonStyles = css`
   display: inline;
@@ -24,7 +26,7 @@ const linkButtonStyles = css`
 
 // --- components ---
 type Props = {
-  text: string | React.ReactNode,
+  text: string | ReactNode,
   charLimit: number,
 };
 
