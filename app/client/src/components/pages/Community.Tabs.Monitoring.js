@@ -538,16 +538,17 @@ function Monitoring() {
           <TabPanels>
             <TabPanel>
               <p>
-                Click on each monitoring location on the map or in the list
-                below to find out about current water conditions. Water
-                conditions are measured in real-time using water quality sensors
-                deployed at each location.
+                Explore the map and information below to find out about current
+                water conditions. On this tab, we define current data as less
+                than one week old. The water condition information shown here is
+                estimated using satellite imagery and water quality sensors
+                deployed in the waterbody.
               </p>
 
               <div css={legendItemsStyles}>
                 <span>
                   {waterwayIcon({ color: '#6c95ce' })}
-                  &nbsp;CyAN Waterbodies&nbsp;
+                  &nbsp;CyAN Satellite Imagery&nbsp;
                 </span>
                 <span>
                   {squareIcon({ color: '#fffe00' })}
@@ -739,9 +740,9 @@ function CurrentConditionsTab({
                     cyanWaterbodies.status !== 'success' ||
                     cyanWaterbodies.data?.length === 0
                   }
-                  ariaLabel="CyAN Waterbodies"
+                  ariaLabel="CyAN Satellite Imagery"
                 />
-                <span>CyAN Waterbodies</span>
+                <span>CyAN Satellite Imagery</span>
               </div>
             </td>
             <td>{cyanWaterbodies.data?.length ?? 'N/A'}</td>

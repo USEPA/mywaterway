@@ -6,11 +6,13 @@ import { useCallback, useEffect, useState } from 'react';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 // components
 import { HelpTooltip } from 'components/shared/HelpTooltip';
+import Histogram from 'components/shared/Histogram';
 import { ListContent } from 'components/shared/BoxContent';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
+import ShowLessMore from 'components/shared/ShowLessMore';
 import { Sparkline } from 'components/shared/Sparkline';
 import StackedBarChart from 'components/shared/StackedBarChart';
 import TickSlider from 'components/shared/TickSlider';
@@ -43,6 +45,7 @@ import { cyanError, waterbodyReportError } from 'config/errorMessages';
 import {
   colors,
   disclaimerStyles,
+  fonts,
   iconStyles,
   modifiedTableStyles,
   tableStyles,
@@ -1115,13 +1118,34 @@ function MapPopup({
   );
 }
 
-const chartContainerStyles = css`
-  padding: 0 1em;
-`;
-
 const marginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
   ${styles}
   margin: 1em;
+`;
+
+const showLessMoreStyles = css`
+  button {
+    margin-bottom: 1.5em;
+  }
+
+  h3 {
+    font-family: ${fonts.primary};
+    font-size: 1em;
+    font-weight: bold;
+
+    &:first-of-type {
+      display: inline-block;
+    }
+  }
+
+  li,
+  ul {
+    padding-bottom: 0.5em;
+  }
+
+  p {
+    padding-bottom: 0.5em;
+  }
 `;
 
 const sliderContainerStyles = css`
@@ -1223,13 +1247,21 @@ type CellConcentrationData = {
   [date: string]: number[];
 };
 
-type ChartData = {
+type ChartData<T> = {
   categories: string[];
   series: Array<{
     color?: string;
+    custom?: {
+      description?: string;
+    };
     data: number[];
     name: string;
-    type: 'column';
+    type: T;
+    zoneAxis?: 'x' | 'y';
+    zones?: Array<{
+      color: string;
+      value?: number;
+    }>;
   }>;
 };
 
@@ -1328,8 +1360,11 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
   const [averageCc, setAverageCc] = useState<number | null>(null);
   const [stdDevCc, setStdDevCc] = useState<number | null>(null);
   const [countCc, setCountCc] = useState<number | null>(null);
+  const [histogramData, setHistogramData] =
+    useState<ChartData<'histogram'> | null>(null);
 
-  // Calculate statistics for the selected date
+  // Calculate statistics for the selected date and
+  // set the data for the daily histogram
   useEffect(() => {
     if (cellConcentration.status !== 'success' || selectedDate === null) {
       setMinCc(null);
@@ -1337,6 +1372,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
       setAverageCc(null);
       setStdDevCc(null);
       setCountCc(null);
+      setHistogramData(null);
       return;
     }
 
@@ -1349,6 +1385,23 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     const newAverageCc = getAverageCellConcentration(selectedData);
     setAverageCc(newAverageCc);
     setStdDevCc(getStdDevCellConcentration(selectedData, newAverageCc));
+    setHistogramData({
+      categories: cyanMetadata.map((c) => c.toString()),
+      series: [
+        {
+          name: 'Cell Concentration Counts',
+          data: selectedData,
+          type: 'histogram',
+          zoneAxis: 'x',
+          zones: [
+            { color: '#3700eb', value: CcIdx.Medium },
+            { color: '#00bf46', value: CcIdx.High },
+            { color: '#ffa200', value: CcIdx.VeryHigh },
+            { color: '#fa5300' },
+          ],
+        },
+      ],
+    });
   }, [cellConcentration, selectedDate]);
 
   const [imageStatus, setImageStatus] = useState<
@@ -1448,26 +1501,57 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     };
   }, [mapView]);
 
-  const [chartData, setChartData] = useState<ChartData | null>(null);
+  const [barChartData, setBarChartData] = useState<ChartData<'column'> | null>(
+    null,
+  );
 
-  // Group the daily data by predetermined thresholds
+  // Group the daily data by predetermined
+  // thresholds for the weekly bar chart
   useEffect(() => {
     if (cellConcentration.status !== 'success') {
-      setChartData(null);
+      setBarChartData(null);
       return;
     }
 
-    const emptyChartData: ChartData = {
+    const emptyBarChartData: ChartData<'column'> = {
       categories: [],
       series: [
-        { name: 'very high', data: [], color: '#fa5300', type: 'column' },
-        { name: 'high', data: [], color: '#ffa200', type: 'column' },
-        { name: 'medium', data: [], color: '#00bf46', type: 'column' },
-        { name: 'low', data: [], color: '#3700eb', type: 'column' },
+        {
+          name: 'Very High',
+          color: '#fa5300',
+          custom: {
+            description: `${String.fromCharCode(0x2265)} 1,000,000 cells/mL`,
+          },
+          data: [],
+          type: 'column',
+        },
+        {
+          name: 'High',
+          color: '#ffa200',
+          custom: { description: '300,000 - 1,000,000 cells/mL' },
+          data: [],
+          type: 'column',
+        },
+        {
+          name: 'Medium',
+          color: '#00bf46',
+          custom: { description: '100,000 - 300,000 cells/mL' },
+          data: [],
+          type: 'column',
+        },
+        {
+          name: 'Low',
+          color: '#3700eb',
+          custom: {
+            description: `${String.fromCharCode(0x2264)} 100,000 cells/mL`,
+          },
+          data: [],
+          type: 'column',
+        },
       ],
     };
 
-    const newChartData = Object.entries(cellConcentration.data).reduce(
+    const newBarChartData = Object.entries(cellConcentration.data).reduce(
       (a, [date, ccCounts]) => {
         a.categories.push(epochToMonthDay(parseInt(date)));
         a.series[0].data.push(
@@ -1484,9 +1568,9 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
         );
         return a;
       },
-      emptyChartData,
+      emptyBarChartData,
     );
-    setChartData(newChartData);
+    setBarChartData(newBarChartData);
   }, [cellConcentration]);
 
   // Display the average cell concentration alongside the standard deviation
@@ -1509,27 +1593,13 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
         <ListContent
           rows={[
             {
-              label: 'Area',
+              label: 'Waterbody Area',
               value: attributes.AREASQKM
                 ? `${formatNumber(
                     attributes.AREASQKM,
                     2,
                   )} km${String.fromCodePoint(0x00b2)}`
                 : '',
-            },
-            {
-              label: 'Elevation',
-              value: attributes.ELEVATION
-                ? `${formatNumber(attributes.ELEVATION, 1)} m`
-                : '',
-            },
-            {
-              label: 'Centroid Latitude',
-              value: attributes.c_lat ? formatNumber(attributes.c_lat, 4) : '',
-            },
-            {
-              label: 'Centroid Longitude',
-              value: attributes.c_lng ? formatNumber(attributes.c_lng, 4) : '',
             },
           ]}
           styles={listContentStyles}
@@ -1542,23 +1612,39 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
         )}
         {cellConcentration.status === 'success' && (
           <>
-            {chartData && (
-              <div css={chartContainerStyles}>
-                <StackedBarChart
-                  categories={chartData.categories}
-                  series={chartData.series}
-                  title="Cell Concentration Counts"
-                  yLabel="Measurement count / CC range"
-                  xLabel="Date"
-                />
-              </div>
+            {barChartData && (
+              <StackedBarChart
+                caption="The categories in this figure are included to assist the user in visually understanding the concentration values. Please review the World Health Organization (WHO) guide, <i><a target='_blank' href='https://www.who.int/publications/m/item/toxic-cyanobacteria-in-water---second-edition'>Toxic cyanobacteria in water - Second edition</a></i>, for information on potential health impacts."
+                categories={barChartData.categories}
+                legendTitle="Cyanobacteria Concentration Categories:"
+                series={barChartData.series}
+                title={`Daily Cyanobacteria Estimates for ${attributes.GNIS_NAME}`}
+                yTitle="
+                    <p>
+                      Number of Image Pixels
+                      <br />
+                      (each pixel represents a 300x300 meter area)
+                    </p>
+                  "
+                xTitle="Date"
+              />
             )}
 
             {/* A null `selectedDate` means no date with data was found */}
             {selectedDate ? (
               <>
                 <p css={subheadingStyles}>
-                  <HelpTooltip label="Adjust the slider handle to view the day's CyAN satellite imagery on the map" />
+                  <HelpTooltip
+                    label={
+                      <>
+                        Adjust the slider handle to view the day's CyAN
+                        satellite imagery on the map.
+                        <br />
+                        Data for the previous day typically becomes available
+                        between 9 - 11am EST.
+                      </>
+                    }
+                  />
                   &nbsp;&nbsp;
                   <b>Date Selection:</b>
                 </p>
@@ -1582,7 +1668,8 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                 )}
 
                 <p css={subheadingStyles}>
-                  Cell Concentration Statistics for{' '}
+                  <HelpTooltip label="Statistics are calculated based on only the detected values in the waterbody area (colored areas in map)." />
+                  &nbsp;&nbsp; Cyanobacteria Concentration Statistics for{' '}
                   <b>
                     {new Date(selectedDate).toLocaleDateString('en-US', {
                       year: 'numeric',
@@ -1598,33 +1685,78 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                       : 'There is no CyAN data available for the selected date.'}
                   </p>
                 ) : (
-                  <ListContent
-                    rows={[
-                      {
-                        label: 'Count',
-                        value: countCc !== null ? formatNumber(countCc) : 0,
-                      },
-                      {
-                        label: 'Min',
-                        value:
-                          minCc !== null
-                            ? `${formatNumber(minCc, 2)} cells/mL`
-                            : 'N/A',
-                      },
-                      {
-                        label: 'Max',
-                        value:
-                          maxCc !== null
-                            ? `${formatNumber(maxCc, 2)} cells/mL`
-                            : 'N/A',
-                      },
-                      {
-                        label: 'Average',
-                        value: formattedAverageCc ?? 'N/A',
-                      },
-                    ]}
-                    styles={sublistContentStyles}
-                  />
+                  <>
+                    <ListContent
+                      rows={[
+                        {
+                          label: (
+                            <>
+                              <HelpTooltip
+                                label={
+                                  <>
+                                    Minimum detected value in the waterbody
+                                    area.
+                                    <br />
+                                    Values under 6.5K cells/mL cannot be
+                                    detected by satellite.
+                                  </>
+                                }
+                              />
+                              &nbsp;&nbsp; Minimum Value
+                            </>
+                          ),
+                          value:
+                            minCc !== null
+                              ? `${formatNumber(minCc, 2)} cells/mL`
+                              : 'N/A',
+                        },
+                        {
+                          label: (
+                            <>
+                              <HelpTooltip label="Maximum detected value in the waterbody area." />
+                              &nbsp;&nbsp; Maximum Value
+                            </>
+                          ),
+                          value:
+                            maxCc !== null
+                              ? `${formatNumber(maxCc, 2)} cells/mL`
+                              : 'N/A',
+                        },
+                        {
+                          label: (
+                            <span style={{ paddingLeft: '1.5em' }}>
+                              Average
+                            </span>
+                          ),
+                          value: formattedAverageCc ?? 'N/A',
+                        },
+                      ]}
+                      styles={sublistContentStyles}
+                    />
+                    {histogramData && (
+                      <Histogram
+                        categories={histogramData.categories}
+                        series={histogramData.series}
+                        subtitle={new Date(selectedDate).toLocaleDateString(
+                          'en-US',
+                          {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          },
+                        )}
+                        title={`Cell Concentration Histogram for ${attributes.GNIS_NAME}`}
+                        yTitle="
+                        <p>
+                          Number of Image Pixels
+                          <br />
+                          (each pixel represents a 300x300 meter area)
+                        </p>
+                      "
+                        xTitle="Cell Concentration (cells/mL)"
+                      />
+                    )}
+                  </>
                 )}
               </>
             ) : (
@@ -1636,6 +1768,63 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
           </>
         )}
       </>
+
+      <div css={showLessMoreStyles}>
+        <h3>Data Accuracy:</h3>
+        <ShowLessMore
+          charLimit={0}
+          text={
+            <>
+              <p>
+                Daily data are a snapshot of{' '}
+                <GlossaryTerm term="Cyanobacteria">cyanobacteria</GlossaryTerm>{' '}
+                (historically referred to as blue-green algae) at the time of
+                detection. These are provisional satellite derived measures of
+                cyanobacteria, which may contain errors. Information can be used
+                to identify potential problems related to cyanobacteria in
+                larger lakes and reservoirs within the contiguous United States.
+              </p>
+
+              <h3>Data Issues include:</h3>
+              <ul>
+                <li>
+                  <b id={`near-shore-response-${attributes.FID}`}>
+                    Near-shore response:
+                  </b>{' '}
+                  mixed land/water pixels may be reading land vegetation and/or
+                  shallow water bottom foliage. It is not possible to discount
+                  reported concentration entirely, as a response may be valid
+                  due to wind action on a bloom resulting in shoreline
+                  accumulation. Data values reported should be considered in
+                  context of the local conditions near and within the waterbody.
+                  Data reported should be validated in situ.
+                </li>
+                <li>
+                  <b>Estuaries:</b> data have not been validated for brine/salt
+                  water.
+                </li>
+                <li>
+                  <b>Rivers:</b> large flowing waterways are not masked and can
+                  have a cyanobacteria response that is not validated.
+                </li>
+                <li>
+                  A resolvable waterbody is considered to have, at minimum, a
+                  3x3 raster cell matrix size (900x900m), with the center pixel
+                  being considered valid. Smaller or irregularly shaped
+                  waterbodies (i.e., those not having the minimum 900x900m size)
+                  may be evident in the data, and their cyanobacteria responses
+                  are suspect and open to interpretation. See{' '}
+                  <a href={`#near-shore-response-${attributes.FID}`}>
+                    “Near-shore response”
+                  </a>{' '}
+                  above.
+                </li>
+              </ul>
+            </>
+          }
+        />
+      </div>
+
       {services?.status === 'success' && (
         <div css={linkSectionStyles}>
           <p>
@@ -1656,7 +1845,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                   aria-hidden="true"
                 />
               </HelpTooltip>
-              Download Cell Concentration Data
+              Download Cyanobacteria Data
             </a>
           </p>
           <p>
@@ -1667,10 +1856,10 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
             >
               <i
                 css={iconStyles}
-                className="fas fa-satellite"
+                className="fas fa-info-circle"
                 aria-hidden="true"
               />
-              CyAN Web Application
+              More Information
             </a>
             &nbsp;&nbsp;
             <small>(opens new browser tab)</small>

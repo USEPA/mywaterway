@@ -128,7 +128,7 @@ export function BoxContent({ layout = 'grid', rows, styles }: BoxContentProps) {
     <section css={mergedStyles}>
       {keyedRows.map(
         (item) =>
-          item && (
+          item?.label && (
             <BoxRow
               key={item.key}
               label={item.label}
@@ -157,8 +157,8 @@ export function ListContent({
 }
 
 interface RowProps {
-  label: ReactNode | string;
-  value: ReactNode | string;
+  label: NonNullable<ReactNode>;
+  value: ReactNode;
   status?: string;
 }
 

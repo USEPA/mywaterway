@@ -2,6 +2,8 @@
 
 import React, { isValidElement, useState } from 'react';
 import { css } from 'styled-components/macro';
+// types
+import type { ReactNode } from 'react';
 
 const linkButtonStyles = css`
   display: inline;
@@ -24,7 +26,7 @@ const linkButtonStyles = css`
 
 // --- components ---
 type Props = {
-  text: string | Node,
+  text: string | ReactNode,
   charLimit: number,
 };
 
@@ -32,8 +34,8 @@ function ShowLessMore({ text, charLimit }: Props) {
   const [truncated, setTruncated] = useState(true);
 
   if (typeof text === 'string') {
-    if (!text) return '';
-    if (text.length < charLimit) return text;
+    if (!text) return <></>;
+    if (text.length < charLimit) return <>text</>;
 
     return (
       <>
