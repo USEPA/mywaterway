@@ -1,5 +1,4 @@
 import Point from '@arcgis/core/geometry/Point';
-import { v4 as uuidv4 } from 'uuid';
 
 // utility function to split up an array into chunks of a designated length
 function chunkArray(array: any, chunkLength: number): Array<Array<any>> {
@@ -437,11 +436,6 @@ function parseAttributes<Type>(
   return { ...attributes, ...parsed };
 }
 
-// Generates a unique identifier (uuid) in uppercase.
-function generateUUID() {
-  return '{' + uuidv4().toUpperCase() + '}';
-}
-
 export {
   chunkArray,
   containsScriptTag,
@@ -468,5 +462,4 @@ export {
   summarizeAssessments,
   indicesOf,
   parseAttributes,
-  generateUUID,
 };
