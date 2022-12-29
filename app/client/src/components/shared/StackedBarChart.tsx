@@ -96,9 +96,10 @@ export default function StackedBarChart({
         },
       },
       legend: {
+        itemStyle: { fontWeight: 'normal' },
         labelFormatter: function () {
           if (this.options.custom?.description) {
-            return `${this.name}<br /><span style="fontWeight:normal">${this.options.custom.description}</span>`;
+            return `<b>${this.name}</b><br />${this.options.custom.description}`;
           } else return this.name;
         },
         title: {
@@ -121,13 +122,14 @@ export default function StackedBarChart({
       tooltip: {
         borderColor: '#000000',
         formatter: function () {
+          console.log(this.points);
           return (
             this.points?.reduce((s, point) => {
               return (
                 s +
                 `<tr>
-                <td style="color:${point.series.color};fontWeight:bold">
-                  ${point.series.name}: 
+                <td style="color:${point.color}">
+                  <b>${point.series.name}:</b>
                 </td>
                 <td>${point.y?.toLocaleString()}</td>
               </tr>`

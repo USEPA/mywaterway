@@ -2,7 +2,6 @@ import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import highchartsAccessibility from 'highcharts/modules/accessibility';
 import highchartsExporting from 'highcharts/modules/exporting';
-import highchartsHistogram from 'highcharts/modules/histogram-bellcurve';
 import highchartsOfflineExporting from 'highcharts/modules/offline-exporting';
 import { useMemo } from 'react';
 // styles
@@ -17,9 +16,6 @@ highchartsAccessibility(Highcharts);
 highchartsExporting(Highcharts);
 highchartsOfflineExporting(Highcharts);
 
-// add histogram module to highcharts
-highchartsHistogram(Highcharts);
-
 type Props = {
   categories: string[];
   height?: string;
@@ -30,7 +26,7 @@ type Props = {
     };
     data: number[];
     name: string;
-    type: 'histogram';
+    type: 'column';
     zoneAxis?: 'x' | 'y';
     zones?: Array<{
       color: string;
@@ -61,9 +57,7 @@ export default function Histogram({
         height: height ?? '300px',
         style: { fontFamily: fonts.primary },
         type: 'histogram',
-        zooming: {
-          type: 'x',
-        },
+        zoomType: 'x',
       },
       credits: { enabled: false },
       exporting: {
@@ -92,6 +86,12 @@ export default function Histogram({
       },
       legend: {
         enabled: false,
+      },
+      plotOptions: {
+        column: {
+          groupPadding: 0,
+          pointPadding: 0,
+        },
       },
       series,
       subtitle: {
