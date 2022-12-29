@@ -133,17 +133,7 @@ export default function Histogram({
         },
       },
     };
-  }, [
-    categories,
-    chartRef,
-    height,
-    series,
-    subtitle,
-    title,
-    xTitle,
-    yMin,
-    yTitle,
-  ]);
+  }, [categories, height, series, subtitle, title, xTitle, yMin, yTitle]);
 
   return (
     <HighchartsReact highcharts={Highcharts} options={options} ref={chartRef} />

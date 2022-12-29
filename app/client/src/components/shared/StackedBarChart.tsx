@@ -168,7 +168,6 @@ export default function StackedBarChart({
   }, [
     caption,
     categories,
-    chartRef,
     height,
     legendTitle,
     series,
