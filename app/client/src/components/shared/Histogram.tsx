@@ -4,7 +4,7 @@ import highchartsAccessibility from 'highcharts/modules/accessibility';
 import highchartsExporting from 'highcharts/modules/exporting';
 import highchartsHistogram from 'highcharts/modules/histogram-bellcurve';
 import highchartsOfflineExporting from 'highcharts/modules/offline-exporting';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 // styles
 import { fonts } from 'styles/index.js';
 // types
@@ -54,6 +54,8 @@ export default function Histogram({
   yTitle = null,
   yMin = 0,
 }: Props) {
+  const chartRef = useRef<HighchartsReact.RefObject>(null);
+
   const options = useMemo<Options>(() => {
     return {
       chart: {
@@ -69,12 +71,7 @@ export default function Histogram({
       exporting: {
         buttons: {
           contextButton: {
-            menuItems: [
-              'downloadPNG',
-              'downloadJPEG',
-              'downloadPDF',
-              'downloadSVG',
-            ],
+            menuItems: ['printChart'],
             theme: {
               fill: 'rgba(0, 0, 0, 0)',
               states: {
@@ -86,6 +83,23 @@ export default function Histogram({
                   stroke: '#666666',
                 },
               },
+            },
+          },
+        },
+        menuItemDefinitions: {
+          printChart: {
+            onclick: function () {
+              const divToPrint = chartRef.current?.container.current;
+              if (!divToPrint) return;
+
+              const newWin = window.open();
+              if (!newWin) return;
+
+              newWin.document.write(divToPrint.innerHTML);
+              newWin.document.close();
+              newWin.focus();
+              newWin.print();
+              newWin.close();
             },
           },
         },
@@ -119,7 +133,9 @@ export default function Histogram({
         },
       },
     };
-  }, [height, series, subtitle, title, categories, xTitle, yMin, yTitle]);
+  }, [categories, height, series, subtitle, title, xTitle, yMin, yTitle]);
 
-  return <HighchartsReact highcharts={Highcharts} options={options} />;
+  return (
+    <HighchartsReact highcharts={Highcharts} options={options} ref={chartRef} />
+  );
 }
