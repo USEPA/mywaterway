@@ -3,7 +3,9 @@ import HighchartsReact from 'highcharts-react-official';
 import highchartsAccessibility from 'highcharts/modules/accessibility';
 import highchartsExporting from 'highcharts/modules/exporting';
 import highchartsOfflineExporting from 'highcharts/modules/offline-exporting';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+// utils
+import { generateUUID } from 'utils/utils';
 // styles
 import { fonts } from 'styles/index.js';
 // types
@@ -49,6 +51,8 @@ export default function StackedBarChart({
   yTitle = null,
   yMin = 0,
 }: Props) {
+  const [uuid] = useState<string>(generateUUID());
+
   const options = useMemo<Options>(() => {
     return {
       caption: {
@@ -65,12 +69,7 @@ export default function StackedBarChart({
       exporting: {
         buttons: {
           contextButton: {
-            menuItems: [
-              'downloadPNG',
-              'downloadJPEG',
-              'downloadPDF',
-              'downloadSVG',
-            ],
+            menuItems: ['printChart'],
             theme: {
               fill: 'rgba(0, 0, 0, 0)',
               states: {
@@ -91,6 +90,23 @@ export default function StackedBarChart({
               dataLabels: {
                 enabled: true,
               },
+            },
+          },
+        },
+        menuItemDefinitions: {
+          printChart: {
+            onclick: function () {
+              const divToPrint = document.getElementById(uuid);
+              if (!divToPrint) return;
+
+              const newWin = window.open();
+              if (!newWin) return;
+
+              newWin.document.write(divToPrint.innerHTML);
+              newWin.document.close();
+              newWin.focus();
+              newWin.print();
+              newWin.close();
             },
           },
         },
@@ -153,16 +169,21 @@ export default function StackedBarChart({
     };
   }, [
     caption,
+    categories,
     height,
     legendTitle,
     series,
     subtitle,
     title,
-    categories,
+    uuid,
     xTitle,
     yMin,
     yTitle,
   ]);
 
-  return <HighchartsReact highcharts={Highcharts} options={options} />;
+  return (
+    <div id={uuid}>
+      <HighchartsReact highcharts={Highcharts} options={options} />
+    </div>
+  );
 }
