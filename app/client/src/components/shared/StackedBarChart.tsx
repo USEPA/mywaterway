@@ -26,14 +26,23 @@ type Props = {
     custom?: {
       description?: string;
     };
-    data: number[];
+    data:
+      | number[]
+      | Array<{
+          custom?: {
+            text: string;
+          };
+          y: number;
+        }>;
     name: string;
     type: 'column';
   }>;
   subtitle?: string;
   title?: string;
-  xTitle?: string | null;
-  yTitle?: string | null;
+  xTitle?: string;
+  xUnit?: string;
+  yTitle?: string;
+  yUnit?: string;
   yMin?: number;
 };
 
@@ -45,9 +54,11 @@ export default function StackedBarChart({
   series,
   subtitle,
   title,
-  xTitle = null,
-  yTitle = null,
+  xTitle,
+  xUnit,
+  yTitle,
   yMin = 0,
+  yUnit,
 }: Props) {
   const options = useMemo<Options>(() => {
     return {
@@ -120,21 +131,25 @@ export default function StackedBarChart({
         text: title,
       },
       tooltip: {
+        backgroundColor: 'rgba(247, 247, 247, 0.95)',
         borderColor: '#000000',
         formatter: function () {
-          console.log(this.points);
           return (
             this.points?.reduce((s, point) => {
+              const customText = point.point.options.custom?.text;
               return (
                 s +
                 `<tr>
                 <td style="color:${point.color}">
                   <b>${point.series.name}:</b>
                 </td>
-                <td>${point.y?.toLocaleString()}</td>
+                <td>${yUnit ? point.y + ' ' + yUnit : point.y}${
+                  customText ? ', ' + customText : null
+                }</td>
               </tr>`
               );
-            }, `<b>${this.x}</b><table>`) + '</table>'
+            }, `<b>${xUnit ? this.x + ' ' + xUnit : this.x}</b><table>`) +
+            '</table>'
           );
         },
         shared: true,
@@ -162,8 +177,10 @@ export default function StackedBarChart({
     title,
     categories,
     xTitle,
+    xUnit,
     yMin,
     yTitle,
+    yUnit,
   ]);
 
   return <HighchartsReact highcharts={Highcharts} options={options} />;

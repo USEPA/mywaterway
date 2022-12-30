@@ -24,7 +24,14 @@ type Props = {
     custom?: {
       description?: string;
     };
-    data: number[];
+    data:
+      | number[]
+      | Array<{
+          custom?: {
+            text: string;
+          };
+          y: number;
+        }>;
     name: string;
     type: 'column';
     zoneAxis?: 'x' | 'y';
@@ -35,9 +42,11 @@ type Props = {
   }>;
   subtitle?: string;
   title?: string;
-  xTitle?: string | null;
-  yTitle?: string | null;
+  xTitle?: string;
+  yTitle?: string;
+  xUnit?: string;
   yMin?: number;
+  yUnit?: string;
 };
 
 export default function Histogram({
@@ -46,8 +55,10 @@ export default function Histogram({
   series,
   subtitle,
   title,
-  xTitle = null,
-  yTitle = null,
+  xTitle,
+  xUnit,
+  yTitle,
+  yUnit,
   yMin = 0,
 }: Props) {
   const options = useMemo<Options>(() => {
@@ -101,9 +112,13 @@ export default function Histogram({
         text: title,
       },
       tooltip: {
+        backgroundColor: 'rgba(247, 247, 247, 0.95)',
         borderColor: '#000000',
         formatter: function () {
-          return `<b>${this.x} cells/mL:</b> ${this.y}`;
+          const customText = this.point.options.custom?.text;
+          return `<b>${xUnit ? this.x + ' ' + xUnit : this.x}:</b> ${
+            yUnit ? this.y + ' ' + yUnit : this.y
+          }${customText ? ', ' + customText : null}`;
         },
       },
       xAxis: {
@@ -119,7 +134,18 @@ export default function Histogram({
         },
       },
     };
-  }, [height, series, subtitle, title, categories, xTitle, yMin, yTitle]);
+  }, [
+    categories,
+    height,
+    series,
+    subtitle,
+    title,
+    xTitle,
+    xUnit,
+    yMin,
+    yTitle,
+    yUnit,
+  ]);
 
   return <HighchartsReact highcharts={Highcharts} options={options} />;
 }
