@@ -3,22 +3,20 @@ import HighchartsReact from 'highcharts-react-official';
 import highchartsAccessibility from 'highcharts/modules/accessibility';
 import highchartsExporting from 'highcharts/modules/exporting';
 import highchartsHistogram from 'highcharts/modules/histogram-bellcurve';
-import highchartsOfflineExporting from 'highcharts/modules/offline-exporting';
 import { useMemo, useRef } from 'react';
 // styles
 import { fonts } from 'styles/index.js';
 // types
 import type { Options } from 'highcharts';
 
-// add accessibility features to highcharts
-highchartsAccessibility(Highcharts);
+// add histogram module to highcharts
+highchartsHistogram(Highcharts);
 
 // add exporting features to highcharts
 highchartsExporting(Highcharts);
-highchartsOfflineExporting(Highcharts);
 
-// add histogram module to highcharts
-highchartsHistogram(Highcharts);
+// add accessibility features to highcharts
+highchartsAccessibility(Highcharts);
 
 type Props = {
   categories: string[];
@@ -44,6 +42,20 @@ type Props = {
   yMin?: number;
 };
 
+// Workaround for the Download SVG not working with the accessibility module.
+Highcharts.addEvent(
+  Highcharts.Chart.prototype,
+  'afterA11yUpdate',
+  function (e: Event | Highcharts.Dictionary<any> | undefined) {
+    if (!e || !('accessibility' in e)) return;
+
+    const a11y = e.accessibility;
+    if ((this as any).renderer.forExport && a11y && a11y.proxyProvider) {
+      a11y.proxyProvider.destroy();
+    }
+  },
+);
+
 export default function Histogram({
   categories,
   height,
@@ -63,15 +75,18 @@ export default function Histogram({
         height: height ?? '300px',
         style: { fontFamily: fonts.primary },
         type: 'histogram',
-        zooming: {
-          type: 'x',
-        },
+        zoomType: 'x',
       },
       credits: { enabled: false },
       exporting: {
         buttons: {
           contextButton: {
-            menuItems: ['printChart'],
+            menuItems: [
+              'downloadPNG',
+              'downloadJPEG',
+              'downloadPDF',
+              'downloadSVG',
+            ],
             theme: {
               fill: 'rgba(0, 0, 0, 0)',
               states: {
@@ -86,28 +101,11 @@ export default function Histogram({
             },
           },
         },
-        menuItemDefinitions: {
-          printChart: {
-            onclick: function () {
-              const divToPrint = chartRef.current?.container.current;
-              if (!divToPrint) return;
-
-              const newWin = window.open();
-              if (!newWin) return;
-
-              newWin.document.write(divToPrint.innerHTML);
-              newWin.document.close();
-              newWin.focus();
-              newWin.print();
-              newWin.close();
-            },
-          },
-        },
       },
       legend: {
         enabled: false,
       },
-      series,
+      series: series as any, // workaround for an issue with the histogram type only accepting undefined for series
       subtitle: {
         text: subtitle,
       },
