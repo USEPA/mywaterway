@@ -16,6 +16,8 @@ highchartsAccessibility(Highcharts);
 highchartsExporting(Highcharts);
 highchartsOfflineExporting(Highcharts);
 
+const fontSize = '14px';
+
 type Props = {
   categories: string[];
   height?: string;
@@ -65,7 +67,7 @@ export default function Histogram({
     return {
       chart: {
         backgroundColor: 'rgba(0, 0, 0, 0)',
-        height: height ?? '300px',
+        height: height ?? '500px',
         style: { fontFamily: fonts.primary },
         type: 'histogram',
         zoomType: 'x',
@@ -106,6 +108,9 @@ export default function Histogram({
       },
       series,
       subtitle: {
+        style: {
+          fontSize,
+        },
         text: subtitle,
       },
       title: {
@@ -116,20 +121,36 @@ export default function Histogram({
         borderColor: '#000000',
         formatter: function () {
           const customText = this.point.options.custom?.text;
-          return `<b>${xUnit ? this.x + ' ' + xUnit : this.x}:</b> ${
-            yUnit ? this.y + ' ' + yUnit : this.y
-          }${customText ? ', ' + customText : null}`;
+          return `<b style="color:${this.point.color}">${
+            xUnit ? this.x + ' ' + xUnit : this.x
+          }:</b> <b>${yUnit ? this.y + ' ' + yUnit : this.y}${
+            customText ? ' | ' + customText : null
+          }</b>`;
+        },
+        style: {
+          fontSize,
         },
       },
       xAxis: {
         categories,
+        labels: {
+          style: {
+            fontSize,
+          },
+        },
         title: {
+          style: {
+            fontSize,
+          },
           text: xTitle,
         },
       },
       yAxis: {
         min: yMin,
         title: {
+          style: {
+            fontSize,
+          },
           text: yTitle,
         },
       },

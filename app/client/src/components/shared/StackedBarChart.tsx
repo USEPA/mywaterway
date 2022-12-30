@@ -16,6 +16,8 @@ highchartsAccessibility(Highcharts);
 highchartsExporting(Highcharts);
 highchartsOfflineExporting(Highcharts);
 
+const fontSize = '14px';
+
 type Props = {
   caption?: string;
   categories: string[];
@@ -140,12 +142,12 @@ export default function StackedBarChart({
               return (
                 s +
                 `<tr>
-                <td style="color:${point.color}">
+                <td style="color:${point.color};padding-right:5px">
                   <b>${point.series.name}:</b>
                 </td>
-                <td>${yUnit ? point.y + ' ' + yUnit : point.y}${
-                  customText ? ', ' + customText : null
-                }</td>
+                <td><b>${yUnit ? point.y + ' ' + yUnit : point.y}${
+                  customText ? ' | ' + customText : null
+                }</b></td>
               </tr>`
               );
             }, `<b>${xUnit ? this.x + ' ' + xUnit : this.x}</b><table>`) +
@@ -153,17 +155,31 @@ export default function StackedBarChart({
           );
         },
         shared: true,
+        style: {
+          fontSize,
+        },
         useHTML: true,
       },
       xAxis: {
         categories,
+        labels: {
+          style: {
+            fontSize,
+          },
+        },
         title: {
+          style: {
+            fontSize,
+          },
           text: xTitle,
         },
       },
       yAxis: {
         min: yMin,
         title: {
+          style: {
+            fontSize,
+          },
           text: yTitle,
         },
       },

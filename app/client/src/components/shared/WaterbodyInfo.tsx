@@ -1154,13 +1154,9 @@ const sliderContainerStyles = css`
 `;
 
 const subheadingStyles = css`
+  font-weight: bold;
   padding-bottom: 0.5em;
   padding-top: 1em;
-`;
-
-const sublistContentStyles = css`
-  ${listContentStyles}
-  border-top: 2px solid #d8dfe2;
 `;
 
 const oneDay = 1000 * 60 * 60 * 24;
@@ -1302,6 +1298,7 @@ function sumSlice(nums: number[], start: number, end?: number) {
 }
 
 function toFixedFloat(num: number, precision: number) {
+  console.log(num);
   if (precision < 0) return num;
   const offset = 10 ** precision;
   return Math.round((num + Number.EPSILON) * offset) / offset;
@@ -1378,7 +1375,7 @@ function CyanDailyContent({
     });
 
     setHistogramData({
-      categories: cyanMetadata.map((c) => c.toString()),
+      categories: cyanMetadata.map((c) => c.toLocaleString()),
       series: [
         {
           name: 'Cell Concentration Counts',
@@ -1399,14 +1396,13 @@ function CyanDailyContent({
   if (!data) {
     return (
       <p css={marginBoxStyles(infoBoxStyles)}>
-        CyAN data is not yet available for the selected date. Please try again
-        later.
+        There is no CyAN data available for the selected date.
       </p>
     );
   } else if (!sum(...data.measurements)) {
     return (
       <p css={marginBoxStyles(infoBoxStyles)}>
-        There is no CyAN data available for the selected date.
+        There is no measureable CyAN data available for the selected date.
       </p>
     );
   } else {
@@ -1414,6 +1410,39 @@ function CyanDailyContent({
     const maxCc = getMaxCellConcentration(data.measurements);
     return (
       <>
+        <p css={subheadingStyles}>
+          <HelpTooltip label="Statistics are calculated based on only the detected values in the waterbody area (colored areas in map)." />
+          &nbsp;&nbsp; Cyanobacteria Concentration Statistics for{' '}
+          {new Date(epochDate).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          })}
+        </p>
+
+        {histogramData && (
+          <Histogram
+            categories={histogramData.categories}
+            series={histogramData.series}
+            subtitle={new Date(epochDate).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })}
+            title={`Cell Concentration Histogram for ${waterbodyName}`}
+            xTitle="Cell Concentration (cells/mL)"
+            xUnit="cells/mL"
+            yTitle={`
+              <p>Percent of Detected Bloom Area</p>
+              <p>
+                Total Image Pixel Area: ${formatNumber(
+                  getTotalNonLandPixels(data) * pixelAreaKm,
+                )} km${String.fromCodePoint(0x00b2)}
+              </p>
+            `}
+            yUnit="%"
+          />
+        )}
         <ListContent
           rows={[
             {
@@ -1446,35 +1475,16 @@ function CyanDailyContent({
                 maxCc !== null ? `${formatNumber(maxCc, 2)} cells/mL` : 'N/A',
             },
             {
-              label: <span style={{ paddingLeft: '1.5em' }}>Average</span>,
+              label: (
+                <span style={{ paddingLeft: '1.5em' }}>
+                  Average and Standard Deviation
+                </span>
+              ),
               value: getFormattedAverageCc(data.measurements) ?? 'N/A',
             },
           ]}
-          styles={sublistContentStyles}
+          styles={listContentStyles}
         />
-        {histogramData && (
-          <Histogram
-            categories={histogramData.categories}
-            series={histogramData.series}
-            subtitle={new Date(epochDate).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            })}
-            title={`Cell Concentration Histogram for ${waterbodyName}`}
-            xTitle="Cell Concentration (cells/mL)"
-            xUnit="cells/mL"
-            yTitle={`
-              <p>Percent of Detected Bloom Area</p>
-              <p>
-                Total Image Pixel Area: ${formatNumber(
-                  getTotalNonLandPixels(data) * pixelAreaKm,
-                )} km${String.fromCodePoint(0x00b2)}
-              </p>
-            `}
-            yUnit="%"
-          />
-        )}
       </>
     );
   }
@@ -1792,14 +1802,13 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
         {cellConcentration.status === 'success' && (
           <>
             {barChartData && (
-              <StackedBarChart
-                caption="The categories in this figure are included to assist the user in visually understanding the concentration values. Please review the World Health Organization (WHO) guide, <i><a target='_blank' href='https://www.who.int/publications/m/item/toxic-cyanobacteria-in-water---second-edition'>Toxic cyanobacteria in water - Second edition</a></i>, for information on potential health impacts."
-                categories={barChartData.categories}
-                legendTitle="Cyanobacteria Concentration Categories:"
-                series={barChartData.series}
-                title={`Cyanobacteria Estimates for ${attributes.GNIS_NAME}`}
-                xTitle="Date"
-                yTitle={`
+              <>
+                <StackedBarChart
+                  categories={barChartData.categories}
+                  legendTitle="Cyanobacteria Concentration Categories:"
+                  series={barChartData.series}
+                  title={`Cyanobacteria Estimates for ${attributes.GNIS_NAME}`}
+                  yTitle={`
                   <p>Percent of Detected Bloom Area</p>
                   <p>
                     Total Image Pixel Area: ${formatNumber(
@@ -1807,8 +1816,24 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                     )} km${String.fromCodePoint(0x00b2)}
                   </p>
                 `}
-                yUnit="%"
-              />
+                  yUnit="%"
+                />
+                <p>
+                  The categories in this figure are included to assist the user
+                  in visually understanding the concentration values. Please
+                  review the World Health Organization (WHO) guide,{' '}
+                  <i>
+                    <a
+                      rel="noreferrer"
+                      target="_blank"
+                      href="https://www.who.int/publications/m/item/toxic-cyanobacteria-in-water---second-edition"
+                    >
+                      Toxic cyanobacteria in water - Second edition
+                    </a>
+                  </i>
+                  , for information on potential health impacts.
+                </p>
+              </>
             )}
 
             {/* If `selectedDate` is null, no date with data was found */}
@@ -1826,8 +1851,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                       </>
                     }
                   />
-                  &nbsp;&nbsp;
-                  <b>Date Selection:</b>
+                  &nbsp;&nbsp; Date Selection:
                 </p>
 
                 <div css={sliderContainerStyles}>
@@ -1847,18 +1871,6 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                     the selected day.
                   </p>
                 )}
-
-                <p css={subheadingStyles}>
-                  <HelpTooltip label="Statistics are calculated based on only the detected values in the waterbody area (colored areas in map)." />
-                  &nbsp;&nbsp; Cyanobacteria Concentration Statistics for{' '}
-                  <b>
-                    {new Date(selectedDate).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </b>
-                </p>
 
                 <CyanDailyContent
                   data={cellConcentration.data[selectedDate.toString()]}
