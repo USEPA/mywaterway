@@ -50,7 +50,7 @@ Highcharts.addEvent(
     if (!e || !('accessibility' in e)) return;
 
     const a11y = e.accessibility;
-    if ((this as any).renderer.forExport && a11y && a11y.proxyProvider) {
+    if ((this.renderer as any).forExport && a11y && a11y.proxyProvider) {
       a11y.proxyProvider.destroy();
     }
   },
