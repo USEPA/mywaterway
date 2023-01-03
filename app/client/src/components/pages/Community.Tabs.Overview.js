@@ -284,6 +284,19 @@ function Overview() {
     [dischargersLayer, updateVisibleLayers],
   );
 
+  const handleTabClick = useCallback(
+    (index) => {
+      if (index === 0) handleWaterbodiesToggle(true);
+      if (index === 1) handleMonitoringLocationsToggle(true);
+      if (index === 2) handlePermittedDischargersToggle(true);
+    },
+    [
+      handleMonitoringLocationsToggle,
+      handlePermittedDischargersToggle,
+      handleWaterbodiesToggle,
+    ],
+  );
+
   const waterbodies = useWaterbodyFeatures();
 
   const uniqueWaterbodies = waterbodies
@@ -421,13 +434,7 @@ function Overview() {
       </div>
 
       <div css={tabsStyles}>
-        <Tabs
-          onChange={(index) => {
-            if (index === 0) handleWaterbodiesToggle(true);
-            if (index === 1) handleMonitoringLocationsToggle(true);
-            if (index === 2) handlePermittedDischargersToggle(true);
-          }}
-        >
+        <Tabs onChange={handleTabClick}>
           <TabList>
             <Tab>Waterbodies</Tab>
             <Tab>Monitoring Locations</Tab>

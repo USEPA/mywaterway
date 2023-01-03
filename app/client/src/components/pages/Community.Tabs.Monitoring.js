@@ -467,6 +467,14 @@ function Monitoring() {
     [monitoringLocationsLayer, setVisibleLayers, visibleLayers],
   );
 
+  const handleTabClick = useCallback(
+    (index) => {
+      if (index === 0) handleCurrentWaterConditionsToggle(true);
+      if (index === 1) handlePastWaterConditionsToggle(true);
+    },
+    [handleCurrentWaterConditionsToggle, handlePastWaterConditionsToggle],
+  );
+
   const totalCurrentWaterConditions =
     (usgsStreamgages.data.value?.length ?? 0) +
     (cyanWaterbodies.data?.length ?? 0);
@@ -529,12 +537,7 @@ function Monitoring() {
       </div>
 
       <div css={tabsStyles}>
-        <Tabs
-          onChange={(index) => {
-            if (index === 0) handleCurrentWaterConditionsToggle(true);
-            if (index === 1) handlePastWaterConditionsToggle(true);
-          }}
-        >
+        <Tabs onChange={handleTabClick}>
           <TabList>
             <Tab>Current Water Conditions</Tab>
             <Tab>Past Water Conditions</Tab>

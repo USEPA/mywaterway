@@ -555,6 +555,13 @@ function IdentifiedIssues() {
     toggleDischargersChecked = false;
   }
 
+  const handleTabClick = (index) => {
+    if (index === 0 && !toggleIssuesChecked)
+      toggleSwitch('Toggle Issues Layer');
+    if (index === 1 && !toggleDischargersChecked)
+      toggleSwitch('Toggle Dischargers Layer');
+  };
+
   function getImpairedWatersPercent() {
     if (cipSummary.status === 'failure') return 'N/A';
     return nullPollutedWaterbodies ? 'N/A %' : `${pollutedPercent}%` || 0 + '%';
@@ -615,14 +622,7 @@ function IdentifiedIssues() {
       </div>
 
       <div css={tabsStyles}>
-        <Tabs
-          onChange={(index) => {
-            if (index === 0 && !toggleIssuesChecked)
-              toggleSwitch('Toggle Issues Layer');
-            if (index === 1 && !toggleDischargersChecked)
-              toggleSwitch('Toggle Dischargers Layer');
-          }}
-        >
+        <Tabs onChange={handleTabClick}>
           <TabList>
             <Tab>Impaired Assessed Waters</Tab>
             <Tab data-testid="hmw-dischargers">
