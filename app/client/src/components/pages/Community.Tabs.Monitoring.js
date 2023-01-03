@@ -529,7 +529,12 @@ function Monitoring() {
       </div>
 
       <div css={tabsStyles}>
-        <Tabs>
+        <Tabs
+          onChange={(index) => {
+            if (index === 0) handleCurrentWaterConditionsToggle(true);
+            if (index === 1) handlePastWaterConditionsToggle(true);
+          }}
+        >
           <TabList>
             <Tab>Current Water Conditions</Tab>
             <Tab>Past Water Conditions</Tab>
