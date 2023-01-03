@@ -1199,7 +1199,8 @@ function barChartDataPoint(
         2,
       )} mi${String.fromCodePoint(0x00b2)}`,
     },
-    y: percentage,
+    // Round again to account for floating point precision errors
+    y: toFixedFloat(percentage, 3),
   };
 }
 
@@ -1402,6 +1403,7 @@ function CyanDailyContent({
             2,
           )} mi${String.fromCodePoint(0x00b2)}`,
         },
+        // Round again to account for floating point precision errors
         y: toFixedFloat(percentage, 3),
       };
     });
