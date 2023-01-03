@@ -11,7 +11,11 @@ import { ListContent } from 'components/shared/BoxContent';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
+import {
+  errorBoxStyles,
+  infoBoxStyles,
+  textBoxStyles,
+} from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import { Sparkline } from 'components/shared/Sparkline';
 import StackedBarChart from 'components/shared/StackedBarChart';
@@ -1118,6 +1122,15 @@ function MapPopup({
   );
 }
 
+const cyanListContentStyles = css`
+  ${listContentStyles}
+
+  svg.pixel-area-spinner {
+    margin-bottom: auto;
+    margin-top: auto;
+  } ;
+`;
+
 const marginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
   ${styles}
   margin: 1em;
@@ -1159,9 +1172,31 @@ const subheadingStyles = css`
   padding-top: 1em;
 `;
 
+const subheadingBoxStyles = css`
+  ${subheadingStyles}
+  padding-top: 0;
+`;
+
 const oneDay = 1000 * 60 * 60 * 24;
 
 const pixelAreaKm = (300 * 300) / 10 ** 6;
+
+const barChartDataPoint = (
+  pixelCounts: number[],
+  percentages: number[],
+  start: number,
+  end?: number,
+) => {
+  return {
+    custom: {
+      text: `${toFixedFloat(
+        (sumSlice(pixelCounts, start, end) ?? 0) * pixelAreaKm,
+        2,
+      )} km${String.fromCodePoint(0x00b2)}`,
+    },
+    y: toFixedFloat(sumSlice(percentages, start, end) ?? 0, 3),
+  };
+};
 
 function cyanDateToEpoch(yearDay: string) {
   const yearAndDay = yearDay.split(' ');
@@ -1198,23 +1233,6 @@ function getAverageCellConcentration(counts: number[]) {
   }
   return totalCount > 0 ? totalCc / totalCount : null;
 }
-
-const getBarChartDataPoint = (
-  pixelCounts: number[],
-  percentages: number[],
-  start: number,
-  end?: number,
-) => {
-  return {
-    custom: {
-      text: `${toFixedFloat(
-        (sumSlice(pixelCounts, start, end) ?? 0) * pixelAreaKm,
-        2,
-      )} km${String.fromCodePoint(0x00b2)}`,
-    },
-    y: toFixedFloat(sumSlice(percentages, start, end) ?? 0, 3),
-  };
-};
 
 // Formats a string from the average cell concentration and standard deviation
 function getFormattedAverageCc(counts: number[]) {
@@ -1298,7 +1316,6 @@ function sumSlice(nums: number[], start: number, end?: number) {
 }
 
 function toFixedFloat(num: number, precision: number) {
-  console.log(num);
   if (precision < 0) return num;
   const offset = 10 ** precision;
   return Math.round((num + Number.EPSILON) * offset) / offset;
@@ -1423,6 +1440,7 @@ function CyanDailyContent({
         {histogramData && (
           <Histogram
             categories={histogramData.categories}
+            height="300px"
             series={histogramData.series}
             subtitle={new Date(epochDate).toLocaleDateString('en-US', {
               year: 'numeric',
@@ -1745,10 +1763,10 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
             (count) => (count / getTotalNonLandPixels(dailyData)) * 100,
           );
           a.series[0].data.push(
-            getBarChartDataPoint(ccCounts, ccPercentages, CcIdx.VeryHigh),
+            barChartDataPoint(ccCounts, ccPercentages, CcIdx.VeryHigh),
           );
           a.series[1].data.push(
-            getBarChartDataPoint(
+            barChartDataPoint(
               ccCounts,
               ccPercentages,
               CcIdx.High,
@@ -1756,7 +1774,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
             ),
           );
           a.series[2].data.push(
-            getBarChartDataPoint(
+            barChartDataPoint(
               ccCounts,
               ccPercentages,
               CcIdx.Medium,
@@ -1764,7 +1782,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
             ),
           );
           a.series[3].data.push(
-            getBarChartDataPoint(ccCounts, ccPercentages, 0, CcIdx.Medium),
+            barChartDataPoint(ccCounts, ccPercentages, 0, CcIdx.Medium),
           );
         }
         return a;
@@ -1775,6 +1793,15 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
   }, [cellConcentration]);
 
   const handleSliderChange = useCallback((value) => setSelectedDate(value), []);
+
+  let pixelArea = null;
+  if (cellConcentration.status === 'pending') {
+    pixelArea = <LoadingSpinner className="pixel-area-spinner" />;
+  } else if (cellConcentration.status === 'success') {
+    pixelArea = `${formatNumber(
+      getAverageNonLandPixelArea(cellConcentration.data),
+    )} km${String.fromCodePoint(0x00b2)}`;
+  }
 
   return (
     <>
@@ -1790,8 +1817,12 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                   )} km${String.fromCodePoint(0x00b2)}`
                 : '',
             },
+            {
+              label: 'Satellite Image Pixel Area',
+              value: pixelArea ?? 'N/A',
+            },
           ]}
-          styles={listContentStyles}
+          styles={cyanListContentStyles}
         />
       </div>
       <>
@@ -1811,9 +1842,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                   yTitle={`
                   <p>Percent of Detected Bloom Area</p>
                   <p>
-                    Total Image Pixel Area: ${formatNumber(
-                      getAverageNonLandPixelArea(cellConcentration.data),
-                    )} km${String.fromCodePoint(0x00b2)}
+                    Total Image Pixel Area: ${pixelArea}
                   </p>
                 `}
                   yUnit="%"
@@ -1839,30 +1868,32 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
             {/* If `selectedDate` is null, no date with data was found */}
             {selectedDate ? (
               <>
-                <p css={subheadingStyles}>
-                  <HelpTooltip
-                    label={
-                      <>
-                        Adjust the slider handle to view the day's CyAN
-                        satellite imagery on the map.
-                        <br />
-                        Data for the previous day typically becomes available
-                        between 9 - 11am EST.
-                      </>
-                    }
-                  />
-                  &nbsp;&nbsp; Date Selection:
-                </p>
+                <div css={textBoxStyles}>
+                  <p css={subheadingBoxStyles}>
+                    <HelpTooltip
+                      label={
+                        <>
+                          Adjust the slider handle to view the day's CyAN
+                          satellite imagery on the map.
+                          <br />
+                          Data for the previous day typically becomes available
+                          between 9 - 11am EST.
+                        </>
+                      }
+                    />
+                    &nbsp;&nbsp; Date Selection:
+                  </p>
 
-                <div css={sliderContainerStyles}>
-                  <TickSlider
-                    getTickLabel={epochToMonthDay}
-                    loading={imageStatus === 'pending'}
-                    onChange={handleSliderChange}
-                    steps={dates}
-                    stepSize={oneDay}
-                    value={selectedDate}
-                  />
+                  <div css={sliderContainerStyles}>
+                    <TickSlider
+                      getTickLabel={epochToMonthDay}
+                      loading={imageStatus === 'pending'}
+                      onChange={handleSliderChange}
+                      steps={dates}
+                      stepSize={oneDay}
+                      value={selectedDate}
+                    />
+                  </div>
                 </div>
 
                 {imageStatus === 'failure' && (
@@ -1889,7 +1920,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
       </>
 
       <div css={showLessMoreStyles}>
-        <h3>Data Accuracy:</h3>
+        <h3>Information on Data Accuracy:</h3>
         <ShowLessMore
           charLimit={0}
           text={

@@ -2,19 +2,31 @@ import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import highchartsAccessibility from 'highcharts/modules/accessibility';
 import highchartsExporting from 'highcharts/modules/exporting';
-import highchartsOfflineExporting from 'highcharts/modules/offline-exporting';
 import { useMemo } from 'react';
 // styles
 import { fonts } from 'styles/index.js';
 // types
 import type { Options } from 'highcharts';
 
+// add exporting features to highcharts
+highchartsExporting(Highcharts);
+
 // add accessibility features to highcharts
 highchartsAccessibility(Highcharts);
 
-// add exporting features to highcharts
-highchartsExporting(Highcharts);
-highchartsOfflineExporting(Highcharts);
+// Workaround for the Download SVG not working with the accessibility module.
+Highcharts.addEvent(
+  Highcharts.Chart.prototype,
+  'afterA11yUpdate',
+  function (e: Event | Highcharts.Dictionary<any> | undefined) {
+    if (!e || !('accessibility' in e)) return;
+
+    const a11y = e.accessibility;
+    if ((this.renderer as any).forExport && a11y && a11y.proxyProvider) {
+      a11y.proxyProvider.destroy();
+    }
+  },
+);
 
 const fontSize = '14px';
 
@@ -67,7 +79,7 @@ export default function Histogram({
     return {
       chart: {
         backgroundColor: 'rgba(0, 0, 0, 0)',
-        height: height ?? '500px',
+        height: height ?? '300px',
         style: { fontFamily: fonts.primary },
         type: 'histogram',
         zoomType: 'x',
@@ -124,12 +136,15 @@ export default function Histogram({
           return `<b style="color:${this.point.color}">${
             xUnit ? this.x + ' ' + xUnit : this.x
           }:</b> <b>${yUnit ? this.y + ' ' + yUnit : this.y}${
-            customText ? ' | ' + customText : null
-          }</b>`;
+            customText ? ' | ' + customText : ''
+          }</b>
+          <br />
+          <i>(Click & drag to zoom)</i>`;
         },
         style: {
           fontSize,
         },
+        useHTML: true,
       },
       xAxis: {
         categories,

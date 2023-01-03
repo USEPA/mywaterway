@@ -9,12 +9,25 @@ import { fonts } from 'styles/index.js';
 // types
 import type { Options } from 'highcharts';
 
+// add exporting features to highcharts
+highchartsExporting(Highcharts);
+
 // add accessibility features to highcharts
 highchartsAccessibility(Highcharts);
 
-// add exporting features to highcharts
-highchartsExporting(Highcharts);
-highchartsOfflineExporting(Highcharts);
+// Workaround for the Download SVG not working with the accessibility module.
+Highcharts.addEvent(
+  Highcharts.Chart.prototype,
+  'afterA11yUpdate',
+  function (e: Event | Highcharts.Dictionary<any> | undefined) {
+    if (!e || !('accessibility' in e)) return;
+
+    const a11y = e.accessibility;
+    if ((this.renderer as any).forExport && a11y && a11y.proxyProvider) {
+      a11y.proxyProvider.destroy();
+    }
+  },
+);
 
 const fontSize = '14px';
 
@@ -146,7 +159,7 @@ export default function StackedBarChart({
                   <b>${point.series.name}:</b>
                 </td>
                 <td><b>${yUnit ? point.y + ' ' + yUnit : point.y}${
-                  customText ? ' | ' + customText : null
+                  customText ? ' | ' + customText : ''
                 }</b></td>
               </tr>`
               );
