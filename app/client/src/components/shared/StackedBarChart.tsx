@@ -2,19 +2,17 @@ import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import highchartsAccessibility from 'highcharts/modules/accessibility';
 import highchartsExporting from 'highcharts/modules/exporting';
-import highchartsOfflineExporting from 'highcharts/modules/offline-exporting';
 import { useMemo, useRef } from 'react';
 // styles
 import { fonts } from 'styles/index.js';
 // types
 import type { Options } from 'highcharts';
 
-// add accessibility features to highcharts
-highchartsAccessibility(Highcharts);
-
 // add exporting features to highcharts
 highchartsExporting(Highcharts);
-highchartsOfflineExporting(Highcharts);
+
+// add accessibility features to highcharts
+highchartsAccessibility(Highcharts);
 
 type Props = {
   caption?: string;
@@ -36,6 +34,20 @@ type Props = {
   yTitle?: string | null;
   yMin?: number;
 };
+
+// Workaround for the Download SVG not working with the accessibility module.
+Highcharts.addEvent(
+  Highcharts.Chart.prototype,
+  'afterA11yUpdate',
+  function (e: Event | Highcharts.Dictionary<any> | undefined) {
+    if (!e || !('accessibility' in e)) return;
+
+    const a11y = e.accessibility;
+    if ((this.renderer as any).forExport && a11y && a11y.proxyProvider) {
+      a11y.proxyProvider.destroy();
+    }
+  },
+);
 
 export default function StackedBarChart({
   caption,
@@ -67,7 +79,12 @@ export default function StackedBarChart({
       exporting: {
         buttons: {
           contextButton: {
-            menuItems: ['printChart'],
+            menuItems: [
+              'downloadPNG',
+              'downloadJPEG',
+              'downloadPDF',
+              'downloadSVG',
+            ],
             theme: {
               fill: 'rgba(0, 0, 0, 0)',
               states: {
@@ -88,23 +105,6 @@ export default function StackedBarChart({
               dataLabels: {
                 enabled: true,
               },
-            },
-          },
-        },
-        menuItemDefinitions: {
-          printChart: {
-            onclick: function () {
-              const divToPrint = chartRef.current?.container.current;
-              if (!divToPrint) return;
-
-              const newWin = window.open();
-              if (!newWin) return;
-
-              newWin.document.write(divToPrint.innerHTML);
-              newWin.document.close();
-              newWin.focus();
-              newWin.print();
-              newWin.close();
             },
           },
         },
@@ -136,7 +136,7 @@ export default function StackedBarChart({
         borderColor: '#000000',
         formatter: function () {
           return (
-            this.points?.reduce((s, point) => {
+            this.points?.reduce((s: any, point: any) => {
               return (
                 s +
                 `<tr>
