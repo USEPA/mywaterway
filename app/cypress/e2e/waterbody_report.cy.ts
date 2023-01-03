@@ -93,7 +93,7 @@ describe('Waterbody Report page', () => {
 
     // wait for the web services to finish (attains/plans is sometimes slow)
     // the timeout chosen is the same timeout used for the attains/plans fetch
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 20000 }).should(
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 60000 }).should(
       'not.exist',
     );
 
@@ -108,7 +108,7 @@ describe('Waterbody Report page', () => {
 
     // wait for the web services to finish (attains/plans is sometimes slow)
     // the timeout chosen is the same timeout used for the attains/plans fetch
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 20000 }).should(
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 60000 }).should(
       'not.exist',
     );
 
