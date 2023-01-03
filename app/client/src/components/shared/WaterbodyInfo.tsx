@@ -1180,12 +1180,12 @@ const oneDay = 1000 * 60 * 60 * 24;
 
 const pixelAreaKm = (300 * 300) / 10 ** 6;
 
-const barChartDataPoint = (
+function barChartDataPoint(
   pixelCounts: number[],
   percentages: number[],
   start: number,
   end?: number,
-) => {
+) {
   return {
     custom: {
       text: `${toFixedFloat(
@@ -1195,7 +1195,7 @@ const barChartDataPoint = (
     },
     y: toFixedFloat(sumSlice(percentages, start, end) ?? 0, 3),
   };
-};
+}
 
 // Converts CyAN `year dayOfYear` format to epoch timestamp
 function cyanDateToEpoch(yearDay: string) {
@@ -1265,18 +1265,6 @@ function getMaxCellConcentration(counts: number[]) {
     if (counts[i] > 0) return cyanMetadata[i];
   }
   return null;
-}
-
-function getAverageNonLandPixelArea(data: CellConcentrationData) {
-  const filteredData = Object.values(data).filter(
-    (dailyData) => dailyData !== null,
-  ) as Array<NonNullable<CellConcentrationData[string]>>;
-  return (
-    filteredData.reduce(
-      (a, b) => a + getTotalNonLandPixels(b) * pixelAreaKm,
-      0,
-    ) / filteredData.length
-  );
 }
 
 function getStdDevCellConcentration(
@@ -1798,12 +1786,21 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
 
   const handleSliderChange = useCallback((value) => setSelectedDate(value), []);
 
-  let pixelArea = null;
+  // Calculate the total pixel area if there is cell concentration data
+  let formattedPixelArea = null;
   if (cellConcentration.status === 'pending') {
-    pixelArea = <LoadingSpinner className="pixel-area-spinner" />;
+    formattedPixelArea = <LoadingSpinner className="pixel-area-spinner" />;
   } else if (cellConcentration.status === 'success') {
-    pixelArea = `${formatNumber(
-      getAverageNonLandPixelArea(cellConcentration.data),
+    const filteredData = Object.values(cellConcentration.data).filter(
+      (dailyData) => dailyData !== null,
+    ) as Array<NonNullable<CellConcentrationData[string]>>;
+    const averagePixelArea =
+      filteredData.reduce(
+        (a, b) => a + getTotalNonLandPixels(b) * pixelAreaKm,
+        0,
+      ) / filteredData.length;
+    formattedPixelArea = `${formatNumber(
+      averagePixelArea,
     )} km${String.fromCodePoint(0x00b2)}`;
   }
 
@@ -1823,7 +1820,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
             },
             {
               label: 'Satellite Image Pixel Area',
-              value: pixelArea ?? 'N/A',
+              value: formattedPixelArea ?? 'N/A',
             },
           ]}
           styles={cyanListContentStyles}
@@ -1846,7 +1843,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                   yTitle={`
                   <p>Percent of Detected Bloom Area</p>
                   <p>
-                    Total Image Pixel Area: ${pixelArea}
+                    Total Image Pixel Area: ${formattedPixelArea}
                   </p>
                 `}
                   yUnit="%"
