@@ -1179,21 +1179,27 @@ const subheadingBoxStyles = css`
 const oneDay = 1000 * 60 * 60 * 24;
 
 const pixelAreaKm = (300 * 300) / 10 ** 6;
+const pixelAreaMi = pixelAreaKm * 0.386102;
 
 function barChartDataPoint(
-  pixelCounts: number[],
-  percentages: number[],
+  data: NonNullable<CellConcentrationData[string]>,
+  totalArea: number,
   start: number,
   end?: number,
 ) {
+  const fraction =
+    sumSlice(data.measurements, start, end) / getTotalNonLandPixels(data);
+  const roundedFraction = toFixedFloat(fraction, 5);
+  const percentage = roundedFraction * 100;
   return {
     custom: {
       text: `${toFixedFloat(
-        (sumSlice(pixelCounts, start, end) ?? 0) * pixelAreaKm,
+        // Calculate from rounded fraction so user calculations match
+        roundedFraction * totalArea,
         2,
-      )} km${String.fromCodePoint(0x00b2)}`,
+      )} mi${String.fromCodePoint(0x00b2)}`,
     },
-    y: toFixedFloat(sumSlice(percentages, start, end) ?? 0, 3),
+    y: percentage,
   };
 }
 
@@ -1232,6 +1238,18 @@ function getAverageCellConcentration(counts: number[]) {
     totalCount += counts[i];
   }
   return totalCount > 0 ? totalCc / totalCount : null;
+}
+
+function getAverageNonLandPixelArea(data: CellConcentrationData) {
+  const filteredData = Object.values(data).filter(
+    (dailyData) => dailyData !== null,
+  ) as Array<NonNullable<CellConcentrationData[string]>>;
+  return (
+    filteredData.reduce(
+      (a, b) => a + getTotalNonLandPixels(b) * pixelAreaMi,
+      0,
+    ) / filteredData.length
+  );
 }
 
 // Formats a string from the average cell concentration and standard deviation
@@ -1370,13 +1388,19 @@ function CyanDailyContent({
     if (!data) return setHistogramData(null);
 
     const dataPoints = data.measurements.map((count) => {
-      const percentage = (count / getTotalNonLandPixels(data)) * 100;
+      const totalPixels = getTotalNonLandPixels(data);
+      const totalPixelArea = totalPixels * pixelAreaMi;
+      const fraction = count / totalPixels;
+      const roundedFraction = toFixedFloat(fraction, 5);
+      const percentage = roundedFraction * 100;
+
       return {
         custom: {
           text: `${toFixedFloat(
-            count * pixelAreaKm,
+            // Calculate from rounded fraction so user calculations match
+            roundedFraction * totalPixelArea,
             2,
-          )} km${String.fromCodePoint(0x00b2)}`,
+          )} mi${String.fromCodePoint(0x00b2)}`,
         },
         y: toFixedFloat(percentage, 3),
       };
@@ -1446,8 +1470,8 @@ function CyanDailyContent({
               <p>Percent of Detected Bloom Area</p>
               <p>
                 Total Image Pixel Area: ${formatNumber(
-                  getTotalNonLandPixels(data) * pixelAreaKm,
-                )} km${String.fromCodePoint(0x00b2)}
+                  getTotalNonLandPixels(data) * pixelAreaMi,
+                )} mi${String.fromCodePoint(0x00b2)}
               </p>
             `}
             yUnit="%"
@@ -1746,35 +1770,33 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
       (a, [date, dailyData]) => {
         a.categories.push(epochToMonthDay(parseInt(date)));
 
-        const ccCounts = dailyData?.measurements;
-
-        if (!ccCounts) {
+        if (!dailyData?.measurements) {
           for (let i = 0; i < 4; i++) a.series[i].data.push({ y: 0 });
         } else {
-          const ccPercentages = ccCounts.map(
-            (count) => (count / getTotalNonLandPixels(dailyData)) * 100,
+          const totalPixelArea = getAverageNonLandPixelArea(
+            cellConcentration.data,
           );
           a.series[0].data.push(
-            barChartDataPoint(ccCounts, ccPercentages, CcIdx.VeryHigh),
+            barChartDataPoint(dailyData, totalPixelArea, CcIdx.VeryHigh),
           );
           a.series[1].data.push(
             barChartDataPoint(
-              ccCounts,
-              ccPercentages,
+              dailyData,
+              totalPixelArea,
               CcIdx.High,
               CcIdx.VeryHigh,
             ),
           );
           a.series[2].data.push(
             barChartDataPoint(
-              ccCounts,
-              ccPercentages,
+              dailyData,
+              totalPixelArea,
               CcIdx.Medium,
               CcIdx.High,
             ),
           );
           a.series[3].data.push(
-            barChartDataPoint(ccCounts, ccPercentages, 0, CcIdx.Medium),
+            barChartDataPoint(dailyData, totalPixelArea, 0, CcIdx.Medium),
           );
         }
         return a;
@@ -1787,21 +1809,13 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
   const handleSliderChange = useCallback((value) => setSelectedDate(value), []);
 
   // Calculate the total pixel area if there is cell concentration data
-  let formattedPixelArea = null;
+  let pixelArea = null;
   if (cellConcentration.status === 'pending') {
-    formattedPixelArea = <LoadingSpinner className="pixel-area-spinner" />;
+    pixelArea = <LoadingSpinner className="pixel-area-spinner" />;
   } else if (cellConcentration.status === 'success') {
-    const filteredData = Object.values(cellConcentration.data).filter(
-      (dailyData) => dailyData !== null,
-    ) as Array<NonNullable<CellConcentrationData[string]>>;
-    const averagePixelArea =
-      filteredData.reduce(
-        (a, b) => a + getTotalNonLandPixels(b) * pixelAreaKm,
-        0,
-      ) / filteredData.length;
-    formattedPixelArea = `${formatNumber(
-      averagePixelArea,
-    )} km${String.fromCodePoint(0x00b2)}`;
+    pixelArea = `${formatNumber(
+      getAverageNonLandPixelArea(cellConcentration.data),
+    )} mi${String.fromCodePoint(0x00b2)}`;
   }
 
   return (
@@ -1820,7 +1834,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
             },
             {
               label: 'Satellite Image Pixel Area',
-              value: formattedPixelArea ?? 'N/A',
+              value: pixelArea ?? 'N/A',
             },
           ]}
           styles={cyanListContentStyles}
@@ -1843,7 +1857,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                   yTitle={`
                   <p>Percent of Detected Bloom Area</p>
                   <p>
-                    Total Image Pixel Area: ${formattedPixelArea}
+                    Total Image Pixel Area: ${pixelArea}
                   </p>
                 `}
                   yUnit="%"
