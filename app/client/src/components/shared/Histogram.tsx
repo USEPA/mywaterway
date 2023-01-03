@@ -28,7 +28,7 @@ type Props = {
     };
     data: number[];
     name: string;
-    type: 'histogram';
+    type: 'column';
     zoneAxis?: 'x' | 'y';
     zones?: Array<{
       color: string;
@@ -74,7 +74,7 @@ export default function Histogram({
         backgroundColor: 'rgba(0, 0, 0, 0)',
         height: height ?? '300px',
         style: { fontFamily: fonts.primary },
-        type: 'histogram',
+        type: 'column',
         zoomType: 'x',
       },
       credits: { enabled: false },
@@ -105,7 +105,13 @@ export default function Histogram({
       legend: {
         enabled: false,
       },
-      series: series as any, // workaround for an issue with the histogram type only accepting undefined for series
+      plotOptions: {
+        column: {
+          groupPadding: 0,
+          pointPadding: 0,
+        },
+      },
+      series,
       subtitle: {
         text: subtitle,
       },

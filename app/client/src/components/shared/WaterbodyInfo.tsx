@@ -1247,7 +1247,7 @@ type CellConcentrationData = {
   [date: string]: number[];
 };
 
-type ChartData<T> = {
+type ChartData = {
   categories: string[];
   series: Array<{
     color?: string;
@@ -1256,7 +1256,7 @@ type ChartData<T> = {
     };
     data: number[];
     name: string;
-    type: T;
+    type: 'column';
     zoneAxis?: 'x' | 'y';
     zones?: Array<{
       color: string;
@@ -1360,8 +1360,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
   const [averageCc, setAverageCc] = useState<number | null>(null);
   const [stdDevCc, setStdDevCc] = useState<number | null>(null);
   const [countCc, setCountCc] = useState<number | null>(null);
-  const [histogramData, setHistogramData] =
-    useState<ChartData<'histogram'> | null>(null);
+  const [histogramData, setHistogramData] = useState<ChartData | null>(null);
 
   // Calculate statistics for the selected date and
   // set the data for the daily histogram
@@ -1391,7 +1390,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
         {
           name: 'Cell Concentration Counts',
           data: selectedData,
-          type: 'histogram',
+          type: 'column',
           zoneAxis: 'x',
           zones: [
             { color: '#3700eb', value: CcIdx.Medium },
@@ -1501,9 +1500,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     };
   }, [mapView]);
 
-  const [barChartData, setBarChartData] = useState<ChartData<'column'> | null>(
-    null,
-  );
+  const [barChartData, setBarChartData] = useState<ChartData | null>(null);
 
   // Group the daily data by predetermined
   // thresholds for the weekly bar chart
@@ -1513,7 +1510,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
       return;
     }
 
-    const emptyBarChartData: ChartData<'column'> = {
+    const emptyBarChartData: ChartData = {
       categories: [],
       series: [
         {
