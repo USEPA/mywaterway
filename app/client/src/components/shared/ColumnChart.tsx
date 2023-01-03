@@ -5,8 +5,6 @@ import highchartsExporting from 'highcharts/modules/exporting';
 import { useMemo } from 'react';
 // styles
 import { fonts } from 'styles/index.js';
-// types
-import type { Options } from 'highcharts';
 
 // add exporting features to highcharts
 highchartsExporting(Highcharts);
@@ -28,13 +26,56 @@ Highcharts.addEvent(
   },
 );
 
+function histogramTooltipFormatter(
+  xUnit: string | undefined,
+  yUnit: string | undefined,
+) {
+  return function (this: Highcharts.TooltipFormatterContextObject) {
+    const customText = this.point.options.custom?.text;
+    return `<b style="color:${this.point.color}">${
+      xUnit ? this.x + ' ' + xUnit : this.x
+    }:</b> <b>${yUnit ? this.y + ' ' + yUnit : this.y}${
+      customText ? ' | ' + customText : ''
+    }</b>
+          <br />
+          <i>(Click & drag to zoom)</i>`;
+  };
+}
+
+function stackedTooltipFormatter(
+  xUnit: string | undefined,
+  yUnit: string | undefined,
+) {
+  return function (this: Highcharts.TooltipFormatterContextObject) {
+    return (
+      this.points?.reduce((s, point) => {
+        const customText = point.point.options.custom?.text;
+        return (
+          s +
+          `<tr>
+          <td style="color:${point.color};padding-right:5px">
+            <b>${point.series.name}:</b>
+          </td>
+          <td><b>${yUnit ? point.y + ' ' + yUnit : point.y}${
+            customText ? ' | ' + customText : ''
+          }</b></td>
+        </tr>`
+        );
+      }, `<b>${xUnit ? this.x + ' ' + xUnit : this.x}</b><table>`) + '</table>'
+    );
+  };
+}
+
 const fontSize = '14px';
 
 type Props = {
+  caption?: string;
   categories: string[];
   height?: string;
+  histogram?: boolean;
   legendTitle?: string;
   series: Array<{
+    color?: string;
     custom?: {
       description?: string;
     };
@@ -48,41 +89,43 @@ type Props = {
         }>;
     name: string;
     type: 'column';
-    zoneAxis?: 'x' | 'y';
-    zones?: Array<{
-      color: string;
-      value?: number;
-    }>;
   }>;
   subtitle?: string;
   title?: string;
   xTitle?: string;
-  yTitle?: string;
   xUnit?: string;
-  yMin?: number;
+  yTitle?: string;
   yUnit?: string;
+  yMin?: number;
 };
 
-export default function Histogram({
+export default function StackedBarChart({
+  caption,
   categories,
   height,
+  histogram,
+  legendTitle,
   series,
   subtitle,
   title,
   xTitle,
   xUnit,
   yTitle,
-  yUnit,
   yMin = 0,
+  yUnit,
 }: Props) {
-  const options = useMemo<Options>(() => {
+  const options = useMemo<Highcharts.Options>(() => {
     return {
+      caption: {
+        text: caption,
+        useHTML: true,
+      },
       chart: {
         backgroundColor: 'rgba(0, 0, 0, 0)',
-        height: height ?? '300px',
+        height: height ?? '500px',
         style: { fontFamily: fonts.primary },
-        type: 'histogram',
-        zoomType: 'x',
+        type: 'column',
+        zoomType: histogram ? 'x' : undefined,
       },
       credits: { enabled: false },
       exporting: {
@@ -108,14 +151,34 @@ export default function Histogram({
             },
           },
         },
+        chartOptions: {
+          plotOptions: {
+            series: {
+              dataLabels: {
+                enabled: true,
+              },
+            },
+          },
+        },
       },
       legend: {
-        enabled: false,
+        enabled: !histogram,
+        itemStyle: { fontWeight: 'normal' },
+        labelFormatter: function () {
+          if (this.options.custom?.description) {
+            return `<b>${this.name}</b><br />${this.options.custom.description}`;
+          } else return this.name;
+        },
+        title: {
+          text: legendTitle,
+        },
+        verticalAlign: 'bottom',
       },
       plotOptions: {
         column: {
-          groupPadding: 0,
-          pointPadding: 0,
+          groupPadding: histogram ? 0 : 0.2,
+          pointPadding: histogram ? 0 : 0.1,
+          stacking: histogram ? undefined : 'normal',
         },
       },
       series,
@@ -131,16 +194,10 @@ export default function Histogram({
       tooltip: {
         backgroundColor: 'rgba(247, 247, 247, 0.95)',
         borderColor: '#000000',
-        formatter: function () {
-          const customText = this.point.options.custom?.text;
-          return `<b style="color:${this.point.color}">${
-            xUnit ? this.x + ' ' + xUnit : this.x
-          }:</b> <b>${yUnit ? this.y + ' ' + yUnit : this.y}${
-            customText ? ' | ' + customText : ''
-          }</b>
-          <br />
-          <i>(Click & drag to zoom)</i>`;
-        },
+        formatter: histogram
+          ? histogramTooltipFormatter(xUnit, yUnit)
+          : stackedTooltipFormatter(xUnit, yUnit),
+        shared: !histogram,
         style: {
           fontSize,
         },
@@ -171,8 +228,11 @@ export default function Histogram({
       },
     };
   }, [
+    caption,
     categories,
     height,
+    histogram,
+    legendTitle,
     series,
     subtitle,
     title,

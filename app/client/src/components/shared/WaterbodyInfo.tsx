@@ -6,8 +6,8 @@ import { useCallback, useEffect, useState } from 'react';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 // components
 import { HelpTooltip } from 'components/shared/HelpTooltip';
-import Histogram from 'components/shared/Histogram';
 import { ListContent } from 'components/shared/BoxContent';
+import ColumnChart from 'components/shared/ColumnChart';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -18,7 +18,6 @@ import {
 } from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import { Sparkline } from 'components/shared/Sparkline';
-import StackedBarChart from 'components/shared/StackedBarChart';
 import TickSlider from 'components/shared/TickSlider';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
@@ -1198,6 +1197,7 @@ const barChartDataPoint = (
   };
 };
 
+// Converts CyAN `year dayOfYear` format to epoch timestamp
 function cyanDateToEpoch(yearDay: string) {
   const yearAndDay = yearDay.split(' ');
   if (yearAndDay.length !== 2) return null;
@@ -1307,14 +1307,17 @@ function getTotalNonLandPixels(
   return sum(belowDetection, noData, ...measurements);
 }
 
+// Calculates the sum of an arbitrary number of arguments
 function sum(...nums: number[]) {
   return nums.reduce((a, b) => a + b, 0);
 }
 
+// Calculates the sum of a subarray
 function sumSlice(nums: number[], start: number, end?: number) {
   return sum(...nums.slice(start, end));
 }
 
+// Rounds a float to a specified precision
 function toFixedFloat(num: number, precision: number) {
   if (precision < 0) return num;
   const offset = 10 ** precision;
@@ -1438,9 +1441,10 @@ function CyanDailyContent({
         </p>
 
         {histogramData && (
-          <Histogram
+          <ColumnChart
             categories={histogramData.categories}
             height="300px"
+            histogram
             series={histogramData.series}
             subtitle={new Date(epochDate).toLocaleDateString('en-US', {
               year: 'numeric',
@@ -1834,7 +1838,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
           <>
             {barChartData && (
               <>
-                <StackedBarChart
+                <ColumnChart
                   categories={barChartData.categories}
                   legendTitle="Cyanobacteria Concentration Categories:"
                   series={barChartData.series}
