@@ -424,7 +424,7 @@ function parseAttributes<Type>(
     [property: string]: Type[keyof Type];
   } = {};
   for (const property of structuredAttributes) {
-    if (property in attributes) {
+    if (property in (attributes as object)) {
       const value = attributes[property as keyof Type];
       if (typeof value === 'string') {
         parsed[property] = JSON.parse(value);
