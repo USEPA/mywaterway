@@ -421,7 +421,13 @@ function Overview() {
       </div>
 
       <div css={tabsStyles}>
-        <Tabs>
+        <Tabs
+          onChange={(index) => {
+            if (index === 0) handleWaterbodiesToggle(true);
+            if (index === 1) handleMonitoringLocationsToggle(true);
+            if (index === 2) handlePermittedDischargersToggle(true);
+          }}
+        >
           <TabList>
             <Tab>Waterbodies</Tab>
             <Tab>Monitoring Locations</Tab>

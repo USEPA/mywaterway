@@ -112,7 +112,7 @@ function IdentifiedIssues() {
 
   const [showIssuesLayer, setShowIssuesLayer] = useState(true);
 
-  const [showDischargersLayer, setShowDischargersLayer] = useState(true);
+  const [showDischargersLayer, setShowDischargersLayer] = useState(false);
 
   const setViolatingFacilities = useCallback(
     (data: Object) => {
@@ -615,7 +615,14 @@ function IdentifiedIssues() {
       </div>
 
       <div css={tabsStyles}>
-        <Tabs>
+        <Tabs
+          onChange={(index) => {
+            if (index === 0 && !toggleIssuesChecked)
+              toggleSwitch('Toggle Issues Layer');
+            if (index === 1 && !toggleDischargersChecked)
+              toggleSwitch('Toggle Dischargers Layer');
+          }}
+        >
           <TabList>
             <Tab>Impaired Assessed Waters</Tab>
             <Tab data-testid="hmw-dischargers">
@@ -646,11 +653,12 @@ function IdentifiedIssues() {
                     </p>
                   )}
 
-                  {cipSummary.data.items && cipSummary.data.items.length > 0 && (
-                    <>
-                      <p>
-                        {/* NOTE: removed until EPA determines correct value */}
-                        {/* {assessedPercent > 0 && (
+                  {cipSummary.data.items &&
+                    cipSummary.data.items.length > 0 && (
+                      <>
+                        <p>
+                          {/* NOTE: removed until EPA determines correct value */}
+                          {/* {assessedPercent > 0 && (
                           <span>
                             <strong>{assessedPercent}%</strong> of waters in
                             your watershed have been assessed.
@@ -666,128 +674,134 @@ function IdentifiedIssues() {
                         )}
                         <br /> */}
 
-                        <DisclaimerModal>
-                          <p>
-                            The condition of a waterbody is dynamic and can
-                            change at any time, and the information in How’s My
-                            Waterway should only be used for general reference.
-                            If available, refer to local or state real-time
-                            water quality reports.
-                          </p>
+                          <DisclaimerModal>
+                            <p>
+                              The condition of a waterbody is dynamic and can
+                              change at any time, and the information in How’s
+                              My Waterway should only be used for general
+                              reference. If available, refer to local or state
+                              real-time water quality reports.
+                            </p>
 
-                          <p>
-                            Furthermore, users of this application should not
-                            rely on information relating to environmental laws
-                            and regulations posted on this application.
-                            Application users are solely responsible for
-                            ensuring that they are in compliance with all
-                            relevant environmental laws and regulations. In
-                            addition, EPA cannot attest to the accuracy of data
-                            provided by organizations outside of the federal
-                            government.
-                          </p>
-                        </DisclaimerModal>
-                      </p>
-
-                      {emptyCategoriesWithPercent && (
-                        <p css={centeredTextStyles}>
-                          Impairment Summary information is temporarily
-                          unavailable for the {watershed} watershed. Please see
-                          the Overview tab for specific impairment information
-                          on these waters.
+                            <p>
+                              Furthermore, users of this application should not
+                              rely on information relating to environmental laws
+                              and regulations posted on this application.
+                              Application users are solely responsible for
+                              ensuring that they are in compliance with all
+                              relevant environmental laws and regulations. In
+                              addition, EPA cannot attest to the accuracy of
+                              data provided by organizations outside of the
+                              federal government.
+                            </p>
+                          </DisclaimerModal>
                         </p>
-                      )}
 
-                      {!emptyCategoriesWithPercent && zeroPollutedWaterbodies && (
-                        <p css={centeredTextStyles}>
-                          There are no impairment categories in the{' '}
-                          <em>{watershed}</em> watershed.
-                        </p>
-                      )}
-
-                      {!emptyCategoriesWithPercent && !zeroPollutedWaterbodies && (
-                        <>
-                          <p>
-                            Impairment categories in the {watershed} watershed.
+                        {emptyCategoriesWithPercent && (
+                          <p css={centeredTextStyles}>
+                            Impairment Summary information is temporarily
+                            unavailable for the {watershed} watershed. Please
+                            see the Overview tab for specific impairment
+                            information on these waters.
                           </p>
+                        )}
 
-                          <table css={toggleTableStyles} className="table">
-                            <thead>
-                              <tr>
-                                <th>
-                                  <div css={toggleStyles}>
-                                    <Switch
-                                      checked={showAllParameters}
-                                      onChange={(ev) => {
-                                        toggleSwitch('Toggle All');
-                                      }}
-                                      ariaLabel="Toggle all impairment categories"
-                                    />
-                                    <span>Identified Issues</span>
-                                  </div>
-                                </th>
-                                <th>% of Assessed Area</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {cipSummary.data.items[0].summaryByParameterImpairments.map(
-                                (param) => {
-                                  const percent = formatNumber(
-                                    Math.min(
-                                      100,
-                                      (param['catchmentSizeSqMi'] /
-                                        cipSummary.data.items[0]
-                                          .assessedCatchmentAreaSqMi) *
-                                        100,
-                                    ),
-                                  );
+                        {!emptyCategoriesWithPercent &&
+                          zeroPollutedWaterbodies && (
+                            <p css={centeredTextStyles}>
+                              There are no impairment categories in the{' '}
+                              <em>{watershed}</em> watershed.
+                            </p>
+                          )}
 
-                                  const mappedParameter = getMappedParameter(
-                                    impairmentFields,
-                                    param['parameterGroupName'],
-                                  );
-                                  // if service contains a parameter we have no mapping for
-                                  if (!mappedParameter) return false;
+                        {!emptyCategoriesWithPercent &&
+                          !zeroPollutedWaterbodies && (
+                            <>
+                              <p>
+                                Impairment categories in the {watershed}{' '}
+                                watershed.
+                              </p>
 
-                                  return (
-                                    <tr key={mappedParameter.label}>
-                                      <td>
-                                        <div css={toggleStyles}>
-                                          <Switch
-                                            ariaLabel={mappedParameter.label}
-                                            checked={
-                                              parameterToggleObject[
-                                                mappedParameter.label
-                                              ]
-                                            }
-                                            onChange={(ev) => {
-                                              toggleSwitch(
-                                                mappedParameter.label,
-                                              );
-                                            }}
-                                          />
-                                          <GlossaryTerm
-                                            term={mappedParameter.term}
-                                          >
-                                            {mappedParameter.label}
-                                          </GlossaryTerm>
-                                        </div>
-                                      </td>
-                                      <td>
-                                        {nullPollutedWaterbodies === true
-                                          ? 'N/A'
-                                          : percent + '%'}
-                                      </td>
-                                    </tr>
-                                  );
-                                },
-                              )}
-                            </tbody>
-                          </table>
-                        </>
-                      )}
-                    </>
-                  )}
+                              <table css={toggleTableStyles} className="table">
+                                <thead>
+                                  <tr>
+                                    <th>
+                                      <div css={toggleStyles}>
+                                        <Switch
+                                          checked={showAllParameters}
+                                          onChange={(ev) => {
+                                            toggleSwitch('Toggle All');
+                                          }}
+                                          ariaLabel="Toggle all impairment categories"
+                                        />
+                                        <span>Identified Issues</span>
+                                      </div>
+                                    </th>
+                                    <th>% of Assessed Area</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {cipSummary.data.items[0].summaryByParameterImpairments.map(
+                                    (param) => {
+                                      const percent = formatNumber(
+                                        Math.min(
+                                          100,
+                                          (param['catchmentSizeSqMi'] /
+                                            cipSummary.data.items[0]
+                                              .assessedCatchmentAreaSqMi) *
+                                            100,
+                                        ),
+                                      );
+
+                                      const mappedParameter =
+                                        getMappedParameter(
+                                          impairmentFields,
+                                          param['parameterGroupName'],
+                                        );
+                                      // if service contains a parameter we have no mapping for
+                                      if (!mappedParameter) return false;
+
+                                      return (
+                                        <tr key={mappedParameter.label}>
+                                          <td>
+                                            <div css={toggleStyles}>
+                                              <Switch
+                                                ariaLabel={
+                                                  mappedParameter.label
+                                                }
+                                                checked={
+                                                  parameterToggleObject[
+                                                    mappedParameter.label
+                                                  ]
+                                                }
+                                                onChange={(ev) => {
+                                                  toggleSwitch(
+                                                    mappedParameter.label,
+                                                  );
+                                                }}
+                                              />
+                                              <GlossaryTerm
+                                                term={mappedParameter.term}
+                                              >
+                                                {mappedParameter.label}
+                                              </GlossaryTerm>
+                                            </div>
+                                          </td>
+                                          <td>
+                                            {nullPollutedWaterbodies === true
+                                              ? 'N/A'
+                                              : percent + '%'}
+                                          </td>
+                                        </tr>
+                                      );
+                                    },
+                                  )}
+                                </tbody>
+                              </table>
+                            </>
+                          )}
+                      </>
+                    )}
                 </>
               )}
             </TabPanel>
