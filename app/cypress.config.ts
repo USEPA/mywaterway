@@ -5,7 +5,6 @@ export default defineConfig({
   defaultCommandTimeout: 8000,
   viewportWidth: 1280,
   viewportHeight: 720,
-  chromeWebSecurity: false,
   retries: 1,
   env: {
     failOnSnapshotDiff: false,
