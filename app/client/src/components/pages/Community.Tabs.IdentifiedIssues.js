@@ -555,12 +555,12 @@ function IdentifiedIssues() {
     toggleDischargersChecked = false;
   }
 
-  const handleTabClick = (index) => {
+  function handleTabClick(index) {
     if (index === 0 && !toggleIssuesChecked)
       toggleSwitch('Toggle Issues Layer');
     if (index === 1 && !toggleDischargersChecked)
       toggleSwitch('Toggle Dischargers Layer');
-  };
+  }
 
   function getImpairedWatersPercent() {
     if (cipSummary.status === 'failure') return 'N/A';
