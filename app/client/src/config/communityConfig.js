@@ -386,7 +386,7 @@ const tabs = [
     lower: <IdentifiedIssues />,
     layers: {
       issuesLayer: true,
-      dischargersLayer: true,
+      dischargersLayer: false,
       monitoringLocationsLayer: false,
       usgsStreamgagesLayer: false,
     },
