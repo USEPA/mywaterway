@@ -12,6 +12,7 @@ import {
 import { tabsStyles } from 'components/shared/ContentTabs';
 import DateSlider from 'components/shared/DateSlider';
 import TabErrorBoundary from 'components/shared/ErrorBoundary.TabErrorBoundary';
+import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import { HelpTooltip } from 'components/shared/HelpTooltip';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import {
@@ -538,11 +539,30 @@ function Monitoring() {
           <TabPanels>
             <TabPanel>
               <p>
-                Explore the map and information below to find out about current
-                water conditions. On this tab, we define current data as less
-                than one week old. The water condition information shown here is
-                estimated using satellite imagery and water quality sensors
-                deployed in the waterbody.
+                The yellow squares represent{' '}
+                <a
+                  rel="noreferrer"
+                  target="_blank"
+                  href="https://dashboard.waterdata.usgs.gov"
+                >
+                  USGS monitoring locations
+                </a>{' '}
+                that provide real time water quality measurements – such as
+                water level, water temperature, dissolved oxygen saturation, and
+                other water quality indicators.
+              </p>
+              <p>
+                Areas highlighted light blue are the lakes, reservoirs, and
+                other large waterbodies where CyAN satellite imagery data is
+                available. Daily data are a snapshot of{' '}
+                <GlossaryTerm term="Cyanobacteria">cyanobacteria</GlossaryTerm>{' '}
+                (sometimes referred to as blue-green algae) at the time of
+                detection.
+              </p>
+              <p>
+                Click on each monitoring location on the map or in the list
+                below to find out more about what was monitored at each
+                location.
               </p>
 
               <div css={legendItemsStyles}>
@@ -569,12 +589,23 @@ function Monitoring() {
             </TabPanel>
             <TabPanel>
               <p>
+                The purple circles represent{' '}
+                <a
+                  rel="noreferrer"
+                  target="_blank"
+                  href="https://www.waterqualitydata.us"
+                >
+                  Water Quality Portal
+                </a>{' '}
+                monitoring locations where diverse past water condition data are
+                available. These locations may have monitoring data available
+                from as recently as last week, to multiple decades old, or
+                anywhere in between, depending on the location.
+              </p>
+              <p>
                 Click on each monitoring location on the map or in the list
-                below to find out what was monitored at each location, as well
-                as the number of samples and measurements taken. These locations
-                may have monitoring data available from as recently as last
-                week, to multiple decades old, or anywhere in between, depending
-                on the location.
+                below to find out more about what was monitored at each
+                location.
               </p>
 
               <div css={legendItemsStyles}>
