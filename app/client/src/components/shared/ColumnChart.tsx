@@ -2,7 +2,7 @@ import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import highchartsAccessibility from 'highcharts/modules/accessibility';
 import highchartsExporting from 'highcharts/modules/exporting';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 // styles
 import { fonts } from 'styles/index.js';
 
@@ -26,70 +26,41 @@ Highcharts.addEvent(
   },
 );
 
-function histogramTooltipFormatter(
-  xUnit: string | undefined,
-  yUnit: string | undefined,
-) {
-  return function (this: Highcharts.TooltipFormatterContextObject) {
-    const customText = this.point.options.custom?.text;
-    return `<b style="color:${this.point.color}">${
-      xUnit ? this.x + ' ' + xUnit : this.x
-    }:</b> <b>${yUnit ? this.y + ' ' + yUnit : this.y}${
-      customText ? ' | ' + customText : ''
-    }</b>
-          <br />
-          <i>(Click & drag to zoom)</i>`;
-  };
-}
+const baseFontSize = '14px';
+const mediumFontSize = '16px';
 
-function stackedTooltipFormatter(
-  xUnit: string | undefined,
-  yUnit: string | undefined,
-) {
-  return function (this: Highcharts.TooltipFormatterContextObject) {
-    return (
-      this.points?.reduce((s, point) => {
-        const customText = point.point.options.custom?.text;
-        return (
-          s +
-          `<tr>
-          <td style="color:${point.color};padding-right:5px">
-            <b>${point.series.name}:</b>
-          </td>
-          <td><b>${yUnit ? point.y + ' ' + yUnit : point.y}${
-            customText ? ' | ' + customText : ''
-          }</b></td>
-        </tr>`
-        );
-      }, `<b>${xUnit ? this.x + ' ' + xUnit : this.x}</b><table>`) + '</table>'
-    );
+export type ColumnSeries = {
+  color?: string;
+  custom?: {
+    description?: string;
   };
-}
-
-const fontSize = '14px';
+  data: Array<
+    | number
+    | {
+        custom?: {
+          text: string;
+        };
+        y: number;
+      }
+  >;
+  name: string;
+  showInLegend?: boolean;
+  type: 'column';
+  visible?: boolean;
+  zoneAxis?: 'x' | 'y';
+  zones?: Array<{
+    color: string;
+    value?: number;
+  }>;
+};
 
 type Props = {
   caption?: string;
   categories: string[];
+  exportFilename?: string;
   height?: string;
-  histogram?: boolean;
   legendTitle?: string;
-  series: Array<{
-    color?: string;
-    custom?: {
-      description?: string;
-    };
-    data:
-      | number[]
-      | Array<{
-          custom?: {
-            text: string;
-          };
-          y: number;
-        }>;
-    name: string;
-    type: 'column';
-  }>;
+  series: ColumnSeries[];
   subtitle?: string;
   title?: string;
   xTitle?: string;
@@ -97,23 +68,44 @@ type Props = {
   yTitle?: string;
   yUnit?: string;
   yMin?: number;
+  yMax?: number;
 };
 
-export default function StackedBarChart({
+type ColumnChartProps = Omit<Props, 'xUnit' | 'yUnit'> & {
+  legendEnabled?: boolean;
+  groupPadding?: number;
+  pointPadding?: number;
+  reversedStacks?: boolean;
+  stacking?: 'normal' | 'percent';
+  tooltipFormatter: (this: Highcharts.TooltipFormatterContextObject) => string;
+  tooltipShared?: boolean;
+  xLabelFontSize?: string;
+  zoomType?: 'x' | 'y' | 'xy';
+};
+
+function ColumnChart({
   caption,
   categories,
+  exportFilename,
+  groupPadding = 0.2,
+  pointPadding = 0.1,
   height,
-  histogram,
+  legendEnabled = false,
   legendTitle,
+  reversedStacks,
   series,
+  stacking,
   subtitle,
   title,
+  tooltipFormatter,
+  tooltipShared = false,
+  xLabelFontSize = baseFontSize,
   xTitle,
-  xUnit,
   yTitle,
   yMin = 0,
-  yUnit,
-}: Props) {
+  yMax,
+  zoomType,
+}: ColumnChartProps) {
   const options = useMemo<Highcharts.Options>(() => {
     return {
       caption: {
@@ -125,7 +117,7 @@ export default function StackedBarChart({
         height: height ?? '500px',
         style: { fontFamily: fonts.primary },
         type: 'column',
-        zoomType: histogram ? 'x' : undefined,
+        zoomType,
       },
       credits: { enabled: false },
       exporting: {
@@ -160,31 +152,40 @@ export default function StackedBarChart({
             },
           },
         },
+        filename: exportFilename,
       },
       legend: {
-        enabled: !histogram,
-        itemStyle: { fontWeight: 'normal' },
+        enabled: legendEnabled,
+        itemMarginTop: 3,
+        itemStyle: {
+          fontSize: baseFontSize,
+          fontWeight: 'normal',
+        },
         labelFormatter: function () {
           if (this.options.custom?.description) {
             return `<b>${this.name}</b><br />${this.options.custom.description}`;
           } else return this.name;
         },
+        symbolHeight: 10,
         title: {
+          style: {
+            fontSize: mediumFontSize,
+          },
           text: legendTitle,
         },
         verticalAlign: 'bottom',
       },
       plotOptions: {
         column: {
-          groupPadding: histogram ? 0 : 0.2,
-          pointPadding: histogram ? 0 : 0.1,
-          stacking: histogram ? undefined : 'normal',
+          groupPadding,
+          pointPadding,
+          stacking,
         },
       },
       series,
       subtitle: {
         style: {
-          fontSize,
+          fontSize: mediumFontSize,
         },
         text: subtitle,
       },
@@ -194,12 +195,10 @@ export default function StackedBarChart({
       tooltip: {
         backgroundColor: 'rgba(247, 247, 247, 0.95)',
         borderColor: '#000000',
-        formatter: histogram
-          ? histogramTooltipFormatter(xUnit, yUnit)
-          : stackedTooltipFormatter(xUnit, yUnit),
-        shared: !histogram,
+        formatter: tooltipFormatter,
+        shared: tooltipShared,
         style: {
-          fontSize,
+          fontSize: baseFontSize,
         },
         useHTML: true,
       },
@@ -207,21 +206,28 @@ export default function StackedBarChart({
         categories,
         labels: {
           style: {
-            fontSize,
+            fontSize: xLabelFontSize,
           },
         },
         title: {
           style: {
-            fontSize,
+            fontSize: baseFontSize,
           },
           text: xTitle,
         },
       },
       yAxis: {
+        labels: {
+          style: {
+            fontSize: baseFontSize,
+          },
+        },
+        max: yMax,
         min: yMin,
+        reversedStacks,
         title: {
           style: {
-            fontSize,
+            fontSize: mediumFontSize,
           },
           text: yTitle,
         },
@@ -230,18 +236,106 @@ export default function StackedBarChart({
   }, [
     caption,
     categories,
+    exportFilename,
+    groupPadding,
     height,
-    histogram,
+    legendEnabled,
     legendTitle,
+    pointPadding,
+    reversedStacks,
     series,
+    stacking,
     subtitle,
     title,
+    tooltipFormatter,
+    tooltipShared,
+    xLabelFontSize,
     xTitle,
-    xUnit,
+    yMax,
     yMin,
     yTitle,
-    yUnit,
+    zoomType,
   ]);
 
   return <HighchartsReact highcharts={Highcharts} options={options} />;
+}
+
+export function StackedColumnChart({ xUnit, yUnit, ...props }: Props) {
+  const tooltipFormatter = useCallback(
+    function (this: Highcharts.TooltipFormatterContextObject) {
+      const chart = this.points?.[0].series.chart;
+      if (!chart) return '';
+      const categories = chart.xAxis[0].categories;
+      const currentCategory = this.points?.[0].point.category;
+      if (!currentCategory) return '';
+      const index = categories.indexOf(currentCategory);
+      if (index === -1) return '';
+      return (
+        chart.series.reverse().reduce((s, series) => {
+          console.log(series);
+          const point = (series.options as any).data[index];
+          const customText = point.custom?.text;
+          return (
+            s +
+            `<tr>
+          <td style="color:${series.options.color};padding-right:5px">
+            <b>${series.name}:</b>
+          </td>
+          <td><b>${yUnit ? point.y + ' ' + yUnit : point.y}</b></td>
+          ${
+            customText
+              ? '<td style="padding:0 5px"><b>|</b></td><td><b>' +
+                customText +
+                '</b></td>'
+              : ''
+          }
+        </tr>`
+          );
+        }, `<b>${xUnit ? this.x + ' ' + xUnit : this.x}</b><table>`) +
+        '</table><i>(Click & drag to zoom)</i>'
+      );
+    },
+    [xUnit, yUnit],
+  );
+
+  return (
+    <ColumnChart
+      {...props}
+      legendEnabled
+      reversedStacks={false}
+      stacking="normal"
+      tooltipFormatter={tooltipFormatter}
+      tooltipShared={true}
+      xLabelFontSize={mediumFontSize}
+      yMax={100}
+      zoomType="y"
+    />
+  );
+}
+
+export function Histogram({ xUnit, yUnit, ...props }: Props) {
+  const tooltipFormatter = useCallback(
+    function (this: Highcharts.TooltipFormatterContextObject) {
+      const customText = this.point.options.custom?.text;
+      return `<b style="color:${this.point.color}">${
+        xUnit ? this.x + ' ' + xUnit : this.x
+      }:</b> <b>${yUnit ? this.y + ' ' + yUnit : this.y}${
+        customText ? ' | ' + customText : ''
+      }</b>
+          <br />
+          <i>(Click & drag to zoom)</i>`;
+    },
+    [xUnit, yUnit],
+  );
+
+  return (
+    <ColumnChart
+      {...props}
+      groupPadding={0}
+      height="350px"
+      pointPadding={0}
+      tooltipFormatter={tooltipFormatter}
+      zoomType="x"
+    />
+  );
 }
