@@ -26,8 +26,9 @@ Highcharts.addEvent(
   },
 );
 
-const baseFontSize = '14px';
-const mediumFontSize = '16px';
+// const baseFontSize = '14px';
+const baseFontSize = '0.8em';
+const mediumFontSize = '1em';
 
 export type ColumnSeries = {
   color?: string;
@@ -44,9 +45,7 @@ export type ColumnSeries = {
       }
   >;
   name: string;
-  showInLegend?: boolean;
   type: 'column';
-  visible?: boolean;
   zoneAxis?: 'x' | 'y';
   zones?: Array<{
     color: string;
@@ -164,7 +163,7 @@ function ColumnChart({
         labelFormatter: function () {
           if (this.options.custom?.description) {
             return `<b>${this.name}</b><br />${this.options.custom.description}`;
-          } else return this.name;
+          } else return `<b>${this.name}</b>`;
         },
         symbolHeight: 10,
         title: {
@@ -199,6 +198,7 @@ function ColumnChart({
         shared: tooltipShared,
         style: {
           fontSize: baseFontSize,
+          fontWeight: 'bold',
         },
         useHTML: true,
       },
@@ -263,36 +263,28 @@ function ColumnChart({
 export function StackedColumnChart({ xUnit, yUnit, ...props }: Props) {
   const tooltipFormatter = useCallback(
     function (this: Highcharts.TooltipFormatterContextObject) {
-      const chart = this.points?.[0].series.chart;
-      if (!chart) return '';
-      const categories = chart.xAxis[0].categories;
-      const currentCategory = this.points?.[0].point.category;
-      if (!currentCategory) return '';
-      const index = categories.indexOf(currentCategory);
-      if (index === -1) return '';
+      console.log(this);
       return (
-        chart.series.reverse().reduce((s, series) => {
-          console.log(series);
-          const point = (series.options as any).data[index];
-          const customText = point.custom?.text;
+        this.points?.reverse().reduce((s, point) => {
+          const customText = point.point.options.custom?.text;
           return (
             s +
             `<tr>
-          <td style="color:${series.options.color};padding-right:5px">
-            <b>${series.name}:</b>
-          </td>
-          <td><b>${yUnit ? point.y + ' ' + yUnit : point.y}</b></td>
-          ${
-            customText
-              ? '<td style="padding:0 5px"><b>|</b></td><td><b>' +
-                customText +
-                '</b></td>'
-              : ''
-          }
-        </tr>`
+              <td style="color:${point.color};padding-right:5px">
+                ${point.series.name}:
+              </td>
+              <td style="text-align:right">${
+                yUnit ? point.y + ' ' + yUnit : point.y
+              }</td>${
+              customText
+                ? '<td style="padding: 0 5px">|</td><td style="text-align:right">' +
+                  customText
+                : ''
+            }</td>
+            </tr>`
           );
-        }, `<b>${xUnit ? this.x + ' ' + xUnit : this.x}</b><table>`) +
-        '</table><i>(Click & drag to zoom)</i>'
+        }, `${xUnit ? this.x + ' ' + xUnit : this.x}<table>`) +
+        '</table><i style="font-weight:normal">(Click & drag to zoom)</i>'
       );
     },
     [xUnit, yUnit],
@@ -317,13 +309,13 @@ export function Histogram({ xUnit, yUnit, ...props }: Props) {
   const tooltipFormatter = useCallback(
     function (this: Highcharts.TooltipFormatterContextObject) {
       const customText = this.point.options.custom?.text;
-      return `<b style="color:${this.point.color}">${
+      return `<span style="color:${this.point.color}">${
         xUnit ? this.x + ' ' + xUnit : this.x
-      }:</b> <b>${yUnit ? this.y + ' ' + yUnit : this.y}${
+      }:</span> ${yUnit ? this.y + ' ' + yUnit : this.y}${
         customText ? ' | ' + customText : ''
-      }</b>
-          <br />
-          <i>(Click & drag to zoom)</i>`;
+      }
+        <br />
+        <i style="font-weight:normal">(Click & drag to zoom)</i>`;
     },
     [xUnit, yUnit],
   );

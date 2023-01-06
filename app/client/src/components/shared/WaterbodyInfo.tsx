@@ -1124,11 +1124,17 @@ function MapPopup({
 
 const cyanListContentStyles = css`
   ${listContentStyles}
+  border-top: none;
+  margin-bottom: 0;
+
+  .row-cell {
+    background-color: initial !important;
+  }
 
   svg.pixel-area-spinner {
     margin-bottom: auto;
     margin-top: auto;
-  } ;
+  }
 `;
 
 const marginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
@@ -1137,6 +1143,7 @@ const marginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
 `;
 
 const showLessMoreStyles = css`
+  margin-top: 1em;
   button {
     margin-bottom: 1.5em;
   }
@@ -1447,10 +1454,10 @@ function CyanDailyContent({
         {histogramData && (
           <Histogram
             categories={histogramData.categories}
-            exportFilename="Cyan_Concentration_Stats"
+            exportFilename="CyAN_Histogram"
             series={histogramData.series}
             subtitle={`
-              Total Satellite Image Pixel Area: ${formatNumber(
+              Total Satellite Image Area: ${formatNumber(
                 getTotalNonLandPixels(data) * pixelAreaMi,
               )} mi${String.fromCodePoint(0x00b2)}
               <br />
@@ -1460,53 +1467,56 @@ function CyanDailyContent({
             xTitle="Cell Concentration (cells/mL)"
             xUnit="cells/mL"
             yTitle={`
-              Percent of Detected Bloom Area
+              Percent of Satellite Image Area
             `}
             yUnit="%"
           />
         )}
-        <ListContent
-          rows={[
-            {
-              label: (
-                <>
-                  <HelpTooltip
-                    label={
-                      <>
-                        Minimum detected value in the waterbody area.
-                        <br />
-                        Values under 6.5K cells/mL cannot be detected by
-                        satellite.
-                      </>
-                    }
-                  />
-                  &nbsp;&nbsp; Minimum Value
-                </>
-              ),
-              value:
-                minCc !== null ? `${formatNumber(minCc, 2)} cells/mL` : 'N/A',
-            },
-            {
-              label: (
-                <>
-                  <HelpTooltip label="Maximum detected value in the waterbody area." />
-                  &nbsp;&nbsp; Maximum Value
-                </>
-              ),
-              value:
-                maxCc !== null ? `${formatNumber(maxCc, 2)} cells/mL` : 'N/A',
-            },
-            {
-              label: (
-                <span style={{ paddingLeft: '1.5em' }}>
-                  Average and Standard Deviation
-                </span>
-              ),
-              value: getFormattedAverageCc(data.measurements) ?? 'N/A',
-            },
-          ]}
-          styles={listContentStyles}
-        />
+
+        <div css={textBoxStyles}>
+          <ListContent
+            rows={[
+              {
+                label: (
+                  <>
+                    <HelpTooltip
+                      label={
+                        <>
+                          Minimum detected value in the waterbody area.
+                          <br />
+                          Values under 6.5K cells/mL cannot be detected by
+                          satellite.
+                        </>
+                      }
+                    />
+                    &nbsp;&nbsp; Minimum Value
+                  </>
+                ),
+                value:
+                  minCc !== null ? `${formatNumber(minCc, 2)} cells/mL` : 'N/A',
+              },
+              {
+                label: (
+                  <>
+                    <HelpTooltip label="Maximum detected value in the waterbody area." />
+                    &nbsp;&nbsp; Maximum Value
+                  </>
+                ),
+                value:
+                  maxCc !== null ? `${formatNumber(maxCc, 2)} cells/mL` : 'N/A',
+              },
+              {
+                label: (
+                  <span style={{ paddingLeft: '1.5em' }}>
+                    Average and Standard Deviation
+                  </span>
+                ),
+                value: getFormattedAverageCc(data.measurements) ?? 'N/A',
+              },
+            ]}
+            styles={cyanListContentStyles}
+          />
+        </div>
       </>
     );
   }
@@ -1720,12 +1730,14 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
       categories: [],
       series: [
         {
-          name: 'Below Detection',
-          color: '#000000',
+          name: 'Very Low',
+          color: '#6c95ce',
+          custom: {
+            // description: `${String.fromCharCode(0x2264)} 6,500 cells/mL`,
+            description: '< 6,500 cells/mL',
+          },
           data: [],
-          showInLegend: false,
           type: 'column',
-          visible: false,
         },
         {
           name: 'Low',
@@ -1754,8 +1766,15 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
           name: 'Very High',
           color: '#fa5300',
           custom: {
-            description: `${String.fromCharCode(0x2265)} 1,000,000 cells/mL`,
+            // description: `${String.fromCharCode(0x2265)} 1,000,000 cells/mL`,
+            description: '> 1,000,000 cells/mL',
           },
+          data: [],
+          type: 'column',
+        },
+        {
+          name: 'Unknown',
+          color: '#858585',
           data: [],
           type: 'column',
         },
@@ -1769,7 +1788,9 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
         a.categories.push(epochToMonthDay(parseInt(date)));
 
         if (!dailyData?.measurements) {
-          for (let i = 0; i < 4; i++) a.series[i].data.push({ y: 0 });
+          a.series.forEach((series) => {
+            series.data.push({ y: 0 });
+          });
         } else {
           const totalPixels = getTotalNonLandPixels(dailyData);
           a.series[0].data.push(
@@ -1807,11 +1828,15 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
               totalPixelArea,
             ),
           );
+          a.series[5].data.push(
+            barChartDataPoint(dailyData.noData, totalPixels, totalPixelArea),
+          );
         }
         return a;
       },
       emptyBarChartData,
     );
+    console.log(newBarChartData);
     setBarChartData(newBarChartData);
   }, [cellConcentration]);
 
@@ -1829,7 +1854,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
 
   return (
     <>
-      <div css={tableStyles} className="table">
+      <div css={textBoxStyles}>
         <ListContent
           rows={[
             {
@@ -1860,19 +1885,19 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
               <>
                 <StackedColumnChart
                   categories={barChartData.categories}
-                  exportFilename="Cyan_Estimate_Chart"
+                  exportFilename="CyAN_StackedBarChart"
                   legendTitle="Cyanobacteria Concentration Categories:"
                   series={barChartData.series}
                   title={`Daily Cyanobacteria Estimates for ${attributes.GNIS_NAME}`}
                   subtitle={`
-                    Total Satellite Image Pixel Area: ${pixelArea}
+                    Total Satellite Image Area: ${pixelArea}
                     <br />
                     ${formatDate(dates[0])} - ${formatDate(
                     dates[dates.length - 1],
                   )}
                   `}
                   yTitle={`
-                  Percent of Detected Bloom Area
+                  Percent of Satellite Image Area
                 `}
                   yUnit="%"
                 />
