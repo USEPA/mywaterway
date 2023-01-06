@@ -1245,17 +1245,6 @@ function getDayOfYear(day: Date) {
   return Math.floor(diff / oneDay);
 }
 
-function getAverageCellConcentration(counts: number[]) {
-  if (!counts.length) return null;
-  let totalCc = 0;
-  let totalCount = 0;
-  for (let i = 0; i < counts.length; i++) {
-    totalCc += counts[i] * cyanMetadata[i];
-    totalCount += counts[i];
-  }
-  return totalCount > 0 ? totalCc / totalCount : null;
-}
-
 function getAverageNonLandPixelArea(data: CellConcentrationData) {
   const filteredData = Object.values(data).filter(
     (dailyData) => dailyData !== null,
@@ -1266,25 +1255,6 @@ function getAverageNonLandPixelArea(data: CellConcentrationData) {
       0,
     ) / filteredData.length
   );
-}
-
-// Formats a string from the average cell concentration and standard deviation
-function getFormattedAverageCc(counts: number[]) {
-  const averageCc = getAverageCellConcentration(counts);
-  const stdDevCc = getStdDevCellConcentration(counts);
-
-  let formattedAverageCc = null;
-  if (averageCc !== null) formattedAverageCc = formatNumber(averageCc, 2);
-  if (formattedAverageCc !== null) {
-    if (stdDevCc !== null)
-      formattedAverageCc += ` ${String.fromCharCode(177)} ${formatNumber(
-        stdDevCc,
-        2,
-      )}`;
-    formattedAverageCc += ' cells/mL';
-  }
-
-  return formattedAverageCc;
 }
 
 function getMinCellConcentration(counts: number[]) {
@@ -1299,27 +1269,6 @@ function getMaxCellConcentration(counts: number[]) {
     if (counts[i] > 0) return cyanMetadata[i];
   }
   return null;
-}
-
-function getStdDevCellConcentration(
-  counts: number[],
-  mean: number | null = null,
-) {
-  if (counts.length <= 1) return null;
-
-  const sampleMean = mean ?? getAverageCellConcentration(counts) ?? null;
-
-  if (sampleMean === null) return null;
-
-  const values: number[] = [];
-  counts.forEach((count, i) => {
-    for (let j = 0; j < count; j++) {
-      values.push(cyanMetadata[i]);
-    }
-  });
-  const tss = values.reduce((a, b) => a + (b - sampleMean) ** 2, 0);
-  const variance = tss / (values.length - 1);
-  return Math.sqrt(variance);
 }
 
 function getTotalNonLandPixels(
@@ -1479,39 +1428,12 @@ function CyanDailyContent({
               {
                 label: (
                   <>
-                    <HelpTooltip
-                      label={
-                        <>
-                          Minimum detected value in the waterbody area.
-                          <br />
-                          Values under 6.5K cells/mL cannot be detected by
-                          satellite.
-                        </>
-                      }
-                    />
-                    &nbsp;&nbsp; Minimum Value
-                  </>
-                ),
-                value:
-                  minCc !== null ? `${formatNumber(minCc, 2)} cells/mL` : 'N/A',
-              },
-              {
-                label: (
-                  <>
-                    <HelpTooltip label="Maximum detected value in the waterbody area." />
+                    <HelpTooltip label="Maximum detected cyanobacteria concentration in the satellite image area shown on map." />
                     &nbsp;&nbsp; Maximum Value
                   </>
                 ),
                 value:
                   maxCc !== null ? `${formatNumber(maxCc, 2)} cells/mL` : 'N/A',
-              },
-              {
-                label: (
-                  <span style={{ paddingLeft: '1.5em' }}>
-                    Average and Standard Deviation
-                  </span>
-                ),
-                value: getFormattedAverageCc(data.measurements) ?? 'N/A',
               },
             ]}
             styles={cyanListContentStyles}
@@ -1836,7 +1758,6 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
       },
       emptyBarChartData,
     );
-    console.log(newBarChartData);
     setBarChartData(newBarChartData);
   }, [cellConcentration]);
 

@@ -26,9 +26,9 @@ Highcharts.addEvent(
   },
 );
 
-// const baseFontSize = '14px';
-const baseFontSize = '0.8em';
-const mediumFontSize = '1em';
+const baseFontSize = '14px';
+const mediumFontSize = '16px';
+const smallFontSize = '12px';
 
 export type ColumnSeries = {
   color?: string;
@@ -157,7 +157,7 @@ function ColumnChart({
         enabled: legendEnabled,
         itemMarginTop: 3,
         itemStyle: {
-          fontSize: baseFontSize,
+          fontSize: smallFontSize,
           fontWeight: 'normal',
         },
         labelFormatter: function () {
@@ -165,10 +165,11 @@ function ColumnChart({
             return `<b>${this.name}</b><br />${this.options.custom.description}`;
           } else return `<b>${this.name}</b>`;
         },
+        maxHeight: 150,
         symbolHeight: 10,
         title: {
           style: {
-            fontSize: mediumFontSize,
+            fontSize: baseFontSize,
           },
           text: legendTitle,
         },
@@ -181,10 +182,65 @@ function ColumnChart({
           stacking,
         },
       },
+      responsive: {
+        rules: [
+          {
+            condition: {
+              minWidth: 350,
+            },
+            chartOptions: {
+              legend: {
+                itemStyle: {
+                  fontSize: baseFontSize,
+                },
+                title: {
+                  style: {
+                    fontSize: mediumFontSize,
+                  },
+                },
+              },
+              subtitle: {
+                style: {
+                  fontSize: mediumFontSize,
+                },
+              },
+              tooltip: {
+                style: {
+                  fontSize: baseFontSize,
+                },
+              },
+              xAxis: {
+                labels: {
+                  style: {
+                    fontSize: xLabelFontSize,
+                  },
+                },
+                title: {
+                  style: {
+                    fontSize: baseFontSize,
+                  },
+                },
+              },
+              yAxis: {
+                labels: {
+                  style: {
+                    fontSize: baseFontSize,
+                  },
+                },
+                title: {
+                  style: {
+                    fontSize: mediumFontSize,
+                  },
+                },
+              },
+            },
+          },
+        ],
+      },
       series,
       subtitle: {
         style: {
-          fontSize: mediumFontSize,
+          fontSize: baseFontSize,
         },
         text: subtitle,
       },
@@ -197,7 +253,7 @@ function ColumnChart({
         formatter: tooltipFormatter,
         shared: tooltipShared,
         style: {
-          fontSize: baseFontSize,
+          fontSize: smallFontSize,
           fontWeight: 'bold',
         },
         useHTML: true,
@@ -206,12 +262,12 @@ function ColumnChart({
         categories,
         labels: {
           style: {
-            fontSize: xLabelFontSize,
+            fontSize: smallFontSize,
           },
         },
         title: {
           style: {
-            fontSize: baseFontSize,
+            fontSize: smallFontSize,
           },
           text: xTitle,
         },
@@ -219,7 +275,7 @@ function ColumnChart({
       yAxis: {
         labels: {
           style: {
-            fontSize: baseFontSize,
+            fontSize: smallFontSize,
           },
         },
         max: yMax,
@@ -227,7 +283,7 @@ function ColumnChart({
         reversedStacks,
         title: {
           style: {
-            fontSize: mediumFontSize,
+            fontSize: baseFontSize,
           },
           text: yTitle,
         },
@@ -263,21 +319,20 @@ function ColumnChart({
 export function StackedColumnChart({ xUnit, yUnit, ...props }: Props) {
   const tooltipFormatter = useCallback(
     function (this: Highcharts.TooltipFormatterContextObject) {
-      console.log(this);
       return (
         this.points?.reverse().reduce((s, point) => {
           const customText = point.point.options.custom?.text;
           return (
             s +
             `<tr>
-              <td style="color:${point.color};padding-right:5px">
+              <td style="color:${point.color};padding:0 5px 1px 0">
                 ${point.series.name}:
               </td>
-              <td style="text-align:right">${
+              <td style="text-align:right;padding:0">${
                 yUnit ? point.y + ' ' + yUnit : point.y
               }</td>${
               customText
-                ? '<td style="padding: 0 5px">|</td><td style="text-align:right">' +
+                ? '<td style="padding: 0 5px">|</td><td style="text-align:right;padding:0">' +
                   customText
                 : ''
             }</td>
