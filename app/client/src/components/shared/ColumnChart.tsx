@@ -186,7 +186,7 @@ function ColumnChart({
         rules: [
           {
             condition: {
-              minWidth: 350,
+              minWidth: 350, // Increase font sizes when width exceeds map popup width
             },
             chartOptions: {
               legend: {

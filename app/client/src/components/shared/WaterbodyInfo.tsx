@@ -1177,6 +1177,10 @@ const subheadingStyles = css`
   font-weight: bold;
   padding-bottom: 0.5em;
   padding-top: 1em;
+
+  &.centered {
+    text-align: center;
+  }
 `;
 
 const subheadingBoxStyles = css`
@@ -1255,12 +1259,6 @@ function getAverageNonLandPixelArea(data: CellConcentrationData) {
       0,
     ) / filteredData.length
   );
-}
-
-function getMinCellConcentration(counts: number[]) {
-  if (!counts.length) return null;
-  const minIdx = counts.findIndex((count) => count > 0);
-  return minIdx > -1 ? cyanMetadata[minIdx] : null;
 }
 
 function getMaxCellConcentration(counts: number[]) {
@@ -1390,13 +1388,11 @@ function CyanDailyContent({
       </p>
     );
   } else {
-    const minCc = getMinCellConcentration(data.measurements);
     const maxCc = getMaxCellConcentration(data.measurements);
     return (
       <>
-        <p css={subheadingStyles}>
-          <HelpTooltip label="Statistics are calculated based on only the detected values in the waterbody area (colored areas in map)." />
-          &nbsp;&nbsp; Cyanobacteria Concentration Statistics for{' '}
+        <p className="centered" css={subheadingStyles}>
+          Cyanobacteria Concentration Histogram and Maximum for Selected Date:{' '}
           {formatDate(epochDate)}
         </p>
 
@@ -1779,7 +1775,12 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
         <ListContent
           rows={[
             {
-              label: 'Waterbody Area',
+              label: (
+                <>
+                  <HelpTooltip label="Total area within the light blue polygon shown on the map. This area is more precise than the colored “Satellite Image Pixel Area”, which includes some land within the waterbody border pixels." />
+                  &nbsp;&nbsp; Waterbody Area
+                </>
+              ),
               value: attributes.AREASQKM
                 ? `${formatNumber(
                     squareKmToSquareMi(attributes.AREASQKM),
@@ -1788,7 +1789,12 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                 : '',
             },
             {
-              label: 'Total Satellite Image Pixel Area',
+              label: (
+                <>
+                  <HelpTooltip label="Total area of the satellite image for this waterbody. This is the sum of all pixels in the map image, where each pixel represents a 300m-by-300m area. This area is typically larger than the “Waterbody Area” because it includes waterbody border pixels, which are partially land and partially water." />
+                  &nbsp;&nbsp; Total Satellite Image Pixel Area
+                </>
+              ),
               value: pixelArea ?? 'N/A',
             },
           ]}
