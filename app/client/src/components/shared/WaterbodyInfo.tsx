@@ -1651,7 +1651,6 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
           name: 'Very Low',
           color: '#6c95ce',
           custom: {
-            // description: `${String.fromCharCode(0x2264)} 6,500 cells/mL`,
             description: '< 6,500 cells/mL',
           },
           data: [],
@@ -1792,7 +1791,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
               label: (
                 <>
                   <HelpTooltip label="Total area of the satellite image for this waterbody. This is the sum of all pixels in the map image, where each pixel represents a 300m-by-300m area. This area is typically larger than the “Waterbody Area” because it includes waterbody border pixels, which are partially land and partially water." />
-                  &nbsp;&nbsp; Total Satellite Image Pixel Area
+                  &nbsp;&nbsp; Satellite Image Pixel Area
                 </>
               ),
               value: pixelArea ?? 'N/A',
