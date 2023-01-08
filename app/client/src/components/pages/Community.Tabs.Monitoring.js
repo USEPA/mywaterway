@@ -27,6 +27,7 @@ import {
   waterwayIcon,
 } from 'components/shared/MapLegend';
 import { errorBoxStyles } from 'components/shared/MessageBoxes';
+import ShowLessMore from 'components/shared/ShowLessMore';
 import Switch from 'components/shared/Switch';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import VirtualizedList from 'components/shared/VirtualizedList';
@@ -107,6 +108,10 @@ const modifiedToggleTableStyles = css`
       text-align: left;
     }
   }
+`;
+
+const sectionStyles = css`
+  padding-bottom: 1.5em;
 `;
 
 const sliderContainerStyles = css`
@@ -559,19 +564,30 @@ function Monitoring() {
                 water level, water temperature, dissolved oxygen saturation, and
                 other water quality indicators.
               </p>
-              <p>
-                Areas highlighted light blue are the lakes, reservoirs, and
-                other large waterbodies where CyAN satellite imagery data is
-                available. Daily data are a snapshot of{' '}
-                <GlossaryTerm term="Cyanobacteria">cyanobacteria</GlossaryTerm>{' '}
-                (sometimes referred to as blue-green algae) at the time of
-                detection.
-              </p>
-              <p>
-                Click on each monitoring location on the map or in the list
-                below to find out more about what was monitored at each
-                location.
-              </p>
+              <div css={sectionStyles}>
+                <ShowLessMore
+                  charLimit={0}
+                  text={
+                    <>
+                      <p>
+                        Areas highlighted light blue are the lakes, reservoirs,
+                        and other large waterbodies where CyAN satellite imagery
+                        data is available. Daily data are a snapshot of{' '}
+                        <GlossaryTerm term="Cyanobacteria">
+                          cyanobacteria
+                        </GlossaryTerm>{' '}
+                        (sometimes referred to as blue-green algae) at the time
+                        of detection.
+                      </p>
+                      <p>
+                        Click on each monitoring location on the map or in the
+                        list below to find out more about what was monitored at
+                        each location.
+                      </p>
+                    </>
+                  }
+                />
+              </div>
 
               <div css={legendItemsStyles}>
                 <span>
@@ -610,11 +626,18 @@ function Monitoring() {
                 from as recently as last week, to multiple decades old, or
                 anywhere in between, depending on the location.
               </p>
-              <p>
-                Click on each monitoring location on the map or in the list
-                below to find out more about what was monitored at each
-                location.
-              </p>
+
+              <div css={sectionStyles}>
+                <ShowLessMore
+                  text={
+                    <p>
+                      Click on each monitoring location on the map or in the
+                      list below to find out more about what was monitored at
+                      each location."
+                    </p>
+                  }
+                />
+              </div>
 
               <div css={legendItemsStyles}>
                 <span>

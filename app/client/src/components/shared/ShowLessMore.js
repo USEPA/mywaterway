@@ -27,10 +27,10 @@ const linkButtonStyles = css`
 // --- components ---
 type Props = {
   text: string | ReactNode,
-  charLimit: number,
+  charLimit?: number,
 };
 
-function ShowLessMore({ text, charLimit }: Props) {
+function ShowLessMore({ text, charLimit = 0 }: Props) {
   const [truncated, setTruncated] = useState(true);
 
   if (typeof text === 'string') {

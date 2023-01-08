@@ -7,7 +7,7 @@ import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 // components
 import { HelpTooltip } from 'components/shared/HelpTooltip';
 import { ListContent } from 'components/shared/BoxContent';
-import ColumnChart from 'components/shared/ColumnChart';
+import { Histogram, StackedColumnChart } from 'components/shared/ColumnChart';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -54,6 +54,7 @@ import {
   tableStyles,
 } from 'styles/index.js';
 // types
+import type { ColumnSeries } from 'components/shared/ColumnChart';
 import type { ReactNode } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import type {
@@ -1123,11 +1124,17 @@ function MapPopup({
 
 const cyanListContentStyles = css`
   ${listContentStyles}
+  border-top: none;
+  margin-bottom: 0;
+
+  .row-cell {
+    background-color: initial !important;
+  }
 
   svg.pixel-area-spinner {
     margin-bottom: auto;
     margin-top: auto;
-  } ;
+  }
 `;
 
 const marginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
@@ -1136,6 +1143,7 @@ const marginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
 `;
 
 const showLessMoreStyles = css`
+  margin-top: 1em;
   button {
     margin-bottom: 1.5em;
   }
@@ -1169,6 +1177,10 @@ const subheadingStyles = css`
   font-weight: bold;
   padding-bottom: 0.5em;
   padding-top: 1em;
+
+  &.centered {
+    text-align: center;
+  }
 `;
 
 const subheadingBoxStyles = css`
@@ -1179,28 +1191,27 @@ const subheadingBoxStyles = css`
 const oneDay = 1000 * 60 * 60 * 24;
 
 const pixelAreaKm = (300 * 300) / 10 ** 6;
-const pixelAreaMi = pixelAreaKm * 0.386102;
+const pixelAreaMi = squareKmToSquareMi(pixelAreaKm);
 
 function barChartDataPoint(
-  data: NonNullable<CellConcentrationData[string]>,
+  pixels: number,
+  totalPixels: number,
   totalArea: number,
-  start: number,
-  end?: number,
 ) {
-  const fraction =
-    sumSlice(data.measurements, start, end) / getTotalNonLandPixels(data);
-  const roundedFraction = toFixedFloat(fraction, 5);
+  const roundedTotalArea = toFixedFloat(totalArea);
+  const fraction = pixels / totalPixels;
+  const roundedFraction = toFixedFloat(fraction, 3);
   const percentage = roundedFraction * 100;
   return {
     custom: {
       text: `${toFixedFloat(
         // Calculate from rounded fraction so user calculations match
-        roundedFraction * totalArea,
-        2,
+        roundedFraction * roundedTotalArea,
+        1,
       )} mi${String.fromCodePoint(0x00b2)}`,
     },
     // Round again to account for floating point precision errors
-    y: toFixedFloat(percentage, 3),
+    y: toFixedFloat(percentage, 1),
   };
 }
 
@@ -1221,6 +1232,14 @@ function epochToMonthDay(epoch: number) {
   return `${date.getMonth() + 1}/${date.getDate()}`;
 }
 
+function formatDate(epoch: number) {
+  return new Date(epoch).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
 function getDayOfYear(day: Date) {
   const firstOfYear = new Date(day.getFullYear(), 0, 0);
   const diff =
@@ -1228,17 +1247,6 @@ function getDayOfYear(day: Date) {
     firstOfYear.getTime() +
     (firstOfYear.getTimezoneOffset() - day.getTimezoneOffset()) * 60 * 1000;
   return Math.floor(diff / oneDay);
-}
-
-function getAverageCellConcentration(counts: number[]) {
-  if (!counts.length) return null;
-  let totalCc = 0;
-  let totalCount = 0;
-  for (let i = 0; i < counts.length; i++) {
-    totalCc += counts[i] * cyanMetadata[i];
-    totalCount += counts[i];
-  }
-  return totalCount > 0 ? totalCc / totalCount : null;
 }
 
 function getAverageNonLandPixelArea(data: CellConcentrationData) {
@@ -1253,31 +1261,6 @@ function getAverageNonLandPixelArea(data: CellConcentrationData) {
   );
 }
 
-// Formats a string from the average cell concentration and standard deviation
-function getFormattedAverageCc(counts: number[]) {
-  const averageCc = getAverageCellConcentration(counts);
-  const stdDevCc = getStdDevCellConcentration(counts);
-
-  let formattedAverageCc = null;
-  if (averageCc !== null) formattedAverageCc = formatNumber(averageCc, 2);
-  if (formattedAverageCc !== null) {
-    if (stdDevCc !== null)
-      formattedAverageCc += ` ${String.fromCharCode(177)} ${formatNumber(
-        stdDevCc,
-        2,
-      )}`;
-    formattedAverageCc += ' cells/mL';
-  }
-
-  return formattedAverageCc;
-}
-
-function getMinCellConcentration(counts: number[]) {
-  if (!counts.length) return null;
-  const minIdx = counts.findIndex((count) => count > 0);
-  return minIdx > -1 ? cyanMetadata[minIdx] : null;
-}
-
 function getMaxCellConcentration(counts: number[]) {
   if (!counts.length) return null;
   for (let i = counts.length - 1; i >= 0; i--) {
@@ -1286,32 +1269,15 @@ function getMaxCellConcentration(counts: number[]) {
   return null;
 }
 
-function getStdDevCellConcentration(
-  counts: number[],
-  mean: number | null = null,
-) {
-  if (counts.length <= 1) return null;
-
-  const sampleMean = mean ?? getAverageCellConcentration(counts) ?? null;
-
-  if (sampleMean === null) return null;
-
-  const values: number[] = [];
-  counts.forEach((count, i) => {
-    for (let j = 0; j < count; j++) {
-      values.push(cyanMetadata[i]);
-    }
-  });
-  const tss = values.reduce((a, b) => a + (b - sampleMean) ** 2, 0);
-  const variance = tss / (values.length - 1);
-  return Math.sqrt(variance);
-}
-
 function getTotalNonLandPixels(
   data: NonNullable<CellConcentrationData[string]>,
 ) {
   const { belowDetection, measurements, noData } = data;
   return sum(belowDetection, noData, ...measurements);
+}
+
+function squareKmToSquareMi(km: number) {
+  return km * 0.386102;
 }
 
 // Calculates the sum of an arbitrary number of arguments
@@ -1325,7 +1291,7 @@ function sumSlice(nums: number[], start: number, end?: number) {
 }
 
 // Rounds a float to a specified precision
-function toFixedFloat(num: number, precision: number) {
+function toFixedFloat(num: number, precision: number = 0) {
   if (precision < 0) return num;
   const offset = 10 ** precision;
   return Math.round((num + Number.EPSILON) * offset) / offset;
@@ -1349,25 +1315,7 @@ type CellConcentrationData = {
 
 type ChartData = {
   categories: string[];
-  series: Array<{
-    color?: string;
-    custom?: {
-      description?: string;
-    };
-    data: Array<{
-      custom?: {
-        text: string;
-      };
-      y: number;
-    }>;
-    name: string;
-    type: 'column';
-    zoneAxis?: 'x' | 'y';
-    zones?: Array<{
-      color: string;
-      value?: number;
-    }>;
-  }>;
+  series: ColumnSeries[];
 };
 
 type CyanDailyContentProps = {
@@ -1392,7 +1340,7 @@ function CyanDailyContent({
       const totalPixels = getTotalNonLandPixels(data);
       const totalPixelArea = totalPixels * pixelAreaMi;
       const fraction = count / totalPixels;
-      const roundedFraction = toFixedFloat(fraction, 5);
+      const roundedFraction = toFixedFloat(fraction, 3);
       const percentage = roundedFraction * 100;
 
       return {
@@ -1400,11 +1348,11 @@ function CyanDailyContent({
           text: `${toFixedFloat(
             // Calculate from rounded fraction so user calculations match
             roundedFraction * totalPixelArea,
-            2,
+            1,
           )} mi${String.fromCodePoint(0x00b2)}`,
         },
         // Round again to account for floating point precision errors
-        y: toFixedFloat(percentage, 3),
+        y: toFixedFloat(percentage, 1),
       };
     });
 
@@ -1440,87 +1388,53 @@ function CyanDailyContent({
       </p>
     );
   } else {
-    const minCc = getMinCellConcentration(data.measurements);
     const maxCc = getMaxCellConcentration(data.measurements);
     return (
       <>
-        <p css={subheadingStyles}>
-          <HelpTooltip label="Statistics are calculated based on only the detected values in the waterbody area (colored areas in map)." />
-          &nbsp;&nbsp; Cyanobacteria Concentration Statistics for{' '}
-          {new Date(epochDate).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-          })}
+        <p className="centered" css={subheadingStyles}>
+          Cyanobacteria Concentration Histogram and Maximum for Selected Date:{' '}
+          {formatDate(epochDate)}
         </p>
 
         {histogramData && (
-          <ColumnChart
+          <Histogram
             categories={histogramData.categories}
-            height="300px"
-            histogram
+            exportFilename="CyAN_Histogram"
             series={histogramData.series}
-            subtitle={new Date(epochDate).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            })}
+            subtitle={`
+              Total Satellite Image Area: ${formatNumber(
+                getTotalNonLandPixels(data) * pixelAreaMi,
+              )} mi${String.fromCodePoint(0x00b2)}
+              <br />
+              ${formatDate(epochDate)}
+            `}
             title={`Cell Concentration Histogram for ${waterbodyName}`}
             xTitle="Cell Concentration (cells/mL)"
             xUnit="cells/mL"
             yTitle={`
-              <p>Percent of Detected Bloom Area</p>
-              <p>
-                Total Image Pixel Area: ${formatNumber(
-                  getTotalNonLandPixels(data) * pixelAreaMi,
-                )} mi${String.fromCodePoint(0x00b2)}
-              </p>
+              Percent of Satellite Image Area
             `}
             yUnit="%"
           />
         )}
-        <ListContent
-          rows={[
-            {
-              label: (
-                <>
-                  <HelpTooltip
-                    label={
-                      <>
-                        Minimum detected value in the waterbody area.
-                        <br />
-                        Values under 6.5K cells/mL cannot be detected by
-                        satellite.
-                      </>
-                    }
-                  />
-                  &nbsp;&nbsp; Minimum Value
-                </>
-              ),
-              value:
-                minCc !== null ? `${formatNumber(minCc, 2)} cells/mL` : 'N/A',
-            },
-            {
-              label: (
-                <>
-                  <HelpTooltip label="Maximum detected value in the waterbody area." />
-                  &nbsp;&nbsp; Maximum Value
-                </>
-              ),
-              value:
-                maxCc !== null ? `${formatNumber(maxCc, 2)} cells/mL` : 'N/A',
-            },
-            {
-              label: (
-                <span style={{ paddingLeft: '1.5em' }}>
-                  Average and Standard Deviation
-                </span>
-              ),
-              value: getFormattedAverageCc(data.measurements) ?? 'N/A',
-            },
-          ]}
-          styles={listContentStyles}
-        />
+
+        <div css={textBoxStyles}>
+          <ListContent
+            rows={[
+              {
+                label: (
+                  <>
+                    <HelpTooltip label="Maximum detected cyanobacteria concentration in the satellite image area shown on map." />
+                    &nbsp;&nbsp; Maximum Value
+                  </>
+                ),
+                value:
+                  maxCc !== null ? `${formatNumber(maxCc, 2)} cells/mL` : 'N/A',
+              },
+            ]}
+            styles={cyanListContentStyles}
+          />
+        </div>
       </>
     );
   }
@@ -1734,18 +1648,20 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
       categories: [],
       series: [
         {
-          name: 'Very High',
-          color: '#fa5300',
+          name: 'Very Low',
+          color: '#6c95ce',
           custom: {
-            description: `${String.fromCharCode(0x2265)} 1,000,000 cells/mL`,
+            description: '< 6,500 cells/mL',
           },
           data: [],
           type: 'column',
         },
         {
-          name: 'High',
-          color: '#ffa200',
-          custom: { description: '300,000 - 1,000,000 cells/mL' },
+          name: 'Low',
+          color: '#3700eb',
+          custom: {
+            description: `6,500 - 100,000 cells/mL`,
+          },
           data: [],
           type: 'column',
         },
@@ -1757,48 +1673,80 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
           type: 'column',
         },
         {
-          name: 'Low',
-          color: '#3700eb',
+          name: 'High',
+          color: '#ffa200',
+          custom: { description: '300,000 - 1,000,000 cells/mL' },
+          data: [],
+          type: 'column',
+        },
+        {
+          name: 'Very High',
+          color: '#fa5300',
           custom: {
-            description: `${String.fromCharCode(0x2264)} 100,000 cells/mL`,
+            // description: `${String.fromCharCode(0x2265)} 1,000,000 cells/mL`,
+            description: '> 1,000,000 cells/mL',
           },
+          data: [],
+          type: 'column',
+        },
+        {
+          name: 'Unknown',
+          color: '#858585',
           data: [],
           type: 'column',
         },
       ],
     };
 
+    const totalPixelArea = getAverageNonLandPixelArea(cellConcentration.data);
+
     const newBarChartData = Object.entries(cellConcentration.data).reduce(
       (a, [date, dailyData]) => {
         a.categories.push(epochToMonthDay(parseInt(date)));
 
         if (!dailyData?.measurements) {
-          for (let i = 0; i < 4; i++) a.series[i].data.push({ y: 0 });
+          a.series.forEach((series) => {
+            series.data.push({ y: 0 });
+          });
         } else {
-          const totalPixelArea = getAverageNonLandPixelArea(
-            cellConcentration.data,
-          );
+          const totalPixels = getTotalNonLandPixels(dailyData);
           a.series[0].data.push(
-            barChartDataPoint(dailyData, totalPixelArea, CcIdx.VeryHigh),
+            barChartDataPoint(
+              dailyData.belowDetection,
+              totalPixels,
+              totalPixelArea,
+            ),
           );
           a.series[1].data.push(
             barChartDataPoint(
-              dailyData,
+              sumSlice(dailyData.measurements, CcIdx.Low, CcIdx.Medium),
+              totalPixels,
               totalPixelArea,
-              CcIdx.High,
-              CcIdx.VeryHigh,
             ),
           );
           a.series[2].data.push(
             barChartDataPoint(
-              dailyData,
+              sumSlice(dailyData.measurements, CcIdx.Medium, CcIdx.High),
+              totalPixels,
               totalPixelArea,
-              CcIdx.Medium,
-              CcIdx.High,
             ),
           );
           a.series[3].data.push(
-            barChartDataPoint(dailyData, totalPixelArea, 0, CcIdx.Medium),
+            barChartDataPoint(
+              sumSlice(dailyData.measurements, CcIdx.High, CcIdx.VeryHigh),
+              totalPixels,
+              totalPixelArea,
+            ),
+          );
+          a.series[4].data.push(
+            barChartDataPoint(
+              sumSlice(dailyData.measurements, CcIdx.VeryHigh),
+              totalPixels,
+              totalPixelArea,
+            ),
+          );
+          a.series[5].data.push(
+            barChartDataPoint(dailyData.noData, totalPixels, totalPixelArea),
           );
         }
         return a;
@@ -1822,20 +1770,30 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
 
   return (
     <>
-      <div css={tableStyles} className="table">
+      <div css={textBoxStyles}>
         <ListContent
           rows={[
             {
-              label: 'Waterbody Area',
+              label: (
+                <>
+                  <HelpTooltip label="Total area within the light blue polygon shown on the map. This area is more precise than the colored “Satellite Image Pixel Area”, which includes some land within the waterbody border pixels." />
+                  &nbsp;&nbsp; Waterbody Area
+                </>
+              ),
               value: attributes.AREASQKM
                 ? `${formatNumber(
-                    attributes.AREASQKM,
+                    squareKmToSquareMi(attributes.AREASQKM),
                     2,
-                  )} km${String.fromCodePoint(0x00b2)}`
+                  )} mi${String.fromCodePoint(0x00b2)}`
                 : '',
             },
             {
-              label: 'Satellite Image Pixel Area',
+              label: (
+                <>
+                  <HelpTooltip label="Total area of the satellite image for this waterbody. This is the sum of all pixels in the map image, where each pixel represents a 300m-by-300m area. This area is typically larger than the “Waterbody Area” because it includes waterbody border pixels, which are partially land and partially water." />
+                  &nbsp;&nbsp; Satellite Image Pixel Area
+                </>
+              ),
               value: pixelArea ?? 'N/A',
             },
           ]}
@@ -1851,16 +1809,21 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
           <>
             {barChartData && (
               <>
-                <ColumnChart
+                <StackedColumnChart
                   categories={barChartData.categories}
+                  exportFilename="CyAN_StackedBarChart"
                   legendTitle="Cyanobacteria Concentration Categories:"
                   series={barChartData.series}
-                  title={`Cyanobacteria Estimates for ${attributes.GNIS_NAME}`}
+                  title={`Daily Cyanobacteria Estimates for ${attributes.GNIS_NAME}`}
+                  subtitle={`
+                    Total Satellite Image Area: ${pixelArea}
+                    <br />
+                    ${formatDate(dates[0])} - ${formatDate(
+                    dates[dates.length - 1],
+                  )}
+                  `}
                   yTitle={`
-                  <p>Percent of Detected Bloom Area</p>
-                  <p>
-                    Total Image Pixel Area: ${pixelArea}
-                  </p>
+                  Percent of Satellite Image Area
                 `}
                   yUnit="%"
                 />
