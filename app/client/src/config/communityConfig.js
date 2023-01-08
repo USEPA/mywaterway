@@ -240,11 +240,11 @@ function MonitoringUpper() {
       </p>
 
       <p>
-        Water quality monitoring locations are shown on the map as both purple
-        circles and yellow squares.
+        Explore the map and information below to find out about current and past
+        water conditions.
         <ShowLessMore
           charLimit={0}
-          text=" The yellow squares represent monitoring locations that provide real time water quality measurements for a subset of categories – such as water level, water temperature, dissolved oxygen saturation, and other water quality indicators. The purple circles represent monitoring locations where all other past water conditions data is available for all monitored water quality parameters. These locations may have monitoring data available from as recently as last week, to multiple decades old, or anywhere in between, depending on the location."
+          text=" We define current data as less than one week old, and everything else as past data. The water condition information shown here is estimated using satellite imagery, water quality sensors deployed in the waterbody, and many other diverse monitoring techniques including laboratory analyses."
         />
       </p>
 
@@ -386,7 +386,7 @@ const tabs = [
     lower: <IdentifiedIssues />,
     layers: {
       issuesLayer: true,
-      dischargersLayer: true,
+      dischargersLayer: false,
       monitoringLocationsLayer: false,
       usgsStreamgagesLayer: false,
     },

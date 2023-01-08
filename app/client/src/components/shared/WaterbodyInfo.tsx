@@ -6,15 +6,18 @@ import { useCallback, useEffect, useState } from 'react';
 import SpatialReference from '@arcgis/core/geometry/SpatialReference';
 // components
 import { HelpTooltip } from 'components/shared/HelpTooltip';
-import Histogram from 'components/shared/Histogram';
 import { ListContent } from 'components/shared/BoxContent';
+import { Histogram, StackedColumnChart } from 'components/shared/ColumnChart';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import WaterbodyIcon from 'components/shared/WaterbodyIcon';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
+import {
+  errorBoxStyles,
+  infoBoxStyles,
+  textBoxStyles,
+} from 'components/shared/MessageBoxes';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import { Sparkline } from 'components/shared/Sparkline';
-import StackedBarChart from 'components/shared/StackedBarChart';
 import TickSlider from 'components/shared/TickSlider';
 // utilities
 import { impairmentFields, useFields } from 'config/attainsToHmwMapping';
@@ -51,6 +54,7 @@ import {
   tableStyles,
 } from 'styles/index.js';
 // types
+import type { ColumnSeries } from 'components/shared/ColumnChart';
 import type { ReactNode } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import type {
@@ -1118,12 +1122,28 @@ function MapPopup({
   );
 }
 
+const cyanListContentStyles = css`
+  ${listContentStyles}
+  border-top: none;
+  margin-bottom: 0;
+
+  .row-cell {
+    background-color: initial !important;
+  }
+
+  svg.pixel-area-spinner {
+    margin-bottom: auto;
+    margin-top: auto;
+  }
+`;
+
 const marginBoxStyles = (styles: FlattenSimpleInterpolation) => css`
   ${styles}
   margin: 1em;
 `;
 
 const showLessMoreStyles = css`
+  margin-top: 1em;
   button {
     margin-bottom: 1.5em;
   }
@@ -1154,72 +1174,48 @@ const sliderContainerStyles = css`
 `;
 
 const subheadingStyles = css`
+  font-weight: bold;
   padding-bottom: 0.5em;
   padding-top: 1em;
+
+  &.centered {
+    text-align: center;
+  }
 `;
 
-const sublistContentStyles = css`
-  ${listContentStyles}
-  border-top: 2px solid #d8dfe2;
+const subheadingBoxStyles = css`
+  ${subheadingStyles}
+  padding-top: 0;
 `;
 
 const oneDay = 1000 * 60 * 60 * 24;
 
-function getDayOfYear(day: Date) {
-  const firstOfYear = new Date(day.getFullYear(), 0, 0);
-  const diff =
-    day.getTime() -
-    firstOfYear.getTime() +
-    (firstOfYear.getTimezoneOffset() - day.getTimezoneOffset()) * 60 * 1000;
-  return Math.floor(diff / oneDay);
-}
+const pixelAreaKm = (300 * 300) / 10 ** 6;
+const pixelAreaMi = squareKmToSquareMi(pixelAreaKm);
 
-function getAverageCellConcentration(counts: number[]) {
-  if (!counts.length) return null;
-  let totalCc = 0;
-  let totalCount = 0;
-  for (let i = 0; i < counts.length; i++) {
-    totalCc += counts[i] * cyanMetadata[i];
-    totalCount += counts[i];
-  }
-  return totalCount > 0 ? totalCc / totalCount : null;
-}
-
-function getMinCellConcentration(counts: number[]) {
-  if (!counts.length) return null;
-  const minIdx = counts.findIndex((count) => count > 0);
-  return minIdx > -1 ? cyanMetadata[minIdx] : null;
-}
-
-function getMaxCellConcentration(counts: number[]) {
-  if (!counts.length) return null;
-  for (let i = counts.length - 1; i >= 0; i--) {
-    if (counts[i] > 0) return cyanMetadata[i];
-  }
-  return null;
-}
-
-function getStdDevCellConcentration(
-  counts: number[],
-  mean: number | null = null,
+function barChartDataPoint(
+  pixels: number,
+  totalPixels: number,
+  totalArea: number,
 ) {
-  if (counts.length <= 1) return null;
-
-  const sampleMean = mean ?? getAverageCellConcentration(counts) ?? null;
-
-  if (sampleMean === null) return null;
-
-  const values: number[] = [];
-  counts.forEach((count, i) => {
-    for (let j = 0; j < count; j++) {
-      values.push(cyanMetadata[i]);
-    }
-  });
-  const tss = values.reduce((a, b) => a + (b - sampleMean) ** 2, 0);
-  const variance = tss / (values.length - 1);
-  return Math.sqrt(variance);
+  const roundedTotalArea = toFixedFloat(totalArea);
+  const fraction = pixels / totalPixels;
+  const roundedFraction = toFixedFloat(fraction, 3);
+  const percentage = roundedFraction * 100;
+  return {
+    custom: {
+      text: `${toFixedFloat(
+        // Calculate from rounded fraction so user calculations match
+        roundedFraction * roundedTotalArea,
+        1,
+      )} mi${String.fromCodePoint(0x00b2)}`,
+    },
+    // Round again to account for floating point precision errors
+    y: toFixedFloat(percentage, 1),
+  };
 }
 
+// Converts CyAN `year dayOfYear` format to epoch timestamp
 function cyanDateToEpoch(yearDay: string) {
   const yearAndDay = yearDay.split(' ');
   if (yearAndDay.length !== 2) return null;
@@ -1236,6 +1232,71 @@ function epochToMonthDay(epoch: number) {
   return `${date.getMonth() + 1}/${date.getDate()}`;
 }
 
+function formatDate(epoch: number) {
+  return new Date(epoch).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+function getDayOfYear(day: Date) {
+  const firstOfYear = new Date(day.getFullYear(), 0, 0);
+  const diff =
+    day.getTime() -
+    firstOfYear.getTime() +
+    (firstOfYear.getTimezoneOffset() - day.getTimezoneOffset()) * 60 * 1000;
+  return Math.floor(diff / oneDay);
+}
+
+function getAverageNonLandPixelArea(data: CellConcentrationData) {
+  const filteredData = Object.values(data).filter(
+    (dailyData) => dailyData !== null,
+  ) as Array<NonNullable<CellConcentrationData[string]>>;
+  return (
+    filteredData.reduce(
+      (a, b) => a + getTotalNonLandPixels(b) * pixelAreaMi,
+      0,
+    ) / filteredData.length
+  );
+}
+
+function getMaxCellConcentration(counts: number[]) {
+  if (!counts.length) return null;
+  for (let i = counts.length - 1; i >= 0; i--) {
+    if (counts[i] > 0) return cyanMetadata[i];
+  }
+  return null;
+}
+
+function getTotalNonLandPixels(
+  data: NonNullable<CellConcentrationData[string]>,
+) {
+  const { belowDetection, measurements, noData } = data;
+  return sum(belowDetection, noData, ...measurements);
+}
+
+function squareKmToSquareMi(km: number) {
+  return km * 0.386102;
+}
+
+// Calculates the sum of an arbitrary number of arguments
+function sum(...nums: number[]) {
+  return nums.reduce((a, b) => a + b, 0);
+}
+
+// Calculates the sum of a subarray
+function sumSlice(nums: number[], start: number, end?: number) {
+  return sum(...nums.slice(start, end));
+}
+
+// Rounds a float to a specified precision
+function toFixedFloat(num: number, precision: number = 0) {
+  if (precision < 0) return num;
+  const offset = 10 ** precision;
+  return Math.round((num + Number.EPSILON) * offset) / offset;
+}
+
 enum CcIdx {
   Low = 0,
   Medium = cyanMetadata.findIndex((cc) => cc >= 100_000),
@@ -1244,27 +1305,140 @@ enum CcIdx {
 }
 
 type CellConcentrationData = {
-  [date: string]: number[];
+  [date: string]: {
+    belowDetection: number;
+    land: number;
+    measurements: number[];
+    noData: number;
+  } | null;
 };
 
 type ChartData = {
   categories: string[];
-  series: Array<{
-    color?: string;
-    custom?: {
-      description?: string;
-    };
-    data: number[];
-    name: string;
-    type: 'column';
-    zoneAxis?: 'x' | 'y';
-    zones?: Array<{
-      color: string;
-      value?: number;
-    }>;
-  }>;
+  series: ColumnSeries[];
 };
 
+type CyanDailyContentProps = {
+  data: CellConcentrationData[string];
+  epochDate: number;
+  waterbodyName: string;
+};
+
+function CyanDailyContent({
+  data,
+  epochDate,
+  waterbodyName,
+}: CyanDailyContentProps) {
+  const [histogramData, setHistogramData] = useState<ChartData | null>(null);
+
+  // Calculate statistics for the selected date and
+  // set the data for the daily histogram
+  useEffect(() => {
+    if (!data) return setHistogramData(null);
+
+    const dataPoints = data.measurements.map((count) => {
+      const totalPixels = getTotalNonLandPixels(data);
+      const totalPixelArea = totalPixels * pixelAreaMi;
+      const fraction = count / totalPixels;
+      const roundedFraction = toFixedFloat(fraction, 3);
+      const percentage = roundedFraction * 100;
+
+      return {
+        custom: {
+          text: `${toFixedFloat(
+            // Calculate from rounded fraction so user calculations match
+            roundedFraction * totalPixelArea,
+            1,
+          )} mi${String.fromCodePoint(0x00b2)}`,
+        },
+        // Round again to account for floating point precision errors
+        y: toFixedFloat(percentage, 1),
+      };
+    });
+
+    setHistogramData({
+      categories: cyanMetadata.map((c) => c.toLocaleString()),
+      series: [
+        {
+          name: 'Cell Concentration Counts',
+          data: dataPoints,
+          type: 'column',
+          zoneAxis: 'x',
+          zones: [
+            { color: '#3700eb', value: CcIdx.Medium },
+            { color: '#00bf46', value: CcIdx.High },
+            { color: '#ffa200', value: CcIdx.VeryHigh },
+            { color: '#fa5300' },
+          ],
+        },
+      ],
+    });
+  }, [data]);
+
+  if (!data) {
+    return (
+      <p css={marginBoxStyles(infoBoxStyles)}>
+        There is no CyAN data available for the selected date.
+      </p>
+    );
+  } else if (!sum(...data.measurements)) {
+    return (
+      <p css={marginBoxStyles(infoBoxStyles)}>
+        There is no measureable CyAN data available for the selected date.
+      </p>
+    );
+  } else {
+    const maxCc = getMaxCellConcentration(data.measurements);
+    return (
+      <>
+        <p className="centered" css={subheadingStyles}>
+          Cyanobacteria Concentration Histogram and Maximum for Selected Date:{' '}
+          {formatDate(epochDate)}
+        </p>
+
+        {histogramData && (
+          <Histogram
+            categories={histogramData.categories}
+            exportFilename="CyAN_Histogram"
+            series={histogramData.series}
+            subtitle={`
+              Total Satellite Image Area: ${formatNumber(
+                getTotalNonLandPixels(data) * pixelAreaMi,
+              )} mi${String.fromCodePoint(0x00b2)}
+              <br />
+              ${formatDate(epochDate)}
+            `}
+            title={`Cell Concentration Histogram for ${waterbodyName}`}
+            xTitle="Cell Concentration (cells/mL)"
+            xUnit="cells/mL"
+            yTitle={`
+              Percent of Satellite Image Area
+            `}
+            yUnit="%"
+          />
+        )}
+
+        <div css={textBoxStyles}>
+          <ListContent
+            rows={[
+              {
+                label: (
+                  <>
+                    <HelpTooltip label="Maximum detected cyanobacteria concentration in the satellite image area shown on map." />
+                    &nbsp;&nbsp; Maximum Value
+                  </>
+                ),
+                value:
+                  maxCc !== null ? `${formatNumber(maxCc, 2)} cells/mL` : 'N/A',
+              },
+            ]}
+            styles={cyanListContentStyles}
+          />
+        </div>
+      </>
+    );
+  }
+}
 type CyanContentProps = {
   feature: __esri.Graphic;
   mapView?: __esri.MapView;
@@ -1304,18 +1478,26 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     });
 
     fetchCheck(dataUrl, abortSignal)
-      .then((res: { data: CellConcentrationData }) => {
+      .then((res: { data: { [date: string]: number[] } }) => {
         const newData: CellConcentrationData = {};
         let currentDate = startDate.getTime();
         while (currentDate <= today.getTime() - oneDay) {
-          newData[currentDate] = [];
+          newData[currentDate] = null;
           currentDate += oneDay;
         }
         Object.entries(res.data).forEach(([date, values]) => {
           if (values.length !== 256) return;
           const epochDate = cyanDateToEpoch(date);
           // Indices 0, 254, & 255 represent indetectable pixels
-          if (epochDate !== null) newData[epochDate] = values.slice(1, 254);
+          if (epochDate !== null) {
+            const measurements = values.slice(1, 254);
+            newData[epochDate] = {
+              belowDetection: values[0],
+              measurements,
+              land: values[254],
+              noData: values[255],
+            };
+          }
         });
         setCellConcentration({
           status: 'success',
@@ -1346,7 +1528,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     const newDates = Object.entries(cellConcentration.data).map(
       ([date, data]) => {
         const dateInt = parseInt(date);
-        if (data.find((d) => d > 0)) newSelectedDate = dateInt;
+        if (data?.measurements.find((d) => d > 0)) newSelectedDate = dateInt;
         return dateInt;
       },
     );
@@ -1354,54 +1536,6 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     setDates(newDates);
     setSelectedDate(newSelectedDate);
   }, [cellConcentration]);
-
-  const [minCc, setMinCc] = useState<number | null>(null);
-  const [maxCc, setMaxCc] = useState<number | null>(null);
-  const [averageCc, setAverageCc] = useState<number | null>(null);
-  const [stdDevCc, setStdDevCc] = useState<number | null>(null);
-  const [countCc, setCountCc] = useState<number | null>(null);
-  const [histogramData, setHistogramData] = useState<ChartData | null>(null);
-
-  // Calculate statistics for the selected date and
-  // set the data for the daily histogram
-  useEffect(() => {
-    if (cellConcentration.status !== 'success' || selectedDate === null) {
-      setMinCc(null);
-      setMaxCc(null);
-      setAverageCc(null);
-      setStdDevCc(null);
-      setCountCc(null);
-      setHistogramData(null);
-      return;
-    }
-
-    const selectedData = cellConcentration.data[selectedDate.toString()];
-    setCountCc(
-      selectedData.length ? selectedData.reduce((a, b) => a + b, 0) : null,
-    );
-    setMinCc(getMinCellConcentration(selectedData));
-    setMaxCc(getMaxCellConcentration(selectedData));
-    const newAverageCc = getAverageCellConcentration(selectedData);
-    setAverageCc(newAverageCc);
-    setStdDevCc(getStdDevCellConcentration(selectedData, newAverageCc));
-    setHistogramData({
-      categories: cyanMetadata.map((c) => c.toString()),
-      series: [
-        {
-          name: 'Cell Concentration Counts',
-          data: selectedData,
-          type: 'column',
-          zoneAxis: 'x',
-          zones: [
-            { color: '#3700eb', value: CcIdx.Medium },
-            { color: '#00bf46', value: CcIdx.High },
-            { color: '#ffa200', value: CcIdx.VeryHigh },
-            { color: '#fa5300' },
-          ],
-        },
-      ],
-    });
-  }, [cellConcentration, selectedDate]);
 
   const [imageStatus, setImageStatus] = useState<
     'idle' | 'pending' | 'failure' | 'success'
@@ -1514,18 +1648,20 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
       categories: [],
       series: [
         {
-          name: 'Very High',
-          color: '#fa5300',
+          name: 'Very Low',
+          color: '#6c95ce',
           custom: {
-            description: `${String.fromCharCode(0x2265)} 1,000,000 cells/mL`,
+            description: '< 6,500 cells/mL',
           },
           data: [],
           type: 'column',
         },
         {
-          name: 'High',
-          color: '#ffa200',
-          custom: { description: '300,000 - 1,000,000 cells/mL' },
+          name: 'Low',
+          color: '#3700eb',
+          custom: {
+            description: `6,500 - 100,000 cells/mL`,
+          },
           data: [],
           type: 'column',
         },
@@ -1537,32 +1673,82 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
           type: 'column',
         },
         {
-          name: 'Low',
-          color: '#3700eb',
+          name: 'High',
+          color: '#ffa200',
+          custom: { description: '300,000 - 1,000,000 cells/mL' },
+          data: [],
+          type: 'column',
+        },
+        {
+          name: 'Very High',
+          color: '#fa5300',
           custom: {
-            description: `${String.fromCharCode(0x2264)} 100,000 cells/mL`,
+            // description: `${String.fromCharCode(0x2265)} 1,000,000 cells/mL`,
+            description: '> 1,000,000 cells/mL',
           },
+          data: [],
+          type: 'column',
+        },
+        {
+          name: 'Unknown',
+          color: '#858585',
           data: [],
           type: 'column',
         },
       ],
     };
 
+    const totalPixelArea = getAverageNonLandPixelArea(cellConcentration.data);
+
     const newBarChartData = Object.entries(cellConcentration.data).reduce(
-      (a, [date, ccCounts]) => {
+      (a, [date, dailyData]) => {
         a.categories.push(epochToMonthDay(parseInt(date)));
-        a.series[0].data.push(
-          ccCounts.slice(CcIdx.VeryHigh).reduce((x, y) => x + y, 0),
-        );
-        a.series[1].data.push(
-          ccCounts.slice(CcIdx.High, CcIdx.VeryHigh).reduce((x, y) => x + y, 0),
-        );
-        a.series[2].data.push(
-          ccCounts.slice(CcIdx.Medium, CcIdx.High).reduce((x, y) => x + y, 0),
-        );
-        a.series[3].data.push(
-          ccCounts.slice(0, CcIdx.Medium).reduce((x, y) => x + y, 0),
-        );
+
+        if (!dailyData?.measurements) {
+          a.series.forEach((series) => {
+            series.data.push({ y: 0 });
+          });
+        } else {
+          const totalPixels = getTotalNonLandPixels(dailyData);
+          a.series[0].data.push(
+            barChartDataPoint(
+              dailyData.belowDetection,
+              totalPixels,
+              totalPixelArea,
+            ),
+          );
+          a.series[1].data.push(
+            barChartDataPoint(
+              sumSlice(dailyData.measurements, CcIdx.Low, CcIdx.Medium),
+              totalPixels,
+              totalPixelArea,
+            ),
+          );
+          a.series[2].data.push(
+            barChartDataPoint(
+              sumSlice(dailyData.measurements, CcIdx.Medium, CcIdx.High),
+              totalPixels,
+              totalPixelArea,
+            ),
+          );
+          a.series[3].data.push(
+            barChartDataPoint(
+              sumSlice(dailyData.measurements, CcIdx.High, CcIdx.VeryHigh),
+              totalPixels,
+              totalPixelArea,
+            ),
+          );
+          a.series[4].data.push(
+            barChartDataPoint(
+              sumSlice(dailyData.measurements, CcIdx.VeryHigh),
+              totalPixels,
+              totalPixelArea,
+            ),
+          );
+          a.series[5].data.push(
+            barChartDataPoint(dailyData.noData, totalPixels, totalPixelArea),
+          );
+        }
         return a;
       },
       emptyBarChartData,
@@ -1570,36 +1756,48 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
     setBarChartData(newBarChartData);
   }, [cellConcentration]);
 
-  // Display the average cell concentration alongside the standard deviation
-  let formattedAverageCc = null;
-  if (averageCc !== null) formattedAverageCc = formatNumber(averageCc, 2);
-  if (formattedAverageCc !== null) {
-    if (stdDevCc !== null)
-      formattedAverageCc += ` ${String.fromCharCode(177)} ${formatNumber(
-        stdDevCc,
-        2,
-      )}`;
-    formattedAverageCc += ' cells/mL';
-  }
-
   const handleSliderChange = useCallback((value) => setSelectedDate(value), []);
+
+  // Calculate the total pixel area if there is cell concentration data
+  let pixelArea = null;
+  if (cellConcentration.status === 'pending') {
+    pixelArea = <LoadingSpinner className="pixel-area-spinner" />;
+  } else if (cellConcentration.status === 'success') {
+    pixelArea = `${formatNumber(
+      getAverageNonLandPixelArea(cellConcentration.data),
+    )} mi${String.fromCodePoint(0x00b2)}`;
+  }
 
   return (
     <>
-      <div css={tableStyles} className="table">
+      <div css={textBoxStyles}>
         <ListContent
           rows={[
             {
-              label: 'Waterbody Area',
+              label: (
+                <>
+                  <HelpTooltip label="Total area within the light blue polygon shown on the map. This area is more precise than the colored “Satellite Image Pixel Area”, which includes some land within the waterbody border pixels." />
+                  &nbsp;&nbsp; Waterbody Area
+                </>
+              ),
               value: attributes.AREASQKM
                 ? `${formatNumber(
-                    attributes.AREASQKM,
+                    squareKmToSquareMi(attributes.AREASQKM),
                     2,
-                  )} km${String.fromCodePoint(0x00b2)}`
+                  )} mi${String.fromCodePoint(0x00b2)}`
                 : '',
             },
+            {
+              label: (
+                <>
+                  <HelpTooltip label="Total area of the satellite image for this waterbody. This is the sum of all pixels in the map image, where each pixel represents a 300m-by-300m area. This area is typically larger than the “Waterbody Area” because it includes waterbody border pixels, which are partially land and partially water." />
+                  &nbsp;&nbsp; Satellite Image Pixel Area
+                </>
+              ),
+              value: pixelArea ?? 'N/A',
+            },
           ]}
-          styles={listContentStyles}
+          styles={cyanListContentStyles}
         />
       </div>
       <>
@@ -1610,51 +1808,72 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
         {cellConcentration.status === 'success' && (
           <>
             {barChartData && (
-              <StackedBarChart
-                caption="The categories in this figure are included to assist the user in visually understanding the concentration values. Please review the World Health Organization (WHO) guide, <i><a target='_blank' href='https://www.who.int/publications/m/item/toxic-cyanobacteria-in-water---second-edition'>Toxic cyanobacteria in water - Second edition</a></i>, for information on potential health impacts."
-                categories={barChartData.categories}
-                legendTitle="Cyanobacteria Concentration Categories:"
-                series={barChartData.series}
-                title={`Daily Cyanobacteria Estimates for ${attributes.GNIS_NAME}`}
-                yTitle="
-                    <p>
-                      Number of Image Pixels
-                      <br />
-                      (each pixel represents a 300x300 meter area)
-                    </p>
-                  "
-                xTitle="Date"
-              />
+              <>
+                <StackedColumnChart
+                  categories={barChartData.categories}
+                  exportFilename="CyAN_StackedBarChart"
+                  legendTitle="Cyanobacteria Concentration Categories:"
+                  series={barChartData.series}
+                  title={`Daily Cyanobacteria Estimates for ${attributes.GNIS_NAME}`}
+                  subtitle={`
+                    Total Satellite Image Area: ${pixelArea}
+                    <br />
+                    ${formatDate(dates[0])} - ${formatDate(
+                    dates[dates.length - 1],
+                  )}
+                  `}
+                  yTitle={`
+                  Percent of Satellite Image Area
+                `}
+                  yUnit="%"
+                />
+                <p>
+                  The categories in this figure are included to assist the user
+                  in visually understanding the concentration values. Please
+                  review the World Health Organization (WHO) guide,{' '}
+                  <i>
+                    <a
+                      rel="noreferrer"
+                      target="_blank"
+                      href="https://www.who.int/publications/m/item/toxic-cyanobacteria-in-water---second-edition"
+                    >
+                      Toxic cyanobacteria in water - Second edition
+                    </a>
+                  </i>
+                  , for information on potential health impacts.
+                </p>
+              </>
             )}
 
-            {/* A null `selectedDate` means no date with data was found */}
+            {/* If `selectedDate` is null, no date with data was found */}
             {selectedDate ? (
               <>
-                <p css={subheadingStyles}>
-                  <HelpTooltip
-                    label={
-                      <>
-                        Adjust the slider handle to view the day's CyAN
-                        satellite imagery on the map.
-                        <br />
-                        Data for the previous day typically becomes available
-                        between 9 - 11am EST.
-                      </>
-                    }
-                  />
-                  &nbsp;&nbsp;
-                  <b>Date Selection:</b>
-                </p>
+                <div css={textBoxStyles}>
+                  <p css={subheadingBoxStyles}>
+                    <HelpTooltip
+                      label={
+                        <>
+                          Adjust the slider handle to view the day's CyAN
+                          satellite imagery on the map.
+                          <br />
+                          Data for the previous day typically becomes available
+                          between 9 - 11am EST.
+                        </>
+                      }
+                    />
+                    &nbsp;&nbsp; Date Selection:
+                  </p>
 
-                <div css={sliderContainerStyles}>
-                  <TickSlider
-                    getTickLabel={epochToMonthDay}
-                    loading={imageStatus === 'pending'}
-                    onChange={handleSliderChange}
-                    steps={dates}
-                    stepSize={oneDay}
-                    value={selectedDate}
-                  />
+                  <div css={sliderContainerStyles}>
+                    <TickSlider
+                      getTickLabel={epochToMonthDay}
+                      loading={imageStatus === 'pending'}
+                      onChange={handleSliderChange}
+                      steps={dates}
+                      stepSize={oneDay}
+                      value={selectedDate}
+                    />
+                  </div>
                 </div>
 
                 {imageStatus === 'failure' && (
@@ -1664,97 +1883,11 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
                   </p>
                 )}
 
-                <p css={subheadingStyles}>
-                  <HelpTooltip label="Statistics are calculated based on only the detected values in the waterbody area (colored areas in map)." />
-                  &nbsp;&nbsp; Cyanobacteria Concentration Statistics for{' '}
-                  <b>
-                    {new Date(selectedDate).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </b>
-                </p>
-                {countCc === null || countCc === 0 ? (
-                  <p css={marginBoxStyles(infoBoxStyles)}>
-                    {countCc === null
-                      ? 'CyAN data is not yet available for the selected date. Please try again later.'
-                      : 'There is no CyAN data available for the selected date.'}
-                  </p>
-                ) : (
-                  <>
-                    <ListContent
-                      rows={[
-                        {
-                          label: (
-                            <>
-                              <HelpTooltip
-                                label={
-                                  <>
-                                    Minimum detected value in the waterbody
-                                    area.
-                                    <br />
-                                    Values under 6.5K cells/mL cannot be
-                                    detected by satellite.
-                                  </>
-                                }
-                              />
-                              &nbsp;&nbsp; Minimum Value
-                            </>
-                          ),
-                          value:
-                            minCc !== null
-                              ? `${formatNumber(minCc, 2)} cells/mL`
-                              : 'N/A',
-                        },
-                        {
-                          label: (
-                            <>
-                              <HelpTooltip label="Maximum detected value in the waterbody area." />
-                              &nbsp;&nbsp; Maximum Value
-                            </>
-                          ),
-                          value:
-                            maxCc !== null
-                              ? `${formatNumber(maxCc, 2)} cells/mL`
-                              : 'N/A',
-                        },
-                        {
-                          label: (
-                            <span style={{ paddingLeft: '1.5em' }}>
-                              Average
-                            </span>
-                          ),
-                          value: formattedAverageCc ?? 'N/A',
-                        },
-                      ]}
-                      styles={sublistContentStyles}
-                    />
-                    {histogramData && (
-                      <Histogram
-                        categories={histogramData.categories}
-                        series={histogramData.series}
-                        subtitle={new Date(selectedDate).toLocaleDateString(
-                          'en-US',
-                          {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          },
-                        )}
-                        title={`Cell Concentration Histogram for ${attributes.GNIS_NAME}`}
-                        yTitle="
-                        <p>
-                          Number of Image Pixels
-                          <br />
-                          (each pixel represents a 300x300 meter area)
-                        </p>
-                      "
-                        xTitle="Cell Concentration (cells/mL)"
-                      />
-                    )}
-                  </>
-                )}
+                <CyanDailyContent
+                  data={cellConcentration.data[selectedDate.toString()]}
+                  epochDate={selectedDate}
+                  waterbodyName={attributes.GNIS_NAME}
+                />
               </>
             ) : (
               <p css={marginBoxStyles(infoBoxStyles)}>
@@ -1767,7 +1900,7 @@ function CyanContent({ feature, mapView, services }: CyanContentProps) {
       </>
 
       <div css={showLessMoreStyles}>
-        <h3>Data Accuracy:</h3>
+        <h3>Information on Data Accuracy:</h3>
         <ShowLessMore
           charLimit={0}
           text={

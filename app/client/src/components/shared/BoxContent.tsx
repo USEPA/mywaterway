@@ -20,12 +20,12 @@ const flexRowStyles = css`
   justify-content: flex-start;
   width: 100%;
 
-  &:last-of-type {
-    border-bottom: none;
-  }
-
   &:first-of-type {
     border-bottom: 1px solid #d8dfe2;
+  }
+
+  &:last-of-type {
+    border-bottom: none;
   }
 
   .row-label {
@@ -42,12 +42,12 @@ const gridStyles = css`
     border-bottom: 1px solid #d8dfe2;
     width: 100%;
 
-    &:nth-last-of-type(-n + 2) {
-      border-bottom: none;
-    }
-
     &:nth-of-type(-n + 2) {
       border-bottom: 1px solid #d8dfe2;
+    }
+
+    &:nth-last-of-type(-n + 2) {
+      border-bottom: none;
     }
   }
 `;
