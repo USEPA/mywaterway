@@ -1,6 +1,25 @@
 
 # Change Log
 
+## 2.5.0 (January 2023)
+
+### Added
+
+- Added a CyAN satellite imagery data to the "Current Water Conditions" tab of the "Monitoring" panel.
+
+### Changed
+
+- Renamed the "Current Water Conditions" layer to "USGS Sensors".
+
+- Updated the "Monitoring" panel, such that the "Past Water Conditions" layer is off by default. Clicking the "Past Water Conditions" tab turns the layer on.
+
+- Updated the list of tips on the "Tips for Protecting Your Watershed" (formerly "Tips") tab of the "Protect" panel.
+
+- Updated the "Overview" panel, such that clicking the tabs automatically turns the associated layer on.
+
+- Fixed a bug where the waterbody counts did not match up with the number of items in the list view for some locations.
+
+
 ## 2.4.0 (November 2022)
 
 ### Added
