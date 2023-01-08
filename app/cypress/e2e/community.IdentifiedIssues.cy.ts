@@ -32,7 +32,7 @@ describe('Identified Issues Tab', () => {
     );
   });
 
-  it('Clicking the Dischargers switch toggles the switch off', () => {
+  it('Clicking the Dischargers switch toggles the switch on', () => {
     // navigate to Identified Issues tab of Community page
     cy.findByPlaceholderText('Search by address', { exact: false }).type(
       '020700100102',
@@ -50,7 +50,7 @@ describe('Identified Issues Tab', () => {
     cy.findByLabelText('Toggle Dischargers Layer').should(
       'have.attr',
       'aria-checked',
-      'false',
+      'true',
     );
   });
 

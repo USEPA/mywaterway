@@ -137,4 +137,36 @@ describe('Monitoring Tab', () => {
 
     cy.findAllByText(pfasLocation).should('exist');
   });
+
+  it('Verify CyAN data displayed', () => {
+    // navigate to Monitoring tab of Community page
+    cy.findByPlaceholderText('Search by address', { exact: false }).type(
+      '030901011701',
+    );
+    cy.findByText('Go').click();
+
+    cy.findByText('Monitoring').click();
+
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    // this triggers the virtualized list to load
+    cy.scrollTo('bottom');
+
+    cy.findAllByText('Lake Jackson').click();
+
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 120000 }).should(
+      'not.exist',
+    );
+
+    cy.findAllByText('Daily Cyanobacteria Estimates for Lake Jackson', {
+      exact: false,
+    }).should('be.visible');
+
+    cy.findAllByText(
+      'Cyanobacteria Concentration Histogram and Maximum for Selected Date:',
+      { exact: false },
+    ).should('be.visible');
+  });
 });
