@@ -11,11 +11,11 @@
 
 - Renamed the "Current Water Conditions" layer to "USGS Sensors".
 
+- Updated the "Overview" panel, such that clicking the tabs automatically turns the associated layer on.
+
 - Updated the "Monitoring" panel, such that the "Past Water Conditions" layer is off by default. Clicking the "Past Water Conditions" tab turns the layer on.
 
 - Updated the list of tips on the "Tips for Protecting Your Watershed" (formerly "Tips") tab of the "Protect" panel.
-
-- Updated the "Overview" panel, such that clicking the tabs automatically turns the associated layer on.
 
 - Fixed a bug where the waterbody counts did not match up with the number of items in the list view for some locations.
 
