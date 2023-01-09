@@ -54,6 +54,14 @@
   "ejscreen": "https://geopub.epa.gov/arcgis/rest/services/ejscreen/Demographic_Indicators_2018_Public/MapServer/",
   "sfdw": "https://ordspub.epa.gov/ords/sfdw/",
   "landCover": "https://www.mrlc.gov/geoserver/mrlc_display/NLCD_2019_Land_Cover_L48/wms?service=WMS&request=GetCapabilities",
+  "cyan": {
+    "application": "https://qed.epa.gov/cyanweb",
+    "cellConcentration": "https://qed.epa.gov/waterbody/data",
+    "dataDownload": "https://qed.epa.gov/waterbody/data_download",
+    "images": "https://qed.epa.gov/waterbody/image",
+    "properties": "https://qed.epa.gov/waterbody/properties",
+    "waterbodies": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/waterbodies_9/FeatureServer/0"
+  },
   "googleAnalyticsMapping": [
     {
       "urlLookup": "attains.serviceUrl",
@@ -344,6 +352,36 @@
       "urlLookup": "usgsWaterAlert",
       "wildcardUrl": "{urlLookup}*",
       "name": "USGS Water Alert"
+    },
+    {
+      "urlLookup": "cyan.application",
+      "wildcardUrl": "{urlLookup}/*",
+      "name": "CyAN - web application"
+    },
+    {
+      "urlLookup": "cyan.waterbodies",
+      "wildcardUrl": "{urlLookup}/*",
+      "name": "CyAN - waterbodies"
+    },
+    {
+      "urlLookup": "cyan.cellConcentration",
+      "wildcardUrl": "{urlLookup}/*",
+      "name": "CyAN - cell concentration"
+    },
+    {
+      "urlLookup": "cyan.images",
+      "wildcardUrl": "{urlLookup}/*",
+      "name": "CyAN - satellite images"
+    },
+    {
+      "urlLookup": "cyan.properties",
+      "wildcardUrl": "{urlLookup}/*",
+      "name": "CyAN - properties"
+    },
+    {
+      "urlLookup": "cyan.dataDownload",
+      "wildcardUrl": "{urlLookup}/*",
+      "name": "CyAN - data download"
     }
   ]
 }

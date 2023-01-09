@@ -1,3 +1,4 @@
+import Color from '@arcgis/core/Color';
 import React, { Component, createContext } from 'react';
 import type { ReactNode } from 'react';
 import type { MonitoringLocationsData } from 'types';
@@ -8,7 +9,7 @@ type Props = {
   children: ReactNode,
 };
 
-type Status = 'fetching' | 'success' | 'failure';
+type Status = 'idle' | 'fetching' | 'success' | 'failure' | 'pending';
 
 type MonitoringLocationGroups = {
   [label: string]: {
@@ -125,7 +126,7 @@ type State = {
   initialExtent: Object,
   currentExtent: Object,
   upstreamExtent: Object,
-  highlighOptions: Object,
+  highlightOptions: Object,
   searchText: string,
   lastSearchText: string,
   huc12: string,
@@ -170,6 +171,7 @@ type State = {
   waterbodyData: Array<Object>,
   linesData: Array<Object>,
   areasData: Array<Object>,
+  cyanWaterbodies: { status: Status, data: Array<Object> | null },
   pointsData: Array<Object>,
   orphanFeatures: Array<Object>,
   waterbodyCountMismatch: boolean,
@@ -205,8 +207,10 @@ export class LocationSearchProvider extends Component<Props, State> {
     currentExtent: '',
     upstreamExtent: '',
     highlightOptions: {
-      color: [50, 197, 253, 0.5],
-      fillOpacity: 1,
+      color: new Color([50, 197, 253]),
+      fillOpacity: 0.1,
+      haloColor: new Color([50, 197, 253]),
+      haloOpacity: 1,
     },
     searchText: '',
     lastSearchText: '',
@@ -260,6 +264,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     linesData: null,
     areasData: null,
     pointsData: null,
+    cyanWaterbodies: { status: 'idle', data: null },
     orphanFeatures: { status: 'fetching', features: [] },
     waterbodyCountMismatch: null,
     FIPS: { status: 'fetching', stateCode: '', countyCode: '' },
@@ -504,6 +509,9 @@ export class LocationSearchProvider extends Component<Props, State> {
     setPointsData: (pointsData) => {
       this.setState({ pointsData });
     },
+    setCyanWaterbodies: (cyanWaterbodies) => {
+      this.setState({ cyanWaterbodies });
+    },
     setGrts: (grts) => {
       this.setState({ grts });
     },
@@ -703,6 +711,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         pointsData: null,
         linesData: null,
         areasData: null,
+        cyanWaterbodies: { status: 'idle', data: null },
         orphanFeatures: { status: 'fetching', features: [] },
         waterbodyCountMismatch: null,
         countyBoundaries: '',
@@ -736,6 +745,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         pointsData: [],
         linesData: [],
         areasData: [],
+        cyanWaterbodies: { status: 'success', data: [] },
         orphanFeatures: { status: 'fetching', features: [] },
         waterbodyCountMismatch: null,
         countyBoundaries: '',

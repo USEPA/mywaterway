@@ -29,7 +29,7 @@ const buttonStyles = css`
 
 type Props = {
   feature: Object,
-  fieldName?: ?fieldName,
+  fieldName?: string,
   idField?: string,
   layers?: Array<Object>,
   customQuery?: Function,

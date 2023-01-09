@@ -176,6 +176,12 @@ const buttonContainerStyles = css`
   padding-left: 0.75rem;
 `;
 
+const subTitleStyles = css`
+  display: block;
+  font-size: 16px;
+  line-height: 1.25;
+`;
+
 function Protect() {
   const services = useServicesContext();
 
@@ -607,7 +613,7 @@ function Protect() {
         >
           <TabList>
             <Tab>Watershed Health and Protection</Tab>
-            <Tab>Tips</Tab>
+            <Tab>Tips for Protecting Your Watershed</Tab>
           </TabList>
           <TabPanels>
             <TabPanel>
@@ -1469,64 +1475,53 @@ function Protect() {
 
               <p>Get quick tips for protecting water in your:</p>
 
-              <h2>Community</h2>
-
-              <ul>
-                <li>Contribute to local water cleanup efforts.</li>
-                <li>Find a watershed protection organization to support.</li>
-                <li>Volunteer to help monitor water quality.</li>
-                <li>
-                  Lead a campaign to educate your community about impairment
-                  from nonpoint sources, like stormwater.
-                </li>
-                <li>
-                  Sponsor a watershed festival in your community to raise
-                  awareness about the importance of watershed protection.
-                </li>
-                <li>See how your state is protecting your waters.</li>
-              </ul>
-
-              <h2>School</h2>
-
-              <ul>
-                <li>Adopt your watershed.</li>
-                <li>
-                  Teach students about watershed protection by showing the
-                  “After the Storm” television special and using other resources
-                  from EPA’s Watershed Academy.
-                </li>
-                <li>
-                  <a
-                    href="https://www.epa.gov/schools"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Find other ways to make a difference in your school.
-                  </a>
-                </li>
-              </ul>
-
-              <h2>Yard</h2>
+              <h2>
+                Home and Yard
+                <i css={subTitleStyles}>
+                  Sustainable landscaping to conserve water and protect the
+                  natural functioning ecosystem
+                </i>
+              </h2>
 
               <ul>
                 <li>
                   <a
-                    href="https://www.epa.gov/nutrientpollution/what-you-can-do-your-yard"
+                    href="https://www.epa.gov/system/files/documents/2021-12/ws-outdoor-water-smart-landscapes.pdf"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Use fertilizer responsibly.
+                    Use water-smart landscaping (PDF)
                   </a>
+                  .
                 </li>
-                <li>Don’t overwater gardens and yards.</li>
+                <ul>
+                  <li>
+                    Make sure your sprinklers water the lawn and garden – not
+                    the street or sidewalk.
+                  </li>
+                  <li>
+                    Water plants in the evening when it’s cooler to reduce
+                    evaporation.
+                  </li>
+                  <li>
+                    Adding{' '}
+                    <GlossaryTerm term="organic matter">
+                      organic matter
+                    </GlossaryTerm>{' '}
+                    or eco-friendly mulch helps soil retain moisture. This
+                    reduces the need for extra irrigation.
+                  </li>
+                </ul>
                 <li>
                   <a
                     href="https://www.epa.gov/watersense/what-plant"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Landscape with native plants.
+                    Plant water-efficient species within the hardiness zone for
+                    your area
                   </a>
+                  . These plants require less management and resources.
                 </li>
                 <li>
                   <a
@@ -1534,36 +1529,387 @@ function Protect() {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Reduce runoff.
+                    Reduce runoff and stormwater pollution
                   </a>
+                  .
                 </li>
+                <ul>
+                  <li>
+                    Learn about the danger of over-fertilization and use
+                    fertilizer responsibly. Consider using organic or
+                    slow-release fertilizer.
+                  </li>
+                  <li>
+                    Consider using{' '}
+                    <a
+                      href="https://www.epa.gov/green-infrastructure"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      green infrastructure
+                    </a>
+                    . For example, installing a{' '}
+                    <a
+                      href="https://www.epa.gov/soakuptherain/soak-rain-rain-gardens"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      rain garden
+                    </a>{' '}
+                    can collect and absorb runoff from rooftops, sidewalks, and
+                    streets.
+                  </li>
+                </ul>
                 <li>
+                  Create a{' '}
                   <a
-                    href="https://www.epa.gov/safepestcontrol/lawn-and-garden"
+                    href="https://www.epa.gov/recycle/composting-home"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Find other ways to make a difference in your yard.
+                    compost bin
+                  </a>{' '}
+                  to recycle yard and food waste. Compost can be used as a
+                  natural fertilizer and reduces land fill waste.
+                </li>
+                <li>
+                  Find other ways to{' '}
+                  <a
+                    href="https://www.epa.gov/nutrientpollution/what-you-can-do-your-yard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    make a difference in your yard
                   </a>
+                  .
                 </li>
               </ul>
 
-              <h2>Home</h2>
+              <h2>
+                <i css={subTitleStyles}>
+                  Conserve water and prevent pollutants from entering waterways
+                </i>
+              </h2>
 
               <ul>
-                <li>Choose phosphate-free soaps and detergents.</li>
-                <li>Pick up after your pet.</li>
                 <li>
                   <a
-                    href="https://www.epa.gov/watersense"
+                    href="https://www.epa.gov/hw/household-hazardous-waste-hhw"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Use water efficiently.
+                    Dispose of potentially harmful materials properly
                   </a>
+                  .
+                </li>
+                <ul>
+                  <li>
+                    Do not pour oil, antifreeze, or other harmful chemicals into
+                    the storm drain or the street.
+                  </li>
+                  <li>
+                    Do not pour cleaners or other toxic household chemicals down
+                    the drain.
+                  </li>
+                </ul>
+                <li>Turn off the faucet when scrubbing dishes.</li>
+                <li>
+                  Turn off the faucet when you are washing your face or brushing
+                  your teeth.
+                </li>
+                <li>Fix any leaky faucets or toilets.</li>
+                <li>Only do laundry when you have a full load.</li>
+                <li>
+                  Use{' '}
+                  <a
+                    href="https://www.epa.gov/watersense/watersense-products"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    energy and water-efficient appliances
+                  </a>
+                  , such as dishwashers, laundry machines, and toilets.
+                </li>
+                <li>
+                  Consider reducing{' '}
+                  <GlossaryTerm term="impervious surfaces">
+                    impervious surfaces
+                  </GlossaryTerm>{' '}
+                  by{' '}
+                  <a
+                    href="https://www.epa.gov/soakuptherain/soak-rain-permeable-pavement"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    installing permeable pavement
+                  </a>
+                  , which can help to filter out pollutants and promote water
+                  infiltration.
+                </li>
+                <li>
+                  <a
+                    href="https://cfpub.epa.gov/npstbx/files/pet%20care%20fact%20sheet.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Pick up after your pet to prevent bacterial contamination in
+                    our waterways (PDF)
+                  </a>
+                  .
                 </li>
                 <li>Wash your car on your lawn or in commercial car washes.</li>
-                <li>Find other ways to make a difference in your home.</li>
+                <li>
+                  Find other ways to{' '}
+                  <a
+                    href="https://www.epa.gov/nutrientpollution/what-you-can-do-your-home"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    make a difference in your home
+                  </a>
+                  .
+                </li>
+              </ul>
+
+              <h2>
+                Community
+                <i css={subTitleStyles}>Get involved in your local watershed</i>
+              </h2>
+
+              <ul>
+                <li>
+                  Volunteer at a{' '}
+                  <a
+                    href="https://www.rivernetwork.org/membership/map-who-is-protecting-your-water/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    watershed protection organization
+                  </a>{' '}
+                  near you or{' '}
+                  <a
+                    href="https://www.sourcewatercollaborative.org/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    consider starting one
+                  </a>
+                  !
+                </li>
+                <li>
+                  Look online for community events near you. Attend a beach,
+                  stream, wetland, or neighborhood clean-up or a tree-planting.
+                </li>
+                <li>
+                  Join the{' '}
+                  <a
+                    href="https://www.epa.gov/awma/volunteer-monitoring"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Volunteer Monitoring Community
+                  </a>{' '}
+                  to get involved in events and efforts near you.
+                </li>
+                <li>
+                  Get involved in{' '}
+                  <a
+                    href="https://www.epa.gov/participatory-science/resources-participatory-science-projects"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Participatory Science Projects and citizen science
+                  </a>{' '}
+                  events.
+                </li>
+                <li>
+                  Find a{' '}
+                  <a
+                    href="https://www.rivernetwork.org/membership/map-who-is-protecting-your-water"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    watershed protection organization
+                  </a>{' '}
+                  to support and get involved with.
+                </li>
+                <li>
+                  Find other ways to{' '}
+                  <a
+                    href="https://www.epa.gov/nutrientpollution/what-you-can-do-your-community"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    make a difference in your community
+                  </a>
+                  .
+                </li>
+              </ul>
+
+              <h2>
+                <i css={subTitleStyles}>School and Work</i>
+              </h2>
+
+              <ul>
+                <li>
+                  Host a campus clean-up to remove litter and trash around your
+                  school.
+                </li>
+                <li>
+                  Join or start an environmental club at your school and
+                  incorporate water protection activities around campus.
+                </li>
+                <li>
+                  Consider walking, biking, or taking the bus to school and work
+                  – many pollutants in our water come from vehicle exhaust and
+                  leakage.
+                </li>
+                <li>
+                  Start a school garden to learn more about water conservation
+                  (and enjoy some fresh fruits and vegetables, too).
+                </li>
+                <li>
+                  Visit the USGS{' '}
+                  <a
+                    href="https://www.usgs.gov/special-topics/water-science-school"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Water Science School
+                  </a>{' '}
+                  for learning resources, tools, and more.
+                </li>
+                <li>
+                  Visit EPA’s{' '}
+                  <a
+                    href="https://www.epa.gov/watershedacademy/kids-corner"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Watershed Academy
+                  </a>{' '}
+                  for classroom resources and activities!
+                </li>
+                <li>
+                  Find more ways to{' '}
+                  <a
+                    href="https://www.epa.gov/schools"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    improve the health of your school
+                  </a>{' '}
+                  environment.
+                </li>
+                <li>
+                  Incorporate more{' '}
+                  <a
+                    href="https://www3.epa.gov/region1/eco/drinkwater/water_conservation_biz.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    sustainable practices in your business
+                  </a>
+                  .
+                </li>
+                <li>
+                  Find other ways to{' '}
+                  <a
+                    href="https://www.epa.gov/nutrientpollution/what-you-can-do-your-classroom"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    make a difference in your classroom
+                  </a>
+                  .
+                </li>
+              </ul>
+
+              <h2>For more information and tips, visit the following sites:</h2>
+
+              <ul>
+                <li>
+                  Visit EPA’s{' '}
+                  <a
+                    href="https://www.epa.gov/watershedacademy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Watershed Academy
+                  </a>{' '}
+                  to view webcasts and complete learning modules.
+                </li>
+                <li>
+                  Learn what{' '}
+                  <a
+                    href="https://www.epa.gov/aboutepa/epa-your-state"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    EPA is doing in your state
+                  </a>{' '}
+                  to protect your waters.
+                </li>
+                <li>
+                  Learn more about{' '}
+                  <a
+                    href="https://www.epa.gov/nps/basic-information-about-nonpoint-source-nps-pollution"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    nonpoint source pollution
+                  </a>
+                  .
+                </li>
+                <li>
+                  <a
+                    href="https://www.epa.gov/watersense/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    WaterSense
+                  </a>
+                  : a label for water-efficient products and a resource for
+                  helping you save water
+                </li>
+                <li>
+                  <a
+                    href="https://www.epa.gov/sites/default/files/2017-03/documents/ws-ideas-for-communities.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Using Water Efficiently: Ideas for Communities (PDF)
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://www.epa.gov/sites/default/files/2017-03/documents/ws-ideas-for-residences.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Using Water Efficiently: Ideas for Residences (PDF)
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://www.epa.gov/p2/pollution-prevention-tips-water-conservation"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Pollution Prevention Tips for Water Conservation
+                  </a>
+                </li>
+                <li>
+                  Incorporate more{' '}
+                  <a
+                    href="https://www.epa.gov/environmental-topics/greener-living"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    sustainable practices in your daily life
+                  </a>
+                  .
+                </li>
               </ul>
             </TabPanel>
           </TabPanels>

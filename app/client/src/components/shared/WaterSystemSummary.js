@@ -5,6 +5,7 @@ import { css } from 'styled-components/macro';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import highchartsAccessibility from 'highcharts/modules/accessibility';
+import highchartsExporting from 'highcharts/modules/exporting';
 import { WindowSize } from '@reach/window-size';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -14,13 +15,23 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
 import { fetchCheck } from 'utils/fetchUtils';
-import { formatNumber, isAbort } from 'utils/utils';
+import {
+  formatNumber,
+  isAbort,
+  removeAccessibiltyHcSvgExport,
+} from 'utils/utils';
 import { useAbortSignal } from 'utils/hooks';
 // errors
 import { grpaError } from 'config/errorMessages';
 
+// add exporting features to highcharts
+highchartsExporting(Highcharts);
+
 // add accessibility features to highcharts
 highchartsAccessibility(Highcharts);
+
+// Workaround for the Download SVG not working with the accessibility module.
+removeAccessibiltyHcSvgExport();
 
 function formatValue(value: ?string) {
   return value ? formatNumber(value) : '';
@@ -270,6 +281,43 @@ function WaterSystemSummary({ state }: Props) {
                 plotBorderWidth: null,
                 plotShadow: false,
                 type: 'pie',
+              },
+              exporting: {
+                buttons: {
+                  contextButton: {
+                    menuItems: [
+                      'downloadPNG',
+                      'downloadJPEG',
+                      'downloadPDF',
+                      'downloadSVG',
+                    ],
+                    theme: {
+                      fill: 'rgba(0, 0, 0, 0)',
+                      states: {
+                        hover: {
+                          fill: 'rgba(0, 0, 0, 0)',
+                        },
+                        select: {
+                          fill: 'rgba(0, 0, 0, 0)',
+                          stroke: '#666666',
+                        },
+                      },
+                    },
+                  },
+                },
+                chartOptions: {
+                  plotOptions: {
+                    series: {
+                      dataLabels: {
+                        enabled: true,
+                      },
+                    },
+                  },
+                },
+                filename: `${state.label.replaceAll(
+                  ' ',
+                  '_',
+                )}_Drinking_Water_Systems`,
               },
               tooltip: {
                 formatter: function () {

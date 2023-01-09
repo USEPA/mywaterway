@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { css } from 'styled-components/macro';
 // components
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -19,12 +20,12 @@ const flexRowStyles = css`
   justify-content: flex-start;
   width: 100%;
 
-  &:last-of-type {
-    border-bottom: none;
-  }
-
   &:first-of-type {
     border-bottom: 1px solid #d8dfe2;
+  }
+
+  &:last-of-type {
+    border-bottom: none;
   }
 
   .row-label {
@@ -41,12 +42,12 @@ const gridStyles = css`
     border-bottom: 1px solid #d8dfe2;
     width: 100%;
 
-    &:nth-last-of-type(-n + 2) {
-      border-bottom: none;
-    }
-
     &:nth-of-type(-n + 2) {
       border-bottom: 1px solid #d8dfe2;
+    }
+
+    &:nth-last-of-type(-n + 2) {
+      border-bottom: none;
     }
   }
 `;
@@ -117,15 +118,19 @@ export function BoxContent({ layout = 'grid', rows, styles }: BoxContentProps) {
     ${styles}
   `;
 
+  const keyedRows = useMemo(() => {
+    return rows.map((row, i) => ({ ...row, key: i }));
+  }, [rows]);
+
   const BoxRow = layout === 'flex' ? FlexRow : Row;
 
   return (
     <section css={mergedStyles}>
-      {rows.map(
-        (item, i) =>
-          item && (
+      {keyedRows.map(
+        (item) =>
+          item?.label && (
             <BoxRow
-              key={i}
+              key={item.key}
               label={item.label}
               value={item.value}
               status={item.status ?? 'success'}
@@ -152,13 +157,13 @@ export function ListContent({
 }
 
 interface RowProps {
-  label: ReactNode | string;
-  value: ReactNode | string;
+  label: NonNullable<ReactNode>;
+  value: ReactNode;
   status?: string;
 }
 
 function Row({ label, value, status = 'success' }: RowProps) {
-  let displayValue = value || 'N/A';
+  let displayValue = value ?? 'N/A';
   if (status === 'fetching') displayValue = <LoadingSpinner />;
   else if (status === 'failure') displayValue = 'N/A';
 

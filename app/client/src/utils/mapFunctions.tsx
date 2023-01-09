@@ -424,6 +424,10 @@ export function isMapImageLayer(
   return (layer as __esri.MapImageLayer).type === 'map-image';
 }
 
+export function isMediaLayer(layer: __esri.Layer): layer is __esri.MediaLayer {
+  return (layer as __esri.MediaLayer).type === 'media';
+}
+
 export function isMultipoint(
   geometry: __esri.Geometry,
 ): geometry is __esri.Multipoint {
@@ -642,7 +646,7 @@ export function getPopupTitle(attributes: PopupAttributes | null) {
   else if (
     'monitoringType' in attributes &&
     (attributes.monitoringType === 'Past Water Conditions' ||
-      attributes.monitoringType === 'Current Water Conditions')
+      attributes.monitoringType === 'USGS Sensors')
   ) {
     title = attributes.locationName;
   }
@@ -694,6 +698,11 @@ export function getPopupTitle(attributes: PopupAttributes | null) {
     title = '';
   }
 
+  // CyAN waterbody
+  else if ('GNIS_NAME' in attributes) {
+    title = attributes.GNIS_NAME;
+  }
+
   return title;
 }
 
@@ -702,6 +711,7 @@ export function getPopupContent({
   fieldName,
   extraContent,
   getClickedHuc,
+  mapView,
   resetData,
   services,
   fields,
@@ -711,6 +721,7 @@ export function getPopupContent({
   fieldName?: string;
   extraContent?: Object;
   getClickedHuc?: Promise<ClickedHucState> | null;
+  mapView?: __esri.MapView;
   resetData?: () => void;
   services?: ServicesState;
   fields?: __esri.Field[] | null;
@@ -752,10 +763,14 @@ export function getPopupContent({
       type = 'Permitted Discharger';
     }
 
+    // CyAN waterbody
+    else if ('GNIS_NAME' in attributes) {
+      type = 'CyAN';
+    }
+
     // usgs streamgage or monitoring location
     else if ('monitoringType' in attributes) {
-      if (attributes.monitoringType === 'Current Water Conditions')
-        type = 'Current Water Conditions';
+      if (attributes.monitoringType === 'USGS Sensors') type = 'USGS Sensors';
       else if (attributes.monitoringType === 'Past Water Conditions')
         type = 'Past Water Conditions';
     }
@@ -814,6 +829,7 @@ export function getPopupContent({
       fieldName={fieldName}
       extraContent={extraContent}
       getClickedHuc={getClickedHuc}
+      mapView={mapView}
       resetData={resetData}
       services={services}
       fields={fields}
@@ -926,7 +942,7 @@ export function GradientIcon({
             >
               {stops.map((stop, index) => (
                 <stop
-                  key={index}
+                  key={stop.label}
                   offset={index / divisions}
                   stopColor={stop.color}
                 />
@@ -945,8 +961,8 @@ export function GradientIcon({
       </div>
 
       <div css={{ display: 'flex', flexWrap: 'wrap', width: '45px' }}>
-        {stops.map((stop, index) => (
-          <div key={index} css={tickMarkStyles}>
+        {stops.map((stop) => (
+          <div key={stop.label} css={tickMarkStyles}>
             <p>{stop.label}</p>
           </div>
         ))}
@@ -958,23 +974,30 @@ export function GradientIcon({
 // Gets the highlight symbol styles based on the provided geometry.
 export function getHighlightSymbol(
   geometry: __esri.Geometry,
-  color: string | number[],
+  options: __esri.MapViewHighlightOptions,
 ) {
   let symbol: __esri.Symbol | null = null;
   if (isPolyline(geometry)) {
     return new SimpleLineSymbol({
       width: 5,
-      color,
+      color: new Color({ ...options.haloColor, a: options.haloOpacity }),
     });
   } else if (isPolygon(geometry)) {
     return new SimpleFillSymbol({
-      outline: { color, width: 2 },
-      color,
+      outline: {
+        color: new Color({ ...options.haloColor, a: options.haloOpacity }),
+        width: 2,
+      },
+      color: new Color({ ...options.color, a: options.fillOpacity }),
+      style: 'solid',
     });
   } else if (isPoint(geometry) || isMultipoint(geometry)) {
     return new SimpleMarkerSymbol({
-      outline: { color, width: 2 },
-      color,
+      outline: {
+        color: new Color({ ...options.haloColor, a: options.haloOpacity }),
+        width: 2,
+      },
+      color: new Color({ ...options.color, a: options.fillOpacity }),
     });
   }
 

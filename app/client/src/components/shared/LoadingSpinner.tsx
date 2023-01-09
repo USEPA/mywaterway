@@ -61,9 +61,10 @@ const circleStyles = css`
     ${color} 5s ease-in-out infinite;
 `;
 
-function LoadingSpinner() {
+function LoadingSpinner(props: any) {
   return (
     <svg
+      {...props}
       css={svgStyles}
       data-testid="hmw-loading-spinner"
       width="50"

@@ -44,6 +44,10 @@ export interface EjScreenAttributes {
   T_OVR64PCT: string;
 }
 
+export interface CyanAttributes {
+  GNIS_NAME: string;
+}
+
 export interface Facility {
   CWPName: string;
   CWPNAICSCodes: string | null;
@@ -178,7 +182,8 @@ export type PopupAttributes =
   | VillageAttributes
   | WaterbodyAttributes
   | WildScenicRiverAttributes
-  | WsioHealthIndexAttributes;
+  | WsioHealthIndexAttributes
+  | CyanAttributes;
 
 export interface ProtectedAreaAttributes {
   GAPCdSrc: string;
@@ -191,9 +196,17 @@ export interface ScaledLayer extends __esri.Layer {
 }
 
 interface ServicesData {
-  usgsWaterAlert: string,
   attains: { serviceUrl: string };
+  cyan: {
+    application: string;
+    cellConcentration: string;
+    dataDownload: string;
+    images: string;
+    properties: string;
+    waterbodies: string;
+  };
   upstreamWatershed: string;
+  usgsWaterAlert: string;
   waterQualityPortal: {
     resultSearch: string;
     userInterface: string;
@@ -239,7 +252,7 @@ export interface UpstreamWatershedAttributes {
 }
 
 export interface UsgsStreamgageAttributes {
-  monitoringType: 'Current Water Conditions';
+  monitoringType: 'USGS Sensors';
   siteId: string;
   orgId: string;
   orgName: string;
