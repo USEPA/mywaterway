@@ -1,3 +1,4 @@
+import Highcharts from 'highcharts';
 import Point from '@arcgis/core/geometry/Point';
 
 // utility function to split up an array into chunks of a designated length
@@ -436,6 +437,22 @@ function parseAttributes<Type>(
   return { ...attributes, ...parsed };
 }
 
+// Workaround for the Download SVG not working with the accessibility module.
+function removeAccessibiltyHcSvgExport() {
+  Highcharts.addEvent(
+    Highcharts.Chart.prototype,
+    'afterA11yUpdate',
+    function (e: Event | Highcharts.Dictionary<any> | undefined) {
+      if (!e || !('accessibility' in e)) return;
+
+      const a11y = e.accessibility;
+      if ((this.renderer as any).forExport && a11y && a11y.proxyProvider) {
+        a11y.proxyProvider.destroy();
+      }
+    },
+  );
+}
+
 export {
   chunkArray,
   containsScriptTag,
@@ -462,4 +479,5 @@ export {
   summarizeAssessments,
   indicesOf,
   parseAttributes,
+  removeAccessibiltyHcSvgExport,
 };
