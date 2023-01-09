@@ -5,7 +5,7 @@
 
 ### Added
 
-- Added a CyAN satellite imagery data to the "Current Water Conditions" tab of the "Monitoring" panel.
+- Added CyAN satellite imagery data to the "Current Water Conditions" tab of the "Monitoring" panel.
 
 ### Changed
 
