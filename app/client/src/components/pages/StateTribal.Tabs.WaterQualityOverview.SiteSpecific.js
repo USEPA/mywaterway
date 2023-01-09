@@ -5,6 +5,7 @@ import { css } from 'styled-components/macro';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import highchartsAccessibility from 'highcharts/modules/accessibility';
+import highchartsExporting from 'highcharts/modules/exporting';
 // components
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
 import DynamicExitDisclaimer from 'components/shared/DynamicExitDisclaimer';
@@ -15,7 +16,7 @@ import { errorBoxStyles, infoBoxStyles } from 'components/shared/MessageBoxes';
 // contexts
 import { StateTribalTabsContext } from 'contexts/StateTribalTabs';
 // utilities
-import { formatNumber } from 'utils/utils';
+import { formatNumber, removeAccessibiltyHcSvgExport } from 'utils/utils';
 // data
 import { impairmentFields } from 'config/attainsToHmwMapping';
 // styles
@@ -23,8 +24,14 @@ import { fonts, colors } from 'styles/index.js';
 // errors
 import { fishingAdvisoryError } from 'config/errorMessages';
 
+// add exporting features to highcharts
+highchartsExporting(Highcharts);
+
 // add accessibility features to highcharts
 highchartsAccessibility(Highcharts);
+
+// Workaround for the Download SVG not working with the accessibility module.
+removeAccessibiltyHcSvgExport();
 
 const textStyles = css`
   padding-bottom: 0;
@@ -330,6 +337,43 @@ function SiteSpecific({
                       plotBackgroundColor: null,
                       plotBorderWidth: null,
                       plotShadow: false,
+                    },
+                    exporting: {
+                      buttons: {
+                        contextButton: {
+                          menuItems: [
+                            'downloadPNG',
+                            'downloadJPEG',
+                            'downloadPDF',
+                            'downloadSVG',
+                          ],
+                          theme: {
+                            fill: 'rgba(0, 0, 0, 0)',
+                            states: {
+                              hover: {
+                                fill: 'rgba(0, 0, 0, 0)',
+                              },
+                              select: {
+                                fill: 'rgba(0, 0, 0, 0)',
+                                stroke: '#666666',
+                              },
+                            },
+                          },
+                        },
+                      },
+                      chartOptions: {
+                        plotOptions: {
+                          series: {
+                            dataLabels: {
+                              enabled: true,
+                            },
+                          },
+                        },
+                      },
+                      filename: `${activeState.label.replaceAll(
+                        ' ',
+                        '_',
+                      )}_Site_Specific`,
                     },
                     tooltip: {
                       formatter: function () {
