@@ -110,6 +110,14 @@ const disclaimerStyles = css`
   display: inline-block;
 `;
 
+const listStyles = css`
+  padding-bottom: 1em;
+
+  li {
+    margin: 0.5em 0;
+  }
+`;
+
 const modifiedErrorBoxStyles = css`
   ${errorBoxStyles};
   margin-bottom: 1em;
@@ -1483,7 +1491,7 @@ function Protect() {
                 </i>
               </h2>
 
-              <ul>
+              <ul css={listStyles}>
                 <li>
                   <a
                     href="https://www.epa.gov/system/files/documents/2021-12/ws-outdoor-water-smart-landscapes.pdf"
@@ -1591,7 +1599,7 @@ function Protect() {
                 </i>
               </h2>
 
-              <ul>
+              <ul css={listStyles}>
                 <li>
                   <a
                     href="https://www.epa.gov/hw/household-hazardous-waste-hhw"
@@ -1676,7 +1684,7 @@ function Protect() {
                 <i css={subTitleStyles}>Get involved in your local watershed</i>
               </h2>
 
-              <ul>
+              <ul css={listStyles}>
                 <li>
                   Volunteer at a{' '}
                   <a
@@ -1750,7 +1758,7 @@ function Protect() {
                 <i css={subTitleStyles}>School and Work</i>
               </h2>
 
-              <ul>
+              <ul css={listStyles}>
                 <li>
                   Host a campus clean-up to remove litter and trash around your
                   school.
@@ -1827,7 +1835,7 @@ function Protect() {
 
               <h2>For more information and tips, visit the following sites:</h2>
 
-              <ul>
+              <ul css={listStyles}>
                 <li>
                   Visit EPA’s{' '}
                   <a

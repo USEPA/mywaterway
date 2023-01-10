@@ -58,7 +58,6 @@ import type {
 } from 'react';
 import type { Container } from 'react-dom';
 import type {
-  ExtendedLayer,
   Feature,
   FetchState,
   ScaledLayer,
@@ -139,7 +138,6 @@ const instructionStyles = css`
 /*
 ## Utilities
 */
-const layersToAllowPopups = ['restore', 'protect'];
 
 // workaround for React state variables not being updated inside of
 // esri watch events
@@ -417,35 +415,6 @@ function MapWidgets({
           // exit early if the feature is not a waterbody
           if (!id || !geometryType) {
             newFeatures.push(item);
-            return;
-          }
-
-          // get the point location of the user's click
-          const point = new Point({
-            x: view.popup.location.longitude,
-            y: view.popup.location.latitude,
-            spatialReference: SpatialReference.WGS84,
-          });
-          const location = webMercatorUtils.geographicToWebMercator(point);
-
-          // determine if the user clicked inside of the selected huc
-          const hucBoundaries = getHucBoundaries();
-          const clickedInHuc =
-            hucBoundaries &&
-            hucBoundaries.features.length > 0 &&
-            hucBoundaries.features[0].geometry.contains(location);
-
-          // filter out popups for allWaterbodiesLayer inside of the huc
-          const pathParts = window.location.pathname.split('/');
-          const panelName = pathParts[pathParts.length - 1];
-          const layerParent = (item.layer as ExtendedLayer)?.parent;
-          const layerParentId =
-            layerParent && 'id' in layerParent && layerParent.id;
-          if (
-            clickedInHuc &&
-            layerParentId === 'allWaterbodiesLayer' &&
-            !layersToAllowPopups.includes(panelName)
-          ) {
             return;
           }
 
