@@ -110,6 +110,11 @@ const modifiedToggleTableStyles = css`
   }
 `;
 
+const showLessMoreStyles = css`
+  display: block;
+  padding-top: 1.5em;
+`;
+
 const sliderContainerStyles = css`
   align-items: flex-end;
   display: flex;
@@ -563,21 +568,22 @@ function Monitoring() {
                   charLimit={0}
                   text={
                     <>
-                      <br />
-                      <br />
-                      Areas highlighted light blue are the lakes, reservoirs,
-                      and other large waterbodies where CyAN satellite imagery
-                      data is available. Daily data are a snapshot of{' '}
-                      <GlossaryTerm term="Cyanobacteria">
-                        cyanobacteria
-                      </GlossaryTerm>{' '}
-                      (sometimes referred to as blue-green algae) at the time of
-                      detection.
-                      <br />
-                      <br />
-                      Click on each monitoring location on the map or in the
-                      list below to find out more about what was monitored at
-                      each location.
+                      <span css={showLessMoreStyles}>
+                        Areas highlighted light blue are the lakes, reservoirs,
+                        and other large waterbodies where CyAN satellite imagery
+                        data is available. Daily data are a snapshot of{' '}
+                        <GlossaryTerm term="Cyanobacteria">
+                          cyanobacteria
+                        </GlossaryTerm>{' '}
+                        (sometimes referred to as blue-green algae) at the time
+                        of detection.
+                      </span>
+
+                      <span css={showLessMoreStyles}>
+                        Click on each monitoring location on the map or in the
+                        list below to find out more about what was monitored at
+                        each location.
+                      </span>
                     </>
                   }
                 />
@@ -621,13 +627,11 @@ function Monitoring() {
                 anywhere in between, depending on the location.
                 <ShowLessMore
                   text={
-                    <>
-                      <br />
-                      <br />
+                    <span css={showLessMoreStyles}>
                       Click on each monitoring location on the map or in the
                       list below to find out more about what was monitored at
                       each location."
-                    </>
+                    </span>
                   }
                 />
               </p>
