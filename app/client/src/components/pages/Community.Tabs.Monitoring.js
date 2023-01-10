@@ -110,8 +110,9 @@ const modifiedToggleTableStyles = css`
   }
 `;
 
-const sectionStyles = css`
-  padding-bottom: 1.5em;
+const showLessMoreStyles = css`
+  display: block;
+  padding-top: 1.5em;
 `;
 
 const sliderContainerStyles = css`
@@ -563,13 +564,11 @@ function Monitoring() {
                 that provide real time water quality measurements – such as
                 water level, water temperature, dissolved oxygen saturation, and
                 other water quality indicators.
-              </p>
-              <div css={sectionStyles}>
                 <ShowLessMore
                   charLimit={0}
                   text={
                     <>
-                      <p>
+                      <span css={showLessMoreStyles}>
                         Areas highlighted light blue are the lakes, reservoirs,
                         and other large waterbodies where CyAN satellite imagery
                         data is available. Daily data are a snapshot of{' '}
@@ -578,16 +577,17 @@ function Monitoring() {
                         </GlossaryTerm>{' '}
                         (sometimes referred to as blue-green algae) at the time
                         of detection.
-                      </p>
-                      <p>
+                      </span>
+
+                      <span css={showLessMoreStyles}>
                         Click on each monitoring location on the map or in the
                         list below to find out more about what was monitored at
                         each location.
-                      </p>
+                      </span>
                     </>
                   }
                 />
-              </div>
+              </p>
 
               <div css={legendItemsStyles}>
                 <span>
@@ -625,19 +625,16 @@ function Monitoring() {
                 available. These locations may have monitoring data available
                 from as recently as last week, to multiple decades old, or
                 anywhere in between, depending on the location.
-              </p>
-
-              <div css={sectionStyles}>
                 <ShowLessMore
                   text={
-                    <p>
+                    <span css={showLessMoreStyles}>
                       Click on each monitoring location on the map or in the
                       list below to find out more about what was monitored at
                       each location."
-                    </p>
+                    </span>
                   }
                 />
-              </div>
+              </p>
 
               <div css={legendItemsStyles}>
                 <span>
