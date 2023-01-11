@@ -1703,6 +1703,14 @@ function Protect() {
                     consider starting one
                   </a>
                   !
+                  <a
+                    className="exit-disclaimer"
+                    href="https://www.epa.gov/home/exit-epa"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    EXIT
+                  </a>
                 </li>
                 <li>
                   Look online for community events near you. Attend a beach,
@@ -1739,6 +1747,14 @@ function Protect() {
                   >
                     watershed protection organization
                   </a>{' '}
+                  <a
+                    className="exit-disclaimer"
+                    href="https://www.epa.gov/home/exit-epa"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    EXIT
+                  </a>
                   to support and get involved with.
                 </li>
                 <li>
@@ -1785,6 +1801,14 @@ function Protect() {
                   >
                     Water Science School
                   </a>{' '}
+                  <a
+                    className="exit-disclaimer"
+                    href="https://www.epa.gov/home/exit-epa"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    EXIT
+                  </a>
                   for learning resources, tools, and more.
                 </li>
                 <li>
