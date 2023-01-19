@@ -178,13 +178,24 @@ function StateTribal() {
   const services = useServicesContext();
   const tribeMapping = useTribeMappingContext();
 
+  const {
+    activeState,
+    errorType,
+    introText,
+    setActiveState,
+    setErrorType,
+    setUsesStateSummaryServiceError,
+    usesStateSummaryServiceError,
+  } = useContext(StateTribalTabsContext);
+
   // redirect to '/stateandtribe' if the url is /state or /tribe
   useEffect(() => {
     const pathname = window.location.pathname.toLowerCase();
     if (['/state', '/state/', '/tribe', '/tribe/'].includes(pathname)) {
+      setErrorType('');
       navigate('/state-and-tribal', { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, setErrorType]);
 
   // get tribes from the tribeMapping data
   const [tribes, setTribes] = useState({ status: 'success', data: [] });
@@ -244,14 +255,6 @@ function StateTribal() {
       .catch((_err) => setStates({ status: 'failure', data: [] }));
   }, [services, statesInitialized]);
 
-  const {
-    activeState,
-    setActiveState,
-    introText,
-    usesStateSummaryServiceError,
-    setUsesStateSummaryServiceError,
-  } = useContext(StateTribalTabsContext);
-
   // reset active state if on state intro page
   useEffect(() => {
     if (location.pathname === '/state-and-tribal') {
@@ -302,7 +305,7 @@ function StateTribal() {
   // get the state intro and metrics data
   const stateIntro = introText.status === 'success' ? introText.data : null;
 
-  const sourceList = useRef();
+  const sourceList = useRef(null);
   const sourceDownPress = useKeyPress('ArrowDown', sourceList);
   const sourceUpPress = useKeyPress('ArrowUp', sourceList);
   const sourceEnterPress = useKeyPress('Enter', sourceList);
@@ -408,13 +411,31 @@ function StateTribal() {
           </div>
         )}
 
+        {errorType === 'invalid-org-id' && (
+          <div css={modifiedErrorBoxStyles}>
+            <p>
+              Data is not available for this location. Please select a state,
+              territory or tribe from the dropdown below.
+            </p>
+          </div>
+        )}
+
+        {errorType === 'invalid-page' && (
+          <div css={modifiedErrorBoxStyles}>
+            <p>
+              Invalid URL path. Please select a state, territory or tribe from
+              the dropdown below.
+            </p>
+          </div>
+        )}
+
         {(states.status === 'success' || tribes.status === 'success') && (
           <>
             <label css={promptStyles} htmlFor="hmw-state-select-input">
               <strong>Let’s get started!</strong>&nbsp;&nbsp;
               <em>
-                Select your state or territory from the drop down to begin
-                exploring water quality.
+                Select your state, tribe or territory from the drop down to
+                begin exploring water quality.
               </em>
             </label>
 
@@ -508,9 +529,9 @@ function StateTribal() {
                   classNamePrefix="Select"
                   placeholder={
                     selectedSource === 'All'
-                      ? 'Select a state or tribe...'
+                      ? 'Select a state, tribe or territory...'
                       : selectedSource === 'State'
-                      ? 'Select a state...'
+                      ? 'Select a state or territory...'
                       : 'Select a tribe...'
                   }
                   options={selectOptions}

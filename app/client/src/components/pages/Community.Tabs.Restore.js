@@ -5,6 +5,7 @@ import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@reach/tabs';
 import { css } from 'styled-components/macro';
 // components
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
+import { ListContent } from 'components/shared/BoxContent';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
@@ -27,8 +28,6 @@ import {
   restoreNonpointSourceError,
   restorationPlanError,
 } from 'config/errorMessages';
-// styles
-import { tableStyles } from 'styles/index.js';
 
 const containerStyles = css`
   @media (min-width: 960px) {
@@ -225,6 +224,33 @@ function Restore() {
                                 (document) =>
                                   document && document.url && document.title,
                               );
+                            const documentLinks =
+                              filteredDocuments && filteredDocuments.length > 0
+                                ? filteredDocuments.map((document, index) => {
+                                    if (
+                                      document &&
+                                      document.url &&
+                                      document.title
+                                    ) {
+                                      return (
+                                        <div key={index}>
+                                          <a
+                                            href={document.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                          >
+                                            {document.title}
+                                          </a>
+                                          <DynamicExitDisclaimer
+                                            url={document.url}
+                                          />
+                                        </div>
+                                      );
+                                    }
+                                    return false;
+                                  })
+                                : 'Document not available';
+
                             return (
                               <AccordionItem
                                 key={index}
@@ -235,92 +261,49 @@ function Restore() {
                                   <>ID: {item.prj_seq || 'Unknown ID'}</>
                                 }
                               >
-                                <table css={tableStyles} className="table">
-                                  <tbody>
-                                    {item.pollutants && (
-                                      <tr>
-                                        <td>
-                                          <em>Impairments:</em>
-                                        </td>
-                                        <td>{item.pollutants}</td>
-                                      </tr>
-                                    )}
-                                    <tr>
-                                      <td>
-                                        <em>Total Funds:</em>
-                                      </td>
-                                      <td>{item.total_319_funds}</td>
-                                    </tr>
-                                    <tr>
-                                      <td>
-                                        <em>Project Start Date:</em>
-                                      </td>
-                                      <td>{item.project_start_date}</td>
-                                    </tr>
-                                    <tr>
-                                      <td>
-                                        <em>Project Status:</em>
-                                      </td>
-                                      <td>{item.status}</td>
-                                    </tr>
-                                    <tr>
-                                      <td>
-                                        <em>Project Details:</em>
-                                      </td>
-                                      <td>
-                                        <a
-                                          href={url}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                        >
-                                          Open Project Summary
-                                        </a>
-                                        &nbsp;&nbsp;
-                                        <small css={disclaimerStyles}>
-                                          (opens new browser tab)
-                                        </small>
-                                      </td>
-                                    </tr>
-                                    <tr>
-                                      <td>
-                                        <em>Documents:</em>
-                                      </td>
-
-                                      {filteredDocuments &&
-                                      filteredDocuments.length > 0 ? (
-                                        <td>
-                                          {filteredDocuments.map(
-                                            (document, index) => {
-                                              if (
-                                                document &&
-                                                document.url &&
-                                                document.title
-                                              ) {
-                                                return (
-                                                  <div key={index}>
-                                                    <a
-                                                      href={document.url}
-                                                      target="_blank"
-                                                      rel="noopener noreferrer"
-                                                    >
-                                                      {document.title}
-                                                    </a>
-                                                    <DynamicExitDisclaimer
-                                                      url={document.url}
-                                                    />
-                                                  </div>
-                                                );
-                                              }
-                                              return false;
-                                            },
-                                          )}
-                                        </td>
-                                      ) : (
-                                        <td>Document not available</td>
-                                      )}
-                                    </tr>
-                                  </tbody>
-                                </table>
+                                <ListContent
+                                  rows={[
+                                    item.pollutants
+                                      ? {
+                                          label: 'Impairments',
+                                          value: item.pollutants,
+                                        }
+                                      : null,
+                                    {
+                                      label: 'Total Funds',
+                                      value: item.total_319_funds,
+                                    },
+                                    {
+                                      label: 'Project Start Date',
+                                      value: item.project_start_date,
+                                    },
+                                    {
+                                      label: 'Project Status',
+                                      value: item.status,
+                                    },
+                                    {
+                                      label: 'Project Details',
+                                      value: (
+                                        <>
+                                          <a
+                                            href={url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                          >
+                                            Open Project Summary
+                                          </a>
+                                          <small css={disclaimerStyles}>
+                                            (opens new browser tab)
+                                          </small>
+                                        </>
+                                      ),
+                                    },
+                                    {
+                                      label: 'Documents',
+                                      value: documentLinks,
+                                    },
+                                  ]}
+                                />
                               </AccordionItem>
                             );
                           })}
@@ -418,55 +401,47 @@ function Restore() {
                               }
                               subTitle={<>ID: {item.actionIdentifier}</>}
                             >
-                              <table css={tableStyles} className="table">
-                                <tbody>
-                                  <tr>
-                                    <td>
-                                      <em>Plan Type:</em>
-                                    </td>
-                                    <td>{planType}</td>
-                                  </tr>
-                                  <tr>
-                                    <td>
-                                      <em>Status:</em>
-                                    </td>
-                                    <td>
-                                      {/* if Action type is not a TMDL, change 'EPA Final Action' to 'Final */}
-                                      {item.actionTypeCode !== 'TMDL' &&
+                              <ListContent
+                                rows={[
+                                  {
+                                    label: 'Plan Type',
+                                    value: planType,
+                                  },
+                                  {
+                                    label: 'Status',
+                                    /* if Action type is not a TMDL, change 'EPA Final Action' to 'Final */
+                                    value:
+                                      item.actionTypeCode !== 'TMDL' &&
                                       item.actionStatusCode ===
                                         'EPA Final Action'
                                         ? 'Final'
-                                        : item.actionStatusCode}
-                                    </td>
-                                  </tr>
-                                  <tr>
-                                    <td>
-                                      <em>Completion Date:</em>
-                                    </td>
-                                    <td>{item.completionDate}</td>
-                                  </tr>
-                                  {item.actionIdentifier && (
-                                    <tr>
-                                      <td>
-                                        <em>Plan Details:</em>
-                                      </td>
-                                      <td>
-                                        <a
-                                          href={`/plan-summary/${item.organizationId}/${item.actionIdentifier}`}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                        >
-                                          Open Plan Summary
-                                        </a>
-                                        &nbsp;&nbsp;
-                                        <small css={disclaimerStyles}>
-                                          (opens new browser tab)
-                                        </small>
-                                      </td>
-                                    </tr>
-                                  )}
-                                </tbody>
-                              </table>
+                                        : item.actionStatusCode,
+                                  },
+                                  {
+                                    label: 'Completion Date',
+                                    value: item.completionDate,
+                                  },
+                                  item.actionIdentifier
+                                    ? {
+                                        label: 'Plan Details',
+                                        value: (
+                                          <>
+                                            <a
+                                              href={`/plan-summary/${item.organizationId}/${item.actionIdentifier}`}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                            >
+                                              Open Plan Summary
+                                            </a>
+                                            <small css={disclaimerStyles}>
+                                              (opens new browser tab)
+                                            </small>
+                                          </>
+                                        ),
+                                      }
+                                    : null,
+                                ]}
+                              />
                             </AccordionItem>
                           );
                         })}

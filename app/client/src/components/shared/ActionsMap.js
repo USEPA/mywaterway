@@ -67,9 +67,6 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
 
   const [layers, setLayers] = useState(null);
 
-  // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
-  const [actionsMapLoadError, setActionsMapLoadError] = useState(false);
-
   const services = useServicesContext();
   const getSharedLayers = useSharedLayers();
   useWaterbodyHighlight();
@@ -402,12 +399,8 @@ function ActionsMap({ layout, unitIds, onLoad, includePhoto }: Props) {
     setMapLoading(false);
   }, [fetchStatus, mapView, actionsLayer, homeWidget]);
 
-  // check for browser compatibility with map
-  if (!browserIsCompatibleWithArcGIS() && !actionsMapLoadError) {
-    setActionsMapLoadError(true);
-  }
-
-  if (actionsMapLoadError) {
+  // track Esri map load errors for older browsers and devices that do not support ArcGIS 4.x
+  if (!browserIsCompatibleWithArcGIS()) {
     return <div css={errorBoxStyles}>{esriMapLoadingFailure}</div>;
   }
 

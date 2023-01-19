@@ -29,19 +29,19 @@ describe('Community page links', () => {
 
     // test the plan summary link
     const linkText = 'Open Plan Summary';
-    cy.findAllByText('Upper San Antonio River WPP').first().click();
+    cy.findAllByText('Upper San Antonio Watershed').first().click();
     cy.findByText(linkText).should(
       'have.attr',
       'href',
-      '/plan-summary/TCEQMAIN/1',
+      '/plan-summary/TCEQMAIN/66393',
     );
     cy.findByText(linkText).should('have.attr', 'target', '_blank');
     cy.findByText(linkText).should('have.attr', 'rel', 'noopener noreferrer');
   });
 
   it('Switching Community page tabs updates route', () => {
-    cy.findByText('State').click();
-    cy.url().should('include', `${window.location.origin}/state`);
+    cy.findByText('State & Tribal').click();
+    cy.url().should('include', `${window.location.origin}/state-and-tribal`);
 
     cy.findByText('National').click();
     cy.url().should('include', `${window.location.origin}/national`);

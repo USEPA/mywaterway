@@ -62,7 +62,7 @@ function AlertMessage() {
 
     const specificPageBanner = data && Object.keys(data).includes(page) && (
       <div
-        css={bannerStyles(data['all'].color, data['all'].backgroundColor)}
+        css={bannerStyles(data[page].color, data[page].backgroundColor)}
         dangerouslySetInnerHTML={createMarkup(data[page].message)}
         data-testid="specific-page-notifications-banner"
       ></div>

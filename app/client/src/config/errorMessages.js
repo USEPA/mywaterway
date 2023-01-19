@@ -6,9 +6,13 @@ import React from 'react';
 export const echoError =
   'The permitted discharger information is temporarily unavailable, please try again later.';
 
+// qed.epa.gov
+export const cyanError =
+  'CyAN data is temporarily unavailable, please try again later.';
+
 // labs.waterdata.usgs.gov - Monitoring Location Service
 export const streamgagesError =
-  'Current water conditions information is temporarily unavailable, please try again later.';
+  'USGS streamgage information is temporarily unavailable, please try again later.';
 
 // waterqualitydata.us - Monitoring Location Service
 export const monitoringError =
@@ -118,8 +122,8 @@ export const usesStateSummaryServiceInvalidResponse = (source, name) =>
   }.`; // add conditional check for stateName as it is sometimes undefined
 
 // attains state document service
-export const stateDocumentError = (stateName) =>
-  `${stateName} integrated report documents are temporarily unavailable, please try again later.`;
+export const stateDocumentError = (stateName, type) =>
+  `${stateName} ${type} documents are temporarily unavailable, please try again later.`;
 
 export const stateDocumentSortingError =
   'There was an issue sorting the below documents. Because of this, the documents have been sorted alphabetically on document type.';
@@ -146,12 +150,17 @@ export const stateGeneralError = (source = 'State') =>
 
 // if an invalid state is entered
 export const stateNoDataError = (stateName) =>
-  `No data available ${stateName && 'for ' + stateName}.`; // conditionals in case state name is undefined or an empty string
+  `No data available${stateName && ' for ' + stateName}.`; // conditionals in case state name is undefined or an empty string
+
+export const stateNoGisDataError = (stateName) =>
+  `No map data available${stateName && ' for ' + stateName}.`; // conditionals in case state name is undefined or an empty string
 
 export const status303dError =
   'There was an issue looking up the 303(d) List Status code. Because of this, the status code may not look familiar.';
 
 export const status303dShortError = 'Error getting 303(d) List Status';
+
+export const yearLastReportedShortError = 'Error getting Year Last Reported';
 
 // this message is displayed in the State metrics section and more information section when the metrics service is down
 export const stateMetricsError = (source) =>
@@ -251,7 +260,7 @@ export const defaultErrorBoundaryMessage = (
 );
 
 // message displayed when the Esri map fails to load due to incompatible browsers and devices
-export const esriMapLoadingFailure = `The How's My Waterway Map is currently unavailable. Your web browser is
+export const esriMapLoadingFailure = `The How's My Waterway Map is unavailable. Your web browser is
 incompatible or outdated.`;
 
 export const educatorContentError =

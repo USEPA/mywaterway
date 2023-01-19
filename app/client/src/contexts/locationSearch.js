@@ -1,5 +1,7 @@
+import Color from '@arcgis/core/Color';
 import React, { Component, createContext } from 'react';
 import type { ReactNode } from 'react';
+import type { MonitoringLocationsData } from 'types';
 
 export const LocationSearchContext = createContext();
 
@@ -7,7 +9,7 @@ type Props = {
   children: ReactNode,
 };
 
-type Status = 'fetching' | 'success' | 'failure';
+type Status = 'idle' | 'fetching' | 'success' | 'failure' | 'pending';
 
 type MonitoringLocationGroups = {
   [label: string]: {
@@ -16,35 +18,6 @@ type MonitoringLocationGroups = {
     stations: StationData[],
     toggled: boolean,
   },
-};
-
-type MonitoringLocationsData = {
-  features: {
-    geometry: {
-      coordinates: [number, number],
-      type: 'Point',
-    },
-    properties: {
-      CountyName: string,
-      HUCEightDigitCode: string,
-      MonitoringLocationIdentifier: string,
-      MonitoringLocationName: string,
-      MonitoringLocationTypeName: string,
-      OrganizationFormalName: string,
-      OrganizationIdentifier: string,
-      ProviderName: string,
-      ResolvedMonitoringLocationTypeName: string,
-      StateName: string,
-      activityCount: string,
-      characteristicGroupResultCount: {
-        Physical: number,
-      },
-      resultCount: string,
-      siteUrl: string,
-    },
-    type: 'Feature',
-  }[],
-  type: 'FeatureCollection',
 };
 
 type PermittedDischargersData = {
@@ -153,7 +126,7 @@ type State = {
   initialExtent: Object,
   currentExtent: Object,
   upstreamExtent: Object,
-  highlighOptions: Object,
+  highlightOptions: Object,
   searchText: string,
   lastSearchText: string,
   huc12: string,
@@ -174,6 +147,7 @@ type State = {
   waterbodyLayer: Object,
   issuesLayer: Object,
   monitoringLocationsLayer: Object,
+  surroundingMonitoringLocationsLayer: Object,
   usgsStreamgagesLayer: Object,
   dischargersLayer: Object,
   nonprofitsLayer: Object,
@@ -190,12 +164,14 @@ type State = {
   upstreamWidget: Object,
   upstreamWidgetDisabled: boolean,
   allWaterbodiesWidgetDisabled: boolean,
+  surroundingMonitoringLocationsWidgetDisabled: boolean,
   hucBoundaries: Object,
   atHucBoundaries: boolean,
   countyBoundaries: Object,
   waterbodyData: Array<Object>,
   linesData: Array<Object>,
   areasData: Array<Object>,
+  cyanWaterbodies: { status: Status, data: Array<Object> | null },
   pointsData: Array<Object>,
   orphanFeatures: Array<Object>,
   waterbodyCountMismatch: boolean,
@@ -230,7 +206,12 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
     currentExtent: '',
     upstreamExtent: '',
-    highlightOptions: { color: '#32C5FD', fillOpacity: 1 },
+    highlightOptions: {
+      color: new Color([50, 197, 253]),
+      fillOpacity: 0.1,
+      haloColor: new Color([50, 197, 253]),
+      haloOpacity: 1,
+    },
     searchText: '',
     lastSearchText: '',
     huc12: '',
@@ -255,6 +236,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     waterbodyLayer: '',
     issuesLayer: '',
     monitoringLocationsLayer: '',
+    surroundingMonitoringLocationsLayer: '',
     usgsStreamgagesLayer: '',
     dischargersLayer: '',
     nonprofitsLayer: '',
@@ -272,6 +254,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     upstreamWidget: null,
     upstreamWidgetDisabled: false,
     allWaterbodiesWidgetDisabled: false,
+    surroundingMonitoringLocationsWidgetDisabled: false,
     visibleLayers: {},
     basemap: 'gray-vector',
     hucBoundaries: '',
@@ -281,6 +264,7 @@ export class LocationSearchProvider extends Component<Props, State> {
     linesData: null,
     areasData: null,
     pointsData: null,
+    cyanWaterbodies: { status: 'idle', data: null },
     orphanFeatures: { status: 'fetching', features: [] },
     waterbodyCountMismatch: null,
     FIPS: { status: 'fetching', stateCode: '', countyCode: '' },
@@ -404,6 +388,12 @@ export class LocationSearchProvider extends Component<Props, State> {
     getAllWaterbodiesWidgetDisabled: () => {
       return this.state.allWaterbodiesWidgetDisabled;
     },
+    getSurroundingMonitoringLocationsWidgetDisabled: () => {
+      return this.state.surroundingMonitoringLocationsWidgetDisabled;
+    },
+    getMonitoringLocations: () => {
+      return this.state.monitoringLocations;
+    },
     setLayers: (layers) => {
       this.setState({ layers });
     },
@@ -415,6 +405,11 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
     setMonitoringLocationsLayer: (monitoringLocationsLayer) => {
       this.setState({ monitoringLocationsLayer });
+    },
+    setSurroundingMonitoringLocationsLayer: (
+      surroundingMonitoringLocationsLayer,
+    ) => {
+      this.setState({ surroundingMonitoringLocationsLayer });
     },
     setUsgsStreamgagesLayer: (usgsStreamgagesLayer) => {
       this.setState({ usgsStreamgagesLayer });
@@ -485,6 +480,11 @@ export class LocationSearchProvider extends Component<Props, State> {
     setAllWaterbodiesWidgetDisabled: (allWaterbodiesWidgetDisabled) => {
       this.setState({ allWaterbodiesWidgetDisabled });
     },
+    setSurroundingMonitoringLocationsWidgetDisabled: (
+      surroundingMonitoringLocationsWidgetDisabled,
+    ) => {
+      this.setState({ surroundingMonitoringLocationsWidgetDisabled });
+    },
     setVisibleLayers: (visibleLayers) => {
       this.setState({ visibleLayers });
     },
@@ -508,6 +508,9 @@ export class LocationSearchProvider extends Component<Props, State> {
     },
     setPointsData: (pointsData) => {
       this.setState({ pointsData });
+    },
+    setCyanWaterbodies: (cyanWaterbodies) => {
+      this.setState({ cyanWaterbodies });
     },
     setGrts: (grts) => {
       this.setState({ grts });
@@ -585,6 +588,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         wildScenicRiversLayer,
         protectedAreasLayer,
         allWaterbodiesLayer,
+        surroundingMonitoringLocationsLayer,
       } = this.state;
 
       // Clear waterbody layers from state
@@ -678,6 +682,11 @@ export class LocationSearchProvider extends Component<Props, State> {
           allWaterbodiesLayer.listMode = 'hide';
         }
 
+        if (surroundingMonitoringLocationsLayer) {
+          surroundingMonitoringLocationsLayer.visible = false;
+          surroundingMonitoringLocationsLayer.listMode = 'hide';
+        }
+
         if (homeWidget) {
           homeWidget.viewpoint = mapView.viewpoint;
         }
@@ -697,10 +706,12 @@ export class LocationSearchProvider extends Component<Props, State> {
       this.setState({
         huc12: '',
         assessmentUnitIDs: null,
+        errorMessage: '',
         watershed: '',
         pointsData: null,
         linesData: null,
         areasData: null,
+        cyanWaterbodies: { status: 'idle', data: null },
         orphanFeatures: { status: 'fetching', features: [] },
         waterbodyCountMismatch: null,
         countyBoundaries: '',
@@ -734,6 +745,7 @@ export class LocationSearchProvider extends Component<Props, State> {
         pointsData: [],
         linesData: [],
         areasData: [],
+        cyanWaterbodies: { status: 'success', data: [] },
         orphanFeatures: { status: 'fetching', features: [] },
         waterbodyCountMismatch: null,
         countyBoundaries: '',

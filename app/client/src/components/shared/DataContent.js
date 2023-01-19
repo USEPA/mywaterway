@@ -139,9 +139,9 @@ function DataContent() {
         <li>
           <button
             css={modifiedLinkButtonStyles}
-            onClick={() => scrollToItem('current-conditions')}
+            onClick={() => scrollToItem('cyan')}
           >
-            Current Water Conditions (USGS Stream Gages)
+            Cyanobacteria Assessment Network (CyAN)
           </button>
         </li>
         <li>
@@ -174,6 +174,14 @@ function DataContent() {
             onClick={() => scrollToItem('sdwis')}
           >
             Safe Drinking Water Information System (SDWIS)
+          </button>
+        </li>
+        <li>
+          <button
+            css={modifiedLinkButtonStyles}
+            onClick={() => scrollToItem('usgs-sensors')}
+          >
+            USGS Sensors (USGS Stream Gages)
           </button>
         </li>
         <li>
@@ -269,38 +277,31 @@ function DataContent() {
 
       <hr />
 
-      <div css={itemStyles} id="current-conditions">
+      <div css={itemStyles} id="cyan">
         <i className="fas fa-database" aria-hidden="true" />{' '}
-        <h2 css={titleStyles}>Current Water Conditions (USGS Stream Gages)</h2>
+        <h2 css={titleStyles}>Cyanobacteria Assessment Network (CyAN)</h2>
         <p>
           <a
-            href="https://waterdata.usgs.gov/nwis/rt"
+            href="https://www.epa.gov/water-research/cyanobacteria-assessment-network-application-cyan-app"
             target="_blank"
             rel="noopener noreferrer"
           >
-            USGS Stream Gages Data/System
+            CyAN Data/System
           </a>
         </p>
         <p>
-          Data and GIS files from the USGS current conditions can be found on
-          the{' '}
-          <a
-            href="https://waterdata.usgs.gov/nwis/sw"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            USGS website
-          </a>
-          .
+          The Cyanobacteria Assessment Network (CyAN) data provides access to{' '}
+          <GlossaryTerm term="cyanobacteria">cyanobacterial</GlossaryTerm> bloom
+          satellite data for over 2,000 of the largest lakes and reservoirs
+          across the United States.
         </p>
         <br />
         <h2 css={questionStyles}>
-          Where do I find USGS Stream Gage data in How’s My Waterway?
+          Where do I find CyAN data in How’s My Waterway?
         </h2>
         <p>
-          Information from the USGS databases can be found on the Community page
-          on the Overview tab under Monitoring & Sensors, Current Water
-          Conditions.
+          Information from CyAN can be found on the Community Page in the
+          Monitoring Tab under current water conditions, CyAN Satellite Imagery.
         </p>
         <ScrollToTop />
       </div>
@@ -449,6 +450,45 @@ function DataContent() {
 
       <hr />
 
+      <div css={itemStyles} id="usgs-sensors">
+        <i className="fas fa-database" aria-hidden="true" />{' '}
+        <h2 css={titleStyles}>USGS Sensors (USGS Stream Gages)</h2>
+        <p>
+          <a
+            href="https://waterdata.usgs.gov/nwis/rt"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            USGS Stream Gages Data/System
+          </a>
+        </p>
+        <p>
+          Data and GIS files from the USGS current conditions can be found on
+          the{' '}
+          <a
+            href="https://waterdata.usgs.gov/nwis/sw"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            USGS website
+          </a>
+          .
+        </p>
+        <br />
+        <h2 css={questionStyles}>
+          Where do I find USGS Stream Gage data in How’s My Waterway?
+        </h2>
+        <p>
+          Information from the USGS databases can be found on the Community page
+          on the Overview tab under Monitoring Locations, Current Water
+          Conditions, USGS Sensors and in the Monitoring Tab under current water
+          conditions, USGS Sensors.
+        </p>
+        <ScrollToTop />
+      </div>
+
+      <hr />
+
       <div css={itemStyles} id="wqp">
         <i className="fas fa-database" aria-hidden="true" />{' '}
         <h2 css={titleStyles}>Water Quality Portal (WQP)</h2>
@@ -474,8 +514,9 @@ function DataContent() {
         </h2>
         <p>
           Information from this database can be found on the Community page
-          under the Overview tab (monitoring locations) and on the Monitoring
-          tab and Monitoring Report pages.
+          under the Overview tab under Monitoring Locations, Past Water
+          Conditions, and on the Monitoring tab under Past Water Conditions, as
+          well as on the Monitoring Report pages.
         </p>
         <ScrollToTop />
       </div>

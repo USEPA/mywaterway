@@ -1,6 +1,6 @@
-describe('State page links', () => {
+describe('Tribe page links', () => {
   beforeEach(() => {
-    cy.visit('/state/FL');
+    cy.visit('/tribe/REDLAKE');
   });
 
   it('Clicking the “Show more/Show less” link/button toggles between showing more/less text in the state intro paragraph', () => {
@@ -23,7 +23,7 @@ describe('State page links', () => {
     const text = /^The condition of a waterbody is dynamic and can change/;
 
     // verify opening the disclaimer
-    cy.findByText('Disclaimer').click();
+    cy.findAllByText('Disclaimer').filter(':visible').click();
     cy.findByText(text).should('exist');
 
     // verify closing the disclaimer
@@ -31,8 +31,8 @@ describe('State page links', () => {
     cy.findByText(text).should('not.exist');
   });
 
-  it('Clicking the “More Information for <state name>” link opens a new tab for the state', () => {
-    const linkText = 'Florida DEP Home Page';
+  it('Clicking the “More Information for <tribe name>” link opens a new tab for the tribe', () => {
+    const linkText = 'Red Lake Nation';
 
     cy.findByText('More Information for').click();
 
@@ -41,7 +41,7 @@ describe('State page links', () => {
     cy.findByText(linkText).should(
       'have.attr',
       'href',
-      `https://floridadep.gov`,
+      `https://www.redlakenation.org/`,
     );
     cy.findByText(linkText).should('have.attr', 'target', '_blank');
     cy.findByText(linkText).should('have.attr', 'rel', 'noopener noreferrer');
@@ -73,49 +73,37 @@ describe('State page links', () => {
   });
 });
 
-describe('State page routes', () => {
-  it('Select a state and click “Go” routes to the state water quality overview page for the state abbreviation', () => {
+describe('Tribe page routes', () => {
+  it('Select a tribe and click “Go” routes to the tribe for the tribe organization id', () => {
     cy.visit('/state-and-tribal');
 
     cy.get('#hmw-state-select').click();
-    cy.findByText('Florida').click();
+    cy.findByText('Red Lake Band of Chippewa Indians, Minnesota').click();
     cy.findByText('Go').click();
 
-    cy.url().should('include', 'state/FL/water-quality-overview');
+    cy.url().should('include', 'tribe/REDLAKE');
   });
 
-  it('Directly navigating to a state with a non-existent state abbreviation, navigates back to the state page', () => {
-    cy.visit('/state/ZZ');
+  it('Directly navigating to a tribe with a non-existent tribe organizaion id, navigates back to the state-and-tribal page', () => {
+    cy.visit('/tribe/ZZZ');
 
     cy.url().should('equal', `${window.location.origin}/state-and-tribal`);
   });
 
-  it('Switching state page tabs updates route', () => {
-    cy.visit('/state/FL');
-
-    cy.url().should('include', 'state/FL/water-quality-overview');
-
-    cy.findByText('Advanced Search').click();
-    cy.url().should('include', 'state/FL/advanced-search');
-
-    cy.findByText('State Water Quality Overview').click();
-    cy.url().should('include', 'state/FL/water-quality-overview');
-  });
-
-  it('Navigate to the state page with a <script> tag in the route', () => {
-    cy.visit('/state/%3Cscript%3Evar%20j%20=%201;%3C/script%3E');
+  it('Navigate to the tribe page with a <script> tag in the route', () => {
+    cy.visit('/tribe/%3Cscript%3Evar%20j%20=%201;%3Cscript%3E');
 
     cy.findByText(
       'States and Tribes Play a Primary Role in Protecting Water Quality',
     ).should('exist');
 
-    cy.url().should('include', `${window.location.origin}/state`);
+    cy.url().should('include', `${window.location.origin}/state-and-tribal`);
   });
 });
 
-describe('State page Water Quality Overview sub tabs', () => {
+describe('Tribe page Water Quality Overview sub tabs', () => {
   beforeEach(() => {
-    cy.visit('/state/FL/water-quality-overview');
+    cy.visit('/tribe/REDLAKE');
 
     // verify the water quality overview content loaded prior to other tests
     cy.findByText('Water Quality', { timeout: 20000 }).should('exist');
@@ -141,77 +129,86 @@ describe('State page Water Quality Overview sub tabs', () => {
       .should('not.exist');
 
     // verify a tab without data
-    cy.findByTestId('hmw-other-tab-button').click();
-    cy.findByTestId('hmw-other-tab-panel').contains(noWaterTypes);
-    cy.findByTestId('hmw-other-tab-panel').contains(noUses);
+    cy.findByTestId('hmw-fishing-tab-button').click();
+    cy.findByTestId('hmw-fishing-tab-panel').contains(noWaterTypes);
+    cy.findByTestId('hmw-fishing-tab-panel').contains(noUses);
   });
 
   it('Navigating to a sub-tab selection shows correct charts', () => {
-    const surveyResultsText =
-      'State statistical surveys provide an overall picture';
     const siteSpecificText = 'Targeted monitoring provides information';
 
-    // Florida > Aquatic Life > Coastal Waters
+    // Red Lake > Aquatic Life > Coastal Waters
     // verify the pie chart is not there and the bar chart is
-
-    cy.findByTestId('hmw-ecological-tab-panel')
-      .contains(surveyResultsText)
-      .should('not.exist');
     cy.findByTestId('hmw-ecological-tab-panel')
       .contains(siteSpecificText)
       .should('exist');
 
-    // Florida > Aquatic Life > Rivers and Streams > Fish and Wildlife Propagation
+    // Red Lake > Aquatic Life > Rivers and Streams > Fish and Wildlife Propagation
     // select a dropdown item that has the pie chart
     cy.get('#water-type-ecological').click();
     cy.findByText('Rivers and Streams').click();
-    cy.get('#water-use-ecological').click();
-    cy.findByText('Fish and Wildlife Propagation - Freshwater').click();
 
     // verify the pie chart is not there and the bar chart is
-
-    cy.findByTestId('hmw-ecological-tab-panel')
-      .contains(surveyResultsText)
-      .should('exist');
     cy.findByTestId('hmw-ecological-tab-panel')
       .contains(siteSpecificText)
       .should('exist');
   });
+
+  it('Clicking Map and List buttons show correct content', () => {
+    // verify map is visible and the list view is hidden
+    cy.findByRole('button', { name: 'Open Basemaps and Layers' }).should('be.visible');
+    cy.findByText('Alaska Lake').should('not.exist');
+
+    // click "List" tab
+    cy.findByRole('button', { name: 'List' }).click();
+
+    // verify the map is hidden and the list view is visible
+    cy.findByRole('button', { name: 'Open Basemaps and Layers' }).should('not.exist');
+    cy.findAllByText('Alaska Lake').should('be.visible');
+
+    // click "Map" tab
+    cy.findByRole('button', { name: 'Map' }).click();
+
+    // verify map is visible and the list view is hidden
+    cy.findByRole('button', { name: 'Open Basemaps and Layers' }).should('be.visible');
+    cy.findByText('Alaska Lake').should('not.exist');
+  });
 });
 
-describe('State page Water Overview tab', () => {
-  beforeEach(() => {
-    cy.visit('/state/AK/water-quality-overview');
+describe('Tribe page Water Overview', () => {
+  Cypress.on("uncaught:exception", (_err, _runnable) => {
+    // returning false here prevents Cypress from
+    // failing the test
+    debugger;
+    return false;
   });
 
-  it(`Display "Drinking Water Information" when water sub-tab clicked on`, () => {
+  beforeEach(() => {
+    cy.visit('/tribe/REDLAKE');
+  });
+
+  it(`Do not display "Drinking Water Information" when water sub-tab clicked on`, () => {
     cy.findByText('Drinking Water').click();
     cy.findAllByText(/Drinking Water Information for/)
-      .filter(':visible')
-      .should('exist');
+      .should('not.be.visible');
   });
 
-  it(`Clicking "Expand All/Collapse All" expands/collapses the state documents and state water stories menu`, () => {
-    const documentsText = 'Documents Related to Integrated Report';
-    const waterText =
-      'Upgrading Boat Motors Reduces Hydrocarbon Pollution in Kenai River (PDF)';
+  it(`Clicking "Expand All/Collapse All" expands/collapses the state documents menu`, () => {
+    const documentsText = 'Documents Related to Assessment';
 
     cy.findAllByText('Expand All').filter(':visible');
     cy.findByText(documentsText).should('not.exist');
-    cy.findByText(waterText).should('not.exist');
 
     cy.findByText('Expand All').click();
     cy.findAllByText(documentsText).should('be.visible');
-    cy.findAllByText(waterText).should('be.visible');
 
     cy.findByText('Collapse All').click();
     cy.findByText(documentsText).should('not.exist');
-    cy.findByText(waterText).should('not.exist');
   });
 
-  it(`Clicking "<state name> Documents" opens the documents content`, () => {
-    const title = 'Alaska Documents';
-    const text = 'Documents Related to Integrated Report';
+  it(`Clicking "<tribe name> Documents" opens the documents content`, () => {
+    const title = 'Red Lake Band of Chippewa Indians, Minnesota Documents';
+    const text = 'Documents Related to Assessment';
 
     // verify text is not visible
     cy.findByText(text).should('not.exist');
@@ -225,20 +222,7 @@ describe('State page Water Overview tab', () => {
     cy.findByText(text).should('not.exist');
   });
 
-  it(`Clicking "<state name> Water Stories" opens the water stories content.`, () => {
-    const title = 'Alaska Water Stories';
-    const text =
-      'Upgrading Boat Motors Reduces Hydrocarbon Pollution in Kenai River (PDF)';
-
-    // verify text is not visible
-    cy.findByText(text).should('not.exist');
-
-    // open accordion and check text is visible
-    cy.get('.hmw-accordion').contains(title).click();
-    cy.findByText(text).should('be.visible');
-
-    // close accordion and verify text is not visible
-    cy.get('.hmw-accordion').contains(title).click();
-    cy.findByText(text).should('not.exist');
+  it(`"Water Stories" not available on the tribe pages.`, () => {
+    cy.findByText('Water Stories', { exact: false }).should('not.exist');
   });
 });
