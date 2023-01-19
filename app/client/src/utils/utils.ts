@@ -1,3 +1,4 @@
+import Highcharts from 'highcharts';
 import Point from '@arcgis/core/geometry/Point';
 
 // utility function to split up an array into chunks of a designated length
@@ -28,12 +29,16 @@ function containsScriptTag(string: string) {
 function formatNumber(number: number, digits: number = 0) {
   if (!number) return '0';
 
-  if (number !== 0 && number < 1) return '< 1';
+  if (number !== 0 && Math.abs(number) < 1) return '< 1';
 
   return number.toLocaleString([], {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   });
+}
+
+function isAbort(error: Error) {
+  return error.name === 'AbortError';
 }
 
 // Gets the file extension from a url or path. The backup parameter was added
@@ -255,7 +260,7 @@ function browserIsCompatibleWithArcGIS() {
     start > -1
   ) {
     const iosVersion = window.Number(
-      agent.substr(start + 3, 3).replace('_', '.'),
+      agent.substring(start + 3, start + 6).replace('_', '.'),
     );
 
     if (isNaN(iosVersion)) {
@@ -369,7 +374,9 @@ function summarizeAssessments(
       | 'Not Assessed'
       | 'Not Applicable'
       | 'X';
-    const { assessmentunitidentifier: id } = graphic.attributes;
+    const { assessmentunitidentifier, organizationidentifier } =
+      graphic.attributes;
+    const id = `${organizationidentifier}${assessmentunitidentifier}`;
 
     if (!field || field === 'X') {
       summary['Not Applicable']++;
@@ -418,7 +425,7 @@ function parseAttributes<Type>(
     [property: string]: Type[keyof Type];
   } = {};
   for (const property of structuredAttributes) {
-    if (property in attributes) {
+    if (property in (attributes as object)) {
       const value = attributes[property as keyof Type];
       if (typeof value === 'string') {
         parsed[property] = JSON.parse(value);
@@ -430,12 +437,29 @@ function parseAttributes<Type>(
   return { ...attributes, ...parsed };
 }
 
+// Workaround for the Download SVG not working with the accessibility module.
+function removeAccessibiltyHcSvgExport() {
+  Highcharts.addEvent(
+    Highcharts.Chart.prototype,
+    'afterA11yUpdate',
+    function (e: Event | Highcharts.Dictionary<any> | undefined) {
+      if (!e || !('accessibility' in e)) return;
+
+      const a11y = e.accessibility;
+      if ((this.renderer as any).forExport && a11y && a11y.proxyProvider) {
+        a11y.proxyProvider.destroy();
+      }
+    },
+  );
+}
+
 export {
   chunkArray,
   containsScriptTag,
   escapeRegex,
   formatNumber,
   getExtensionFromPath,
+  isAbort,
   isHuc12,
   titleCase,
   titleCaseWithExceptions,
@@ -455,4 +479,5 @@ export {
   summarizeAssessments,
   indicesOf,
   parseAttributes,
+  removeAccessibiltyHcSvgExport,
 };

@@ -103,6 +103,9 @@ describe('Community page map legend', () => {
       'not.exist',
     );
 
+    // workaround for this test failing while running cypress in headless mode.
+    cy.wait(2000);
+
     cy.findByRole('button', { name: 'Open Basemaps and Layers' }).click();
     cy.findAllByRole('switch', { name: 'Mapped Water (all)' }).click({ force: true });
     cy.findByRole('button', { name: 'Close Basemaps and Layers' }).click();

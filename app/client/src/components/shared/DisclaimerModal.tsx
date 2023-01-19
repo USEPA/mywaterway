@@ -1,9 +1,8 @@
-// @flow
-
-import React, { useState } from 'react';
-import type { Node } from 'react';
+import { useState } from 'react';
 import { css } from 'styled-components/macro';
-import { DialogOverlay, DialogContent } from '@reach/dialog';
+import { DialogContent, DialogOverlay } from '@reach/dialog';
+// types
+import type { ReactNode } from 'react';
 // styles
 import { colors } from 'styles/index.js';
 import '@reach/dialog/styles.css';
@@ -78,7 +77,7 @@ const closeButtonStyles = css`
 
 // --- components ---
 type Props = {
-  children: Node,
+  children: ReactNode;
 };
 
 function DisclaimerModal({ children, ...props }: Props) {
@@ -87,7 +86,7 @@ function DisclaimerModal({ children, ...props }: Props) {
     <>
       <button
         css={disclaimerButtonStyles}
-        onClick={(ev) => setDialogShown(!dialogShown)}
+        onClick={(_ev) => setDialogShown(!dialogShown)}
         // spread props so button’s styles (e.g. position) can be further set when used
         {...props}
       >
@@ -104,7 +103,7 @@ function DisclaimerModal({ children, ...props }: Props) {
           <button
             css={closeButtonStyles}
             title="Close disclaimer"
-            onClick={(ev) => setDialogShown(false)}
+            onClick={(_ev) => setDialogShown(false)}
           >
             ×
           </button>

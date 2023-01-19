@@ -2,6 +2,7 @@
 
 import React, {
   Fragment,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -169,15 +170,15 @@ function LocationSearch({ route, label }: Props) {
   const navigate = useNavigate();
 
   const services = useServicesContext();
-  const searchBox = useRef();
+  const searchBox = useRef(null);
   const downPress = useKeyPress('ArrowDown', searchBox);
   const upPress = useKeyPress('ArrowUp', searchBox);
   const enterPress = useKeyPress('Enter', searchBox);
-  const sourceList = useRef();
+  const sourceList = useRef(null);
   const sourceDownPress = useKeyPress('ArrowDown', sourceList);
   const sourceUpPress = useKeyPress('ArrowUp', sourceList);
   const sourceEnterPress = useKeyPress('Enter', sourceList);
-  const clearButton = useRef();
+  const clearButton = useRef(null);
   const clearEnterPress = useKeyPress('Enter', clearButton);
   const { searchText, watershed, huc12 } = useContext(LocationSearchContext);
 
@@ -487,45 +488,52 @@ function LocationSearch({ route, label }: Props) {
     }
   }, [resultsCombined, upPress]);
 
+  // Performs the search operation
+  const formSubmit = useCallback(
+    (newSearchTerm, geometry = null) => {
+      setSuggestionsVisible(false);
+      setCursor(-1);
+
+      newSearchTerm = newSearchTerm.replace(/[\n\r\t/]/g, ' ');
+
+      if (containsScriptTag(newSearchTerm)) {
+        setErrorMessage(invalidSearchError);
+        return;
+      }
+
+      // get urlSearch parameter value
+      let urlSearch = null;
+      if (geometry) {
+        urlSearch = `${newSearchTerm.trim()}|${geometry.longitude}, ${
+          geometry.latitude
+        }`;
+      } else if (newSearchTerm) {
+        urlSearch = newSearchTerm.trim();
+      }
+
+      // navigate if the urlSearch value is available
+      if (urlSearch) {
+        setErrorMessage('');
+        setGeolocationError(false);
+
+        // only navigate if search box contains text
+        navigate(encodeURI(route.replace('{urlSearch}', urlSearch)));
+      }
+    },
+    [navigate, route],
+  );
+
   // Handle enter key press (search input)
   useEffect(() => {
-    if (resultsCombined.length === 0 || !enterPress) return;
-    if (cursor < 0 || cursor > resultsCombined.length) return;
-    if (resultsCombined[cursor].text)
+    if (!enterPress || cursor < -1 || cursor > resultsCombined.length) return;
+
+    if (cursor === -1 || resultsCombined.length === 0) {
+      formSubmit(inputText);
+    } else if (resultsCombined[cursor].text) {
       setInputText(resultsCombined[cursor].text);
-  }, [cursor, enterPress, resultsCombined]);
-
-  // Performs the search operation
-  function formSubmit(newSearchTerm, geometry = null) {
-    setSuggestionsVisible(false);
-    setCursor(-1);
-
-    newSearchTerm = newSearchTerm.replace(/[\n\r\t/]/g, ' ');
-
-    if (containsScriptTag(newSearchTerm)) {
-      setErrorMessage(invalidSearchError);
-      return;
+      formSubmit(resultsCombined[cursor].text);
     }
-
-    // get urlSearch parameter value
-    let urlSearch = null;
-    if (geometry) {
-      urlSearch = `${newSearchTerm.trim()}|${geometry.longitude}, ${
-        geometry.latitude
-      }`;
-    } else if (newSearchTerm) {
-      urlSearch = newSearchTerm.trim();
-    }
-
-    // navigate if the urlSearch value is available
-    if (urlSearch) {
-      setErrorMessage('');
-      setGeolocationError(false);
-
-      // only navigate if search box contains text
-      navigate(encodeURI(route.replace('{urlSearch}', urlSearch)));
-    }
-  }
+  }, [cursor, enterPress, formSubmit, inputText, resultsCombined]);
 
   // Splits the provided text by the searchString in a case insensitive way.
   function getHighlightParts(text, searchString) {
@@ -557,8 +565,8 @@ function LocationSearch({ route, label }: Props) {
     return parts;
   }
 
-  let index = -1;
-  function LayerSuggestions({ title, source }) {
+  function LayerSuggestions({ title, source, startIndex }) {
+    let index = 0;
     return (
       <>
         <div className="esri-menu__header">{title}</div>
@@ -566,8 +574,8 @@ function LocationSearch({ route, label }: Props) {
           role="presentation"
           className="esri-menu__list esri-search__suggestions-list"
         >
-          {source.results.map((result) => {
-            index = index + 1;
+          {source.results.map((result, idx) => {
+            index = startIndex + idx;
             return (
               <li
                 id={`search-suggestion-${index}`}
@@ -737,6 +745,8 @@ function LocationSearch({ route, label }: Props) {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [suggestionsRef]);
+
+  let layerEndIndex = -1;
 
   return (
     <>
@@ -921,12 +931,15 @@ function LocationSearch({ route, label }: Props) {
                     }
                     if (source.results.length === 0) return null;
 
+                    layerEndIndex += source.results.length;
+
                     const title = findGroupName();
                     return (
                       <LayerSuggestions
                         key={`layer-suggestions-key-${suggestIndex}`}
                         title={title}
                         source={source}
+                        startIndex={layerEndIndex - (source.results.length - 1)}
                       />
                     );
                   })}

@@ -3,7 +3,7 @@ import Graphic from '@arcgis/core/Graphic';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Viewpoint from '@arcgis/core/Viewpoint';
 import Papa from 'papaparse';
-import WindowSize from '@reach/window-size';
+import { WindowSize } from '@reach/window-size';
 import {
   useCallback,
   useContext,
@@ -18,10 +18,11 @@ import Select from 'react-select';
 import { css } from 'styled-components/macro';
 // components
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
+import { BoxContent, FlexRow } from 'components/shared/BoxContent';
 import DateSlider from 'components/shared/DateSlider';
 import MapErrorBoundary from 'components/shared/ErrorBoundary.MapErrorBoundary';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
-import HelpTooltip from 'components/shared/HelpTooltip';
+import { HelpTooltip, Tooltip } from 'components/shared/HelpTooltip';
 import ScatterPlot from 'components/shared/ScatterPlot';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import Map from 'components/shared/Map';
@@ -49,7 +50,7 @@ import { MapHighlightProvider } from 'contexts/MapHighlight';
 import { fetchCheck, fetchPost } from 'utils/fetchUtils';
 import { useSharedLayers } from 'utils/hooks';
 import { getPopupContent, getPopupTitle } from 'utils/mapFunctions';
-import { parseAttributes, titleCaseWithExceptions } from 'utils/utils';
+import { parseAttributes } from 'utils/utils';
 // styles
 import {
   boxStyles,
@@ -92,6 +93,27 @@ const accordionStyles = css`
   .total-row {
     margin-right: 1.75em;
   }
+
+  input[type='checkbox'] {
+    margin-right: 1em;
+    position: relative;
+    transform: scale(1.2);
+  }
+`;
+
+const boxContentStyles = css`
+  .row-cell {
+    &:nth-of-type(even) {
+      padding-right: 0.5em;
+    }
+    &:nth-of-type(odd) {
+      padding-left: 0.5em;
+    }
+  }
+`;
+
+const sectionStyles = css`
+  padding: 0.4375rem 0.875rem;
 `;
 
 const charcsTableStyles = css`
@@ -207,6 +229,18 @@ const fileLinkStyles = css`
   }
 `;
 
+const flexRowStyles = css`
+  ${boxContentStyles}
+  &.flex-row {
+    font-size: 1em;
+  }
+  margin-bottom: 0.5rem;
+
+  span {
+    margin: 0 !important;
+  }
+`;
+
 const iconStyles = css`
   margin-right: 5px;
 `;
@@ -214,7 +248,6 @@ const iconStyles = css`
 const infoBoxHeadingStyles = css`
   ${boxHeadingStyles};
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 0;
 
@@ -346,72 +379,6 @@ const screenLabelStyles = css`
   font-size: 0.875rem;
   font-weight: bold;
   margin-bottom: 0.125rem;
-`;
-
-const sectionInlineStyles = css`
-  ${boxSectionStyles}
-  border-bottom: 1px solid #d8dfe2;
-  width: 100%;
-
-  &:last-of-type {
-    border-bottom: none;
-  }
-
-  &:first-of-type {
-    border-bottom: 1px solid #d8dfe2;
-  }
-
-  /* loading icon */
-  svg {
-    display: inline-block;
-    margin: -0.5rem;
-    height: 1.25rem;
-  }
-
-  h3 {
-    margin-right: 0.5em;
-  }
-
-  .label,
-  .value {
-    display: inline-block;
-    line-height: 1.25;
-    margin-top: 0;
-    margin-bottom: 0;
-  }
-`;
-
-const sectionInlineFlexStyles = css`
-  ${sectionInlineStyles}
-  align-items: flex-end;
-  display: flex;
-  justify-content: flex-start;
-`;
-
-const sectionInlineGridStyles = css`
-  ${sectionInlineStyles}
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  padding: 0.5em;
-
-  h3 {
-    grid-column: 1;
-  }
-
-  p {
-    grid-column: 2;
-  }
-
-  .label,
-  .value {
-    margin-bottom: auto;
-    margin-top: auto;
-  }
-`;
-
-const sectionInlineGridWideStyles = css`
-  ${sectionInlineGridStyles}
-  grid-template-columns: minmax(100px, 300px) minmax(100px, 1fr);
 `;
 
 const selectContainerStyles = css`
@@ -867,27 +834,6 @@ function parseLabelCounts(groupCounts, charcLabels, mappings) {
   return labelCounts;
 }
 
-const row = (label, value, style, dataStatus = 'success') => (
-  <div className="row-container" css={style}>
-    <h3 className="label">{label}:</h3>
-    {dataStatus === 'fetching' && <LoadingSpinner />}
-    {dataStatus === 'failure' && <p className="value">N/A</p>}
-    {dataStatus === 'success' && <p className="value">{value}</p>}
-  </div>
-);
-
-const rowFlex = (label, value, dataStatus = 'success') => {
-  return row(label, value, sectionInlineFlexStyles, dataStatus);
-};
-
-const rowGrid = (label, value, dataStatus = 'success') => {
-  return row(label, value, sectionInlineGridStyles, dataStatus);
-};
-
-const rowWideGrid = (label, value, dataStatus = 'success') => {
-  return row(label, value, sectionInlineGridWideStyles, dataStatus);
-};
-
 function toggle(state, id, entity, level) {
   const newSelected = entity.selected === 0 ? 1 : 0;
 
@@ -1284,10 +1230,8 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
     <div css={modifiedBoxStyles}>
       <h2 css={infoBoxHeadingStyles}>
         Chart of Results for{' '}
-        {!charcName
-          ? 'Selected Characteristic'
-          : titleCaseWithExceptions(charcName)}
-        <HelpTooltip label="Adjust the slider handles to filter the data displayed on the chart by the selected year range, and use the drop-down inputs to filter  the data by the corresponding fields" />
+        {!charcName ? 'Selected Characteristic' : charcName}
+        <HelpTooltip label="Adjust the slider handles to filter the data displayed on the chart by the selected year range, and use the drop-down inputs to filter the data by the corresponding fields" />
       </h2>
       <StatusContent
         empty={
@@ -1405,36 +1349,43 @@ function CharacteristicChartSection({ charcName, charcsStatus, records }) {
             />
             {chartData?.length > 0 && (
               <div css={shadedBoxSectionStyles}>
-                {rowWideGrid(
-                  'Selected Date Range',
-                  `${new Date(domain[0]).toLocaleDateString(
-                    'en-us',
-                    dateOptions,
-                  )}` +
-                    ` - ${new Date(domain[1]).toLocaleDateString(
-                      'en-us',
-                      dateOptions,
-                    )}`,
-                )}
-                {rowWideGrid(
-                  'Number of Measurements Shown',
-                  chartData.length.toLocaleString(),
-                )}
-                {rowWideGrid('Average of Values', average)}
-                {rowWideGrid(
-                  'Median Value',
-                  `${median.toLocaleString()} ${displayUnit}`,
-                )}
-                {range &&
-                  rowWideGrid(
-                    'Minimum Value',
-                    `${range[0].toLocaleString()} ${displayUnit}`,
-                  )}
-                {range &&
-                  rowWideGrid(
-                    'Maximum Value',
-                    `${range[1].toLocaleString()} ${displayUnit}`,
-                  )}
+                <BoxContent
+                  rows={[
+                    {
+                      label: 'Selected Date Range',
+                      value:
+                        `${new Date(domain[0]).toLocaleDateString(
+                          'en-us',
+                          dateOptions,
+                        )}` +
+                        ` - ${new Date(domain[1]).toLocaleDateString(
+                          'en-us',
+                          dateOptions,
+                        )}`,
+                    },
+                    {
+                      label: 'Number of Measurements Shown',
+                      value: chartData.length.toLocaleString(),
+                    },
+                    {
+                      label: 'Average of Values',
+                      value: average,
+                    },
+                    {
+                      label: 'Median Value',
+                      value: `${median.toLocaleString()} ${displayUnit}`,
+                    },
+                    {
+                      label: 'Minimum Value',
+                      value: `${range[0].toLocaleString()} ${displayUnit}`,
+                    },
+                    {
+                      label: 'Maximum Value',
+                      value: `${range[1].toLocaleString()} ${displayUnit}`,
+                    },
+                  ]}
+                  styles={boxContentStyles}
+                />
               </div>
             )}
           </>
@@ -1501,7 +1452,11 @@ function CharacteristicsTableSection({
           fetching={<LoadingSpinner />}
           status={charcsStatus}
         >
-          {rowFlex('Selected Characteristic', selected ?? 'None', charcsStatus)}
+          <FlexRow
+            label="Selected Characteristic"
+            value={selected ?? 'None'}
+            styles={flexRowStyles}
+          />
           <ReactTable
             autoResetFilters={false}
             autoResetSortBy={false}
@@ -1934,6 +1889,8 @@ function FileLink({ disabled, fileType, data, setError, url }) {
   const [fetching, setFetching] = useState(false);
   const mimeTypes = { excel: 'xlsx', csv: 'csv' };
   const fileTypeUrl = `${url}zip=no&mimeType=${mimeTypes[fileType]}`;
+  const triggerRef = useRef(null);
+
   const fetchFile = async () => {
     setFetching(true);
     try {
@@ -1971,16 +1928,48 @@ function FileLink({ disabled, fileType, data, setError, url }) {
     );
 
   return (
-    <button css={fileLinkStyles} onClick={fetchFile}>
-      <i className={`fas fa-file-${fileType}`} aria-hidden="true" />
-      <span className="sr-only">
-        Download location data as a {fileType} file.
-      </span>
-    </button>
+    <Tooltip label={`Download ${mimeTypes[fileType].toUpperCase()}`}>
+      <button css={fileLinkStyles} onClick={fetchFile} ref={triggerRef}>
+        <i className={`fas fa-file-${fileType}`} aria-hidden="true" />
+        <span className="sr-only">
+          {`Download selected data as ${
+            fileType === 'excel' ? 'an' : 'a'
+          } ${mimeTypes[fileType].toUpperCase()} file.`}
+        </span>
+      </button>
+    </Tooltip>
   );
 }
 
 function InformationSection({ siteId, site, siteStatus }) {
+  const rows = [
+    {
+      label: 'Organization Name',
+      value: site.orgName,
+    },
+    {
+      label: 'Organization ID',
+      value: site.orgId,
+    },
+    {
+      label: 'County, State',
+      value: `${site.county}, ${site.state}`,
+    },
+    {
+      label: 'Water Type',
+      value: site.locationType,
+    },
+    {
+      label: 'Total Sample Count',
+      value: site.totalSamples?.toLocaleString(),
+    },
+    {
+      label: 'Total Measurement Count',
+      value: site.totalMeasurements?.toLocaleString(),
+    },
+  ];
+  rows.forEach((row) => (row.status = siteStatus));
+
   return (
     <div css={modifiedBoxStyles}>
       <h2 css={infoBoxHeadingStyles}>
@@ -1998,21 +1987,8 @@ function InformationSection({ siteId, site, siteStatus }) {
           </small>
         </span>
       </h2>
-      <div css={boxSectionStyles}>
-        {rowGrid('Organization Name', site.orgName, siteStatus)}
-        {rowGrid('Organization ID', site.orgId, siteStatus)}
-        {rowGrid('County, State', `${site.county}, ${site.state}`, siteStatus)}
-        {rowGrid('Water Type', site.locationType, siteStatus)}
-        {rowGrid(
-          'Total Sample Count',
-          site.totalSamples?.toLocaleString(),
-          siteStatus,
-        )}
-        {rowGrid(
-          'Total Measurement Count',
-          site.totalMeasurements?.toLocaleString(),
-          siteStatus,
-        )}
+      <div css={sectionStyles}>
+        <BoxContent rows={rows} styles={boxContentStyles} />
       </div>
     </div>
   );
@@ -2182,7 +2158,11 @@ function MonitoringReport() {
 function SliderContainer({ min, max, disabled = false, onChange }) {
   if (!min || !max) return <LoadingSpinner />;
   else if (min === max)
-    return <div css={sliderContainerStyles}>{rowFlex('Year', min)}</div>;
+    return (
+      <div css={sliderContainerStyles}>
+        <FlexRow label="Year" value={min} styles={flexRowStyles} />
+      </div>
+    );
 
   return (
     <div css={sliderContainerStyles}>

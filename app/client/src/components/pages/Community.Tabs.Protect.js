@@ -12,6 +12,7 @@ import { css } from 'styled-components/macro';
 import * as query from '@arcgis/core/rest/query';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 // components
+import { ListContent } from 'components/shared/BoxContent';
 import { tabsStyles } from 'components/shared/ContentTabs';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
 import { AccordionList, AccordionItem } from 'components/shared/Accordion';
@@ -22,7 +23,10 @@ import { GradientIcon } from 'utils/mapFunctions';
 import ShowLessMore from 'components/shared/ShowLessMore';
 import ViewOnMapButton from 'components/shared/ViewOnMapButton';
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
+// config
+import { tabs } from 'config/communityConfig';
 // contexts
+import { useFetchedDataState } from 'contexts/FetchedData';
 import { LocationSearchContext } from 'contexts/locationSearch';
 import { CommunityTabsContext } from 'contexts/CommunityTabs';
 import { useMapHighlightState } from 'contexts/MapHighlight';
@@ -39,8 +43,6 @@ import {
   wildScenicRiversError,
   wsioHealthIndexError,
 } from 'config/errorMessages';
-// styles
-import { tableStyles } from 'styles/index.js';
 
 const protectedAreasIdKey = 'OBJECTID';
 
@@ -106,6 +108,14 @@ const featureTitleStyles = css`
 
 const disclaimerStyles = css`
   display: inline-block;
+`;
+
+const listStyles = css`
+  padding-bottom: 1em;
+
+  li {
+    margin: 0.5em 0;
+  }
 `;
 
 const modifiedErrorBoxStyles = css`
@@ -174,6 +184,12 @@ const buttonContainerStyles = css`
   padding-left: 0.75rem;
 `;
 
+const subTitleStyles = css`
+  display: block;
+  font-size: 16px;
+  line-height: 1.25;
+`;
+
 function Protect() {
   const services = useServicesContext();
 
@@ -188,6 +204,8 @@ function Protect() {
     watershed,
     highlightOptions,
     huc12,
+    monitoringLocations,
+    monitoringLocationsLayer,
     statesData,
     visibleLayers,
     setVisibleLayers,
@@ -198,10 +216,14 @@ function Protect() {
     protectedAreasLayer,
     protectedAreasData,
     protectedAreasHighlightLayer,
+    usgsStreamgagesLayer,
     waterbodyLayer,
     cipSummary,
     allWaterbodiesLayer,
+    surroundingMonitoringLocationsLayer,
   } = useContext(LocationSearchContext);
+
+  const { usgsStreamgages } = useFetchedDataState();
 
   const { infoToggleChecked } = useContext(CommunityTabsContext);
 
@@ -209,7 +231,7 @@ function Protect() {
 
   // normalize grts projects data with attains plans data
   useEffect(() => {
-    if (grts.status === 'fetching' || grts.data.items.length === 0) return;
+    if (grts.status !== 'success' || grts.data.items.length === 0) return;
 
     const grtsProjects = grts.data.items
       .filter(
@@ -315,6 +337,20 @@ function Protect() {
             : false;
       }
 
+      if (monitoringLocations.status !== 'failure') {
+        newVisibleLayers['monitoringLocationsLayer'] =
+          !monitoringLocationsLayer || useCurrentValue
+            ? visibleLayers['monitoringLocationsLayer']
+            : monitoringLocationsLayer.visible;
+      }
+
+      if (usgsStreamgages.status !== 'failure') {
+        newVisibleLayers['usgsStreamgagesLayer'] =
+          !usgsStreamgagesLayer || useCurrentValue
+            ? visibleLayers['usgsStreamgagesLayer']
+            : usgsStreamgagesLayer.visible;
+      }
+
       if (newVisibleLayers.hasOwnProperty(key)) {
         newVisibleLayers[key] = newValue;
       }
@@ -326,6 +362,10 @@ function Protect() {
     },
     [
       healthScoresDisplayed,
+      monitoringLocations,
+      monitoringLocationsLayer,
+      usgsStreamgages,
+      usgsStreamgagesLayer,
       wsioHealthIndexLayer,
       wsioHealthIndexData,
       protectedAreasDisplayed,
@@ -390,9 +430,28 @@ function Protect() {
 
   function onWsioToggle(newValue) {
     if (newValue) {
-      allWaterbodiesLayer.visible = false;
+      setInitialAllWaterbodiesVisibility(allWaterbodiesLayer.visible);
+      setInitialSurroundingMonitoringVisibility(
+        surroundingMonitoringLocationsLayer.visible,
+      );
+      setInitialMonitoringLocationsVisibility(monitoringLocationsLayer.visible);
+      setInitialUsgsStreamgagesVisibility(usgsStreamgagesLayer.visible);
+
+      if (allWaterbodiesLayer) allWaterbodiesLayer.visible = false;
+      if (surroundingMonitoringLocationsLayer)
+        surroundingMonitoringLocationsLayer.visible = false;
+      if (monitoringLocationsLayer) monitoringLocationsLayer.visible = false;
+      if (usgsStreamgagesLayer) usgsStreamgagesLayer.visible = false;
     } else {
-      allWaterbodiesLayer.visible = initialAllWaterbodiesVisibility;
+      if (allWaterbodiesLayer)
+        allWaterbodiesLayer.visible = initialAllWaterbodiesVisibility;
+      if (surroundingMonitoringLocationsLayer)
+        surroundingMonitoringLocationsLayer.visible =
+          initialSurroundingMonitoringVisibility;
+      if (monitoringLocationsLayer)
+        monitoringLocationsLayer.visible = initialMonitoringLocationsVisibility;
+      if (usgsStreamgagesLayer)
+        usgsStreamgagesLayer.visible = initialUsgsStreamgagesVisibility;
     }
 
     setHealthScoresDisplayed(newValue);
@@ -449,8 +508,8 @@ function Protect() {
     setSelectedGraphic,
   ]);
 
-  // Initialize the allWaterbodiesLayer visibility. This will be used to reset
-  // the allWaterbodiesLayer visibility when the user leaves this tab.
+  // Initialize the visibility of several layers. This will be used
+  // to reset their visibility when the user leaves this tab.
   const [initialAllWaterbodiesVisibility, setInitialAllWaterbodiesVisibility] =
     useState(false);
   useEffect(() => {
@@ -458,6 +517,48 @@ function Protect() {
 
     setInitialAllWaterbodiesVisibility(allWaterbodiesLayer.visible);
   }, [allWaterbodiesLayer]);
+
+  const [
+    initialSurroundingMonitoringVisibility,
+    setInitialSurroundingMonitoringVisibility,
+  ] = useState(false);
+  useEffect(() => {
+    if (!surroundingMonitoringLocationsLayer) return;
+
+    setInitialSurroundingMonitoringVisibility(
+      surroundingMonitoringLocationsLayer.visible,
+    );
+  }, [surroundingMonitoringLocationsLayer]);
+
+  const initialVisibility = tabs.find((tab) => tab.title === 'Protect')?.layers;
+
+  const [
+    initialMonitoringLocationsVisibility,
+    setInitialMonitoringLocationsVisibility,
+  ] = useState(false);
+  useEffect(() => {
+    if (initialVisibility && 'monitoringLocationsLayer' in initialVisibility) {
+      setInitialMonitoringLocationsVisibility(
+        initialVisibility.monitoringLocationsLayer,
+      );
+    } else if (monitoringLocationsLayer) {
+      setInitialMonitoringLocationsVisibility(monitoringLocationsLayer.visible);
+    }
+  }, [initialVisibility, monitoringLocationsLayer]);
+
+  const [
+    initialUsgsStreamgagesVisibility,
+    setInitialUsgsStreamgagesVisibility,
+  ] = useState(false);
+  useEffect(() => {
+    if (initialVisibility && 'usgsStreamgagesLayer' in initialVisibility) {
+      setInitialUsgsStreamgagesVisibility(
+        initialVisibility.usgsStreamgagesLayer,
+      );
+    } else if (usgsStreamgagesLayer) {
+      setInitialUsgsStreamgagesVisibility(usgsStreamgagesLayer.visible);
+    }
+  }, [initialVisibility, usgsStreamgagesLayer]);
 
   ///////// Workaround Start /////////
   // Workaround to making a cleanup function that is really only called when the
@@ -477,8 +578,34 @@ function Protect() {
       if (!componentWillUnmount?.current) return;
 
       allWaterbodiesLayer.visible = initialAllWaterbodiesVisibility;
+      surroundingMonitoringLocationsLayer.visible =
+        initialSurroundingMonitoringVisibility;
+      monitoringLocationsLayer.visible = initialMonitoringLocationsVisibility;
+      usgsStreamgagesLayer.visible = initialUsgsStreamgagesVisibility;
     };
-  }, [allWaterbodiesLayer, initialAllWaterbodiesVisibility]);
+  }, [
+    allWaterbodiesLayer,
+    initialAllWaterbodiesVisibility,
+    initialSurroundingMonitoringVisibility,
+    initialMonitoringLocationsVisibility,
+    initialUsgsStreamgagesVisibility,
+    monitoringLocationsLayer,
+    surroundingMonitoringLocationsLayer,
+    usgsStreamgagesLayer,
+  ]);
+
+  let watershedStateStatus = 'failure';
+  if (
+    wsioHealthIndexData.status === 'fetching' ||
+    statesData.status === 'fetching'
+  ) {
+    watershedStateStatus = 'fetching';
+  } else if (
+    wsioHealthIndexData.status === 'success' ||
+    statesData.status === 'success'
+  ) {
+    watershedStateStatus = 'success';
+  }
 
   ///////// Workaround End /////////
 
@@ -494,7 +621,7 @@ function Protect() {
         >
           <TabList>
             <Tab>Watershed Health and Protection</Tab>
-            <Tab>Tips</Tab>
+            <Tab>Tips for Protecting Your Watershed</Tab>
           </TabList>
           <TabPanels>
             <TabPanel>
@@ -561,52 +688,31 @@ function Protect() {
                     {wsioHealthIndexData.status === 'success' &&
                       wsioHealthIndexData.data.length > 0 && (
                         <div css={watershedAccordionStyles}>
-                          <table css={tableStyles} className="table">
-                            <tbody>
-                              <tr>
-                                <td>
-                                  <em>Watershed Name:</em>
-                                </td>
-                                <td>{watershed}</td>
-                              </tr>
-                              <tr>
-                                <td>
-                                  <em>Watershed:</em>
-                                </td>
-                                <td>{huc12}</td>
-                              </tr>
-                              <tr>
-                                <td>
-                                  <em>State:</em>
-                                </td>
-                                <td>
-                                  {(wsioHealthIndexData.status === 'fetching' ||
-                                    statesData.status === 'fetching') && (
-                                    <LoadingSpinner />
-                                  )}
-
-                                  {wsioHealthIndexData.status === 'success' &&
-                                    statesData.status === 'success' &&
-                                    convertStateCode(
-                                      wsioData.states,
-                                      statesData.data,
-                                    )}
-                                </td>
-                              </tr>
-                              <tr>
-                                <td>
-                                  <em>Watershed Health Score:</em>
-                                </td>
-                                <td>
-                                  {wsioHealthIndexData.status ===
-                                    'fetching' && <LoadingSpinner />}
-                                  {wsioHealthIndexData.status === 'success' && (
-                                    <>{wsioScore}</>
-                                  )}
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
+                          <ListContent
+                            rows={[
+                              {
+                                label: 'Watershed Name',
+                                value: watershed,
+                              },
+                              {
+                                label: 'Watershed',
+                                value: huc12,
+                              },
+                              {
+                                label: 'State',
+                                value: convertStateCode(
+                                  wsioData.states,
+                                  statesData.data,
+                                ),
+                                status: watershedStateStatus,
+                              },
+                              {
+                                label: 'Watershed Health Score',
+                                value: wsioScore,
+                                status: wsioHealthIndexData.status,
+                              },
+                            ]}
+                          />
 
                           <div css={watershedGradientStyles}>
                             <p>More Healthy</p>
@@ -832,85 +938,60 @@ function Protect() {
                                   </strong>
                                 }
                               >
-                                <table css={tableStyles} className="table">
-                                  <tbody>
-                                    <tr>
-                                      <td>
-                                        <em>Agency</em>
-                                      </td>
-                                      <td>
-                                        {convertAgencyCode(attributes.AGENCY)}
-                                      </td>
-                                    </tr>
-
-                                    <tr>
-                                      <td>
-                                        <em>Management Plan</em>
-                                      </td>
-                                      <td>
-                                        {attributes.MANAGEMENT_PLAN === 'Y'
+                                <ListContent
+                                  rows={[
+                                    {
+                                      label: 'Agency',
+                                      value: convertAgencyCode(
+                                        attributes.AGENCY,
+                                      ),
+                                    },
+                                    {
+                                      label: 'Management Plan',
+                                      value:
+                                        attributes.MANAGEMENT_PLAN === 'Y'
                                           ? 'Yes'
-                                          : 'No'}
-                                      </td>
-                                    </tr>
-
-                                    <tr>
-                                      <td>
-                                        <em>Managing Entities</em>
-                                      </td>
-                                      <td>
-                                        {convertAgencyCode(
-                                          attributes.MANAGING_ENTITIES,
-                                        )}
-                                      </td>
-                                    </tr>
-
-                                    <tr>
-                                      <td>
-                                        <em>Public Law Name</em>
-                                      </td>
-                                      <td>{attributes.PUBLIC_LAW_NAME}</td>
-                                    </tr>
-
-                                    <tr>
-                                      <td>
-                                        <em>State</em>
-                                      </td>
-                                      <td>{attributes.STATE}</td>
-                                    </tr>
-
-                                    <tr>
-                                      <td>
-                                        <em>River Category</em>
-                                      </td>
-                                      <td>{attributes.RiverCategory}</td>
-                                    </tr>
-
-                                    <tr>
-                                      <td>
-                                        <em>Website</em>
-                                      </td>
-                                      <td>
-                                        {attributes.WEBLINK ? (
-                                          <>
-                                            <a
-                                              href={attributes.WEBLINK}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                            >
-                                              More information
-                                            </a>{' '}
-                                            <small css={disclaimerStyles}>
-                                              (opens new browser tab)
-                                            </small>
-                                          </>
-                                        ) : (
-                                          'Not available.'
-                                        )}
-                                      </td>
-                                    </tr>
-                                  </tbody>
-                                </table>
+                                          : 'No',
+                                    },
+                                    {
+                                      label: 'Managing Entities',
+                                      value: convertAgencyCode(
+                                        attributes.MANAGING_ENTITIES,
+                                      ),
+                                    },
+                                    {
+                                      label: 'Public Law Name',
+                                      value: attributes.PUBLIC_LAW_NAME,
+                                    },
+                                    {
+                                      label: 'State',
+                                      value: attributes.STATE,
+                                    },
+                                    {
+                                      label: 'River Category',
+                                      value: attributes.RiverCategory,
+                                    },
+                                    {
+                                      label: 'Website',
+                                      value: attributes.WEBLINK ? (
+                                        <>
+                                          <a
+                                            href={attributes.WEBLINK}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                          >
+                                            More information
+                                          </a>
+                                          <small css={disclaimerStyles}>
+                                            (opens new browser tab)
+                                          </small>
+                                        </>
+                                      ) : (
+                                        'Not available.'
+                                      ),
+                                    },
+                                  ]}
+                                />
 
                                 <div css={buttonContainerStyles}>
                                   <ViewOnMapButton
@@ -1053,58 +1134,42 @@ function Protect() {
                                   </strong>
                                 }
                               >
-                                <table css={tableStyles} className="table">
-                                  <tbody>
-                                    <tr>
-                                      <td>
-                                        <em>Manager Type:</em>
-                                      </td>
-                                      <td>
-                                        {convertDomainCode(
-                                          fields,
-                                          'Mang_Type',
-                                          attributes.Mang_Type,
-                                        )}
-                                      </td>
-                                    </tr>
-                                    <tr>
-                                      <td>
-                                        <em>Manager Name:</em>
-                                      </td>
-                                      <td>
-                                        {convertDomainCode(
-                                          fields,
-                                          'Mang_Name',
-                                          attributes.Mang_Name,
-                                        )}
-                                      </td>
-                                    </tr>
-                                    <tr>
-                                      <td>
-                                        <em>Protection Category:</em>
-                                      </td>
-                                      <td>
-                                        {convertDomainCode(
-                                          fields,
-                                          'Category',
-                                          attributes.Category,
-                                        )}
-                                      </td>
-                                    </tr>
-                                    <tr>
-                                      <td>
-                                        <em>Public Access:</em>
-                                      </td>
-                                      <td>
-                                        {convertDomainCode(
-                                          fields,
-                                          'Pub_Access',
-                                          attributes.Pub_Access,
-                                        )}
-                                      </td>
-                                    </tr>
-                                  </tbody>
-                                </table>
+                                <ListContent
+                                  rows={[
+                                    {
+                                      label: 'Manager Type',
+                                      value: convertDomainCode(
+                                        fields,
+                                        'Mang_Type',
+                                        attributes.Mang_Type,
+                                      ),
+                                    },
+                                    {
+                                      label: 'Manager Name',
+                                      value: convertDomainCode(
+                                        fields,
+                                        'Mang_Name',
+                                        attributes.Mang_Name,
+                                      ),
+                                    },
+                                    {
+                                      label: 'Protection Category',
+                                      value: convertDomainCode(
+                                        fields,
+                                        'Category',
+                                        attributes.Category,
+                                      ),
+                                    },
+                                    {
+                                      label: 'Public Access',
+                                      value: convertDomainCode(
+                                        fields,
+                                        'Pub_Access',
+                                        attributes.Pub_Access,
+                                      ),
+                                    },
+                                  ]}
+                                />
 
                                 <div css={buttonContainerStyles}>
                                   <ViewOnMapButton
@@ -1269,6 +1334,29 @@ function Protect() {
                                     (plan) => plan && plan.url && plan.title,
                                   );
 
+                                const protectionPlanLinks =
+                                  filteredProtectionPlans &&
+                                  filteredProtectionPlans.length > 0
+                                    ? filteredProtectionPlans.map(
+                                        (plan, index) => {
+                                          if (plan && plan.url && plan.title) {
+                                            return (
+                                              <div key={index}>
+                                                <a
+                                                  href={plan.url}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                >
+                                                  {plan.title}
+                                                </a>
+                                              </div>
+                                            );
+                                          }
+                                          return false;
+                                        },
+                                      )
+                                    : 'Document not available';
+
                                 return (
                                   <FeatureItem
                                     key={index}
@@ -1285,154 +1373,96 @@ function Protect() {
                                     }
                                   >
                                     {item.source === 'grts' && (
-                                      <table
-                                        css={tableStyles}
-                                        className="table"
-                                      >
-                                        <tbody>
-                                          {item.pollutants && (
-                                            <tr>
-                                              <td>
-                                                <em>Impairments:</em>
-                                              </td>
-                                              <td>{item.pollutants}</td>
-                                            </tr>
-                                          )}
-                                          <tr>
-                                            <td>
-                                              <em>Total Funds:</em>
-                                            </td>
-                                            <td>{item.total319Funds}</td>
-                                          </tr>
-                                          <tr>
-                                            <td>
-                                              <em>Project Start Date:</em>
-                                            </td>
-                                            <td>{item.projectStartDate}</td>
-                                          </tr>
-                                          <tr>
-                                            <td>
-                                              <em>Project Status:</em>
-                                            </td>
-                                            <td>{item.status}</td>
-                                          </tr>
-                                          <tr>
-                                            <td>
-                                              <em>Project Details:</em>
-                                            </td>
-                                            <td>
-                                              {url && (
-                                                <>
-                                                  <a
-                                                    href={url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                  >
-                                                    Open Project Summary
-                                                  </a>
-                                                  &nbsp;&nbsp;
-                                                  <small css={disclaimerStyles}>
-                                                    (opens new browser tab)
-                                                  </small>
-                                                </>
-                                              )}
-                                            </td>
-                                          </tr>
-
-                                          <tr>
-                                            <td>
-                                              <em>Protection Plans:</em>
-                                            </td>
-                                            {filteredProtectionPlans &&
-                                            filteredProtectionPlans.length >
-                                              0 ? (
-                                              <td>
-                                                {filteredProtectionPlans.map(
-                                                  (plan, index) => {
-                                                    if (
-                                                      plan &&
-                                                      plan.url &&
-                                                      plan.title
-                                                    ) {
-                                                      return (
-                                                        <div key={index}>
-                                                          <a
-                                                            href={plan.url}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                          >
-                                                            {plan.title}
-                                                          </a>
-                                                        </div>
-                                                      );
-                                                    }
-                                                    return false;
-                                                  },
-                                                )}
-                                              </td>
-                                            ) : (
-                                              <td>Document not available</td>
-                                            )}
-                                          </tr>
-                                        </tbody>
-                                      </table>
-                                    )}
-
-                                    {item.source === 'attains' && (
-                                      <table
-                                        css={tableStyles}
-                                        className="table"
-                                      >
-                                        <tbody>
-                                          <tr>
-                                            <td>
-                                              <em>Plan Type:</em>
-                                            </td>
-                                            <td>
-                                              <GlossaryTerm term="Protection Approach">
-                                                Protection Approach
-                                              </GlossaryTerm>
-                                            </td>
-                                          </tr>
-                                          <tr>
-                                            <td>
-                                              <em>Status:</em>
-                                            </td>
-                                            <td>
-                                              {item.status ===
-                                              'EPA Final Action'
-                                                ? 'Final'
-                                                : item.status}
-                                            </td>
-                                          </tr>
-                                          <tr>
-                                            <td>
-                                              <em>Completion Date:</em>
-                                            </td>
-                                            <td>{item.completionDate}</td>
-                                          </tr>
-                                          {item.id && (
-                                            <tr>
-                                              <td>
-                                                <em>Plan Details:</em>
-                                              </td>
-                                              <td>
+                                      <ListContent
+                                        rows={[
+                                          item.pollutants
+                                            ? {
+                                                label: 'Impairments',
+                                                value: item.pollutants,
+                                              }
+                                            : null,
+                                          {
+                                            label: 'Total Funds',
+                                            value: item.total319Funds,
+                                          },
+                                          {
+                                            label: 'Project Start Date',
+                                            value: item.projectStartDate,
+                                          },
+                                          {
+                                            label: 'Project Status',
+                                            value: item.status,
+                                          },
+                                          {
+                                            label: 'Project Details',
+                                            value: url ? (
+                                              <>
                                                 <a
-                                                  href={`/plan-summary/${item.organizationId}/${item.id}`}
+                                                  href={url}
                                                   target="_blank"
                                                   rel="noopener noreferrer"
                                                 >
-                                                  Open Plan Summary
+                                                  Open Project Summary
                                                 </a>
-                                                &nbsp;&nbsp;
                                                 <small css={disclaimerStyles}>
                                                   (opens new browser tab)
                                                 </small>
-                                              </td>
-                                            </tr>
-                                          )}
-                                        </tbody>
-                                      </table>
+                                              </>
+                                            ) : null,
+                                          },
+                                          {
+                                            label: 'Protection Plans',
+                                            value: protectionPlanLinks,
+                                          },
+                                        ]}
+                                      />
+                                    )}
+
+                                    {item.source === 'attains' && (
+                                      <ListContent
+                                        rows={[
+                                          {
+                                            label: 'Plan Type',
+                                            value: (
+                                              <GlossaryTerm term="Protection Approach">
+                                                Protection Approach
+                                              </GlossaryTerm>
+                                            ),
+                                          },
+                                          {
+                                            label: 'Status',
+                                            value:
+                                              item.status === 'EPA Final Action'
+                                                ? 'Final'
+                                                : item.status,
+                                          },
+                                          {
+                                            label: 'Completion Date',
+                                            value: item.completionDate,
+                                          },
+                                          item.id
+                                            ? {
+                                                label: 'Plan Details',
+                                                value: (
+                                                  <>
+                                                    <a
+                                                      href={`/plan-summary/${item.organizationId}/${item.id}`}
+                                                      target="_blank"
+                                                      rel="noopener noreferrer"
+                                                    >
+                                                      Open Plan Summary
+                                                    </a>
+                                                    <small
+                                                      css={disclaimerStyles}
+                                                    >
+                                                      (opens new browser tab)
+                                                    </small>
+                                                  </>
+                                                ),
+                                              }
+                                            : null,
+                                        ]}
+                                      />
                                     )}
                                   </FeatureItem>
                                 );
@@ -1453,64 +1483,53 @@ function Protect() {
 
               <p>Get quick tips for protecting water in your:</p>
 
-              <h2>Community</h2>
+              <h2>
+                Home and Yard
+                <i css={subTitleStyles}>
+                  Sustainable landscaping to conserve water and protect the
+                  natural functioning ecosystem
+                </i>
+              </h2>
 
-              <ul>
-                <li>Contribute to local water cleanup efforts.</li>
-                <li>Find a watershed protection organization to support.</li>
-                <li>Volunteer to help monitor water quality.</li>
-                <li>
-                  Lead a campaign to educate your community about impairment
-                  from nonpoint sources, like stormwater.
-                </li>
-                <li>
-                  Sponsor a watershed festival in your community to raise
-                  awareness about the importance of watershed protection.
-                </li>
-                <li>See how your state is protecting your waters.</li>
-              </ul>
-
-              <h2>School</h2>
-
-              <ul>
-                <li>Adopt your watershed.</li>
-                <li>
-                  Teach students about watershed protection by showing the
-                  “After the Storm” television special and using other resources
-                  from EPA’s Watershed Academy.
-                </li>
+              <ul css={listStyles}>
                 <li>
                   <a
-                    href="https://www.epa.gov/schools"
+                    href="https://www.epa.gov/system/files/documents/2021-12/ws-outdoor-water-smart-landscapes.pdf"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Find other ways to make a difference in your school.
+                    Use water-smart landscaping (PDF)
                   </a>
+                  .
                 </li>
-              </ul>
-
-              <h2>Yard</h2>
-
-              <ul>
-                <li>
-                  <a
-                    href="https://www.epa.gov/nutrientpollution/what-you-can-do-your-yard"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Use fertilizer responsibly.
-                  </a>
-                </li>
-                <li>Don’t overwater gardens and yards.</li>
+                <ul>
+                  <li>
+                    Make sure your sprinklers water the lawn and garden – not
+                    the street or sidewalk.
+                  </li>
+                  <li>
+                    Water plants in the evening when it’s cooler to reduce
+                    evaporation.
+                  </li>
+                  <li>
+                    Adding{' '}
+                    <GlossaryTerm term="organic matter">
+                      organic matter
+                    </GlossaryTerm>{' '}
+                    or eco-friendly mulch helps soil retain moisture. This
+                    reduces the need for extra irrigation.
+                  </li>
+                </ul>
                 <li>
                   <a
                     href="https://www.epa.gov/watersense/what-plant"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Landscape with native plants.
+                    Plant water-efficient species within the hardiness zone for
+                    your area
                   </a>
+                  . These plants require less management and resources.
                 </li>
                 <li>
                   <a
@@ -1518,36 +1537,411 @@ function Protect() {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Reduce runoff.
+                    Reduce runoff and stormwater pollution
                   </a>
+                  .
                 </li>
+                <ul>
+                  <li>
+                    Learn about the danger of over-fertilization and use
+                    fertilizer responsibly. Consider using organic or
+                    slow-release fertilizer.
+                  </li>
+                  <li>
+                    Consider using{' '}
+                    <a
+                      href="https://www.epa.gov/green-infrastructure"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      green infrastructure
+                    </a>
+                    . For example, installing a{' '}
+                    <a
+                      href="https://www.epa.gov/soakuptherain/soak-rain-rain-gardens"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      rain garden
+                    </a>{' '}
+                    can collect and absorb runoff from rooftops, sidewalks, and
+                    streets.
+                  </li>
+                </ul>
                 <li>
+                  Create a{' '}
                   <a
-                    href="https://www.epa.gov/safepestcontrol/lawn-and-garden"
+                    href="https://www.epa.gov/recycle/composting-home"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Find other ways to make a difference in your yard.
+                    compost bin
+                  </a>{' '}
+                  to recycle yard and food waste. Compost can be used as a
+                  natural fertilizer and reduces land fill waste.
+                </li>
+                <li>
+                  Find other ways to{' '}
+                  <a
+                    href="https://www.epa.gov/nutrientpollution/what-you-can-do-your-yard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    make a difference in your yard
                   </a>
+                  .
                 </li>
               </ul>
 
-              <h2>Home</h2>
+              <h2>
+                <i css={subTitleStyles}>
+                  Conserve water and prevent pollutants from entering waterways
+                </i>
+              </h2>
 
-              <ul>
-                <li>Choose phosphate-free soaps and detergents.</li>
-                <li>Pick up after your pet.</li>
+              <ul css={listStyles}>
                 <li>
                   <a
-                    href="https://www.epa.gov/watersense"
+                    href="https://www.epa.gov/hw/household-hazardous-waste-hhw"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Use water efficiently.
+                    Dispose of potentially harmful materials properly
                   </a>
+                  .
+                </li>
+                <ul>
+                  <li>
+                    Do not pour oil, antifreeze, or other harmful chemicals into
+                    the storm drain or the street.
+                  </li>
+                  <li>
+                    Do not pour cleaners or other toxic household chemicals down
+                    the drain.
+                  </li>
+                </ul>
+                <li>Turn off the faucet when scrubbing dishes.</li>
+                <li>
+                  Turn off the faucet when you are washing your face or brushing
+                  your teeth.
+                </li>
+                <li>Fix any leaky faucets or toilets.</li>
+                <li>Only do laundry when you have a full load.</li>
+                <li>
+                  Use{' '}
+                  <a
+                    href="https://www.epa.gov/watersense/watersense-products"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    energy and water-efficient appliances
+                  </a>
+                  , such as dishwashers, laundry machines, and toilets.
+                </li>
+                <li>
+                  Consider reducing{' '}
+                  <GlossaryTerm term="impervious surfaces">
+                    impervious surfaces
+                  </GlossaryTerm>{' '}
+                  by{' '}
+                  <a
+                    href="https://www.epa.gov/soakuptherain/soak-rain-permeable-pavement"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    installing permeable pavement
+                  </a>
+                  , which can help to filter out pollutants and promote water
+                  infiltration.
+                </li>
+                <li>
+                  <a
+                    href="https://cfpub.epa.gov/npstbx/files/pet%20care%20fact%20sheet.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Pick up after your pet to prevent bacterial contamination in
+                    our waterways (PDF)
+                  </a>
+                  .
                 </li>
                 <li>Wash your car on your lawn or in commercial car washes.</li>
-                <li>Find other ways to make a difference in your home.</li>
+                <li>
+                  Find other ways to{' '}
+                  <a
+                    href="https://www.epa.gov/nutrientpollution/what-you-can-do-your-home"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    make a difference in your home
+                  </a>
+                  .
+                </li>
+              </ul>
+
+              <h2>
+                Community
+                <i css={subTitleStyles}>Get involved in your local watershed</i>
+              </h2>
+
+              <ul css={listStyles}>
+                <li>
+                  Volunteer at a{' '}
+                  <a
+                    href="https://www.rivernetwork.org/membership/map-who-is-protecting-your-water/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    watershed protection organization
+                  </a>{' '}
+                  near you or{' '}
+                  <a
+                    href="https://www.sourcewatercollaborative.org/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    consider starting one
+                  </a>
+                  !
+                  <a
+                    className="exit-disclaimer"
+                    href="https://www.epa.gov/home/exit-epa"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    EXIT
+                  </a>
+                </li>
+                <li>
+                  Look online for community events near you. Attend a beach,
+                  stream, wetland, or neighborhood clean-up or a tree-planting.
+                </li>
+                <li>
+                  Join the{' '}
+                  <a
+                    href="https://www.epa.gov/awma/volunteer-monitoring"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Volunteer Monitoring Community
+                  </a>{' '}
+                  to get involved in events and efforts near you.
+                </li>
+                <li>
+                  Get involved in{' '}
+                  <a
+                    href="https://www.epa.gov/participatory-science/resources-participatory-science-projects"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Participatory Science Projects and citizen science
+                  </a>{' '}
+                  events.
+                </li>
+                <li>
+                  Find a{' '}
+                  <a
+                    href="https://www.rivernetwork.org/membership/map-who-is-protecting-your-water"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    watershed protection organization
+                  </a>{' '}
+                  <a
+                    className="exit-disclaimer"
+                    href="https://www.epa.gov/home/exit-epa"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    EXIT
+                  </a>
+                  to support and get involved with.
+                </li>
+                <li>
+                  Find other ways to{' '}
+                  <a
+                    href="https://www.epa.gov/nutrientpollution/what-you-can-do-your-community"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    make a difference in your community
+                  </a>
+                  .
+                </li>
+              </ul>
+
+              <h2>
+                <i css={subTitleStyles}>School and Work</i>
+              </h2>
+
+              <ul css={listStyles}>
+                <li>
+                  Host a campus clean-up to remove litter and trash around your
+                  school.
+                </li>
+                <li>
+                  Join or start an environmental club at your school and
+                  incorporate water protection activities around campus.
+                </li>
+                <li>
+                  Consider walking, biking, or taking the bus to school and work
+                  – many pollutants in our water come from vehicle exhaust and
+                  leakage.
+                </li>
+                <li>
+                  Start a school garden to learn more about water conservation
+                  (and enjoy some fresh fruits and vegetables, too).
+                </li>
+                <li>
+                  Visit the USGS{' '}
+                  <a
+                    href="https://www.usgs.gov/special-topics/water-science-school"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Water Science School
+                  </a>{' '}
+                  <a
+                    className="exit-disclaimer"
+                    href="https://www.epa.gov/home/exit-epa"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    EXIT
+                  </a>
+                  for learning resources, tools, and more.
+                </li>
+                <li>
+                  Visit EPA’s{' '}
+                  <a
+                    href="https://www.epa.gov/watershedacademy/kids-corner"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Watershed Academy
+                  </a>{' '}
+                  for classroom resources and activities!
+                </li>
+                <li>
+                  Find more ways to{' '}
+                  <a
+                    href="https://www.epa.gov/schools"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    improve the health of your school
+                  </a>{' '}
+                  environment.
+                </li>
+                <li>
+                  Incorporate more{' '}
+                  <a
+                    href="https://www3.epa.gov/region1/eco/drinkwater/water_conservation_biz.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    sustainable practices in your business
+                  </a>
+                  .
+                </li>
+                <li>
+                  Find other ways to{' '}
+                  <a
+                    href="https://www.epa.gov/nutrientpollution/what-you-can-do-your-classroom"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    make a difference in your classroom
+                  </a>
+                  .
+                </li>
+              </ul>
+
+              <h2>For more information and tips, visit the following sites:</h2>
+
+              <ul css={listStyles}>
+                <li>
+                  Visit EPA’s{' '}
+                  <a
+                    href="https://www.epa.gov/watershedacademy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Watershed Academy
+                  </a>{' '}
+                  to view webcasts and complete learning modules.
+                </li>
+                <li>
+                  Learn what{' '}
+                  <a
+                    href="https://www.epa.gov/aboutepa/epa-your-state"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    EPA is doing in your state
+                  </a>{' '}
+                  to protect your waters.
+                </li>
+                <li>
+                  Learn more about{' '}
+                  <a
+                    href="https://www.epa.gov/nps/basic-information-about-nonpoint-source-nps-pollution"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    nonpoint source pollution
+                  </a>
+                  .
+                </li>
+                <li>
+                  <a
+                    href="https://www.epa.gov/watersense/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    WaterSense
+                  </a>
+                  : a label for water-efficient products and a resource for
+                  helping you save water
+                </li>
+                <li>
+                  <a
+                    href="https://www.epa.gov/sites/default/files/2017-03/documents/ws-ideas-for-communities.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Using Water Efficiently: Ideas for Communities (PDF)
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://www.epa.gov/sites/default/files/2017-03/documents/ws-ideas-for-residences.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Using Water Efficiently: Ideas for Residences (PDF)
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://www.epa.gov/p2/pollution-prevention-tips-water-conservation"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Pollution Prevention Tips for Water Conservation
+                  </a>
+                </li>
+                <li>
+                  Incorporate more{' '}
+                  <a
+                    href="https://www.epa.gov/environmental-topics/greener-living"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    sustainable practices in your daily life
+                  </a>
+                  .
+                </li>
               </ul>
             </TabPanel>
           </TabPanels>

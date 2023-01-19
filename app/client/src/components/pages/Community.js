@@ -3,7 +3,7 @@
 import React, { useContext, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { css } from 'styled-components/macro';
-import WindowSize from '@reach/window-size';
+import { WindowSize } from '@reach/window-size';
 // components
 import Page from 'components/shared/Page';
 import TabLinks from 'components/shared/TabLinks';

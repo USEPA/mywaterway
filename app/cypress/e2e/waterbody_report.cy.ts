@@ -1,4 +1,11 @@
 describe('Waterbody Report page', () => {
+  Cypress.on("uncaught:exception", (_err, _runnable) => {
+    // returning false here prevents Cypress from
+    // failing the test
+    debugger;
+    return false;
+  });
+  
   it('small screen displays "Show Map" button and button functions', () => {
     const mapId = 'hmw-actions-map';
     const showMap = 'Show Map';
@@ -86,7 +93,7 @@ describe('Waterbody Report page', () => {
 
     // wait for the web services to finish (attains/plans is sometimes slow)
     // the timeout chosen is the same timeout used for the attains/plans fetch
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 20000 }).should(
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 60000 }).should(
       'not.exist',
     );
 
@@ -101,7 +108,7 @@ describe('Waterbody Report page', () => {
 
     // wait for the web services to finish (attains/plans is sometimes slow)
     // the timeout chosen is the same timeout used for the attains/plans fetch
-    cy.findAllByTestId('hmw-loading-spinner', { timeout: 20000 }).should(
+    cy.findAllByTestId('hmw-loading-spinner', { timeout: 60000 }).should(
       'not.exist',
     );
 

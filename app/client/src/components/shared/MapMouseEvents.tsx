@@ -18,7 +18,7 @@ import { useDynamicPopup } from 'utils/hooks';
 import type {
   MonitoringFeatureUpdate,
   MonitoringFeatureUpdates,
-  Layer,
+  ExtendedLayer,
 } from 'types';
 
 // --- types ---
@@ -56,10 +56,10 @@ function getGraphicsFromResponse(
   if (!res.results || res.results.length === 0) return null;
 
   const matches = res.results.filter((result) => {
-    if(result.type !== 'graphic') return null;
+    if (result.type !== 'graphic') return null;
 
     const { attributes: attr } = result.graphic;
-    const layer = result.graphic.layer as Layer;
+    const layer = result.graphic.layer as ExtendedLayer;
     // ignore huc 12 boundaries, map-marker, highlight and provider graphics
     const excludedLayers = [
       'stateBoundariesLayer',
@@ -74,10 +74,14 @@ function getGraphicsFromResponse(
     if (!result.graphic.layer?.id) return null;
     if (attr.name && excludedLayers.indexOf(attr.name) !== -1) return null;
     if (excludedLayers.indexOf(layer.id) !== -1) return null;
-    if (layer.parent && excludedLayers.indexOf(layer.parent.id) !== -1) {
+    if (
+      layer.parent &&
+      'id' in layer.parent &&
+      excludedLayers.indexOf(layer.parent.id) !== -1
+    ) {
       return null;
     }
-    if (!result.graphic.popupTemplate && !layer.popupTemplate) {
+    if (!result.graphic.popupTemplate && !('popupTemplate' in layer)) {
       return null;
     }
 
@@ -101,13 +105,17 @@ function getGraphicFromResponse(
 function prioritizePopup(graphics: __esri.Graphic[] | null) {
   graphics?.sort((a, b) => {
     if (a.attributes.assessmentunitname) return -1;
-    else if (a.layer.id === 'monitoringLocationsLayer') {
+    else if (
+      a.layer.id === 'monitoringLocationsLayer' ||
+      a.layer.id === 'surroundingMonitoringLocationsLayer'
+    ) {
       if (b.attributes.assessmentunitname) return 1;
       return -1;
     } else if (a.attributes.TRIBE_NAME) {
       if (
         b.attributes.assessmentunitname ||
-        b.layer.id === 'monitoringLocationsLayer'
+        b.layer.id === 'monitoringLocationsLayer' ||
+        b.layer.id === 'surroundingMonitoringLocationsLayer'
       )
         return 1;
       return -1;
@@ -173,12 +181,13 @@ function MapMouseEvents({ view }: Props) {
     monitoringLocationsLayer,
     resetData,
     protectedAreasLayer,
+    surroundingMonitoringLocationsLayer,
   } = useContext(LocationSearchContext);
 
   const getDynamicPopup = useDynamicPopup();
   const onTribePage = window.location.pathname.startsWith('/tribe/');
   const onMonitoringPanel = window.location.pathname.endsWith('/monitoring');
-  if(onTribePage || onMonitoringPanel) view.popup.autoOpenEnabled = false;
+  if (onTribePage || onMonitoringPanel) view.popup.autoOpenEnabled = false;
   else view.popup.autoOpenEnabled = true;
 
   // reference to a dictionary of date-filtered updates
@@ -206,21 +215,11 @@ function MapMouseEvents({ view }: Props) {
         .hitTest(event)
         .then((res: __esri.HitTestResult) => {
           // get and update the selected graphic
-          const extraLayersToIgnore = [
-            'selectedTribeLayer',
-          ];
+          const extraLayersToIgnore = ['selectedTribeLayer'];
           const graphics = getGraphicsFromResponse(res, extraLayersToIgnore);
           const graphic = graphics?.length ? graphics[0] : null;
 
           if (graphic && graphic.attributes) {
-            // if upstream watershed is clicked:
-            // set the view highlight options to 0 fill opacity
-            if (graphic.layer.id === 'upstreamWatershed') {
-              view.highlightOptions.fillOpacity = 0;
-            } else {
-              view.highlightOptions.fillOpacity = 1;
-            }
-
             if (
               graphic.layer.id === 'monitoringLocationsLayer' &&
               graphic.isAggregate
@@ -228,6 +227,15 @@ function MapMouseEvents({ view }: Props) {
               monitoringLocationsLayer.featureReduction = null;
               return;
             }
+
+            if (
+              graphic.layer.id === 'surroundingMonitoringLocationsLayer' &&
+              graphic.isAggregate
+            ) {
+              surroundingMonitoringLocationsLayer.featureReduction = null;
+              return;
+            }
+
             updateGraphics(graphics, updates?.current);
             if (onTribePage) prioritizePopup(graphics);
             setSelectedGraphic(graphic);
@@ -254,7 +262,8 @@ function MapMouseEvents({ view }: Props) {
               geometry: location,
               outFields: ['*'],
             };
-            query.executeQueryJSON(services.data.wbd, queryParams)
+            query
+              .executeQueryJSON(services.data.wbd, queryParams)
               .then((boundaries) => {
                 if (boundaries.features.length === 0) return;
 
@@ -275,7 +284,6 @@ function MapMouseEvents({ view }: Props) {
                         attributes: {
                           changelocationpopup: 'changelocationpopup',
                         },
-                        view: view,
                       },
                       getClickedHuc: Promise.resolve({
                         status: 'success',
@@ -301,7 +309,8 @@ function MapMouseEvents({ view }: Props) {
                     geometry: location,
                     outFields: ['*'],
                   };
-                  query.executeQueryJSON(url, queryPadUs)
+                  query
+                    .executeQueryJSON(url, queryPadUs)
                     .then((padRes) => {
                       if (padRes.features.length === 0) {
                         // user did not click on a protected area, open the popup
@@ -323,10 +332,11 @@ function MapMouseEvents({ view }: Props) {
       getHucBoundaries,
       monitoringLocationsLayer,
       navigate,
-      setSelectedGraphic,
-      services,
       protectedAreasLayer,
       resetData,
+      services,
+      setSelectedGraphic,
+      surroundingMonitoringLocationsLayer,
     ],
   );
 
@@ -354,18 +364,11 @@ function MapMouseEvents({ view }: Props) {
           lastEventId = event.eventId;
 
           // get the graphic from the hittest
-          const extraLayersToIgnore = ['allWaterbodiesLayer'];
+          const extraLayersToIgnore = [
+            'allWaterbodiesLayer',
+            'surroundingMonitoringLocationsLayer',
+          ];
           let feature = getGraphicFromResponse(res, extraLayersToIgnore);
-
-          // if any feature besides the upstream watershed is moused over:
-          // set the view's highlight fill opacity back to 1
-          if (
-            feature?.layer?.id !== 'upstreamWatershed' &&
-            view.highlightOptions.fillOpacity !== 1 &&
-            !view.popup.visible // if popup is not visible then the upstream layer isn't currently selected
-          ) {
-            view.highlightOptions.fillOpacity = 1;
-          }
 
           // ensure the graphic actually changed prior to setting the context variable
           const equal = graphicComparison(feature, lastFeature);
@@ -384,15 +387,6 @@ function MapMouseEvents({ view }: Props) {
 
     view.on('pointer-move', (event: PointerMoveEvent) => {
       handleMapMouseOver(event, view);
-    });
-
-    view.popup.watch('selectedFeature', (graphic: __esri.Graphic) => {
-      // set the view highlight options to 0 fill opacity if upstream watershed is selected
-      if (graphic?.layer?.id === 'upstreamWatershed') {
-        view.highlightOptions.fillOpacity = 0;
-      } else {
-        view.highlightOptions.fillOpacity = 1;
-      }
     });
 
     // auto expands the popup when it is first opened
@@ -426,11 +420,22 @@ function MapMouseEvents({ view }: Props) {
 
   // restores cluster settings on change of location
   useEffect(() => {
+    if (
+      surroundingMonitoringLocationsLayer &&
+      !surroundingMonitoringLocationsLayer.featureReduction
+    ) {
+      surroundingMonitoringLocationsLayer.featureReduction =
+        monitoringClusterSettings;
+    }
     if (!locationCount || locationCount <= 20) return;
     if (!monitoringLocationsLayer || monitoringLocationsLayer.featureReduction)
       return;
     monitoringLocationsLayer.featureReduction = monitoringClusterSettings;
-  }, [locationCount, monitoringLocationsLayer]);
+  }, [
+    locationCount,
+    monitoringLocationsLayer,
+    surroundingMonitoringLocationsLayer,
+  ]);
 
   // sets an event listener on the home widget, and
   // restores cluster settings if clicked
@@ -444,21 +449,35 @@ function MapMouseEvents({ view }: Props) {
   }, [homeClickHandler]);
 
   useEffect(() => {
-    if (!locationCount || locationCount <= 20) return;
-    if (!homeWidget || !monitoringLocationsLayer) return;
+    if (!homeWidget) return;
     const handler: IHandle = homeWidget.on('go', (_ev: any) => {
       if (
-        !monitoringLocationsLayer ||
-        monitoringLocationsLayer.featureReduction
-      )
-        return;
-      monitoringLocationsLayer.featureReduction = monitoringClusterSettings;
+        monitoringLocationsLayer &&
+        !monitoringLocationsLayer.featureReduction &&
+        locationCount &&
+        locationCount > 20
+      ) {
+        monitoringLocationsLayer.featureReduction = monitoringClusterSettings;
+      }
+
+      if (
+        surroundingMonitoringLocationsLayer &&
+        !surroundingMonitoringLocationsLayer.featureReduction
+      ) {
+        surroundingMonitoringLocationsLayer.featureReduction =
+          monitoringClusterSettings;
+      }
     });
     setHomeClickHandler(handler);
     return function cleanup() {
       setHomeClickHandler(null);
     };
-  }, [locationCount, monitoringLocationsLayer, homeWidget]);
+  }, [
+    homeWidget,
+    locationCount,
+    monitoringLocationsLayer,
+    surroundingMonitoringLocationsLayer,
+  ]);
 
   return null;
 }

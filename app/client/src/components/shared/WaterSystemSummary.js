@@ -5,7 +5,8 @@ import { css } from 'styled-components/macro';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import highchartsAccessibility from 'highcharts/modules/accessibility';
-import WindowSize from '@reach/window-size';
+import highchartsExporting from 'highcharts/modules/exporting';
+import { WindowSize } from '@reach/window-size';
 // components
 import { GlossaryTerm } from 'components/shared/GlossaryPanel';
 import LoadingSpinner from 'components/shared/LoadingSpinner';
@@ -14,12 +15,23 @@ import { errorBoxStyles } from 'components/shared/MessageBoxes';
 import { useServicesContext } from 'contexts/LookupFiles';
 // helpers
 import { fetchCheck } from 'utils/fetchUtils';
-import { formatNumber } from 'utils/utils';
+import {
+  formatNumber,
+  isAbort,
+  removeAccessibiltyHcSvgExport,
+} from 'utils/utils';
+import { useAbortSignal } from 'utils/hooks';
 // errors
 import { grpaError } from 'config/errorMessages';
 
+// add exporting features to highcharts
+highchartsExporting(Highcharts);
+
 // add accessibility features to highcharts
 highchartsAccessibility(Highcharts);
+
+// Workaround for the Download SVG not working with the accessibility module.
+removeAccessibiltyHcSvgExport();
 
 function formatValue(value: ?string) {
   return value ? formatNumber(value) : '';
@@ -104,6 +116,7 @@ type Props = {
 
 function WaterSystemSummary({ state }: Props) {
   const services = useServicesContext();
+  const abortSignal = useAbortSignal();
 
   const [lastCountsCode, setLastCountsCode] = useState(null);
   const [systemTypeRes, setSystemTypeRes] = useState({
@@ -127,6 +140,7 @@ function WaterSystemSummary({ state }: Props) {
 
     fetchCheck(
       `${services.data.dwmaps.getGPRASystemCountsByType}${state.value}`,
+      abortSignal,
     )
       .then((res) => {
         if (!res || !res.items || res.items.length === 0) {
@@ -173,6 +187,7 @@ function WaterSystemSummary({ state }: Props) {
         });
       })
       .catch((err) => {
+        if (isAbort(err)) return;
         console.error(err);
         setSystemTypeRes({
           status: 'failure',
@@ -183,7 +198,7 @@ function WaterSystemSummary({ state }: Props) {
           },
         });
       });
-  }, [state, services, lastCountsCode]);
+  }, [abortSignal, state, services, lastCountsCode]);
 
   // fetch GPRA data
   const [lastSummaryCode, setLastSummaryCode] = useState(null);
@@ -203,15 +218,21 @@ function WaterSystemSummary({ state }: Props) {
 
     setLastSummaryCode(state.value);
 
-    fetchCheck(`${services.data.dwmaps.getGPRASummary}${state.value}`)
+    fetchCheck(
+      `${services.data.dwmaps.getGPRASummary}${state.value}`,
+      abortSignal,
+    )
       .then((res) =>
         setGpraData({
           status: 'success',
           data: res.items.length > 0 ? res.items[0] : null,
         }),
       )
-      .catch((err) => setGpraData({ status: 'failure', data: {} }));
-  }, [state, services, lastSummaryCode]);
+      .catch((err) => {
+        if (isAbort(err)) return;
+        setGpraData({ status: 'failure', data: {} });
+      });
+  }, [abortSignal, state, services, lastSummaryCode]);
 
   return (
     <>
@@ -260,6 +281,43 @@ function WaterSystemSummary({ state }: Props) {
                 plotBorderWidth: null,
                 plotShadow: false,
                 type: 'pie',
+              },
+              exporting: {
+                buttons: {
+                  contextButton: {
+                    menuItems: [
+                      'downloadPNG',
+                      'downloadJPEG',
+                      'downloadPDF',
+                      'downloadSVG',
+                    ],
+                    theme: {
+                      fill: 'rgba(0, 0, 0, 0)',
+                      states: {
+                        hover: {
+                          fill: 'rgba(0, 0, 0, 0)',
+                        },
+                        select: {
+                          fill: 'rgba(0, 0, 0, 0)',
+                          stroke: '#666666',
+                        },
+                      },
+                    },
+                  },
+                },
+                chartOptions: {
+                  plotOptions: {
+                    series: {
+                      dataLabels: {
+                        enabled: true,
+                      },
+                    },
+                  },
+                },
+                filename: `${state.label.replaceAll(
+                  ' ',
+                  '_',
+                )}_Drinking_Water_Systems`,
               },
               tooltip: {
                 formatter: function () {

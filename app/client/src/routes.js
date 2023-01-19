@@ -74,23 +74,19 @@ function AppRoutes() {
           <Route path=":urlSearch" element={<CommunityTabs />} />
           <Route path=":urlSearch/:tabName" element={<CommunityTabs />} />
         </Route>
-        {/* TODO-Tribal - Uncomment the below lines */}
-        {/* <Route path="/state-and-tribal" element={<StateTribal />}>
+        <Route path="/state-and-tribal" element={<StateTribal />}>
           <Route index element={<StateTribalIntro />} />
-        </Route> */}
+        </Route>
         <Route path="/state" element={<StateTribal />}>
-          {/* TODO-Tribal - Remove the next line */}
-          <Route index element={<StateTribalIntro />} />
           <Route path="/state/:stateCode" element={<StateTribalTabs />} />
           <Route
             path="/state/:stateCode/:tabName"
             element={<StateTribalTabs />}
           />
         </Route>
-        {/* TODO-Tribal - Uncomment the below lines */}
-        {/* <Route path="/tribe" element={<StateTribal />}>
+        <Route path="/tribe" element={<StateTribal />}>
           <Route path="/tribe/:stateCode" element={<StateTribalTabs />} />
-        </Route> */}
+        </Route>
         <Route path="/national" element={<National />} />
         <Route path="/drinking-water" element={<DrinkingWater />} />
         <Route path="/swimming" element={<Swimming />} />
